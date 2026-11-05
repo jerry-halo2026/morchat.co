@@ -1,0 +1,9 @@
+.env.local
+.env.*.local
+node_modules/
+dist/
+*.log
+.DS_Store
+packages/qianchuan-sync/data/raw/
+packages/qianchuan-sync/data/state/crawl-backfill.log
+.mimosa/
