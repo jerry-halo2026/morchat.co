@@ -1,0 +1,223 @@
+{
+ "code": 0,
+ "message": "OK",
+ "request_id": "20261106133329FAE35A5ED3964007B60F",
+ "data": {
+  "authorization_infos": [
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_852c4db1c3c6b11b5610d79275d5012e~c5_168x168.webp?from=3782654143",
+    "aweme_id": 835265485609752,
+    "aweme_name": "小尹有好茶",
+    "aweme_show_id": "yinxierrrr",
+    "create_time": "2025-01-08 17:57:53",
+    "end_time": "2025-07-06 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2025-01-08 17:57:53"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_d88834078bbcd435e8f994fe4fa6c1a3~c5_168x168.webp?from=3782654143",
+    "aweme_id": 3965311660326937,
+    "aweme_name": "小尹有好茶【爆款茶叶】",
+    "aweme_show_id": "79438996308",
+    "create_time": "2024-12-26 19:28:21",
+    "end_time": "2036-01-31 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-12-26 19:28:21"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_e9dedd2696ab1a805a2d683f4f1b95da~c5_168x168.webp?from=3782654143",
+    "aweme_id": 1085970409339431,
+    "aweme_name": "李陌茶【奶茶臻选】",
+    "aweme_show_id": "21239537170",
+    "create_time": "2024-12-05 19:54:59",
+    "end_time": "2025-12-04 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-12-05 19:54:59"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_e4a292f0a6c539d8a523245e48464a02~c5_168x168.webp?from=3782654143",
+    "aweme_id": 2241275039067363,
+    "aweme_name": "小尹有好茶（直播返场）",
+    "aweme_show_id": "27758061955",
+    "create_time": "2024-12-05 19:54:06",
+    "end_time": "2025-12-04 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-12-05 19:54:06"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/aweme_default_avatar.png~c5_168x168.webp?from=3782654143",
+    "aweme_id": 1348439813926688,
+    "aweme_name": "用户8192514397635",
+    "aweme_show_id": "98762262076",
+    "create_time": "2024-12-05 19:53:40",
+    "end_time": "2025-12-04 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-12-05 19:53:40"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-i-0813c000-ce_osOSunEnEhQoCi7BAM3PgAmiAhaI4iIiDkPAA~c5_168x168.webp?from=3782654143",
+    "aweme_id": 974607160975619,
+    "aweme_name": "李陌茶【爆款促销】",
+    "aweme_show_id": "73863971365",
+    "create_time": "2024-12-02 19:04:33",
+    "end_time": "2025-07-31 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-12-02 19:04:33"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_0f7f9315e5e1a08e709e552245059203~c5_168x168.webp?from=3782654143",
+    "aweme_id": 386621550370190,
+    "aweme_name": "屈屈有好茶",
+    "aweme_show_id": "chawurensheng88",
+    "create_time": "2024-10-29 14:35:37",
+    "end_time": "2025-10-28 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-10-29 14:35:36"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/aweme_default_avatar.png~c5_168x168.webp?from=3782654143",
+    "aweme_id": 2157720674775547,
+    "aweme_name": "用户0401360438110",
+    "aweme_show_id": "94520129522",
+    "create_time": "2024-08-09 15:14:03",
+    "end_time": "2025-02-04 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-08-09 15:14:02"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_9b7769c7aca9050d8f12e897ffb7324d~c5_168x168.webp?from=3782654143",
+    "aweme_id": 211527494806287,
+    "aweme_name": "剧记忆",
+    "aweme_show_id": "86327298801",
+    "create_time": "2024-08-08 13:26:23",
+    "end_time": "2025-02-03 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-08-08 13:26:23"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_0081241ed5a95aa75cb3234b7e6cfdf8~c5_168x168.webp?from=3782654143",
+    "aweme_id": 98017992695,
+    "aweme_name": "wuming",
+    "aweme_show_id": "1939842855",
+    "create_time": "2024-08-08 13:22:43",
+    "end_time": "2025-02-03 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-08-08 13:22:43"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_a7c856af1548011f759e0acd51dc5f4c~c5_168x168.webp?from=3782654143",
+    "aweme_id": 974606832501264,
+    "aweme_name": "屈屈-以茶会友",
+    "aweme_show_id": "73535497010",
+    "create_time": "2024-08-06 09:45:21",
+    "end_time": "2025-02-01 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-08-06 09:45:20"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_ed6e40e65d1a1170f3a43b2e1dd164a3~c5_168x168.webp?from=3782654143",
+    "aweme_id": 73801099480,
+    "aweme_name": "肥崽",
+    "aweme_show_id": "110647850",
+    "create_time": "2024-08-04 20:48:34",
+    "end_time": "2025-02-03 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-08-04 20:48:33"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EFFECTIVE",
+    "auth_type": [
+     "AWEME_COOPERATOR"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_2dde3962e152b309db9932ce1d2299c1~c5_168x168.webp?from=3782654143",
+    "aweme_id": 2804184980140986,
+    "aweme_name": "汉青",
+    "aweme_show_id": "94083753442",
+    "create_time": "2024-11-06 20:38:47",
+    "end_time": "2027-01-07 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-11-06 20:38:47"
+   }
+  ],
+  "page_info": {
+   "page": 1,
+   "page_size": 50,
+   "total_num": 13,
+   "total_page": 1
+  }
+ }
+}

@@ -1,0 +1,79 @@
+{
+ "code": 0,
+ "message": "OK",
+ "request_id": "202611061334325F7851E60DE6DE9AF657",
+ "data": {
+  "authorization_infos": [
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "AWEME_COOPERATOR"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-i-0813_ooEaFgZAiPOiViBIAxKagPAAnIXHA2TCb9DAg~c5_168x168.webp?from=3782654143",
+    "aweme_id": 3090106787304832,
+    "aweme_name": "卡卡吃不胖",
+    "aweme_show_id": "93229399511",
+    "create_time": "2026-05-13 14:57:28",
+    "end_time": "2026-11-08 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2026-05-13 14:57:28"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EFFECTIVE",
+    "auth_type": [
+     "AWEME_COOPERATOR"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_5bb5dae5983a4e1309a9913588d76104~c5_168x168.webp?from=3782654143",
+    "aweme_id": 4391923783053411,
+    "aweme_name": "每天8杯水",
+    "aweme_show_id": "57996359471",
+    "create_time": "2026-05-13 14:54:46",
+    "end_time": "2026-11-08 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2026-05-13 14:54:46"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "AWEME_COOPERATOR"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_5bb5dae5983a4e1309a9913588d76104~c5_168x168.webp?from=3782654143",
+    "aweme_id": 4391923783053411,
+    "aweme_name": "每天8杯水",
+    "aweme_show_id": "57996359471",
+    "create_time": "2026-05-13 14:42:43",
+    "end_time": "2026-11-08 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2026-05-13 14:42:43"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "AWEME_COOPERATOR"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-i-0813_ooEaFgZAiPOiViBIAxKagPAAnIXHA2TCb9DAg~c5_168x168.webp?from=3782654143",
+    "aweme_id": 3090106787304832,
+    "aweme_name": "卡卡吃不胖",
+    "aweme_show_id": "93229399511",
+    "create_time": "2026-05-13 14:41:10",
+    "end_time": "2026-11-08 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2026-05-13 14:41:10"
+   }
+  ],
+  "page_info": {
+   "page": 1,
+   "page_size": 50,
+   "total_num": 4,
+   "total_page": 1
+  }
+ }
+}

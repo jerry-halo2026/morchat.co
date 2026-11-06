@@ -1,0 +1,47 @@
+{
+ "code": 0,
+ "message": "OK",
+ "request_id": "202611061333361EA84FED556BA7091C91",
+ "data": {
+  "authorization_infos": [
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EFFECTIVE",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_e031e88ad6e97582a2db70404997ce96~c5_168x168.webp?from=3782654143",
+    "aweme_id": 66431360595,
+    "aweme_name": "李陌茶研选",
+    "aweme_show_id": "59594306",
+    "create_time": "2026-10-26 17:00:45",
+    "end_time": "2027-04-23 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2026-10-26 17:00:45"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EFFECTIVE",
+    "auth_type": [
+     "AWEME_COOPERATOR"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_acb21707f3204df6001e5595b52b2c2f~c5_168x168.webp?from=3782654143",
+    "aweme_id": 7669307537372579000,
+    "aweme_name": "小咖秀茶膏好茶甄选",
+    "aweme_show_id": "59363854544",
+    "create_time": "2026-08-16 11:39:09",
+    "end_time": "2027-02-11 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2026-08-16 11:39:09"
+   }
+  ],
+  "page_info": {
+   "page": 1,
+   "page_size": 50,
+   "total_num": 2,
+   "total_page": 1
+  }
+ }
+}

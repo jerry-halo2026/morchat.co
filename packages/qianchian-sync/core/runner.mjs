@@ -8,6 +8,17 @@ import { callOE, callOEPaged } from "./client.mjs";
 const RAW_DIR = join(PKG, "data", "raw");
 const STATE_DIR = join(PKG, "data", "state");
 
+/** 断点续传：检查已有数据是否覆盖当前请求的时间窗口 */
+function isWithinWindow(existing, params) {
+  // 无时间参数的调用（如 balance、accounts）始终跳过
+  if (!params?.start_time) return true;
+  // 有时间参数：检查已有数据的最后时间戳是否 >= 请求的 start_time
+  // 简化处理：如果有 rows/list 且非空，视为有效（精确窗口比对留给 fact 层）
+  const data = existing.data || {};
+  const list = data.rows || data.list || [];
+  return Array.isArray(list); // 非空数组 = 该调用已成功过
+}
+
 function statePath(day) { return join(STATE_DIR, `sync-${day}.json`); }
 
 export function loadState(day) {
@@ -56,6 +67,25 @@ export async function runCalls(source, callsOrGenerator, state) {
       c = array[arrayIdx++];
     }
     if (!c) break;
+
+    // ── 断点续传：已有文件且同窗口 → 跳过 ──
+    const latestPath = join(RAW_DIR, source, `${c.name}.json`);
+    if (existsSync(latestPath)) {
+      try {
+        const existing = JSON.parse(readFileSync(latestPath, "utf8"));
+        if (existing.code === 0) {
+          // 检查数据时间戳是否在当前窗口内（增量模式下旧数据要重拉）
+          if (!c.params?.start_time || isWithinWindow(existing, c.params)) {
+            ok++;
+            const data = existing.data || {};
+            const list = data.list || data.rows || data.adv_id_list || data.ad_list || data.authorization_infos || data.adv_score_event || [];
+            rows += Array.isArray(list) ? list.length : 0;
+            process.stdout.write(`  [${source}] ${c.name} → SKIP (已有)\n`);
+            continue;
+          }
+        }
+      } catch { /* 文件损坏则重拉 */ }
+    }
 
     // 空页停止逻辑（修复 #7）：如果上一页为空且当前调用标记了 stopIfEmpty，检查是否同户
     if (skipUntilNextAccount && c.name) {

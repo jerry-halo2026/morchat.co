@@ -1,7 +1,7 @@
 {
  "code": 0,
  "message": "OK",
- "request_id": "20261106133303FCA27EDCAD2A339A2591",
+ "request_id": "20261106133400599069451F32C30C06D8",
  "data": {
   "authorization_infos": [
    {
@@ -43,7 +43,7 @@
     "auth_type": [
      "AWEME_COOPERATOR"
     ],
-    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-i-0813c001_ocJSwS0gEgPiCi2BAIGP3AbiAvZ7EkII5DvAA~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-i-0813c001_ocJSwS0gEgPiCi2BAIGP3AbiAvZ7EkII5DvAA~c5_168x168.webp?from=3782654143",
     "aweme_id": 606556156335335,
     "aweme_name": "屈屈有好茶小号",
     "aweme_show_id": "jingxinshuda32",
@@ -75,7 +75,7 @@
     "auth_type": [
      "AWEME_COOPERATOR"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_49794d871db57e1394e0c9fc695bb7fa~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_49794d871db57e1394e0c9fc695bb7fa~c5_168x168.webp?from=3782654143",
     "aweme_id": 3641200019779437,
     "aweme_name": "庆余生银饰店",
     "aweme_show_id": "Zevv0432",
@@ -107,7 +107,7 @@
     "auth_type": [
      "AWEME_COOPERATOR"
     ],
-    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/aweme_default_avatar.png~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/aweme_default_avatar.png~c5_168x168.webp?from=3782654143",
     "aweme_id": 2157720674775547,
     "aweme_name": "用户0401360438110",
     "aweme_show_id": "94520129522",

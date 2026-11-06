@@ -1,0 +1,14 @@
+{
+ "code": 0,
+ "message": "OK",
+ "request_id": "202611061333492D5FB6D13B4BA7678C23",
+ "data": {
+  "authorization_infos": [],
+  "page_info": {
+   "page": 2,
+   "page_size": 50,
+   "total_num": 12,
+   "total_page": 1
+  }
+ }
+}

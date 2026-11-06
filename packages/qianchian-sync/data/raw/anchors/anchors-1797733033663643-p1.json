@@ -1,0 +1,95 @@
+{
+ "code": 0,
+ "message": "OK",
+ "request_id": "20261106133409F7AD088C8C7BA29BCD48",
+ "data": {
+  "authorization_infos": [
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_7ccfa570eb205be8a94ad691bccd7e59~c5_168x168.webp?from=3782654143",
+    "aweme_id": 566995773818103,
+    "aweme_name": "康康茶庄",
+    "aweme_show_id": "66116348443",
+    "create_time": "2025-01-08 15:59:54",
+    "end_time": "2027-02-25 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2025-01-08 15:59:54"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_3cb32b26a8b037813500e2d91110894d~c5_168x168.webp?from=3782654143",
+    "aweme_id": 73021903709,
+    "aweme_name": "屈屈有好茶滋补茶",
+    "aweme_show_id": "93021903709",
+    "create_time": "2024-12-23 16:03:14",
+    "end_time": "2025-12-31 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-12-23 16:03:14"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_0f7f9315e5e1a08e709e552245059203~c5_168x168.webp?from=3782654143",
+    "aweme_id": 386621550370190,
+    "aweme_name": "屈屈有好茶",
+    "aweme_show_id": "chawurensheng88",
+    "create_time": "2024-12-20 19:38:18",
+    "end_time": "2025-12-19 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-12-20 19:38:17"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_852c4db1c3c6b11b5610d79275d5012e~c5_168x168.webp?from=3782654143",
+    "aweme_id": 835265485609752,
+    "aweme_name": "小尹有好茶",
+    "aweme_show_id": "yinxierrrr",
+    "create_time": "2024-12-10 20:04:10",
+    "end_time": "2026-03-31 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-12-10 20:04:10"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_b07069e58ea64b86e09eeacfa37d336c~c5_168x168.webp?from=3782654143",
+    "aweme_id": 870435004886184,
+    "aweme_name": "李陌茶官方旗舰店",
+    "aweme_show_id": "dazbzhi",
+    "create_time": "2024-04-30 16:31:17",
+    "end_time": "2025-04-29 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-04-30 16:31:17"
+   }
+  ],
+  "page_info": {
+   "page": 1,
+   "page_size": 50,
+   "total_num": 5,
+   "total_page": 1
+  }
+ }
+}

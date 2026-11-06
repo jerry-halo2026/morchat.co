@@ -1,0 +1,79 @@
+{
+ "code": 0,
+ "message": "OK",
+ "request_id": "2026110613343107F5A26C5C2A109B5FFA",
+ "data": {
+  "authorization_infos": [
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_29c01d6de45d9e8f6965f713204b72c7~c5_168x168.webp?from=3782654143",
+    "aweme_id": 1184608019295004,
+    "aweme_name": "屈屈好茶黄精专卖店",
+    "aweme_show_id": "34877044330",
+    "create_time": "2026-07-23 19:01:54",
+    "end_time": "2027-01-18 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2026-07-23 19:01:54"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EFFECTIVE",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_48639e08a77c89f915960ac9e57be434~c5_168x168.webp?from=3782654143",
+    "aweme_id": 4065324019489498,
+    "aweme_name": "小咖秀茶膏甄选好茶",
+    "aweme_show_id": "46503449390",
+    "create_time": "2026-07-22 13:09:57",
+    "end_time": "2027-01-17 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2026-07-22 13:09:56"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-i-0813c001_o4eevLjE6EBLfusIAQTA1AAMxo2AaUKmGB7oID~c5_168x168.webp?from=3782654143",
+    "aweme_id": 660183759457629,
+    "aweme_name": "西书",
+    "aweme_show_id": "78531540309",
+    "create_time": "2026-07-12 18:25:04",
+    "end_time": "2027-07-08 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2026-07-12 18:25:04"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EFFECTIVE",
+    "auth_type": [
+     "AWEME_COOPERATOR"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_40bb4efef41ae03b4b40b3ce2e371958~c5_168x168.webp?from=3782654143",
+    "aweme_id": 7611958988197037000,
+    "aweme_name": "知味年份仓",
+    "aweme_show_id": "47288325633",
+    "create_time": "2026-09-19 20:48:52",
+    "end_time": "2027-03-17 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2026-09-19 20:48:52"
+   }
+  ],
+  "page_info": {
+   "page": 1,
+   "page_size": 50,
+   "total_num": 4,
+   "total_page": 1
+  }
+ }
+}

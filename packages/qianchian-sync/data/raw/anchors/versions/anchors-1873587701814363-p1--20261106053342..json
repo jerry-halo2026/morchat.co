@@ -1,0 +1,31 @@
+{
+ "code": 0,
+ "message": "OK",
+ "request_id": "202611061333414487D8905F48BD0EFD64",
+ "data": {
+  "authorization_infos": [
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EFFECTIVE",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_dbaf4fb3cba47eae7233bd4688bb4c25~c5_168x168.webp?from=3782654143",
+    "aweme_id": 98075875728,
+    "aweme_name": "小咖秀茶膏甄选",
+    "aweme_show_id": "913451618",
+    "create_time": "2026-09-03 11:31:10",
+    "end_time": "2027-03-01 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2026-09-03 11:31:10"
+   }
+  ],
+  "page_info": {
+   "page": 1,
+   "page_size": 50,
+   "total_num": 1,
+   "total_page": 1
+  }
+ }
+}

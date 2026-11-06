@@ -1,0 +1,191 @@
+{
+ "code": 0,
+ "message": "OK",
+ "request_id": "202611061333193D4D7C4A5A14A40C7628",
+ "data": {
+  "authorization_infos": [
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_fe090c6344c9c8cb1fee221aeaa061fe~c5_168x168.webp?from=3782654143",
+    "aweme_id": 851477848685763,
+    "aweme_name": "等待分享",
+    "aweme_show_id": "46851959392",
+    "create_time": "2025-02-20 15:36:31",
+    "end_time": "2026-03-20 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2025-02-20 15:36:31"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_3374059e988290c931a524e8c827d792~c5_168x168.webp?from=3782654143",
+    "aweme_id": 62439136366,
+    "aweme_name": "胖虎！",
+    "aweme_show_id": "28563378",
+    "create_time": "2025-02-14 13:32:32",
+    "end_time": "2026-03-31 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2025-02-14 13:32:32"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_7ccfa570eb205be8a94ad691bccd7e59~c5_168x168.webp?from=3782654143",
+    "aweme_id": 566995773818103,
+    "aweme_name": "康康茶庄",
+    "aweme_show_id": "66116348443",
+    "create_time": "2025-01-06 16:44:51",
+    "end_time": "2026-02-18 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2025-01-06 16:44:50"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_7ccfa570eb205be8a94ad691bccd7e59~c5_168x168.webp?from=3782654143",
+    "aweme_id": 566995773818103,
+    "aweme_name": "康康茶庄",
+    "aweme_show_id": "66116348443",
+    "create_time": "2025-01-03 18:16:39",
+    "end_time": "2026-02-04 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2025-01-03 18:16:39"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_6dc64e3f46052302bd5638c991db99fa~c5_168x168.webp?from=3782654143",
+    "aweme_id": 4495219585201662,
+    "aweme_name": "71047536926",
+    "aweme_show_id": "71047536926",
+    "create_time": "2024-05-11 19:28:08",
+    "end_time": "2025-05-10 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-05-11 19:28:08"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_0f7f9315e5e1a08e709e552245059203~c5_168x168.webp?from=3782654143",
+    "aweme_id": 386621550370190,
+    "aweme_name": "屈屈有好茶",
+    "aweme_show_id": "chawurensheng88",
+    "create_time": "2024-05-11 19:27:20",
+    "end_time": "2025-05-10 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-05-11 19:27:19"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_852c4db1c3c6b11b5610d79275d5012e~c5_168x168.webp?from=3782654143",
+    "aweme_id": 835265485609752,
+    "aweme_name": "小尹有好茶",
+    "aweme_show_id": "yinxierrrr",
+    "create_time": "2024-05-11 19:26:41",
+    "end_time": "2025-05-10 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-05-11 19:26:41"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_7ccfa570eb205be8a94ad691bccd7e59~c5_168x168.webp?from=3782654143",
+    "aweme_id": 566995773818103,
+    "aweme_name": "康康茶庄",
+    "aweme_show_id": "66116348443",
+    "create_time": "2024-05-11 19:26:02",
+    "end_time": "2025-05-10 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-05-11 19:26:02"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_b07069e58ea64b86e09eeacfa37d336c~c5_168x168.webp?from=3782654143",
+    "aweme_id": 870435004886184,
+    "aweme_name": "李陌茶官方旗舰店",
+    "aweme_show_id": "dazbzhi",
+    "create_time": "2024-05-11 19:25:14",
+    "end_time": "2025-05-10 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-05-11 19:25:14"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "AWEME_COOPERATOR"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_dee422c5152b1732152ae975eb04b470~c5_168x168.webp?from=3782654143",
+    "aweme_id": 3505692013000616,
+    "aweme_name": "迪士尼潮趣茶饮",
+    "aweme_show_id": "20656081327",
+    "create_time": "2025-02-24 17:55:56",
+    "end_time": "2026-03-20 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2025-02-24 17:55:56"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "AWEME_COOPERATOR"
+    ],
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_aa9efa71372466a980b63c08ef256dee~c5_168x168.webp?from=3782654143",
+    "aweme_id": 63575447339,
+    "aweme_name": "啊粥粥",
+    "aweme_show_id": "fengge1978888",
+    "create_time": "2024-12-26 16:08:15",
+    "end_time": "2025-01-26 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-12-26 16:08:14"
+   }
+  ],
+  "page_info": {
+   "page": 1,
+   "page_size": 50,
+   "total_num": 11,
+   "total_page": 1
+  }
+ }
+}

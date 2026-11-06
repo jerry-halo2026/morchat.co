@@ -1,0 +1,63 @@
+{
+ "code": 0,
+ "message": "OK",
+ "request_id": "20261106133321BF8F2C42A5AE830A275E",
+ "data": {
+  "authorization_infos": [
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_b07069e58ea64b86e09eeacfa37d336c~c5_168x168.webp?from=3782654143",
+    "aweme_id": 870435004886184,
+    "aweme_name": "李陌茶官方旗舰店",
+    "aweme_show_id": "dazbzhi",
+    "create_time": "2025-06-01 08:10:43",
+    "end_time": "2025-11-27 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2025-06-01 08:10:43"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-i-0813_4f1c67fa19fa4fb787a610e49cd02b75~c5_168x168.webp?from=3782654143",
+    "aweme_id": 919617342019480,
+    "aweme_name": "但哥茶叶供应链",
+    "aweme_show_id": "41839109778",
+    "create_time": "2024-10-08 08:29:35",
+    "end_time": "2024-11-08 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-10-08 08:29:35"
+   },
+   {
+    "auth_range": "BY_AWEME",
+    "auth_source": "QIANCHUAN",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "SELF"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_1f7059466e68394816d7aea1e2dccda3~c5_168x168.webp?from=3782654143",
+    "aweme_id": 676892930742686,
+    "aweme_name": "李陌茶黑茶直销商",
+    "aweme_show_id": "Chineseteas68",
+    "create_time": "2024-06-12 18:40:59",
+    "end_time": "2025-06-11 23:59:59",
+    "is_cancellation_progress": false,
+    "start_time": "2024-06-12 18:40:59"
+   }
+  ],
+  "page_info": {
+   "page": 1,
+   "page_size": 50,
+   "total_num": 3,
+   "total_page": 1
+  }
+ }
+}

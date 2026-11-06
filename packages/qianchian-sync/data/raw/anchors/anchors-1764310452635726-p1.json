@@ -1,7 +1,7 @@
 {
  "code": 0,
  "message": "OK",
- "request_id": "2026110613325867AA7B39D6C8C10D8456",
+ "request_id": "202611061333565321311637A2F09D7867",
  "data": {
   "authorization_infos": [
    {
@@ -11,7 +11,7 @@
     "auth_type": [
      "SELF"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_d400e6fab56af178481d9d6a1fb4ef2b~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_d400e6fab56af178481d9d6a1fb4ef2b~c5_168x168.webp?from=3782654143",
     "aweme_id": 91737855403,
     "aweme_name": "小尹有好茶(广东新会溯源专场）",
     "aweme_show_id": "291701187",
@@ -27,7 +27,7 @@
     "auth_type": [
      "SELF"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_b07069e58ea64b86e09eeacfa37d336c~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_b07069e58ea64b86e09eeacfa37d336c~c5_168x168.webp?from=3782654143",
     "aweme_id": 870435004886184,
     "aweme_name": "李陌茶官方旗舰店",
     "aweme_show_id": "dazbzhi",
@@ -43,7 +43,7 @@
     "auth_type": [
      "SELF"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_852c4db1c3c6b11b5610d79275d5012e~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_852c4db1c3c6b11b5610d79275d5012e~c5_168x168.webp?from=3782654143",
     "aweme_id": 835265485609752,
     "aweme_name": "小尹有好茶",
     "aweme_show_id": "yinxierrrr",
@@ -59,7 +59,7 @@
     "auth_type": [
      "SELF"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_6dc64e3f46052302bd5638c991db99fa~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_6dc64e3f46052302bd5638c991db99fa~c5_168x168.webp?from=3782654143",
     "aweme_id": 4495219585201662,
     "aweme_name": "71047536926",
     "aweme_show_id": "71047536926",
@@ -75,7 +75,7 @@
     "auth_type": [
      "AWEME_COOPERATOR"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_1c11e17bf949af6fee57fb07a0bc33a0~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_1c11e17bf949af6fee57fb07a0bc33a0~c5_168x168.webp?from=3782654143",
     "aweme_id": 3943271003853182,
     "aweme_name": "小源茶叶",
     "aweme_show_id": "69277569076",
@@ -91,7 +91,7 @@
     "auth_type": [
      "AWEME_COOPERATOR"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_a5fcc11fd8cf193d6cb724f58059a56f~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_a5fcc11fd8cf193d6cb724f58059a56f~c5_168x168.webp?from=3782654143",
     "aweme_id": 3813579426902227,
     "aweme_name": "乐泡茶仓",
     "aweme_show_id": "33875766475",
@@ -107,7 +107,7 @@
     "auth_type": [
      "AWEME_COOPERATOR"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_ab7ba088e274d6cf6546f0fe06965736~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_ab7ba088e274d6cf6546f0fe06965736~c5_168x168.webp?from=3782654143",
     "aweme_id": 882264551464496,
     "aweme_name": "纽分子膳食营养",
     "aweme_show_id": "feifeichaye",
@@ -123,7 +123,7 @@
     "auth_type": [
      "AWEME_COOPERATOR"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_d400e6fab56af178481d9d6a1fb4ef2b~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_d400e6fab56af178481d9d6a1fb4ef2b~c5_168x168.webp?from=3782654143",
     "aweme_id": 91737855403,
     "aweme_name": "小尹有好茶(广东新会溯源专场）",
     "aweme_show_id": "291701187",
@@ -139,7 +139,7 @@
     "auth_type": [
      "AWEME_COOPERATOR"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_71b97017a203f99d6a7a888e274ecc2e~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_71b97017a203f99d6a7a888e274ecc2e~c5_168x168.webp?from=3782654143",
     "aweme_id": 866054364468189,
     "aweme_name": "小尹原叶茶甄选",
     "aweme_show_id": "94295739810",
@@ -155,7 +155,7 @@
     "auth_type": [
      "AWEME_COOPERATOR"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-i-0813c001_o40obaiPTX84EDAWMQvIAwjAAAdNI1AwiB9tP~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-i-0813c001_o40obaiPTX84EDAWMQvIAwjAAAdNI1AwiB9tP~c5_168x168.webp?from=3782654143",
     "aweme_id": 231326912881644,
     "aweme_name": "李陌茶【好茶精选】",
     "aweme_show_id": "66196067071",
@@ -171,7 +171,7 @@
     "auth_type": [
      "AWEME_COOPERATOR"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_ec23619a1762df450d37ae587268aa78~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_ec23619a1762df450d37ae587268aa78~c5_168x168.webp?from=3782654143",
     "aweme_id": 76316207847,
     "aweme_name": "帅正茉莉花茶",
     "aweme_show_id": "Xiaoxiaozzzzs",
@@ -187,7 +187,7 @@
     "auth_type": [
      "AWEME_COOPERATOR"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_ab7ba088e274d6cf6546f0fe06965736~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_ab7ba088e274d6cf6546f0fe06965736~c5_168x168.webp?from=3782654143",
     "aweme_id": 882264551464496,
     "aweme_name": "纽分子膳食营养",
     "aweme_show_id": "feifeichaye",
@@ -203,7 +203,7 @@
     "auth_type": [
      "AWEME_COOPERATOR"
     ],
-    "aweme_avatar": "https://p26.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_71b98ecaaadbc97f67762f4d5ee8ed4c~c5_168x168.webp?from=3782654143",
+    "aweme_avatar": "https://p3.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_71b98ecaaadbc97f67762f4d5ee8ed4c~c5_168x168.webp?from=3782654143",
     "aweme_id": 1794012675051991,
     "aweme_name": "阿峰茶厂",
     "aweme_show_id": "huzigechaye",
