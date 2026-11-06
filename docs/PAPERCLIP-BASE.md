@@ -1,6 +1,6 @@
 # Paperclip 接入边界与验证门禁
 
-> v13 设计评审稿，2026-11-05。Paperclip 是任务与 AI 运行控制内核，不是现成的人类公司组织系统。参考源码固定于 40ea7a9b8994e9bdb3d13794b5847388be0f7a92；上线版本需另选并重验契约。
+> v14 设计评审稿，2026-11-05。Paperclip 是整体公司工作台底座及任务/AI 运行权威，不只是 API 或页面外壳；原生公司/真人成员不等于完整人事部门系统。参考源码固定于 40ea7a9b8994e9bdb3d13794b5847388be0f7a92；上线版本需另选并重验契约。
 
 ## 0. Paperclip、Runner 与 Harness 的分层
 
@@ -13,7 +13,9 @@
 | 目标/项目/任务与依赖 | 核心事实尽量使用原生对象；企业扩展以 ID 关联 | goal 的人类负责人、部门责任仍需扩展 |
 | 人与 AI 任务承接 | 使用 assigneeUserId/assigneeAgentId、responsibleUserId 等已有字段 | 字段存在不等于全部认领/转派权限契约已验证 |
 | Bot（原生 Agent）与运行 | 配置 revision、当前指令文件、适配器、唤醒、运行记录和执行锁 | 配置历史不包含全部文件；新 managed 指令保存不追加旧指令正文历史；不等于任意崩溃恢复或副作用 exactly-once |
-| 审核与审批 | 按具体任务需要选用原生能力 | 不强迫所有员工协作套预算审批链；自主权政策未定 |
+| 人工追问与审批 | 原生 interaction、回答事务与 durable delivery、attention 卡片、审批决策幂等 | 治理审批、runtime 工具许可和成果验收不是同一类型；需企业动作授权及本地传输，不复制所有者/Full access 默认策略 |
+| 执行中补充与停止 | queued-comments 的 revision/修改/删除/interrupt/steer 及单 run cancel | 同轮 steer 依赖实际 native session，DSH remote 未验证；单 run cancel 不是整 root 级联，interrupt 还包含继续意图 |
+| 知识文档修订 | documents/revisions/annotations、条件更新与既有资产 | restore 不保证 expected base，企业来源 ACL/历史保留仍要补；不建第二记忆库 |
 | 交付物与活动 | 关联工作成果、运行和必要证据 | 活动日志不是完整公司资产库或完整灾备 |
 | skill 内容、版本与测试 | 复用不可变版本、managed fork、test-inputs/templates/runs 和真实测试 issue，引用其输出/费用 | succeeded 不等于业务评估通过；企业发布/范围/留存仍需补，不另建评测执行引擎 |
 | Bot/小队模板载体 | AGENTS/TEAM/PROJECT/TASK/SKILL 包、配置历史、导入预览/来源与 hash；部分包有 packageVersion | Team manager 仍是 Agent；不具备真人岗位/部门与人机小队授权，不把所有安装视为同一审批入口 |
@@ -21,14 +23,31 @@
 | 用量与预算 | 复用成本事件、用户归集和公司/Agent/项目预算基础 | 不等于部门/个人独立硬预算、所有外部调用自动计量或绝不超支 |
 | 模型凭据引用 | 复用可验证的 secret reference/版本轮换 | 不是默认可向员工设备下发原始 Key 的许可 |
 | 项目 workspace 与快照 | 优先适配原生 snapshot、上传回执、恢复与 epoch 条件发布 | 当前 remote 路径依赖 runner＋sandbox；不是现成员工设备池，Agent 公共文件合并策略也不能替代项目冲突处理 |
-| 原生 UI | 受限执行配置、调试和任务排障 | 不是公司组织面板，也不是多人多 AI 的员工主入口 |
+| 前端源码 / 原样管理员台 | 前端布局、任务列表/看板/详情/项目/费用源码优先复用适配，形成统一员工工作台 | 原样管理员台继续受限；人类部门/群聊/权限由企业契约补齐，复用源码不开放管理员权限 |
 
 源码证据：[任务模型](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/packages/db/src/schema/issues.ts)、[目标模型](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/packages/db/src/schema/goals.ts)、[Agent 汇报关系](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/packages/db/src/schema/agents.ts)、[skill 版本](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/packages/db/src/schema/company_skills.ts)。
+
+### 1.1 整体产品能力不能被任务接入表漏掉
+
+全产品静态盘点唯一见 [复用 §4.6.1](D:/dev/morchat.co/docs/REFERENCE-REUSE.md)，工作台入口见 [体验 §3.6](D:/dev/morchat.co/docs/PRODUCT-EXPERIENCE.md)。以下补能力选择，未改变原生唯一权威或开放企业管理员权限。
+
+| 能力 | 优先复用 | 最小补齐 / 启用边界 |
+|---|---|---|
+| 公司、用户与成员 | company/user/membership、邀请/归档、个人任务与用量 | 人事部门/负责人和逐资源政策，原生身份对接；不另造账号系统 |
+| Inbox / Decisions | mine/Blocked、attention/原请求、专题队列和处理动作 | 企业范围投影；Decisions 导航默认关且 API 有 board 门禁，不能管理员代理；MyIssues 是未挂载旧页面 |
+| AI 组织与真人组织 | 原生 Bot/Agent 名册、reportsTo 及配置/历史 | 真人部门单独扩展，两张图关系显式；不把真人当 Agent |
+| Skills / Sources / Studio | 正式页面、来源、版本、测试输入和测试 run | 业务评判/发布权及最终实际版本加载；普通 run 历史 pin 门禁单独验 |
+| Apps / 连接与工具审查 | 正式 Apps、凭据引用、grants、Allowed/Ask/Off、工具动作请求/审查 | 当前 SHA 核心默认启用，子连接有条件；补业务范围和 Windows 受控传输，不另造连接/审批主库 |
+| Routines / 包 / 管理 | 原生例程/触发修订、正式 Import/Export、adapter/设置/插件生命周期 | 例程是否首批启用待评审；Catalog 组件/API 存在但无正式页面路由，需获权接入口；插件不任意开放 |
+| Artifacts / Audit | 原生成果、文档/批注、活动/运行/费用/预算/Timeline | 来源权限、保留/验收与部门归集；Timeline 是活动历史，不是计划甘特 |
+
+固定路由、开关、受众和实际动作需进入 D08/FE 证据。同类原生能力足够时直接适配原生，不为 OMB 外观重造控制服务；未启用的原生写入口必须受控，不能只从导航藏起来。
+
 
 ## 2. 不借原生模型冒充企业能力
 
 - reportsTo 指向 Agent，不能将老板、员工和部门映射为假 Agent 来获得组织图。
-- 人类公司/部门/岗位在 morchat；映射到 Paperclip 的 company/user/agent 必须保留真实身份。
+- 公司/user/membership 生命周期优先复用 Paperclip，外部 IdP 按 C01 映射；morchat 补真人部门/岗位/责任和企业政策，不另建公司账号主库，也不将原生 company 角色直接当部门 ACL。
 - 群成员与群消息由 morchat 管理。原生评论可作任务讨论证据，但不冒充独立工作群。
 - 部门知识、受限 skill 和公司资产的策略由 morchat 负责，原生能力不足时收窄开放。
 - AI 推理预算与广告资金不是一套账；本期不建设广告资金账本。
@@ -76,7 +95,7 @@ Paperclip 独立管理数据和迁移，自有服务不跨库写表。只有批�
 
 Plugin 的能力逐项最小化，不能因历史记录发现某路径绕过策略，就永久写一个“必须仍可绕过”的测试。正确测试是：不允许的身份、操作和状态转换必须被拒；不同入口不得绕过已选策略。确需启用写能力时另做验证。
 
-管理台仅对有相应内容权限的人员开放。无法安全代理或限制原生 UI 时，先用 morchat 受控查询替代，不让普通员工绕过平台政策。
+未经适配的原样管理台仅对有相应内容权限的人员开放；这不排斥将其前端源码改造成日常工作界面。适配后的 UI 必须走同一企业授权/命令入口，无法安全收口的页面或操作先不开放，不让普通员工绕过平台政策。
 
 ## 4. Paperclip 派发与员工本地完整 Harness
 
@@ -111,6 +130,24 @@ P0 必须验证选定 adapter 的 per-run 执行目标、同一 Agent 多任务�
 客户端 runtime 管理引擎安装/版本/配置、本地循环、受限工具和恢复缓存；中央企业层管理账号、设备、能力/租约、模型网关、资产与授权面板。Paperclip 接口不足时，优先扩展受支持 adapter/API，必要补丁单独评审；不能用绕过授权的管理员调用或第二套任务库掩盖。具体安装方案、等待语义和 API 合约在 P0 选定验证。
 
 Paperclip secret reference/轮换可以复用，但把真实 secret 注入员工进程违反本方案的 Key 边界。[密钥轮换](https://docs.paperclip.ing/how-to/rotate-provider-api-key/)、[完整 runtime 契约](D:/dev/morchat.co/docs/CLIENT-RUNTIME.md)。
+
+#### 群消息接入不是第二任务中台
+
+morchat 保存自有群消息/线程与派工意图回执；已有 Paperclip 评论/事件只按原生 ID 投影，不另存可编辑副本。各 Bot 回复独立可见不等于都产生 run。群内单输入框 @ 选中具体 Bot 后发送，形成带稳定目标的明确意图，不再选择消息/执行模式；目标/任务/受众重新验权后才进入唯一原生派发路径。现有真人 issue 不改派为 Bot，复用其下真正 Bot 子任务；同 Bot 同工作且授权一致才延续已有 Bot 任务，多目标逐项记录受理/失败/未知。
+
+P0 必须列清该部署版本中任务分配、评论/mention、heartbeat/wakeup、adapter 回传的自动触发关系；同一意图只能有一个有效派发。若发评论与分配都会触发，选择一条执行入口，另一条只作不触发的引用/投影；没有受支持的静默路径或幂等/查询能力时，由 Paperclip owner 评审最小补丁，不以模型“不要重复”代替保证。写入成功但 ACK 丢失须按同意图查询/对账，不能在 morchat 再创建一份任务。
+
+固定样本的普通非 self、非终态评论即使无 @ 也可能唤醒 assignee，update-comment 同样需覆盖；子任务终态还有原生父任务唤醒及摘要输入。故普通群消息不逐条镜像为原生评论；父任务通知与企业依赖批次关联，摘要重新验权，未确认产物不当交付。另核实 children 创建的幂等不当然消除后续 assignment wake；普通引用不能转成影响权限的原生 agent:// mention grant。当前代码保留 issue_comment_mentioned 原因不等于已证明独立 mention 唤醒分支，部署入口须按实际路径核验。源码证据见 [复用研究 §2.1、§4.4](D:/dev/morchat.co/docs/REFERENCE-REUSE.md)。
+
+企业 root/causation 与限额是原生运行的准入/关联，不是另一套运行状态机；成本仍进原生账。具体触发/回传唯一协议见 [群协作 §4](D:/dev/morchat.co/docs/DISTRIBUTED-COLLABORATION.md)，MSG-01–08 纳入 [P0](D:/dev/morchat.co/docs/DISCOVERY-BASELINE.md)。源码现有 hook 能否满足此组合尚待实测，不能标“纯配置直接可用”。
+
+#### 人工介入也消费原生权威，不另建审批或补充队列
+
+固定样本已有 issue-thread interactions、question-response-delivery outbox、queued-comments 的 revision/编辑/删除/排序/steer/interrupt，以及 run cancellation；对应原生卡片和 attention 查询优先复用。源码位置与 D/A/S 见 [复用 §4.5.1](D:/dev/morchat.co/docs/REFERENCE-REUSE.md)。企业层只加真实身份/来源权限、群投影和 runtime 回调关联；缺适合工具许可的类型或授权强制点时，由原生 owner 明确最小扩展，不能把任意治理 approval 包装成已具备工具授权语义。
+
+原生“答案已记录”与“本地已消费”分开；原问答 ID 与原 run/请求绑定，晚到答案不能隐式注入另一个 run。待处理执行要求使用唯一原生队列及修订，不镜像普通群聊天，不增平行可编辑队列。外部传输 outbox/回执只记投递，不另存可写业务状态；决策过期/撤权后本地重验，不能凭已批准绕硬策略。
+
+原生 steer 目前依赖 paperclip_runner_v1 和 active native session；DSH remote 不因 UI 有按钮就可用。P1 最低保证安全下一轮补充及明确的取消/继续，能力不足时只关闭同轮 steer，不伪造完成。单 run 取消直接消费；整 root 仅聚合已有成员关系和逐 run 原生控制，先关闭该范围新增派发/补充消费，再核对终止与未知效果。interrupt 是“中断后按新要求继续”，不作普通 Stop。精准语义见 [群协作 §4.6](D:/dev/morchat.co/docs/DISTRIBUTED-COLLABORATION.md)，OP-01–04 均未运行。
 
 ### 4.4 工作空间持久化不是从零自建
 

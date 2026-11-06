@@ -1,50 +1,8 @@
 {
- "accounts": {
-  "ok": 3,
-  "fail": 0,
-  "rows": 45,
-  "total": 3
- },
- "anchors": {
-  "ok": 180,
-  "fail": 0,
-  "rows": 589,
-  "total": 180
- },
- "plans": {
-  "ok": 57,
-  "fail": 33,
-  "rows": 125,
-  "total": 90
- },
- "uni_image": {
-  "ok": 0,
-  "fail": 45,
-  "rows": 0,
-  "total": 45
- },
- "uni_video": {
-  "ok": 0,
-  "fail": 45,
-  "rows": 0,
-  "total": 45
- },
  "uni_live": {
-  "ok": 0,
-  "fail": 0,
-  "rows": 0,
-  "total": 0
- },
- "balance": {
-  "ok": 45,
-  "fail": 0,
-  "rows": 0,
-  "total": 45
- },
- "violations": {
-  "ok": 45,
-  "fail": 0,
-  "rows": 102,
-  "total": 45
+  "ok": 502,
+  "fail": 3,
+  "rows": 89858,
+  "total": 505
  }
 }

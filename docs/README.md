@@ -20,7 +20,8 @@ morchat 是公司内人与 AI 共同工作的协作平台。公司与部门组�
 
 | 状态 | 内容 |
 |---|---|
-| 已确认方向 | 自有企业平台 + Paperclip 任务与运行控制内核；OpenMausBot 选件复用；Multica 参考模式；不拼接三套独立产品 |
+| 已确认工作首页与消息协作 | 默认“我的工作”首页，侧边栏进入对话等功能；各 Bot 对授权受众的回复独立可见，任务线程承接讨论；显示/上下文/唤醒分离，群内普通消息不派工；@ 选中 Bot 后直接发送，无模式选择；有效委派与约定结果事件才定向启动；Paperclip 保持唯一任务/run 底座 |
+| 已确认方向 | 自有企业扩展 + Paperclip 整体前端与任务/运行权威；OpenMausBot 选件复用；Multica 参考模式；不拼接三套独立产品 |
 | 已确认 Bot 定位 | Bot 是 AI 同事，实例映射原生 Agent；模板/实例/小队/运行分开，已有模板和配置/skill 版本能力优先复用；每次受控生效须可追溯，指令历史缺口待接入验证 |
 | 已确认产品主线 | 提出目标→组建人和 AI 团队→拆分认领任务→协作交付→复盘沉淀→下次复用；员工与负责人均可使用组织助手、维护获授权岗位包/小队模板，具体发布策略与验收为本轮设计建议 |
 | 已确认范围 | 本期不建设通用工作流、低代码画布；未来可评估接 Coze 云等外部能力 |
@@ -48,7 +49,7 @@ morchat 是公司内人与 AI 共同工作的协作平台。公司与部门组�
 | [文档重整与取舍](D:/dev/morchat.co/docs/DOCS-REBASE.md) | 旧方案哪些保留、推翻、收窄、延期或补充 |
 | [产品需求与 MVP](D:/dev/morchat.co/docs/PRD.md) | 为谁做、做什么、首版不做什么、如何验收 |
 | [六步产品流程与能力落地](D:/dev/morchat.co/docs/PRODUCT-LIFECYCLE.md) | Bot 模板/实例、小队模板/实例、task/run/attempt 与版本清单；组织助手、岗位包和 skill 如何形成完整工作；LC-01–12 判失败条件 |
-| [面板与员工端](D:/dev/morchat.co/docs/PRODUCT-EXPERIENCE.md) | 老板、负责人、员工分别用什么；Paperclip 与 OpenMausBot 的界面边界 |
+| [统一前端与工作首页](D:/dev/morchat.co/docs/PRODUCT-EXPERIENCE.md) | Paperclip 整体前端＋OpenMausBot 对话源码方向；工作首页/对话/看板/只读计划甘特/成果与员工负责人走查；单一身份/任务权威 |
 | [统一客户端与执行环境](D:/dev/morchat.co/docs/CLIENT-RUNTIME.md) | 完整本地 harness 的安装/配置、中央派发、云端模型、公司 Key、容量/离线与资产交接 |
 | [群内 Agent 与授权设备池](D:/dev/morchat.co/docs/DISTRIBUTED-COLLABORATION.md) | 群里 AI 用谁的电脑、自动选机、共享上下文、并行/离线边界及可证伪门槛 |
 | [任务与工作空间接续](D:/dev/morchat.co/docs/WORKSPACE-CONTINUITY.md) | 任务做到一半如何保存文件/Git 状态，换人换机接手及旧设备回归；WC-01–12 反例 |
@@ -60,19 +61,25 @@ morchat 是公司内人与 AI 共同工作的协作平台。公司与部门组�
 | [资产与持续升级](D:/dev/morchat.co/docs/ASSETS-AND-LEARNING.md) | 留存、知识、skill、权限继承和离职交接 |
 | [参考项目复用边界](D:/dev/morchat.co/docs/REFERENCE-REUSE.md) | 固定源码证据、哪些直接复用、哪些适配、哪些仅借鉴 |
 | [Paperclip 接入边界](D:/dev/morchat.co/docs/PAPERCLIP-BASE.md) | 原生能力、缺口、管理台限制与接入门禁 |
-| [Discovery 基线与证伪登记](D:/dev/morchat.co/docs/DISCOVERY-BASELINE.md) | 八项最小边界、十项反例、C01–C08 冻结、P0 顺序及 D01–D10 未决项 |
+| [Discovery 基线与证伪登记](D:/dev/morchat.co/docs/DISCOVERY-BASELINE.md) | 八项最小边界、主反例与 OP-01–08、C01–C08 冻结、P0 顺序及 D01–D10 未决项 |
 | [工程与验证基线](D:/dev/morchat.co/docs/ENGINEERING-BASELINE.md) | 文档权威、模块 owner、任务卡、模型分级、subagent/工作树、提交追溯与合并门禁；安全、测试、发布和恢复 |
 | [分阶段建设顺序](D:/dev/morchat.co/docs/PLAN.md) | P0 到 P3 的交付、依赖、退出标准和阻塞决策 |
 | [千川数据面](D:/dev/morchat.co/docs/QIANCHUAN-DATA.md) / [千川接口资料](D:/dev/morchat.co/docs/QIANCHUAN-API-DEV.md) | 首个业务连接器的历史技术证据，不定义平台定位和排期 |
 | [edict 参考边界](D:/dev/morchat.co/docs/EDICT-FLOW.md) | 可借鉴的治理原则与不得照搬的机制 |
 
+### 全产品界面盘点入口（2026-11-05）
+
+[参考项目 §4.6](D:/dev/morchat.co/docs/REFERENCE-REUSE.md) 按官方文档、固定源码实际路由/开关、保留/适配/参考/暂缓盘点 Paperclip、OpenMausBot、Multica、Nodo；工作流项目仍延后。[统一体验 §3.1、§3.6](D:/dev/morchat.co/docs/PRODUCT-EXPERIENCE.md) 给出完整分组提案与员工/负责人走查，不把已有五屏低保真当全产品目录。Paperclip 的成员、Inbox/决策、技能工作室、连接审查和审计属于整体底座，不因八项差异自建清单未单列就删掉。页面/开关/权限与真实集成分开登记；本轮只读研究和文档修订，未新绘完整页面或运行集成。
+
 ## 当前可行性与开发状态
 
-本轮证伪结论已按 [Discovery 基线](D:/dev/morchat.co/docs/DISCOVERY-BASELINE.md) 收敛：八项最小工作边界、十类静态反例、原生复用/适配/必要补丁分工。产品方向未被否定；“现成项目仅接配置/API 即完整闭环”的假设不成立。不能把保存点、能力清单、模板 preview 或任务 succeeded 分别当成交付、实际版本加载、原子安装或业务评估通过。
+本轮证伪结论已按 [Discovery 基线](D:/dev/morchat.co/docs/DISCOVERY-BASELINE.md) 收敛：八项最小工作边界、十类主反例及完整操作链补充反例、原生复用/适配/必要补丁分工。产品方向未被否定；“现成项目仅接配置/API 即完整闭环”的假设不成立。不能把保存点、能力清单、模板 preview 或任务 succeeded 分别当成交付、实际版本加载、原子安装或业务评估通过。
 
-P0 统一 G0 契约/准备→G1 原生安全预检→G2 版本生效→G3 权限撤销→G4 完整节点与双向接续→G5 合流。保留 PC、NG/WI、DV、DC/WC 和 LC 契约子集；完整产品 US/LC 仍在 P1–P3 验收。参数只见 DV §3，实际故障实验尚未运行。
+P0 统一 G0 契约/准备→G1 原生安全预检→G2 版本生效→G3 权限撤销→G4 完整节点、双向接续与消息触发验证→G5 合流。保留 PC、NG/WI、DV、DC/WC、MSG-01–08、OP-01–08 和 LC 契约子集；完整产品 US/LC 仍在 P1–P3 验收。保存/接续参数只见 DV §3；消息防风暴参数按群协作 §4.5 在 G0 冻结。实际故障实验尚未运行。
 
-**C01–C08 当前全是 DRAFT；G0–G5 均未实测放行。**本目录未发现根 Git 元数据，本轮没有初始化仓库、创建工作树、设置提交身份或 CI。后续并行受 [工程基线 §5](D:/dev/morchat.co/docs/ENGINEERING-BASELINE.md) 约束：主题权威、owner、冻结契约、任务卡、独立工作流、模型分级、实际 agent 追溯、独立审核与串行集成。规则已写明不等于机器门禁已实施；discovery 尚有 D01–D10 待决，不称全部完成。
+**C01–C08 当前全是 DRAFT；G0–G5 均未实测放行。**本轮只读检查已发现工作区 .git；其归属、remote、分支保护和 CI 未核验。本轮没有初始化仓库、创建工作树、设置提交身份或 CI。后续并行受 [工程基线 §5](D:/dev/morchat.co/docs/ENGINEERING-BASELINE.md) 约束：主题权威、owner、冻结契约、任务卡、独立工作流、模型分级、实际 agent 追溯、独立审核与串行集成。规则已写明不等于机器门禁已实施；discovery 尚有 D01–D10 待决，不称全部完成。
+
+**完整操作链本轮结论：**Paperclip 已有追问/回答投递、审批、待处理补充及取消，不重复造后台；OMB 优先吸收对话、附件、配置/维护的具体操作体验。知识维护复用 Paperclip 文档修订，不另建记忆库。复用边界和源码见 [REFERENCE-REUSE §4.5](D:/dev/morchat.co/docs/REFERENCE-REUSE.md)，员工/负责人走查见 [PRODUCT-EXPERIENCE §3.5–4.2](D:/dev/morchat.co/docs/PRODUCT-EXPERIENCE.md)。P1 最小操作链、P2 知识/skill 维护均按 OP 门禁验证；即时 steer 的 DSH 能力尚未成立。此次只改 docs，OP/FE/P0 均为 NOT RUN（未运行），不改变 C01–C08 DRAFT。
 
 ## 生效与冲突规则
 
