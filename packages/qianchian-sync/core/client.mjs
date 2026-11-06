@@ -56,6 +56,24 @@ export async function callOE(urlStr, params = {}, { retries = 2 } = {}) {
   return { body: { code: -3, message: `网络失败: ${lastErr}` }, ms: 0, url: u.toString(), request_id: "" };
 }
 
+// 修复 #23：行数组提取统一入口（Ethan 发现于 export-flat，收编为唯一实现）
+// 两个陷阱：
+// 1) 空数组 [] 是 truthy，`a || b || c` 回退链会提前命中空表；
+// 2) accounts 接口的 data.list 是裸 ID 数组，带名字的对象在 data.adv_id_list——
+//    必须跳过非对象数组，否则 r.adv_id 全是 undefined（account_name 全空的根因）。
+export function pickRows(data = {}) {
+  const KEYS = ["list", "rows", "ad_list", "adv_score_event", "adv_id_list", "authorization_infos"];
+  for (const k of KEYS) {
+    const a = data[k];
+    if (Array.isArray(a) && a.length > 0 && typeof a[0] === "object" && a[0] !== null) return a;
+  }
+  for (const k of KEYS) {
+    const a = data[k];
+    if (Array.isArray(a) && a.length === 0) return a; // 合法空结果
+  }
+  return [];
+}
+
 export async function callOEPaged(urlStr, params = {}, { retries = 2, maxPages = 0 } = {}) {
   // 修复 #22：maxPages 曾硬编码 50 → 3 个 uni_video 文件截断丢 ~13,800 行
   // 现默认跟随接口 total_page 翻完；SYNC_MAX_PAGES 仅作异常兜底（默认 1000 页 = 20 万行）
@@ -68,10 +86,7 @@ export async function callOEPaged(urlStr, params = {}, { retries = 2, maxPages =
       return { rows: allRows, body, ms: 0, request_id: "", pagesFetched: page - 1, truncated: false };
     }
     const data = body.data || {};
-    // 修复 #17/#21：不同接口返回行数组的键名不同（实测 2026-11-06）
-    // plans→ad_list · violations→adv_score_event · 报表→rows · fund→list
-    const list = data.list || data.rows || data.ad_list || data.adv_score_event || data.adv_id_list || data.authorization_infos || [];
-    allRows.push(...list);
+    allRows.push(...pickRows(data)); // 修复 #17/#21/#23：键名各异 + 空数组不可遮蔽真行键
     const pi = data.page_info || data.pagination || {};
     totalPage = pi.total_page || pi.totalPage || 1;
     if (page === 1 && totalPage > 1) {

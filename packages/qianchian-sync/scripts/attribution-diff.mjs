@@ -8,6 +8,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { pickRows } from "../core/client.mjs";
 
 const PKG = join(dirname(fileURLToPath(import.meta.url)), "..");
 const RAW = join(PKG, "data", "raw");
@@ -44,7 +45,7 @@ function loadRows(source, file) {
   const j = JSON.parse(readFileSync(file, "utf8"));
   if (j.code !== 0) return { rows: new Map(), meta: {} };
   const d = j.data || {};
-  const raw = d.rows || d.list || d.ad_list || d.adv_score_event || d.adv_id_list || d.authorization_infos || [];
+  const raw = pickRows(d);
   const map = new Map();
   if (source.startsWith("uni_")) {
     // 维度键：stat_time_day + 其余维度（material_id / anchor_id / roi2_*_name）

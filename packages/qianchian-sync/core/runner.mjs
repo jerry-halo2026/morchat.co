@@ -3,7 +3,7 @@
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { PKG, getConfig } from "./env.mjs";
-import { callOE, callOEPaged } from "./client.mjs";
+import { callOE, callOEPaged, pickRows } from "./client.mjs";
 
 const RAW_DIR = join(PKG, "data", "raw");
 const STATE_DIR = join(PKG, "data", "state");
@@ -13,10 +13,8 @@ function isWithinWindow(existing, params) {
   // 无时间参数的调用（如 balance、accounts）始终跳过
   if (!params?.start_time) return true;
   // 有时间参数：检查已有数据的最后时间戳是否 >= 请求的 start_time
-  // 简化处理：如果有 rows/list 且非空，视为有效（精确窗口比对留给 fact 层）
-  const data = existing.data || {};
-  const list = data.rows || data.list || [];
-  return Array.isArray(list); // 非空数组 = 该调用已成功过
+  // 简化处理：如果有行数组（含合法空结果），视为有效（精确窗口比对留给 fact 层）
+  return Array.isArray(pickRows(existing.data || {}));
 }
 
 function statePath(day) { return join(STATE_DIR, `sync-${day}.json`); }
@@ -79,7 +77,7 @@ export async function runCalls(source, callsOrGenerator, state, opts = {}) {
           if (!c.params?.start_time || isWithinWindow(existing, c.params)) {
             ok++;
             const data = existing.data || {};
-            const list = data.list || data.rows || data.adv_id_list || data.ad_list || data.authorization_infos || data.adv_score_event || [];
+            const list = pickRows(data);
             rows += Array.isArray(list) ? list.length : 0;
             process.stdout.write(`  [${source}] ${c.name} → SKIP (已有)\n`);
             continue;
@@ -121,7 +119,7 @@ export async function runCalls(source, callsOrGenerator, state, opts = {}) {
       ok++;
       writeResult(source, c.name, body, verDir);
       const data = body.data || {};
-      const list = data.list || data.rows || data.adv_id_list || data.ad_list || data.authorization_infos || data.adv_score_event || [];
+      const list = pickRows(data);
       const rowCount = Array.isArray(list) ? list.length : 0;
       rows += rowCount;
       entry.rows = rowCount;

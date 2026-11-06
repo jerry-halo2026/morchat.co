@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { PKG, todayInTz, minusDaysInTz, getConfig } from "./core/env.mjs";
 import { runCalls, loadState, saveState } from "./core/runner.mjs";
+import { pickRows } from "./core/client.mjs";
 
 const PLUGIN_DIR = join(PKG, "plugins");
 const SOURCES = ["accounts", "anchors", "plans", "uni_image", "uni_video", "uni_live", "balance", "violations"];
@@ -75,7 +76,7 @@ function buildAnchorMap(accounts) {
     for (let p = 1; p <= 10; p++) {
       const r = readRaw("anchors", `anchors-${a.advertiser_id}-p${p}`);
       if (!r || r.code !== 0) continue;
-      const infos = r.data?.rows || r.data?.authorization_infos || [];
+      const infos = pickRows(r.data || {});
       for (const info of infos) {
         const key = `${a.advertiser_id}:${info.aweme_id}`;
         if (seen.has(key)) continue;

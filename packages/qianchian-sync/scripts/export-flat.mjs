@@ -7,6 +7,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { pickRows } from "../core/client.mjs";
 
 const PKG = join(dirname(fileURLToPath(import.meta.url)), "..");
 const RAW = join(PKG, "data", "raw");
@@ -39,10 +40,8 @@ function listCalls(source) {
   }
   return readdirSync(join(RAW, source)).filter(f => f.endsWith(".json")).map(f => f.slice(0, -5));
 }
-const rowsOf = (j) => {
-  const d = j?.data || {};
-  return d.rows || d.list || d.ad_list || d.adv_score_event || d.adv_id_list || d.authorization_infos || [];
-};
+// 行提取统一走 core/client.mjs pickRows（陷阱注释见彼处）
+const rowsOf = (j) => pickRows(j?.data || {});
 
 // ── 维表：账户名 / 主播名 ──
 const acctName = {}, anchorName = {};
