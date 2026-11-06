@@ -7,7 +7,7 @@ export async function build(ctx) {
       calls.push({
         name: `anchors-${a.advertiser_id}-p${page}`,
         url: "https://open.oceanengine.com/open_api/v1.0/qianchuan/aweme_auth_list/get/",
-        params: { advertiser_id: a.advertiser_id, page, page_size: 50 },
+        params: { advertiser_id: a.advertiser_id, page, page_size: 50 }, paged: false,
       });
     }
   }

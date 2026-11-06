@@ -12,7 +12,7 @@ export async function build(ctx) {
           advertiser_id: a.advertiser_id,
           start_time: `${ctx.window.from} 00:00:00`, end_time: `${ctx.window.to} 23:59:59`,
           marketing_goal: g, order_type: "DESC", order_field: "stat_cost",
-          page: 1, page_size: 100,
+          page: 1, page_size: 100, paged: true,
         },
       });
     }

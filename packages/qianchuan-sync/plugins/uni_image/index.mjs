@@ -13,7 +13,7 @@ export async function build(ctx) {
         filters: [],
         order_by: [{ field: "stat_cost_for_roi2", type: 2 }],
         start_time: `${ctx.window.from} 00:00:00`, end_time: `${ctx.window.to} 23:59:59`,
-        page: 1, page_size: 200,
+        page: 1, page_size: 200, paged: true,
       },
     });
   }
