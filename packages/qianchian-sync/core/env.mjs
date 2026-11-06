@@ -20,6 +20,7 @@ export function getConfig() {
     timezone: env.SYNC_TIMEZONE || "Asia/Shanghai",
     throttleMs: Number(env.SYNC_THROTTLE_MS || 600),
     maxStateEntries: Number(env.SYNC_MAX_STATE_ENTRIES || 2000),
+    maxPages: Number(env.SYNC_MAX_PAGES || 1000), // 翻页兜底上限（修复 #22 截断丢数据）
   };
 }
 

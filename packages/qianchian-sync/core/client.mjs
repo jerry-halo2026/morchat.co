@@ -56,7 +56,10 @@ export async function callOE(urlStr, params = {}, { retries = 2 } = {}) {
   return { body: { code: -3, message: `网络失败: ${lastErr}` }, ms: 0, url: u.toString(), request_id: "" };
 }
 
-export async function callOEPaged(urlStr, params = {}, { retries = 2, maxPages = 50 } = {}) {
+export async function callOEPaged(urlStr, params = {}, { retries = 2, maxPages = 0 } = {}) {
+  // 修复 #22：maxPages 曾硬编码 50 → 3 个 uni_video 文件截断丢 ~13,800 行
+  // 现默认跟随接口 total_page 翻完；SYNC_MAX_PAGES 仅作异常兜底（默认 1000 页 = 20 万行）
+  if (!maxPages) maxPages = getConfig().maxPages;
   const allRows = [];
   let totalPage = 1;
   for (let page = 1; page <= Math.min(totalPage, maxPages); page++) {

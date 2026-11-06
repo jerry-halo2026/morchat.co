@@ -42,7 +42,7 @@ export function saveState(state) {
   writeFileSync(statePath(state.day), JSON.stringify(state, null, 1), "utf8");
 }
 
-export async function runCalls(source, callsOrGenerator, state) {
+export async function runCalls(source, callsOrGenerator, state, opts = {}) {
   let ok = 0, fail = 0, rows = 0;
   const isGen = typeof callsOrGenerator?.[Symbol.asyncIterator] === "function";
 
@@ -68,12 +68,13 @@ export async function runCalls(source, callsOrGenerator, state) {
     }
     if (!c) break;
 
-    // ── 断点续传：已有文件且同窗口 → 跳过 ──
+    // ── 断点续传：已有文件且同窗口 → 跳过（--refetch 可旁路）──
     const latestPath = join(RAW_DIR, source, `${c.name}.json`);
-    if (existsSync(latestPath)) {
+    if (!opts.refetch && existsSync(latestPath)) {
       try {
         const existing = JSON.parse(readFileSync(latestPath, "utf8"));
-        if (existing.code === 0) {
+        // 修复 #22 配套：截断文件（truncated:true）不算完成，下轮自动重拉
+        if (existing.code === 0 && !existing.data?.truncated) {
           // 检查数据时间戳是否在当前窗口内（增量模式下旧数据要重拉）
           if (!c.params?.start_time || isWithinWindow(existing, c.params)) {
             ok++;
