@@ -1,23 +1,19 @@
-// 拉取核心：主机白名单 · envelope 判定 · 令牌桶 · 失败重试（SYNC-ENGINE §2）
-// 2026-11-06 修复：token 在 retry 循环内获取（修复 #4）
-import { ensureToken } from "./env.mjs";
+// 拉取核心：主机白名单 · envelope 判定 · 令牌桶 · 失败重试 · 翻页（SYNC-ENGINE §2）
+// 2026-11-06 v2：修复 #4 token循环内 / #5 翻页 / #10 节流可配
+import { ensureToken, getConfig } from "./env.mjs";
 
 const ALLOWED_HOSTS = new Set(["open.oceanengine.com", "ad.oceanengine.com"]);
-const MIN_INTERVAL_MS = 600;
 let lastCallAt = 0;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function throttle() {
-  const wait = lastCallAt + MIN_INTERVAL_MS - Date.now();
+  const { throttleMs } = getConfig();
+  const wait = lastCallAt + throttleMs - Date.now();
   if (wait > 0) await sleep(wait);
   lastCallAt = Date.now();
 }
 
-/**
- * GET 调用（自动 urlencode）。
- * 修复 #4：token 在 retry 循环内每次重新获取——长时间退避后 token 可能已过期。
- */
 export async function callOE(urlStr, params = {}, { retries = 2 } = {}) {
   const u = new URL(urlStr);
   if (u.protocol !== "https:" && u.protocol !== "http:") throw new Error(`协议禁止: ${urlStr}`);
@@ -28,7 +24,6 @@ export async function callOE(urlStr, params = {}, { retries = 2 } = {}) {
   }
   let lastErr = null;
   for (let attempt = 0; attempt <= retries; attempt++) {
-    // 修复 #4：每次重试重新获取 token（ensureToken 内部有短路，不会重复刷新）
     const token = await ensureToken();
     await throttle();
     const t0 = Date.now();
@@ -40,7 +35,6 @@ export async function callOE(urlStr, params = {}, { retries = 2 } = {}) {
       const ms = Date.now() - t0;
       if (!res.ok && res.status >= 500 && attempt < retries) { lastErr = `HTTP ${res.status}`; await sleep(1000 * (attempt + 1)); continue; }
       if (body.code === undefined && text.startsWith("<")) { body = { code: -2, message: "非 JSON 响应(HTML)", raw: text.slice(0, 120) }; }
-      // 频控惩罚：退避 65s 重试
       if (body.code !== 0 && /频率超限|rate.?limit/i.test(String(body.message)) && attempt < retries) {
         lastErr = `频控: ${body.message}`;
         await sleep(65000);
@@ -55,18 +49,13 @@ export async function callOE(urlStr, params = {}, { retries = 2 } = {}) {
   return { body: { code: -3, message: `网络失败: ${lastErr}` }, ms: 0, url: u.toString(), request_id: "" };
 }
 
-/**
- * 带翻页的调用（修复 #5：静默数据丢失）。
- * 自动跟随 page_info 直到 total_page，每页调用一次 callOE。
- * 返回合并后的所有行。
- */
-export async function callOEPaged(urlStr, params = {}, { retries = 2, maxPages = 20 } = {}) {
+export async function callOEPaged(urlStr, params = {}, { retries = 2, maxPages = 50 } = {}) {
   const allRows = [];
   let totalPage = 1;
   for (let page = 1; page <= Math.min(totalPage, maxPages); page++) {
-    const { body, ms, request_id } = await callOE(urlStr, { ...params, page }, { retries });
+    const { body } = await callOE(urlStr, { ...params, page }, { retries });
     if (body.code !== 0) {
-      return { rows: allRows, body, ms, request_id, pagesFetched: page - 1, truncated: false };
+      return { rows: allRows, body, ms: 0, request_id: "", pagesFetched: page - 1, truncated: false };
     }
     const data = body.data || {};
     const list = data.list || data.rows || [];
@@ -74,13 +63,10 @@ export async function callOEPaged(urlStr, params = {}, { retries = 2, maxPages =
     const pi = data.page_info || data.pagination || {};
     totalPage = pi.total_page || pi.totalPage || 1;
     if (page === 1 && totalPage > 1) {
-      console.log(`  ⚠️ 翻页: total_page=${totalPage}，继续拉取…`);
+      console.log(`  ⚠️ 翻页: total_page=${totalPage}`);
     }
   }
   const truncated = totalPage > maxPages;
-  if (truncated) console.log(`  ⚠️ 达到 maxPages=${maxPages}，可能仍有未拉取数据`);
-  return {
-    rows: allRows, body: { code: 0 }, ms: 0, request_id: "",
-    pagesFetched: Math.min(totalPage, maxPages), totalPage, truncated,
-  };
+  if (truncated) console.log(`  ⚠️ 达到 maxPages=${maxPages}，可能仍有数据`);
+  return { rows: allRows, body: { code: 0 }, ms: 0, request_id: "", pagesFetched: Math.min(totalPage, maxPages), totalPage, truncated };
 }

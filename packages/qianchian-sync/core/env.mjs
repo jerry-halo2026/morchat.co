@@ -1,6 +1,5 @@
-// 凭证与惰性 token（SYNC-ENGINE §15）
-// 2026-11-06 修复：Date.parse 双Z bug / fetch 超时 / 刷新互斥 / 进程内短路
-// 纪律：凭证只从仓库根 .env.local 读取；源码零凭据字面量。
+// 凭证与惰性 token + 引擎配置（SYNC-ENGINE §15）
+// 2026-11-06 v2：修复 #1-#4/#9/#13/#14 — 双Z/超时/竞态/循环外token/SHOP_ID/时区
 import { readFileSync, writeFileSync, renameSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,10 +7,21 @@ import { fileURLToPath } from "node:url";
 export const PKG = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const ROOT = join(PKG, "..", "..");
 const ENV_PATH = join(ROOT, ".env.local");
-const LOCK_PATH = join(ROOT, ".env.local.lock");
+
 const REFRESH_TIMEOUT_MS = 30_000;
-const TOKEN_FRESH_MS = 2 * 3600 * 1000; // 剩余 >2h 视为新鲜
-const TOKEN_MAX_AGE_MS = 20 * 3600 * 1000; // 超过 20h 强制刷新
+const TOKEN_FRESH_MS = 2 * 3600 * 1000;
+const TOKEN_MAX_AGE_MS = 20 * 3600 * 1000;
+
+// ── 配置（修复 #13 SHOP_ID / #14 时区 / #10 节流可配）──
+export function getConfig() {
+  const env = readEnv();
+  return {
+    shopId: Number(env.QIANCHUAN_SHOP_ID || 59589091),
+    timezone: env.SYNC_TIMEZONE || "Asia/Shanghai",
+    throttleMs: Number(env.SYNC_THROTTLE_MS || 600),
+    maxStateEntries: Number(env.SYNC_MAX_STATE_ENTRIES || 2000),
+  };
+}
 
 export function readEnv() {
   const env = {};
@@ -28,16 +38,30 @@ function writeEnv(env) {
   renameSync(tmp, ENV_PATH);
 }
 
+// ── 时区安全的"今天"（修复 #14）──
+export function todayInTz(tz) {
+  try {
+    return new Intl.DateTimeFormat("en-CA", { timeZone: tz, dateStyle: "short" }).format(new Date());
+  } catch {
+    return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+  }
+}
+
+export function minusDaysInTz(ds, n) {
+  const d = new Date(ds + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
 let cached = null;
-let refreshing = null; // 刷新互斥锁（同进程 Promise 复用）
+let refreshing = null;
 
 function parseTs(s) {
   if (!s) return 0;
-  const t = Date.parse(s); // toISOString() 产出已是合法 ISO，直接 parse
+  const t = Date.parse(s);
   return Number.isNaN(t) ? 0 : t;
 }
 
-/** 惰性获取有效 access_token（修复版）。 */
 export async function ensureToken() {
   if (!cached) {
     const env = readEnv();
@@ -49,27 +73,19 @@ export async function ensureToken() {
       updated: env.QC_ACCESS_TOKEN_UPDATED || "",
     };
   }
-
-  // 短路：刚刷新过（<2h）直接返回
   const updated = parseTs(cached.updated);
   if (cached.access && updated && Date.now() - updated < TOKEN_MAX_AGE_MS - TOKEN_FRESH_MS) {
     return cached.access;
   }
-
-  // 刷新互斥：同进程内并发调用只触发一次网络请求
   if (refreshing) return refreshing;
-
   refreshing = (async () => {
     try {
       if (!cached.refresh) throw new Error("无 QC_REFRESH_TOKEN——需人工重新授权");
       const res = await fetch("https://open.oceanengine.com/open_api/oauth2/refresh_token/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          app_id: Number(cached.app_id), secret: cached.secret,
-          grant_type: "refresh_token", refresh_token: cached.refresh,
-        }),
-        signal: AbortSignal.timeout(REFRESH_TIMEOUT_MS), // 修复 #2：30s 超时
+        body: JSON.stringify({ app_id: Number(cached.app_id), secret: cached.secret, grant_type: "refresh_token", refresh_token: cached.refresh }),
+        signal: AbortSignal.timeout(REFRESH_TIMEOUT_MS),
       });
       const body = await res.json();
       if (body.code !== 0 || !body.data?.refresh_token) {
@@ -78,7 +94,6 @@ export async function ensureToken() {
       cached.access = body.data.access_token;
       cached.refresh = body.data.refresh_token;
       cached.updated = new Date().toISOString();
-      // 落盘（写完释放）
       const env = readEnv();
       env.QC_ACCESS_TOKEN = cached.access;
       env.QC_REFRESH_TOKEN = cached.refresh;
@@ -86,9 +101,8 @@ export async function ensureToken() {
       writeEnv(env);
       return cached.access;
     } finally {
-      refreshing = null; // 无论成败都释放锁
+      refreshing = null;
     }
   })();
-
   return refreshing;
 }
