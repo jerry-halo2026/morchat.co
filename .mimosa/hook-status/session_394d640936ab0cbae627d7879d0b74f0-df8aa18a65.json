@@ -1,9 +1,9 @@
 {
   "schemaVersion": "mimosa-hook-status/v1",
-  "recordedAt": "2026-11-06T05:09:50.154Z",
+  "recordedAt": "2026-11-06T05:32:18.548Z",
   "sessionId": "session_394d640936ab0cbae627d7879d0b74f0",
   "event": "PostToolUse",
-  "toolName": "Write",
+  "toolName": "Edit",
   "file": "packages/qianchian-sync/run.mjs",
   "outcome": "clear",
   "coverage": "complete",

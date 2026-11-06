@@ -115,7 +115,7 @@ async function main() {
     }
 
     const result = await plugins[s].build(ctx);
-    const calls = result; // 生成器或数组
+    const calls = result?.calls ?? result; // 兼容 {calls:[...]} 返回和生成器/数组直返
     const callCount = typeof calls?.[Symbol.asyncIterator] === "function" ? "?" : calls?.length ?? 0;
     console.log(`[${s}] ${callCount} calls`);
     const res = await runCalls(s, calls, state);

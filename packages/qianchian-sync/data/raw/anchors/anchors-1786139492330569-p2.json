@@ -1,0 +1,30 @@
+{
+ "code": 0,
+ "message": "OK",
+ "request_id": "2026110613330444253BD0D83AF40E6BE6",
+ "data": {
+  "authorization_infos": [
+   {
+    "auth_source": "AWEME",
+    "auth_status": "EXPIRED",
+    "auth_type": [
+     "ROOM"
+    ],
+    "aweme_avatar": "https://p11.douyinpic.com/img/aweme-avatar/tos-cn-avt-0015_49794d871db57e1394e0c9fc695bb7fa~c5_168x168.webp?from=3782654143",
+    "aweme_id": 3641200019779437,
+    "aweme_name": "庆余生银饰店",
+    "aweme_show_id": "Zevv0432",
+    "create_time": "2024-11-18 22:53:21",
+    "end_time": "2024-12-18 22:53:21",
+    "is_cancellation_progress": false,
+    "start_time": "2024-11-18 22:53:21"
+   }
+  ],
+  "page_info": {
+   "page": 2,
+   "page_size": 50,
+   "total_num": 51,
+   "total_page": 2
+  }
+ }
+}

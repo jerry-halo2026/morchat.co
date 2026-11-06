@@ -1,0 +1,50 @@
+{
+ "accounts": {
+  "ok": 0,
+  "fail": 0,
+  "rows": 0,
+  "total": 0
+ },
+ "anchors": {
+  "ok": 0,
+  "fail": 0,
+  "rows": 0,
+  "total": 0
+ },
+ "plans": {
+  "ok": 0,
+  "fail": 0,
+  "rows": 0,
+  "total": 0
+ },
+ "uni_image": {
+  "ok": 0,
+  "fail": 0,
+  "rows": 0,
+  "total": 0
+ },
+ "uni_video": {
+  "ok": 0,
+  "fail": 0,
+  "rows": 0,
+  "total": 0
+ },
+ "uni_live": {
+  "ok": 0,
+  "fail": 0,
+  "rows": 0,
+  "total": 0
+ },
+ "balance": {
+  "ok": 0,
+  "fail": 0,
+  "rows": 0,
+  "total": 0
+ },
+ "violations": {
+  "ok": 0,
+  "fail": 0,
+  "rows": 0,
+  "total": 0
+ }
+}
