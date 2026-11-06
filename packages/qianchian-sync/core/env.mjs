@@ -56,6 +56,11 @@ export function minusDaysInTz(ds, n) {
 let cached = null;
 let refreshing = null;
 
+// 强制失效：下次 ensureToken() 触发刷新（40105 = 当前 token 已被别处刷新吊销）
+export function invalidateToken() {
+  if (cached) cached.updated = "";
+}
+
 function parseTs(s) {
   if (!s) return 0;
   const t = Date.parse(s);

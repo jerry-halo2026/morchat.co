@@ -1,6 +1,6 @@
 // 拉取核心：主机白名单 · envelope 判定 · 令牌桶 · 失败重试 · 翻页（SYNC-ENGINE §2）
 // 2026-11-06 v2：修复 #4 token循环内 / #5 翻页 / #10 节流可配
-import { ensureToken, getConfig } from "./env.mjs";
+import { ensureToken, getConfig, invalidateToken } from "./env.mjs";
 
 const ALLOWED_HOSTS = new Set(["open.oceanengine.com", "ad.oceanengine.com"]);
 let lastCallAt = 0;
@@ -35,6 +35,13 @@ export async function callOE(urlStr, params = {}, { retries = 2 } = {}) {
       const ms = Date.now() - t0;
       if (!res.ok && res.status >= 500 && attempt < retries) { lastErr = `HTTP ${res.status}`; await sleep(1000 * (attempt + 1)); continue; }
       if (body.code === undefined && text.startsWith("<")) { body = { code: -2, message: "非 JSON 响应(HTML)", raw: text.slice(0, 120) }; }
+      // 40105 = token 已被吊销（典型：另一进程刷新过）→ 强制刷新后重试
+      if (body.code === 40105 && attempt < retries) {
+        lastErr = `40105: ${body.message}`;
+        invalidateToken();
+        await sleep(2000);
+        continue;
+      }
       if (body.code !== 0 && /频率超限|rate.?limit/i.test(String(body.message)) && attempt < retries) {
         lastErr = `频控: ${body.message}`;
         await sleep(65000);
@@ -58,7 +65,9 @@ export async function callOEPaged(urlStr, params = {}, { retries = 2, maxPages =
       return { rows: allRows, body, ms: 0, request_id: "", pagesFetched: page - 1, truncated: false };
     }
     const data = body.data || {};
-    const list = data.list || data.rows || [];
+    // 修复 #17/#21：不同接口返回行数组的键名不同（实测 2026-11-06）
+    // plans→ad_list · violations→adv_score_event · 报表→rows · fund→list
+    const list = data.list || data.rows || data.ad_list || data.adv_score_event || data.adv_id_list || data.authorization_infos || [];
     allRows.push(...list);
     const pi = data.page_info || data.pagination || {};
     totalPage = pi.total_page || pi.totalPage || 1;

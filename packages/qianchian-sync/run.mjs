@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // qianchuan-sync CLI（v3：修复 #6 依赖过期 / #14 时区）
-import { readFileSync, existsSync, writeFileSync } from "node:fs";
+import { readFileSync, existsSync, writeFileSync, unlinkSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { PKG, todayInTz, minusDaysInTz, getConfig } from "./core/env.mjs";
@@ -8,6 +8,27 @@ import { runCalls, loadState, saveState } from "./core/runner.mjs";
 
 const PLUGIN_DIR = join(PKG, "plugins");
 const SOURCES = ["accounts", "anchors", "plans", "uni_image", "uni_video", "uni_live", "balance", "violations"];
+
+// ── 进程互斥锁（防双进程互相吊销 token，2026-11-06 40105 风暴根因）──
+const LOCK_PATH = join(PKG, "data", "sync.lock");
+function pidAlive(pid) {
+  try { process.kill(pid, 0); return true; }
+  catch (e) { return e.code === "EPERM"; }
+}
+function acquireLock() {
+  if (existsSync(LOCK_PATH)) {
+    const pid = Number(readFileSync(LOCK_PATH, "utf8").trim());
+    if (Number.isFinite(pid) && pid > 0 && pid !== process.pid && pidAlive(pid)) {
+      console.error(`[LOCK] 已有同步进程 PID=${pid} 在运行，退出。双进程会互相吊销 token。`);
+      process.exit(1);
+    }
+  }
+  mkdirSync(join(PKG, "data"), { recursive: true });
+  writeFileSync(LOCK_PATH, String(process.pid));
+}
+function releaseLock() {
+  try { if (existsSync(LOCK_PATH)) unlinkSync(LOCK_PATH); } catch { /* 尽力而为 */ }
+}
 
 function readRaw(source, name) {
   const p = join(PKG, "data", "raw", source, `${name}.json`);
@@ -79,6 +100,9 @@ async function main() {
   const dayArg = args.find((a) => a.startsWith("--date="))?.slice(7) || todayInTz(timezone);
   const only = args.includes("--source") ? args[args.indexOf("--source") + 1] : null;
   const order = only ? [only] : SOURCES;
+  // --refetch <a,b,...>：旁路断点续传，强制重拉指定 source（用于修复静默坏文件）
+  const refetchIdx = args.indexOf("--refetch");
+  const refetchSet = new Set(refetchIdx >= 0 ? String(args[refetchIdx + 1] || "").split(",").filter(Boolean) : []);
 
   const day = dayArg;
   const state = loadState(day);
@@ -117,8 +141,8 @@ async function main() {
     const result = await plugins[s].build(ctx);
     const calls = result?.calls ?? result; // 兼容 {calls:[...]} 返回和生成器/数组直返
     const callCount = typeof calls?.[Symbol.asyncIterator] === "function" ? "?" : calls?.length ?? 0;
-    console.log(`[${s}] ${callCount} calls`);
-    const res = await runCalls(s, calls, state);
+    console.log(`[${s}] ${callCount} calls${refetchSet.has(s) ? " (refetch)" : ""}`);
+    const res = await runCalls(s, calls, state, { refetch: refetchSet.has(s) });
     report[s] = res;
 
     // accounts/anchors 跑完后刷新 ctx
@@ -142,4 +166,7 @@ async function main() {
   writeFileSync(join(PKG, "data", "state", `report-${day}-${mode}.json`), JSON.stringify(report, null, 1), "utf8");
 }
 
-main().catch((e) => { console.error("[FATAL]", e); process.exit(1); });
+acquireLock();
+main()
+  .then(() => releaseLock())
+  .catch((e) => { releaseLock(); console.error("[FATAL]", e); process.exit(1); });

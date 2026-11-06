@@ -7,3 +7,4 @@ dist/
 packages/qianchuan-sync/data/raw/
 packages/qianchuan-sync/data/state/crawl-backfill.log
 .mimosa/
+packages/qianchuan-sync/data/state/
