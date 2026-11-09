@@ -18,9 +18,16 @@ export function getConfig() {
   return {
     shopId: Number(env.QIANCHUAN_SHOP_ID || 59589091),
     timezone: env.SYNC_TIMEZONE || "Asia/Shanghai",
-    throttleMs: Number(env.SYNC_THROTTLE_MS || 600),
+    throttleMs: Number(env.SYNC_THROTTLE_MS || 1500), // #6：600 默认实测必触发 40100，改为与运维一致
+    requestTimeoutMs: Number(env.SYNC_REQUEST_TIMEOUT_MS || 30_000), // #27：单请求超时，防挂死
+    activeAnchorDays: Number(env.SYNC_ACTIVE_ANCHOR_DAYS || 180), // 增量只拉近 N 天有消耗的主播对
     maxStateEntries: Number(env.SYNC_MAX_STATE_ENTRIES || 2000),
     maxPages: Number(env.SYNC_MAX_PAGES || 1000), // 翻页兜底上限（修复 #22 截断丢数据）
+    // 2026-11-07 v5（磁盘治理）：versions 归档每个 name 保留份数。
+    // 原先无上限，3958 个版本文件里只有约 700 个唯一来源，白占 2.7G。
+    keepVersions: Number(env.SYNC_KEEP_VERSIONS || 1),
+    // 签名 URL（x-expires/x-signature）过期即废，单条可达 1KB，不落库
+    stripSignedUrls: env.SYNC_STRIP_SIGNED_URLS !== "0",
   };
 }
 
