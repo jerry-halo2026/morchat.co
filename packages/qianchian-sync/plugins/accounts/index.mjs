@@ -9,6 +9,7 @@ export async function build(ctx) {
       name: `accounts-p${page}`,
       url: "https://open.oceanengine.com/open_api/v1.0/qianchuan/shop/advertiser/list/",
       params: { shop_id: shopId, page, page_size: 100 },
+      noCache: true,
     });
   }
   return { calls };
