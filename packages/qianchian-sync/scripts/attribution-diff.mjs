@@ -14,7 +14,12 @@ const PKG = join(dirname(fileURLToPath(import.meta.url)), "..");
 const RAW = join(PKG, "data", "raw");
 const SOURCES = ["uni_image", "uni_video", "uni_live", "plans", "accounts", "anchors", "violations"];
 
-const args = process.argv.slice(2);
+// 参数归一化：把 --k=v 展开成 --k v。
+// 此前多数脚本只认空格写法，用 --day=2026-11-06 会静默走默认值 —— 与 --source=xx 是同一类 bug。
+const args = process.argv.slice(2).flatMap((a) =>
+  a.startsWith("--") && a.includes("=")
+    ? [a.slice(0, a.indexOf("=")), a.slice(a.indexOf("=") + 1)]
+    : [a]);
 const only = args.includes("--source") ? args[args.indexOf("--source") + 1] : null;
 const fromArg = args.includes("--from") ? args[args.indexOf("--from") + 1] : null;
 const toArg = args.includes("--to") ? args[args.indexOf("--to") + 1] : null;

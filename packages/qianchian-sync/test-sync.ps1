@@ -1,5 +1,5 @@
-# 测试脚本：跑短源 + 验证文件
-Set-Location "D:\dev\morchat.co\packages\qianchian-sync"
+# 冒烟测试：跑短源 + 验证落盘文件
+Set-Location $PSScriptRoot
 
 Write-Host "=== accounts ===" -ForegroundColor Cyan
 node run.mjs --source accounts 2>&1 | Select-Object -Last 3
@@ -8,7 +8,7 @@ Write-Host "`n=== anchors ===" -ForegroundColor Cyan
 node run.mjs --source anchors 2>&1 | Select-Object -Last 3
 
 Write-Host "`n=== 文件验证 ===" -ForegroundColor Yellow
-$base = "D:\dev\morchat.co\packages\qianchian-sync\data\raw"
+$base = Join-Path $PSScriptRoot "data\raw"
 foreach ($d in @("accounts","anchors")) {
     $p = Join-Path $base $d
     if (Test-Path $p) {
