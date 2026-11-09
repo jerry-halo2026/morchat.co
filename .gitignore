@@ -18,6 +18,3 @@ packages/qianchian-sync/data/*
 !packages/qianchian-sync/data/qc-*.txt
 !packages/qianchian-sync/data/report-topics.json
 !packages/qianchian-sync/data/uni-config-extra.json
-
-# 旧拼写目录（'qianchuan' 少一个 i），已被 qianchian-sync 取代，仅保留忽略防止误提交
-packages/qianchuan-sync/data/
