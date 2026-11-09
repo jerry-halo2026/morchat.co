@@ -4,7 +4,20 @@ node_modules/
 dist/
 *.log
 .DS_Store
-packages/qianchuan-sync/data/raw/
-packages/qianchuan-sync/data/state/crawl-backfill.log
 .mimosa/
-packages/qianchuan-sync/data/state/
+
+# ── 千川同步（packages/qianchian-sync）──────────────────────────────
+# 数据目录只入库「跑批必需的输入配置」，其余全是可再生的采集/导出产物：
+#   data/raw/     ~1.5G  接口原始快照（versions 版本链）
+#   data/flat/     ~62M  拍平 CSV（export-flat 生成）
+#   data/state/          断点续传与跑批报告（每次跑都变，入库只有噪音）
+#   data/*.html          分析报告
+# 反白名单里的 4 类文件是引擎启动时真正读取的输入，必须留在版本库。
+packages/qianchian-sync/data/*
+!packages/qianchian-sync/data/qc-*.json
+!packages/qianchian-sync/data/qc-*.txt
+!packages/qianchian-sync/data/report-topics.json
+!packages/qianchian-sync/data/uni-config-extra.json
+
+# 旧拼写目录（'qianchuan' 少一个 i），已被 qianchian-sync 取代，仅保留忽略防止误提交
+packages/qianchuan-sync/data/
