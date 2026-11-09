@@ -1584,6 +1584,8 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 	siteStarSpinRL := middleware.RateLimit(rdb, envPositiveInt("RATE_LIMIT_SITE_STAR_SPIN", 40), time.Minute, trustedProxies)
 	r.With(authRL).Post("/auth/send-code", h.SendCode)
 	r.With(authVerifyRL).Post("/auth/verify-code", h.VerifyCode)
+	r.Get("/auth/supabase/config", h.SupabaseConfig)
+	r.With(authVerifyRL).Post("/auth/supabase", h.SupabaseLogin)
 	r.With(authRL).Post("/auth/google", h.GoogleLogin)
 	// Email + password sign-in. Deliberately NOT behind authRL: that middleware
 	// is a per-IP request throttle (5/min, shared with send-code) that rejects

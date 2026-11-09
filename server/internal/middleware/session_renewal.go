@@ -44,7 +44,7 @@ func SessionRenewed(r *http.Request) bool {
 // authenticated this request is still valid for at least another TTL/2, so a
 // failed renewal costs one more chance at it, not the session.
 func renewCookieSession(w http.ResponseWriter, r *http.Request, claims jwt.MapClaims, fromCookie bool, cfSigner *auth.CloudFrontSigner) *http.Request {
-	if !fromCookie || !auth.IsSafeMethod(r.Method) {
+	if auth.IsExternalSession(claims) || !fromCookie || !auth.IsSafeMethod(r.Method) {
 		return r
 	}
 	if !auth.ShouldRenewSession(time.Now(), auth.SessionExpiry(claims)) {

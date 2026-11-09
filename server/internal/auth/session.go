@@ -211,6 +211,9 @@ func SessionIDFromToken(tokenString string) string {
 // once per legacy session, on a safe-method request; clients retry a CSRF
 // rejection once (packages/core/api/client.ts).
 func RenewSessionToken(claims jwt.MapClaims) (string, time.Time, error) {
+	if IsExternalSession(claims) {
+		return "", time.Time{}, ErrNotSessionToken
+	}
 	sub, _ := claims["sub"].(string)
 	if sub == "" {
 		return "", time.Time{}, ErrNotSessionToken

@@ -36,8 +36,16 @@ func RefreshCloudFrontCookies(signer *auth.CloudFrontSigner) func(http.Handler) 
 			}
 			_, err := r.Cookie("CloudFront-Policy")
 			if err != nil && !SessionRenewed(r) {
-				ttl := auth.AuthTokenTTL()
-				for _, cookie := range signer.SignedCookies(time.Now().Add(ttl)) {
+				expiresAt := time.Now().Add(auth.AuthTokenTTL())
+				// Provider sessions must not create CDN access beyond their proof.
+				if raw, _ := extractToken(r); raw != "" {
+					if claims, parseErr := auth.ParseSessionToken(raw); parseErr == nil && auth.IsExternalSession(claims) {
+						if proofEnd := auth.SessionExpiry(claims); proofEnd.Before(expiresAt) {
+							expiresAt = proofEnd
+						}
+					}
+				}
+				for _, cookie := range signer.SignedCookies(expiresAt) {
 					http.SetCookie(w, cookie)
 				}
 			}

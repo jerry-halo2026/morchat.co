@@ -82,7 +82,7 @@ func (h *Handler) RefreshSession(w http.ResponseWriter, r *http.Request) {
 	checkAgain := int(auth.SessionRenewCheckInterval().Seconds())
 	expiresAt := auth.SessionExpiry(claims)
 
-	if !auth.ShouldRenewSession(time.Now(), expiresAt) {
+	if auth.IsExternalSession(claims) || !auth.ShouldRenewSession(time.Now(), expiresAt) {
 		writeJSON(w, http.StatusOK, RefreshSessionResponse{
 			ExpiresAt:           formatSessionExpiry(expiresAt),
 			Renewed:             false,

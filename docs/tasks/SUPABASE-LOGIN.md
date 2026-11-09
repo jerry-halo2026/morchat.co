@@ -1,10 +1,3 @@
----
-purpose: "SUPABASE-LOGIN — email/password to native Multica session"
-owner: task-owners
-status: current
-updated: 2026-11-09
-related: []
----
 # SUPABASE-LOGIN — email/password to native Multica session
 
 - Task-ID: SUPABASE-LOGIN; owner/writer: /root/supabase_login_impl; consumer/reviewer: /root + independent reviewer.
