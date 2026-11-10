@@ -12,18 +12,18 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-// 623 replaces the workspace-only page foreign keys of knowledge_page_revisions
+// 640 replaces the workspace-only page foreign keys of knowledge_page_revisions
 // and knowledge_page_backlinks with (workspace_id, space_id, page_id) keys, the
-// same tightening 621 applied to knowledge_items. The tests below cover the two
+// same tightening 638 applied to knowledge_items. The tests below cover the two
 // directions of that swap and the one property the migration exists for: a row
 // whose space_id is not the space of its page cannot be stored.
 //
-// Like the 620 round-trip, everything runs inside one transaction that is rolled
+// Like the 637 round-trip, everything runs inside one transaction that is rolled
 // back, so the shared dev database ends each test exactly as it started.
 
 const (
-	migration623Up   = "../../migrations/623_knowledge_space_fk_tighten.up.sql"
-	migration623Down = "../../migrations/623_knowledge_space_fk_tighten.down.sql"
+	migration640Up   = "../../migrations/640_knowledge_space_fk_tighten.up.sql"
+	migration640Down = "../../migrations/640_knowledge_space_fk_tighten.down.sql"
 )
 
 // constraintDef returns the definition of conname on table, or "" when the
@@ -46,13 +46,13 @@ func constraintDef(t *testing.T, tx pgx.Tx, table, conname string) string {
 	return def
 }
 
-// TestMigration623RoundTrips checks both directions: the down file restores
-// 620's workspace-only keys under their original names, and the up file replaces
+// TestMigration640RoundTrips checks both directions: the down file restores
+// 637's workspace-only keys under their original names, and the up file replaces
 // them again with the space-aware ones.
-func TestMigration623RoundTrips(t *testing.T) {
+func TestMigration640RoundTrips(t *testing.T) {
 	tx := beginTx(t)
 
-	execMigrationFile(t, tx, migration623Down)
+	execMigrationFile(t, tx, migration640Down)
 	for _, want := range []struct {
 		table, conname, columns string
 	}{
@@ -62,19 +62,19 @@ func TestMigration623RoundTrips(t *testing.T) {
 	} {
 		def := constraintDef(t, tx, want.table, want.conname)
 		if def == "" {
-			t.Fatalf("after 623 down: %s is missing", want.conname)
+			t.Fatalf("after 640 down: %s is missing", want.conname)
 		}
 		if !strings.Contains(def, want.columns) {
-			t.Errorf("after 623 down: %s = %s, want %s", want.conname, def, want.columns)
+			t.Errorf("after 640 down: %s = %s, want %s", want.conname, def, want.columns)
 		}
 		// "workspace_id" contains "space_id" as a substring, so the widened column
 		// list is checked on the text with every workspace_id removed.
 		if strings.Contains(strings.ReplaceAll(def, "workspace_id", ""), "space_id") {
-			t.Errorf("after 623 down: %s still mentions space_id: %s", want.conname, def)
+			t.Errorf("after 640 down: %s still mentions space_id: %s", want.conname, def)
 		}
 	}
 
-	execMigrationFile(t, tx, migration623Up)
+	execMigrationFile(t, tx, migration640Up)
 	for _, want := range []struct {
 		table, conname, columns string
 	}{
@@ -84,13 +84,13 @@ func TestMigration623RoundTrips(t *testing.T) {
 	} {
 		def := constraintDef(t, tx, want.table, want.conname)
 		if def == "" {
-			t.Fatalf("after 623 up: %s is missing", want.conname)
+			t.Fatalf("after 640 up: %s is missing", want.conname)
 		}
 		if !strings.Contains(def, want.columns) {
-			t.Errorf("after 623 up: %s = %s, want %s", want.conname, def, want.columns)
+			t.Errorf("after 640 up: %s = %s, want %s", want.conname, def, want.columns)
 		}
 		if target := "REFERENCES knowledge_pages(workspace_id, space_id, id)"; !strings.Contains(def, target) {
-			t.Errorf("after 623 up: %s does not reference %s: %s", want.conname, target, def)
+			t.Errorf("after 640 up: %s does not reference %s: %s", want.conname, target, def)
 		}
 	}
 
@@ -110,10 +110,10 @@ func TestMigration623RoundTrips(t *testing.T) {
 		}
 	}
 
-	// 621 owns knowledge_pages(workspace_id, space_id, id), so it must survive both
-	// directions of 623.
+	// 638 owns knowledge_pages(workspace_id, space_id, id), so it must survive both
+	// directions of 640.
 	if def := constraintDef(t, tx, "knowledge_pages", "knowledge_pages_workspace_space_id_621_key"); def == "" {
-		t.Error("after 623: knowledge_pages_workspace_space_id_621_key was dropped")
+		t.Error("after 640: knowledge_pages_workspace_space_id_621_key was dropped")
 	}
 
 	if err := tx.Rollback(context.Background()); err != nil && err != pgx.ErrTxClosed {
@@ -135,16 +135,16 @@ func countFKOn(t *testing.T, tx pgx.Tx, table string) int {
 	return n
 }
 
-// TestMigration623RefusesDriftedRows is the data-safety half: existing rows are
+// TestMigration640RefusesDriftedRows is the data-safety half: existing rows are
 // checked, not repaired. A database that holds a revision (or a backlink edge)
 // whose space_id disagrees with its page aborts the migration, and the error
 // carries the counts so the operator knows how much to fix.
-func TestMigration623RefusesDriftedRows(t *testing.T) {
+func TestMigration640RefusesDriftedRows(t *testing.T) {
 	tx := beginTx(t)
 	ctx := context.Background()
 
-	// Start from the widened keys: this is the state a 620-era database can be in.
-	execMigrationFile(t, tx, migration623Down)
+	// Start from the widened keys: this is the state a 637-era database can be in.
+	execMigrationFile(t, tx, migration640Down)
 
 	if _, err := tx.Exec(ctx, `
 		INSERT INTO knowledge_instances (workspace_id, wiki_id)
@@ -187,16 +187,16 @@ func TestMigration623RefusesDriftedRows(t *testing.T) {
 		t.Fatalf("insert drifted backlink under the widened key: %v", err)
 	}
 
-	body, err := os.ReadFile(filepath.Clean(migration623Up))
+	body, err := os.ReadFile(filepath.Clean(migration640Up))
 	if err != nil {
-		t.Fatalf("read %s: %v", migration623Up, err)
+		t.Fatalf("read %s: %v", migration640Up, err)
 	}
 	if _, err := tx.Exec(ctx, string(body)); err == nil {
-		t.Fatal("623 applied although a revision and a backlink name a space their page is not in")
+		t.Fatal("640 applied although a revision and a backlink name a space their page is not in")
 	} else {
 		message := err.Error()
 		for _, want := range []string{
-			"migration 623",
+			"migration 640",
 			"1 knowledge_page_revisions row(s)",
 			"1 knowledge_page_backlinks source edge(s)",
 		} {
@@ -207,14 +207,14 @@ func TestMigration623RefusesDriftedRows(t *testing.T) {
 	}
 }
 
-// TestMigration623KeepsConsistentRows is the other half: a database whose rows
+// TestMigration640KeepsConsistentRows is the other half: a database whose rows
 // already agree migrates, the rows survive untouched, and the composite key is in
 // force afterwards.
-func TestMigration623KeepsConsistentRows(t *testing.T) {
+func TestMigration640KeepsConsistentRows(t *testing.T) {
 	tx := beginTx(t)
 	ctx := context.Background()
 
-	execMigrationFile(t, tx, migration623Down)
+	execMigrationFile(t, tx, migration640Down)
 
 	if _, err := tx.Exec(ctx, `
 		INSERT INTO knowledge_instances (workspace_id, wiki_id)
@@ -242,7 +242,7 @@ func TestMigration623KeepsConsistentRows(t *testing.T) {
 		t.Fatalf("insert revision: %v", err)
 	}
 
-	execMigrationFile(t, tx, migration623Up)
+	execMigrationFile(t, tx, migration640Up)
 
 	var kept int
 	if err := tx.QueryRow(ctx, `

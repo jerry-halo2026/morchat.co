@@ -53,7 +53,7 @@ var ErrInvalidField = errors.New("knowledge: invalid field")
 var ErrSpaceNotFound = errors.New("knowledge: space not found")
 
 // NewItem is the create payload. SpaceID is required — an item belongs to
-// exactly one space of its workspace (migration 621); PageID is optional. Empty
+// exactly one space of its workspace (migration 638); PageID is optional. Empty
 // enum fields take the registry default; ProjectID / OwnerID / PageID stay nil
 // when the caller omits them.
 type NewItem struct {
@@ -318,7 +318,7 @@ func (s *Store) GetChunk(ctx context.Context, workspaceID, chunkID string) (Chun
 var ErrChunkNotFound = errors.New("knowledge: chunk not found")
 
 // Revision is one recorded edit of a wiki page (knowledge_page_revisions). Like
-// an item it carries its own space_id, and since migration 623 that space is
+// an item it carries its own space_id, and since migration 640 that space is
 // pinned to the space of PageID: the foreign key is
 // (workspace_id, space_id, page_id) -> knowledge_pages, so a revision cannot
 // record a page belonging to another space of the same workspace. PageID stays
@@ -381,7 +381,7 @@ func (s *Store) CreateRevision(ctx context.Context, in NewRevision) (Revision, e
 
 // Backlink is one materialised "page links to path" edge
 // (knowledge_page_backlinks). SourcePageID is mandatory and must live in the
-// backlink's own space (migration 623); TargetPageID is nil for a red link — a
+// backlink's own space (migration 640); TargetPageID is nil for a red link — a
 // link to a path no page answers for yet — which is why TargetPath is stored
 // even when the target resolves.
 type Backlink struct {

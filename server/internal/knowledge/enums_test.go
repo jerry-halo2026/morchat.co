@@ -15,8 +15,8 @@ import (
 // with the registry.
 const (
 	tsTypesPath   = "../../../packages/views/lib/knowledge/types.ts"
-	migrationUp   = "../../migrations/620_wiki_knowledge.up.sql"
-	migrationDown = "../../migrations/620_wiki_knowledge.down.sql"
+	migrationUp   = "../../migrations/637_wiki_knowledge.up.sql"
+	migrationDown = "../../migrations/637_wiki_knowledge.down.sql"
 )
 
 func readFile(t *testing.T, path string) string {

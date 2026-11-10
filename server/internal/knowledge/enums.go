@@ -16,7 +16,7 @@ package knowledge
 const EmbeddingDim = 1536
 
 // Enum is one canonical enumeration: the wire field, the DDL column that
-// carries it, the named CHECK constraint that enforces it in migration 620,
+// carries it, the named CHECK constraint that enforces it in migration 637,
 // and the closed value set.
 type Enum struct {
 	// Field is the JSON/TS field name on the wire.
@@ -25,7 +25,7 @@ type Enum struct {
 	// otherwise have to spell a reserved-ish identifier.
 	Column string
 	// Constraint is the CHECK constraint name inside
-	// 620_wiki_knowledge.up.sql.
+	// 637_wiki_knowledge.up.sql.
 	Constraint string
 	// Values is the closed set, in the order the DDL and TS list them.
 	Values []string

@@ -1,4 +1,4 @@
--- 620: knowledge domain — port of the Paperclip LLM-wiki schema.
+-- 637: knowledge domain — port of the Paperclip LLM-wiki schema.
 --
 -- Source: D:\dev\refs\paperclip\packages\plugins\plugin-llm-wiki\migrations
 -- (001_llm_wiki.sql, 002_paperclip_distillation.sql, 003_spaces.sql), MIT.
@@ -19,6 +19,37 @@
 -- skipped. `vector` is deliberately NOT required: the embedding column is added
 -- only when pgvector is present, so this migration applies on a stock Postgres
 -- and on the pgvector image alike. See the 4th DO block below.
+
+-- The wiki tables point their project/issue backlinks at (workspace_id, id) so a
+-- cross-workspace id can never satisfy a child row. On our branch that unique
+-- key comes from the ACL round; after the 0.8.2 sync our migrations are numbered
+-- after this one, so a database built from the upstream tag alone would not have
+-- it yet. Create it here when the migration owns the table, and do nothing when
+-- the ACL migration already did (duplicate_object / duplicate_table). A role
+-- that may only reference the table (the fail-soft test runs the file as one)
+-- gets insufficient_privilege and carries on: the key is then expected to be
+-- there already, which is exactly the ACL-migration case.
+DO $$
+BEGIN
+  ALTER TABLE public.project
+    ADD CONSTRAINT r1_acl_project_workspace_id_key UNIQUE (workspace_id, id);
+EXCEPTION WHEN duplicate_object THEN NULL;
+          WHEN duplicate_table THEN NULL;
+          WHEN insufficient_privilege THEN
+            RAISE NOTICE 'project(workspace_id, id) unique key left to the ACL migration';
+END
+$$;
+
+DO $$
+BEGIN
+  ALTER TABLE public.issue
+    ADD CONSTRAINT r1_acl_issue_workspace_id_key UNIQUE (workspace_id, id);
+EXCEPTION WHEN duplicate_object THEN NULL;
+          WHEN duplicate_table THEN NULL;
+          WHEN insufficient_privilege THEN
+            RAISE NOTICE 'issue(workspace_id, id) unique key left to the ACL migration';
+END
+$$;
 
 DO $$
 BEGIN

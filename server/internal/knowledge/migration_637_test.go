@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-// The 620 round-trip runs inside one transaction: apply the down file, assert
+// The 637 round-trip runs inside one transaction: apply the down file, assert
 // the knowledge schema is gone, apply the up file again, assert it is back, then
 // roll back. A shared dev database therefore ends the test exactly as it started,
 // while both directions of the migration are exercised for real.
@@ -57,7 +57,7 @@ func countKnowledgeTables(t *testing.T, tx pgx.Tx) int {
 	return n
 }
 
-func TestMigration620RoundTrip(t *testing.T) {
+func TestMigration637RoundTrip(t *testing.T) {
 	tx := beginTx(t)
 
 	execMigrationFile(t, tx, migrationDown)
@@ -122,7 +122,7 @@ func mustTx(t *testing.T) pgx.Tx {
 	return tx
 }
 
-// TestMigration620AppliesWithoutPgvector is the fail-soft guarantee plan §4 asks
+// TestMigration637AppliesWithoutPgvector is the fail-soft guarantee plan §4 asks
 // for: on a server with no pgvector, the migration must still apply and simply
 // skip the embedding column.
 //
@@ -130,7 +130,7 @@ func mustTx(t *testing.T) pgx.Tx {
 // running the up file as a role that cannot install it — so the pgvector
 // branches really do go through their exception handlers instead of the test
 // asserting that a guard exists.
-func TestMigration620AppliesWithoutPgvector(t *testing.T) {
+func TestMigration637AppliesWithoutPgvector(t *testing.T) {
 	tx := beginTx(t)
 	ctx := context.Background()
 
@@ -192,9 +192,9 @@ func TestMigration620AppliesWithoutPgvector(t *testing.T) {
 	}
 }
 
-// TestMigration620CreatesEmbeddingWherePgvectorExists is the other side: on the
+// TestMigration637CreatesEmbeddingWherePgvectorExists is the other side: on the
 // pgvector image the column and its HNSW index must be there after a plain up.
-func TestMigration620CreatesEmbeddingWherePgvectorExists(t *testing.T) {
+func TestMigration637CreatesEmbeddingWherePgvectorExists(t *testing.T) {
 	tx := beginTx(t)
 	ctx := context.Background()
 

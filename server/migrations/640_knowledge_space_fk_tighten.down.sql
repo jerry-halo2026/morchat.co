@@ -1,9 +1,9 @@
--- 623 (down): widen the page foreign keys back to workspace-only.
+-- 640 (down): widen the page foreign keys back to workspace-only.
 --
--- Inverse of 623_knowledge_space_fk_tighten.up.sql, in reverse order: drop the
--- three composite keys, restore the (workspace_id, page_id) keys 620 created
--- under their original names, then drop the target unique constraint 623 may
--- have added (621 owns its own copy under a different name and is left alone).
+-- Inverse of 640_knowledge_space_fk_tighten.up.sql, in reverse order: drop the
+-- three composite keys, restore the (workspace_id, page_id) keys 637 created
+-- under their original names, then drop the target unique constraint 640 may
+-- have added (638 owns its own copy under a different name and is left alone).
 --
 -- Widening is always satisfiable: the composite keys are strictly stronger, so
 -- every row a database could hold under them satisfies the restored ones. The
@@ -58,7 +58,7 @@ END
 $$;
 
 -- Present only on a database that lacked knowledge_pages(workspace_id, space_id,
--- id) when 623 ran; 621's knowledge_pages_workspace_space_id_621_key is a
+-- id) when 640 ran; 638's knowledge_pages_workspace_space_id_621_key is a
 -- different object and stays.
 ALTER TABLE public.knowledge_pages
     DROP CONSTRAINT IF EXISTS knowledge_pages_workspace_space_id_623_key;

@@ -1,12 +1,12 @@
--- 623: the two wiki child tables stop being able to name a space their page does
+-- 640: the two wiki child tables stop being able to name a space their page does
 -- not belong to.
 --
--- 620 gave knowledge_page_revisions and knowledge_page_backlinks their own
+-- 637 gave knowledge_page_revisions and knowledge_page_backlinks their own
 -- space_id, but bound the page on (workspace_id, page_id) only. A row could
 -- therefore carry space A and a page of space B inside one workspace: the
 -- foreign key was satisfied, while every reader that trusts space_id (the space
 -- listing, the ACL filter, the backlink panel) disagreed with the page tree.
--- 621 removed the same drift from knowledge_items' page binding; this file
+-- 638 removed the same drift from knowledge_items' page binding; this file
 -- removes it from the two tables that still have it.
 --
 -- knowledge_documents and knowledge_chunks keep their workspace-only foreign
@@ -27,16 +27,16 @@
 -- drifted row aborts the migration and reports the counts, so the operator
 -- decides what the space should be instead of this file guessing.
 --
--- Rollback (623_knowledge_space_fk_tighten.down.sql) is the inverse: drop the
+-- Rollback (640_knowledge_space_fk_tighten.down.sql) is the inverse: drop the
 -- three composite keys and restore the workspace-only ones.
 
 -- ---------------------------------------------------------------------------
 -- 1. The foreign-key target this migration needs.
 -- ---------------------------------------------------------------------------
 -- knowledge_pages(workspace_id, space_id, id) is what makes "same workspace *and*
--- same space" expressible. 621 added it as
+-- same space" expressible. 638 added it as
 -- knowledge_pages_workspace_space_id_621_key; this block covers a database where
--- 621's constraint is absent, and is a no-op everywhere else.
+-- 638's constraint is absent, and is a no-op everywhere else.
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -53,7 +53,7 @@ BEGIN
     ALTER TABLE public.knowledge_pages
       ADD CONSTRAINT knowledge_pages_workspace_space_id_623_key
       UNIQUE (workspace_id, space_id, id);
-    RAISE NOTICE 'migration report: added knowledge_pages(workspace_id, space_id, id) unique constraint required by the 623 space foreign keys';
+    RAISE NOTICE 'migration report: added knowledge_pages(workspace_id, space_id, id) unique constraint required by the 640 space foreign keys';
   END IF;
 END
 $$;
@@ -96,13 +96,13 @@ BEGIN
 
   IF v_revisions > 0 OR v_backlink_sources > 0 OR v_backlink_targets > 0 THEN
     RAISE EXCEPTION
-      'migration 623: % knowledge_page_revisions row(s), % knowledge_page_backlinks source edge(s) and % knowledge_page_backlinks target edge(s) name a space that is not the space of their page',
+      'migration 640: % knowledge_page_revisions row(s), % knowledge_page_backlinks source edge(s) and % knowledge_page_backlinks target edge(s) name a space that is not the space of their page',
       v_revisions, v_backlink_sources, v_backlink_targets
       USING ERRCODE = 'integrity_constraint_violation',
-            HINT = 'Set space_id on those rows to the space of their page (or drop them) and re-run migration 623; this migration deliberately does not rewrite data.';
+            HINT = 'Set space_id on those rows to the space of their page (or drop them) and re-run migration 640; this migration deliberately does not rewrite data.';
   END IF;
 
-  RAISE NOTICE 'migration report: 623 coherence precheck found 0 rows whose space_id differs from their page space';
+  RAISE NOTICE 'migration report: 640 coherence precheck found 0 rows whose space_id differs from their page space';
 END
 $$;
 
@@ -111,7 +111,7 @@ $$;
 -- ---------------------------------------------------------------------------
 -- page_id stays nullable (a revision may describe a delete of a path no row
 -- answers for); MATCH SIMPLE therefore skips the check for those rows, and
--- ON DELETE CASCADE keeps 620's behaviour for the rest: dropping a page drops
+-- ON DELETE CASCADE keeps 637's behaviour for the rest: dropping a page drops
 -- its revisions.
 ALTER TABLE public.knowledge_page_revisions
     DROP CONSTRAINT IF EXISTS knowledge_page_revisions_page_fkey;
@@ -127,7 +127,7 @@ ALTER TABLE public.knowledge_page_revisions
 -- ---------------------------------------------------------------------------
 -- source_page_id is NOT NULL, so every backlink is checked; target_page_id stays
 -- nullable for a "red link" (a link to a page that does not exist yet) and
--- cascades with the page it resolves to, as in 620.
+-- cascades with the page it resolves to, as in 637.
 ALTER TABLE public.knowledge_page_backlinks
     DROP CONSTRAINT IF EXISTS knowledge_page_backlinks_source_fkey,
     DROP CONSTRAINT IF EXISTS knowledge_page_backlinks_target_fkey;

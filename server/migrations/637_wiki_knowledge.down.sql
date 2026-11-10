@@ -1,4 +1,4 @@
--- 620 (down): remove the knowledge domain added by 620_wiki_knowledge.up.sql.
+-- 637 (down): remove the knowledge domain added by 637_wiki_knowledge.up.sql.
 --
 -- Only the objects this migration created are dropped. The optional extensions
 -- (pgcrypto / pg_trgm / pg_bigm / vector) stay installed: other migrations
@@ -19,7 +19,7 @@ DROP TABLE IF EXISTS public.knowledge_page_backlinks;
 DROP TABLE IF EXISTS public.knowledge_page_revisions;
 DROP TABLE IF EXISTS public.knowledge_sources;
 
--- knowledge_items is dropped before the tables it points at. 621 gives it a
+-- knowledge_items is dropped before the tables it points at. 638 gives it a
 -- foreign key to knowledge_pages (page_id) and to knowledge_spaces (space_id),
 -- so dropping a referenced table first is refused with "cannot drop table
 -- ... because other objects depend on it". Dropping the referencing table first

@@ -119,7 +119,7 @@ func cleanupItems(t *testing.T) {
 }
 
 // testSpace creates the knowledge instance and space every item needs since
-// migration 621 (space_id is NOT NULL), and returns the space id. It also
+// migration 638 (space_id is NOT NULL), and returns the space id. It also
 // creates an optional extra space in the same workspace, which the page-binding
 // test uses to prove that a page from another space cannot be bound.
 func testSpace(t *testing.T, workspaceID string) string {

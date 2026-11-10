@@ -1,4 +1,4 @@
--- 622: per-user, long-lived model-gateway credentials (T1 in
+-- 639: per-user, long-lived model-gateway credentials (T1 in
 -- docs/plans/RUNTIME-CONFIGURATOR.md).
 --
 -- One row = one *minted, encrypted* new-api token bound to (user, device).

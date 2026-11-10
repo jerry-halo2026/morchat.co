@@ -1,8 +1,8 @@
--- 621: knowledge_items becomes space-scoped.
+-- 638: knowledge_items becomes space-scoped.
 --
--- 620 ported the Paperclip wiki schema with two coexisting models: the
+-- 637 ported the Paperclip wiki schema with two coexisting models: the
 -- user/API-facing entry (`knowledge_items`) and the wiki document tree
--- (`knowledge_pages` / `knowledge_sources`). 620 hung space ownership on the
+-- (`knowledge_pages` / `knowledge_sources`). 637 hung space ownership on the
 -- wiki side only, so an item had no space of its own and the two models could
 -- not be related — the field drift this migration removes.
 --
@@ -13,19 +13,19 @@
 --   * `knowledge_pages` stays the wiki tree; an item may be distilled from one
 --     page, which is a nullable binding, never a second space owner.
 --
--- Coherence is expressed as composite foreign keys, matching 620's rule for
+-- Coherence is expressed as composite foreign keys, matching 637's rule for
 -- knowledge_sources / knowledge_pages / knowledge_page_revisions: a
 -- cross-workspace (or cross-space) binding must be *unrepresentable*, not merely
 -- rejected by the Go layer, so a future writer cannot reintroduce the drift.
 --
--- Rollback is in 621_knowledge_items_space.down.sql: constraints and indexes
+-- Rollback is in 638_knowledge_items_space.down.sql: constraints and indexes
 -- first, then the columns, then the unique constraint this file added when the
 -- database lacked it.
 
 -- ---------------------------------------------------------------------------
 -- 1. The foreign-key targets this migration needs.
 -- ---------------------------------------------------------------------------
--- knowledge_spaces(workspace_id, id): present since 620 as
+-- knowledge_spaces(workspace_id, id): present since 637 as
 -- knowledge_spaces_workspace_id_key. Added here only for a database where that
 -- constraint is missing, so the composite FKs below can still be created.
 DO $$
@@ -51,7 +51,7 @@ $$;
 -- knowledge_pages(workspace_id, space_id, id): the item → page binding is only
 -- coherent when the page lives in the same workspace *and* the same space as
 -- the item, which needs this target. knowledge_pages_pkey alone cannot express
--- that, and 620's (workspace_id, space_id, path) key is a different column set.
+-- that, and 637's (workspace_id, space_id, path) key is a different column set.
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -77,12 +77,12 @@ $$;
 -- 2. The columns.
 -- ---------------------------------------------------------------------------
 -- Added nullable first so existing rows survive the NOT NULL below; on a
--- database that only ever ran 620 the table is empty and both steps are no-ops.
+-- database that only ever ran 637 the table is empty and both steps are no-ops.
 ALTER TABLE public.knowledge_items
     ADD COLUMN space_id uuid,
     ADD COLUMN page_id uuid;
 
--- Items created through 620's API have no space to inherit. Bind those orphans
+-- Items created through 637's API have no space to inherit. Bind those orphans
 -- to a default space of their own workspace, the same shape 003_spaces.sql
 -- seeds, so the NOT NULL can be established without dropping user data.
 -- Runs only where orphan rows exist; a fresh install raises nothing.

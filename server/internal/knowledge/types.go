@@ -12,7 +12,7 @@ import "time"
 // applied, not a coincidentally equal zero value.
 
 // Item is one knowledge entry (plan §5 条目). SpaceID is mandatory: the item is
-// the user/API-facing object and owns its space (migration 621), while PageID is
+// the user/API-facing object and owns its space (migration 638), while PageID is
 // the optional binding to the wiki page it was distilled from.
 type Item struct {
 	ID          string    `json:"id"`

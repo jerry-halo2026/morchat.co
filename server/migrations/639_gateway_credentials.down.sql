@@ -1,4 +1,4 @@
--- 622 (down): drop the per-user gateway credential table.
+-- 639 (down): drop the per-user gateway credential table.
 --
 -- Rolling this back discards the ciphertext — that is the point. Any token
 -- minted before the rollback keeps working on the gateway until it is revoked
