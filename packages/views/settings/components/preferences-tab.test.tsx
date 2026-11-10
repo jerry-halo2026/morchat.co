@@ -435,8 +435,9 @@ describe("PreferencesTab — Scope", () => {
     // The knowledge section adds its own storage label, so several groups can
     // legitimately carry the same "Account · synced" badge now.
     expect(screen.getAllByText("Account · synced").length).toBeGreaterThan(0);
-    // Appearance, opening issues, comments & chat.
-    expect(screen.getAllByText("This device only")).toHaveLength(3);
+    // Comments & chat, and clicking a card or row. Theme is not one of them:
+    // on the 0.8.2 base it lives on the Appearance page, not in this tab.
+    expect(screen.getAllByText("This device only")).toHaveLength(2);
   });
 
   it("switches what clicking a card or row opens, and says what Shift does", async () => {

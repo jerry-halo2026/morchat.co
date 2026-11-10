@@ -198,7 +198,7 @@ describe("RepositoriesSection", () => {
     const user = userEvent.setup();
     render(<RepositoriesSection />, { wrapper: Wrapper });
 
-    await user.click(screen.getByRole("button", { name: /Actions for https:\/\/github.com\/multica-ai\/multica/ }));
+    await user.click(screen.getByRole("button", { name: /Actions for https:\/\/github\.com\/jerry-halo2026\/morchat\.co/ }));
     await user.click(await screen.findByRole("menuitem", { name: "Edit" }));
     const dialog = await screen.findByRole("dialog", { name: "Edit repository" });
     const description = within(dialog).getByRole("textbox", { name: "Description" });
@@ -215,7 +215,7 @@ describe("RepositoriesSection", () => {
     const user = userEvent.setup();
     render(<RepositoriesSection />, { wrapper: Wrapper });
 
-    await user.click(screen.getByRole("button", { name: /Actions for https:\/\/github.com\/multica-ai\/multica/ }));
+    await user.click(screen.getByRole("button", { name: /Actions for https:\/\/github\.com\/jerry-halo2026\/morchat\.co/ }));
     await user.click(await screen.findByRole("menuitem", { name: "Delete repository" }));
     expect(mockUpdateWorkspace).not.toHaveBeenCalled();
     await user.click(
