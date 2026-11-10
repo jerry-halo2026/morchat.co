@@ -1,3 +1,11 @@
+---
+purpose: 预设导入冒烟：技能→Agent→Squad 的真实调用记录
+owner: lead
+status: current
+updated: 2026-11-11
+related: [docs/README.md]
+---
+
 # PRESET-IMPORT-SMOKE — 内容仓预设 → Skill → Agent → Squad（本地 dev 实测）
 
 环境：API 127.0.0.1:8080 / Web :3000 / pg 容器 morchat-dev-pg。账号 p1.preset.smoke@local.test（user ba4c4156…），workspace `1f646165-19ab-46bd-965d-da990e5703c9`（slug p1-preset-smoke）。原始逐条请求/响应：`.local/p0/preset-smoke/run.log`（316KB），状态机 `.local/p0/preset-smoke/state.json`、`.local/p0/preset-smoke/readback.json`。

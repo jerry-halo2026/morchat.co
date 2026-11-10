@@ -1,3 +1,11 @@
+---
+purpose: 上游基线评估与切换记录
+owner: lead
+status: reference
+updated: 2026-11-11
+related: [docs/README.md]
+---
+
 # Multica 基座接入边界与验证门禁
 
 > v1 评审稿，2026-11-06。**基座决策**：任务/run 权威由 Paperclip 切换为 **Multica fork**（Ethan 2026-11-06 确认）。开发 fork：`D:\dev\multica`（upstream 追踪 + `product-base` 钉上游 + `product/dev` 开发线），基线 commit `164290ee`。本文取代 [PAPERCLIP-BASE](D:/dev/morchat.co/docs/PAPERCLIP-BASE.md)（已归档为机制研究参考）。

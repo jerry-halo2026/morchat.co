@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 158,
-  "fingerprint": "8803376a7a68214c28d9d7a2464fa278c28cb4f087a1263b1e4fea8535fc4d36",
+  "count": 160,
+  "fingerprint": "3a491f25f3d505abf2fc7e767570fe77e8cb08cd3edb4e0d21ddf613314b0222",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -294,7 +294,8 @@
       ],
       "links_out": [
         "docs/ARCHITECTURE.md",
-        "docs/PRD.md"
+        "docs/PRD.md",
+        "docs/archive/2026-11-04-pre-platform-review/EDICT-FLOW.md"
       ],
       "links_in": [
         "docs/README.md"
@@ -413,6 +414,17 @@
         "docs/REFERENCE-REUSE.md",
         "docs/WORKSPACE-CONTINUITY.md"
       ]
+    },
+    {
+      "path": "docs/MULTICA-BASE.md",
+      "title": "Multica 基座接入边界与验证门禁",
+      "purpose": "上游基线评估与切换记录",
+      "owner": "lead",
+      "status": "reference",
+      "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
     },
     {
       "path": "docs/NATIVE-RUNTIME-RESEARCH.md",
@@ -1568,6 +1580,17 @@
       "links_in": []
     },
     {
+      "path": "docs/tasks/PRESET-IMPORT-SMOKE.md",
+      "title": "PRESET-IMPORT-SMOKE — 内容仓预设 → Skill → Agent → Squad（本地 dev 实测）",
+      "purpose": "预设导入冒烟：技能→Agent→Squad 的真实调用记录",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
       "path": "docs/tasks/R1-00-baseline.md",
       "title": "R1-00：恢复工程基线与可执行派工",
       "purpose": "R1-00：恢复工程基线与可执行派工",
@@ -2392,8 +2415,6 @@
     "docs/DOCS-REBASE.md -> docs/archive/README.md",
     "docs/DOCS-REBASE.md -> related docs/archive/2026-11-06-development-readiness/README.md",
     "docs/DOCS-REBASE.md -> related docs/archive/README.md",
-    "docs/EDICT-FLOW.md -> docs/archive/2026-11-04-pre-platform-review/EDICT-FLOW.md",
-    "docs/EDICT-FLOW.md -> related docs/archive/2026-11-04-pre-platform-review/EDICT-FLOW.md",
     "docs/MULTICA-BASE-EVALUATION.md -> docs/archive/2026-11-06-before-multica-authority-migration/MULTICA-BASE-EVALUATION.md",
     "docs/MULTICA-BASE-EVALUATION.md -> related docs/archive/2026-11-06-before-multica-authority-migration/MULTICA-BASE-EVALUATION.md",
     "docs/PAPERCLIP-BASE.md -> docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",

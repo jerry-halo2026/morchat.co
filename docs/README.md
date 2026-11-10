@@ -128,6 +128,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [Evose 产品结构与企业协作研究](EVOSE-PRODUCT-RESEARCH.md) | Evose 产品结构与企业协作研究 | b02-client | reference | 2026-11-06 |
 | [最小纵向链路：契约切片与任务卡草案](MINIMUM-CHAIN.md) | 最小纵向链路：契约切片与任务卡草案 | docs-maintainers | current | 2026-11-06 |
 | [Multica 当前底座：事实、门禁与实测](MULTICA-BASE-EVALUATION.md) | Multica 当前底座：事实、门禁与实测 | docs-maintainers | reference | 2026-11-06 |
+| [Multica 基座接入边界与验证门禁](MULTICA-BASE.md) | 上游基线评估与切换记录 | lead | reference | 2026-11-11 |
 | [原生双设备运行与 Harness 选型核查](NATIVE-RUNTIME-RESEARCH.md) | 原生双设备运行与 Harness 选型核查 | b05-runtime | reference | 2026-11-06 |
 | [Paperclip 治理参考与源码迁移边界](PAPERCLIP-BASE.md) | Paperclip 治理参考与源码迁移边界 | docs-maintainers | reference | 2026-11-06 |
 | [morchat MVP 分阶段建设顺序](PLAN.md) | morchat MVP 分阶段建设顺序 | docs-maintainers | current | 2026-11-06 |
@@ -228,6 +229,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [NM03 原生创建契约独立评审](tasks/NATIVE-CREATION-REVIEW.md) | NM03 原生创建契约独立评审 | task-owners | draft | 2026-11-10 |
 | [NM03-A new-workspace atomic authorization bootstrap](tasks/NM03A-WORKSPACE-BOOTSTRAP.md) | NM03-A new-workspace atomic authorization bootstrap | task-owners | current | 2026-11-10 |
 | [NM03-B：原生项目／普通任务创建→授权读回候选](tasks/NM03B-NATIVE-CREATE-READ.md) | NM03-B：原生项目／普通任务创建→授权读回候选 | task-owners | draft | 2026-11-10 |
+| [PRESET-IMPORT-SMOKE — 内容仓预设 → Skill → Agent → Squad（本地 dev 实测）](tasks/PRESET-IMPORT-SMOKE.md) | 预设导入冒烟：技能→Agent→Squad 的真实调用记录 | lead | current | 2026-11-11 |
 | [R1-00：恢复工程基线与可执行派工](tasks/R1-00-baseline.md) | R1-00：恢复工程基线与可执行派工 | task-owners | current | 2026-11-07 |
 | [R1-00-PNPM-BOOTSTRAP](tasks/R1-00-pnpm-bootstrap.md) | R1-00-PNPM-BOOTSTRAP | task-owners | current | 2026-11-10 |
 | [R1-00-PNPM-INSTALL-ARGV-COMPAT-R2](tasks/R1-00-pnpm-install-argv-compat-r2.md) | R1-00-PNPM-INSTALL-ARGV-COMPAT-R2 | task-owners | current | 2026-11-10 |
