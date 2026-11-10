@@ -25,6 +25,7 @@ import enUi from "./en/ui.json";
 import enSquads from "./en/squads.json";
 import enBilling from "./en/billing.json";
 import enPresets from "./en/presets.json";
+import enKnowledge from "./en/knowledge.json";
 import zhHansCommon from "./zh-Hans/common.json";
 import zhHansAuth from "./zh-Hans/auth.json";
 import zhHansSettings from "./zh-Hans/settings.json";
@@ -51,6 +52,7 @@ import zhHansUi from "./zh-Hans/ui.json";
 import zhHansSquads from "./zh-Hans/squads.json";
 import zhHansBilling from "./zh-Hans/billing.json";
 import zhHansPresets from "./zh-Hans/presets.json";
+import zhHansKnowledge from "./zh-Hans/knowledge.json";
 import zhHantCommon from "./zh-Hant/common.json";
 import zhHantAuth from "./zh-Hant/auth.json";
 import zhHantSettings from "./zh-Hant/settings.json";
@@ -77,6 +79,7 @@ import zhHantUi from "./zh-Hant/ui.json";
 import zhHantSquads from "./zh-Hant/squads.json";
 import zhHantBilling from "./zh-Hant/billing.json";
 import zhHantPresets from "./zh-Hant/presets.json";
+import zhHantKnowledge from "./zh-Hant/knowledge.json";
 import koCommon from "./ko/common.json";
 import koAuth from "./ko/auth.json";
 import koSettings from "./ko/settings.json";
@@ -103,6 +106,7 @@ import koUi from "./ko/ui.json";
 import koSquads from "./ko/squads.json";
 import koBilling from "./ko/billing.json";
 import koPresets from "./ko/presets.json";
+import koKnowledge from "./ko/knowledge.json";
 import jaCommon from "./ja/common.json";
 import jaAuth from "./ja/auth.json";
 import jaSettings from "./ja/settings.json";
@@ -129,31 +133,7 @@ import jaUi from "./ja/ui.json";
 import jaSquads from "./ja/squads.json";
 import jaBilling from "./ja/billing.json";
 import jaPresets from "./ja/presets.json";
-import ruCommon from "./ru/common.json";
-import ruAuth from "./ru/auth.json";
-import ruSettings from "./ru/settings.json";
-import ruIssues from "./ru/issues.json";
-import ruAgents from "./ru/agents.json";
-import ruEditor from "./ru/editor.json";
-import ruOnboarding from "./ru/onboarding.json";
-import ruInvite from "./ru/invite.json";
-import ruLabels from "./ru/labels.json";
-import ruMembers from "./ru/members.json";
-import ruMyIssues from "./ru/my-issues.json";
-import ruSearch from "./ru/search.json";
-import ruInbox from "./ru/inbox.json";
-import ruWorkspace from "./ru/workspace.json";
-import ruProjects from "./ru/projects.json";
-import ruAutopilots from "./ru/autopilots.json";
-import ruSkills from "./ru/skills.json";
-import ruChat from "./ru/chat.json";
-import ruModals from "./ru/modals.json";
-import ruRuntimes from "./ru/runtimes.json";
-import ruLayout from "./ru/layout.json";
-import ruUsage from "./ru/usage.json";
-import ruUi from "./ru/ui.json";
-import ruSquads from "./ru/squads.json";
-import ruBilling from "./ru/billing.json";
+import jaKnowledge from "./ja/knowledge.json";
 import frCommon from "./fr/common.json";
 import frAuth from "./fr/auth.json";
 import frSettings from "./fr/settings.json";
@@ -180,6 +160,7 @@ import frUi from "./fr/ui.json";
 import frSquads from "./fr/squads.json";
 import frBilling from "./fr/billing.json";
 import frPresets from "./fr/presets.json";
+import frKnowledge from "./fr/knowledge.json";
 import esCommon from "./es/common.json";
 import esAuth from "./es/auth.json";
 import esSettings from "./es/settings.json";
@@ -206,6 +187,7 @@ import esUi from "./es/ui.json";
 import esSquads from "./es/squads.json";
 import esBilling from "./es/billing.json";
 import esPresets from "./es/presets.json";
+import esKnowledge from "./es/knowledge.json";
 
 // Single source of truth for the resource bundle. Both apps (web layout +
 // desktop App.tsx) import from here so adding a locale or namespace happens
@@ -238,6 +220,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     squads: enSquads,
     billing: enBilling,
     presets: enPresets,
+    knowledge: enKnowledge,
   },
   "zh-Hans": {
     common: zhHansCommon,
@@ -266,6 +249,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     squads: zhHansSquads,
     billing: zhHansBilling,
     presets: zhHansPresets,
+    knowledge: zhHansKnowledge,
   },
   "zh-Hant": {
     common: zhHantCommon,
@@ -294,6 +278,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     squads: zhHantSquads,
     billing: zhHantBilling,
     presets: zhHantPresets,
+    knowledge: zhHantKnowledge,
   },
   ko: {
     common: koCommon,
@@ -322,6 +307,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     squads: koSquads,
     billing: koBilling,
     presets: koPresets,
+    knowledge: koKnowledge,
   },
   ja: {
     common: jaCommon,
@@ -350,33 +336,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     squads: jaSquads,
     billing: jaBilling,
     presets: jaPresets,
-  },
-  ru: {
-    common: ruCommon,
-    auth: ruAuth,
-    settings: ruSettings,
-    issues: ruIssues,
-    agents: ruAgents,
-    editor: ruEditor,
-    onboarding: ruOnboarding,
-    invite: ruInvite,
-    labels: ruLabels,
-    members: ruMembers,
-    "my-issues": ruMyIssues,
-    search: ruSearch,
-    inbox: ruInbox,
-    workspace: ruWorkspace,
-    projects: ruProjects,
-    autopilots: ruAutopilots,
-    skills: ruSkills,
-    chat: ruChat,
-    modals: ruModals,
-    runtimes: ruRuntimes,
-    layout: ruLayout,
-    usage: ruUsage,
-    ui: ruUi,
-    squads: ruSquads,
-    billing: ruBilling,
+    knowledge: jaKnowledge,
   },
   fr: {
     common: frCommon,
@@ -405,6 +365,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     squads: frSquads,
     billing: frBilling,
     presets: frPresets,
+    knowledge: frKnowledge,
   },
   es: {
     common: esCommon,
@@ -433,5 +394,6 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     squads: esSquads,
     billing: esBilling,
     presets: esPresets,
+    knowledge: esKnowledge,
   },
 };

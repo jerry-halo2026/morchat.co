@@ -17,6 +17,7 @@ import {
   Search,
   Server,
   Settings,
+  ShieldCheck,
   SlidersHorizontal,
   Tags,
   User,
@@ -54,6 +55,7 @@ import { KeyboardShortcutsTab } from "./keyboard-shortcuts-tab";
 import { PluginsTab } from "./plugins-tab";
 import { McpTab } from "./mcp-tab";
 import { BillingTab } from "./billing-tab";
+import { CredentialsTab } from "./credentials-tab";
 import {
   SETTINGS_ANCHOR_ATTR,
   SettingsHeaderContext,
@@ -178,6 +180,15 @@ export function SettingsPage({ extraDeviceTabs = [] }: SettingsPageProps = {}) {
               <KeyboardShortcutsTab />,
             ),
             entry("tokens", t(($) => $.page.tabs.tokens), KeyRound, <TokensTab />),
+            // 模型凭据: which key this device signs model traffic with. Its own
+            // page because the decision is per device, not per account: the
+            // personal key lives in this machine's keychain only.
+            entry(
+              "credentials",
+              t(($) => $.page.tabs.credentials),
+              ShieldCheck,
+              <CredentialsTab />,
+            ),
           ],
         },
       ],

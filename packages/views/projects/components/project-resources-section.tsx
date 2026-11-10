@@ -61,6 +61,7 @@ import { GithubRefDialog } from "./github-ref-dialog";
 import { GithubRefField, githubRefHasError } from "./github-ref-field";
 import { localDirectoryLabel } from "./local-directory-label";
 import { useT } from "../../i18n";
+import { KnowledgeProjectResources } from "../../knowledge/components/knowledge-project-section";
 import { githubShortLabel } from "../../common/github-url";
 
 // Project Resources sidebar section.
@@ -112,6 +113,7 @@ type RefDialogState = {
 
 export function ProjectResourcesSection({ projectId }: { projectId: string }) {
   const { t } = useT("projects");
+  const { t: kt } = useT("knowledge");
   const wsId = useWorkspaceId();
   const workspace = useCurrentWorkspace();
   const daemonStatus = useLocalDaemonStatus();
@@ -364,6 +366,12 @@ export function ProjectResourcesSection({ projectId }: { projectId: string }) {
 
   return (
     <div>
+      {/* Docs: the knowledge pages filed under this project, read-only. Above
+          Resources because a written answer outranks the repo it came from. */}
+      <section aria-label={kt(($) => $.project.tab)} className="mb-3 pl-2">
+        <h3 className="mb-1 px-2 text-caption font-medium text-muted-foreground">{kt(($) => $.project.tab)}</h3>
+        <KnowledgeProjectResources projectId={projectId} />
+      </section>
       <button
         type="button"
         className={`flex w-full items-center gap-1 rounded-md px-2 py-1 text-caption font-medium transition-colors mb-2 hover:bg-accent/70 ${open ? "" : "text-muted-foreground hover:text-foreground"}`}

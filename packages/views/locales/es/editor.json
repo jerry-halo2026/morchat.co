@@ -110,7 +110,8 @@
     "group_current": "Página actual",
     "group_recent": "Vistos recientemente",
     "group_search": "Resultados de búsqueda",
-    "group_cancelled": "Cancelado"
+    "group_cancelled": "Cancelado",
+    "group_knowledge": "Conocimiento"
   },
   "slash_command": {
     "no_skills_configured": "No hay skills configuradas",

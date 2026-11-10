@@ -196,7 +196,9 @@
       "quick": "Create with agent",
       "manual": "Manual create",
       "unsupported": "Not available when creating with an agent"
-    }
+    },
+    "knowledge_title": "My knowledge",
+    "knowledge_description": "Pages you edited or follow in this workspace."
   },
   "appearance": {
     "reset": "Reset to defaults",
@@ -481,6 +483,52 @@
     "rename_failed_toast": "Could not rename the shared MCP server",
     "remove_failed_toast": "Could not remove the shared MCP server"
   },
+  "credentials": {
+    "title": "Model credentials",
+    "description": "Which key this device signs model requests with. The keys themselves stay in this device's system keychain.",
+    "suffix_hint": "ending in {{suffix}}",
+    "company": {
+      "title": "Company credential",
+      "description": "Issued to your account and this device at sign-in. Usage on this key is billed to the company.",
+      "configured": "Configured",
+      "missing": "Not configured"
+    },
+    "personal": {
+      "title": "Personal key",
+      "description": "Used only when the company credential is unavailable, so a gateway outage doesn't stop your work. Usage on this key is billed to you, not the company.",
+      "device_only": "This device only",
+      "configured": "Set",
+      "missing": "Not set",
+      "placeholder": "Paste your API key",
+      "save": "Save",
+      "saving": "Saving…",
+      "clear": "Clear",
+      "clearing": "Clearing…",
+      "saved": "Saved on this device",
+      "cleared": "Personal key cleared from this device"
+    },
+    "effective": {
+      "title": "Currently in use",
+      "description": "What the next run would sign with. A rejected company credential falls back to the personal key at run time.",
+      "company": "Company credential",
+      "personal": "Personal key (this device only)",
+      "none": "No credential available"
+    },
+    "keychain_unavailable": "This device has no usable system keychain, so a personal key cannot be stored.",
+    "refresh": "Refresh status",
+    "refreshing": "Refreshing…",
+    "status_unavailable": "Couldn't read the credential state on this device.",
+    "desktop_only": "Desktop only",
+    "desktop_only_description": "The personal key lives in this device's system keychain, so it can only be set in the desktop app.",
+    "rejection": {
+      "empty": "Paste a key first",
+      "too_short": "That key looks too short",
+      "not_a_key": "That key contains unsupported characters",
+      "contains_whitespace": "A key can't contain spaces or line breaks",
+      "invalid": "That key couldn't be saved",
+      "signed_out": "Sign in again to change the key"
+    }
+  },
   "page": {
     "title": "Settings",
     "my_account": "My Account",
@@ -493,6 +541,7 @@
       "issue": "Issue",
       "notifications": "Notifications",
       "tokens": "API Tokens",
+      "credentials": "Model credentials",
       "general": "General",
       "github": "GitHub",
       "labs": "Labs",

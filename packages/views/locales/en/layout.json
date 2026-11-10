@@ -11,8 +11,10 @@
     "usage": "Analytics",
     "runtimes": "Runtimes",
     "skills": "Skills",
+    "presets": "Presets",
     "settings": "Settings",
-    "views": "Views"
+    "views": "Views",
+    "knowledge": "Knowledge"
   },
   "tab": {
     "issue": "Issue",

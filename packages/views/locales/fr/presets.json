@@ -8,7 +8,8 @@
     "catalog_error": "Le catalogue de préréglages n'a pas pu être chargé.",
     "catalog_error_hint": "La galerie lit index.json depuis {{baseUrl}}. Publiez le dépôt de préréglages en fichiers statiques à cet emplacement, puis réessayez.",
     "retry": "Réessayer",
-    "no_matches": "Aucun préréglage ne correspond à ce filtre."
+    "no_matches": "Aucun préréglage ne correspond à ce filtre.",
+    "offline": "Le dépôt des préréglages est injoignable. Liste intégrée affichée ; compétences et amorces se chargent une fois la connexion rétablie."
   },
   "kinds": {
     "all": "Tous",
@@ -28,7 +29,8 @@
     "mismatch": "plugin.json et index.json ne décrivent pas le même lot de compétences. L'import utilise celles de l'index.",
     "skill_list": "Compétences incluses",
     "requires": "Requiert : {{list}}",
-    "plugin_error": "Impossible de lire plugin.json : {{error}}"
+    "plugin_error": "Impossible de lire plugin.json : {{error}}",
+    "starters": "Amorces de conversation"
   },
   "import": {
     "start": "Importer le préréglage",

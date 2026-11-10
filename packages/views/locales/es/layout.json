@@ -11,8 +11,10 @@
     "usage": "Analítica",
     "runtimes": "Runtimes",
     "skills": "Skills",
+    "presets": "Presets",
     "settings": "Ajustes",
-    "views": "Vistas"
+    "views": "Vistas",
+    "knowledge": "Conocimiento"
   },
   "tab": {
     "issue": "Tarea",

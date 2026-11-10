@@ -686,6 +686,7 @@ function EmptyState({ model }: { model: RootModel }) {
                     value={`recent-agent:${item.id}`}
                     icon={
                       <ActorAvatar
+                        size="sm"
                         actorType="agent"
                         actorId={item.id}
                         size="sm"

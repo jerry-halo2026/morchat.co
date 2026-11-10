@@ -196,7 +196,9 @@
       "quick": "Création avec un agent",
       "manual": "Création manuelle",
       "unsupported": "Indisponible lors de la création avec un agent"
-    }
+    },
+    "knowledge_title": "Mes connaissances",
+    "knowledge_description": "Pages que vous avez modifiées ou suivies dans cet espace de travail."
   },
   "appearance": {
     "reset": "Rétablir les valeurs par défaut",
@@ -481,6 +483,52 @@
     "rename_failed_toast": "Impossible de renommer le serveur MCP partagé",
     "remove_failed_toast": "Impossible de retirer le serveur MCP partagé"
   },
+  "credentials": {
+    "title": "Identifiants de modèle",
+    "description": "Avec quelle clé cet appareil signe les requêtes au modèle. Les clés restent dans le trousseau système de cet appareil.",
+    "suffix_hint": "se termine par {{suffix}}",
+    "company": {
+      "title": "Identifiant de l'entreprise",
+      "description": "Émis pour votre compte et cet appareil à la connexion. L'usage de cette clé est facturé à l'entreprise.",
+      "configured": "Configuré",
+      "missing": "Non configuré"
+    },
+    "personal": {
+      "title": "Clé personnelle",
+      "description": "Utilisée uniquement quand l'identifiant de l'entreprise est indisponible, pour qu'une panne de la passerelle n'arrête pas votre travail. L'usage de cette clé vous est facturé, pas à l'entreprise.",
+      "device_only": "Cet appareil uniquement",
+      "configured": "Définie",
+      "missing": "Non définie",
+      "placeholder": "Collez votre clé d'API",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "clear": "Effacer",
+      "clearing": "Suppression…",
+      "saved": "Enregistrée sur cet appareil",
+      "cleared": "Clé personnelle effacée de cet appareil"
+    },
+    "effective": {
+      "title": "Actuellement utilisé",
+      "description": "Ce avec quoi la prochaine exécution signerait. Si la passerelle refuse l'identifiant de l'entreprise, la clé personnelle prend le relais à l'exécution.",
+      "company": "Identifiant de l'entreprise",
+      "personal": "Clé personnelle (cet appareil uniquement)",
+      "none": "Aucun identifiant disponible"
+    },
+    "keychain_unavailable": "Cet appareil n'a pas de trousseau système utilisable, une clé personnelle ne peut donc pas être enregistrée.",
+    "refresh": "Actualiser l'état",
+    "refreshing": "Actualisation…",
+    "status_unavailable": "Impossible de lire l'état des identifiants sur cet appareil.",
+    "desktop_only": "Application de bureau uniquement",
+    "desktop_only_description": "La clé personnelle vit dans le trousseau système de cet appareil : elle ne peut être définie que dans l'application de bureau.",
+    "rejection": {
+      "empty": "Collez d'abord une clé",
+      "too_short": "Cette clé semble trop courte",
+      "not_a_key": "Cette clé contient des caractères non pris en charge",
+      "contains_whitespace": "Une clé ne peut pas contenir d'espaces ni de retours à la ligne",
+      "invalid": "Cette clé n'a pas pu être enregistrée",
+      "signed_out": "Reconnectez-vous pour changer la clé"
+    }
+  },
   "page": {
     "title": "Paramètres",
     "my_account": "Mon compte",
@@ -493,6 +541,7 @@
       "issue": "Tâche",
       "notifications": "Notifications",
       "tokens": "Jetons d'API",
+      "credentials": "Identifiants de modèle",
       "general": "Général",
       "github": "GitHub",
       "labs": "Labo",

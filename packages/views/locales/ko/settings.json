@@ -194,7 +194,9 @@
       "quick": "에이전트로 생성",
       "manual": "수동 생성",
       "unsupported": "에이전트로 생성할 때는 사용할 수 없습니다"
-    }
+    },
+    "knowledge_title": "내 지식",
+    "knowledge_description": "이 워크스페이스에서 편집하거나 팔로우한 페이지."
   },
   "appearance": {
     "reset": "기본값으로 재설정",
@@ -479,6 +481,52 @@
     "rename_failed_toast": "공유 MCP 서버 이름을 변경하지 못했습니다",
     "remove_failed_toast": "공유 MCP 서버를 제거하지 못했습니다"
   },
+  "credentials": {
+    "title": "모델 자격 증명",
+    "description": "이 기기가 모델 요청에 서명할 때 쓰는 키입니다. 키 자체는 이 기기의 시스템 키체인에만 저장됩니다.",
+    "suffix_hint": "끝자리 {{suffix}}",
+    "company": {
+      "title": "회사 자격 증명",
+      "description": "로그인할 때 이 계정과 기기에 발급됩니다. 이 키로 발생한 사용량은 회사에 청구됩니다.",
+      "configured": "설정됨",
+      "missing": "설정 안 됨"
+    },
+    "personal": {
+      "title": "개인 키",
+      "description": "회사 자격 증명을 쓸 수 없을 때만 사용합니다. 게이트웨이 장애로 작업이 멈추지 않게 하기 위해서입니다. 이 키로 발생한 사용량은 회사가 아니라 본인에게 청구됩니다.",
+      "device_only": "이 기기에서만",
+      "configured": "설정됨(이 기기에서만)",
+      "missing": "설정 안 됨",
+      "placeholder": "API 키 붙여넣기",
+      "save": "저장",
+      "saving": "저장 중…",
+      "clear": "삭제",
+      "clearing": "삭제 중…",
+      "saved": "이 기기에 저장했습니다",
+      "cleared": "이 기기에서 개인 키를 삭제했습니다"
+    },
+    "effective": {
+      "title": "현재 사용 중인 자격 증명",
+      "description": "다음 실행에서 쓸 자격 증명입니다. 회사 자격 증명이 거부되면 실행 시 개인 키로 대체됩니다.",
+      "company": "회사 자격 증명",
+      "personal": "개인 키(이 기기에서만)",
+      "none": "사용할 수 있는 자격 증명이 없습니다"
+    },
+    "keychain_unavailable": "이 기기에는 사용할 수 있는 시스템 키체인이 없어 개인 키를 저장할 수 없습니다.",
+    "refresh": "상태 새로 고침",
+    "refreshing": "새로 고치는 중…",
+    "status_unavailable": "이 기기의 자격 증명 상태를 읽지 못했습니다.",
+    "desktop_only": "데스크톱에서만 설정할 수 있습니다",
+    "desktop_only_description": "개인 키는 이 기기의 시스템 키체인에 저장되므로 데스크톱 앱에서만 설정할 수 있습니다.",
+    "rejection": {
+      "empty": "키를 먼저 입력하세요",
+      "too_short": "키가 너무 짧습니다",
+      "not_a_key": "키에 지원되지 않는 문자가 있습니다",
+      "contains_whitespace": "키에는 공백이나 줄바꿈을 쓸 수 없습니다",
+      "invalid": "키를 저장하지 못했습니다",
+      "signed_out": "로그인이 만료되었습니다. 다시 로그인하세요"
+    }
+  },
   "page": {
     "title": "설정",
     "my_account": "내 계정",
@@ -491,6 +539,7 @@
       "issue": "태스크",
       "notifications": "알림",
       "tokens": "API 토큰",
+      "credentials": "모델 자격 증명",
       "general": "일반",
       "github": "GitHub",
       "labs": "실험실",

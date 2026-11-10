@@ -8,7 +8,8 @@
     "catalog_error": "The preset catalog could not be loaded.",
     "catalog_error_hint": "The gallery reads index.json from {{baseUrl}}. Publish the preset repository as static files there and retry.",
     "retry": "Retry",
-    "no_matches": "No preset matches this filter."
+    "no_matches": "No preset matches this filter.",
+    "offline": "The preset repository could not be reached. Showing the bundled package list; skill bundles and starters load once it is back."
   },
   "kinds": {
     "all": "All",
@@ -28,7 +29,8 @@
     "mismatch": "plugin.json and index.json disagree about the skill bundle. The import uses the indexed skills.",
     "skill_list": "Bundled skills",
     "requires": "Requires: {{list}}",
-    "plugin_error": "plugin.json could not be read: {{error}}"
+    "plugin_error": "plugin.json could not be read: {{error}}",
+    "starters": "Conversation starters"
   },
   "import": {
     "start": "Import preset",

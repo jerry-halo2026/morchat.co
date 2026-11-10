@@ -8,7 +8,8 @@
     "catalog_error": "预设目录加载失败。",
     "catalog_error_hint": "画廊从 {{baseUrl}} 读取 index.json。请把预设内容仓作为静态文件发布到该地址后重试。",
     "retry": "重试",
-    "no_matches": "没有符合当前筛选的预设。"
+    "no_matches": "没有符合当前筛选的预设。",
+    "offline": "预设内容仓暂时无法访问，已显示内置清单；技能包与开场白联网后才会加载。"
   },
   "kinds": {
     "all": "全部",
@@ -28,7 +29,8 @@
     "mismatch": "plugin.json 与 index.json 的技能清单不一致，导入以索引为准。",
     "skill_list": "包含的技能",
     "requires": "依赖：{{list}}",
-    "plugin_error": "无法读取 plugin.json：{{error}}"
+    "plugin_error": "无法读取 plugin.json：{{error}}",
+    "starters": "开场白"
   },
   "import": {
     "start": "导入预设",

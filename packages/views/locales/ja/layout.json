@@ -11,8 +11,10 @@
     "usage": "分析",
     "runtimes": "ランタイム",
     "skills": "スキル",
+    "presets": "プリセット",
     "settings": "設定",
-    "views": "ビュー"
+    "views": "ビュー",
+    "knowledge": "ナレッジ"
   },
   "tab": {
     "issue": "タスク",

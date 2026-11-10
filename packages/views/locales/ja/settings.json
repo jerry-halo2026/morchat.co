@@ -194,7 +194,9 @@
       "quick": "エージェントで作成",
       "manual": "手動作成",
       "unsupported": "エージェントでの作成では使用できません"
-    }
+    },
+    "knowledge_title": "自分のナレッジ",
+    "knowledge_description": "このワークスペースで編集・フォローしたページ。"
   },
   "appearance": {
     "reset": "デフォルトに戻す",
@@ -479,6 +481,52 @@
     "rename_failed_toast": "共有 MCP サーバーの名前を変更できませんでした",
     "remove_failed_toast": "共有 MCP サーバーを削除できませんでした"
   },
+  "credentials": {
+    "title": "モデル認証情報",
+    "description": "この端末がモデルへのリクエストに使うキーです。キー自体はこの端末のシステムキーチェーンにのみ保存されます。",
+    "suffix_hint": "末尾 {{suffix}}",
+    "company": {
+      "title": "会社の認証情報",
+      "description": "サインイン時にこのアカウントと端末に発行されます。このキーの利用量は会社に請求されます。",
+      "configured": "設定済み",
+      "missing": "未設定"
+    },
+    "personal": {
+      "title": "個人キー",
+      "description": "会社の認証情報が使えないときだけ使用します。ゲートウェイ障害でも作業を止めないためです。このキーの利用量は会社ではなくあなたに請求されます。",
+      "device_only": "この端末のみ",
+      "configured": "設定済み",
+      "missing": "未設定",
+      "placeholder": "API キーを貼り付け",
+      "save": "保存",
+      "saving": "保存中…",
+      "clear": "削除",
+      "clearing": "削除中…",
+      "saved": "この端末に保存しました",
+      "cleared": "この端末から個人キーを削除しました"
+    },
+    "effective": {
+      "title": "現在有効な認証情報",
+      "description": "次回の実行で使う認証情報です。会社の認証情報が拒否された場合は、実行時に個人キーへ切り替わります。",
+      "company": "会社の認証情報",
+      "personal": "個人キー（この端末のみ）",
+      "none": "利用できる認証情報がありません"
+    },
+    "keychain_unavailable": "この端末には利用できるシステムキーチェーンがないため、個人キーを保存できません。",
+    "refresh": "状態を更新",
+    "refreshing": "更新中…",
+    "status_unavailable": "この端末の認証情報の状態を読み取れませんでした。",
+    "desktop_only": "デスクトップ版のみ設定できます",
+    "desktop_only_description": "個人キーはこの端末のシステムキーチェーンに保存されるため、デスクトップアプリでのみ設定できます。",
+    "rejection": {
+      "empty": "キーを入力してください",
+      "too_short": "キーが短すぎます",
+      "not_a_key": "キーに使用できない文字が含まれています",
+      "contains_whitespace": "キーに空白や改行は使えません",
+      "invalid": "キーを保存できませんでした",
+      "signed_out": "サインインの有効期限が切れています。再度サインインしてください"
+    }
+  },
   "page": {
     "title": "設定",
     "my_account": "マイアカウント",
@@ -491,6 +539,7 @@
       "issue": "タスク",
       "notifications": "通知",
       "tokens": "API トークン",
+      "credentials": "モデル認証情報",
       "general": "一般",
       "github": "GitHub",
       "labs": "ラボ",

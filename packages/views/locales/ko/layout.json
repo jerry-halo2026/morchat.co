@@ -11,8 +11,10 @@
     "usage": "분석",
     "runtimes": "런타임",
     "skills": "스킬",
+    "presets": "프리셋",
     "settings": "설정",
-    "views": "뷰"
+    "views": "뷰",
+    "knowledge": "지식 베이스"
   },
   "tab": {
     "issue": "태스크",

@@ -8,7 +8,8 @@
     "catalog_error": "프리셋 카탈로그를 불러오지 못했습니다.",
     "catalog_error_hint": "갤러리는 {{baseUrl}} 에서 index.json 을 읽습니다. 프리셋 저장소를 정적 파일로 게시한 뒤 다시 시도하세요.",
     "retry": "다시 시도",
-    "no_matches": "이 필터에 맞는 프리셋이 없습니다."
+    "no_matches": "이 필터에 맞는 프리셋이 없습니다.",
+    "offline": "프리셋 저장소에 연결할 수 없어 내장 목록을 표시합니다. 스킬과 대화 시작 문구는 연결되면 불러옵니다."
   },
   "kinds": {
     "all": "전체",
@@ -28,7 +29,8 @@
     "mismatch": "plugin.json 과 index.json 의 스킬 목록이 다릅니다. 가져오기는 색인 기준으로 진행됩니다.",
     "skill_list": "포함된 스킬",
     "requires": "필요 항목: {{list}}",
-    "plugin_error": "plugin.json 을 읽지 못했습니다: {{error}}"
+    "plugin_error": "plugin.json 을 읽지 못했습니다: {{error}}",
+    "starters": "대화 시작 문구"
   },
   "import": {
     "start": "프리셋 가져오기",

@@ -8,7 +8,8 @@
     "catalog_error": "プリセットカタログを読み込めませんでした。",
     "catalog_error_hint": "ギャラリーは {{baseUrl}} から index.json を読み込みます。プリセットリポジトリを静的ファイルとして公開してから再試行してください。",
     "retry": "再試行",
-    "no_matches": "この条件に一致するプリセットはありません。"
+    "no_matches": "この条件に一致するプリセットはありません。",
+    "offline": "プリセットリポジトリに接続できないため、内蔵リストを表示しています。スキルと会話スターターは接続後に読み込みます。"
   },
   "kinds": {
     "all": "すべて",
@@ -28,7 +29,8 @@
     "mismatch": "plugin.json と index.json のスキル一覧が一致しません。インポートはインデックス側を使用します。",
     "skill_list": "含まれるスキル",
     "requires": "必要なもの: {{list}}",
-    "plugin_error": "plugin.json を読み込めませんでした: {{error}}"
+    "plugin_error": "plugin.json を読み込めませんでした: {{error}}",
+    "starters": "会話スターター"
   },
   "import": {
     "start": "プリセットをインポート",

@@ -11,8 +11,10 @@
     "usage": "Statistiques",
     "runtimes": "Runtimes",
     "skills": "Skills",
+    "presets": "Préréglages",
     "settings": "Paramètres",
-    "views": "Vues"
+    "views": "Vues",
+    "knowledge": "Connaissances"
   },
   "tab": {
     "issue": "Tâche",

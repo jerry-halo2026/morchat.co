@@ -194,7 +194,9 @@
       "quick": "智能体创建",
       "manual": "手动创建",
       "unsupported": "智能体创建时不支持此字段"
-    }
+    },
+    "knowledge_title": "我的知识库",
+    "knowledge_description": "你在本工作区编辑或关注过的页面。"
   },
   "appearance": {
     "reset": "恢复默认",
@@ -479,6 +481,52 @@
     "rename_failed_toast": "无法重命名共享 MCP Server",
     "remove_failed_toast": "无法移除共享 MCP Server"
   },
+  "credentials": {
+    "title": "模型凭据",
+    "description": "这台设备用哪把 Key 签发模型请求。Key 本身只保存在本机系统钥匙串里。",
+    "suffix_hint": "末尾 {{suffix}}",
+    "company": {
+      "title": "公司凭据",
+      "description": "登录时发给你的这个账号和这台设备。用这把 Key 产生的用量计入公司账。",
+      "configured": "已配置",
+      "missing": "未配置"
+    },
+    "personal": {
+      "title": "个人 Key",
+      "description": "只在公司凭据不可用时使用，网关故障期间不耽误你的工作。用这把 Key 产生的用量算你自己的，不计入公司账。",
+      "device_only": "仅本机",
+      "configured": "已设置（仅本机）",
+      "missing": "未设置",
+      "placeholder": "粘贴你的 API Key",
+      "save": "保存",
+      "saving": "保存中…",
+      "clear": "清除",
+      "clearing": "清除中…",
+      "saved": "已保存到这台设备",
+      "cleared": "已从这台设备清除个人 Key"
+    },
+    "effective": {
+      "title": "当前生效来源",
+      "description": "下一次运行会用的凭据。公司凭据被网关拒绝时，运行时会降级到个人 Key。",
+      "company": "公司凭据",
+      "personal": "个人 Key（仅本机）",
+      "none": "没有可用凭据"
+    },
+    "keychain_unavailable": "这台设备没有可用的系统钥匙串，无法保存个人 Key。",
+    "refresh": "刷新状态",
+    "refreshing": "刷新中…",
+    "status_unavailable": "读取本机凭据状态失败。",
+    "desktop_only": "仅桌面端可配置",
+    "desktop_only_description": "个人 Key 存在这台设备的系统钥匙串里，只能在桌面端设置。",
+    "rejection": {
+      "empty": "请先填入 Key",
+      "too_short": "这个 Key 太短",
+      "not_a_key": "Key 含有不支持的字符",
+      "contains_whitespace": "Key 里不能有空格或换行",
+      "invalid": "这个 Key 没能保存",
+      "signed_out": "登录状态已失效，请重新登录后再改 Key"
+    }
+  },
   "page": {
     "title": "设置",
     "my_account": "我的账号",
@@ -491,6 +539,7 @@
       "issue": "任务",
       "notifications": "通知",
       "tokens": "API Token",
+      "credentials": "模型凭据",
       "general": "常规",
       "github": "GitHub",
       "labs": "实验室",

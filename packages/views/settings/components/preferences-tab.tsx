@@ -47,6 +47,7 @@ import { browserTimezone, timezoneOptions } from "../../common/timezone-select";
 import { useLanguageSwitch } from "../../common/use-language-switch";
 import { SegmentedToggle } from "../../common/segmented-toggle";
 import { useT } from "../../i18n";
+import { KnowledgeSettingsSection } from "../../knowledge/components/knowledge-settings-section";
 import {
   SettingsCard,
   SettingsRow,
@@ -106,6 +107,17 @@ export function PreferencesTab() {
         anchor="issue"
       >
         <IssueFieldsMatrix />
+      </SettingsSection>
+
+      <SettingsSection
+        title={t(($) => $.preferences.knowledge_title)}
+        description={t(($) => $.preferences.knowledge_description)}
+        scope="account"
+        anchor="knowledge"
+      >
+        <SettingsCard>
+          <KnowledgeSettingsSection />
+        </SettingsCard>
       </SettingsSection>
     </SettingsTab>
   );

@@ -43,6 +43,8 @@ const PAGE_KEYWORDS: Record<WorkspacePageKey, string[]> = {
   usage: ["usage", "analytics", "stats", "metrics", "统计", "分析", "用量"],
   runtimes: ["runtimes", "environments", "machines", "运行时"],
   skills: ["skills", "library", "技能"],
+  presets: ["presets", "templates", "gallery", "预设", "模板"],
+  knowledge: ["knowledge", "wiki", "docs", "notes", "知识库", "文档", "资料"],
   settings: ["settings", "config", "preferences", "设置", "配置"],
 };
 

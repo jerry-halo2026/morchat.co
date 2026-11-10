@@ -194,7 +194,9 @@
       "quick": "AI 代理建立",
       "manual": "手動建立",
       "unsupported": "AI 代理建立時不支援此欄位"
-    }
+    },
+    "knowledge_title": "我的知識庫",
+    "knowledge_description": "你在本工作區編輯或關注過的頁面。"
   },
   "appearance": {
     "reset": "恢復預設",
@@ -479,6 +481,52 @@
     "rename_failed_toast": "無法重新命名共享 MCP Server",
     "remove_failed_toast": "無法移除共享 MCP Server"
   },
+  "credentials": {
+    "title": "模型憑證",
+    "description": "這台裝置用哪把 Key 簽發模型請求。Key 本身只存放在本機系統鑰匙圈裡。",
+    "suffix_hint": "結尾 {{suffix}}",
+    "company": {
+      "title": "公司憑證",
+      "description": "登入時發給你的這個帳號和這台裝置。用這把 Key 產生的用量計入公司帳。",
+      "configured": "已設定",
+      "missing": "未設定"
+    },
+    "personal": {
+      "title": "個人 Key",
+      "description": "只在公司憑證不可用時使用，閘道故障期間不耽誤你的工作。用這把 Key 產生的用量算你自己的，不計入公司帳。",
+      "device_only": "僅本機",
+      "configured": "已設定（僅本機）",
+      "missing": "未設定",
+      "placeholder": "貼上你的 API Key",
+      "save": "儲存",
+      "saving": "儲存中…",
+      "clear": "清除",
+      "clearing": "清除中…",
+      "saved": "已儲存到這台裝置",
+      "cleared": "已從這台裝置清除個人 Key"
+    },
+    "effective": {
+      "title": "目前生效來源",
+      "description": "下一次執行會用的憑證。公司憑證被閘道拒絕時，執行時會退回個人 Key。",
+      "company": "公司憑證",
+      "personal": "個人 Key（僅本機）",
+      "none": "沒有可用憑證"
+    },
+    "keychain_unavailable": "這台裝置沒有可用的系統鑰匙圈，無法儲存個人 Key。",
+    "refresh": "重新整理狀態",
+    "refreshing": "重新整理中…",
+    "status_unavailable": "讀取本機憑證狀態失敗。",
+    "desktop_only": "僅桌面端可設定",
+    "desktop_only_description": "個人 Key 存在這台裝置的系統鑰匙圈裡，只能在桌面端設定。",
+    "rejection": {
+      "empty": "請先填入 Key",
+      "too_short": "這個 Key 太短",
+      "not_a_key": "Key 含有不支援的字元",
+      "contains_whitespace": "Key 裡不能有空格或換行",
+      "invalid": "這個 Key 沒能儲存",
+      "signed_out": "登入狀態已失效，請重新登入後再改 Key"
+    }
+  },
   "page": {
     "title": "設定",
     "my_account": "我的帳號",
@@ -491,6 +539,7 @@
       "issue": "任務",
       "notifications": "通知",
       "tokens": "API Token",
+      "credentials": "模型憑證",
       "general": "常規",
       "github": "GitHub",
       "labs": "實驗室",

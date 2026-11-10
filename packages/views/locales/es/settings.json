@@ -178,7 +178,9 @@
       "unsupported": "No disponible al crear con un agente"
     },
     "issue_fields_title": "Campos al crear tareas",
-    "region_title": "Idioma y región"
+    "region_title": "Idioma y región",
+    "knowledge_title": "Mi conocimiento",
+    "knowledge_description": "Páginas que editaste o sigues en este espacio de trabajo."
   },
   "appearance": {
     "reset": "Restablecer valores predeterminados",
@@ -463,6 +465,52 @@
     "rename_failed_toast": "No se ha podido renombrar el servidor MCP compartido",
     "remove_failed_toast": "No se ha podido eliminar el servidor MCP compartido"
   },
+  "credentials": {
+    "title": "Credenciales de modelo",
+    "description": "Con qué clave firma este dispositivo las peticiones al modelo. Las claves se quedan en el llavero del sistema de este dispositivo.",
+    "suffix_hint": "termina en {{suffix}}",
+    "company": {
+      "title": "Credencial de la empresa",
+      "description": "Se emite para tu cuenta y este dispositivo al iniciar sesión. El uso con esta clave se factura a la empresa.",
+      "configured": "Configurada",
+      "missing": "Sin configurar"
+    },
+    "personal": {
+      "title": "Clave personal",
+      "description": "Solo se usa cuando la credencial de la empresa no está disponible, para que una caída del gateway no detenga tu trabajo. El uso con esta clave se te factura a ti, no a la empresa.",
+      "device_only": "Solo este dispositivo",
+      "configured": "Definida",
+      "missing": "Sin definir",
+      "placeholder": "Pega tu clave de API",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "clear": "Borrar",
+      "clearing": "Borrando…",
+      "saved": "Guardada en este dispositivo",
+      "cleared": "Clave personal borrada de este dispositivo"
+    },
+    "effective": {
+      "title": "En uso ahora",
+      "description": "Con qué firmaría la próxima ejecución. Si el gateway rechaza la credencial de la empresa, en tiempo de ejecución se usa la clave personal.",
+      "company": "Credencial de la empresa",
+      "personal": "Clave personal (solo este dispositivo)",
+      "none": "No hay credencial disponible"
+    },
+    "keychain_unavailable": "Este dispositivo no tiene un llavero del sistema utilizable, así que no se puede guardar una clave personal.",
+    "refresh": "Actualizar estado",
+    "refreshing": "Actualizando…",
+    "status_unavailable": "No se pudo leer el estado de las credenciales en este dispositivo.",
+    "desktop_only": "Solo en la app de escritorio",
+    "desktop_only_description": "La clave personal vive en el llavero del sistema de este dispositivo, así que solo se puede definir en la app de escritorio.",
+    "rejection": {
+      "empty": "Pega primero una clave",
+      "too_short": "Esa clave parece demasiado corta",
+      "not_a_key": "Esa clave contiene caracteres no admitidos",
+      "contains_whitespace": "Una clave no puede contener espacios ni saltos de línea",
+      "invalid": "No se pudo guardar esa clave",
+      "signed_out": "Vuelve a iniciar sesión para cambiar la clave"
+    }
+  },
   "page": {
     "title": "Configuración",
     "my_account": "Mi cuenta",
@@ -475,6 +523,7 @@
       "issue": "Tarea",
       "notifications": "Notificaciones",
       "tokens": "Tokens de API",
+      "credentials": "Credenciales de modelo",
       "general": "General",
       "github": "GitHub",
       "labs": "Labs",

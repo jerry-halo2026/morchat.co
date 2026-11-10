@@ -10,6 +10,7 @@ import {
   vi,
 } from "vitest";
 import { render, screen, act, cleanup, waitFor, within } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import userEvent from "@testing-library/user-event";
 import { I18nProvider } from "@morechat/core/i18n/react";
 import enCommon from "../../locales/en/common.json";
@@ -23,6 +24,13 @@ vi.mock("../../navigation", () => ({
     searchParams: new URLSearchParams(navigationState.search),
     replace: navigationState.replace,
   }),
+  // The knowledge section links out with AppLink; a plain anchor keeps the
+  // assertions on text and href working without the real router.
+  AppLink: ({ href, children, ...rest }: { href: string; children?: ReactNode }) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
 }));
 const mockPersist = vi.hoisted(() => vi.fn());
 const mockUpdateMe = vi.hoisted(() => vi.fn());
@@ -30,9 +38,14 @@ const mockReload = vi.hoisted(() => vi.fn());
 const mockToastWarning = vi.hoisted(() => vi.fn());
 const mockToastError = vi.hoisted(() => vi.fn());
 const mockToastSuccess = vi.hoisted(() => vi.fn());
+const mockSetTheme = vi.hoisted(() => vi.fn());
 const mockSetUser = vi.hoisted(() => vi.fn());
 const userRef = vi.hoisted(() => ({
   current: null as { id: string; timezone?: string | null } | null,
+}));
+
+vi.mock("@morechat/ui/components/common/theme-provider", () => ({
+  useTheme: () => ({ theme: "light", setTheme: mockSetTheme }),
 }));
 
 vi.mock("@morechat/core/i18n/react", async () => {
@@ -64,6 +77,14 @@ vi.mock("@morechat/core/chat", () => ({
 
 vi.mock("@morechat/core/paths", () => ({
   useCurrentWorkspace: () => ({ id: "ws-1", name: "Acme" }),
+  // The preferences tab now also mounts the knowledge section, which resolves
+  // workspace-scoped paths; the mock has to answer that hook too.
+  useWorkspacePaths: () => ({
+    workspace: (rest = "") => `/acme${rest ? `/${rest}` : ""}`,
+    knowledge: (rest = "") => `/acme/knowledge${rest ? `/${rest}` : ""}`,
+    settings: (rest = "") => `/acme/settings${rest ? `/${rest}` : ""}`,
+  }),
+  useRequiredWorkspaceSlug: () => "acme",
 }));
 
 vi.mock("@morechat/core/api", () => ({
@@ -112,11 +133,16 @@ const TEST_RESOURCES = {
   en: { common: enCommon, auth: enAuth, settings: enSettings },
 };
 
+const testQueryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 function I18nWrapper({ children }: { children: ReactNode }) {
+  // The tab also mounts the knowledge section, whose hooks are react-query
+  // queries; give the tree a client so those hooks resolve instead of throwing.
   return (
-    <I18nProvider locale="en" resources={TEST_RESOURCES}>
-      {children}
-    </I18nProvider>
+    <QueryClientProvider client={testQueryClient}>
+      <I18nProvider locale="en" resources={TEST_RESOURCES}>
+        {children}
+      </I18nProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -153,6 +179,21 @@ describe("PreferencesTab — Language switcher", () => {
     expect(mockPersist).not.toHaveBeenCalled();
     expect(mockUpdateMe).not.toHaveBeenCalled();
     expect(mockReload).not.toHaveBeenCalled();
+  });
+
+  it("applies the theme on this device without announcing success", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<PreferencesTab />, { wrapper: I18nWrapper });
+
+    const group = screen.getByRole("group", { name: "Theme" });
+    expect(within(group).getByRole("button", { name: "Light" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await user.click(within(group).getByRole("button", { name: "Dark" }));
+
+    expect(mockSetTheme).toHaveBeenCalledWith("dark");
+    expect(mockToastSuccess).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -411,9 +452,11 @@ describe("PreferencesTab — Scope", () => {
 
   it("labels where each group of settings is stored", () => {
     render(<PreferencesTab />, { wrapper: I18nWrapper });
-    expect(screen.getByText("Account · synced")).toBeInTheDocument();
-    // Opening issues, comments & chat.
-    expect(screen.getAllByText("This device only")).toHaveLength(2);
+    // The knowledge section adds its own storage label, so several groups can
+    // legitimately carry the same "Account · synced" badge now.
+    expect(screen.getAllByText("Account · synced").length).toBeGreaterThan(0);
+    // Appearance, opening issues, comments & chat.
+    expect(screen.getAllByText("This device only")).toHaveLength(3);
   });
 
   it("switches what clicking a card or row opens, and says what Shift does", async () => {
