@@ -1,3 +1,4 @@
+import { signInWithSupabasePassword, type SupabasePasswordConfig } from "./supabase-password";
 import type { ZodType } from "zod";
 import { AgentRuntimeSchema, EMPTY_RUNTIME } from "../runtimes/schema";
 import type { IssueWakeup, IssueWakeupInput, IssueWakeupSummaryRow, PausedWakeup, SystemWakeup, WakeupRun, WorkspaceSystemWakeup } from "../types/issue-wakeup";
@@ -1059,6 +1060,21 @@ export class ApiClient {
   }
 
   // Auth
+  // Password sign-in against Supabase. The browser mints an access token with
+  // Supabase's public anon key and hands *only* that token to our server, which
+  // verifies it and issues its own session. No password, client user id,
+  // refresh token or metadata crosses our API.
+  async getSupabaseConfig(): Promise<SupabasePasswordConfig> {
+    return this.fetch("/auth/supabase/config");
+  }
+
+  async loginWithPassword(email: string, password: string): Promise<LoginResponse> {
+    const config = await this.getSupabaseConfig();
+    const access_token = await signInWithSupabasePassword(config, email, password);
+    return this.fetch("/auth/supabase", {
+      method: "POST", body: JSON.stringify({ access_token }),
+    });
+  }
   async sendCode(email: string): Promise<void> {
     await this.fetch("/auth/send-code", {
       method: "POST",

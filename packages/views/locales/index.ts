@@ -24,6 +24,7 @@ import enUsage from "./en/usage.json";
 import enUi from "./en/ui.json";
 import enSquads from "./en/squads.json";
 import enBilling from "./en/billing.json";
+import enPresets from "./en/presets.json";
 import zhHansCommon from "./zh-Hans/common.json";
 import zhHansAuth from "./zh-Hans/auth.json";
 import zhHansSettings from "./zh-Hans/settings.json";
@@ -49,6 +50,7 @@ import zhHansUsage from "./zh-Hans/usage.json";
 import zhHansUi from "./zh-Hans/ui.json";
 import zhHansSquads from "./zh-Hans/squads.json";
 import zhHansBilling from "./zh-Hans/billing.json";
+import zhHansPresets from "./zh-Hans/presets.json";
 import zhHantCommon from "./zh-Hant/common.json";
 import zhHantAuth from "./zh-Hant/auth.json";
 import zhHantSettings from "./zh-Hant/settings.json";
@@ -74,6 +76,7 @@ import zhHantUsage from "./zh-Hant/usage.json";
 import zhHantUi from "./zh-Hant/ui.json";
 import zhHantSquads from "./zh-Hant/squads.json";
 import zhHantBilling from "./zh-Hant/billing.json";
+import zhHantPresets from "./zh-Hant/presets.json";
 import koCommon from "./ko/common.json";
 import koAuth from "./ko/auth.json";
 import koSettings from "./ko/settings.json";
@@ -99,6 +102,7 @@ import koUsage from "./ko/usage.json";
 import koUi from "./ko/ui.json";
 import koSquads from "./ko/squads.json";
 import koBilling from "./ko/billing.json";
+import koPresets from "./ko/presets.json";
 import jaCommon from "./ja/common.json";
 import jaAuth from "./ja/auth.json";
 import jaSettings from "./ja/settings.json";
@@ -124,6 +128,7 @@ import jaUsage from "./ja/usage.json";
 import jaUi from "./ja/ui.json";
 import jaSquads from "./ja/squads.json";
 import jaBilling from "./ja/billing.json";
+import jaPresets from "./ja/presets.json";
 import ruCommon from "./ru/common.json";
 import ruAuth from "./ru/auth.json";
 import ruSettings from "./ru/settings.json";
@@ -174,6 +179,7 @@ import frUsage from "./fr/usage.json";
 import frUi from "./fr/ui.json";
 import frSquads from "./fr/squads.json";
 import frBilling from "./fr/billing.json";
+import frPresets from "./fr/presets.json";
 import esCommon from "./es/common.json";
 import esAuth from "./es/auth.json";
 import esSettings from "./es/settings.json";
@@ -199,6 +205,7 @@ import esUsage from "./es/usage.json";
 import esUi from "./es/ui.json";
 import esSquads from "./es/squads.json";
 import esBilling from "./es/billing.json";
+import esPresets from "./es/presets.json";
 
 // Single source of truth for the resource bundle. Both apps (web layout +
 // desktop App.tsx) import from here so adding a locale or namespace happens
@@ -230,6 +237,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     ui: enUi,
     squads: enSquads,
     billing: enBilling,
+    presets: enPresets,
   },
   "zh-Hans": {
     common: zhHansCommon,
@@ -257,6 +265,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     ui: zhHansUi,
     squads: zhHansSquads,
     billing: zhHansBilling,
+    presets: zhHansPresets,
   },
   "zh-Hant": {
     common: zhHantCommon,
@@ -284,6 +293,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     ui: zhHantUi,
     squads: zhHantSquads,
     billing: zhHantBilling,
+    presets: zhHantPresets,
   },
   ko: {
     common: koCommon,
@@ -311,6 +321,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     ui: koUi,
     squads: koSquads,
     billing: koBilling,
+    presets: koPresets,
   },
   ja: {
     common: jaCommon,
@@ -338,6 +349,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     ui: jaUi,
     squads: jaSquads,
     billing: jaBilling,
+    presets: jaPresets,
   },
   ru: {
     common: ruCommon,
@@ -392,6 +404,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     ui: frUi,
     squads: frSquads,
     billing: frBilling,
+    presets: frPresets,
   },
   es: {
     common: esCommon,
@@ -419,5 +432,6 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     ui: esUi,
     squads: esSquads,
     billing: esBilling,
+    presets: esPresets,
   },
 };

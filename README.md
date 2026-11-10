@@ -33,7 +33,7 @@ back for review. Self-hostable, works with the agent CLIs you already use, no lo
   </a>
 </p>
 
-[Website](https://morechat.co) · [Docs](https://morechat.co/docs) · [Quickstart](https://morechat.co/docs/cloud-quickstart) · [Download](https://morechat.co/download) · [Vision](VISION.md) · [Self-Hosting](SELF_HOSTING.md) · [Discord](https://discord.gg/W8gYBn226t) · [X](https://x.com/morechat.coAI)
+[Website](https://morechat.co) · [Docs](https://morechat.co/docs) · [Quickstart](https://morechat.co/docs/cloud-quickstart) · [Download](https://morechat.co/download) · [Vision](VISION.md) · [Self-Hosting](SELF_HOSTING.md) · [Discord](https://discord.gg/W8gYBn226t) · [X](https://x.com/MorechatAI)
 
 **English | [简体中文](README.zh.md) | [日本語](README.ja.md)**
 

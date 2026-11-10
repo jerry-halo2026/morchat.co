@@ -1,0 +1,48 @@
+{
+  "page": {
+    "title": "Presets",
+    "stats": "{{agents}} agents · {{teams}} teams · {{skills}} skills",
+    "search": "Search presets, skills or members",
+    "reset": "Reset",
+    "loading": "Loading the preset catalog…",
+    "catalog_error": "The preset catalog could not be loaded.",
+    "catalog_error_hint": "The gallery reads index.json from {{baseUrl}}. Publish the preset repository as static files there and retry.",
+    "retry": "Retry",
+    "no_matches": "No preset matches this filter."
+  },
+  "kinds": {
+    "all": "All",
+    "agent": "Agents",
+    "team": "Teams"
+  },
+  "card": {
+    "meta": "v{{version}} · {{skills}} skills"
+  },
+  "preview": {
+    "no_description": "This preset has no description yet.",
+    "version": "Version",
+    "skills": "Skills",
+    "skill_counts": "{{indexed}} indexed / {{declared}} declared",
+    "files": "Files",
+    "members": "Members",
+    "mismatch": "plugin.json and index.json disagree about the skill bundle. The import uses the indexed skills.",
+    "skill_list": "Bundled skills",
+    "requires": "Requires: {{list}}",
+    "plugin_error": "plugin.json could not be read: {{error}}"
+  },
+  "import": {
+    "start": "Import preset",
+    "running": "Importing…",
+    "runtime_required": "Connect a runtime before importing a preset: agents need a runtime to run on.",
+    "done": "Imported {{skills}} skills and {{agents}} agents ({{updated}} skills updated).",
+    "failed": "The import failed.",
+    "step": {
+      "load_skills": "Reading skill bundles",
+      "import_skills": "Importing skills",
+      "create_agent": "Creating the agent",
+      "create_members": "Creating team members",
+      "create_squad": "Creating the squad",
+      "save_instructions": "Saving squad instructions"
+    }
+  }
+}

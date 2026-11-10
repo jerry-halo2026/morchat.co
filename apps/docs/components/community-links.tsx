@@ -24,7 +24,7 @@ export function CommunityLinks({
     },
     {
       label: "X（Twitter）",
-      href: "https://x.com/morechat.coAI",
+      href: "https://x.com/MorechatAI",
       description: xDescription,
       Icon: XMark,
     },

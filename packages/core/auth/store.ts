@@ -40,6 +40,7 @@ export interface AuthState {
 
   retryAuthentication: () => void;
   sendCode: (email: string) => Promise<void>;
+  loginWithPassword: (email: string, password: string) => Promise<User>;
   verifyCode: (email: string, code: string) => Promise<User>;
   loginWithGoogle: (code: string, redirectUri: string) => Promise<User>;
   loginWithToken: (token: string) => Promise<User>;
@@ -68,6 +69,17 @@ export function createAuthStore(options: AuthStoreOptions) {
       }));
     },
 
+    loginWithPassword: async (email: string, password: string) => {
+      const { token, user } = await api.loginWithPassword(email, password);
+      if (!cookieAuth) {
+        storage.setItem("multica_token", token);
+        api.setToken(token);
+      }
+      onLogin?.();
+      identifyAnalytics(user.id, { email: user.email, name: user.name });
+      set({ user, isLoading: false, status: "authenticated", expired: false });
+      return user;
+    },
     sendCode: async (email: string) => {
       await api.sendCode(email);
     },

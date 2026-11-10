@@ -3746,7 +3746,7 @@ export function createKoDict(): LandingDict {
           discordTitle: "Discord 참여하기",
           discordBody: "질문하고, 워크플로를 공유하고, 팀과 직접 이야기하세요.",
           join: "참여",
-          xTitle: "@morechat.coAI 팔로우",
+          xTitle: "@MorechatAI 팔로우",
           xBody: "릴리스 소식과 앞으로의 계획.",
           follow: "팔로우",
         },

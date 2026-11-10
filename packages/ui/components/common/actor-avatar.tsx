@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { Bot, Users } from "@morechat/ui/icons";
 import { cn } from "@morechat/ui/lib/utils";
 import {
+  AGENT_AVATAR_PX,
   AVATAR_SIZE_PX,
   DEFAULT_AVATAR_SIZE,
+  agentAvatarPx,
   type AvatarSize,
 } from "@morechat/ui/lib/avatar-size";
 import { parseAvatarEmoji } from "@morechat/ui/lib/avatar-emoji";
@@ -37,7 +39,14 @@ function ActorAvatar({
   // `--avatar-slot-size`; it wins over `size` so the avatar can't outgrow the
   // control. A CSS variable rather than React context: it follows the DOM, so
   // hover cards portaled out of the control keep their own avatar sizes.
-  const diameter = `var(--avatar-slot-size, ${AVATAR_SIZE_PX[size]}px)`;
+  //
+  // Agent avatars are the exception: the product standardised on 32px for every
+  // agent (see `AGENT_AVATAR_PX`), so an agent slot can grow the control but
+  // can never shrink the face below the standard. `max()` does that in CSS, so
+  // a slot that asks for more (the 3rem identity avatar) still wins.
+  const diameter = isAgent
+    ? `max(${AGENT_AVATAR_PX}px, var(--avatar-slot-size, ${agentAvatarPx(size)}px))`
+    : `var(--avatar-slot-size, ${AVATAR_SIZE_PX[size]}px)`;
   const scaled = (ratio: number) => `calc(${diameter} * ${ratio})`;
   const emoji = parseAvatarEmoji(avatarUrl);
 
@@ -78,7 +87,7 @@ function ActorAvatar({
           onError={() => setImgError(true)}
         />
       ) : isSystem ? (
-        // `size` only picks the optical size; the slot decides the rendered size.
+        // `size` only sets the edge thickness; the slot decides the rendered size.
         <MorechatIcon shape="circle" size={AVATAR_SIZE_PX[size]} style={{ width: "100%", height: "100%" }} />
       ) : isAgent ? (
         <Bot style={{ width: scaled(0.55), height: scaled(0.55) }} />

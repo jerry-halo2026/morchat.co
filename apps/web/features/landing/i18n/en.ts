@@ -4237,7 +4237,7 @@ export function createEnDict(): LandingDict {
         discordTitle: "Join the Discord",
         discordBody: "Ask questions, share workflows and talk to the team.",
         join: "Join",
-        xTitle: "Follow @morechat.coAI",
+        xTitle: "Follow @MorechatAI",
         xBody: "Release notes and what’s coming next.",
         follow: "Follow",
       },

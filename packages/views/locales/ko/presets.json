@@ -1,0 +1,48 @@
+{
+  "page": {
+    "title": "프리셋",
+    "stats": "에이전트 {{agents}} · 팀 {{teams}} · 스킬 {{skills}}",
+    "search": "프리셋, 스킬 또는 멤버 검색",
+    "reset": "초기화",
+    "loading": "프리셋 카탈로그를 불러오는 중…",
+    "catalog_error": "프리셋 카탈로그를 불러오지 못했습니다.",
+    "catalog_error_hint": "갤러리는 {{baseUrl}} 에서 index.json 을 읽습니다. 프리셋 저장소를 정적 파일로 게시한 뒤 다시 시도하세요.",
+    "retry": "다시 시도",
+    "no_matches": "이 필터에 맞는 프리셋이 없습니다."
+  },
+  "kinds": {
+    "all": "전체",
+    "agent": "에이전트",
+    "team": "팀"
+  },
+  "card": {
+    "meta": "v{{version}} · 스킬 {{skills}}개"
+  },
+  "preview": {
+    "no_description": "이 프리셋에는 아직 설명이 없습니다.",
+    "version": "버전",
+    "skills": "스킬",
+    "skill_counts": "색인 {{indexed}} / 선언 {{declared}}",
+    "files": "파일",
+    "members": "멤버",
+    "mismatch": "plugin.json 과 index.json 의 스킬 목록이 다릅니다. 가져오기는 색인 기준으로 진행됩니다.",
+    "skill_list": "포함된 스킬",
+    "requires": "필요 항목: {{list}}",
+    "plugin_error": "plugin.json 을 읽지 못했습니다: {{error}}"
+  },
+  "import": {
+    "start": "프리셋 가져오기",
+    "running": "가져오는 중…",
+    "runtime_required": "프리셋을 가져오기 전에 런타임을 연결하세요. 에이전트를 실행하려면 런타임이 필요합니다.",
+    "done": "스킬 {{skills}}개, 에이전트 {{agents}}개를 가져왔습니다(스킬 {{updated}}개는 업데이트).",
+    "failed": "가져오기에 실패했습니다.",
+    "step": {
+      "load_skills": "스킬 번들 읽기",
+      "import_skills": "스킬 가져오기",
+      "create_agent": "에이전트 만들기",
+      "create_members": "팀 멤버 만들기",
+      "create_squad": "팀 만들기",
+      "save_instructions": "팀 지침 저장"
+    }
+  }
+}

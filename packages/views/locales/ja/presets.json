@@ -1,0 +1,48 @@
+{
+  "page": {
+    "title": "プリセット",
+    "stats": "エージェント {{agents}} · チーム {{teams}} · スキル {{skills}}",
+    "search": "プリセット・スキル・メンバーを検索",
+    "reset": "リセット",
+    "loading": "プリセットカタログを読み込み中…",
+    "catalog_error": "プリセットカタログを読み込めませんでした。",
+    "catalog_error_hint": "ギャラリーは {{baseUrl}} から index.json を読み込みます。プリセットリポジトリを静的ファイルとして公開してから再試行してください。",
+    "retry": "再試行",
+    "no_matches": "この条件に一致するプリセットはありません。"
+  },
+  "kinds": {
+    "all": "すべて",
+    "agent": "エージェント",
+    "team": "チーム"
+  },
+  "card": {
+    "meta": "v{{version}} · スキル {{skills}} 件"
+  },
+  "preview": {
+    "no_description": "このプリセットにはまだ説明がありません。",
+    "version": "バージョン",
+    "skills": "スキル",
+    "skill_counts": "インデックス {{indexed}} / 宣言 {{declared}}",
+    "files": "ファイル",
+    "members": "メンバー",
+    "mismatch": "plugin.json と index.json のスキル一覧が一致しません。インポートはインデックス側を使用します。",
+    "skill_list": "含まれるスキル",
+    "requires": "必要なもの: {{list}}",
+    "plugin_error": "plugin.json を読み込めませんでした: {{error}}"
+  },
+  "import": {
+    "start": "プリセットをインポート",
+    "running": "インポート中…",
+    "runtime_required": "プリセットをインポートする前にランタイムへ接続してください。エージェントの実行に必要です。",
+    "done": "スキル {{skills}} 件、エージェント {{agents}} 件をインポートしました（うち {{updated}} 件は更新）。",
+    "failed": "インポートに失敗しました。",
+    "step": {
+      "load_skills": "スキルバンドルを読み込み",
+      "import_skills": "スキルをインポート",
+      "create_agent": "エージェントを作成",
+      "create_members": "チームメンバーを作成",
+      "create_squad": "チームを作成",
+      "save_instructions": "チーム指示を保存"
+    }
+  }
+}

@@ -70,12 +70,12 @@ export interface StorageKey {
 }
 
 /** Thrown when the host refuses or the call fails. `status` mirrors HTTP. */
-export class morechat.coPluginError extends Error {
+export class MorechatPluginError extends Error {
   readonly status: number;
 
   constructor(status: number, message: string) {
     super(message);
-    this.name = "morechat.coPluginError";
+    this.name = "MorechatPluginError";
     this.status = status;
   }
 }
@@ -127,7 +127,7 @@ class Bridge {
     this.pending.delete(message.id);
     clearTimeout(pending.timer);
     if (message.ok) pending.resolve(message.data);
-    else pending.reject(new morechat.coPluginError(message.status, message.error));
+    else pending.reject(new MorechatPluginError(message.status, message.error));
   };
 
   private applyTheme(theme: ThemeTokens) {
@@ -159,7 +159,7 @@ class Bridge {
     return new Promise<T>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject(new morechat.coPluginError(408, `morechat.co did not answer ${method} ${path} in time`));
+        reject(new MorechatPluginError(408, `morechat.co did not answer ${method} ${path} in time`));
       }, DEFAULT_TIMEOUT_MS);
       this.pending.set(id, { resolve: resolve as (value: unknown) => void, reject, timer });
       this.port?.postMessage(request);
@@ -181,7 +181,7 @@ function storageApi(scope: "workspace" | "user") {
         return result.value;
       } catch (error) {
         // A missing key is an ordinary outcome, not an error to handle.
-        if (error instanceof morechat.coPluginError && error.status === 404) return null;
+        if (error instanceof MorechatPluginError && error.status === 404) return null;
         throw error;
       }
     },
@@ -273,7 +273,7 @@ export const multica = {
 async function requireIssueId(): Promise<string> {
   const context = await multica.context.get();
   if (!context.issue) {
-    throw new morechat.coPluginError(400, "This surface is not mounted on an issue; pass an issue id explicitly.");
+    throw new MorechatPluginError(400, "This surface is not mounted on an issue; pass an issue id explicitly.");
   }
   return context.issue.id;
 }

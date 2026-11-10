@@ -135,6 +135,12 @@ interface OnboardingFlowProps {
    *  step doesn't flash "no runtime found" while the daemon is still booting
    *  or probing CLI versions (MUL-5119). Web omits it. */
   runtimesPending?: boolean;
+  /** True when this flow is the landing side of the web login handoff. Only
+   *  reaches the welcome step, which uses it for its 240ms entrance and the
+   *  focus move; later steps are reached by the member's own click and get
+   *  the normal entrance. Web sets it from
+   *  `apps/web/features/auth/login-handoff.ts`; desktop never does. */
+  enteringFromLogin?: boolean;
 }
 
 export function OnboardingFlow({
@@ -144,6 +150,7 @@ export function OnboardingFlow({
   runtimeInstructions,
   onRuntimeRefresh,
   runtimesPending,
+  enteringFromLogin = false,
 }: OnboardingFlowProps) {
   const { t, i18n } = useT("onboarding");
   const user = useAuthStore((s) => s.user);
@@ -412,6 +419,7 @@ export function OnboardingFlow({
           onNext={handleWelcomeNext}
           onSkip={canSkipWelcome ? handleWelcomeSkip : undefined}
           isWeb={isWeb}
+          enteringFromLogin={enteringFromLogin}
         />
       </>
     );

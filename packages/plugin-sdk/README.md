@@ -59,7 +59,7 @@ user's own session. Two limits apply at once:
 
 So a member without access to an issue gets a 404 through your surface too, and
 a scope the admin declined is a 403 that names it. Errors are
-`morechat.coPluginError` with a `status` mirroring HTTP.
+`MorechatPluginError` with a `status` mirroring HTTP.
 
 A comment you post is authored by **the user**, recorded as having been made
 through your plugin. It does not run `@mention` trigger dispatch — a surface

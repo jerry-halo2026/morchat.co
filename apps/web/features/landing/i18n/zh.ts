@@ -4217,7 +4217,7 @@ export function createZhDict(): LandingDict {
         discordTitle: "加入 Discord",
         discordBody: "提问、分享工作流，和团队直接交流。",
         join: "加入",
-        xTitle: "关注 @morechat.coAI",
+        xTitle: "关注 @MorechatAI",
         xBody: "新版本发布和接下来的计划。",
         follow: "关注",
       },

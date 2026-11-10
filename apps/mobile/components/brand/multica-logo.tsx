@@ -28,13 +28,13 @@ const STAR =
   "M274.92 -23L274.92 -38.739A16 16 0 0 1 280.68 -38.739L280.68 -23ZM275.764 -25.036L286.892 -36.165A16 16 0 0 1 290.965 -32.092L279.836 -20.964ZM277.8 -25.88L293.539 -25.88A16 16 0 0 1 293.539 -20.12L277.8 -20.12ZM279.836 -25.036L290.965 -13.908A16 16 0 0 1 286.892 -9.835L275.764 -20.964ZM280.68 -23L280.68 -7.261A16 16 0 0 1 274.92 -7.261L274.92 -23ZM279.836 -20.964L268.708 -9.835A16 16 0 0 1 264.635 -13.908L275.764 -25.036ZM277.8 -20.12L262.061 -20.12A16 16 0 0 1 262.061 -25.88L277.8 -25.88ZM275.764 -20.964L264.635 -32.092A16 16 0 0 1 268.708 -36.165L279.836 -25.036Z";
 // END GENERATED
 
-interface morechat.coLogoProps {
+interface MorechatLogoProps {
   /** Rendered height in points; width follows the wordmark's aspect ratio. */
   size?: number;
   color?: string;
 }
 
-export function morechat.coLogo({ size = 24, color }: morechat.coLogoProps) {
+export function MorechatLogo({ size = 24, color }: MorechatLogoProps) {
   const { isDarkColorScheme } = useColorScheme();
   const resolvedColor =
     color ?? (isDarkColorScheme ? THEME.dark.foreground : THEME.light.foreground);

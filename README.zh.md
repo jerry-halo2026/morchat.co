@@ -32,7 +32,7 @@ morechat.co 是一个源码公开的团队工作区。你像给同事派活一�
   </a>
 </p>
 
-[官网](https://morechat.co) · [文档](https://morechat.co/docs/zh) · [快速开始](https://morechat.co/docs/zh/cloud-quickstart) · [下载](https://morechat.co/download) · [愿景](VISION.zh.md) · [自托管](https://morechat.co/docs/zh/self-host-quickstart) · [Discord](https://discord.gg/W8gYBn226t) · [X](https://x.com/morechat.coAI)
+[官网](https://morechat.co) · [文档](https://morechat.co/docs/zh) · [快速开始](https://morechat.co/docs/zh/cloud-quickstart) · [下载](https://morechat.co/download) · [愿景](VISION.zh.md) · [自托管](https://morechat.co/docs/zh/self-host-quickstart) · [Discord](https://discord.gg/W8gYBn226t) · [X](https://x.com/MorechatAI)
 
 **[English](README.md) | 简体中文 | [日本語](README.ja.md)**
 

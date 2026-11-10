@@ -1,0 +1,48 @@
+{
+  "page": {
+    "title": "预设",
+    "stats": "{{agents}} 个智能体 · {{teams}} 支小队 · {{skills}} 个技能",
+    "search": "搜索预设、技能或成员",
+    "reset": "重置",
+    "loading": "正在加载预设目录…",
+    "catalog_error": "预设目录加载失败。",
+    "catalog_error_hint": "画廊从 {{baseUrl}} 读取 index.json。请把预设内容仓作为静态文件发布到该地址后重试。",
+    "retry": "重试",
+    "no_matches": "没有符合当前筛选的预设。"
+  },
+  "kinds": {
+    "all": "全部",
+    "agent": "智能体",
+    "team": "小队"
+  },
+  "card": {
+    "meta": "v{{version}} · {{skills}} 个技能"
+  },
+  "preview": {
+    "no_description": "该预设暂无描述。",
+    "version": "版本",
+    "skills": "技能",
+    "skill_counts": "索引 {{indexed}} / 声明 {{declared}}",
+    "files": "文件",
+    "members": "成员",
+    "mismatch": "plugin.json 与 index.json 的技能清单不一致，导入以索引为准。",
+    "skill_list": "包含的技能",
+    "requires": "依赖：{{list}}",
+    "plugin_error": "无法读取 plugin.json：{{error}}"
+  },
+  "import": {
+    "start": "导入预设",
+    "running": "导入中…",
+    "runtime_required": "导入预设前请先连接运行时：智能体需要运行时才能工作。",
+    "done": "已导入 {{skills}} 个技能、{{agents}} 个智能体（其中 {{updated}} 个技能为更新）。",
+    "failed": "导入失败。",
+    "step": {
+      "load_skills": "读取技能包",
+      "import_skills": "导入技能",
+      "create_agent": "创建智能体",
+      "create_members": "创建团队成员",
+      "create_squad": "创建小队",
+      "save_instructions": "保存小队指令"
+    }
+  }
+}

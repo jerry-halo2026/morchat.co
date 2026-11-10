@@ -3725,7 +3725,7 @@ export function createJaDict(): LandingDict {
           discordTitle: "Discord に参加",
           discordBody: "質問したり、ワークフローを共有したり、チームと直接話したりできます。",
           join: "参加",
-          xTitle: "@morechat.coAI をフォロー",
+          xTitle: "@MorechatAI をフォロー",
           xBody: "リリース情報とこれからの予定。",
           follow: "フォロー",
         },

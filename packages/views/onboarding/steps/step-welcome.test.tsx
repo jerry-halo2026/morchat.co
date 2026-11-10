@@ -27,3 +27,27 @@ describe("StepWelcome status labels", () => {
     expect(screen.queryByText("In Progress")).not.toBeInTheDocument();
   });
 });
+
+// Landing side of the login → onboarding handoff
+// (`apps/web/features/auth/login-handoff.ts`). The route swap is client-side,
+// so there is no navigation event for a screen reader to follow: the headline
+// is the thing that has to take focus, and it has to be the only announcement —
+// exactly one focus move, no live region repeating the same text.
+describe("StepWelcome login handoff", () => {
+  it("takes focus to the headline when it is where a login landed", () => {
+    renderWithI18n(<StepWelcome onNext={vi.fn()} enteringFromLogin />);
+
+    const heading = screen.getByRole("heading", { level: 1 });
+    expect(heading).toHaveFocus();
+    // Focusable but not a tab stop: it is a landing target, not a control.
+    expect(heading).toHaveAttribute("tabindex", "-1");
+    // The heading is not inside a live region — focus is what announces it.
+    expect(heading.closest("[aria-live]")).toBeNull();
+  });
+
+  it("leaves focus alone on an ordinary visit", () => {
+    renderWithI18n(<StepWelcome onNext={vi.fn()} />);
+
+    expect(screen.getByRole("heading", { level: 1 })).not.toHaveFocus();
+  });
+});

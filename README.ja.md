@@ -33,7 +33,7 @@ morechat.co はソース公開型のワークスペースです。チームメ�
   </a>
 </p>
 
-[Web サイト](https://morechat.co) · [ドキュメント](https://morechat.co/docs/ja) · [クイックスタート](https://morechat.co/docs/ja/cloud-quickstart) · [ダウンロード](https://morechat.co/download) · [ビジョン](VISION.md) · [セルフホスト](https://morechat.co/docs/ja/self-host-quickstart) · [Discord](https://discord.gg/W8gYBn226t) · [X](https://x.com/morechat.coAI)
+[Web サイト](https://morechat.co) · [ドキュメント](https://morechat.co/docs/ja) · [クイックスタート](https://morechat.co/docs/ja/cloud-quickstart) · [ダウンロード](https://morechat.co/download) · [ビジョン](VISION.md) · [セルフホスト](https://morechat.co/docs/ja/self-host-quickstart) · [Discord](https://discord.gg/W8gYBn226t) · [X](https://x.com/MorechatAI)
 
 **[English](README.md) | [简体中文](README.zh.md) | 日本語**
 
