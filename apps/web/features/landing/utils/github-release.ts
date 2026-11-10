@@ -1,32 +1,37 @@
-import {
-  hasCompleteAssetSet,
-  parseReleaseAssets,
-  parseReleaseAssetSizes,
-  type DownloadAssets,
-  type DownloadSizes,
-  type GitHubAsset,
-} from "./parse-release-assets";
+import appPackage from "../../../package.json";
+import type { DownloadAssets, DownloadSizes, DownloadKey } from "./parse-release-assets";
 
 /**
- * Server-side fetcher for the latest downloadable Multica release,
- * designed to run inside a Next.js server component. Response is cached
- * by the Next.js fetch cache for 5 minutes (Vercel ISR) so hitting
- * /download costs at most one GitHub API call per region per 5 minutes.
+ * The version `/download` shows, resolved from this repository alone.
  *
- * Desktop assets don't all land at the same time: CI uploads Linux and
- * Windows within a minute of each other, but macOS is packaged manually
- * (notarization credentials aren't wired into CI yet) and lands tens of
- * minutes later. A packaging job can also fail outright and leave a
- * release permanently short of some platforms. Either way the newest
- * release is not always the newest *downloadable* one, so we pull a
- * short window of recent releases and show the newest whose desktop
- * asset set is complete — every button on the page then resolves to a
- * real file.
- *
- * On any failure (network, timeout, rate limit, malformed payload) returns a
- * `null`-shaped result and logs — the page degrades to a "version
- * unavailable" view rather than 500ing.
+ * It used to come from the upstream GitHub releases API, which meant the page
+ * advertised a version we never built, and every cold render paid for a network
+ * round trip. The version we ship is the one in `apps/web/package.json`, which
+ * release automation bumps; `NEXT_PUBLIC_APP_VERSION` overrides it for preview
+ * deployments and local builds that want to pretend they are a specific tag.
  */
+
+/** Our own releases, so every link on the page stays inside this project. */
+export const RELEASES_URL = "https://github.com/jerry-halo2026/morchat.co/releases";
+
+/** Used only when package.json is missing a usable version. */
+export const FALLBACK_VERSION = "0.0.0";
+
+/** Desktop artifact naming, mirroring apps/desktop/electron-builder.yml. */
+const DESKTOP_ASSET_SUFFIXES: ReadonlyArray<readonly [DownloadKey, string]> = [
+  ["macArm64Dmg", "mac-arm64.dmg"],
+  ["macArm64Zip", "mac-arm64.zip"],
+  ["macX64Dmg", "mac-x64.dmg"],
+  ["macX64Zip", "mac-x64.zip"],
+  ["winX64Exe", "windows-x64.exe"],
+  ["winArm64Exe", "windows-arm64.exe"],
+  ["linuxAmd64AppImage", "linux-x64.AppImage"],
+  ["linuxAmd64Deb", "linux-x64.deb"],
+  ["linuxAmd64Rpm", "linux-x64.rpm"],
+  ["linuxArm64AppImage", "linux-arm64.AppImage"],
+  ["linuxArm64Deb", "linux-arm64.deb"],
+  ["linuxArm64Rpm", "linux-arm64.rpm"],
+];
 
 export interface LatestRelease {
   version: string | null;
@@ -36,126 +41,54 @@ export interface LatestRelease {
   sizes: DownloadSizes;
 }
 
-// Five candidates tolerates four consecutive incomplete releases before
-// the page has to fall back to showing the newest one as-is. Releases
-// ship roughly daily, so that is days of head room — while staying one
-// cheap request.
-const GITHUB_RELEASES_URL =
-  "https://api.github.com/repos/multica-ai/multica/releases?per_page=5";
-
-const REVALIDATE_SECONDS = 300;
-
-// The homepage hero awaits this on a cold cache, so a GitHub that accepts
-// the connection but never answers would hold the whole page. Past this,
-// the page renders with the empty release instead.
-export const RELEASE_TIMEOUT_MS = 3000;
-
-interface GitHubReleasePayload {
-  tag_name?: string;
-  published_at?: string;
-  html_url?: string;
-  prerelease?: boolean;
-  draft?: boolean;
-  assets?: GitHubAsset[];
+/** Bare semver, without a leading `v`, from env or package.json. */
+export function appVersion(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_APP_VERSION?.trim().replace(/^v/i, "");
+  if (fromEnv) return fromEnv;
+  const fromPackage = typeof appPackage.version === "string" ? appPackage.version.trim() : "";
+  return fromPackage || FALLBACK_VERSION;
 }
 
-export async function fetchLatestRelease(): Promise<LatestRelease> {
-  const headers: Record<string, string> = {
-    Accept: "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-  };
-  // Optional PAT for local development and self-hosted deploys where
-  // the shared outbound IP keeps hitting the 60-requests/hour
-  // unauthenticated limit. Vercel's fetch cache is shared across all
-  // regions so production rarely needs this — but the env var lets
-  // anyone running the site locally avoid the rate-limit dance. Never
-  // prefix this with `NEXT_PUBLIC_`; the token must stay server-side.
-  const token = process.env.GITHUB_TOKEN;
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  const controller = new AbortController();
-  const timer = setTimeout(
-    () => controller.abort(new Error(`GitHub API timed out after ${RELEASE_TIMEOUT_MS}ms`)),
-    RELEASE_TIMEOUT_MS,
-  );
-  try {
-    const res = await fetch(GITHUB_RELEASES_URL, {
-      next: { revalidate: REVALIDATE_SECONDS },
-      headers,
-      signal: controller.signal,
-    });
-    if (!res.ok) {
-      throw new Error(`GitHub API responded ${res.status}`);
-    }
-    const data = (await res.json()) as GitHubReleasePayload[];
-
-    // Defensive filter — Multica doesn't publish prereleases or drafts
-    // today, but the endpoint returns them if that ever changes. A
-    // prerelease shadowing a stable version on /download would be a
-    // regression.
-    const stable = data.filter((r) => !r.prerelease && !r.draft);
-    const chosen = pickRelease(stable);
-    if (!chosen) {
-      return emptyRelease();
-    }
-
-    return {
-      version: chosen.release.tag_name ?? null,
-      publishedAt: chosen.release.published_at ?? null,
-      htmlUrl: chosen.release.html_url ?? null,
-      assets: chosen.assets,
-      sizes: parseReleaseAssetSizes(chosen.release.assets ?? []),
-    };
-  } catch (err) {
-    console.warn("[download] fetchLatestRelease failed:", err);
-    return emptyRelease();
-  } finally {
-    clearTimeout(timer);
-  }
+/** The tag we publish: `v` + semver. */
+export function releaseTag(version: string = appVersion()): string {
+  return `v${version}`;
 }
 
-interface PickedRelease {
-  release: GitHubReleasePayload;
-  assets: DownloadAssets;
+/** Release page for a version, so "what's new" never leaves this project. */
+export function releaseHtmlUrl(version: string = appVersion()): string {
+  return `${RELEASES_URL}/tag/${releaseTag(version)}`;
 }
 
 /**
- * Newest release whose desktop assets are all present. Falls back to the
- * newest release overall when no candidate is complete — the page then
- * shows what does exist plus its "all releases" escape hatch, which
- * still beats reporting no version at all.
+ * Every desktop installer the release page can offer, as an absolute URL.
+ *
+ * The files are named after electron-builder's artifactName pattern, so a URL
+ * is a pure function of the version — no API call, and no chance of a button
+ * pointing at a release that never finished uploading.
  */
-function pickRelease(
-  candidates: GitHubReleasePayload[],
-): PickedRelease | undefined {
-  const parsed = candidates.map((release) => ({
-    release,
-    assets: parseReleaseAssets(release.assets ?? []),
-  }));
-
-  const complete = parsed.find((c) => hasCompleteAssetSet(c.assets));
-  if (complete) {
-    if (complete !== parsed[0]) {
-      // Worth a line in the logs: a release that never completes its
-      // asset set is invisible on /download until someone notices.
-      console.warn(
-        `[download] skipping ${parsed[0]?.release.tag_name ?? "latest release"}` +
-          ` — incomplete desktop assets; showing ${complete.release.tag_name}`,
-      );
-    }
-    return complete;
+export function releaseAssets(version: string = appVersion()): DownloadAssets {
+  const tag = releaseTag(version);
+  const assets: DownloadAssets = {};
+  for (const [key, suffix] of DESKTOP_ASSET_SUFFIXES) {
+    assets[key] = `${RELEASES_URL}/download/${tag}/morechat-desktop-${version}-${suffix}`;
   }
-  return parsed[0];
+  return assets;
 }
 
-function emptyRelease(): LatestRelease {
+/**
+ * The release `/download` renders. Kept async (and kept named after its old
+ * job) so the page and its tests read the same either way; nothing here waits
+ * on the network any more.
+ */
+export async function fetchLatestRelease(): Promise<LatestRelease> {
+  const version = appVersion();
   return {
-    version: null,
+    version: releaseTag(version),
+    // We do not expose a publish timestamp; the page omits the line instead of
+    // inventing one.
     publishedAt: null,
-    htmlUrl: null,
-    assets: {},
+    htmlUrl: releaseHtmlUrl(version),
+    assets: releaseAssets(version),
     sizes: {},
   };
 }
