@@ -429,7 +429,6 @@ function AgentStack({ agentIds }: { agentIds: string[] }) {
             size="sm"
             actorType="agent"
             actorId={id}
-            size="sm"
             enableHoverCard
           />
         </span>

@@ -155,7 +155,7 @@ export function ActorAvatar({
       isAgent={actorType === "agent"}
       isSystem={actorType === "system"}
       isSquad={actorType === "squad"}
-      size={resolvedSize}
+      size={size}
       className={className}
     />
   );

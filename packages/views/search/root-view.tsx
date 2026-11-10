@@ -689,7 +689,6 @@ function EmptyState({ model }: { model: RootModel }) {
                         size="sm"
                         actorType="agent"
                         actorId={item.id}
-                        size="sm"
                         profileLink={false}
                         showStatusDot
                         className="shrink-0"

@@ -6,7 +6,7 @@
     "docs/archive/**"
   ],
   "count": 157,
-  "fingerprint": "0afcd54499f39530f8427f39cd238e1388775c762b99706d37f041df9b58711d",
+  "fingerprint": "fc9d2550b712ffab66f15c0858ab4cbf344b444a4161a258137c78323cdbbee9",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -55,8 +55,7 @@
         "docs/ENGINEERING-BASELINE.md",
         "docs/PRODUCT-LIFECYCLE.md",
         "docs/REFERENCE-REUSE.md",
-        "docs/WORKSPACE-CONTINUITY.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/ASSETS-AND-LEARNING.md"
+        "docs/WORKSPACE-CONTINUITY.md"
       ],
       "links_in": [
         "docs/CLIENT-RUNTIME.md",
@@ -176,7 +175,6 @@
         "docs/ROUND1-DELIVERY.md",
         "docs/WINDOWS-DSH-INTEGRATION.md",
         "docs/WORKSPACE-CONTINUITY.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
         "docs/tasks/MC-00-results.md"
       ],
       "links_in": [
@@ -216,8 +214,7 @@
         "docs/PRODUCT-EXPERIENCE.md",
         "docs/PRODUCT-LIFECYCLE.md",
         "docs/REFERENCE-REUSE.md",
-        "docs/WORKSPACE-CONTINUITY.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/DISTRIBUTED-COLLABORATION.md"
+        "docs/WORKSPACE-CONTINUITY.md"
       ],
       "links_in": [
         "docs/CLIENT-RUNTIME.md",
@@ -246,9 +243,7 @@
       "links_out": [
         "docs/DISCOVERY-BASELINE.md",
         "docs/ENGINEERING-BASELINE.md",
-        "docs/README.md",
-        "docs/archive/2026-11-06-development-readiness/README.md",
-        "docs/archive/README.md"
+        "docs/README.md"
       ],
       "links_in": [
         "docs/README.md"
@@ -299,8 +294,7 @@
       ],
       "links_out": [
         "docs/ARCHITECTURE.md",
-        "docs/PRD.md",
-        "docs/archive/2026-11-04-pre-platform-review/EDICT-FLOW.md"
+        "docs/PRD.md"
       ],
       "links_in": [
         "docs/README.md"
@@ -404,8 +398,7 @@
         "docs/REFERENCE-REUSE.md"
       ],
       "links_out": [
-        "docs/REFERENCE-REUSE.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/MULTICA-BASE-EVALUATION.md"
+        "docs/REFERENCE-REUSE.md"
       ],
       "links_in": [
         "docs/ARCHITECTURE.md",
@@ -462,10 +455,7 @@
       ],
       "links_out": [
         "docs/DISCOVERY-BASELINE.md",
-        "docs/MULTICA-BASE-EVALUATION.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/PAPERCLIP-BASE.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md"
+        "docs/MULTICA-BASE-EVALUATION.md"
       ],
       "links_in": [
         "docs/README.md",
@@ -522,8 +512,7 @@
         "docs/PRODUCT-EXPERIENCE.md",
         "docs/PRODUCT-LIFECYCLE.md",
         "docs/ROUND1-DELIVERY.md",
-        "docs/WORKSPACE-CONTINUITY.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/PRD.md"
+        "docs/WORKSPACE-CONTINUITY.md"
       ],
       "links_in": [
         "docs/CLIENT-RUNTIME.md",
@@ -556,8 +545,7 @@
         "docs/PRD.md",
         "docs/PRODUCT-LIFECYCLE.md",
         "docs/REFERENCE-REUSE.md",
-        "docs/WORKSPACE-CONTINUITY.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/PRODUCT-EXPERIENCE.md"
+        "docs/WORKSPACE-CONTINUITY.md"
       ],
       "links_in": [
         "docs/CLIENT-RUNTIME.md",
@@ -588,8 +576,7 @@
         "docs/MULTICA-BASE-EVALUATION.md",
         "docs/PRODUCT-EXPERIENCE.md",
         "docs/REFERENCE-REUSE.md",
-        "docs/WORKSPACE-CONTINUITY.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/PRODUCT-LIFECYCLE.md"
+        "docs/WORKSPACE-CONTINUITY.md"
       ],
       "links_in": [
         "docs/ASSETS-AND-LEARNING.md",
@@ -681,8 +668,6 @@
         "docs/ROUND1-DELIVERY.md",
         "docs/WINDOWS-DSH-INTEGRATION.md",
         "docs/WORKSPACE-CONTINUITY.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/README.md",
-        "docs/archive/README.md",
         "docs/superpowers/plans/2026-11-06-round1-continuous.md",
         "docs/tasks/ACTIVE.md",
         "docs/tasks/MC-00-closeout-plan.md",
@@ -709,8 +694,7 @@
       "links_out": [
         "docs/EVOSE-PRODUCT-RESEARCH.md",
         "docs/MULTICA-BASE-EVALUATION.md",
-        "docs/PAPERCLIP-BASE.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md"
+        "docs/PAPERCLIP-BASE.md"
       ],
       "links_in": [
         "docs/ARCHITECTURE.md",
@@ -826,9 +810,7 @@
       "links_out": [
         "docs/tasks/DSH-ASK-SPIKE.md"
       ],
-      "links_in": [
-        "docs/brand/reference/multica-ai-zh/NOTES.md"
-      ]
+      "links_in": []
     },
     {
       "path": "docs/brand/mockups/hero/README.md",
@@ -839,9 +821,7 @@
       "updated": "2026-11-10",
       "related": [],
       "links_out": [],
-      "links_in": [
-        "docs/brand/reference/multica-ai-zh/NOTES.md"
-      ]
+      "links_in": []
     },
     {
       "path": "docs/brand/reference/avatar-sizes/README.md",
@@ -874,23 +854,6 @@
       "updated": "2026-11-10",
       "related": [],
       "links_out": [],
-      "links_in": []
-    },
-    {
-      "path": "docs/brand/reference/multica-ai-zh/NOTES.md",
-      "title": "multica.ai/zh 落地页参考",
-      "purpose": "记录 https://multica.ai/zh 落地页的结构、版式参数与文案层级，以及我方（morechat.co / 李陌茶）照它重做后的区块映射、主动删减与未做项",
-      "owner": "前台（L1）",
-      "status": "reference",
-      "updated": "2026-11-10",
-      "related": [
-        "docs/brand/DECISIONS.md",
-        "docs/brand/mockups/hero/README.md"
-      ],
-      "links_out": [
-        "docs/brand/DECISIONS.md",
-        "docs/brand/mockups/hero/README.md"
-      ],
       "links_in": []
     },
     {
@@ -1453,7 +1416,6 @@
         "docs/tasks/R1-00-baseline.md"
       ],
       "links_out": [
-        "docs/archive/2026-11-06-pre-continuous-development/MC-00-closeout-plan.md",
         "docs/superpowers/plans/2026-11-06-round1-continuous.md",
         "docs/tasks/R1-00-baseline.md"
       ],
@@ -2357,6 +2319,17 @@
       "links_in": []
     },
     {
+      "path": "docs/theming.md",
+      "title": "Theming Multica",
+      "purpose": "主题包的构成：manifest、CSS 变量、稳定锚点与内置主题（上游 0.8.2 文档，随同步引入）",
+      "owner": "sync-0.8.2",
+      "status": "reference",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
       "path": "docs/upstream/README.md",
       "title": "Multica 导入来源",
       "purpose": "Multica 导入来源",
@@ -2367,17 +2340,18 @@
       "links_out": [],
       "links_in": [
         "docs/tasks/MC-00-results.md",
-        "docs/upstream/SYNC-0.8.2.md"
+        "docs/upstream/SYNC-0.8.2-RESULT.md"
       ]
     },
     {
-      "path": "docs/upstream/SYNC-0.8.2.md",
-      "title": "multica v0.8.2 → morechat 同步方案（冲突面 + 重放 + 回滚）",
-      "purpose": "multica v0.8.2 → morechat 同步的冲突面评估与可执行重放方案（含迁移重编号与回滚）",
-      "owner": "u1-sync-analysis",
-      "status": "draft",
+      "path": "docs/upstream/SYNC-0.8.2-RESULT.md",
+      "title": "v0.8.2 同步结果（U2 执行）",
+      "purpose": "multica v0.8.2 同步的执行记录：提交序列、迁移重编号、冲突决定、未合并项与验证输出",
+      "owner": "u2-sync",
+      "status": "current",
       "updated": "2026-11-10",
       "related": [
+        "docs/upstream/SYNC-0.8.2.md",
         "docs/upstream/README.md"
       ],
       "links_out": [
@@ -2387,5 +2361,38 @@
     }
   ],
   "problems": [],
-  "dead_links": []
+  "dead_links": [
+    "docs/ASSETS-AND-LEARNING.md -> docs/archive/2026-11-06-before-multica-authority-migration/ASSETS-AND-LEARNING.md",
+    "docs/DISCOVERY-BASELINE.md -> docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
+    "docs/DISCOVERY-BASELINE.md -> docs/tasks/contracts/R1-ACL-r1-runner-binding.json",
+    "docs/DISCOVERY-BASELINE.md -> docs/tasks/contracts/R1-ACL-r1-test-frozen.json",
+    "docs/DISCOVERY-BASELINE.md -> related docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
+    "docs/DISTRIBUTED-COLLABORATION.md -> docs/archive/2026-11-06-before-multica-authority-migration/DISTRIBUTED-COLLABORATION.md",
+    "docs/DOCS-REBASE.md -> docs/archive/2026-11-06-development-readiness/README.md",
+    "docs/DOCS-REBASE.md -> docs/archive/README.md",
+    "docs/DOCS-REBASE.md -> related docs/archive/2026-11-06-development-readiness/README.md",
+    "docs/DOCS-REBASE.md -> related docs/archive/README.md",
+    "docs/EDICT-FLOW.md -> docs/archive/2026-11-04-pre-platform-review/EDICT-FLOW.md",
+    "docs/EDICT-FLOW.md -> related docs/archive/2026-11-04-pre-platform-review/EDICT-FLOW.md",
+    "docs/MULTICA-BASE-EVALUATION.md -> docs/archive/2026-11-06-before-multica-authority-migration/MULTICA-BASE-EVALUATION.md",
+    "docs/MULTICA-BASE-EVALUATION.md -> related docs/archive/2026-11-06-before-multica-authority-migration/MULTICA-BASE-EVALUATION.md",
+    "docs/PAPERCLIP-BASE.md -> docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
+    "docs/PAPERCLIP-BASE.md -> docs/archive/2026-11-06-before-multica-authority-migration/PAPERCLIP-BASE.md",
+    "docs/PAPERCLIP-BASE.md -> docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md",
+    "docs/PAPERCLIP-BASE.md -> related docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
+    "docs/PAPERCLIP-BASE.md -> related docs/archive/2026-11-06-before-multica-authority-migration/PAPERCLIP-BASE.md",
+    "docs/PAPERCLIP-BASE.md -> related docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md",
+    "docs/PRD.md -> docs/archive/2026-11-06-before-multica-authority-migration/PRD.md",
+    "docs/PRODUCT-EXPERIENCE.md -> docs/archive/2026-11-06-before-multica-authority-migration/PRODUCT-EXPERIENCE.md",
+    "docs/PRODUCT-LIFECYCLE.md -> docs/archive/2026-11-06-before-multica-authority-migration/PRODUCT-LIFECYCLE.md",
+    "docs/README.md -> docs/archive/2026-11-06-before-multica-authority-migration/README.md",
+    "docs/README.md -> docs/archive/README.md",
+    "docs/REFERENCE-REUSE.md -> docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md",
+    "docs/tasks/ACTIVE.md -> docs/tasks/R1-00-checkpoint.json",
+    "docs/tasks/MC-00-closeout-plan.md -> docs/archive/2026-11-06-pre-continuous-development/MC-00-closeout-plan.md",
+    "docs/tasks/MC-00-closeout-plan.md -> related docs/archive/2026-11-06-pre-continuous-development/MC-00-closeout-plan.md",
+    "docs/tasks/R1-results.md -> docs/tasks/R1-recovery-evidence.json",
+    "docs/upstream/README.md -> docs/upstream/multica-import.json",
+    "docs/upstream/SYNC-0.8.2-RESULT.md -> related docs/upstream/SYNC-0.8.2.md"
+  ]
 }

@@ -302,7 +302,6 @@ function MemberProperties({ member }: { member: MemberWithUser }) {
                 size="xs"
                 actorType="agent"
                 actorId={agent.id}
-                size="xs"
                 showStatusDot
                 profileLink={false}
               />

@@ -1083,7 +1083,6 @@ export function AgentDropdown({
             size="md"
             actorType="agent"
             actorId={activeAgent.id}
-            size="md"
             enableHoverCard
             showStatusDot
           />
@@ -1150,7 +1149,6 @@ function AgentPickerItem({
         size="md"
         actorType="agent"
         actorId={agent.id}
-        size="md"
         enableHoverCard
         showStatusDot
       />
@@ -1434,7 +1432,6 @@ function SessionDropdown({
             size="md"
             actorType="agent"
             actorId={agent.id}
-            size="md"
             enableHoverCard
             showStatusDot
           />
@@ -1568,7 +1565,6 @@ function SessionDropdown({
                 size="md"
                 actorType="agent"
                 actorId={triggerAgent.id}
-                size="md"
                 enableHoverCard
                 showStatusDot
               />

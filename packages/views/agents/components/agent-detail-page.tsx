@@ -637,7 +637,6 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
               size="xs"
               actorType="agent"
               actorId={agent.id}
-              size="xs"
               profileLink={false}
             />
             <span className="truncate">{agent.name}</span>

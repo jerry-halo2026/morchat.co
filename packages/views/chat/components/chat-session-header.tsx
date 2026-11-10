@@ -216,7 +216,6 @@ export function ChatSessionHeader({
                         size="sm"
                         actorType="agent"
                         actorId={agent.id}
-                        size="sm"
                         profileLink={false}
                         showStatusDot
                       />

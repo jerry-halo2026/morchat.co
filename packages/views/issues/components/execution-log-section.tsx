@@ -802,7 +802,6 @@ function RowShell({
             size="sm"
             actorType="agent"
             actorId={task.agent_id}
-            size="sm"
             enableHoverCard
           />
         ) : (

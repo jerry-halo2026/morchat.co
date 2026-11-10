@@ -231,7 +231,6 @@ function NameCell({ row }: { row: AgentListRow }) {
           size="sm"
           actorType="agent"
           actorId={agent.id}
-          size="sm"
           className={`shrink-0 ${isArchived ? "opacity-50 grayscale" : ""}`}
           showStatusDot
         />

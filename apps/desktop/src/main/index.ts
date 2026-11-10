@@ -8,14 +8,6 @@ import {
   Notification,
   screen,
 } from "electron";
-import {
-  cpSync,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  statSync,
-  writeFileSync,
-} from "fs";
 import { homedir } from "os";
 import { join } from "path";
 import { pathToFileURL } from "url";
@@ -274,7 +266,7 @@ function handOffToWorkspaceWindow(
 ): boolean {
   if (!source || !mainWindows.has(source)) return false;
   if (!request || typeof request !== "object") return false;
-  const { workspaceSlug: rawSlug, path: rawPath } = request as Record<
+  const { workspaceSlug: rawSlug, path: rawPath, navigate } = request as Record<
     string,
     unknown
   >;
@@ -286,7 +278,11 @@ function handOffToWorkspaceWindow(
   const target = mainWindows.findByWorkspace(workspaceSlug, source);
   if (!target || target.isDestroyed()) return false;
   if (path) {
-    dispatchToMainRenderer(WORKSPACE_OPEN_PATH_CHANNEL, path, target);
+    dispatchToMainRenderer(
+      WORKSPACE_OPEN_PATH_CHANNEL,
+      { path, navigate: navigate === true },
+      target,
+    );
   } else {
     focusWindow(target);
   }
@@ -357,6 +353,12 @@ function handleDeepLink(url: string): void {
       const id = parsed.pathname.replace(/^\//, "");
       if (id) dispatchToMainRenderer("invite:open", decodeURIComponent(id));
       return;
+    }
+
+    if (parsed.hostname === "open" && parsed.pathname === "/issue") {
+      // Keep the source instance in the payload. The authenticated renderer
+      // validates it against runtime config before opening a workspace tab.
+      dispatchToMainRenderer("issue:open", url);
     }
   } catch {
     // Ignore malformed URLs
@@ -635,6 +637,8 @@ function createIssueWindow(context: IssueWindowContext): void {
     minHeight: 520,
     title: context.title,
     titleBarStyle: "hiddenInset",
+    // Center the native controls in the issue page's 48px header, which is
+    // this window's title bar.
     trafficLightPosition: { x: 16, y: 17 },
     show: false,
     autoHideMenuBar: true,
@@ -722,87 +726,6 @@ const DEV_APP_NAME = process.env.DESKTOP_APP_SUFFIX
   ? `morechat.co Canary ${process.env.DESKTOP_APP_SUFFIX}`
   : "morechat.co Canary";
 
-// --- One-time userData migration off the pre-rename identity ---------------
-// The appId moved from `ai.multica.desktop` to `co.morechat.desktop` this
-// round. Electron does NOT derive userData from appId (it joins `appData` with
-// `app.getName()`), and the production branch below pins
-// `app.setName("morechat.co")` — so on a correctly packaged install the path
-// does not move and this is a no-op. It is still required as insurance: any
-// build where app.getName() fell back to the package `name` (or to an
-// appId-derived directory written by an external tool) would otherwise start
-// against an empty profile and silently drop sign-in state, window bounds, the
-// updater preferences and the bundled CLI in bin/.
-//
-// Behaviour contract: copy, never move; skip IPC lock files so a stale
-// SingletonLock cannot poison the fresh profile; write a marker so the copy
-// runs at most once; never throw — a failed migration must not block startup.
-const LEGACY_USER_DATA_DIR_NAMES = [
-  // appId-shaped directories (what `ai.multica.desktop` yields when a tool
-  // treats the id as a folder name).
-  "ai.multica.desktop",
-  "ai.multica.desktop.dev",
-  // package-name-shaped directories: Electron joins `app.getName()` verbatim,
-  // so a pre-productName build landed under the scoped name and produced a
-  // nested `@multica/desktop` directory.
-  join("@multica", "desktop"),
-  "@multica/desktop",
-] as const;
-
-const USER_DATA_MIGRATION_MARKER = ".migrated-from-multica";
-const SINGLETON_ARTIFACTS = new Set([
-  "SingletonLock",
-  "SingletonCookie",
-  "SingletonSocket",
-  "lockfile",
-]);
-
-function migrateLegacyUserData(): void {
-  try {
-    const userDataDir = app.getPath("userData");
-    const markerPath = join(userDataDir, USER_DATA_MIGRATION_MARKER);
-    // `existsSync` is deliberately checked on the marker first: a new install
-    // that has already written preference files would otherwise look like a
-    // half-populated profile and invite a copy on every launch.
-    if (existsSync(markerPath)) return;
-    if (existsSync(userDataDir)) {
-      const entries = readdirSync(userDataDir);
-      if (entries.length > 0) return; // profile already in use — leave it alone
-    }
-
-    const appDataDir = app.getPath("appData");
-    const legacyDir = LEGACY_USER_DATA_DIR_NAMES.map((name) =>
-      join(appDataDir, name),
-    ).find((candidate) => {
-      try {
-        return (
-          statSync(candidate).isDirectory() &&
-          readdirSync(candidate).some(
-            (entry) => !SINGLETON_ARTIFACTS.has(entry) && entry !== "Cache",
-          )
-        );
-      } catch {
-        return false;
-      }
-    });
-    if (!legacyDir) return;
-
-    mkdirSync(userDataDir, { recursive: true });
-    for (const entry of readdirSync(legacyDir)) {
-      if (SINGLETON_ARTIFACTS.has(entry)) continue;
-      cpSync(join(legacyDir, entry), join(userDataDir, entry), {
-        recursive: true,
-        force: false,
-        errorOnExist: false,
-      });
-    }
-    writeFileSync(markerPath, `${legacyDir}\n`, "utf8");
-    console.log(`[user-data] migrated legacy profile from ${legacyDir}`);
-  } catch (error) {
-    // Best effort: a failed copy means the user re-logs in, not a broken app.
-    console.error("[user-data] legacy profile migration failed:", error);
-  }
-}
-
 if (is.dev) {
   app.setName(DEV_APP_NAME);
   app.setPath("userData", join(app.getPath("appData"), DEV_APP_NAME));
@@ -814,10 +737,6 @@ if (is.dev) {
   // (declared in electron-builder.yml) survive a regression in
   // productName / the build pipeline. Must run before requestSingleInstanceLock().
   app.setName("morechat.co");
-  // Runs only in the packaged boot (dev keeps its own Canary profile above) and
-  // before requestSingleInstanceLock(), so the lock is taken in the migrated
-  // directory rather than the empty one.
-  migrateLegacyUserData();
 }
 
 // --- Protocol registration -----------------------------------------------
@@ -864,6 +783,15 @@ if (!gotTheLock) {
   );
   if (coldStartDeepLink) handleDeepLink(coldStartDeepLink);
 
+  // scripts/dev-env.sh starts a managed dev Desktop signed in by handing it
+  // the token a browser login would deliver. An environment variable rather
+  // than argv keeps the token out of other users' `ps`; it is removed before
+  // any child process (the daemon, agent CLIs) can inherit it. Packaged builds
+  // never read it.
+  const devAuthToken = is.dev ? process.env.MULTICA_DEV_AUTH_TOKEN : undefined;
+  delete process.env.MULTICA_DEV_AUTH_TOKEN;
+  if (devAuthToken) dispatchToMainRenderer("auth:token", devAuthToken);
+
   app.whenReady().then(async () => {
     const viteEnv = import.meta.env as ImportMetaEnv & {
       readonly VITE_API_URL?: string;
@@ -883,14 +811,8 @@ if (!gotTheLock) {
       },
     });
 
-    // Must stay in lockstep with `appId` in electron-builder.yml: the Windows
-    // Start-menu/notification identity is this id, and a mismatch makes toasts
-    // from the installed build render as an unknown app. Renamed from
-    // `ai.multica.desktop[.dev]` alongside the appId. Note the consequence:
-    // Windows caches toast registration per AUMID, so an existing install will
-    // drop its (already-delivered) action-centre history once after upgrading.
     electronApp.setAppUserModelId(
-      is.dev ? "co.morechat.desktop.dev" : "co.morechat.desktop",
+      is.dev ? "ai.multica.desktop.dev" : "ai.multica.desktop",
     );
 
     // macOS: replace the default Electron dock icon with the bundled logo
@@ -1067,19 +989,6 @@ if (!gotTheLock) {
         if (accountInvalidated) {
           authSessionGeneration += 1;
           mainRendererMessages.clear("inbox:open");
-        }
-        // Point this machine's CLIs at the gateway for the signed-in account.
-        // Fire-and-forget on purpose: sign-in must not wait on local writes, and
-        // a failure here is reported as "未配置" rather than as a login error.
-        if (userId === null) {
-          runtimeConfigurator?.reset();
-        } else {
-          void runtimeConfigurator?.applyForUser(userId).catch((err: unknown) => {
-            console.warn(
-              "[runtime-configurator] apply threw unexpectedly:",
-              err instanceof Error ? err.name : "unknown",
-            );
-          });
         }
         return;
       }

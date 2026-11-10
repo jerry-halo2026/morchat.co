@@ -270,7 +270,6 @@ export function Leaderboard({
                             size="md"
                             actorType="agent"
                             actorId={row.agentId}
-                            size="md"
                             enableHoverCard
                           />
                           <span className="min-w-0">

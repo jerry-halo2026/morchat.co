@@ -141,7 +141,6 @@ function OwnedAgentsSection({ agents }: { agents: Agent[] }) {
               size="sm"
               actorType="agent"
               actorId={a.id}
-              size="sm"
               showStatusDot
               className="mt-0.5 shrink-0"
             />

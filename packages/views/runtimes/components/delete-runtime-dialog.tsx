@@ -485,7 +485,6 @@ function AgentPlanTable({
                   size="sm"
                   actorType="agent"
                   actorId={agent.id}
-                  size="sm"
                   enableHoverCard
                 />
                 <span className="truncate font-medium text-foreground">

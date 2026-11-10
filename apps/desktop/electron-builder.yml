@@ -1,13 +1,4 @@
-# Application identifier. Everything that Windows/macOS/Linux key off an app's
-# identity (NSIS upgrade paths, toast notifications via AppUserModelID, Launch
-# Services registration, the macOS bundle id) hangs off this value, so it is the
-# one string that must agree with `electronApp.setAppUserModelId(...)` in
-# src/main/index.ts. Formerly an upstream-owned `ai.*` reverse-DNS id; it now
-# follows the morechat.co brand and lines up with co.morechat.mobile in
-# apps/mobile/app.config.ts. The pre-rename id survives in one place only —
-# LEGACY_USER_DATA_DIR_NAMES in src/main/index.ts, which it must, so the
-# one-time profile copy can still find the old directory.
-appId: co.morechat.desktop
+appId: ai.multica.desktop
 productName: morechat.co
 directories:
   buildResources: build
@@ -26,7 +17,7 @@ files:
   # Intel (x64) DMG until the HFS volume was full and the real
   # `Electron Framework/Versions/A/Electron Framework` binary was dropped,
   # so Intel Macs crashed on launch with a dyld missing-library error
-  # (github.com/multica-ai/multica/issues/5595). Excluding all of dist/**
+  # (github.com/jerry-halo2026/morchat.co/issues/5595). Excluding all of dist/**
   # fixes it regardless of build order; a pre-build clean alone does not,
   # because the first arch writes into dist/ mid-run before the second is
   # packaged.
@@ -41,20 +32,7 @@ files:
   - "!resources/node/**"
 protocols:
   - name: morechat.co
-    # New scheme first, legacy scheme second. `morechat` is what the product
-    # emits from now on (`morechat://auth/callback`, `morechat://invite/<id>`);
-    # `multica` stays registered so links minted by already-published clients
-    # and already-sent emails still land in the app instead of the browser
-    # error page.
-    #
-    # REMOVE `multica` once the first GA release has been out for one full
-    # release cycle — i.e. in the release *after* the first stable `co.morechat.*`
-    # build. Concretely: drop it at the start of the version that follows the
-    # first正式版 (first non-prerelease) ship; by then no supported client mints
-    # the old scheme. Dropping it earlier strands links, dropping it later
-    # leaves a second app-identity string alive for no reason.
     schemes:
-      - morechat
       - multica
 asarUnpack:
   - resources/**
@@ -86,48 +64,21 @@ mac:
   # Electron 44 requires macOS 13 Ventura; declare it on every mac bundle.
   minimumSystemVersion: "13.0.0"
   entitlementsInherit: build/entitlements.mac.plist
-  # First-release scope: Apple Silicon (arm64) is the shipping target, Intel
-  # (x64) is built from the same config so both DMGs/ZIPs come out of one run
-  # with per-arch names (`...-mac-arm64.dmg` / `...-mac-x64.dmg`). Listing arch
-  # explicitly keeps a future `electron-builder --mac` without `--arm64/--x64`
-  # from silently emitting host-arch-only artifacts.
-  # NOT RUN in this round: both wedges are configured and asserted by
-  # .local/p0/w13-mac-config-assert.mjs, but no mac bundle was produced — an
-  # .app/DMG for macOS can only be built on a macOS host.
   target:
-    - target: dmg
-      arch:
-        - arm64
-        - x64
-    - target: zip
-      arch:
-        - arm64
-        - x64
+    - dmg
+    - zip
   # Hardcoded name avoids the `@morechat/desktop-*` subdirectory that
   # `${name}` produces for scoped package names.
-  # Naming scheme: morechat-desktop-<version>-<platform>-<arch>.<ext>
+  # Naming scheme: multica-desktop-<version>-<platform>-<arch>.<ext>
   # so the filename alone surfaces kind, version, platform, and CPU arch.
-  artifactName: morechat-desktop-${version}-mac-${arch}.${ext}
-  # Notarize via notarytool. The conditional this file *cannot* express: the
-  # `notarize` field is a plain boolean read straight out of the parsed config
-  # (macPackager.getNotarizeOptions), and electron-builder's macro expander only
-  # understands `${env.NAME}` — `${env.APPLE_ID:+true}` is not a supported form
-  # and a non-boolean here fails schema validation. So the three-way AND is
-  # enforced in two places instead:
-  #   1. electron-builder itself: getNotarizeOptions() returns undefined (log:
-  #      "skipped macOS notarization") unless APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD
-  #      + APPLE_TEAM_ID are all present — identical gate, all three required.
-  #   2. scripts/package.mjs: passes `-c.mac.notarize=false` unless all three
-  #      env vars exist, so local/CI builds never reach the notary path at all.
-  # Verified against the installed app-builder-lib@26.8.1 sources.
+  artifactName: multica-desktop-${version}-mac-${arch}.${ext}
+  # Notarize via notarytool. Requires APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD
+  # + APPLE_TEAM_ID env vars at package time. Non-mac contributors are
+  # unaffected because `pnpm package` already requires the Developer ID
+  # signing cert — notarization is a strict superset.
   notarize: true
-  # Local unsigned smoke build (no Developer ID cert on the machine): append
-  # `--config.mac.identity=null` on the CLI, or set
-  # CSC_IDENTITY_AUTO_DISCOVERY=false. Do NOT put `identity: null` here — it
-  # would also strip the signature (and therefore notarization) from release
-  # builds, which must be signed with the Developer ID Application cert.
 dmg:
-  artifactName: morechat-desktop-${version}-mac-${arch}.${ext}
+  artifactName: multica-desktop-${version}-mac-${arch}.${ext}
 linux:
   # Override the Linux executable name to avoid leaking the scoped npm
   # package name (`@morechat/desktop`) into the installed binary, the
@@ -142,8 +93,8 @@ linux:
   # and fall back to the theme's default app icon (the Settings gear on
   # Yaru).
   #
-  # `morechat-desktop` (not `morechat`) so the deb/rpm/AppImage package never
-  # installs this Electron binary as `/usr/bin/morechat`. The Go CLI is a
+  # `multica-desktop` (not `multica`) so the deb/rpm/AppImage package never
+  # installs this Electron binary as `/usr/bin/multica`. The Go CLI is a
   # separate artifact (see CLI_INSTALL.md) that agents and scripts expect
   # to find at `multica` on PATH; when both packages are installed on the
   # same box, a plain electron-builder default collides the two under one
@@ -151,22 +102,21 @@ linux:
   # shadows the other. Hitting the Electron binary from a CLI call is the
   # worst failure mode: it exits 0 with empty stdout (its own Chromium flags
   # eat CLI args like `--output json`), which looks like a healthy CLI that
-  # returned nothing rather than "wrong binary" (github.com/multica-ai/multica/issues/5481).
+  # returned nothing rather than "wrong binary" (github.com/jerry-halo2026/morchat.co/issues/5481).
   # `StartupWMClass=morechat.co` (productName-derived) is unaffected by this
   # rename — it comes from `app.getName()`, not `executableName`.
-  executableName: morechat-desktop
+  executableName: multica-desktop
   # Pin StartupWMClass to the WM_CLASS Electron emits on X11. Electron
   # derives WM_CLASS from `app.getName()`, which reads the *packaged*
   # ASAR's `package.json` — `productName` if present, otherwise `name`.
   # PR #2437 assumed electron-builder.yml's productName fed app.getName()
   # directly; it does not. With our source package.json carrying only
-  # `name: "@morechat/desktop"` (it was `@multica/desktop` before the rename),
-  # packaged Electron emitted `WM_CLASS=@morechat/desktop`, which breaks
-  # association with this entry the same way it reproduced #2515 on Ubuntu
-  # 0.2.31. The fix lives in two places outside this file —
-  # `productName: "morechat.co"` on the source package.json (so the ASAR
-  # carries it) and the `app.setName(...)` call in the production branch of
-  # `src/main/index.ts` (belt-and-braces).
+  # `name: "@morechat/desktop"`, packaged Electron emitted
+  # `WM_CLASS=@morechat/desktop`, which broke association with this entry
+  # and reproduced #2515 on Ubuntu 0.2.31. The fix lives in two places
+  # outside this file — `productName: "morechat.co"` on the source
+  # package.json (so the ASAR carries it) and `app.setName("morechat.co")`
+  # in the production branch of `src/main/index.ts` (belt-and-braces).
   # Keep `StartupWMClass: morechat.co` pinned here so any future drift in
   # those two anchors shows up as a diff against this declaration.
   # Verification on a real Ubuntu install: `xprop WM_CLASS` on a running
@@ -185,7 +135,7 @@ linux:
     - AppImage
     - deb
     - rpm
-  artifactName: morechat-desktop-${version}-linux-${arch}.${ext}
+  artifactName: multica-desktop-${version}-linux-${arch}.${ext}
 rpm:
   # Disable RPM build-id symlinks. Electron apps embed the upstream Electron
   # binary, whose GNU build-id is identical across every app shipping the same
@@ -195,28 +145,17 @@ rpm:
   fpm:
     - "--rpm-rpmbuild-define=_build_id_links none"
 win:
-  # First-release scope is Windows x64 only (no arm64 wedge this round).
   target:
-    - target: nsis
-      arch:
-        - x64
-  artifactName: morechat-desktop-${version}-windows-${arch}.${ext}
-nsis:
-  # Per-user-or-per-machine is left to the installer (default), but the user
-  # must be able to pick the install location and see a plain "morechat"
-  # shortcut/label rather than the scoped package name. `oneClick: false`
-  # switches NSIS out of the silent one-click flow, which is what makes
-  # `allowToChangeInstallationDirectory` take effect at all.
-  oneClick: false
-  allowToChangeInstallationDirectory: true
-  shortcutName: morechat
+    - nsis
+  artifactName: multica-desktop-${version}-windows-${arch}.${ext}
 publish:
-  # Internal builds must NEVER resolve an update feed to the upstream project:
-  # electron-updater would happily download an upstream project release and
-  # overwrite this client. Point at our own host instead; until it exists the
-  # check fails closed (log only, no download). Switch to the real provider when
-  # the release domain is live.
-  provider: generic
-  url: https://updates.morechat.co/desktop
-  channel: latest
+  provider: github
+  owner: multica-ai
+  repo: multica
+  # Align with our CLI release flow which pre-creates a *published* GitHub
+  # Release via `gh release create`. The electron-builder default of
+  # `releaseType: draft` conflicts with `existingType=release` and causes
+  # uploads of the DMG/ZIP/blockmaps/latest-mac.yml to be silently skipped,
+  # which breaks electron-updater auto-update on installed clients.
+  releaseType: release
 npmRebuild: false

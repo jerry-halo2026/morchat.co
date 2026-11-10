@@ -31,13 +31,13 @@ export function PillButton({
   children,
   className,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}: React.ComponentPropsWithRef<"button">) {
   return (
     <button
       type="button"
       className={cn(
         PILL_CHROME,
-        "gap-1.5 px-2.5",
+        "gap-1.5 px-2",
         "hover:bg-accent/60 cursor-pointer",
         "data-popup-open:bg-accent data-popup-open:text-accent-foreground",
         "disabled:cursor-not-allowed disabled:hover:bg-transparent",
@@ -103,8 +103,8 @@ export function ClearablePillButton({
         type="button"
         disabled={disabled}
         className={cn(
-          "flex h-full min-w-0 items-center gap-1.5 overflow-hidden pl-2.5 cursor-pointer",
-          clearable ? "pr-1" : "pr-2.5",
+          "flex h-full min-w-0 items-center gap-1.5 overflow-hidden pl-2 cursor-pointer",
+          clearable ? "pr-1" : "pr-2",
           "disabled:cursor-not-allowed",
         )}
         {...props}

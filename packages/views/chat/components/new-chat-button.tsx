@@ -141,7 +141,6 @@ function AgentPickerItem({
         size="md"
         actorType="agent"
         actorId={agent.id}
-        size="md"
         enableHoverCard
         showStatusDot
       />
