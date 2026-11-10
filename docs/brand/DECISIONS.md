@@ -1,4 +1,4 @@
----
+﻿---
 purpose: "品牌、头像与内容库决定（2026-11-10，Ethan 口头批准后固化）"
 owner: design
 status: reference
@@ -29,8 +29,8 @@ related:
 | 唯一引擎 | `D:\dev\grok-bot-study-main`（实心模式） |
 | 库里头像 | `D:\dev\bot` 的 81 张 PNG **不使用**；头像一律由引擎按 Agent 派生 |
 | 身份契约 | `avatar_url = cap:<bodyId>:<paletteId>`；`cap-v1` 冻结；色/形由 `agentId` 稳定派生，TS 与 Go 共用 `testdata/cap-vectors.json` |
-| 标准尺寸 | **所有智能体头像统一 32px**（`AGENT_AVATAR_PX`）；16px / 24px 两档从产品里删除，只保留 40 / 48 / 56 给单实例展示（详情页头、身份弹层） |
-| 渲染分档 | ≤20px CSS 胶囊（无 JS，仅兼容位）／21–31px 静态 SVG 一帧／≥32px 引擎（共享 rAF + 配额 ≤8 + reduced-motion 静默）。32px 落在引擎档，所以列表/表格默认 `animated={false}` 停在静态帧，只有单实例展示位开动画 |
+| 尺寸口径 | **按调用方给的槽位渲染**（上游口径）：列表 20 / 评论 24 / 详情 40 / 主视觉 56；`AVATAR_SLOT_PX` 记录这四个默认槽位，语义档 `xs…2xl` = 16/20/24/32/40/56 原值直通，不做统一钳制 |
+| 渲染分档 | ≤20px CSS 纯色本体（无眼、无 JS）／21–31px 静态 SVG 一帧／≥32px 引擎（共享 rAF + 配额 ≤8 + reduced-motion 静默）。列表/表格默认 `animated={false}` 停在静态帧，只有单实例展示位开动画 |
 | 可替换点 | `packages/ui/lib/agent-bot/engine/` 为唯一引擎目录，将来自研造型只替换该目录 |
 | 不做 | 不用 Paperclip/OpenMausBot 的头像系统；不做 Mobile 动画 |
 
