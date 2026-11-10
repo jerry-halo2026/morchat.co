@@ -1755,7 +1755,7 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 		r.Post("/api/feedback", h.CreateFeedback)
 		r.With(handler.RequireHumanActor).Post("/api/client-usage", h.UpsertClientUsage)
 
-		// Knowledge base (task 624): import pipeline, hybrid retrieval test, and
+		// Knowledge base (migration 641): import pipeline, hybrid retrieval test, and
 		// the agent tool surface. Workspace-scoped through the membership
 		// middleware — the workspace id comes from X-Workspace-ID / the slug
 		// header / the query fallbacks, never from a request body — so every
@@ -2516,7 +2516,7 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 				// Which credential paid for the window's usage — `company`
 				// (the minted gateway key) vs `personal` (an employee's own
 				// key on one device). Reporting dimension only (migration
-				// 624); no amount is derived from it.
+				// 642); no amount is derived from it.
 				r.Get("/usage/by-credential-source", h.GetTaskUsageByCredentialSource)
 				r.Get("/agent-runtime", h.GetDashboardAgentRunTime)
 				r.Get("/runtime/daily", h.GetDashboardRunTimeDaily)

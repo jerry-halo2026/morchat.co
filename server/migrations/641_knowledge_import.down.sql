@@ -1,4 +1,4 @@
--- Inverse of 624_knowledge_import.up.sql, in reverse order: the two search
+-- Inverse of 641_knowledge_import.up.sql, in reverse order: the two search
 -- columns and their index go, then the task table.
 --
 -- `embedding_model` is only dropped when 620 did not create it — which is always
@@ -29,7 +29,7 @@ BEGIN
     END IF;
 END $$;
 
--- acl_tags is 620's column and stays: 624 only ever adds it to a database that
+-- acl_tags is 620's column and stays: 641 only ever adds it to a database that
 -- was missing it, and dropping it here would break 620's indexes on a database
 -- whose 620 owns the column.
 

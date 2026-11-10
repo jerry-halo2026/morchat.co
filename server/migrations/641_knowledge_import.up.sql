@@ -1,4 +1,4 @@
--- 624: the import pipeline's durable bookkeeping, plus the two chunk columns
+-- 641: the import pipeline's durable bookkeeping, plus the two chunk columns
 -- retrieval needs to describe a hit instead of guessing at it.
 --
 -- `knowledge_import_tasks` is the state machine one upload walks through:
@@ -92,7 +92,7 @@ END $$;
 -- column is immutable-safe for that function and turns each search into an
 -- index scan instead of a sequential re-parse of every chunk; search.go still
 -- computes the expression on the fly when this column is absent, so a database
--- migrated by an older 624 keeps working.
+-- migrated by an older 641 keeps working.
 DO $$
 BEGIN
     IF NOT EXISTS (

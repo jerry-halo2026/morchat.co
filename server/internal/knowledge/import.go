@@ -34,7 +34,7 @@ import (
 //     transition table and the WHERE clause both refuse it, and the loser of the
 //     race gets ErrImportTransition.
 
-// ImportStatus is the closed status set enforced by migration 624's CHECK.
+// ImportStatus is the closed status set enforced by migration 641's CHECK.
 const (
 	ImportStatusPending  = "pending"
 	ImportStatusParsing  = "parsing"
@@ -745,7 +745,7 @@ func ParseDocument(name, contentType string, raw []byte) (ParsedDocument, error)
 }
 
 // stripFrontMatter removes a leading `---` YAML block. It is dropped rather than
-// parsed: task 624's chunker has no business inventing metadata, and leaving the
+// parsed: task 641's chunker has no business inventing metadata, and leaving the
 // block in the text would make every first chunk about the document instead of
 // its content.
 func stripFrontMatter(text string) string {

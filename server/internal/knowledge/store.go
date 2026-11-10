@@ -254,7 +254,7 @@ var ErrDocumentNotFound = errors.New("knowledge: document not found")
 
 // NewChunk is the create payload for one chunk of a document generation.
 //
-// Metadata carries the pipeline's bookkeeping (migration 624 / import.go):
+// Metadata carries the pipeline's bookkeeping (migration 641 / import.go):
 // {"level": "chunk"|"parent"|"child", "chunk_mode": ...} plus parent_ord in
 // parent_child mode. It is write-only from this package's point of view — the
 // Chunk wire type is pinned to packages/views/lib/knowledge/types.ts by

@@ -10,7 +10,7 @@ import (
 
 // The credential dimension is commercial, so both halves are asserted together:
 // the terminal usage report has to STORE which key paid (`task_usage
-// .credential_source`, migration 625), and the report endpoint has to group by
+// .credential_source`, migration 642), and the report endpoint has to group by
 // it. A write path with no reader is an untestable claim, and a reader with a
 // hand-seeded row proves nothing about what a daemon actually writes.
 //
@@ -55,7 +55,7 @@ func TestReportTaskUsageRecordsCredentialSourceAndReportGroupsByIt(t *testing.T)
 		"provider": credentialSourceTestProvider, "model": credentialSourceTestModel,
 		"input_tokens": 40, "credential_source": " Personal ",
 	})
-	// A daemon that predates migration 625 reports no source at all. That must
+	// A daemon that predates migration 642 reports no source at all. That must
 	// stay NULL ("unknown" in the report), never be inferred as `company` —
 	// inferring is how an employee's own spend lands on the company ledger.
 	report(legacyTask, map[string]any{

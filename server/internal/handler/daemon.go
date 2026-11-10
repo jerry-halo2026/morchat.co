@@ -5487,7 +5487,7 @@ type TaskUsagePayload struct {
 	CreditsMicros *int64 `json:"credits_micros,omitempty"`
 	// CredentialSource is which key actually paid for these tokens: `company`
 	// for the per-user gateway key the server minted, `personal` for a key the
-	// employee stored on that one machine (migration 624). Empty from daemons
+	// employee stored on that one machine (migration 642). Empty from daemons
 	// that predate the dimension, and from any report that has nothing to say —
 	// in which case the column stays NULL and the report shows `unknown`, never
 	// a guess, because the wrong guess puts an employee's own spend on the

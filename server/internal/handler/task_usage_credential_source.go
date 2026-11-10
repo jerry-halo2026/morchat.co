@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// Credential dimension for `task_usage` (migration 624).
+// Credential dimension for `task_usage` (migration 642).
 //
 // A run is paid for by exactly one of two credentials, and the difference is
 // commercial, not cosmetic: 'company' is the gateway key the server minted and
@@ -27,7 +27,7 @@ const (
 	CredentialSourceCompany = "company"
 	// CredentialSourcePersonal is a key stored on one device by its owner.
 	CredentialSourcePersonal = "personal"
-	// CredentialSourceUnknown is report-only: rows written before migration 624,
+	// CredentialSourceUnknown is report-only: rows written before migration 642,
 	// or by a daemon that does not report the field. Never stored.
 	CredentialSourceUnknown = "unknown"
 )
@@ -155,7 +155,7 @@ type TaskUsageByCredentialSourceRow struct {
 // no credential dimension, so adding one there would mean widening a rollup
 // that other readers (`dashboard`, `runtimes`) already depend on. Raw rows at
 // one page per workspace per window are cheap, and this keeps the dimension
-// additive — deleting 624 deletes the feature, with no rollup to rebuild.
+// additive — deleting 642 deletes the feature, with no rollup to rebuild.
 //
 // Authorization is the ordinary workspace membership check: who paid is
 // commercially sensitive, but it is the same audience that can already read the

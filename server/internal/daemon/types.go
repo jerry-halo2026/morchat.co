@@ -319,7 +319,7 @@ type TaskUsageEntry struct {
 	// CredentialSource names the credential that paid for these tokens —
 	// `company` (the gateway key the server minted) or `personal` (a key the
 	// employee stored on this device). The server stores it as the
-	// `task_usage.credential_source` reporting dimension (migration 624) and
+	// `task_usage.credential_source` reporting dimension (migration 642) and
 	// never prices anything off it. Omitted when the runner cannot say, which
 	// the server records as "unknown" rather than guessing, because a wrong
 	// guess bills an employee's own spend to the company.

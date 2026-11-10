@@ -1,4 +1,4 @@
--- 625 (down): drop the credential dimension.
+-- 642 (down): drop the credential dimension.
 --
 -- The usage rows stay exactly where they are — only the "who paid" answer
 -- disappears, and every report falls back to its "unknown" line. Rolling this

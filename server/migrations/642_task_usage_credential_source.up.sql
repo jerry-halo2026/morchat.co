@@ -1,4 +1,4 @@
--- 625: which credential paid for a run — the company gateway key or the
+-- 642: which credential paid for a run — the company gateway key or the
 -- employee's own key.
 --
 -- Two sources are possible, and they are not interchangeable to the ledger:

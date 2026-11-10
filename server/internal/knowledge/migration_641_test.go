@@ -11,25 +11,25 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-// Migration 624 round trip. Everything runs inside one transaction that is rolled
+// Migration 641 round trip. Everything runs inside one transaction that is rolled
 // back, so the shared dev database ends each test exactly as it started.
 
 const (
-	migration624Up   = "../../migrations/624_knowledge_import.up.sql"
-	migration624Down = "../../migrations/624_knowledge_import.down.sql"
+	migration641Up   = "../../migrations/641_knowledge_import.up.sql"
+	migration641Down = "../../migrations/641_knowledge_import.down.sql"
 )
 
 // rollBackAfter620 removes what the migrations newer than 620 added, newest
 // first, so 620's own down file can run.
 //
 // This is the migration runner's order, not a test-only arrangement: 620's down
-// drops knowledge_spaces, and 624's knowledge_import_tasks has a foreign key onto
-// it, so a database at head must roll 624 back before 620. The 620 tests apply
+// drops knowledge_spaces, and 641's knowledge_import_tasks has a foreign key onto
+// it, so a database at head must roll 641 back before 620. The 620 tests apply
 // their down file in isolation, which is exactly the case that needs the newer
 // files undone first.
 func rollBackAfter620(t *testing.T, tx pgx.Tx) {
 	t.Helper()
-	execMigrationFile(t, tx, migration624Down)
+	execMigrationFile(t, tx, migration641Down)
 }
 
 // migrationProbe is the read surface the schema assertions need. They run inside
@@ -64,15 +64,15 @@ func tableExists(t *testing.T, probe migrationProbe, table string) bool {
 	return exists
 }
 
-// TestMigration624RoundTrips checks both directions: the down file removes the
+// TestMigration641RoundTrips checks both directions: the down file removes the
 // table and the two chunk columns, and the up file puts them back.
-func TestMigration624RoundTrips(t *testing.T) {
+func TestMigration641RoundTrips(t *testing.T) {
 	requireDB(t)
 	tx := beginTx(t)
 
-	// Up is idempotent: on a database that already ran 624 every statement is a
+	// Up is idempotent: on a database that already ran 641 every statement is a
 	// no-op, which is what lets the migration be replayed after a partial run.
-	execMigrationFile(t, tx, migration624Up)
+	execMigrationFile(t, tx, migration641Up)
 	if !tableExists(t, tx, "knowledge_import_tasks") {
 		t.Fatal("knowledge_import_tasks missing after up")
 	}
@@ -81,7 +81,7 @@ func TestMigration624RoundTrips(t *testing.T) {
 			t.Fatalf("knowledge_chunks.%s missing after up", column)
 		}
 	}
-	// acl_tags predates 624 (620 creates it); 624 only guarantees it exists.
+	// acl_tags predates 641 (620 creates it); 641 only guarantees it exists.
 	if !columnExists(t, tx, "knowledge_chunks", "acl_tags") {
 		t.Fatal("knowledge_chunks.acl_tags missing after up")
 	}
@@ -99,7 +99,7 @@ func TestMigration624RoundTrips(t *testing.T) {
 		}
 	}
 
-	execMigrationFile(t, tx, migration624Down)
+	execMigrationFile(t, tx, migration641Down)
 	if tableExists(t, tx, "knowledge_import_tasks") {
 		t.Fatal("knowledge_import_tasks survived down")
 	}
@@ -108,12 +108,12 @@ func TestMigration624RoundTrips(t *testing.T) {
 			t.Fatalf("knowledge_chunks.%s survived down", column)
 		}
 	}
-	// The down file must not drop 620's column: acl_tags is not 624's to remove.
+	// The down file must not drop 620's column: acl_tags is not 641's to remove.
 	if !columnExists(t, tx, "knowledge_chunks", "acl_tags") {
 		t.Fatal("down removed acl_tags, which 620 owns")
 	}
 
-	execMigrationFile(t, tx, migration624Up)
+	execMigrationFile(t, tx, migration641Up)
 	if !tableExists(t, tx, "knowledge_import_tasks") {
 		t.Fatal("knowledge_import_tasks missing after re-up")
 	}
@@ -122,12 +122,12 @@ func TestMigration624RoundTrips(t *testing.T) {
 	}
 }
 
-// TestMigration624StatusCheckIsClosed pins the DDL half of the import state
+// TestMigration641StatusCheckIsClosed pins the DDL half of the import state
 // machine: an unknown status cannot be stored.
-func TestMigration624StatusCheckIsClosed(t *testing.T) {
+func TestMigration641StatusCheckIsClosed(t *testing.T) {
 	requireDB(t)
 	tx := beginTx(t)
-	execMigrationFile(t, tx, migration624Up)
+	execMigrationFile(t, tx, migration641Up)
 
 	var def string
 	if err := tx.QueryRow(context.Background(), `
@@ -158,10 +158,10 @@ func TestMigration624StatusCheckIsClosed(t *testing.T) {
 	}
 }
 
-// TestMigration624TaskFieldsAreStoredAndReadable exercises the row the pipeline
+// TestMigration641TaskFieldsAreStoredAndReadable exercises the row the pipeline
 // writes: the jsonb chunk_config survives a round trip and finished_at is set
 // only once the task ends.
-func TestMigration624TaskFieldsAreStoredAndReadable(t *testing.T) {
+func TestMigration641TaskFieldsAreStoredAndReadable(t *testing.T) {
 	requireDB(t)
 	cleanupItems(t)
 	cleanupImportTasks(t)

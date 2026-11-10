@@ -4,3 +4,4 @@ docker/entrypoint.sh text eol=lf
 
 # Default behavior
 * text=auto
+packages/ui/lib/agent-bot/engine/* text eol=lf
