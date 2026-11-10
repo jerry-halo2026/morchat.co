@@ -1,3 +1,11 @@
+---
+purpose: "Operator-driven maintenance jobs"
+owner: platform
+status: current
+updated: 2026-11-06
+related:
+  - docs/issue-status-lifecycle-rollout.md
+---
 # Operator-driven maintenance jobs
 
 Maintenance runs through a separate HTTP listener in the API container. There

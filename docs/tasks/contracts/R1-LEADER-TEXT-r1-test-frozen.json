@@ -1,0 +1,1102 @@
+{
+  "schemaVersion": 1,
+  "taskId": "R1-03A-LEADER-TEXT-TESTS-FIRST",
+  "revision": "r1",
+  "status": "TEST-FROZEN",
+  "kind": "LOCAL_TEST_SOURCE_ONLY_NOT_89PATH_IMPLEMENTATION",
+  "authority": "R1-AUTH-r1",
+  "sourceRoot": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "branch": "codex/round1-continuous",
+  "owner": "/root/leader_test_impl gpt-6.1-sol high",
+  "B06producer": "/root/leader_vertical_owner gpt-6-astra high",
+  "B01producer": "/root/leader_auth_owner gpt-6-astra high",
+  "B02consumer": "/root/leader_ui_consumer gpt-6.1-sol medium",
+  "consumer": "/root model unknown",
+  "independentReviewer": "/root/leader_joint_review gpt-6-astra high",
+  "ownerAck": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-tests-r1-owner-ack.json",
+    "sha256": "09b071d503a62c827492400b5f8871cd63943323b4a24bf313937fe3114e6611"
+  },
+  "testPlan": {
+    "path": "docs/superpowers/plans/2026-11-07-leader-text-tests-first.md",
+    "sha256": "8afdec86ed0b35ec058918402252ea77752c820311b21fa796c47b49f87fa43a"
+  },
+  "jointReview": {
+    "decision": "APPROVE_FOR_LOCAL_TEST_FREEZE_ONLY_THREE_NEW_INTEGRATION_FILES",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-joint-r1-independent-review.md",
+    "sha256": "a67b01b64e5f981084fce89438cb147577c0f0e1611bbfeb35542cebe78a2685"
+  },
+  "jointDesignInputs": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-vertical-r1-owner-ack.json",
+      "sha256": "2b72db40db5d3ed941eaf9bd23c0aa437d6884721348f54547a7b046d4aa1f11"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-auth-r1-owner-ack.json",
+      "sha256": "9bfc63e3a19c1dc6d08a47d364218f48947e5a2c6675894d3bfc46b99828af11"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-vertical-r1-native-seams-addendum.json",
+      "sha256": "f1464c97a41f52d1afa8bcae2b93ce926369075c70198651ff4c5b1f26e3c1d4"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-auth-r1-native-seams-consumption-review.json",
+      "sha256": "e9a253f4dd84e46c6db58d6c141d8d2edba5d5be595a7136c882ce6bdef6ef09"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-vertical-r1-c1-producer-ack.json",
+      "sha256": "0bef9b87c275e768597b7d68b8a53b4cfce0c22e99ed499d9e78ee517d4a89b0"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-ui-r1-b06-consumption-rereview.json",
+      "sha256": "b251ef8eacef804b92edb4044117038a7eab43cd166b2b399fae2d8cad1610fa"
+    }
+  ],
+  "consumerAck": "FullrealAPI vertical A initiator/B deviceowner distinction; builder newSquadownerA→differentLeaderTask→2workers→nativefinal/summary; nativeAuth/Tx/receipts/current revoke/device/source/claimGeneration/deferred/C1 retainedcontrolledIssue; no DB businessresult injection or fullUI/runtime claim",
+  "writeSet": [
+    "server/cmd/server/r1_leader_auth_tx_integration_test.go",
+    "server/cmd/server/r1_leader_vertical_integration_test.go",
+    "server/cmd/server/r1_member_revocation_epoch_integration_test.go"
+  ],
+  "sourceBefore": "ALL_THREE_ABSENT_CREATE_NEW_ONLY",
+  "productionCandidate89": "NOT_AUTHORIZED",
+  "protectedPins": [
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\AGENTS.md",
+      "sha256": "4deab820790265f1d4c12f71ab44ba29efc76d35ef14019b5c2e22e7c23be4d1",
+      "bytes": 4526
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\README.md",
+      "sha256": "8cbb9cd657da26f7b8d67b5aa28788a8e30b655b32cdbc37852960c5cce36834",
+      "bytes": 1738
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\README.md",
+      "sha256": "8401c5bb6d89cbd89c22267927c0e530a276386c1d41bb286a8ce1ac6aea4090",
+      "bytes": 14940
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\PRD.md",
+      "sha256": "9eb99e8a3c329db8cded0192be766ab11e33dccc55d57cfcd87af629fa8c370e",
+      "bytes": 31875
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\ARCHITECTURE.md",
+      "sha256": "c45e86dc9d1e29bf337cf45104f56fbdc1160f3c06b71b29dc340d6e271fa5a6",
+      "bytes": 29815
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\DISCOVERY-BASELINE.md",
+      "sha256": "feb4e2f20277c7ec3684c7ef56c2d4b07fd64c9ff4c82e98c32f5316f60c7bec",
+      "bytes": 49970
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\ENGINEERING-BASELINE.md",
+      "sha256": "cfbfecac3dd51633e1286954a30706a8783d37c6187f20d50966884e084387c2",
+      "bytes": 70093
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\DEVELOPMENT-HANDOFF.md",
+      "sha256": "8e074f2480e08bce898971e2e7ede73e53eac001b54acd73bfba930055b0128c",
+      "bytes": 5435
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\ROUND1-DELIVERY.md",
+      "sha256": "6c821e933281d611c9d093cf08453546bc436464bfdb65e48725538b39581cb9",
+      "bytes": 6803
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\tasks\\ACTIVE.md",
+      "sha256": "b5a32ba88c61ad42b3f1e7300f9e2f3ec3d474f7184f4284e7d87be3399b0521",
+      "bytes": 125468
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\tasks\\R1-03-reliability.md",
+      "sha256": "2b62d6b9cc6d5ac295e758d826612be7cb24e335cff2ceffb5f7eb2327ce556a",
+      "bytes": 2832
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\integration_test.go",
+      "sha256": "2739256fe6bf679deeae39f40bf9e77b2996fbff177abe0ddba482a101eff796",
+      "bytes": 52464
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\router.go",
+      "sha256": "f6d56506348e7a1faf59ec8283c82727b4ca8a37a3db29e021c6e0724e01c5a8",
+      "bytes": 133765
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_acl_issue_read_integration_test.go",
+      "sha256": "0364499d70ad20a5e6d2a64de8759c1d8aa9425df0448cce0a02fe80a11c49da",
+      "bytes": 23662
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_acl_nm02_integration_test.go",
+      "sha256": "3d78123dacfc8d0f499525151fec7845ea4479c06814f3cec42fca1d702cf24e",
+      "bytes": 32607
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_acl_cli_token_origin_integration_test.go",
+      "sha256": "8e350f1475d265a8b1b4d19c76c437ebb9fe7f8a9ba19902e10b7f13f32882f1",
+      "bytes": 22892
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\handler.go",
+      "sha256": "fbe785bcda4d6508d220dc2abe097fc43b814441bbcb2b8a24009716862c10ef",
+      "bytes": 55025
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\issue.go",
+      "sha256": "566790b3071caab6371177741cef9b5054b67a870b51ed7acd8ffdb628708afd",
+      "bytes": 191046
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\issue_access.go",
+      "sha256": "c65db4e07d66a7e47dd4d9492c5608af2ccbda6a3553b30c95b8d9e353cb52a8",
+      "bytes": 7229
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\issue_access_test.go",
+      "sha256": "c9af45e4093d6c0e062c67725cd62a5e8fec43ec6650a7dc9c4f0969c607bd56",
+      "bytes": 26660
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\daemon.go",
+      "sha256": "098e217f6c6d2e1b7fb40f40e8035068acd84f00e5f84b9ebb796aecf4720a3b",
+      "bytes": 298826
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\squad.go",
+      "sha256": "dd2f4ea0c237a23ac116c0e81a53c744812f926641772195c8decc7ae2f7ec02",
+      "bytes": 44855
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\comment.go",
+      "sha256": "3375a3d9a764cf2e1a8a08ca5eddac963c633b7562152253eb5443f2e57cb17f",
+      "bytes": 174332
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\workspace_revoke.go",
+      "sha256": "ebf175c7880dc7de6a874a17bd14a2e453f6a8cc28aecf61b7a7f42f8885ff63",
+      "bytes": 14589
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\middleware\\auth.go",
+      "sha256": "f52329508d6de885706e161627b73ec3514f6783d6b0e44a85626403558fd8e5",
+      "bytes": 14095
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\middleware\\daemon_auth.go",
+      "sha256": "28aab4ab982c1a549a662ab9fd8d49a505646c7dadc37712ba5e8fbfad164a16",
+      "bytes": 14734
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\middleware\\verified_identity.go",
+      "sha256": "aa384557c44433f78521559c4c3236569fda824b749fe0c86d4d3908d0bec933",
+      "bytes": 1551
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\service\\task.go",
+      "sha256": "db379477fd4ce0c9b292a369d36bdd3c7b79cb07010fb457a6f47236317f5b98",
+      "bytes": 374990
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\service\\resource_access.go",
+      "sha256": "e32bb3dea3c3d756f450cd291dca911a2e34a3e2c21e9e700ef51ebcbf35a083",
+      "bytes": 16949
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\service\\issue_wakeup_join.go",
+      "sha256": "0e3407d1b2048e243c672f4fe095a45088f5eb491bb2ed9637f8ea14b0276a22",
+      "bytes": 16425
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\db\\generated\\models.go",
+      "sha256": "0c3adba67ab5dc5e0217456655dde42651090e25680a6421d154f8f18230de05",
+      "bytes": 95073
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\migrations\\617_r1_acl_nm02.up.sql",
+      "sha256": "bdc35fbc570db151ce58280263513185332d4e5b4d924eb8ef0e38ba7b07350e",
+      "bytes": 6235
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\migrations\\617_r1_acl_nm02.down.sql",
+      "sha256": "6b2e560615279b97f0e804e66ed740f31fc803d4f30bb9e7fcaa0c9745bec338",
+      "bytes": 420
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\migrations\\251_agent_runtime_unbind.up.sql",
+      "sha256": "633a1306c609c80b5c0fec8d70a9cfd65a9a43a722eacf4c0255dcc0c8024eb0",
+      "bytes": 3760
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\migrations\\284_task_owner_row_fence.up.sql",
+      "sha256": "d84ea77232e6c71b50db4ee9a86267b6b1953305963216e12762d95b04a6286a",
+      "bytes": 6553
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\migrations\\452_agent_task_pending_thread_unique.up.sql",
+      "sha256": "d096189604fc055e47ae9c26728b002e56a5a36ab4389096a10d10f7ce670307",
+      "bytes": 389
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\go.mod",
+      "sha256": "616f1d455fc5f9ac436c9aea8773e5a5c491271f321ad9663cc675063205230e",
+      "bytes": 3429
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\go.sum",
+      "sha256": "5e6088b07fa11ab4ebe3f5896fb5dd6cc369bc8800d5462485d85f0f97abd786",
+      "bytes": 18550
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\sqlc.yaml",
+      "sha256": "4eda341cdbf85e504ad5561c5c7e9414725f583e76fff049db5cb1c15f5a19fc",
+      "bytes": 403
+    }
+  ],
+  "protectedMetadataDrifts": [],
+  "plannedParents": [
+    "TestLeaderDelegationNativeTextVertical",
+    "TestR1LeaderAuthorizationTransactions",
+    "TestR1MemberRevocationEpoch"
+  ],
+  "plannedLeafCount": 79,
+  "plannedInventory": [
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "WholeNativeVertical",
+      "full_name": "TestLeaderDelegationNativeTextVertical/WholeNativeVertical",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^WholeNativeVertical$",
+      "assertion": "A授权→真实claim/start builder→新Squad creatorA→不同task Leader→两worker同时running→两个API final→原summary task唯一Comment→receipt及原文回读。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "ExplicitDelegationRequired",
+      "full_name": "TestLeaderDelegationNativeTextVertical/ExplicitDelegationRequired",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^ExplicitDelegationRequired$",
+      "assertion": "普通真人/Agent讨论及模型输出@不派工；只有显式真实NativeV1 create产生root。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "TaskTokenMustNotBorrowDeviceOwner",
+      "full_name": "TestLeaderDelegationNativeTextVertical/TaskTokenMustNotBorrowDeviceOwner",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^TaskTokenMustNotBorrowDeviceOwner$",
+      "assertion": "B真人旧Squad管理正控成功，A真人拒绝，A-originator真实任务由B设备claim的mat仍拒改B旧队，完整roster/queue零变化。",
+      "expected_current_failure_class": "POTENTIAL_MEANINGFUL_BUSINESS_RED_ONLY_AFTER_EXISTING_NATIVE_CONTROLS_SUCCEED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "BuilderCreatesOnlyOwnedBoundSquad",
+      "full_name": "TestLeaderDelegationNativeTextVertical/BuilderCreatesOnlyOwnedBoundSquad",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^BuilderCreatesOnlyOwnedBoundSquad$",
+      "assertion": "仅本root新队，Creator=A、中性name、Leader/W1/W2固定；重放同ID不借admin/owner。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "BuilderRejectsManagementBypasses",
+      "full_name": "TestLeaderDelegationNativeTextVertical/BuilderRejectsManagementBypasses",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^BuilderRejectsManagementBypasses$",
+      "assertion": "第三/重复worker、Leader当worker、跨区、旧他人Squad、换Leader/role、建永久Bot等均拒零delta。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "BuilderHandoffIsDifferentNativeTask",
+      "full_name": "TestLeaderDelegationNativeTextVertical/BuilderHandoffIsDifferentNativeTask",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^BuilderHandoffIsDifferentNativeTask$",
+      "assertion": "builder不能dispatch；handoff terminal、新Leader task/Comment/receipt原子，newtask不同ID，originator=A。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "DispatchPrebuildsExactlyFiveRoles",
+      "full_name": "TestLeaderDelegationNativeTextVertical/DispatchPrebuildsExactlyFiveRoles",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^DispatchPrebuildsExactlyFiveRoles$",
+      "assertion": "dispatch原子建W1/W2及唯一summary deferred；合计五native roles；summary task存在不代表完成。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "WorkersActuallyRunConcurrently",
+      "full_name": "TestLeaderDelegationNativeTextVertical/WorkersActuallyRunConcurrently",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^WorkersActuallyRunConcurrently$",
+      "assertion": "两个不同Agent/task在任一final前真实同时running；锁不跨执行期。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "OrdinaryDiscussionDoesNotWake",
+      "full_name": "TestLeaderDelegationNativeTextVertical/OrdinaryDiscussionDoesNotWake",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^OrdinaryDiscussionDoesNotWake$",
+      "assertion": "受控Issue普通真人和Agent评论成功，但本root queue/generic wake receipt零新增。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "ProgressDoesNotCountAsFinal",
+      "full_name": "TestLeaderDelegationNativeTextVertical/ProgressDoesNotCountAsFinal",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^ProgressDoesNotCountAsFinal$",
+      "assertion": "真实progress不计final也不吞后续final；普通Comment无法伪装正式final。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "FinalReplaySameBytesOriginalID",
+      "full_name": "TestLeaderDelegationNativeTextVertical/FinalReplaySameBytesOriginalID",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^FinalReplaySameBytesOriginalID$",
+      "assertion": "原raw bytes及已提交claim tuple经canonical daemon重放返原ID；mat已删；Comment/task/receipt/input/usage无重复。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "FinalReplayDifferentBytesOrNonceConflict",
+      "full_name": "TestLeaderDelegationNativeTextVertical/FinalReplayDifferentBytesOrNonceConflict",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^FinalReplayDifferentBytesOrNonceConflict$",
+      "assertion": "空白/body变化或nonce扩固定槽409，native全量zero-delta。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "SummaryUsesExactlyTwoDeliveredWorkerFinals",
+      "full_name": "TestLeaderDelegationNativeTextVertical/SummaryUsesExactlyTwoDeliveredWorkerFinals",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^SummaryUsesExactlyTwoDeliveredWorkerFinals$",
+      "assertion": "只接受当前同root、不同W1/W2的正式delivered finals；拒progress/错task/root/未消费/篡输入/一人两文。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "FormalResultCannotEditOrDelete",
+      "full_name": "TestLeaderDelegationNativeTextVertical/FormalResultCannotEditOrDelete",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^FormalResultCannotEditOrDelete$",
+      "assertion": "原生update/delete正式final/summary409，历史bytes不变；普通评论修改正控。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "LastFinalWhileLeaderRunning",
+      "full_name": "TestLeaderDelegationNativeTextVertical/LastFinalWhileLeaderRunning",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^LastFinalWhileLeaderRunning$",
+      "assertion": "最后final在handoff仍running时落原summary inputs，不提前领；leader_wait后正常领取。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "LastFinalAtLeaderTerminal",
+      "full_name": "TestLeaderDelegationNativeTextVertical/LastFinalAtLeaderTerminal",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^LastFinalAtLeaderTerminal$",
+      "assertion": "真实barrier固定final和handoff terminal竞争双序，不丢/重建summary义务。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "LastFinalAfterLeaderTerminal",
+      "full_name": "TestLeaderDelegationNativeTextVertical/LastFinalAfterLeaderTerminal",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^LastFinalAfterLeaderTerminal$",
+      "assertion": "handoff先terminal后最后final仍推动原summary task，不需人工@/补DB。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "RestartPreservesSummaryObligation",
+      "full_name": "TestLeaderDelegationNativeTextVertical/RestartPreservesSummaryObligation",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^RestartPreservesSummaryObligation$",
+      "assertion": "同owned池重建真实router/service后poll恢复同summary ID及两持久输入。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "NoEligibleDeviceDefersAndRecoversSameTask",
+      "full_name": "TestLeaderDelegationNativeTextVertical/NoEligibleDeviceDefersAndRecoversSameTask",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^NoEligibleDeviceDefersAndRecoversSameTask$",
+      "assertion": "create201持久同root/task deferred代次0无token/payload；实际Agent绑定API+poll/重启恢复同ID。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "WorkerFailureOrCancellationNeverSummarizes",
+      "full_name": "TestLeaderDelegationNativeTextVertical/WorkerFailureOrCancellationNeverSummarizes",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^WorkerFailureOrCancellationNeverSummarizes$",
+      "assertion": "真实fail/cancel任worker原子阻断summary，真实失败/等待原因，不补造成功。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "CancelOneRootLeavesOtherRunning",
+      "full_name": "TestLeaderDelegationNativeTextVertical/CancelOneRootLeavesOtherRunning",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^CancelOneRootLeavesOtherRunning$",
+      "assertion": "revoke仅取消自身root/tokens，独立R2继续并完整成功。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_vertical_integration_test.go",
+      "parent": "TestLeaderDelegationNativeTextVertical",
+      "subtest": "TwoRootsMakeIndependentProgress",
+      "full_name": "TestLeaderDelegationNativeTextVertical/TwoRootsMakeIndependentProgress",
+      "go_run_selector": "^TestLeaderDelegationNativeTextVertical$/^TwoRootsMakeIndependentProgress$",
+      "assertion": "R1局部事务持锁时无冲突R2可claim/start/final，busy有限重试可用，不全局mutex/永久409。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "NativeSessionOnlyExplicitCreate",
+      "full_name": "TestR1LeaderAuthorizationTransactions/NativeSessionOnlyExplicitCreate",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^NativeSessionOnlyExplicitCreate$",
+      "assertion": "A普通NativeV1正控；PAT/task/cloud/legacy JWT及伪headers不能create/revoke。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "StrictCreateBodyAndBounds",
+      "full_name": "TestR1LeaderAuthorizationTransactions/StrictCreateBodyAndBounds",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^StrictCreateBodyAndBounds$",
+      "assertion": "未知actor/delegator400；UTF8 instruction1..8192/request<=32768；NUL在sanitize前拒；严格roster。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "CreateReplaySameBytes",
+      "full_name": "TestR1LeaderAuthorizationTransactions/CreateReplaySameBytes",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^CreateReplaySameBytes$",
+      "assertion": "同command原bytes同root/Comment ID，current权重验，无重复effects。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "CreateReplayDifferentBytes",
+      "full_name": "TestR1LeaderAuthorizationTransactions/CreateReplayDifferentBytes",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^CreateReplayDifferentBytes$",
+      "assertion": "同key改bytes409；新nonce不能覆写固定binding；zero-delta。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "EachPermissionConjunctRequired/IssueRead",
+      "full_name": "TestR1LeaderAuthorizationTransactions/EachPermissionConjunctRequired/IssueRead",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^EachPermissionConjunctRequired$/^IssueRead$",
+      "assertion": "真实access-revocations只撤A read，执行拒；相邻独立Issue正常。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "EachPermissionConjunctRequired/Collaborate",
+      "full_name": "TestR1LeaderAuthorizationTransactions/EachPermissionConjunctRequired/Collaborate",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^EachPermissionConjunctRequired$/^Collaborate$",
+      "assertion": "真实permission revoke只撤collaborate，read不当write；正常相邻正控。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "EachPermissionConjunctRequired/Invoke",
+      "full_name": "TestR1LeaderAuthorizationTransactions/EachPermissionConjunctRequired/Invoke",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^EachPermissionConjunctRequired$/^Invoke$",
+      "assertion": "实际Agent targets update移除A，不借B admin；其他获权actor正常。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "EachPermissionConjunctRequired/AgentExecute",
+      "full_name": "TestR1LeaderAuthorizationTransactions/EachPermissionConjunctRequired/AgentExecute",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^EachPermissionConjunctRequired$/^AgentExecute$",
+      "assertion": "真实API撤Agent execute，affected root actions拒无正文，非fixture SQL改权。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "EachPermissionConjunctRequired/RuntimeExecute",
+      "full_name": "TestR1LeaderAuthorizationTransactions/EachPermissionConjunctRequired/RuntimeExecute",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^EachPermissionConjunctRequired$/^RuntimeExecute$",
+      "assertion": "真实API撤runtime execute，B read/共享同意不代资料资格。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "EachPermissionConjunctRequired/DeviceOwnerRead",
+      "full_name": "TestR1LeaderAuthorizationTransactions/EachPermissionConjunctRequired/DeviceOwnerRead",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^EachPermissionConjunctRequired$/^DeviceOwnerRead$",
+      "assertion": "真实撤B read，A仍可历史read但设备不可claim/input/final。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "RootAndClaimBindingCannotBeForged",
+      "full_name": "TestR1LeaderAuthorizationTransactions/RootAndClaimBindingCannotBeForged",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^RootAndClaimBindingCannotBeForged$",
+      "assertion": "错root/task/originator/runtime/daemon/workspace、Context复制、无/错generation均拒零delta。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "WorkerCannotCompleteOtherTask",
+      "full_name": "TestR1LeaderAuthorizationTransactions/WorkerCannotCompleteOtherTask",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^WorkerCannotCompleteOtherTask$",
+      "assertion": "W1不能W2 final/summary；合法W1 final正控。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "LeaseReclaimIncrementsGeneration",
+      "full_name": "TestR1LeaderAuthorizationTransactions/LeaseReclaimIncrementsGeneration",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^LeaseReclaimIncrementsGeneration$",
+      "assertion": "实际lease/recovery后reclaim+1原子替token；旧mat/tuple401或409，新代可start。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "RunningTaskCannotBeReclaimed",
+      "full_name": "TestR1LeaderAuthorizationTransactions/RunningTaskCannotBeReclaimed",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^RunningTaskCannotBeReclaimed$",
+      "assertion": "running不换代/设备；合法同代final不依赖仍有prepare lease。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "BoundUnsupportedInputRoutesFailClosed",
+      "full_name": "TestR1LeaderAuthorizationTransactions/BoundUnsupportedInputRoutesFailClosed",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^BoundUnsupportedInputRoutesFailClosed$",
+      "assertion": "messages/skill/plugin/MCP/supplement/未适配WS在正文前拒；start caps不启；unbound正控。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "CurrentDaemonReplayAfterMatDeletion",
+      "full_name": "TestR1LeaderAuthorizationTransactions/CurrentDaemonReplayAfterMatDeletion",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^CurrentDaemonReplayAfterMatDeletion$",
+      "assertion": "terminal mat真实删除后当前canonical daemon原tuple/bytes回原ID，不要求running。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "ExpiredOrRevokedDaemonReplayDenies",
+      "full_name": "TestR1LeaderAuthorizationTransactions/ExpiredOrRevokedDaemonReplayDenies",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^ExpiredOrRevokedDaemonReplayDenies$",
+      "assertion": "root/业务/凭据撤或过期后execution replay拒且无ID/正文泄漏；真人合法历史另正控。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "IssuerCanRevokeAfterLosingRead",
+      "full_name": "TestR1LeaderAuthorizationTransactions/IssuerCanRevokeAfterLosingRead",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^IssuerCanRevokeAfterLosingRead$",
+      "assertion": "NativeV1 issuer失read/member仍只能撤自己root，有限204/receipt，无正文/他人撤销。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "ReceiptCurrentReadNoStore",
+      "full_name": "TestR1LeaderAuthorizationTransactions/ReceiptCurrentReadNoStore",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^ReceiptCurrentReadNoStore$",
+      "assertion": "当前NativeV1严格GET/no-store、null及decimal revision；历史read不需root eligible，能力提示不当write。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "ReceiptRejectsForgedProvenance",
+      "full_name": "TestR1LeaderAuthorizationTransactions/ReceiptRejectsForgedProvenance",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^ReceiptRejectsForgedProvenance$",
+      "assertion": "复制Markdown/source_task_id文本无正式身份；crossIssue/root/Agent/task/Comment关联损坏拒无partial。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "ReceiptOverflow101Returns409",
+      "full_name": "TestR1LeaderAuthorizationTransactions/ReceiptOverflow101Returns409",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^ReceiptOverflow101Returns409$",
+      "assertion": "101真实API roots或另审metadata fixture，探101超限409无partial，不SQL造完成结果。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "PermissionModeAndTargetsAtomic",
+      "full_name": "TestR1LeaderAuthorizationTransactions/PermissionModeAndTargetsAtomic",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^PermissionModeAndTargetsAtomic$",
+      "assertion": "实际native Agent mode+targets同Tx；真实fault全rollback；reader不见临时空表/新旧混合。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "SourceAndAssociationMutationClosed",
+      "full_name": "TestR1LeaderAuthorizationTransactions/SourceAndAssociationMutationClosed",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^SourceAndAssociationMutationClosed$",
+      "assertion": "真实attach/source/preview/clone/subissue/project/duplicate竞争拒于正文读取/复制前，关联零泄漏。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "FirstControlRejectsOldRootlessTask",
+      "full_name": "TestR1LeaderAuthorizationTransactions/FirstControlRejectsOldRootlessTask",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^FirstControlRejectsOldRootlessTask$",
+      "assertion": "真实旧native在途任务阻首root409；旧工作不改，合法完成后fresh root成功。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "FirstControlRejectsPendingWakeupReceipt",
+      "full_name": "TestR1LeaderAuthorizationTransactions/FirstControlRejectsPendingWakeupReceipt",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^FirstControlRejectsPendingWakeupReceipt$",
+      "assertion": "真实未处理旧receipt阻首root409；禁止SQL删或假消费清场。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "FirstControlRace/OldWriterWins",
+      "full_name": "TestR1LeaderAuthorizationTransactions/FirstControlRace/OldWriterWins",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^FirstControlRace$/^OldWriterWins$",
+      "assertion": "同Issue父锁旧task/receipt先commit则create409零副作用，不接管旧工作。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "FirstControlRace/DelegationWins",
+      "full_name": "TestR1LeaderAuthorizationTransactions/FirstControlRace/DelegationWins",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^FirstControlRace$/^DelegationWins$",
+      "assertion": "首create先commit，旧generic writer拒且不能假processed receipt；另合法root正常。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "ControlledHistory/Revoked",
+      "full_name": "TestR1LeaderAuthorizationTransactions/ControlledHistory/Revoked",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^ControlledHistory$/^Revoked$",
+      "assertion": "最后root撤后generic rootless enqueue/retry/reclaim/promotion/wakeup/旧Context仍拒；普通讨论成功零派工。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "ControlledHistory/Expired",
+      "full_name": "TestR1LeaderAuthorizationTransactions/ControlledHistory/Expired",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^ControlledHistory$/^Expired$",
+      "assertion": "最后root过期后仍永久ControlledIssue，无rootless输出/自动义务。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "ControlledHistory/AllTerminal",
+      "full_name": "TestR1LeaderAuthorizationTransactions/ControlledHistory/AllTerminal",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^ControlledHistory$/^AllTerminal$",
+      "assertion": "全部五roles终态不恢复generic旧路径，不抹历史。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "FreshRootAfterHistory/Revoked",
+      "full_name": "TestR1LeaderAuthorizationTransactions/FreshRootAfterHistory/Revoked",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^FreshRootAfterHistory$/^Revoked$",
+      "assertion": "既有root撤后当前有权A fresh command完整五角色全链成功，不alwaysDeny。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "FreshRootAfterHistory/Expired",
+      "full_name": "TestR1LeaderAuthorizationTransactions/FreshRootAfterHistory/Expired",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^FreshRootAfterHistory$/^Expired$",
+      "assertion": "旧root过期后fresh合法root完整全链成功。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "FreshRootAfterHistory/AllTerminal",
+      "full_name": "TestR1LeaderAuthorizationTransactions/FreshRootAfterHistory/AllTerminal",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^FreshRootAfterHistory$/^AllTerminal$",
+      "assertion": "旧root全terminal后fresh合法root完整全链成功，case最多2root。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "RevokeBarrier/RevokeWins",
+      "full_name": "TestR1LeaderAuthorizationTransactions/RevokeBarrier/RevokeWins",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^RevokeBarrier$/^RevokeWins$",
+      "assertion": "真实Tx barrier撤权先commit，action拒、无input buffer或native副作用发布。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "RevokeBarrier/ActionWins",
+      "full_name": "TestR1LeaderAuthorizationTransactions/RevokeBarrier/ActionWins",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^RevokeBarrier$/^ActionWins$",
+      "assertion": "action真实先commit后revoke，后续action拒，不声称召回已合法网络字节。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "TransactionFault/Create",
+      "full_name": "TestR1LeaderAuthorizationTransactions/TransactionFault/Create",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^TransactionFault$/^Create$",
+      "assertion": "真实DB插入/commit故障，root/task/Comment/slot全无，不发布buffer。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "TransactionFault/Squad",
+      "full_name": "TestR1LeaderAuthorizationTransactions/TransactionFault/Squad",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^TransactionFault$/^Squad$",
+      "assertion": "Squad/自动Leader member/binding中故障全rollback，无半队。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "TransactionFault/Handoff",
+      "full_name": "TestR1LeaderAuthorizationTransactions/TransactionFault/Handoff",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^TransactionFault$/^Handoff$",
+      "assertion": "builder terminal后enqueue失败，全rollback builder及后继。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "TransactionFault/Dispatch",
+      "full_name": "TestR1LeaderAuthorizationTransactions/TransactionFault/Dispatch",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^TransactionFault$/^Dispatch$",
+      "assertion": "W1/W2/summary任处故障，dispatch Comment及三任务全rollback，无第六role。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "TransactionFault/FinalAfterCAS",
+      "full_name": "TestR1LeaderAuthorizationTransactions/TransactionFault/FinalAfterCAS",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^TransactionFault$/^FinalAfterCAS$",
+      "assertion": "实际CAS后故障回滚terminal/settlement/Comment/inputs/slot/token。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "TransactionFault/FinalAfterComment",
+      "full_name": "TestR1LeaderAuthorizationTransactions/TransactionFault/FinalAfterComment",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^TransactionFault$/^FinalAfterComment$",
+      "assertion": "实际Comment后故障全rollback，原claim/token仍有效，无泄漏响应。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "TransactionFault/FinalAfterSummaryInput",
+      "full_name": "TestR1LeaderAuthorizationTransactions/TransactionFault/FinalAfterSummaryInput",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^TransactionFault$/^FinalAfterSummaryInput$",
+      "assertion": "input更新后故障回滚本final全Tx，已提交另一worker输入不丢。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "TransactionFault/FinalAtCommit",
+      "full_name": "TestR1LeaderAuthorizationTransactions/TransactionFault/FinalAtCommit",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^TransactionFault$/^FinalAtCommit$",
+      "assertion": "真实deferred commit失败不发布buffer；unknown单列503并同command对账不重建。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "TransactionFault/Summary",
+      "full_name": "TestR1LeaderAuthorizationTransactions/TransactionFault/Summary",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^TransactionFault$/^Summary$",
+      "assertion": "summary terminal/Comment/slot故障原子rollback，worker历史保留，同command安全重试。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "parent": "TestR1LeaderAuthorizationTransactions",
+      "subtest": "TransactionFault/Revoke",
+      "full_name": "TestR1LeaderAuthorizationTransactions/TransactionFault/Revoke",
+      "go_run_selector": "^TestR1LeaderAuthorizationTransactions$/^TransactionFault$/^Revoke$",
+      "assertion": "cancel/settle/token中故障连revoked_at全rollback，不报撤销成功。",
+      "expected_current_failure_class": "CURRENT_NOTBOUND_OR_SCHEMA_ABSENT; FEATURE_ABSENT_AFTER_APPROVED_SETUP; NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_member_revocation_epoch_integration_test.go",
+      "parent": "TestR1MemberRevocationEpoch",
+      "subtest": "MemberRevokeRetains617History",
+      "full_name": "TestR1MemberRevocationEpoch/MemberRevokeRetains617History",
+      "go_run_selector": "^TestR1MemberRevocationEpoch$/^MemberRevokeRetains617History$",
+      "assertion": "真实native remove/leave软撤保原member ID；617行/FK/append-only trigger不变；正常未撤会员正控。",
+      "expected_current_failure_class": "CURRENT_SCHEMA_FEATURE_ABSENT_OR_FIXTURE_BLOCKED_NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_member_revocation_epoch_integration_test.go",
+      "parent": "TestR1MemberRevocationEpoch",
+      "subtest": "RevokeDelegatorA",
+      "full_name": "TestR1MemberRevocationEpoch/RevokeDelegatorA",
+      "go_run_selector": "^TestR1MemberRevocationEpoch$/^RevokeDelegatorA$",
+      "assertion": "真实撤A取消相关所有root/tasks/tokens，不借B权；全站session不等workspace权。",
+      "expected_current_failure_class": "CURRENT_SCHEMA_FEATURE_ABSENT_OR_FIXTURE_BLOCKED_NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_member_revocation_epoch_integration_test.go",
+      "parent": "TestR1MemberRevocationEpoch",
+      "subtest": "RevokeRuntimeOwnerB",
+      "full_name": "TestR1MemberRevocationEpoch/RevokeRuntimeOwnerB",
+      "go_run_selector": "^TestR1MemberRevocationEpoch$/^RevokeRuntimeOwnerB$",
+      "assertion": "真实撤B使资源offline/archive/cancel同Tx；旧PAT/mdt/mat/session无输入执行。",
+      "expected_current_failure_class": "CURRENT_SCHEMA_FEATURE_ABSENT_OR_FIXTURE_BLOCKED_NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_member_revocation_epoch_integration_test.go",
+      "parent": "TestR1MemberRevocationEpoch",
+      "subtest": "RevokeAgentOwner",
+      "full_name": "TestR1MemberRevocationEpoch/RevokeAgentOwner",
+      "go_run_selector": "^TestR1MemberRevocationEpoch$/^RevokeAgentOwner$",
+      "assertion": "真实撤被用Agent owner也取消非其runtime上的相关root；无owner快捷绕过。",
+      "expected_current_failure_class": "CURRENT_SCHEMA_FEATURE_ABSENT_OR_FIXTURE_BLOCKED_NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_member_revocation_epoch_integration_test.go",
+      "parent": "TestR1MemberRevocationEpoch",
+      "subtest": "HotMembershipCacheCannotAllow",
+      "full_name": "TestR1MemberRevocationEpoch/HotMembershipCacheCannotAllow",
+      "go_run_selector": "^TestR1MemberRevocationEpoch$/^HotMembershipCacheCannotAllow$",
+      "assertion": "真实安全callsite先热cache再撤，daemon/file读按DB active会员拒，不赌TTL失效。",
+      "expected_current_failure_class": "CURRENT_SCHEMA_FEATURE_ABSENT_OR_FIXTURE_BLOCKED_NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_member_revocation_epoch_integration_test.go",
+      "parent": "TestR1MemberRevocationEpoch",
+      "subtest": "MdtRequiresCurrentOwner",
+      "full_name": "TestR1MemberRevocationEpoch/MdtRequiresCurrentOwner",
+      "go_run_selector": "^TestR1MemberRevocationEpoch$/^MdtRequiresCurrentOwner$",
+      "assertion": "真实mint的owner/daemon/workspace绑定mdt正控后撤owner，cache/row存在不替current。",
+      "expected_current_failure_class": "CURRENT_SCHEMA_FEATURE_ABSENT_OR_FIXTURE_BLOCKED_NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_member_revocation_epoch_integration_test.go",
+      "parent": "TestR1MemberRevocationEpoch",
+      "subtest": "PatTaskAndSessionNotMembership",
+      "full_name": "TestR1MemberRevocationEpoch/PatTaskAndSessionNotMembership",
+      "go_run_selector": "^TestR1MemberRevocationEpoch$/^PatTaskAndSessionNotMembership$",
+      "assertion": "真实仍有效凭据不能替membership，旧owner/admin不得借权，邻会员正常。",
+      "expected_current_failure_class": "CURRENT_SCHEMA_FEATURE_ABSENT_OR_FIXTURE_BLOCKED_NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_member_revocation_epoch_integration_test.go",
+      "parent": "TestR1MemberRevocationEpoch",
+      "subtest": "ReinviteAndShareCannotReactivate",
+      "full_name": "TestR1MemberRevocationEpoch/ReinviteAndShareCannotReactivate",
+      "go_run_selector": "^TestR1MemberRevocationEpoch$/^ReinviteAndShareCannotReactivate$",
+      "assertion": "真实邀请/join/share历史revoked409零delta，不新row/删历史复活。",
+      "expected_current_failure_class": "CURRENT_SCHEMA_FEATURE_ABSENT_OR_FIXTURE_BLOCKED_NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_member_revocation_epoch_integration_test.go",
+      "parent": "TestR1MemberRevocationEpoch",
+      "subtest": "RoleAndPinCannotReactivate",
+      "full_name": "TestR1MemberRevocationEpoch/RoleAndPinCannotReactivate",
+      "go_run_selector": "^TestR1MemberRevocationEpoch$/^RoleAndPinCannotReactivate$",
+      "assertion": "实际role/pin不清tombstone或恢复current权限，其他workspace正常。",
+      "expected_current_failure_class": "CURRENT_SCHEMA_FEATURE_ABSENT_OR_FIXTURE_BLOCKED_NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_member_revocation_epoch_integration_test.go",
+      "parent": "TestR1MemberRevocationEpoch",
+      "subtest": "CurrentMembershipConsumersExcludeRevoked",
+      "full_name": "TestR1MemberRevocationEpoch/CurrentMembershipConsumersExcludeRevoked",
+      "go_run_selector": "^TestR1MemberRevocationEpoch$/^CurrentMembershipConsumersExcludeRevoked$",
+      "assertion": "11query家族及realtime/member/inbox/unread/subscription/wakeup当前结果排除revoked；不冒未暴露HTTP覆盖。",
+      "expected_current_failure_class": "CURRENT_SCHEMA_FEATURE_ABSENT_OR_FIXTURE_BLOCKED_NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_member_revocation_epoch_integration_test.go",
+      "parent": "TestR1MemberRevocationEpoch",
+      "subtest": "MembershipRevokeFaultRollsBack",
+      "full_name": "TestR1MemberRevocationEpoch/MembershipRevokeFaultRollsBack",
+      "go_run_selector": "^TestR1MemberRevocationEpoch$/^MembershipRevokeFaultRollsBack$",
+      "assertion": "真实DB fault使tombstone/取消/归档/settlement/token全rollback。",
+      "expected_current_failure_class": "CURRENT_SCHEMA_FEATURE_ABSENT_OR_FIXTURE_BLOCKED_NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    },
+    {
+      "file": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_member_revocation_epoch_integration_test.go",
+      "parent": "TestR1MemberRevocationEpoch",
+      "subtest": "OtherWorkspaceNormalControl",
+      "full_name": "TestR1MemberRevocationEpoch/OtherWorkspaceNormalControl",
+      "go_run_selector": "^TestR1MemberRevocationEpoch$/^OtherWorkspaceNormalControl$",
+      "assertion": "同用户另一workspace真实正常session/API仍成功，不全局logout遮问题。",
+      "expected_current_failure_class": "CURRENT_SCHEMA_FEATURE_ABSENT_OR_FIXTURE_BLOCKED_NOT_BUSINESS_RED",
+      "actual_result": "NOT_RUN"
+    }
+  ],
+  "inventoryClass": "PLANNED_LEAVES_NOT_ACTUAL_EVENTCOUNTS; source enumerate structuralgroups+parents beforeRuntimefreeze",
+  "fixture": {
+    "database": "NOT_CREATED",
+    "owned_role": "NOT_CREATED",
+    "schema_epoch": "NOTBOUND",
+    "profile": "NOTBOUND",
+    "fresh_otp": "NOTBOUND",
+    "private_key_location": "NOTBOUND",
+    "actual_secret_values_read": false,
+    "old_fixtures_reused": false,
+    "service35_retainWorkspace_reused": false,
+    "ordinary_A_B": true,
+    "worker_count": 2,
+    "task_roles_per_root": 5,
+    "roots_per_case_max": 2,
+    "instruction_utf8_bytes_max": 8192,
+    "request_bytes_max": 32768,
+    "root_lifetime_max_minutes": 30,
+    "not_after_collaborate_expiry": true,
+    "observation_seconds": 10,
+    "barrier_arrival_seconds": 2,
+    "barrier_after_release_seconds": 2,
+    "thresholds_status": "Proposed preregistration exact values; no post-hoc relaxation"
+  },
+  "testmainPreentryRisk": {
+    "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\integration_test.go",
+    "default_database_fallback": true,
+    "bootstrap_deletes_integration_workspace_before_guards": true,
+    "unreachable_database_can_exit0_without_tests": true,
+    "external_control_required": "Fresh owned database/role/profile bind before process launch plus exact expected test events. New function-level guard cannot protect earlier TestMain writes; no canonical/threeclone helpers."
+  },
+  "sourceWindow": "CLOSED pending exactregistration independentreview+Rootthreefilehandoff",
+  "sourceRestrictions": "Only3new_test.go; sharedhelper inoneof3; useexistingrouter/Auth/pgx/rawJSON; no 4th file/production/oldTestMain/helper/SQL/schema/runtime source",
+  "compileRuntime": "NOTRELEASED; nativeTestMain destructivebootstrap/defaultURL and DBfailureexit0 require external newownedDB/schemaepoch/role/key/profile beforeprocess+exactevents; no canonical/3existingclones/service35/oldkeys/copiedpkg bypass",
+  "failureClasses": "SETUP/SCHEMA_FEATURE_ABSENT/FEATURE_ABSENT/COMPILE distinct from meaningfulAPIbusinessRED. Auth/claim positivecontrols before any realfailure claim; noevents0 neverPASS.",
+  "newSchema": "618/619/deferred/nativeTx/softmember/currentwrite/currentreceipt allNOTIMPLEMENTED and NOTAUTHORIZEDBYTHISWINDOW",
+  "actualTests": "NOTRUN",
+  "B02": "Timeline/readonlyreceipt/WS+cache conditionaldesignACK only; frontend15 controls/clicks notimplemented",
+  "remainingGoal": "FULL ORIGINAL R1-00/01/02/03/modelusage/Windows/device/assets/version/save+resume gates retained",
+  "build": "NOT_BUILD_FROZEN",
+  "goal": "ACTIVE",
+  "registrationInitialAttempt": "RootPSparseError beforedispatch effects; no files written; corrected registration validates ABSENT before creation"
+}

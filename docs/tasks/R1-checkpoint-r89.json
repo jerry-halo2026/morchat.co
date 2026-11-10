@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R89",
+  "agent": "/root",
+  "model": "unknown",
+  "branch": "codex/round1-continuous",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "previousCheckpoint": "R88",
+  "previousSha256": "7b6e3c2fe30837ebfbf6919041b4d30f95ddfc7ec9c58415aa00db4a7cf94c20",
+  "previousReviewSha256": "9947597a172d93d4cb98a8ab342748c10f68d54d4efed51924047a18494a4e3f",
+  "previousSnapshotSha256": "6a3a627549b216e7dd610524bccec5798f82c2906609c3942baaa825379f78ac",
+  "currentProgress": "ACTUAL_NATIVE_APPHOST_FILE_LINK_ACCEPTED_AND_SCOPED_INSTALL_RUNNER_SOURCE_OPENED",
+  "link": {
+    "probeSHA": "ddd17560930938b02d01eab1fbb4aa473825aef085a296de8b62a261d61ea526",
+    "R1FailureRetained": true,
+    "eachBytes": 160768,
+    "sourceDLLLoaded": false,
+    "SDKCalls": 2,
+    "internalSDKChildren": 1,
+    "exit": 0,
+    "runtimeContainment": "NOT_PROVEN",
+    "targetExecuted": false,
+    "sourceVersion": "E1_REPAIRED",
+    "launcherSHA": "9c765593cd40730bbd8369cef8da3984a3b21342d12cadc0b9e25247419e84f5",
+    "nativeFiles": 2,
+    "actualParentCalls": 1,
+    "actualReviewSHA": "dad24d03aeaebea79aa57a2665173fb45c27b1822b8a40c6cd7e6cc404c72576"
+  },
+  "frontend": {
+    "install": 0,
+    "networkBytes": "NOT_MEASURED",
+    "disk8GiB": "SAMPLED_THRESHOLD_NOT_HARD_QUOTA",
+    "runnerSource": "FRESH_HIGH_IMPLEMENTER_ACTIVE",
+    "versionProbe": 0,
+    "actualNodeRuns": 0,
+    "importers": 10
+  },
+  "sql": {
+    "newResources": 0,
+    "priorPrivateReads": 1,
+    "extraPrivateReads": 0,
+    "oldCause": "UNKNOWN",
+    "LCproposal": "DESIGN_REVIEW_ONLY"
+  },
+  "windowsRuntimeNext": "READONLY_PROPOSAL_ONLY_NO_OS_PERMISSION",
+  "allRepoSourceWriters": "CLOSED",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "fullGoal": "NOT_COMPLETE",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "evidence": [
+    {
+      "sha256": "cf7680780b3a052a64581d4245330e4530eca803aa6c7afeb16323436b76b421",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-fix1-independent-review.json"
+    },
+    {
+      "sha256": "eb44f3c86a3b7923efc13204b8ee946c74ed27bcc38b026035c34845fb451a1e",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-final-approval-r2.ACTUAL.json"
+    },
+    {
+      "sha256": "ef8fa2e74f80be857c42ba725aaacbc3091e6c38e99eab25c5f2536e8a3037c1",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-root-profile-materialization-r2.json"
+    },
+    {
+      "sha256": "e13b0f1bba9f4c2bc56f3ff7348852179ac2fd69448d2b18251904654c45683d",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-parent-launcher-r2.CLOSED.ps1"
+    },
+    {
+      "sha256": "aeef3eeb794e500eea88537c0e655a2c63efa81cc1f11dcb73da3050beede563",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-parent-host-r2\\parent.result.json"
+    },
+    {
+      "sha256": "a6dd6d4d5a246db00692f79bc6b3e89d168cae98c992b361c6060d3d2f0b89ef",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-evidence\\tool-child.result.json"
+    },
+    {
+      "sha256": "eacfe1dafc6cc463139695ab94c7fb27df838f20783afaf0405a29755e666ab1",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-evidence\\child-result.json"
+    },
+    {
+      "sha256": "8fc681fc430f5c97f067fa24ce5b2a0c159c84d760620a9d34e7078574ae0745",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-actual-root-observation-r2.json"
+    },
+    {
+      "sha256": "dad24d03aeaebea79aa57a2665173fb45c27b1822b8a40c6cd7e6cc404c72576",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-actual-independent-review-r2.json"
+    },
+    {
+      "sha256": "cdb082a73b91334dafca72f3b3fa33fc3b567e5059d38bfc76b3d7c713afdc14",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r2-install-design-independent-review.json"
+    },
+    {
+      "sha256": "12f39c60b23a15c5260df862a7ad26d6bbf610dd65ccc42fd17ad37196e2e009",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-source-handover.json"
+    },
+    {
+      "sha256": "42cfc2ac7cd2da82d3db0e8853207b3be150b7068028c2882b5fca33998b7d4d",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r2-next-execution-proposal.json"
+    },
+    {
+      "sha256": "2fc15d6ae7b00e2f4120b3e58b082b15dc0bf81236f9ea6c4c9aa0e1196809bc",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r2-next-execution-root-consumer-ack.json"
+    },
+    {
+      "sha256": "9702dde70c52b5dba0cf006c4b471c25a5a25b93fd70f6bd9145832c7b83377d",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\r88-factual-time-erratum.json"
+    }
+  ],
+  "files": [
+    {
+      "path": "docs/tasks/R1-02E-apphost-link.md",
+      "beforeSha256": "0295701922d2a6fa431c7bd3bcd492d40fb345dacfb9d532f44e2236f882dd0a",
+      "beforeBytes": 1062,
+      "sha256": "524bda53aa0b2f7d0a1e125dda3907279c14a3a4787ccf7394765f98c0e0113e",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-03B-admin-sqlcompat.md",
+      "beforeSha256": "d526eb12a68b9f7ce6c50cee073512b40de17e75023ca745bd811779456a2d73",
+      "beforeBytes": 4859,
+      "sha256": "4384920d822c0df061738cdab11a3d7419db68991a5bc4d7bf2131efe914c49c",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-00-baseline.md",
+      "beforeSha256": "171e80154033c92c07845ee4def5bfc761d6f27c24231c1fd1007a7dc8804c22",
+      "beforeBytes": 14818,
+      "sha256": "934e13aa8aada1795f2648441eb04ecdd4c3bdca065035b0eee3834e0bd8fc03",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "a61313683103817da4fdb6e0f3efc027c53886c1064b02deb0bd82b76146236f",
+      "beforeBytes": 192481,
+      "sha256": "36f8ae163c47faa8c413433a520fee066e934c5507153e0e9859cb90e6ab340d",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "811b5005170ce6dc7cfc7627c0da73626bafbffc3459ed4c10a68653d75111dc",
+      "beforeBytes": 202442,
+      "sha256": "1c6587f8d37053e333ce6e4bad3d1373d7c9a8836bde589a81d61513d24835fe",
+      "appendOnly": true
+    },
+    {
+      "newControlFile": true,
+      "path": "docs/tasks/contracts/R1-00-PNPM-INSTALL-RUNNER-r1-test-frozen.json",
+      "actualInstallPermission": false,
+      "sha256": "894157cfd690b29241784240bd47d19a3cd1c1e2a27f2eb36f7c00610d5bb162",
+      "bytes": 14608
+    },
+    {
+      "newControlFile": true,
+      "path": "docs/tasks/R1-00-pnpm-install-runner.md",
+      "actualInstallPermission": false,
+      "sha256": "94675bd0227e09be31147053b36c48b9d7dbe7ffb6ab0266b9b86aef357a9c21",
+      "bytes": 796
+    }
+  ]
+}

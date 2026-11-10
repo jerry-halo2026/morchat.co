@@ -1,0 +1,54 @@
+{
+  "task": "LOCAL-GET-GUARD-RETEST-20261109",
+  "head": "51e23d9e7a8d6d3b3cdf46db7df68ad1b0938271",
+  "owner": "/root",
+  "ownerModel": "not exposed",
+  "reviewer": "/root/collaboration_business_baseline",
+  "testSourceBefore": "fe6be35ab907af586caf95478846595767ebf8c286a580355675e3b7df706258",
+  "testSourceAfter": "2002c3d38d4416a8932307233eb4b79155529517225deddab920b541b8a79226",
+  "productionChanged": false,
+  "database": "acl_retest_20261109",
+  "container": "morchat-acl-retest-20261109",
+  "loopbackPort": 55439,
+  "migrations": 642,
+  "diagnosticOriginal": {
+    "pass": 2,
+    "run": 4,
+    "skip": 0,
+    "fail": 2
+  },
+  "diagnosticFixed": {
+    "pass": 4,
+    "run": 4,
+    "skip": 0,
+    "fail": 0
+  },
+  "handler": {
+    "pass": 53,
+    "run": 53,
+    "rawSHA256": "29DE4E0F6E0F260F881B56571B450F218D2BD2ABCFFFD3E2A0CC72F26C8FD81A",
+    "skip": 0,
+    "fail": 0
+  },
+  "service": {
+    "pass": 42,
+    "run": 42,
+    "rawSHA256": "372192B4A03047885D558E74F4B79759C875580D9F1EA4702E3FC4ADDFB40E53",
+    "skip": 0,
+    "fail": 0
+  },
+  "legacy": {
+    "pass": 2,
+    "rawSHA256": "2C40A449EBFA410B549748342FB2AB312C1DB3F1074A374040EFA78D6E6C86F7",
+    "fail": 4,
+    "run": 6,
+    "reason": "GET403 unsupported credential",
+    "skip": 0
+  },
+  "router": "NOT RUN",
+  "fullBuildFrozen": false,
+  "demoModified": false,
+  "modelInference": "NOT RUN",
+  "next": "Native router realAuth and natural create/read classification closure; preserve legacy assertions and all WIP",
+  "goal": "ACTIVE_FULL_NEW_SCOPE"
+}

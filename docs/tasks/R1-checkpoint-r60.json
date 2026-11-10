@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R1-60-nativephase1-sourceapproved-service42-prelaunchgatefix",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "01a1b0e9-ce05-7273-bbb3-b6f3d0708f30",
+  "status": "active",
+  "previousCheckpoint": "docs/tasks/R1-checkpoint-r59.json",
+  "previousSha256": "7c1f6068187dc5fe4292c2a11843092a44958ee57b5e8a37de61228be7bc38c8",
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "ac009e9df9e1dc82ad347467a0b415f5d6fb892c6a0c603dcb212491432d26bc",
+      "sha256": "bb7d229e6f0a58d3b327a3e830bc364be05d307197aaa5abf3c3eacdf35efd39",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-01D-native-clone.md",
+      "beforeSha256": "112aef5abc0652f864706ddf13097e0d4f6f4910c3527ca740a095ed4b76d59e",
+      "sha256": "dac252d4517f28b8551987823cddb73b9695ef611e0b8aac7f935064d20b648d",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-01D-issue-guard.md",
+      "beforeSha256": "3f5667c67802232b59e7210351505a0b1752993b5d3b46032c19d89874b95890",
+      "sha256": "75e3f5e59c84deb561c600a17cb2ee2379fc97aacb4a39facb2a71882e950fea",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "fff7e1b5b89a431b8709ef893c97bc168170970c062c20461a4948ae14992e35",
+      "sha256": "21c876e43df729e2f50e10e300690d483ec0c46e5bfcc192efa32e6f83500249",
+      "appendOnly": true
+    }
+  ],
+  "evidence": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\native-clone-r1-test-source-root-release.json",
+      "sha256": "0d3a7f75edf0e1bd1b6c2e842ca6435a2fb9b65a413d2bc2954d9f53275196e1"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\native-clone-r1-test-source-handoff.json",
+      "sha256": "81a1ac7f0fb8638fa830baefc3abd5c1c0772059ddea1c5705a32dfda9e3687c"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\native-clone-r1-test-source-handoff.diff",
+      "sha256": "ba0f81b84b0b4dd132877d6701f329068e72031b997457922a43db8b07857485"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\native-clone-r1-test-source-independent-review.md",
+      "sha256": "5722358b430e289cbfd7546c9f9de4fe3b2e84c336064ed142c36498fd135dfd"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\native-clone-r1-registration-phaseexit-fix.json",
+      "sha256": "16e5593fcebf681c543b362a50975f256a7425edba8fe289daf4df735d93cff6"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\r59-native-registration-phaseexit-rereview.md",
+      "sha256": "a2f8ffd8db27a7b07cf9086684617084a9ec61ee3a1781353fb1c7b2d8b4e195"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-service-runtime-r1-independent-static-review.md",
+      "sha256": "a2bcc79d2c0b8d6e801b51c532ac7df96f2c4557483deaf34688e2ea5942bd73"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-service-compile-r1-preparation-manifest.json",
+      "sha256": "410070a216515950dd202afdbbbf9925c3d10a65a91ea0d0d86abcf2f7da6134"
+    }
+  ],
+  "nativeSourceSha256": "0364499d70ad20a5e6d2a64de8759c1d8aa9425df0448cce0a02fe80a11c49da",
+  "nativeWriter": "STOP",
+  "nativeSourceReviewSha256": "5722358b430e289cbfd7546c9f9de4fe3b2e84c336064ed142c36498fd135dfd",
+  "nativeActualTests": "NOTRUN; no key/DB/ELF release",
+  "service": "runtime HOLD fix1; compilepreparation and metadata-onlyinventory, no actualGo/SQL/ELF",
+  "newRuntimePermission": "NONE",
+  "fullGoal": "NOTCOMPLETE ACTIVE",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

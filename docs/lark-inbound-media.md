@@ -1,3 +1,10 @@
+---
+purpose: "Lark inbound context media"
+owner: integrations
+status: current
+updated: 2026-11-06
+related: []
+---
 # Lark inbound context media
 
 Lark/Feishu chat turns retain attachments from the trigger message, explicit

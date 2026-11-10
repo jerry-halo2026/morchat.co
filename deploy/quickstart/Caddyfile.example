@@ -1,0 +1,87 @@
+# morechat.co — quickstart 的 Caddy 配置（单域名同源布局）
+#
+# 用法（三步，详见 README「形态二：反代 + 域名 + HTTPS」）：
+#   1) cp Caddyfile.example Caddyfile
+#   2) .env 里设 DOMAIN（无公网域名就写 localhost）并打开 COMPOSE_PROFILES=tls
+#   3) docker compose up -d caddy
+#
+# 本文件里的变量全部由 docker-compose.yml 的 caddy.environment 注入：
+#   DOMAIN        站点地址。公网域名 → 自动签发 ACME 证书；localhost / 127.0.0.1
+#                 → 走 Caddy 内部 CA（自签，`curl -k` 或手工信任根证书后可用）
+#   ACME_EMAIL    ACME 账户邮箱（TLS_SNIPPET=tls_acme 时使用）
+#   TLS_SNIPPET   tls_local（默认，内部 CA）| tls_acme（Let's Encrypt / ZeroSSL）
+#   API_UPSTREAM  api:<PORT>   例如 api:8080
+#   WEB_UPSTREAM  web:3000
+#
+# 为什么要自己写 /api 规则：API（server/cmd/server/router.go）的真实路由就是
+#   /api/config、/api/...、/ws、/auth/...、/uploads/... —— 前缀不剥。
+#   Next 的 rewrites 是 `/api/:path* → ${REMOTE_API_URL}/api/:path*`（原样带前缀），
+#   所以这里直接把 /api/* 打到 api 容器，语义一致、少一跳。
+#
+# 关键点（来自 SELF_HOSTING_ADVANCED.md）：
+#   - /ws 与 /ws/* 分开写，不能写成 /ws*（Caddy 的 * 不分路径段，
+#     会误伤 /ws-foo 这类合法的工作区页面）；
+#   - flush_interval -1 关掉响应缓冲，否则 WebSocket 帧会被攒住，
+#     表现为评论延迟、typing 指示消失、"刷新一下才出现"。
+
+# ---------------------------------------------------------------------------
+# TLS 片段：二选一，由 TLS_SNIPPET 环境变量选中（默认 tls_local）
+# ---------------------------------------------------------------------------
+
+# 内部 CA 自签：不需要公网、不需要 DNS。浏览器首次访问会警告证书不受信任。
+# 导出根证书后可让客户端信任（README「信任内部 CA」）：
+#   docker compose exec caddy cat /data/caddy/pki/authorities/local/root.crt
+(tls_local) {
+	tls internal
+}
+
+# 公网可信证书：域名 A/AAAA 必须已指向本机，且 80 / 443 可达。
+# ACME_EMAIL 为空时用一个占位地址，避免 `tls` 指令解析失败。
+(tls_acme) {
+	tls {$ACME_EMAIL:admin@example.com}
+}
+
+# ---------------------------------------------------------------------------
+# 站点
+# ---------------------------------------------------------------------------
+{$DOMAIN:localhost} {
+	import {$TLS_SNIPPET:tls_local}
+
+	# 文本类响应压缩。Caddy 会自动跳过已压缩的 content-type 与 WebSocket。
+	encode zstd gzip
+
+	# 访问日志走 stdout（`docker compose logs -f caddy`）。
+	log {
+		output stdout
+		format console
+	}
+
+	# ---- WebSocket：直连 API，且关掉响应缓冲 ----
+	@ws path /ws /ws/*
+	handle @ws {
+		reverse_proxy {$API_UPSTREAM:api:8080} {
+			flush_interval -1
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-Host {host}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# ---- REST API：/api/* 直连 API（不剥前缀，与 Next rewrites 一致）----
+	handle /api/* {
+		reverse_proxy {$API_UPSTREAM:api:8080} {
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-Host {host}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	# ---- 其余全部交给 Next.js（页面、静态资源、RSC）----
+	handle {
+		reverse_proxy {$WEB_UPSTREAM:web:3000} {
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-Host {host}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+}

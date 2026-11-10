@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R73",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "status": "POSTFAIL_PUBLIC_FACTS_ACCEPTED_ENGINEERING35_CURRENT_PASS_STARTUP_FIX2_CLOSED",
+  "previousCheckpoint": "R72",
+  "previousSha256": "7c7802e29393f3a157cfd349d8e1743aca6654c5b5344d420ce6b99c3c38c741",
+  "previousReviewSha256": "7765b64f80b4c8430f8aea9269fc3464ab3b2a2e0b0f7b5fce87334a5fee45e1",
+  "previousSnapshotSha256": "f17ac0cda2d26bf80b646ee474b0829004078541ec3dccaf500a165cc7668ed8",
+  "files": [
+    {
+      "path": "docs/tasks/R1-results.md",
+      "appendOnly": true,
+      "beforeSha256": "f8ed183a12672c1475426261ffb75bbc415c8856109de71331a65a443c6e2fda",
+      "sha256": "1f96333b62c4c962fc2d441894397cacc37e9f6f5e2b1c7081af027c4ad5f128"
+    },
+    {
+      "path": "docs/tasks/R1-01D-native-clone.md",
+      "appendOnly": true,
+      "beforeSha256": "d168d557416f2cb334326a1eb85113d2bab8e209d428920ae33f9560fe8fca25",
+      "sha256": "c2f29d64cb217bd2a9af6f0235b870e110cbd833446e407264aadfb1b994f249"
+    },
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "appendOnly": true,
+      "beforeSha256": "bf022d5761e0ca29211f8dc1eefe21d6262e85698bc19f2e0191ab9df13aa7dc",
+      "sha256": "1cd214c02c610fe8213613026abbb9461ee75d90eaf3be35f40733ae8fe8bc48"
+    },
+    {
+      "path": "docs/tasks/R1-01D-issue-guard.md",
+      "appendOnly": true,
+      "beforeSha256": "6712f160ce0464eae1882a79c60fa1360c68d656bc986170d7e34dda5966e8d5",
+      "sha256": "a8383c090310cafd51b013c455422a3772d370ae1d4db883e9273e592f323674"
+    },
+    {
+      "path": "docs/tasks/R1-03A-leader-text.md",
+      "appendOnly": true,
+      "beforeSha256": "813276db9a2e1f8c7e903509a3ab26935b60c04337629fdcbe56e5fa2bdb77e1",
+      "sha256": "5e628de8abcf9b5dcaf7431e274a12aa73372584099ce2a86458a73146878c3d"
+    },
+    {
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "appendOnly": true,
+      "beforeSha256": "aa190ca79e7a4d3cb3ff7b6ba11cfd42d0a5140ea3a740ca02150a120d4ee133",
+      "sha256": "c61fd25266724465fb4d9a9c611c3ffabf10ab497fbc423e4c1558da197d92b9"
+    }
+  ],
+  "postfailFacts": {
+    "postgresPublicUid": 999,
+    "result": "b722d33c31929c4472036d9a8392ed24331f1b45d5ad95bd0640c2ad99363946",
+    "temporalStatus": "AFTER_FAILED_START_NOT_PRIOR_P_RECEIPTS",
+    "review": "71ed2f96311dcb938bae4e7ab8ecd977addb04a1061b8e74acfd39b368b20595",
+    "postgresPublicGid": 999,
+    "publicSupplementaryGid": 101,
+    "actualProcessGroups": "NOT_PROVEN",
+    "manifest": "966b829154c9c62082e4ffde4939c104af4d1aa68878c7fe51315cbf991b4219"
+  },
+  "engineering": {
+    "result": "9fff7e1b4ea84571e8310d4c3d877264be5711b913fb0231c0e1008a94f233b9",
+    "fail": 0,
+    "manifest": "c39d19f03e9298e38518617af066af051e4eb4d63456ce351cb1f07073a837da",
+    "priorRootFailuresRetained": true,
+    "actualPass": 35,
+    "sourceGateCount": 4,
+    "scope": "PURE_CHECKER_UNITS_ONLY",
+    "skip": 0,
+    "rootReview": "939d4c75181b5cecc708d86954a1e1f7ede4ee747b46b6414f1d49e76958b956"
+  },
+  "startupFix": {
+    "oldResources": "HANDLE_NO_RESTART",
+    "work": "PREPARATION_ONLY_NO_TARGET_ACTIONS",
+    "review": "391e1839efbc6c22eef176e1366f87c480630f3c3999d9c723adbdeb4dc5cf0f",
+    "round": "2/5",
+    "I1": "HOLD_RAW_EXEC_ENV_C01_PATH_BINDING_AND_TWO_STAGE_JIT_PROTOCOL",
+    "owner": "/root/leader_pg_facility_prep",
+    "configuredRoute": "gpt-6.1-sol high",
+    "I2": "ADDRESSED_CLOSED_TRUE_UNSET_CANDIDATE_NOT_RUNTIME"
+  },
+  "allSourceWindows": "CLOSED",
+  "appRuntime": "NO_NEW_RUNS",
+  "old53": "49_PASS4_FAIL_RETAINED",
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

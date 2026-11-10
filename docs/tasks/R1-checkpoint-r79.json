@@ -1,0 +1,87 @@
+{
+  "files": [
+    {
+      "appendOnly": true,
+      "beforeSha256": "d841475956b4627b13b450b2c54137785729330ef84430a61bf3e815e531dbb8",
+      "sha256": "47eb8862344293255c90d1a7e05694ccb3a90ec5f976645d5f7018a8cb5bb755",
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeBytes": 172319
+    },
+    {
+      "appendOnly": true,
+      "beforeSha256": "dc663959afed0e3fe3cb3dc05d870744acea59703b0ddf41de2d352bf0f816cf",
+      "sha256": "ed035f1665be8bc55cd4509d5f13bab3e310cada636178a594e607f3a586190b",
+      "path": "docs/tasks/R1-results.md",
+      "beforeBytes": 164320
+    },
+    {
+      "appendOnly": true,
+      "beforeSha256": "76cbf26b306989ac82c60300cdc64780d7b2c25e25ab9215c2baecf09f0e6d18",
+      "sha256": "d6823a9a20cc21be1c391e40c356e85fbce66dbf029c3e5109da7516be87bb26",
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "beforeBytes": 24426
+    },
+    {
+      "immutableSourceHandoverBinding": true,
+      "sha256": "3f25dfba13f7b7a26c0fc19fe0576a68bb3ac39a48737066131f5c95cef23789",
+      "createdSincePreviousCheckpoint": true,
+      "path": "docs/tasks/R1-02E-windows-runtime-source.md"
+    },
+    {
+      "immutableSourceHandoverBinding": true,
+      "sha256": "8ee90609a875ec424e80f4d5eeebf8df7282ce6869a3bca287173c3cf9afb944",
+      "createdSincePreviousCheckpoint": true,
+      "path": "docs/tasks/contracts/R1-02E-WINDOWS-RUNTIME-SOURCE-r1-test-frozen.json"
+    },
+    {
+      "immutableSourceHandoverBinding": true,
+      "sha256": "00942224dc705fc596c20cc174eafb592a6976d86607e2248d3ab7ae1997ac60",
+      "createdSincePreviousCheckpoint": true,
+      "path": "docs/superpowers/plans/2026-11-08-windows-runtime-source.md"
+    }
+  ],
+  "previousSnapshotSha256": "5dda48e8041ec1e4ba28faacdb4e69ea4121610188e03a8dd4b367cefbc9ba20",
+  "previousReviewSha256": "fb2228d6a49afbc40cd9da7e3cf2256124a6464882f3b6e6e6cf17c0f9cd9664",
+  "schemaVersion": 1,
+  "previousCheckpoint": "R78",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "agent": "/root",
+  "windowsRuntime": {
+    "TF": "8ee90609a875ec424e80f4d5eeebf8df7282ce6869a3bca287173c3cf9afb944",
+    "writer": "/root/windows_runtime_impl",
+    "status": "FOUR_SOURCE_ONLY_IMPLEMENTATION_ACTIVE",
+    "consumer": "57ddbcdd9f39f909f555ab0ee6f5427fd66051ce2fb667e775bb07fa265bc9cf",
+    "producer": "d045a09050f90012802206b8f057b90c7eeb941e6785ee0b2a37c289e6d5c574",
+    "route": "gpt-6-astra high",
+    "diskQuota": "NOT_PROVEN",
+    "sourceDesignReview": "c51fe5450ed8216a7b379b2aef75ed5def9d80354f9815ef1fe746c8f4b28046",
+    "handover": "234257a1ec5c91d2d6c49479f771086058ef4b47cd493a78f8c0e273b0187628",
+    "allNativeAndOSAuthority": "NONE_NOT_BOUND"
+  },
+  "windowsPEExecutions": 0,
+  "checkpoint": "R79",
+  "model": "unknown",
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "sqlSource": {
+    "host": 67,
+    "reviewedBase": "aa9e697ca91814ad6b47e99f6a34a48f853b5264f77f99afa5b6480f475928db",
+    "runtimeLease": "NOT_CREATED_NO_PERMISSION",
+    "oldReads": 1,
+    "actualExtraRead": 0,
+    "fixRelease": "a5fc585ae399e4d53b6b8b88dd914153ec7cc52ec9d747bb9d23f0b84f803535",
+    "sourceReview": "b91626582643f0463cffc336b82fb3a5f98aefbba6a1afdb9b06d2bbeb5eb9a8",
+    "status": "HOLD_FOUR_IMPORTANT_FIX1_ACTIVE_ORIGINAL_WRITER",
+    "oldResult": "FAIL3_GLOBALCLAIM_CONSUMED",
+    "report": "4bdf7d5bb7e5a391931965a00da2a9a8b525424b84ffaa1be95838d491565323"
+  },
+  "allRepoSourceWriters": "CLOSED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "resource": {
+    "PG": "3a684_RUNNING_ORIGINAL_STARTEDAT",
+    "oldR4Helper": "005F_EXITED0_NATURAL_193504_NO_RESTART",
+    "proofRoot": "E:\\CodexData\\incidents\\morchat-20261106T233131\\r79-resource-status",
+    "runtimeEligibility": "NO_READ_HELPER_TERMINAL"
+  },
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "previousSha256": "2688f798d79d9186c3acfa5ba86c8e3fc1091efb456f2b3973d44e784a233ae8"
+}

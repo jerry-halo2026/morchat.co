@@ -1,0 +1,138 @@
+{
+  "task": "R1-03B-LEADER-FOUNDATION",
+  "revision": "r1",
+  "status": "TEST_FROZEN_SCOPED_FOUNDATION_ALL_SOURCE_WINDOWS_CLOSED",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "sourceRoot": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co",
+  "domainOwner": "/root/leader_vertical_owner",
+  "domainOwnerRoute": "gpt-6-astra high",
+  "implementer": "/root/leader_foundation_impl",
+  "controllerConfiguredImplementerRoute": "gpt-6.1-sol high",
+  "independentBackendModelTelemetry": "UNAVAILABLE",
+  "consumerB01": "/root/leader_auth_owner",
+  "consumerTests": "/root/leader_test_impl",
+  "consumerController": "/root",
+  "controllerModel": "unknown",
+  "reviewer": "/root/leader_joint_review",
+  "reviewerRoute": "gpt-6-astra high",
+  "inputs": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-spec.md",
+      "sha256": "cc28a37c0b57d01944620087673d16be473b9be3c4533caec5765712cbd34ca7"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-plan.md",
+      "sha256": "cfa08fd5254180396b53732f1e2a4e7185e6210e1bbebf88686a45f034c81d6b"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-owner-ack.json",
+      "sha256": "1b52ac235c5995271f799b6d00a262a8898669fee0ff69629476db27c97a0822"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-consumer-addendum.json",
+      "sha256": "934d995342599224cd330c5f08a8b5b20c26835305b8bfd63f8770ee47ad0e7f"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-b01-consumer-ack.json",
+      "sha256": "5052308b1bcec9ab7a284fe2d1d8c782f08ee2873f23748551510578b076b220"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-tests-consumer-ack.json",
+      "sha256": "89469ed7472c1568cb9ed54044a67bf5b346fcd536054de84028062bba57f46b"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-independent-review.json",
+      "sha256": "e598e0a437ef3e8ef173da2bfb6a62f68fabfd669f857989dc64c86a0884db94"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-implementer-ack.json",
+      "sha256": "3b3619460ce92f9cdb387b92ef6fde605c98769b3477d75a2fa9427db3560404"
+    }
+  ],
+  "writeSet": [
+    {
+      "before_file_sha256": null,
+      "state": "PROPOSED_NEW_ABSENT",
+      "phase": "DDL_SOURCE_AFTER_B01_ACK",
+      "source_authorized": false,
+      "git_head_blob_sha256": null,
+      "id": "F1",
+      "current_equals_head": null,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\migrations\\618_r1_leader_delegation.up.sql"
+    },
+    {
+      "before_file_sha256": null,
+      "state": "PROPOSED_NEW_ABSENT",
+      "phase": "DDL_SOURCE_AFTER_B01_ACK",
+      "source_authorized": false,
+      "git_head_blob_sha256": null,
+      "id": "F2",
+      "current_equals_head": null,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\migrations\\618_r1_leader_delegation.down.sql"
+    },
+    {
+      "before_file_sha256": null,
+      "state": "PROPOSED_NEW_ABSENT",
+      "phase": "DDL_SOURCE_AFTER_B01_ACK",
+      "source_authorized": false,
+      "git_head_blob_sha256": null,
+      "id": "F3",
+      "current_equals_head": null,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\migrations\\619_r1_leader_auth_tx.up.sql"
+    },
+    {
+      "before_file_sha256": null,
+      "state": "PROPOSED_NEW_ABSENT",
+      "phase": "DDL_SOURCE_AFTER_B01_ACK",
+      "source_authorized": false,
+      "git_head_blob_sha256": null,
+      "id": "F4",
+      "current_equals_head": null,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\migrations\\619_r1_leader_auth_tx.down.sql"
+    },
+    {
+      "before_file_sha256": null,
+      "state": "PROPOSED_NEW_ABSENT",
+      "phase": "TEST_SOURCE_FIRST",
+      "source_authorized": false,
+      "git_head_blob_sha256": null,
+      "id": "F5",
+      "current_equals_head": null,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_foundation_schema_test.go"
+    },
+    {
+      "before_file_sha256": "dd2f4ea0c237a23ac116c0e81a53c744812f926641772195c8decc7ae2f7ec02",
+      "state": "EXISTING",
+      "phase": "AFTER_ACTUAL_NATIVE_RED_ACCEPTED_ONLY",
+      "source_authorized": false,
+      "git_head_blob_sha256": "dd2f4ea0c237a23ac116c0e81a53c744812f926641772195c8decc7ae2f7ec02",
+      "id": "F6",
+      "current_equals_head": true,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\squad.go"
+    },
+    {
+      "state": "EXISTING",
+      "id": "F0",
+      "before_file_sha256": "117104d3a3f70d6d207b03353480c69686c67ce3865a887cbad3c196d7ae8977",
+      "source_authorized": false,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_leader_auth_tx_integration_test.go",
+      "phase": "ONLY_TWO_FIXTURE_LITERALS_AFTER_REAL_FIXTURE_APPROVAL_AND_FRESH_RECOMPILE"
+    }
+  ],
+  "writeSetCount": 7,
+  "stages": {
+    "F5": "TEST_SOURCE_FIRST_AFTER_HANDLER53_WINDOW_CLOSED_AND_ROOT_EXACT_SOURCE_RELEASE",
+    "F1ToF4": "AFTER_F5_ACTUAL_SCHEMA_RED_AND_INDEPENDENT_ACCEPTANCE_THEN_ROOT_ONLY_MIGRATION_SOURCE_RELEASE",
+    "F0": "ONLY_REAL_INDEPENDENTLY_APPROVED_FIXTURE_SHA_AND_EPOCH_TWO_LITERALS_KEEP_ALL_GUARDS_ASSERTIONS_EVENTS_FRESH_ELF_REQUIRED",
+    "F6": "ONLY_ACTUAL_NATIVE_BORROWED_DEVICE_OWNER_BUSINESS_RED_ACCEPTED_IF_BASELINE_ALREADY_DENIES_NO_PATCH"
+  },
+  "tddRuling": "F5 source review alone is not observed RED. Native TestMain must not auto-see newly implemented migrations before baseline schema RED. Source implementation remains closed until actual applicable RED evidence.",
+  "runtime": "NOT_BOUND_NOT_RELEASED_NOT_RUN",
+  "facility": "SEPARATE_NEW_GOAL_OWNED_NONE_PG_LOCAL_LOCKED_IMAGE_PULL_NEVER_NO_HOST_PORT_NEW_NONCE_DATA_ROLE_CONTEXT; EXACT_PROFILE_SEPARATE_REVIEW_BEFORE_ACTION",
+  "protected": "No old4DB/roles/catalogue/service35/sealedJWT/oldkeys/main/push/prod/realdata/modelcharges; no eighthsource/Auth/query/generated/newLeaderAPI/other89paths",
+  "firstNativeLeaf": "TestLeaderDelegationNativeTextVertical/TaskTokenMustNotBorrowDeviceOwner",
+  "expectedNativeLeafEvents": 2,
+  "nativeLeafCoverage": "Only UpdateSquad; other five mutation actor matrices NOTRUN follow-on required",
+  "missingTableSnapshots": "EXPLICIT_EXTERNAL_CATALOG_NOT_APPLICABLE_ONLY_NOT_RECEIPT_PASS",
+  "fullGoal": "ALL_ORIGINAL_PERMISSION_COLLABORATION_WINDOWS_REAL_MODEL_USAGE_ASSETS_VERSIONS_SAVE_AND_PHYSICAL_DUAL_DEVICE_GATES_RETAINED"
+}

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R1-59-DSH-localintegration-nativeclone-testinfra-TF",
+  "author": "/root",
+  "model": "unknown",
+  "goal": "01a1b0e9-ce05-7273-bbb3-b6f3d0708f30",
+  "status": "active",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "previousCheckpoint": "docs/tasks/R1-checkpoint-r58.json",
+  "previousSha256": "4e79b91ecf5444f13c029f0b7a7fdff115a5fd528ddc6c30754fd1487a8d18c1",
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "sha256": "ac009e9df9e1dc82ad347467a0b415f5d6fb892c6a0c603dcb212491432d26bc",
+      "beforeSha256": "f40792b58bac7c675bd955f0ad63fc7070a1af4c042b4b2dcb2690ae77f8f3b2",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-01D-issue-guard.md",
+      "sha256": "3f5667c67802232b59e7210351505a0b1752993b5d3b46032c19d89874b95890",
+      "beforeSha256": "106af2f52f45045ca121f4b3cc66ed5c8e8fff28daf1216659ce997f9e4d76e1",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "sha256": "fff7e1b5b89a431b8709ef893c97bc168170970c062c20461a4948ae14992e35",
+      "beforeSha256": "5c72284c09bb6703941a5a1124d019706bbbf0673e8b22c1c48267229ea99c85",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/contracts/R1-ISSUE-READ-GUARD-native-clone-r1-spec.md",
+      "sha256": "1ae090cc61424d273334395850dc08296dc55781c8142fc1f6a091cbb55ca95d"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-native-clone-guard.md",
+      "sha256": "269c3175349529d0db1eeade974481b6ef7df9ea524b836fcd222b597569e9d3"
+    },
+    {
+      "path": "docs/tasks/contracts/R1-ISSUE-READ-GUARD-native-clone-r1-test-frozen.json",
+      "sha256": "80180196613cc8a828c7770b5ce00f124645d33e4ae2cc503e526ba7841cb7c7"
+    },
+    {
+      "path": "docs/tasks/R1-01D-native-clone.md",
+      "sha256": "112aef5abc0652f864706ddf13097e0d4f6f4910c3527ca740a095ed4b76d59e"
+    }
+  ],
+  "localIntegration": {
+    "engineering35": {
+      "path": "E:/CodexData/morchat-r1-local/build/r58-postcommit-engineering35/result.json",
+      "sha256": "feaa67e7a41070cf4fe1ab7bbe95e10b0f86f623c03dcebb90defba76f05fafe"
+    },
+    "postcommit": {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\r58-postcommit-blob-verification.json",
+      "sha256": "bb316f3baafb1ca59f6f606b182c8aa99a4be8de37f507eb6b67f2513598ac4a"
+    },
+    "commit": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+    "indexReviewSha256": "50203e6fb2969eedc14cc0bbe178a2fe943f6d2c5b06c80271d01bf633cbb370"
+  },
+  "nativeTf": {
+    "path": "docs/tasks/contracts/R1-ISSUE-READ-GUARD-native-clone-r1-test-frozen.json",
+    "sha256": "80180196613cc8a828c7770b5ce00f124645d33e4ae2cc503e526ba7841cb7c7"
+  },
+  "sourceWindow": "CLOSED pending registration independentreview/Rootdispatch",
+  "runtime": "NOTRELEASED",
+  "allNativeSourceTests": "NOTRUN",
+  "serviceExecutor": "implementation artifact preparation+hostmock only; no target",
+  "fullR1": "NOTCOMPLETE GoalACTIVE",
+  "review": "PENDING_INDEPENDENT_REGISTRATION_REVIEW"
+}

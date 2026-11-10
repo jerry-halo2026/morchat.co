@@ -1,0 +1,48 @@
+{
+  "checkpoint": "R122",
+  "root": "/root",
+  "model": "unknown",
+  "baseline": "efdc54aaf3fcc4e3eaee369b980ac054ccc0bb54",
+  "parent": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "branch": "codex/round1-continuous",
+  "stagedCount": 0,
+  "classification": "PROGRESS_EXACT_ONE_LOCAL_COMMIT_AND_DIAGNOSTIC_STOP",
+  "localCommitReceipt": "2d1d3df8fa7f98d0d0fc565538f167c2fa73500f1499c5d4ed2b7df31afc1647",
+  "frontierAttempt": "STOP_OUTPUT_CAP_NO_ACCEPTED_GRAPH_EVIDENCE",
+  "frontierSTOP": "3f3efbd529536336816249601c265188cf1b7ecfa807b3469c3fb93ad0552712",
+  "r2Task": "850dae03b574f6fbe92fd01cc01e7060387aac4df6f44b2d18e8ff6add8ba3ac",
+  "r2Status": "DRAFT_ADMISSION_REVIEW_ACTIVE_NOT_RELEASED",
+  "r2Reviewer": "/root/windows_runtime_r2_review",
+  "rootOwnedExecLive": false,
+  "actualNativePermission": false,
+  "modelCalls": 0,
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "docsReview": "PENDING_AT_CAPTURE",
+  "files": [
+    {
+      "bytes": 320929,
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "34e367482f62c603aaa39a15b7dc367e2ec3ae3262a4549d31e191ee1f61a8e6",
+      "sha256": "fd769717a0f901a03084bf2383a11dc5c659201851025dd4c5d432076b28737e"
+    },
+    {
+      "bytes": 302427,
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "f62fa8aaa5ba32b442e6d04f895cd5857a3db4af7568c825795c4d236f96f86c",
+      "sha256": "622611594c9a13c6050be9c12d98044b3497e68587c5945021625c6a86f21789"
+    },
+    {
+      "bytes": 8524,
+      "path": "docs/tasks/R1-02B-manifest-version-regression.md",
+      "beforeSha256": "411c3eca6f34c27df98292a22f32ae43be3880e36ff10feb576ee4010338b8f3",
+      "sha256": "3f816c518725527cd0afb50d996e2f03e1a553359cb8312cfb88110cfa70951e"
+    },
+    {
+      "bytes": 3715,
+      "path": "docs/tasks/R1-02E-O0-frontier-evidence.md",
+      "beforeSha256": "1b882e8c88b1eb9c9eb8b5bac08b0e2a3d319662bde0ab9551de9880e6b795c9",
+      "sha256": "ef78b1c36389a62a035beee1564e50d709262fa6966faa76f0e6c00bfe9b956b"
+    }
+  ],
+  "utc": "2026-11-09T03:40:12.5653267Z"
+}

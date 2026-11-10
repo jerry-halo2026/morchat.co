@@ -1,0 +1,59 @@
+{
+  "task": "R1-01D-ACTIVE-MAT-PANIC-DIAGNOSTIC",
+  "revision": "r1",
+  "status": "TEST_FROZEN_SOURCE_ONLY_DIAGNOSTIC_NOT_RUNTIME",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "sourceRoot": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co",
+  "owner": "/root/guard_fixture_impl",
+  "ownerReportedRoute": "gpt-6.1-sol high",
+  "independentBackendModel": "UNAVAILABLE",
+  "controller": "/root",
+  "controllerModel": "unknown",
+  "reviewer": "/root/guard_review",
+  "reviewerConfiguredRoute": "gpt-6-astra high",
+  "sourceCandidate": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-handler-fixture-r4-source-candidate.patch",
+    "sha256": "72160788ceb3d4f6a154eb83aad16dd2de0dcefe37314dcb31181285568f34f7",
+    "unappliedGo": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-handler-fixture-r4-source-candidate.go",
+    "unappliedGoSha256": "fe6be35ab907af586caf95478846595767ebf8c286a580355675e3b7df706258",
+    "futureWriteSet": [
+      "server/internal/handler/issue_access_test.go"
+    ],
+    "productionSourcePaths": [],
+    "applied": false,
+    "inverseExact": true,
+    "formatTypecheckCompile": "NOT RUN"
+  },
+  "writeSet": [
+    {
+      "beforeSha256": "c9af45e4093d6c0e062c67725cd62a5e8fec43ec6650a7dc9c4f0969c607bd56",
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\issue_access_test.go",
+      "candidateSha256": "fe6be35ab907af586caf95478846595767ebf8c286a580355675e3b7df706258"
+    }
+  ],
+  "sourceReview": {
+    "sha256": "5f46f08b6d824e3540dc25ab69fddf88125f3753ce1bed45a0dbd2f8d29afa6f",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-handler-fixture-r4-independent-review.md"
+  },
+  "projection": {
+    "sha256": "69974063a6c0aa78c9b6ee45a17c5829de1626d1020f140a9362dc126cc97c94",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-handler-diag-r5-projection.json",
+    "status": "STATIC_ONLY_NOT_DB_CERTIFIED",
+    "columns": 286,
+    "tables": 20,
+    "reviewSha256": "3485cbcc03c144d5d458ab19d0acba151ff5837463bdd5a389149ed03f64e2b8"
+  },
+  "actualOldFailure": {
+    "factsSha256": "26ba92ea7dfa6cf98a89f388b499159407306890577f7b47767997532ea038a1",
+    "run": 53,
+    "pass": 49,
+    "preserve42": true,
+    "fail": 4
+  },
+  "scope": "Valid active owned runtime-agent-task-token real authenticated private TaskToken tuple then native credential gate must403 beforeTx; Panic adds observations only, causeUNDETERMINED",
+  "runtime": "NOT_RELEASED_NEW_ISOLATED_EPOCH_REQUIRED_NO_OWNED0_RETRY_OR_DATA_CLEANUP",
+  "sourceWindow": "CLOSED_UNLESS_EXACT_ROOT_RELEASE",
+  "preserve": "All old panic-reached/rollback/scope/no-success assertions, realAuth/reached/notBegin/403, original53names; oldsource/raw/42/service35/alloldruntime/PG1 protected",
+  "verification": "actual destination equals reviewed candidate, pinned onefile gofmt/token equivalence then actualsource independentreview/freshclosureELF; no actualGo/DB/sourceelsewhere",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE"
+}

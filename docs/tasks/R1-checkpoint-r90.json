@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R90",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "branch": "codex/round1-continuous",
+  "previousCheckpoint": "R89",
+  "previousSha256": "2c4efb06b7965f226588fad98f31543e5da403e4229d9ab8ed0123be087842fc",
+  "previousReviewSha256": "e741556a1a1318c18b00f75bef2b3f5149f715d24dc97b6dd136968190492267",
+  "previousSnapshotSha256": "16fa9f79191709c78022e50d04b305a041ad264caa419675e5b10906a7799d00",
+  "currentProgress": "REAL_LC_FAILURE_NARROWED_TO_PUBLIC_PINS_SOURCE_FIX_ACCEPTANCE_AND_METADATA_COLLECTION",
+  "installer": {
+    "sourceFix1": "ACCEPTED_4ed",
+    "needsReview": 71,
+    "NodeOrInstall": 0,
+    "publicTable": "CANDIDATE74c6_NOT_APPROVED"
+  },
+  "LC": {
+    "exit": 1,
+    "childOrCapture": 0,
+    "managedRCA": "33PINS30JSON_EXACT_MEMORY_STEP_PASS",
+    "actualCalls": 1,
+    "phase": "HISTORICAL_PINS",
+    "cause": "UNDETERMINED",
+    "privateExtra": 0,
+    "next": "F6_SOURCE_PREPARATION_DESIGN_ONLY_NO_NEW_SOURCE_OR_RUNTIME"
+  },
+  "WindowsR2": "SOURCE81HOST_FULLREVIEW_PENDING_NO_COMPILE_OS_NATIVE",
+  "falsePathAlarm": "REVOKED_NO_PATHFIX_NO_PKG_CHANGE",
+  "allRepoSourceWriters": "CLOSED",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "fullGoal": "NOT_COMPLETE",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "evidence": [
+    {
+      "sha256": "42946e6f75530ebaf50cdd1fa4a2abcc24eb60bca8b7fb9960e96580472d7e82",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-source-independent-review.json"
+    },
+    {
+      "sha256": "42c36efe317a43f4ef9dfac766f5b1f28b558cd4a0919c1ca900dc9022f2a58a",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-fix1-root-release.json"
+    },
+    {
+      "sha256": "4ed25a070c1de8c750ecc5a32e4263f4e4a0c3d9a28806a36639b62dbe959a0d",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-fix1-independent-review.json"
+    },
+    {
+      "sha256": "ee1cbb37dbbbe2499a2fdfa5c4522648900ae5518531d7cb2a1e2a5ed905121d",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-public-path-metadata-preparation-authorization.json"
+    },
+    {
+      "sha256": "74c6d0f9274f4aede20a0abd400574087d146debe4ae0184732d2f6d9165644d",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-public-path-candidate.json"
+    },
+    {
+      "sha256": "9e638a7d976d3a53433c662e72657b681293c54a098fb9a363831cbb7a2a4724",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-public-path-preparation-report.md"
+    },
+    {
+      "sha256": "7d594957b839d8a74c544b3cb25955a6eee9a8219ccb56d526fb7c463a478772",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-public-path-metadata-receipt.json"
+    },
+    {
+      "sha256": "2ddf474874a830533bad6472c284b9f2834f92523de237ed34975e79d4107f21",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-source-independent-review.json"
+    },
+    {
+      "sha256": "52a49cfa08668c042a8ef317ef3359f1ccec082ceff5a5363444be30da8896c1",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-runtime-binding-independent-review.json"
+    },
+    {
+      "sha256": "15e60001375bf7942e630761da04d7fb324bf98022635fa82e3acbb7b63f387c",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-actual-safe-result.json"
+    },
+    {
+      "sha256": "881db5568d572547868b15183cbc5ad71cbae759100177dd89cbb02d60de70af",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-actual-failure-rca.json"
+    },
+    {
+      "sha256": "f6d15fa6bcd3aeb39299bd4326d991f0f437b47a0c065df472b2beff497808e6",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-native-pins-r1-design-independent-review.json"
+    },
+    {
+      "sha256": "a6a93fd8682688bbf7b90b365d7f35201293d33d8a95889f54bb645b24e1e250",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-path-rendering-ruling.json"
+    },
+    {
+      "sha256": "e495835512a961eca623bdee0fea04b683dd1cc2ada17743534449fa3c00d6ba",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r2-source-handover.json"
+    }
+  ],
+  "files": [
+    {
+      "sha256": "73c6e04c644deb701a54d3e25c4b070bde1c5939db110357f25742c1475793a6",
+      "appendOnly": true,
+      "beforeBytes": 196638,
+      "beforeSha256": "89e2bd0e0926e136f02c3ffa4625bee5dc56f8af56c2f2fc29f09fb607914512",
+      "path": "docs/tasks/R1-results.md"
+    },
+    {
+      "sha256": "25cd17dfb7a1737904abb8d2b76c36b7863e80d17ab3c65d8d6293f79a54a172",
+      "appendOnly": true,
+      "beforeBytes": 573,
+      "beforeSha256": "f0c1b7e366e50700b687570a61b4df7fb7ca672e4be15981dac34dc41a483bfa",
+      "path": "docs/tasks/R1-03B-loader-capture.md"
+    },
+    {
+      "sha256": "b3d1f56e15a96335fd06895401095ec5af88574ee05059e3a04dafce2fb2588b",
+      "appendOnly": true,
+      "beforeBytes": 761,
+      "beforeSha256": "c6b438808abcddba250a032afc363c0fde11ab735a36aaf21ed2667aa0bcf5d7",
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md"
+    },
+    {
+      "sha256": "a38504bc0325ed8df5a9c9f8edd47d9692c705004e10e57ce51e594e54965b7d",
+      "appendOnly": true,
+      "beforeBytes": 206599,
+      "beforeSha256": "ef81929cfd8d17a6ac102e4a6a11266be664c00eba8e474d330252679c5fbbe6",
+      "path": "docs/tasks/ACTIVE.md"
+    },
+    {
+      "sha256": "dd6bf1e362689474bd011386df225be36b10ceff35c9e7d962f907b7cf715b83",
+      "appendOnly": true,
+      "beforeBytes": 15140,
+      "beforeSha256": "934e13aa8aada1795f2648441eb04ecdd4c3bdca065035b0eee3834e0bd8fc03",
+      "path": "docs/tasks/R1-00-baseline.md"
+    },
+    {
+      "newControlFile": true,
+      "bytes": 4103,
+      "runtimeAuthority": false,
+      "sha256": "0c37c73ff538099e74fece9ec516b15ee61e75b7795a796380d2045798f8ea05",
+      "path": "docs/tasks/contracts/R1-03B-LOADER-CAPTURE-r1-test-frozen.json"
+    },
+    {
+      "newControlFile": true,
+      "bytes": 6910,
+      "runtimeAuthority": false,
+      "sha256": "9d08898e94190b523903f77d1da06342a4280e9e341e60b7cc30dd737d5edd64",
+      "path": "docs/tasks/contracts/R1-02E-RUNTIME-ADAPTERS-r2-test-frozen.json"
+    }
+  ]
+}

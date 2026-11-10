@@ -1,0 +1,3197 @@
+{
+  "url": "https://multica.ai/zh",
+  "title": "Multica — 人和智能体团队的项目管理平台",
+  "lang": "zh-CN",
+  "docHeight": 900,
+  "scrollers": [
+    {
+      "tag": "div",
+      "className": "landing-light h-full overflow-x-hidden overflow-y-auto bg-white",
+      "scrollHeight": 6299,
+      "clientHeight": 900,
+      "overflowY": "auto",
+      "isDocument": false
+    }
+  ],
+  "contentHeight": 6299,
+  "viewport": {
+    "w": 1440,
+    "h": 900,
+    "dpr": 1.0000000298023224
+  },
+  "docHeadings": [
+    {
+      "tag": "h1",
+      "text": "让 Claude Code、Codex、Hermes或OpenCode 成为你的队友。 让 Claude Code Codex Hermes OpenCode 成为你的队友。",
+      "y": 116.67
+    },
+    {
+      "tag": "h2",
+      "text": "工作",
+      "y": 426.61
+    },
+    {
+      "tag": "h3",
+      "text": "视图",
+      "y": 463.91
+    },
+    {
+      "tag": "h3",
+      "text": "项目",
+      "y": 622.85
+    },
+    {
+      "tag": "h2",
+      "text": "动态",
+      "y": 439.04
+    },
+    {
+      "tag": "h2",
+      "text": "这些公司和高校的人在用 Multica",
+      "y": 1320.19
+    },
+    {
+      "tag": "h2",
+      "text": "为人和智能体组成的团队而生",
+      "y": 1628.45
+    },
+    {
+      "tag": "h3",
+      "text": "跑在你的机器上，也能跑在我们的云上",
+      "y": 2149.45
+    },
+    {
+      "tag": "h3",
+      "text": "工作流把每一步交接好",
+      "y": 2149.45
+    },
+    {
+      "tag": "h3",
+      "text": "在聊天里 @ 智能体",
+      "y": 2576.24
+    },
+    {
+      "tag": "h3",
+      "text": "Autopilot 按计划自动运行",
+      "y": 2576.24
+    },
+    {
+      "tag": "h3",
+      "text": "全队共享的技能",
+      "y": 2576.24
+    },
+    {
+      "tag": "h2",
+      "text": "不用学新的智能体。 直接用你已经在用的。",
+      "y": 2877.7
+    },
+    {
+      "tag": "h2",
+      "text": "最近发布。",
+      "y": 3543.16
+    },
+    {
+      "tag": "h2",
+      "text": "问与答。",
+      "y": 4205.93
+    },
+    {
+      "tag": "h3",
+      "text": "Multica 支持哪些编码 智能体？",
+      "y": 4288.59
+    },
+    {
+      "tag": "h3",
+      "text": "需要自托管吗，还是有云版本？",
+      "y": 4357.93
+    },
+    {
+      "tag": "h3",
+      "text": "可以商用吗？",
+      "y": 4427.26
+    },
+    {
+      "tag": "h3",
+      "text": "这和直接用编码 智能体 有什么区别？",
+      "y": 4496.59
+    },
+    {
+      "tag": "h3",
+      "text": "智能体 能自主处理长时间任务吗？",
+      "y": 4565.93
+    },
+    {
+      "tag": "h3",
+      "text": "我的代码安全吗？智能体 在哪里执行？",
+      "y": 4635.26
+    },
+    {
+      "tag": "h3",
+      "text": "我可以运行多少个 智能体？",
+      "y": 4704.59
+    },
+    {
+      "tag": "h2",
+      "text": "今天就让第一个智能体开工",
+      "y": 5109.93
+    }
+  ],
+  "nav": [
+    {
+      "text": "55.5k",
+      "href": "https://github.com/multica-ai/multica"
+    },
+    {
+      "text": "进入工作台",
+      "href": "/onboarding"
+    },
+    {
+      "text": "文档",
+      "href": "/docs/zh"
+    },
+    {
+      "text": "更新日志",
+      "href": "/zh/changelog"
+    },
+    {
+      "text": "下载",
+      "href": "/zh/download"
+    },
+    {
+      "text": "关于我们",
+      "href": "/zh/about"
+    },
+    {
+      "text": "联系销售",
+      "href": "/zh/contact-sales"
+    },
+    {
+      "text": "许可协议",
+      "href": "/zh/licensing"
+    },
+    {
+      "text": "隐私政策",
+      "href": "/zh/privacy"
+    }
+  ],
+  "linkCount": 25,
+  "sections": [
+    {
+      "index": 0,
+      "rect": {
+        "x": 0,
+        "y": 52.67,
+        "w": 1430,
+        "h": 1267.52
+      },
+      "tag": "section",
+      "id": null,
+      "className": "pt-site-hero pb-site-section",
+      "background": "rgba(0, 0, 0, 0)",
+      "headings": [
+        {
+          "tag": "h1",
+          "text": "让 Claude Code、Codex、Hermes或OpenCode 成为你的队友。 让 Claude Code Codex Hermes OpenCode 成为你的队友。",
+          "rect": {
+            "x": 75,
+            "y": 116.67,
+            "w": 1280,
+            "h": 42.06
+          },
+          "style": {
+            "fontSize": "40px",
+            "fontWeight": "400",
+            "lineHeight": "42px",
+            "letterSpacing": "-1.2px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h2",
+          "text": "工作",
+          "rect": {
+            "x": 143.16,
+            "y": 426.61,
+            "w": 28.42,
+            "h": 21.31
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "600",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "视图",
+          "rect": {
+            "x": 143.16,
+            "y": 463.91,
+            "w": 159.22,
+            "h": 14.21
+          },
+          "style": {
+            "fontSize": "12px",
+            "fontWeight": "500",
+            "lineHeight": "16px",
+            "letterSpacing": "normal",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "项目",
+          "rect": {
+            "x": 143.16,
+            "y": 622.85,
+            "w": 159.22,
+            "h": 14.21
+          },
+          "style": {
+            "fontSize": "12px",
+            "fontWeight": "500",
+            "lineHeight": "16px",
+            "letterSpacing": "normal",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h2",
+          "text": "动态",
+          "rect": {
+            "x": 907.01,
+            "y": 439.04,
+            "w": 419.23,
+            "h": 21.31
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "600",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "text": "下载 Windows 版",
+          "href": "https://github.com/multica-ai/multica/releases/download/v0.8.2/multica-desktop-0.8.2-windows-x64.exe",
+          "tag": "a",
+          "rect": {
+            "x": 75,
+            "y": 239.52,
+            "w": 188.03,
+            "h": 42
+          },
+          "style": {
+            "backgroundColor": "lab(2.51107 0.242703 -0.886115)",
+            "color": "lab(98.26 0 0)",
+            "borderRadius": "9999px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "0px 20px"
+          }
+        },
+        {
+          "text": "预约演示",
+          "href": "/zh/contact-sales",
+          "tag": "a",
+          "rect": {
+            "x": 273.03,
+            "y": 239.52,
+            "w": 105.33,
+            "h": 42
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "9999px",
+            "borderColor": "lab(84.9837 0.601262 -2.17986)",
+            "borderWidth": "0.666667px",
+            "fontSize": "16px",
+            "padding": "0px 20px"
+          }
+        },
+        {
+          "text": "其他版本：macOS · Linux",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 75,
+            "y": 293.52,
+            "w": 183.22,
+            "h": 19.59
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "borderRadius": "4px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "14px",
+            "padding": "0px"
+          }
+        },
+        {
+          "text": "交付一个功能",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 549,
+            "y": 365.52,
+            "w": 118,
+            "h": 28
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "borderRadius": "2.23696e+07px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "13px",
+            "padding": "0px 10px"
+          }
+        },
+        {
+          "text": "发布内容",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 669,
+            "y": 365.52,
+            "w": 92,
+            "h": 28
+          },
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "2.23696e+07px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "13px",
+            "padding": "0px 10px"
+          }
+        },
+        {
+          "text": "处理用户反馈",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 763,
+            "y": 365.52,
+            "w": 118,
+            "h": 28
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "borderRadius": "2.23696e+07px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "13px",
+            "padding": "0px 10px"
+          }
+        }
+      ],
+      "cards": [],
+      "images": [],
+      "textSample": "让 Claude Code、Codex、Hermes或OpenCode 成为你的队友。 让 Claude Code Codex Hermes OpenCode 成为你的队友。 你的团队和智能体共用一个工作空间：分派任务、跟进进度、审核结果，主动权始终在你手里。 下载 Windows 版 预约演示 其他版本：macOS · Linux 交付一个功能 发布内容 处理用户反馈 A 收件箱 3 工作 团队 聊天 自动化 MC 工作 视图 我的任务 我的智能体在做 全部任务 全部视图 3 项目 API 平台 12 自动化功能发布 9 自动化功能的发布文章 客户故事：Northwind Robotics 客户故事：Northwind Robotics v0.9 更新日志 v0.9 更新日志 用户反馈 7 移动应用 5 全部 8 个项目 自动化功能发布 2 个智能体工作中 需求 5 SR Sam Rivera ACM-213 6 月线上研讨会邀请邮件 SR Sam Rivera 2 小时前 ACM-211 对比页：Multica 和电子表格 SR Sam Rivera 5 小时前 ACM-210 日本发布的落地页 SR Sam Rivera 6 小时前 ACM-208 合作伙伴联合营销素材包 MC Mia Chen 1 天前 ACM-207 新用户第一周的引导邮件 SR Sam Rivera 1 天前 调研 4 Research Agent ACM-209 处理中 处理中 客户故事：Northwind Robotics Research Agent 3 分钟前 ACM-203 调研：团队为什么在第一个月流失 Research Agent 1 小时前 ACM-202 同类产品的定价页 Research Agent 2 小时前 ACM-201 文档里搜索最多的词 Research Agent 4 小时前 撰写 5 Content Agent ACM-204 处理中 处理中 v0.9 更新日志 Content Agent 刚刚 ACM-199 把首页翻译成日文 Content Agent 1 小时前 ACM-195 桌面端发布说明 Content Agent 2 小时前 ACM-194 博客：我们怎么用智能体分诊 Content Agent 3 小时前 ACM-192 帮助中心：工作流状态 Content Agent 5 小时前 编辑 4 SR Sam Rivera ACM-198 周报：5 月产品回顾 SR Sam Rivera 20 分钟前 ACM-196 案例研究：Acme Robotics SR Sam Rivera 3 小时前 ACM-188 邮件：邀请你的团队 SR Sam Rivera 4 小时前 ACM-186 文档：API 限流 SR Sam Rivera 5"
+    },
+    {
+      "index": 1,
+      "rect": {
+        "x": 132.5,
+        "y": 458.58,
+        "w": 198.29,
+        "h": 141.19
+      },
+      "tag": "section",
+      "id": null,
+      "className": "mt-5 first:mt-0",
+      "background": "rgba(0, 0, 0, 0)",
+      "headings": [
+        {
+          "tag": "h3",
+          "text": "视图",
+          "rect": {
+            "x": 143.16,
+            "y": 463.91,
+            "w": 159.22,
+            "h": 14.21
+          },
+          "style": {
+            "fontSize": "12px",
+            "fontWeight": "500",
+            "lineHeight": "16px",
+            "letterSpacing": "normal",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "textAlign": "start"
+          }
+        }
+      ],
+      "buttons": [],
+      "cards": [],
+      "images": [],
+      "textSample": "视图 我的任务 我的智能体在做 全部任务 全部视图 3"
+    },
+    {
+      "index": 2,
+      "rect": {
+        "x": -11.06,
+        "y": 465.69,
+        "w": 248.69,
+        "h": 727.96
+      },
+      "tag": "section",
+      "id": null,
+      "className": "flex shrink-0 flex-col rounded-xl bg-muted/40 p-2",
+      "background": "oklab(0.966998 0.000272095 -0.000936747 / 0.4)",
+      "headings": [],
+      "buttons": [],
+      "cards": [],
+      "images": [],
+      "textSample": "需求 5 SR Sam Rivera ACM-213 6 月线上研讨会邀请邮件 SR Sam Rivera 2 小时前 ACM-211 对比页：Multica 和电子表格 SR Sam Rivera 5 小时前 ACM-210 日本发布的落地页 SR Sam Rivera 6 小时前 ACM-208 合作伙伴联合营销素材包 MC Mia Chen 1 天前 ACM-207 新用户第一周的引导邮件 SR Sam Rivera 1 天前"
+    },
+    {
+      "index": 3,
+      "rect": {
+        "x": 132.5,
+        "y": 617.53,
+        "w": 198.29,
+        "h": 245.96
+      },
+      "tag": "section",
+      "id": null,
+      "className": "mt-5 first:mt-0",
+      "background": "rgba(0, 0, 0, 0)",
+      "headings": [
+        {
+          "tag": "h3",
+          "text": "项目",
+          "rect": {
+            "x": 143.16,
+            "y": 622.85,
+            "w": 159.22,
+            "h": 14.21
+          },
+          "style": {
+            "fontSize": "12px",
+            "fontWeight": "500",
+            "lineHeight": "16px",
+            "letterSpacing": "normal",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "textAlign": "start"
+          }
+        }
+      ],
+      "buttons": [],
+      "cards": [],
+      "images": [],
+      "textSample": "项目 API 平台 12 自动化功能发布 9 自动化功能的发布文章 客户故事：Northwind Robotics 客户故事：Northwind Robotics v0.9 更新日志 v0.9 更新日志 用户反馈 7 移动应用 5 全部 8 个项目"
+    },
+    {
+      "index": 4,
+      "rect": {
+        "x": 0,
+        "y": 1320.19,
+        "w": 1430,
+        "h": 195.59
+      },
+      "tag": "section",
+      "id": null,
+      "className": "pb-site-section",
+      "background": "rgba(0, 0, 0, 0)",
+      "headings": [
+        {
+          "tag": "h2",
+          "text": "这些公司和高校的人在用 Multica",
+          "rect": {
+            "x": 75,
+            "y": 1320.19,
+            "w": 1280,
+            "h": 19.59
+          },
+          "style": {
+            "fontSize": "14px",
+            "fontWeight": "400",
+            "lineHeight": "19.6px",
+            "letterSpacing": "normal",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "textAlign": "center"
+          }
+        }
+      ],
+      "buttons": [],
+      "cards": [],
+      "images": [],
+      "textSample": "这些公司和高校的人在用 Multica"
+    },
+    {
+      "index": 5,
+      "rect": {
+        "x": 0,
+        "y": 1515.78,
+        "w": 1430,
+        "h": 4026.54
+      },
+      "tag": "div",
+      "id": null,
+      "className": "site-rails",
+      "background": "rgba(0, 0, 0, 0)",
+      "headings": [
+        {
+          "tag": "h2",
+          "text": "为人和智能体组成的团队而生",
+          "rect": {
+            "x": 135,
+            "y": 1628.45,
+            "w": 704,
+            "h": 42
+          },
+          "style": {
+            "fontSize": "40px",
+            "fontWeight": "400",
+            "lineHeight": "42px",
+            "letterSpacing": "-1.2px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "跑在你的机器上，也能跑在我们的云上",
+          "rect": {
+            "x": 135,
+            "y": 2149.45,
+            "w": 564,
+            "h": 24
+          },
+          "style": {
+            "fontSize": "20px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "-0.2px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "工作流把每一步交接好",
+          "rect": {
+            "x": 731,
+            "y": 2149.45,
+            "w": 564,
+            "h": 24
+          },
+          "style": {
+            "fontSize": "20px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "-0.2px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "在聊天里 @ 智能体",
+          "rect": {
+            "x": 135,
+            "y": 2576.24,
+            "w": 365.33,
+            "h": 24
+          },
+          "style": {
+            "fontSize": "20px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "-0.2px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "Autopilot 按计划自动运行",
+          "rect": {
+            "x": 532.33,
+            "y": 2576.24,
+            "w": 365.33,
+            "h": 24
+          },
+          "style": {
+            "fontSize": "20px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "-0.2px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "全队共享的技能",
+          "rect": {
+            "x": 929.67,
+            "y": 2576.24,
+            "w": 365.33,
+            "h": 24
+          },
+          "style": {
+            "fontSize": "20px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "-0.2px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h2",
+          "text": "不用学新的智能体。 直接用你已经在用的。",
+          "rect": {
+            "x": 135,
+            "y": 2877.7,
+            "w": 704,
+            "h": 84
+          },
+          "style": {
+            "fontSize": "40px",
+            "fontWeight": "400",
+            "lineHeight": "42px",
+            "letterSpacing": "-1.2px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h2",
+          "text": "最近发布。",
+          "rect": {
+            "x": 135,
+            "y": 3543.16,
+            "w": 365.33,
+            "h": 42
+          },
+          "style": {
+            "fontSize": "40px",
+            "fontWeight": "400",
+            "lineHeight": "42px",
+            "letterSpacing": "-1.2px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h2",
+          "text": "问与答。",
+          "rect": {
+            "x": 637.4,
+            "y": 4205.93,
+            "w": 155.21,
+            "h": 42
+          },
+          "style": {
+            "fontSize": "40px",
+            "fontWeight": "400",
+            "lineHeight": "42px",
+            "letterSpacing": "-1.2px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "center"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "Multica 支持哪些编码 智能体？",
+          "rect": {
+            "x": 331.67,
+            "y": 4288.59,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "需要自托管吗，还是有云版本？",
+          "rect": {
+            "x": 331.67,
+            "y": 4357.93,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "可以商用吗？",
+          "rect": {
+            "x": 331.67,
+            "y": 4427.26,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "这和直接用编码 智能体 有什么区别？",
+          "rect": {
+            "x": 331.67,
+            "y": 4496.59,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "智能体 能自主处理长时间任务吗？",
+          "rect": {
+            "x": 331.67,
+            "y": 4565.93,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "我的代码安全吗？智能体 在哪里执行？",
+          "rect": {
+            "x": 331.67,
+            "y": 4635.26,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "我可以运行多少个 智能体？",
+          "rect": {
+            "x": 331.67,
+            "y": 4704.59,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h2",
+          "text": "今天就让第一个智能体开工",
+          "rect": {
+            "x": 401,
+            "y": 5109.93,
+            "w": 628,
+            "h": 128
+          },
+          "style": {
+            "fontSize": "64px",
+            "fontWeight": "400",
+            "lineHeight": "64px",
+            "letterSpacing": "-1.92px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "center"
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "text": "全部 27 款智能体",
+          "href": "/docs/zh/providers",
+          "tag": "a",
+          "rect": {
+            "x": 143,
+            "y": 3262.49,
+            "w": 154.34,
+            "h": 28
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "9999px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "14px",
+            "padding": "0px 12px"
+          }
+        },
+        {
+          "text": "最新 · 11月10日 v0.8.2 外观设置与内置主题",
+          "href": "/zh/changelog#release-0-8-2",
+          "tag": "a",
+          "rect": {
+            "x": 135,
+            "y": 3793.27,
+            "w": 320,
+            "h": 159.99
+          },
+          "style": {
+            "backgroundColor": "lab(95.8128 0.129491 -0.47313)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "20px"
+          }
+        },
+        {
+          "text": "11月10日 外观设置与内置主题 +2 项 v0.8.2",
+          "href": "/zh/changelog#release-0-8-2",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3515.82,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "11月6日 技能版本历史与恢复 +2 项 v0.8.1",
+          "href": "/zh/changelog#release-0-8-1",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3570.89,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "11月3日 全新工作区布局 +2 项 v0.8.0",
+          "href": "/zh/changelog#release-0-8-0",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3625.95,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "10月30日 全新 ⌘K 命令栏 +2 项 v0.7.2",
+          "href": "/zh/changelog#release-0-7-2",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3681.01,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "10月27日 统一智能体工作规则 +2 项 v0.7.1",
+          "href": "/zh/changelog#release-0-7-1",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3736.07,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "10月23日 全面开放 workflow 功能 +2 项 v0.7.0",
+          "href": "/zh/changelog#release-0-7-0",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3791.14,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "10月21日 项目外 Issue 状态更清楚 +3 项 v0.6.5",
+          "href": "/zh/changelog#release-0-6-5",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3846.2,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "全部版本",
+          "href": "/zh/changelog",
+          "tag": "a",
+          "rect": {
+            "x": 552.33,
+            "y": 3925.26,
+            "w": 102,
+            "h": 28
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "9999px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "14px",
+            "padding": "0px 12px"
+          }
+        },
+        {
+          "text": "Multica 支持哪些编码 智能体？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4288.59,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        },
+        {
+          "text": "需要自托管吗，还是有云版本？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4357.93,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        },
+        {
+          "text": "可以商用吗？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4427.26,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        },
+        {
+          "text": "授权说明",
+          "href": "/zh/licensing",
+          "tag": "a",
+          "rect": {
+            "x": 543.67,
+            "y": 4529.39,
+            "w": 64,
+            "h": 19.33
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "0px"
+          }
+        },
+        {
+          "text": "这和直接用编码 智能体 有什么区别？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4496.59,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        },
+        {
+          "text": "智能体 能自主处理长时间任务吗？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4565.93,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        },
+        {
+          "text": "我的代码安全吗？智能体 在哪里执行？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4635.26,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        },
+        {
+          "text": "隐私政策",
+          "href": "/zh/privacy",
+          "tag": "a",
+          "rect": {
+            "x": 523.03,
+            "y": 4759.78,
+            "w": 64,
+            "h": 19.33
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "0px"
+          }
+        },
+        {
+          "text": "我可以运行多少个 智能体？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4704.59,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        },
+        {
+          "text": "开始使用",
+          "href": "/login",
+          "tag": "a",
+          "rect": {
+            "x": 605.33,
+            "y": 5308.32,
+            "w": 104,
+            "h": 42
+          },
+          "style": {
+            "backgroundColor": "lab(2.51107 0.242703 -0.886115)",
+            "color": "lab(98.26 0 0)",
+            "borderRadius": "9999px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "0px 20px"
+          }
+        },
+        {
+          "text": "预约演示",
+          "href": "/zh/contact-sales",
+          "tag": "a",
+          "rect": {
+            "x": 719.33,
+            "y": 5308.32,
+            "w": 105.33,
+            "h": 42
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "9999px",
+            "borderColor": "lab(84.9837 0.601262 -2.17986)",
+            "borderWidth": "0.666667px",
+            "fontSize": "16px",
+            "padding": "0px 20px"
+          }
+        }
+      ],
+      "cards": [
+        {
+          "rect": {
+            "x": 331,
+            "y": 4287.93,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "Multica 支持哪些编码 智能体？",
+          "description": "Multica 开箱即用支持 29 款 AI 编程工具：Antigravity、Claude Code、CodeBuddy、CodeArts、Codex、Copilot、Cursor、DeepSeek Harness、DevEco Code、Devin CLI、Dim、Grok、Hermes、Kimi、Kiro CLI、MiniMax Code、Muse Code、Oh-My-Pi、OpenClaw、OpenCode、Pi、Qoder、Qoder CN、Qwen Code、QwenPaw、Reasonix、Trae CLI、ZeroClaw、ZCode。守护进程会自动检测本机已安装的 CLI 并为每款注册一个运行时。因为源码公开，你也可以自己添加后端。 自托管部署还可以使用 Qoder PAT 和 Qoder Cloud Agents 中已有的智能体，将 Qoder Cloud Agent",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        },
+        {
+          "rect": {
+            "x": 331,
+            "y": 4357.26,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "需要自托管吗，还是有云版本？",
+          "description": "两者都有。你可以用 Docker Compose 或 Kubernetes 在自己的基础设施上自托管 Multica，也可以使用我们的托管云版本。你的数据，你选择。",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        },
+        {
+          "rect": {
+            "x": 331,
+            "y": 4426.59,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "可以商用吗？",
+          "description": "可以。在你自己的组织内部使用 Multica 是免费的，包括为整个团队自托管。只有两种情况需要商业授权：把 Multica 提供给组织外部的人使用（比如作为托管服务或代运维服务），或者把它嵌入你销售或分发的产品中。常见场景见授权说明。",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        },
+        {
+          "rect": {
+            "x": 331,
+            "y": 4495.93,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "这和直接用编码 智能体 有什么区别？",
+          "description": "编码 智能体 擅长执行。Multica 添加的是管理层：任务队列、团队协作、技能复用、运行时监控，以及每个 智能体 在做什么的统一视图。把它想象成你的 智能体 的项目经理。",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        },
+        {
+          "rect": {
+            "x": 331,
+            "y": 4565.26,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "智能体 能自主处理长时间任务吗？",
+          "description": "可以。Multica 管理完整的任务生命周期——入队、领取、执行、完成或失败。智能体 主动报告阻塞并实时推送进度。你可以随时查看，也可以让它们运行整晚。",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        },
+        {
+          "rect": {
+            "x": 331,
+            "y": 4634.59,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "我的代码安全吗？智能体 在哪里执行？",
+          "description": "智能体在你的机器（通过本地守护进程）或你连接的运行时上运行，直接在你的代码仓库里工作。工作区里的内容——任务、评论、聊天消息、附件，以及智能体上报的进度——由 Multica 存储；智能体所用的编码工具会把提示词和代码发送给你配置的模型服务商。想让工作区数据留在自己的服务器上，可以自托管 Multica。详见隐私政策。",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        },
+        {
+          "rect": {
+            "x": 331,
+            "y": 4703.93,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "我可以运行多少个 智能体？",
+          "description": "取决于你的硬件。每个 智能体 有可配置的并发限制，你可以连接多台机器作为运行时。自托管时没有任何人为限制。",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        }
+      ],
+      "images": [],
+      "textSample": "为人和智能体组成的团队而生 A 收件箱 3 工作 团队 聊天 自动化 MC 全部运行时 机器 2 build-02 Linux · Leo Park Mia 的 MacBook Pro 本机 云服务 1 Multica Cloud 云沙箱 跑在你的机器上，也能跑在我们的云上 一条命令接入笔记本或服务器，Multica 会自动找到上面装好的编码智能体。也可以直接在托管的云沙箱里运行。 A 收件箱 3 工作 团队 聊天 自动化 MC 工作流 交付一个功能 方案 Lead Agent 开发 Backend Agent 代码审查 QA Agent 审批 Mia Chen 已上线 最后一步 开发 进入时交给 Backend Agent 完成后进入 代码审查 交接说明 按方案开发，完成后提交 pull request。 工作流把每一步交接好 给每个状态指定负责人。Issue 进入下一步，就自动交给这一步的智能体或同事。 Acme Labs 频道 general eng-support releases random 应用 Multica eng-support MC Mia Chen 11:55 超过 1 万行的导出会超时。 @Backend Agent 能看一下吗？ Backend Agent APP 11:56 已经建好任务，开始修了。 Multica ACM-151 CSV 导出超时 进行中 处理中 处理中 发消息到 #eng-support 在聊天里 @ 智能体 在 Slack、飞书、钉钉、企业微信或 Telegram 里都可以。智能体会读完对话、建好 Issue，然后开工。 A 收件箱 3 工作 团队 聊天 自动化 MC 全部自动化 名称 智能体 下次运行 夜间分诊 今晚 02:00 不稳定的测试 4 小时后 依赖升级 周一 09:00 每周摘要 周五 17:00 视觉检查 下次发布 Autopilot 按计划自动运行 依赖升级、问题分诊、定期报告，每小时或每周一自动建好 Issue，交到智能体手里。 A 收件箱 3 工作 团队 聊天 自动化 MC 全部 skill 名称 使用者 写发布说明 +1 审查数据库迁移 分诊 bug 报告 部署检查清单 回复客户 全队共享的技能 团队做一件事的方法只要写一次，每个智能体都会照着做。 不用学新的智能体。 直接用你已经在用的。 Claude Code Codex Cursor GitHub Copilot OpenCode Hermes Antigravity Qwen Code 全部 27 款智能体 更新日志 最近发布。 最新 · 11月10日 v0.8.2 外观设置与内置主题 11月10日 外观设置与内置主题 +2 项 v0.8.2 11月6日 技能版本历史与恢复 +2 项 v0.8.1 11月3日 全新工作区布局 "
+    },
+    {
+      "index": 6,
+      "rect": {
+        "x": 0,
+        "y": 2765.03,
+        "w": 1430,
+        "h": 637.46
+      },
+      "tag": "section",
+      "id": null,
+      "className": "border-t border-site-rule py-site-section",
+      "background": "rgba(0, 0, 0, 0)",
+      "headings": [
+        {
+          "tag": "h2",
+          "text": "不用学新的智能体。 直接用你已经在用的。",
+          "rect": {
+            "x": 135,
+            "y": 2877.7,
+            "w": 704,
+            "h": 84
+          },
+          "style": {
+            "fontSize": "40px",
+            "fontWeight": "400",
+            "lineHeight": "42px",
+            "letterSpacing": "-1.2px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "text": "全部 27 款智能体",
+          "href": "/docs/zh/providers",
+          "tag": "a",
+          "rect": {
+            "x": 143,
+            "y": 3262.49,
+            "w": 154.34,
+            "h": 28
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "9999px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "14px",
+            "padding": "0px 12px"
+          }
+        }
+      ],
+      "cards": [],
+      "images": [],
+      "textSample": "不用学新的智能体。 直接用你已经在用的。 Claude Code Codex Cursor GitHub Copilot OpenCode Hermes Antigravity Qwen Code 全部 27 款智能体"
+    },
+    {
+      "index": 7,
+      "rect": {
+        "x": 0,
+        "y": 3402.49,
+        "w": 1430,
+        "h": 662.77
+      },
+      "tag": "section",
+      "id": null,
+      "className": "border-t border-site-rule py-site-section",
+      "background": "rgba(0, 0, 0, 0)",
+      "headings": [
+        {
+          "tag": "h2",
+          "text": "最近发布。",
+          "rect": {
+            "x": 135,
+            "y": 3543.16,
+            "w": 365.33,
+            "h": 42
+          },
+          "style": {
+            "fontSize": "40px",
+            "fontWeight": "400",
+            "lineHeight": "42px",
+            "letterSpacing": "-1.2px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "text": "最新 · 11月10日 v0.8.2 外观设置与内置主题",
+          "href": "/zh/changelog#release-0-8-2",
+          "tag": "a",
+          "rect": {
+            "x": 135,
+            "y": 3793.27,
+            "w": 320,
+            "h": 159.99
+          },
+          "style": {
+            "backgroundColor": "lab(95.8128 0.129491 -0.47313)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "20px"
+          }
+        },
+        {
+          "text": "11月10日 外观设置与内置主题 +2 项 v0.8.2",
+          "href": "/zh/changelog#release-0-8-2",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3515.82,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "11月6日 技能版本历史与恢复 +2 项 v0.8.1",
+          "href": "/zh/changelog#release-0-8-1",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3570.89,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "11月3日 全新工作区布局 +2 项 v0.8.0",
+          "href": "/zh/changelog#release-0-8-0",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3625.95,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "10月30日 全新 ⌘K 命令栏 +2 项 v0.7.2",
+          "href": "/zh/changelog#release-0-7-2",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3681.01,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "10月27日 统一智能体工作规则 +2 项 v0.7.1",
+          "href": "/zh/changelog#release-0-7-1",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3736.07,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "10月23日 全面开放 workflow 功能 +2 项 v0.7.0",
+          "href": "/zh/changelog#release-0-7-0",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3791.14,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "10月21日 项目外 Issue 状态更清楚 +3 项 v0.6.5",
+          "href": "/zh/changelog#release-0-6-5",
+          "tag": "a",
+          "rect": {
+            "x": 564.33,
+            "y": 3846.2,
+            "w": 730.67,
+            "h": 54.4
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 0px"
+          }
+        },
+        {
+          "text": "全部版本",
+          "href": "/zh/changelog",
+          "tag": "a",
+          "rect": {
+            "x": 552.33,
+            "y": 3925.26,
+            "w": 102,
+            "h": 28
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "9999px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "14px",
+            "padding": "0px 12px"
+          }
+        }
+      ],
+      "cards": [],
+      "images": [],
+      "textSample": "更新日志 最近发布。 最新 · 11月10日 v0.8.2 外观设置与内置主题 11月10日 外观设置与内置主题 +2 项 v0.8.2 11月6日 技能版本历史与恢复 +2 项 v0.8.1 11月3日 全新工作区布局 +2 项 v0.8.0 10月30日 全新 ⌘K 命令栏 +2 项 v0.7.2 10月27日 统一智能体工作规则 +2 项 v0.7.1 10月23日 全面开放 workflow 功能 +2 项 v0.7.0 10月21日 项目外 Issue 状态更清楚 +3 项 v0.6.5 全部版本"
+    },
+    {
+      "index": 8,
+      "rect": {
+        "x": 0,
+        "y": 4065.26,
+        "w": 1430,
+        "h": 812
+      },
+      "tag": "section",
+      "id": "faq",
+      "className": "border-t border-site-rule py-site-section",
+      "background": "rgba(0, 0, 0, 0)",
+      "headings": [
+        {
+          "tag": "h2",
+          "text": "问与答。",
+          "rect": {
+            "x": 637.4,
+            "y": 4205.93,
+            "w": 155.21,
+            "h": 42
+          },
+          "style": {
+            "fontSize": "40px",
+            "fontWeight": "400",
+            "lineHeight": "42px",
+            "letterSpacing": "-1.2px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "center"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "Multica 支持哪些编码 智能体？",
+          "rect": {
+            "x": 331.67,
+            "y": 4288.59,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "需要自托管吗，还是有云版本？",
+          "rect": {
+            "x": 331.67,
+            "y": 4357.93,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "可以商用吗？",
+          "rect": {
+            "x": 331.67,
+            "y": 4427.26,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "这和直接用编码 智能体 有什么区别？",
+          "rect": {
+            "x": 331.67,
+            "y": 4496.59,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "智能体 能自主处理长时间任务吗？",
+          "rect": {
+            "x": 331.67,
+            "y": 4565.93,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "我的代码安全吗？智能体 在哪里执行？",
+          "rect": {
+            "x": 331.67,
+            "y": 4635.26,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        },
+        {
+          "tag": "h3",
+          "text": "我可以运行多少个 智能体？",
+          "rect": {
+            "x": 331.67,
+            "y": 4704.59,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "fontSize": "16px",
+            "fontWeight": "400",
+            "lineHeight": "24px",
+            "letterSpacing": "normal",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "start"
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Multica 支持哪些编码 智能体？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4288.59,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        },
+        {
+          "text": "需要自托管吗，还是有云版本？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4357.93,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        },
+        {
+          "text": "可以商用吗？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4427.26,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        },
+        {
+          "text": "授权说明",
+          "href": "/zh/licensing",
+          "tag": "a",
+          "rect": {
+            "x": 543.67,
+            "y": 4529.39,
+            "w": 64,
+            "h": 19.33
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "0px"
+          }
+        },
+        {
+          "text": "这和直接用编码 智能体 有什么区别？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4496.59,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        },
+        {
+          "text": "智能体 能自主处理长时间任务吗？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4565.93,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        },
+        {
+          "text": "我的代码安全吗？智能体 在哪里执行？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4635.26,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        },
+        {
+          "text": "隐私政策",
+          "href": "/zh/privacy",
+          "tag": "a",
+          "rect": {
+            "x": 523.03,
+            "y": 4759.78,
+            "w": 64,
+            "h": 19.33
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "0px"
+          }
+        },
+        {
+          "text": "我可以运行多少个 智能体？",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 331.67,
+            "y": 4704.59,
+            "w": 766.67,
+            "h": 60
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "12px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "16px 20px"
+          }
+        }
+      ],
+      "cards": [
+        {
+          "rect": {
+            "x": 331,
+            "y": 4287.93,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "Multica 支持哪些编码 智能体？",
+          "description": "Multica 开箱即用支持 29 款 AI 编程工具：Antigravity、Claude Code、CodeBuddy、CodeArts、Codex、Copilot、Cursor、DeepSeek Harness、DevEco Code、Devin CLI、Dim、Grok、Hermes、Kimi、Kiro CLI、MiniMax Code、Muse Code、Oh-My-Pi、OpenClaw、OpenCode、Pi、Qoder、Qoder CN、Qwen Code、QwenPaw、Reasonix、Trae CLI、ZeroClaw、ZCode。守护进程会自动检测本机已安装的 CLI 并为每款注册一个运行时。因为源码公开，你也可以自己添加后端。 自托管部署还可以使用 Qoder PAT 和 Qoder Cloud Agents 中已有的智能体，将 Qoder Cloud Agent",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        },
+        {
+          "rect": {
+            "x": 331,
+            "y": 4357.26,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "需要自托管吗，还是有云版本？",
+          "description": "两者都有。你可以用 Docker Compose 或 Kubernetes 在自己的基础设施上自托管 Multica，也可以使用我们的托管云版本。你的数据，你选择。",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        },
+        {
+          "rect": {
+            "x": 331,
+            "y": 4426.59,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "可以商用吗？",
+          "description": "可以。在你自己的组织内部使用 Multica 是免费的，包括为整个团队自托管。只有两种情况需要商业授权：把 Multica 提供给组织外部的人使用（比如作为托管服务或代运维服务），或者把它嵌入你销售或分发的产品中。常见场景见授权说明。",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        },
+        {
+          "rect": {
+            "x": 331,
+            "y": 4495.93,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "这和直接用编码 智能体 有什么区别？",
+          "description": "编码 智能体 擅长执行。Multica 添加的是管理层：任务队列、团队协作、技能复用、运行时监控，以及每个 智能体 在做什么的统一视图。把它想象成你的 智能体 的项目经理。",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        },
+        {
+          "rect": {
+            "x": 331,
+            "y": 4565.26,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "智能体 能自主处理长时间任务吗？",
+          "description": "可以。Multica 管理完整的任务生命周期——入队、领取、执行、完成或失败。智能体 主动报告阻塞并实时推送进度。你可以随时查看，也可以让它们运行整晚。",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        },
+        {
+          "rect": {
+            "x": 331,
+            "y": 4634.59,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "我的代码安全吗？智能体 在哪里执行？",
+          "description": "智能体在你的机器（通过本地守护进程）或你连接的运行时上运行，直接在你的代码仓库里工作。工作区里的内容——任务、评论、聊天消息、附件，以及智能体上报的进度——由 Multica 存储；智能体所用的编码工具会把提示词和代码发送给你配置的模型服务商。想让工作区数据留在自己的服务器上，可以自托管 Multica。详见隐私政策。",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        },
+        {
+          "rect": {
+            "x": 331,
+            "y": 4703.93,
+            "w": 768,
+            "h": 61.33
+          },
+          "title": "我可以运行多少个 智能体？",
+          "description": "取决于你的硬件。每个 智能体 有可配置的并发限制，你可以连接多台机器作为运行时。自托管时没有任何人为限制。",
+          "style": {
+            "backgroundColor": "lab(100 0 0)",
+            "borderRadius": "12px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "padding": "0px",
+            "boxShadow": "none"
+          }
+        }
+      ],
+      "images": [],
+      "textSample": "常见问题 问与答。 Multica 支持哪些编码 智能体？ Multica 开箱即用支持 29 款 AI 编程工具：Antigravity、Claude Code、CodeBuddy、CodeArts、Codex、Copilot、Cursor、DeepSeek Harness、DevEco Code、Devin CLI、Dim、Grok、Hermes、Kimi、Kiro CLI、MiniMax Code、Muse Code、Oh-My-Pi、OpenClaw、OpenCode、Pi、Qoder、Qoder CN、Qwen Code、QwenPaw、Reasonix、Trae CLI、ZeroClaw、ZCode。守护进程会自动检测本机已安装的 CLI 并为每款注册一个运行时。因为源码公开，你也可以自己添加后端。 自托管部署还可以使用 Qoder PAT 和 Qoder Cloud Agents 中已有的智能体，将 Qoder Cloud Agents 配置为执行任务的托管远端运行时。 需要自托管吗，还是有云版本？ 两者都有。你可以用 Docker Compose 或 Kubernetes 在自己的基础设施上自托管 Multica，也可以使用我们的托管云版本。你的数据，你选择。 可以商用吗？ 可以。在你自己的组织内部使用 Multica 是免费的，包括为整个团队自托管。只有两种情况需要商业授权：把 Multica 提供给组织外部的人使用（比如作为托管服务或代运维服务），或者把它嵌入你销售或分发的产品中。常见场景见授权说明。 这和直接用编码 智能体 有什么区别？ 编码 智能体 擅长执行。Multica 添加的是管理层：任务队列、团队协作、技能复用、运行时监控，以及每个 智能体 在做什么的统一视图。把它想象成你的 智能体 的项目经理。 智能体 能自主处理长时间任务吗？ 可以。Multica 管理完整的任务生命周期——入队、领取、执行、完成或失败。智能体 主动报告阻塞并实时推送进度。你可以随时查看，也可以让它们运行整晚。 我的代码安全吗？智能体 在哪里执行？ 智能体在你的机器（通过本地守护进程）或你连接的运行时上运行，直接在你的代码仓库里工作。工作区里的内容——任务、评论、聊天消息、附件，以及智能体上报的进度——由 Multica 存储；智能体所用的编码工具会把提示词和代码发送给你配置的模型服务商。想让工作区数据留在自己的服务器上，可以自托管 Multica。详见隐私政策。 我可以运行多少个 智能体？ 取决于你的硬件。每个 智能体 有可配置的并发限制，你可以连接多台机器作为运行时。自托管时没有任何人为限制。"
+    },
+    {
+      "index": 9,
+      "rect": {
+        "x": 0,
+        "y": 4877.26,
+        "w": 1430,
+        "h": 665.06
+      },
+      "tag": "section",
+      "id": null,
+      "className": "border-t border-site-rule py-site-section py-0",
+      "background": "rgba(0, 0, 0, 0)",
+      "headings": [
+        {
+          "tag": "h2",
+          "text": "今天就让第一个智能体开工",
+          "rect": {
+            "x": 401,
+            "y": 5109.93,
+            "w": 628,
+            "h": 128
+          },
+          "style": {
+            "fontSize": "64px",
+            "fontWeight": "400",
+            "lineHeight": "64px",
+            "letterSpacing": "-1.92px",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "textAlign": "center"
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "text": "开始使用",
+          "href": "/login",
+          "tag": "a",
+          "rect": {
+            "x": 605.33,
+            "y": 5308.32,
+            "w": 104,
+            "h": 42
+          },
+          "style": {
+            "backgroundColor": "lab(2.51107 0.242703 -0.886115)",
+            "color": "lab(98.26 0 0)",
+            "borderRadius": "9999px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "16px",
+            "padding": "0px 20px"
+          }
+        },
+        {
+          "text": "预约演示",
+          "href": "/zh/contact-sales",
+          "tag": "a",
+          "rect": {
+            "x": 719.33,
+            "y": 5308.32,
+            "w": 105.33,
+            "h": 42
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(2.51107 0.242703 -0.886115)",
+            "borderRadius": "9999px",
+            "borderColor": "lab(84.9837 0.601262 -2.17986)",
+            "borderWidth": "0.666667px",
+            "fontSize": "16px",
+            "padding": "0px 20px"
+          }
+        }
+      ],
+      "cards": [],
+      "images": [],
+      "textSample": "今天就让第一个智能体开工 接入你已经在用的智能体，给它派第一个 Issue。 开始使用 预约演示"
+    },
+    {
+      "index": 10,
+      "rect": {
+        "x": 0,
+        "y": 5542.32,
+        "w": 1430,
+        "h": 756.49
+      },
+      "tag": "footer",
+      "id": null,
+      "className": "border-t border-site-rule bg-site-canvas text-site-ink",
+      "background": "lab(98.608 0 0)",
+      "headings": [],
+      "buttons": [
+        {
+          "text": "中文",
+          "href": null,
+          "tag": "button",
+          "rect": {
+            "x": 135,
+            "y": 5801.25,
+            "w": 95.33,
+            "h": 32
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "borderRadius": "9999px",
+            "borderColor": "lab(91.2653 0.399232 -1.45454)",
+            "borderWidth": "0.666667px",
+            "fontSize": "14px",
+            "padding": "8px 8px 8px 10px"
+          }
+        },
+        {
+          "text": "文档",
+          "href": "/docs/zh",
+          "tag": "a",
+          "rect": {
+            "x": 473,
+            "y": 5683.25,
+            "w": 46,
+            "h": 23.59
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "borderRadius": "4px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "14px",
+            "padding": "2px 0px"
+          }
+        },
+        {
+          "text": "更新日志",
+          "href": "/zh/changelog",
+          "tag": "a",
+          "rect": {
+            "x": 473,
+            "y": 5711.51,
+            "w": 56,
+            "h": 23.59
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "borderRadius": "4px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "14px",
+            "padding": "2px 0px"
+          }
+        },
+        {
+          "text": "下载",
+          "href": "/zh/download",
+          "tag": "a",
+          "rect": {
+            "x": 473,
+            "y": 5739.77,
+            "w": 28,
+            "h": 23.59
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "borderRadius": "4px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "14px",
+            "padding": "2px 0px"
+          }
+        },
+        {
+          "text": "关于我们",
+          "href": "/zh/about",
+          "tag": "a",
+          "rect": {
+            "x": 752.33,
+            "y": 5683.25,
+            "w": 56,
+            "h": 23.59
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "borderRadius": "4px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "14px",
+            "padding": "2px 0px"
+          }
+        },
+        {
+          "text": "联系销售",
+          "href": "/zh/contact-sales",
+          "tag": "a",
+          "rect": {
+            "x": 752.33,
+            "y": 5711.51,
+            "w": 56,
+            "h": 23.59
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "borderRadius": "4px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "14px",
+            "padding": "2px 0px"
+          }
+        },
+        {
+          "text": "许可协议",
+          "href": "/zh/licensing",
+          "tag": "a",
+          "rect": {
+            "x": 1031.67,
+            "y": 5683.25,
+            "w": 56,
+            "h": 23.59
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "borderRadius": "4px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "14px",
+            "padding": "2px 0px"
+          }
+        },
+        {
+          "text": "隐私政策",
+          "href": "/zh/privacy",
+          "tag": "a",
+          "rect": {
+            "x": 1031.67,
+            "y": 5711.51,
+            "w": 56,
+            "h": 23.59
+          },
+          "style": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "lab(42.4351 1.66494 -5.7671)",
+            "borderRadius": "4px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "fontSize": "14px",
+            "padding": "2px 0px"
+          }
+        }
+      ],
+      "cards": [],
+      "images": [
+        {
+          "tag": "svg",
+          "src": null,
+          "alt": null,
+          "rect": {
+            "x": 135,
+            "y": 5654.99,
+            "w": 87.55,
+            "h": 24
+          },
+          "style": {
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "objectFit": "fill"
+          }
+        },
+        {
+          "tag": "canvas",
+          "src": null,
+          "alt": null,
+          "rect": {
+            "x": 0,
+            "y": 5868.84,
+            "w": 1430,
+            "h": 429.97
+          },
+          "style": {
+            "borderRadius": "0px",
+            "borderColor": "lab(90.6853 0.399232 -1.45452)",
+            "borderWidth": "0px",
+            "objectFit": "fill"
+          }
+        }
+      ],
+      "textSample": "人和智能体一起工作的团队空间。 中文 © 2026 Multica. 保留所有权利。 资源 文档 更新日志 下载 公司 关于我们 联系销售 信任与合规 许可协议 隐私政策 大家已经把这颗星吹转了 0 圈"
+    }
+  ],
+  "rhythm": [
+    -861.61,
+    -134.08,
+    -576.12,
+    456.7,
+    0,
+    -2777.29,
+    0,
+    0,
+    0,
+    0
+  ],
+  "bands": [
+    {
+      "y": 52.67,
+      "h": 1267.52,
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "y": 458.58,
+      "h": 141.19,
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "y": 465.69,
+      "h": 727.96,
+      "bg": "oklab(0.966998 0.000272095 -0.000936747 / 0.4)"
+    },
+    {
+      "y": 617.53,
+      "h": 245.96,
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "y": 1320.19,
+      "h": 195.59,
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "y": 1515.78,
+      "h": 4026.54,
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "y": 2765.03,
+      "h": 637.46,
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "y": 3402.49,
+      "h": 662.77,
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "y": 4065.26,
+      "h": 812,
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "y": 4877.26,
+      "h": 665.06,
+      "bg": "rgba(0, 0, 0, 0)"
+    },
+    {
+      "y": 5542.32,
+      "h": 756.49,
+      "bg": "lab(98.608 0 0)"
+    }
+  ],
+  "layout": {
+    "widest": [
+      {
+        "className": "mx-auto flex h-site-header w-full max-w-site-wide items-center justify-between gap-4 px-site-gutter",
+        "width": 1400,
+        "maxWidth": "1400px"
+      },
+      {
+        "className": "mx-auto w-full max-w-site px-site-gutter max-w-site-wide",
+        "width": 1400,
+        "maxWidth": "1400px"
+      },
+      {
+        "className": "mt-3 max-w-[38rem] text-site-body text-site-muted text-pretty",
+        "width": 608,
+        "maxWidth": "608px"
+      },
+      {
+        "className": "mx-auto w-full max-w-site px-site-gutter mt-10 max-w-site-wide lg:mt-12",
+        "width": 1400,
+        "maxWidth": "1400px"
+      },
+      {
+        "className": "shimmer-text min-w-0 flex-1 truncate [--shimmer-text-base:var(--faint-foreground)] [--shimmer-text-spread:22%]",
+        "width": 121.26,
+        "maxWidth": "100%"
+      },
+      {
+        "className": "shimmer-text min-w-0 flex-1 truncate [--shimmer-text-base:var(--faint-foreground)] [--shimmer-text-spread:22%]",
+        "width": 121.26,
+        "maxWidth": "100%"
+      },
+      {
+        "className": "inline-flex min-w-0 max-w-32 items-center gap-1 rounded-md border border-surface-border bg-background/70 py-0.5 pr-2 pl-0.5 text-caption",
+        "width": 84.54,
+        "maxWidth": "128px"
+      },
+      {
+        "className": "inline-flex min-w-0 max-w-32 items-center gap-1 rounded-md border border-surface-border bg-background/70 py-0.5 pr-2 pl-0.5 text-caption",
+        "width": 107.9,
+        "maxWidth": "128px"
+      },
+      {
+        "className": "shimmer-text text-micro text-muted-foreground",
+        "width": 29.3,
+        "maxWidth": "100%"
+      },
+      {
+        "className": "inline-flex min-w-0 max-w-32 items-center gap-1 rounded-md border border-surface-border bg-background/70 py-0.5 pr-2 pl-0.5 text-caption",
+        "width": 100.68,
+        "maxWidth": "128px"
+      },
+      {
+        "className": "shimmer-text text-micro text-muted-foreground",
+        "width": 29.3,
+        "maxWidth": "100%"
+      },
+      {
+        "className": "inline-flex min-w-0 max-w-32 items-center gap-1 rounded-md border border-surface-border bg-background/70 py-0.5 pr-2 pl-0.5 text-caption",
+        "width": 84.54,
+        "maxWidth": "128px"
+      },
+      {
+        "className": "mx-auto w-full max-w-site px-site-gutter max-w-site-wide",
+        "width": 1400,
+        "maxWidth": "1400px"
+      },
+      {
+        "className": "mx-auto w-full max-w-site px-site-gutter",
+        "width": 1280,
+        "maxWidth": "min(1280px, 100% - 144px)"
+      },
+      {
+        "className": "max-w-[44rem]",
+        "width": 704,
+        "maxWidth": "704px"
+      },
+      {
+        "className": "mt-site-stack max-w-[32rem] text-site-body text-site-muted",
+        "width": 512,
+        "maxWidth": "512px"
+      },
+      {
+        "className": "mt-site-stack max-w-[32rem] text-site-body text-site-muted",
+        "width": 512,
+        "maxWidth": "512px"
+      },
+      {
+        "className": "shimmer-text text-micro text-muted-foreground",
+        "width": 27.36,
+        "maxWidth": "100%"
+      },
+      {
+        "className": "mt-site-stack max-w-[32rem] text-site-body text-site-muted",
+        "width": 365.33,
+        "maxWidth": "512px"
+      },
+      {
+        "className": "mt-site-stack max-w-[32rem] text-site-body text-site-muted",
+        "width": 365.33,
+        "maxWidth": "512px"
+      },
+      {
+        "className": "mt-site-stack max-w-[32rem] text-site-body text-site-muted",
+        "width": 365.33,
+        "maxWidth": "512px"
+      },
+      {
+        "className": "mx-auto w-full max-w-site px-site-gutter",
+        "width": 1280,
+        "maxWidth": "min(1280px, 100% - 144px)"
+      },
+      {
+        "className": "max-w-[44rem] font-site-display text-site-heading text-balance",
+        "width": 704,
+        "maxWidth": "704px"
+      },
+      {
+        "className": "mx-auto w-full max-w-site px-site-gutter grid gap-site-block lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16",
+        "width": 1280,
+        "maxWidth": "min(1280px, 100% - 144px)"
+      },
+      {
+        "className": "max-w-[44rem]",
+        "width": 365.33,
+        "maxWidth": "704px"
+      },
+      {
+        "className": "site-frost group hidden max-w-[20rem] flex-col gap-8 rounded-site-card p-5 lg:flex outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-vis",
+        "width": 320,
+        "maxWidth": "320px"
+      },
+      {
+        "className": "mx-auto w-full max-w-site px-site-gutter flex flex-col items-center",
+        "width": 1280,
+        "maxWidth": "min(1280px, 100% - 144px)"
+      },
+      {
+        "className": "max-w-[44rem] text-center",
+        "width": 155.21,
+        "maxWidth": "704px"
+      },
+      {
+        "className": "mt-site-block flex w-full max-w-[48rem] flex-col gap-2",
+        "width": 768,
+        "maxWidth": "768px"
+      },
+      {
+        "className": "mx-auto w-full max-w-site px-site-gutter flex flex-col items-center pt-24 pb-16 text-center lg:pt-30 lg:pb-20",
+        "width": 1280,
+        "maxWidth": "min(1280px, 100% - 144px)"
+      },
+      {
+        "className": "max-w-[16ch] font-site-display text-site-display text-site-ink text-balance",
+        "width": 628,
+        "maxWidth": "628px"
+      },
+      {
+        "className": "mt-4 max-w-[30rem] text-site-body text-site-muted text-balance",
+        "width": 348.01,
+        "maxWidth": "480px"
+      },
+      {
+        "className": "mx-auto w-full max-w-site px-site-gutter grid gap-site-block pt-site-section lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] lg:gap-16",
+        "width": 1280,
+        "maxWidth": "min(1280px, 100% - 144px)"
+      },
+      {
+        "className": "mt-4 max-w-[18rem] text-site-small text-site-muted",
+        "width": 274,
+        "maxWidth": "288px"
+      },
+      {
+        "className": "mx-auto w-full max-w-site px-site-gutter",
+        "width": 1280,
+        "maxWidth": "min(1280px, 100% - 144px)"
+      }
+    ],
+    "grids": [
+      {
+        "className": "inline-grid overflow-hidden transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-",
+        "gridTemplateColumns": "252.271px",
+        "columnGap": "normal",
+        "rowGap": "normal",
+        "width": 252.27,
+        "childCount": 4
+      },
+      {
+        "className": "grid grid-cols-[128px_1fr_24px] items-center gap-2 text-caption",
+        "gridTemplateColumns": "127.998px 245.02px 23.9953px",
+        "columnGap": "8px",
+        "rowGap": "8px",
+        "width": 366.83,
+        "childCount": 3
+      },
+      {
+        "className": "grid grid-cols-[128px_1fr_24px] items-center gap-2 text-caption",
+        "gridTemplateColumns": "127.998px 245.02px 23.9953px",
+        "columnGap": "8px",
+        "rowGap": "8px",
+        "width": 366.83,
+        "childCount": 3
+      },
+      {
+        "className": "grid grid-cols-[128px_1fr_24px] items-center gap-2 text-caption",
+        "gridTemplateColumns": "127.998px 245.02px 23.9953px",
+        "columnGap": "8px",
+        "rowGap": "8px",
+        "width": 366.83,
+        "childCount": 3
+      },
+      {
+        "className": "mt-site-block grid gap-x-site-grid-col gap-y-site-grid-row md:grid-cols-2",
+        "gridTemplateColumns": "564px 564px",
+        "columnGap": "32px",
+        "rowGap": "60px",
+        "width": 1160,
+        "childCount": 2
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap bg-brand/5",
+        "gridTemplateColumns": "439.453px 52.0005px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 464.14,
+        "childCount": 2
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap",
+        "gridTemplateColumns": "455.457px 35.9967px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 464.14,
+        "childCount": 2
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap",
+        "gridTemplateColumns": "455.457px 35.9967px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 464.14,
+        "childCount": 2
+      },
+      {
+        "className": "mt-site-grid-row grid gap-x-site-grid-col gap-y-site-grid-row md:grid-cols-3",
+        "gridTemplateColumns": "365.333px 365.333px 365.333px",
+        "columnGap": "32px",
+        "rowGap": "60px",
+        "width": 1160,
+        "childCount": 3
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 px-3 text-caption whitespace-nowrap text-muted-foreground",
+        "gridTemplateColumns": "158.445px 36.0011px 83.9943px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 270.77,
+        "childCount": 3
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap",
+        "gridTemplateColumns": "174.455px 19.9909px 83.9943px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 270.77,
+        "childCount": 3
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap",
+        "gridTemplateColumns": "174.455px 19.9909px 83.9943px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 270.77,
+        "childCount": 3
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap",
+        "gridTemplateColumns": "174.455px 19.9909px 83.9943px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 270.77,
+        "childCount": 3
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap",
+        "gridTemplateColumns": "174.455px 19.9909px 83.9943px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 270.77,
+        "childCount": 3
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap",
+        "gridTemplateColumns": "174.455px 19.9909px 83.9943px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 270.77,
+        "childCount": 3
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 px-3 text-caption whitespace-nowrap text-muted-foreground",
+        "gridTemplateColumns": "206.438px 83.9943px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 270.77,
+        "childCount": 2
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap bg-surface-selected",
+        "gridTemplateColumns": "206.438px 83.9943px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 270.77,
+        "childCount": 2
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap",
+        "gridTemplateColumns": "206.438px 83.9943px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 270.77,
+        "childCount": 2
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap",
+        "gridTemplateColumns": "206.438px 83.9943px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 270.77,
+        "childCount": 2
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap",
+        "gridTemplateColumns": "206.438px 83.9943px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 270.77,
+        "childCount": 2
+      },
+      {
+        "className": "grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap",
+        "gridTemplateColumns": "206.438px 83.9943px",
+        "columnGap": "12px",
+        "rowGap": "normal",
+        "width": 270.77,
+        "childCount": 2
+      },
+      {
+        "className": "mt-site-block grid grid-cols-2 gap-y-8 md:grid-cols-4 md:gap-y-10",
+        "gridTemplateColumns": "290px 290px 290px 290px",
+        "columnGap": "normal",
+        "rowGap": "40px",
+        "width": 1160,
+        "childCount": 8
+      },
+      {
+        "className": "mx-auto w-full max-w-site px-site-gutter grid gap-site-block lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16",
+        "gridTemplateColumns": "365.333px 730.667px",
+        "columnGap": "64px",
+        "rowGap": "64px",
+        "width": 1280,
+        "childCount": 2
+      },
+      {
+        "className": "group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)",
+        "gridTemplateColumns": "80px 522.667px 64px 16px",
+        "columnGap": "16px",
+        "rowGap": "16px",
+        "width": 730.67,
+        "childCount": 4
+      },
+      {
+        "className": "group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)",
+        "gridTemplateColumns": "80px 522.667px 64px 16px",
+        "columnGap": "16px",
+        "rowGap": "16px",
+        "width": 730.67,
+        "childCount": 4
+      },
+      {
+        "className": "group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)",
+        "gridTemplateColumns": "80px 522.667px 64px 16px",
+        "columnGap": "16px",
+        "rowGap": "16px",
+        "width": 730.67,
+        "childCount": 4
+      },
+      {
+        "className": "group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)",
+        "gridTemplateColumns": "80px 522.667px 64px 16px",
+        "columnGap": "16px",
+        "rowGap": "16px",
+        "width": 730.67,
+        "childCount": 4
+      },
+      {
+        "className": "group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)",
+        "gridTemplateColumns": "80px 522.667px 64px 16px",
+        "columnGap": "16px",
+        "rowGap": "16px",
+        "width": 730.67,
+        "childCount": 4
+      },
+      {
+        "className": "group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)",
+        "gridTemplateColumns": "80px 522.667px 64px 16px",
+        "columnGap": "16px",
+        "rowGap": "16px",
+        "width": 730.67,
+        "childCount": 4
+      },
+      {
+        "className": "group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)",
+        "gridTemplateColumns": "80px 522.667px 64px 16px",
+        "columnGap": "16px",
+        "rowGap": "16px",
+        "width": 730.67,
+        "childCount": 4
+      },
+      {
+        "className": "mx-auto w-full max-w-site px-site-gutter grid gap-site-block pt-site-section lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] ",
+        "gridTemplateColumns": "274px 822px",
+        "columnGap": "64px",
+        "rowGap": "64px",
+        "width": 1280,
+        "childCount": 2
+      },
+      {
+        "className": "grid grid-cols-2 gap-x-4 gap-y-site-block sm:grid-cols-3 lg:grid-cols-3",
+        "gridTemplateColumns": "263.333px 263.333px 263.333px",
+        "columnGap": "16px",
+        "rowGap": "40px",
+        "width": 822,
+        "childCount": 3
+      }
+    ],
+    "topFonts": [
+      {
+        "value": "16px|400|24px|normal|Inter",
+        "count": 306
+      },
+      {
+        "value": "12px|400|16px|normal|Inter",
+        "count": 224
+      },
+      {
+        "value": "16px|400|22.4px|normal|Inter",
+        "count": 71
+      },
+      {
+        "value": "14px|400|20px|normal|Inter",
+        "count": 41
+      },
+      {
+        "value": "14px|400|19.6px|normal|Inter",
+        "count": 30
+      },
+      {
+        "value": "13px|400|18px|normal|Inter",
+        "count": 28
+      },
+      {
+        "value": "14px|500|20px|normal|Inter",
+        "count": 26
+      },
+      {
+        "value": "14px|500|19.25px|normal|Inter",
+        "count": 25
+      },
+      {
+        "value": "11px|400|14px|normal|Inter",
+        "count": 21
+      },
+      {
+        "value": "40px|400|42px|-1.2px|Inter",
+        "count": 15
+      },
+      {
+        "value": "12px|500|16px|normal|Inter",
+        "count": 15
+      },
+      {
+        "value": "11px|400|15px|normal|Inter",
+        "count": 14
+      },
+      {
+        "value": "13px|500|18px|normal|Inter",
+        "count": 10
+      },
+      {
+        "value": "12px|600|16px|normal|Inter",
+        "count": 7
+      },
+      {
+        "value": "13px|400|19.5px|normal|Inter",
+        "count": 6
+      },
+      {
+        "value": "14px|600|20px|normal|Inter",
+        "count": 5
+      },
+      {
+        "value": "10px|500|10px|normal|Inter",
+        "count": 5
+      },
+      {
+        "value": "16px|500|24px|normal|Inter",
+        "count": 5
+      },
+      {
+        "value": "20px|400|24px|-0.2px|Inter",
+        "count": 5
+      },
+      {
+        "value": "11px|500|14px|normal|Inter",
+        "count": 4
+      },
+      {
+        "value": "14px|400|22.75px|normal|Inter",
+        "count": 4
+      },
+      {
+        "value": "13px|700|18px|normal|Inter",
+        "count": 4
+      }
+    ],
+    "topRadii": [
+      {
+        "value": "8px",
+        "count": 73
+      },
+      {
+        "value": "12px",
+        "count": 60
+      },
+      {
+        "value": "2.51855e+07px",
+        "count": 60
+      },
+      {
+        "value": "6px",
+        "count": 45
+      },
+      {
+        "value": "2.69661e+07px",
+        "count": 32
+      },
+      {
+        "value": "4px",
+        "count": 13
+      },
+      {
+        "value": "2.23696e+07px",
+        "count": 13
+      },
+      {
+        "value": "9999px",
+        "count": 12
+      },
+      {
+        "value": "3px",
+        "count": 7
+      },
+      {
+        "value": "16px",
+        "count": 5
+      },
+      {
+        "value": "2.542e+07px",
+        "count": 5
+      }
+    ],
+    "topColors": [
+      {
+        "value": "fg:lab(2.51107 0.242703 -0.886115)",
+        "count": 968
+      },
+      {
+        "value": "fg:lab(42.4351 1.66494 -5.7671)",
+        "count": 832
+      },
+      {
+        "value": "lab(100 0 0)",
+        "count": 98
+      },
+      {
+        "value": "fg:lab(71.1502 12.9854 78.9519)",
+        "count": 63
+      },
+      {
+        "value": "lab(42.4351 1.66494 -5.7671)",
+        "count": 41
+      },
+      {
+        "value": "lab(96.1634 0.0993311 -0.364041)",
+        "count": 32
+      },
+      {
+        "value": "fg:lab(8.30603 0.618205 -2.16572)",
+        "count": 28
+      },
+      {
+        "value": "fg:lab(46.6457 -0.178784 -60.0399)",
+        "count": 24
+      },
+      {
+        "value": "lab(2.51107 0.242703 -0.886115)",
+        "count": 20
+      },
+      {
+        "value": "fg:rgb(34, 197, 94)",
+        "count": 20
+      },
+      {
+        "value": "fg:lab(61.7256 46.1889 70.0885)",
+        "count": 20
+      },
+      {
+        "value": "fg:rgb(214, 200, 214)",
+        "count": 18
+      },
+      {
+        "value": "fg:lab(54.1525 1.64506 -5.77841)",
+        "count": 13
+      },
+      {
+        "value": "fg:rgb(63, 14, 64)",
+        "count": 12
+      },
+      {
+        "value": "fg:rgb(139, 92, 246)",
+        "count": 11
+      },
+      {
+        "value": "fg:lab(98.26 0 0)",
+        "count": 10
+      }
+    ],
+    "topBorders": [
+      {
+        "value": "lab(90.6853 0.399232 -1.45452) 0.750586px",
+        "count": 66
+      },
+      {
+        "value": "lab(90.6853 0.399232 -1.45452) 0.803653px",
+        "count": 19
+      },
+      {
+        "value": "lab(91.2653 0.399232 -1.45454) 0.666667px",
+        "count": 17
+      },
+      {
+        "value": "lab(90.6853 0.399232 -1.45452) 0.757576px",
+        "count": 11
+      },
+      {
+        "value": "lab(94.522 0.298649 -1.09143) 0.666667px",
+        "count": 6
+      },
+      {
+        "value": "lab(84.9837 0.601262 -2.17986) 0.803653px",
+        "count": 4
+      },
+      {
+        "value": "lab(84.9837 0.601262 -2.17986) 0.666667px",
+        "count": 3
+      },
+      {
+        "value": "lab(84.9837 0.601262 -2.17986) 0.757576px",
+        "count": 2
+      },
+      {
+        "value": "oklab(0.549992 -0.0414194 -0.15453 / 0.28) 0.750586px",
+        "count": 1
+      }
+    ]
+  }
+}

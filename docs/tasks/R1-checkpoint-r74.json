@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R74",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "status": "CLOSED_GUARD_FIXROUND3_ACCEPTED_ACTUAL_ADAPTER_PREPARATION_ONLY",
+  "previousCheckpoint": "R73",
+  "previousSha256": "02ea520e5c2d8a428cddc55fba17350f318846a203fe4df0cbad149a7c8fdbc6",
+  "previousReviewSha256": "c1ffdd5e6f8c514678b93660919b05680fece64b8dc7f6fae74b4e84a2a8e1f1",
+  "previousSnapshotSha256": "80d97c94dfc96933d0d32e4478796b16f65f8ea26aed315a781dcc275c98448b",
+  "files": [
+    {
+      "path": "docs/tasks/R1-results.md",
+      "appendOnly": true,
+      "sha256": "9e4a4d41606589033a7956a70180769e935f8df2359203c39f3ced37f25b4667",
+      "beforeSha256": "1f96333b62c4c962fc2d441894397cacc37e9f6f5e2b1c7081af027c4ad5f128"
+    },
+    {
+      "path": "docs/tasks/R1-01D-native-clone.md",
+      "appendOnly": true,
+      "sha256": "43a61190bb4f2050c6904b39dfebfb5346f2fcfa43a3f54816c31335fa843d2e",
+      "beforeSha256": "c2f29d64cb217bd2a9af6f0235b870e110cbd833446e407264aadfb1b994f249"
+    },
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "appendOnly": true,
+      "sha256": "3ae20d764ea8c8b7ab3692d5337e9ad3fdc8fecdfa2ded8411e80e2d0d720ddb",
+      "beforeSha256": "1cd214c02c610fe8213613026abbb9461ee75d90eaf3be35f40733ae8fe8bc48"
+    },
+    {
+      "path": "docs/tasks/R1-01D-issue-guard.md",
+      "appendOnly": true,
+      "sha256": "002eec434dc8fc75b22a4c4ec8d5a102276c3f3b0649a4304412760c6fffb876",
+      "beforeSha256": "a8383c090310cafd51b013c455422a3772d370ae1d4db883e9273e592f323674"
+    },
+    {
+      "path": "docs/tasks/R1-03A-leader-text.md",
+      "appendOnly": true,
+      "sha256": "5dcbbad98734b6474006c362805b70f9bd22d0c06ee75ea70913f4b92f2f4ef2",
+      "beforeSha256": "5e628de8abcf9b5dcaf7431e274a12aa73372584099ce2a86458a73146878c3d"
+    },
+    {
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "appendOnly": true,
+      "sha256": "a2814f1ae39fd25d2bac569eff919c89dab03497aa30e38afd700eb86ab95c53",
+      "beforeSha256": "c61fd25266724465fb4d9a9c611c3ffabf10ab497fbc423e4c1558da197d92b9"
+    }
+  ],
+  "guardFix": {
+    "r3Review": "5f62a5a5b3849b6b3a13eaeac8164e979d5b9defee0ecba25b19852b4593e44e",
+    "round": "3/5",
+    "hostChecks": 60,
+    "r4Review": "3d8fa6b0a87ca35cb37bcf3c723464353acb794cd3bd8ea80f6292adf0c66abf",
+    "r3Manifest": "df7e34883ce930632b1067a8ce1b067d11464a432162e0608583b93843aa8848",
+    "actualTargetCalls": 0,
+    "r4Manifest": "302f63ff2d675749c2e53a31c1691c03fb57a145b88ca9390d21527d806f4dee",
+    "realAdapter": "NOT_BOUND_NOT_RELEASED",
+    "r4ReviewJson": "4ceab9db425d6e24b90705a38e8eee7b440da2607b5268735b73f057c5baa1e5",
+    "verdict": "APPROVE_CLOSED_GUARD_CANDIDATE_ONLY"
+  },
+  "currentPreparation": {
+    "owner": "/root/leader_pg_facility_prep",
+    "allSourceWrites": "CLOSED",
+    "privateGoDockerSqlOrClock": "NO_EXECUTION_PERMISSION",
+    "configuredRoute": "gpt-6.1-sol high",
+    "scope": "THIN_ACTUAL_PRODUCER_ADAPTER_CLOSED_ONLY"
+  },
+  "failedOldResources": "HANDLE_NO_RESTART_NO_CLEANUP_NO_RESET_NO_REGEN",
+  "actualStartupAfterFix": "NOT_RUN",
+  "old53": "49_PASS4_FAIL_RETAINED",
+  "native37and4": "NOT_RUN",
+  "leader118": "NOT_RUN",
+  "f5Schema9": "NOT_RUN",
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

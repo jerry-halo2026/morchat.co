@@ -1,0 +1,70 @@
+{
+  "sourceFixRound": "2/5",
+  "sourceTF": "ed8b3e0d99d259e2ac192ef7a10622625caf91eb10ab520341befb29fcac6f79",
+  "files": [
+    {
+      "sha256": "60744fffe3e4dfd5ad328a93234a80e5596008d1f4e23af96eb751b30b9fcc67",
+      "beforeSha256": "d95747627b912122c9b690c82a7fa29a97b5cf3a4b6582e433ddec637f162cc3",
+      "beforeBytes": 289855,
+      "path": "docs/tasks/ACTIVE.md",
+      "bytes": 293573
+    },
+    {
+      "sha256": "f7423a1ef6b1675f9e0fde5cbb7b3149e2f11b09ff37a133fda109ed4744b809",
+      "beforeSha256": "12bb86c94710a7b1b4c1d7c36d762d6f5f49736874c6cff16b8471cb1775c680",
+      "beforeBytes": 271353,
+      "path": "docs/tasks/R1-results.md",
+      "bytes": 275071
+    },
+    {
+      "sha256": "7a796ad8b2c2567339defd4d9b288db1a8280389801dc778f01b97431444029e",
+      "beforeSha256": "ac4871df2bf49ae7994561057cd1021c2836acc11081dc86e200a2ccf17720d2",
+      "beforeBytes": 56468,
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "bytes": 60186
+    },
+    {
+      "sha256": "93d633c0daa6360a6ea303e168979c8922163116fd058a78594037477af615cd",
+      "beforeSha256": "6379989dcc38f01b4087bbc83afdce03acfddf0e34247faa3801fffa9a7ae3b6",
+      "beforeBytes": 38049,
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "bytes": 41767
+    },
+    {
+      "sha256": "de02167989dea627cce4c70328baa79622284e6fdc185619a3b7be427a94f26c",
+      "beforeSha256": "ad2f36aabc324f651d02a244cb246d8b538aed12b7242a48fd64909d5a4ddc5d",
+      "beforeBytes": 5512,
+      "path": "docs/tasks/R1-02E-O0-helper-compile.md",
+      "bytes": 9230
+    },
+    {
+      "sha256": "74b66572261a08931fe1812a6d9daefef7928bfc9721a542c60239f37079a855",
+      "bytes": 1447,
+      "path": "docs/tasks/R1-02E-O0-source-fix2.md",
+      "newFile": true
+    }
+  ],
+  "blockedAudit": 0,
+  "receipt": 0,
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "sourceStatus": "EXACT7_ONLY_ACTIVE_NO_FINAL_HASHES",
+  "scopeReview": "0783e9db55857cc1ae0d7174fe6396e3f802d5b490f69f406d368525b39e2523",
+  "independentDocsReview": "PENDING",
+  "productModelCalls": 0,
+  "rootOwnedExecLive": false,
+  "apiReview": "f71ece2d0d6c516ece0fbc78621881b67ad8da011f56ff44d22e4e9e9062f37d",
+  "utc": "2026-11-08T22:07:00.9207028Z",
+  "branch": "codex/round1-continuous",
+  "checkpoint": "R114",
+  "sourceWriter": "/root/native_o0_source_impl",
+  "futureCandidate": "NEW_SOURCE_REVIEW_AND_FRESH_CSC_R2_REQUIRED",
+  "scopeProposal": "ff0c5ec25c28cf485260451f9d62dca94a1c4a1522481ed4d0124ae5dd79e60c",
+  "nativeQueries": 0,
+  "helperLoad": 0,
+  "classification": "PROGRESS_ACTUAL_LIBRARY_ACCEPTED_API_GAP_VERIFIED_SOURCE_FIX2_ACTIVE",
+  "sourceWriterConfiguredModel": "gpt-6.1-sol high",
+  "model": "unknown",
+  "root": "/root",
+  "frontend39539": "HOLD_LAST_OWNER_LIVE_ONE_SIGNAL_CONSUMED_USER_ACTION_PENDING",
+  "baseline": "0a1efe057948fac563783ef9e0ccd698f6a8220f"
+}

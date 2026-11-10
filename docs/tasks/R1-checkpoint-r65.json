@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R65",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "status": "ACTUAL_LAB_REPAIR_PENDING_INDEPENDENT_REVIEW_LEADER_SOURCE_ACCEPTED_NOT_RUNTIME",
+  "previousCheckpoint": "R64",
+  "previousSha256": "f8c3f35a050b877aae4242a2808375f95221267b7b9b033beb11b3ed00aa4249",
+  "previousReviewSha256": "2bd376b5472aee1d83ab15f4ca1e5f8f3fc6a14d4aeeaef8ba67e05413dfa5c3",
+  "previousSnapshotSha256": "832d5bdf44e29a6993802eef482dd7d320a46a79d920af7fb06216ce4b17dcb9",
+  "files": [
+    {
+      "beforeSha256": "05b0fd9d7fa3155fa4ee7f25d7d209b6171e48534c910ad76a26616c5587b1ee",
+      "path": "docs/tasks/ACTIVE.md",
+      "sha256": "1da956892fbe2812c1138a87200da37990176b0bb10a6dd2c77be06decd2e8d1",
+      "appendOnly": true
+    },
+    {
+      "beforeSha256": "6360d09bf472dd0e5520fb03ef97af1911a416b92b205816293311484f0f484f",
+      "path": "docs/tasks/R1-01D-issue-guard.md",
+      "sha256": "486745ff63de8750b3de9557ae55da64384fe4d6f5af130223b640d705ad8da8",
+      "appendOnly": true
+    },
+    {
+      "beforeSha256": "749205668c855e0b944cf9b00c7b3f2c3f1fc54d0682220bff6301d95b97f4c6",
+      "path": "docs/tasks/R1-03A-leader-text.md",
+      "sha256": "d1871dfe2af81bef7da6487863a8d75c7ad8b88067361652ba1be7f1430b90ba",
+      "appendOnly": true
+    },
+    {
+      "beforeSha256": "19cbec45c7cb2033a3e3f2ecb56032ffb539040b3250ee355073e80dad2a0130",
+      "path": "docs/tasks/R1-results.md",
+      "sha256": "d6f103419fc1415866eba456d5b48cfe6bc281c75fe5c491b6c50e4f66ecc20d",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/contracts/R1-LEADER-TEXT-r1-fix2-source-amendment.json",
+      "sha256": "1f8a171cf57be23b522567832dc51f5f84afcd622d3489f7d118fd71db5b5cf0",
+      "new": true
+    }
+  ],
+  "evidence": {
+    "leaderFormatReview": "1b2bbd064f7609d30240851368cf724cc1be726048f61062c86c64207a9d4a55",
+    "leaderSourceReview": "52ab5b59a2d24792200c024fdd57bf41fc6008fc10ab141c39282294fb60efca",
+    "mutationReview": "PENDING",
+    "readonlyReview": "170bcbd5ffcc3e06c19cf052332a4329bf7caf6470d7a1cf0faf8dc3f0612d80",
+    "readonlyResult": "1512551470d7b991dc4602c61ba5caa0b878f966dd8383bf05d744f58f9cb883",
+    "mutationResult": "639ad75aaf4366eba742476a6e819634643432e03172d8e1e2d2d6e7b9cdb2dd",
+    "mutationManifest": "ca15d6d82a90a16e0c416410aebeb089bb18f47234eaa614e531901626621c12"
+  },
+  "handler53": "ORIGINAL_SETUP_FAIL_ZERO_BUSINESS_EVENTS_NO_RETRY",
+  "leader118": "NOT_RUN",
+  "native37and4": "NOT_RUN",
+  "sourceWindows": "CLOSED",
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

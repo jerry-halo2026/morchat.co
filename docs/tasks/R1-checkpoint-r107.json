@@ -1,0 +1,71 @@
+{
+  "checkpoint": "R107",
+  "root": "/root",
+  "model": "unknown",
+  "head": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "branch": "codex/round1-continuous",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "previousTurn": "PROGRESS",
+  "thisTurn": "PROGRESS_ACTUAL_FINAL3ROLE_BUILD_AND_INDEPENDENT_REVIEW",
+  "finalCompile": {
+    "roleDLLs": [
+      "9929e365cb2a6e122b926a52eeb3ad3da78ed741f281f4f2489ad106b5e568c3",
+      "e40dde89a70ef503f956e1c0f3dc82e39552e00cdfb420f151f7b995c7cb9f15",
+      "044ef85c4b472ebe8222208af2cb47ecde64d885c141726eb8fad10fcce5a80f"
+    ],
+    "cscExit": [
+      0,
+      0,
+      0
+    ],
+    "loaded": false,
+    "review": "3dc89af189bfc18a1ff12f5876c03daff740f2a4de91af5c601a1c99f00bf2dc",
+    "targetExecuted": false,
+    "tool": "cb4a90 terminal0",
+    "warning": "CS0649_ONE_EACH_RETAINED",
+    "claim": "CONSUMED_NO_RETRY",
+    "manifest": "c30120fa98956421ba67ba1207c5d45a82acf7c1ffc14a4c2d0097eb0b197d6e",
+    "outputs": 21
+  },
+  "linkPrep": {
+    "model": "configured gpt-6.1-sol high",
+    "contract": "744c13ddfb57e4fb3b762c6f50b3dbca5f8cc4446a34f3fb16e372e3b53ab37d",
+    "actualPermission": false,
+    "status": "SOURCE_ONLY_5NEW_ACTIVE",
+    "owner": "/root/final_edition_link_prep"
+  },
+  "OSscope": {
+    "actualPermission": "NOT_GRANTED",
+    "review": "6cc1e1266972d6bd8f290fdf6953adbd64dde078d59342fcd724845a954d5f85",
+    "status": "O0_O3_ENVELOPE_NOT_FROZEN",
+    "o0SpecOwner": "/root/windows_native_next_scope",
+    "sharedACLWrites": 0,
+    "o0SpecStatus": "READONLY2_ACTIVE_NO_QUERY"
+  },
+  "files": [
+    {
+      "beforeSHA256": "4d79815bb117cc8627c4e9e16ef85af63537b91318a83ce29fb77100bc7c693f",
+      "path": "docs/tasks/ACTIVE.md",
+      "sha256": "98e4cc89df6d9b644c53299627f7fbd8e0ea6e119019f8876e96466dc6f77470"
+    },
+    {
+      "beforeSHA256": "da7f6b61682ddc8b5193ef3b365ea3acb19dbf1e5c13dee697b18c82282454d0",
+      "path": "docs/tasks/R1-results.md",
+      "sha256": "87b8830680608c6dcabb324dfeaca8a3091917d6ff834768ecba662591633b07"
+    },
+    {
+      "beforeSHA256": "ecfc051f752008ecb5aac143761271046a7e4ccd46fd680107818ee18089b535",
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "sha256": "581ccbfa422a7c7046a3fb3189cbf692580c2bffb7ba7fa637ef4c84d19a2974"
+    },
+    {
+      "beforeSHA256": "d21062ac07ec8d9395aeb198ff3c9266d828a33a10e1ce1cb3102fbab2ff2d2c",
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "sha256": "b422d4f9cab563dc7251a0ec1e57531c7f0d7fe1d813199062056f2a837eda28"
+    }
+  ],
+  "independentDocsReview": "PENDING",
+  "productModelCalls": 0,
+  "blockerAudit": 0,
+  "utc": "2026-11-08T18:00:32.3056691+00:00"
+}

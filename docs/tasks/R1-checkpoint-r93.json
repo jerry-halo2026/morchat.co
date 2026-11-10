@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R93",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "branch": "codex/round1-continuous",
+  "previousCheckpoint": "R92",
+  "previousSha256": "565fae159c4f1ba128603474f8207fa94197664b008694503ff3a98ae440e9cb",
+  "previousReviewSha256": "517823168552e5965b0196a6acc19db5fc4dfd18b910e5a75d878bd9ca0249d8",
+  "previousSnapshotSha256": "1da8b5047dc62e03b5fd68e3ebd3765e4343b3589f03ee11d59ca36749c4bf96",
+  "previousRootAcceptance": "510302ee8a4f5a0642af803253e662ccbe4aef0dde98660df8321f9762a1b9a4",
+  "currentProgress": "ACTUAL_FAILURES_AND_MINIMAL_EVIDENCE_GAP_PROVEN_NOT_PRODUCT_COMPLETION",
+  "preservation": {
+    "status": "ONEATOMICMOVE_COMPLETE_ARCHIVEONLY_NOTINSTALL",
+    "reviewSHA": "087edbf24d3bd1411c70d1a6c69da862ac51efdd0c4f2e87eb3b3c1fad15431d",
+    "actualSHA": "0f05fe481a2d7e68945eb9107f578434051bcea33d744da059f51a8a91f60d8b"
+  },
+  "installer": {
+    "RCAReview": "ACTIVE",
+    "actualObservation": "d90d0459af288f829813ae76fa3bb4e400b8409efa2a5e3d99ebee307d699925",
+    "futureRound": "4/5_NOT_IMPLEMENTED",
+    "actualReview": "7b183b403a8b5b9a27af8054960edc7c8ce275ee923d7448d809832578e724ba",
+    "status": "ATTEMPT3_FAIL_SCAN_FAILED",
+    "strongerOwner": "/root/frontend_resource_rca configuredgpt6astra high",
+    "fourthActualPermission": false,
+    "finalScan": "COMPLETE11227_19446484_3193_NOT_CAUSE",
+    "cleanup": "COMPLETE",
+    "NodeExit": null,
+    "beforeAfter": "92408c65d9de92876775cfbf33c6a405d26c53005673337ce7c529e5c3cb63eb",
+    "firstError": "LOST_UNDETERMINED",
+    "capture": "COMPLETE",
+    "RCA": "cb056cc3781d7e076bb3053b11e0375db59229b7cb72e242dc9fef2bc679fb62"
+  },
+  "Native": {
+    "fact": "DIRECTORY_HANDLE_INVALID_NO_BINARY_READ",
+    "ownedRuntimeProposal": "6363a253bb73e24ebb39e032cb388233c8d85229fdf28e7bc0ae7e2cdf2be7f4",
+    "actual": "b838a7bb2595ae890aeb92b321263cb2b7118ef3eaca54b0dbcf901003823929",
+    "actualInventoryCopyActivation": "CLOSED",
+    "Win32Cause": "UNDETERMINED",
+    "allowances": "CONSUMED",
+    "source": "ACTIVE4",
+    "sourceTF": "9576cbd2918e683c9a33e9fe41f70a95507ad330c276dc1d54f61d08c87b6266",
+    "path": "C:\\Program Files\\WindowsApps",
+    "phase": "P32.D02.VALID",
+    "extraPrivateRead": 0,
+    "review": "86d02df9bba4a797ddc6fd532d52fd36dded1b2098013c58dd8dbcd9bb9adfaa",
+    "design": "9859191cd894929a416ce11316ce248cea3dd518193d71ce95a38609f842bea4"
+  },
+  "Windows": {
+    "runtimeSourceSix": "CLOSED0860_SOURCEONLY",
+    "managedControlFix1Review": "88f7c2392e3f2140974b02472cea689c788a45349678cd5dd57746d00c95a161",
+    "bindingPreparation": "ACTIVE2METADATA",
+    "actualCompiler": "NOTRUN",
+    "HOST": 43,
+    "runtime": "CLOSED_OBSERVER_UNBOUND"
+  },
+  "allRepoProductWriters": "CLOSED",
+  "Goal": "ACTIVE",
+  "fullGoal": "ORIGINAL3SLICES_SAMECANDIDATE_ALL_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "files": [
+    {
+      "appendOnly": true,
+      "beforeBytes": 224388,
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "d3fb3a379bbfb2e523560840810b2f8fbb0dc2acf1f4e768212fbecf65e8b011",
+      "sha256": "2d647ac172fc2e5560a9ef9ec49168930e8f9e79cb0e739d135d9f46432f6584"
+    },
+    {
+      "appendOnly": true,
+      "beforeBytes": 214427,
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "855a144b19b260b21f9e91842fc051a77af514939b0b3c2ca8742c7bbbe6bc01",
+      "sha256": "3ef233954fc5dca4b88150205b9d27fb7933dd0d8a51109e6936a34cff66bbb6"
+    },
+    {
+      "appendOnly": true,
+      "beforeBytes": 23895,
+      "path": "docs/tasks/R1-00-baseline.md",
+      "beforeSha256": "98d53844f9ea737c925e21c5a029c8ec0687f24a94306b3432cf5b25ff53b1d8",
+      "sha256": "955191889dcbeb1847db2769fd65981fb58deda619124bb61b7f0932306bad3d"
+    },
+    {
+      "appendOnly": true,
+      "beforeBytes": 6655,
+      "path": "docs/tasks/R1-00-pnpm-install-projectlink-r3.md",
+      "beforeSha256": "ccf669a002dbb9aeb8dd55fff4553a120b5e29288917b612777d7368b5a6d4e9",
+      "sha256": "f2433fa124fd8ae676f6633080c975c3f19a28065a0f84ef21e1edeccfffd63d"
+    },
+    {
+      "appendOnly": true,
+      "beforeBytes": 7737,
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "beforeSha256": "b2c77a3a466f22cb568190be06d97b206858c7f97ccdcbace21cb52e3aa8f934",
+      "sha256": "0b06613cca3305c70aa0a24a7a9c191a40b38335e01c4d1fc95f74a4d30d11a0"
+    },
+    {
+      "appendOnly": true,
+      "beforeBytes": 7791,
+      "path": "docs/tasks/R1-03B-native-pins-diagnostic.md",
+      "beforeSha256": "06c338fb6066cd517228e5021d7cf9368f718956423cfc90b8b4640bd0dc7d7c",
+      "sha256": "027778231f97937c7158e1cba705a08a95e59957bacd450157391ea974bd75a4"
+    },
+    {
+      "appendOnly": true,
+      "beforeBytes": 38274,
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "beforeSha256": "839a4a2923a990492c1340642ee76dca25d33335b9326594054879a94a882068",
+      "sha256": "9c302630350b768bc057f8e3784c796ddbe5fadbc5871ecf2ced4e0bde4678a7"
+    },
+    {
+      "appendOnly": true,
+      "beforeBytes": 37819,
+      "path": "docs/tasks/R1-02-execution.md",
+      "beforeSha256": "4b023a1268862f3ea7af3400e9782f3996829780783e4aa700bec363b3f4cc18",
+      "sha256": "610987fae8cae83330e00484eb7dd27231f08189599f72b3c3438d6beaf811b8"
+    }
+  ]
+}

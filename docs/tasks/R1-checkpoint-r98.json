@@ -1,0 +1,40 @@
+{
+  "checkpoint": "R98",
+  "status": "ROOT_RECORDED_UNREVIEWED",
+  "previousGoalTurn": "PROGRESS_PRODUCT_TEST_SOURCE_AND_REAL_CHECKER_REGRESSION",
+  "root": "/root",
+  "model": "unknown",
+  "branch": "codex/round1-continuous",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "externalBlocker": "INDEPENDENT_AGENT_PLATFORM_USAGE_LIMIT",
+  "blockerAuditConsecutiveTurns": 1,
+  "reviewers": [
+    "/root/guard_review",
+    "/root/windows_runtime_r2_review"
+  ],
+  "sourceEvidence": {
+    "windows-process-failclosed-r1-compile-profile.DRAFT.json": "00e893d9955910b0d75074754931b5990498b4600abc61b3883b8d88b792384b",
+    "windows-process-failclosed-r1-compile-report.json": "de12b3b9584898746d91ec0dc0287a3b34eaf7f261da690556dfc183635d516a",
+    "windows-runtime-r2-parent-env20-fix1-independent-review.json": "31cc5d71ee29bf8dd6759e8033e06b762b847b07d0a2a4a9c252f78715c08ca1",
+    "windows-process-failclosed-r1-compile-driver.CLOSED.ps1": "4e6f69e67633450e26457ae899fcece5e46d530b58ced6e33c0f1bd1bf647c99"
+  },
+  "env20": {
+    "onceExists": false,
+    "windowExpired": true,
+    "sourceFixAccepted": true,
+    "dispatchExists": false,
+    "mayExecute": false,
+    "finalApprovalExists": false,
+    "windowEnd": "2026-11-08T10:21:47.8376762+00:00"
+  },
+  "compile": {
+    "independentSourceReviewExists": false,
+    "sourcePrepared": true,
+    "actualStarted": false,
+    "nativeRed": "NOT_RUN"
+  },
+  "independentSnapshot": "PENDING_UNAVAILABLE_NOT_FABRICATED",
+  "rootExecLive": false,
+  "utc": "2026-11-08T11:57:26.3973449+00:00"
+}

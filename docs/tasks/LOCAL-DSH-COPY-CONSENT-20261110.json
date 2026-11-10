@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-10",
+  "question": "call_dcc639f893ba4eb8aaf06d9e8dc9bc51",
+  "answer": "同意，仅复制这两条授权",
+  "scope": [
+    "deepseek-account-platform/default",
+    "deepseek-account-platform/device"
+  ],
+  "originalMustRemainUnchanged": true,
+  "target": "E:\\CodexData\\morchat-r1-local\\run\\multica-local-demo\\model-account-demo\\private-account\\.credentials.yaml",
+  "ACL": "current Windows user and SYSTEM only",
+  "model": "deepseek-flash",
+  "maximumCNY": 1,
+  "maximumSupplierRequestsIncludingRetries": 5,
+  "rootRealRequestsBefore": 0
+}

@@ -1,0 +1,61 @@
+{
+  "checkpoint": "R106",
+  "root": "/root",
+  "model": "unknown",
+  "head": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "branch": "codex/round1-continuous",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "previousTurn": "PROGRESS",
+  "thisTurn": "PROGRESS_SOURCEFIX_ACCEPTED_AND_ACTUAL168GREEN",
+  "sourceFixReview": "862166ffccf09dbf201638c60d792e4737d82bdc66796ac7422551a6a527cd63",
+  "b05FixACK": "d46609d3cc27ad0346f0bc9f316e875519eade4c2b9fb960fed449a767e92af9",
+  "actualGreen": {
+    "claim": "CONSUMED_NO_RETRY",
+    "compileExit": 0,
+    "errors": 0,
+    "tool": "542ed2 terminal0",
+    "unitExit": 0,
+    "review": "7a06e26cf678f14e852128cb4365bdac111f7da4dbe7e85d29fe421260b302ef",
+    "fail": 0,
+    "pass": 168,
+    "blocked": 0
+  },
+  "freeze": {
+    "record": "4d4875b2828038195b8885a5a3f1fb3f64ef6f372024a66e272177d39954ae83",
+    "nativePermission": false,
+    "status": "BUILD_FROZEN_PURE_UNIT_SOURCE_BASELINE_ONLY"
+  },
+  "next": {
+    "model": "configured gpt-6-astra high",
+    "owner": "/root/windows_native_next_scope",
+    "scope": "READONLY_FINAL_EDITION_BUILD_LINK_AND_CONCRETE_OS_EFFECTS_REPORT2",
+    "status": "ACTIVE"
+  },
+  "files": [
+    {
+      "sha256": "a8e18c8fe673f46aa1712ce956e5ba95a025088b9884d19bef8b8e6241179e3b",
+      "beforeSHA256": "4c2c6d534008493f5dd1de7b9284ff9158fa7b9a103444be3e047d7f9dc10baa",
+      "path": "docs/tasks/ACTIVE.md"
+    },
+    {
+      "sha256": "cc4d911068903d949e24a229f46ab732f340303e67ecabd73c08d8bbf910202f",
+      "beforeSHA256": "3cf2e153808e4515e8917c60d61345170ad19b7276408d48643b22a232188e6a",
+      "path": "docs/tasks/R1-results.md"
+    },
+    {
+      "sha256": "ecfc051f752008ecb5aac143761271046a7e4ccd46fd680107818ee18089b535",
+      "beforeSHA256": "10ada8953e236c3d32d1383dd42f102f1e0cfcb1e7b155f45f8c70b05fb4ae5a",
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md"
+    },
+    {
+      "sha256": "6407c0c1b7a0abb4c2323fc52e290e09c20f4e650e5fa1476d1878d511ac75dd",
+      "beforeSHA256": "ae87feca76f990e85402e354251222be4ae4bce4504d87babd4bf804a2afa74c",
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md"
+    }
+  ],
+  "independentDocsReview": "PENDING",
+  "unitNativeTarget": "NOT_RUN",
+  "productModelCalls": 0,
+  "blockerAudit": 0,
+  "utc": "2026-11-08T17:26:03.9736709+00:00"
+}

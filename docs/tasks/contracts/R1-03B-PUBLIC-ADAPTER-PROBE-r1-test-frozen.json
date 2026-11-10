@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "contract": "R1-03B-PUBLIC-ADAPTER-PROBE",
+  "revision": "r1",
+  "status": "TEST-FROZEN_PUBLIC_SOURCE_ONLY_ACTUAL_RUNTIME_CLOSED",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "owner": "/root/admin_sqlfix_impl",
+  "ownerConfiguredModel": "gpt-6.1-sol high",
+  "consumer": "/root",
+  "consumerModel": "unknown",
+  "reviewer": "/root/guard_review",
+  "reviewerConfiguredModel": "gpt-6-astra high",
+  "rootConsumerAck": {
+    "sha256": "0252bde70e1d29d39687152dce2d9b7861d22798e2b84f8fefa0e71b02220f39",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-public-adapter-probe-r1-root-consumer-ack.json"
+  },
+  "independentDesignReview": {
+    "sha256": "789b10a20065a511ab7652c03e695bbca8396cd7b245d00fd93c914eec7fb69a",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-public-adapter-probe-r1-design-independent-review.json"
+  },
+  "exactDesign": {
+    "sha256": "a1077657d8d4c0889b18ffa6d31904c9b94ef0eeb4d1801df9d44182df2068a1",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-preflight-failure-rca.md"
+  },
+  "approvedSourceSHA": "ca148bd3f79f667e920216ee38e28ac219fbe870df2ed7b604895d99d9c8b44f",
+  "allowedFunctions": [
+    "SQAssert",
+    "SQHash",
+    "SQPublicChain",
+    "New-SQPublicFS",
+    "SQPublicOpen",
+    "SQReadPinned",
+    "SQInitializePublicNative"
+  ],
+  "writePrefix": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-public-adapter-probe-r1-",
+  "sourceWriteSet": [
+    "driver.CLOSED.ps1",
+    "host-tests.ps1",
+    "host-results.json",
+    "source-report.md",
+    "source-report.json",
+    "source-manifest.json",
+    "exact-extraction-diff.json"
+  ],
+  "publicReadTargets": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-impl-public-fixtures\\PUBLIC_ONLY_NATIVE_PROBE_V1.txt",
+      "sha256": "70b007ea3a0af98625e4b526823fd15c9d2e961492524a0919d788a34b15e9c9",
+      "role": "PUBLIC_FIXTURE",
+      "bytes": 23
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-impl.CLOSED.ps1",
+      "sha256": "ca148bd3f79f667e920216ee38e28ac219fbe870df2ed7b604895d99d9c8b44f",
+      "role": "FIXED_SOURCE",
+      "bytes": 70035
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-runtime-lease.json",
+      "sha256": "fe1ffd0d19f6c4bbf3de7c1e65da91dd9f51ac4e31dd6a641511a54178471ec9",
+      "role": "FIXED_LEASE_DATA_ONLY",
+      "bytes": 1643
+    }
+  ],
+  "runtimeOutputRoot": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-public-adapter-probe-r1-actual",
+  "runtimeCwd": "E:\\CodexData\\incidents\\morchat-20261106T233131",
+  "runtime": "CLOSED_SEPARATE_SOURCE_REVIEW_EXACT_ROOT_RELEASE_REQUIRED",
+  "tests": "Pure AST identity, allowlists, phase diagnostics, stop-on-first-failure, cleanup, no default IO/native; retain RED/GREEN; no Add-Type or actual filesystem adapter in source-prep",
+  "maxRuntimeEntries": 1,
+  "privateIO": 0,
+  "docker": 0,
+  "sql": 0,
+  "target": 0,
+  "network": 0,
+  "models": 0,
+  "clock": 0,
+  "autoRetry": false,
+  "legacyLeaseOrClaimReuse": false,
+  "productSourceWrite": false
+}

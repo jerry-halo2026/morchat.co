@@ -1,0 +1,60 @@
+{
+  "checkpoint": "R120",
+  "classification": "PROGRESS_FINAL_FIX5_SOURCE_DISPATCH",
+  "root": "/root",
+  "model": "unknown",
+  "utc": "2026-11-09T02:57:49.2273005Z",
+  "branch": "codex/round1-continuous",
+  "baseline": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "previousTurn": "NO_PROGRESS_STATUS_ONLY_REVALIDATED",
+  "fix4Review": "2b85d8fac8ba233ccea65071d24248efd86a116703a253aad2b3242ce602404c",
+  "fix4Decision": "HOLD_ONE_IMPORTANT_DESCRIPTOR_INITIALIZATION_GAP",
+  "fix5Owner": "/root/o0_policy_fix5_impl",
+  "fix5ConfiguredModel": "gpt-6-astra high",
+  "fix5TF": "f47bfe9a26d0dde6dae99e261f9ad2171ee35cfd5c11740edac35ff63154b2a0",
+  "fix5Status": "DISPATCHED_NOT_DELIVERED",
+  "independentReviewer": "/root/windows_runtime_r2_review",
+  "productModelCalls": 0,
+  "rootOwnedExecLive": false,
+  "frontend39539": "MANUAL_QUESTION_PENDING_NO_ACTION",
+  "independentDocsReview": "PENDING_AT_CAPTURE",
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "55966a8f0f73dff80e2355902c4b350ef0e239f1ed4f6eca3230592f2639a9df",
+      "sha256": "ddb94dc5bb42f27c044f915ee6a56ecde40031240e635b2a2240e17857883951",
+      "bytes": 313377
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "ac135156e33d319cc56710a447a0ef6ccb31629993d49457f4f912e6c88e7c66",
+      "sha256": "56c75d5f59932ed9e49c4d3abd69411755131ae1f3bda34fe25bb70d2d4cc9c1",
+      "bytes": 294875
+    },
+    {
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "beforeSha256": "ab08f40f7a27ea5bb28c0566b03997f80a15bba6559c37dfb50ad12caef421eb",
+      "sha256": "6d402d787293bee425dd2fd6e97a394d0823fd7780d5429be15172ddb7d7be50",
+      "bytes": 79990
+    },
+    {
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "beforeSha256": "a525a5d2352395d1a1611b4b1a43885b28e565422756d9c5d56e8c7b4fad4e5a",
+      "sha256": "1067778b469c8b2713ebe542d66916f3a31809db261b3eeb13d4240e0417680c",
+      "bytes": 61571
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-source-fix4.md",
+      "beforeSha256": "5513082b9e5937fa9bbce2eb123c81a5802542fe61b45ad5a33c0accb0ce5e23",
+      "sha256": "4d995ffb6158d9b873b7c605067a38ed6241be9acb86bb865c32947a0e5d8c28",
+      "bytes": 3639
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-source-fix5.md",
+      "beforeSha256": "19532fc01d2378292a8089d212c12b9b7ae2265a7b3b22001142c118abfb4006",
+      "sha256": "c0652946e9933d1ec333b4d5292a93f8a57ee21e51648174db093fe90e5c8474",
+      "bytes": 3701
+    }
+  ]
+}

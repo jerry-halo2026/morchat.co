@@ -1,0 +1,74 @@
+{
+  "revision": "r1",
+  "sourceProgramPermission": "PUBLIC_HOST_STATIC_TDD_ONLY_NO_CSHARP_COMPILATION_OR_NATIVE",
+  "implementerConfiguredModel": "gpt-6-astra high",
+  "oldInputBytes": "UNCHANGED",
+  "writeRoot": "E:\\CodexData\\incidents\\morchat-20261106T233131",
+  "reviewerConfiguredModel": "gpt-6-astra high",
+  "noAutomaticFallback": true,
+  "procFailOpenP0": "UNFIXED_NOT_WAIVED_BY_OUTER_JOB",
+  "status": "TEST_FROZEN_FOUR_NEW_SOURCE_ONLY_ALL_NATIVE_CLOSED",
+  "reviewer": "/root/guard_review",
+  "consumer": "/root/windows_process_consumer",
+  "task": "R1-02E-WINDOWS-RUNTIME-SOURCE",
+  "allRepoSourceWriters": "CLOSED",
+  "evidenceWriteSet": [
+    "windows-runtime-containment-r1-implementation-report.md",
+    "windows-runtime-containment-r1-implementation-report.json",
+    "windows-runtime-containment-r1-implementation-manifest.json",
+    "windows-runtime-containment-r1-static-results.json",
+    "windows-runtime-containment-r1-public-fixtures/"
+  ],
+  "backendTelemetry": "UNAVAILABLE",
+  "sourceWriteSet": [
+    "windows-runtime-containment-r1-launcher.cs",
+    "windows-runtime-containment-r1-probe.cs",
+    "windows-runtime-containment-r1-profile.CLOSED.json",
+    "windows-runtime-containment-r1-static-tests.ps1"
+  ],
+  "consumerConfiguredModel": "gpt-6.1-sol medium",
+  "controllerModel": "unknown",
+  "sourceRoot": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co",
+  "producerConfiguredModel": "gpt-6-astra high",
+  "runtimePermission": "NONE",
+  "implementer": "/root/windows_runtime_impl",
+  "producer": "/root/windows_runtime_owner",
+  "targetTests": "NOT_RUN",
+  "storageGate": "HARD_BOUNDS_NOT_PROVEN_NO_MEMORYCAP_OR_SMALLTESTWRITE_SUBSTITUTE_UNBOUND_MUST_REJECT",
+  "futureOrder": [
+    "INDEPENDENT_SOURCE_REVIEW",
+    "SEPARATE_COMPILE_ONLY_RELEASE",
+    "EXPLICIT_OS_EFFECT_AUTHORITY_AND_BOUND_PROFILE",
+    "PROBE_ONLY_RELEASE_AND_ACTUAL_INDEPENDENT_ACCEPTANCE",
+    "FULL_INIT_REVIEW_AND_SEPARATE_EXACT_TARGET_RELEASE"
+  ],
+  "futureOSAuthority": "NOT_GRANTED_NO_PROFILE_REGISTRY_FOLDER_ACL_TOKEN_JOB_VM_FIREWALL_USER_ELEVATION_ACTIONS",
+  "inputs": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-containment-r1-proposal.json",
+      "sha256": "d045a09050f90012802206b8f057b90c7eeb941e6785ee0b2a37c289e6d5c574"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-containment-r1-capabilities.json",
+      "sha256": "33185671f9647dc08cbc03da95f92e84551ec1939f60ba884156c433a5bc6747"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-containment-r1-consumer-ack.json",
+      "sha256": "57ddbcdd9f39f909f555ab0ee6f5427fd66051ce2fb667e775bb07fa265bc9cf"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-containment-r1-independent-review.json",
+      "sha256": "c51fe5450ed8216a7b379b2aef75ed5def9d80354f9815ef1fe746c8f4b28046"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-containment-r1-implementation-brief.md",
+      "sha256": "3cc7cf7d8f7ff0097ee573b1d3222276ebb1254768c91daf8495f3c80863b2c8"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-agent-compile-r1-actual-independent-review.json",
+      "sha256": "0bc6d8b3f95741258073fb5e3ce1df74b963ece28e8664a939fce1b2e1f3b36b"
+    }
+  ],
+  "controller": "/root",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453"
+}

@@ -1,0 +1,112 @@
+{
+  "task": "CLIENT-DEEPSEEK-LIVE-r1",
+  "date": "2026-11-10",
+  "rootModel": "not-exposed",
+  "reviewer": "/root/deepseek_live_review_r1",
+  "reviewerModel": "gpt-6-astra",
+  "copyConsent": "EXPLICIT_APPROVED_call_dcc639f893ba4eb8aaf06d9e8dc9bc51",
+  "snapshot": {
+    "fileProof": {
+      "targetExists": true,
+      "regularNonReparse": true,
+      "nonempty": true,
+      "ownerCurrent": true,
+      "protected": true,
+      "exactTwoRules": true,
+      "onlyCurrentAndSystem": true,
+      "modelRequests": 0
+    },
+    "originalUnchanged": true,
+    "valuesPrinted": false,
+    "records": 2,
+    "newOperatorSHA": "96CFECEB5321314189DC537BDCB189031B6A8DA00BF40066F9960E046C6261AA",
+    "success": true
+  },
+  "initialFailure": {
+    "rootCause": "Node child inherited PowerShell7 PSModulePath incompatible with Windows PowerShell5 native Get-Acl module",
+    "kind": "runtime preflight not consent refusal",
+    "oldOperatorRetained": true,
+    "pairedDiagnostic": "inherited failed, child-native module path passed",
+    "safetyChecksRelaxed": false
+  },
+  "profile": {
+    "actualResolvedPolicyIndexSHA": "45C7A40E0455066DCA72C93515F2496B0F524529D240DE95020F2B5B46023D61",
+    "nativeProbeExit": 0,
+    "probeProtocol": 1,
+    "agentSchemas0Live": "NOT_YET_AGENT_CREATED",
+    "profilePatchSHA": "EF189A8C27DB6D63930AA3046A3040482E952EAFCB7487C644D508E8D461F027",
+    "nativeOfflineInstallExit": 0,
+    "freshHome": "private-runtime-home",
+    "nativePolicyInstalledObserved": true,
+    "reviewerPreparedACK": true
+  },
+  "model": {
+    "rootReleased": false,
+    "name": "deepseek-account/deepseek-flash",
+    "maximumSupplierRequestsIncludingRetries": 5,
+    "maximumCNY": 1,
+    "quotaFileExists": true,
+    "actualReply": "NOT_RUN_USER_PHYSICAL_ESCAPE_STOPPED_CUA_BEFORE_DESKTOP_START",
+    "callsByRoot": 0
+  },
+  "metadata": {
+    "ledgerHeaderOnly": false,
+    "expiry": 1794276018171,
+    "maxGet": 2,
+    "actualMetadataReservations": 2
+  },
+  "client": {
+    "question": "20261110_followup_exact5180_login",
+    "session": 6241,
+    "healthListening": false,
+    "healthPort": 20012,
+    "processConfirmedLive": true,
+    "api": "http://127.0.0.1:8080",
+    "originalUserProfileUntouched": true,
+    "renderer": 5180,
+    "nativeWindowAX": "User stopped Computer Use with physical Escape before Start; no further CUA performed",
+    "windowId": 330250,
+    "isolatedHome": "desktop-account-live-home",
+    "pid": null,
+    "freshTask": "01a1c324-4875-7c8a-a06f-b04b9acd01df_QUEUED",
+    "authentication": "OBSERVED_DESKTOP_LOGIN_WORKSPACE_AND_PERSISTED_REOPEN",
+    "rendererBuild": "main/preload EXIT0 and APIconfig/SupabaseConfig200",
+    "autoStart": false,
+    "startupRootCause": "outerDSH_HOME pointed uninstalled directory; only1line aligned to reviewed private runtime, startup then actual online20012 observed; no reinstall",
+    "retainedFailedTask": "01a1c31e-14db-7adb-9691-85dfbca89573_LOCAL_ACCOUNT_LIVE_NOT_RELEASED_NO_MODEL_CALL"
+  },
+  "help": {
+    "independentReview": "ACCEPT",
+    "overlayExport": "only6files, oldblob guarded and backups retained",
+    "scope": "6clientfiles only",
+    "viewsTypecheckExit": 0,
+    "unitGreen": 49,
+    "backendOrSchemaUpdated": false,
+    "exactFeishuURL": "https://wcnb2ddshm1z.feishu.cn/wiki/PlGcw8kUyidnOakv9e7ccvDanfc?from=from_copylink",
+    "nativeClickVerification": "NOT_RUN",
+    "redFailures": 34
+  },
+  "brand": {
+    "waiverQuestion": "USER_ASSERTS_EXISTS_PATH_NOT_PROVIDED_REQUESTED",
+    "productNameLogoChanges": "HOLD_PENDING_DOCUMENT_LOCATION_AND_SCOPE",
+    "requested": "morechat.co",
+    "license": "local LICENSE PartI1(b), upstream verified",
+    "GithubIntegrationUI": "settings2+projectskill16 overlaid guarded/backedup; independentACCEPT; selected83/377,TSC0; actualDesktopcodepage noGithubcard; notallApp"
+  },
+  "assets": {
+    "previewOnly": true,
+    "avatarBrowserFilePreview": "BLOCKED_FILE_PROTOCOL_no_workaround",
+    "reference": "publicGrok viewed DOM/screenshot, reduced-motion disablesmotion; nonofficial/unlicensed study not copied",
+    "wikiBody": "UNREAD_loginrequired",
+    "gallery": "C:/Users/Administrator/.codex/visualizations/2026/11/06/01a1b0e9-ce05-7273-bbb3-b6f3d0708f30/morechat-icon-study/index.html",
+    "originalAnimatedAvatarPreview": "animated-avatar-preview.html",
+    "originalFiles": 20,
+    "noNewImageDependency": true,
+    "avatarCombinations": "6shapes x8palettes",
+    "contactsheet": "current-app-icons.png"
+  },
+  "rootRealModelCalls": 0,
+  "mainMerged": false,
+  "publicPush": false,
+  "wholeGoalComplete": false
+}

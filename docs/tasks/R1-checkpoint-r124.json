@@ -1,0 +1,57 @@
+{
+  "checkpoint": "R124",
+  "root": "/root",
+  "model": "unknown",
+  "baseline": "efdc54aaf3fcc4e3eaee369b980ac054ccc0bb54",
+  "branch": "codex/round1-continuous",
+  "stagedCount": 0,
+  "classification": "PROGRESS_REAL_STORED_CANDIDATE_STRUCTURAL_DATA_PRODUCED",
+  "owner": "/root/o0_candidate_integrator",
+  "ownerRoute": "gpt-6.1-sol high",
+  "candidateMetadata": "e363fc34e24263e6777756f0dc5a106813d78a247ba4a88ff28fc45eddc529c3",
+  "candidateBytes": 4987135,
+  "remainingCapBytes": 255745,
+  "candidatePending": 3119,
+  "pendingDelta": -680,
+  "inputPinsBefore": 74,
+  "inputPinsAfter": 76,
+  "executionRowsBefore": 44,
+  "executionRowsAfter": 45,
+  "candidateGraphCalls": 1,
+  "structuralConsumerReturned": true,
+  "independentReview": "ACTIVE",
+  "diagnosticDeltaField": "HOLD_RAW_VS_NORMALIZED_KEYS_REVIEW",
+  "ForExecution": "NOT_RUN_CLOSED",
+  "rootOwnedExecLive": false,
+  "actualNativePermission": false,
+  "modelCalls": 0,
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "docsReview": "PENDING_AT_CAPTURE",
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "sha256": "424fc222da6c71ca82cd73b492de36345bbef037829e3d90c288aea5a0c2c5d4",
+      "bytes": 328371,
+      "beforeSha256": "dcd9da53e1cf7d5972bafd1dcd578681f6382bbc32a7f33d63b139250d859c81"
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "sha256": "8d34aed2130d3354eaa1f428185e69746344d643a4c679b86097b0726aa694a4",
+      "bytes": 309869,
+      "beforeSha256": "444f2a47b5019b4fd5841a341608dcb9d990fb3cd17dce856ba09b0a68cd039d"
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-win32u-candidate.md",
+      "sha256": "9a7c069853b2687323ea643069a28b5955334c52c97a80495fa54bd802bef505",
+      "bytes": 4724,
+      "beforeSha256": "fa16bb9b627954f86800da0b7e22c3b658b5637cee47bf2033abae0a416a8009"
+    },
+    {
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "sha256": "81743fd22cef7a9c72303efd5bfc33e981750e0293746db70e18551abfe71bac",
+      "bytes": 88748,
+      "beforeSha256": "67b69c7bd5a361a38f78a9904f484436e0093b94feccaff8528f65cc7b75be1b"
+    }
+  ],
+  "utc": "2026-11-09T04:25:21.4616367Z"
+}

@@ -1,0 +1,80 @@
+{
+  "frontend39539": "HOLD_MANUAL_ACTION_PENDING",
+  "checkpoint": "R117",
+  "actualR2": {
+    "claim": "CONSUMED_NO_RETRY",
+    "helperLoads": 0,
+    "scope": "LIBRARY_DATA_ONLY",
+    "actualReview": "6568b95b62041b063c6dd4d585c9851681d5b0d0dc98346e8cec7292e1fe6b3c",
+    "compilerProcesses": 1,
+    "nativeQueries": 0,
+    "manifest": "579da02560c88f9443099c6ab4ea43f491eecce97a029d677a1df6dc75e02eff",
+    "dll": "03abf896d8e91300eaf5a2ce9af2d2323abd720c7ba0faf67e42e23137234255",
+    "exec": "58faad terminal0",
+    "child": 36768
+  },
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "files": [
+    {
+      "beforeSha256": "a29cbd0a42de744568695dd135f2619fdd407c12a959599bba08ceb4b40346e0",
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeBytes": 300014,
+      "sha256": "abcf7ba5a3f869cea4bd69f927f87b28365809c6ffe53b2dfa3d1d8f1241d688",
+      "bytes": 303718
+    },
+    {
+      "beforeSha256": "002bd17159a0d0ab63bce6c932bd2362a4e62d28c963db47ee12c1a95e98b722",
+      "path": "docs/tasks/R1-results.md",
+      "beforeBytes": 281512,
+      "sha256": "176ba8d2e7c4ebfdc30dd1a9e562be0c615352d23858248ca8da20f4731da05b",
+      "bytes": 285216
+    },
+    {
+      "beforeSha256": "a6427a0c0e1ca9e5fd8d208c663ec6f0ac1ea6f08db333f7c803416ba95a9814",
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "beforeBytes": 66627,
+      "sha256": "3ce484c28d229292e89a15ce6459419e6986464dda35265f561792648faf0118",
+      "bytes": 70331
+    },
+    {
+      "beforeSha256": "c28995498f2d1768881a0982e51dcd64f1961ba72db164911d071d1429e5f897",
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "beforeBytes": 48208,
+      "sha256": "deb658b4fe10db941cf2288d633a9b5340af3e638d10bd358b6811f84d128bc0",
+      "bytes": 51912
+    },
+    {
+      "beforeSha256": "233d9d4258d944346bafe46b00cb0f7f97758ec466b6198d206e4d2c214e83a9",
+      "path": "docs/tasks/R1-02E-O0-source-fix2.md",
+      "beforeBytes": 7888,
+      "sha256": "7ca6815b5b8173ef7e74b2d72c9f7c601a61de99061e022d059c0506dc6a10af",
+      "bytes": 11592
+    },
+    {
+      "beforeSha256": "331db7dd034f7b2abd6535ddfde28beb2d78883f957176610e7a7b7933559e14",
+      "path": "docs/tasks/R1-02E-O0-helper-compile-r2.md",
+      "beforeBytes": 4480,
+      "sha256": "48480e4a6cea20a0b317ace0b60728807968139705ff9676544c19c1930df5e9",
+      "bytes": 8184
+    }
+  ],
+  "oldR2FinalHold": "f64ac01c1d6efface34f584355792d3f908e3250b52fbe8aabfaab24c61431b4",
+  "model": "unknown",
+  "baseline": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "branch": "codex/round1-continuous",
+  "R2fix1SourceReview": "029f968be14993e4c738ac913e70dc1ca35b574f8ec1593b56f98dc0a5a6496a",
+  "rootOwnedExecLive": false,
+  "sourceFix3": {
+    "dataInputClarification": "c41f1847ce2da379c31c4d12bba1cc06789511b80e8402af45c0d946125078b0",
+    "status": "EXACT6_ACTIVE_NOT_YET_SOURCE_ACCEPTED",
+    "actor": "/root/native_o0_source_impl",
+    "release": "f41af14cadbee8ad0a700b1c8b13db05cb5a769d29d6daba79946b22c46a8ef3",
+    "actualPermission": false
+  },
+  "independentDocsReview": "PENDING",
+  "utc": "2026-11-08T23:39:23.8531135Z",
+  "globalBlockerAudit": 0,
+  "root": "/root",
+  "classification": "PROGRESS_REAL_CSC_R2_AFTER_TEMPLATE_FIX",
+  "productModelCalls": 0
+}

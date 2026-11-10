@@ -1,0 +1,8 @@
+# 由 Caddyfile.example 复制而来：每台机器一份，不进仓库
+#   cp Caddyfile.example Caddyfile
+Caddyfile
+
+# 安装脚本生成的真实密钥
+.env
+.env.*
+!.env.example

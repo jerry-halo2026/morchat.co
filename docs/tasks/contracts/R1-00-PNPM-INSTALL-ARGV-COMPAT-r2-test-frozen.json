@@ -1,0 +1,497 @@
+{
+  "schemaVersion": 1,
+  "task": "R1-00-PNPM-INSTALL-ARGV-COMPAT-R2",
+  "revision": "r2",
+  "state": "TEST-FROZEN",
+  "authorization": "R1-AUTH-r1_SOURCE_ONLY",
+  "root": "/root",
+  "rootModel": "unknown",
+  "producer": "/root/frontend_install_impl",
+  "producerConfiguredModel": "gpt-6.1-sol high",
+  "consumer": "/root",
+  "consumerModel": "unknown",
+  "reviewer": "/root/frontend_baseline_review",
+  "reviewerConfiguredModel": "gpt-6.1-sol high",
+  "branch": "codex/round1-continuous",
+  "baseHead": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "fixRound": "2/5_OF_INSTALLER_LINEAGE",
+  "RootRulingPath": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-argv-r2-root-ruling.json",
+  "RootRulingSHA": "f896c010f75b3352feb3db347cc3177d412d14ce09ca5bafac0fc378346a702c",
+  "proposalPath": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-argv-compatibility-r2-proposal.json",
+  "proposalSHA": "1cdda27a9f9f8800bf041eed596fabc9a4e5b945a78c0da46a6fa87441c98f28",
+  "designReviewPath": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-argv-compatibility-r2-design-independent-review.json",
+  "designReviewSHA": "f3c0a636e6ef1dfeaaed5d8de5eecb962faf13e04d93a144272b7990642c3f4a",
+  "sourceWriteSet": [
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-argv-r2-launcher.CLOSED.ps1",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-argv-r2-profile.CLOSED.json",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-argv-r2-host-tests.ps1",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-argv-r2-host-results.json",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-argv-r2-source-report.md",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-argv-r2-source-manifest.json",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-argv-r2-source-diff.json"
+  ],
+  "sourceAuthority": "Only seven NEW namespace tool artifacts; originals preserved and untouched. No product source writes.",
+  "execution": {
+    "maxInstallInvocations": 1,
+    "versionCount": 0,
+    "importers": [
+      ".",
+      "apps/web",
+      "apps/desktop",
+      "packages/core",
+      "packages/ui",
+      "packages/views",
+      "packages/plugin-sdk",
+      "packages/eslint-config",
+      "packages/tsconfig",
+      "packages/vitest-setup"
+    ],
+    "argv": [
+      "install",
+      "--filter=@multica/web...",
+      "--filter=@multica/desktop...",
+      "--filter=multica",
+      "--fail-if-no-match",
+      "--frozen-lockfile",
+      "--config.include-workspace-root=false",
+      "--config.save=false",
+      "--fetch-retries=0",
+      "--fetch-timeout=120000",
+      "--network-concurrency=4",
+      "--child-concurrency=1",
+      "--store-dir=E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\store",
+      "--cache-dir=E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\cache",
+      "--config.state-dir=E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\state",
+      "--reporter=append-only",
+      "--ignore-scripts",
+      "--ignore-pnpmfile",
+      "--config.manage-package-manager-versions=false",
+      "--config.package-manager-strict=true",
+      "--config.package-manager-strict-version=true",
+      "--config.update-notifier=false",
+      "--config.side-effects-cache=false",
+      "--config.verify-store-integrity=true",
+      "--config.enable-pre-post-scripts=false",
+      "--registry=https://registry.npmjs.org/",
+      "--config.userconfig=E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\config\\empty-user.npmrc",
+      "--config.globalconfig=E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\config\\empty-global.npmrc"
+    ],
+    "emptyConfigs": [
+      "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\config\\empty-user.npmrc",
+      "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\config\\empty-global.npmrc",
+      "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\config\\pnpm\\rc"
+    ],
+    "cwd": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co",
+    "entry": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\bin\\pnpm.cjs",
+    "node": "E:\\CodexData\\morchat-r1-local\\tools\\node22\\node-v22.23.4-win-x64\\node.exe",
+    "ownedRoot": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2",
+    "environment": {
+      "NPM_CONFIG_REGISTRY": "https://registry.npmjs.org/",
+      "TMP": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\tmp",
+      "NO_UPDATE_NOTIFIER": "1",
+      "SystemRoot": "C:\\Windows",
+      "NPM_CONFIG_GLOBALCONFIG": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\config\\empty-global.npmrc",
+      "NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS": "false",
+      "HOME": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\home",
+      "ELECTRON_SKIP_BINARY_DOWNLOAD": "1",
+      "PATH": "E:\\CodexData\\morchat-r1-local\\tools\\node22\\node-v22.23.4-win-x64;C:\\Windows\\System32;C:\\Windows",
+      "PNPM_HOME": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\pnpm-home",
+      "NPM_CONFIG_IGNORE_PNPMFILE": "true",
+      "COREPACK_ENABLE_NETWORK": "0",
+      "XDG_CACHE_HOME": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\cache",
+      "TURBO_TELEMETRY_DISABLED": "1",
+      "NPM_CONFIG_USERCONFIG": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\config\\empty-user.npmrc",
+      "TEMP": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\tmp",
+      "XDG_DATA_HOME": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\data",
+      "XDG_CONFIG_HOME": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\config",
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "NPM_CONFIG_CACHE": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\npm-cache",
+      "USERPROFILE": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\home",
+      "ComSpec": "C:\\Windows\\System32\\cmd.exe",
+      "LOCALAPPDATA": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\home\\AppData\\Local",
+      "APPDATA": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\home\\AppData\\Roaming",
+      "XDG_STATE_HOME": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\state",
+      "WINDIR": "C:\\Windows",
+      "NPM_CONFIG_IGNORE_SCRIPTS": "true",
+      "CI": "true",
+      "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
+      "NODE_DISABLE_COMPILE_CACHE": "1",
+      "DISABLE_V8_COMPILE_CACHE": "1",
+      "NODE_COMPILE_CACHE": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2\\compile-cache",
+      "NPM_CONFIG_UPDATE_NOTIFIER": "false"
+    }
+  },
+  "futureInstallPurpose": "R1_INSTALL_ARGV_COMPAT_R2_ONCE",
+  "futureApprovalPath": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-argv-r2-runtime-approval.json",
+  "futureOnceLeaf": "argv-compat-r2-install-once.created.json",
+  "futureControlEvidenceRoot": "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2-control-evidence",
+  "sourcePins": [
+    {
+      "sha256": "940dc1ec1467b54c221ac514a7b65c0f9ee157b9a2a5899c2302b8a15523193c",
+      "bytes": 2634,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\package.json"
+    },
+    {
+      "sha256": "f9330ba1eece6ec81a77c2ca71bbf80ef962af6cee789d60bb262e557479c7c1",
+      "bytes": 1202,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\pnpm-workspace.yaml"
+    },
+    {
+      "sha256": "d8ce587411c76846769ef7f3b28c6717d871fbec31ace56633748e062c1f43c6",
+      "bytes": 905625,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\pnpm-lock.yaml"
+    },
+    {
+      "sha256": "4b84eb91234d80d48c16b50746106405c4cd6d97581f7464001a7dc84dd9d185",
+      "bytes": 22,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\.npmrc"
+    },
+    {
+      "sha256": "34eebc15eb95ab5fe4addefef3ac0e97f746a6524373c8da41e47c2ed54ef6ef",
+      "bytes": 3667,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\turbo.json"
+    },
+    {
+      "sha256": "702e0cd2616e6733fdef21135db4a39e5bcb72c5e2aff9c876effc9f9bb4ef7c",
+      "bytes": 1384,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\web\\package.json"
+    },
+    {
+      "sha256": "14f28485d11afd07536ddb037ae57ce5b4e8d161bb1d6bde98099d80e89c6576",
+      "bytes": 2828,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\desktop\\package.json"
+    },
+    {
+      "sha256": "72a2e76620da75190a46833ca1a9739cbec5498393b4c5b8314e7c67cf6e89e3",
+      "bytes": 9975,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\core\\package.json"
+    },
+    {
+      "sha256": "638806e9f316da59a247b596a247d705115ee73292e5533a7de1dbcbeba67c4e",
+      "bytes": 2654,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\ui\\package.json"
+    },
+    {
+      "sha256": "fcc78ee6b71459c40d9e62dc588ed2ad73eb22979ce4a9fb16313f6ff870bd41",
+      "bytes": 6206,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\views\\package.json"
+    },
+    {
+      "sha256": "f578d534f2bc297408dc8ab5e6b15722fa65339f958d14e22eb0074412676e7b",
+      "bytes": 567,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\plugin-sdk\\package.json"
+    },
+    {
+      "sha256": "c5554232b86803c9329f6742ac89dc5036b2b01a1372834b43dfcffab8a5b90e",
+      "bytes": 590,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\eslint-config\\package.json"
+    },
+    {
+      "sha256": "58d7a428babe4ae14d78517267522498800d16276d9ada5f9eaac484390a23ab",
+      "bytes": 75,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\tsconfig\\package.json"
+    },
+    {
+      "sha256": "673840955635766ae01110894bdcdb093bb84228a9d1bc00a0bb761b3d436216",
+      "bytes": 159,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\vitest-setup\\package.json"
+    },
+    {
+      "sha256": "b276da51dc8ca5b0d3ee3371695b50fc8b3244b281b091c63a3f082a88dadeb9",
+      "bytes": 1102,
+      "path": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\bin\\pnpm.cjs"
+    },
+    {
+      "sha256": "930fe74c335e95a8f9f6786f115f00c37ae82493ba7bdbddaddd9e06de542f43",
+      "bytes": 7546648,
+      "path": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs"
+    },
+    {
+      "sha256": "6985e6e532eed7e6fd69a7d560ac5a5753d74a9f9709627092d5be02afddd84e",
+      "bytes": 161,
+      "path": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpmrc"
+    },
+    {
+      "sha256": "b74e71cf954512126aaddaa4afc339f17ee2ab747a0328d58df3b6220d38c7f7",
+      "bytes": 6075,
+      "path": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\package.json"
+    },
+    {
+      "path": "E:\\CodexData\\morchat-r1-local\\tools\\node22\\node-v22.23.4-win-x64\\node.exe",
+      "sha256": "dccc52de28d8df2ee22d2062424f8c563070d95d8ad70c54c4bf01d590dec14f"
+    }
+  ],
+  "sourceWitnesses": [
+    {
+      "end": 5280,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "      addEnv(env) {\n        env = env || process.env;\n        const conf = {};\n        Object.keys(env).filter((x) => /^npm_config_/i.test(x)).forEach((x) => {\n          if (!env[x]) {\n            return;\n          }\n          const key = envKeyToSetting(x.substr(11));\n          const rawVal = env[x];\n          conf[key] = deserializeEnvVal(key, rawVal);\n        });\n        return super.addEnv(\"\", conf, \"env\");",
+      "start": 5269,
+      "sha256Utf8LF": "e96cde4b2309a119d66fbb26644a1e50d575bb15dd2364d038c9f199f3202c9d"
+    },
+    {
+      "end": 5590,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "    module2.exports = (opts, types, defaults) => {\n      const conf = new Conf(Object.assign({}, _defaults.defaults, defaults), types);\n      conf.add(Object.assign({}, opts), \"cli\");\n      const warnings = [];\n      let failedToLoadBuiltInConfig = false;\n      if (require.resolve.paths) {\n        const paths = require.resolve.paths(\"npm\");\n        let npmPath;\n        try {\n          npmPath = require.resolve(\"npm\", { paths: paths.slice(-1) });\n        } catch (error) {\n          failedToLoadBuiltInConfig = true;\n        }\n        if (npmPath) {\n          warnings.push(conf.addFile(path2.resolve(path2.dirname(npmPath), \"..\", \"npmrc\"), \"builtin\"));\n        }\n      }\n      conf.addEnv();\n      conf.loadPrefix();\n      const projectConf = path2.resolve(conf.localPrefix, \".npmrc\");\n      const userConf = conf.get(\"userconfig\");\n      if (!conf.get(\"global\") && projectConf !== userConf) {\n        warnings.push(conf.addFile(projectConf, \"project\"));\n      } else {\n        conf.add({}, \"project\");\n      }\n      if (conf.get(\"workspace-prefix\") && conf.get(\"workspace-prefix\") !== projectConf) {\n        const workspaceConf = path2.resolve(conf.get(\"workspace-prefix\"), \".npmrc\");\n        warnings.push(conf.addFile(workspaceConf, \"workspace\"));\n      }\n      warnings.push(conf.addFile(conf.get(\"userconfig\"), \"user\"));\n      if (conf.get(\"prefix\")) {\n        const etc = path2.resolve(conf.get(\"prefix\"), \"etc\");\n        conf.root.globalconfig = path2.resolve(etc, \"npmrc\");\n        conf.root.globalignorefile = path2.resolve(etc, \"npmignore\");\n      }\n      warnings.push(conf.addFile(conf.get(\"globalconfig\"), \"global\"));\n      conf.loadUser();",
+      "start": 5553,
+      "sha256Utf8LF": "f52e7799cfe9eb47a47dc740aebc01d61e28c8badbf7dd53bce5fcfe03b2f91a"
+    },
+    {
+      "end": 16779,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "      if (opts.env.XDG_CACHE_HOME) {\n        return path_1.default.join(opts.env.XDG_CACHE_HOME, \"pnpm\");\n      }\n      if (opts.platform === \"darwin\") {\n        return path_1.default.join(os_1.default.homedir(), \"Library/Caches/pnpm\");\n      }\n      if (opts.platform !== \"win32\") {\n        return path_1.default.join(os_1.default.homedir(), \".cache/pnpm\");\n      }\n      if (opts.env.LOCALAPPDATA) {\n        return path_1.default.join(opts.env.LOCALAPPDATA, \"pnpm-cache\");\n      }\n      return path_1.default.join(os_1.default.homedir(), \".pnpm-cache\");\n    }\n    function getStateDir(opts) {\n      if (opts.env.XDG_STATE_HOME) {\n        return path_1.default.join(opts.env.XDG_STATE_HOME, \"pnpm\");\n      }\n      if (opts.platform !== \"win32\") {\n        return path_1.default.join(os_1.default.homedir(), \".local/state/pnpm\");\n      }\n      if (opts.env.LOCALAPPDATA) {\n        return path_1.default.join(opts.env.LOCALAPPDATA, \"pnpm-state\");\n      }\n      return path_1.default.join(os_1.default.homedir(), \".pnpm-state\");\n    }\n    function getDataDir(opts) {\n      if (opts.env.PNPM_HOME) {\n        return opts.env.PNPM_HOME;\n      }\n      if (opts.env.XDG_DATA_HOME) {\n        return path_1.default.join(opts.env.XDG_DATA_HOME, \"pnpm\");\n      }\n      if (opts.platform === \"darwin\") {\n        return path_1.default.join(os_1.default.homedir(), \"Library/pnpm\");\n      }\n      if (opts.platform !== \"win32\") {\n        return path_1.default.join(os_1.default.homedir(), \".local/share/pnpm\");\n      }\n      if (opts.env.LOCALAPPDATA) {\n        return path_1.default.join(opts.env.LOCALAPPDATA, \"pnpm\");\n      }\n      return path_1.default.join(os_1.default.homedir(), \".pnpm\");\n    }\n    function getConfigDir(opts) {\n      if (opts.env.XDG_CONFIG_HOME) {\n        return path_1.default.join(opts.env.XDG_CONFIG_HOME, \"pnpm\");\n      }\n      if (opts.platform === \"darwin\") {\n        return path_1.default.join(os_1.default.homedir(), \"Library/Preferences/pnpm\");\n      }\n      if (opts.platform !== \"win32\") {\n        return path_1.default.join(os_1.default.homedir(), \".config/pnpm\");\n      }\n      if (opts.env.LOCALAPPDATA) {\n        return path_1.default.join(opts.env.LOCALAPPDATA, \"pnpm/config\");\n      }\n      return path_1.default.join(os_1.default.homedir(), \".config/pnpm\");",
+      "start": 16722,
+      "sha256Utf8LF": "bc7181b8f26cbbc5a2c30b3fe83a255aa4f415efec5bc60032a99ae1d041d443"
+    },
+    {
+      "end": 17055,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "      \"enable-pre-post-scripts\": Boolean,\n      \"enable-global-virtual-store\": Boolean,\n      \"exclude-links-from-lockfile\": Boolean,\n      \"extend-node-path\": Boolean,\n      \"fetch-timeout\": Number,\n      \"fetch-warn-timeout-ms\": Number,\n      \"fetch-min-speed-ki-bps\": Number,\n      \"fetching-concurrency\": Number,\n      filter: [String, Array],\n      \"filter-prod\": [String, Array],\n      \"force-legacy-deploy\": Boolean,\n      \"frozen-lockfile\": Boolean,\n      \"git-checks\": Boolean,\n      \"git-shallow-hosts\": Array,\n      \"global-bin-dir\": String,\n      \"global-dir\": String,\n      \"global-path\": String,\n      \"global-pnpmfile\": String,\n      \"git-branch-lockfile\": Boolean,\n      hoist: Boolean,\n      \"hoist-pattern\": Array,\n      \"hoist-workspace-packages\": Boolean,\n      \"ignore-compatibility-db\": Boolean,\n      \"ignore-dep-scripts\": Boolean,\n      \"ignore-pnpmfile\": Boolean,\n      \"ignore-workspace\": Boolean,\n      \"ignore-workspace-cycles\": Boolean,\n      \"ignore-workspace-root-check\": Boolean,\n      \"optimistic-repeat-install\": Boolean,\n      \"include-workspace-root\": Boolean,\n      \"init-package-manager\": Boolean,\n      \"init-type\": [\"commonjs\", \"module\"],\n      \"inject-workspace-packages\": Boolean,\n      \"legacy-dir-filtering\": Boolean,\n      \"link-workspace-packages\": [Boolean, \"deep\"],\n      lockfile: Boolean,\n      \"lockfile-dir\": String,\n      \"lockfile-directory\": String,\n      // TODO: deprecate\n      \"lockfile-include-tarball-url\": Boolean,\n      \"lockfile-only\": Boolean,\n      loglevel: [\"silent\", \"error\", \"warn\", \"info\", \"debug\"],\n      \"manage-package-manager-versions\": Boolean,\n      maxsockets: Number,\n      \"modules-cache-max-age\": Number,\n      \"dlx-cache-max-age\": Number,\n      \"minimum-release-age\": Number,\n      \"minimum-release-age-exclude\": [String, Array],\n      \"modules-dir\": String,\n      \"network-concurrency\": Number,\n      \"node-linker\": [\"pnp\", \"isolated\", \"hoisted\"],\n      noproxy: String,\n      \"npm-path\": String,\n      offline: Boolean,\n      \"only-built-dependencies\": [String],\n      \"pack-destination\": String,\n      \"pack-gzip-level\": Number,\n      \"package-import-method\": [\"auto\", \"hardlink\", \"clone\", \"copy\"],\n      \"patches-dir\": String,\n      pnpmfile: String,\n      \"package-manager-strict\": Boolean,\n      \"package-manager-strict-version\": Boolean,\n      \"prefer-frozen-lockfile\": Boolean,\n      \"prefer-offline\": Boolean,\n      \"prefer-symlinked-executables\": Boolean,\n      \"prefer-workspace-packages\": Boolean,",
+      "start": 16990,
+      "sha256Utf8LF": "c96852724a75718005bd30f6c7568d95fa847061fb8bbb9695ae448cebd66d37"
+    },
+    {
+      "end": 21671,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "      const { config: npmConfig, warnings, failedToLoadBuiltInConfig } = (0, npm_conf_1.default)(cliOptions, rcOptionsTypes, defaultOptions);\n      const configDir = (0, dirs_js_1.getConfigDir)(process);\n      {\n        const warn = npmConfig.addFile(path_1.default.join(configDir, \"rc\"), \"pnpm-global\");\n        if (warn)\n          warnings.push(warn);\n      }\n      npmConfig.add({\n        registry: \"https://registry.npmjs.org/\",\n        \"@jsr:registry\": \"https://npm.jsr.io/\"\n      }, \"pnpm-builtin\");\n      {\n        const warn = npmConfig.addFile(path_1.default.resolve(path_1.default.join(__dirname, \"pnpmrc\")), \"pnpm-builtin\");\n        if (warn)\n          warnings.push(warn);\n      }\n      delete cliOptions.prefix;\n      process.execPath = originalExecPath;\n      const rcOptions = Object.keys(rcOptionsTypes);\n      const configFromCliOpts = Object.fromEntries(Object.entries(cliOptions).filter(([_, value]) => typeof value !== \"undefined\").map(([name, value]) => [(0, camelcase_1.default)(name, { locale: \"en-US\" }), value]));\n      const pnpmConfig = Object.fromEntries(rcOptions.map((configKey) => [(0, camelcase_1.default)(configKey, { locale: \"en-US\" }), npmConfig.get(configKey)]));\n      const globalDepsBuildConfig = (0, dependencyBuildOptions_js_1.extractAndRemoveDependencyBuildOptions)(pnpmConfig);\n      Object.assign(pnpmConfig, configFromCliOpts);\n      const cwd = fs_1.default.realpathSync((0, better_path_resolve_1.default)(cliOptions.dir ?? npmConfig.localPrefix));\n      pnpmConfig.maxSockets = npmConfig.maxsockets;\n      delete pnpmConfig[\"maxsockets\"];\n      pnpmConfig.configDir = configDir;\n      pnpmConfig.workspaceDir = opts.workspaceDir;\n      pnpmConfig.workspaceRoot = cliOptions[\"workspace-root\"];\n      pnpmConfig.rawLocalConfig = Object.assign.apply(Object, [\n        {},\n        ...npmConfig.list.slice(3, pnpmConfig.workspaceDir && pnpmConfig.workspaceDir !== cwd ? 5 : 4).reverse(),\n        cliOptions\n      ]);\n      pnpmConfig.userAgent = pnpmConfig.rawLocalConfig[\"user-agent\"] ? pnpmConfig.rawLocalConfig[\"user-agent\"] : `${packageManager.name}/${packageManager.version} npm/? node/${process.version} ${process.platform} ${process.arch}`;\n      pnpmConfig.rawConfig = Object.assign.apply(Object, [\n        {},\n        ...[...npmConfig.list].reverse(),\n        cliOptions,\n        { \"user-agent\": pnpmConfig.userAgent },\n        { globalconfig: path_1.default.join(configDir, \"rc\") },\n        { \"npm-globalconfig\": npmDefaults.globalconfig }\n      ]);\n      const networkConfigs = (0, getNetworkConfigs_js_1.getNetworkConfigs)(pnpmConfig.rawConfig);\n      pnpmConfig.registries = {\n        default: (0, normalize_registry_url_1.default)(pnpmConfig.rawConfig.registry),\n        ...networkConfigs.registries",
+      "start": 21625,
+      "sha256Utf8LF": "6e6038e1ecbf6c4ef43fa9b85b79f143c1673a9232e6f8272a85a284ce43b42a"
+    },
+    {
+      "end": 21765,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "      if (!opts.ignoreLocalSettings) {\n        pnpmConfig.rootProjectManifestDir = pnpmConfig.lockfileDir ?? pnpmConfig.workspaceDir ?? pnpmConfig.dir;\n        pnpmConfig.rootProjectManifest = await (0, read_project_manifest_1.safeReadProjectManifestOnly)(pnpmConfig.rootProjectManifestDir) ?? void 0;\n        if (pnpmConfig.rootProjectManifest != null) {\n          if (pnpmConfig.rootProjectManifest.workspaces?.length && !pnpmConfig.workspaceDir) {\n            warnings.push('The \"workspaces\" field in package.json is not supported by pnpm. Create a \"pnpm-workspace.yaml\" file instead.');\n          }\n          if (pnpmConfig.rootProjectManifest.packageManager) {\n            pnpmConfig.wantedPackageManager = parsePackageManager(pnpmConfig.rootProjectManifest.packageManager);\n          }\n          if (pnpmConfig.rootProjectManifest) {\n            Object.assign(pnpmConfig, (0, getOptionsFromRootManifest_js_1.getOptionsFromRootManifest)(pnpmConfig.rootProjectManifestDir, pnpmConfig.rootProjectManifest));\n          }\n        }\n        if (pnpmConfig.workspaceDir != null) {\n          const workspaceManifest = await (0, workspace_read_manifest_1.readWorkspaceManifest)(pnpmConfig.workspaceDir);\n          pnpmConfig.workspacePackagePatterns = cliOptions[\"workspace-packages\"] ?? workspaceManifest?.packages ?? [\".\"];\n          if (workspaceManifest) {\n            const newSettings = Object.assign((0, getOptionsFromRootManifest_js_1.getOptionsFromPnpmSettings)(pnpmConfig.workspaceDir, workspaceManifest, pnpmConfig.rootProjectManifest), configFromCliOpts);\n            for (const [key, value] of Object.entries(newSettings)) {\n              pnpmConfig[key] = value;\n              pnpmConfig.rawConfig[(0, lodash_kebabcase_1.default)(key)] = value;\n            }\n            if (process.env.pnpm_config_verify_deps_before_run != null) {\n              pnpmConfig.verifyDepsBeforeRun = process.env.pnpm_config_verify_deps_before_run;\n              pnpmConfig.rawConfig[\"verify-deps-before-run\"] = pnpmConfig.verifyDepsBeforeRun;\n            }\n            pnpmConfig.catalogs = (0, catalogs_config_1.getCatalogsFromWorkspaceManifest)(workspaceManifest);\n          }",
+      "start": 21737,
+      "sha256Utf8LF": "7a5e88385234d7875ac8f3e02c0e3787ebbeb3019f174b7abdd3973842e66127"
+    },
+    {
+      "end": 21889,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "      if (!pnpmConfig.httpsProxy) {\n        pnpmConfig.httpsProxy = pnpmConfig.proxy ?? getProcessEnv(\"https_proxy\");\n      }\n      if (!pnpmConfig.httpProxy) {\n        pnpmConfig.httpProxy = pnpmConfig.httpsProxy ?? getProcessEnv(\"http_proxy\") ?? getProcessEnv(\"proxy\");\n      }\n      if (!pnpmConfig.noProxy) {\n        pnpmConfig.noProxy = pnpmConfig[\"noproxy\"] ?? getProcessEnv(\"no_proxy\");\n      }\n      switch (pnpmConfig.nodeLinker) {\n        case \"pnp\":\n          pnpmConfig.enablePnp = pnpmConfig.nodeLinker === \"pnp\";\n          break;\n        case \"hoisted\":\n          if (pnpmConfig.preferSymlinkedExecutables == null) {\n            pnpmConfig.preferSymlinkedExecutables = true;\n          }\n          break;\n      }\n      if (!pnpmConfig.userConfig) {\n        pnpmConfig.userConfig = npmConfig.sources.user?.data;\n      }\n      pnpmConfig.sideEffectsCacheRead = pnpmConfig.sideEffectsCache ?? pnpmConfig.sideEffectsCacheReadonly;\n      pnpmConfig.sideEffectsCacheWrite = pnpmConfig.sideEffectsCache;",
+      "start": 21866,
+      "sha256Utf8LF": "39ec2c8d5b5c99d2261cf5274635ef19083a16812c2d323db3871091405a60c5"
+    },
+    {
+      "end": 111146,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "    async function getConfig(cliOptions, opts) {\n      let { config, warnings } = await (0, config_1.getConfig)({\n        cliOptions,\n        globalDirShouldAllowWrite: opts.globalDirShouldAllowWrite,\n        packageManager: cli_meta_1.packageManager,\n        rcOptionsTypes: opts.rcOptionsTypes,\n        workspaceDir: opts.workspaceDir,\n        checkUnknownSetting: opts.checkUnknownSetting,\n        ignoreNonAuthSettingsFromLocal: opts.ignoreNonAuthSettingsFromLocal\n      });\n      config.cliOptions = cliOptions;\n      if (config.configDependencies) {\n        const store = await (0, store_connection_manager_1.createOrConnectStoreController)(config);\n        await (0, config_deps_installer_1.installConfigDeps)(config.configDependencies, {\n          registries: config.registries,\n          rootDir: config.lockfileDir ?? config.rootProjectManifestDir,\n          store: store.ctrl\n        });\n      }\n      if (!config.ignorePnpmfile) {\n        config.tryLoadDefaultPnpmfile = config.pnpmfile == null;\n        const pnpmfiles = config.pnpmfile == null ? [] : Array.isArray(config.pnpmfile) ? config.pnpmfile : [config.pnpmfile];\n        if (config.configDependencies) {\n          const configModulesDir = path_1.default.join(config.lockfileDir ?? config.rootProjectManifestDir, \"node_modules/.pnpm-config\");\n          pnpmfiles.unshift(...calcPnpmfilePathsOfPluginDeps(configModulesDir, config.configDependencies));\n        }\n        const { hooks, finders, resolvedPnpmfilePaths } = (0, pnpmfile_1.requireHooks)(config.lockfileDir ?? config.dir, {\n          globalPnpmfile: config.globalPnpmfile,\n          pnpmfiles,\n          tryLoadDefaultPnpmfile: config.tryLoadDefaultPnpmfile\n        });\n        config.hooks = hooks;\n        config.finders = finders;\n        config.pnpmfile = resolvedPnpmfilePaths;",
+      "start": 111113,
+      "sha256Utf8LF": "1d8ee147acb3d2315b8c0ab355f7be91e4c66ad89674ba72b5b03d59a40980a9"
+    },
+    {
+      "end": 125942,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "    var nameVerFromPkgSnapshot_js_1 = require_nameVerFromPkgSnapshot();\n    function pkgSnapshotToResolution(depPath, pkgSnapshot, registries) {\n      if (Boolean(pkgSnapshot.resolution.type) || pkgSnapshot.resolution.tarball?.startsWith(\"file:\") || (0, pick_fetcher_1.isGitHostedPkgUrl)(pkgSnapshot.resolution.tarball ?? \"\")) {\n        return pkgSnapshot.resolution;\n      }\n      const { name, version: version2 } = (0, nameVerFromPkgSnapshot_js_1.nameVerFromPkgSnapshot)(depPath, pkgSnapshot);\n      let registry = \"\";\n      if (name != null) {\n        if (name[0] === \"@\") {\n          registry = registries[name.split(\"/\")[0]];\n        }\n      }\n      if (!registry) {\n        registry = registries.default;\n      }\n      let tarball;\n      if (!pkgSnapshot.resolution.tarball) {\n        tarball = getTarball(registry);\n      } else {\n        tarball = new url_1.default.URL(pkgSnapshot.resolution.tarball, registry.endsWith(\"/\") ? registry : `${registry}/`).toString();\n      }\n      return {\n        ...pkgSnapshot.resolution,\n        tarball\n      };\n      function getTarball(registry2) {\n        if (!name || !version2) {\n          throw new Error(`Couldn't get tarball URL from dependency path ${depPath}`);\n        }\n        return (0, get_npm_tarball_url_1.default)(name, version2, { registry: registry2 });\n      }",
+      "start": 125912,
+      "sha256Utf8LF": "5546bd15dd147a9f92511f2a10b0c460bdc7663ab1be77eaaa62f33896e565be"
+    },
+    {
+      "end": 144175,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "      try {\n        await linkBinsOfDependencies(depNode, depGraph, opts);\n        let isPatched = false;\n        if (depNode.patch) {\n          const { file, strict } = depNode.patch;\n          const allowFailure = opts.ignorePatchFailures ?? !strict;\n          isPatched = (0, patching_apply_patch_1.applyPatchToDir)({ allowFailure, patchedDir: depNode.dir, patchFilePath: file.path });\n        }\n        const hasSideEffects = !opts.ignoreScripts && await (0, lifecycle_1.runPostinstallHooks)({\n          depPath,\n          extraBinPaths: opts.extraBinPaths,\n          extraEnv: opts.extraEnv,\n          initCwd: opts.lockfileDir,\n          optional: depNode.optional,\n          pkgRoot: depNode.dir,\n          rawConfig: opts.rawConfig,\n          rootModulesDir: opts.rootModulesDir,\n          scriptsPrependNodePath: opts.scriptsPrependNodePath,\n          scriptShell: opts.scriptShell,\n          shellEmulator: opts.shellEmulator,\n          unsafePerm: opts.unsafePerm || false\n        });\n        if ((isPatched || hasSideEffects) && opts.sideEffectsCacheWrite) {",
+      "start": 144153,
+      "sha256Utf8LF": "c91739699cd62f2313834751b94261b937ef88a29edd3d60d0b02dce2272908f"
+    },
+    {
+      "end": 151073,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "      if (opts.ignoreScripts) {\n        for (const { id, manifest } of selectedProjects) {\n          if (opts.ignoreScripts && manifest?.scripts != null && (manifest.scripts.preinstall ?? manifest.scripts.prepublish ?? manifest.scripts.install ?? manifest.scripts.postinstall ?? manifest.scripts.prepare)) {\n            opts.pendingBuilds.push(id);\n          }\n        }\n        opts.pendingBuilds = opts.pendingBuilds.concat(depNodes.filter(({ requiresBuild }) => requiresBuild).map(({ depPath }) => depPath));\n      }\n      let ignoredBuilds;\n      if ((!opts.ignoreScripts || Object.keys(opts.patchedDependencies ?? {}).length > 0) && opts.enableModulesDir !== false) {\n        const directNodes = /* @__PURE__ */ new Set();\n        for (const id of (0, union_1.default)(importerIds, [\".\"])) {\n          const directDependencies = directDependenciesByImporterId[id];\n          for (const alias in directDependencies) {\n            const loc = directDependencies[alias];\n            if (!graph[loc])\n              continue;\n            directNodes.add(loc);\n          }\n        }\n        const extraBinPaths = [...opts.extraBinPaths ?? []];\n        if (opts.hoistPattern != null) {\n          extraBinPaths.unshift(path_1.default.join(hoistedModulesDir, \".bin\"));\n        }\n        let extraEnv = opts.extraEnv;\n        if (opts.enablePnp) {\n          extraEnv = {\n            ...extraEnv,\n            ...(0, lifecycle_1.makeNodeRequireOption)(path_1.default.join(opts.lockfileDir, \".pnp.cjs\"))\n          };\n        }\n        ignoredBuilds = (await (0, build_modules_1.buildModules)(graph, Array.from(directNodes), {\n          allowBuild,\n          ignoredBuiltDependencies: opts.ignoredBuiltDependencies,\n          ignorePatchFailures: opts.ignorePatchFailures,\n          childConcurrency: opts.childConcurrency,\n          extraBinPaths,\n          extraEnv,\n          depsStateCache,\n          ignoreScripts: opts.ignoreScripts || opts.ignoreDepScripts,\n          hoistedLocations,\n          lockfileDir,\n          optional: opts.include.optionalDependencies,\n          preferSymlinkedExecutables: opts.preferSymlinkedExecutables,\n          rawConfig: opts.rawConfig,\n          rootModulesDir: virtualStoreDir,\n          scriptsPrependNodePath: opts.scriptsPrependNodePath,\n          scriptShell: opts.scriptShell,\n          shellEmulator: opts.shellEmulator,\n          sideEffectsCacheWrite: opts.sideEffectsCacheWrite,\n          storeController: opts.storeController,\n          unsafePerm: opts.unsafePerm,\n          userAgent: opts.userAgent\n        })).ignoredBuilds;",
+      "start": 151020,
+      "sha256Utf8LF": "6621bc5cfd656d5edaf7b6ea2b22cd3dbab20d1d7c47d9903e0a61ac177f36ca"
+    },
+    {
+      "end": 159312,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "      async function tryFrozenInstall({ frozenLockfile, needsFullResolution, patchGroups, upToDateLockfileMajorVersion }) {\n        const isFrozenInstallPossible = (\n          // A frozen install is never possible when any of these are true:\n          !ctx.lockfileHadConflicts && !opts.fixLockfile && !opts.dedupe && installsOnly && // If the user explicitly requested a frozen lockfile install, attempt\n          // to perform one. An error will be thrown if updates are required.\n          (frozenLockfile || // Otherwise, check if a frozen-like install is possible for\n          // performance. This will be the case if all projects are up-to-date.\n          opts.ignorePackageManifest || !needsFullResolution && opts.preferFrozenLockfile && (!opts.pruneLockfileImporters || Object.keys(ctx.wantedLockfile.importers).length === Object.keys(ctx.projects).length) && ctx.existsNonEmptyWantedLockfile && ctx.wantedLockfile.lockfileVersion === constants_1.LOCKFILE_VERSION && await (0, lockfile_verification_1.allProjectsAreUpToDate)(Object.values(ctx.projects), {\n            catalogs: opts.catalogs,\n            autoInstallPeers: opts.autoInstallPeers,\n            excludeLinksFromLockfile: opts.excludeLinksFromLockfile,\n            linkWorkspacePackages: opts.linkWorkspacePackagesDepth >= 0,\n            wantedLockfile: ctx.wantedLockfile,\n            workspacePackages: ctx.workspacePackages,\n            lockfileDir: opts.lockfileDir\n          }))\n        );\n        if (!isFrozenInstallPossible) {\n          return null;\n        }\n        if (needsFullResolution) {\n          throw new error_1.PnpmError(\"FROZEN_LOCKFILE_WITH_OUTDATED_LOCKFILE\", \"Cannot perform a frozen installation because the version of the lockfile is incompatible with this version of pnpm\", {\n            hint: `Try either:\n1. Aligning the version of pnpm that generated the lockfile with the version that installs from it, or\n2. Migrating the lockfile so that it is compatible with the newer version of pnpm, or\n3. Using \"pnpm install --no-frozen-lockfile\".\nNote that in CI environments, this setting is enabled by default.`\n          });\n        }\n        if (!opts.ignorePackageManifest) {\n          const _satisfiesPackageManifest = lockfile_verification_1.satisfiesPackageManifest.bind(null, {\n            autoInstallPeers: opts.autoInstallPeers,\n            excludeLinksFromLockfile: opts.excludeLinksFromLockfile\n          });\n          for (const { id, manifest, rootDir } of Object.values(ctx.projects)) {\n            const { satisfies, detailedReason } = _satisfiesPackageManifest(ctx.wantedLockfile.importers[id], manifest);\n            if (!satisfies) {\n              if (!ctx.existsWantedLockfile) {\n                throw new error_1.PnpmError(\"NO_LOCKFILE\", `Cannot install with \"frozen-lockfile\" because ${constants_1.WANTED_LOCKFILE} is absent`, {\n                  hint: 'Note that in CI environments this setting is true by default. If you still need to run install in such cases, use \"pnpm install --no-frozen-lockfile\"'\n                });\n              }\n              throw new error_1.PnpmError(\"OUTDATED_LOCKFILE\", `Cannot install with \"frozen-lockfile\" because ${constants_1.WANTED_LOCKFILE} is not up to date with ` + path_1.default.join(\"<ROOT>\", path_1.default.relative(opts.lockfileDir, path_1.default.join(rootDir, \"package.json\"))), {\n                hint: `Note that in CI environments this setting is true by default. If you still need to run install in such cases, use \"pnpm install --no-frozen-lockfile\"\n\n  Failure reason:\n  ${detailedReason ?? \"\"}`",
+      "start": 159266,
+      "sha256Utf8LF": "026c1ac32c10a02f1c13e8d6ef0ad080a1fa23cbe9ec0fe6124bf5d9ba42b27e"
+    },
+    {
+      "end": 160310,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "    async function recursive(allProjects, params, opts, cmdFullName) {\n      if (allProjects.length === 0) {\n        return false;\n      }\n      const pkgs = Object.values(opts.selectedProjectsGraph).map((wsPkg) => wsPkg.package);\n      if (pkgs.length === 0) {\n        return false;\n      }\n      const manifestsByPath = getManifestsByPath(allProjects);\n      const throwOnFail = cli_utils_1.throwOnCommandFail.bind(null, `pnpm recursive ${cmdFullName}`);\n      const store = opts.storeControllerAndDir ?? await (0, store_connection_manager_1.createOrConnectStoreController)(opts);\n      const workspacePackages = (0, get_context_1.arrayOfWorkspacePackagesToMap)(allProjects);\n      const targetDependenciesField = (0, getSaveType_js_1.getSaveType)(opts);\n      const rootManifestDir = opts.lockfileDir ?? opts.dir;\n      const installOpts = Object.assign(opts, {\n        ...(0, config_1.getOptionsFromRootManifest)(rootManifestDir, manifestsByPath[rootManifestDir]?.manifest ?? {}),\n        allProjects: getAllProjects(manifestsByPath, opts.allProjectsGraph, opts.sort),\n        linkWorkspacePackagesDepth: opts.linkWorkspacePackages === \"deep\" ? Infinity : opts.linkWorkspacePackages ? 0 : -1,\n        ownLifecycleHooksStdio: \"pipe\",\n        peer: opts.savePeer,\n        pruneLockfileImporters: opts.pruneLockfileImporters ?? ((opts.ignoredPackages == null || opts.ignoredPackages.size === 0) && pkgs.length === allProjects.length),\n        saveCatalogName: opts.saveCatalogName,\n        storeController: store.ctrl,\n        storeDir: store.dir,\n        targetDependenciesField,\n        workspacePackages,\n        forceHoistPattern: typeof opts.rawLocalConfig?.[\"hoist-pattern\"] !== \"undefined\" || typeof opts.rawLocalConfig?.[\"hoist\"] !== \"undefined\",\n        forceShamefullyHoist: typeof opts.rawLocalConfig?.[\"shamefully-hoist\"] !== \"undefined\"\n      });",
+      "start": 160282,
+      "sha256Utf8LF": "bf96ff1215a5bfeb82fb91909aab3af74e244b67a70aa1e7d38276417144272f"
+    },
+    {
+      "end": 160435,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "        if (!opts.selectedProjectsGraph[opts.workspaceDir] && manifestsByPath[opts.workspaceDir] != null) {\n          mutatedImporters.push({\n            mutation: \"install\",\n            rootDir: opts.workspaceDir\n          });\n        }\n        if (mutatedImporters.length === 0 && cmdFullName === \"update\" && opts.depth === 0) {\n          throw new error_1.PnpmError(\"NO_PACKAGE_IN_DEPENDENCIES\", \"None of the specified packages were found in the dependencies of any of the projects.\");\n        }\n        const { updatedCatalogs: updatedCatalogs2, updatedProjects: mutatedPkgs, ignoredBuilds } = await (0, core_1.mutateModules)(mutatedImporters, {\n          ...installOpts,\n          storeController: store.ctrl\n        });\n        if (opts.save !== false) {\n          const promises = mutatedPkgs.map(async ({ originalManifest, manifest, rootDir }) => {\n            return manifestsByPath[rootDir].writeProjectManifest(originalManifest ?? manifest);\n          });\n          promises.push((0, workspace_manifest_writer_1.updateWorkspaceManifest)(opts.workspaceDir, {\n            updatedCatalogs: updatedCatalogs2,\n            cleanupUnusedCatalogs: opts.cleanupUnusedCatalogs,\n            allProjects",
+      "start": 160415,
+      "sha256Utf8LF": "ee75aacd6ed2ecf0ecefc303ed05561cc067770622333b6ac62ba9b03d95af35"
+    },
+    {
+      "end": 160458,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "      }\n      const pkgPaths = Object.keys(opts.selectedProjectsGraph).sort();\n      let updatedCatalogs;\n      const limitInstallation = (0, p_limit_12.default)((0, config_1.getWorkspaceConcurrency)(opts.workspaceConcurrency));\n      await Promise.all(pkgPaths.map(async (rootDir) => limitInstallation(async () => {\n        const hooks = opts.ignorePnpmfile ? {} : (() => {\n          const { hooks: pnpmfileHooks } = (0, pnpmfile_1.requireHooks)(rootDir, opts);\n          return {\n            ...opts.hooks,\n            ...pnpmfileHooks,\n            afterAllResolved: [...pnpmfileHooks.afterAllResolved ?? [], ...opts.hooks?.afterAllResolved ?? []],\n            readPackage: [...pnpmfileHooks.readPackage ?? [], ...opts.hooks?.readPackage ?? []]\n          };\n        })();\n        try {\n          if (opts.ignoredPackages?.has(rootDir)) {",
+      "start": 160443,
+      "sha256Utf8LF": "9f94c0d90eb8cbab4c0d15f03514fd2c9e44ea686faababdca9b99c32ffea7db"
+    },
+    {
+      "end": 161647,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "    async function handler(opts) {\n      const include = {\n        dependencies: opts.production !== false,\n        devDependencies: opts.dev !== false,\n        optionalDependencies: opts.optional !== false\n      };\n      const installDepsOptions = {\n        ...opts,\n        frozenLockfileIfExists: opts.frozenLockfileIfExists ?? (opts.ci && !opts.lockfileOnly && typeof opts.rawLocalConfig[\"frozen-lockfile\"] === \"undefined\" && typeof opts.rawLocalConfig[\"prefer-frozen-lockfile\"] === \"undefined\"),\n        include,\n        includeDirect: include,\n        prepareExecutionEnv: plugin_commands_env_1.prepareExecutionEnv.bind(null, opts),\n        fetchFullMetadata: (0, getFetchFullMetadata_js_1.getFetchFullMetadata)(opts)\n      };\n      if (opts.resolutionOnly) {\n        installDepsOptions.lockfileOnly = true;\n        installDepsOptions.forceFullResolution = true;\n      }\n      return (0, installDeps_js_1.installDeps)(installDepsOptions, []);",
+      "start": 161629,
+      "sha256Utf8LF": "9ce008213a1bb8dc52dc8ed27974baa6dd91cec163dc57f8f288e1ad43ce68a2"
+    },
+    {
+      "end": 192912,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "    var CUSTOM_OPTION_PREFIX = \"config.\";\n    function normalizeOptions(options, knownOptions) {\n      const standardOptionNames = [];\n      const normalizedOptions = {};\n      for (const [optionName, optionValue] of Object.entries(options)) {\n        if (optionName.startsWith(CUSTOM_OPTION_PREFIX)) {\n          normalizedOptions[optionName.substring(CUSTOM_OPTION_PREFIX.length)] = optionValue;\n          continue;\n        }\n        normalizedOptions[optionName] = optionValue;\n        standardOptionNames.push(optionName);\n      }\n      const unknownOptions = getUnknownOptions(standardOptionNames, knownOptions);\n      return { options: normalizedOptions, unknownOptions };\n    }\n    function getUnknownOptions(usedOptions, knownOptions) {\n      const unknownOptions = /* @__PURE__ */ new Map();\n      const closestMatches = getClosestOptionMatches.bind(null, Array.from(knownOptions));\n      for (const usedOption of usedOptions) {\n        if (knownOptions.has(usedOption) || usedOption.startsWith(\"//\") || isScopeRegistryOption(usedOption))\n          continue;\n        unknownOptions.set(usedOption, closestMatches(usedOption));\n      }\n      return unknownOptions;\n    }\n    function isScopeRegistryOption(optionName) {\n      return /^@[a-z0-9][\\w.-]*:registry$/.test(optionName);\n    }",
+      "start": 192885,
+      "sha256Utf8LF": "ba70b6743b999dd16d985c9cec88a623fed1958af64b987f5129c2ccf2e03f8d"
+    },
+    {
+      "end": 194073,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "        config = await (0, cli_utils_1.getConfig)(cliOptions, {\n          excludeReporter: false,\n          globalDirShouldAllowWrite,\n          rcOptionsTypes: index_js_1.rcOptionsTypes,\n          workspaceDir,\n          checkUnknownSetting: false,\n          ignoreNonAuthSettingsFromLocal: isDlxOrCreateCommand\n        });\n        if (!(0, cli_meta_1.isExecutedByCorepack)() && cmd !== \"setup\" && config.wantedPackageManager != null) {\n          if (config.managePackageManagerVersions && config.wantedPackageManager?.name === \"pnpm\" && cmd !== \"self-update\") {\n            await (0, switchCliVersion_js_1.switchCliVersion)(config);\n          } else if (!cmd || !index_js_1.skipPackageManagerCheckForCommand.has(cmd)) {\n            if (cliOptions.global) {\n              (0, logger_1.globalWarn)(\"Using --global skips the package manager check for this project\");\n            } else {\n              checkPackageManager(config.wantedPackageManager, config);\n            }\n          }\n        }\n        if (isDlxOrCreateCommand) {\n          config.useStderr = true;\n        }\n        config.argv = argv2;\n        config.fallbackCommandUsed = fallbackCommandUsed;\n        if (cmd) {\n          config.extraEnv = {\n            ...config.extraEnv,\n            // Follow the behavior of npm by setting it to 'run-script' when running scripts (e.g. pnpm run dev)\n            // and to the command name otherwise (e.g. pnpm test)\n            npm_command: cmd === \"run\" ? \"run-script\" : cmd\n          };\n        }\n      } catch (err) {\n        const hint = err[\"hint\"] ? err[\"hint\"] : `For help, run: pnpm help${cmd ? ` ${cmd}` : \"\"}`;\n        printError(err.message, hint);\n        process.exitCode = 1;\n        return;\n      }\n      if (cmd == null && cliOptions.version) {\n        console.log(cli_meta_1.packageManager.version);\n        return;",
+      "start": 194033,
+      "sha256Utf8LF": "94331201112476da0feb29de41dbdd268f7c36e532db6bbb3e52bf9ea91679dd"
+    },
+    {
+      "end": 194151,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "      if ((cmd === \"install\" || cmd === \"import\" || cmd === \"dedupe\" || cmd === \"patch-commit\" || cmd === \"patch\" || cmd === \"patch-remove\" || cmd === \"approve-builds\") && typeof workspaceDir === \"string\") {\n        cliOptions[\"recursive\"] = true;\n        config.recursive = true;\n        if (!config.recursiveInstall && !config.filter && !config.filterProd) {\n          config.filter = [\"{.}...\"];\n        }\n      }\n      if (cliOptions[\"recursive\"]) {\n        const wsDir = workspaceDir ?? process.cwd();\n        config.filter = config.filter ?? [];\n        config.filterProd = config.filterProd ?? [];\n        const filters = [\n          ...config.filter.map((filter) => ({ filter, followProdDepsOnly: false })),\n          ...config.filterProd.map((filter) => ({ filter, followProdDepsOnly: true }))\n        ];\n        const relativeWSDirPath = () => path_1.default.relative(process.cwd(), wsDir) || \".\";\n        if (config.workspaceRoot) {\n          filters.push({ filter: `{${relativeWSDirPath()}}`, followProdDepsOnly: Boolean(config.filterProd.length) });\n        } else if (filters.length === 0 && workspaceDir && !config.includeWorkspaceRoot && (cmd === \"run\" || cmd === \"exec\" || cmd === \"add\" || cmd === \"test\")) {\n          filters.push({ filter: `!{${relativeWSDirPath()}}`, followProdDepsOnly: Boolean(config.filterProd.length) });\n        }\n        const filterResults = await (0, filter_workspace_packages_1.filterPackagesFromDir)(wsDir, filters, {\n          engineStrict: config.engineStrict,\n          nodeVersion: config.nodeVersion ?? config.useNodeVersion,\n          patterns: config.workspacePackagePatterns,\n          linkWorkspacePackages: !!config.linkWorkspacePackages,\n          prefix: process.cwd(),\n          workspaceDir: wsDir,\n          testPattern: config.testPattern,\n          changedFilesIgnorePattern: config.changedFilesIgnorePattern,\n          useGlobDirFiltering: !config.legacyDirFiltering,\n          sharedWorkspaceLockfile: config.sharedWorkspaceLockfile\n        });\n        if (filterResults.allProjects.length === 0) {\n          if (printLogs) {\n            console.log(`No projects found in \"${wsDir}\"`);\n          }\n          process.exitCode = config.failIfNoMatch ? 1 : 0;\n          return;\n        }\n        config.allProjectsGraph = filterResults.allProjectsGraph;\n        config.selectedProjectsGraph = filterResults.selectedProjectsGraph;\n        if ((0, isEmpty_1.default)(config.selectedProjectsGraph)) {\n          if (printLogs) {\n            console.log(`No projects matched the filters in \"${wsDir}\"`);\n          }\n          if (config.failIfNoMatch) {\n            process.exitCode = 1;\n            return;\n          }",
+      "start": 194102,
+      "sha256Utf8LF": "2f3eebe01b855365cf646a3214ab4da36e42822de7034f298da69c786977bdaa"
+    },
+    {
+      "end": 194194,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "      let { output, exitCode } = await (async () => {\n        await new Promise((resolve) => setTimeout(() => {\n          resolve();\n        }, 0));\n        if (config.updateNotifier !== false && !config.ci && cmd !== \"self-update\" && !config.offline && !config.preferOffline && !config.fallbackCommandUsed && (cmd === \"install\" || cmd === \"add\")) {\n          (0, checkForUpdates_js_1.checkForUpdates)(config).catch(() => {\n          });\n        }\n        if (config.force === true && !config.fallbackCommandUsed) {\n          logger_1.logger.warn({\n            message: \"using --force I sure hope you know what you are doing\",\n            prefix: config.dir\n          });\n        }\n        core_loggers_1.scopeLogger.debug({\n          ...!cliOptions[\"recursive\"] ? { selected: 1 } : {\n            selected: Object.keys(config.selectedProjectsGraph).length,\n            total: config.allProjects.length\n          },\n          ...workspaceDir ? { workspacePrefix: workspaceDir } : {}\n        });\n        if (config.useNodeVersion != null) {\n          if (\"webcontainer\" in process.versions) {\n            (0, logger_1.globalWarn)(\"Automatic installation of different Node.js versions is not supported in WebContainer\");\n          } else {\n            config.extraBinPaths = (await (0, plugin_commands_env_1.prepareExecutionEnv)(config, {\n              extraBinPaths: config.extraBinPaths,\n              executionEnv: {\n                nodeVersion: config.useNodeVersion\n              }\n            })).extraBinPaths;\n            config.nodeVersion = config.useNodeVersion;",
+      "start": 194163,
+      "sha256Utf8LF": "6c4dcd3654f2b851b66d40460c2d010e798faefcb4bf471937d3a2ddbf2c7bcf"
+    },
+    {
+      "end": 194264,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "    function checkPackageManager(pm, config) {\n      if (!pm.name)\n        return;\n      if (pm.name !== \"pnpm\") {\n        const msg = `This project is configured to use ${pm.name}`;\n        if (config.packageManagerStrict) {\n          throw new error_1.PnpmError(\"OTHER_PM_EXPECTED\", msg);\n        }\n        (0, logger_1.globalWarn)(msg);\n      } else {\n        const currentPnpmVersion = cli_meta_1.packageManager.name === \"pnpm\" ? cli_meta_1.packageManager.version : void 0;\n        if (currentPnpmVersion && config.packageManagerStrictVersion && pm.version && pm.version !== currentPnpmVersion) {\n          const msg = `This project is configured to use v${pm.version} of pnpm. Your current pnpm is v${currentPnpmVersion}`;\n          if (config.packageManagerStrict) {\n            throw new error_1.PnpmError(\"BAD_PM_VERSION\", msg, {\n              hint: 'If you want to bypass this version check, you can set the \"package-manager-strict\" configuration to \"false\" or set the \"COREPACK_ENABLE_STRICT\" environment variable to \"0\"'\n            });\n          } else {\n            (0, logger_1.globalWarn)(msg);\n          }\n        }\n      }",
+      "start": 194243,
+      "sha256Utf8LF": "e69813dc603d439a24a611ae380e64c37af2a5c9df629cc671fa5c20ee390f82"
+    },
+    {
+      "start": 134582,
+      "sha256Utf8LF": "d4c7a63c4dd724778f7cfdfb873904addb09732c04ecd4d10aba1b7415b8c94d",
+      "end": 134610,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "    function clean(data, types, typeDefs) {\n      typeDefs = typeDefs || exports2.typeDefs;\n      var remove = {}, typeDefault = [false, true, null, String, Array];\n      Object.keys(data).forEach(function(k) {\n        if (k === \"argv\") return;\n        var val = data[k], isArray = Array.isArray(val), type = types[k];\n        if (!isArray) val = [val];\n        if (!type) type = typeDefault;\n        if (type === Array) type = typeDefault.concat(Array);\n        if (!Array.isArray(type)) type = [type];\n        debug(\"val=%j\", val);\n        debug(\"types=\", type);\n        val = val.map(function(val2) {\n          if (typeof val2 === \"string\") {\n            debug(\"string %j\", val2);\n            val2 = val2.trim();\n            if (val2 === \"null\" && ~type.indexOf(null) || val2 === \"true\" && (~type.indexOf(true) || ~type.indexOf(Boolean)) || val2 === \"false\" && (~type.indexOf(false) || ~type.indexOf(Boolean))) {\n              val2 = JSON.parse(val2);\n              debug(\"jsonable %j\", val2);\n            } else if (~type.indexOf(Number) && !isNaN(val2)) {\n              debug(\"convert to number\", val2);\n              val2 = +val2;\n            } else if (~type.indexOf(Date) && !isNaN(Date.parse(val2))) {\n              debug(\"convert to date\", val2);\n              val2 = new Date(val2);\n            }\n          }\n          if (!types.hasOwnProperty(k)) {\n            return val2;"
+    },
+    {
+      "start": 192785,
+      "sha256Utf8LF": "2667286bad076fa5c7d5708c13d9b8d1f88dd701f0046257150ac314dac3a9fe",
+      "end": 192796,
+      "file": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs",
+      "text": "        if (noptExploratoryResults[\"version\"] || noptExploratoryResults[\"v\"]) {\n          return {\n            argv: noptExploratoryResults.argv,\n            cmd: null,\n            options: {\n              version: true\n            },\n            params: noptExploratoryResults.argv.remain,\n            unknownOptions: /* @__PURE__ */ new Map(),\n            fallbackCommandUsed: false,\n            workspaceDir: await getWorkspaceDir(noptExploratoryResults)\n          };"
+    }
+  ],
+  "monitor": {
+    "drainMilliseconds": 10000,
+    "scanEntries": 200000,
+    "workerGraceMilliseconds": 3000,
+    "scanMilliseconds": 4000,
+    "timeoutMilliseconds": 1800000,
+    "inventoryMilliseconds": 120000,
+    "captureCharacters": 8388608,
+    "sampleMilliseconds": 5000,
+    "logicalStopBytes": 8589934592,
+    "captureChunkCharacters": 4096,
+    "pollMilliseconds": 100,
+    "inventoryEntries": 500000,
+    "linkRoots": [
+      "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r2-install",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\web\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\desktop\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\core\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\ui\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\views\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\plugin-sdk\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\eslint-config\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\tsconfig\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\vitest-setup\\node_modules"
+    ],
+    "workspaceTargets": [
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\web",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\desktop",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\core",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\ui",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\views",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\plugin-sdk",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\eslint-config",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\tsconfig",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\vitest-setup"
+    ]
+  },
+  "protectionRoots": [
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co",
+    "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1",
+    "E:\\CodexData\\morchat-r1-local\\tools\\node22"
+  ],
+  "indexWitnesses": [
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\.git",
+    "D:\\dev\\morchat.co\\.git\\worktrees\\morchat.co1\\index"
+  ],
+  "exactNotReadPaths": [
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\qianchuan-sync",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\QIANCHUAN-DATA.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\QIANCHUAN-API-DEV.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\archive\\2026-11-06-before-multica-authority-migration\\QIANCHUAN-DATA.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\archive\\2026-11-06-before-multica-authority-migration\\QIANCHUAN-API-DEV.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\archive\\2026-11-04-pre-platform-review\\QIANCHUAN-DATA.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\archive\\2026-11-04-pre-platform-review\\QIANCHUAN-API-DEV.md"
+  ],
+  "writeRoots": [
+    "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\web\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\desktop\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\core\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\ui\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\views\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\plugin-sdk\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\eslint-config\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\tsconfig\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\vitest-setup\\node_modules"
+  ],
+  "monitorRoots": [
+    "E:\\CodexData\\morchat-r1-local\\frontend-install-argv-r2",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\web\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\desktop\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\core\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\ui\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\views\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\plugin-sdk\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\eslint-config\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\tsconfig\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\vitest-setup\\node_modules"
+  ],
+  "invariants": [
+    "28 exactargv/33clearenv/3emptyconfigs; only3 config prefix spellings and ownpath rebase changed",
+    "No hooks/scripts/pnpmfile/manager/version/browser/Electron/native/Go/codegen/checkers",
+    "One install1800s independent timeout,5s logical8GiB stopthreshold NOT hardquota or numericovershoot; networkbytesNOTMEASURED",
+    "Original cleanup/capture/owned allocation/scalar/unknown-nonpass and privacy7 preserved",
+    "New source verifier must bind this exact contract execution; never accept newargv under old98913/894157",
+    "New public-path authority required before runtime; old8359 is historical base, missing known controls must not be waived",
+    "Old source7/control4/claims/FAIL/evidence immutable; no restore/reset/delete/migrate/import main"
+  ],
+  "allowedSourceTests": [
+    "AST parse",
+    "Pure memory shared flow and fake FS/clock/worker tests",
+    "Exact inert source witnesses/static official option normalization and unchanged namespace diff"
+  ],
+  "requiredTDD": [
+    "Bare three options rejected by actual source-derived allowed-option fixture; all three config.* spelling accepted with same effective values",
+    "Current frozen28argv/33env exact and oldcontract/oldpurpose/oldapproval rejected",
+    "No change in resource/capture/cleanup/privacy guards; prior58 tests retained plus compatibility-specific negatives",
+    "Full diff against preserved11 original inputs; unchanged source bodies/functions demonstrate no guard weakening"
+  ],
+  "prohibited": [
+    "Any Node/pnpm/parser/version/help/config/install/network/Process/native/SDK/realmonitor/scan/DB/private/model",
+    "Effective approval/new token/own output root/once/control-evidence creation",
+    "Any Repo production/source/schema/auth/state/lock writes",
+    "Old seven source/control/Root approval/once mutation"
+  ],
+  "runtimeApproved": false,
+  "buildFrozen": false
+}

@@ -1,0 +1,415 @@
+title: Multica — 人和智能体团队的项目管理平台
+lang: zh-CN  contentHeight: 6299  docHeight: 900
+scrollers: [{"tag":"div","className":"landing-light h-full overflow-x-hidden overflow-y-auto bg-white","scrollHeight":6299,"clientHeight":900,"overflowY":"auto","isDocument":false}]
+nav: [{"text":"55.5k","href":"https://github.com/multica-ai/multica"},{"text":"进入工作台","href":"/onboarding"},{"text":"文档","href":"/docs/zh"},{"text":"更新日志","href":"/zh/changelog"},{"text":"下载","href":"/zh/download"},{"text":"关于我们","href":"/zh/about"},{"text":"联系销售","href":"/zh/contact-sales"},{"text":"许可协议","href":"/zh/licensing"},{"text":"隐私政策","href":"/zh/privacy"}]
+
+### S0  y=52.67 h=1267.52 w=1430 bg=rgba(0, 0, 0, 0) section#
+  cls=pt-site-hero pb-site-section
+  h1 [40px/400/42px ls-1.2px lab(2.51107 0.242703 -0.886115)] 让 Claude Code、Codex、Hermes或OpenCode 成为你的队友。 让 Claude Code Codex Hermes OpenCode 成为你的队友。
+  h2 [16px/600/24px lsnormal lab(2.51107 0.242703 -0.886115)] 工作
+  h3 [12px/500/16px lsnormal lab(42.4351 1.66494 -5.7671)] 视图
+  h3 [12px/500/16px lsnormal lab(42.4351 1.66494 -5.7671)] 项目
+  h2 [16px/600/24px lsnormal lab(2.51107 0.242703 -0.886115)] 动态
+  btn "下载 Windows 版" -> https://github.com/multica-ai/multica/releases/download/v0.8.2/multica-desktop-0.8.2-windows-x64.exe [bglab(2.51107 0.242703 -0.886115) r9999px bdlab(90.6853 0.399232 -1.45452) fs16px pad0px 20px] 188.03x42
+  btn "预约演示" -> /zh/contact-sales [bgrgba(0, 0, 0, 0) r9999px bdlab(84.9837 0.601262 -2.17986) fs16px pad0px 20px] 105.33x42
+  btn "其他版本：macOS · Linux" -> null [bgrgba(0, 0, 0, 0) r4px bdlab(90.6853 0.399232 -1.45452) fs14px pad0px] 183.22x19.59
+  btn "交付一个功能" -> null [bgrgba(0, 0, 0, 0) r2.23696e+07px bdlab(90.6853 0.399232 -1.45452) fs13px pad0px 10px] 118x28
+  btn "发布内容" -> null [bglab(100 0 0) r2.23696e+07px bdlab(90.6853 0.399232 -1.45452) fs13px pad0px 10px] 92x28
+  btn "处理用户反馈" -> null [bgrgba(0, 0, 0, 0) r2.23696e+07px bdlab(90.6853 0.399232 -1.45452) fs13px pad0px 10px] 118x28
+  text: 让 Claude Code、Codex、Hermes或OpenCode 成为你的队友。 让 Claude Code Codex Hermes OpenCode 成为你的队友。 你的团队和智能体共用一个工作空间：分派任务、跟进进度、审核结果，主动权始终在你手里。 下载 Windows 版 预约演示 其他版本：macOS · Linux 交付一个功能 发布内容 处理用户反馈 A 收件箱 3 工作 团队 聊天 自动化 MC 工作 视图 我的任务 我的智能体在做 全部任务 全部视图 3 项目 API 平台 12 自动化功能发布 9 自动化功能的发布文章 客户故事：Northwind Robotics 客户故事：Northwind Robotics v0.9 更新日志 v0.9 更新日志 用户反馈 7 移动应用 5 全部 8 个项目 自动化功能发布 2 个智能体工作中 需求 5 SR Sam Rivera ACM-213 6 月线上研讨会邀请邮件 SR Sam Rivera 2 小时前 ACM-211 对比页：Multica 和电子表格 SR Sam Rivera 5 小时前 ACM-210 日
+
+### S1  y=458.58 h=141.19 w=198.29 bg=rgba(0, 0, 0, 0) section#
+  cls=mt-5 first:mt-0
+  h3 [12px/500/16px lsnormal lab(42.4351 1.66494 -5.7671)] 视图
+  text: 视图 我的任务 我的智能体在做 全部任务 全部视图 3
+
+### S2  y=465.69 h=727.96 w=248.69 bg=oklab(0.966998 0.000272095 -0.000936747 / 0.4) section#
+  cls=flex shrink-0 flex-col rounded-xl bg-muted/40 p-2
+  text: 需求 5 SR Sam Rivera ACM-213 6 月线上研讨会邀请邮件 SR Sam Rivera 2 小时前 ACM-211 对比页：Multica 和电子表格 SR Sam Rivera 5 小时前 ACM-210 日本发布的落地页 SR Sam Rivera 6 小时前 ACM-208 合作伙伴联合营销素材包 MC Mia Chen 1 天前 ACM-207 新用户第一周的引导邮件 SR Sam Rivera 1 天前
+
+### S3  y=617.53 h=245.96 w=198.29 bg=rgba(0, 0, 0, 0) section#
+  cls=mt-5 first:mt-0
+  h3 [12px/500/16px lsnormal lab(42.4351 1.66494 -5.7671)] 项目
+  text: 项目 API 平台 12 自动化功能发布 9 自动化功能的发布文章 客户故事：Northwind Robotics 客户故事：Northwind Robotics v0.9 更新日志 v0.9 更新日志 用户反馈 7 移动应用 5 全部 8 个项目
+
+### S4  y=1320.19 h=195.59 w=1430 bg=rgba(0, 0, 0, 0) section#
+  cls=pb-site-section
+  h2 [14px/400/19.6px lsnormal lab(42.4351 1.66494 -5.7671)] 这些公司和高校的人在用 Multica
+  text: 这些公司和高校的人在用 Multica
+
+### S5  y=1515.78 h=4026.54 w=1430 bg=rgba(0, 0, 0, 0) div#
+  cls=site-rails
+  h2 [40px/400/42px ls-1.2px lab(2.51107 0.242703 -0.886115)] 为人和智能体组成的团队而生
+  h3 [20px/400/24px ls-0.2px lab(2.51107 0.242703 -0.886115)] 跑在你的机器上，也能跑在我们的云上
+  h3 [20px/400/24px ls-0.2px lab(2.51107 0.242703 -0.886115)] 工作流把每一步交接好
+  h3 [20px/400/24px ls-0.2px lab(2.51107 0.242703 -0.886115)] 在聊天里 @ 智能体
+  h3 [20px/400/24px ls-0.2px lab(2.51107 0.242703 -0.886115)] Autopilot 按计划自动运行
+  h3 [20px/400/24px ls-0.2px lab(2.51107 0.242703 -0.886115)] 全队共享的技能
+  h2 [40px/400/42px ls-1.2px lab(2.51107 0.242703 -0.886115)] 不用学新的智能体。 直接用你已经在用的。
+  h2 [40px/400/42px ls-1.2px lab(2.51107 0.242703 -0.886115)] 最近发布。
+  h2 [40px/400/42px ls-1.2px lab(2.51107 0.242703 -0.886115)] 问与答。
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] Multica 支持哪些编码 智能体？
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] 需要自托管吗，还是有云版本？
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] 可以商用吗？
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] 这和直接用编码 智能体 有什么区别？
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] 智能体 能自主处理长时间任务吗？
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] 我的代码安全吗？智能体 在哪里执行？
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] 我可以运行多少个 智能体？
+  h2 [64px/400/64px ls-1.92px lab(2.51107 0.242703 -0.886115)] 今天就让第一个智能体开工
+  btn "全部 27 款智能体" -> /docs/zh/providers [bgrgba(0, 0, 0, 0) r9999px bdlab(90.6853 0.399232 -1.45452) fs14px pad0px 12px] 154.34x28
+  btn "最新 · 11月10日 v0.8.2 外观设置与内置主题" -> /zh/changelog#release-0-8-2 [bglab(95.8128 0.129491 -0.47313) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad20px] 320x159.99
+  btn "11月10日 外观设置与内置主题 +2 项 v0.8.2" -> /zh/changelog#release-0-8-2 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "11月6日 技能版本历史与恢复 +2 项 v0.8.1" -> /zh/changelog#release-0-8-1 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "11月3日 全新工作区布局 +2 项 v0.8.0" -> /zh/changelog#release-0-8-0 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "10月30日 全新 ⌘K 命令栏 +2 项 v0.7.2" -> /zh/changelog#release-0-7-2 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "10月27日 统一智能体工作规则 +2 项 v0.7.1" -> /zh/changelog#release-0-7-1 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "10月23日 全面开放 workflow 功能 +2 项 v0.7.0" -> /zh/changelog#release-0-7-0 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "10月21日 项目外 Issue 状态更清楚 +3 项 v0.6.5" -> /zh/changelog#release-0-6-5 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "全部版本" -> /zh/changelog [bgrgba(0, 0, 0, 0) r9999px bdlab(90.6853 0.399232 -1.45452) fs14px pad0px 12px] 102x28
+  btn "Multica 支持哪些编码 智能体？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  btn "需要自托管吗，还是有云版本？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  btn "可以商用吗？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  btn "授权说明" -> /zh/licensing [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad0px] 64x19.33
+  btn "这和直接用编码 智能体 有什么区别？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  btn "智能体 能自主处理长时间任务吗？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  btn "我的代码安全吗？智能体 在哪里执行？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  btn "隐私政策" -> /zh/privacy [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad0px] 64x19.33
+  btn "我可以运行多少个 智能体？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  btn "开始使用" -> /login [bglab(2.51107 0.242703 -0.886115) r9999px bdlab(90.6853 0.399232 -1.45452) fs16px pad0px 20px] 104x42
+  btn "预约演示" -> /zh/contact-sales [bgrgba(0, 0, 0, 0) r9999px bdlab(84.9837 0.601262 -2.17986) fs16px pad0px 20px] 105.33x42
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="Multica 支持哪些编码 智能体？" D="Multica 开箱即用支持 29 款 AI 编程工具：Antigravity、Claude Code、CodeBuddy、CodeArts、Codex、Copilot、Cursor、DeepSeek Harness、DevEco Code、Devin CLI、Dim、Grok、Hermes、Kimi、Kiro CLI、MiniMax Code、Muse Code、Oh-My-Pi、OpenCla"
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="需要自托管吗，还是有云版本？" D="两者都有。你可以用 Docker Compose 或 Kubernetes 在自己的基础设施上自托管 Multica，也可以使用我们的托管云版本。你的数据，你选择。"
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="可以商用吗？" D="可以。在你自己的组织内部使用 Multica 是免费的，包括为整个团队自托管。只有两种情况需要商业授权：把 Multica 提供给组织外部的人使用（比如作为托管服务或代运维服务），或者把它嵌入你销售或分发的产品中。常见场景见授权说明。"
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="这和直接用编码 智能体 有什么区别？" D="编码 智能体 擅长执行。Multica 添加的是管理层：任务队列、团队协作、技能复用、运行时监控，以及每个 智能体 在做什么的统一视图。把它想象成你的 智能体 的项目经理。"
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="智能体 能自主处理长时间任务吗？" D="可以。Multica 管理完整的任务生命周期——入队、领取、执行、完成或失败。智能体 主动报告阻塞并实时推送进度。你可以随时查看，也可以让它们运行整晚。"
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="我的代码安全吗？智能体 在哪里执行？" D="智能体在你的机器（通过本地守护进程）或你连接的运行时上运行，直接在你的代码仓库里工作。工作区里的内容——任务、评论、聊天消息、附件，以及智能体上报的进度——由 Multica 存储；智能体所用的编码工具会把提示词和代码发送给你配置的模型服务商。想让工作区数据留在自己的服务器上，可以自托管 Multica。详见隐私政策。"
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="我可以运行多少个 智能体？" D="取决于你的硬件。每个 智能体 有可配置的并发限制，你可以连接多台机器作为运行时。自托管时没有任何人为限制。"
+  text: 为人和智能体组成的团队而生 A 收件箱 3 工作 团队 聊天 自动化 MC 全部运行时 机器 2 build-02 Linux · Leo Park Mia 的 MacBook Pro 本机 云服务 1 Multica Cloud 云沙箱 跑在你的机器上，也能跑在我们的云上 一条命令接入笔记本或服务器，Multica 会自动找到上面装好的编码智能体。也可以直接在托管的云沙箱里运行。 A 收件箱 3 工作 团队 聊天 自动化 MC 工作流 交付一个功能 方案 Lead Agent 开发 Backend Agent 代码审查 QA Agent 审批 Mia Chen 已上线 最后一步 开发 进入时交给 Backend Agent 完成后进入 代码审查 交接说明 按方案开发，完成后提交 pull request。 工作流把每一步交接好 给每个状态指定负责人。Issue 进入下一步，就自动交给这一步的智能体或同事。 Acme Labs 频道 general eng-support releases random 应用 Multica eng-support MC Mia Chen 11:55 
+
+### S6  y=2765.03 h=637.46 w=1430 bg=rgba(0, 0, 0, 0) section#
+  cls=border-t border-site-rule py-site-section
+  h2 [40px/400/42px ls-1.2px lab(2.51107 0.242703 -0.886115)] 不用学新的智能体。 直接用你已经在用的。
+  btn "全部 27 款智能体" -> /docs/zh/providers [bgrgba(0, 0, 0, 0) r9999px bdlab(90.6853 0.399232 -1.45452) fs14px pad0px 12px] 154.34x28
+  text: 不用学新的智能体。 直接用你已经在用的。 Claude Code Codex Cursor GitHub Copilot OpenCode Hermes Antigravity Qwen Code 全部 27 款智能体
+
+### S7  y=3402.49 h=662.77 w=1430 bg=rgba(0, 0, 0, 0) section#
+  cls=border-t border-site-rule py-site-section
+  h2 [40px/400/42px ls-1.2px lab(2.51107 0.242703 -0.886115)] 最近发布。
+  btn "最新 · 11月10日 v0.8.2 外观设置与内置主题" -> /zh/changelog#release-0-8-2 [bglab(95.8128 0.129491 -0.47313) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad20px] 320x159.99
+  btn "11月10日 外观设置与内置主题 +2 项 v0.8.2" -> /zh/changelog#release-0-8-2 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "11月6日 技能版本历史与恢复 +2 项 v0.8.1" -> /zh/changelog#release-0-8-1 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "11月3日 全新工作区布局 +2 项 v0.8.0" -> /zh/changelog#release-0-8-0 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "10月30日 全新 ⌘K 命令栏 +2 项 v0.7.2" -> /zh/changelog#release-0-7-2 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "10月27日 统一智能体工作规则 +2 项 v0.7.1" -> /zh/changelog#release-0-7-1 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "10月23日 全面开放 workflow 功能 +2 项 v0.7.0" -> /zh/changelog#release-0-7-0 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "10月21日 项目外 Issue 状态更清楚 +3 项 v0.6.5" -> /zh/changelog#release-0-6-5 [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 0px] 730.67x54.4
+  btn "全部版本" -> /zh/changelog [bgrgba(0, 0, 0, 0) r9999px bdlab(90.6853 0.399232 -1.45452) fs14px pad0px 12px] 102x28
+  text: 更新日志 最近发布。 最新 · 11月10日 v0.8.2 外观设置与内置主题 11月10日 外观设置与内置主题 +2 项 v0.8.2 11月6日 技能版本历史与恢复 +2 项 v0.8.1 11月3日 全新工作区布局 +2 项 v0.8.0 10月30日 全新 ⌘K 命令栏 +2 项 v0.7.2 10月27日 统一智能体工作规则 +2 项 v0.7.1 10月23日 全面开放 workflow 功能 +2 项 v0.7.0 10月21日 项目外 Issue 状态更清楚 +3 项 v0.6.5 全部版本
+
+### S8  y=4065.26 h=812 w=1430 bg=rgba(0, 0, 0, 0) section#faq
+  cls=border-t border-site-rule py-site-section
+  h2 [40px/400/42px ls-1.2px lab(2.51107 0.242703 -0.886115)] 问与答。
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] Multica 支持哪些编码 智能体？
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] 需要自托管吗，还是有云版本？
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] 可以商用吗？
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] 这和直接用编码 智能体 有什么区别？
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] 智能体 能自主处理长时间任务吗？
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] 我的代码安全吗？智能体 在哪里执行？
+  h3 [16px/400/24px lsnormal lab(2.51107 0.242703 -0.886115)] 我可以运行多少个 智能体？
+  btn "Multica 支持哪些编码 智能体？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  btn "需要自托管吗，还是有云版本？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  btn "可以商用吗？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  btn "授权说明" -> /zh/licensing [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad0px] 64x19.33
+  btn "这和直接用编码 智能体 有什么区别？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  btn "智能体 能自主处理长时间任务吗？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  btn "我的代码安全吗？智能体 在哪里执行？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  btn "隐私政策" -> /zh/privacy [bgrgba(0, 0, 0, 0) r0px bdlab(90.6853 0.399232 -1.45452) fs16px pad0px] 64x19.33
+  btn "我可以运行多少个 智能体？" -> null [bgrgba(0, 0, 0, 0) r12px bdlab(90.6853 0.399232 -1.45452) fs16px pad16px 20px] 766.67x60
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="Multica 支持哪些编码 智能体？" D="Multica 开箱即用支持 29 款 AI 编程工具：Antigravity、Claude Code、CodeBuddy、CodeArts、Codex、Copilot、Cursor、DeepSeek Harness、DevEco Code、Devin CLI、Dim、Grok、Hermes、Kimi、Kiro CLI、MiniMax Code、Muse Code、Oh-My-Pi、OpenCla"
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="需要自托管吗，还是有云版本？" D="两者都有。你可以用 Docker Compose 或 Kubernetes 在自己的基础设施上自托管 Multica，也可以使用我们的托管云版本。你的数据，你选择。"
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="可以商用吗？" D="可以。在你自己的组织内部使用 Multica 是免费的，包括为整个团队自托管。只有两种情况需要商业授权：把 Multica 提供给组织外部的人使用（比如作为托管服务或代运维服务），或者把它嵌入你销售或分发的产品中。常见场景见授权说明。"
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="这和直接用编码 智能体 有什么区别？" D="编码 智能体 擅长执行。Multica 添加的是管理层：任务队列、团队协作、技能复用、运行时监控，以及每个 智能体 在做什么的统一视图。把它想象成你的 智能体 的项目经理。"
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="智能体 能自主处理长时间任务吗？" D="可以。Multica 管理完整的任务生命周期——入队、领取、执行、完成或失败。智能体 主动报告阻塞并实时推送进度。你可以随时查看，也可以让它们运行整晚。"
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="我的代码安全吗？智能体 在哪里执行？" D="智能体在你的机器（通过本地守护进程）或你连接的运行时上运行，直接在你的代码仓库里工作。工作区里的内容——任务、评论、聊天消息、附件，以及智能体上报的进度——由 Multica 存储；智能体所用的编码工具会把提示词和代码发送给你配置的模型服务商。想让工作区数据留在自己的服务器上，可以自托管 Multica。详见隐私政策。"
+  card 768x61.33 [bglab(100 0 0) r12px bdlab(91.2653 0.399232 -1.45454)] T="我可以运行多少个 智能体？" D="取决于你的硬件。每个 智能体 有可配置的并发限制，你可以连接多台机器作为运行时。自托管时没有任何人为限制。"
+  text: 常见问题 问与答。 Multica 支持哪些编码 智能体？ Multica 开箱即用支持 29 款 AI 编程工具：Antigravity、Claude Code、CodeBuddy、CodeArts、Codex、Copilot、Cursor、DeepSeek Harness、DevEco Code、Devin CLI、Dim、Grok、Hermes、Kimi、Kiro CLI、MiniMax Code、Muse Code、Oh-My-Pi、OpenClaw、OpenCode、Pi、Qoder、Qoder CN、Qwen Code、QwenPaw、Reasonix、Trae CLI、ZeroClaw、ZCode。守护进程会自动检测本机已安装的 CLI 并为每款注册一个运行时。因为源码公开，你也可以自己添加后端。 自托管部署还可以使用 Qoder PAT 和 Qoder Cloud Agents 中已有的智能体，将 Qoder Cloud Agents 配置为执行任务的托管远端运行时。 需要自托管吗，还是有云版本？ 两者都有。你可以用 Docker Compose 或 Kubernete
+
+### S9  y=4877.26 h=665.06 w=1430 bg=rgba(0, 0, 0, 0) section#
+  cls=border-t border-site-rule py-site-section py-0
+  h2 [64px/400/64px ls-1.92px lab(2.51107 0.242703 -0.886115)] 今天就让第一个智能体开工
+  btn "开始使用" -> /login [bglab(2.51107 0.242703 -0.886115) r9999px bdlab(90.6853 0.399232 -1.45452) fs16px pad0px 20px] 104x42
+  btn "预约演示" -> /zh/contact-sales [bgrgba(0, 0, 0, 0) r9999px bdlab(84.9837 0.601262 -2.17986) fs16px pad0px 20px] 105.33x42
+  text: 今天就让第一个智能体开工 接入你已经在用的智能体，给它派第一个 Issue。 开始使用 预约演示
+
+### S10  y=5542.32 h=756.49 w=1430 bg=lab(98.608 0 0) footer#
+  cls=border-t border-site-rule bg-site-canvas text-site-ink
+  btn "中文" -> null [bgrgba(0, 0, 0, 0) r9999px bdlab(91.2653 0.399232 -1.45454) fs14px pad8px 8px 8px 10px] 95.33x32
+  btn "文档" -> /docs/zh [bgrgba(0, 0, 0, 0) r4px bdlab(90.6853 0.399232 -1.45452) fs14px pad2px 0px] 46x23.59
+  btn "更新日志" -> /zh/changelog [bgrgba(0, 0, 0, 0) r4px bdlab(90.6853 0.399232 -1.45452) fs14px pad2px 0px] 56x23.59
+  btn "下载" -> /zh/download [bgrgba(0, 0, 0, 0) r4px bdlab(90.6853 0.399232 -1.45452) fs14px pad2px 0px] 28x23.59
+  btn "关于我们" -> /zh/about [bgrgba(0, 0, 0, 0) r4px bdlab(90.6853 0.399232 -1.45452) fs14px pad2px 0px] 56x23.59
+  btn "联系销售" -> /zh/contact-sales [bgrgba(0, 0, 0, 0) r4px bdlab(90.6853 0.399232 -1.45452) fs14px pad2px 0px] 56x23.59
+  btn "许可协议" -> /zh/licensing [bgrgba(0, 0, 0, 0) r4px bdlab(90.6853 0.399232 -1.45452) fs14px pad2px 0px] 56x23.59
+  btn "隐私政策" -> /zh/privacy [bgrgba(0, 0, 0, 0) r4px bdlab(90.6853 0.399232 -1.45452) fs14px pad2px 0px] 56x23.59
+  img svg 87.55x24 r0px src=
+  img canvas 1430x429.97 r0px src=
+  text: 人和智能体一起工作的团队空间。 中文 © 2026 Multica. 保留所有权利。 资源 文档 更新日志 下载 公司 关于我们 联系销售 信任与合规 许可协议 隐私政策 大家已经把这颗星吹转了 0 圈
+
+## rhythm (gap between sections)
+[-861.61,-134.08,-576.12,456.7,0,-2777.29,0,0,0,0]
+
+## docHeadings
+h1 @116.67  让 Claude Code、Codex、Hermes或OpenCode 成为你的队友。 让 Claude Code Codex Hermes OpenCode 成为你的队友。
+h2 @426.61  工作
+h3 @463.91  视图
+h3 @622.85  项目
+h2 @439.04  动态
+h2 @1320.19  这些公司和高校的人在用 Multica
+h2 @1628.45  为人和智能体组成的团队而生
+h3 @2149.45  跑在你的机器上，也能跑在我们的云上
+h3 @2149.45  工作流把每一步交接好
+h3 @2576.24  在聊天里 @ 智能体
+h3 @2576.24  Autopilot 按计划自动运行
+h3 @2576.24  全队共享的技能
+h2 @2877.7  不用学新的智能体。 直接用你已经在用的。
+h2 @3543.16  最近发布。
+h2 @4205.93  问与答。
+h3 @4288.59  Multica 支持哪些编码 智能体？
+h3 @4357.93  需要自托管吗，还是有云版本？
+h3 @4427.26  可以商用吗？
+h3 @4496.59  这和直接用编码 智能体 有什么区别？
+h3 @4565.93  智能体 能自主处理长时间任务吗？
+h3 @4635.26  我的代码安全吗？智能体 在哪里执行？
+h3 @4704.59  我可以运行多少个 智能体？
+h2 @5109.93  今天就让第一个智能体开工
+
+## layout
+topFonts: [
+ {
+  "value": "16px|400|24px|normal|Inter",
+  "count": 306
+ },
+ {
+  "value": "12px|400|16px|normal|Inter",
+  "count": 224
+ },
+ {
+  "value": "16px|400|22.4px|normal|Inter",
+  "count": 71
+ },
+ {
+  "value": "14px|400|20px|normal|Inter",
+  "count": 41
+ },
+ {
+  "value": "14px|400|19.6px|normal|Inter",
+  "count": 30
+ },
+ {
+  "value": "13px|400|18px|normal|Inter",
+  "count": 28
+ },
+ {
+  "value": "14px|500|20px|normal|Inter",
+  "count": 26
+ },
+ {
+  "value": "14px|500|19.25px|normal|Inter",
+  "count": 25
+ },
+ {
+  "value": "11px|400|14px|normal|Inter",
+  "count": 21
+ },
+ {
+  "value": "40px|400|42px|-1.2px|Inter",
+  "count": 15
+ },
+ {
+  "value": "12px|500|16px|normal|Inter",
+  "count": 15
+ },
+ {
+  "value": "11px|400|15px|normal|Inter",
+  "count": 14
+ },
+ {
+  "value": "13px|500|18px|normal|Inter",
+  "count": 10
+ },
+ {
+  "value": "12px|600|16px|normal|Inter",
+  "count": 7
+ },
+ {
+  "value": "13px|400|19.5px|normal|Inter",
+  "count": 6
+ },
+ {
+  "value": "14px|600|20px|normal|Inter",
+  "count": 5
+ },
+ {
+  "value": "10px|500|10px|normal|Inter",
+  "count": 5
+ },
+ {
+  "value": "16px|500|24px|normal|Inter",
+  "count": 5
+ },
+ {
+  "value": "20px|400|24px|-0.2px|Inter",
+  "count": 5
+ },
+ {
+  "value": "11px|500|14px|normal|Inter",
+  "count": 4
+ },
+ {
+  "value": "14px|400|22.75px|normal|Inter",
+  "count": 4
+ },
+ {
+  "value": "13px|700|18px|normal|Inter",
+  "count": 4
+ }
+]
+topRadii: [{"value":"8px","count":73},{"value":"12px","count":60},{"value":"2.51855e+07px","count":60},{"value":"6px","count":45},{"value":"2.69661e+07px","count":32},{"value":"4px","count":13},{"value":"2.23696e+07px","count":13},{"value":"9999px","count":12},{"value":"3px","count":7},{"value":"16px","count":5},{"value":"2.542e+07px","count":5}]
+topColors: [
+ {
+  "value": "fg:lab(2.51107 0.242703 -0.886115)",
+  "count": 968
+ },
+ {
+  "value": "fg:lab(42.4351 1.66494 -5.7671)",
+  "count": 832
+ },
+ {
+  "value": "lab(100 0 0)",
+  "count": 98
+ },
+ {
+  "value": "fg:lab(71.1502 12.9854 78.9519)",
+  "count": 63
+ },
+ {
+  "value": "lab(42.4351 1.66494 -5.7671)",
+  "count": 41
+ },
+ {
+  "value": "lab(96.1634 0.0993311 -0.364041)",
+  "count": 32
+ },
+ {
+  "value": "fg:lab(8.30603 0.618205 -2.16572)",
+  "count": 28
+ },
+ {
+  "value": "fg:lab(46.6457 -0.178784 -60.0399)",
+  "count": 24
+ },
+ {
+  "value": "lab(2.51107 0.242703 -0.886115)",
+  "count": 20
+ },
+ {
+  "value": "fg:rgb(34, 197, 94)",
+  "count": 20
+ },
+ {
+  "value": "fg:lab(61.7256 46.1889 70.0885)",
+  "count": 20
+ },
+ {
+  "value": "fg:rgb(214, 200, 214)",
+  "count": 18
+ },
+ {
+  "value": "fg:lab(54.1525 1.64506 -5.77841)",
+  "count": 13
+ },
+ {
+  "value": "fg:rgb(63, 14, 64)",
+  "count": 12
+ },
+ {
+  "value": "fg:rgb(139, 92, 246)",
+  "count": 11
+ },
+ {
+  "value": "fg:lab(98.26 0 0)",
+  "count": 10
+ }
+]
+topBorders: [{"value":"lab(90.6853 0.399232 -1.45452) 0.750586px","count":66},{"value":"lab(90.6853 0.399232 -1.45452) 0.803653px","count":19},{"value":"lab(91.2653 0.399232 -1.45454) 0.666667px","count":17},{"value":"lab(90.6853 0.399232 -1.45452) 0.757576px","count":11},{"value":"lab(94.522 0.298649 -1.09143) 0.666667px","count":6},{"value":"lab(84.9837 0.601262 -2.17986) 0.803653px","count":4},{"value":"lab(84.9837 0.601262 -2.17986) 0.666667px","count":3},{"value":"lab(84.9837 0.601262 -2.17986) 0.757576px","count":2},{"value":"oklab(0.549992 -0.0414194 -0.15453 / 0.28) 0.750586px","count":1}]
+
+### widest
+1400 max=1400px mx-auto flex h-site-header w-full max-w-site-wide items-center justify-between gap-4 px-site-gutter
+1400 max=1400px mx-auto w-full max-w-site px-site-gutter max-w-site-wide
+608 max=608px mt-3 max-w-[38rem] text-site-body text-site-muted text-pretty
+1400 max=1400px mx-auto w-full max-w-site px-site-gutter mt-10 max-w-site-wide lg:mt-12
+121.26 max=100% shimmer-text min-w-0 flex-1 truncate [--shimmer-text-base:var(--faint-foreground)] [--shimmer-text-spread:22%]
+121.26 max=100% shimmer-text min-w-0 flex-1 truncate [--shimmer-text-base:var(--faint-foreground)] [--shimmer-text-spread:22%]
+84.54 max=128px inline-flex min-w-0 max-w-32 items-center gap-1 rounded-md border border-surface-border bg-background/70 py-0.5 pr-2 pl-0.5 text-caption
+107.9 max=128px inline-flex min-w-0 max-w-32 items-center gap-1 rounded-md border border-surface-border bg-background/70 py-0.5 pr-2 pl-0.5 text-caption
+29.3 max=100% shimmer-text text-micro text-muted-foreground
+100.68 max=128px inline-flex min-w-0 max-w-32 items-center gap-1 rounded-md border border-surface-border bg-background/70 py-0.5 pr-2 pl-0.5 text-caption
+29.3 max=100% shimmer-text text-micro text-muted-foreground
+84.54 max=128px inline-flex min-w-0 max-w-32 items-center gap-1 rounded-md border border-surface-border bg-background/70 py-0.5 pr-2 pl-0.5 text-caption
+1400 max=1400px mx-auto w-full max-w-site px-site-gutter max-w-site-wide
+1280 max=min(1280px, 100% - 144px) mx-auto w-full max-w-site px-site-gutter
+704 max=704px max-w-[44rem]
+512 max=512px mt-site-stack max-w-[32rem] text-site-body text-site-muted
+512 max=512px mt-site-stack max-w-[32rem] text-site-body text-site-muted
+27.36 max=100% shimmer-text text-micro text-muted-foreground
+365.33 max=512px mt-site-stack max-w-[32rem] text-site-body text-site-muted
+365.33 max=512px mt-site-stack max-w-[32rem] text-site-body text-site-muted
+365.33 max=512px mt-site-stack max-w-[32rem] text-site-body text-site-muted
+1280 max=min(1280px, 100% - 144px) mx-auto w-full max-w-site px-site-gutter
+704 max=704px max-w-[44rem] font-site-display text-site-heading text-balance
+1280 max=min(1280px, 100% - 144px) mx-auto w-full max-w-site px-site-gutter grid gap-site-block lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16
+365.33 max=704px max-w-[44rem]
+320 max=320px site-frost group hidden max-w-[20rem] flex-col gap-8 rounded-site-card p-5 lg:flex outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-vis
+1280 max=min(1280px, 100% - 144px) mx-auto w-full max-w-site px-site-gutter flex flex-col items-center
+155.21 max=704px max-w-[44rem] text-center
+768 max=768px mt-site-block flex w-full max-w-[48rem] flex-col gap-2
+1280 max=min(1280px, 100% - 144px) mx-auto w-full max-w-site px-site-gutter flex flex-col items-center pt-24 pb-16 text-center lg:pt-30 lg:pb-20
+628 max=628px max-w-[16ch] font-site-display text-site-display text-site-ink text-balance
+348.01 max=480px mt-4 max-w-[30rem] text-site-body text-site-muted text-balance
+1280 max=min(1280px, 100% - 144px) mx-auto w-full max-w-site px-site-gutter grid gap-site-block pt-site-section lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] lg:gap-16
+274 max=288px mt-4 max-w-[18rem] text-site-small text-site-muted
+1280 max=min(1280px, 100% - 144px) mx-auto w-full max-w-site px-site-gutter
+
+### grids
+252.27 cols=252.271px colGap=normal rowGap=normal n=4 | inline-grid overflow-hidden transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-
+366.83 cols=127.998px 245.02px 23.9953px colGap=8px rowGap=8px n=3 | grid grid-cols-[128px_1fr_24px] items-center gap-2 text-caption
+366.83 cols=127.998px 245.02px 23.9953px colGap=8px rowGap=8px n=3 | grid grid-cols-[128px_1fr_24px] items-center gap-2 text-caption
+366.83 cols=127.998px 245.02px 23.9953px colGap=8px rowGap=8px n=3 | grid grid-cols-[128px_1fr_24px] items-center gap-2 text-caption
+1160 cols=564px 564px colGap=32px rowGap=60px n=2 | mt-site-block grid gap-x-site-grid-col gap-y-site-grid-row md:grid-cols-2
+464.14 cols=439.453px 52.0005px colGap=12px rowGap=normal n=2 | grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap bg-brand/5
+464.14 cols=455.457px 35.9967px colGap=12px rowGap=normal n=2 | grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap
+464.14 cols=455.457px 35.9967px colGap=12px rowGap=normal n=2 | grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap
+1160 cols=365.333px 365.333px 365.333px colGap=32px rowGap=60px n=3 | mt-site-grid-row grid gap-x-site-grid-col gap-y-site-grid-row md:grid-cols-3
+270.77 cols=158.445px 36.0011px 83.9943px colGap=12px rowGap=normal n=3 | grid h-9 shrink-0 items-center gap-x-3 px-3 text-caption whitespace-nowrap text-muted-foreground
+270.77 cols=174.455px 19.9909px 83.9943px colGap=12px rowGap=normal n=3 | grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap
+270.77 cols=174.455px 19.9909px 83.9943px colGap=12px rowGap=normal n=3 | grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap
+270.77 cols=174.455px 19.9909px 83.9943px colGap=12px rowGap=normal n=3 | grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap
+270.77 cols=174.455px 19.9909px 83.9943px colGap=12px rowGap=normal n=3 | grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap
+270.77 cols=174.455px 19.9909px 83.9943px colGap=12px rowGap=normal n=3 | grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap
+270.77 cols=206.438px 83.9943px colGap=12px rowGap=normal n=2 | grid h-9 shrink-0 items-center gap-x-3 px-3 text-caption whitespace-nowrap text-muted-foreground
+270.77 cols=206.438px 83.9943px colGap=12px rowGap=normal n=2 | grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap bg-surface-selected
+270.77 cols=206.438px 83.9943px colGap=12px rowGap=normal n=2 | grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap
+270.77 cols=206.438px 83.9943px colGap=12px rowGap=normal n=2 | grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap
+270.77 cols=206.438px 83.9943px colGap=12px rowGap=normal n=2 | grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap
+270.77 cols=206.438px 83.9943px colGap=12px rowGap=normal n=2 | grid h-9 shrink-0 items-center gap-x-3 rounded-md px-3 text-body whitespace-nowrap
+1160 cols=290px 290px 290px 290px colGap=normal rowGap=40px n=8 | mt-site-block grid grid-cols-2 gap-y-8 md:grid-cols-4 md:gap-y-10
+1280 cols=365.333px 730.667px colGap=64px rowGap=64px n=2 | mx-auto w-full max-w-site px-site-gutter grid gap-site-block lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16
+730.67 cols=80px 522.667px 64px 16px colGap=16px rowGap=16px n=4 | group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)
+730.67 cols=80px 522.667px 64px 16px colGap=16px rowGap=16px n=4 | group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)
+730.67 cols=80px 522.667px 64px 16px colGap=16px rowGap=16px n=4 | group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)
+730.67 cols=80px 522.667px 64px 16px colGap=16px rowGap=16px n=4 | group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)
+730.67 cols=80px 522.667px 64px 16px colGap=16px rowGap=16px n=4 | group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)
+730.67 cols=80px 522.667px 64px 16px colGap=16px rowGap=16px n=4 | group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)
+730.67 cols=80px 522.667px 64px 16px colGap=16px rowGap=16px n=4 | group grid grid-cols-[4rem_minmax(0,1fr)_auto] items-baseline gap-4 py-4 text-site-body sm:grid-cols-[5rem_minmax(0,1fr)
+1280 cols=274px 822px colGap=64px rowGap=64px n=2 | mx-auto w-full max-w-site px-site-gutter grid gap-site-block pt-site-section lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] 
+822 cols=263.333px 263.333px 263.333px colGap=16px rowGap=40px n=3 | grid grid-cols-2 gap-x-4 gap-y-site-block sm:grid-cols-3 lg:grid-cols-3

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>avatar tiers</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #fff; overflow: hidden; }
+  body {
+    font-family: "Inter", -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: #1b1b1a;
+  }
+  .panel { padding: 26px 30px 22px; background: #fff; }
+  .title-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding-bottom: 4px; }
+  .title { font-size: 15px; font-weight: 600; letter-spacing: 0.01em; }
+  .subtitle { font-size: 11.5px; color: #8a8a84; }
+  .grid {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 118px repeat(3, 96px);
+    align-items: end;
+    column-gap: 10px;
+  }
+  .col-head {
+    display: flex; align-items: baseline; gap: 2px; justify-content: center;
+    padding-bottom: 8px; color: #6f6f69;
+  }
+  .col-head .px { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .col-head .px-unit { font-size: 9.5px; color: #a2a29b; }
+  .col-head .px-tag { margin-left: 4px; font-size: 9.5px; color: #6f6f69; background: #f0f0ec; border-radius: 4px; padding: 1px 4px; }
+  .row { display: contents; }
+  .row-head {
+    display: flex; flex-direction: column; gap: 3px;
+    padding: 0 0 14px 2px; align-self: center;
+  }
+  .swatch { width: 9px; height: 9px; border-radius: 3px; }
+  .row-name { font-size: 12px; font-weight: 600; }
+  .row-hex { font-size: 9.5px; color: #94948d; font-variant-numeric: tabular-nums; }
+  .cell {
+    height: 96px; display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 14px;
+  }
+  /* 静态帧与 CapAvatar 一致：外层定位盒 + 纯色本体 + 绝对定位瞳片。 */
+  .cap { position: relative; display: inline-flex; align-items: center; justify-content: center; overflow: hidden; }
+  .cap-body { position: relative; display: block; }
+  .cap-eyes { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .cap svg.grok-bot-mark { overflow: visible; }
+  /* 产品自己的引擎配色规则（同一个文件，逐字引入，不在这里重写）。 */
+  /*
+ * Colours for the engine layer of a generated agent avatar.
+ *
+ * `engine/motion-engine.js` paints its head and eyes through class rules that its
+ * original consumer supplied (the study page's shadow-DOM stylesheet). This
+ * package ships the same two rules, scoped to the avatar so the engine can never
+ * style anything else on the page.
+ *
+ * The engine already puts our two colours on the `<svg>` as inline custom
+ * properties, straight from the props in `capEngineProps`:
+ *   --bg  = `background` = palette.a  → the solid body
+ *   --fg  = `ink`        = palette.b  → the eyes
+ *
+ * That is the reference form (`web/motion-engine.js`: a single-colour body with
+ * eyes over it), and it matches the CSS/static tiers in `caps.ts`, which paint
+ * `backgroundColor: palette.a` with `palette.b` eye dots.
+ */
+[data-slot="cap-avatar"] .grok-bot-mark__head {
+  fill: var(--bg);
+  stroke: none;
+}
+
+[data-slot="cap-avatar"] .grok-bot-mark__eye {
+  fill: var(--fg);
+  stroke: none;
+}
+
+/* The engine draws outside its own viewBox when the head scales up. */
+[data-slot="cap-avatar"] .grok-bot-mark {
+  overflow: visible;
+}
+
+  .foot {
+    margin-top: 8px; padding-top: 10px; border-top: 1px solid #ececE8;
+    font-size: 10.5px; color: #8a8a84; letter-spacing: 0.005em;
+  }
+  .foot-key { color: #55554f; font-weight: 600; }
+  .foot-key + * { font-weight: 400; }
+</style></head>
+<body>
+<div class="panel">
+  <div class="title-row">
+    <div class="title">智能体头像 · 纯色本体 + 眼睛</div>
+    <div class="subtitle">标准 32px；48 / 64 仅用于单实例展示（详情页头、身份弹层）</div>
+  </div>
+  <div class="grid">
+    <div class="row-head-spacer"></div>
+    <div class="col-head"><span class="px">32</span><span class="px-unit">px</span><span class="px-tag">标准</span></div><div class="col-head"><span class="px">48</span><span class="px-unit">px</span></div><div class="col-head"><span class="px">64</span><span class="px-unit">px</span></div>
+    
+  <div class="row">
+    <div class="row-head">
+      <span class="swatch" style="background-color:#C2A26B"></span>
+      <span class="row-name">amber</span>
+      <span class="row-hex">#C2A26B / #6E5735</span>
+    </div>
+    <div class="cell"><div class="cap cap-32" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="32" data-palette="amber"></div></div><div class="cell"><div class="cap cap-48" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="48" data-palette="amber"></div></div><div class="cell"><div class="cap cap-64" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="64" data-palette="amber"></div></div>
+  </div>
+  <div class="row">
+    <div class="row-head">
+      <span class="swatch" style="background-color:#6E8B9E"></span>
+      <span class="row-name">deep-tide</span>
+      <span class="row-hex">#6E8B9E / #334A5C</span>
+    </div>
+    <div class="cell"><div class="cap cap-32" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="32" data-palette="deep-tide"></div></div><div class="cell"><div class="cap cap-48" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="48" data-palette="deep-tide"></div></div><div class="cell"><div class="cap cap-64" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="64" data-palette="deep-tide"></div></div>
+  </div>
+  <div class="row">
+    <div class="row-head">
+      <span class="swatch" style="background-color:#9C8397"></span>
+      <span class="row-name">plum</span>
+      <span class="row-hex">#9C8397 / #5A4657</span>
+    </div>
+    <div class="cell"><div class="cap cap-32" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="32" data-palette="plum"></div></div><div class="cell"><div class="cap cap-48" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="48" data-palette="plum"></div></div><div class="cell"><div class="cap cap-64" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="64" data-palette="plum"></div></div>
+  </div>
+  </div>
+  <div class="foot">
+    <span class="foot-key">amber</span> 橙子（cap:blob:amber）·
+    <span class="foot-key">deep-tide</span> / <span class="foot-key">plum</span> 另外两个色板 ·
+    形状一致性来自 cap-v1 哈希，颜色来自 palettes.ts（a = 本体，b = 眼睛）<br>
+    三档都是引擎真身：它跑参考实现的 idle 姿态（17° / −14° / 29°），所以眼睛略偏上、
+    带一点斜和视线。列表里默认停在静态帧（animated={false}），只有单实例展示位开动画；
+    16px / 24px 两档已从产品里删除，不再出现在本图上。
+  </div>
+</div><script src="./bundle.js"></script></body></html>

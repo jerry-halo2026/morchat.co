@@ -1,0 +1,18 @@
+---
+purpose: "R1-02E-NATIVE-O0-SOURCE fix4/5"
+owner: task-owners
+status: current
+updated: 2026-11-10
+related: []
+---
+# R1-02E-NATIVE-O0-SOURCE fix4/5
+Status TEST-FROZEN SOURCE/STATIC-DATA ONLY, noactualLoad/query.
+Baseline0a/codex; freshstrongeractualowner /root/o0_policy_fix4_impl configuredgpt6astra high, priorowner61solhigh, Rootconsumerunknown, independentwindows_runtime_r2_reviewconfiguredastra high. Realowner/peerACK observed. Exact7writes/16native3managednamedreads/constraints: E:\CodexData\incidents\morchat-20261106T233131\windows-runtime-r2-native-o0-fix4-source-test-frozen.json SHAe50cfd3e03ed29af56e4c94c688888585113adc2be7182d8c9f5a546e6564821.
+Nohelper903f/DLL03ab/capture/old1787facts deletion/capraise; sameproductionpolicyclassification withoutsidegraphnormalpending/ordinalevidence/APIset6boundedstatic, noPROVEN/unknownwaiver. Originaltests/history retained, sharedTDD/inversefacts/acyclicDAG before7hashSTOPscopedreview. FullGoalACTIVE; allruntime/native/production/model/dualdevicegatepending.
+
+### R120: Fix4 independent HOLD one Important; final source Fix5/5 dispatched
+Root /root configured model unknown; current baseline 0a1efe057948fac563783ef9e0ccd698f6a8220f, codex/round1-continuous, staged0. Previous user status-only turn NO PROGRESS; actual branch/source/review revalidated before current next action. No recovery/import/new worktree.
+Actual independent Fix4 review 2b85d8fac8ba233ccea65071d24248efd86a116703a253aad2b3242ce602404c: 135 pure checks PASS, original116 retained, seven source/helper pins unchanged; HOLD O0_F4_I1 Important. Normal or explicitly triggered delay import with empty symbols skips module initialization because target enqueue is inside symbol foreach. Raw-parser-to-real-graph repro pending0/complete=true with missing target; current delivered DATA has no such descriptor, so no observed native incident or full acceptance bypass asserted.
+Ruling: accept load-bearing finding; descriptor target initialization is independent of imported symbol count. Preserve all existing symbols, caps, root/cycle/missing-target behavior and unknown delay gating. Fresh stronger actual /root/o0_policy_fix5_impl configured gpt-6-astra high owns final fix5/5, Root consumer, independent /root/windows_runtime_r2_review. Exact source7 preserved BEFORE-FIX5; TF E:\CodexData\incidents\morchat-20261106T233131\windows-runtime-r2-native-o0-fix5-source-test-frozen.json SHA f47bfe9a26d0dde6dae99e261f9ad2171ee35cfd5c11740edac35ff63154b2a0, brief efcf86a1a2dfac0eca2b62be710170a070d873d9a06717861da5da0ddc6e0930, card R1-02E-O0-source-fix5. TEST-FROZEN source/pure tests only; no new physical dependency reads/helper/C#/DLL/compiler/OS/Load/native/query/receipt/claims/39539. Raw parser -> real graph RED before minimal fix, full135 retained then scoped review after seven-hash STOP. No automatic sixth fix round.
+Fix4 DATA remains STATIC/DRAFT 4,759,194B, full1787 historical observations+165 ordinal-only, 3494 pending/initializerReviews0/requestGraphCompletefalse; SourceReady/O0Readyfalse. Helper903f and actual library03ab/accepted6568 unchanged. Prior runtime compile/apphost data-link successes are not Win32 acceptance. Frontend39539 exact manual question pending, no repeated signal/new host/install/restart. Actual Windows assignment-denial RED and fail-open production fix NOT RUN; real DSH/UI/native containment/company usage/archive/version/revoke/save/physical dual-device same-candidate gates NOT PASSED. Company model calls0; missing company model approval and second device do not stop source/component progress.
+Goal ACTIVE FULL ORIGINAL SCOPE. No main merge/public push/production/real business/private83/model costs. Snapshot doc review pending at capture, no product acceptance asserted.

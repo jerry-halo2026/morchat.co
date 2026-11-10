@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R83",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "branch": "codex/round1-continuous",
+  "previousCheckpoint": "R82",
+  "previousSha256": "b1abd5b9cb2982102dba37596f0a75eeb25ccc605bd4a6ca0af1fa81f755113a",
+  "previousReviewSha256": "3f78d7b793430fe9999c0fc22f9fafa531fcc5351b7aec3aa09923362adb5332",
+  "previousSnapshotSha256": "505e0b5e94cd0aa23b306ef67c2661ea3c145128cad15fea038167b342491d1f",
+  "previousTurn": "NO_PROGRESS_USER_STATUS_READONLY",
+  "currentFirstTask": "COLLECT_EXISTING_SQL_STATIC_RCA_AND_CSHARP_LOADSET_FIX1_FOR_REVIEW",
+  "sql": {
+    "extraPrivateReadAttempts": 0,
+    "baselineAccepted": false,
+    "rootCause": "UNDETERMINED_STATIC_RCA_RUNNING",
+    "priorPrivateReadAttempts": 1,
+    "helper": "ACTUAL_STARTED_ONCE_NO_RESTART_CURRENT_TERMINAL_STATUS_NOT_REOBSERVED",
+    "autoRetry": false,
+    "correctedEntry": "FAILED_CLOSED_NO_RESULT",
+    "newClaimPresent": false
+  },
+  "windows": {
+    "windowsTargetRuns": 0,
+    "CSharpCompilerRuns": 0,
+    "source": "READY_SEPARATE_COMPILE",
+    "compileGate": "HOLD_CS_MANAGED_LOADSET_01_ORIGINAL_AUTHOR_FIX1_RUNNING"
+  },
+  "allRepoSourceWriters": "CLOSED",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "fullGoal": "NOT_COMPLETE",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "evidence": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-resource-binding-independent-review.json",
+      "sha256": "e87cbcca37ee699678c5cd97430a5ab9f8754c8c1790e796e02cd010a63a787a"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-sqlfix-resource-r1-A02B-actual-independent-review.json",
+      "sha256": "60c42fdfc93e69b627feff7423dd6fcd4a3366f59c35bb49b6417405bab4ca3e"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-sqlfix-resource-r1-A03-actual-independent-review.json",
+      "sha256": "781cf9b5bf579722a97f32d2148e3db0f0ce54f2f844a085c06726ceb0fcef06"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-sqlfix-resource-r1-resource-bundle-independent-review.json",
+      "sha256": "546435cc30ad65b753ba6dc8b8864b436d1ac752913bdc015de53ddb390fd648"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-runtime-binding-independent-review.json",
+      "sha256": "3941a2e13878e5eb333373ecee8d2717338188834a5e9bdfa6e84f34b445a344"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-preauth-cwd-failure-independent-review.json",
+      "sha256": "309e64dfa5b3a0dc02e84d708f0b7c94a0b0b544261b7e450bdf49fa4c67269b"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-actual-1d0623d90ae2263c0254f1e3b2329577\\root-corrected-entry-observation.json",
+      "sha256": "210bd03f489be9f50756e56746ce834b8524990e5521346adfba424d2ebf2953"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-csharp-provenance-r1-final-manifest.json",
+      "sha256": "f0291691e19ab1594c0c90fffcb1a5300ac2ba2dc99f03ca163d61b0799f1531"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-csharp-compile-r1-independent-review.json",
+      "sha256": "f1211b1c017f52cff1b8e0033ea2a5023609a62014eba54ac91e61e9c329b1ec"
+    }
+  ],
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "dd2b6bb97a4d608930eea39e5fa95cc84cf3267a826a841aea6425e0bd860506",
+      "sha256": "9686a71457898ddc4f9973020549fe002509ba3bdc46e2da5b169626d2de13d4",
+      "beforeBytes": 183773,
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "cd411cbf8fab412caa841727f3c9d174e7f599adb395363d343baab1f205ae6c",
+      "sha256": "2faec4f6bbf39ed22029351910d179b2647d00157aeb0dfe0beca3d8356e57dc",
+      "beforeBytes": 174463,
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-03B-admin-sqlcompat.md",
+      "beforeSha256": "d76dd5522c1ea9ea5844257a1dd24b93d7180288458b43ba567a8b7e1cde6847",
+      "sha256": "1e36f88c6ea611a530ee365c848345457cb0c4cf289492fa863daff1a5af73c9",
+      "beforeBytes": 1537,
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-03C-sqlfix-resource.md",
+      "beforeSha256": "cc5f2f987487a6ec9bf75da6cda7d4f9388f59177a12f2414a721b275a4cd86a",
+      "sha256": "c46090e9893dc3c6acc77699b1379e6cf6d327f70236457cc3454e65d0043bf2",
+      "beforeBytes": 837,
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-02E-windows-runtime-source.md",
+      "beforeSha256": "94fd4493a7ba4e7c241e04863e6e4f832d46479e675340b28c88fd9b79f12ba9",
+      "sha256": "4455c3d6e6296530ddcacc746d2b682b52eeb5064c633ef6beb04b929081a1a3",
+      "beforeBytes": 3640,
+      "appendOnly": true
+    }
+  ]
+}

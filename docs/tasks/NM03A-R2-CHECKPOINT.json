@@ -1,0 +1,70 @@
+{
+  "task": "NM03-A-r2",
+  "status": "INDEPENDENTLY_ACCEPTED_SAME_CANDIDATE_ONLY",
+  "date": "2026-11-09",
+  "head": "96085ec414511f7537aabe6b73d22a7aac641a7c",
+  "owner": "/root/workspace_bootstrap_r2",
+  "reviewer": "/root/workspace_invitation_review_r2",
+  "model": "gpt-6.1-sol",
+  "source": {
+    "server/internal/handler/workspace.go": "64D627B22C556BA545C7498B077C2C0BCEC67225F265EDBC2A3EDF4871B02D33",
+    "server/internal/handler/native_creation.go": "63092AA70A2FCDB5B3639B39A307C540DBD31305871BCABF3E5CAEDF7666132A",
+    "server/internal/handler/native_creation_test.go": "B0939E2B6FCB053BC7AC5AE8A1E7B8CE0627918DFE7F4A9C98F7D625BA2CC868",
+    "server/pkg/db/queries/enterprise_acl.sql": "93C08646335FDB827CC81B33EBAE543D625F11D656A7A0086757CA08E6BB485C",
+    "server/pkg/db/generated/enterprise_acl.sql.go": "23F45C5B7F7CE5C408F51851E761C3F090555D3BB5B40F3E608061D0A43BD15D",
+    "server/pkg/db/generated/models.go": "429B160734FF4981A932AA469795D3B55BE0241E8BFA7FD421C5DE7A57DDD9BD",
+    "server/migrations/619_r1_native_creation.up.sql": "859D4C3F927F7B8A967CE7FC0499776D0995660B707FB5B0BA0E583D69357969",
+    "server/migrations/619_r1_native_creation.down.sql": "7D07E86DD42D127173EF835BEE0373290D7256E875182AE8AC5158DC9F60DB5B",
+    "server/cmd/server/r1_native_creation_acl_integration_test.go": "CF43DC8673096E405EC23F6CE8D1F748673CF22FD38439027402F4C3DD1F7A44"
+  },
+  "handler": {
+    "exit": 0,
+    "run": 62,
+    "fail": 0,
+    "skip": 0,
+    "rawSHA": "6A8D3029EAE5E40415639A73082D8698D5D0005865AA7CDB5FCC7ED1146C9109",
+    "pass": 62
+  },
+  "existingGet": {
+    "rawSHA": "AF262DA7D0929C22257AA7C817F85C32F06554D57C43A115B84DB9781622A8C5",
+    "skip": 0,
+    "pass": 53
+  },
+  "existingService": {
+    "rawSHA": "7B2B0F0FD9159413C8B1E24163332AEB9F22E9F5E571BBD70F2287413181A329",
+    "skip": 0,
+    "pass": 42
+  },
+  "nativeBootstrapAndInvitation": {
+    "rawSHA": "2BAE41749870B688784330D42CB87626C7953DFBEA1CA76CCE223F9588E41706",
+    "skip": 0,
+    "pass": 2
+  },
+  "naturalCreateRead": {
+    "exit": 1,
+    "run": 4,
+    "fail": 3,
+    "skip": 0,
+    "reason": "NM03-B not implemented; UUID/Identifier404",
+    "pass": 1,
+    "rawSHA": "2A6DA19465FC2D64A87A99564DAF7D93D653DD2688CA9F2326AF56AB92CD5BA4"
+  },
+  "candidateBackendBuild": {
+    "exit": 0,
+    "sha": "D670F19FBF96BE3CC903A0703833818E7CA1C0282B7D0CC55433241CFA7AB336",
+    "launched": false
+  },
+  "retainedFailedRuns": [
+    "B138E868DEF72640C1EC1D461CFE866C5DCF1DA734876A9A292E097CF28FC1EC",
+    "F9A453136D1B2CEE5E204BF13A3707DF4175ED4347AC878C3C65AE9AF1DFDD9D"
+  ],
+  "standaloneCommit": "NOT_DONE_shared_generated_files_include_prior_uncommitted_GET_dependencies",
+  "servedSource": "51e23d9",
+  "userClientLogin": "confirmed entered Workspace",
+  "twoHumanInvitationUI": "NOT_RUN",
+  "realModelRequests": 0,
+  "credentialCopyConsent": "PENDING_SEPARATE",
+  "mainMerged": false,
+  "publicPush": false,
+  "wholeGoalComplete": false
+}

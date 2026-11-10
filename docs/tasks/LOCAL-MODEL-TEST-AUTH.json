@@ -1,0 +1,28 @@
+{
+  "scope": "single local demo, existing user-configured DeepSeek account connection",
+  "status": "AUTHORIZED_MODEL_AND_LIMITS_NOT_LIVE_EXECUTION_RELEASED",
+  "model": "deepseek-account/deepseek-flash",
+  "budgetCurrency": "CNY",
+  "budgetMaximum": 1,
+  "maximumSupplierModelRequestsIncludingRetries": 5,
+  "userApproval": "current thread answers to call_ebf818cd37ab47938296d6a00256d3da plus explicit reuse existing DeepSeek connection",
+  "actualPublicSourceProfile": "C:\\Users\\Administrator\\.dsh\\profiles\\desktop\\cordis.patch.yml",
+  "sourceModeVerified": "agent-default-model provider=deepseek-account model=deepseek-flash (nonsecret fields only)",
+  "sourceCredentials": "C:\\Users\\Administrator\\.dsh\\.credentials.yaml",
+  "secretsRead": false,
+  "paidCallsByAgent": 0,
+  "mustPreserve": [
+    "original credentials and login state",
+    "original desktop profile",
+    "memories and conversations",
+    "original work directories"
+  ],
+  "modeSelection": "do not switch to APIKey/deepseek-official",
+  "pending": [
+    "selective isolated account/device credential connection without original writes",
+    "wire-request cap including internal retries",
+    "bounded text/output and conservative fee reservation",
+    "independent review before real call"
+  ],
+  "companyProductionGateway": "retained final goal, not local-demo prerequisite"
+}

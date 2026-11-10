@@ -1,0 +1,81 @@
+{
+  "baseline": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "source7": {
+    "TF": "ed8b3e0d99d259e2ac192ef7a10622625caf91eb10ab520341befb29fcac6f79",
+    "actualLoadQuery": false,
+    "testEvolution": "PRESERVE_OLD_SCHEMA_NEGATIVES_NO_TEST_DELETE",
+    "actor": "/root/native_o0_source_impl",
+    "status": "RUNNING_NOT_YET_SOURCE_ACCEPTED"
+  },
+  "model": "unknown",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "root": "/root",
+  "checkpoint": "R115",
+  "independentDocsReview": "PENDING",
+  "productModelCalls": 0,
+  "classification": "PROGRESS_PARALLEL_DISJOINT_SOURCE7_AND_UNBOUND_R2_SOURCE5",
+  "utc": "2026-11-08T22:30:17.5278866Z",
+  "rootOwnedExecLive": false,
+  "globalBlockerAudit": 0,
+  "frontend39539": "HOLD_LAST_ORIGINAL_OWNER_LIVE_ONE_SIGNAL_CONSUMED_USER_PENDING",
+  "R2framework": {
+    "preflight": "86f2f4271bbad768666eddfe4a00e2fd5ac6d31254d46ef74fea5fc94561c0ea",
+    "status": "NEW5_SOURCE_PURE_TDD_ACTIVE",
+    "proposal": "ef0e45b0d9b236ec7bf237545ef85acf177811cafae093d50a356bbc474fdc59",
+    "TF": "bf88b7e9add117fb65496e24388b3d5b0cd713b47097a481b0b48ed97c16c30a",
+    "candidate": "ALL_UNBOUND_PENDING_REAL_FIX2_SOURCE_REVIEW",
+    "testInputClarification": "1f3bd3871ccbb42a278943b6111673714dbe59dd5028be2a0ce117f12eb99967",
+    "actualCompile": false,
+    "actor": "/root/o0_helper_compile_r2_impl"
+  },
+  "branch": "codex/round1-continuous",
+  "files": [
+    {
+      "sha256": "5b16ccbc7e608e2eb64cb31ca243d55c04192b03e2a6ca0493e26d6901ec7bb2",
+      "beforeBytes": 293573,
+      "bytes": 296662,
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "60744fffe3e4dfd5ad328a93234a80e5596008d1f4e23af96eb751b30b9fcc67"
+    },
+    {
+      "sha256": "6dffed7b5d588466da24bda226675f5cf3e6801045eb5fd9a742654feb22f793",
+      "beforeBytes": 275071,
+      "bytes": 278160,
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "f7423a1ef6b1675f9e0fde5cbb7b3149e2f11b09ff37a133fda109ed4744b809"
+    },
+    {
+      "sha256": "4be4243e838e464df908d00d4f1551005cae8bf17f79d52f2159b01cc5b1034d",
+      "beforeBytes": 60186,
+      "bytes": 63275,
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "beforeSha256": "7a796ad8b2c2567339defd4d9b288db1a8280389801dc778f01b97431444029e"
+    },
+    {
+      "sha256": "953b10559c33ae7c01f32dd30885a80db9767266fa02d93e046d0d6451aef825",
+      "beforeBytes": 41767,
+      "bytes": 44856,
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "beforeSha256": "93d633c0daa6360a6ea303e168979c8922163116fd058a78594037477af615cd"
+    },
+    {
+      "sha256": "a33b219763707c850377259148727b9788ff0ede3370ff3f0c2bf41d0de3c62f",
+      "beforeBytes": 1447,
+      "bytes": 4536,
+      "path": "docs/tasks/R1-02E-O0-source-fix2.md",
+      "beforeSha256": "74b66572261a08931fe1812a6d9daefef7928bfc9721a542c60239f37079a855"
+    },
+    {
+      "sha256": "8f217c95f37a3e33aee2ec1d439e64dd70aa3b4d99b9002885fcfa469e929242",
+      "firstSnapshot": true,
+      "path": "docs/tasks/R1-02E-O0-helper-compile-r2.md",
+      "bytes": 1128
+    },
+    {
+      "sha256": "617af8a72d37b13b2ebb2036efb52ee396e2392273165bc69fb0715120268280",
+      "firstSnapshot": true,
+      "path": "docs/superpowers/plans/2026-11-09-o0-helper-compile-r2.md",
+      "bytes": 1336
+    }
+  ]
+}

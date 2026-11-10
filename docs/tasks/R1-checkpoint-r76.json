@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R76",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "previousCheckpoint": "R75",
+  "previousSha256": "87d31fda96e560e6d65455d1ee9c8f89ed84497ba8361b57f8f29f3a5fbb313c",
+  "previousReviewSha256": "52afc76b941e98a4df9e58eb8b6adbf21e2b3cb0954539c1fcabd701ab6e2d74",
+  "previousSnapshotSha256": "f299f0de296a5be6874a8c0e502014d33949c4114f64230b7ff330c18cc6336d",
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "appendOnly": true,
+      "beforeSha256": "af95fc5592672cabb2701c378c45c086aeba4c367add07b708deb3ef5f71de81",
+      "sha256": "e2bdf0173fc763bea06d2143c868b9267522e9c0ffa5b7d387c003909d184936",
+      "beforeBytes": 159816
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "appendOnly": true,
+      "beforeSha256": "ef24a0dc035b16e90f5f1b1d045edc8d01491bffa3eda4437fcd1842dcf62d14",
+      "sha256": "95c47741853f6dba8e9309e63aa8f25cabd1c5fe020cd49eb0454e26cac118fd",
+      "beforeBytes": 154588
+    },
+    {
+      "path": "docs/tasks/R1-02D-windows-dsh-process.md",
+      "appendOnly": true,
+      "beforeSha256": "9820ae125ec7fc7b9e4a416f9aae7b6992377a98d50d9de00f9f2fda0604dc54",
+      "sha256": "8a10d11f729046115d353a2f0405b94a99691b9eb2fa082e1bba9ce5961878a7",
+      "beforeBytes": 5923
+    },
+    {
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "appendOnly": true,
+      "beforeSha256": "5752b752a75384f255436c6ebf0820bb03e5547ba6816b6daa8d553d127bd63b",
+      "sha256": "c2f93d9f1053d4fd7aca118295343c5ea090bcebb1a8482b86624c32037887a0",
+      "beforeBytes": 13653
+    }
+  ],
+  "adminfacts": {
+    "A01Review": "b196d0587cbf2f1e40110f05f08c28b847ad76dc64a2115f3913ef00e3331109",
+    "plan": "62c029660e8df9bbf93503e7e67d001d46045bef555385062a26a023aa39e515",
+    "source": "5b56e1cb1d640806bf20ced778f263de648ccd1ef6414f1b0115e485169b06e5",
+    "closedReview": "abcbb214a32ce6a9c821f5224f23150bdb2a901350f9bfbe8cf9dbec94986e82",
+    "A00Observation": "c1840cb1b804853e8ec3a7ac0e20f928b3eecf7285e0c9dc3fde785c08845ca5",
+    "actualReview": "bc178ad72fe4a189d84ba30aebe751c2414f1f60e2bbe6854265f68ad547a6d9",
+    "helperHandle": "ebe7766dc984133d569c1c4b2f33b3f2855f2f202675e3dfa85d881b768a88a1",
+    "actualRoot": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-r3-actual-1d0623d90ae2263c0254f1e3b2329577",
+    "status": "ACTUAL_CREATED_NEVER_STARTED_AT_POSTCREATE_SAMPLE",
+    "helperCID": "681000d69dfaff158de1b1be30f550996e733291c79c45398a045cd17b826ce3",
+    "A00": "ACTUAL_ABSENCE_EXIT0_EMPTY_STREAMS",
+    "rootPrivateReadHash": false,
+    "A01Release": "3f4117f38dcf8f6ed5168bcab693c0f0ce72b876bb1f437d6918781ba79504c9",
+    "reader": "NOT_CREATED_NOT_BOUND_NOT_RUN",
+    "A02A03A04": "NOT_RUN_NOT_RELEASED"
+  },
+  "windows": {
+    "status": "HOLD_01_OPEN_02_ADDRESSED_SOURCE_ONLY",
+    "producerAddendum": "IN_PROGRESS_NO_SOURCE_PERMISSION",
+    "oracleB06": "9d4839de5addb89667510c0348756c2420b0c1141c01878f00bc47c33167feaf",
+    "sources": "9861f17c_d239cb32_UNCHANGED",
+    "compileRuntime": "NOT_RUN_CLOSED"
+  },
+  "newPG": "RUNNING_OS_FACTS_ONLY_09a51dd7_NO_RESTART",
+  "oldFailed": "QUARANTINE_NO_RESTART_RESET_DELETE_REGEN",
+  "migrationsNativeF5Leader": "NOT_RUN",
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

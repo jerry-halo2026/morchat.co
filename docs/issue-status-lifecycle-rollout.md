@@ -1,3 +1,11 @@
+---
+purpose: "Four-category issue lifecycle (MUL-7240)"
+owner: platform
+status: current
+updated: 2026-11-06
+related:
+  - docs/maintenance-jobs.md
+---
 # Four-category issue lifecycle (MUL-7240)
 
 ## Contract

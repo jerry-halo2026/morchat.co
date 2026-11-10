@@ -1,0 +1,44 @@
+{
+  "task": "LOCAL-DSH-ACCOUNT-CONNECTION-r1",
+  "head": "cf05990b53f37271345128e3a7b56f507c552513",
+  "status": "OFFLINE_NATIVE_COMPATIBILITY_APPROVED_WAIT_EXPLICIT_CREDENTIAL_COPY_CONSENT",
+  "accountMode": "deepseek-account/deepseek-flash",
+  "sourceSHA256": {
+    "tests": "B1AFC4FB222073B079B3C641C9E4C63112DE1309E4FA0DD3984A8E8AC76808CF",
+    "account": "3EB2323F9EE0A189773E6D52A2CE5129B25EDEEFB21D6B62571A97CAAC018FC7",
+    "budget": "80DC03B5E9DDACD3F69AC2C322417D079D55A2AA69D28AE908ACF55FD6EDCB9B"
+  },
+  "unit": {
+    "tests": 20,
+    "skip": 0,
+    "RootExit": 0,
+    "fail": 0,
+    "pass": 20
+  },
+  "nativeCompatibility": {
+    "listModels": "PASS fake metadata only, no task",
+    "manifestSHA256": "9D73D2D9F2AB6AFEA2732468E7B9D5726D5A9E9DB3A9DA7EE4B76C48E7D91BDD",
+    "probe": "PASS protocol1",
+    "version": "PASS original Desktop CLI",
+    "scopeUnitPass": 6,
+    "actualSupplierCalls": 0,
+    "stdio": "PASS exact fake task, synthetic completed",
+    "tools": 0,
+    "resultSHA256": "6A1A8E8F25CCCC86F2778082FB9B46B6A64C0740D74387E9754AF6F9BC052C2C"
+  },
+  "credentialSnapshot": {
+    "explicitCopyConsent": "PENDING_USER_REPLY",
+    "originalRead": false,
+    "targetExists": false,
+    "mayRetry": false,
+    "attempt": "auto-review denied before CreateProcess"
+  },
+  "paidModelAuthorization": {
+    "model": "deepseek-flash",
+    "budgetCNY": 1,
+    "maximumRequestsIncludingRetries": 5,
+    "modelCallsByAgent": 0
+  },
+  "live": "CLOSED",
+  "fullGoal": "ACTIVE_UNFINISHED"
+}

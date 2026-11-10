@@ -1,0 +1,12 @@
+{
+  "status": "RESUMED_COMPANY_POLICY_APPROVED_INVITATION_FLOW_RETAINED",
+  "head": "2d0215f37da0897c66df686fc5948df74a76257d",
+  "date": "2026-11-09",
+  "workspaceCreation": "current browser/Desktop NativeV1 sessions only; API/PAT/legacy denied",
+  "invitations": "preserve authorized invite and signed-in recipient acceptance; validate without SMTP",
+  "writer": "/root/workspace_bootstrap_r2",
+  "model": "gpt-6.1-sol",
+  "credentialCopyConsent": "PENDING_SEPARATE_NO_SECRET_IO",
+  "realModelRequests": 0,
+  "fullGoalComplete": false
+}

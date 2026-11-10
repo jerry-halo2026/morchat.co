@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R77",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "previousCheckpoint": "R76",
+  "previousSha256": "2f3525b9a1a0c1e2c84e4992d707b1f618a3cd95cebc3ecd925c81989517866b",
+  "previousReviewSha256": "e8baec6fa43d7432024e30140089955073eb1459de5e7da1974556fad92b7b26",
+  "previousSnapshotSha256": "bf09da893dbf116fb97d7fd04f23676b54c6692070b1feaa046c174a30fb9557",
+  "files": [
+    {
+      "beforeBytes": 164700,
+      "path": "docs/tasks/ACTIVE.md",
+      "appendOnly": true,
+      "beforeSha256": "6bdff43442d83cf59816a5d42d367db72e46476df99a314d9837a1fa3f162a01",
+      "sha256": "209a3cccaeb229d7a45c2d15b674f5a379cb37e72c6d5cf6989e1d2e72882d5e"
+    },
+    {
+      "beforeBytes": 156701,
+      "path": "docs/tasks/R1-results.md",
+      "appendOnly": true,
+      "beforeSha256": "95c47741853f6dba8e9309e63aa8f25cabd1c5fe020cd49eb0454e26cac118fd",
+      "sha256": "8f21cd9f533b1b97f382d0a81850c6e8b914e7bab0d0d379944a4a3690b743e0"
+    },
+    {
+      "beforeBytes": 24185,
+      "path": "docs/tasks/R1-02-execution.md",
+      "appendOnly": true,
+      "beforeSha256": "18353c75e8fc9c04627f97bf57e291b776a8bba364cfed8d74113ce4d8a8dfe9",
+      "sha256": "e8f7a9e3bccb90a2a2faddcc12de85d741a983f529909d1e63ce01269e5525be"
+    },
+    {
+      "beforeBytes": 8036,
+      "path": "docs/tasks/R1-02D-windows-dsh-process.md",
+      "appendOnly": true,
+      "beforeSha256": "8a10d11f729046115d353a2f0405b94a99691b9eb2fa082e1bba9ce5961878a7",
+      "sha256": "a795f8e1f4c9a0ef072ed2b1dac6882e2608ed219c3a5da382556c0a08baf07a"
+    },
+    {
+      "beforeBytes": 16807,
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "appendOnly": true,
+      "beforeSha256": "d5b7c4f514b3d0cf9523763468ebcc5528f96da152456d7f6d9e03da7fe51f64",
+      "sha256": "c241d48486e01ed4ad97edcbe1e974ebc5f9d8ffedf8b79477771b3b62837678"
+    },
+    {
+      "beforeBytes": 6245,
+      "path": "docs/tasks/R1-00-baseline.md",
+      "appendOnly": true,
+      "beforeSha256": "6f89d96b0120eefcb53a8262a9a41e843501c6846d1ef0063e73a0a200f25682",
+      "sha256": "8579e52a2999095fc8cfdd34e30dea911caf6fbfff83a1d57b21342fe1172fd4"
+    }
+  ],
+  "progress": "ACTUAL_TEST_SOURCE_CONVERGENCE_LIVE_COMPILE_AND_REAL_SQL_FAILURE_DIAGNOSIS",
+  "windows": {
+    "testsNativeRuntime": "NOT_RUN",
+    "fixture": "d239cb3233233810ec9d4f66ea14dc6b921b037c2457173f614cad0d4f552b23",
+    "compilePreparationReview": "e23c64493400a2087cca951f9ca63bf1fe94ff6e95082a3ab31109a910700d21",
+    "ownedExecSession": 4004,
+    "boundProfile": "7a3d76713dfa7760e2b1c81538c386de77d9521f1da72ffbd0c68f34bc191ada",
+    "allRepoWriters": "CLOSED",
+    "status": "LIVE_AT_LAST_SAME_HANDLE_POLL_NOT_YET_VERIFIED",
+    "sourceStatus": "READY_SEPARATE_COMPILE_NOT_RUNTIME",
+    "onceRelease": "5fd9d899705adf7e20f73c96f22afa42d62be05550eb01cfce9af055399db881",
+    "source": "c84120a0829a35e99e81a00eb03258743b147f7de416f28e72e121ea842eb22c",
+    "sourceReview": "2a54ac811085eb1a56821bd945aa3a3fc9c71be703a0f904cd05444f2c5af67f"
+  },
+  "reader": {
+    "source": "08672505fbc7295c9272cda9fe925aee0d1d350e82525649f8a5fdcd3d8bbf4e",
+    "callback": "019e329935ab4eeeb85f0294a585dc48650caf0d2c23d72dded0c74d479c9599",
+    "privateFileHashOutput": false,
+    "actualPrivateReads": 1,
+    "sourceReview": "34c104148dd727df03eff2abdd6e55b9434ca74300bc7073fb00d29ad071a5ad",
+    "newPurposeContract": "PROPOSAL_ONLY_NO_PERMISSION",
+    "globalClaim": "CONSUMED_OLD_READER_NO_FURTHER_READ",
+    "retryPermission": "NONE"
+  },
+  "PG": {
+    "r4Helper": "005fb3db1b671b1668fb5db8f6c5ccb88e8e0828d6343a9785ff77f755b65641",
+    "A04Status": "FAIL_CAPTURE_COMPLETE_BASELINE_NOT_ACCEPTED",
+    "r4Negative": "761a193e43d9cb466f9aae267439885a89aadeb7861d197a0037ffde2d1f9517",
+    "catalogBaseline": "NOT_PASSED",
+    "r3Result": "NO_READ_AGE573_OVER480_NO_RESTART",
+    "migrationsF5Leader": "NOT_RUN",
+    "r3Helper": "681000d69dfaff158de1b1be30f550996e733291c79c45398a045cd17b826ce3",
+    "failureClass": "SQL_METADATA_UNRECOGNIZED_GUC_LC_COLLATE",
+    "r4Safety": "5efbd89a0bbd57c54ae351cd4821a898796c00bc710d54a94bfb909f2f94ca2e",
+    "cid": "3a684ebe25ad1e32d3e505cf4139491c788c4dcca243a6901b890894b09f6775",
+    "failureReview": "0a03ef6006a8e260189d466f1fe439653e3e39ebbbe5750f31d60c0f35de790a",
+    "A04Exit": 3,
+    "r4Root": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-r4-actual-1d0623d90ae2263c0254f1e3b2329577",
+    "oldFailed77da": "NO_RESTART_RESET_DELETE_REGEN"
+  },
+  "oldProduct": {
+    "native37and4": "NOT_RUN",
+    "handler53": "49_PASS4_FAIL",
+    "service42": "LIMITED_PASS",
+    "leader118": "NOT_RUN",
+    "F5nine": "NOT_RUN"
+  },
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

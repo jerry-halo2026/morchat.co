@@ -1,0 +1,89 @@
+{
+  "task": "SUPABASE-REAL-ACCOUNTS-COLLABORATION-r1",
+  "date": "2026-11-10",
+  "operator": "/root",
+  "projectRef": "qcpgqehqjescuwqhnmie",
+  "projectName": "orange",
+  "provisioning": "official authenticated Supabase Studio Create new user; Auto confirm true; no direct auth table writes",
+  "sharedAuthUsers": [
+    {
+      "email": "morchat-e2e-bcb89af59e39-owner@example.test",
+      "passwordSigninRecorded": true,
+      "emailConfirmed": true,
+      "id": "32dd2856-5c74-45d6-94fe-82610e76ab6a",
+      "role": "authenticated"
+    },
+    {
+      "email": "morchat-e2e-bcb89af59e39-member@example.test",
+      "passwordSigninRecorded": true,
+      "emailConfirmed": true,
+      "id": "266cf376-383f-4816-92d8-152b2b6f3975",
+      "role": "authenticated"
+    }
+  ],
+  "passwordHandling": "cryptographic random passwords held only in current CUA session memory; never printed/persisted in source/chat",
+  "mcp": "existing CLI supabase enabled/o_auth and real orange SQL read succeeded; no duplicate install or key exposure",
+  "servedSource": "51e23d9",
+  "businessData": "existing local Multica DB, not shared Supabase business schemas",
+  "workspace": {
+    "id": "d796f8fd-a856-4be7-b24c-84f8be460847",
+    "stableProjectSubjectMappings": 2,
+    "slug": "morchat-e2e-bcb89af59e39",
+    "members": 2,
+    "roles": [
+      "owner",
+      "member"
+    ],
+    "bothOnboarded": true
+  },
+  "invitation": {
+    "pendingAfterAccept": 0,
+    "status": "accepted",
+    "discovery": "first real member password login automatically opened /invitations; no email delivery",
+    "id": "4f35ba2a-8560-40c2-b1bd-5b2c82fd1f1a",
+    "role": "member"
+  },
+  "project": {
+    "realBrowserCreate": true,
+    "id": "f48548b3-60da-41d8-8b07-c1173286f1d0",
+    "creator": "member"
+  },
+  "taskObject": {
+    "id": "01a1c162-8ac5-74cf-ad24-8407a40f7e72",
+    "memberDetailAndReload": true,
+    "ownerRead": true,
+    "manual": true,
+    "creator": "member",
+    "assignee": null,
+    "identifier": "MTE-2"
+  },
+  "comments": {
+    "replyParentMatches": true,
+    "ownerReply": "01a1c164-d13f-77ab-98f6-b9de2ba9ba44",
+    "ownerReloadShowsBoth": true,
+    "member": "01a1c163-403b-72e5-90d4-bbe313f0afdb"
+  },
+  "evidence": {
+    "localDB": "read-only own slug/IDs confirms mappings/invite accepted/roles/creator/comments",
+    "screenshotSHA": "5710D2CB3D4241ACC9B3AF045BBB3E57C7650E03C399E15CAEFC06A615DA42E3",
+    "screenshot": "C:/Users/Administrator/.codex/visualizations/2026/11/06/01a1b0e9-ce05-7273-bbb3-b6f3d0708f30/supabase-real-accounts-collaboration.png",
+    "browser": "two real Auth accounts sequentially signed into actual localhost UI; not mock Auth/OTP fixture",
+    "supabase": "read-only exact2owned-ID metadata confirms email identities/confirmed/nonanonymous/nonsuperadmin/password/signin"
+  },
+  "testWorkspaceAgents": 0,
+  "testWorkspaceAgentTasks": 0,
+  "rootRealModelCalls": 0,
+  "sharedBusinessDDL": false,
+  "existingAuthAccountsChanged": false,
+  "mainMerged": false,
+  "publicPush": false,
+  "goalComplete": false,
+  "notProved": [
+    "real email delivery (example.test reserved domain)",
+    "simultaneous sessions or two real human operators/devices",
+    "enterprise department/resource ACL candidate UI or full R1 acceptance",
+    "real model reply/usage/Leader/revoke/dual-device"
+  ],
+  "independentReview": "ACK /root/supabase_test_accounts_review gpt-6.1-sol: checkpoint and screenshot read-only; not independent replay of full UI/DB",
+  "nextCandidateIssue": "P2 onboarding runtime-skip guide self-assignment conflicts with candidate explicit assignment422; static consumer mismatch, not current served51e runtime FAIL"
+}

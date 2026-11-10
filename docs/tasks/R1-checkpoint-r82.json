@@ -1,0 +1,76 @@
+{
+  "agent": "/root",
+  "previousTurn": "PROGRESS_SOURCE_FIX_AND_ONE_NEW_STOPPED_CREATE",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "previousReviewSha256": "164d6866f5c94eb91d294f7bb019cc29755a45ebcc062c6bbab16609644dd181",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "checkpoint": "R82",
+  "schemaVersion": 1,
+  "previousSha256": "f290ae0b701395c6a88bf3dea280544aba35259f96d1d62f2c8525b2418001a0",
+  "previousCheckpoint": "R81",
+  "windowsSource": {
+    "host": 74,
+    "CSharpCompileExecuted": false,
+    "fix1Review": "d5305bac7e707e7ad86e69dcc19fed6f6d169bca457a132445fa3f997536501d",
+    "fix2Review": "d787311bcdd66dfc6db82c29a977c1146aa9396d52c09636969e595fedd323db",
+    "NativeTargetExecuted": false,
+    "status": "SOURCE_READY_SEPARATE_COMPILE_NOT_NATIVE",
+    "fix2Report": "f3a3138d66c4b122a11c15fd8451b4b2f0d0d634d9828e4a2cd4b2b2e2984543",
+    "fix2Source": "b4655984d802f869a1b1850c2645a85d7768e5ea7f67b780db5462da1b88a4ed",
+    "fix1Report": "8691792f0a781bbd22e28c5cb0515ff367826212a5a49280e8ead07197de36c4"
+  },
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "model": "unknown",
+  "sql": {
+    "A02BStaticReview": "944881fa67bce5410b50195983788caee97061501f8240f30cab1bf86051b598",
+    "actualOldReads": 1,
+    "r2Source": "IN_PROGRESS_NO_FINAL_HASH_OR_SOURCE_REVIEW",
+    "actualExtraReads": 0,
+    "oldFailure": "FAIL3_GLOBALCLAIM_CONSUMED",
+    "A02BActual": "NOT_RUN",
+    "newHelper": "5db1_STOPPED_NOTSTARTED",
+    "newSafetyNegativeLease": "NOT_CREATED_NOT_AUTHORIZED"
+  },
+  "currentFirstTask": "RECONCILED_TERMINAL_WRITER_AND_COLLECTED_EXISTING_UNREVIEWED_FIX1",
+  "previousSnapshotSha256": "e6a8d68d21138ca4954e326da4c92efa5b27c97094537a5de4d7f01491dfa4d5",
+  "allRepoSourceWriters": "CLOSED",
+  "CSharpPreparation": {
+    "runtime": "NONE",
+    "driver": "8eca648a2a24c816538e76b76b9d0f5e2ce7c59554bc0cbee9b57b20a6dbc4ac",
+    "profile": "3b51c85e350979fa90dbd59394a52cca6d5ab0871b2383f8c1381a78f30c459f",
+    "status": "CLOSED_EXACT_TOOLCHAIN_PROVENANCE_REVIEW_PENDING",
+    "artifactKind": "MANAGED_ENTRY_ASSEMBLIES_NOT_NATIVE_APPHOST",
+    "finalCandidate": "9ddc2f0a9434041b260ebe077702a57d3dec15e1b85a888a520d10babcecf952"
+  },
+  "files": [
+    {
+      "sha256": "dd2b6bb97a4d608930eea39e5fa95cc84cf3267a826a841aea6425e0bd860506",
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "71d8802129dd67c94e77e677a2c693849eb4605732e16747e29de628b16b9a2a",
+      "beforeBytes": 181207,
+      "appendOnly": true
+    },
+    {
+      "sha256": "cd411cbf8fab412caa841727f3c9d174e7f599adb395363d343baab1f205ae6c",
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "21286420aba2dc133c63b260e2f49bd229150227088e545e999159e7527a1ce1",
+      "beforeBytes": 171897,
+      "appendOnly": true
+    },
+    {
+      "sha256": "94fd4493a7ba4e7c241e04863e6e4f832d46479e675340b28c88fd9b79f12ba9",
+      "path": "docs/tasks/R1-02E-windows-runtime-source.md",
+      "beforeSha256": "3f25dfba13f7b7a26c0fc19fe0576a68bb3ac39a48737066131f5c95cef23789",
+      "beforeBytes": 1074,
+      "appendOnly": true
+    },
+    {
+      "sha256": "fdbbd4d21b69fab4f222f3e973a0d04bb9e0e905bfddbd5ee33c68f2313f3fa9",
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "beforeSha256": "c04e60b9c5cd2659a36f06822cce3c33b76352bf473fc0643391136376748943",
+      "beforeBytes": 32003,
+      "appendOnly": true
+    }
+  ]
+}

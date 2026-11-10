@@ -1,0 +1,51 @@
+{
+  "checkpoint": "R126",
+  "root": "/root",
+  "model": "unknown",
+  "baseline": "efdc54aaf3fcc4e3eaee369b980ac054ccc0bb54",
+  "branch": "codex/round1-continuous",
+  "stagedCount": 0,
+  "classification": "FAIL_PRESERVED_SOURCE_STOP_INDEPENDENT_RCA_ACTIVE",
+  "owner": "/root/apiset_source_impl",
+  "ownerRoute": "gpt-6.1-sol high",
+  "status": "NOT_SOURCE_COMPLETE_NO_GREEN",
+  "initialStopState": "3c823de8209bd8413c7d4604c46f18d1cfeeeb5307a551fb771697b8bc7c989c",
+  "initialFullCases": 97,
+  "initialPass": 5,
+  "fixtureFails": 91,
+  "nativePlaceholderStaticFails": 1,
+  "stdoutBytes": 23647,
+  "stdoutMaxBytes": 16384,
+  "scopeViolationPreserved": true,
+  "RCAReviewer": "/root/windows_runtime_r2_review",
+  "RCAStatus": "ACTIVE",
+  "originalAuthor": "STOP_NO_REPAIR_RELEASE_YET",
+  "rootOwnedExecLive": false,
+  "compilerPermission": false,
+  "nativePermission": false,
+  "loadPermission": false,
+  "productModelCalls": 0,
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "docsReview": "PENDING_AT_CAPTURE",
+  "files": [
+    {
+      "sha256": "55402a0e7575f362fb89e9bb3918e72bf0aa10283ebd5da11e3bb6a761b9d21e",
+      "beforeSha256": "99474d00e30f7aa0b385c80e7dcdc153fc2dc3c3c2ad1d91945d0ca865962741",
+      "bytes": 336326,
+      "path": "docs/tasks/ACTIVE.md"
+    },
+    {
+      "sha256": "18fb49e875a1b47fc996e3fbf18a1fcc6e694b01192ced744796a3dd4e5320ec",
+      "beforeSha256": "f2c373a82a993f65143d43165eadd3087168831f058bf07d2c23ca785ad2d3ed",
+      "bytes": 317824,
+      "path": "docs/tasks/R1-results.md"
+    },
+    {
+      "sha256": "5a68f1b2bcd8b9bdb576d3284c32b0a3467901f6975c79224c5b7930a762e7aa",
+      "beforeSha256": "7431b286fd99e8b959c4710403849fa5513021b792b2fee00da58049fe1335e9",
+      "bytes": 8884,
+      "path": "docs/tasks/R1-02E-api-set-query-source.md"
+    }
+  ],
+  "utc": "2026-11-09T04:56:03.4100986Z"
+}

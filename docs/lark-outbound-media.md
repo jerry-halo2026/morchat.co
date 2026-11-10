@@ -1,3 +1,10 @@
+---
+purpose: "Lark outbound images and files"
+owner: integrations
+status: current
+updated: 2026-11-06
+related: []
+---
 # Lark outbound images and files
 
 The Lark integration delivers attachments bound to the assistant message in a

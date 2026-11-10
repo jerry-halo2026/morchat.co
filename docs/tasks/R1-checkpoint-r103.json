@@ -1,0 +1,56 @@
+{
+  "checkpoint": "R103",
+  "root": "/root",
+  "model": "unknown",
+  "head": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "branch": "codex/round1-continuous",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "previousTurn": "PROGRESS",
+  "thisTurn": "PROGRESS_FIX1_SOURCE_ACCEPTANCE_AND_PARALLEL_INITIALIZATION_AUDIT",
+  "T0": {
+    "status": "SOURCE_ACCEPTED_ONLY",
+    "fixture": "8dfc690a5c78d0ac33759c215f96df9c6ac2b03e0614c05089b3aeca7e773208",
+    "CS4": "READONLY",
+    "review": "d85f0048e2435c0c6de80ecd2b4756459a94329e0ad9d5dcfe605be7c27349e3",
+    "actualCSharpRED": "NOT_RUN",
+    "round": "1/5"
+  },
+  "unitPreflight": {
+    "review": "3c210bbf481c76d3f78f5dc3076186954b469da81d69d687e23040f8b677b6f7",
+    "scope": "SOURCE_PATH_COMPATIBLE_BASELINE_ONLY_NOT_AUTHORITY",
+    "model": "configured gpt-6.1-sol high"
+  },
+  "T1": {
+    "status": "SOURCE_ONLY_ACTIVE_4NEW",
+    "model": "configured gpt-6.1-sol high",
+    "actualPermission": false,
+    "expectedLater": "Compile0 thenactualnamedassertionRED, separatederivationfromrawFAIL",
+    "owner": "/root/final_observer_t1_prep",
+    "contract": "48301cbcb7f054bfd7714f6676ee2162da697afca6d83b56f6d701e7fb5d77f4"
+  },
+  "files": [
+    {
+      "beforeSHA256": "c0260f31df6ee0c3629ddd0e50599a07b3a05390538c66bc227b3772447cef3b",
+      "path": "docs/tasks/ACTIVE.md",
+      "sha256": "c20c1d3bba99ee1c691b9db322dde3581b02aaec4c1e0ee0d973c787125946d9"
+    },
+    {
+      "beforeSHA256": "7c1995ebd2de14580e346b5e8b928c2a95cfddf0dbdd7a6408662851bcff48cd",
+      "path": "docs/tasks/R1-results.md",
+      "sha256": "72dc468b7a6b0c144f795a29f8f50acefae9b8b991651af3886f04a2d0a55c0f"
+    },
+    {
+      "beforeSHA256": "2cd7db3d8c4ba8e16f40b5000d3059ace555b4d34600faedd9081fe7ef9f175b",
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "sha256": "c586a99fe78c83f1b0ff81a2d8a105a6a502fa81017c2e8ab0fe4541d40ba1c4"
+    },
+    {
+      "beforeSHA256": "a7be3b8e6a03feb32c414bf359a7516284a00aec25c45c3e82b5f2f88a1df8b9",
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "sha256": "723e4905b93330f1d433ed6592717aa51fe716871a3ef3fae4b5813af9fc1dc8"
+    }
+  ],
+  "independentDocsReview": "PENDING",
+  "blockerAudit": 0,
+  "utc": "2026-11-08T15:38:11.4352778+00:00"
+}

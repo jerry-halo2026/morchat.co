@@ -1,0 +1,281 @@
+{
+  "task": "R1-02D-WINDOWS-DSH-PROCESS",
+  "revision": "r1",
+  "status": "TEST_FROZEN_SOURCE_COVERAGE_ONLY_RUNTIME_CLOSED",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "sourceRoot": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co",
+  "domainOwner": "/root/windows_dsh_slice_owner",
+  "domainOwnerConfiguredRoute": "gpt-6.1-sol high",
+  "implementer": "/root/windows_dsh_test_impl",
+  "implementerConfiguredRoute": "gpt-6.1-sol high",
+  "consumerB06": "/root/leader_vertical_owner",
+  "consumerB08": "/root/b08_no_model_consumer",
+  "consumerController": "/root",
+  "controllerModel": "unknown",
+  "reviewer": "/root/dsh_runtime_review",
+  "reviewerConfiguredRoute": "gpt-6.1-sol high",
+  "backendTelemetry": "UNAVAILABLE",
+  "inputs": [
+    {
+      "sha256": "13b50ede90216298dbd1b019d84b43c242800cbeb4be271b6462813bbaef5243",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-dsh-next-r1-spec.md"
+    },
+    {
+      "sha256": "5015ba6aca40866c2d69eed84b8f01fc87fdc28168e2f7fc6b0bcac1a648a161",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-dsh-next-r1-producer-addendum.json"
+    },
+    {
+      "sha256": "3b74f59a20280d7e9c35758a9c03bd81b15ec56328ca97986ac0b9195b2d58f1",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-dsh-next-r1-b06-consumer-ack.json"
+    },
+    {
+      "sha256": "531201a0657aced50c7aef8b1480aa776aab3caaa912d7895776a2ebaec257c3",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-dsh-next-r1-b08-consumer-ack.json"
+    },
+    {
+      "sha256": "8f82c42974162dedd033afa4fcd68a6c6ef5e13fdb6dff1f4b09305d3e5a47d5",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-dsh-next-r1-b08-binding-independent-review.json"
+    },
+    {
+      "sha256": "f93fa923c4b6dde6c5158deb02ebc06bb42e7995a8b3831253d55e57b6309cc1",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-dsh-next-r1-implementer-ack.json"
+    },
+    {
+      "sha256": "b830934c32c036f9542a8cb23ad930853c8f1521c64e659c6e5ef7af023ac615",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-dsh-next-r1-implementer-task-brief.md"
+    }
+  ],
+  "beforePins": [
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\AGENTS.md",
+      "originalSha256": "4deab820790265f1d4c12f71ab44ba29efc76d35ef14019b5c2e22e7c23be4d1",
+      "currentReadOnlySha256": "4deab820790265f1d4c12f71ab44ba29efc76d35ef14019b5c2e22e7c23be4d1",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\README.md",
+      "originalSha256": "8401c5bb6d89cbd89c22267927c0e530a276386c1d41bb286a8ce1ac6aea4090",
+      "currentReadOnlySha256": "8401c5bb6d89cbd89c22267927c0e530a276386c1d41bb286a8ce1ac6aea4090",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\ROUND1-DELIVERY.md",
+      "originalSha256": "6c821e933281d611c9d093cf08453546bc436464bfdb65e48725538b39581cb9",
+      "currentReadOnlySha256": "6c821e933281d611c9d093cf08453546bc436464bfdb65e48725538b39581cb9",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\tasks\\R1-02-execution.md",
+      "originalSha256": "04d90549da18af896eac81456e8fec70c9159d7bbaf2e3a2f49b853b2cf2fc8c",
+      "currentReadOnlySha256": "04d90549da18af896eac81456e8fec70c9159d7bbaf2e3a2f49b853b2cf2fc8c",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\tasks\\R1-02C-dsh-foreign-frame.md",
+      "originalSha256": "bc64b6aa1add1bd26288f7381d2a40efe7a8c1612966979f24963acd6bca1385",
+      "currentReadOnlySha256": "bc64b6aa1add1bd26288f7381d2a40efe7a8c1612966979f24963acd6bca1385",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\tasks\\contracts\\R1-02C-DSH-FOREIGN-FRAME-r1-spec.md",
+      "originalSha256": "08bbb6f1f7c892fe0bae5e4f8bcb4bc30d38d1525a7a90ed610e909b0eea7e15",
+      "currentReadOnlySha256": "08bbb6f1f7c892fe0bae5e4f8bcb4bc30d38d1525a7a90ed610e909b0eea7e15",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\tasks\\contracts\\R1-02C-DSH-FOREIGN-FRAME-r1-test-frozen.json",
+      "originalSha256": "387fec4f8b6ccb5ae95a24efb0331f1fb7d60b3170e982bc165c327c4c143b25",
+      "currentReadOnlySha256": "387fec4f8b6ccb5ae95a24efb0331f1fb7d60b3170e982bc165c327c4c143b25",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\tasks\\contracts\\R1-02C-DSH-FOREIGN-FRAME-r1-build-frozen.json",
+      "originalSha256": "e4e9c37539354b9985e549ee2203c70a0ef2b9b1d1de3d605417cb1ab3ccf377",
+      "currentReadOnlySha256": "e4e9c37539354b9985e549ee2203c70a0ef2b9b1d1de3d605417cb1ab3ccf377",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\superpowers\\plans\\2026-11-07-dsh-foreign-frame.md",
+      "originalSha256": "0567de4e6a8dda39ab3f3cb2274005ff9db189f4109f92c98a3deb72f62f7483",
+      "currentReadOnlySha256": "0567de4e6a8dda39ab3f3cb2274005ff9db189f4109f92c98a3deb72f62f7483",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\superpowers\\plans\\2026-11-06-round1-continuous.md",
+      "originalSha256": "4fb09e2f1a42fd3d9900f8c14f271789b9f5b844c390d282082711f2f5b9421d",
+      "currentReadOnlySha256": "4fb09e2f1a42fd3d9900f8c14f271789b9f5b844c390d282082711f2f5b9421d",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\CLIENT-RUNTIME.md",
+      "originalSha256": "3bc4c6cae39fe69138b7f4e17cbd3df36c1fb921fe4d84fc258b29ed40e2e2d2",
+      "currentReadOnlySha256": "3bc4c6cae39fe69138b7f4e17cbd3df36c1fb921fe4d84fc258b29ed40e2e2d2",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\WINDOWS-DSH-INTEGRATION.md",
+      "originalSha256": "8d53743b8f8d063e3811e02405aaad3656cec13b2dc77c1c12708543d375158b",
+      "currentReadOnlySha256": "8d53743b8f8d063e3811e02405aaad3656cec13b2dc77c1c12708543d375158b",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\DISCOVERY-BASELINE.md",
+      "originalSha256": "feb4e2f20277c7ec3684c7ef56c2d4b07fd64c9ff4c82e98c32f5316f60c7bec",
+      "currentReadOnlySha256": "feb4e2f20277c7ec3684c7ef56c2d4b07fd64c9ff4c82e98c32f5316f60c7bec",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\REFERENCE-REUSE.md",
+      "originalSha256": "a46beaf1fc7864bcaa4f34f73fe53224cc185f2bbb09d90661b05331e08ab5e0",
+      "currentReadOnlySha256": "a46beaf1fc7864bcaa4f34f73fe53224cc185f2bbb09d90661b05331e08ab5e0",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\dsh.go",
+      "originalSha256": "f48eb3a4d8f555c66ce4fea447e6877c8bd222486ea609605176fca1368a00e1",
+      "currentReadOnlySha256": "f48eb3a4d8f555c66ce4fea447e6877c8bd222486ea609605176fca1368a00e1",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\dsh_test.go",
+      "originalSha256": "4b8e12777e058f7f4a9c41f0822d4676a1bc7a2a7722d7fa926b5a40aa09d5ae",
+      "currentReadOnlySha256": "4b8e12777e058f7f4a9c41f0822d4676a1bc7a2a7722d7fa926b5a40aa09d5ae",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\claude_deadlock_test.go",
+      "originalSha256": "f4b9248fe00a8317bef443192011633744e8151b282192fe53a8d83cce38ade4",
+      "currentReadOnlySha256": "f4b9248fe00a8317bef443192011633744e8151b282192fe53a8d83cce38ade4",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\proc_windows.go",
+      "originalSha256": "7519f71c483bee200c7eb60a65406cdd84d59f89c9b77ff7540ce6c3ac5315e7",
+      "currentReadOnlySha256": "7519f71c483bee200c7eb60a65406cdd84d59f89c9b77ff7540ce6c3ac5315e7",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\proc_windows_test.go",
+      "originalSha256": "bb3ac563ec561ac74d2ce4a07ed7a3310be32d3ef23cf0a3d8a9dd911d110289",
+      "currentReadOnlySha256": "bb3ac563ec561ac74d2ce4a07ed7a3310be32d3ef23cf0a3d8a9dd911d110289",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\exec_fixture_windows_test.go",
+      "originalSha256": "356b7a8a3bb188848731c645fcbae328e0ec7ef403a2642f01403b1d7f3676ae",
+      "currentReadOnlySha256": "356b7a8a3bb188848731c645fcbae328e0ec7ef403a2642f01403b1d7f3676ae",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\dsh_integration_test.go",
+      "originalSha256": "91d57a29cd41038606b146efabe4ff7f8ad0b531da3bd1ddb6c8f0436e93339a",
+      "currentReadOnlySha256": "91d57a29cd41038606b146efabe4ff7f8ad0b531da3bd1ddb6c8f0436e93339a",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\agent.go",
+      "originalSha256": "b245225ebf5eae73ccdac82917c96af2641ef0f91213b7c6bc59dd1c61354834",
+      "currentReadOnlySha256": "b245225ebf5eae73ccdac82917c96af2641ef0f91213b7c6bc59dd1c61354834",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\launch.go",
+      "originalSha256": "cf56d4278c9b59b21b57aab2fde68976af3e61f332068560d7145fcd084567ea",
+      "currentReadOnlySha256": "cf56d4278c9b59b21b57aab2fde68976af3e61f332068560d7145fcd084567ea",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\claude.go",
+      "originalSha256": "34d265a41de4cc253bb627820342927e5039db72da07c6ad91a2c3eb8783cfe5",
+      "currentReadOnlySha256": "34d265a41de4cc253bb627820342927e5039db72da07c6ad91a2c3eb8783cfe5",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\daemon\\daemon.go",
+      "originalSha256": "02c8fcf0ac63596b86117a4c40dd36fd16cbcd4ff219da3c5a9c41a442d13b76",
+      "currentReadOnlySha256": "02c8fcf0ac63596b86117a4c40dd36fd16cbcd4ff219da3c5a9c41a442d13b76",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\go.mod",
+      "originalSha256": "616f1d455fc5f9ac436c9aea8773e5a5c491271f321ad9663cc675063205230e",
+      "currentReadOnlySha256": "616f1d455fc5f9ac436c9aea8773e5a5c491271f321ad9663cc675063205230e",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\go.sum",
+      "originalSha256": "5e6088b07fa11ab4ebe3f5896fb5dd6cc369bc8800d5462485d85f0f97abd786",
+      "currentReadOnlySha256": "5e6088b07fa11ab4ebe3f5896fb5dd6cc369bc8800d5462485d85f0f97abd786",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\desktop\\src\\main\\index.ts",
+      "originalSha256": "1586af1b4af4fb64c29276fe5f47c83db3e2f62705e8f8c5b939b8b4a4062b09",
+      "currentReadOnlySha256": "1586af1b4af4fb64c29276fe5f47c83db3e2f62705e8f8c5b939b8b4a4062b09",
+      "matchesOriginal": true,
+      "sourceAuthorized": false
+    }
+  ],
+  "writeSet": [
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\dsh_windows_test.go",
+      "before": "ABSENT",
+      "sourceAuthorized": false
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\testdata\\dsh_windows_fixture\\main.go",
+      "before": "ABSENT",
+      "sourceAuthorized": false
+    }
+  ],
+  "expectedTests": [
+    "func TestDshWindowsCancelTerminalWaitsForChildExit(t *testing.T)",
+    "func TestDshWindowsCancelEscalatesAfterGrace(t *testing.T)"
+  ],
+  "expectedNamedEvents": 2,
+  "sourceWindow": "CLOSED_UNLESS_EXACT_ROOT_SOURCE_HANDOVER",
+  "allowed": "Only two CREATE_NEW test sources; pinned single-file gofmt overexact2; incident static/format/protection report. No production changes.",
+  "oracle": "Actual Messages fence and terminal sentinel positive; continuous entire3second cancel grace no premature Result/directchild exit; eventual actualdirectchildhandle exit before directSession.Result. No daemon/UI/descendant/fullC05 claim.",
+  "runtimePrerequisites": [
+    "independent reviewed failclosed outerJob beforetestPE firstinstruction",
+    "actual restricted identity and exactscratchfileACL",
+    "actual nonetworkpolicy proof",
+    "complete TestMain/helperdispatch/transitiveinit and cleanenv audit",
+    "separate source/compile/runtime sourcePErunnerconverterprofile hashbindings and freshnonce",
+    "bounded rawcapture and originalhandle cleanup proof"
+  ],
+  "P0": "Still separate owner/allbackendconsumer/reviewer card; no productionwrite; if safeouterwrapper unavailable must resolvebefore runtime",
+  "runtime": "CLOSED_NOT_BOUND_NOT_RELEASED",
+  "compile": "CLOSED_NOT_RELEASED",
+  "model": "No model/provider/company orpersonalkey/endpoint/env inheritance. buildEnv inheritedHost hazard requires wholeprocess Environment.Clear and strictallowlist before futurePE. Emptyusage unreported never realzero.",
+  "install": "DSH_NOTFOUND_IN_SCOPED_METADATA_NO_INSTALL_OR_EXECUTION",
+  "fullGoal": "All original nativeAuth/collaboration/localfullharness/cloudmodel/archive/realusage/UI/versionrevocation/save/physicaldualdevice/samecandidate hardgates retained",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE"
+}

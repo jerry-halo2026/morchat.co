@@ -1,0 +1,71 @@
+{
+  "classification": "PROGRESS_SOURCE_ACCEPTED_STATIC_DATA_AND_VERIFIED_TYPED_REVIEW_WAIT",
+  "actualHelperLoads": 0,
+  "staticData": "7955a35ca2ccb55218ba798c551759136c9d4c889512b1909b5cf331aa5cda56",
+  "frontend39539": "HOLD_MANUAL_QUESTION_PENDING",
+  "rootOwnedExecLive": false,
+  "baseline": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "actualNativeQueries": 0,
+  "dataBytes": 41165490,
+  "globalBlockerAudit": 0,
+  "root": "/root",
+  "obligations": 1073,
+  "typedReview": {
+    "notRuntimeProof": true,
+    "pending": 1029,
+    "executionFactsDigest": "24ea4701c3ccf787beae4d0bce54aa1d24733aa2c0859f262a57a78542cec173",
+    "reviewer": "/root/windows_runtime_r2_review",
+    "status": "ACTIVE_FINAL_PARTIAL_BUNDLE_NOT_YET_DELIVERED",
+    "reportedJustifiable": 44
+  },
+  "dataInputs": 49,
+  "files": [
+    {
+      "beforeBytes": 303718,
+      "path": "docs/tasks/ACTIVE.md",
+      "sha256": "acc7fd972781422fe01ae5e97ed504ac0d4f99e6d6ca32ed834bb8bf0da957fe",
+      "bytes": 306756,
+      "beforeSha256": "abcf7ba5a3f869cea4bd69f927f87b28365809c6ffe53b2dfa3d1d8f1241d688"
+    },
+    {
+      "beforeBytes": 285216,
+      "path": "docs/tasks/R1-results.md",
+      "sha256": "9ba0c66d7281e161224ce0d0754b1d1424fea765e2e6122f1da276e56dd33beb",
+      "bytes": 288254,
+      "beforeSha256": "176ba8d2e7c4ebfdc30dd1a9e562be0c615352d23858248ca8da20f4731da05b"
+    },
+    {
+      "beforeBytes": 70331,
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "sha256": "3cd3932e921f737a732f04286c37be3d936e5d4fef316b4bbbbe857afbeca461",
+      "bytes": 73369,
+      "beforeSha256": "3ce484c28d229292e89a15ce6459419e6986464dda35265f561792648faf0118"
+    },
+    {
+      "beforeBytes": 51912,
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "sha256": "438b92242076c650db816a903fa7974b9d7d9b7a116bd0980a55febd3d577500",
+      "bytes": 54950,
+      "beforeSha256": "deb658b4fe10db941cf2288d633a9b5340af3e638d10bd358b6811f84d128bc0"
+    },
+    {
+      "beforeBytes": 11592,
+      "path": "docs/tasks/R1-02E-O0-source-fix2.md",
+      "sha256": "8845d3c251b6f05e09f16348cd63f3a18ea69a7681e814d2e72fb8fdc39e85c8",
+      "bytes": 14630,
+      "beforeSha256": "7ca6815b5b8173ef7e74b2d72c9f7c601a61de99061e022d059c0506dc6a10af"
+    }
+  ],
+  "branch": "codex/round1-continuous",
+  "independentDocsReview": "PENDING",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "productModelCalls": 0,
+  "mandatoryMissing": 0,
+  "logicalReads": 657,
+  "staticReport": "fc545a6c0d9b75d6b209c7048c62b5e83558be9c26ad91db998e5bb702fa02d6",
+  "checkpoint": "R118",
+  "model": "unknown",
+  "sourceReview": "3ac9244d7e0c044d485c5bac91797dcd4b2a4ec1079f27101ba5a7072b6dff0f",
+  "utc": "2026-11-09T00:11:43.0506103Z",
+  "receipt": 0
+}

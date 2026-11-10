@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "task": "R1-00-PNPM-BOOTSTRAP",
+  "revision": "r1",
+  "status": "TEST-FROZEN_SOURCE_PREPARATION_ONLY",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "owner": "/root/frontend_baseline_prep",
+  "ownerConfiguredModel": "gpt-6.1-sol medium",
+  "consumer": "/root",
+  "consumerModel": "unknown",
+  "reviewer": "/root/frontend_baseline_review",
+  "reviewerConfiguredModel": "gpt-6.1-sol high",
+  "preparation": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-preparation.json",
+    "sha256": "91661ae04bb99af9a6228418d4de644e53acaafaefa5e4ca417258747f9089eb"
+  },
+  "consumerAck": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-root-consumer-ack.json",
+    "sha256": "545629bc3e6b052e26cc02903561c1b8632e0275d23cda85fe351affcfa2b86d"
+  },
+  "designReview": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-design-independent-review.json",
+    "sha256": "4c94d987ad1c5c73d3427393092e35cb08e9440415028bad9a2ff86d2336f5ab"
+  },
+  "sourcePrefix": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-bootstrap-",
+  "sourceWriteSet": [
+    "driver.CLOSED.ps1",
+    "host-tests.ps1",
+    "host-results.json",
+    "source-report.md",
+    "source-manifest.json",
+    "source-diff.json",
+    "profile.CLOSED.json",
+    "tool-metadata.json"
+  ],
+  "sourceScope": "One fixed official pnpm archive fetching+SRI+safe tar extraction+byte/config inspection, not pnpm execution or installation",
+  "fixedURL": "https://registry.npmjs.org/pnpm/-/pnpm-10.28.2.tgz",
+  "SRI": "sha512-QYcvA3rSL3NI47Heu69+hnz9RI8nJtnPdMCPGVB8MdLI56EVJbmD/rwt9kC1Q43uYCPrsfhO1DzC1lTSvDJiZA==",
+  "maxFetchAttempts": 1,
+  "deadlineSeconds": 300,
+  "compressedCapBytes": 33554432,
+  "expandedCapBytes": 67108864,
+  "expectedFiles": 1068,
+  "expectedExpandedBytes": 17522153,
+  "root": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1",
+  "actualGET": "CLOSED_UNTIL_SOURCE_REVIEW_EXACT_ROOT_ONCE_RELEASE",
+  "testScope": "Pure memory gzip/tar fixtures and fixed input/authority/response descriptors only; ordinary current PowerShell BCL allowed, no SDK/compiler/native tool execution or actual extraction outputs",
+  "safety": [
+    "No Task/Stream/owner in public JSON; scalar-only projection",
+    "No custom async download framework when a pinned trusted bounded CLI/library suffices; proposed tool metadata must be recorded for independent source review",
+    "No redirects/proxy/cookie/defaultcredentials/TLS downgrade/user configs",
+    "Complete archive SHA512 before TarReader; finite normalized package-relative paths, reject links/specials/aliases/traversal/ADS and duplicates",
+    "CreateNew fresh Goal leaves only; retain partial/FAIL, no automatic retry or overwrite",
+    "Inspect downloaded pnpm package bytes/options after separately released actual fetch, never execute archive payload here"
+  ],
+  "pnpmExecution": false,
+  "install": false,
+  "projectScripts": false,
+  "nativeOrSDKTarget": false,
+  "sourceOrLockWrites": false,
+  "modelCalls": 0,
+  "privateIO": 0,
+  "autoRetry": false
+}

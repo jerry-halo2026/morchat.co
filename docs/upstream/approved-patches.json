@@ -1,0 +1,2776 @@
+{
+  "schemaVersion": 1,
+  "note": "Reviewed deviations from the upstream import snapshot (docs/upstream/multica-import.json). scripts/engineering/verify-import.mjs treats listed paths as expected; anything not listed is still a hard error.",
+  "upstreamSha": "164290ee14f63fe009ca304db21de9879db104c8",
+  "generatedAt": "2026-11-10T06:37:00.774Z",
+  "entries": [
+    {
+      "path": ".gitattributes",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "CLI_AND_DAEMON.md",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "CLI_INSTALL.md",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "LICENSE",
+      "removed": true,
+      "reason": "removed or renamed by the brand round (approved 2026-11-10)"
+    },
+    {
+      "path": "NOTICE",
+      "removed": true,
+      "reason": "removed or renamed by the brand round (approved 2026-11-10)"
+    },
+    {
+      "path": "README.ja.md",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "README.zh.md",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "SELF_HOSTING.md",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "SELF_HOSTING_ADVANCED.md",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "SELF_HOSTING_AI.md",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "VISION.md",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "VISION.zh.md",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/build/icon.icns",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/build/icon.ico",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/build/icon.png",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/electron-builder.yml",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/electron.vite.config.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/package.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/resources/icon.png",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/scripts/brand-dev-electron.mjs",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/scripts/package.test.mjs",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/scripts/worktree-dev-env.mjs",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/context-menu.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/context-menu.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/daemon-manager.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/daemon-port.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/daemon-profile.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/daemon-profile.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/daemon-quit-dialogs.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/daemon-quit-dialogs.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/daemon-recovery.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/external-url.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/index.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/navigation-guard.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/notification-gate.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/renderer-recovery.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/renderer-recovery.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/main/runtime-config-loader.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/renderer/index.html",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/App.auth-recovery.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/App.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/components/app-crash-boundary.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/components/daemon-settings-tab.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/components/desktop-layout.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/components/issue-window.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/components/issue-window.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/components/update-notification.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/components/update-notification.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/freeze-flush.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/pages/auth-recovery.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/pages/login.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/shared/runtime-config.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/desktop/src/shared/runtime-config.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/app/[lang]/layout.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/app/global.css",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/app/icon.svg",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/app/layout.config.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/components/architecture-diagram.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/components/community-links.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/components/demos/channel-chat-demo.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/components/demos/chat-demo.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/components/demos/concept-map-demo.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/components/demos/pr-link-demo.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/components/demos/provider-picker-demo.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/components/demos/run-path-demo.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/components/demos/runtime-offline-demo.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/components/demos/trigger-chooser-demo.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/components/mermaid.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/components/video-embed.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/agents-create.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/agents-create.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/agents-create.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/agents-create.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/agents-create.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/agents-create.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/agents.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/agents.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/agents.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/agents.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/agents.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/agents.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/analytics.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/analytics.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/analytics.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/analytics.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/analytics.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/analytics.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/assigning-issues.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/assigning-issues.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/assigning-issues.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/assigning-issues.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/assigning-issues.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/assigning-issues.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/auth-setup.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/auth-setup.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/auth-setup.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/auth-setup.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/auth-setup.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/auth-setup.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/auth-tokens.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/auth-tokens.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/auth-tokens.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/auth-tokens.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/auth-tokens.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/auth-tokens.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/autopilots.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/autopilots.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/autopilots.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/autopilots.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/autopilots.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/autopilots.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/channels.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/channels.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/channels.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/channels.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/channels.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/channels.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/chat.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/chat.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/chat.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/chat.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/chat.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/chat.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/cli.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/cli.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/cli.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/cli.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/cli.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/cli.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/cloud-quickstart.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/cloud-quickstart.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/cloud-quickstart.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/cloud-quickstart.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/cloud-quickstart.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/cloud-quickstart.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/comments.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/comments.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/comments.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/comments.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/comments.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/comments.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/community-maintained.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/community-maintained.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/community-maintained.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/community-maintained.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/community-maintained.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/community-maintained.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/concepts.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/concepts.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/concepts.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/concepts.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/concepts.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/concepts.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/daemon-runtimes.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/daemon-runtimes.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/daemon-runtimes.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/daemon-runtimes.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/daemon-runtimes.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/daemon-runtimes.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/desktop-app.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/desktop-app.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/desktop-app.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/desktop-app.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/desktop-app.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/desktop-app.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/architecture.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/architecture.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/architecture.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/architecture.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/architecture.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/architecture.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/contributing.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/contributing.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/contributing.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/contributing.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/contributing.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/contributing.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/conventions.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/conventions.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/conventions.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/conventions.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/conventions.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/developers/conventions.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/dingtalk-bot-integration.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/dingtalk-bot-integration.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/dingtalk-bot-integration.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/dingtalk-bot-integration.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/dingtalk-bot-integration.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/dingtalk-bot-integration.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/environment-variables.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/environment-variables.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/environment-variables.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/environment-variables.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/environment-variables.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/environment-variables.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/github-integration.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/github-integration.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/github-integration.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/github-integration.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/github-integration.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/github-integration.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/how-multica-works.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/how-multica-works.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/how-multica-works.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/how-multica-works.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/how-multica-works.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/how-multica-works.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/index.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/index.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/index.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/index.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/index.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/index.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/install-agent-runtime.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/install-agent-runtime.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/install-agent-runtime.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/install-agent-runtime.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/install-agent-runtime.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/install-agent-runtime.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/issue-wakeups.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/issue-wakeups.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/issue-wakeups.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/issue-wakeups.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/issues.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/issues.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/issues.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/issues.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/issues.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/issues.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/lark-bot-integration.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/lark-bot-integration.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/lark-bot-integration.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/lark-bot-integration.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/lark-bot-integration.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/lark-bot-integration.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/mentioning-agents.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/mentioning-agents.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/mentioning-agents.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/mentioning-agents.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/meta.zh-Hant.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/meta.zh.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/mobile-app.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/mobile-app.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/mobile-app.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/mobile-app.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/mobile-app.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/mobile-app.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/project-resources.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/project-resources.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/project-resources.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/project-resources.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/project-resources.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/project-resources.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/providers.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/providers.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/providers.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/providers.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/providers.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/providers.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/security-model.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/security-model.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/security-model.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/security-model.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/security-model.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/security-model.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/self-host-quickstart.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/self-host-quickstart.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/self-host-quickstart.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/self-host-quickstart.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/self-host-quickstart.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/self-host-quickstart.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/shortcuts.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/shortcuts.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/shortcuts.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/shortcuts.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/shortcuts.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/shortcuts.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/skills.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/skills.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/skills.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/skills.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/skills.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/skills.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/slack-bot-integration.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/slack-bot-integration.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/slack-bot-integration.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/slack-bot-integration.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/slack-bot-integration.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/slack-bot-integration.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/squads.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/squads.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/squads.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/squads.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/squads.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/squads.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/tasks.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/tasks.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/tasks.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/tasks.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/tasks.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/tasks.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/telegram-bot-integration.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/telegram-bot-integration.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/telegram-bot-integration.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/telegram-bot-integration.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/telegram-bot-integration.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/telegram-bot-integration.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/troubleshooting.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/troubleshooting.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/troubleshooting.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/troubleshooting.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/troubleshooting.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/troubleshooting.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/tutorial.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/tutorial.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/tutorial.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/tutorial.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/tutorial.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/tutorial.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/vcs-integration.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/vcs-integration.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/vcs-integration.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/vcs-integration.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/vcs-integration.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/vcs-integration.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/workspaces.fr.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/workspaces.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/workspaces.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/workspaces.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/workspaces.zh-Hant.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/content/docs/workspaces.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/lib/locale-link.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/lib/site.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/lib/site.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/docs/lib/translations.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/README.md",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/app.config.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/app.config.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/app/(auth)/login.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/app/(auth)/verify.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/assets/icon.png",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/components/brand/multica-logo.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/components/ui/actor-avatar.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/data/api.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/docs/markdown-rendering-adr.md",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/global.css",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/lib/auth-error.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/lib/markdown/markdown-image.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/lib/markdown/shiki.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/lib/theme.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/lib/time-ago.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/locales/en/auth.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/locales/en/inbox.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/locales/en/settings.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/locales/zh-Hans/auth.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/locales/zh-Hans/inbox.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/locales/zh-Hans/settings.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/locales/zh-Hant/auth.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/locales/zh-Hant/inbox.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/locales/zh-Hant/settings.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/mobile/tailwind.config.js",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/(auth)/login/page.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/(landing)/about/page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/(landing)/changelog/page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/(landing)/contact-sales/page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/(landing)/download/download-client.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/(landing)/download/page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/(landing)/homepage/page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/(landing)/layout.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/(landing)/licensing/page.tsx",
+      "removed": true,
+      "reason": "removed or renamed by the brand round (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/(landing)/page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/(landing)/privacy/page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/[workspaceSlug]/(dashboard)/layout.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/[workspaceSlug]/layout.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/[workspaceSlug]/layout.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/auth/callback/page.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/auth/callback/page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/custom.css",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/layout.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/manifest.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/manifest.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/not-found.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/opengraph-image.alt.txt",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/robots.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/sitemap.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/app/wecom/bind/page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/components/google-analytics.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/config/google-analytics.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/config/google-analytics.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/content/use-cases/auto-data-analysis.en.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/content/use-cases/auto-data-analysis.ja.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/content/use-cases/auto-data-analysis.ko.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/content/use-cases/auto-data-analysis.zh.mdx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/components/document-page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/components/features-section.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/components/inline-links.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/components/landing-footer.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/components/landing-header.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/components/licensing-page-client.tsx",
+      "removed": true,
+      "reason": "removed or renamed by the brand round (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/components/multica-landing.tsx",
+      "removed": true,
+      "reason": "removed or renamed by the brand round (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/components/open-source-section.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/components/shared.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/i18n/en.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/i18n/ja.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/i18n/ko.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/i18n/types.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/i18n/zh.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/features/landing/utils/github-release.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/lib/public-host.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/lib/public-host.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/lib/use-cases-i18n.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/platform/document-title.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/platform/document-title.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/platform/navigation.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/platform/workspace-document-title.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/proxy.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/proxy.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/public/favicon.svg",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/public/icons/apple-touch-icon.png",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/public/icons/icon-192.png",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/public/icons/icon-512.png",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/public/icons/icon-maskable-512.png",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/public/icons/icon.svg",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "apps/web/test/helpers.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "e2e/agent-mcp.spec.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "e2e/auth.spec.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "e2e/helpers.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "e2e/issues.spec.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "e2e/local-search.spec.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "e2e/navigation.spec.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "e2e/onboarding-smoke.spec.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "e2e/perf/floating-chat-lifetime.spec.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "e2e/project-creator-deletion.spec.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "e2e/property-select-options.spec.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "e2e/property-settings-overflow.spec.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "package.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/analytics/redact-exception.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/api/client.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/auth/store.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/dashboard/failure-class.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/onboarding/needs-backfill.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/platform/auth-initializer.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/realtime/use-realtime-sync.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/runtimes/commands.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/runtimes/commands.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/types/agent.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/types/api.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/types/attachment-url.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/types/attachment-url.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/types/dingtalk.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/types/lark.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/types/plugin.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/types/project.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/types/slack.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/types/telegram.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/types/wecom.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/workspace/hooks.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/workspace/workspace-url.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/core/workspace/workspace-url.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/eslint-config/base.js",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/plugin-sdk/README.md",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/plugin-sdk/index.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/plugin-sdk/package.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/plugin-sdk/protocol.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/ui/components/common/actor-avatar.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/ui/components/common/multica-graphics.tsx",
+      "removed": true,
+      "reason": "removed or renamed by the brand round (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/ui/components/common/multica-icon.tsx",
+      "removed": true,
+      "reason": "removed or renamed by the brand round (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/ui/components/common/multica-wordmark.tsx",
+      "removed": true,
+      "reason": "removed or renamed by the brand round (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/ui/eslint.config.mjs",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/ui/icons/drawings/construction.mjs",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/ui/icons/drawings/drawings.mjs",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/ui/icons/drawings/generate.mjs",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/ui/icons/icons.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/ui/icons/index.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/ui/markdown/sanitize.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/ui/styles/base.css",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/ui/styles/tokens.css",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/agents/components/agent-detail-page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/agents/components/agent-row-actions.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/agents/components/agents-page.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/agents/components/inspector/thinking-picker.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/agents/components/inspector/thinking-picker.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/agents/components/inspector/thinking-prop-row.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/agents/components/model-dropdown.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/agents/components/runtime-machine-filter-dropdown.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/agents/components/tabs/mcp-config-tab.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/agents/components/unavailable-models-note.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/agents/create/agent-created-page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/auth/login-page.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/auth/login-page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/autopilots/components/webhook-event-filter-section.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/autopilots/components/webhook-event-filter-section.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/autopilots/components/workspace-wakeups.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/billing/billing-return-page.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/chat/components/chat-input-draft-isolation.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/chat/components/chat-input.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/chat/components/task-status-pill.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/common/cli-install-command.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/common/mcp-server-row.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/common/task-transcript/agent-transcript-dialog.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/dingtalk/bind-page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/editor/content-editor.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/editor/extensions/index.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/editor/extensions/mention-extension.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/editor/readonly-content.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/editor/utils/link-handler.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/inbox/components/inbox-filter-menu.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/inbox/components/inbox-page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/issues/components/pull-requests-section.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/lark/bind-page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/layout/account-menu.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/layout/feature-intro.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/layout/feature-intro.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/layout/help-launcher.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/layout/help-launcher.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/layout/help-links.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/layout/workspace-loader.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/en/agents.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/en/auth.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/en/autopilots.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/en/billing.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/en/chat.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/en/common.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/en/issues.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/en/modals.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/en/onboarding.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/en/projects.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/en/runtimes.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/en/settings.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/en/workspace.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/es/agents.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/es/auth.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/es/autopilots.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/es/billing.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/es/chat.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/es/common.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/es/issues.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/es/modals.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/es/onboarding.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/es/projects.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/es/runtimes.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/es/settings.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/es/workspace.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/fr/agents.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/fr/auth.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/fr/autopilots.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/fr/billing.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/fr/chat.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/fr/common.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/fr/issues.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/fr/modals.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/fr/onboarding.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/fr/projects.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/fr/runtimes.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/fr/settings.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/fr/workspace.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ja/agents.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ja/auth.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ja/autopilots.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ja/billing.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ja/chat.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ja/common.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ja/issues.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ja/modals.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ja/onboarding.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ja/projects.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ja/runtimes.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ja/settings.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ja/workspace.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ko/agents.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ko/auth.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ko/autopilots.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ko/billing.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ko/chat.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ko/common.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ko/issues.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ko/modals.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ko/onboarding.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ko/projects.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ko/runtimes.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ko/settings.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/ko/workspace.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hans/agents.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hans/auth.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hans/autopilots.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hans/billing.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hans/chat.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hans/common.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hans/issues.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hans/modals.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hans/onboarding.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hans/projects.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hans/runtimes.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hans/settings.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hans/workspace.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hant/agents.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hant/auth.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hant/autopilots.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hant/billing.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hant/chat.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hant/common.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hant/issues.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hant/modals.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hant/onboarding.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hant/projects.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hant/runtimes.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hant/settings.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/locales/zh-Hant/workspace.json",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/modals/create-project-local-mode.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/modals/create-project.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/modals/create-project.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/navigation/types.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/onboarding/components/step-sidebar.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/onboarding/onboarding-flow-mode.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/onboarding/onboarding-flow-skip.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/onboarding/onboarding-flow.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/onboarding/source-backfill-modal.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/onboarding/steps/step-welcome.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/onboarding/steps/step-workspace.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/onboarding/templates/install-runtime-issue.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/onboarding/templates/mika.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/plugins/plugin-panel-section.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/plugins/surface-bridge.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/plugins/surface-document.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/projects/components/local-directory-mode-dialog.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/projects/components/project-resources-github-ref.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/rich-content/entity-link-unfurl.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/rich-content/rich-content.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/runtimes/components/connect-remote-dialog.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/runtimes/components/runtime-docs.test.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/runtimes/components/runtime-docs.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/runtimes/components/runtime-profiles-dialog.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/runtimes/utils.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/settings/components/code-tab.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/settings/components/code-tab.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/settings/components/dingtalk-tab.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/settings/components/lark-tab.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/settings/components/lark-tab.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/settings/components/repositories-section.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/settings/components/repositories-section.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/settings/components/slack-tab.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/settings/components/telegram-tab.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/settings/components/telegram-tab.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/settings/components/wecom-tab.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/settings/components/wecom-tab.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/skills/components/create-skill-dialog.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/skills/components/create-skill-dialog.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/slack/bind-page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/squads/components/squads-page.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/telegram/bind-page.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/telegram/bind-page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/wecom/bind-page.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/wecom/bind-page.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/whats-new/releases.ts",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/whats-new/whats-new-menu-panel.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/workflows/project-workflow-row.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "packages/views/workflows/workflows-tab.test.tsx",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/cmd/multica/cmd_auth.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/cmd/multica/help.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/cmd/server/router.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/auth/cookie.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/auth/session.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/auth/session_test.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/daemon/daemon.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/daemon/skill_bundle_resolve_test.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/daemon/skill_cache.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/daemon/skill_cache_test.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/handler/agent_avatar.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/handler/auth.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/handler/handler_test.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/handler/issue.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/handler/mika_onboarding_opening.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/handler/project.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/handler/session.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/handler/session_test.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/handler/source_context.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/handler/workspace.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/integrations/dingtalk/markdown.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/middleware/auth.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/middleware/cloudfront.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/middleware/session_renewal.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/middleware/session_renewal_test.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/internal/service/issue.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/pkg/agent/dsh.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/pkg/agent/dsh_test.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/pkg/agent/proc_windows_test.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/pkg/db/generated/models.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/pkg/db/generated/project.sql.go",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    },
+    {
+      "path": "server/pkg/db/queries/project.sql",
+      "reason": "brand rename to morechat.co, help links to Feishu, regenerated icons (approved 2026-11-10)"
+    }
+  ]
+}

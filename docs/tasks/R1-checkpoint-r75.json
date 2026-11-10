@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R75",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "branch": "codex/round1-continuous",
+  "index": "EMPTY_VERIFIED",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "previousGoalTurn": "NO_ENGINEERING_PROGRESS_STATUS_ANSWER_ONLY",
+  "currentTurn": "PROGRESS_ACTUAL_SOURCE_AND_ISOLATED_OS_STARTUP",
+  "previousCheckpoint": "R74",
+  "previousSha256": "09bee46aa4b6c97e10df39b4bfc0efa22616f0a8d5af566a32a67b6ed50767c0",
+  "previousReviewSha256": "0a75a2cba61500affd3cc0c76290328aaaf733bf000858bec05b518ad605403f",
+  "previousSnapshotSha256": "34175e835c008189f5645d513599ddf2a523c297592bc4b44a0784b09a56e01e",
+  "files": [
+    {
+      "beforeBytes": 155299,
+      "beforeSha256": "1d84ef2530acc7dc2094f720e6cedb276a0d1a0c6232757388c42875883a28f4",
+      "appendOnly": true,
+      "path": "docs/tasks/ACTIVE.md",
+      "sha256": "af95fc5592672cabb2701c378c45c086aeba4c367add07b708deb3ef5f71de81"
+    },
+    {
+      "beforeBytes": 150071,
+      "beforeSha256": "9e4a4d41606589033a7956a70180769e935f8df2359203c39f3ced37f25b4667",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-results.md",
+      "sha256": "ef24a0dc035b16e90f5f1b1d045edc8d01491bffa3eda4437fcd1842dcf62d14"
+    },
+    {
+      "beforeBytes": 19668,
+      "beforeSha256": "04d90549da18af896eac81456e8fec70c9159d7bbaf2e3a2f49b853b2cf2fc8c",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-02-execution.md",
+      "sha256": "18353c75e8fc9c04627f97bf57e291b776a8bba364cfed8d74113ce4d8a8dfe9"
+    },
+    {
+      "beforeBytes": 1406,
+      "beforeSha256": "98c713b0f4640c7f51bf99f1b9140f78c55c481ac9e24b764a336937c45cd5e9",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-02D-windows-dsh-process.md",
+      "sha256": "9820ae125ec7fc7b9e4a416f9aae7b6992377a98d50d9de00f9f2fda0604dc54"
+    },
+    {
+      "beforeBytes": 9136,
+      "beforeSha256": "a2814f1ae39fd25d2bac569eff919c89dab03497aa30e38afd700eb86ab95c53",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "sha256": "5752b752a75384f255436c6ebf0820bb03e5547ba6816b6daa8d553d127bd63b"
+    },
+    {
+      "createdSincePreviousCheckpoint": true,
+      "sha256": "01238a107e1b39bd873577735107ab004556c1c7a97d8564dfc213712a50054a",
+      "path": "docs/tasks/contracts/R1-02D-WINDOWS-DSH-PROCESS-r1-test-frozen.json",
+      "immutable": true
+    },
+    {
+      "createdSincePreviousCheckpoint": true,
+      "sha256": "86822bf78c7ba36277cd5a40cbb0462b1c46eccaf154d9000c7eabdf627b0f55",
+      "path": "docs/superpowers/plans/2026-11-08-windows-dsh-process-tests.md",
+      "immutable": true
+    }
+  ],
+  "windows": {
+    "fixRound": "1/5",
+    "sourceTest": "9861f17c2554262e8292eb7e076c8c404b1ca6c97f06b3eac4140dcf36c2f3b0",
+    "fixReport": "a5cb336372ce34a8ee03e03e2cb62242ba53f1166d8eed90853fec2b1d86bb30",
+    "procActualSourceChange": false,
+    "procContractReview": "b45240d93ab9c04184a3a1fcdfbeed07f32904672580aa75dc0437b9edc8c39c",
+    "allSourceWriters": "CLOSED",
+    "oracleOwner": "/root/leader_vertical_owner",
+    "scopedReview": "434333d80b893ea55a952e2a6bfb70594feb25f20b20515c1abe28912f05411b",
+    "status": "SOURCE_HOLD_01_OPEN_02_ADDRESSED_ONLY",
+    "tf": "01238a107e1b39bd873577735107ab004556c1c7a97d8564dfc213712a50054a",
+    "compileRuntime": "NOT_RUN_CLOSED",
+    "sourceFixture": "d239cb3233233810ec9d4f66ea14dc6b921b037c2457173f614cad0d4f552b23"
+  },
+  "newPG": {
+    "cid": "3a684ebe25ad1e32d3e505cf4139491c788c4dcca243a6901b890894b09f6775",
+    "oldFailedResources": "NO_RESTART_RESET_DELETE_REGEN",
+    "stageA": "ca9a3499cea303ed06ff3abb7eae67b544d4343fff3a4b5ec0ddc9dcf5eca64f",
+    "seal": "4e211db550135e7aa6c7d16eb3fac7ebf6ef242e20ad4c87621a2e2398a3c6fd",
+    "positiveAuth": "NOT_RUN",
+    "catalogBaseline": "NOT_RUN",
+    "status": "ACTUAL_SINGLE_OS_START_ACCEPTED_PUBLIC_ONLY",
+    "S01review": "c61d9342dcb644e5e8d76c78c5c27aaa459c265743868cdf15d9da3970b620fa",
+    "localNegativeExit": 2,
+    "newPrivateReadHash": false,
+    "epoch": "1d0623d90ae2263c0254f1e3b2329577",
+    "createReview": "c5245775473425f684d50855c7c94899edee8a31f1aba7ad12dc11455c2936d9",
+    "actualReview": "09a51dd79a0352a6b389cea54b737339493748f9b67efd8c37866c6e299b9a87",
+    "root": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-startup-r3-actual-1d0623d90ae2263c0254f1e3b2329577",
+    "SQLMigrations": "NOT_RUN"
+  },
+  "oldProductEvidence": {
+    "native37and4": "NOT_RUN",
+    "service42": "PASS_LIMITED",
+    "handler53": "49_PASS_4_FAIL_RETAINED",
+    "leader118": "NOT_RUN",
+    "foundation9": "NOT_RUN"
+  },
+  "next": [
+    "ADMINFACTS_BIND_REVIEW_REAL_READONLY_AUTH_BASELINE",
+    "B06_ORACLE_EVIDENCE_RULING",
+    "PROC_TEST_FREEZE_AND_REAL_RED_PRECONDITIONS"
+  ],
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

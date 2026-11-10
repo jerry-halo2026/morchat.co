@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R66",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "status": "ACTUAL_LAB_REPAIR_AND_SINGLE_SOURCE_ACCEPTED_FRESH_COMPILE_PENDING",
+  "previousCheckpoint": "R65",
+  "previousSha256": "09063935e04b089038a4219fff18302e7e0f9e6db7a0ea75c4f3662e7cebfef7",
+  "previousReviewSha256": "992755ca8d9061a7d818d24ceb264b030114cd03e5f4bce8f3345137735b7760",
+  "previousSnapshotSha256": "15b082830aa7dc5f58142f06a9dfdb67dad6d26a7df98275ece59fe1eaf2340c",
+  "files": [
+    {
+      "appendOnly": true,
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "1da956892fbe2812c1138a87200da37990176b0bb10a6dd2c77be06decd2e8d1",
+      "sha256": "7ba4021d88f6151449f5c8c29540b575e6b03161c7103db0953baebdcabf3bdc"
+    },
+    {
+      "appendOnly": true,
+      "path": "docs/tasks/R1-01D-issue-guard.md",
+      "beforeSha256": "486745ff63de8750b3de9557ae55da64384fe4d6f5af130223b640d705ad8da8",
+      "sha256": "c7b88ec61f1c59b858cd636b03c8463f205ee5d884c69bd41b750f25174e0feb"
+    },
+    {
+      "appendOnly": true,
+      "path": "docs/tasks/R1-03A-leader-text.md",
+      "beforeSha256": "d1871dfe2af81bef7da6487863a8d75c7ad8b88067361652ba1be7f1430b90ba",
+      "sha256": "0fe271f9e681f05c565ac3799bfe539c7823a3b0d8c490c22ac9d2dfdb5d7c10"
+    },
+    {
+      "appendOnly": true,
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "d6f103419fc1415866eba456d5b48cfe6bc281c75fe5c491b6c50e4f66ecc20d",
+      "sha256": "0f739c461fd0ba321d0669fabbede8401c898bae1bfd2b8c540c778ccb610ba9"
+    },
+    {
+      "path": "docs/tasks/contracts/R1-ISSUE-READ-GUARD-bootstrap-lifecycle-r1-test-frozen.json",
+      "newSinceR65": true,
+      "sha256": "97c84a958be697414e98a663c69ee3152ed3791cf62223688122176c0a10c203"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-handler-bootstrap-lifecycle.md",
+      "newSinceR65": true,
+      "sha256": "89a8560c481345575572edf35626898195187e0654dbea57efec1141087c1ccf"
+    }
+  ],
+  "evidence": {
+    "environmentFacts": "bed804ea277c4505df32e762b218cc738a4480013f6aa83fb3eb4c60d11b23c9",
+    "sourceActualReviewJson": "3d7712c3df88ef1df384ae6cd9d3301d8977ac688b164a30b16b151a4e72e538",
+    "environmentActualReview": "e99fc8da6814457dae81ec7da643f845cda061c9bf13b114e65cf3ddeed1aa79",
+    "sourceActualHandoff": "f18362f22e35911a95a2e2f5319087129d6a1b9300f2f0380d96612404e84fa8",
+    "sourceActualReview": "5b9b1e3e8f5a413708f5fb4d0a754a395106e10bd56160eb202d881db7f8530b",
+    "runtimeStaticReview": "1e409103fd830777b101a945bf3c439cd52811073071ff4c54ff591b1f7e696e"
+  },
+  "source": {
+    "otherManifestFilesUnchanged": 1216,
+    "allowedDifferenceCount": 1,
+    "handlerTestBefore": "fd35621876c697e9f0cfbfb8ba30b11a3fb416b692507973a96b1196c3ec53fe",
+    "allSourceWindows": "CLOSED",
+    "handlerTestCurrent": "9f3b37575880b111373a41ae730e901e2921e83663f283d215c848bcd68523da"
+  },
+  "compile": "PREPARATION_ONLY_NO_GO_RELEASE_YET",
+  "handler53": "OLD_SETUP_FAILURE_ZERO_BUSINESS_EVENTS_NEW_RUNTIME_NOT_RUN",
+  "leader118": "NOT_RUN",
+  "native37and4": "NOT_RUN",
+  "foundation": "PROPOSAL_ONLY_PRODUCTION_SOURCE_CLOSED",
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

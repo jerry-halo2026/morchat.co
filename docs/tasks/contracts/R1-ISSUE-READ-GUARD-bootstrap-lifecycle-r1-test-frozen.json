@@ -1,0 +1,59 @@
+{
+  "task": "R1-01D-HANDLER-BOOTSTRAP-LIFECYCLE",
+  "revision": "r1",
+  "status": "TEST_FROZEN_SOURCE_LIFECYCLE_ONLY",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "sourceRoot": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co",
+  "owner": "/root/handler_setup_repair",
+  "ownerModelRoute": "gpt-6-astra high",
+  "consumer": "/root",
+  "consumerModel": "unknown",
+  "reviewer": "/root/guard_review",
+  "reviewerModelRoute": "gpt-6-astra high",
+  "guardContract": {
+    "sha256": "122ecf2523369c1184c2e74037801b3df019dda847f0a3ae554bb1e9417c2624",
+    "path": "docs/tasks/contracts/R1-ISSUE-READ-GUARD-r2-test-frozen.json"
+  },
+  "sourceReview": {
+    "sha256": "9f2faa6100c0ac2078d80c0a593d1f05b9b01fadc4417a2bc6f690da07a6c36f",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\handler-setup-repair-r3-independent-review.json",
+    "disposition": "SOURCE_APPROVE_ONLY_MUTATION_HOLD_RETAINED_HISTORICALLY"
+  },
+  "environmentActualReview": {
+    "reportSha256": "e99fc8da6814457dae81ec7da643f845cda061c9bf13b114e65cf3ddeed1aa79",
+    "sha256": "bed804ea277c4505df32e762b218cc738a4480013f6aa83fb3eb4c60d11b23c9",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\handler-setup-repair-r4-actual-independent-review.json"
+  },
+  "writeSet": [
+    {
+      "candidatePath": "E:\\CodexData\\incidents\\morchat-20261106T233131\\handler-setup-repair-r3-handler_test.go.CANDIDATE.txt",
+      "candidateSha256": "9f3b37575880b111373a41ae730e901e2921e83663f283d215c848bcd68523da",
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\handler_test.go",
+      "beforeSha256": "fd35621876c697e9f0cfbfb8ba30b11a3fb416b692507973a96b1196c3ec53fe"
+    }
+  ],
+  "patch": {
+    "sha256": "f44c8f06490ae42ee23c95de70d64b1e6a8f80c951362259e3f548b11d12fcda",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\handler-setup-repair-r3-handler_test.go.CANDIDATE.patch"
+  },
+  "allowed": [
+    "capture only current setup agent/workspace/user tuple",
+    "INSERT affected1 before owned marker",
+    "nil marker causes no target deletion",
+    "cleanup exact captured tuple with current ownership EXISTS and DELETE affected1 before parent delete",
+    "locked gofmt exact single path only, no Go build/test/vet"
+  ],
+  "protected": [
+    "all business assertions and original 53 event names",
+    "all production/Auth/schema/query/generated files",
+    "old TestMain DB failure behavior retained and external guard still mandatory",
+    "all other Go/test source files; explicit current Leader1171/2045/2e87 source pins"
+  ],
+  "ownerAck": "WRITE_NEW_INCIDENT_ACK_BEFORE_APPLY",
+  "sourceWindow": "CLOSED_UNLESS_EXACT_ROOT_SOURCE_RELEASE",
+  "runtime": "NOT_RELEASED_NOT_RUN",
+  "compile": "NOT_RELEASED_NOT_RUN",
+  "actualDatabase": "NO_NEW_OPERATIONS_ALLOWED",
+  "verification": "actual destination hash equals reviewed candidate; format/token proof; independent actual source review before compile; fresh offline source closure/ELF and separate full53 runtime release still required",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE"
+}

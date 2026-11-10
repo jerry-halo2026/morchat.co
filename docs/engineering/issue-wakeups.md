@@ -1,3 +1,10 @@
+---
+purpose: "Issue wakeups"
+owner: engineering
+status: current
+updated: 2026-11-06
+related: []
+---
 # Issue wakeups
 
 An agent or a member can save an event subscription, a condition or a timer on

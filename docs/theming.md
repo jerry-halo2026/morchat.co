@@ -1,3 +1,11 @@
+---
+purpose: "主题包的构成：manifest、CSS 变量、稳定锚点与内置主题（上游 0.8.2 文档，随同步引入）"
+owner: sync-0.8.2
+status: reference
+updated: 2026-11-10
+related: []
+---
+
 # Theming Multica
 
 A Multica theme is a manifest and some CSS. The CSS overrides public

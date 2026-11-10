@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "task": "R1-00-PNPM-OFFLINE-EXTRACT",
+  "revision": "r1",
+  "status": "TEST-FROZEN_SOURCE_ONLY_ACTUAL_EXTRACTION_CLOSED",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "owner": "/root/frontend_baseline_prep",
+  "ownerConfiguredModel": "gpt-6.1-sol medium",
+  "consumer": "/root",
+  "consumerModel": "unknown",
+  "reviewer": "/root/frontend_baseline_review",
+  "reviewerConfiguredModel": "gpt-6.1-sol high",
+  "consumerCandidate": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-offline-extraction-design-candidate.json",
+    "sha256": "3d0b794b7d5040243c17f713ae23d0101e4fea24c22238bbde30e51203a5063d"
+  },
+  "designReview": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-offline-extraction-design-independent-review.json",
+    "sha256": "b257743abc3f3bd6ed9d22925e0a87eb4b4eeb19b6a28f241bbb6f3a228ae3e7"
+  },
+  "acceptedParser": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-bootstrap-driver.CLOSED.ps1",
+    "reviewSHA": "cce1eaf7e07a809872aa74120b7f33623729f0f9d6d10808781e0e0b41ccc129",
+    "reviewPath": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-bootstrap-fix2-independent-review.json",
+    "sha256": "5b9197418a45ffa0c2066711ed29343e122a332554e847d9c9169947541cf8ec"
+  },
+  "fixedArchive": {
+    "path": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm-10.28.2.tgz.partial",
+    "bytes": 4197451,
+    "sha256": "afa99b0b4b3d11c1dad2b472f9318ae2c78673829749ded527f89f09071479a7",
+    "SRI": "sha512-QYcvA3rSL3NI47Heu69+hnz9RI8nJtnPdMCPGVB8MdLI56EVJbmD/rwt9kC1Q43uYCPrsfhO1DzC1lTSvDJiZA=="
+  },
+  "sourcePrefix": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-offline-extraction-",
+  "sourceWriteSet": [
+    "driver.CLOSED.ps1",
+    "host-tests.ps1",
+    "host-results.json",
+    "profile.CLOSED.json",
+    "source-report.md",
+    "source-manifest.json",
+    "source-diff.json"
+  ],
+  "allowedOriginalDeclarations": [
+    "Add-PnpmOwned",
+    "Invoke-PnpmOwnedRegion",
+    "Assert-PnpmPath",
+    "Copy-PnpmBounded",
+    "Get-PnpmArchivePlan",
+    "Assert-PnpmNoReparse",
+    "New-PnpmPublicResult"
+  ],
+  "sourceIdentity": "Extract exact7 original declarations+body hashes in sourceprep; embed literally, no runtime dot-source/eval wholeBootstrap/HTTP/Process/package code",
+  "sourceTestScope": "Only AST/descriptor/pure memory FS+archive synthetic fixtures and TDD; no actual archive-read/extraction/file targets/clock/native/Node/SDK/network",
+  "maxRunEntries": 1,
+  "maxTarEntries": 4096,
+  "expectedRegularFiles": 1068,
+  "expectedPayloadBytes": 17522153,
+  "compressedCap": 33554432,
+  "decodedCap": 67108864,
+  "root": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1",
+  "freshOutput": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm",
+  "newOwnMarker": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\offline-extraction.once.json",
+  "actualFlow": [
+    "new independent source approval-only control and Rootonce validation; oldmarkers/HOLD not authority",
+    "managed canonical/nonreparse trusted-owned-root checks, output entirely absent",
+    "CreateNew NEW ownmarker BEFORE actual archive parse so parse failures consume newattempt; never oldmarker reset",
+    "open fixed archive readonly shareRead, read one bounded bytebuffer; SHA256 and fullSRI and parser consume SAME bytebuffer, no hash/read substitution",
+    "fixed1068/17522153 memory preflight before any extracted leaf; valid zero regular preserves nonnull byte[0], strictpaths/types/alias/caps unchanged",
+    "CreateNew whole pnpm tree/leaves only, retainpartial/FAIL no overwrite/delete/reset/retry",
+    "rehash every output/count/bytes after closed writes, inert package.json/bin/dist marker inspection only"
+  ],
+  "approvalNaming": "Positive-only source-approval-r1.json reserved for genuine independent approval; HOLD/review reports use distinct filenames. Immutable revision-specific source approvals if later changes; no old1c077 historical anchor substitution.",
+  "runtime": "CLOSED_UNTIL_SOURCE_AND_EXACT_ROOT_ONCE_REVIEW",
+  "budgets": {
+    "network": 0,
+    "privateIO": 0,
+    "SDK": 0,
+    "NodeOrPackageExecution": 0,
+    "install": 0,
+    "Process": 0,
+    "models": 0
+  },
+  "oldRootArchiveMarkersMutate": false,
+  "sourceOrLockWrite": false,
+  "noSubagents": true
+}

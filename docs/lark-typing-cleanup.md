@@ -1,3 +1,10 @@
+---
+purpose: "Lark Typing reaction cleanup"
+owner: integrations
+status: current
+updated: 2026-11-06
+related: []
+---
 # Lark Typing reaction cleanup
 
 Before sending an Add request, the server records each input in
