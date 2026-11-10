@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/multica-ai/multica/server/internal/entitlement"
-	"github.com/multica-ai/multica/server/internal/entitlement/entitlementtest"
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/entitlement"
+	"github.com/jerry-halo2026/morchat.co/server/internal/entitlement/entitlementtest"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 // TestTriggerAutopilot_InternalFailureDoesNotEchoError pins MUL-6472: an

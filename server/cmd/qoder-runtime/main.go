@@ -13,7 +13,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/multica-ai/multica/server/internal/qoderruntime"
+	"github.com/jerry-halo2026/morchat.co/server/internal/qoderruntime"
 )
 
 func main() {

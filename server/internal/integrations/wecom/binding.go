@@ -26,8 +26,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/multica-ai/multica/server/internal/integrations/channel/engine"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel/engine"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // BindingTokenTTL bounds a token's life. The channel_binding_token CHECK

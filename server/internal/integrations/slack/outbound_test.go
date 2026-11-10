@@ -10,10 +10,10 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/slack-go/slack"
 
-	"github.com/multica-ai/multica/server/internal/events"
-	"github.com/multica-ai/multica/server/internal/integrations/channel"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/events"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 func uid(b byte) pgtype.UUID {

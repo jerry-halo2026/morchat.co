@@ -2,12 +2,12 @@ import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { setApiInstance } from "@multica/core/api";
-import type { ApiClient } from "@multica/core/api/client";
-import { projectSidebarSource } from "@multica/core/issues/sidebar-list";
-import { useSidebarKeptStore } from "@multica/core/issues/stores/sidebar-kept-store";
-import { useSidebarTreeStore } from "@multica/core/issues/stores/sidebar-tree-store";
-import type { Project } from "@multica/core/types";
+import { setApiInstance } from "@morechat/core/api";
+import type { ApiClient } from "@morechat/core/api/client";
+import { projectSidebarSource } from "@morechat/core/issues/sidebar-list";
+import { useSidebarKeptStore } from "@morechat/core/issues/stores/sidebar-kept-store";
+import { useSidebarTreeStore } from "@morechat/core/issues/stores/sidebar-tree-store";
+import type { Project } from "@morechat/core/types";
 import { renderWithI18n } from "../../test/i18n";
 import { NavigationProvider, type NavigationAdapter } from "../../navigation";
 import { ProjectsSection } from "./work-tree";
@@ -19,11 +19,11 @@ vi.mock("@dnd-kit/core", () => ({
   useSensor: vi.fn(),
   useSensors: vi.fn(),
 }));
-vi.mock("@multica/ui/components/common/tooltip-hint", () => ({
+vi.mock("@morechat/ui/components/common/tooltip-hint", () => ({
   TooltipHint: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
-vi.mock("@multica/core/paths", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/paths")>();
+vi.mock("@morechat/core/paths", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/paths")>();
   return { ...actual, useWorkspacePaths: () => actual.paths.workspace("acme") };
 });
 

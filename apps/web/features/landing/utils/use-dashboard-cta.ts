@@ -1,13 +1,13 @@
 "use client";
 
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceList } from "@multica/core/workspace";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceList } from "@morechat/core/workspace";
 import {
   paths,
   resolvePostAuthDestination,
   useHasOnboarded,
-} from "@multica/core/paths";
-import type { Workspace } from "@multica/core/types";
+} from "@morechat/core/paths";
+import type { Workspace } from "@morechat/core/types";
 
 /**
  * While the workspace list is in flight the CTA points at `/issues`, which the

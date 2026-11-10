@@ -3,10 +3,10 @@
 import { IssueSidebarSectionHeader } from "../issue-sidebar-section";
 
 import { useState } from "react";
-import { LayoutGrid, Link2 } from "@multica/ui/icons";
-import type { DeliverableFile } from "@multica/core/attachments/deliverables";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { LayoutGrid, Link2 } from "@morechat/ui/icons";
+import type { DeliverableFile } from "@morechat/core/attachments/deliverables";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 import { useT } from "../../../i18n";
 import { formatBytes } from "../../../common/format-bytes";
 import { fileIcon } from "../../../editor/utils/file-icon";

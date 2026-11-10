@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type CSSProperties } from "react";
-import { EyeOff, Trash2 } from "@multica/ui/icons";
+import { EyeOff, Trash2 } from "@morechat/ui/icons";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { formatTokens } from "../../runtimes/utils";
 import { useT } from "../../i18n";
@@ -14,7 +14,7 @@ import {
 } from "../utils";
 import { Segmented } from "./dashboard-shared";
 import "./leaderboard.css";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
 
 // Which metric ranks the leaderboard. Drives row order, progress bar
 // width, and which column header is emphasised — keeping the three in

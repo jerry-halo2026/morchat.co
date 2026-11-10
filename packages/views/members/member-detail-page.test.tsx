@@ -2,26 +2,26 @@ import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { actorIssuesViewStore } from "@multica/core/issues/stores/actor-issues-view-store";
-import type { Agent, MemberWithUser } from "@multica/core/types";
+import { actorIssuesViewStore } from "@morechat/core/issues/stores/actor-issues-view-store";
+import type { Agent, MemberWithUser } from "@morechat/core/types";
 import {
   agentListOptions,
   memberListOptions,
-} from "@multica/core/workspace/queries";
+} from "@morechat/core/workspace/queries";
 import { renderWithI18n } from "../test/i18n";
 import { MemberDetailPage } from "./member-detail-page";
 
 const WS = "ws-test";
 const surfaceProps = vi.hoisted(() => ({ current: null as Record<string, unknown> | null }));
 
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-test" }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-test" }));
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({
     settings: () => "/acme/settings",
     agentDetail: (id: string) => `/acme/agents/${id}`,
   }),
 }));
-vi.mock("@multica/core/issues/stores/view-store-context", () => ({
+vi.mock("@morechat/core/issues/stores/view-store-context", () => ({
   useViewStore: (select: (state: unknown) => unknown) =>
     select({ advancedFilter: null, clearFilters: vi.fn() }),
 }));

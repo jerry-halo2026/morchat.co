@@ -56,9 +56,9 @@
   },
   "star_prompt": {
     "title_other": "{{agent}} がタスクを {{count}} 件完了しました",
-    "body": "Multica がお役に立っていたら、GitHub でスターをお願いします。ほかのチームが Multica を見つけやすくなります。",
+    "body": "morechat.co がお役に立っていたら、GitHub でスターをお願いします。ほかのチームが morechat.co を見つけやすくなります。",
     "star": "Star",
-    "star_label": "GitHub で Multica にスターする",
+    "star_label": "GitHub で morechat.co にスターする",
     "later": "あとで",
     "close": "閉じる"
   },

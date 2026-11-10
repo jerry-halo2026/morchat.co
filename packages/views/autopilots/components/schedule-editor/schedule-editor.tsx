@@ -11,9 +11,9 @@ import {
   type ReactNode,
 } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, Pencil } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { Input } from "@multica/ui/components/ui/input";
+import { Clock, Pencil } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { Input } from "@morechat/ui/components/ui/input";
 import {
   InputGroup,
   InputGroupAddon,
@@ -21,17 +21,17 @@ import {
   InputGroupSelectTrigger,
   InputGroupText,
   InputGroupTimeInput,
-} from "@multica/ui/components/ui/input-group";
+} from "@morechat/ui/components/ui/input-group";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@multica/ui/components/ui/select";
-import { TimeInput } from "@multica/ui/components/ui/time-input";
-import { cronPreviewOptions } from "@multica/core/autopilots/queries";
-import { ApiError } from "@multica/core/api";
+} from "@morechat/ui/components/ui/select";
+import { TimeInput } from "@morechat/ui/components/ui/time-input";
+import { cronPreviewOptions } from "@morechat/core/autopilots/queries";
+import { ApiError } from "@morechat/core/api";
 import { timezoneOptions } from "../../../common/timezone-select";
 import { useDebouncedValue } from "../../../common/use-debounced-value";
 import { SegmentedToggle } from "../../../common/segmented-toggle";

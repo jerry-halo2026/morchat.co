@@ -1,11 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Check, ChevronDown, CircleCheck, GitBranch, GitPullRequest, Laptop, Lock, Plus, Server, X, type IconComponent } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { StatusIcon } from "@multica/views/issues/components/status-icon";
-import { PriorityIcon } from "@multica/views/issues/components/priority-icon";
-import { ProviderLogo } from "@multica/views/runtimes/components/provider-logo";
+import { Check, ChevronDown, CircleCheck, GitBranch, GitPullRequest, Laptop, Lock, Plus, Server, X, type IconComponent } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { StatusIcon } from "@morechat/views/issues/components/status-icon";
+import { PriorityIcon } from "@morechat/views/issues/components/priority-icon";
+import { ProviderLogo } from "@morechat/views/runtimes/components/provider-logo";
 import { Chip } from "./feature-visuals";
 import {
   AppWindow,
@@ -28,8 +28,8 @@ import {
 } from "./mock-kit";
 
 /*
- * Mockups for the Multica Cloud page: agents that run on cloud agent services
- * connected as runtimes. The hero is the Runtimes page open at multica.ai,
+ * Mockups for the morechat.co Cloud page: agents that run on cloud agent services
+ * connected as runtimes. The hero is the Runtimes page open at morechat.co,
  * with an issue a cloud agent is working floating over it. Strings follow the
  * product's own copy; data is fictional.
  */
@@ -242,7 +242,7 @@ export function CloudScene() {
     <>
       <div className="relative aspect-[440/440] sm:hidden">
         <ZoomCanvas {...SCENE_NARROW}>
-          <BrowserWindow path="multica.ai/acme/runtimes" className="top-6 left-6 -right-10 -bottom-10">
+          <BrowserWindow path="morechat.co/acme/runtimes" className="top-6 left-6 -right-10 -bottom-10">
             <AppWindow className="inset-0 rounded-none border-0 shadow-none" active="team" bleed={40}>
               <RuntimesPage compact />
             </AppWindow>
@@ -252,7 +252,7 @@ export function CloudScene() {
       </div>
       <div className="relative hidden aspect-[1100/600] sm:block">
         <ZoomCanvas {...SCENE}>
-          <BrowserWindow path="multica.ai/acme/runtimes" className="top-10 right-[19%] -bottom-12 left-[7%]">
+          <BrowserWindow path="morechat.co/acme/runtimes" className="top-10 right-[19%] -bottom-12 left-[7%]">
             <AppWindow className="inset-0 rounded-none border-0 shadow-none" active="team" bleed={48}>
               <RuntimesPage />
             </AppWindow>
@@ -342,7 +342,7 @@ export function ConnectVisual() {
 export function LinkAgentVisual() {
   return (
     <div className={cn(FLOATING, "w-[288px] p-4")}>
-      <DialogHeader title="Add agent" subtitle="Link a Multica agent to an existing QCA Agent." />
+      <DialogHeader title="Add agent" subtitle="Link a morechat.co agent to an existing QCA Agent." />
       <Field label="Agent name">
         <Input>
           <Avatar actor={BACKEND} size={16} />

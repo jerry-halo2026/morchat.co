@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Virtuoso, type Components } from "react-virtuoso";
-import type { ChatSession } from "@multica/core/types";
+import type { ChatSession } from "@morechat/core/types";
 
 type ListContext = { footer?: ReactNode };
 

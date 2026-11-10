@@ -20,11 +20,11 @@ vi.mock("../../navigation/context", async (importOriginal) => ({
     push: state.push,
   }),
 }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/paths", () => ({
   useCurrentWorkspace: () => ({ id: "ws-1", name: "Acme" }),
 }));
-vi.mock("@multica/core/permissions", () => ({
+vi.mock("@morechat/core/permissions", () => ({
   useCurrentMember: () => ({ member: { role: "admin" } }),
 }));
 vi.mock("@tanstack/react-query", () => ({

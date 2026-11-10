@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { describe, it, expect } from "vitest";
-import { isAccessChangeReady } from "@multica/core/agents";
+import { isAccessChangeReady } from "@morechat/core/agents";
 import type { AccessChange } from "./inspector/access-picker";
 
 function change(

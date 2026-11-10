@@ -1,10 +1,10 @@
 "use client";
 
 import { focusManager, useQuery } from "@tanstack/react-query";
-import { ArchiveRestore } from "@multica/ui/icons";
+import { ArchiveRestore } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { archivedInboxLookupOptions, useUnarchiveInbox } from "@multica/core/inbox";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { archivedInboxLookupOptions, useUnarchiveInbox } from "@morechat/core/inbox";
 import type { MenuPrimitives } from "./issue-actions-menu-items";
 import { useT } from "../../i18n";
 

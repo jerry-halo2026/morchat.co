@@ -1,11 +1,11 @@
 ---
 title: Contributing
-description: Set up a local Multica development environment, run tests, and submit changes using the repository conventions.
+description: Set up a local morechat.co development environment, run tests, and submit changes using the repository conventions.
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
 
-Multica is a Go backend and pnpm monorepo. The simplest way to start locally is `make dev`; it prepares the environment, database, and migrations for the current checkout, then starts Web and API.
+morechat.co is a Go backend and pnpm monorepo. The simplest way to start locally is `make dev`; it prepares the environment, database, and migrations for the current checkout, then starts Web and API.
 
 ## Requirements
 
@@ -20,7 +20,7 @@ Treat the root `package.json`, `server/go.mod`, and CI workflows as the source o
 ## First start
 
 ```bash
-git clone https://github.com/multica-ai/multica.git
+git clone https://github.com/jerry-halo2026/morchat.co.git
 cd multica
 make dev
 ```
@@ -162,7 +162,7 @@ Use an application transaction in the service layer when multiple writes must su
 Run the check closest to the change first, then expand the scope. For a Docs-only change:
 
 ```bash
-pnpm --filter @multica/docs typecheck
+pnpm --filter @morechat/docs typecheck
 ```
 
 For shared frontend changes:
@@ -200,8 +200,8 @@ make start
 
 ## Opening an issue
 
-- **[Feature request](https://github.com/multica-ai/multica/blob/main/.github/ISSUE_TEMPLATE/feature_request.yml):** Explain the **Problem** and **Goal**. A high-level **Proposal**, **Alternatives**, and **Screenshots** are optional; you can raise a problem without designing its solution.
-- **[Bug report](https://github.com/multica-ai/multica/blob/main/.github/ISSUE_TEMPLATE/bug_report.yml):** Describe the **Problem**, **Expected behavior**, and **Steps to reproduce**. If it is intermittent, explain what you tried and how often it happens. Screenshots, logs, and environment details are optional.
+- **[Feature request](https://github.com/jerry-halo2026/morchat.co/blob/main/.github/ISSUE_TEMPLATE/feature_request.yml):** Explain the **Problem** and **Goal**. A high-level **Proposal**, **Alternatives**, and **Screenshots** are optional; you can raise a problem without designing its solution.
+- **[Bug report](https://github.com/jerry-halo2026/morchat.co/blob/main/.github/ISSUE_TEMPLATE/bug_report.yml):** Describe the **Problem**, **Expected behavior**, and **Steps to reproduce**. If it is intermittent, explain what you tried and how often it happens. Screenshots, logs, and environment details are optional.
 
 Select the affected area so we can route the report. Bug reports also ask for the deployment type. Screenshots are optional for issues; the mandatory screenshot rule for UI or interaction PRs does not apply to issue reports.
 
@@ -215,7 +215,7 @@ Select the affected area so we can route the report. Bug reports also ask for th
 
 ### Pull request requirements
 
-Use the [PR template](https://github.com/multica-ai/multica/blob/main/.github/PULL_REQUEST_TEMPLATE.md) and follow the [contribution requirements](https://github.com/multica-ai/multica/blob/main/CONTRIBUTING.md#pull-request-requirements):
+Use the [PR template](https://github.com/jerry-halo2026/morchat.co/blob/main/.github/PULL_REQUEST_TEMPLATE.md) and follow the [contribution requirements](https://github.com/jerry-halo2026/morchat.co/blob/main/CONTRIBUTING.md#pull-request-requirements):
 
 1. **Problem:** Describe the concrete problem, who is affected, and why it matters.
 2. **Goal:** State the intended outcome of the change.

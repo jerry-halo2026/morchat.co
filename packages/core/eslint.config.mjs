@@ -1,5 +1,5 @@
-import reactConfig from "@multica/eslint-config/react";
-import { ICON_LIBRARY_IMPORT_PATTERNS } from "@multica/eslint-config/base";
+import reactConfig from "@morechat/eslint-config/react";
+import { ICON_LIBRARY_IMPORT_PATTERNS } from "@morechat/eslint-config/base";
 
 // Package boundary (AGENTS.md): core is headless and runs unchanged in web,
 // desktop and SSR. No UI libraries, no react-dom, no next/*, no Web Storage
@@ -7,8 +7,8 @@ import { ICON_LIBRARY_IMPORT_PATTERNS } from "@multica/eslint-config/base";
 
 const UI_LIBRARIES = [
   "react-dom",
-  "@multica/ui",
-  "@multica/views",
+  "@morechat/ui",
+  "@morechat/views",
   "@base-ui/react",
   "@radix-ui",
   "sonner",

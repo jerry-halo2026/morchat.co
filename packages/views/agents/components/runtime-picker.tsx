@@ -1,27 +1,27 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Cloud, Loader2, Lock, Search } from "@multica/ui/icons";
+import { ChevronDown, Cloud, Loader2, Lock, Search } from "@morechat/ui/icons";
 import { ProviderLogo } from "../../runtimes/components/provider-logo";
 import { ActorAvatar } from "../../common/actor-avatar";
 import {
   isRuntimeUsableForUser,
   runtimeDisplayName,
-} from "@multica/core/runtimes";
-import type { MemberWithUser, RuntimeDevice } from "@multica/core/types";
+} from "@morechat/core/runtimes";
+import type { MemberWithUser, RuntimeDevice } from "@morechat/core/types";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@multica/ui/components/ui/popover";
-import { Label } from "@multica/ui/components/ui/label";
+} from "@morechat/ui/components/ui/popover";
+import { Label } from "@morechat/ui/components/ui/label";
 import { useT } from "../../i18n";
 import {
   buildRuntimeMachines,
   filterRuntimeMachines,
   runtimeRowLabel,
 } from "../../runtimes/components/runtime-machines";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 
 export type RuntimeFilter = "mine" | "all";
 

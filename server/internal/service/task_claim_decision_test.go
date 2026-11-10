@@ -5,7 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	obsmetrics "github.com/multica-ai/multica/server/internal/metrics"
+	obsmetrics "github.com/jerry-halo2026/morchat.co/server/internal/metrics"
 )
 
 // This runs without a database: claimReasonFor, normalizeClaimPath, and the

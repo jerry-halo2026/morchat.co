@@ -2,16 +2,16 @@
 
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@multica/core/auth";
-import { useCurrentWorkspace, useWorkspacePaths } from "@multica/core/paths";
-import { isIssueUuid } from "@multica/core/issues/canonical-id";
-import { issueDetailOptions } from "@multica/core/issues/queries";
-import { projectSidebarSource, sidebarProjects } from "@multica/core/issues/sidebar-list";
-import { useSidebarProjectPrefs } from "@multica/core/issues/sidebar-project-prefs";
-import { useSidebarKeptStore } from "@multica/core/issues/stores/sidebar-kept-store";
-import { useSidebarTreeStore } from "@multica/core/issues/stores/sidebar-tree-store";
-import { projectListOptions } from "@multica/core/projects/queries";
-import type { Project } from "@multica/core/types";
+import { useAuthStore } from "@morechat/core/auth";
+import { useCurrentWorkspace, useWorkspacePaths } from "@morechat/core/paths";
+import { isIssueUuid } from "@morechat/core/issues/canonical-id";
+import { issueDetailOptions } from "@morechat/core/issues/queries";
+import { projectSidebarSource, sidebarProjects } from "@morechat/core/issues/sidebar-list";
+import { useSidebarProjectPrefs } from "@morechat/core/issues/sidebar-project-prefs";
+import { useSidebarKeptStore } from "@morechat/core/issues/stores/sidebar-kept-store";
+import { useSidebarTreeStore } from "@morechat/core/issues/stores/sidebar-tree-store";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import type { Project } from "@morechat/core/types";
 import { useNavigation } from "../../navigation";
 import { IssueContextMenuProvider } from "../../issues/actions";
 import { useIssueViewActions } from "../../issue-views/use-view-actions";

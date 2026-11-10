@@ -3,7 +3,7 @@
     "open_in_desktop": "Ouvrir dans l’application de bureau"
   },
   "desktop": {
-    "link_other_instance": "L’application de bureau est connectée à une autre instance Multica.",
+    "link_other_instance": "L’application de bureau est connectée à une autre instance morechat.co.",
     "link_workspace_unavailable": "Cet espace de travail n’est pas disponible dans l’application de bureau."
   },
   "inline_run": {
@@ -1041,7 +1041,7 @@
       "remove_item": "Retirer {{value}}",
       "archived_hint": "Propriété archivée — la valeur est en lecture seule",
       "unknown_value": "Indisponible",
-      "unknown_value_hint": "Cette valeur a été définie par une version plus récente de Multica et ne peut pas être modifiée ici — mettez l'application à jour, ou effacez-la"
+      "unknown_value_hint": "Cette valeur a été définie par une version plus récente de morechat.co et ne peut pas être modifiée ici — mettez l'application à jour, ou effacez-la"
     },
     "filter_options_aria": "Options de filtrage",
     "no_results": "Aucun résultat",
@@ -1489,7 +1489,7 @@
     "link_placeholder": "Collez l’URL de la pull request",
     "link_hint": "Les PR dont le titre ou la branche contient {{identifier}} sont liées automatiquement.",
     "link_submit": "Lier",
-    "link_not_found": "Multica n’a pas encore reçu cette PR. Vérifiez que son dépôt est connecté.",
+    "link_not_found": "morechat.co n’a pas encore reçu cette PR. Vérifiez que son dépôt est connecté.",
     "link_failed": "Impossible de lier la pull request.",
     "row_menu": "Actions de la pull request",
     "section_menu": "Automatisation des pull requests",

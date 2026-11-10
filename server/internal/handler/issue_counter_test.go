@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/service"
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 func TestIssueNumberCollisionResponse(t *testing.T) {

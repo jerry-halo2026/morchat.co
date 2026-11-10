@@ -5,8 +5,8 @@ import (
 	"log/slog"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/service"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // noteRuntimeUnusable records, on the issue itself, that a trigger was refused

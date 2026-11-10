@@ -37,7 +37,7 @@ import {
   projectDetailOptions,
   projectResourcesOptions,
 } from "@/data/queries/projects";
-import { canDeleteProject } from "@multica/core/projects/deletion-permissions";
+import { canDeleteProject } from "@morechat/core/projects/deletion-permissions";
 import { agentListOptions } from "@/data/queries/agents";
 import { memberListOptions } from "@/data/queries/members";
 import { issueKeys } from "@/data/queries/issue-keys";

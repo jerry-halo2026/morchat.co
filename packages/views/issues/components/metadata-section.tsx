@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Maximize2, Minimize2, X } from "@multica/ui/icons";
+import { Copy, Maximize2, Minimize2, X } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import type { IssueMetadata } from "@multica/core/types";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@multica/ui/components/ui/dialog";
-import { copyText } from "@multica/ui/lib/clipboard";
-import { cn } from "@multica/ui/lib/utils";
+import type { IssueMetadata } from "@morechat/core/types";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@morechat/ui/components/ui/dialog";
+import { copyText } from "@morechat/ui/lib/clipboard";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../../i18n";
 import { IssueSidebarSectionHeader } from "./issue-sidebar-section";
 

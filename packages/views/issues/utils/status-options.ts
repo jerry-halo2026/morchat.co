@@ -5,14 +5,14 @@ import {
   ALL_STATUSES,
   BUILT_IN_STATUS_CATEGORY,
   BUILT_IN_STATUS_ORDER,
-} from "@multica/core/issues/config";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { useProjectWithWorkflow } from "@multica/core/issue-workflows";
+} from "@morechat/core/issues/config";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { useProjectWithWorkflow } from "@morechat/core/issue-workflows";
 import {
   issueStatusColor,
   normalizeIssueStatusCategory,
-} from "@multica/core/issue-statuses/queries";
-import type { IssueStatus, IssueStatusCategory, IssueWorkflow, Project } from "@multica/core/types";
+} from "@morechat/core/issue-statuses/queries";
+import type { IssueStatus, IssueStatusCategory, IssueWorkflow, Project } from "@morechat/core/types";
 import { useStatusLabel } from "./status-label";
 
 export interface StatusOption {

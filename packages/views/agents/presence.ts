@@ -7,8 +7,8 @@ import {
   Loader2,
   PlugZap,
   type IconComponent,
-} from "@multica/ui/icons";
-import type { AgentAvailability, Workload } from "@multica/core/agents";
+} from "@morechat/ui/icons";
+import type { AgentAvailability, Workload } from "@morechat/core/agents";
 
 // Visual mapping for the two presence dimensions, kept in matching shape
 // so consumers can pick which to render. The two are independent — the

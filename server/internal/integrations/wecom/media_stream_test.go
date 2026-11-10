@@ -29,7 +29,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/integrations/channel/engine"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel/engine"
 )
 
 // sealMedia builds ciphertext the way WeCom does: PKCS#7 to a 32-byte block,

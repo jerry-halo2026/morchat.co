@@ -14,15 +14,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/analytics"
-	"github.com/multica-ai/multica/server/internal/events"
-	"github.com/multica-ai/multica/server/internal/integrations/channel"
-	"github.com/multica-ai/multica/server/internal/integrations/dingtalk"
-	"github.com/multica-ai/multica/server/internal/realtime"
-	dbfx "github.com/multica-ai/multica/server/internal/testutil"
-	"github.com/multica-ai/multica/server/internal/util/secretbox"
-	"github.com/multica-ai/multica/server/pkg/dbid"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/analytics"
+	"github.com/jerry-halo2026/morchat.co/server/internal/events"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/dingtalk"
+	"github.com/jerry-halo2026/morchat.co/server/internal/realtime"
+	dbfx "github.com/jerry-halo2026/morchat.co/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util/secretbox"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/dbid"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 type dingTalkReactionTransport func(*http.Request) (*http.Response, error)

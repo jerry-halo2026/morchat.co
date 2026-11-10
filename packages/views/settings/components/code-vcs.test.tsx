@@ -24,8 +24,8 @@ vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
   queryOptions: <T,>(opts: T) => opts,
 }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/api", () => ({
   api: {
     connectVCS: mockConnect,
     rotateVCSWebhook: mockRotate,

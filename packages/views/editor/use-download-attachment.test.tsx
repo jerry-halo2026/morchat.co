@@ -10,7 +10,7 @@ const useWorkspaceSlugMock = vi.hoisted(() =>
   vi.fn<() => string | null>(() => "acme"),
 );
 
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: {
     getAttachment: getAttachmentMock,
     getAttachmentForDownload: getAttachmentForDownloadMock,
@@ -18,7 +18,7 @@ vi.mock("@multica/core/api", () => ({
   },
 }));
 
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useWorkspaceSlug: useWorkspaceSlugMock,
 }));
 

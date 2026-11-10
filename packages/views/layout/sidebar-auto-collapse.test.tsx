@@ -1,7 +1,7 @@
 import { act, fireEvent, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { SidebarProvider, useSidebar } from "@multica/ui/components/ui/sidebar";
+import { SidebarProvider, useSidebar } from "@morechat/ui/components/ui/sidebar";
 import { renderWithI18n } from "../test/i18n";
 
 // A width-driven `matchMedia`: the provider watches the `md`–`lg` band and

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/integrations/channel"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel"
 )
 
 func inbound(chatType channel.ChatType, chatID, threadID, msgID string) channel.InboundMessage {

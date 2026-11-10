@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/util"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
 	"gopkg.in/yaml.v3"
 )
 

@@ -13,10 +13,10 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/multica-ai/multica/server/internal/channelmedia"
-	"github.com/multica-ai/multica/server/internal/integrations/channel"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
-	"github.com/multica-ai/multica/server/pkg/dbid"
+	"github.com/jerry-halo2026/morchat.co/server/internal/channelmedia"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/dbid"
 )
 
 func sessionPersistenceTestDB(t *testing.T) *pgxpool.Pool {

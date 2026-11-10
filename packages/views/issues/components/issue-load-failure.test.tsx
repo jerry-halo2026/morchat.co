@@ -1,15 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createAuthStore, registerAuthStore } from "@multica/core/auth";
-import { createChatStore, registerChatStore } from "@multica/core/chat";
-import { WSProvider } from "@multica/core/realtime";
-import { defaultStorage } from "@multica/core/platform";
-import { TooltipProvider } from "@multica/ui/components/ui/tooltip";
-import { ApiClient, setApiInstance } from "@multica/core/api";
-import { useCanonicalIssue } from "@multica/core/issues/canonical-id";
-import { issueKeys } from "@multica/core/issues/queries";
-import { I18nProvider } from "@multica/core/i18n/react";
+import { createAuthStore, registerAuthStore } from "@morechat/core/auth";
+import { createChatStore, registerChatStore } from "@morechat/core/chat";
+import { WSProvider } from "@morechat/core/realtime";
+import { defaultStorage } from "@morechat/core/platform";
+import { TooltipProvider } from "@morechat/ui/components/ui/tooltip";
+import { ApiClient, setApiInstance } from "@morechat/core/api";
+import { useCanonicalIssue } from "@morechat/core/issues/canonical-id";
+import { issueKeys } from "@morechat/core/issues/queries";
+import { I18nProvider } from "@morechat/core/i18n/react";
 import { NavigationProvider } from "../../navigation";
 import enIssues from "../../locales/en/issues.json";
 import enCommon from "../../locales/en/common.json";
@@ -17,9 +17,9 @@ import { IssueDetail } from "./issue-detail";
 import { IssueDetailRoute } from "./issue-detail-route";
 
 const scope = vi.hoisted(() => ({ wsId: "ws-synthetic" }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => scope.wsId }));
-vi.mock("@multica/core/paths", async () => {
-  const actual = await vi.importActual<typeof import("@multica/core/paths")>("@multica/core/paths");
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => scope.wsId }));
+vi.mock("@morechat/core/paths", async () => {
+  const actual = await vi.importActual<typeof import("@morechat/core/paths")>("@morechat/core/paths");
   return { ...actual, useCurrentWorkspace: () => ({ id: scope.wsId, slug: "synthetic", name: "Synthetic" }), useWorkspacePaths: () => actual.paths.workspace("synthetic") };
 });
 

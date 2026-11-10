@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
-	"github.com/multica-ai/multica/server/pkg/plugincontract"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/plugincontract"
 )
 
 const testManifestJSON = `{
@@ -80,7 +80,7 @@ func TestNormalizeConfigValue(t *testing.T) {
 		return got
 	}
 
-	if value, err := normalizeConfigValue(field("repo"), "multica-ai/multica"); err != nil || value != "multica-ai/multica" {
+	if value, err := normalizeConfigValue(field("repo"), "jerry-halo2026/morchat.co"); err != nil || value != "jerry-halo2026/morchat.co" {
 		t.Fatalf("string field = (%v, %v)", value, err)
 	}
 	if value, err := normalizeConfigValue(field("count"), float64(3)); err != nil || value != float64(3) {

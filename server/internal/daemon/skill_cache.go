@@ -10,8 +10,8 @@ import (
 	"strings"
 	"sync"
 
-	skillpkg "github.com/multica-ai/multica/server/internal/skill"
-	"github.com/multica-ai/multica/server/pkg/skillbundle"
+	skillpkg "github.com/jerry-halo2026/morchat.co/server/internal/skill"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/skillbundle"
 )
 
 type SkillBundleCache struct {

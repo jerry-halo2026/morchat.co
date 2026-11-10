@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Squad } from "@multica/core/types";
-import type { SquadsScope } from "@multica/core/squads/stores";
+import type { Squad } from "@morechat/core/types";
+import type { SquadsScope } from "@morechat/core/squads/stores";
 import { renderWithI18n } from "../../test/i18n";
 import { NavigationProvider, type NavigationAdapter } from "../../navigation";
 import { SquadsPage } from "./squads-page";
@@ -34,28 +34,28 @@ vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
   useMutation: () => ({ mutate: vi.fn(), isPending: false }),
 }));
-vi.mock("@multica/core/workspace/queries", () => ({
+vi.mock("@morechat/core/workspace/queries", () => ({
   agentListOptions: () => ({ queryKey: ["agents"] }),
   memberListOptions: () => ({ queryKey: ["members"] }),
   squadListOptions: () => ({ queryKey: ["squads"] }),
   workspaceKeys: { squads: () => ["squads"] },
 }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useCurrentWorkspace: () => ({ id: "ws-1", slug: "acme" }),
   useWorkspacePaths: () => ({
     squadDetail: (id: string) => `/acme/squads/${id}`,
     agentDetail: (id: string) => `/acme/agents/${id}`,
   }),
 }));
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: (select: (s: { user: { id: string } }) => unknown) => select({ user: { id: "me" } }),
 }));
-vi.mock("@multica/core/api", () => ({ api: {} }));
-vi.mock("@multica/core/modals", () => ({
+vi.mock("@morechat/core/api", () => ({ api: {} }));
+vi.mock("@morechat/core/modals", () => ({
   useModalStore: { getState: () => ({ open: mocks.openModal }) },
 }));
-vi.mock("@multica/core/squads/stores", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/squads/stores")>()),
+vi.mock("@morechat/core/squads/stores", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/squads/stores")>()),
   useSquadsViewStore: (select: (s: typeof mocks.viewState) => unknown) => select(mocks.viewState),
 }));
 vi.mock("../../common/actor-avatar", () => ({ ActorAvatar: () => null }));
@@ -162,7 +162,7 @@ describe("SquadsPage header", () => {
     });
     expect(screen.getByRole("link", { name: "Read the docs" })).toHaveAttribute(
       "href",
-      "https://multica.ai/docs/squads",
+      "https://morechat.co/docs/squads",
     );
     await user.click(within(intro).getByRole("button", { name: "New squad" }));
     expect(mocks.openModal).toHaveBeenCalledWith("create-squad");

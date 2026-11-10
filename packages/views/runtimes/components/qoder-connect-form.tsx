@@ -10,7 +10,7 @@ import {
   Plug,
   Settings2,
   ShieldCheck,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import {
   MAX_CONCURRENCY,
   MAX_RUN_TIMEOUT,
@@ -20,17 +20,17 @@ import {
   useSaveQoder,
   type QoderConnection,
   type QoderRegion,
-} from "@multica/core/runtimes/qoder";
-import { Button } from "@multica/ui/components/ui/button";
-import { Input } from "@multica/ui/components/ui/input";
+} from "@morechat/core/runtimes/qoder";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Input } from "@morechat/ui/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@multica/ui/components/ui/select";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/select";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../../i18n";
 
 const DEFAULT_NAME = "Qoder Cloud Agents";

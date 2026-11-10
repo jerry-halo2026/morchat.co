@@ -2,25 +2,25 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useChatStore } from "@multica/core/chat";
-import { useSetChatSessionArchived } from "@multica/core/chat/mutations";
-import { chatSessionsOptions } from "@multica/core/chat/queries";
-import { useWorkspaceId } from "@multica/core/hooks";
+import { useChatStore } from "@morechat/core/chat";
+import { useSetChatSessionArchived } from "@morechat/core/chat/mutations";
+import { chatSessionsOptions } from "@morechat/core/chat/queries";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   effectiveInboxFilters,
   filterInboxItems,
   inboxIssueFieldsSupport,
   inboxPriorityFilterSupport,
   useInboxFilters,
-} from "@multica/core/inbox/filter-store";
-import { useArchiveInbox } from "@multica/core/inbox/mutations";
+} from "@morechat/core/inbox/filter-store";
+import { useArchiveInbox } from "@morechat/core/inbox/mutations";
 import {
   inboxListOptions,
   useInboxUnreadCount,
-} from "@multica/core/inbox/queries";
-import { useWorkspacePaths } from "@multica/core/paths";
-import type { Agent, ChatSession, InboxItem } from "@multica/core/types";
-import { agentListOptions } from "@multica/core/workspace/queries";
+} from "@morechat/core/inbox/queries";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import type { Agent, ChatSession, InboxItem } from "@morechat/core/types";
+import { agentListOptions } from "@morechat/core/workspace/queries";
 import { ChatThreadList } from "../../chat/components/chat-thread-list";
 import { useT } from "../../i18n";
 import { InboxList } from "../../inbox/components/inbox-list";

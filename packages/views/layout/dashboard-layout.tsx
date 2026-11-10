@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { SidebarProvider } from "@multica/ui/components/ui/sidebar";
+import { SidebarProvider } from "@morechat/ui/components/ui/sidebar";
 import { AppearanceSync } from "../common/appearance-sync";
 import { ModalRegistry } from "../modals/registry";
 import { SourceBackfillModal } from "../onboarding";

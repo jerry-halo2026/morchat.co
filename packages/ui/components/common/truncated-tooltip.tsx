@@ -10,7 +10,7 @@ import {
   type Ref,
   type RefObject,
 } from "react";
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 import { DeferredTooltip } from "./deferred-tooltip";
 
 /**

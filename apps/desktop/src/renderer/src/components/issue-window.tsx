@@ -5,16 +5,16 @@ import {
   useParams,
   useRouteError,
 } from "react-router-dom";
-import { AlertTriangle, RotateCw, X } from "@multica/ui/icons";
-import { useAuthStore } from "@multica/core/auth";
-import { setCurrentWorkspace } from "@multica/core/platform";
-import { WorkspaceSlugProvider } from "@multica/core/paths";
-import { useWorkspaceList } from "@multica/core/workspace";
-import { Button } from "@multica/ui/components/ui/button";
-import { MulticaIcon } from "@multica/ui/components/common/multica-icon";
-import { ModalRegistry } from "@multica/views/modals/registry";
-import { WorkspacePresencePrefetch } from "@multica/views/layout";
-import { DragStrip, WindowTitleBarProvider } from "@multica/views/platform";
+import { AlertTriangle, RotateCw, X } from "@morechat/ui/icons";
+import { useAuthStore } from "@morechat/core/auth";
+import { setCurrentWorkspace } from "@morechat/core/platform";
+import { WorkspaceSlugProvider } from "@morechat/core/paths";
+import { useWorkspaceList } from "@morechat/core/workspace";
+import { Button } from "@morechat/ui/components/ui/button";
+import { MorechatIcon } from "@morechat/ui/components/common/morechat-icon";
+import { ModalRegistry } from "@morechat/views/modals/registry";
+import { WorkspacePresencePrefetch } from "@morechat/views/layout";
+import { DragStrip, WindowTitleBarProvider } from "@morechat/views/platform";
 import type { IssueWindowContext } from "../../../shared/issue-window";
 import { DesktopAuthRecoveryPage } from "../pages/auth-recovery";
 import { IssueDetailPage } from "../pages/issue-detail-page";
@@ -68,7 +68,7 @@ function IssueWindowRoute() {
     return (
       <IssueWindowFrame>
         <div className="flex min-h-0 flex-1 items-center justify-center">
-          <MulticaIcon mode="think" size={40} />
+          <MorechatIcon mode="think" size={40} />
         </div>
       </IssueWindowFrame>
     );

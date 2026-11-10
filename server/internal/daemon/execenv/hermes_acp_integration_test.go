@@ -18,7 +18,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/pkg/agent"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
 )
 
 // Run against each installed Hermes release. Inference stays on a local fixture;

@@ -6,9 +6,9 @@ import {
   WifiHigh,
   WifiOff,
   type IconComponent,
-} from "@multica/ui/icons";
-import { Badge } from "@multica/ui/components/ui/badge";
-import type { RuntimeHealth } from "@multica/core/runtimes";
+} from "@morechat/ui/icons";
+import { Badge } from "@morechat/ui/components/ui/badge";
+import type { RuntimeHealth } from "@morechat/core/runtimes";
 import { ProviderLogo } from "./provider-logo";
 import type { RuntimeMachine } from "./runtime-machines";
 import { useT } from "../../i18n";

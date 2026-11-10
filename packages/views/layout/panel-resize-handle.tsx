@@ -5,7 +5,7 @@ import {
   clampListColumnWidth,
   clampSidebarWidth,
   useSidebarResize,
-} from "@multica/ui/components/ui/sidebar";
+} from "@morechat/ui/components/ui/sidebar";
 import { useT } from "../i18n";
 
 const RESIZE_DRAG_THRESHOLD = 2;

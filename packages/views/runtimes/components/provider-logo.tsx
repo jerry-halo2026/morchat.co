@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { Monitor } from "@multica/ui/icons";
+import { Monitor } from "@morechat/ui/icons";
 import codeartsLogo from "./codearts-logo.svg";
 import qwenLogo from "./qwen-logo.svg";
 import reasonixLogo from "./reasonix-logo.svg";
@@ -366,7 +366,7 @@ function DimLogo({ className }: { className: string }) {
 }
 
 // ZeroClaw — no official brand asset has been sourced for this runtime yet
-// (multica-ai/multica#1543), so this is a deliberately simple placeholder
+// (jerry-halo2026/morchat.co#1543), so this is a deliberately simple placeholder
 // mark (three claw-scratch strokes) rather than a claimed "official" logo.
 // currentColor keeps it legible in both themes; swap for a real asset once
 // ZeroClaw ships one, following the DimLogo <img> pattern.

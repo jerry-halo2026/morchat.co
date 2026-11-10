@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/multica-ai/multica/server/internal/integrations/channel/engine"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel/engine"
 )
 
 // larkMsgTypeMergeForward is the msg_type of a "merged & forwarded"

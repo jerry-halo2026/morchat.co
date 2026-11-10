@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 func createIssueWithPropertyBody(t *testing.T, body map[string]any) IssueResponse {

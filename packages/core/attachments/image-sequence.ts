@@ -15,7 +15,7 @@
  * currently painted.
  *
  * Pure — no React, no DOM, no platform APIs. Mobile shares it (see
- * apps/mobile/CLAUDE.md: pure functions from @multica/core are importable).
+ * apps/mobile/CLAUDE.md: pure functions from @morechat/core are importable).
  */
 
 import { fromMarkdown } from "mdast-util-from-markdown";

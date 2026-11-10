@@ -1,11 +1,11 @@
 "use client";
 
 import { Fragment, type ReactNode } from "react";
-import { Check, X } from "@multica/ui/icons";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Separator } from "@multica/ui/components/ui/separator";
-import { cn } from "@multica/ui/lib/utils";
-import { useIsMobile } from "@multica/ui/hooks/use-mobile";
+import { Check, X } from "@morechat/ui/icons";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Separator } from "@morechat/ui/components/ui/separator";
+import { cn } from "@morechat/ui/lib/utils";
+import { useIsMobile } from "@morechat/ui/hooks/use-mobile";
 import { useVisualViewportKeyboard } from "../../chat/components/use-visual-viewport-keyboard";
 import { PageHeader } from "../../layout/page-header";
 import { useT } from "../../i18n";

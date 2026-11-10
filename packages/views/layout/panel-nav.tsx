@@ -1,9 +1,9 @@
 "use client";
 
 import { useId, useRef } from "react";
-import { ChevronDown } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { useScrollFade } from "@multica/ui/hooks/use-scroll-fade";
+import { ChevronDown } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { useScrollFade } from "@morechat/ui/hooks/use-scroll-fade";
 import { AppLink } from "../navigation";
 
 /**

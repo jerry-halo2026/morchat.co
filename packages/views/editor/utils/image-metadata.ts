@@ -1,4 +1,4 @@
-import type { Attachment } from "@multica/core/types";
+import type { Attachment } from "@morechat/core/types";
 
 // Some attachment lists reach the renderer without a schema pass, so the
 // optional image fields are checked here rather than trusted.

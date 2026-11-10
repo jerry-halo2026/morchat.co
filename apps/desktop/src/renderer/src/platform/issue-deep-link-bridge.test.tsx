@@ -1,8 +1,8 @@
 import { act, render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { I18nProvider } from "@multica/core/i18n/react";
-import enIssues from "@multica/views/locales/en/issues.json";
-import enLayout from "@multica/views/locales/en/layout.json";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import enIssues from "@morechat/views/locales/en/issues.json";
+import enLayout from "@morechat/views/locales/en/layout.json";
 import type { ReactNode } from "react";
 import type {
   WorkspacePathOptions,
@@ -19,13 +19,13 @@ const { state, authState } = vi.hoisted(() => {
     }),
   };
 });
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: Object.assign(
     (selector: (value: ReturnType<typeof authState>) => unknown) => selector(authState()),
     { getState: authState },
   ),
 }));
-vi.mock("@multica/core/workspace", () => ({
+vi.mock("@morechat/core/workspace", () => ({
   useWorkspaceList: () => ({ ready: state.ready, workspaces: [{ slug: "acme" }, { slug: "other" }] }),
 }));
 const { error } = vi.hoisted(() => ({ error: vi.fn() }));

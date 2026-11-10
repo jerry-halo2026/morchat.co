@@ -1,11 +1,11 @@
 "use client";
 
 import { Suspense } from "react";
-import { DashboardLayout } from "@multica/views/layout";
-import { MulticaIcon } from "@multica/ui/components/common/multica-icon";
-import { SearchCommand } from "@multica/views/search";
-import { FloatingChat } from "@multica/views/chat/floating-chat";
-import { StarPrompt } from "@multica/views/star-prompt";
+import { DashboardLayout } from "@morechat/views/layout";
+import { MorechatIcon } from "@morechat/ui/components/common/morechat-icon";
+import { SearchCommand } from "@morechat/views/search";
+import { FloatingChat } from "@morechat/views/chat/floating-chat";
+import { StarPrompt } from "@morechat/views/star-prompt";
 import { WebNotificationBridge } from "@/components/web-notification-bridge";
 import { WorkspaceDocumentTitle } from "@/platform/workspace-document-title";
 
@@ -19,7 +19,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <WorkspaceDocumentTitle />
       </Suspense>
       <DashboardLayout
-        loadingIndicator={<MulticaIcon mode="think" size={40} />}
+        loadingIndicator={<MorechatIcon mode="think" size={40} />}
         extra={
           <>
             <SearchCommand />

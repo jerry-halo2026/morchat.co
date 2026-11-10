@@ -20,20 +20,20 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/channelmedia"
-	"github.com/multica-ai/multica/server/internal/dispatch"
-	"github.com/multica-ai/multica/server/internal/issueguard"
-	"github.com/multica-ai/multica/server/internal/issuestatus"
-	"github.com/multica-ai/multica/server/internal/issueworkflow"
-	"github.com/multica-ai/multica/server/internal/logger"
-	obsmetrics "github.com/multica-ai/multica/server/internal/metrics"
-	"github.com/multica-ai/multica/server/internal/middleware"
-	"github.com/multica-ai/multica/server/internal/qoderruntime"
-	"github.com/multica-ai/multica/server/internal/service"
-	"github.com/multica-ai/multica/server/internal/util"
-	agentpkg "github.com/multica-ai/multica/server/pkg/agent"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/channelmedia"
+	"github.com/jerry-halo2026/morchat.co/server/internal/dispatch"
+	"github.com/jerry-halo2026/morchat.co/server/internal/issueguard"
+	"github.com/jerry-halo2026/morchat.co/server/internal/issuestatus"
+	"github.com/jerry-halo2026/morchat.co/server/internal/issueworkflow"
+	"github.com/jerry-halo2026/morchat.co/server/internal/logger"
+	obsmetrics "github.com/jerry-halo2026/morchat.co/server/internal/metrics"
+	"github.com/jerry-halo2026/morchat.co/server/internal/middleware"
+	"github.com/jerry-halo2026/morchat.co/server/internal/qoderruntime"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
+	agentpkg "github.com/jerry-halo2026/morchat.co/server/pkg/agent"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // IssueResponse is the JSON response for an issue.
@@ -4787,7 +4787,7 @@ func (h *Handler) BatchUpdateIssues(w http.ResponseWriter, r *http.Request) {
 	// real-world cases that hit this path are caller mistakes (status placed
 	// at the top level, "update" misspelled as singular). Telling the truth
 	// here — `{"updated": 0}` — keeps the wire shape stable while making the
-	// count match reality. See multica-ai/multica#1660.
+	// count match reality. See jerry-halo2026/morchat.co#1660.
 	hasMutation := req.Updates.Title != nil ||
 		req.Updates.Description != nil ||
 		req.Updates.Status != nil ||

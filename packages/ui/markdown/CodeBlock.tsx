@@ -1,15 +1,15 @@
 import * as React from 'react'
 import { codeToHtml, bundledLanguages, type BundledLanguage } from 'shiki'
-import { Copy, Check } from "@multica/ui/icons"
+import { Copy, Check } from "@morechat/ui/icons"
 import { useTranslation } from "react-i18next"
-import { Button } from "@multica/ui/components/ui/button"
-import { Tooltip, TooltipTrigger, TooltipContent } from "@multica/ui/components/ui/tooltip"
-import { cn } from '@multica/ui/lib/utils'
+import { Button } from "@morechat/ui/components/ui/button"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@morechat/ui/components/ui/tooltip"
+import { cn } from '@morechat/ui/lib/utils'
 import { copyText } from '../lib/clipboard'
 import {
   CODE_LIGATURE_CLASS,
   CODE_LIGATURE_DESCENDANT_CLASS,
-} from '@multica/ui/lib/code-style'
+} from '@morechat/ui/lib/code-style'
 
 export interface CodeBlockProps {
   code: string

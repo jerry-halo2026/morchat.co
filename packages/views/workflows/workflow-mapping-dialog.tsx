@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight, Check } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
+import { ArrowRight, Check } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,17 +10,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-} from "@multica/ui/components/ui/select";
-import { Spinner } from "@multica/ui/components/ui/spinner";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import type { IssueWorkflowMappingPlan } from "@multica/core/types";
+} from "@morechat/ui/components/ui/select";
+import { Spinner } from "@morechat/ui/components/ui/spinner";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import type { IssueWorkflowMappingPlan } from "@morechat/core/types";
 import { StatusIcon } from "../issues/components/status-icon";
 import { useStatusLabel } from "../issues/utils/status-label";
 import { useT } from "../i18n";

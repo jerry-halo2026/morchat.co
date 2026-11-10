@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/multica-ai/multica/server/internal/logger"
-	"github.com/multica-ai/multica/server/internal/util"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/logger"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // A saved view's `query` is written by the web client. The translation below

@@ -2,16 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { Agent, AgentRuntime, MemberWithUser } from "@multica/core/types";
-import { providerSupportsMcpConfig } from "@multica/core/agents";
-import { useFeatureEnabled } from "@multica/core/config";
-import { COMPOSIO_MCP_APPS_FLAG } from "@multica/core/feature-flags";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { larkInstallationsOptions } from "@multica/core/lark";
-import { slackInstallationsOptions } from "@multica/core/slack";
-import { dingtalkInstallationsOptions } from "@multica/core/dingtalk";
-import { wecomInstallationsOptions } from "@multica/core/wecom";
-import { telegramInstallationsOptions } from "@multica/core/telegram";
+import type { Agent, AgentRuntime, MemberWithUser } from "@morechat/core/types";
+import { providerSupportsMcpConfig } from "@morechat/core/agents";
+import { useFeatureEnabled } from "@morechat/core/config";
+import { COMPOSIO_MCP_APPS_FLAG } from "@morechat/core/feature-flags";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { larkInstallationsOptions } from "@morechat/core/lark";
+import { slackInstallationsOptions } from "@morechat/core/slack";
+import { dingtalkInstallationsOptions } from "@morechat/core/dingtalk";
+import { wecomInstallationsOptions } from "@morechat/core/wecom";
+import { telegramInstallationsOptions } from "@morechat/core/telegram";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,15 +21,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
+} from "@morechat/ui/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dialog";
+import { cn } from "@morechat/ui/lib/utils";
 import { SkillsTab } from "./tabs/skills-tab";
 import { EnvTab } from "./tabs/env-tab";
 import { CustomArgsTab } from "./tabs/custom-args-tab";

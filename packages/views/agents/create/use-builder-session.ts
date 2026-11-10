@@ -8,17 +8,17 @@ import {
   decodeBuilderInput,
   pickBuilderRestore,
   type BuilderRestore,
-} from "@multica/core/agents";
-import { api, ApiError } from "@multica/core/api";
+} from "@morechat/core/agents";
+import { api, ApiError } from "@morechat/core/api";
 import {
   chatKeys,
   chatMessagesOptions,
   pendingChatTaskOptions,
-} from "@multica/core/chat/queries";
-import { upsertChatMessageToCaches } from "@multica/core/chat/message-cache";
-import { removeChatMessageFromCaches } from "@multica/core/realtime";
-import { useWorkspaceId } from "@multica/core/hooks";
-import type { ChatMessage } from "@multica/core/types";
+} from "@morechat/core/chat/queries";
+import { upsertChatMessageToCaches } from "@morechat/core/chat/message-cache";
+import { removeChatMessageFromCaches } from "@morechat/core/realtime";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import type { ChatMessage } from "@morechat/core/types";
 import { useAppForeground } from "../../common/use-app-foreground";
 import { useChatDraftRestore } from "../../chat/components/use-chat-draft-restore";
 import { useT } from "../../i18n";

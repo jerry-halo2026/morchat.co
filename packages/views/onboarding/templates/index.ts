@@ -1,4 +1,4 @@
-import { matchLocale, type SupportedLocale } from "@multica/core/i18n";
+import { matchLocale, type SupportedLocale } from "@morechat/core/i18n";
 
 export {
   INSTALL_RUNTIME_ISSUE_TITLE,

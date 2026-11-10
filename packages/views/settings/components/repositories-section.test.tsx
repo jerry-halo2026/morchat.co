@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { I18nProvider } from "@multica/core/i18n/react";
+import { I18nProvider } from "@morechat/core/i18n/react";
 import enCommon from "../../locales/en/common.json";
 import enSettings from "../../locales/en/settings.json";
 
@@ -71,17 +71,17 @@ vi.mock("@tanstack/react-query", () => ({
   infiniteQueryOptions: <T,>(options: T) => options,
 }));
 
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
-vi.mock("@multica/core/permissions", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
+vi.mock("@morechat/core/permissions", () => ({
   useCurrentMember: () => ({ role: roleRef.current, isLoading: false }),
 }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useCurrentWorkspace: () => workspaceRef.current,
 }));
-vi.mock("@multica/core/workspace/queries", () => ({
+vi.mock("@morechat/core/workspace/queries", () => ({
   workspaceKeys: { list: () => ["workspaces"] },
 }));
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: {
     updateWorkspace: mockUpdateWorkspace,
     getGitHubConnectURL: mockGetGitHubConnectURL,
@@ -115,7 +115,7 @@ beforeEach(() => {
     id: "workspace-1",
     name: "Test Workspace",
     slug: "test-workspace",
-    repos: [{ url: "https://github.com/multica-ai/multica", description: "Main app" }],
+    repos: [{ url: "https://github.com/jerry-halo2026/morchat.co", description: "Main app" }],
   };
   roleRef.current = "owner";
   githubRef.current = {
@@ -141,7 +141,7 @@ describe("RepositoriesSection", () => {
   it("lists repositories as read-only rows with their description", () => {
     render(<RepositoriesSection />, { wrapper: Wrapper });
 
-    expect(screen.getByText("https://github.com/multica-ai/multica")).toBeInTheDocument();
+    expect(screen.getByText("https://github.com/jerry-halo2026/morchat.co")).toBeInTheDocument();
     expect(screen.getByText("Main app")).toBeInTheDocument();
     expect(screen.queryByRole("textbox")).toBeNull();
   });
@@ -169,7 +169,7 @@ describe("RepositoriesSection", () => {
     await waitFor(() => {
       expect(mockUpdateWorkspace).toHaveBeenCalledWith("workspace-1", {
         repos: [
-          { url: "https://github.com/multica-ai/multica", description: "Main app" },
+          { url: "https://github.com/jerry-halo2026/morchat.co", description: "Main app" },
           { url: "git@github.com:acme/api.git", description: "Go API" },
         ],
       });
@@ -186,7 +186,7 @@ describe("RepositoriesSection", () => {
     const dialog = await screen.findByRole("dialog", { name: "Add repository" });
     await user.type(
       within(dialog).getByRole("textbox", { name: "Repository URL" }),
-      "git@github.com:multica-ai/multica.git",
+      "git@github.com:jerry-halo2026/morchat.co.git",
     );
 
     expect(within(dialog).getByText("This repository is already added.")).toBeInTheDocument();
@@ -274,7 +274,7 @@ describe("RepositoriesSection", () => {
   it("imports selected GitHub repositories and deduplicates HTTPS against SSH", async () => {
     workspaceRef.current = {
       ...workspaceRef.current,
-      repos: [{ url: "git@github.com:multica-ai/multica.git" }],
+      repos: [{ url: "git@github.com:jerry-halo2026/morchat.co.git" }],
     };
     githubRef.current = {
       ...githubRef.current,
@@ -283,9 +283,9 @@ describe("RepositoriesSection", () => {
     githubRepositoriesRef.current = [
       {
         id: 1,
-        full_name: "multica-ai/multica",
-        html_url: "https://github.com/multica-ai/multica",
-        clone_url: "https://github.com/multica-ai/multica.git",
+        full_name: "jerry-halo2026/morchat.co",
+        html_url: "https://github.com/jerry-halo2026/morchat.co",
+        clone_url: "https://github.com/jerry-halo2026/morchat.co.git",
         description: "Existing repository",
         private: false,
         archived: false,
@@ -320,7 +320,7 @@ describe("RepositoriesSection", () => {
     await waitFor(() => {
       expect(mockUpdateWorkspace).toHaveBeenCalledWith("workspace-1", {
         repos: [
-          { url: "git@github.com:multica-ai/multica.git" },
+          { url: "git@github.com:jerry-halo2026/morchat.co.git" },
           { url: "https://github.com/multica-ai/console.git", description: "Console app" },
         ],
       });

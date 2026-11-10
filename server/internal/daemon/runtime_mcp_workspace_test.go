@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/handler"
+	"github.com/jerry-halo2026/morchat.co/server/internal/handler"
 )
 
 // effectiveServerNames runs the full chain a claimed task actually goes

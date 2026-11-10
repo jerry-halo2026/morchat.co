@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { MoreHorizontal, Pause, Play, Unplug } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Switch } from "@multica/ui/components/ui/switch";
+import { MoreHorizontal, Pause, Play, Unplug } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Switch } from "@morechat/ui/components/ui/switch";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,22 +16,22 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
+} from "@morechat/ui/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { useConfigStore } from "@multica/core/config";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useCurrentMember } from "@multica/core/permissions";
-import { useCurrentWorkspace } from "@multica/core/paths";
-import { workspaceKeys } from "@multica/core/workspace/queries";
-import { deriveGitHubSettings, githubInstallationsOptions } from "@multica/core/github";
-import { api } from "@multica/core/api";
-import type { Workspace } from "@multica/core/types";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { useConfigStore } from "@morechat/core/config";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useCurrentMember } from "@morechat/core/permissions";
+import { useCurrentWorkspace } from "@morechat/core/paths";
+import { workspaceKeys } from "@morechat/core/workspace/queries";
+import { deriveGitHubSettings, githubInstallationsOptions } from "@morechat/core/github";
+import { api } from "@morechat/core/api";
+import type { Workspace } from "@morechat/core/types";
 import { useT } from "../../i18n";
 import {
   SettingsCard,
@@ -302,7 +302,7 @@ export function CodeTab() {
               <>
                 {t(($) => $.github.feature_co_author_description_prefix)}{" "}
                 <code className="rounded-xs bg-muted px-1 py-0.5 text-caption">
-                  {"Co-authored-by: multica-agent <github@multica.ai>"}
+                  {"Co-authored-by: multica-agent <github@morechat.co>"}
                 </code>
                 {t(($) => $.github.feature_co_author_description_suffix)}
               </>

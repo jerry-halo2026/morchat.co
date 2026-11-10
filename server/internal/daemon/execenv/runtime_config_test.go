@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/runtimeapps"
+	"github.com/jerry-halo2026/morchat.co/server/internal/runtimeapps"
 )
 
 // Sub-issue Creation section — after MUL-2538 the platform posts the

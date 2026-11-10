@@ -17,13 +17,13 @@ import {
   UserMinus,
   UserPen,
   type IconComponent,
-} from "@multica/ui/icons";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { PRIORITY_DISPLAY_ORDER } from "@multica/core/issues/config";
-import { PROJECT_STATUS_CONFIG, PROJECT_STATUS_ORDER } from "@multica/core/projects/config";
-import { projectListOptions } from "@multica/core/projects/queries";
-import { labelListOptions } from "@multica/core/labels/queries";
-import { memberListOptions, agentListOptions, squadListOptions } from "@multica/core/workspace/queries";
+} from "@morechat/ui/icons";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { PRIORITY_DISPLAY_ORDER } from "@morechat/core/issues/config";
+import { PROJECT_STATUS_CONFIG, PROJECT_STATUS_ORDER } from "@morechat/core/projects/config";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import { labelListOptions } from "@morechat/core/labels/queries";
+import { memberListOptions, agentListOptions, squadListOptions } from "@morechat/core/workspace/queries";
 import {
   DUE_DATE_FILTERS,
   FILTER_NONE_VALUE,
@@ -31,8 +31,8 @@ import {
   type DueDateFilter,
   type IssueRelationFilter,
   type NegatableFilterDimension,
-} from "@multica/core/issues/stores/filter-tree";
-import type { ActorFilterValue } from "@multica/core/issues/stores/view-store";
+} from "@morechat/core/issues/stores/filter-tree";
+import type { ActorFilterValue } from "@morechat/core/issues/stores/view-store";
 import { useT } from "../../i18n";
 import { useStatusOptions } from "../utils/status-options";
 import { matchesPinyin } from "../../editor/extensions/pinyin-match";

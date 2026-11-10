@@ -9,16 +9,16 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/analytics"
-	"github.com/multica-ai/multica/server/internal/events"
-	"github.com/multica-ai/multica/server/internal/handler"
-	"github.com/multica-ai/multica/server/internal/issuestatus"
-	obsmetrics "github.com/multica-ai/multica/server/internal/metrics"
-	"github.com/multica-ai/multica/server/internal/service"
-	"github.com/multica-ai/multica/server/internal/util"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
-	"github.com/multica-ai/multica/server/pkg/protocol"
-	"github.com/multica-ai/multica/server/pkg/redact"
+	"github.com/jerry-halo2026/morchat.co/server/internal/analytics"
+	"github.com/jerry-halo2026/morchat.co/server/internal/events"
+	"github.com/jerry-halo2026/morchat.co/server/internal/handler"
+	"github.com/jerry-halo2026/morchat.co/server/internal/issuestatus"
+	obsmetrics "github.com/jerry-halo2026/morchat.co/server/internal/metrics"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/redact"
 )
 
 const (

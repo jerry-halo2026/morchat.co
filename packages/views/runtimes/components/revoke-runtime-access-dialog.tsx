@@ -1,21 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle } from "@multica/ui/icons";
+import { AlertTriangle } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import type { AgentRuntime } from "@multica/core/types";
-import { ApiError, parseWithFallback } from "@multica/core/api";
-import { RuntimeAccessRevocationPlanSchema } from "@multica/core/api/schemas";
-import { runtimeDisplayLabel } from "@multica/core/runtimes";
-import { useRevokeRuntimeWorkspaceAccess } from "@multica/core/runtimes/mutations";
+import type { AgentRuntime } from "@morechat/core/types";
+import { ApiError, parseWithFallback } from "@morechat/core/api";
+import { RuntimeAccessRevocationPlanSchema } from "@morechat/core/api/schemas";
+import { runtimeDisplayLabel } from "@morechat/core/runtimes";
+import { useRevokeRuntimeWorkspaceAccess } from "@morechat/core/runtimes/mutations";
 import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import { Button } from "@multica/ui/components/ui/button";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
+} from "@morechat/ui/components/ui/alert-dialog";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
 import { useT } from "../../i18n";
 
 export interface RuntimeAccessRevocationPlan {

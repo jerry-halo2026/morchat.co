@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
-import { THEME_ANCHORS, THEME_PUBLIC_SLOTS } from "@multica/core/appearance";
+import { THEME_ANCHORS, THEME_PUBLIC_SLOTS } from "@morechat/core/appearance";
 
 /**
  * The theme anchors are a public contract (docs/theming.md). This keeps the

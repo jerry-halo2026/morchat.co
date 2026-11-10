@@ -25,7 +25,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/multica-ai/multica/server/internal/integrations/wecom"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/wecom"
 )
 
 // TestWecomInstallErrorMatrix pins status + error + code for every error class

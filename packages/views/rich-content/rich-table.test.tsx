@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 
 const copyText = vi.hoisted(() => vi.fn(async () => true));
-vi.mock("@multica/ui/lib/clipboard", () => ({ copyText }));
+vi.mock("@morechat/ui/lib/clipboard", () => ({ copyText }));
 
 vi.mock("../issues/hooks", () => ({
   useResolveIssueIdentifier: () => null,
@@ -25,13 +25,13 @@ vi.mock("../i18n", async () => {
   return { useT: () => ({ t }), useTimeAgo: () => "just now" };
 });
 
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: { getAttachmentTextContent: vi.fn() },
   PreviewTooLargeError: class extends Error {},
   PreviewUnsupportedError: class extends Error {},
 }));
 
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({ issueDetail: (id: string) => `/acme/issues/${id}` }),
   useWorkspaceSlug: () => "acme",
 }));

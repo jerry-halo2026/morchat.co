@@ -2,15 +2,15 @@ import type { ReactNode } from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { setApiInstance, type ApiClient } from "@multica/core/api";
-import { I18nProvider } from "@multica/core/i18n/react";
-import { useSessionPromptStore } from "@multica/core/session-prompt";
+import { setApiInstance, type ApiClient } from "@morechat/core/api";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import { useSessionPromptStore } from "@morechat/core/session-prompt";
 import {
   claimStarPromptShowing,
   markStarPromptStarred,
   useStarPromptStore,
-} from "@multica/core/star-prompt";
-import type { User } from "@multica/core/types";
+} from "@morechat/core/star-prompt";
+import type { User } from "@morechat/core/types";
 import enCommon from "../locales/en/common.json";
 import enLayout from "../locales/en/layout.json";
 import enOnboarding from "../locales/en/onboarding.json";
@@ -29,18 +29,18 @@ const stores = vi.hoisted(() => {
   };
 });
 
-vi.mock("@multica/core/auth", () => ({ useAuthStore: stores.auth }));
-vi.mock("@multica/core/chat", () => ({ useChatStore: stores.chat }));
-vi.mock("@multica/core/paths", async () => {
-  const actual = await vi.importActual<typeof import("@multica/core/paths")>("@multica/core/paths");
+vi.mock("@morechat/core/auth", () => ({ useAuthStore: stores.auth }));
+vi.mock("@morechat/core/chat", () => ({ useChatStore: stores.chat }));
+vi.mock("@morechat/core/paths", async () => {
+  const actual = await vi.importActual<typeof import("@morechat/core/paths")>("@morechat/core/paths");
   return {
     ...actual,
     useWorkspacePaths: () => ({ chat: () => "/acme/chat" }),
     useCurrentWorkspace: () => workspace.current,
   };
 });
-vi.mock("@multica/core/onboarding", async () => {
-  const actual = await vi.importActual<typeof import("@multica/core/onboarding")>("@multica/core/onboarding");
+vi.mock("@morechat/core/onboarding", async () => {
+  const actual = await vi.importActual<typeof import("@morechat/core/onboarding")>("@morechat/core/onboarding");
   return {
     ...actual,
     // The real call refreshes /api/me; the answer landing on the user is what matters here.
@@ -51,9 +51,9 @@ vi.mock("@multica/core/onboarding", async () => {
   };
 });
 vi.mock("../navigation", () => ({ useNavigation: () => ({ pathname: "/acme/issues" }) }));
-vi.mock("@multica/core/star-prompt", async () => {
-  const actual = await vi.importActual<typeof import("@multica/core/star-prompt")>(
-    "@multica/core/star-prompt",
+vi.mock("@morechat/core/star-prompt", async () => {
+  const actual = await vi.importActual<typeof import("@morechat/core/star-prompt")>(
+    "@morechat/core/star-prompt",
   );
   return {
     ...actual,
@@ -135,9 +135,9 @@ describe("StarPrompt", () => {
     await agentFinishesIssue();
 
     expect(await screen.findByText("Lambda has completed 4 issues")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Star Multica on GitHub" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Star morechat.co on GitHub" })).toHaveAttribute(
       "href",
-      "https://github.com/multica-ai/multica",
+      "https://github.com/jerry-halo2026/morchat.co",
     );
     expect(listIssues).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -150,7 +150,7 @@ describe("StarPrompt", () => {
   it("retires the prompt when the user clicks through to GitHub", async () => {
     renderPrompt();
     await agentFinishesIssue();
-    fireEvent.click(await screen.findByRole("link", { name: "Star Multica on GitHub" }));
+    fireEvent.click(await screen.findByRole("link", { name: "Star morechat.co on GitHub" }));
 
     expect(markStarPromptStarred).toHaveBeenCalledTimes(1);
     expect(screen.queryByText("Lambda has completed 4 issues")).not.toBeInTheDocument();
@@ -243,7 +243,7 @@ describe("StarPrompt after the source survey", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1000);
     });
-    expect(screen.getByText("How did you hear about Multica?")).toBeInTheDocument();
+    expect(screen.getByText("How did you hear about morechat.co?")).toBeInTheDocument();
 
     await finishSurvey();
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -286,7 +286,7 @@ describe("StarPrompt for a workspace that finishes work in custom done statuses"
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1000);
     });
-    expect(screen.getByText("How did you hear about Multica?")).toBeInTheDocument();
+    expect(screen.getByText("How did you hear about morechat.co?")).toBeInTheDocument();
     await finishSurvey();
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     await agentFinishesIssue();
@@ -300,6 +300,6 @@ describe("StarPrompt for a workspace that finishes work in custom done statuses"
     await agentFinishesIssue();
 
     expect(await screen.findByText("Lambda has completed 3 issues")).toBeInTheDocument();
-    expect(screen.queryByText("How did you hear about Multica?")).not.toBeInTheDocument();
+    expect(screen.queryByText("How did you hear about morechat.co?")).not.toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import { RuntimesPage } from "@multica/views/runtimes";
+import { RuntimesPage } from "@morechat/views/runtimes";
 import { useDesktopRuntimeContext } from "./use-desktop-runtime-context";
 
 /**

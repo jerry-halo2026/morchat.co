@@ -1,6 +1,6 @@
 "use client";
 
-import { subIssueCreateDefaults } from "@multica/core/issues";
+import { subIssueCreateDefaults } from "@morechat/core/issues";
 import { useStatusLabel } from "../utils/status-label";
 import {
   useCallback,
@@ -51,13 +51,13 @@ import {
   Plus,
   Search,
   X,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { DataTable } from "@multica/ui/components/ui/data-table";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import { Input } from "@multica/ui/components/ui/input";
+import { DataTable } from "@morechat/ui/components/ui/data-table";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import { Input } from "@morechat/ui/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,40 +67,40 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import {
   TableCell,
   TableRow,
-} from "@multica/ui/components/ui/table";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { cn } from "@multica/ui/lib/utils";
-import { ApiError } from "@multica/core/api";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { isImeComposing } from "@multica/core/utils";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { useModalStore } from "@multica/core/modals";
+} from "@morechat/ui/components/ui/table";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { cn } from "@morechat/ui/lib/utils";
+import { ApiError } from "@morechat/core/api";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { isImeComposing } from "@morechat/core/utils";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { useModalStore } from "@morechat/core/modals";
 import {
   issueKeys,
   issueTableGroupsOptions,
   issueTableRowPageOptions,
-} from "@multica/core/issues/queries";
+} from "@morechat/core/issues/queries";
 import {
   TABLE_SYSTEM_COLUMNS,
   propertyIdFromViewKey,
   type SortField,
   type TableColumnKey,
   type TableSystemColumnKey,
-} from "@multica/core/issues/stores/view-store";
-import { useViewStore } from "@multica/core/issues/stores/view-store-context";
-import { propertyListOptions } from "@multica/core/properties";
-import { projectListOptions } from "@multica/core/projects/queries";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { buildActorNameResolver, useActorName } from "@multica/core/workspace/hooks";
+} from "@morechat/core/issues/stores/view-store";
+import { useViewStore } from "@morechat/core/issues/stores/view-store-context";
+import { propertyListOptions } from "@morechat/core/properties";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { buildActorNameResolver, useActorName } from "@morechat/core/workspace/hooks";
 import {
   agentListOptions,
   memberListOptions,
   squadListOptions,
-} from "@multica/core/workspace/queries";
+} from "@morechat/core/workspace/queries";
 import type {
   Issue,
   IssueProperty,
@@ -111,12 +111,12 @@ import type {
   IssueTableRowsResponse,
   Project,
   UpdateIssueRequest,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import {
   actorRefsFromValue,
   formatActorRef,
   isActorPropertyType,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import {
   useInfiniteQuery,
   useQueries,

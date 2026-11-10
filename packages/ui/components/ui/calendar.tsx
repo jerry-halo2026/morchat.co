@@ -8,9 +8,9 @@ import {
   type Locale,
 } from "react-day-picker"
 
-import { cn } from "@multica/ui/lib/utils"
-import { Button, buttonVariants } from "@multica/ui/components/ui/button"
-import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "@multica/ui/icons"
+import { cn } from "@morechat/ui/lib/utils"
+import { Button, buttonVariants } from "@morechat/ui/components/ui/button"
+import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "@morechat/ui/icons"
 
 function Calendar({
   className,

@@ -9,40 +9,40 @@ import {
   Loader2,
   Pencil,
   Trash2,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { CurrencyNumberFlow } from "@multica/ui/components/ui/number-flow";
+import { CurrencyNumberFlow } from "@morechat/ui/components/ui/number-flow";
 import type {
   Agent,
   AgentRuntime,
   AgentTask,
   MemberWithUser,
   RuntimeProfile,
-} from "@multica/core/types";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
+} from "@morechat/core/types";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   agentListOptions,
   memberListOptions,
-} from "@multica/core/workspace/queries";
-import { agentTaskSnapshotOptions } from "@multica/core/agents";
+} from "@morechat/core/workspace/queries";
+import { agentTaskSnapshotOptions } from "@morechat/core/agents";
 import {
   deriveRuntimeHealth,
   isRuntimeUsableForUser,
   runtimeProfileListOptions,
   runtimeUsageOptions,
-} from "@multica/core/runtimes";
-import { useWorkspacePaths } from "@multica/core/paths";
+} from "@morechat/core/runtimes";
+import { useWorkspacePaths } from "@morechat/core/paths";
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
+} from "@morechat/ui/components/ui/tooltip";
 import { useIntentNavigate } from "../../navigation";
 import {
   CollectionEmptyValue,
@@ -71,7 +71,7 @@ import {
   pendingRuntimeCommandName,
 } from "./pending-runtime";
 import { useT, useTimeAgo } from "../../i18n";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
 
 // The machine detail's runtimes table. A machine hosts 1-5 runtimes, so no
 // sorting, filters, column toggles or batch selection — and batch-deleting

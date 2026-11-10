@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/integrations/channel/engine"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel/engine"
 )
 
 const verifiedTestBotName = "Multica Bot - Local"

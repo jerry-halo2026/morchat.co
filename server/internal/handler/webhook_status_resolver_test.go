@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/integrations/vcs"
-	"github.com/multica-ai/multica/server/internal/issuestatus"
-	"github.com/multica-ai/multica/server/internal/testutil"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/vcs"
+	"github.com/jerry-halo2026/morchat.co/server/internal/issuestatus"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 type webhookStatusCatalog struct {

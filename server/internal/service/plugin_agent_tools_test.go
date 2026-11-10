@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
-	"github.com/multica-ai/multica/server/pkg/plugincontract"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/plugincontract"
 )
 
 // Two plugins may both contribute a hook called "summarize". The agent sees one

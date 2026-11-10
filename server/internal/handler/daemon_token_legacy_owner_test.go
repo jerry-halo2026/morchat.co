@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/multica-ai/multica/server/internal/auth"
-	"github.com/multica-ai/multica/server/internal/middleware"
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/auth"
+	"github.com/jerry-halo2026/morchat.co/server/internal/middleware"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 // MUL-8198: Remote MCP daemon tokens minted before migration 588 have no

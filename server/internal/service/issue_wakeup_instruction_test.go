@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/multica-ai/multica/server/internal/util"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
 )
 
 func TestIssueWakeupInstructionPreservesStateAndPendingEvents(t *testing.T) {

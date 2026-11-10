@@ -14,7 +14,7 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // TestTheDetailTierNamesTheArgument — the positive contract. The principal

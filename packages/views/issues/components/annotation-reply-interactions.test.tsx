@@ -3,10 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Editor } from "@tiptap/core";
-import { configureShortcutPlatform, createShortcutChord, useShortcutStore } from "@multica/core/shortcuts";
-import { WorkspaceSlugProvider } from "@multica/core/paths";
-import { useCommentDraftStore } from "@multica/core/issues/stores";
-import { composeAnnotatedReply, type ReplyAnnotation } from "@multica/core/drafts/reply-annotation";
+import { configureShortcutPlatform, createShortcutChord, useShortcutStore } from "@morechat/core/shortcuts";
+import { WorkspaceSlugProvider } from "@morechat/core/paths";
+import { useCommentDraftStore } from "@morechat/core/issues/stores";
+import { composeAnnotatedReply, type ReplyAnnotation } from "@morechat/core/drafts/reply-annotation";
 import { toast } from "sonner";
 import { renderWithI18n } from "../../test/i18n";
 import { useCommentAnnotations } from "./use-comment-annotations";
@@ -16,9 +16,9 @@ import { CommentInput } from "./comment-input";
 // Avatar profile navigation is unrelated to composer behavior.
 vi.mock("../../common/actor-avatar", () => ({ ActorAvatar: () => null, AgentStatusDot: () => null }));
 
-const preview = vi.hoisted(() => vi.fn<typeof import("@multica/core/api")["api"]["previewCommentTriggers"]>(async () => ({ agents: [], blocked: [] })));
-vi.mock("@multica/core/api", async (original) => {
-  const actual = await original<typeof import("@multica/core/api")>();
+const preview = vi.hoisted(() => vi.fn<typeof import("@morechat/core/api")["api"]["previewCommentTriggers"]>(async () => ({ agents: [], blocked: [] })));
+vi.mock("@morechat/core/api", async (original) => {
+  const actual = await original<typeof import("@morechat/core/api")>();
   return { ...actual, api: { ...actual.api, getBaseUrl: () => "https://api.example.test", previewCommentTriggers: preview, listTasksByIssue: vi.fn(async () => []),
     listWorkspaces: vi.fn(async () => [{ id: "workspace", slug: "test", name: "Test" }]),
     listMembers: vi.fn(async () => []), listAgents: vi.fn(async () => []), listSquads: vi.fn(async () => []),

@@ -3,8 +3,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import type { AgentRuntime } from "@multica/core/types";
-import { I18nProvider } from "@multica/core/i18n/react";
+import type { AgentRuntime } from "@morechat/core/types";
+import { I18nProvider } from "@morechat/core/i18n/react";
 import enRuntimes from "../../locales/en/runtimes.json";
 import {
   RuntimeConcurrencyField,
@@ -13,12 +13,12 @@ import {
 
 const mockUpdateRuntime = vi.hoisted(() => vi.fn());
 
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => "ws-1",
 }));
 
-vi.mock("@multica/core/api", async (importOriginal) => ({
-  ...await importOriginal<typeof import("@multica/core/api")>(),
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@morechat/core/api")>(),
   api: {
     updateRuntime: (...args: unknown[]) => mockUpdateRuntime(...args),
   },

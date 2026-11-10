@@ -1,8 +1,8 @@
 "use client";
 
-import { AlertCircle, WifiOff } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import type { AgentAvailability } from "@multica/core/agents";
+import { AlertCircle, WifiOff } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import type { AgentAvailability } from "@morechat/core/agents";
 import { CHAT_COLUMN, CHAT_GUTTER } from "./chat-column";
 import { useT } from "../../i18n";
 

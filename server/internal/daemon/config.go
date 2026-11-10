@@ -15,9 +15,9 @@ import (
 
 	"github.com/mattn/go-shellwords"
 
-	"github.com/multica-ai/multica/server/internal/cli"
-	"github.com/multica-ai/multica/server/internal/daemon/execenv"
-	"github.com/multica-ai/multica/server/pkg/agent"
+	"github.com/jerry-halo2026/morchat.co/server/internal/cli"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/execenv"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
 )
 
 const (

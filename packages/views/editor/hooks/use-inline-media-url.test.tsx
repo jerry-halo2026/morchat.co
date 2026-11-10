@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ApiError } from "@multica/core/api/client";
+import { ApiError } from "@morechat/core/api/client";
 import type { ReactNode } from "react";
 import { useFreshStreamedMediaURL } from "./use-inline-media-url";
 
 const { getAttachment, getAttachmentBlob, getBaseUrl } = vi.hoisted(() => ({
   getAttachment: vi.fn(), getAttachmentBlob: vi.fn(), getBaseUrl: vi.fn(() => "https://api.example.test"),
 }));
-vi.mock("@multica/core/api", () => ({ api: { getAttachment, getAttachmentBlob, getBaseUrl } }));
+vi.mock("@morechat/core/api", () => ({ api: { getAttachment, getAttachmentBlob, getBaseUrl } }));
 const id = "11111111-2222-3333-4444-555555555555";
 const stable = `/api/attachments/${id}/download`;
 const capability = (exp: number, sig = "fresh") => `/api/attachments/${id}/signed-download?exp=${exp}&sig=${sig}`;

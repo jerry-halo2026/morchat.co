@@ -19,13 +19,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/featureflags"
-	"github.com/multica-ai/multica/server/internal/scheduler"
-	"github.com/multica-ai/multica/server/internal/service"
-	"github.com/multica-ai/multica/server/internal/util"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
-	"github.com/multica-ai/multica/server/pkg/featureflag"
-	"github.com/multica-ai/multica/server/pkg/plugincontract"
+	"github.com/jerry-halo2026/morchat.co/server/internal/featureflags"
+	"github.com/jerry-halo2026/morchat.co/server/internal/scheduler"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/featureflag"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/plugincontract"
 )
 
 type schedulePulseState struct {

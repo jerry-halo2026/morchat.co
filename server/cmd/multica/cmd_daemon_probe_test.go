@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/daemon"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon"
 )
 
 func TestDaemonRuntimeProbeFromAgents(t *testing.T) {

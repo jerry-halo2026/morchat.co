@@ -3,8 +3,8 @@
 import * as React from "react"
 import { OTPInput, OTPInputContext } from "input-otp"
 
-import { cn } from "@multica/ui/lib/utils"
-import { MinusIcon } from "@multica/ui/icons"
+import { cn } from "@morechat/ui/lib/utils"
+import { MinusIcon } from "@morechat/ui/icons"
 
 function InputOTP({
   className,

@@ -3,18 +3,18 @@
 import { useState } from "react";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronDown, ChevronRight, ExternalLink, Info, Trash2 } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { Button } from "@multica/ui/components/ui/button";
-import { Card, CardContent } from "@multica/ui/components/ui/card";
+import { ChevronDown, ChevronRight, ExternalLink, Info, Trash2 } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Card, CardContent } from "@morechat/ui/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Input } from "@multica/ui/components/ui/input";
-import { Label } from "@multica/ui/components/ui/label";
+} from "@morechat/ui/components/ui/dialog";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Label } from "@morechat/ui/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,37 +24,37 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
+} from "@morechat/ui/components/ui/alert-dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
+} from "@morechat/ui/components/ui/tooltip";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   agentListOptions,
   memberListOptions,
-} from "@multica/core/workspace/queries";
+} from "@morechat/core/workspace/queries";
 import { DingTalkMark } from "./dingtalk-mark";
-import { useActorName } from "@multica/core/workspace/hooks";
+import { useActorName } from "@morechat/core/workspace/hooks";
 import {
   dingtalkGroupsOptions,
   dingtalkInstallationsOptions,
   dingtalkKeys,
-} from "@multica/core/dingtalk";
-import { api } from "@multica/core/api";
+} from "@morechat/core/dingtalk";
+import { api } from "@morechat/core/api";
 import type {
   DingTalkGroup,
   DingTalkGroupBot,
   DingTalkInstallation,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { docsLocalePrefix } from "../../common/docs-locale";
 import { openExternal } from "../../platform";
 import { useT, useTimeAgo } from "../../i18n";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 
 const dingTalkChatManagePermission = "qyapi_chat_manage";
 
@@ -509,7 +509,7 @@ export function DingTalkBotGroups({
 // workspace owner/admin-only in Settings.
 //
 // Adding a new installation flows through the Agent detail page: the install
-// path is per-agent (each Multica agent gets exactly one robot — the
+// path is per-agent (each morechat.co agent gets exactly one robot — the
 // (workspace_id, agent_id, channel_type) UNIQUE in channel_installation), so
 // asking the user to pick an agent here would re-create that page's picker.
 export function DingTalkTab() {
@@ -800,7 +800,7 @@ function InstallationRow({
 // prefixes (English has none), matching the convention used elsewhere in the
 // app for doc links.
 function dingtalkDocsUrl(lang: string | undefined): string {
-  return `https://multica.ai/docs${docsLocalePrefix(lang)}/dingtalk-bot-integration`;
+  return `https://morechat.co/docs${docsLocalePrefix(lang)}/dingtalk-bot-integration`;
 }
 
 // DingTalkAgentBindButton is the per-agent CTA exposed from the agent detail

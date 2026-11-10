@@ -1,7 +1,7 @@
 "use client";
 
-import { CalendarClock } from "@multica/ui/icons";
-import type { UpdateProjectRequest } from "@multica/core/types";
+import { CalendarClock } from "@morechat/ui/icons";
+import type { UpdateProjectRequest } from "@morechat/core/types";
 import { DateOnlyPicker } from "../../common/date-only-picker";
 import { useT } from "../../i18n";
 

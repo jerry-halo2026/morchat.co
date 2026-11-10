@@ -1,5 +1,5 @@
-import type { AgentTask } from "@multica/core/types";
-import { providerDisplayName } from "@multica/core/runtimes";
+import type { AgentTask } from "@morechat/core/types";
+import { providerDisplayName } from "@morechat/core/runtimes";
 import { useT } from "../../i18n";
 import { formatSpend, type TaskUsageSummary } from "../../runtimes/utils";
 import { stripMentionMarkdown } from "../utils/strip-mention-markdown";

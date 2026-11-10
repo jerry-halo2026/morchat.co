@@ -14,19 +14,19 @@ import {
   AGENT_CONVERSATION_STARTER_LABEL_MAX_LENGTH,
   AGENT_CONVERSATION_STARTER_MAX_LENGTH,
   type AgentDraft,
-} from "@multica/core/agents";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { isRuntimeUsableForUser, runtimeListOptions } from "@multica/core/runtimes";
+} from "@morechat/core/agents";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { isRuntimeUsableForUser, runtimeListOptions } from "@morechat/core/runtimes";
 import type {
   MemberWithUser,
   RuntimeDevice,
   SkillSummary,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import {
   memberListOptions,
   skillListOptions,
-} from "@multica/core/workspace/queries";
+} from "@morechat/core/workspace/queries";
 
 interface CreateAgentForm {
   draft: AgentDraft;

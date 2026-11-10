@@ -1,22 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2, ScrollText } from "@multica/ui/icons";
+import { Loader2, ScrollText } from "@morechat/ui/icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
-import { api } from "@multica/core/api";
+} from "@morechat/ui/components/ui/tooltip";
+import { api } from "@morechat/core/api";
 import {
   chatKeys,
   isTaskMessageTaskId,
   taskMessagesOptions,
-} from "@multica/core/chat/queries";
-import type { AgentTask } from "@multica/core/types/agent";
-import type { TaskMessagePayload } from "@multica/core/types/events";
+} from "@morechat/core/chat/queries";
+import type { AgentTask } from "@morechat/core/types/agent";
+import type { TaskMessagePayload } from "@morechat/core/types/events";
 import { AgentTranscriptDialog } from "./agent-transcript-dialog";
 import { buildTimeline, type TimelineItem } from "./build-timeline";
 

@@ -4,19 +4,19 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { Virtuoso, type Components, type VirtuosoHandle } from "react-virtuoso";
-import { cn } from "@multica/ui/lib/utils";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { Button } from "@multica/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@multica/ui/components/ui/collapsible";
+} from "@morechat/ui/components/ui/collapsible";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-} from "@multica/ui/components/ui/tooltip";
+} from "@morechat/ui/components/ui/tooltip";
 import {
   ChevronRight,
   ChevronDown,
@@ -26,23 +26,23 @@ import {
   ArrowUpRight,
   Copy,
   RotateCw,
-} from "@multica/ui/icons";
-import { useScrollFade } from "@multica/ui/hooks/use-scroll-fade";
-import { isTaskMessageTaskId, taskMessagesOptions } from "@multica/core/chat/queries";
+} from "@morechat/ui/icons";
+import { useScrollFade } from "@morechat/ui/hooks/use-scroll-fade";
+import { isTaskMessageTaskId, taskMessagesOptions } from "@morechat/core/chat/queries";
 import { RichContent } from "../../rich-content";
 import { RichContentScrollRootProvider } from "../../rich-content/scroll-root";
-import { copyText } from "@multica/ui/lib/clipboard";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import { AttachmentList } from "../../issues/components/comment-card";
 import { PreviewSequenceProvider, collectPreviewSequence } from "../../editor";
-import type { AgentAvailability } from "@multica/core/agents";
-import { resolveFailureReasonKey } from "@multica/core/agents";
+import type { AgentAvailability } from "@morechat/core/agents";
+import { resolveFailureReasonKey } from "@morechat/core/agents";
 import type {
   ChatMessage,
   ChatPendingTask,
   ChatQuickAction,
   TaskMessagePayload,
-} from "@multica/core/types";
-import type { ChatTimelineItem } from "@multica/core/chat";
+} from "@morechat/core/types";
+import type { ChatTimelineItem } from "@morechat/core/chat";
 import { buildTimeline } from "../../common/task-transcript";
 import { traceToolArgSummary } from "../../common/task-transcript/trace-event-presenter";
 import { OnboardingStarterCards } from "./onboarding-starter-cards";
@@ -1102,7 +1102,7 @@ function TimelineView({
 }: {
   items: ChatTimelineItem[];
   isStreaming?: boolean;
-  attachments?: import("@multica/core/types").Attachment[];
+  attachments?: import("@morechat/core/types").Attachment[];
   phase?: "streaming" | "settled";
   settledContent?: string;
 }) {
@@ -1179,7 +1179,7 @@ function OuterProcessFold({
 }: {
   items: ChatTimelineItem[];
   isStreaming?: boolean;
-  attachments?: import("@multica/core/types").Attachment[];
+  attachments?: import("@morechat/core/types").Attachment[];
   phase?: "streaming" | "settled";
   stepCount?: number;
 }) {
@@ -1233,7 +1233,7 @@ function MiddleTextRow({
   phase = "settled",
 }: {
   item: ChatTimelineItem;
-  attachments?: import("@multica/core/types").Attachment[];
+  attachments?: import("@morechat/core/types").Attachment[];
   phase?: "streaming" | "settled";
 }) {
   return (

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/service"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // startMikaOnboarding drives the endpoint the way the router does: session id

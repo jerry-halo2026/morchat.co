@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Globe, Lock } from "@multica/ui/icons";
+import { Globe, Lock } from "@morechat/ui/icons";
 import {
   VISIBILITY_DESCRIPTION,
   VISIBILITY_LABEL,
   VISIBILITY_TOOLTIP,
-} from "@multica/core/agents";
-import type { AgentVisibility } from "@multica/core/types";
+} from "@morechat/core/agents";
+import type { AgentVisibility } from "@morechat/core/types";
 import {
   PickerItem,
   PropertyPicker,

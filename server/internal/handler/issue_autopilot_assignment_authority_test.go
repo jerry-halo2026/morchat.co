@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 // MUL-6951. An autopilot run carries the human who armed its trigger as the run's

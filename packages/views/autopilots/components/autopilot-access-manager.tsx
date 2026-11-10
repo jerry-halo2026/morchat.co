@@ -1,18 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Users, X } from "@multica/ui/icons";
+import { Plus, Users, X } from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { memberListOptions } from "@multica/core/workspace/queries";
-import { useActorName } from "@multica/core/workspace/hooks";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { memberListOptions } from "@morechat/core/workspace/queries";
+import { useActorName } from "@morechat/core/workspace/hooks";
 import {
   useGrantAutopilotAccess,
   useRevokeAutopilotAccess,
-} from "@multica/core/autopilots/mutations";
-import type { AutopilotCollaborator } from "@multica/core/types";
+} from "@morechat/core/autopilots/mutations";
+import type { AutopilotCollaborator } from "@morechat/core/types";
 import { toast } from "sonner";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 import { ActorAvatar } from "../../common/actor-avatar";
 import {
   PropertyPicker,

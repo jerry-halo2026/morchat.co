@@ -4,11 +4,11 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/multica-ai/multica/server/internal/events"
-	"github.com/multica-ai/multica/server/internal/handler"
-	"github.com/multica-ai/multica/server/internal/issuestatus"
-	"github.com/multica-ai/multica/server/internal/service"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/events"
+	"github.com/jerry-halo2026/morchat.co/server/internal/handler"
+	"github.com/jerry-halo2026/morchat.co/server/internal/issuestatus"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // autopilotIssueSync loads the stored issue and hands it to SyncRunFromIssue.

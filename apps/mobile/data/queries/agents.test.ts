@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { QueryClient } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Agent } from "@multica/core/types";
-import { canDeleteProject } from "@multica/core/projects/deletion-permissions";
+import type { Agent } from "@morechat/core/types";
+import { canDeleteProject } from "@morechat/core/projects/deletion-permissions";
 
 import { agentListOptions } from "./agents";
 

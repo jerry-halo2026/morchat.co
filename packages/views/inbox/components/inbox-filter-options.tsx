@@ -22,9 +22,9 @@ import {
   UserRound,
   X,
   type IconComponent,
-} from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { FILTER_NONE_VALUE } from "@multica/core/issues/stores/filter-tree";
+} from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { FILTER_NONE_VALUE } from "@morechat/core/issues/stores/filter-tree";
 import {
   activeInboxFilterKeys,
   inboxActorKeyParts,
@@ -34,10 +34,10 @@ import {
   type InboxFilters,
   type InboxReceivedFilter,
   type InboxTypeGroup,
-} from "@multica/core/inbox/filter-store";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { projectListOptions } from "@multica/core/projects/queries";
-import { labelListOptions } from "@multica/core/labels/queries";
+} from "@morechat/core/inbox/filter-store";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import { labelListOptions } from "@morechat/core/labels/queries";
 import { ChipSpan, summarize, type FilterChip } from "../../issues/components/filter-chips-bar";
 import { DUE_DATE_LABEL_KEY } from "../../issues/components/filter-field-options";
 import { useStatusOptions } from "../../issues/utils/status-options";

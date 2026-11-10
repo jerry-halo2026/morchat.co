@@ -18,11 +18,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/imagemetadata"
-	"github.com/multica-ai/multica/server/internal/storage"
-	"github.com/multica-ai/multica/server/internal/util"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/imagemetadata"
+	"github.com/jerry-halo2026/morchat.co/server/internal/storage"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // extContentTypes overrides http.DetectContentType for extensions it gets wrong.

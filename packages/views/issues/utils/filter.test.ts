@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import type { Issue, IssueAssigneeGroup, ProjectStatus, PropertyFilterValue } from "@multica/core/types";
+import type { Issue, IssueAssigneeGroup, ProjectStatus, PropertyFilterValue } from "@morechat/core/types";
 import {
   applyIssueFilters,
   filterAssigneeGroups,
@@ -10,7 +10,7 @@ import {
   type IssueFilters,
   type IssueFilterState,
 } from "./filter";
-import { createFilterCondition, createFilterGroup } from "@multica/core/issues/stores/filter-tree";
+import { createFilterCondition, createFilterGroup } from "@morechat/core/issues/stores/filter-tree";
 
 const NO_FILTER: IssueFilters = {
   statusFilters: [],

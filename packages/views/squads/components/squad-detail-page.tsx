@@ -2,17 +2,17 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@multica/core/api";
-import { useAuthStore } from "@multica/core/auth";
-import { useCurrentWorkspace, useWorkspacePaths } from "@multica/core/paths";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useModalStore } from "@multica/core/modals";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { resolvePublicFileUrl } from "@multica/core/workspace/avatar-url";
-import { isImeComposing } from "@multica/core/utils";
-import { getShortcut, shortcutMatchesEvent } from "@multica/core/shortcuts";
+import { api } from "@morechat/core/api";
+import { useAuthStore } from "@morechat/core/auth";
+import { useCurrentWorkspace, useWorkspacePaths } from "@morechat/core/paths";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useModalStore } from "@morechat/core/modals";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
+import { isImeComposing } from "@morechat/core/utils";
+import { getShortcut, shortcutMatchesEvent } from "@morechat/core/shortcuts";
 import { useLocale, useT, useTimeAgo } from "../../i18n";
-import { agentListOptions, memberListOptions, squadMemberStatusOptions, workspaceKeys } from "@multica/core/workspace/queries";
+import { agentListOptions, memberListOptions, squadMemberStatusOptions, workspaceKeys } from "@morechat/core/workspace/queries";
 import { AppLink, currentPath, useNavigation } from "../../navigation";
 import {
   OBJECT_PAGE_BODY,
@@ -42,12 +42,12 @@ import {
   Trash2,
   UserPlus,
   Users,
-} from "@multica/ui/icons";
-import { Button, buttonVariants } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Input } from "@multica/ui/components/ui/input";
-import { Label } from "@multica/ui/components/ui/label";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
+} from "@morechat/ui/icons";
+import { Button, buttonVariants } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Label } from "@morechat/ui/components/ui/label";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,12 +56,12 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@multica/ui/components/ui/popover";
+} from "@morechat/ui/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -69,7 +69,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -79,10 +79,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import { ActorAvatar as ActorAvatarBase } from "@multica/ui/components/common/actor-avatar";
-import { copyText } from "@multica/ui/lib/clipboard";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/alert-dialog";
+import { ActorAvatar as ActorAvatarBase } from "@morechat/ui/components/common/actor-avatar";
+import { copyText } from "@morechat/ui/lib/clipboard";
+import { cn } from "@morechat/ui/lib/utils";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { AvatarUploadControl } from "../../common/avatar-upload-control";
 import { ContentEditor } from "../../editor/content-editor";
@@ -95,7 +95,7 @@ import {
   PickerEmpty,
 } from "../../issues/components/pickers/property-picker";
 import { toast } from "sonner";
-import type { Issue, Squad, SquadMember, SquadMemberStatus, Agent, MemberWithUser } from "@multica/core/types";
+import type { Issue, Squad, SquadMember, SquadMemberStatus, Agent, MemberWithUser } from "@morechat/core/types";
 import { matchesPinyin } from "../../editor/extensions/pinyin-match";
 
 const RECENT_WORK_LIMIT = 5;

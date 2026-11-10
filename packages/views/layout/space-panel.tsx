@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { AppSpaceId } from "@multica/core/paths";
-import { cn } from "@multica/ui/lib/utils";
-import { useSidebar } from "@multica/ui/components/ui/sidebar";
+import type { AppSpaceId } from "@morechat/core/paths";
+import { cn } from "@morechat/ui/lib/utils";
+import { useSidebar } from "@morechat/ui/components/ui/sidebar";
 import { useAppShell } from "./app-shell-context";
 import { PanelResizeHandle } from "./panel-resize-handle";
 import { AutopilotsPanel } from "./panels/autopilots-panel";

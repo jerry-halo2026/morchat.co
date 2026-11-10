@@ -1,10 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { memberListOptions } from "@multica/core/workspace/queries";
-import type { IssueWorkflow, Project } from "@multica/core/types";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { memberListOptions } from "@morechat/core/workspace/queries";
+import type { IssueWorkflow, Project } from "@morechat/core/types";
 
 /**
  * Who may change what in project workflows, mirroring the server: any member

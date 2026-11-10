@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import "@multica/vitest-setup/web-storage";
+import "@morechat/vitest-setup/web-storage";
 
 // Everything below patches gaps in jsdom. Pure-logic suites opt out of jsdom
 // with `// @vitest-environment node` and share this file, so there is no DOM to

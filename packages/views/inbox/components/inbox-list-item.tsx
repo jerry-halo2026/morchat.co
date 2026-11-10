@@ -1,14 +1,14 @@
 "use client";
 
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
 import { StatusIcon } from "../../issues/components";
 import {
   IssueAgentActivityIndicator,
 } from "../../issues/components/issue-agent-activity-indicator";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { DeferredTooltip } from "../../common/deferred-tooltip";
-import { Archive, ArchiveRestore } from "@multica/ui/icons";
-import type { InboxItem } from "@multica/core/types";
+import { Archive, ArchiveRestore } from "@morechat/ui/icons";
+import type { InboxItem } from "@morechat/core/types";
 import type { InboxView } from "./inbox-view";
 import { InboxDetailLabel, useTypeLabels } from "./inbox-detail-label";
 import {
@@ -20,7 +20,7 @@ import { useStatusLabel } from "../../issues/utils/status-label";
 import { InboxRowMenu } from "./inbox-row-menu";
 import { handleRowActivationKey } from "../../common/row-actions-menu";
 import { useT } from "../../i18n";
-import { paths, useWorkspaceSlug } from "@multica/core/paths";
+import { paths, useWorkspaceSlug } from "@morechat/core/paths";
 import { resolveClickIntent, useIntentNavigate } from "../../navigation";
 
 // Hook returning a localized relative-time formatter — the i18n equivalent

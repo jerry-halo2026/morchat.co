@@ -3,7 +3,7 @@ import { writeFileSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 
 // Timings are opt-in; default CI checks parser call counts instead.
-// MULTICA_MARKDOWN_BENCHMARK=1 pnpm --filter @multica/core test attachments/image-sequence.performance.test.ts --maxWorkers=1 -t benchmarks
+// MULTICA_MARKDOWN_BENCHMARK=1 pnpm --filter @morechat/core test attachments/image-sequence.performance.test.ts --maxWorkers=1 -t benchmarks
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { stats } = vi.hoisted(() => ({ stats: { calls: 0 } }));

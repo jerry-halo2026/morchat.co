@@ -1,14 +1,14 @@
 ---
 title: Mobile app (iOS)
-description: Install Multica on your iPhone from source, and connect to Cloud or a self-hosted instance.
+description: Install morechat.co on your iPhone from source, and connect to Cloud or a self-hosted instance.
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
 import { Step, Steps } from "fumadocs-ui/components/steps";
 
-The Multica iOS client is not on the App Store yet. You can build a Release version from the public source repository on a Mac and install it on your own iPhone. There is no Android client yet.
+The morechat.co iOS client is not on the App Store yet. You can build a Release version from the public source repository on a Mac and install it on your own iPhone. There is no Android client yet.
 
-The installed app connects to Multica Cloud by default; sign in with your existing account. Workspaces, issues, comments, and run history all live on the server, so nothing needs to be synced from web or Desktop.
+The installed app connects to morechat.co Cloud by default; sign in with your existing account. Workspaces, issues, comments, and run history all live on the server, so nothing needs to be synced from web or Desktop.
 
 ## Prerequisites
 
@@ -29,7 +29,7 @@ If Xcode or the on-device development environment isn't set up yet, complete Exp
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/multica-ai/multica.git
+git clone https://github.com/jerry-halo2026/morchat.co.git
 cd multica
 pnpm install
 ```
@@ -63,7 +63,7 @@ export EXPO_BUNDLE_IDENTIFIER_PROD=com.yourname.multica
 pnpm ios:mobile:device:prod:release
 ```
 
-The value only needs to be available in your Apple Developer team; it does not affect your Multica account or workspaces.
+The value only needs to be available in your Apple Developer team; it does not affect your morechat.co account or workspaces.
 
 ## Updating
 
@@ -77,7 +77,7 @@ pnpm ios:mobile:device:prod:release
 
 ## Connecting to a self-hosted instance
 
-Release builds bake the API address into the app. `apps/mobile/.env.production` is committed with the public multica.ai defaults, so a fresh clone builds against production as-is.
+Release builds bake the API address into the app. `apps/mobile/.env.production` is committed with the public morechat.co defaults, so a fresh clone builds against production as-is.
 
 To connect to a self-hosted instance:
 
@@ -90,7 +90,7 @@ EXPO_PUBLIC_API_URL=https://api.example.com
 EXPO_PUBLIC_WEB_URL=https://app.example.com
 ```
 
-The `.local` file overrides the committed defaults key by key and is gitignored, so personal endpoints never reach the repository. `EXPO_PUBLIC_API_URL` is required. `EXPO_PUBLIC_WEB_URL` powers entries like "Copy link" and "Open on web". Set both: a key you leave out falls back to the multica.ai default, so those entries would open multica.ai instead of your instance.
+The `.local` file overrides the committed defaults key by key and is gitignored, so personal endpoints never reach the repository. `EXPO_PUBLIC_API_URL` is required. `EXPO_PUBLIC_WEB_URL` powers entries like "Copy link" and "Open on web". Set both: a key you leave out falls back to the morechat.co default, so those entries would open morechat.co instead of your instance.
 </Step>
 <Step>
 Re-run the build command `pnpm ios:mobile:device:prod:release`. The iPhone must be able to reach the API address; when using a LAN address, don't write `localhost`, which on the iPhone points at the phone itself.
@@ -101,7 +101,7 @@ Re-run the build command `pnpm ios:mobile:device:prod:release`. The iPhone must 
 Editing `.env.production` directly changes the production configuration of the current checkout. Keep personal values in the gitignored `.env.production.local`.
 </Callout>
 
-For mobile development, using the Simulator, or connecting to staging, see [`apps/mobile/README.md`](https://github.com/multica-ai/multica/blob/main/apps/mobile/README.md) in the repository.
+For mobile development, using the Simulator, or connecting to staging, see [`apps/mobile/README.md`](https://github.com/jerry-halo2026/morchat.co/blob/main/apps/mobile/README.md) in the repository.
 
 ## Next steps
 

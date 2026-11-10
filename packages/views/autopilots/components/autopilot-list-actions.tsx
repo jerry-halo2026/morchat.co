@@ -7,15 +7,15 @@ import {
   Pause,
   Play,
   Trash2,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { toast } from "sonner";
-import type { Autopilot } from "@multica/core/types";
+import type { Autopilot } from "@morechat/core/types";
 import {
   useDeleteAutopilot,
   useUpdateAutopilot,
-} from "@multica/core/autopilots";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { Button } from "@multica/ui/components/ui/button";
+} from "@morechat/core/autopilots";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -23,11 +23,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import { useT } from "../../i18n";
 import { useIntentNavigate } from "../../navigation";
 import {

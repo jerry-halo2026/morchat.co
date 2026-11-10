@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { MutationObserver, onlineManager, QueryClient } from "@tanstack/react-query";
-import { EMPTY_APP_CONFIG } from "@multica/core/api/schemas";
-import type { AppConfigResponse } from "@multica/core/api/schemas";
-import type { AgentTask, Issue, TimelineEntry } from "@multica/core/types";
+import { EMPTY_APP_CONFIG } from "@morechat/core/api/schemas";
+import type { AppConfigResponse } from "@morechat/core/api/schemas";
+import type { AgentTask, Issue, TimelineEntry } from "@morechat/core/types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { api } from "@/data/api";

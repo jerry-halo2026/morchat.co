@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { RefreshCw, X } from "@multica/ui/icons";
+import { RefreshCw, X } from "@morechat/ui/icons";
 
 // Downloads run silently in the background (main process has
 // autoDownload=true). The renderer only renders UI once the package is fully
@@ -9,7 +9,7 @@ type UpdateState =
   | { status: "ready"; version: string };
 
 function changelogUrl(version: string): string {
-  return `https://multica.ai/changelog#release-${version.replace(/\./g, "-")}`;
+  return `https://morechat.co/changelog#release-${version.replace(/\./g, "-")}`;
 }
 
 export function UpdateNotification() {

@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Cpu, Loader2, Plus } from "@multica/ui/icons";
+import { ChevronDown, Cpu, Loader2, Plus } from "@morechat/ui/icons";
 import {
   refreshRuntimeModels,
   runtimeModelsOptions,
-} from "@multica/core/runtimes";
-import { Label } from "@multica/ui/components/ui/label";
+} from "@morechat/core/runtimes";
+import { Label } from "@morechat/ui/components/ui/label";
 import {
   PickerItem,
   PropertyPicker,
@@ -16,7 +16,7 @@ import { CHIP_CLASS } from "./chip";
 import { useT } from "../../../i18n";
 import { UnavailableModelsNote } from "../unavailable-models-note";
 import { ModelSearchHeader } from "../model-search-header";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 
 /**
  * Inline model picker for the agent inspector. Lighter cousin of

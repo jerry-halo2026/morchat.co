@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/daemon/repocache"
-	"github.com/multica-ai/multica/server/internal/util"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/repocache"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
 )
 
 // HealthResponse is returned by the daemon's local health endpoint.

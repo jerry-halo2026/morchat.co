@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { MessageSquarePlus } from "@multica/ui/icons";
+import { MessageSquarePlus } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { isImeComposing } from "@multica/core/utils";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { useCommentDraftStore, type CommentDraftKey } from "@multica/core/issues/stores";
-import { MAX_ANNOTATION_QUOTE_LENGTH, MAX_REPLY_ANNOTATIONS, type ReplyAnnotation } from "@multica/core/drafts/reply-annotation";
+import { isImeComposing } from "@morechat/core/utils";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { useCommentDraftStore, type CommentDraftKey } from "@morechat/core/issues/stores";
+import { MAX_ANNOTATION_QUOTE_LENGTH, MAX_REPLY_ANNOTATIONS, type ReplyAnnotation } from "@morechat/core/drafts/reply-annotation";
 import { useT } from "../../i18n";
 import { annotationRange, captureCommentSelection, findAnnotationSource } from "./comment-annotation-selection";
 import { CommentSelectionBubble } from "./comment-selection-bubble";

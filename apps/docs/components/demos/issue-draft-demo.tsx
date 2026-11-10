@@ -11,9 +11,9 @@ import {
   Paperclip,
   Users,
   X,
-} from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
 import {
   CoachMark,
   DemoAvatar,

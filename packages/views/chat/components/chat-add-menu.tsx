@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import { Check, FolderKanban, Image as ImageIcon, Plus, X } from "@multica/ui/icons";
-import { IconButton } from "@multica/ui/components/common/icon-button";
+import { Check, FolderKanban, Image as ImageIcon, Plus, X } from "@morechat/ui/icons";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -12,8 +12,8 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import type { Project } from "@multica/core/types";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import type { Project } from "@morechat/core/types";
 import { ProjectIcon } from "../../projects/components/project-icon";
 import { useT } from "../../i18n";
 

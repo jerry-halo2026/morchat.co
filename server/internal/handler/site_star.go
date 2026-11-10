@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/multica-ai/multica/server/internal/logger"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/logger"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // The marketing site's footer star, which every visitor blows round together.

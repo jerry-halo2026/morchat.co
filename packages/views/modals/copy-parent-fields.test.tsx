@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { I18nProvider } from "@multica/core/i18n/react";
-import type { Issue, IssueProperty } from "@multica/core/types";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import type { Issue, IssueProperty } from "@morechat/core/types";
 import enIssues from "../locales/en/issues.json";
 import enModals from "../locales/en/modals.json";
 import { CopyParentFields } from "./copy-parent-fields";

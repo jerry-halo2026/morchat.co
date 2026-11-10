@@ -2,20 +2,20 @@ import { useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { agentTaskSnapshotOptions } from "@multica/core/agents";
-import { EMPTY_ISSUE_VIEW_PREFERENCE } from "@multica/core/api/schemas";
-import { useActiveIssueViewStore } from "@multica/core/issue-views/active-view-store";
-import { issueViewPreferenceOptions } from "@multica/core/issue-views/preferences";
-import { issueViewEverywhereOptions } from "@multica/core/issue-views/queries";
-import { issueDetailOptions, issueKeys } from "@multica/core/issues/queries";
-import { issueUnreadOptions } from "@multica/core/issues/unread";
-import { SIDEBAR_PROJECTS_SCOPE } from "@multica/core/issues/sidebar-project-prefs";
-import { useSidebarKeptStore } from "@multica/core/issues/stores/sidebar-kept-store";
-import { useSidebarTreeStore } from "@multica/core/issues/stores/sidebar-tree-store";
-import { spaceForPath } from "@multica/core/paths";
-import { pinListOptions } from "@multica/core/pins/queries";
-import { projectListOptions } from "@multica/core/projects/queries";
-import type { Issue, IssueTableRowsResponse, PinnedItem, Project } from "@multica/core/types";
+import { agentTaskSnapshotOptions } from "@morechat/core/agents";
+import { EMPTY_ISSUE_VIEW_PREFERENCE } from "@morechat/core/api/schemas";
+import { useActiveIssueViewStore } from "@morechat/core/issue-views/active-view-store";
+import { issueViewPreferenceOptions } from "@morechat/core/issue-views/preferences";
+import { issueViewEverywhereOptions } from "@morechat/core/issue-views/queries";
+import { issueDetailOptions, issueKeys } from "@morechat/core/issues/queries";
+import { issueUnreadOptions } from "@morechat/core/issues/unread";
+import { SIDEBAR_PROJECTS_SCOPE } from "@morechat/core/issues/sidebar-project-prefs";
+import { useSidebarKeptStore } from "@morechat/core/issues/stores/sidebar-kept-store";
+import { useSidebarTreeStore } from "@morechat/core/issues/stores/sidebar-tree-store";
+import { spaceForPath } from "@morechat/core/paths";
+import { pinListOptions } from "@morechat/core/pins/queries";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import type { Issue, IssueTableRowsResponse, PinnedItem, Project } from "@morechat/core/types";
 import { renderWithI18n } from "../../test/i18n";
 import { NavigationProvider, type NavigationAdapter } from "../../navigation";
 import { KeptRowsRelease, WorkPanel } from "./work-panel";
@@ -33,8 +33,8 @@ const actions = vi.hoisted(() => ({
   canManage: () => true,
 }));
 
-vi.mock("@multica/core/api", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/api")>()),
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/api")>()),
   api: apiMock,
 }));
 vi.mock("../../issue-views/use-view-actions", () => ({ useIssueViewActions: () => actions }));
@@ -53,32 +53,32 @@ vi.mock("@dnd-kit/sortable", () => ({
   verticalListSortingStrategy: vi.fn(),
   arrayMove: vi.fn(),
 }));
-vi.mock("@multica/ui/components/common/tooltip-hint", () => ({
+vi.mock("@morechat/ui/components/common/tooltip-hint", () => ({
   TooltipHint: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
-vi.mock("@multica/core/paths", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/paths")>();
+vi.mock("@morechat/core/paths", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/paths")>();
   return {
     ...actual,
     useWorkspacePaths: () => actual.paths.workspace("acme"),
     useCurrentWorkspace: () => ({ id: "ws-1" }),
   };
 });
-vi.mock("@multica/core/hooks", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/hooks")>()),
+vi.mock("@morechat/core/hooks", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/hooks")>()),
   useWorkspaceId: () => "ws-1",
 }));
-vi.mock("@multica/core/auth", async (importOriginal) => {
+vi.mock("@morechat/core/auth", async (importOriginal) => {
   const state = { user: { id: "u1" } };
   return {
-    ...(await importOriginal<typeof import("@multica/core/auth")>()),
+    ...(await importOriginal<typeof import("@morechat/core/auth")>()),
     useAuthStore: Object.assign((selector: (s: typeof state) => unknown) => selector(state), {
       getState: () => state,
     }),
   };
 });
-vi.mock("@multica/core/issue-statuses/hooks", async () => {
-  const { buildIssueStatusCatalog } = await import("@multica/core/issue-statuses/queries");
+vi.mock("@morechat/core/issue-statuses/hooks", async () => {
+  const { buildIssueStatusCatalog } = await import("@morechat/core/issue-statuses/queries");
   const catalog = buildIssueStatusCatalog([
     {
       id: "s1",

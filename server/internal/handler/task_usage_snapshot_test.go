@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/multica-ai/multica/server/internal/events"
-	obsmetrics "github.com/multica-ai/multica/server/internal/metrics"
-	"github.com/multica-ai/multica/server/internal/service"
-	"github.com/multica-ai/multica/server/internal/testutil"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/events"
+	obsmetrics "github.com/jerry-halo2026/morchat.co/server/internal/metrics"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 func TestReportTaskUsageSnapshotsReplaceRowsAndOnlyMeterTerminal(t *testing.T) {

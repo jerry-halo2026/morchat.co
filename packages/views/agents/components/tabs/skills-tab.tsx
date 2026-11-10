@@ -7,7 +7,7 @@ import {
   RefreshCw,
   Server,
   Trash2,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { SkillIcon } from "../../../skills/lib/skill-icon";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -16,32 +16,32 @@ import type {
   AgentRuntime,
   DisabledRuntimeSkill,
   RuntimeLocalSkillSummary,
-} from "@multica/core/types";
-import { api, ApiError } from "@multica/core/api";
-import { useWorkspaceId } from "@multica/core/hooks";
+} from "@morechat/core/types";
+import { api, ApiError } from "@morechat/core/api";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   isRuntimeUsableForUser,
   runtimeCapabilitiesOptions,
   runtimeDisplayLabel,
-} from "@multica/core/runtimes";
+} from "@morechat/core/runtimes";
 import {
   skillDetailOptions,
   skillListOptions,
   workspaceKeys,
-} from "@multica/core/workspace/queries";
-import { Badge } from "@multica/ui/components/ui/badge";
-import { Button } from "@multica/ui/components/ui/button";
+} from "@morechat/core/workspace/queries";
+import { Badge } from "@morechat/ui/components/ui/badge";
+import { Button } from "@morechat/ui/components/ui/button";
 import { ObjectSectionEmpty } from "../../../layout/object-page";
-import { IconButton } from "@multica/ui/components/common/icon-button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Switch } from "@multica/ui/components/ui/switch";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dialog";
+import { Switch } from "@morechat/ui/components/ui/switch";
+import { cn } from "@morechat/ui/lib/utils";
 import { SkillAddDialog } from "../skill-add-dialog";
 import { useT } from "../../../i18n";
 

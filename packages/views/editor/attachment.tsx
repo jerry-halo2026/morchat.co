@@ -33,20 +33,20 @@ import {
   Link as LinkIcon,
   Maximize2,
   Trash2,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { useCallback, useState, type CSSProperties, type ReactNode } from "react";
 import { toast } from "sonner";
-import { cn } from "@multica/ui/lib/utils";
-import { copyText } from "@multica/ui/lib/clipboard";
-import { api } from "@multica/core/api";
-import { useConfigStore } from "@multica/core/config";
-import type { Attachment as AttachmentRecord } from "@multica/core/types";
+import { cn } from "@morechat/ui/lib/utils";
+import { copyText } from "@morechat/ui/lib/clipboard";
+import { api } from "@morechat/core/api";
+import { useConfigStore } from "@morechat/core/config";
+import type { Attachment as AttachmentRecord } from "@morechat/core/types";
 import {
   attachmentDownloadPath,
   attachmentIdFromDownloadURL,
   attachmentIdFromLocalUploadURL,
   attachmentIdFromStorageURL,
-} from "@multica/core/types/attachment-url";
+} from "@morechat/core/types/attachment-url";
 import { useT } from "../i18n";
 import { DeferredTooltip } from "../common/deferred-tooltip";
 import { useAttachmentDownloadResolver } from "./attachment-download-context";

@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Dices, Pipette } from "@multica/ui/icons";
+import { Dices, Pipette } from "@morechat/ui/icons";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@multica/ui/components/ui/popover";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Input } from "@multica/ui/components/ui/input";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/popover";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Input } from "@morechat/ui/components/ui/input";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../i18n";
 import {
   type Hsv,

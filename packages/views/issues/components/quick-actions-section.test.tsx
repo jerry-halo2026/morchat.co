@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
-import type { QuickAction } from "@multica/core/types";
+import type { QuickAction } from "@morechat/core/types";
 import { renderWithI18n } from "../../test/i18n";
 import { QuickActionsSection } from "./quick-actions-section";
 
@@ -29,18 +29,18 @@ vi.mock("@tanstack/react-query", () => ({
 
 const settingsPush = vi.hoisted(() => vi.fn());
 vi.mock("../../navigation", () => ({ useNavigation: () => ({ push: settingsPush }) }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({ settings: () => "/acme/settings" }),
   useCurrentWorkspace: () => workspaceId ? ({ id: workspaceId }) : null,
 }));
 
-vi.mock("@multica/core/quick-actions", () => ({
+vi.mock("@morechat/core/quick-actions", () => ({
   quickActionListOptions: () => ({ queryKey: ["quick-actions"], queryFn: vi.fn() }),
   useRunQuickAction: () => ({ mutateAsync: runMock, isPending: false }),
 }));
 
 let reasonCode: string | undefined;
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   dispatchReasonCode: () => reasonCode,
 }));
 

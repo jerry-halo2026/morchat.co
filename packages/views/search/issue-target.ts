@@ -2,12 +2,12 @@
 
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import type { Issue, UpdateIssueRequest } from "@multica/core/types";
-import { errorCode } from "@multica/core/api";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { useBatchUpdateIssues, useUpdateIssue } from "@multica/core/issues/mutations";
-import { useModalStore } from "@multica/core/modals";
+import type { Issue, UpdateIssueRequest } from "@morechat/core/types";
+import { errorCode } from "@morechat/core/api";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { useBatchUpdateIssues, useUpdateIssue } from "@morechat/core/issues/mutations";
+import { useModalStore } from "@morechat/core/modals";
 import { runConfirmIntent } from "../issues/actions/run-confirm-gate";
 import { useT } from "../i18n";
 import type { IssueTarget } from "./types";

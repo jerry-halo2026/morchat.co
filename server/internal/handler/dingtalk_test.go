@@ -10,13 +10,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/multica-ai/multica/server/internal/events"
-	dingtalkintegration "github.com/multica-ai/multica/server/internal/integrations/dingtalk"
-	"github.com/multica-ai/multica/server/internal/middleware"
-	"github.com/multica-ai/multica/server/internal/testutil"
-	"github.com/multica-ai/multica/server/internal/util/secretbox"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/events"
+	dingtalkintegration "github.com/jerry-halo2026/morchat.co/server/internal/integrations/dingtalk"
+	"github.com/jerry-halo2026/morchat.co/server/internal/middleware"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util/secretbox"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 func wireDingTalkInstallService(t *testing.T) {

@@ -11,8 +11,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/testutil"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // privacyBeginHook changes committed state after the HTTP preflight but before

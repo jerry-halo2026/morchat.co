@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { buildIssueStatusCatalog } from "@multica/core/issue-statuses";
-import { statusCategoryOfKey } from "@multica/core/issues";
-import type { Issue, IssueStatusEntry } from "@multica/core/types";
+import { buildIssueStatusCatalog } from "@morechat/core/issue-statuses";
+import { statusCategoryOfKey } from "@morechat/core/issues";
+import type { Issue, IssueStatusEntry } from "@morechat/core/types";
 
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => "ws-1",
 }));
 
 const mockOpenModal = vi.fn();
-vi.mock("@multica/core/modals", () => ({
+vi.mock("@morechat/core/modals", () => ({
   useModalStore: Object.assign(
     (selector?: any) => {
       const state = { open: mockOpenModal };
@@ -21,7 +21,7 @@ vi.mock("@multica/core/modals", () => ({
 }));
 
 const mockAuthState = { user: { id: "user-1" }, isAuthenticated: true };
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: Object.assign(
     (selector?: any) => (selector ? selector(mockAuthState) : mockAuthState),
     { getState: () => mockAuthState },
@@ -35,7 +35,7 @@ const pinListRef: { value: Array<{ item_type: string; item_id: string }> } = {
 };
 const mockCreatePinMutate = vi.fn();
 const mockDeletePinMutate = vi.fn();
-vi.mock("@multica/core/pins", () => ({
+vi.mock("@morechat/core/pins", () => ({
   pinListOptions: () => ({
     queryKey: ["pins", "ws-1", "user-1"],
     queryFn: () => Promise.resolve(pinListRef.value),
@@ -45,7 +45,7 @@ vi.mock("@multica/core/pins", () => ({
 }));
 
 const mockUpdateMutate = vi.fn();
-vi.mock("@multica/core/issues/mutations", () => ({
+vi.mock("@morechat/core/issues/mutations", () => ({
   useUpdateIssue: () => ({ mutate: mockUpdateMutate }),
 }));
 
@@ -85,13 +85,13 @@ function statusEntry(overrides: Partial<IssueStatusEntry>): IssueStatusEntry {
     ...overrides,
   };
 }
-vi.mock("@multica/core/issue-statuses/hooks", () => ({
+vi.mock("@morechat/core/issue-statuses/hooks", () => ({
   useIssueStatuses: () => buildIssueStatusCatalog(catalogEntries),
 }));
 
-vi.mock("@multica/core/paths", async () => {
-  const actual = await vi.importActual<typeof import("@multica/core/paths")>(
-    "@multica/core/paths",
+vi.mock("@morechat/core/paths", async () => {
+  const actual = await vi.importActual<typeof import("@morechat/core/paths")>(
+    "@morechat/core/paths",
   );
   return {
     ...actual,

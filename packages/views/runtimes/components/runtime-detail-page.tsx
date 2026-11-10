@@ -1,30 +1,30 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, MoreHorizontal, Pencil, Plus, Server } from "@multica/ui/icons";
+import { AlertCircle, MoreHorizontal, Pencil, Plus, Server } from "@morechat/ui/icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { agentTaskSnapshotOptions } from "@multica/core/agents";
-import { runtimeProfileListOptions } from "@multica/core/runtimes";
-import { runtimeKeys, runtimeListOptions } from "@multica/core/runtimes/queries";
-import { useWSEvent } from "@multica/core/realtime";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { agentTaskSnapshotOptions } from "@morechat/core/agents";
+import { runtimeProfileListOptions } from "@morechat/core/runtimes";
+import { runtimeKeys, runtimeListOptions } from "@morechat/core/runtimes/queries";
+import { useWSEvent } from "@morechat/core/realtime";
 import {
   agentListOptions,
   memberListOptions,
-} from "@multica/core/workspace/queries";
-import type { MemberWithUser } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
+} from "@morechat/core/workspace/queries";
+import type { MemberWithUser } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { cn } from "@morechat/ui/lib/utils";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { CollectionPageState } from "../../layout/collection-page";
 import {

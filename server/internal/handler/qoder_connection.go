@@ -17,10 +17,10 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/multica-ai/multica/server/internal/auth"
-	"github.com/multica-ai/multica/server/internal/middleware"
-	"github.com/multica-ai/multica/server/internal/qoderruntime"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/auth"
+	"github.com/jerry-halo2026/morchat.co/server/internal/middleware"
+	"github.com/jerry-halo2026/morchat.co/server/internal/qoderruntime"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 type qoderSettings struct {

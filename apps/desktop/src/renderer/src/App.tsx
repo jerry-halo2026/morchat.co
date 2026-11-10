@@ -1,16 +1,16 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { CoreProvider } from "@multica/core/platform";
-import { pickLocale, type SupportedLocale } from "@multica/core/i18n";
-import { useAuthStore } from "@multica/core/auth";
-import { workspaceKeys } from "@multica/core/workspace/queries";
-import { useWorkspaceList } from "@multica/core/workspace";
-import { api } from "@multica/core/api";
-import { useHasOnboarded } from "@multica/core/paths";
-import { setCurrentWorkspace } from "@multica/core/platform";
-import { ThemeProvider } from "@multica/ui/components/common/theme-provider";
-import { MulticaIcon } from "@multica/ui/components/common/multica-icon";
-import { Toaster } from "@multica/ui/components/ui/sonner";
+import { CoreProvider } from "@morechat/core/platform";
+import { pickLocale, type SupportedLocale } from "@morechat/core/i18n";
+import { useAuthStore } from "@morechat/core/auth";
+import { workspaceKeys } from "@morechat/core/workspace/queries";
+import { useWorkspaceList } from "@morechat/core/workspace";
+import { api } from "@morechat/core/api";
+import { useHasOnboarded } from "@morechat/core/paths";
+import { setCurrentWorkspace } from "@morechat/core/platform";
+import { ThemeProvider } from "@morechat/ui/components/common/theme-provider";
+import { MorechatIcon } from "@morechat/ui/components/common/morechat-icon";
+import { Toaster } from "@morechat/ui/components/ui/sonner";
 import { DesktopLoginPage } from "./pages/login";
 import { DesktopAuthRecoveryPage } from "./pages/auth-recovery";
 import { DesktopShell } from "./components/desktop-layout";
@@ -23,9 +23,9 @@ import { useTabSelectionShortcut } from "./hooks/use-tab-selection-shortcut";
 import { useDaemonIPCBridge } from "./platform/daemon-ipc-bridge";
 import { syncDaemonOnLogin } from "./platform/daemon-login-sync";
 import { createDesktopLocaleAdapter } from "./platform/i18n-adapter";
-import { captureEvent } from "@multica/core/analytics";
-import { AppearanceSync } from "@multica/views/common/appearance-sync";
-import { RESOURCES } from "@multica/views/locales";
+import { captureEvent } from "@morechat/core/analytics";
+import { AppearanceSync } from "@morechat/views/common/appearance-sync";
+import { RESOURCES } from "@morechat/views/locales";
 import { DesktopClientUsageReporter } from "./platform/client-usage-reporter";
 import { DiagnosticRouteReporter } from "./platform/diagnostic-route-reporter";
 import { flushFreezeBreadcrumb } from "./freeze-flush";
@@ -106,7 +106,7 @@ function IssueWindowContent() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <MulticaIcon mode="think" size={40} />
+        <MorechatIcon mode="think" size={40} />
       </div>
     );
   }
@@ -336,7 +336,7 @@ function AppContent() {
   if (isLoading || bootstrapping) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <MulticaIcon mode="think" size={40} />
+        <MorechatIcon mode="think" size={40} />
       </div>
     );
   }
@@ -361,7 +361,7 @@ function BlockingRuntimeConfigError({ message }: { message: string }) {
       <div className="max-w-xl rounded-lg border bg-card p-6 shadow-sm">
         <h1 className="text-title font-semibold">Desktop configuration error</h1>
         <p className="mt-3 text-body text-muted-foreground">
-          Multica Desktop could not load <code>~/.multica/desktop.json</code>. Fix or remove the file and restart the app.
+          morechat.co Desktop could not load <code>~/.multica/desktop.json</code>. Fix or remove the file and restart the app.
         </p>
         <pre className="mt-4 whitespace-pre-wrap rounded-md bg-muted p-3 text-caption text-muted-foreground">
           {message}

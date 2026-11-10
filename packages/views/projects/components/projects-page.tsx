@@ -10,7 +10,7 @@ import {
   PinOff,
   Rows3,
   Trash2,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -23,28 +23,28 @@ import {
   type ProjectListFilters,
   type ProjectSortField,
   type ProjectViewMode,
-} from "@multica/core/projects";
+} from "@morechat/core/projects";
 import {
   pinListOptions,
   useCreatePin,
   useDeletePin,
-} from "@multica/core/pins";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { useAuthStore } from "@multica/core/auth";
-import { useActorName } from "@multica/core/workspace/hooks";
+} from "@morechat/core/pins";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { useAuthStore } from "@morechat/core/auth";
+import { useActorName } from "@morechat/core/workspace/hooks";
 import {
   agentListOptions,
   memberListOptions,
-} from "@multica/core/workspace/queries";
-import { canDeleteProject } from "@multica/core/projects/deletion-permissions";
-import { useModalStore } from "@multica/core/modals";
+} from "@morechat/core/workspace/queries";
+import { canDeleteProject } from "@morechat/core/projects/deletion-permissions";
+import { useModalStore } from "@morechat/core/modals";
 import { AppLink, useIntentNavigate } from "../../navigation";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { FILTER_ITEM_CLASS, HoverCheck } from "../../common/hover-check";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { Button } from "@multica/ui/components/ui/button";
-import { Spinner } from "@multica/ui/components/ui/spinner";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Spinner } from "@morechat/ui/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -52,7 +52,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -63,15 +63,15 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { Toggle } from "@multica/ui/components/ui/toggle";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { Toggle } from "@morechat/ui/components/ui/toggle";
 import type {
   MemberWithUser,
   Project,
   ProjectPriority,
   ProjectStatus,
   UpdateProjectRequest,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import {
   CollectionCreateButton,
   CollectionFilterButton,
@@ -97,7 +97,7 @@ import { useFormatRelativeDate } from "./labels";
 import { ProjectStatusBadge, ProjectPriorityBadge } from "./project-badge";
 import { ProjectLeadPicker } from "./project-lead-picker";
 import { PAGE_GUTTER } from "../../layout/page-header";
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 
 // Sort order maps for the enum columns (header sort needs a total order).
 const PRIORITY_ORDER: Record<ProjectPriority, number> = {

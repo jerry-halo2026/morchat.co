@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // A chat session is creator-private, and so is everything its tasks produce:

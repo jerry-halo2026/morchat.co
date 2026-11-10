@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { createBrowserCookieLocaleAdapter } from "@multica/core/i18n/browser";
+import { createBrowserCookieLocaleAdapter } from "@morechat/core/i18n/browser";
 import { HTML_LANG } from "@/lib/html-lang";
 import { landingPathLocale, localizeHref, splitLandingLocale, stripLandingLocale } from "@/lib/landing-locale-path";
 import { createLandingDict } from "./dictionary";

@@ -1,8 +1,8 @@
 "use client";
 
-import { LogOut } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
+import { LogOut } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
 import { useLogout } from "../../auth";
 import { useT } from "../../i18n";
 

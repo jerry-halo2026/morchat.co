@@ -7,10 +7,10 @@ test("admins can reach property actions in narrow settings and save edits", asyn
   const owner = new TestApiClient();
   const admin = new TestApiClient();
   const suffix = `${Date.now().toString(36)}-${test.info().workerIndex}`;
-  const email = `property-admin-${suffix}@multica.ai`;
+  const email = `property-admin-${suffix}@morechat.co`;
   let workspaceCreated = false;
   try {
-    await owner.login(`property-owner-${suffix}@multica.ai`, "Property owner");
+    await owner.login(`property-owner-${suffix}@morechat.co`, "Property owner");
     const workspace = await owner.ensureWorkspace("Property settings", `properties-${suffix}`);
     workspaceCreated = true;
     await admin.login(email, "Property admin");

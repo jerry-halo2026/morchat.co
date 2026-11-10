@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "@/features/landing/components/landing-link";
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 import {
   ActionLink,
   Container,

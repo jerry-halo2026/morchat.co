@@ -9,16 +9,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Button } from "@multica/ui/components/ui/button";
-import { Spinner } from "@multica/ui/components/ui/spinner";
-import type { IssueAssigneeType, IssueStatus, UpdateIssueRequest } from "@multica/core/types";
-import { useUpdateIssue, useBatchUpdateIssues } from "@multica/core/issues/mutations";
-import { errorCode } from "@multica/core/api";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useShortcut, shortcutMatchesEvent, isPlainShortcut } from "@multica/core/shortcuts";
-import { isImeComposing } from "@multica/core/utils";
+} from "@morechat/ui/components/ui/dialog";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Spinner } from "@morechat/ui/components/ui/spinner";
+import type { IssueAssigneeType, IssueStatus, UpdateIssueRequest } from "@morechat/core/types";
+import { useUpdateIssue, useBatchUpdateIssues } from "@morechat/core/issues/mutations";
+import { errorCode } from "@morechat/core/api";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useShortcut, shortcutMatchesEvent, isPlainShortcut } from "@morechat/core/shortcuts";
+import { isImeComposing } from "@morechat/core/utils";
 import { ShortcutKeycaps } from "../common/shortcut-keycaps";
 import { useStatusLabel } from "../issues/utils/status-label";
 import { useT } from "../i18n";

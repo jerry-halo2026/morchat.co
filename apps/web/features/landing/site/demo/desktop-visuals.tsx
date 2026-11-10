@@ -19,10 +19,10 @@ import {
   Search,
   SquarePen,
   type IconComponent,
-} from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { StatusIcon } from "@multica/views/issues/components/status-icon";
-import { PriorityIcon } from "@multica/views/issues/components/priority-icon";
+} from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { StatusIcon } from "@morechat/views/issues/components/status-icon";
+import { PriorityIcon } from "@morechat/views/issues/components/priority-icon";
 import { Chip } from "./feature-visuals";
 import { TimelineRow } from "./hero-board";
 import {
@@ -41,7 +41,7 @@ import {
 } from "./mock-kit";
 
 /*
- * Mockups for the Multica Desktop page: the app as a native window, with the
+ * Mockups for the morechat.co Desktop page: the app as a native window, with the
  * window controls and history over the rail, the workspace's tabs as pills in
  * the title bar, and the daemon it runs on the computer it is open on. Each
  * workspace opens in a window of its own. Strings follow the product's own
@@ -360,7 +360,7 @@ export function DaemonVisual() {
       <div className="flex flex-col gap-2 px-4 py-3 text-caption">
         <p className="flex justify-between gap-3">
           <span className="text-muted-foreground">Profile</span>
-          <span className="truncate font-mono text-[11px]">desktop-multica.ai</span>
+          <span className="truncate font-mono text-[11px]">desktop-morechat.co</span>
         </p>
         <p className="flex justify-between gap-3">
           <span className="text-muted-foreground">CLI</span>

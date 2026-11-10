@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/realtime"
+	"github.com/jerry-halo2026/morchat.co/server/internal/realtime"
 )
 
 func TestRealtimeCollectorExposesCounters(t *testing.T) {

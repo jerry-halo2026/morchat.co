@@ -2,23 +2,23 @@
 
 import { useEffect, useId, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Loader2, Maximize2, Square } from "@multica/ui/icons";
+import { ChevronRight, Loader2, Maximize2, Square } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { api } from "@multica/core/api";
-import { issueTasksOptions } from "@multica/core/issues/queries";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { useCustomPricingStore } from "@multica/core/runtimes/custom-pricing-store";
-import type { AgentTask } from "@multica/core/types";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { cn } from "@multica/ui/lib/utils";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
+import { api } from "@morechat/core/api";
+import { issueTasksOptions } from "@morechat/core/issues/queries";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { useCustomPricingStore } from "@morechat/core/runtimes/custom-pricing-store";
+import type { AgentTask } from "@morechat/core/types";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { cn } from "@morechat/ui/lib/utils";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
 import { useTimeAgo } from "../../i18n";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
+} from "@morechat/ui/components/ui/tooltip";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { AgentAvatarStack } from "../../agents/components/agent-avatar-stack";
 import { formatDuration } from "../../agents/components/agent-activity-hover-content";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo, forwardRef } from "react";
-import { useWorkspaceId } from "@multica/core/hooks";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import { useTraceIssueLabels } from "./use-trace-issue-labels";
 import { Virtuoso, type VirtuosoHandle, type Components } from "react-virtuoso";
 import {
@@ -27,13 +27,13 @@ import {
   Info,
   Coins,
   GitBranch,
-} from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { copyText } from "@multica/ui/lib/clipboard";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Dialog, DialogContent, DialogTitle } from "@multica/ui/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@multica/ui/components/ui/popover";
+} from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { copyText } from "@morechat/ui/lib/clipboard";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Dialog, DialogContent, DialogTitle } from "@morechat/ui/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@morechat/ui/components/ui/popover";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -41,22 +41,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuCheckboxItem,
   DropdownMenuItem,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import { ActorAvatar } from "../actor-avatar";
 import { AttributionBadge } from "../../issues/components/attribution-badge";
 import { plainTriggerSummary, useFormatSpend } from "../../issues/components/task-run-labels";
 import { cancellationActorLabel, cancelReasonLabel, failureReasonLabel } from "../../agents/components/tabs/task-failure";
 import { RichContent } from "../../rich-content";
-import { api } from "@multica/core/api";
+import { api } from "@morechat/core/api";
 import {
   useTranscriptViewStore,
   type TranscriptFilterKey,
   type TranscriptSortDirection,
-} from "@multica/core/agents/stores";
-import type { AgentTask, Agent, AgentRuntime } from "@multica/core/types/agent";
-import { resolveWorkdirCopyTarget } from "@multica/core/issues";
-import { runtimeDisplayName, providerDisplayName } from "@multica/core/runtimes";
-import { useCustomPricingStore } from "@multica/core/runtimes/custom-pricing-store";
+} from "@morechat/core/agents/stores";
+import type { AgentTask, Agent, AgentRuntime } from "@morechat/core/types/agent";
+import { resolveWorkdirCopyTarget } from "@morechat/core/issues";
+import { runtimeDisplayName, providerDisplayName } from "@morechat/core/runtimes";
+import { useCustomPricingStore } from "@morechat/core/runtimes/custom-pricing-store";
 import { redactSecrets } from "./redact";
 import {
   createLiveEndFollow,
@@ -106,7 +106,7 @@ import {
 import { formatBytes } from "../format-bytes";
 import "../../editor/styles/code.css";
 import "./task-transcript.css";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 
 // The run surface, read in four layers: what happened (header), what it
 // produced (outcome), where the time went (timeline), and the evidence (steps).

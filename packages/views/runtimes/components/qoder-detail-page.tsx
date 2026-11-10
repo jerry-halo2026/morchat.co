@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, Plus } from "@multica/ui/icons";
+import { AlertCircle, Plus } from "@morechat/ui/icons";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import type { Agent, AgentRuntime } from "@multica/core/types";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { useWorkspacePresenceMap } from "@multica/core/agents";
-import { isRuntimeUsableForUser } from "@multica/core/runtimes";
-import { runtimeListOptions } from "@multica/core/runtimes/queries";
+import type { Agent, AgentRuntime } from "@morechat/core/types";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { useWorkspacePresenceMap } from "@morechat/core/agents";
+import { isRuntimeUsableForUser } from "@morechat/core/runtimes";
+import { runtimeListOptions } from "@morechat/core/runtimes/queries";
 import {
   QODER_REGIONS,
   qoderOptions,
@@ -18,13 +18,13 @@ import {
   useResumeQoder,
   useStopQoder,
   type QoderConnection,
-} from "@multica/core/runtimes/qoder";
+} from "@morechat/core/runtimes/qoder";
 import {
   agentListOptions,
   memberListOptions,
-} from "@multica/core/workspace/queries";
-import { Button } from "@multica/ui/components/ui/button";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
+} from "@morechat/core/workspace/queries";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,8 +34,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/alert-dialog";
+import { cn } from "@morechat/ui/lib/utils";
 import { CollectionPageState } from "../../layout/collection-page";
 import {
   OBJECT_PAGE_BODY,

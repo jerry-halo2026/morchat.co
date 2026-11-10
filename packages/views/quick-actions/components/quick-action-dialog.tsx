@@ -1,19 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Globe, Info, Lock } from "@multica/ui/icons";
+import { Globe, Info, Lock } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useCurrentMember } from "@multica/core/permissions";
-import { useCreateQuickAction } from "@multica/core/quick-actions";
-import type { QuickAction, QuickActionAssigneeType, QuickActionVisibility } from "@multica/core/types";
-import { findQuickActionTemplateToken } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
-import { Input } from "@multica/ui/components/ui/input";
-import { Textarea } from "@multica/ui/components/ui/textarea";
-import { Label as FieldLabel } from "@multica/ui/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@multica/ui/components/ui/dialog";
-import { cn } from "@multica/ui/lib/utils";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useCurrentMember } from "@morechat/core/permissions";
+import { useCreateQuickAction } from "@morechat/core/quick-actions";
+import type { QuickAction, QuickActionAssigneeType, QuickActionVisibility } from "@morechat/core/types";
+import { findQuickActionTemplateToken } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
+import { Label as FieldLabel } from "@morechat/ui/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@morechat/ui/components/ui/dialog";
+import { cn } from "@morechat/ui/lib/utils";
 import { AgentPicker } from "../../autopilots/components/pickers/agent-picker";
 import { useT } from "../../i18n";
 

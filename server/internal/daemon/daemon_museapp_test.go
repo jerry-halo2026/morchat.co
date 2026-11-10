@@ -9,8 +9,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/multica-ai/multica/server/pkg/agent"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // A version-mismatched receptionist must yield builtinProbeProtocolSkew

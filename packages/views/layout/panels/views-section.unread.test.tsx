@@ -2,13 +2,13 @@ import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { setApiInstance } from "@multica/core/api";
-import type { ApiClient } from "@multica/core/api/client";
-import { useSidebarTreeStore } from "@multica/core/issues/stores/sidebar-tree-store";
-import { builtinSidebarSource, viewSidebarSource } from "@multica/core/issues/sidebar-list";
-import { issueUnreadOptions } from "@multica/core/issues/unread";
-import { issueViewContainerKey, useActiveIssueViewStore } from "@multica/core/issue-views/active-view-store";
-import { UNREAD_VIEW_ID } from "@multica/core/issue-views/unread-view";
+import { setApiInstance } from "@morechat/core/api";
+import type { ApiClient } from "@morechat/core/api/client";
+import { useSidebarTreeStore } from "@morechat/core/issues/stores/sidebar-tree-store";
+import { builtinSidebarSource, viewSidebarSource } from "@morechat/core/issues/sidebar-list";
+import { issueUnreadOptions } from "@morechat/core/issues/unread";
+import { issueViewContainerKey, useActiveIssueViewStore } from "@morechat/core/issue-views/active-view-store";
+import { UNREAD_VIEW_ID } from "@morechat/core/issue-views/unread-view";
 import { renderWithI18n } from "../../test/i18n";
 import { NavigationProvider, type NavigationAdapter } from "../../navigation";
 import { ViewsSection } from "./views-section";
@@ -36,15 +36,15 @@ vi.mock("@dnd-kit/sortable", () => ({
   verticalListSortingStrategy: vi.fn(),
   arrayMove: vi.fn(),
 }));
-vi.mock("@multica/ui/components/common/tooltip-hint", () => ({
+vi.mock("@morechat/ui/components/common/tooltip-hint", () => ({
   TooltipHint: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
-vi.mock("@multica/core/paths", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/paths")>();
+vi.mock("@morechat/core/paths", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/paths")>();
   return { ...actual, useWorkspacePaths: () => actual.paths.workspace("acme") };
 });
-vi.mock("@multica/core/hooks", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/hooks")>()),
+vi.mock("@morechat/core/hooks", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/hooks")>()),
   useWorkspaceId: () => "ws-1",
 }));
 

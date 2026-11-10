@@ -2,12 +2,12 @@ import { createElement } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
-import { ApiError } from "@multica/core/api";
-import type { Agent } from "@multica/core/types";
+import { ApiError } from "@morechat/core/api";
+import type { Agent } from "@morechat/core/types";
 import {
   cacheAgentResponse,
   workspaceKeys,
-} from "@multica/core/workspace/queries";
+} from "@morechat/core/workspace/queries";
 import { AgentNameField } from "./agent-configuration-panel";
 import { CreateAgentFooter } from "./create-agent-footer";
 import { draftPreview } from "./unfinished-drafts";

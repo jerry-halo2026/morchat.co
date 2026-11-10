@@ -6,8 +6,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/multica-ai/multica/server/internal/integrations/channel"
-	"github.com/multica-ai/multica/server/internal/integrations/channel/engine"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel/engine"
 )
 
 // This file holds the translation from a DingTalk Stream callback
@@ -682,7 +682,7 @@ func normalizeDingTalkRichTextControlLayout(msg *channel.InboundMessage, items [
 // filtered. Apply this only to provider text values, not rendered quote blocks,
 // so a fallback cannot discard generated image markers and their media slots.
 // This tradeoff was accepted in the review of PR #8061:
-// https://github.com/multica-ai/multica/pull/8061#pullrequestreview-5130718174
+// https://github.com/jerry-halo2026/morchat.co/pull/8061#pullrequestreview-5130718174
 func dingTalkReadableQuotedText(value string) string {
 	if strings.Contains(value, "||") {
 		return "[quoted content unavailable]"

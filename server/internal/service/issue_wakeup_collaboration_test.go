@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/testutil"
-	"github.com/multica-ai/multica/server/internal/util"
-	"github.com/multica-ai/multica/server/pkg/eventcontract"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/eventcontract"
 )
 
 // Exercise real writes rather than calling the capture function: every advertised

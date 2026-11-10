@@ -22,7 +22,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/multica-ai/multica/server/pkg/eventcontract"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/eventcontract"
 	"github.com/robfig/cron/v3"
 )
 

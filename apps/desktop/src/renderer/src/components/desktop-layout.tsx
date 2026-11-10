@@ -1,7 +1,7 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { cn } from "@multica/ui/lib/utils";
-import { MulticaIcon } from "@multica/ui/components/common/multica-icon";
+import { cn } from "@morechat/ui/lib/utils";
+import { MorechatIcon } from "@morechat/ui/components/common/morechat-icon";
 import {
   useNavigationInputBindings,
   useTabHistory,
@@ -9,8 +9,8 @@ import {
 import {
   SidebarProvider,
   useSidebar,
-} from "@multica/ui/components/ui/sidebar";
-import { ModalRegistry } from "@multica/views/modals/registry";
+} from "@morechat/ui/components/ui/sidebar";
+import { ModalRegistry } from "@morechat/views/modals/registry";
 import {
   AppRail,
   AppShellProvider,
@@ -21,19 +21,19 @@ import {
   SearchButton,
   ShellRouteDataPrefetch,
   SpacePanel,
-} from "@multica/views/layout";
-import { SearchCommand } from "@multica/views/search";
-import { FloatingChat } from "@multica/views/chat";
-import { StarPrompt } from "@multica/views/star-prompt";
-import { WorkspaceSlugProvider, paths, useCurrentWorkspace } from "@multica/core/paths";
-import { workspaceListOptions } from "@multica/core/workspace";
+} from "@morechat/views/layout";
+import { SearchCommand } from "@morechat/views/search";
+import { FloatingChat } from "@morechat/views/chat";
+import { StarPrompt } from "@morechat/views/star-prompt";
+import { WorkspaceSlugProvider, paths, useCurrentWorkspace } from "@morechat/core/paths";
+import { workspaceListOptions } from "@morechat/core/workspace";
 import {
   useNavigation,
   type LinkClickIntent,
-} from "@multica/views/navigation";
-import { getCurrentSlug, subscribeToCurrentSlug } from "@multica/core/platform";
-import { useDesktopUnreadBadge } from "@multica/views/platform";
-import { useT } from "@multica/views/i18n";
+} from "@morechat/views/navigation";
+import { getCurrentSlug, subscribeToCurrentSlug } from "@morechat/core/platform";
+import { useDesktopUnreadBadge } from "@morechat/views/platform";
+import { useT } from "@morechat/views/i18n";
 import {
   DesktopNavigationProvider,
   routeContentLinkPath,
@@ -157,7 +157,7 @@ function MainCanvas({
           role="status"
         >
           <div className="flex flex-col items-center gap-4">
-            <MulticaIcon mode="think" size={40} />
+            <MorechatIcon mode="think" size={40} />
             <p className="text-body text-muted-foreground">{loadingLabel}</p>
           </div>
         </div>

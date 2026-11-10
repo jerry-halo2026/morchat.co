@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/testutil"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // claimAgentInstructionsForTest claims the next queued task for runtimeID and

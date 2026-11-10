@@ -3,28 +3,28 @@
 import { useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { copyText } from "@multica/ui/lib/clipboard";
-import { ApiError } from "@multica/core/api/client";
-import type { CreateIssueViewRequest, IssueView } from "@multica/core/api/schemas";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { memberListOptions } from "@multica/core/workspace/queries";
-import { canManageIssueView, type IssueViewScope } from "@multica/core/issue-views/queries";
+import { copyText } from "@morechat/ui/lib/clipboard";
+import { ApiError } from "@morechat/core/api/client";
+import type { CreateIssueViewRequest, IssueView } from "@morechat/core/api/schemas";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { memberListOptions } from "@morechat/core/workspace/queries";
+import { canManageIssueView, type IssueViewScope } from "@morechat/core/issue-views/queries";
 import {
   useCreateIssueView,
   useDeleteIssueView,
   useUpdateIssueView,
-} from "@multica/core/issue-views/mutations";
-import { useActiveIssueViewStore } from "@multica/core/issue-views/active-view-store";
-import { savedViewItemId, useSidebarViews } from "@multica/core/issue-views/sidebar-views";
-import { issueViewTarget } from "@multica/core/issue-views/view-target";
-import type { IssueViewDefinition } from "@multica/core/issue-views/definition";
+} from "@morechat/core/issue-views/mutations";
+import { useActiveIssueViewStore } from "@morechat/core/issue-views/active-view-store";
+import { savedViewItemId, useSidebarViews } from "@morechat/core/issue-views/sidebar-views";
+import { issueViewTarget } from "@morechat/core/issue-views/view-target";
+import type { IssueViewDefinition } from "@morechat/core/issue-views/definition";
 import {
   useIssueViewRenameStore,
   type IssueViewRenameSurface,
-} from "@multica/core/issue-views/rename-store";
-import { useIssueViewEditStore } from "@multica/core/issue-views/edit-store";
+} from "@morechat/core/issue-views/rename-store";
+import { useIssueViewEditStore } from "@morechat/core/issue-views/edit-store";
 import { useNavigation } from "../navigation";
 import { useT } from "../i18n";
 

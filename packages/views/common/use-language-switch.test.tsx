@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
-import { SUPPORTED_LOCALES } from "@multica/core/i18n";
+import { SUPPORTED_LOCALES } from "@morechat/core/i18n";
 import settings from "../locales/ru/settings.json";
 import { useLanguageSwitch } from "./use-language-switch";
 
@@ -17,16 +17,16 @@ vi.mock("../i18n", () => ({
   }),
 }));
 
-vi.mock("@multica/core/i18n/react", () => ({
+vi.mock("@morechat/core/i18n/react", () => ({
   useLocaleAdapter: () => ({ persist: state.persist }),
 }));
 
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: (selector: (store: { user: null }) => unknown) =>
     selector({ user: null }),
 }));
 
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: { updateMe: state.updateMe },
 }));
 

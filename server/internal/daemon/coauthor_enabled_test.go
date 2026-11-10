@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/daemon/repocache"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/repocache"
 )
 
 // workspaceCoAuthoredByEnabled gates the prepare-commit-msg hook installed in

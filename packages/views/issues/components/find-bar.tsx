@@ -1,11 +1,11 @@
 "use client";
 
 import type { KeyboardEvent } from "react";
-import { isImeComposing } from "@multica/core/utils";
-import { ChevronDown, ChevronUp, Search, X } from "@multica/ui/icons";
-import { Input } from "@multica/ui/components/ui/input";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { cn } from "@multica/ui/lib/utils";
+import { isImeComposing } from "@morechat/core/utils";
+import { ChevronDown, ChevronUp, Search, X } from "@morechat/ui/icons";
+import { Input } from "@morechat/ui/components/ui/input";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../../i18n";
 import type { UseInPageFindResult } from "../hooks/use-in-page-find";
 

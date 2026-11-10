@@ -100,7 +100,7 @@ selfhost: ## Create .env if needed, then pull and start the official self-hosted
 		fi; \
 		echo "==> Generated random JWT_SECRET, POSTGRES_PASSWORD, and MULTICA_VCS_SECRET_KEY"; \
 	fi
-	@echo "==> Pulling official Multica images..."
+	@echo "==> Pulling official morechat.co images..."
 	@if ! $(COMPOSE) -f docker-compose.selfhost.yml pull; then \
 		echo ""; \
 		echo "Official images for tag '$${MULTICA_IMAGE_TAG:-latest}' are not published yet."; \
@@ -108,7 +108,7 @@ selfhost: ## Create .env if needed, then pull and start the official self-hosted
 		echo "  make selfhost-build"; \
 		exit 1; \
 	fi
-	@echo "==> Starting Multica via Docker Compose..."
+	@echo "==> Starting morechat.co via Docker Compose..."
 	$(COMPOSE) -f docker-compose.selfhost.yml up -d
 	@bash scripts/selfhost-wait.sh official
 
@@ -133,13 +133,13 @@ selfhost-build: ## Build backend/web from the current checkout and start the sel
 		fi; \
 		echo "==> Generated random JWT_SECRET, POSTGRES_PASSWORD, and MULTICA_VCS_SECRET_KEY"; \
 	fi
-	@echo "==> Building Multica from the current checkout..."
+	@echo "==> Building morechat.co from the current checkout..."
 	$(COMPOSE) -f docker-compose.selfhost.yml -f docker-compose.selfhost.build.yml up -d --build
 	@bash scripts/selfhost-wait.sh build
 
 selfhost-stop: ## Stop the self-hosted Docker Compose stack
 	$(REQUIRE_COMPOSE)
-	@echo "==> Stopping Multica services..."
+	@echo "==> Stopping morechat.co services..."
 	$(COMPOSE) -f docker-compose.selfhost.yml down
 	@echo "✓ All services stopped."
 

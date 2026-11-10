@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/events"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/events"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // Deleting a chat session cancels the session's active tasks, and every

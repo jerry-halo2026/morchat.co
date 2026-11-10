@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { LOCALE_COOKIE, type SupportedLocale } from "@multica/core/i18n";
+import { LOCALE_COOKIE, type SupportedLocale } from "@morechat/core/i18n";
 import {
   isSupportedLocale,
   MULTICA_LOCALE_HEADER,
@@ -135,7 +135,7 @@ export function proxy(req: NextRequest) {
 
   // --- Root path: redirect logged-in users to their last workspace ---
   // The official cloud host also serves the public marketing site. Visiting
-  // https://multica.ai/ must remain a public-site navigation even when a local
+  // https://morechat.co/ must remain a public-site navigation even when a local
   // desktop/runtime session has fresh auth cookies; explicit app routes such
   // as /acme/issues and legacy /issues still route to the workspace app.
   if (

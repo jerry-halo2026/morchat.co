@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, RotateCcw } from "@multica/ui/icons";
+import { Loader2, RotateCcw } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { api, dispatchReasonCode } from "@multica/core/api";
-import type { AgentTask } from "@multica/core/types";
+import { api, dispatchReasonCode } from "@morechat/core/api";
+import type { AgentTask } from "@morechat/core/types";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
+} from "@morechat/ui/components/ui/tooltip";
 import { useT } from "../../i18n";
 
 /** Retry only makes sense for terminal-but-not-success runs. */

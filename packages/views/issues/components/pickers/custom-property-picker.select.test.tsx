@@ -2,8 +2,8 @@ import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { I18nProvider } from "@multica/core/i18n/react";
-import type { IssueProperty, IssuePropertyValue } from "@multica/core/types";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import type { IssueProperty, IssuePropertyValue } from "@morechat/core/types";
 import enIssues from "../../../locales/en/issues.json";
 import { CustomPropertyValueInput } from "./custom-property-picker";
 

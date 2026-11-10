@@ -11,7 +11,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/multica-ai/multica/server/pkg/agent"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
 )
 
 // stubModelDiscovery replaces the daemon's listModels indirection with a

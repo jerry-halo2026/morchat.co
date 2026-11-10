@@ -3,13 +3,13 @@ import { act, render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getRouteRegex } from "next/dist/shared/lib/router/utils/route-regex";
 import { getRouteMatcher } from "next/dist/shared/lib/router/utils/route-matcher";
-import { paths } from "@multica/core/paths";
+import { paths } from "@morechat/core/paths";
 
 const routeProps = vi.hoisted(() => ({
   last: null as { routeId: string; deliverable?: string } | null,
 }));
 
-vi.mock("@multica/views/issues/components", () => ({
+vi.mock("@morechat/views/issues/components", () => ({
   IssueDetailRoute: (props: { routeId: string; deliverable?: string }) => {
     routeProps.last = props;
     return null;

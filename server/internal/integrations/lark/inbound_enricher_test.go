@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/integrations/channel/engine"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel/engine"
 )
 
 // enricherFakeClient is a programmable APIClient for enricher tests. It

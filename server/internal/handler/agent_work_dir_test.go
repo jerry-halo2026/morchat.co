@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/daemon/execenv"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/execenv"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // TestRelativeWorkDir covers the privacy-safe display derivation that

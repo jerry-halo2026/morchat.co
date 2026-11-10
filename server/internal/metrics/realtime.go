@@ -3,7 +3,7 @@ package metrics
 import (
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/multica-ai/multica/server/internal/realtime"
+	"github.com/jerry-halo2026/morchat.co/server/internal/realtime"
 )
 
 type RealtimeCollector struct {

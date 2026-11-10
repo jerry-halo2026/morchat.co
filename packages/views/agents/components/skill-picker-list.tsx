@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Search } from "@multica/ui/icons";
+import { Search } from "@morechat/ui/icons";
 import { SkillIcon } from "../../skills/lib/skill-icon";
-import type { SkillSummary } from "@multica/core/types";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
-import { Input } from "@multica/ui/components/ui/input";
-import { cn } from "@multica/ui/lib/utils";
+import type { SkillSummary } from "@morechat/core/types";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
+import { Input } from "@morechat/ui/components/ui/input";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../../i18n";
 
 interface SkillPickerListProps {

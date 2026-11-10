@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/pkg/remotemcp"
-	"github.com/multica-ai/multica/server/pkg/remotemcp/remotemcptest"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/remotemcp"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/remotemcp/remotemcptest"
 )
 
 // Connection startup: the check that makes "the administrator approved these

@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildIssueStatusCatalog } from "@multica/core/issue-statuses/queries";
-import { I18nProvider } from "@multica/core/i18n/react";
-import type { Issue } from "@multica/core/types";
+import { buildIssueStatusCatalog } from "@morechat/core/issue-statuses/queries";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import type { Issue } from "@morechat/core/types";
 import { RESOURCES } from "../locales";
 import { useIssueTargetWriter } from "./issue-target";
 import type { IssueTarget } from "./types";
@@ -15,21 +15,21 @@ const { mockUpdateIssue, mockToast, mockOpenModal } = vi.hoisted(() => ({
   mockOpenModal: vi.fn(),
 }));
 
-vi.mock("@multica/core/api", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/api")>()),
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/api")>()),
   api: { updateIssue: mockUpdateIssue },
 }));
-vi.mock("@multica/core/hooks", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/hooks")>()),
+vi.mock("@morechat/core/hooks", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/hooks")>()),
   useWorkspaceId: () => "ws-test",
 }));
-vi.mock("@multica/core/issue-statuses/hooks", () => ({
+vi.mock("@morechat/core/issue-statuses/hooks", () => ({
   useIssueStatuses: () => buildIssueStatusCatalog([]),
 }));
-vi.mock("@multica/core/modals", async (importOriginal) => {
+vi.mock("@morechat/core/modals", async (importOriginal) => {
   const state = { open: mockOpenModal };
   return {
-    ...(await importOriginal<typeof import("@multica/core/modals")>()),
+    ...(await importOriginal<typeof import("@morechat/core/modals")>()),
     useModalStore: Object.assign((selector?: (s: typeof state) => unknown) => (selector ? selector(state) : state), {
       getState: () => state,
     }),

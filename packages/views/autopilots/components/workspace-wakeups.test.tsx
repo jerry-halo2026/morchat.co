@@ -3,12 +3,12 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { api } from "@multica/core/api";
+import { api } from "@morechat/core/api";
 import type {
   Issue,
   WorkspaceWakeup,
   WorkspaceWakeupFilters,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import { renderWithI18n } from "../../test/i18n";
 import { WorkspaceWakeupCreate, WorkspaceWakeups } from "./workspace-wakeups";
 
@@ -18,7 +18,7 @@ vi.mock("../../issues/components/wakeup-condition-names", () => ({
 vi.mock("../../common/use-viewing-timezone", () => ({
   useViewingTimezone: () => "UTC",
 }));
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: {
     listWorkspaceWakeups: vi.fn(),
     disableIssueWakeup: vi.fn(),
@@ -29,8 +29,8 @@ vi.mock("@multica/core/api", () => ({
   },
 }));
 
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws" }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws" }));
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({
     issueDetail: (id: string) => `/ws/issues/${id}`,
   }),
@@ -397,7 +397,7 @@ it("introduces wakeups when the workspace has none yet", async () => {
   const intro = await screen.findByRole("region", { name: "Bring agents back at the right moment" });
   expect(within(intro).getByRole("link", { name: /Read the docs/ })).toHaveAttribute(
     "href",
-    "https://multica.ai/docs/issue-wakeups",
+    "https://morechat.co/docs/issue-wakeups",
   );
   await user.click(within(intro).getByRole("button", { name: "New wakeup" }));
   expect(await screen.findByRole("dialog", { name: "Pick issue" })).toBeVisible();

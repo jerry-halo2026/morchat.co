@@ -1,7 +1,7 @@
 "use client";
 
-import { useWorkspaceId } from "@multica/core";
-import { useWorkspacePresencePrefetch } from "@multica/core/agents";
+import { useWorkspaceId } from "@morechat/core";
+import { useWorkspacePresencePrefetch } from "@morechat/core/agents";
 
 // Mount once inside any subtree that's already gated on "workspace resolved"
 // (DashboardLayout on web, WorkspaceRouteLayout on desktop). useWorkspaceId

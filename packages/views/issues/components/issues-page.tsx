@@ -1,8 +1,8 @@
 "use client";
 
-import { ListTodo, MessageSquare, Plus } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { useIssuesScope } from "@multica/core/issues/stores/issues-scope-store";
+import { ListTodo, MessageSquare, Plus } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { useIssuesScope } from "@morechat/core/issues/stores/issues-scope-store";
 import { useStartChatWithDraft } from "../../chat/use-start-chat-with-draft";
 import { useT } from "../../i18n";
 import { CollectionPageState } from "../../layout/collection-page";

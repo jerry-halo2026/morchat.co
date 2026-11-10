@@ -1,4 +1,4 @@
-import { ChooseRuntimePage } from "@multica/views/agents";
+import { ChooseRuntimePage } from "@morechat/views/agents";
 import { useDesktopRuntimeContext } from "./use-desktop-runtime-context";
 
 /**

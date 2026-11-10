@@ -1,22 +1,22 @@
 "use client";
 
-import { ChevronRight, Download, HardDrive, History, Pencil } from "@multica/ui/icons";
-import type { AgentRuntime, MemberWithUser, Skill } from "@multica/core/types";
-import { runtimeDisplayLabel } from "@multica/core/runtimes";
-import { resolvePublicFileUrl } from "@multica/core/workspace/avatar-url";
-import { ActorAvatar } from "@multica/ui/components/common/actor-avatar";
+import { ChevronRight, Download, HardDrive, History, Pencil } from "@morechat/ui/icons";
+import type { AgentRuntime, MemberWithUser, Skill } from "@morechat/core/types";
+import { runtimeDisplayLabel } from "@morechat/core/runtimes";
+import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
+import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@multica/ui/components/ui/popover";
-import { Textarea } from "@multica/ui/components/ui/textarea";
+} from "@morechat/ui/components/ui/popover";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/tooltip";
+import { cn } from "@morechat/ui/lib/utils";
 import { ObjectPanelSection, ObjectProperty } from "../../layout/object-page";
 import { ResourceLabelPicker } from "../../labels/resource-label-picker";
 import { useT, useTimeAgo } from "../../i18n";

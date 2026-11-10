@@ -20,11 +20,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/analytics"
-	"github.com/multica-ai/multica/server/internal/auth"
-	"github.com/multica-ai/multica/server/internal/logger"
-	obsmetrics "github.com/multica-ai/multica/server/internal/metrics"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/analytics"
+	"github.com/jerry-halo2026/morchat.co/server/internal/auth"
+	"github.com/jerry-halo2026/morchat.co/server/internal/logger"
+	obsmetrics "github.com/jerry-halo2026/morchat.co/server/internal/metrics"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // SignupError represents signup restriction errors

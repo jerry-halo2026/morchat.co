@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/daemon/execenv"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/execenv"
 )
 
 // This is an opt-in test of real Git for Windows, not an agent CLI or account.

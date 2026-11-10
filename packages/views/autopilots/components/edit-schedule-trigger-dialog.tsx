@@ -1,13 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useUpdateAutopilotTrigger } from "@multica/core/autopilots/mutations";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { Button } from "@multica/ui/components/ui/button";
-import { Switch } from "@multica/ui/components/ui/switch";
-import { Dialog, DialogContent, DialogTitle } from "@multica/ui/components/ui/dialog";
+import { useUpdateAutopilotTrigger } from "@morechat/core/autopilots/mutations";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Switch } from "@morechat/ui/components/ui/switch";
+import { Dialog, DialogContent, DialogTitle } from "@morechat/ui/components/ui/dialog";
 import { toast } from "sonner";
-import type { AutopilotTrigger } from "@multica/core/types";
+import type { AutopilotTrigger } from "@morechat/core/types";
 import { ScheduleEditor } from "./schedule-editor/schedule-editor";
 import { parseCron, toCron } from "./schedule-editor/cron-mapping";
 import { useScheduleSubmitGate } from "./schedule-editor/validate";

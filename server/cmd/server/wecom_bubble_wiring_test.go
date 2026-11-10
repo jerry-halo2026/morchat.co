@@ -5,11 +5,11 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/analytics"
-	"github.com/multica-ai/multica/server/internal/events"
-	"github.com/multica-ai/multica/server/internal/realtime"
-	"github.com/multica-ai/multica/server/internal/util/secretbox"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/analytics"
+	"github.com/jerry-halo2026/morchat.co/server/internal/events"
+	"github.com/jerry-halo2026/morchat.co/server/internal/realtime"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util/secretbox"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // What closes the WeCom streaming bubble is a bus subscription, and it is

@@ -12,7 +12,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	obsmetrics "github.com/multica-ai/multica/server/internal/metrics"
+	obsmetrics "github.com/jerry-halo2026/morchat.co/server/internal/metrics"
 )
 
 // newWaitlistTestUser inserts a fresh user row, returns its id, and

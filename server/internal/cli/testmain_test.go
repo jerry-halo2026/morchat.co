@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 // TestMain redirects both home environment variables to one scratch directory

@@ -5,8 +5,8 @@ import (
 
 	"github.com/oklog/ulid/v2"
 
-	"github.com/multica-ai/multica/server/internal/realtime"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/realtime"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // RelayNotifier sends daemon wakeup hints to the local daemon hub and, when

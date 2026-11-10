@@ -6,17 +6,17 @@ import type {
   AgentConversationStarter,
   AgentRuntime,
   MemberWithUser,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import {
   AGENT_DESCRIPTION_MAX_LENGTH,
   AGENT_MAX_CONCURRENT_TASKS_MAX,
   AGENT_MAX_CONCURRENT_TASKS_MIN,
-} from "@multica/core/agents";
-import { useConfigStore } from "@multica/core/config";
-import { isImeComposing } from "@multica/core/utils";
-import { Input } from "@multica/ui/components/ui/input";
-import { Textarea } from "@multica/ui/components/ui/textarea";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/core/agents";
+import { useConfigStore } from "@morechat/core/config";
+import { isImeComposing } from "@morechat/core/utils";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
+import { cn } from "@morechat/ui/lib/utils";
 import { AvatarUploadControl } from "../../common/avatar-upload-control";
 import {
   SettingsCard,

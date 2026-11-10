@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2 } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { Input } from "@multica/ui/components/ui/input";
+import { Plus, Trash2 } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Input } from "@morechat/ui/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/tooltip";
+import { cn } from "@morechat/ui/lib/utils";
 import { PAGE_GUTTER, PAGE_RAIL } from "../../layout/page-header";
 import { useT } from "../../i18n";
 import { FileTree } from "./file-tree";

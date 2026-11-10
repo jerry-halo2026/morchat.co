@@ -10,16 +10,16 @@ import { cleanup, fireEvent, screen, waitFor, within } from "@testing-library/re
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createStore, type StoreApi } from "zustand/vanilla";
-import { setApiInstance } from "@multica/core/api";
-import type { ApiClient } from "@multica/core/api/client";
-import { createAuthStore, registerAuthStore } from "@multica/core/auth";
-import { type IssueViewState, viewStoreSlice } from "@multica/core/issues/stores/view-store";
-import { ViewStoreProvider } from "@multica/core/issues/stores/view-store-context";
-import { createFilterCondition, createFilterGroup } from "@multica/core/issues/stores/filter-tree";
+import { setApiInstance } from "@morechat/core/api";
+import type { ApiClient } from "@morechat/core/api/client";
+import { createAuthStore, registerAuthStore } from "@morechat/core/auth";
+import { type IssueViewState, viewStoreSlice } from "@morechat/core/issues/stores/view-store";
+import { ViewStoreProvider } from "@morechat/core/issues/stores/view-store-context";
+import { createFilterCondition, createFilterGroup } from "@morechat/core/issues/stores/filter-tree";
 import { renderWithI18n } from "../../test/i18n";
 import { IssueFilterMenu } from "./issues-header";
 
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => "ws-1",
 }));
 

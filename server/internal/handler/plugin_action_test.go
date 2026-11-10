@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	publicapiv1 "github.com/multica-ai/multica/server/pkg/publicapi/v1"
+	publicapiv1 "github.com/jerry-halo2026/morchat.co/server/pkg/publicapi/v1"
 )
 
 // These are the Action API's security properties, not its happy path. Each one

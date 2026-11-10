@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 func newHTTP2TestClient(t *testing.T, handler http.Handler) (*Client, <-chan *testutil.BlackholeConn) {

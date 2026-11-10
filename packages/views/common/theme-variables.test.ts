@@ -6,7 +6,7 @@ import {
   THEME_VARIABLE_NAMES,
   THEME_VARIABLE_SECTIONS,
   type ThemeVariable,
-} from "@multica/core/appearance";
+} from "@morechat/core/appearance";
 
 /**
  * THEME_VARIABLES is the public contract for themes. This keeps it honest:

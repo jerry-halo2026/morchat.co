@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createChatStore, registerChatStore, useChatStore } from "@multica/core/chat";
+import { createChatStore, registerChatStore, useChatStore } from "@morechat/core/chat";
 import { useChatResize } from "./use-chat-resize";
 
 const memory = new Map<string, string>();

@@ -1,13 +1,13 @@
 "use client";
 
-import type { Agent } from "@multica/core/types";
+import type { Agent } from "@morechat/core/types";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import { ActorIssuesPanel } from "../../common/actor-issues-panel";
 import { useT } from "../../i18n";
 

@@ -1,5 +1,5 @@
 {
-  "name": "@multica/core",
+  "name": "@morechat/core",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -214,9 +214,9 @@
     "react": "catalog:"
   },
   "devDependencies": {
-    "@multica/eslint-config": "workspace:*",
-    "@multica/tsconfig": "workspace:*",
-    "@multica/vitest-setup": "workspace:*",
+    "@morechat/eslint-config": "workspace:*",
+    "@morechat/tsconfig": "workspace:*",
+    "@morechat/vitest-setup": "workspace:*",
     "@testing-library/react": "catalog:",
     "@types/react": "catalog:",
     "@typescript/native": "catalog:",

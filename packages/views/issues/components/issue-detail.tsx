@@ -1,16 +1,16 @@
 "use client";
 
-import { subIssueCreateDefaults } from "@multica/core/issues";
+import { subIssueCreateDefaults } from "@morechat/core/issues";
 import {
   issueBehavesAs,
   issueBehavesAsAny,
   issueStatusCategory,
-} from "@multica/core/issues";
+} from "@morechat/core/issues";
 import { IssueFlowCard } from "../../workflows/issue-flow-card";
 import { IssueAppRequests } from "../../common/app-requests";
 import { useStatusLabel } from "../utils/status-label";
 import { priorityLabel } from "../utils/priority-label";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
 import { useState, useEffect, useCallback, useMemo, useRef, useId, Fragment, type ReactNode } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { useDefaultLayout, usePanelRef } from "react-resizable-panels";
@@ -39,14 +39,14 @@ import {
   Unlink,
   Users,
   ArrowDown,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { BreadcrumbHeader, type BreadcrumbSegment } from "../../layout/breadcrumb-header";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@multica/ui/components/ui/resizable";
-import { Sheet, SheetContent } from "@multica/ui/components/ui/sheet";
-import { useIsMobile } from "@multica/ui/hooks/use-mobile";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@morechat/ui/components/ui/resizable";
+import { Sheet, SheetContent } from "@morechat/ui/components/ui/sheet";
+import { useIsMobile } from "@morechat/ui/hooks/use-mobile";
 import { ContentEditor, type ContentEditorRef, TitleEditor, type TitleEditorRef, useFileDropZone, FileDropOverlay, useLazyEditor, useEditorUpload, PreviewSequenceProvider, collectPreviewSequence } from "../../editor";
 import {
   WAKEUP_ACTIVITY_ACTIONS,
@@ -55,36 +55,36 @@ import {
   wakeupActivityChip,
 } from "./wakeup-activity";
 import { useWakeupText } from "./wakeup-presentation";
-import type { ImageSequenceBlock } from "@multica/core/attachments/image-sequence";
-import { FileUploadButton } from "@multica/ui/components/common/file-upload-button";
+import type { ImageSequenceBlock } from "@morechat/core/attachments/image-sequence";
+import { FileUploadButton } from "@morechat/ui/components/common/file-upload-button";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-} from "@multica/ui/components/ui/tooltip";
+} from "@morechat/ui/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { Popover, PopoverTrigger, PopoverContent } from "@multica/ui/components/ui/popover";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@multica/ui/components/ui/command";
-import { AvatarGroup, AvatarGroupCount } from "@multica/ui/components/ui/avatar";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { Popover, PopoverTrigger, PopoverContent } from "@morechat/ui/components/ui/popover";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@morechat/ui/components/ui/command";
+import { AvatarGroup, AvatarGroupCount } from "@morechat/ui/components/ui/avatar";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { ActionShortcutKeycaps } from "../../common/shortcut-keycaps";
 import { PropRow } from "../../common/prop-row";
 import { TimelineHandoff } from "../../workflows/timeline-handoff";
 import { PropertyIcon } from "../../common/property-icon";
-import type { Attachment, Issue, IssueProperty, IssueStatus, IssueStatusCategory, IssuePriority, TimelineEntry, UpdateIssueRequest } from "@multica/core/types";
-import { contentReferencesAttachment } from "@multica/core/types";
-import { isBuiltInIssueStatus } from "@multica/core/issue-statuses";
-import { commentLandingTarget, isDeletedComment } from "@multica/core/issues/comment-deletion";
-import { formatDateOnly, isPastDateOnly } from "@multica/core/issues/date";
-import { useUpdateIssue } from "@multica/core/issues/mutations";
+import type { Attachment, Issue, IssueProperty, IssueStatus, IssueStatusCategory, IssuePriority, TimelineEntry, UpdateIssueRequest } from "@morechat/core/types";
+import { contentReferencesAttachment } from "@morechat/core/types";
+import { isBuiltInIssueStatus } from "@morechat/core/issue-statuses";
+import { commentLandingTarget, isDeletedComment } from "@morechat/core/issues/comment-deletion";
+import { formatDateOnly, isPastDateOnly } from "@morechat/core/issues/date";
+import { useUpdateIssue } from "@morechat/core/issues/mutations";
 import { toast } from "sonner";
-import { errorCode } from "@multica/core/api";
+import { errorCode } from "@morechat/core/api";
 import { StatusIcon } from "./status-icon";
 import { PriorityIcon } from "./priority-icon";
 import { StatusPicker } from "./pickers/status-picker";
@@ -95,7 +95,7 @@ import { DueDatePicker } from "./pickers/due-date-picker";
 import { AssigneePicker } from "./pickers/assignee-picker";
 import { LabelPicker } from "./pickers/label-picker";
 import { CustomPropertyValueEditor, CustomPropertyValueDisplay } from "./pickers/custom-property-picker";
-import { Switch } from "@multica/ui/components/ui/switch";
+import { Switch } from "@morechat/ui/components/ui/switch";
 import { IssueActionsDropdown, useIssueActions, useArchivedInboxItemId, IssueActionsContextMenu, IssueContextMenuProvider } from "../actions";
 import { LabelChip } from "../../labels/label-chip";
 import { IssueAgentActivityIndicator } from "./issue-agent-activity-indicator";
@@ -106,7 +106,7 @@ import { LocalDirectoryHint } from "../../projects/components/local-directory-hi
 import { useNewRunIds } from "./use-run-comment-motion";
 import { AgentRunComment, CommentCard } from "./comment-card";
 import { EMPTY_COMMENT_RUNS, buildCommentRunView, orderTimelineWithRuns, type CommentRun } from "./comment-runs";
-import { issueTasksOptions } from "@multica/core/issues/queries";
+import { issueTasksOptions } from "@morechat/core/issues/queries";
 import { SourceContextBadge } from "./source-context-viewer";
 import { RevisionConflictCompare } from "./revision-conflict-compare";
 import { CommentInput } from "./comment-input";
@@ -123,7 +123,7 @@ import { QuickActionsSection } from "./quick-actions-section";
 import { PluginPanelSection } from "../../plugins";
 import { PullRequestsSection } from "./pull-requests-section";
 import { IssueEnvironmentsSection } from "./issue-environments-section";
-import { useGitHubSettings } from "@multica/core/github";
+import { useGitHubSettings } from "@morechat/core/github";
 import { DeliverablesSection } from "./deliverables/deliverables-section";
 import { IssueAppsSection } from "./issue-apps-section";
 import { DeliverablesOverview } from "./deliverables/deliverables-overview";
@@ -132,7 +132,7 @@ import {
   useDeliverableDetails,
   type DeliverableOrigin,
 } from "./deliverables/deliverable-details";
-import { collectDeliverableFiles } from "@multica/core/attachments/deliverables";
+import { collectDeliverableFiles } from "@morechat/core/attachments/deliverables";
 import { AttachmentVersionsProvider } from "./deliverables/attachment-versions";
 import {
   OpenDeliverableOnLoad,
@@ -141,23 +141,23 @@ import {
   useFreshTimelineRead,
 } from "./deliverables/deliverable-link";
 import { useQuery } from "@tanstack/react-query";
-import { useIssueReadState } from "@multica/core/issues/read-state";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { useWorkspaceId } from "@multica/core/hooks";
+import { useIssueReadState } from "@morechat/core/issues/read-state";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   useProjectWorkflow,
-} from "@multica/core/issue-workflows";
-import { useRecentContextStore } from "@multica/core/chat";
+} from "@morechat/core/issue-workflows";
+import { useRecentContextStore } from "@morechat/core/chat";
 import { useRegisterCommandBarContext } from "../../search/register-context";
-import { useModalStore } from "@multica/core/modals";
-import { issueListOptions, issueDetailOptions, childIssuesOptions, childIssueProgressOptions, issueAttachmentsOptions } from "@multica/core/issues/queries";
-import { projectDetailOptions } from "@multica/core/projects/queries";
+import { useModalStore } from "@morechat/core/modals";
+import { issueListOptions, issueDetailOptions, childIssuesOptions, childIssueProgressOptions, issueAttachmentsOptions } from "@morechat/core/issues/queries";
+import { projectDetailOptions } from "@morechat/core/projects/queries";
 import { ProjectIcon } from "../../projects/components/project-icon";
-import { issueLabelsOptions } from "@multica/core/labels";
-import { propertyListOptions } from "@multica/core/properties";
-import { memberListOptions, agentListOptions } from "@multica/core/workspace/queries";
+import { issueLabelsOptions } from "@morechat/core/labels";
+import { propertyListOptions } from "@morechat/core/properties";
+import { memberListOptions, agentListOptions } from "@morechat/core/workspace/queries";
 import {
   selectExpandedResolved,
   useCommentCollapseStore,
@@ -168,7 +168,7 @@ import {
   SUB_ISSUE_ROW_PROPERTY_KEYS,
   type SubIssueRowProperties,
   type SubIssueRowPropertyKey,
-} from "@multica/core/issues/stores";
+} from "@morechat/core/issues/stores";
 import { BatchActionToolbar } from "./batch-action-toolbar";
 import {
   IssueSurfaceSelectionProvider,
@@ -180,7 +180,7 @@ import { useIssueReactions } from "../hooks/use-issue-reactions";
 import { useIssueSubscribers } from "../hooks/use-issue-subscribers";
 import { useMarkIssueReadWhileViewing } from "../hooks/use-mark-issue-read-while-viewing";
 import { useMarkIssueInboxReadWhileViewing } from "../hooks/use-mark-issue-inbox-read-while-viewing";
-import { ReactionBar } from "@multica/ui/components/common/reaction-bar";
+import { ReactionBar } from "@morechat/ui/components/common/reaction-bar";
 import { useLocale, useTimeAgo } from "../../i18n";
 import {
   useRestoredScrollOffset,
@@ -188,8 +188,8 @@ import {
   useRestoredViewState,
   useViewStateWriter,
 } from "../../platform";
-import { cn } from "@multica/ui/lib/utils";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
+import { cn } from "@morechat/ui/lib/utils";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
 import { CollectionPageState } from "../../layout/collection-page";
 import { PAGE_GUTTER, usePageHeaderTitleBar } from "../../layout/page-header";
 import { READING_COLUMN } from "../../layout/reading-column";

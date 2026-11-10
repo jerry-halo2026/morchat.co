@@ -1,5 +1,5 @@
-// Every Multica glyph, as inner SVG markup on the 24px grid. Run
-// `pnpm --filter @multica/ui icons` after editing to regenerate ../glyphs.ts
+// Every morechat.co glyph, as inner SVG markup on the 24px grid. Run
+// `pnpm --filter @morechat/ui icons` after editing to regenerate ../glyphs.ts
 // and ../index.ts.
 
 import { S, dot, f, gear, head, polygon, rect, shape } from "./construction.mjs";

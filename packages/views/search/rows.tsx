@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Check } from "@multica/ui/icons";
+import { Check } from "@morechat/ui/icons";
 import { Command as CommandPrimitive } from "cmdk";
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 import { ShortcutKeycaps } from "../common/shortcut-keycaps";
 import { HighlightText } from "./highlight-text";
 import { stripEllipsis } from "./matching";

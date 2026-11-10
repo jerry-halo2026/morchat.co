@@ -1,14 +1,14 @@
 "use client";
 
-import { SlidersHorizontal } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { Button } from "@multica/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@multica/ui/components/ui/popover";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@multica/ui/components/ui/select";
-import { Switch } from "@multica/ui/components/ui/switch";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { shownSidebarStatuses } from "@multica/core/issues/sidebar-list";
-import { useSidebarProjectPrefs, useUpdateSidebarProjectPrefs } from "@multica/core/issues/sidebar-project-prefs";
+import { SlidersHorizontal } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@morechat/ui/components/ui/popover";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@morechat/ui/components/ui/select";
+import { Switch } from "@morechat/ui/components/ui/switch";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { shownSidebarStatuses } from "@morechat/core/issues/sidebar-list";
+import { useSidebarProjectPrefs, useUpdateSidebarProjectPrefs } from "@morechat/core/issues/sidebar-project-prefs";
 import {
   DEFAULT_SIDEBAR_ISSUE_SETTINGS,
   DEFAULT_SIDEBAR_PROJECT_SETTINGS,
@@ -17,9 +17,9 @@ import {
   type SidebarIssueSort,
   type SidebarProjectOrdering,
   type SidebarProjectSettings,
-} from "@multica/core/issues/stores/sidebar-tree-store";
-import { PROJECT_STATUS_CONFIG, PROJECT_STATUS_ORDER } from "@multica/core/projects/config";
-import type { ProjectStatus } from "@multica/core/types";
+} from "@morechat/core/issues/stores/sidebar-tree-store";
+import { PROJECT_STATUS_CONFIG, PROJECT_STATUS_ORDER } from "@morechat/core/projects/config";
+import type { ProjectStatus } from "@morechat/core/types";
 import { DisplayChip, SortDirectionButton } from "../../issues/components/display-parts";
 import { StatusIcon } from "../../issues/components/status-icon";
 import { sortDirectionLabelKey } from "../../issues/utils/sort-direction";

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { I18nProvider } from "@multica/core/i18n/react";
+import { I18nProvider } from "@morechat/core/i18n/react";
 import enCommon from "../locales/en/common.json";
 import enIssues from "../locales/en/issues.json";
 
@@ -25,17 +25,17 @@ vi.mock("@tanstack/react-query", () => ({
       ? { data: data.launch, isPending: false, isError: data.launch === null }
       : { data: data.installed, isLoading: false, isError: false },
 }));
-vi.mock("@multica/core/plugins", () => ({
+vi.mock("@morechat/core/plugins", () => ({
   pluginInstallationsOptions: () => ({ queryKey: ["plugins"] }),
   pluginSurfaceLaunchOptions: () => ({ queryKey: ["surface"] }),
 }));
 const settingsPush = vi.hoisted(() => vi.fn());
 vi.mock("../navigation", () => ({ useNavigation: () => ({ push: settingsPush }) }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({ settings: () => "/acme/settings" }),
   useCurrentWorkspace: () => ({ id: "workspace-1", name: "Acme", slug: "acme" }),
 }));
-vi.mock("@multica/core/config", () => ({ useFeatureEnabled: () => data.flagEnabled }));
+vi.mock("@morechat/core/config", () => ({ useFeatureEnabled: () => data.flagEnabled }));
 vi.mock("../platform/local-directory", () => ({ isDesktopShell: () => false }));
 
 import { PluginPanelSection } from "./plugin-panel-section";
@@ -163,7 +163,7 @@ describe("PluginPanelSection", () => {
     expect(screen.getByText(/could not load its interface/i)).toBeInTheDocument();
   });
 
-  it("loads only Multica's dedicated content origin", () => {
+  it("loads only morechat.co's dedicated content origin", () => {
     data.installed.plugins = [installation()];
     render(<PluginPanelSection issueId="issue-1" />, { wrapper: Wrapper });
 

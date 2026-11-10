@@ -2,9 +2,9 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { pluginSurfaceLaunchOptions } from "@multica/core/plugins";
-import type { PluginInstallation, PluginSurface } from "@multica/core/types";
-import { cn } from "@multica/ui/lib/utils";
+import { pluginSurfaceLaunchOptions } from "@morechat/core/plugins";
+import type { PluginInstallation, PluginSurface } from "@morechat/core/types";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../i18n";
 import { buildSurfaceFrameDocument, readThemeTokens } from "./surface-document";
 import { createSurfaceBridge } from "./surface-bridge";

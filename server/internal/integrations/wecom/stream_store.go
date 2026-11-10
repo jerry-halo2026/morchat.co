@@ -24,7 +24,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/multica-ai/multica/server/internal/util"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
 )
 
 // streamMaxAge is how long a handle is worth keeping: ten minutes, measured

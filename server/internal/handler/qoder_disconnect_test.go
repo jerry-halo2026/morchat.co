@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 func TestQoderDisconnectRemovesConnectionAndUnbindsAgents(t *testing.T) {

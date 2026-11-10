@@ -5,7 +5,7 @@
 // no cookie, no localStorage and no access to the page around it. Everything it
 // does goes through the host bridge.
 //
-// In a real plugin you would `import { multica } from "@multica/plugin-sdk"`.
+// In a real plugin you would `import { multica } from "@morechat/plugin-sdk"`.
 // This file inlines a minimal client so it can be served as a single static
 // file with nothing to install.
 

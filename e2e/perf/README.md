@@ -40,8 +40,8 @@ the scenario. No server, daemon or real agent runs are involved.
 Build with a same-origin API URL so all requests reach the synthetic boundary:
 
 ```bash
-NEXT_PUBLIC_API_URL='' pnpm --filter @multica/web build
-NEXT_PUBLIC_API_URL='' pnpm --filter @multica/web exec next start --port 3000
+NEXT_PUBLIC_API_URL='' pnpm --filter @morechat/web build
+NEXT_PUBLIC_API_URL='' pnpm --filter @morechat/web exec next start --port 3000
 PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm exec playwright test --config=playwright.perf.config.ts agent-recent-work.spec.ts
 ```
 

@@ -7,24 +7,24 @@ import {
   Plus,
   RefreshCw,
   Server,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import type { Agent, AgentRuntime, WorkspaceMcpServer } from "@multica/core/types";
-import { ApiError } from "@multica/core/api";
+import type { Agent, AgentRuntime, WorkspaceMcpServer } from "@morechat/core/types";
+import { ApiError } from "@morechat/core/api";
 import {
   isRuntimeUsableForUser,
   runtimeCapabilitiesOptions,
   runtimeDisplayLabel,
-} from "@multica/core/runtimes";
+} from "@morechat/core/runtimes";
 import {
   agentMcpServersOptions,
   workspaceMcpServersOptions,
-} from "@multica/core/workspace/queries";
+} from "@morechat/core/workspace/queries";
 import {
   useAddAgentMcpServer,
   useRemoveAgentMcpServer,
   useSetAgentMcpServerEnabled,
-} from "@multica/core/workspace/mutations";
+} from "@morechat/core/workspace/mutations";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,16 +34,16 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import { Badge } from "@multica/ui/components/ui/badge";
-import { Button } from "@multica/ui/components/ui/button";
+} from "@morechat/ui/components/ui/alert-dialog";
+import { Badge } from "@morechat/ui/components/ui/badge";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { Switch } from "@multica/ui/components/ui/switch";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { Switch } from "@morechat/ui/components/ui/switch";
 import { toast } from "sonner";
 import {
   McpRemoveButton,

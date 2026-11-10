@@ -1,7 +1,7 @@
 "use client";
 
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { cn } from "@multica/ui/lib/utils";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { cn } from "@morechat/ui/lib/utils";
 
 import { useState, useCallback, useMemo, useEffect, useRef, memo } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -23,13 +23,13 @@ import type {
   IssueStatus,
   Project,
   IssueProperty,
-} from "@multica/core/types";
-import { useViewStore } from "@multica/core/issues/stores/view-store-context";
-import { propertyIdFromViewKey } from "@multica/core/issues/stores/view-store";
-import { propertyListOptions, useSetIssueProperty, useUnsetIssueProperty } from "@multica/core/properties";
-import { useWorkspaceId } from "@multica/core/hooks";
-import type { IssueGrouping } from "@multica/core/issues/stores/view-store";
-import { useActorName } from "@multica/core/workspace/hooks";
+} from "@morechat/core/types";
+import { useViewStore } from "@morechat/core/issues/stores/view-store-context";
+import { propertyIdFromViewKey } from "@morechat/core/issues/stores/view-store";
+import { propertyListOptions, useSetIssueProperty, useUnsetIssueProperty } from "@morechat/core/properties";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import type { IssueGrouping } from "@morechat/core/issues/stores/view-store";
+import { useActorName } from "@morechat/core/workspace/hooks";
 import { BoardColumn, BOARD_CARD_WIDTH, type BoardColumnGroup } from "./board-column";
 import { BoardWorkflowContext, type BoardWorkflowContextValue } from "./board-workflow-context";
 import {
@@ -39,10 +39,10 @@ import {
   useIssueWorkflows,
   workflowAllowsStatus,
   workflowStep,
-} from "@multica/core/issue-workflows";
+} from "@morechat/core/issue-workflows";
 import { WorkflowHandoffConfirmDialog } from "../../workflows/handoff-confirm-dialog";
 import { stepHandlerActor, useStepHandlerLabel } from "../../workflows/step-handler";
-import { projectListOptions } from "@multica/core/projects/queries";
+import { projectListOptions } from "@morechat/core/projects/queries";
 import { BoardCardContent } from "./board-card";
 import { InfiniteScrollSentinel } from "./infinite-scroll-sentinel";
 import { ListLoadMoreFooter } from "./list-load-more-footer";

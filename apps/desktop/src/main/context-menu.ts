@@ -201,7 +201,7 @@ const labelsByLocale: Record<string, ContextMenuLabels> = {
 // ship copy for. We say "Open Link in Browser" rather than
 // "Open Link in New Window" because the link is opened via
 // shell.openExternal — it lands in the user's default browser, not in
-// another Multica window — so the wording matches what actually
+// another morechat.co window — so the wording matches what actually
 // happens.
 function pickLabels(): ContextMenuLabels {
   const preferred = app.getPreferredSystemLanguages()[0]?.toLowerCase() ?? "";

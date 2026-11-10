@@ -8,7 +8,7 @@
 //
 // The window is found by owner PID only: the process listening on this
 // environment's CDP port, which `make status` has already proven belongs to
-// the environment. The app name ("Multica Canary") and the window title (the
+// the environment. The app name ("morechat.co Canary") and the window title (the
 // current page) are shared with the user's own Desktop, so matching on either
 // can capture a private window.
 //
@@ -183,7 +183,7 @@ async function captureWindow(out, { title, settle }) {
   const { screenRecording, windows } = listWindows(pid);
   if (!screenRecording) {
     throw new CaptureError(
-      "Screen Recording permission is missing for the app running this command (Terminal, iTerm, Cursor, the Multica daemon, ...). " +
+      "Screen Recording permission is missing for the app running this command (Terminal, iTerm, Cursor, the morechat.co daemon, ...). " +
         "Grant it in System Settings > Privacy & Security > Screen & System Audio Recording, then restart that app.",
     );
   }

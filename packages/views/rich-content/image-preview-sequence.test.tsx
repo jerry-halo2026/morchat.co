@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { Attachment } from "@multica/core/types";
-import { configStore } from "@multica/core/config";
+import type { Attachment } from "@morechat/core/types";
+import { configStore } from "@morechat/core/config";
 
 vi.mock("../issues/hooks", () => ({
   useResolveIssueIdentifier: () => null,
@@ -21,13 +21,13 @@ vi.mock("../i18n", async () => {
   };
 });
 
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: { getBaseUrl: () => "", getAttachmentTextContent: vi.fn() },
   PreviewTooLargeError: class extends Error {},
   PreviewUnsupportedError: class extends Error {},
 }));
 
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({
     issueDetail: (id: string) => `/acme/issues/${id}`,
     projectDetail: (id: string) => `/acme/projects/${id}`,

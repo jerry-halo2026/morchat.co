@@ -1,21 +1,21 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { ArrowRight, Download, Loader2 } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
+import { ArrowRight, Download, Loader2 } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { cn } from "@multica/ui/lib/utils";
-import type { AgentRuntime } from "@multica/core/types";
+} from "@morechat/ui/components/ui/dialog";
+import { cn } from "@morechat/ui/lib/utils";
+import type { AgentRuntime } from "@morechat/core/types";
 import {
   runtimeDisplayLabel,
   useDaemonSetupCommands,
-} from "@multica/core/runtimes";
+} from "@morechat/core/runtimes";
 import {
   StepFooter,
   StepHeading,

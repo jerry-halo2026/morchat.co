@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { FlatList, Pressable, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
-import type { AgentTask, TaskMessagePayload } from "@multica/core/types";
-import { redactSecrets } from "@multica/core/security/redact-secrets";
+import type { AgentTask, TaskMessagePayload } from "@morechat/core/types";
+import { redactSecrets } from "@morechat/core/security/redact-secrets";
 import { Text } from "@/components/ui/text";
 import {
   Collapsible,

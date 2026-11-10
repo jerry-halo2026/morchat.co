@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "@testing-library/react";
 import { useMemo } from "react";
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
-import { createQueryClient } from "@multica/core/query-client";
-import { issueKeys } from "@multica/core/issues/queries";
-import { collectDeliverableFiles } from "@multica/core/attachments/deliverables";
-import type { Attachment, TimelineEntry } from "@multica/core/types";
+import { createQueryClient } from "@morechat/core/query-client";
+import { issueKeys } from "@morechat/core/issues/queries";
+import { collectDeliverableFiles } from "@morechat/core/attachments/deliverables";
+import type { Attachment, TimelineEntry } from "@morechat/core/types";
 import { renderWithI18n } from "../../../test/i18n";
 
 // The real timeline hook and QueryClient defaults (staleTime: Infinity), with
@@ -16,10 +16,10 @@ const { listTimelineMock, openAtMock, toastMock } = vi.hoisted(() => ({
   toastMock: { success: vi.fn(), error: vi.fn() },
 }));
 
-vi.mock("@multica/core/api", () => ({ api: { listTimeline: listTimelineMock } }));
-vi.mock("@multica/core/realtime", () => ({ useWSEvent: () => {}, useWSReconnect: () => {} }));
+vi.mock("@morechat/core/api", () => ({ api: { listTimeline: listTimelineMock } }));
+vi.mock("@morechat/core/realtime", () => ({ useWSEvent: () => {}, useWSReconnect: () => {} }));
 // Comment mutations need a workspace and play no part in reading the timeline.
-vi.mock("@multica/core/issues/mutations", () => {
+vi.mock("@morechat/core/issues/mutations", () => {
   const mutation = () => ({ mutate: vi.fn(), mutateAsync: vi.fn(), isPending: false });
   return {
     useCreateComment: mutation,

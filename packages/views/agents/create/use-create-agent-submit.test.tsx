@@ -4,20 +4,20 @@ import type { ReactNode } from "react";
 import { act, renderHook } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EMPTY_AGENT_DRAFT } from "@multica/core/agents";
-import { I18nProvider } from "@multica/core/i18n/react";
-import type { Agent } from "@multica/core/types";
-import { workspaceKeys } from "@multica/core/workspace/queries";
+import { EMPTY_AGENT_DRAFT } from "@morechat/core/agents";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import type { Agent } from "@morechat/core/types";
+import { workspaceKeys } from "@morechat/core/workspace/queries";
 import enAgents from "../../locales/en/agents.json";
 
 const mockCreateAgent = vi.hoisted(() => vi.fn());
 const mockReplace = vi.hoisted(() => vi.fn());
 
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => "ws-1",
 }));
 
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({
     agentDetail: (agentId: string) => `/acme/agents/${agentId}`,
     squadDetail: (squadId: string) => `/acme/squads/${squadId}`,
@@ -29,7 +29,7 @@ vi.mock("../../navigation", () => ({
   useNavigation: () => ({ replace: mockReplace }),
 }));
 
-vi.mock("@multica/core/api", () => {
+vi.mock("@morechat/core/api", () => {
   class ApiError extends Error {
     status: number;
     constructor(message: string, status: number) {

@@ -4,11 +4,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderWithI18n } from "../../../test/i18n";
 import { LabelPicker } from "./label-picker";
 
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
-vi.mock("@multica/core/paths", () => ({ useWorkspacePaths: () => ({ settings: () => "/settings" }) }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/paths", () => ({ useWorkspacePaths: () => ({ settings: () => "/settings" }) }));
 vi.mock("../../../navigation", () => ({ useNavigation: () => ({ push: vi.fn() }) }));
 vi.mock("@tanstack/react-query", () => ({ useQuery: () => ({ data: [{ id: "bug", name: "Bug", color: "#ff0000" }] }) }));
-vi.mock("@multica/core/labels", () => ({
+vi.mock("@morechat/core/labels", () => ({
   labelListOptions: () => ({}),
   issueLabelsOptions: () => ({}),
   useAttachLabel: () => ({ mutate: vi.fn() }),

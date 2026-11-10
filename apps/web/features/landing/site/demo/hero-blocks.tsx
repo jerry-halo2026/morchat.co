@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { Check, CircleCheck, GitPullRequest, MessageCircle } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
+import { Check, CircleCheck, GitPullRequest, MessageCircle } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
 import { useDemoCopy } from "./mock-kit";
 
 /*

@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/testutil"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 func TestCreateWorkspace_RejectsReservedSlug(t *testing.T) {
@@ -246,7 +246,7 @@ VALUES ($1, 123456789, 'multica-ai', 'multica', 3366, 987654321, 'abc123', 15368
 		"pr_number":       5265,
 		"title":           "Workspace cleanup snapshot",
 		"state":           "open",
-		"html_url":        "https://github.com/multica-ai/multica/pull/5265",
+		"html_url":        "https://github.com/jerry-halo2026/morchat.co/pull/5265",
 		"pr_created_at":   testutil.Raw("now()"),
 		"pr_updated_at":   testutil.Raw("now()"),
 		"head_sha":        "head-a",
@@ -848,14 +848,14 @@ VALUES ($1, $2, 'owner')
 		req := newRequest("PATCH", "/api/workspaces/"+wsID, map[string]any{
 			"repos": []map[string]any{
 				{
-					"url":         "  https://github.com/multica-ai/multica.git  ",
+					"url":         "  https://github.com/jerry-halo2026/morchat.co.git  ",
 					"description": "  main monorepo  ",
 				},
 				{
-					"url": "https://github.com/multica-ai/multica.git",
+					"url": "https://github.com/jerry-halo2026/morchat.co.git",
 				},
 				{
-					"url": "git@github.com:multica-ai/multica-cloud.git",
+					"url": "git@github.com:jerry-halo2026/morchat.co-cloud.git",
 				},
 			},
 		})
@@ -871,10 +871,10 @@ VALUES ($1, $2, 'owner')
 		if len(repos) != 2 {
 			t.Fatalf("expected duplicate URL to be deduped, got %d repos: %s", len(repos), raw)
 		}
-		if repos[0].URL != "https://github.com/multica-ai/multica.git" || repos[0].Description != "main monorepo" {
+		if repos[0].URL != "https://github.com/jerry-halo2026/morchat.co.git" || repos[0].Description != "main monorepo" {
 			t.Fatalf("first repo not normalized: %+v", repos[0])
 		}
-		if repos[1].URL != "git@github.com:multica-ai/multica-cloud.git" {
+		if repos[1].URL != "git@github.com:jerry-halo2026/morchat.co-cloud.git" {
 			t.Fatalf("second repo not preserved: %+v", repos[1])
 		}
 	})

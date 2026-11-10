@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchGithubStars } from "@multica/core/github/stars";
+import { fetchGithubStars } from "@morechat/core/github/stars";
 
-export { formatStarCount } from "@multica/core/github/stars";
+export { formatStarCount } from "@morechat/core/github/stars";
 
 /**
  * Live GitHub star count for the landing header's "GitHub" button.

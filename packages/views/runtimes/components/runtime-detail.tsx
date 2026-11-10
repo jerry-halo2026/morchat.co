@@ -7,7 +7,7 @@ import {
   Lock,
   MoreHorizontal,
   Trash2,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import type {
@@ -15,29 +15,29 @@ import type {
   Agent,
   MemberWithUser,
   RuntimeProfile,
-} from "@multica/core/types";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { memberListOptions, agentListOptions } from "@multica/core/workspace/queries";
+} from "@morechat/core/types";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { memberListOptions, agentListOptions } from "@morechat/core/workspace/queries";
 import {
   deriveRuntimeHealth,
   isRuntimeUsableForUser,
   runtimeDisplayName,
   runtimeProfileListOptions,
-} from "@multica/core/runtimes";
+} from "@morechat/core/runtimes";
 import {
   type AgentPresenceDetail,
   useWorkspacePresenceMap,
-} from "@multica/core/agents";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { IconButton } from "@multica/ui/components/common/icon-button";
+} from "@morechat/core/agents";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { cn } from "@morechat/ui/lib/utils";
 import { ActorAvatar } from "../../common/actor-avatar";
 import {
   OBJECT_PAGE_BODY,
@@ -60,7 +60,7 @@ import { RuntimeConcurrencyField } from "./runtime-concurrency-field";
 import { DeleteRuntimeProfileDialog } from "./delete-runtime-profile-dialog";
 import { runtimeRowLabel } from "./runtime-machines";
 import { useT, useTimeAgo } from "../../i18n";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
 
 function getCliVersion(metadata: Record<string, unknown>): string | null {
   if (

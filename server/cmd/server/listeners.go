@@ -7,10 +7,10 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/multica-ai/multica/server/internal/events"
-	"github.com/multica-ai/multica/server/internal/handler"
-	"github.com/multica-ai/multica/server/internal/realtime"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/events"
+	"github.com/jerry-halo2026/morchat.co/server/internal/handler"
+	"github.com/jerry-halo2026/morchat.co/server/internal/realtime"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // internalOnlyPayloadKeys lists payload keys that exist purely for in-process

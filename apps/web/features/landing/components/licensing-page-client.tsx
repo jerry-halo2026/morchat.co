@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 import { DocumentPage, DocumentSections } from "./document-page";
 import { useLocale } from "../i18n";
 

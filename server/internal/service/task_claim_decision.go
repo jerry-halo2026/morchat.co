@@ -5,7 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/multica-ai/multica/server/internal/util"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
 )
 
 // Claim decision observability (#8551, queue-wait attribution).

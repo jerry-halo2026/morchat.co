@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import type { Issue, IssueProperty } from "@multica/core/types";
-import { copyableParentProperties, copyParentIssueFields, type ParentCopyField, type ParentFieldCopy } from "@multica/core/issues";
-import { Button } from "@multica/ui/components/ui/button";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverDescription, PopoverTitle, PopoverTrigger } from "@multica/ui/components/ui/popover";
+import type { Issue, IssueProperty } from "@morechat/core/types";
+import { copyableParentProperties, copyParentIssueFields, type ParentCopyField, type ParentFieldCopy } from "@morechat/core/issues";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverDescription, PopoverTitle, PopoverTrigger } from "@morechat/ui/components/ui/popover";
 import { CustomPropertyValueDisplay } from "../issues/components/pickers/custom-property-picker";
 import { useT } from "../i18n";
 

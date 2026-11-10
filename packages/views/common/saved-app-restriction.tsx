@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@multica/ui/components/ui/button";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
+} from "@morechat/ui/components/ui/alert-dialog";
 import { useT } from "../i18n";
 
 /** A one-time recovery action, shown only while saved restrictions apply. */

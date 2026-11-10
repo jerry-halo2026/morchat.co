@@ -16,10 +16,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	obsmetrics "github.com/multica-ai/multica/server/internal/metrics"
-	"github.com/multica-ai/multica/server/internal/middleware"
-	"github.com/multica-ai/multica/server/internal/seatcapacity"
-	"github.com/multica-ai/multica/server/internal/testutil"
+	obsmetrics "github.com/jerry-halo2026/morchat.co/server/internal/metrics"
+	"github.com/jerry-halo2026/morchat.co/server/internal/middleware"
+	"github.com/jerry-halo2026/morchat.co/server/internal/seatcapacity"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 const invitationTestEmail = "invitation-test@multica.ai"

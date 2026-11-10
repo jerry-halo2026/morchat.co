@@ -3,25 +3,25 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Pencil, Plug, ShieldCheck } from "@multica/ui/icons";
-import { Badge } from "@multica/ui/components/ui/badge";
-import { Button } from "@multica/ui/components/ui/button";
-import { Input } from "@multica/ui/components/ui/input";
-import { Textarea } from "@multica/ui/components/ui/textarea";
-import { cn } from "@multica/ui/lib/utils";
-import { ApiError, api } from "@multica/core/api";
-import { useAuthStore } from "@multica/core/auth";
-import { useFeatureEnabled } from "@multica/core/config";
-import { COMPOSIO_MCP_APPS_FLAG } from "@multica/core/feature-flags";
-import { useWorkspaceId } from "@multica/core/hooks";
+import { Loader2, Pencil, Plug, ShieldCheck } from "@morechat/ui/icons";
+import { Badge } from "@morechat/ui/components/ui/badge";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
+import { cn } from "@morechat/ui/lib/utils";
+import { ApiError, api } from "@morechat/core/api";
+import { useAuthStore } from "@morechat/core/auth";
+import { useFeatureEnabled } from "@morechat/core/config";
+import { COMPOSIO_MCP_APPS_FLAG } from "@morechat/core/feature-flags";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   chatAppRequestsOptions,
   connectedAppsKeys,
   issueAppRequestsOptions,
   useDecideAppRequest,
-} from "@multica/core/connected-apps";
-import { useActorName } from "@multica/core/workspace/hooks";
-import type { AppRequest } from "@multica/core/types";
+} from "@morechat/core/connected-apps";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import type { AppRequest } from "@morechat/core/types";
 import { useLocale, useT } from "../i18n";
 import { currentPath, useNavigation } from "../navigation";
 

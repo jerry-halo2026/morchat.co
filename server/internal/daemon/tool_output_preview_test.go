@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/multica-ai/multica/server/pkg/agent"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
 )
 
 func TestToolOutputPreview(t *testing.T) {

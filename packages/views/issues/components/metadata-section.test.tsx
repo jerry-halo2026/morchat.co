@@ -1,12 +1,12 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { copyText } from "@multica/ui/lib/clipboard";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import { toast } from "sonner";
 import { renderWithI18n } from "../../test/i18n";
 import { MetadataSection } from "./metadata-section";
 
-vi.mock("@multica/ui/lib/clipboard", () => ({ copyText: vi.fn() }));
+vi.mock("@morechat/ui/lib/clipboard", () => ({ copyText: vi.fn() }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 const metadata = { pipeline_status: "waiting_review", pr_number: 61, passed: false, note: "长文本\n第二行" };
 

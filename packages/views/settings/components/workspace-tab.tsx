@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Copy } from "@multica/ui/icons";
-import { Input } from "@multica/ui/components/ui/input";
-import { Textarea } from "@multica/ui/components/ui/textarea";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Label } from "@multica/ui/components/ui/label";
+import { Copy } from "@morechat/ui/icons";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Label } from "@morechat/ui/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +14,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { copyText } from "@multica/ui/lib/clipboard";
+} from "@morechat/ui/components/ui/dialog";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -25,25 +25,25 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   AlertDialogAction,
-} from "@multica/ui/components/ui/alert-dialog";
+} from "@morechat/ui/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "@multica/core/auth";
-import { useLeaveWorkspace, useDeleteWorkspace } from "@multica/core/workspace/mutations";
+import { useAuthStore } from "@morechat/core/auth";
+import { useLeaveWorkspace, useDeleteWorkspace } from "@morechat/core/workspace/mutations";
 import {
   memberListOptions,
   workspaceKeys,
   workspaceListOptions,
-} from "@multica/core/workspace/queries";
-import { issueKeys } from "@multica/core/issues/queries";
-import { api } from "@multica/core/api";
+} from "@morechat/core/workspace/queries";
+import { issueKeys } from "@morechat/core/issues/queries";
+import { api } from "@morechat/core/api";
 import {
   resolvePostAuthDestination,
   useCurrentWorkspace,
   useHasOnboarded,
-} from "@multica/core/paths";
-import { setCurrentWorkspace } from "@multica/core/platform";
-import type { Workspace } from "@multica/core/types";
+} from "@morechat/core/paths";
+import { setCurrentWorkspace } from "@morechat/core/platform";
+import type { Workspace } from "@morechat/core/types";
 import { AvatarUploadControl } from "../../common/avatar-upload-control";
 import { useNavigation } from "../../navigation";
 import { DeleteWorkspaceDialog } from "./delete-workspace-dialog";

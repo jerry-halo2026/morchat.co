@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { createI18n } from "@multica/core/i18n/react";
+import { createI18n } from "@morechat/core/i18n/react";
 import { describe, expect, it } from "vitest";
 import { RESOURCES } from "./index";
 

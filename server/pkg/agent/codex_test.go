@@ -19,7 +19,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/multica-ai/multica/server/pkg/redact"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/redact"
 )
 
 func newTestCodexClient(t *testing.T) (*codexClient, *fakeStdin, []Message) {

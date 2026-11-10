@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 	dto "github.com/prometheus/client_model/go"
 
-	"github.com/multica-ai/multica/server/internal/daemonws"
-	obsmetrics "github.com/multica-ai/multica/server/internal/metrics"
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemonws"
+	obsmetrics "github.com/jerry-halo2026/morchat.co/server/internal/metrics"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 // TestAgentRuntimeLookupWSHotPathIsZeroRead drives 1,000 heartbeats through one

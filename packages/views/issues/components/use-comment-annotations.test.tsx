@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useCommentDraftStore } from "@multica/core/issues/stores";
-import type { TimelineEntry } from "@multica/core/types";
+import { useCommentDraftStore } from "@morechat/core/issues/stores";
+import type { TimelineEntry } from "@morechat/core/types";
 import { renderWithI18n } from "../../test/i18n";
 import { useCommentAnnotations } from "./use-comment-annotations";
 import { Profiler, useState } from "react";
@@ -11,8 +11,8 @@ import { toast } from "sonner";
 vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
 
 const previewCommentTriggers = vi.hoisted(() => vi.fn(async () => ({ agents: [], blocked: [] })));
-vi.mock("@multica/core/api", async (original) => {
-  const actual = await original<typeof import("@multica/core/api")>();
+vi.mock("@morechat/core/api", async (original) => {
+  const actual = await original<typeof import("@morechat/core/api")>();
   return { ...actual, api: { ...actual.api, previewCommentTriggers, listTasksByIssue: vi.fn(async () => []) } };
 });
 vi.mock("../../editor/content-editor", async () => {

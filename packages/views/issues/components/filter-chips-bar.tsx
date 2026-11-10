@@ -1,6 +1,6 @@
 "use client";
 
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
 import { useStatusLabel } from "../utils/status-label";
 import { useMemo, type ReactNode } from "react";
 import {
@@ -18,34 +18,34 @@ import {
   User,
   UserPen,
   X,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@multica/ui/components/ui/button";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import { cn } from "@multica/ui/lib/utils";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { memberListOptions, agentListOptions, squadListOptions } from "@multica/core/workspace/queries";
-import { projectListOptions } from "@multica/core/projects/queries";
-import { PROJECT_STATUS_CONFIG } from "@multica/core/projects/config";
-import { labelListOptions } from "@multica/core/labels/queries";
-import { propertyListOptions } from "@multica/core/properties";
-import { isActorPropertyType, parseActorRef, propertyFilterValueKey, type PropertyFilterValue } from "@multica/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import { cn } from "@morechat/ui/lib/utils";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { memberListOptions, agentListOptions, squadListOptions } from "@morechat/core/workspace/queries";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import { PROJECT_STATUS_CONFIG } from "@morechat/core/projects/config";
+import { labelListOptions } from "@morechat/core/labels/queries";
+import { propertyListOptions } from "@morechat/core/properties";
+import { isActorPropertyType, parseActorRef, propertyFilterValueKey, type PropertyFilterValue } from "@morechat/core/types";
 import {
   type ActorFilterValue,
   type FilterDimension,
   type FilterSnapshot,
   type IssueDateFilter,
   type NegatableFilterDimension,
-} from "@multica/core/issues/stores/view-store";
+} from "@morechat/core/issues/stores/view-store";
 import {
   actorFilterKey,
   type IssueViewBaseline,
-} from "@multica/core/issue-views/baseline";
-import { useViewStore, useViewStoreApi } from "@multica/core/issues/stores/view-store-context";
+} from "@morechat/core/issue-views/baseline";
+import { useViewStore, useViewStoreApi } from "@morechat/core/issues/stores/view-store-context";
 import {
   advancedFilterSignature,
   countAdvancedConditions,
-} from "@multica/core/issues/stores/filter-tree";
+} from "@morechat/core/issues/stores/filter-tree";
 import { DUE_DATE_LABEL_KEY, RELATION_LABEL_KEY } from "./filter-field-options";
 import { usePropertyValueName } from "./property-filter-options";
 import { StatusIcon } from "./status-icon";

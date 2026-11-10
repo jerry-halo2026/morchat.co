@@ -12,14 +12,14 @@ import {
   Save,
   Trash2,
   WrapText,
-} from "@multica/ui/icons";
-import { api } from "@multica/core/api";
-import type { Agent } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import { Input } from "@multica/ui/components/ui/input";
-import { Textarea } from "@multica/ui/components/ui/textarea";
+} from "@morechat/ui/icons";
+import { api } from "@morechat/core/api";
+import type { Agent } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
 import { toast } from "sonner";
 import { useT } from "../../../i18n";
 import type { EnvParseError } from "./env-file";

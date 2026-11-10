@@ -1,6 +1,6 @@
 # Self-Hosting Setup (for AI Agents)
 
-This document is designed for AI agents to execute. Follow these steps exactly to deploy a local Multica instance and connect to it.
+This document is designed for AI agents to execute. Follow these steps exactly to deploy a local morechat.co instance and connect to it.
 
 ## Prerequisites
 
@@ -12,13 +12,13 @@ This document is designed for AI agents to execute. Follow these steps exactly t
 
 ```bash
 # Install CLI + provision self-host server
-curl -fsSL https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.sh | bash -s -- --with-server
+curl -fsSL https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.sh | bash -s -- --with-server
 
 # Configure CLI for localhost, authenticate, and start daemon
 multica setup self-host
 ```
 
-Wait for the server output `✓ Multica server is running and CLI is ready!` before running `multica setup self-host`.
+Wait for the server output `✓ morechat.co server is running and CLI is ready!` before running `multica setup self-host`.
 
 **Expected result:**
 - Frontend at http://localhost:3000
@@ -28,7 +28,7 @@ Wait for the server output `✓ Multica server is running and CLI is ready!` bef
 ## Alternative: Manual Setup
 
 ```bash
-git clone https://github.com/multica-ai/multica.git
+git clone https://github.com/jerry-halo2026/morchat.co.git
 cd multica
 make selfhost
 brew install multica-ai/tap/multica

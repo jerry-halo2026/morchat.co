@@ -1,22 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { History, Loader2, RotateCcw } from "@multica/ui/icons";
+import { History, Loader2, RotateCcw } from "@morechat/ui/icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type {
   MemberWithUser,
   Skill,
   SkillVersionSummary,
-} from "@multica/core/types";
-import { api } from "@multica/core/api";
+} from "@morechat/core/types";
+import { api } from "@morechat/core/api";
 import {
   skillDetailOptions,
   skillVersionDetailOptions,
   skillVersionsOptions,
   workspaceKeys,
-} from "@multica/core/workspace/queries";
-import { Button } from "@multica/ui/components/ui/button";
+} from "@morechat/core/workspace/queries";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -24,9 +24,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dialog";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { cn } from "@morechat/ui/lib/utils";
 import { PAGE_GUTTER, PAGE_RAIL } from "../../layout/page-header";
 import { useT, useTimeAgo } from "../../i18n";
 import { FileViewer, type FileMode } from "./file-viewer";

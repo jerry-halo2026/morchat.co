@@ -17,7 +17,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/websocket"
-	"github.com/multica-ai/multica/server/internal/auth"
+	"github.com/jerry-halo2026/morchat.co/server/internal/auth"
 )
 
 // MembershipChecker verifies a user belongs to a workspace.

@@ -17,32 +17,32 @@ import {
   Settings2,
   Square,
   Trash2,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Agent, UpdateAgentRequest } from "@multica/core/types";
+import type { Agent, UpdateAgentRequest } from "@morechat/core/types";
 import {
   type AgentPresenceDetail,
   isAgentRuntimeBound,
   useWorkspacePresenceMap,
-} from "@multica/core/agents";
-import { api, ApiError } from "@multica/core/api";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useModalStore } from "@multica/core/modals";
-import { useWorkspacePaths } from "@multica/core/paths";
+} from "@morechat/core/agents";
+import { api, ApiError } from "@morechat/core/api";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useModalStore } from "@morechat/core/modals";
+import { useWorkspacePaths } from "@morechat/core/paths";
 import {
   agentDetailOptions,
   agentListOptions,
   cacheAgentResponse,
   memberListOptions,
   workspaceKeys,
-} from "@multica/core/workspace/queries";
-import { runtimeListOptions } from "@multica/core/runtimes";
-import { useAgentPermissions } from "@multica/core/permissions";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { CapabilityBanner } from "@multica/ui/components/common/capability-banner";
+} from "@morechat/core/workspace/queries";
+import { runtimeListOptions } from "@morechat/core/runtimes";
+import { useAgentPermissions } from "@morechat/core/permissions";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { CapabilityBanner } from "@morechat/ui/components/common/capability-banner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,7 +52,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
+} from "@morechat/ui/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -60,17 +60,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { copyText } from "@multica/ui/lib/clipboard";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { copyText } from "@morechat/ui/lib/clipboard";
+import { cn } from "@morechat/ui/lib/utils";
 import { AppLink, useNavigation } from "../../navigation";
 import { CollectionPageState } from "../../layout/collection-page";
 import {
@@ -430,7 +430,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
   const runningCount = presence?.runningCount ?? 0;
   const queuedCount = presence?.queuedCount ?? 0;
   const hasActiveWork = runningCount + queuedCount > 0;
-  // Multica's built-in agents cannot be archived — the server refuses it.
+  // morechat.co's built-in agents cannot be archived — the server refuses it.
   const canArchive = canEdit.allowed && !isArchived && !agent.system_key;
 
   // Chat shares the invocation gate with assignment (MUL-3963): starting a

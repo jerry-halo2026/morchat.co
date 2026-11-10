@@ -10,8 +10,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import type { IssueView } from "@multica/core/api/schemas";
+} from "@morechat/ui/components/ui/alert-dialog";
+import type { IssueView } from "@morechat/core/api/schemas";
 import { useT } from "../i18n";
 
 /** Deletes the view only — never the issues it lists. */

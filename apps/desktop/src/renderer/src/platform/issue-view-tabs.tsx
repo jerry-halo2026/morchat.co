@@ -1,11 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useWorkspaceId } from "@multica/core/hooks";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   issueViewContainerKey,
   useActiveIssueViewStore,
-} from "@multica/core/issue-views/active-view-store";
-import type { IssueViewScope } from "@multica/core/issue-views/queries";
-import { useNavigation } from "@multica/views/navigation";
+} from "@morechat/core/issue-views/active-view-store";
+import type { IssueViewScope } from "@morechat/core/issue-views/queries";
+import { useNavigation } from "@morechat/views/navigation";
 import { getActiveTab, useTabStore } from "@/stores/tab-store";
 
 const tabViews = new Map<string, Record<string, string>>();

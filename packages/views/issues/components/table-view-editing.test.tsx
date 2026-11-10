@@ -8,7 +8,7 @@
  * the column defs' render closures — flexRender treats those as component
  * TYPES, so React remounted every cell and the just-opened picker closed.
  */
-import { useIssueOpeningStore } from "@multica/core/issues/stores/issue-opening-store";
+import { useIssueOpeningStore } from "@morechat/core/issues/stores/issue-opening-store";
 import { IssuePeekActionsContext } from "../surface/peek-context";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -22,17 +22,17 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { setApiInstance } from "@multica/core/api";
-import { useModalStore } from "@multica/core/modals";
-import type { ApiClient } from "@multica/core/api/client";
-import { issueKeys } from "@multica/core/issues/queries";
-import { ViewStoreProvider } from "@multica/core/issues/stores/view-store-context";
-import { getIssueSurfaceViewStore } from "@multica/core/issues/stores/surface-view-store";
+import { setApiInstance } from "@morechat/core/api";
+import { useModalStore } from "@morechat/core/modals";
+import type { ApiClient } from "@morechat/core/api/client";
+import { issueKeys } from "@morechat/core/issues/queries";
+import { ViewStoreProvider } from "@morechat/core/issues/stores/view-store-context";
+import { getIssueSurfaceViewStore } from "@morechat/core/issues/stores/surface-view-store";
 import type {
   Issue,
   IssueTableQuerySpec,
   IssueTableRowsResponse,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import { renderWithI18n } from "../../test/i18n";
 import { IssueSurfaceSelectionProvider } from "../surface/selection-context";
 import type { IssueSurfaceSelection } from "../surface/selection-context";
@@ -40,7 +40,7 @@ import type { IssueCreateDefaults } from "../surface/types";
 import type { ChildProgress } from "./list-row";
 import { TableView, useReleaseEditingCellOnUnmount } from "./table-view";
 
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => "ws-1",
 }));
 
@@ -66,7 +66,7 @@ vi.mock("@tanstack/react-virtual", () => ({
   }),
 }));
 
-vi.mock("@multica/core/workspace/hooks", () => ({
+vi.mock("@morechat/core/workspace/hooks", () => ({
   useActorName: () => ({ getActorName: () => "Someone" }),
   buildActorNameResolver: () => () => "Someone",
 }));
@@ -79,7 +79,7 @@ vi.mock("../../common/actor-avatar", () => ({
 }));
 
 const mockAuthUser = { id: "user-1", email: "t@t.co", name: "Tester" };
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: Object.assign(
     (selector?: (state: unknown) => unknown) => {
       const state = { user: mockAuthUser, isAuthenticated: true };
@@ -140,9 +140,9 @@ vi.mock("../../navigation", async () => {
   };
 });
 
-vi.mock("@multica/core/paths", async () => {
-  const actual = await vi.importActual<typeof import("@multica/core/paths")>(
-    "@multica/core/paths",
+vi.mock("@morechat/core/paths", async () => {
+  const actual = await vi.importActual<typeof import("@morechat/core/paths")>(
+    "@morechat/core/paths",
   );
   return {
     ...actual,

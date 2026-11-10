@@ -2,16 +2,16 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Star, X } from "@multica/ui/icons";
-import { Button, buttonVariants } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
-import { useAuthStore } from "@multica/core/auth";
-import { useChatStore } from "@multica/core/chat";
-import { formatStarCount, githubStarsOptions, MULTICA_GITHUB_URL } from "@multica/core/github/stars";
-import { createLogger } from "@multica/core/logger";
-import { needsSourceBackfill } from "@multica/core/onboarding";
-import { useCurrentWorkspace, useWorkspacePaths } from "@multica/core/paths";
-import { useSessionPromptStore } from "@multica/core/session-prompt";
+import { Star, X } from "@morechat/ui/icons";
+import { Button, buttonVariants } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
+import { useAuthStore } from "@morechat/core/auth";
+import { useChatStore } from "@morechat/core/chat";
+import { formatStarCount, githubStarsOptions, MULTICA_GITHUB_URL } from "@morechat/core/github/stars";
+import { createLogger } from "@morechat/core/logger";
+import { needsSourceBackfill } from "@morechat/core/onboarding";
+import { useCurrentWorkspace, useWorkspacePaths } from "@morechat/core/paths";
+import { useSessionPromptStore } from "@morechat/core/session-prompt";
 import {
   agentDoneIssueCountOptions,
   claimStarPromptShowing,
@@ -20,8 +20,8 @@ import {
   starPromptDue,
   useStarPromptStore,
   type StarPromptMoment,
-} from "@multica/core/star-prompt";
-import { agentListOptions } from "@multica/core/workspace/queries";
+} from "@morechat/core/star-prompt";
+import { agentListOptions } from "@morechat/core/workspace/queries";
 import { isFloatingChatRouteSuppressed } from "../chat/floating-chat-visibility";
 import { useT } from "../i18n";
 import { useNavigation } from "../navigation";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronsUpDown } from "@multica/ui/icons";
+import { ChevronsUpDown } from "@morechat/ui/icons";
 import { toast } from "sonner";
 import {
   Select,
@@ -9,40 +9,40 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@multica/ui/components/ui/select";
-import { Switch } from "@multica/ui/components/ui/switch";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
+} from "@morechat/ui/components/ui/select";
+import { Switch } from "@morechat/ui/components/ui/switch";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@multica/ui/components/ui/popover";
+} from "@morechat/ui/components/ui/popover";
 import {
   Command,
   CommandEmpty,
   CommandInput,
   CommandItem,
   CommandList,
-} from "@multica/ui/components/ui/command";
-import type { SupportedLocale } from "@multica/core/i18n";
-import { useAuthStore } from "@multica/core/auth";
-import { useChatStore } from "@multica/core/chat";
+} from "@morechat/ui/components/ui/command";
+import type { SupportedLocale } from "@morechat/core/i18n";
+import { useAuthStore } from "@morechat/core/auth";
+import { useChatStore } from "@morechat/core/chat";
 import {
   useCommentComposerStore,
   type RunningAgentReply,
-} from "@multica/core/issues/stores";
+} from "@morechat/core/issues/stores";
 import {
   useIssueOpeningStore,
   type IssueOpenMode,
-} from "@multica/core/issues/stores/issue-opening-store";
+} from "@morechat/core/issues/stores/issue-opening-store";
 import {
   MANUAL_CREATE_FIELDS,
   QUICK_CREATE_FIELDS,
   useIssueCreateSettingsStore,
   type ManualCreateField,
   type QuickCreateField,
-} from "@multica/core/issues/stores/issue-create-settings-store";
-import { api } from "@multica/core/api";
+} from "@morechat/core/issues/stores/issue-create-settings-store";
+import { api } from "@morechat/core/api";
 import { browserTimezone, timezoneOptions } from "../../common/timezone-select";
 import { useLanguageSwitch } from "../../common/use-language-switch";
 import { SegmentedToggle } from "../../common/segmented-toggle";

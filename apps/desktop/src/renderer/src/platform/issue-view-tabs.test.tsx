@@ -1,13 +1,13 @@
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useActiveIssueViewStore } from "@multica/core/issue-views/active-view-store";
+import { useActiveIssueViewStore } from "@morechat/core/issue-views/active-view-store";
 import { getActiveTab, useTabStore } from "@/stores/tab-store";
 
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
 vi.mock("@/stores/window-overlay-store", () => ({
   useWindowOverlayStore: Object.assign(() => null, { getState: () => ({ overlay: null, open: vi.fn(), close: vi.fn() }) }),
 }));
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: Object.assign(() => null, { getState: () => ({ logout: vi.fn() }) }),
 }));
 

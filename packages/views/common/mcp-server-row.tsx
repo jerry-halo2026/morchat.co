@@ -11,15 +11,15 @@ import {
   SquareTerminal,
   Trash2,
   X,
-} from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Input } from "@multica/ui/components/ui/input";
+} from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Input } from "@morechat/ui/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
+} from "@morechat/ui/components/ui/tooltip";
 import { mcpTransportLabel } from "./mcp-transport";
 
 export type McpServerRowLabels = {
@@ -108,7 +108,7 @@ export function McpRemoveButton({
 }
 
 /**
- * Shared MCP inventory row used wherever Multica owns the server entry.
+ * Shared MCP inventory row used wherever morechat.co owns the server entry.
  *
  * Data writes remain the caller's responsibility: workspace settings replaces
  * a write-only config, while an agent edits its readable local config. Keeping

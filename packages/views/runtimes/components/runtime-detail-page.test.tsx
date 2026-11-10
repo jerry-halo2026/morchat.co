@@ -2,15 +2,15 @@ import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { I18nProvider } from "@multica/core/i18n/react";
-import { agentTaskSnapshotOptions } from "@multica/core/agents";
-import { runtimeProfileListOptions } from "@multica/core/runtimes";
-import { runtimeListOptions } from "@multica/core/runtimes/queries";
-import type { AgentRuntime } from "@multica/core/types";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import { agentTaskSnapshotOptions } from "@morechat/core/agents";
+import { runtimeProfileListOptions } from "@morechat/core/runtimes";
+import { runtimeListOptions } from "@morechat/core/runtimes/queries";
+import type { AgentRuntime } from "@morechat/core/types";
 import {
   agentListOptions,
   memberListOptions,
-} from "@multica/core/workspace/queries";
+} from "@morechat/core/workspace/queries";
 import enCommon from "../../locales/en/common.json";
 import enLayout from "../../locales/en/layout.json";
 import enRuntimes from "../../locales/en/runtimes.json";
@@ -21,19 +21,19 @@ const TEST_RESOURCES = {
 };
 const WS = "ws-test";
 
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-test" }));
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-test" }));
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: (select: (state: unknown) => unknown) =>
     select({ isLoading: false, user: { id: "user-1" } }),
 }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({
     runtimes: () => "/runtimes",
     runtimeSettings: (machineId: string, runtimeId: string) =>
       `/runtimes/${machineId}/runtime/${runtimeId}`,
   }),
 }));
-vi.mock("@multica/core/realtime", () => ({ useWSEvent: () => {} }));
+vi.mock("@morechat/core/realtime", () => ({ useWSEvent: () => {} }));
 vi.mock("../../navigation", () => ({
   AppLink: ({ href, children, ...props }: { href: string; children: ReactNode }) => (
     <a href={href} {...props}>

@@ -1,7 +1,7 @@
-import { CircleDot, Command, Gauge, Globe, History, Layers, ListPlus, Lock, Palette, PanelLeft, Pin, Server, Terminal, Users, Workflow, type IconComponent } from "@multica/ui/icons";
-import type { SupportedLocale } from "@multica/core/i18n";
-import type { WorkspacePaths } from "@multica/core/paths";
-import type { ReleaseStamp } from "@multica/core/whats-new";
+import { CircleDot, Command, Gauge, Globe, History, Layers, ListPlus, Lock, Palette, PanelLeft, Pin, Server, Terminal, Users, Workflow, type IconComponent } from "@morechat/ui/icons";
+import type { SupportedLocale } from "@morechat/core/i18n";
+import type { WorkspacePaths } from "@morechat/core/paths";
+import type { ReleaseStamp } from "@morechat/core/whats-new";
 
 export interface HighlightCopy {
   title: string;
@@ -437,7 +437,7 @@ export const WHATS_NEW_RELEASES: WhatsNewRelease[] = [
         action: { kind: "route", to: (p) => `${p.settings()}?tab=preferences` },
         copy: {
           en: {
-            title: "Multica in Traditional Chinese",
+            title: "morechat.co in Traditional Chinese",
             body: "Switch the app language in Settings → Preferences.",
           },
           "zh-Hans": {
@@ -457,7 +457,7 @@ export const WHATS_NEW_RELEASES: WhatsNewRelease[] = [
             body: "설정 → 환경설정에서 앱 언어를 바꿀 수 있습니다.",
           },
           fr: {
-            title: "Multica en chinois traditionnel",
+            title: "morechat.co en chinois traditionnel",
             body: "Changez la langue de l'application dans Paramètres → Préférences.",
           },
         },

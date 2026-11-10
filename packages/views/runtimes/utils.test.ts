@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
-import { useCustomPricingStore } from "@multica/core/runtimes/custom-pricing-store";
-import type { AgentRuntime, RuntimeUsage } from "@multica/core/types";
+import { useCustomPricingStore } from "@morechat/core/runtimes/custom-pricing-store";
+import type { AgentRuntime, RuntimeUsage } from "@morechat/core/types";
 
 import {
   addDaysIso,

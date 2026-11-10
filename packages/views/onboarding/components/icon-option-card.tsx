@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Check } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
+import { Check } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
 
 const OTHER_INPUT_MAX_LENGTH = 80;
 

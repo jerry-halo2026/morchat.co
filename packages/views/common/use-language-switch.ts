@@ -1,10 +1,10 @@
 "use client";
 
 import { toast } from "sonner";
-import { api } from "@multica/core/api";
-import { useAuthStore } from "@multica/core/auth";
-import { matchLocale, type SupportedLocale } from "@multica/core/i18n";
-import { useLocaleAdapter } from "@multica/core/i18n/react";
+import { api } from "@morechat/core/api";
+import { useAuthStore } from "@morechat/core/auth";
+import { matchLocale, type SupportedLocale } from "@morechat/core/i18n";
+import { useLocaleAdapter } from "@morechat/core/i18n/react";
 import { useT } from "../i18n";
 
 /** The UI language options, the current one, and the switch shared by Settings and the account menu. */

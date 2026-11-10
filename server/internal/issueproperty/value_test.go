@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 func TestMultiSelectValueLimit(t *testing.T) {

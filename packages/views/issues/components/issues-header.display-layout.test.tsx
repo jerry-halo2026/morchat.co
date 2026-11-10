@@ -4,17 +4,17 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, screen, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createStore, type StoreApi } from "zustand/vanilla";
-import { setApiInstance } from "@multica/core/api";
-import type { ApiClient } from "@multica/core/api/client";
+import { setApiInstance } from "@morechat/core/api";
+import type { ApiClient } from "@morechat/core/api/client";
 import {
   type IssueViewState,
   viewStoreSlice,
-} from "@multica/core/issues/stores/view-store";
-import { ViewStoreProvider } from "@multica/core/issues/stores/view-store-context";
+} from "@morechat/core/issues/stores/view-store";
+import { ViewStoreProvider } from "@morechat/core/issues/stores/view-store-context";
 import { renderWithI18n } from "../../test/i18n";
 import { IssueDisplayControls } from "./issues-header";
 
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => "ws-1",
 }));
 

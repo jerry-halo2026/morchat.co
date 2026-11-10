@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/daemon/processtree"
-	"github.com/multica-ai/multica/server/pkg/agent"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/processtree"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
 )
 
 // shellResolveTTL bounds how long one login-shell PATH resolution is reused

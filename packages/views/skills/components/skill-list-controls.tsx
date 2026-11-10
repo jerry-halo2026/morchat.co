@@ -8,12 +8,12 @@ import {
   Pencil,
   Plus,
   Tags,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { labelListOptions } from "@multica/core/labels/queries";
-import type { Agent, Label, MemberWithUser } from "@multica/core/types";
-import { resolvePublicFileUrl } from "@multica/core/workspace/avatar-url";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { labelListOptions } from "@morechat/core/labels/queries";
+import type { Agent, Label, MemberWithUser } from "@morechat/core/types";
+import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -24,20 +24,20 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { ActorAvatar } from "@multica/ui/components/common/actor-avatar";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import { FILTER_ITEM_CLASS, HoverCheck } from "../../common/hover-check";
 import { stopMenuSearchKeys } from "../../issues/components/advanced-filter-panel";
 import {
   type SkillListFilters,
   type SkillOriginType,
-} from "@multica/core/skills/stores";
+} from "@morechat/core/skills/stores";
 import { LabelChip } from "../../labels/label-chip";
 import { LabelManager } from "../../labels/label-manager";
 import {

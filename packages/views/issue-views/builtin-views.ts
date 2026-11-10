@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback } from "react";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { issueViewContainerKey, useActiveIssueViewStore } from "@multica/core/issue-views/active-view-store";
-import type { BuiltinViewKey } from "@multica/core/issue-views/sidebar-views";
-import { UNREAD_VIEW, UNREAD_VIEW_ID } from "@multica/core/issue-views/unread-view";
-import { issueViewTarget } from "@multica/core/issue-views/view-target";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { issueViewContainerKey, useActiveIssueViewStore } from "@morechat/core/issue-views/active-view-store";
+import type { BuiltinViewKey } from "@morechat/core/issue-views/sidebar-views";
+import { UNREAD_VIEW, UNREAD_VIEW_ID } from "@morechat/core/issue-views/unread-view";
+import { issueViewTarget } from "@morechat/core/issue-views/view-target";
 
 const WORKSPACE_SCOPE = { scope_type: "workspace" } as const;
 const MY_SCOPE = { scope_type: "my" } as const;

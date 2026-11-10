@@ -13,22 +13,22 @@ import {
 import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Settings, Users, type IconComponent } from "@multica/ui/icons";
-import { useChatStore } from "@multica/core/chat";
-import { chatSessionsOptions } from "@multica/core/chat/queries";
-import { countUnreadChatMessages } from "@multica/core/chat/unread";
-import { useInboxUnreadCount } from "@multica/core/inbox/queries";
-import { resolveRailOrder, useRailOrderStore } from "@multica/core/navigation";
+import { Settings, Users, type IconComponent } from "@morechat/ui/icons";
+import { useChatStore } from "@morechat/core/chat";
+import { chatSessionsOptions } from "@morechat/core/chat/queries";
+import { countUnreadChatMessages } from "@morechat/core/chat/unread";
+import { useInboxUnreadCount } from "@morechat/core/inbox/queries";
+import { resolveRailOrder, useRailOrderStore } from "@morechat/core/navigation";
 import {
   useCurrentWorkspace,
   useWorkspacePaths,
   type AppSpaceId,
   type RailSpaceId,
-} from "@multica/core/paths";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
-import { CappedNumberFlow } from "@multica/ui/components/ui/number-flow";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/core/paths";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
+import { CappedNumberFlow } from "@morechat/ui/components/ui/number-flow";
+import { cn } from "@morechat/ui/lib/utils";
 import { useAppForeground } from "../common/use-app-foreground";
 import { useT } from "../i18n";
 import { AppLink, useNavigation } from "../navigation";

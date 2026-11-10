@@ -7,32 +7,32 @@ import {
   useRef,
   useState,
 } from "react";
-import { Globe2, Loader2, Plus, SquareTerminal, Trash2 } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { cn } from "@multica/ui/lib/utils";
+import { Globe2, Loader2, Plus, SquareTerminal, Trash2 } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { cn } from "@morechat/ui/lib/utils";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@multica/ui/components/ui/field";
-import { Input } from "@multica/ui/components/ui/input";
+} from "@morechat/ui/components/ui/field";
+import { Input } from "@morechat/ui/components/ui/input";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@multica/ui/components/ui/tabs";
-import { Textarea } from "@multica/ui/components/ui/textarea";
+} from "@morechat/ui/components/ui/tabs";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
 import { useT } from "../../../i18n";
 import type { ManagedMcpServer } from "./mcp-config-model";
 import { isRecord, mcpTransport } from "./mcp-config-model";

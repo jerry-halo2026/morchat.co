@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { QueryClient } from "@tanstack/react-query";
-import type { InboxItem } from "@multica/core/types";
+import type { InboxItem } from "@morechat/core/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { api } from "@/data/api";

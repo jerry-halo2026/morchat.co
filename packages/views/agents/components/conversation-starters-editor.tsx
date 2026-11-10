@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { MessageSquare, Pencil, Plus, Trash2 } from "@multica/ui/icons";
+import { MessageSquare, Pencil, Plus, Trash2 } from "@morechat/ui/icons";
 import {
   AGENT_CONVERSATION_STARTER_LABEL_MAX_LENGTH,
   AGENT_CONVERSATION_STARTER_MAX_LENGTH,
   AGENT_CONVERSATION_STARTERS_MAX,
-} from "@multica/core/agents";
-import type { AgentConversationStarter } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Input } from "@multica/ui/components/ui/input";
-import { Textarea } from "@multica/ui/components/ui/textarea";
+} from "@morechat/core/agents";
+import type { AgentConversationStarter } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
 import { useFallbackConversationStarters } from "../../chat/components/conversation-starter-list";
 import { useT } from "../../i18n";
 

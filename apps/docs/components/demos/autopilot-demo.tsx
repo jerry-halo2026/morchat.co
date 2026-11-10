@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, Clock, FastForward, Loader2, Pencil, Play } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
+import { CheckCircle2, Clock, FastForward, Loader2, Pencil, Play } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
 import {
   CoachMark,
   DemoAvatar,

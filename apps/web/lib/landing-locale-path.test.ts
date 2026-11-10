@@ -1,7 +1,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { isReservedSlug } from "@multica/core/paths";
+import { isReservedSlug } from "@morechat/core/paths";
 import {
   LANDING_PATH_PREFIXES,
   LANDING_ROUTES,
@@ -54,19 +54,19 @@ describe("landing locale paths", () => {
     expect(localizeHref("ko", "/usecases/x")).toBe("/ko/usecases/x");
     expect(localizeHref("ja", "/login")).toBe("/login");
     expect(localizeHref("ja", "/docs/ja")).toBe("/docs/ja");
-    expect(localizeHref("ja", "https://github.com/multica-ai/multica")).toBe("https://github.com/multica-ai/multica");
+    expect(localizeHref("ja", "https://github.com/jerry-halo2026/morchat.co")).toBe("https://github.com/jerry-halo2026/morchat.co");
     expect(localizeHref("ja", "/zh/about")).toBe("/zh/about");
     expect(localizeHref("en", "/about")).toBe("/about");
     expect(localizeHref("fr", "/about")).toBe("/about");
   });
 
   it("lists every language's URL with English as the default", () => {
-    expect(landingAlternates("/", "https://www.multica.ai")).toEqual({
-      en: "https://www.multica.ai/",
-      "zh-Hans": "https://www.multica.ai/zh",
-      ko: "https://www.multica.ai/ko",
-      ja: "https://www.multica.ai/ja",
-      "x-default": "https://www.multica.ai/",
+    expect(landingAlternates("/", "https://www.morechat.co")).toEqual({
+      en: "https://www.morechat.co/",
+      "zh-Hans": "https://www.morechat.co/zh",
+      ko: "https://www.morechat.co/ko",
+      ja: "https://www.morechat.co/ja",
+      "x-default": "https://www.morechat.co/",
     });
     expect(landingAlternates("/download")).toMatchObject({ "zh-Hans": "/zh/download", "x-default": "/download" });
   });

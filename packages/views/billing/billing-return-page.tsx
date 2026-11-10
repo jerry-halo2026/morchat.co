@@ -2,11 +2,11 @@
 
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, Loader2, RefreshCw } from "@multica/ui/icons";
-import { useAuthStore } from "@multica/core/auth";
-import { paths } from "@multica/core/paths";
-import { workspaceListOptions } from "@multica/core/workspace/queries";
-import { Button } from "@multica/ui/components/ui/button";
+import { AlertCircle, Loader2, RefreshCw } from "@morechat/ui/icons";
+import { useAuthStore } from "@morechat/core/auth";
+import { paths } from "@morechat/core/paths";
+import { workspaceListOptions } from "@morechat/core/workspace/queries";
+import { Button } from "@morechat/ui/components/ui/button";
 import { useNavigation } from "../navigation";
 import { useT } from "../i18n";
 

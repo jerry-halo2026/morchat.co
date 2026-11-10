@@ -1,12 +1,12 @@
 import { useMemo } from "react";
-import { ChevronDown, Server } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
+import { ChevronDown, Server } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import type { RuntimeMachine, RuntimeMachineSection } from "../../runtimes/components/runtime-machines";
 import { useT } from "../../i18n";
 

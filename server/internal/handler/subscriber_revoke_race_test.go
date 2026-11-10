@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // TestSubtreeUnsubscribe_LosesToConcurrentRevoke covers MUL-5483 review round 8,

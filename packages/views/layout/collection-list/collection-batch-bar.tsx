@@ -2,11 +2,11 @@
 
 import type { ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { useReducedMotion } from "@multica/core/appearance";
-import { X } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import { UI_EASE_OUT, UI_MOTION_DURATION } from "@multica/ui/lib/motion";
+import { useReducedMotion } from "@morechat/core/appearance";
+import { X } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import { UI_EASE_OUT, UI_MOTION_DURATION } from "@morechat/ui/lib/motion";
 import { useT } from "../../i18n";
 
 /**

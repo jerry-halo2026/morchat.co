@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // pendingWorkHintDaemon builds a Daemon that knows exactly one runtime and

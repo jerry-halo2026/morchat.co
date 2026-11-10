@@ -15,7 +15,7 @@
  * Reconnect invalidates are scoped to each owning realtime hook.
  */
 import { queryOptions } from "@tanstack/react-query";
-import type { TaskMessagePayload } from "@multica/core/types";
+import type { TaskMessagePayload } from "@morechat/core/types";
 import { api } from "@/data/api";
 
 export const chatKeys = {

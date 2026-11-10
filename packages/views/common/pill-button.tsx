@@ -1,8 +1,8 @@
 "use client";
 
-import { X as XIcon } from "@multica/ui/icons";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import { cn } from "@multica/ui/lib/utils";
+import { X as XIcon } from "@morechat/ui/icons";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import { cn } from "@morechat/ui/lib/utils";
 
 // Shared pill chrome. `PillButton` puts it on the button itself; the clearable
 // variant puts it on the shell that holds the trigger and the clear button, so

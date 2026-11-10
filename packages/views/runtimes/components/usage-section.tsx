@@ -1,23 +1,23 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BarChart3, ChevronRight, AlertCircle } from "@multica/ui/icons";
+import { BarChart3, ChevronRight, AlertCircle } from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { Button } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { Button } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
 import {
   CompactNumberFlow,
   CurrencyNumberFlow,
-} from "@multica/ui/components/ui/number-flow";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { agentListOptions } from "@multica/core/workspace/queries";
-import type { RuntimeUsage, AgentRuntime } from "@multica/core/types";
+} from "@morechat/ui/components/ui/number-flow";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { agentListOptions } from "@morechat/core/workspace/queries";
+import type { RuntimeUsage, AgentRuntime } from "@morechat/core/types";
 import {
   runtimeUsageOptions,
   runtimeUsageByAgentOptions,
-} from "@multica/core/runtimes/queries";
-import { useCustomPricingStore } from "@multica/core/runtimes/custom-pricing-store";
+} from "@morechat/core/runtimes/queries";
+import { useCustomPricingStore } from "@morechat/core/runtimes/custom-pricing-store";
 import { useViewingTimezone } from "../../common/use-viewing-timezone";
 import {
   cacheHitRatePercent,

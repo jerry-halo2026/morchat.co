@@ -1,7 +1,7 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
-import { ArrowUpRight } from "@multica/ui/icons";
-import { MulticaIcon } from "@multica/ui/components/common/multica-icon";
-import { MulticaWordmark } from "@multica/ui/components/common/multica-wordmark";
+import { ArrowUpRight } from "@morechat/ui/icons";
+import { MorechatIcon } from "@morechat/ui/components/common/morechat-icon";
+import { MorechatWordmark } from "@morechat/ui/components/common/morechat-wordmark";
 
 // GitHub mark — inlined SVG (lucide-react dropped the Github icon for brand
 // trademark reasons). Path matches apps/web/features/landing/components/
@@ -20,7 +20,7 @@ function GitHubMark() {
 }
 
 // External links shown at the top of the sidebar (and in the top nav on
-// desktop). Leading icon = brand identity (GitHub mark / Multica icon);
+// desktop). Leading icon = brand identity (GitHub mark / morechat.co icon);
 // trailing ArrowUpRight = "opens externally" glyph, same pattern as
 // `packages/views/layout/help-launcher.tsx` from PR #1560.
 const externalLinkText = (label: string) => (
@@ -34,7 +34,7 @@ export const baseOptions: BaseLayoutProps = {
   nav: {
     title: (
       <span className="inline-flex items-center gap-2 font-semibold text-base">
-        <MulticaWordmark className="h-4" />
+        <MorechatWordmark className="h-4" />
         Docs
       </span>
     ),
@@ -43,13 +43,13 @@ export const baseOptions: BaseLayoutProps = {
     {
       icon: <GitHubMark />,
       text: externalLinkText("GitHub"),
-      url: "https://github.com/multica-ai/multica",
+      url: "https://github.com/jerry-halo2026/morchat.co",
       external: true,
     },
     {
-      icon: <MulticaIcon />,
-      text: externalLinkText("Multica"),
-      url: "https://multica.ai",
+      icon: <MorechatIcon />,
+      text: externalLinkText("morechat.co"),
+      url: "https://morechat.co",
       external: true,
     },
   ],

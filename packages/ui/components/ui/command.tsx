@@ -3,19 +3,19 @@
 import * as React from "react"
 import { Command as CommandPrimitive } from "cmdk"
 
-import { cn } from "@multica/ui/lib/utils"
+import { cn } from "@morechat/ui/lib/utils"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog"
+} from "@morechat/ui/components/ui/dialog"
 import {
   InputGroup,
   InputGroupAddon,
-} from "@multica/ui/components/ui/input-group"
-import { SearchIcon, CheckIcon } from "@multica/ui/icons"
+} from "@morechat/ui/components/ui/input-group"
+import { SearchIcon, CheckIcon } from "@morechat/ui/icons"
 
 function Command({
   className,

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Crown, Minus, MoreHorizontal, Plus, Shield, User, UserMinus } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
+import { Check, Crown, Minus, MoreHorizontal, Plus, Shield, User, UserMinus } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
 import { CoachMark, DemoAvatar, DemoFrame, useDemoCopy, useStartWhenVisible } from "./demo-kit";
 
 type Role = "owner" | "admin" | "member";

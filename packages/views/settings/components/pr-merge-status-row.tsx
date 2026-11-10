@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CircleOff } from "@multica/ui/icons";
-import { api } from "@multica/core/api";
-import { derivePRMergeStatus, PR_MERGE_STATUS_NONE } from "@multica/core/github";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { useCurrentWorkspace } from "@multica/core/paths";
-import type { IssueStatusCategory, Workspace } from "@multica/core/types";
-import { workspaceKeys } from "@multica/core/workspace/queries";
+import { CircleOff } from "@morechat/ui/icons";
+import { api } from "@morechat/core/api";
+import { derivePRMergeStatus, PR_MERGE_STATUS_NONE } from "@morechat/core/github";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { useCurrentWorkspace } from "@morechat/core/paths";
+import type { IssueStatusCategory, Workspace } from "@morechat/core/types";
+import { workspaceKeys } from "@morechat/core/workspace/queries";
 import {
   Select,
   SelectContent,
@@ -20,7 +20,7 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-} from "@multica/ui/components/ui/select";
+} from "@morechat/ui/components/ui/select";
 import { StatusIcon } from "../../issues/components/status-icon";
 import { useStatusLabel } from "../../issues/utils/status-label";
 import { useT } from "../../i18n";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight, CircleCheck, Loader2, Zap } from "@multica/ui/icons";
+import { ChevronRight, CircleCheck, Loader2, Zap } from "@morechat/ui/icons";
 import {
   CoachMark,
   DemoAvatar,

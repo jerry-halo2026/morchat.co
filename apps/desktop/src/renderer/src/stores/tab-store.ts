@@ -1,13 +1,13 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { arrayMove } from "@dnd-kit/sortable";
-import { defaultStorage } from "@multica/core/platform";
+import { defaultStorage } from "@morechat/core/platform";
 import {
   createWindowTabStorage,
   type WindowTabStorage,
 } from "./tab-store-storage";
-import { createSafeId } from "@multica/core/utils";
-import { workspaceSlugForPath } from "@multica/core/paths";
+import { createSafeId } from "@morechat/core/utils";
+import { workspaceSlugForPath } from "@morechat/core/paths";
 
 // Tab sessions hold serializable URLs, identity, virtual history, and view
 // mementos. The coordinator projects the active session onto the single router;
@@ -292,8 +292,8 @@ interface TabStore {
 // Session identity helpers
 //
 // A tab's icon is NOT part of this model. It is derived from `tab.url` at
-// render time via `routeIconForPath` (@multica/views/layout), which shares the
-// route → icon map in `@multica/core/paths` with the sidebar nav — so the two
+// render time via `routeIconForPath` (@morechat/views/layout), which shares the
+// route → icon map in `@morechat/core/paths` with the sidebar nav — so the two
 // surfaces cannot drift, and no stale icon can survive in persisted state.
 // Title is likewise not determined here; it comes from document.title.
 

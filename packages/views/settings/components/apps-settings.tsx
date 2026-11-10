@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertTriangle, Plus, Trash2 } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
+import { AlertTriangle, Plus, Trash2 } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,9 +14,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import { api } from "@multica/core/api";
-import { useWorkspaceId } from "@multica/core/hooks";
+} from "@morechat/ui/components/ui/alert-dialog";
+import { api } from "@morechat/core/api";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   appCatalogOptions,
   appsOverviewOptions,
@@ -24,13 +24,13 @@ import {
   teamAppImpactOptions,
   useDisconnectTeamApp,
   useRestoreAppAccess,
-} from "@multica/core/connected-apps";
-import { useActorName } from "@multica/core/workspace/hooks";
+} from "@morechat/core/connected-apps";
+import { useActorName } from "@morechat/core/workspace/hooks";
 import type {
   AppAccountScope,
   AppCatalogEntry,
   AppConnection,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import { ComposioToolkitLogo } from "../../common/composio-toolkit-logo";
 import { SavedAppRestriction } from "../../common/saved-app-restriction";
 import { useT, useTimeAgo } from "../../i18n";

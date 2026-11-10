@@ -6,10 +6,10 @@ import { toast } from "sonner";
 import {
   findDeliverableByName,
   type DeliverableFile,
-} from "@multica/core/attachments/deliverables";
-import { issueTimelineOptions } from "@multica/core/issues/queries";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { copyText } from "@multica/ui/lib/clipboard";
+} from "@morechat/core/attachments/deliverables";
+import { issueTimelineOptions } from "@morechat/core/issues/queries";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import { useNavigation } from "../../../navigation";
 import { useT } from "../../../i18n";
 import { usePreviewSequence } from "../../../editor";

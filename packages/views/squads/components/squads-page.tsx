@@ -6,20 +6,20 @@ import {
   Loader2,
   Trash2,
   Users,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useCurrentWorkspace, useWorkspacePaths } from "@multica/core/paths";
+import { useCurrentWorkspace, useWorkspacePaths } from "@morechat/core/paths";
 import {
   agentListOptions,
   memberListOptions,
   squadListOptions,
   workspaceKeys,
-} from "@multica/core/workspace/queries";
-import { resolvePublicFileUrl } from "@multica/core/workspace/avatar-url";
-import { useAuthStore } from "@multica/core/auth";
-import { api } from "@multica/core/api";
-import { useModalStore } from "@multica/core/modals";
+} from "@morechat/core/workspace/queries";
+import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
+import { useAuthStore } from "@morechat/core/auth";
+import { api } from "@morechat/core/api";
+import { useModalStore } from "@morechat/core/modals";
 import {
   useSquadsViewStore,
   SQUAD_SCOPES,
@@ -27,9 +27,9 @@ import {
   type SquadListFilters,
   type SquadsScope,
   type SquadSortField,
-} from "@multica/core/squads/stores";
-import type { Agent, MemberWithUser, Squad } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
+} from "@morechat/core/squads/stores";
+import type { Agent, MemberWithUser, Squad } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
 import { SquadsIntro } from "./squads-intro";
 import {
   Dialog,
@@ -38,7 +38,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -49,8 +49,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { ActorAvatar as ActorAvatarBase } from "@multica/ui/components/common/actor-avatar";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { ActorAvatar as ActorAvatarBase } from "@morechat/ui/components/common/actor-avatar";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { FILTER_ITEM_CLASS, HoverCheck } from "../../common/hover-check";
 import { useIntentNavigate } from "../../navigation";

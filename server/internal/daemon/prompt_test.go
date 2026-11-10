@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/daemon/execenv"
-	"github.com/multica-ai/multica/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/execenv"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
 )
 
 // TestBuildQuickCreatePromptRules locks in the rules that govern how the

@@ -1,10 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ArrowUpRight, GitPullRequest, Laptop, ListOrdered, MessageSquareText, Pause } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { useAuthStore } from "@multica/core/auth";
-import { ProviderLogo } from "@multica/views/runtimes/components/provider-logo";
+import { ArrowUpRight, GitPullRequest, Laptop, ListOrdered, MessageSquareText, Pause } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { useAuthStore } from "@morechat/core/auth";
+import { ProviderLogo } from "@morechat/views/runtimes/components/provider-logo";
 import { useDashboardCtaHref } from "../utils/use-dashboard-cta";
 import { docsHrefForLocale, useLocale } from "../i18n";
 import { ActionLink, Container, Section, SectionHeader } from "./primitives";
@@ -49,7 +49,7 @@ function Hero() {
   const guideHref = useSetupGuideHref();
   return (
     <SurfaceHero
-      eyebrow="Multica Cloud"
+      eyebrow="morechat.co Cloud"
       title="Agents that run in the cloud."
       subtitle="Assigned like any teammate."
       lead="Connect a cloud agent service as a runtime, and your agents take issues without a computer of yours staying on. Qoder Cloud Agents works today, with Cursor and Claude next."
@@ -65,7 +65,7 @@ function Hero() {
         </>
       }
       frost="cloud"
-      label="The Runtimes page at multica.ai: Qoder Cloud Agents online with two runs going and one queued, Cursor Cloud Agents and Claude Managed Agents coming soon, and two of the team’s machines. Over it, Backend Agent works an issue on Qoder Cloud Agents and opens a linked pull request."
+      label="The Runtimes page at morechat.co: Qoder Cloud Agents online with two runs going and one queued, Cursor Cloud Agents and Claude Managed Agents coming soon, and two of the team’s machines. Over it, Backend Agent works an issue on Qoder Cloud Agents and opens a linked pull request."
     >
       <CloudScene />
     </SurfaceHero>
@@ -80,7 +80,7 @@ const STEPS: Walkthrough[] = [
   },
   {
     title: "Link an agent",
-    body: "Create a Multica agent and choose the QCA Agent it runs as. Its model, tools, and skills stay set up in Qoder.",
+    body: "Create a morechat.co agent and choose the QCA Agent it runs as. Its model, tools, and skills stay set up in Qoder.",
     visual: LinkAgentVisual,
   },
   {
@@ -243,7 +243,7 @@ function Availability({ available }: { available: boolean }) {
 
 const COMPARE: CompareRow[] = [
   { label: "A computer left on", values: ["Not needed", "Needed while agents run"] },
-  { label: "Model, tools, and skills", values: ["Set up in the cloud service", "Set on the agent in Multica"] },
+  { label: "Model, tools, and skills", values: ["Set up in the cloud service", "Set on the agent in morechat.co"] },
   { label: "Code it can reach", values: ["GitHub repositories you authorize", "Anything on that computer"] },
   { label: "Chat with the agent", values: ["Not yet", "Supported"] },
   { label: "Local files and attachments", values: ["Not supported", "Supported"] },

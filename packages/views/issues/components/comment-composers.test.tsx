@@ -2,10 +2,10 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type Comp
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
-import type { UploadResult } from "@multica/core/hooks/use-file-upload";
-import type { Attachment } from "@multica/core/types";
-import { useCommentComposerStore, useCommentDraftStore } from "@multica/core/issues/stores";
-import { WorkspaceSlugProvider } from "@multica/core/paths";
+import type { UploadResult } from "@morechat/core/hooks/use-file-upload";
+import type { Attachment } from "@morechat/core/types";
+import { useCommentComposerStore, useCommentDraftStore } from "@morechat/core/issues/stores";
+import { WorkspaceSlugProvider } from "@morechat/core/paths";
 import { renderWithI18n } from "../../test/i18n";
 import { CommentInput } from "./comment-input";
 import { ReplyInput } from "./reply-input";
@@ -55,7 +55,7 @@ const editorUploadSignal = vi.hoisted(
 // the same or the two records drift apart only in tests.
 let mockUploadIdSeq = 0;
 
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: {
     getBaseUrl: () => "https://api.example.test",
     uploadFile: apiUploadFile,
@@ -68,9 +68,9 @@ vi.mock("@multica/core/api", () => ({
   },
 }));
 
-vi.mock("@multica/core/hooks/use-file-upload", async () => ({
-  ...(await vi.importActual<typeof import("@multica/core/hooks/use-file-upload")>(
-    "@multica/core/hooks/use-file-upload",
+vi.mock("@morechat/core/hooks/use-file-upload", async () => ({
+  ...(await vi.importActual<typeof import("@morechat/core/hooks/use-file-upload")>(
+    "@morechat/core/hooks/use-file-upload",
   )),
   useFileUpload: () => ({ uploadWithToast }),
 }));
@@ -84,8 +84,8 @@ vi.mock("../../common/actor-avatar", () => ({
   AgentStatusDot: () => null,
 }));
 
-vi.mock("@multica/core/agents", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/agents")>()),
+vi.mock("@morechat/core/agents", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/agents")>()),
   useAgentPresenceDetail: () => "loading",
 }));
 

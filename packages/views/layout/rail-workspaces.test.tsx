@@ -20,11 +20,11 @@ const state = vi.hoisted(() => ({
   workspacesInOtherWindows: undefined as undefined | (() => string[]),
 }));
 
-vi.mock("@multica/core/workspace/mutations", () => ({
+vi.mock("@morechat/core/workspace/mutations", () => ({
   useSetWorkspacePinned: () => ({ mutate: state.setPinned }),
 }));
 
-vi.mock("@multica/core/config", () => ({
+vi.mock("@morechat/core/config", () => ({
   useConfigStore: (selector: (s: { workspaceCreationDisabled: boolean }) => unknown) =>
     selector({ workspaceCreationDisabled: state.workspaceCreationDisabled }),
 }));
@@ -42,12 +42,12 @@ vi.mock("../navigation", () => ({
     workspacesInOtherWindows: state.workspacesInOtherWindows,
   }),
 }));
-vi.mock("@multica/core/paths", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/paths")>()),
+vi.mock("@morechat/core/paths", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/paths")>()),
   useCurrentWorkspace: () => ({ id: "ws-1", name: "Active WS", slug: "active" }),
 }));
-vi.mock("@multica/core/api", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/api")>();
+vi.mock("@morechat/core/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/api")>();
   return {
     ...actual,
     api: {
@@ -58,13 +58,13 @@ vi.mock("@multica/core/api", async (importOriginal) => {
     },
   };
 });
-vi.mock("@multica/core/inbox/queries", () => ({
+vi.mock("@morechat/core/inbox/queries", () => ({
   inboxUnreadSummaryOptions: () => ({ queryKey: ["inbox", "unread-summary"] }),
   inboxUnreadSummaryEnabled: () => true,
   unreadWorkspaceIds: (entries: { workspace_id: string; count: number }[]) =>
     new Set(entries.filter((s) => s.count > 0).map((s) => s.workspace_id)),
 }));
-vi.mock("@multica/core/workspace/queries", () => ({
+vi.mock("@morechat/core/workspace/queries", () => ({
   myInvitationListOptions: () => ({ queryKey: ["invitations"] }),
   workspaceKeys: { myInvitations: () => ["invitations"] },
   workspaceListOptions: () => ({ queryKey: ["workspaces"] }),
@@ -83,7 +83,7 @@ vi.mock("@tanstack/react-query", async (importOriginal) => ({
   },
   useQueryClient: () => ({ fetchQuery: vi.fn(), invalidateQueries: state.invalidateQueries }),
 }));
-vi.mock("@multica/ui/components/common/tooltip-hint", () => ({
+vi.mock("@morechat/ui/components/common/tooltip-hint", () => ({
   TooltipHint: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 

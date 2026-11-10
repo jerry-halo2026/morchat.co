@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TriangleAlert } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
+import { TriangleAlert } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import { GithubRefField, githubRefHasError } from "./github-ref-field";
 import { useT } from "../../i18n/use-t";
 import { githubShortLabel } from "../../common/github-url";

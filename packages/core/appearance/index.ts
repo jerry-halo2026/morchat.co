@@ -22,7 +22,7 @@ export * from "./local-fonts";
  * Appearance sits on top of light/dark mode: a theme (see ./themes) with its
  * options, type for the interface and for content, density and two
  * accessibility switches. All of it is saved on this device.
- * `AppearanceSync` in @multica/views writes it onto `<html>`: global
+ * `AppearanceSync` in @morechat/views writes it onto `<html>`: global
  * variables as inline style, the theme's CSS and the adjustments on top of
  * it as two generated stylesheets.
  */

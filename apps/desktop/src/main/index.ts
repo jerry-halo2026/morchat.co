@@ -376,7 +376,7 @@ function loadRenderer(window: BrowserWindow): void {
 }
 
 function installLocaleRefresh(window: BrowserWindow): void {
-  // Electron has no dedicated OS-language event. Check whenever any Multica
+  // Electron has no dedicated OS-language event. Check whenever any morechat.co
   // window regains focus, then broadcast so all open windows remain aligned.
   window.on("focus", () => {
     const current = getSystemLocale();
@@ -698,10 +698,10 @@ function createIssueWindow(context: IssueWindowContext): void {
 // without fighting for the shared single-instance lock. The suffix is
 // appended to the app name + userData path, so each worktree gets its own
 // lock file. Default (no env var) keeps behavior unchanged — the common
-// single-worktree case still lands at "Multica Canary".
+// single-worktree case still lands at "morechat.co Canary".
 const DEV_APP_NAME = process.env.DESKTOP_APP_SUFFIX
-  ? `Multica Canary ${process.env.DESKTOP_APP_SUFFIX}`
-  : "Multica Canary";
+  ? `morechat.co Canary ${process.env.DESKTOP_APP_SUFFIX}`
+  : "morechat.co Canary";
 
 if (is.dev) {
   app.setName(DEV_APP_NAME);
@@ -710,10 +710,10 @@ if (is.dev) {
   // Pin the production app name in code. Electron's Linux WM_CLASS is set
   // from app.getName() when the first BrowserWindow is realized; the
   // packaged ASAR's package.json `productName` already steers app.getName()
-  // to "Multica", but anchoring it here makes WM_CLASS ↔ StartupWMClass
+  // to "morechat.co", but anchoring it here makes WM_CLASS ↔ StartupWMClass
   // (declared in electron-builder.yml) survive a regression in
   // productName / the build pipeline. Must run before requestSingleInstanceLock().
-  app.setName("Multica");
+  app.setName("morechat.co");
 }
 
 // --- Protocol registration -----------------------------------------------

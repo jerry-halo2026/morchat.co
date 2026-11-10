@@ -151,7 +151,7 @@ describe("DaemonRecoveryPolicy", () => {
 });
 
 describe("recovery orchestration guards", () => {
-  const profile = { name: "desktop-api.multica.ai" };
+  const profile = { name: "desktop-api.morechat.co" };
 
   it("allows first-start recovery for a Desktop-owned profile", () => {
     expect(

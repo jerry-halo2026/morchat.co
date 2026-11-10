@@ -6,9 +6,9 @@ import {
   type RenderOptions,
   type RenderResult,
 } from "@testing-library/react";
-import { I18nProvider } from "@multica/core/i18n/react";
+import { I18nProvider } from "@morechat/core/i18n/react";
 import type { ReactElement, ReactNode } from "react";
-import type { LocaleResources, SupportedLocale } from "@multica/core/i18n";
+import type { LocaleResources, SupportedLocale } from "@morechat/core/i18n";
 
 // Load the requested locale and its English fallback synchronously so render
 // keeps Testing Library's API without importing every language into each file.

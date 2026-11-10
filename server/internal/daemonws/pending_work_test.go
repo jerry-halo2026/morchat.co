@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // TestNotifyPendingWork pins the hint that removes the up-to-one-heartbeat

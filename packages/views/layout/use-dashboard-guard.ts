@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { useNavigationStore } from "@multica/core/navigation";
-import { useAuthStore } from "@multica/core/auth";
+import { useNavigationStore } from "@morechat/core/navigation";
+import { useAuthStore } from "@morechat/core/auth";
 import {
   paths,
   resolvePostAuthDestination,
   useCurrentWorkspace,
   useHasOnboarded,
-} from "@multica/core/paths";
-import { useWorkspaceList } from "@multica/core/workspace";
-import { useRecentIssuesStore } from "@multica/core/issues/stores";
-import { useRecentVisitsStore } from "@multica/core/command-bar";
+} from "@morechat/core/paths";
+import { useWorkspaceList } from "@morechat/core/workspace";
+import { useRecentIssuesStore } from "@morechat/core/issues/stores";
+import { useRecentVisitsStore } from "@morechat/core/command-bar";
 import { useNavigation } from "../navigation";
 
 /**

@@ -1,15 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Lock, UserMinus } from "@multica/ui/icons";
-import type { Agent, IssueAssigneeType, UpdateIssueRequest } from "@multica/core/types";
+import { Lock, UserMinus } from "@morechat/ui/icons";
+import type { Agent, IssueAssigneeType, UpdateIssueRequest } from "@morechat/core/types";
 import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@multica/core/auth";
-import { isAgentRuntimeBound } from "@multica/core/agents";
-import { canAssignAgentToIssue } from "@multica/core/permissions";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { memberListOptions, agentListOptions, squadListOptions, assigneeFrequencyOptions } from "@multica/core/workspace/queries";
+import { useAuthStore } from "@morechat/core/auth";
+import { isAgentRuntimeBound } from "@morechat/core/agents";
+import { canAssignAgentToIssue } from "@morechat/core/permissions";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { memberListOptions, agentListOptions, squadListOptions, assigneeFrequencyOptions } from "@morechat/core/workspace/queries";
 import { ActorAvatar } from "../../../common/actor-avatar";
 import { DeferredPopup } from "../../../common/deferred-popup";
 import {

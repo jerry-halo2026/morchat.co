@@ -1,15 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { projectSidebarSource, sidebarProjects } from "@multica/core/issues/sidebar-list";
-import { useSidebarProjectPrefs } from "@multica/core/issues/sidebar-project-prefs";
-import { useSidebarTreeStore } from "@multica/core/issues/stores/sidebar-tree-store";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { projectListOptions } from "@multica/core/projects/queries";
-import type { Issue } from "@multica/core/types";
-import { useSidebarSafe } from "@multica/ui/components/ui/sidebar";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { projectSidebarSource, sidebarProjects } from "@morechat/core/issues/sidebar-list";
+import { useSidebarProjectPrefs } from "@morechat/core/issues/sidebar-project-prefs";
+import { useSidebarTreeStore } from "@morechat/core/issues/stores/sidebar-tree-store";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import type { Issue } from "@morechat/core/types";
+import { useSidebarSafe } from "@morechat/ui/components/ui/sidebar";
 import { useNavigation } from "../../navigation";
 import { useAppShell } from "../app-shell-context";
 

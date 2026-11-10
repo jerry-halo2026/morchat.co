@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import type {
   WorkspaceSeatPurchasePreview,
   WorkspaceSubscriptionSummary,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import {
   isSingleSeatInvitePreview,
   purchasedSeatIsReadyForInvitation,

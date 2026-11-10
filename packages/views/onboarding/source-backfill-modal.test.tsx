@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { I18nProvider } from "@multica/core/i18n/react";
+import { I18nProvider } from "@morechat/core/i18n/react";
 import enCommon from "../locales/en/common.json";
 import enOnboarding from "../locales/en/onboarding.json";
 
@@ -19,10 +19,10 @@ const { mockUser, mockSaveQuestionnaire, mockWorkspace, mockAgentDoneTotal, mock
     mockListIssues: vi.fn(),
   }));
 
-vi.mock("@multica/core/auth", async () => {
+vi.mock("@morechat/core/auth", async () => {
   const actual =
-    await vi.importActual<typeof import("@multica/core/auth")>(
-      "@multica/core/auth",
+    await vi.importActual<typeof import("@morechat/core/auth")>(
+      "@morechat/core/auth",
     );
   const useAuthStore = Object.assign(
     (selector: (s: { user: unknown }) => unknown) =>
@@ -32,26 +32,26 @@ vi.mock("@multica/core/auth", async () => {
   return { ...actual, useAuthStore };
 });
 
-vi.mock("@multica/core/onboarding", async () => {
+vi.mock("@morechat/core/onboarding", async () => {
   const actual =
-    await vi.importActual<typeof import("@multica/core/onboarding")>(
-      "@multica/core/onboarding",
+    await vi.importActual<typeof import("@morechat/core/onboarding")>(
+      "@morechat/core/onboarding",
     );
   return { ...actual, saveQuestionnaire: mockSaveQuestionnaire };
 });
 
-vi.mock("@multica/core/paths", async () => {
+vi.mock("@morechat/core/paths", async () => {
   const actual =
-    await vi.importActual<typeof import("@multica/core/paths")>(
-      "@multica/core/paths",
+    await vi.importActual<typeof import("@morechat/core/paths")>(
+      "@morechat/core/paths",
     );
   return { ...actual, useCurrentWorkspace: () => mockWorkspace.value };
 });
 
-vi.mock("@multica/core/api", async () => {
+vi.mock("@morechat/core/api", async () => {
   const actual =
-    await vi.importActual<typeof import("@multica/core/api")>(
-      "@multica/core/api",
+    await vi.importActual<typeof import("@morechat/core/api")>(
+      "@morechat/core/api",
     );
   return {
     ...actual,
@@ -140,7 +140,7 @@ describe("SourceBackfillModal", () => {
   // Which users need the backfill is needsSourceBackfill's contract — no user,
   // not yet onboarded, empty/missing/legacy-string/malformed source, the skip
   // flag and the dismiss cap all have their matrix in
-  // @multica/core/onboarding/needs-backfill.test.ts. What belongs here is the
+  // @morechat/core/onboarding/needs-backfill.test.ts. What belongs here is the
   // modal's own reaction to the verdict, so one settled user stands for the
   // whole "predicate says no" family.
   it("does not render when the user already recorded a source", () => {
@@ -151,7 +151,7 @@ describe("SourceBackfillModal", () => {
     });
     renderModal();
     expect(
-      screen.queryByText(/How did you hear about Multica/i),
+      screen.queryByText(/How did you hear about morechat.co/i),
     ).not.toBeInTheDocument();
     // A settled user must not even pay for the count query.
     expect(mockListIssues).not.toHaveBeenCalled();
@@ -166,7 +166,7 @@ describe("SourceBackfillModal", () => {
     renderModal();
     await waitFor(() => {
       expect(
-        screen.getByText(/How did you hear about Multica/i),
+        screen.getByText(/How did you hear about morechat.co/i),
       ).toBeInTheDocument();
     });
   });
@@ -184,7 +184,7 @@ describe("SourceBackfillModal", () => {
       expect(mockListIssues).toHaveBeenCalled();
     });
     expect(
-      screen.queryByText(/How did you hear about Multica/i),
+      screen.queryByText(/How did you hear about morechat.co/i),
     ).not.toBeInTheDocument();
   });
 
@@ -197,7 +197,7 @@ describe("SourceBackfillModal", () => {
     });
     renderModal();
     expect(
-      screen.queryByText(/How did you hear about Multica/i),
+      screen.queryByText(/How did you hear about morechat.co/i),
     ).not.toBeInTheDocument();
     expect(mockListIssues).not.toHaveBeenCalled();
   });
@@ -330,19 +330,19 @@ describe("SourceBackfillModal", () => {
         await vi.advanceTimersByTimeAsync(0);
       });
       expect(
-        screen.queryByText(/How did you hear about Multica/i),
+        screen.queryByText(/How did you hear about morechat.co/i),
       ).not.toBeInTheDocument();
       await act(async () => {
         await vi.advanceTimersByTimeAsync(699);
       });
       expect(
-        screen.queryByText(/How did you hear about Multica/i),
+        screen.queryByText(/How did you hear about morechat.co/i),
       ).not.toBeInTheDocument();
       await act(async () => {
         await vi.advanceTimersByTimeAsync(50);
       });
       expect(
-        screen.getByText(/How did you hear about Multica/i),
+        screen.getByText(/How did you hear about morechat.co/i),
       ).toBeInTheDocument();
     } finally {
       vi.useRealTimers();
@@ -358,7 +358,7 @@ describe("SourceBackfillModal", () => {
     });
     renderModal();
     expect(
-      screen.queryByText(/How did you hear about Multica/i),
+      screen.queryByText(/How did you hear about morechat.co/i),
     ).not.toBeInTheDocument();
     expect(mockListIssues).not.toHaveBeenCalled();
   });

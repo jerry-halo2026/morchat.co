@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/multica-ai/multica/server/internal/util/secretbox"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util/secretbox"
 )
 
 // CredentialsResolver mints per-call InstallationCredentials with plaintext

@@ -7,7 +7,7 @@ for (const type of ["select", "multi_select"] as const) {
     const suffix = Date.now().toString(36);
     let workspaceCreated = false;
     try {
-      await api.login(`select-options-${type}-${suffix}@multica.ai`, "Property owner");
+      await api.login(`select-options-${type}-${suffix}@morechat.co`, "Property owner");
       const workspace = await api.ensureWorkspace("Select options", `options-${type === "select" ? "s" : "m"}-${suffix}`);
       workspaceCreated = true;
       await api.markUserOnboarded();

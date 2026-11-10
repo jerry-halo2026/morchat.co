@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/daemon/execenv"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/execenv"
 )
 
 // Execute the rendered reply command's flags against the real CLI handler.

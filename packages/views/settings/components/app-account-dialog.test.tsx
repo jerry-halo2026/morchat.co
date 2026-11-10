@@ -1,16 +1,16 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { api } from "@multica/core/api";
-import { I18nProvider } from "@multica/core/i18n/react";
+import { api } from "@morechat/core/api";
+import { I18nProvider } from "@morechat/core/i18n/react";
 import enCommon from "../../locales/en/common.json";
 import enSettings from "../../locales/en/settings.json";
 import { AppAccountDialog } from "./app-account-dialog";
 
-vi.mock("@multica/core/api", () => ({ api: {
+vi.mock("@morechat/core/api", () => ({ api: {
   getAppRules: vi.fn(), listAppTools: vi.fn(), listAppActivity: vi.fn(),
 } }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
 
 afterEach(() => {
   cleanup();

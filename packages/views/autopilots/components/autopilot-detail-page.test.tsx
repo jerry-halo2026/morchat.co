@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { Autopilot, AutopilotRun, AutopilotTrigger } from "@multica/core/types";
+import type { Autopilot, AutopilotRun, AutopilotTrigger } from "@morechat/core/types";
 import { NavigationProvider, type NavigationAdapter } from "../../navigation";
 import { renderWithI18n } from "../../test/i18n";
 
@@ -12,8 +12,8 @@ const cancelTaskById = vi.fn();
 let detail: { autopilot: Autopilot; triggers: AutopilotTrigger[]; collaborators: [] };
 let runs: AutopilotRun[];
 
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws" }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws" }));
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({
     autopilots: () => "/ws/autopilots",
     autopilotDetail: (id: string) => `/ws/autopilots/${id}`,
@@ -22,8 +22,8 @@ vi.mock("@multica/core/paths", () => ({
     agentDetail: (id: string) => `/ws/agents/${id}`,
   }),
 }));
-vi.mock("@multica/core/api", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/api")>();
+vi.mock("@morechat/core/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/api")>();
   return {
     ...actual,
     api: {
@@ -33,28 +33,28 @@ vi.mock("@multica/core/api", async (importOriginal) => {
     },
   };
 });
-vi.mock("@multica/core/autopilots/queries", () => ({
+vi.mock("@morechat/core/autopilots/queries", () => ({
   autopilotDetailOptions: () => ({ queryKey: ["autopilot"], queryFn: async () => detail }),
   autopilotRunsOptions: () => ({ queryKey: ["runs"], queryFn: async () => runs }),
   autopilotRunOptions: () => ({ queryKey: ["run"], queryFn: async () => null }),
 }));
-vi.mock("@multica/core/autopilots/mutations", () => ({
+vi.mock("@morechat/core/autopilots/mutations", () => ({
   useUpdateAutopilot: () => ({ mutate: update }),
   useDeleteAutopilot: () => ({ mutateAsync: vi.fn() }),
   useCreateAutopilotTrigger: () => ({ mutateAsync: vi.fn() }),
   useDeleteAutopilotTrigger: () => ({ mutateAsync: vi.fn() }),
   useRotateAutopilotTriggerWebhookToken: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
-vi.mock("@multica/core/projects/queries", () => ({
+vi.mock("@morechat/core/projects/queries", () => ({
   projectDetailOptions: () => ({ queryKey: ["project"], queryFn: async () => null }),
   projectListOptions: () => ({ queryKey: ["projects"], queryFn: async () => [] }),
 }));
-vi.mock("@multica/core/workspace/queries", () => ({
+vi.mock("@morechat/core/workspace/queries", () => ({
   memberListOptions: () => ({ queryKey: ["members"], queryFn: async () => [] }),
   agentListOptions: () => ({ queryKey: ["agents"], queryFn: async () => [] }),
   squadListOptions: () => ({ queryKey: ["squads"], queryFn: async () => [] }),
 }));
-vi.mock("@multica/core/workspace/hooks", () => ({
+vi.mock("@morechat/core/workspace/hooks", () => ({
   useActorName: () => ({ getActorName: (_type: string, id: string) => (id === "agent-1" ? "Eve" : "Jiayuan") }),
 }));
 vi.mock("./use-run-autopilot-now", () => ({

@@ -1,4 +1,4 @@
-import type { SupportedLocale } from "@multica/core/i18n";
+import type { SupportedLocale } from "@morechat/core/i18n";
 
 /*
  * Language prefixes for the marketing site. English lives at the root

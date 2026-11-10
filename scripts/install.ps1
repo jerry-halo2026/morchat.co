@@ -1,10 +1,10 @@
-# Multica installer for Windows - one command to get started.
+# morechat.co installer for Windows - one command to get started.
 #
-# Install CLI (default): connects to multica.ai
-#   irm https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.ps1 | iex
+# Install CLI (default): connects to morechat.co
+#   irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex
 #
-# Self-host: starts a local Multica server + installs CLI + configures
-#   $env:MULTICA_MODE="local"; irm https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.ps1 | iex
+# Self-host: starts a local morechat.co server + installs CLI + configures
+#   $env:MULTICA_MODE="local"; irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex
 #
 
 $ErrorActionPreference = "Stop"
@@ -12,8 +12,8 @@ $ErrorActionPreference = "Stop"
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-$RepoUrl       = "https://github.com/multica-ai/multica.git"
-$RepoWebUrl    = "https://github.com/multica-ai/multica"
+$RepoUrl       = "https://github.com/jerry-halo2026/morchat.co.git"
+$RepoWebUrl    = "https://github.com/jerry-halo2026/morchat.co"
 $DefaultInstallDir = Join-Path $env:USERPROFILE ".multica\server"
 $InstallDir    = if ($env:MULTICA_INSTALL_DIR) { $env:MULTICA_INSTALL_DIR } else { $DefaultInstallDir }
 
@@ -86,7 +86,7 @@ function Get-ComposePublishedPort {
 
 function Get-LatestVersion {
     try {
-        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/multica-ai/multica/releases/latest" -ErrorAction Stop
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/jerry-halo2026/morchat.co/releases/latest" -ErrorAction Stop
         return $release.tag_name
     } catch {
         return $null
@@ -233,10 +233,10 @@ function Get-InstalledCliVersion {
 # CLI Installation
 # ---------------------------------------------------------------------------
 function Install-CliBinary {
-    Write-Info "Installing Multica CLI from GitHub Releases..."
+    Write-Info "Installing morechat.co CLI from GitHub Releases..."
 
     if (-not [Environment]::Is64BitOperatingSystem) {
-        Write-Fail "Multica requires a 64-bit Windows installation."
+        Write-Fail "morechat.co requires a 64-bit Windows installation."
     }
 
     $arch = Get-WindowsCliArch
@@ -247,7 +247,7 @@ function Install-CliBinary {
     }
 
     $version = $latest.TrimStart('v')
-    $url = "https://github.com/multica-ai/multica/releases/download/$latest/multica-cli-$version-windows-$arch.zip"
+    $url = "https://github.com/jerry-halo2026/morchat.co/releases/download/$latest/multica-cli-$version-windows-$arch.zip"
     $tmpDir = Join-Path ([System.IO.Path]::GetTempPath()) "multica-install"
 
     if (Test-Path $tmpDir) { Remove-Item $tmpDir -Recurse -Force }
@@ -262,7 +262,7 @@ function Install-CliBinary {
     }
 
     # Verify SHA256 checksum
-    $checksumUrl = "https://github.com/multica-ai/multica/releases/download/$latest/checksums.txt"
+    $checksumUrl = "https://github.com/jerry-halo2026/morchat.co/releases/download/$latest/checksums.txt"
     try {
         $checksums = Invoke-WebRequest -Uri $checksumUrl -UseBasicParsing -ErrorAction Stop
         $checksumContent = if ($checksums.Content -is [byte[]]) {
@@ -314,7 +314,7 @@ function Install-CliBinary {
     Remove-Item $tmpDir -Recurse -Force
 
     Add-ToUserPath $binDir
-    Write-Ok "Multica CLI installed to $binDir\multica.exe"
+    Write-Ok "morechat.co CLI installed to $binDir\multica.exe"
 }
 
 function Add-ToUserPath {
@@ -350,15 +350,15 @@ function Install-Cli {
         }
 
         if ($isUpToDate) {
-            Write-Ok "Multica CLI is up to date ($currentVer)"
+            Write-Ok "morechat.co CLI is up to date ($currentVer)"
             return
         }
 
-        Write-Info "Multica CLI $currentVer installed, latest is $latestVer - upgrading..."
+        Write-Info "morechat.co CLI $currentVer installed, latest is $latestVer - upgrading..."
         Install-CliBinary
 
         $newVer = Get-InstalledCliVersion
-        Write-Ok "Multica CLI upgraded ($currentVer -> $newVer)"
+        Write-Ok "morechat.co CLI upgraded ($currentVer -> $newVer)"
         return
     }
 
@@ -375,7 +375,7 @@ function Install-Cli {
 function Test-Docker {
     if (-not (Test-CommandExists "docker")) {
         Write-Fail @"
-Docker is not installed. Multica self-hosting requires Docker and Docker Compose.
+Docker is not installed. morechat.co self-hosting requires Docker and Docker Compose.
 
 Install Docker Desktop for Windows:
   https://docs.docker.com/desktop/install/windows-install/
@@ -397,7 +397,7 @@ After installing Docker, re-run this script with `$env:MULTICA_MODE="local"`.
 # Server setup (self-host / local)
 # ---------------------------------------------------------------------------
 function Install-Server {
-    Write-Info "Setting up Multica server..."
+    Write-Info "Setting up morechat.co server..."
     $serverRef = Get-SelfHostRef
     Write-Info "Using self-host assets from $serverRef..."
 
@@ -405,7 +405,7 @@ function Install-Server {
         Write-Info "Updating existing installation at $InstallDir..."
         Write-Warn "Any local changes in $InstallDir will be overwritten."
     } else {
-        Write-Info "Cloning Multica repository..."
+        Write-Info "Cloning morechat.co repository..."
         if (-not (Test-CommandExists "git")) {
             Write-Fail "Git is not installed. Please install git and re-run."
         }
@@ -439,9 +439,9 @@ function Install-Server {
         Write-Ok "Using existing .env"
     }
 
-    Write-Info "Pulling official Multica images..."
+    Write-Info "Pulling official morechat.co images..."
     Pull-OfficialSelfHostImages
-    Write-Info "Starting Multica services (this may take a few minutes on first run)..."
+    Write-Info "Starting morechat.co services (this may take a few minutes on first run)..."
     docker compose -f docker-compose.selfhost.yml up -d
 
     # Read the ports Compose actually published, once, and reuse them for both
@@ -468,7 +468,7 @@ function Install-Server {
     }
 
     if ($ready) {
-        Write-Ok "Multica server is running"
+        Write-Ok "morechat.co server is running"
     } else {
         Write-Warn "Server is still starting. Check logs with:"
         Write-Host "  cd $InstallDir; docker compose -f docker-compose.selfhost.yml logs"
@@ -483,23 +483,23 @@ function Install-Server {
 # ---------------------------------------------------------------------------
 function Start-DefaultInstall {
     Write-Host ""
-    Write-Host "  Multica - Installer" -ForegroundColor White
+    Write-Host "  morechat.co - Installer" -ForegroundColor White
     Write-Host ""
 
     Install-Cli
 
     Write-Host ""
     Write-Host "  ============================================" -ForegroundColor Green
-    Write-Host "  [OK] Multica CLI is ready!" -ForegroundColor Green
+    Write-Host "  [OK] morechat.co CLI is ready!" -ForegroundColor Green
     Write-Host "  ============================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "  Next: configure your environment"
     Write-Host ""
-    Write-Host "     multica setup               " -NoNewline; Write-Host "# Connect to Multica Cloud (multica.ai)" -ForegroundColor DarkGray
+    Write-Host "     multica setup               " -NoNewline; Write-Host "# Connect to morechat.co Cloud (morechat.co)" -ForegroundColor DarkGray
     Write-Host "     multica setup self-host      " -NoNewline; Write-Host "# Connect to a self-hosted server" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Self-hosting? Install the server first:"
-    Write-Host '     $env:MULTICA_MODE="with-server"; irm https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.ps1 | iex'
+    Write-Host '     $env:MULTICA_MODE="with-server"; irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex'
     Write-Host ""
 }
 
@@ -508,7 +508,7 @@ function Start-DefaultInstall {
 # ---------------------------------------------------------------------------
 function Start-LocalInstall {
     Write-Host ""
-    Write-Host "  Multica - Self-Host Installer" -ForegroundColor White
+    Write-Host "  morechat.co - Self-Host Installer" -ForegroundColor White
     Write-Host "  Provisioning server infrastructure + installing CLI"
     Write-Host ""
 
@@ -518,7 +518,7 @@ function Start-LocalInstall {
 
     Write-Host ""
     Write-Host "  ============================================" -ForegroundColor Green
-    Write-Host "  [OK] Multica server is running and CLI is ready!" -ForegroundColor Green
+    Write-Host "  [OK] morechat.co server is running and CLI is ready!" -ForegroundColor Green
     Write-Host "  ============================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "  Frontend:  http://localhost:$($script:SelfHostFrontendPort)"
@@ -533,7 +533,7 @@ function Start-LocalInstall {
     Write-Host "  or read the generated code from backend logs when Resend is unset."
     Write-Host ""
     Write-Host "  To stop all services:"
-    Write-Host '     $env:MULTICA_MODE="stop"; irm https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.ps1 | iex'
+    Write-Host '     $env:MULTICA_MODE="stop"; irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex'
     Write-Host ""
 }
 
@@ -542,7 +542,7 @@ function Start-LocalInstall {
 # ---------------------------------------------------------------------------
 function Start-Stop {
     Write-Host ""
-    Write-Info "Stopping Multica services..."
+    Write-Info "Stopping morechat.co services..."
 
     if (Test-Path $InstallDir) {
         Push-Location $InstallDir
@@ -554,7 +554,7 @@ function Start-Stop {
         }
         Pop-Location
     } else {
-        Write-Warn "No Multica installation found at $InstallDir"
+        Write-Warn "No morechat.co installation found at $InstallDir"
     }
 
     if (Test-CommandExists "multica") {

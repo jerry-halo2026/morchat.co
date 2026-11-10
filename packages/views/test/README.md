@@ -12,7 +12,7 @@ To refresh the snapshot after substantial test changes, run the whole suite
 from the repository root on an otherwise idle machine:
 
 ```sh
-pnpm --filter @multica/views exec vitest run --maxWorkers=3 --no-cache --reporter=default --reporter=./test/timing-reporter.ts
+pnpm --filter @morechat/views exec vitest run --maxWorkers=3 --no-cache --reporter=default --reporter=./test/timing-reporter.ts
 ```
 
 The reporter only writes a snapshot after a successful, unsharded run. Review

@@ -2,7 +2,7 @@ import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import importPlugin from "eslint-plugin-import-x";
 
-// Multica draws its own icons: every glyph comes from @multica/ui/icons, and a
+// morechat.co draws its own icons: every glyph comes from @morechat/ui/icons, and a
 // missing one is drawn in packages/ui/icons/drawings. The pattern covers each
 // library's root and its subpaths (`react-icons/fa`, `@heroicons/react/24/outline`).
 // Exported because flat config replaces a rule's options wholesale: a package
@@ -20,7 +20,7 @@ export const ICON_LIBRARY_IMPORT_PATTERNS = [
   {
     regex: `^(${ICON_LIBRARIES.map(escape).join("|")})(/.*)?$`,
     message:
-      "Import icons from @multica/ui/icons; draw a missing one in packages/ui/icons/drawings (see .agents/skills/multica-icons).",
+      "Import icons from @morechat/ui/icons; draw a missing one in packages/ui/icons/drawings (see .agents/skills/morechat-icons).",
   },
 ];
 
@@ -29,7 +29,7 @@ export const ICON_LIBRARY_IMPORT_PATTERNS = [
 export const REDUCED_MOTION_IMPORT = {
   name: "motion/react",
   importNames: ["useReducedMotion"],
-  message: "Use useReducedMotion from @multica/core/appearance: it also honours the Appearance setting.",
+  message: "Use useReducedMotion from @morechat/core/appearance: it also honours the Appearance setting.",
 };
 
 /** @type {import("eslint").Linter.Config[]} */

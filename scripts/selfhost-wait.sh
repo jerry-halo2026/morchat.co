@@ -76,7 +76,7 @@ if ! health_ok; then
 fi
 
 echo ""
-echo "✓ Multica is running!"
+echo "✓ morechat.co is running!"
 echo "  Frontend: ${frontend_url}"
 echo "  Backend:  ${backend_url}"
 echo ""
@@ -84,8 +84,8 @@ if [ "$mode" = "build" ]; then
   echo "Built images locally via docker-compose.selfhost.build.yml."
   echo "Local tags: multica-backend:dev and multica-web:dev."
 else
-  echo "Images: ${MULTICA_BACKEND_IMAGE:-ghcr.io/multica-ai/multica-backend}:${MULTICA_IMAGE_TAG:-latest}"
-  echo "        ${MULTICA_WEB_IMAGE:-ghcr.io/multica-ai/multica-web}:${MULTICA_IMAGE_TAG:-latest}"
+  echo "Images: ${MULTICA_BACKEND_IMAGE:-ghcr.io/jerry-halo2026/morchat.co-backend}:${MULTICA_IMAGE_TAG:-latest}"
+  echo "        ${MULTICA_WEB_IMAGE:-ghcr.io/jerry-halo2026/morchat.co-web}:${MULTICA_IMAGE_TAG:-latest}"
 fi
 echo ""
 echo "Log in: configure RESEND_API_KEY in .env for email codes,"

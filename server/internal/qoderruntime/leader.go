@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/multica-ai/multica/server/internal/util"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
 )
 
 // squadLeader holds what a squad-leader run needs to deliver its turn. The

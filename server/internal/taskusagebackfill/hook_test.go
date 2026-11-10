@@ -14,8 +14,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/multica-ai/multica/server/internal/migrations"
-	"github.com/multica-ai/multica/server/internal/taskusagebackfill"
+	"github.com/jerry-halo2026/morchat.co/server/internal/migrations"
+	"github.com/jerry-halo2026/morchat.co/server/internal/taskusagebackfill"
 )
 
 // TestHook_DirectV034Upgrade simulates the path described in

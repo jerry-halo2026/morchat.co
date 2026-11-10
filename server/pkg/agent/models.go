@@ -18,7 +18,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/multica-ai/multica/server/pkg/taskfailure"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/taskfailure"
 )
 
 // Model describes a single LLM model exposed by an agent provider.
@@ -813,7 +813,7 @@ func discoverOpenCodeModels(ctx context.Context, runtimeCmd Command) ([]Model, e
 	// Newer opencode (1.15+) syncs its hosted free-model catalog over the
 	// network on `opencode models`, which can take ~6s; the previous 5s cap
 	// timed out and returned an empty list, so the runtime showed online but
-	// the model picker was empty. See multica-ai/multica#3627.
+	// the model picker was empty. See jerry-halo2026/morchat.co#3627.
 	runCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 	version, _ := detectCLIVersion(runCtx, runtimeCmd)

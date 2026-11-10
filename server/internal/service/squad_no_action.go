@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/multica-ai/multica/server/internal/util"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // HasSquadLeaderNoActionEvaluationForTask reports whether this exact task

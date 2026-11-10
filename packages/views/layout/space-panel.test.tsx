@@ -1,6 +1,6 @@
 import { act, fireEvent, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SidebarProvider, useSidebar } from "@multica/ui/components/ui/sidebar";
+import { SidebarProvider, useSidebar } from "@morechat/ui/components/ui/sidebar";
 import { renderWithI18n } from "../test/i18n";
 import { AppShellProvider, useAppShell } from "./app-shell-context";
 import { SpacePanel } from "./space-panel";

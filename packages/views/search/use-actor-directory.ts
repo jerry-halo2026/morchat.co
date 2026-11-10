@@ -2,16 +2,16 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { isAgentRuntimeBound, useWorkspacePresenceMap, type AgentAvailability } from "@multica/core/agents";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { canAssignAgentToIssue, useCurrentMember } from "@multica/core/permissions";
-import { runtimeDisplayLabel, runtimeListOptions } from "@multica/core/runtimes";
+import { isAgentRuntimeBound, useWorkspacePresenceMap, type AgentAvailability } from "@morechat/core/agents";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { canAssignAgentToIssue, useCurrentMember } from "@morechat/core/permissions";
+import { runtimeDisplayLabel, runtimeListOptions } from "@morechat/core/runtimes";
 import {
   agentListOptions,
   memberListOptions,
   squadListOptions,
-} from "@multica/core/workspace/queries";
-import type { Agent, MemberWithUser, Squad } from "@multica/core/types";
+} from "@morechat/core/workspace/queries";
+import type { Agent, MemberWithUser, Squad } from "@morechat/core/types";
 
 export interface AgentEntry {
   agent: Agent;

@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 	"net/http"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 func runtimeSharingPatch(t *testing.T, runtimeID, actorID string, body map[string]any) *testutil.Response {

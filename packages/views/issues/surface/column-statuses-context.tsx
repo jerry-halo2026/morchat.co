@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, use, type ReactNode } from "react";
-import type { IssueStatus } from "@multica/core/types";
+import type { IssueStatus } from "@morechat/core/types";
 
 /**
  * The status columns the surface's Display menu can show or hide, in column

@@ -2,11 +2,11 @@
 
 import { useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { Agent, AgentRuntime } from "@multica/core/types";
+import type { Agent, AgentRuntime } from "@morechat/core/types";
 import {
   isRuntimeUsableForUser,
   runtimeModelsOptions,
-} from "@multica/core/runtimes";
+} from "@morechat/core/runtimes";
 import { buildModelChangeUpdate, type ModelCatalog } from "./model-change-cleanup";
 
 /**

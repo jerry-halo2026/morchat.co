@@ -1,5 +1,5 @@
 {
-  "name": "@multica/views",
+  "name": "@morechat/views",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -83,8 +83,8 @@
     "@dnd-kit/sortable": "catalog:",
     "@dnd-kit/utilities": "catalog:",
     "@floating-ui/dom": "^1.7.6",
-    "@multica/core": "workspace:*",
-    "@multica/ui": "workspace:*",
+    "@morechat/core": "workspace:*",
+    "@morechat/ui": "workspace:*",
     "@tanstack/react-virtual": "catalog:",
     "@tiptap/core": "3.31.3",
     "@tiptap/extension-code-block-lowlight": "3.31.3",
@@ -146,10 +146,10 @@
     "zustand": "catalog:"
   },
   "devDependencies": {
-    "@multica/eslint-config": "workspace:*",
-    "@multica/plugin-sdk": "workspace:*",
-    "@multica/tsconfig": "workspace:*",
-    "@multica/vitest-setup": "workspace:*",
+    "@morechat/eslint-config": "workspace:*",
+    "@morechat/plugin-sdk": "workspace:*",
+    "@morechat/tsconfig": "workspace:*",
+    "@morechat/vitest-setup": "workspace:*",
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
     "@testing-library/user-event": "catalog:",

@@ -10,7 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 var testBusiness = BusinessDashboard

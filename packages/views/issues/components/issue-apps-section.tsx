@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { AppAccountScope, IssueAppCall } from "@multica/core/types";
+import type { AppAccountScope, IssueAppCall } from "@morechat/core/types";
 import { ComposioToolkitLogo } from "../../common/composio-toolkit-logo";
 import { useT } from "../../i18n";
 import { OutcomeIcon, outcomeLabel, toolLabel, useIssueAppCalls } from "./app-call-chips";
@@ -21,7 +21,7 @@ const NOTABLE = ["pending", "blocked", "rejected", "error", "rate_limited"] as c
 /**
  * "Apps" in the issue sidebar: which apps, through which account, this
  * issue's runs called, so a reader sees what an agent touched outside
- * Multica without opening every run. Renders nothing until a call is made.
+ * morechat.co without opening every run. Renders nothing until a call is made.
  */
 export function IssueAppsSection({ issueId }: { issueId: string }) {
   const { t } = useT("issues");

@@ -15,8 +15,8 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/integrations/channel"
-	"github.com/multica-ai/multica/server/internal/integrations/channel/engine"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel/engine"
 )
 
 // mediaFrame builds an aibot_msg_callback frame from a raw body map, going

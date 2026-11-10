@@ -17,26 +17,26 @@ import {
   RefreshCw,
   Zap,
   type IconComponent,
-} from "@multica/ui/icons";
-import { childIssuesOptions, issueDetailOptions, useCreateIssueWakeup } from "@multica/core/issues";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { labelListOptions } from "@multica/core/labels/queries";
-import { propertyListOptions } from "@multica/core/properties/queries";
-import { isAgentRuntimeBound } from "@multica/core/agents";
-import { ApiError } from "@multica/core/api";
-import { agentListOptions, memberListOptions, squadListOptions } from "@multica/core/workspace/queries";
-import { shortcutMatchesEvent, useShortcut } from "@multica/core/shortcuts";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Input } from "@multica/ui/components/ui/input";
-import { Textarea } from "@multica/ui/components/ui/textarea";
+} from "@morechat/ui/icons";
+import { childIssuesOptions, issueDetailOptions, useCreateIssueWakeup } from "@morechat/core/issues";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { labelListOptions } from "@morechat/core/labels/queries";
+import { propertyListOptions } from "@morechat/core/properties/queries";
+import { isAgentRuntimeBound } from "@morechat/core/agents";
+import { ApiError } from "@morechat/core/api";
+import { agentListOptions, memberListOptions, squadListOptions } from "@morechat/core/workspace/queries";
+import { shortcutMatchesEvent, useShortcut } from "@morechat/core/shortcuts";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
 import {
   Popover,
   PopoverContent,
   PopoverTitle,
   PopoverTrigger,
-} from "@multica/ui/components/ui/popover";
-import { DialogTitle } from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/popover";
+import { DialogTitle } from "@morechat/ui/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -48,8 +48,8 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { cn } from "@morechat/ui/lib/utils";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { ShortcutKeycaps } from "../../common/shortcut-keycaps";
 import { useViewingTimezone } from "../../common/use-viewing-timezone";

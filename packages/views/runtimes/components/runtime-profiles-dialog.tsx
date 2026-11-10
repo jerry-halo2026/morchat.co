@@ -12,21 +12,21 @@ import {
   Server,
   Trash2,
   X,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { ApiError } from "@multica/core/api";
+import { ApiError } from "@morechat/core/api";
 import type {
   RuntimeProfile,
   RuntimeProfileType,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import {
   runtimeProfileListOptions,
   useCreateRuntimeProfile,
   useUpdateRuntimeProfile,
-} from "@multica/core/runtimes";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
+} from "@morechat/core/runtimes";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import {
   Dialog,
   DialogClose,
@@ -34,11 +34,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Input } from "@multica/ui/components/ui/input";
-import { Label } from "@multica/ui/components/ui/label";
-import { Textarea } from "@multica/ui/components/ui/textarea";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dialog";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Label } from "@morechat/ui/components/ui/label";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
+import { cn } from "@morechat/ui/lib/utils";
 import { ProviderLogo } from "./provider-logo";
 import { DeleteRuntimeProfileDialog } from "./delete-runtime-profile-dialog";
 import {

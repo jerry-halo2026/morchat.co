@@ -29,8 +29,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/issuestatus"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/issuestatus"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // Handler types a project can hand an issue to when it enters a status.

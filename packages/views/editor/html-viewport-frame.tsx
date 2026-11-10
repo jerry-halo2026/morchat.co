@@ -23,7 +23,7 @@
  */
 
 import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../i18n";
 import {
   HTML_PREVIEW_WIDTH_KEY,

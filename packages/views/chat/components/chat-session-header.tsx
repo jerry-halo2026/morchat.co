@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Archive, ArchiveRestore, MoreHorizontal, Pencil, Settings2, Trash2 } from "@multica/ui/icons";
-import { IconButton } from "@multica/ui/components/common/icon-button";
+import { Archive, ArchiveRestore, MoreHorizontal, Pencil, Settings2, Trash2 } from "@morechat/ui/icons";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,21 +19,21 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import { useWorkspacePaths } from "@multica/core/paths";
+} from "@morechat/ui/components/ui/alert-dialog";
+import { useWorkspacePaths } from "@morechat/core/paths";
 import {
   useUpdateChatSession,
   useDeleteChatSession,
   useSetChatSessionArchived,
-} from "@multica/core/chat/mutations";
-import { useChatStore } from "@multica/core/chat";
-import type { Agent, ChatSession } from "@multica/core/types";
-import { isImeComposing } from "@multica/core/utils";
+} from "@morechat/core/chat/mutations";
+import { useChatStore } from "@morechat/core/chat";
+import type { Agent, ChatSession } from "@morechat/core/types";
+import { isImeComposing } from "@morechat/core/utils";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { BreadcrumbHeader } from "../../layout/breadcrumb-header";
 import { useNavigation } from "../../navigation";
 import { useT } from "../../i18n";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 
 /**
  * Per-session header for the conversation pane, read as a breadcrumb: the

@@ -18,9 +18,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
-	"github.com/multica-ai/multica/server/pkg/plugincontract"
-	"github.com/multica-ai/multica/server/pkg/remotemcp"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/plugincontract"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/remotemcp"
 )
 
 // The hook engine: the one place Multica calls OUT to a plugin's own server.

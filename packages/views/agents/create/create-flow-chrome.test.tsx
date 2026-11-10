@@ -2,7 +2,7 @@
 
 import { cleanup, fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Button } from "@multica/ui/components/ui/button";
+import { Button } from "@morechat/ui/components/ui/button";
 import { renderWithI18n } from "../../test/i18n";
 import { AgentCreateShell } from "./create-shell";
 import { CreateAgentFooter, CreateFlowFooter } from "./create-agent-footer";

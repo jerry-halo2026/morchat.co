@@ -1,9 +1,9 @@
-import type { Issue, IssueStatus, IssuePriority, IssueAssigneeGroup, ProjectStatus, PropertyFilterValue, PropertyOperatorFilter } from "@multica/core/types";
+import type { Issue, IssueStatus, IssuePriority, IssueAssigneeGroup, ProjectStatus, PropertyFilterValue, PropertyOperatorFilter } from "@morechat/core/types";
 import type {
   ActorFilterValue,
   IssueRelationFilter,
   NegatableFilterDimension,
-} from "@multica/core/issues/stores/view-store";
+} from "@morechat/core/issues/stores/view-store";
 import {
   dueDateMatches,
   FILTER_NONE_VALUE,
@@ -12,9 +12,9 @@ import {
   type AdvancedFilterCondition,
   type AdvancedFilterGroup,
   type DueDateFilter,
-} from "@multica/core/issues/stores/filter-tree";
-import { PROPERTY_FILTER_NONE_VALUE } from "@multica/core/issues/stores/filter-operators";
-import { todayDateOnly } from "@multica/core/issues/date";
+} from "@morechat/core/issues/stores/filter-tree";
+import { PROPERTY_FILTER_NONE_VALUE } from "@morechat/core/issues/stores/filter-operators";
+import { todayDateOnly } from "@morechat/core/issues/date";
 import type { IssueActivityState } from "../surface/activity";
 
 export interface IssueFilters {

@@ -1,5 +1,5 @@
 import type { JSONContent } from "@tiptap/core";
-import { findBlockCodeRanges } from "@multica/ui/markdown/linkify";
+import { findBlockCodeRanges } from "@morechat/ui/markdown/linkify";
 
 /**
  * Above this source size, ContentEditor parses markdown in chunks instead of in

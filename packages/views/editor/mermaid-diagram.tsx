@@ -39,9 +39,9 @@ import {
   type CSSProperties,
   type RefObject,
 } from "react";
-import { Check, Copy, Frame, Maximize2, Minus, Plus } from "@multica/ui/icons";
-import { copyText } from "@multica/ui/lib/clipboard";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { Check, Copy, Frame, Maximize2, Minus, Plus } from "@morechat/ui/icons";
+import { copyText } from "@morechat/ui/lib/clipboard";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 import { useT } from "../i18n";
 import { DYNAMIC_BLOCK_COLLAPSE_AT_PX, DynamicBlockSkeleton } from "./dynamic-block";
 import { useDragToScroll } from "./hooks/use-drag-to-scroll";

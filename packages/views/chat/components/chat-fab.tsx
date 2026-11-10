@@ -1,22 +1,22 @@
 "use client";
 
-import { MessageCircle } from "@multica/ui/icons";
+import { MessageCircle } from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { cn } from "@multica/ui/lib/utils";
-import { useChatStore } from "@multica/core/chat";
+import { cn } from "@morechat/ui/lib/utils";
+import { useChatStore } from "@morechat/core/chat";
 import {
   chatSessionsOptions,
   countUnreadChatSessions,
   hasPendingChatTasksOptions,
-} from "@multica/core/chat/queries";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { createLogger } from "@multica/core/logger";
-import { useShortcut } from "@multica/core/shortcuts";
+} from "@morechat/core/chat/queries";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { createLogger } from "@morechat/core/logger";
+import { useShortcut } from "@morechat/core/shortcuts";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-} from "@multica/ui/components/ui/tooltip";
+} from "@morechat/ui/components/ui/tooltip";
 import { ShortcutKeycaps } from "../../common/shortcut-keycaps";
 import { useT } from "../../i18n";
 

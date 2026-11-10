@@ -6,25 +6,25 @@ import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type D
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
-import { Folder, Plus } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { issueKeys, sidebarIssuesOptions } from "@multica/core/issues/queries";
-import { filterDependencyState, statusCatalogSource } from "@multica/core/issues/surface/filter-dependency";
+import { Folder, Plus } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { issueKeys, sidebarIssuesOptions } from "@morechat/core/issues/queries";
+import { filterDependencyState, statusCatalogSource } from "@morechat/core/issues/surface/filter-dependency";
 import {
   SIDEBAR_FIRST_PAGE,
   projectSidebarRequest,
   projectSidebarSource,
   type SidebarIssuesRequest,
-} from "@multica/core/issues/sidebar-list";
-import { useSidebarProjectPrefs, useUpdateSidebarProjectPrefs } from "@multica/core/issues/sidebar-project-prefs";
-import { openCreateIssueWithPreference } from "@multica/core/issues/stores/create-mode-store";
-import { useSidebarKeptStore } from "@multica/core/issues/stores/sidebar-kept-store";
-import { useSidebarTreeStore, type SidebarIssueSettings } from "@multica/core/issues/stores/sidebar-tree-store";
-import { useModalStore } from "@multica/core/modals";
-import { useWorkspacePaths } from "@multica/core/paths";
-import type { Issue, ListIssuesResponse, Project } from "@multica/core/types";
+} from "@morechat/core/issues/sidebar-list";
+import { useSidebarProjectPrefs, useUpdateSidebarProjectPrefs } from "@morechat/core/issues/sidebar-project-prefs";
+import { openCreateIssueWithPreference } from "@morechat/core/issues/stores/create-mode-store";
+import { useSidebarKeptStore } from "@morechat/core/issues/stores/sidebar-kept-store";
+import { useSidebarTreeStore, type SidebarIssueSettings } from "@morechat/core/issues/stores/sidebar-tree-store";
+import { useModalStore } from "@morechat/core/modals";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import type { Issue, ListIssuesResponse, Project } from "@morechat/core/types";
 import { useT } from "../../i18n";
 import {
   PANEL_ROW_CLASS,

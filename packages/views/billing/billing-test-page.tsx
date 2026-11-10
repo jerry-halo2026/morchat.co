@@ -24,7 +24,7 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, RefreshCw, ExternalLink } from "@multica/ui/icons";
+import { Loader2, RefreshCw, ExternalLink } from "@morechat/ui/icons";
 import { toast } from "sonner";
 import {
   billingBalanceOptions,
@@ -36,21 +36,21 @@ import {
   useCreateCloudBillingCheckoutSession,
   useCreateCloudBillingPortalSession,
   useInvalidateBillingDataAfterCredit,
-} from "@multica/core/billing";
+} from "@morechat/core/billing";
 import type {
   BillingBatch,
   BillingPriceTier,
   BillingTopup,
   BillingTransaction,
-} from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
+} from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@multica/ui/components/ui/card";
+} from "@morechat/ui/components/ui/card";
 import { useLocale, useT } from "../i18n";
 import { useNavigation } from "../navigation";
 

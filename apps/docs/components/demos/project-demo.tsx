@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, FolderKanban } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
+import { ChevronDown, FolderKanban } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
 import { CoachMark, DemoAvatar, DemoFrame, useDemoCopy, useStartWhenVisible } from "./demo-kit";
 
 type IssueStatus = "todo" | "in_progress" | "in_review" | "done" | "cancelled";

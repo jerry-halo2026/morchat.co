@@ -1,6 +1,6 @@
 import { act, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SidebarProvider, useSidebar } from "@multica/ui/components/ui/sidebar";
+import { SidebarProvider, useSidebar } from "@morechat/ui/components/ui/sidebar";
 import {
   AppShellProvider,
   useAppShell,

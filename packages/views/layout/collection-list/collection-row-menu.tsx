@@ -1,14 +1,14 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import { MoreHorizontal } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { DeferredTooltip } from "@multica/ui/components/common/deferred-tooltip";
+import { MoreHorizontal } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { DeferredTooltip } from "@morechat/ui/components/common/deferred-tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import { useT } from "../../i18n";
 import { useCollectionRowMenuState, type RowMenuState } from "./row-context";
 

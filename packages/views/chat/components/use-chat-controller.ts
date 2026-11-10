@@ -7,19 +7,19 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useAuthStore } from "@multica/core/auth";
-import { getCurrentWsId } from "@multica/core/platform";
-import { agentListOptions, memberListOptions } from "@multica/core/workspace/queries";
-import { projectListOptions } from "@multica/core/projects/queries";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useAuthStore } from "@morechat/core/auth";
+import { getCurrentWsId } from "@morechat/core/platform";
+import { agentListOptions, memberListOptions } from "@morechat/core/workspace/queries";
+import { projectListOptions } from "@morechat/core/projects/queries";
 import { canAssignAgent } from "../../issues/components/pickers/assignee-picker";
-import { api, dispatchReasonCode } from "@multica/core/api";
+import { api, dispatchReasonCode } from "@morechat/core/api";
 import {
   isAgentRuntimeBound as hasAgentRuntime,
   useAgentPresenceDetail,
   useCustomizeConversationStartersHref,
   useWorkspaceAgentAvailability,
-} from "@multica/core/agents";
+} from "@morechat/core/agents";
 import {
   chatSessionsOptions,
   chatMessagesPageOptions,
@@ -27,29 +27,29 @@ import {
   chatKeys,
   isTaskMessageTaskId,
   sortChatSessions,
-} from "@multica/core/chat/queries";
+} from "@morechat/core/chat/queries";
 import {
   useCreateChatSession,
   useMarkChatSessionRead,
   useSetChatSessionProject,
   useSetChatSessionArchived,
-} from "@multica/core/chat/mutations";
-import { useChatStore } from "@multica/core/chat";
-import { upsertChatMessageToCaches } from "@multica/core/chat/message-cache";
+} from "@morechat/core/chat/mutations";
+import { useChatStore } from "@morechat/core/chat";
+import { upsertChatMessageToCaches } from "@morechat/core/chat/message-cache";
 import {
   enqueuePendingChatTask,
   hideQueuedChatMessages,
-} from "@multica/core/chat/pending";
+} from "@morechat/core/chat/pending";
 import { useChatDraftRestore } from "./use-chat-draft-restore";
 import { useChatTaskActions } from "./use-chat-task-actions";
 import { useChatProjectContextSupport } from "./use-chat-project-context-support";
-import { createLogger } from "@multica/core/logger";
+import { createLogger } from "@morechat/core/logger";
 import type {
   Agent,
   Attachment,
   ChatMessage,
   ChatPendingTask,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import { useT } from "../../i18n";
 import { useAppForeground } from "../../common/use-app-foreground";
 

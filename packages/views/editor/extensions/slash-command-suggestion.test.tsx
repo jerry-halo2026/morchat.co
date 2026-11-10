@@ -1,9 +1,9 @@
 import { act, render } from "@testing-library/react";
 import { createRef, type ReactNode } from "react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
-import { I18nProvider } from "@multica/core/i18n/react";
-import { workspaceKeys } from "@multica/core/workspace/queries";
-import type { Agent, MemberWithUser } from "@multica/core/types";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import { workspaceKeys } from "@morechat/core/workspace/queries";
+import type { Agent, MemberWithUser } from "@morechat/core/types";
 import type { QueryClient } from "@tanstack/react-query";
 import enEditor from "../../locales/en/editor.json";
 
@@ -23,17 +23,17 @@ beforeAll(() => {
   Element.prototype.scrollIntoView = vi.fn();
 });
 
-vi.mock("@multica/core/platform", () => ({
+vi.mock("@morechat/core/platform", () => ({
   getCurrentWsId: () => "ws-1",
 }));
 
 const authState = { user: { id: "u1" } as { id: string } | null };
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: { getState: () => authState },
 }));
 
 const chatState = { selectedAgentId: "agent-1" as string | null };
-vi.mock("@multica/core/chat", () => ({
+vi.mock("@morechat/core/chat", () => ({
   useChatStore: { getState: () => chatState },
 }));
 

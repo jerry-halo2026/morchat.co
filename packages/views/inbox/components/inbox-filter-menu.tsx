@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Filter, RotateCcw, Search } from "@multica/ui/icons";
-import { PRIORITY_DISPLAY_ORDER } from "@multica/core/issues/config";
-import { DUE_DATE_FILTERS, FILTER_NONE_VALUE } from "@multica/core/issues/stores/filter-tree";
+import { Filter, RotateCcw, Search } from "@morechat/ui/icons";
+import { PRIORITY_DISPLAY_ORDER } from "@morechat/core/issues/config";
+import { DUE_DATE_FILTERS, FILTER_NONE_VALUE } from "@morechat/core/issues/stores/filter-tree";
 import {
   INBOX_AGENT_FILTERS,
   INBOX_RECEIVED_FILTERS,
@@ -20,14 +20,14 @@ import {
   type InboxListDimension,
   useInboxFilters,
   useInboxFilterStore,
-} from "@multica/core/inbox/filter-store";
+} from "@morechat/core/inbox/filter-store";
 import { useQuery } from "@tanstack/react-query";
-import { archivedInboxFacetsOptions } from "@multica/core/inbox/queries";
-import { useActorName } from "@multica/core/workspace/hooks";
-import type { InboxItem } from "@multica/core/types";
-import { ActorAvatar } from "@multica/ui/components/common/actor-avatar";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Button } from "@multica/ui/components/ui/button";
+import { archivedInboxFacetsOptions } from "@morechat/core/inbox/queries";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import type { InboxItem } from "@morechat/core/types";
+import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -40,8 +40,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { cn } from "@morechat/ui/lib/utils";
 import { FILTER_ITEM_CLASS, HoverCheck } from "../../common/hover-check";
 import { PriorityIcon } from "../../issues/components/priority-icon";
 import { StatusIcon } from "../../issues/components/status-icon";

@@ -1,1 +1,1 @@
-export { redactSecrets } from "@multica/core/security/redact-secrets";
+export { redactSecrets } from "@morechat/core/security/redact-secrets";

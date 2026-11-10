@@ -3,11 +3,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { I18nProvider } from "@multica/core/i18n/react";
-import { configStore } from "@multica/core/config";
-import type { DaemonConfigStatus, DaemonSetupTarget } from "@multica/core/runtimes";
-import { runtimeKeys } from "@multica/core/runtimes/queries";
-import type { AgentRuntime } from "@multica/core/types";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import { configStore } from "@morechat/core/config";
+import type { DaemonConfigStatus, DaemonSetupTarget } from "@morechat/core/runtimes";
+import { runtimeKeys } from "@morechat/core/runtimes/queries";
+import type { AgentRuntime } from "@morechat/core/types";
 import enCommon from "../../locales/en/common.json";
 import enRuntimes from "../../locales/en/runtimes.json";
 import { ConnectRemoteDialog } from "./connect-remote-dialog";
@@ -22,8 +22,8 @@ const workspaceState = vi.hoisted(() => ({
 }));
 const authState = vi.hoisted(() => ({ user: { id: "user-test" } as { id: string } | null }));
 const runtimeApi = vi.hoisted(() => ({ listRuntimes: vi.fn<() => Promise<AgentRuntime[]>>() }));
-vi.mock("@multica/core/api", () => ({ api: runtimeApi }));
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/api", () => ({ api: runtimeApi }));
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: Object.assign(
     (select: (state: typeof authState) => unknown) => select(authState),
     { getState: () => authState },
@@ -48,13 +48,13 @@ const clipboard = vi.hoisted(() => ({
   copyText: vi.fn<(text: string) => Promise<boolean>>(),
 }));
 
-vi.mock("@multica/ui/lib/clipboard", () => ({ copyText: clipboard.copyText }));
+vi.mock("@morechat/ui/lib/clipboard", () => ({ copyText: clipboard.copyText }));
 
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => workspaceState.id,
 }));
 
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   paths: {
     workspace: () => ({
       agents: () => "/agents",
@@ -70,9 +70,9 @@ const wsEventState = vi.hoisted(() => ({
 }));
 
 const WINDOWS_CMD =
-  "irm https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.ps1 | iex";
+  "irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex";
 
-vi.mock("@multica/core/realtime", () => ({
+vi.mock("@morechat/core/realtime", () => ({
   useWSEvent: (_event: string, handler: (payload: unknown) => void) => {
     wsEventState.handler = handler;
   },
@@ -171,10 +171,10 @@ describe("ConnectRemoteDialog", () => {
     expect(baseElement).toHaveTextContent("multica setup");
     expect(baseElement).not.toHaveTextContent("multica setup self-host");
     expect(baseElement).toHaveTextContent(
-      "multica config set server_url https://api.multica.ai",
+      "multica config set server_url https://api.morechat.co",
     );
     expect(baseElement).toHaveTextContent(
-      "multica config set app_url https://multica.ai",
+      "multica config set app_url https://morechat.co",
     );
   });
 

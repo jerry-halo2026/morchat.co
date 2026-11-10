@@ -1,21 +1,21 @@
 "use client";
 
 import { useId, useState } from "react";
-import { ListChecks, Pencil } from "@multica/ui/icons";
+import { ListChecks, Pencil } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { useUpdateIssueSystemWakeup } from "@multica/core/issues";
-import type { SystemWakeup } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Switch } from "@multica/ui/components/ui/switch";
-import { Textarea } from "@multica/ui/components/ui/textarea";
+import { useUpdateIssueSystemWakeup } from "@morechat/core/issues";
+import type { SystemWakeup } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Switch } from "@morechat/ui/components/ui/switch";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
 import {
   Popover,
   PopoverContent,
   PopoverTitle,
   PopoverTrigger,
-} from "@multica/ui/components/ui/popover";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
+} from "@morechat/ui/components/ui/popover";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
 import { useT } from "../../i18n";
 import { useWakeupText } from "./wakeup-presentation";
 

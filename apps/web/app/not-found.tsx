@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { buttonVariants } from "@multica/ui/components/ui/button";
-import { useT } from "@multica/views/i18n";
+import { buttonVariants } from "@morechat/ui/components/ui/button";
+import { useT } from "@morechat/views/i18n";
 
 export default function NotFound() {
   const { t } = useT("common");

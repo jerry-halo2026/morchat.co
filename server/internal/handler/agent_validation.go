@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/multica-ai/multica/server/internal/agentconfig"
+	"github.com/jerry-halo2026/morchat.co/server/internal/agentconfig"
 )
 
 func validateAgentMaxConcurrentTasks(value int32) error {

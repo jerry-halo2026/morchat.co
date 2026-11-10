@@ -4,7 +4,7 @@ import {
 } from "../../common/docs-locale";
 
 export function daemonRuntimesDocsHref(language?: string): string {
-  return `https://multica.ai/docs${docsLocalePrefix(language)}/daemon-runtimes`;
+  return `https://morechat.co/docs${docsLocalePrefix(language)}/daemon-runtimes`;
 }
 
 export function customRuntimeDocsHref(language?: string): string {

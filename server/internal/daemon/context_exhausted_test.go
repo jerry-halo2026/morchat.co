@@ -3,8 +3,8 @@ package daemon
 import (
 	"testing"
 
-	"github.com/multica-ai/multica/server/pkg/agent"
-	"github.com/multica-ai/multica/server/pkg/taskfailure"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/taskfailure"
 )
 
 // TestContextExhaustionNeverReplaysTheTask pins the boundary between the two

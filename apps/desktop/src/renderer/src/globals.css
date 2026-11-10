@@ -1,10 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@multica/ui/styles/tokens.css";
-@import "@multica/ui/styles/theme-variables.css";
-@import "@multica/ui/styles/appearance.css";
-@import "@multica/ui/styles/base.css";
+@import "@morechat/ui/styles/tokens.css";
+@import "@morechat/ui/styles/theme-variables.css";
+@import "@morechat/ui/styles/appearance.css";
+@import "@morechat/ui/styles/base.css";
 
 @custom-variant dark (&:is(.dark *));
 

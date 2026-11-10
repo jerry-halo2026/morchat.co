@@ -13,10 +13,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	composio "github.com/multica-ai/multica/server/internal/integrations/composio"
-	"github.com/multica-ai/multica/server/internal/util"
-	sdk "github.com/multica-ai/multica/server/pkg/composio"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	composio "github.com/jerry-halo2026/morchat.co/server/internal/integrations/composio"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
+	sdk "github.com/jerry-halo2026/morchat.co/server/pkg/composio"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 const composioTestUserID = "22222222-2222-2222-2222-222222222222"

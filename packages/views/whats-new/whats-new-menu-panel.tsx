@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState, type RefObject } from "react";
-import { Popover, PopoverContent } from "@multica/ui/components/ui/popover";
+import { Popover, PopoverContent } from "@morechat/ui/components/ui/popover";
 import { useWhatsNew } from "./use-whats-new";
 import { WhatsNewPanel } from "./whats-new-panel";
 

@@ -1,10 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Check, Cloud, Download, Laptop, Server, SquareTerminal } from "@multica/ui/icons";
-import { buttonVariants } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
-import { providerDisplayName } from "@multica/core/runtimes";
+import { Check, Cloud, Download, Laptop, Server, SquareTerminal } from "@morechat/ui/icons";
+import { buttonVariants } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
+import { providerDisplayName } from "@morechat/core/runtimes";
 import {
   FeatureIntro,
   FeatureIntroCarousel,

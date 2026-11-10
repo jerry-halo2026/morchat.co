@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { I18nProvider } from "@multica/core/i18n/react";
-import { DEFAULT_APPEARANCE, useAppearanceStore, type Theme } from "@multica/core/appearance";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import { DEFAULT_APPEARANCE, useAppearanceStore, type Theme } from "@morechat/core/appearance";
 import enCommon from "../../locales/en/common.json";
 import enSettings from "../../locales/en/settings.json";
 
@@ -12,14 +12,14 @@ const themeState = vi.hoisted(() => ({
   resolvedTheme: "light",
   setTheme: vi.fn(),
 }));
-vi.mock("@multica/ui/components/common/theme-provider", () => ({
+vi.mock("@morechat/ui/components/common/theme-provider", () => ({
   useTheme: () => themeState,
 }));
 
 /** A theme the next render treats as active, for option types no built-in theme uses. */
 const testTheme = vi.hoisted(() => ({ current: null as Theme | null }));
-vi.mock("@multica/core/appearance", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/appearance")>();
+vi.mock("@morechat/core/appearance", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/appearance")>();
   return {
     ...actual,
     activeTheme: (prefs: { theme: string }) =>

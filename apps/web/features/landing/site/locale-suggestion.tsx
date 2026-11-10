@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { matchLocale } from "@multica/core/i18n";
-import { createBrowserCookieLocaleAdapter } from "@multica/core/i18n/browser";
-import { XIcon } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
+import { matchLocale } from "@morechat/core/i18n";
+import { createBrowserCookieLocaleAdapter } from "@morechat/core/i18n/browser";
+import { XIcon } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
 import { HTML_LANG } from "@/lib/html-lang";
 import { landingPathLocale, type LandingPathLocale } from "@/lib/landing-locale-path";
 import { createLandingDict } from "../i18n/dictionary";

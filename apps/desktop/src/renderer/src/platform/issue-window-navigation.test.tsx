@@ -14,11 +14,11 @@ import {
   currentPath,
   useNavigation,
   type NavigationAdapter,
-} from "@multica/views/navigation";
+} from "@morechat/views/navigation";
 
 const APP_URL = "https://app.example";
 
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useCurrentWorkspace: () => ({ slug: "acme", id: "ws-1" }),
 }));
 

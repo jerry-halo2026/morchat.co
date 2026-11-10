@@ -3,28 +3,28 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { useRegisterCommandBarContext } from "../../search/register-context";
 import { useDefaultLayout, usePanelRef } from "react-resizable-panels";
-import { Check, ChevronRight, FileQuestion, Link2, PanelRight, Pencil, Pin, PinOff, Trash2, UserMinus } from "@multica/ui/icons";
+import { Check, ChevronRight, FileQuestion, Link2, PanelRight, Pencil, Pin, PinOff, Trash2, UserMinus } from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { cn } from "@multica/ui/lib/utils";
-import { copyText } from "@multica/ui/lib/clipboard";
+import { cn } from "@morechat/ui/lib/utils";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import { toast } from "sonner";
-import type { Project, ProjectStatus, ProjectPriority } from "@multica/core/types";
-import { useAuthStore } from "@multica/core/auth";
-import { canDeleteProject } from "@multica/core/projects/deletion-permissions";
-import { canChangeProjectLead } from "@multica/core/projects/access";
-import { projectDetailOptions } from "@multica/core/projects/queries";
-import { Spinner } from "@multica/ui/components/ui/spinner";
-import { useUpdateProject, useDeleteProject, ProjectDeletionOfflineError } from "@multica/core/projects/mutations";
-import { pinListOptions } from "@multica/core/pins";
-import { useCreatePin, useDeletePin } from "@multica/core/pins";
-import { useModalStore } from "@multica/core/modals";
-import { memberListOptions, agentListOptions } from "@multica/core/workspace/queries";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useIssuesScope } from "@multica/core/issues/stores";
-import { useRecentContextStore } from "@multica/core/chat";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { PROJECT_STATUS_ORDER, PROJECT_STATUS_CONFIG, PROJECT_PRIORITY_ORDER } from "@multica/core/projects/config";
+import type { Project, ProjectStatus, ProjectPriority } from "@morechat/core/types";
+import { useAuthStore } from "@morechat/core/auth";
+import { canDeleteProject } from "@morechat/core/projects/deletion-permissions";
+import { canChangeProjectLead } from "@morechat/core/projects/access";
+import { projectDetailOptions } from "@morechat/core/projects/queries";
+import { Spinner } from "@morechat/ui/components/ui/spinner";
+import { useUpdateProject, useDeleteProject, ProjectDeletionOfflineError } from "@morechat/core/projects/mutations";
+import { pinListOptions } from "@morechat/core/pins";
+import { useCreatePin, useDeletePin } from "@morechat/core/pins";
+import { useModalStore } from "@morechat/core/modals";
+import { memberListOptions, agentListOptions } from "@morechat/core/workspace/queries";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useIssuesScope } from "@morechat/core/issues/stores";
+import { useRecentContextStore } from "@morechat/core/chat";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { PROJECT_STATUS_ORDER, PROJECT_STATUS_CONFIG, PROJECT_PRIORITY_ORDER } from "@morechat/core/projects/config";
 import { getProjectIssueMetrics } from "./project-issue-metrics";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { AppLink, currentPath, useNavigation } from "../../navigation";
@@ -37,30 +37,30 @@ import { ProjectAccessControl } from "./project-access";
 import { ProjectWorkflowControl } from "../../workflows/project-workflow-row";
 import { ProjectWorkflowMenuHost } from "../../workflows/project-workflow-menu";
 import { IssueSurface } from "../../issues/surface/issue-surface";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { Button, buttonVariants } from "@multica/ui/components/ui/button";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@multica/ui/components/ui/resizable";
-import { Sheet, SheetContent } from "@multica/ui/components/ui/sheet";
-import { useIsMobile } from "@multica/ui/hooks/use-mobile";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { Button, buttonVariants } from "@morechat/ui/components/ui/button";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@morechat/ui/components/ui/resizable";
+import { Sheet, SheetContent } from "@morechat/ui/components/ui/sheet";
+import { useIsMobile } from "@morechat/ui/hooks/use-mobile";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@multica/ui/components/ui/popover";
+} from "@morechat/ui/components/ui/popover";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-} from "@multica/ui/components/ui/tooltip";
-import { EmojiPicker } from "@multica/ui/components/common/emoji-picker";
+} from "@morechat/ui/components/ui/tooltip";
+import { EmojiPicker } from "@morechat/ui/components/common/emoji-picker";
 import { IssueViewHeader } from "../../issue-views/view-header";
 import {
   AnimatedRightSidebar,
@@ -79,7 +79,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
+} from "@morechat/ui/components/ui/alert-dialog";
 import { useT } from "../../i18n";
 import { useProjectStatusLabels, useProjectPriorityLabels } from "./labels";
 import { matchesPinyin } from "../../editor/extensions/pinyin-match";

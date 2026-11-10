@@ -2,9 +2,9 @@ import { cloneElement, type ReactElement, type ReactNode } from "react";
 import { fireEvent, render as rtlRender, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { configStore } from "@multica/core/config";
-import { githubStarsOptions } from "@multica/core/github/stars";
-import { markStarPromptStarred } from "@multica/core/star-prompt";
+import { configStore } from "@morechat/core/config";
+import { githubStarsOptions } from "@morechat/core/github/stars";
+import { markStarPromptStarred } from "@morechat/core/star-prompt";
 import enLayout from "../locales/en/layout.json";
 import { isDesktopShell } from "../platform/local-directory";
 import { HelpLauncher } from "./help-launcher";
@@ -16,7 +16,7 @@ vi.mock("../platform/local-directory", () => ({
   isDesktopShell: vi.fn(() => false),
 }));
 
-vi.mock("@multica/core/star-prompt", () => ({
+vi.mock("@morechat/core/star-prompt", () => ({
   markStarPromptStarred: vi.fn(() => Promise.resolve()),
 }));
 
@@ -57,7 +57,7 @@ vi.mock("../i18n", () => ({
 // DropdownMenuGroup crashed the whole app (no error boundary above the sidebar)
 // the moment the Help menu opened. Mirroring the throw here keeps the guard.
 // The group context lives inside the factory so it survives vi.mock hoisting.
-vi.mock("@multica/ui/components/ui/dropdown-menu", async () => {
+vi.mock("@morechat/ui/components/ui/dropdown-menu", async () => {
   const { createContext, useContext } = await import("react");
   const GroupContext = createContext(false);
   return {
@@ -127,14 +127,14 @@ describe("HelpLauncher", () => {
   it("links to the download page on web", () => {
     render(<HelpLauncher />);
     const link = screen.getByRole("link", { name: /Desktop app/ });
-    expect(link).toHaveAttribute("href", "https://multica.ai/download");
+    expect(link).toHaveAttribute("href", "https://morechat.co/download");
   });
 
   it.each([
-    ["en", "https://multica.ai/docs"],
-    ["zh-Hans", "https://multica.ai/docs/zh"],
-    ["zh-Hant", "https://multica.ai/docs/zh-Hant"],
-    ["fr", "https://multica.ai/docs/fr"],
+    ["en", "https://morechat.co/docs"],
+    ["zh-Hans", "https://morechat.co/docs/zh"],
+    ["zh-Hant", "https://morechat.co/docs/zh-Hant"],
+    ["fr", "https://morechat.co/docs/fr"],
   ])("links Docs to the %s docs", (language, href) => {
     i18nState.language = language;
     render(<HelpLauncher />);
@@ -157,7 +157,7 @@ describe("HelpLauncher", () => {
   it("links to the GitHub repo and retires the star prompt on click", () => {
     render(<HelpLauncher />);
     const link = screen.getByRole("link", { name: /Star on GitHub/ });
-    expect(link).toHaveAttribute("href", "https://github.com/multica-ai/multica");
+    expect(link).toHaveAttribute("href", "https://github.com/jerry-halo2026/morchat.co");
     fireEvent.click(link);
     expect(markStarPromptStarred).toHaveBeenCalledTimes(1);
   });

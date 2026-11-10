@@ -9,12 +9,12 @@ const state = vi.hoisted(() => ({
   refetch: vi.fn(),
 }));
 
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: (selector: (auth: { user: { id: string } }) => unknown) =>
     selector({ user: { id: "user-1" } }),
 }));
 
-vi.mock("@multica/core/workspace", () => ({
+vi.mock("@morechat/core/workspace", () => ({
   useWorkspaceList: () => ({
     workspaces: state.workspaces,
     ready: state.ready,
@@ -24,29 +24,29 @@ vi.mock("@multica/core/workspace", () => ({
   }),
 }));
 
-vi.mock("@multica/core/platform", () => ({
+vi.mock("@morechat/core/platform", () => ({
   setCurrentWorkspace: vi.fn(),
 }));
 
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   WorkspaceSlugProvider: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
 }));
 
-vi.mock("@multica/ui/components/common/multica-icon", () => ({
-  MulticaIcon: () => <div data-testid="workspace-loading" />,
+vi.mock("@morechat/ui/components/common/morechat-icon", () => ({
+  MorechatIcon: () => <div data-testid="workspace-loading" />,
 }));
 
-vi.mock("@multica/views/modals/registry", () => ({
+vi.mock("@morechat/views/modals/registry", () => ({
   ModalRegistry: () => null,
 }));
 
-vi.mock("@multica/views/layout", () => ({
+vi.mock("@morechat/views/layout", () => ({
   WorkspacePresencePrefetch: () => null,
 }));
 
-vi.mock("@multica/views/platform", () => ({
+vi.mock("@morechat/views/platform", () => ({
   DragStrip: () => <div data-testid="drag-strip" />,
   WindowTitleBarProvider: ({
     value,

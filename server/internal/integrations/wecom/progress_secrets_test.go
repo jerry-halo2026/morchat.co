@@ -99,7 +99,7 @@ func TestOrdinaryArgumentsSurviveIntact(t *testing.T) {
 		`git show 3d80274ab1f9c0e4d5a6b7c8d9e0f1a2b3c4d5e6`,
 		`session 550e8400-e29b-41d4-a716-446655440000`,
 		`grep -rn "func main" ./cmd`,
-		`https://github.com/multica-ai/multica/pull/6524`,
+		`https://github.com/jerry-halo2026/morchat.co/pull/6524`,
 		`npm run build -- --mode=production`,
 		`正在查看 docs/design/roadmap.md`,
 		`kubectl get pods -n multica-production`,
@@ -316,7 +316,7 @@ func TestACredentialInsideAURLIsRedacted(t *testing.T) {
 	}
 	// And an ordinary URL is left readable: its parts are a host and a path.
 	for _, in := range []string{
-		`open https://github.com/multica-ai/multica/pull/9155`,
+		`open https://github.com/jerry-halo2026/morchat.co/pull/9155`,
 		`curl https://api.example.com/v1/users/7f3c2a9e-1b4d-4e8a-9c2f-3d5e6f7a8b9c?expand=teams`,
 	} {
 		if got := safeFragment(in); strings.Contains(got, secretMask) {

@@ -1,20 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle } from "@multica/ui/icons";
+import { AlertTriangle } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import type { RuntimeProfile } from "@multica/core/types";
+import type { RuntimeProfile } from "@morechat/core/types";
 import {
   parseRuntimeProfileBoundConflict,
   useDeleteRuntimeProfile,
-} from "@multica/core/runtimes";
+} from "@morechat/core/runtimes";
 import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import { Button } from "@multica/ui/components/ui/button";
+} from "@morechat/ui/components/ui/alert-dialog";
+import { Button } from "@morechat/ui/components/ui/button";
 import { useT } from "../../i18n";
 
 // Confirmation dialog for deleting a custom runtime profile. The server

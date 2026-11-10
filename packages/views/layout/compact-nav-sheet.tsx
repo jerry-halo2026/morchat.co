@@ -7,8 +7,8 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@multica/ui/components/ui/sheet";
-import { useSidebar } from "@multica/ui/components/ui/sidebar";
+} from "@morechat/ui/components/ui/sheet";
+import { useSidebar } from "@morechat/ui/components/ui/sidebar";
 import { useT } from "../i18n";
 import { useNavigation } from "../navigation";
 import { AppRail } from "./app-rail";

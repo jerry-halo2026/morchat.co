@@ -11,7 +11,7 @@
 // the published artifact and serves it in a generated content document, so
 // there is no module graph for a static `import` to resolve against — and that is the
 // point: a surface cannot reach its author's server just by loading. In a real
-// plugin you would bundle `@multica/plugin-sdk` in; this file inlines the few
+// plugin you would bundle `@morechat/plugin-sdk` in; this file inlines the few
 // calls it needs so the example stays readable and has nothing to install.
 
 const pending = new Map();

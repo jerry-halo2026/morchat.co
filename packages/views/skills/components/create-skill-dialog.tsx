@@ -13,45 +13,45 @@ import {
   Pencil,
   Plus,
   X as XIcon,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { api, ApiError } from "@multica/core/api";
+import { api, ApiError } from "@morechat/core/api";
 import {
   getCurrentSlug,
   getCurrentWsId,
   subscribeToCurrentSlug,
-} from "@multica/core/platform";
-import type { Skill } from "@multica/core/types";
+} from "@morechat/core/platform";
+import type { Skill } from "@morechat/core/types";
 import {
   discoverSkillArchivesFromPickerFiles,
   wrapExistingSkillArchive,
   type SkillArchiveDiscovery,
   type PreparedSkillArchiveError,
-} from "@multica/core/skills";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { isImeComposing } from "@multica/core/utils";
+} from "@morechat/core/skills";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { isImeComposing } from "@morechat/core/utils";
 import {
   skillDetailOptions,
   workspaceKeys,
-} from "@multica/core/workspace/queries";
+} from "@morechat/core/workspace/queries";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
-import { Button } from "@multica/ui/components/ui/button";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
-import { Input } from "@multica/ui/components/ui/input";
-import { Label } from "@multica/ui/components/ui/label";
-import { Textarea } from "@multica/ui/components/ui/textarea";
-import { useScrollFade } from "@multica/ui/hooks/use-scroll-fade";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/tooltip";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Label } from "@morechat/ui/components/ui/label";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
+import { useScrollFade } from "@morechat/ui/hooks/use-scroll-fade";
+import { cn } from "@morechat/ui/lib/utils";
 import { openExternal } from "../../platform";
 import { RuntimeLocalSkillImportPanel } from "./runtime-local-skill-import-panel";
 import { useT } from "../../i18n";

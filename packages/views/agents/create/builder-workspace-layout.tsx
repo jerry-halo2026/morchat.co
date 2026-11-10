@@ -2,9 +2,9 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useDefaultLayout } from "react-resizable-panels";
-import { useIsMobile } from "@multica/ui/hooks/use-mobile";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@multica/ui/components/ui/tabs";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@multica/ui/components/ui/resizable";
+import { useIsMobile } from "@morechat/ui/hooks/use-mobile";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@morechat/ui/components/ui/tabs";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@morechat/ui/components/ui/resizable";
 import { useT } from "../../i18n";
 
 export function BuilderWorkspaceLayout({ conversation, configuration, footer }: {

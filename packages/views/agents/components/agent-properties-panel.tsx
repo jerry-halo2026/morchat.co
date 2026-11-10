@@ -1,22 +1,22 @@
 "use client";
 
 import { useCallback, type ReactNode } from "react";
-import { ChevronRight, Globe, Lock, Settings2, Users } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
+import { ChevronRight, Globe, Lock, Settings2, Users } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
 import type {
   Agent,
   AgentRuntime,
   MemberWithUser,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import {
   type AgentPresenceDetail,
   effectiveAccessScope,
   qoderAgentId,
   summarizeActivityWindow,
   useWorkspaceActivityMap,
-} from "@multica/core/agents";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { providerDisplayName } from "@multica/core/runtimes";
+} from "@morechat/core/agents";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { providerDisplayName } from "@morechat/core/runtimes";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { ObjectPanelSection, ObjectProperty } from "../../layout/object-page";
 import { ProviderLogo } from "../../runtimes/components/provider-logo";

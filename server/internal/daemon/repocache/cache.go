@@ -18,9 +18,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/daemon/processtree"
-	"github.com/multica-ai/multica/server/internal/util"
-	"github.com/multica-ai/multica/server/pkg/redact"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/processtree"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/redact"
 )
 
 // gitEnv returns an environment for git subprocesses that contact remotes.
@@ -755,8 +755,8 @@ type WorktreeParams struct {
 	// inside WorkDir instead of a linked worktree whose gitdir lives under the
 	// shared cache. Codex tasks need this because workspace-write keeps a
 	// resolved external worktree gitdir read-only even when it is explicitly
-	// listed as a writable root — on Linux (multica-ai/multica#2925) and on the
-	// Windows native sandbox (multica-ai/multica#6449).
+	// listed as a writable root — on Linux (jerry-halo2026/morchat.co#2925) and on the
+	// Windows native sandbox (jerry-halo2026/morchat.co#6449).
 	IsolatedGitMetadata bool
 	// Fresh discards what an existing checkout at the target path holds —
 	// uncommitted changes, untracked files, its branch position — and starts

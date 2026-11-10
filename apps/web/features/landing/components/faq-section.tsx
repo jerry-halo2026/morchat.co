@@ -1,8 +1,8 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Plus } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
+import { Plus } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
 import { Container, Section, SectionHeader, focusRing } from "../site/primitives";
 import { InlineLinks } from "./inline-links";
 import { useLocale } from "../i18n";

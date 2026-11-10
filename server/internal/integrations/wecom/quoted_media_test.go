@@ -3,7 +3,7 @@ package wecom
 import (
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/integrations/channel"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel"
 )
 
 // A quoted picture used to reach the agent as four characters. The common

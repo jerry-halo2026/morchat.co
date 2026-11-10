@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ChevronRight } from "@multica/ui/icons";
-import { Button, buttonVariants } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
+import { ChevronRight } from "@morechat/ui/icons";
+import { Button, buttonVariants } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
 
 /**
  * Shared disclosure header; actions stay outside the disclosure button.

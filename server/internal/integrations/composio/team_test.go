@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/multica-ai/multica/server/pkg/composio"
+	sdk "github.com/jerry-halo2026/morchat.co/server/pkg/composio"
 )
 
 func TestExecuteTool_ConnectedAccountIdentityOnWire(t *testing.T) {

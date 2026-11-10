@@ -1,14 +1,14 @@
 "use client";
 
-import { CalendarDays, ChevronDown, FolderKanban } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
+import { CalendarDays, ChevronDown, FolderKanban } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import { ProjectIcon } from "../../projects/components/project-icon";
 import { useT } from "../../i18n";
 import { ALL_PROJECTS, TIME_RANGES, type TimeRange } from "./dashboard-shared";

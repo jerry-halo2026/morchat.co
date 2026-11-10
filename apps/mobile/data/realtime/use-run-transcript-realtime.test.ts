@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { QueryClient, QueryObserver } from "@tanstack/react-query";
-import type { TaskMessagePayload } from "@multica/core/types";
+import type { TaskMessagePayload } from "@morechat/core/types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "@/data/api";
 import { chatKeys, runTranscriptMessagesOptions } from "@/data/queries/chat";

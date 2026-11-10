@@ -1,27 +1,27 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { CalendarDays, Check, ExternalLink, X } from "@multica/ui/icons";
+import { CalendarDays, Check, ExternalLink, X } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import type { Issue, IssueProperty, IssuePropertyValue } from "@multica/core/types";
-import { hasUnknownActorRef, isListPropertyType, MAX_ISSUE_PROPERTY_SELECT_VALUES } from "@multica/core/types";
+import type { Issue, IssueProperty, IssuePropertyValue } from "@morechat/core/types";
+import { hasUnknownActorRef, isListPropertyType, MAX_ISSUE_PROPERTY_SELECT_VALUES } from "@morechat/core/types";
 import {
   useSetIssueProperty,
   useUnsetIssueProperty,
-} from "@multica/core/properties";
+} from "@morechat/core/properties";
 import {
   toDateOnly,
   dateOnlyToLocalDate,
   formatDateOnly,
-} from "@multica/core/issues/date";
-import { LazyCalendar } from "@multica/ui/components/ui/lazy-calendar";
+} from "@morechat/core/issues/date";
+import { LazyCalendar } from "@morechat/ui/components/ui/lazy-calendar";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@multica/ui/components/ui/popover";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Input } from "@multica/ui/components/ui/input";
+} from "@morechat/ui/components/ui/popover";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Input } from "@morechat/ui/components/ui/input";
 import { useLocale, useT } from "../../../i18n";
 import { matchesPinyin } from "../../../editor/extensions/pinyin-match";
 import { PropertyPicker, PickerItem, PickerEmpty } from "./property-picker";

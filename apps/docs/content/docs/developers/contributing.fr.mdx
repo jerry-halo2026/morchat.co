@@ -1,11 +1,11 @@
 ---
 title: Contribuer
-description: Configurez un environnement de développement Multica local, exécutez les tests et soumettez vos modifications en suivant les conventions du dépôt.
+description: Configurez un environnement de développement morechat.co local, exécutez les tests et soumettez vos modifications en suivant les conventions du dépôt.
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
 
-Multica est composé d'un backend Go et d'un monorepo pnpm. Le moyen le plus simple de démarrer en local est `make dev` : cette commande prépare l'environnement, la base de données et les migrations pour le checkout courant, puis démarre Web et l'API.
+morechat.co est composé d'un backend Go et d'un monorepo pnpm. Le moyen le plus simple de démarrer en local est `make dev` : cette commande prépare l'environnement, la base de données et les migrations pour le checkout courant, puis démarre Web et l'API.
 
 ## Prérequis
 
@@ -20,7 +20,7 @@ Le `package.json` racine, `server/go.mod` et les workflows de CI font foi pour l
 ## Premier démarrage
 
 ```bash
-git clone https://github.com/multica-ai/multica.git
+git clone https://github.com/jerry-halo2026/morchat.co.git
 cd multica
 make dev
 ```
@@ -162,7 +162,7 @@ Utilisez une transaction applicative dans la couche service lorsque plusieurs é
 Exécutez d'abord la vérification la plus proche de la modification, puis élargissez la portée. Pour une modification qui ne touche que Docs :
 
 ```bash
-pnpm --filter @multica/docs typecheck
+pnpm --filter @morechat/docs typecheck
 ```
 
 Pour les modifications frontend partagées :
@@ -200,8 +200,8 @@ make start
 
 ## Ouvrir une issue GitHub
 
-- **[Demande de fonctionnalité](https://github.com/multica-ai/multica/blob/main/.github/ISSUE_TEMPLATE/feature_request.yml) :** Décrivez le **problème (Problem)** et l'**objectif (Goal)**. La conception générale (Proposal), les alternatives et les captures d'écran sont facultatives ; vous pouvez signaler un problème sans en concevoir la solution.
-- **[Rapport de bug](https://github.com/multica-ai/multica/blob/main/.github/ISSUE_TEMPLATE/bug_report.yml) :** Séparez le **problème**, le **comportement attendu** et les **étapes de reproduction**. Si le bug est intermittent, indiquez les actions essayées et sa fréquence. Les captures, les logs et les informations d'environnement sont facultatifs.
+- **[Demande de fonctionnalité](https://github.com/jerry-halo2026/morchat.co/blob/main/.github/ISSUE_TEMPLATE/feature_request.yml) :** Décrivez le **problème (Problem)** et l'**objectif (Goal)**. La conception générale (Proposal), les alternatives et les captures d'écran sont facultatives ; vous pouvez signaler un problème sans en concevoir la solution.
+- **[Rapport de bug](https://github.com/jerry-halo2026/morchat.co/blob/main/.github/ISSUE_TEMPLATE/bug_report.yml) :** Séparez le **problème**, le **comportement attendu** et les **étapes de reproduction**. Si le bug est intermittent, indiquez les actions essayées et sa fréquence. Les captures, les logs et les informations d'environnement sont facultatifs.
 
 Sélectionnez le domaine concerné pour orienter le rapport. Les rapports de bug demandent aussi le type de déploiement. Les captures sont facultatives pour les issues ; l'obligation de captures pour les PR modifiant l'interface ou les interactions ne s'applique pas aux signalements.
 
@@ -215,7 +215,7 @@ Sélectionnez le domaine concerné pour orienter le rapport. Les rapports de bug
 
 ### Exigences pour les pull requests
 
-Utilisez le [modèle de PR](https://github.com/multica-ai/multica/blob/main/.github/PULL_REQUEST_TEMPLATE.md) et respectez les [exigences de contribution](https://github.com/multica-ai/multica/blob/main/CONTRIBUTING.md#pull-request-requirements) :
+Utilisez le [modèle de PR](https://github.com/jerry-halo2026/morchat.co/blob/main/.github/PULL_REQUEST_TEMPLATE.md) et respectez les [exigences de contribution](https://github.com/jerry-halo2026/morchat.co/blob/main/CONTRIBUTING.md#pull-request-requirements) :
 
 1. **Problème (Problem) :** Décrivez le problème concret, les personnes concernées et pourquoi il compte.
 2. **Objectif (Goal) :** Indiquez le résultat attendu du changement.

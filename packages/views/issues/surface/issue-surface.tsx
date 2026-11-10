@@ -2,40 +2,40 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { StoreApi } from "zustand/vanilla";
-import type { IssueViewState } from "@multica/core/issues/stores/view-store";
-import type { IssueViewBaseline } from "@multica/core/issue-views/baseline";
-import { AlertTriangle, FilterX, ListTodo, Plus } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { cn } from "@multica/ui/lib/utils";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useModalStore } from "@multica/core/modals";
+import type { IssueViewState } from "@morechat/core/issues/stores/view-store";
+import type { IssueViewBaseline } from "@morechat/core/issue-views/baseline";
+import { AlertTriangle, FilterX, ListTodo, Plus } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { cn } from "@morechat/ui/lib/utils";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useModalStore } from "@morechat/core/modals";
 import { useQuery } from "@tanstack/react-query";
-import { workspaceWakeupSummariesOptions } from "@multica/core/issues/wakeups";
+import { workspaceWakeupSummariesOptions } from "@morechat/core/issues/wakeups";
 import {
   useViewStore,
   ViewStoreProvider,
-} from "@multica/core/issues/stores/view-store-context";
+} from "@morechat/core/issues/stores/view-store-context";
 import {
   getIssueSurfaceViewStore,
   seedIssueSurfaceViewState,
-} from "@multica/core/issues/stores/surface-view-store";
-import { useActiveIssueView } from "@multica/core/issue-views/use-active-view";
-import { UNREAD_VIEW_BASELINE, isUnreadView } from "@multica/core/issue-views/unread-view";
+} from "@morechat/core/issues/stores/surface-view-store";
+import { useActiveIssueView } from "@morechat/core/issue-views/use-active-view";
+import { UNREAD_VIEW_BASELINE, isUnreadView } from "@morechat/core/issue-views/unread-view";
 import {
   issueViewDefinitionFromState,
   issueViewSeedDefinition,
   sameFilterMeaning,
-} from "@multica/core/issue-views/definition";
+} from "@morechat/core/issue-views/definition";
 import { ViewBaselineProvider, useViewBaseline } from "./view-baseline-context";
-import type { IssueViewScope } from "@multica/core/issue-views/queries";
+import type { IssueViewScope } from "@morechat/core/issue-views/queries";
 import {
   actorKindForViewVariant,
   issueScopeKey,
   myRelationForViewVariant,
   type IssueScope,
-} from "@multica/core/issues/surface/scope";
-import type { Issue } from "@multica/core/types";
+} from "@morechat/core/issues/surface/scope";
+import type { Issue } from "@morechat/core/types";
 import { BoardView } from "../components/board-view";
 import { BOARD_COL_WIDTH } from "../components/board-column";
 import { BatchActionToolbar } from "../components/batch-action-toolbar";

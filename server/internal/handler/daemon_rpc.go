@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/multica-ai/multica/server/internal/daemonws"
-	"github.com/multica-ai/multica/server/internal/middleware"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemonws"
+	"github.com/jerry-halo2026/morchat.co/server/internal/middleware"
 )
 
 // rpcResponseCapture is a minimal in-memory http.ResponseWriter so a WS RPC can

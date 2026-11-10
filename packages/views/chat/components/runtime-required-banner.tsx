@@ -1,9 +1,9 @@
 "use client";
 
-import { Server } from "@multica/ui/icons";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { Button } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
+import { Server } from "@morechat/ui/icons";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { Button } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
 import { AppLink } from "../../navigation";
 import { useT } from "../../i18n";
 import { CHAT_COLUMN, CHAT_GUTTER } from "./chat-column";

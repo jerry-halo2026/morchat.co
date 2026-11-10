@@ -21,12 +21,12 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
-import { useReducedMotion } from "@multica/core/appearance";
+import { useReducedMotion } from "@morechat/core/appearance";
 import { toast } from "sonner";
 import {
   PreviewTooLargeError,
   PreviewUnsupportedError,
-} from "@multica/core/api";
+} from "@morechat/core/api";
 import {
   ChevronLeft,
   ChevronRight,
@@ -55,24 +55,24 @@ import {
   WrapText,
   X,
   type IconComponent,
-} from "@multica/ui/icons";
-import type { Attachment } from "@multica/core/types";
+} from "@morechat/ui/icons";
+import type { Attachment } from "@morechat/core/types";
 import {
   attachmentIdFromDownloadURL,
   attachmentIdFromLocalUploadURL,
   attachmentIdFromStorageURL,
-} from "@multica/core/types/attachment-url";
-import { useConfigStore } from "@multica/core/config";
-import { paths, useWorkspaceSlug } from "@multica/core/paths";
-import { createShortcutChord } from "@multica/core/shortcuts";
-import { cn } from "@multica/ui/lib/utils";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import { copyImage } from "@multica/ui/lib/clipboard";
-import { resolvePublicFileUrl } from "@multica/core/workspace/avatar-url";
+} from "@morechat/core/types/attachment-url";
+import { useConfigStore } from "@morechat/core/config";
+import { paths, useWorkspaceSlug } from "@morechat/core/paths";
+import { createShortcutChord } from "@morechat/core/shortcuts";
+import { cn } from "@morechat/ui/lib/utils";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import { copyImage } from "@morechat/ui/lib/clipboard";
+import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
 import {
   UI_EASE_OUT,
   UI_MOTION_DURATION,
-} from "@multica/ui/lib/motion";
+} from "@morechat/ui/lib/motion";
 import { useT } from "../i18n";
 import { useNavigation } from "../navigation";
 import { openExternal } from "../platform";

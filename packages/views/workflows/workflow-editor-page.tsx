@@ -30,13 +30,13 @@ import {
   Plus,
   Trash2,
   UserRound,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { ApiError, clientErrorMessage } from "@multica/core/api";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useCurrentWorkspace } from "@multica/core/paths";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { statusColumnKeys } from "@multica/core/issues";
+import { ApiError, clientErrorMessage } from "@morechat/core/api";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useCurrentWorkspace } from "@morechat/core/paths";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { statusColumnKeys } from "@morechat/core/issues";
 import {
   isFixedWorkflowStatus,
   statusAcceptsHandoff,
@@ -46,29 +46,29 @@ import {
   useUpdateIssueWorkflow,
   workflowMiddleKeys,
   workflowNextStatus,
-} from "@multica/core/issue-workflows";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { projectListOptions } from "@multica/core/projects/queries";
+} from "@morechat/core/issue-workflows";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { projectListOptions } from "@morechat/core/projects/queries";
 import type {
   IssueWorkflow,
   IssueWorkflowMappingPlan,
   IssueWorkflowStep,
   IssueWorkflowStepInput,
-} from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+} from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { Input } from "@multica/ui/components/ui/input";
-import { Spinner } from "@multica/ui/components/ui/spinner";
-import { Switch } from "@multica/ui/components/ui/switch";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Spinner } from "@morechat/ui/components/ui/spinner";
+import { Switch } from "@morechat/ui/components/ui/switch";
+import { cn } from "@morechat/ui/lib/utils";
 import { StatusIcon } from "../issues/components/status-icon";
 import { useStatusLabel } from "../issues/utils/status-label";
 import { ActorAvatar } from "../common/actor-avatar";

@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 import { Container, Eyebrow } from "../site/primitives";
 import { PageHero, SitePage } from "../site/site-page";
 import { useLocale } from "../i18n";

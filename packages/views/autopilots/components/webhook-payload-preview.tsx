@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Webhook, ChevronDown, ChevronRight, Copy, Check } from "@multica/ui/icons";
+import { Webhook, ChevronDown, ChevronRight, Copy, Check } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { cn } from "@multica/ui/lib/utils";
-import { copyText } from "@multica/ui/lib/clipboard";
+import { cn } from "@morechat/ui/lib/utils";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import { useT } from "../../i18n";
 
 interface WebhookPayloadPreviewProps {

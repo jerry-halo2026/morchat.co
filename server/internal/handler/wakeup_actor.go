@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/jackc/pgx/v5"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 type wakeupActorKey struct{}

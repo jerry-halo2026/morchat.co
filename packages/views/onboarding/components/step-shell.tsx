@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef, type ReactNode } from "react";
-import { cn } from "@multica/ui/lib/utils";
-import { useScrollFade } from "@multica/ui/hooks/use-scroll-fade";
-import { DragStrip } from "@multica/views/platform";
-import type { OnboardingStep } from "@multica/core/onboarding";
+import { cn } from "@morechat/ui/lib/utils";
+import { useScrollFade } from "@morechat/ui/hooks/use-scroll-fade";
+import { DragStrip } from "@morechat/views/platform";
+import type { OnboardingStep } from "@morechat/core/onboarding";
 import { StepProgressBar, StepSidebar } from "./step-sidebar";
 
 /**

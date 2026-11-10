@@ -12,7 +12,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { act, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { configStore } from "@multica/core/config";
+import { configStore } from "@morechat/core/config";
 
 const APP_ORIGIN = "https://app.example";
 
@@ -22,8 +22,8 @@ vi.mock("../issues/hooks", () => ({
 
 // Only the workspace hooks are stubbed — the real path helpers stay in place so
 // the reserved-slug rule that decides in-app vs external is the shipped one.
-vi.mock("@multica/core/paths", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/paths")>()),
+vi.mock("@morechat/core/paths", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/paths")>()),
   useWorkspacePaths: () => ({
     issueDetail: (id: string) => `/test/issues/${id}`,
     projectDetail: (id: string) => `/test/projects/${id}`,
@@ -109,7 +109,7 @@ describe("RichContent link routing", () => {
   });
 
   it("still hands a genuinely external link to the browser", () => {
-    const external = "https://github.com/multica-ai/multica/pull/1";
+    const external = "https://github.com/jerry-halo2026/morchat.co/pull/1";
     renderContent(`[#1](${external})`);
 
     screen.getByText("#1").click();

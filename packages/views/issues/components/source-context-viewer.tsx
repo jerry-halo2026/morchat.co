@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, ChevronRight, LocateFixed, Maximize2, Minimize2, XIcon } from "@multica/ui/icons";
-import { issueStatusCategory } from "@multica/core/issues";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import type { Issue, IssueSourceContext, SourceContextCommentSnapshot } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@multica/ui/components/ui/dialog";
-import { cn } from "@multica/ui/lib/utils";
-import { useWorkspacePaths } from "@multica/core/paths";
+import { AlertTriangle, ChevronRight, LocateFixed, Maximize2, Minimize2, XIcon } from "@morechat/ui/icons";
+import { issueStatusCategory } from "@morechat/core/issues";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import type { Issue, IssueSourceContext, SourceContextCommentSnapshot } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@morechat/ui/components/ui/dialog";
+import { cn } from "@morechat/ui/lib/utils";
+import { useWorkspacePaths } from "@morechat/core/paths";
 import { AppLink, useNavigation } from "../../navigation";
 import { useLocale, useT } from "../../i18n";
 import { ProgressRing } from "./progress-ring";

@@ -3,19 +3,19 @@ import type { ReactNode } from "react";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { api } from "@multica/core/api";
-import { I18nProvider } from "@multica/core/i18n/react";
-import type { Agent, AgentApp, AppsOverview } from "@multica/core/types";
+import { api } from "@morechat/core/api";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import type { Agent, AgentApp, AppsOverview } from "@morechat/core/types";
 import enCommon from "../../../locales/en/common.json";
 import enAgents from "../../../locales/en/agents.json";
 import enSettings from "../../../locales/en/settings.json";
 import { AgentAppsTab } from "./agent-apps-tab";
 
-vi.mock("@multica/core/api", () => ({ api: {
+vi.mock("@morechat/core/api", () => ({ api: {
   listAgentApps: vi.fn(), getAppsOverview: vi.fn(), listAppCatalog: vi.fn(), updateAgentApps: vi.fn(),
 } }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
-vi.mock("@multica/core/paths", () => ({ useWorkspacePaths: () => ({ settings: () => "/ws/settings" }) }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/paths", () => ({ useWorkspacePaths: () => ({ settings: () => "/ws/settings" }) }));
 vi.mock("../../../navigation", () => ({
   AppLink: ({ href, children }: { href: string; children: ReactNode }) => <a href={href}>{children}</a>,
 }));

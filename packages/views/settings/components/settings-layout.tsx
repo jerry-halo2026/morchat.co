@@ -17,12 +17,12 @@ import {
   Laptop,
   Loader2,
   UserRound,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@multica/ui/components/ui/card";
-import { cn } from "@multica/ui/lib/utils";
-import { useCurrentWorkspace } from "@multica/core/paths";
-import { memberListOptions } from "@multica/core/workspace/queries";
+import { Card, CardContent } from "@morechat/ui/components/ui/card";
+import { cn } from "@morechat/ui/lib/utils";
+import { useCurrentWorkspace } from "@morechat/core/paths";
+import { memberListOptions } from "@morechat/core/workspace/queries";
 import { WorkspaceAvatar } from "../../workspace/workspace-avatar";
 import { useT } from "../../i18n";
 

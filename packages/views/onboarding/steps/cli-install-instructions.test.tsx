@@ -1,8 +1,8 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { I18nProvider } from "@multica/core/i18n/react";
-import { configStore } from "@multica/core/config";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import { configStore } from "@morechat/core/config";
 import enCommon from "../../locales/en/common.json";
 import enOnboarding from "../../locales/en/onboarding.json";
 import { CliInstallInstructions } from "./cli-install-instructions";
@@ -10,10 +10,10 @@ import { CliInstallInstructions } from "./cli-install-instructions";
 const TEST_RESOURCES = { en: { common: enCommon, onboarding: enOnboarding } };
 
 const WINDOWS_CMD =
-  "irm https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.ps1 | iex";
+  "irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex";
 
 const clipboard = vi.hoisted(() => ({ copyText: vi.fn() }));
-vi.mock("@multica/ui/lib/clipboard", () => ({ copyText: clipboard.copyText }));
+vi.mock("@morechat/ui/lib/clipboard", () => ({ copyText: clipboard.copyText }));
 
 function renderInstructions() {
   return render(

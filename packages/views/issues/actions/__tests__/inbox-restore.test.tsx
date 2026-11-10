@@ -1,21 +1,21 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { I18nProvider } from "@multica/core/i18n/react";
-import { setApiInstance } from "@multica/core/api";
-import type { ApiClient } from "@multica/core/api/client";
-import type { InboxItem } from "@multica/core/types";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import { setApiInstance } from "@morechat/core/api";
+import type { ApiClient } from "@morechat/core/api/client";
+import type { InboxItem } from "@morechat/core/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import { RESOURCES } from "../../../locales";
 import { InboxRestoreMenuItem, useArchivedInboxItemId } from "../inbox-restore";
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws" }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws" }));
 
 const notification = (patch: Partial<InboxItem>) => ({ id: "item-1", issue_id: "issue-1", archived: true, ...patch }) as InboxItem;
 

@@ -26,7 +26,7 @@ mkdir -p "$ui_dir" "$root_dir/packages/views" \
   "$root_dir/packages/ui/markdown" "$root_dir/packages/ui/hooks"
 cat >"$root_dir/packages/ui/package.json" <<'EOF'
 {
-  "name": "@multica/ui",
+  "name": "@morechat/ui",
   "exports": {
     "./components/ui/*": "./components/ui/*.tsx",
     "./components/common/*": "./components/common/*.tsx",
@@ -69,7 +69,7 @@ expect_fail_naming "zz-unused-export-probe.tsx" \
 #    usage rather than just counting files.
 importer="$root_dir/packages/views/zz-probe-importer.tsx"
 cat >"$importer" <<'EOF'
-export { UnusedExportProbe } from "@multica/ui/components/ui/zz-unused-export-probe";
+export { UnusedExportProbe } from "@morechat/ui/components/ui/zz-unused-export-probe";
 EOF
 expect_pass "check should pass once a consumer imports the component"
 rm -f "$importer" "$probe"
@@ -125,8 +125,8 @@ export function CommentProbe() {
 }
 EOF
 cat >"$mention" <<'EOF'
-// import { CommentProbe } from "@multica/ui/components/ui/zz-comment-probe";
-const note = 'import { CommentProbe } from "@multica/ui/components/ui/zz-comment-probe"';
+// import { CommentProbe } from "@morechat/ui/components/ui/zz-comment-probe";
+const note = 'import { CommentProbe } from "@morechat/ui/components/ui/zz-comment-probe"';
 export const probeNote = note;
 EOF
 expect_fail_naming "zz-comment-probe.tsx" \
@@ -160,7 +160,7 @@ EOF
   expect_fail_naming "$dir/zz-unused-runtime.$ext" \
     "a colocated test in $dir must not vouch for an unused product"
   cat >"$importer" <<EOF
-export { RuntimeProbe } from "@multica/ui/$dir/zz-unused-runtime";
+export { RuntimeProbe } from "@morechat/ui/$dir/zz-unused-runtime";
 EOF
   expect_pass "a real external consumer should make the product in $dir live"
   rm -f "$importer" "$test_file" "$product"
@@ -184,7 +184,7 @@ if ! grep -Fq "zz-cycle-b.tsx" "$out"; then
   fail "both halves of a true dead cycle should be reported"
 fi
 cat >"$importer" <<'EOF'
-export { A } from "@multica/ui/components/ui/zz-cycle-a";
+export { A } from "@morechat/ui/components/ui/zz-cycle-a";
 EOF
 expect_pass "an external consumer should make both halves of a cycle live"
 rm -f "$pair_a" "$pair_b" "$importer"
@@ -195,7 +195,7 @@ cat >"$mock_probe" <<'EOF'
 export function MockOnly() { return null; }
 EOF
 cat >"$importer" <<'EOF'
-import { vi } from "vitest"; vi.mock("@multica/ui/components/ui/zz-mock-only");
+import { vi } from "vitest"; vi.mock("@morechat/ui/components/ui/zz-mock-only");
 EOF
 expect_fail_naming "zz-mock-only.tsx" "a mock-only mention must not vouch for a product"
 rm -f "$mock_probe" "$importer"

@@ -3,27 +3,27 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DragEndEvent } from "@dnd-kit/core";
-import type { IssueViewPreference } from "@multica/core/api/schemas";
-import { issueViewPreferenceOptions } from "@multica/core/issue-views/preferences";
-import { buildIssueStatusCatalog } from "@multica/core/issue-statuses/queries";
-import { SIDEBAR_PROJECTS_SCOPE } from "@multica/core/issues/sidebar-project-prefs";
+import type { IssueViewPreference } from "@morechat/core/api/schemas";
+import { issueViewPreferenceOptions } from "@morechat/core/issue-views/preferences";
+import { buildIssueStatusCatalog } from "@morechat/core/issue-statuses/queries";
+import { SIDEBAR_PROJECTS_SCOPE } from "@morechat/core/issues/sidebar-project-prefs";
 import {
   DEFAULT_SIDEBAR_ISSUE_SETTINGS,
   DEFAULT_SIDEBAR_PROJECT_SETTINGS,
   useSidebarTreeStore,
-} from "@multica/core/issues/stores/sidebar-tree-store";
-import type { Project } from "@multica/core/types";
+} from "@morechat/core/issues/stores/sidebar-tree-store";
+import type { Project } from "@morechat/core/types";
 import { renderWithI18n } from "../../test/i18n";
 import { ProjectsSection } from "./work-tree";
 
 const apiMock = vi.hoisted(() => ({ putIssueViewPreference: vi.fn() }));
-vi.mock("@multica/core/api", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/api")>()),
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/api")>()),
   api: apiMock,
 }));
 
 const openCreateIssue = vi.hoisted(() => vi.fn());
-vi.mock("@multica/core/issues/stores/create-mode-store", () => ({
+vi.mock("@morechat/core/issues/stores/create-mode-store", () => ({
   openCreateIssueWithPreference: openCreateIssue,
 }));
 
@@ -39,7 +39,7 @@ vi.mock("@dnd-kit/core", async (importOriginal) => {
     },
   };
 });
-vi.mock("@multica/core/issue-statuses/hooks", () => ({
+vi.mock("@morechat/core/issue-statuses/hooks", () => ({
   useIssueStatuses: () => buildIssueStatusCatalog([]),
 }));
 vi.mock("../../navigation", () => ({
@@ -55,11 +55,11 @@ vi.mock("../../navigation", () => ({
   ),
 }));
 vi.mock("../../issues/components/status-icon", () => ({ StatusIcon: () => <span /> }));
-vi.mock("@multica/ui/components/common/tooltip-hint", () => ({
+vi.mock("@morechat/ui/components/common/tooltip-hint", () => ({
   TooltipHint: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
-vi.mock("@multica/core/paths", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/paths")>();
+vi.mock("@morechat/core/paths", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/paths")>();
   return { ...actual, useWorkspacePaths: () => actual.paths.workspace("acme") };
 });
 

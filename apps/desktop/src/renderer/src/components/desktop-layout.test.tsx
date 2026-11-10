@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { I18nProvider } from "@multica/core/i18n/react";
-import { useSidebar } from "@multica/ui/components/ui/sidebar";
-import { RESOURCES } from "@multica/views/locales";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import { useSidebar } from "@morechat/ui/components/ui/sidebar";
+import { RESOURCES } from "@morechat/views/locales";
 
 // The shell resolves the mocked `getCurrentSlug()` against the workspace list
 // before mounting workspace-scoped chrome, so the list has to contain it or
@@ -37,7 +37,7 @@ vi.mock("@/platform/navigation", () => ({
   routeContentLinkPath: vi.fn(),
 }));
 
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   WorkspaceSlugProvider: ({ children }: { children: ReactNode }) => (
     <>{children}</>
   ),
@@ -45,27 +45,27 @@ vi.mock("@multica/core/paths", () => ({
   useCurrentWorkspace: () => null,
 }));
 
-vi.mock("@multica/core/platform", () => ({
+vi.mock("@morechat/core/platform", () => ({
   getCurrentSlug: () => "acme",
   subscribeToCurrentSlug: () => () => {},
 }));
 
-vi.mock("@multica/core/workspace", () => ({
+vi.mock("@morechat/core/workspace", () => ({
   workspaceListOptions: () => ({
     queryKey: ["workspace-list"],
     queryFn: async () => WORKSPACES,
   }),
 }));
 
-vi.mock("@multica/views/navigation", () => ({
+vi.mock("@morechat/views/navigation", () => ({
   useNavigation: () => ({ push: vi.fn() }),
 }));
 
-vi.mock("@multica/views/platform", () => ({
+vi.mock("@morechat/views/platform", () => ({
   useDesktopUnreadBadge: () => {},
 }));
 
-vi.mock("@multica/views/layout", () => ({
+vi.mock("@morechat/views/layout", () => ({
   AppRail: () => null,
   AppShellProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
   CompactNavSheet: () => null,
@@ -81,12 +81,12 @@ vi.mock("@multica/views/layout", () => ({
   ResourceLeadingVisual: () => null,
 }));
 
-vi.mock("@multica/views/modals/registry", () => ({ ModalRegistry: () => null }));
-vi.mock("@multica/views/search", () => ({
+vi.mock("@morechat/views/modals/registry", () => ({ ModalRegistry: () => null }));
+vi.mock("@morechat/views/search", () => ({
   SearchCommand: () => null,
 }));
-vi.mock("@multica/views/chat", () => ({ FloatingChat: () => null }));
-vi.mock("@multica/views/star-prompt", () => ({ StarPrompt: () => null }));
+vi.mock("@morechat/views/chat", () => ({ FloatingChat: () => null }));
+vi.mock("@morechat/views/star-prompt", () => ({ StarPrompt: () => null }));
 vi.mock("./tab-bar", () => ({ TabBar: () => null }));
 vi.mock("./window-overlay", () => ({ WindowOverlay: () => null }));
 

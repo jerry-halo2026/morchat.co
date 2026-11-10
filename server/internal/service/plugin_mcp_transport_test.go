@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
-	"github.com/multica-ai/multica/server/pkg/plugincontract"
-	"github.com/multica-ai/multica/server/pkg/remotemcp"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/plugincontract"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/remotemcp"
 )
 
 // The approval is the grant, not the install.

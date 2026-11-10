@@ -27,18 +27,18 @@ import (
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/singleflight"
 
-	"github.com/multica-ai/multica/server/internal/cli"
-	"github.com/multica-ai/multica/server/internal/daemon/execenv"
-	"github.com/multica-ai/multica/server/internal/daemon/localenv"
-	"github.com/multica-ai/multica/server/internal/daemon/repocache"
-	"github.com/multica-ai/multica/server/internal/selfexec"
-	"github.com/multica-ai/multica/server/internal/util"
-	"github.com/multica-ai/multica/server/pkg/agent"
-	"github.com/multica-ai/multica/server/pkg/awakeclock"
-	"github.com/multica-ai/multica/server/pkg/protocol"
-	"github.com/multica-ai/multica/server/pkg/redact"
-	"github.com/multica-ai/multica/server/pkg/skillbundle"
-	"github.com/multica-ai/multica/server/pkg/taskfailure"
+	"github.com/jerry-halo2026/morchat.co/server/internal/cli"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/execenv"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/localenv"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/repocache"
+	"github.com/jerry-halo2026/morchat.co/server/internal/selfexec"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/awakeclock"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/redact"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/skillbundle"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/taskfailure"
 )
 
 // ErrRepoNotConfigured is returned by ensureRepoReady when the requested repo
@@ -125,8 +125,8 @@ var pendingWorkHintMinInterval = time.Second
 // worktree's gitdir resolves into the shared cache and stays read-only even
 // when the task workdir is an explicit writable root, so `git add` /
 // `git commit` fail from inside the checkout — Linux hit this in
-// multica-ai/multica#2925, Codex's native Windows sandbox in
-// multica-ai/multica#6449.
+// jerry-halo2026/morchat.co#2925, Codex's native Windows sandbox in
+// jerry-halo2026/morchat.co#6449.
 //
 // Both platforms now default to danger-full-access (execenv's
 // codexSandboxPolicyFor), so in practice only a user who opted into

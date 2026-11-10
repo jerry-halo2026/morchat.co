@@ -11,9 +11,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/slack-go/slack"
 
-	"github.com/multica-ai/multica/server/internal/integrations/channel/engine"
-	"github.com/multica-ai/multica/server/internal/service"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel/engine"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // This file implements the Slack `/issue`, `/new`, and `/clear` SLASH COMMANDS. They are

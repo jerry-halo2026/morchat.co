@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { CoreProvider } from "@multica/core/platform";
-import { installUserTimingCap } from "@multica/core/diagnostics";
-import { createBrowserCookieLocaleAdapter } from "@multica/core/i18n/browser";
-import type { LocaleResources, SupportedLocale } from "@multica/core/i18n";
+import { CoreProvider } from "@morechat/core/platform";
+import { installUserTimingCap } from "@morechat/core/diagnostics";
+import { createBrowserCookieLocaleAdapter } from "@morechat/core/i18n/browser";
+import type { LocaleResources, SupportedLocale } from "@morechat/core/i18n";
 import packageJson from "../package.json";
 import { WebNavigationProvider } from "@/platform/navigation";
 import { WebScrollRestorationProvider } from "@/platform/scroll-restoration";

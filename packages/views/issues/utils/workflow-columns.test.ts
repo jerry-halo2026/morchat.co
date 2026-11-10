@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
-import type { IssueWorkflow } from "@multica/core/types";
+import type { IssueWorkflow } from "@morechat/core/types";
 import { useColumnWorkflow, workflowColumns } from "./workflow-columns";
 
 const workflow: IssueWorkflow = {
@@ -39,7 +39,7 @@ const { defaultWithoutBlocked } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@multica/core/issue-workflows", () => ({
+vi.mock("@morechat/core/issue-workflows", () => ({
   defaultWorkflow: () => defaultWithoutBlocked,
   useIssueWorkflows: () => ({ workflows: [defaultWithoutBlocked] }),
   useProjectWorkflow: () => defaultWithoutBlocked,

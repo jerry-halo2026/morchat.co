@@ -2,14 +2,14 @@
 
 import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { AgentTask } from "@multica/core/types";
+import type { AgentTask } from "@morechat/core/types";
 import { renderWithI18n } from "../../test/i18n";
 
 const mockState = vi.hoisted(() => ({
   taskMessagesOptions: vi.fn(),
 }));
 
-vi.mock("@multica/core/chat/queries", () => ({
+vi.mock("@morechat/core/chat/queries", () => ({
   taskMessagesOptions: mockState.taskMessagesOptions,
 }));
 
@@ -28,7 +28,7 @@ vi.mock("./terminate-task-confirm-dialog", () => ({
     open ? <button type="button" onClick={onConfirm}>Confirm stop</button> : null,
 }));
 
-vi.mock("@multica/core/workspace/hooks", () => ({
+vi.mock("@morechat/core/workspace/hooks", () => ({
   useActorName: () => ({
     getActorName: () => "Lambda",
     getActorInitials: () => "L",
@@ -42,12 +42,12 @@ import {
   TaskCommentCoverage,
   IssueRunsTotal,
 } from "./execution-log-section";
-import type { TaskUsage } from "@multica/core/types";
+import type { TaskUsage } from "@morechat/core/types";
 import { act, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { issueKeys } from "@multica/core/issues/queries";
-import { useCustomPricingStore } from "@multica/core/runtimes/custom-pricing-store";
-import { ApiClient, setApiInstance } from "@multica/core/api";
+import { issueKeys } from "@morechat/core/issues/queries";
+import { useCustomPricingStore } from "@morechat/core/runtimes/custom-pricing-store";
+import { ApiClient, setApiInstance } from "@morechat/core/api";
 
 function makeTask(overrides: Partial<AgentTask> = {}): AgentTask {
   return {

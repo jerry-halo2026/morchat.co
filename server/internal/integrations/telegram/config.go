@@ -26,7 +26,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/multica-ai/multica/server/internal/integrations/channel"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel"
 )
 
 // TypeTelegram is the channel discriminator for the Telegram adapter. Defined

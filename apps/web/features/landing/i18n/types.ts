@@ -1,4 +1,4 @@
-import type { SupportedLocale } from "@multica/core/i18n";
+import type { SupportedLocale } from "@morechat/core/i18n";
 export { docsHrefForLocale } from "@/lib/docs-href";
 
 export type Locale = SupportedLocale;
@@ -100,7 +100,7 @@ type DemoWorkflow<S extends string> = {
 };
 
 /**
- * Text inside the product mockups. `app` is the Multica interface itself and
+ * Text inside the product mockups. `app` is the morechat.co interface itself and
  * follows the product's own translations; the rest is the fictional Acme Labs
  * team's work. People's and agents' names stay as they are, like any name.
  */

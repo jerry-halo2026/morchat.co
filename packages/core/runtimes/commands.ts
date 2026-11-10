@@ -1,5 +1,5 @@
-export const CLOUD_SERVER_URL = "https://api.multica.ai";
-export const CLOUD_APP_URL = "https://multica.ai";
+export const CLOUD_SERVER_URL = "https://api.morechat.co";
+export const CLOUD_APP_URL = "https://morechat.co";
 
 export function normalizeCommandURL(url: string | undefined): string {
   return url?.trim().replace(/\/+$/, "") ?? "";

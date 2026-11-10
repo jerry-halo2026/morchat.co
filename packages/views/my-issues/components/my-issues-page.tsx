@@ -1,9 +1,9 @@
 "use client";
 
-import { CircleUser, ListTodo, Plus } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { useAuthStore } from "@multica/core/auth";
-import { myIssuesRelationFromScope } from "@multica/core/issues/stores/my-issues-view-store";
+import { CircleUser, ListTodo, Plus } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { useAuthStore } from "@morechat/core/auth";
+import { myIssuesRelationFromScope } from "@morechat/core/issues/stores/my-issues-view-store";
 import { CollectionPageState } from "../../layout/collection-page";
 import { PageHeader } from "../../layout/page-header";
 import { IssueSurface } from "../../issues/surface/issue-surface";

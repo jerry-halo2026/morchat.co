@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/dispatch"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/dispatch"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // AgentAvailability is what a readiness check concluded, in the vocabulary the

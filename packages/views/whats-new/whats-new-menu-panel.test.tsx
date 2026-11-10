@@ -2,10 +2,10 @@ import type { ReactNode } from "react";
 import { act, fireEvent, render as rtlRender, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useSearchStore } from "@multica/core/command-bar";
-import { configStore } from "@multica/core/config";
-import { Command, Globe, Terminal } from "@multica/ui/icons";
-import type { User } from "@multica/core/types";
+import { useSearchStore } from "@morechat/core/command-bar";
+import { configStore } from "@morechat/core/config";
+import { Command, Globe, Terminal } from "@morechat/ui/icons";
+import type { User } from "@morechat/core/types";
 import enLayout from "../locales/en/layout.json";
 import { HelpLauncher } from "../layout/help-launcher";
 import type { WhatsNewRelease } from "./releases";
@@ -22,20 +22,20 @@ const authStore = vi.hoisted(() => {
   return create<{ user: Partial<User> | null }>(() => ({ user: null }));
 });
 
-vi.mock("@multica/core/auth", () => ({ useAuthStore: authStore }));
+vi.mock("@morechat/core/auth", () => ({ useAuthStore: authStore }));
 
-vi.mock("@multica/core/whats-new", async () => {
-  const actual = await vi.importActual<typeof import("@multica/core/whats-new")>("@multica/core/whats-new");
+vi.mock("@morechat/core/whats-new", async () => {
+  const actual = await vi.importActual<typeof import("@morechat/core/whats-new")>("@morechat/core/whats-new");
   return { ...actual, markWhatsNewSeen: mocks.markWhatsNewSeen };
 });
 
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({ runtimes: () => "/acme/runtimes", settings: () => "/acme/settings" }),
 }));
 
 vi.mock("../navigation", () => ({ useNavigation: () => ({ push: mocks.push }) }));
 
-vi.mock("@multica/ui/components/common/tooltip-hint", () => ({
+vi.mock("@morechat/ui/components/common/tooltip-hint", () => ({
   TooltipHint: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
@@ -191,7 +191,7 @@ describe("What's new from the Help menu", () => {
     expect(release("0.2.0")).not.toHaveTextContent("New");
     expect(screen.getByRole("link", { name: /v0.2.0 release notes/ })).toHaveAttribute(
       "href",
-      "https://multica.ai/changelog#release-0-2-0",
+      "https://morechat.co/changelog#release-0-2-0",
     );
   });
 

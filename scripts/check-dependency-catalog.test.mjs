@@ -61,7 +61,7 @@ test("accepts catalog:, workspace:, single-workspace deps, peers, and mobile pin
     catalog: new Map([["react", "19.2.3"]]),
     workspaces: [
       workspace("apps/web", {
-        dependencies: { react: "catalog:", "@multica/core": "workspace:*", "web-only": "^1.0.0" },
+        dependencies: { react: "catalog:", "@morechat/core": "workspace:*", "web-only": "^1.0.0" },
       }),
       workspace("packages/views", {
         peerDependencies: { react: "^19", eslint: "^9.0.0" },

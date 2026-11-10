@@ -45,11 +45,11 @@ describe("docsAlternates", () => {
     const { docsAlternates } = await import("./site");
 
     expect(docsAlternates(["agents"])).toEqual({
-      canonical: "https://www.multica.ai/docs/agents",
+      canonical: "https://www.morechat.co/docs/agents",
       languages: {
-        en: "https://www.multica.ai/docs/agents",
-        zh: "https://www.multica.ai/docs/zh/agents",
-        "x-default": "https://www.multica.ai/docs/agents",
+        en: "https://www.morechat.co/docs/agents",
+        zh: "https://www.morechat.co/docs/zh/agents",
+        "x-default": "https://www.morechat.co/docs/agents",
       },
     });
   });
@@ -65,12 +65,12 @@ describe("docsAlternates", () => {
     const { docsAlternates } = await import("./site");
 
     expect(docsAlternates(["agents"])).toEqual({
-      canonical: "https://www.multica.ai/docs/agents",
+      canonical: "https://www.morechat.co/docs/agents",
       languages: {
-        en: "https://www.multica.ai/docs/agents",
-        zh: "https://www.multica.ai/docs/zh/agents",
-        ko: "https://www.multica.ai/docs/ko/agents",
-        "x-default": "https://www.multica.ai/docs/agents",
+        en: "https://www.morechat.co/docs/agents",
+        zh: "https://www.morechat.co/docs/zh/agents",
+        ko: "https://www.morechat.co/docs/ko/agents",
+        "x-default": "https://www.morechat.co/docs/agents",
       },
     });
   });
@@ -80,12 +80,12 @@ describe("docsAlternates", () => {
     const { docsAlternates } = await import("./site");
 
     expect(docsAlternates(["agents"])).toEqual({
-      canonical: "https://www.multica.ai/docs/agents",
+      canonical: "https://www.morechat.co/docs/agents",
       languages: {
-        en: "https://www.multica.ai/docs/agents",
-        zh: "https://www.multica.ai/docs/zh/agents",
-        ja: "https://www.multica.ai/docs/ja/agents",
-        "x-default": "https://www.multica.ai/docs/agents",
+        en: "https://www.morechat.co/docs/agents",
+        zh: "https://www.morechat.co/docs/zh/agents",
+        ja: "https://www.morechat.co/docs/ja/agents",
+        "x-default": "https://www.morechat.co/docs/agents",
       },
     });
   });
@@ -95,12 +95,12 @@ describe("docsAlternates", () => {
     const { docsAlternates } = await import("./site");
 
     expect(docsAlternates(["agents"])).toEqual({
-      canonical: "https://www.multica.ai/docs/agents",
+      canonical: "https://www.morechat.co/docs/agents",
       languages: {
-        en: "https://www.multica.ai/docs/agents",
-        zh: "https://www.multica.ai/docs/zh/agents",
-        "zh-Hant": "https://www.multica.ai/docs/zh-Hant/agents",
-        "x-default": "https://www.multica.ai/docs/agents",
+        en: "https://www.morechat.co/docs/agents",
+        zh: "https://www.morechat.co/docs/zh/agents",
+        "zh-Hant": "https://www.morechat.co/docs/zh-Hant/agents",
+        "x-default": "https://www.morechat.co/docs/agents",
       },
     });
   });
@@ -110,12 +110,12 @@ describe("docsAlternates", () => {
     const { docsAlternates } = await import("./site");
 
     expect(docsAlternates(["agents"])).toEqual({
-      canonical: "https://www.multica.ai/docs/agents",
+      canonical: "https://www.morechat.co/docs/agents",
       languages: {
-        en: "https://www.multica.ai/docs/agents",
-        zh: "https://www.multica.ai/docs/zh/agents",
-        fr: "https://www.multica.ai/docs/fr/agents",
-        "x-default": "https://www.multica.ai/docs/agents",
+        en: "https://www.morechat.co/docs/agents",
+        zh: "https://www.morechat.co/docs/zh/agents",
+        fr: "https://www.morechat.co/docs/fr/agents",
+        "x-default": "https://www.morechat.co/docs/agents",
       },
     });
   });
@@ -124,11 +124,11 @@ describe("docsAlternates", () => {
     const { docsAlternates } = await import("./site");
 
     expect(docsAlternates([])).toEqual({
-      canonical: "https://www.multica.ai/docs",
+      canonical: "https://www.morechat.co/docs",
       languages: {
-        en: "https://www.multica.ai/docs",
-        zh: "https://www.multica.ai/docs/zh",
-        "x-default": "https://www.multica.ai/docs",
+        en: "https://www.morechat.co/docs",
+        zh: "https://www.morechat.co/docs/zh",
+        "x-default": "https://www.morechat.co/docs",
       },
     });
   });

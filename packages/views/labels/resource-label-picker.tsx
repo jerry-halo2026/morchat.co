@@ -2,20 +2,20 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Search, Tag } from "@multica/ui/icons";
-import { useWorkspaceId } from "@multica/core/hooks";
+import { Check, Search, Tag } from "@morechat/ui/icons";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   labelListOptions,
   resourceLabelsOptions,
   useAttachResourceLabel,
   useDetachResourceLabel,
-} from "@multica/core/labels";
-import { Input } from "@multica/ui/components/ui/input";
+} from "@morechat/core/labels";
+import { Input } from "@morechat/ui/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@multica/ui/components/ui/popover";
+} from "@morechat/ui/components/ui/popover";
 import { useT } from "../i18n";
 import { LabelChip } from "./label-chip";
 

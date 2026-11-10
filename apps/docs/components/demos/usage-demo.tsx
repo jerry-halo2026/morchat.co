@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
-import { BarChart3, CalendarDays, ChevronDown, FolderKanban, RefreshCw } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
+import { BarChart3, CalendarDays, ChevronDown, FolderKanban, RefreshCw } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
 import {
   CoachMark,
   DemoAvatar,

@@ -1,7 +1,7 @@
 "use client";
 
-import { Archive } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
+import { Archive } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
 import { CHAT_COLUMN, CHAT_GUTTER } from "./chat-column";
 import { useT } from "../../i18n";
 

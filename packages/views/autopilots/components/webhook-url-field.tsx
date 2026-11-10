@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Check, Copy, Eye, EyeOff } from "@multica/ui/icons";
+import { Check, Copy, Eye, EyeOff } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { maskAutopilotWebhookUrl } from "@multica/core/autopilots";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { cn } from "@multica/ui/lib/utils";
-import { copyText } from "@multica/ui/lib/clipboard";
+import { maskAutopilotWebhookUrl } from "@morechat/core/autopilots";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { cn } from "@morechat/ui/lib/utils";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import { useT } from "../../i18n";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 
 const SIZES = {
   // Trigger row on the detail page — compact, sits inline with the row actions.

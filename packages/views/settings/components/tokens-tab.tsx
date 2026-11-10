@@ -1,28 +1,28 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Trash2, Copy, Check, Info } from "@multica/ui/icons";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@multica/ui/components/ui/tooltip";
-import type { PersonalAccessToken } from "@multica/core/types";
-import { Alert, AlertDescription } from "@multica/ui/components/ui/alert";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
-import { Input } from "@multica/ui/components/ui/input";
-import { Button } from "@multica/ui/components/ui/button";
-import { Card, CardContent } from "@multica/ui/components/ui/card";
+import { Trash2, Copy, Check, Info } from "@morechat/ui/icons";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@morechat/ui/components/ui/tooltip";
+import type { PersonalAccessToken } from "@morechat/core/types";
+import { Alert, AlertDescription } from "@morechat/ui/components/ui/alert";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Card, CardContent } from "@morechat/ui/components/ui/card";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@multica/ui/components/ui/select";
+} from "@morechat/ui/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,11 +32,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { copyText } from "@multica/ui/lib/clipboard";
+} from "@morechat/ui/components/ui/alert-dialog";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import { toast } from "sonner";
-import { api } from "@multica/core/api";
+import { api } from "@morechat/core/api";
 import { useLocale, useT } from "../../i18n";
 import { SettingsSection, SettingsTab } from "./settings-layout";
 

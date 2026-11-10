@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/multica-ai/multica/server/internal/service"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
-	"github.com/multica-ai/multica/server/pkg/plugincontract"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/plugincontract"
 )
 
 // The identity model, exercised through the path that actually decides it.

@@ -2,8 +2,8 @@
 
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { clientErrorMessage, dispatchReasonCode } from "@multica/core/api";
-import { useTriggerAutopilot } from "@multica/core/autopilots/mutations";
+import { clientErrorMessage, dispatchReasonCode } from "@morechat/core/api";
+import { useTriggerAutopilot } from "@morechat/core/autopilots/mutations";
 import { useT } from "../../i18n";
 import { runNowBlockedKey, runNowToastKind } from "./run-now-toast";
 

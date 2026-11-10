@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { describe, expect, it } from "vitest";
-import type { Issue } from "@multica/core/types";
+import type { Issue } from "@morechat/core/types";
 import { sortIssues } from "./sort";
 
 const propertyId = "prop-effort";

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Check, Loader2 } from "@multica/ui/icons";
+import { ArrowRight, Check, Loader2 } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { Button } from "@multica/ui/components/ui/button";
-import { Input } from "@multica/ui/components/ui/input";
-import { Label } from "@multica/ui/components/ui/label";
-import { Textarea } from "@multica/ui/components/ui/textarea";
-import { joinCloudWaitlist } from "@multica/core/onboarding";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Label } from "@morechat/ui/components/ui/label";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
+import { joinCloudWaitlist } from "@morechat/core/onboarding";
 import { useT } from "../../i18n";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

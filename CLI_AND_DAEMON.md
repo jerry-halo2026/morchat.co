@@ -1,6 +1,6 @@
 # CLI and Agent Daemon Guide
 
-The `multica` CLI connects your local machine to Multica. It handles authentication, workspace management, issue tracking, and runs the agent daemon that executes AI tasks locally.
+The `multica` CLI connects your local machine to morechat.co. It handles authentication, workspace management, issue tracking, and runs the agent daemon that executes AI tasks locally.
 
 ## Installation
 
@@ -13,7 +13,7 @@ brew install multica-ai/tap/multica
 ### Build from Source
 
 ```bash
-git clone https://github.com/multica-ai/multica.git
+git clone https://github.com/jerry-halo2026/morchat.co.git
 cd multica
 make build
 cp server/bin/multica /usr/local/bin/multica
@@ -44,8 +44,8 @@ export MULTICA_DAEMON_AUTO_UPDATE=true
 multica update
 ```
 
-The metadata mirror must serve `/repos/multica-ai/multica/releases/latest` and
-`/repos/multica-ai/multica/releases/tags/<tag>`. The artifact mirror must serve
+The metadata mirror must serve `/repos/jerry-halo2026/morchat.co/releases/latest` and
+`/repos/jerry-halo2026/morchat.co/releases/tags/<tag>`. The artifact mirror must serve
 `/<tag>/<asset-name>` and preserve the published `checksums.txt` contents.
 When these variables are unset, the GitHub defaults remain unchanged.
 
@@ -109,7 +109,7 @@ Removes the stored authentication token.
 
 ## Agent Daemon
 
-The daemon is the local agent runtime. It detects available AI CLIs on your machine, registers them with the Multica server, and executes tasks when agents are assigned work.
+The daemon is the local agent runtime. It detects available AI CLIs on your machine, registers them with the morechat.co server, and executes tasks when agents are assigned work.
 
 ### Start
 
@@ -163,7 +163,7 @@ multica config set disable_auto_reload true
 
 Agent CLIs (codex, claude, ...) are handled differently: when one of them is
 upgraded in place, the daemon re-probes its version and re-registers the runtime
-**without restarting**, so subsequent tasks pick up the new CLI while Multica's
+**without restarting**, so subsequent tasks pick up the new CLI while morechat.co's
 availability stays independent of a third party's release cadence.
 
 Desktop-managed daemons ignore both, because the Desktop app owns its bundled
@@ -179,7 +179,7 @@ hint when nothing is registered, and otherwise stays out of the way.
 
 | Platform | Mechanism | Where |
 | --- | --- | --- |
-| Windows | Per-user Run key | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, value `Multica` |
+| Windows | Per-user Run key | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, value `morechat.co` |
 | macOS | launchd LaunchAgent | `~/Library/LaunchAgents/ai.multica.daemon.plist` (runs at login) |
 | Linux | systemd user unit | `~/.config/systemd/user/multica-daemon.service`; without systemd, an XDG autostart entry under `~/.config/autostart/` |
 
@@ -187,7 +187,7 @@ Each entry runs `multica daemon start --foreground` for that profile — named
 profiles get their own entry, so several daemons on one machine never collide.
 Daemon settings are read from the profile's config (`multica config set ...`)
 at start. Shell environment variables do **not** travel into a login session:
-only `PATH` is snapshotted at registration (and refreshed while Multica owns
+only `PATH` is snapshotted at registration (and refreshed while morechat.co owns
 the entry), which is what keeps agent CLIs installed via Homebrew, nvm, or a
 user bin directory discoverable — persist everything else with
 `multica config set` or your user environment. On Linux, `enable` also tells
@@ -201,9 +201,9 @@ multica daemon autostart status --output json
 multica daemon autostart disable        # remove the registration
 ```
 
-Refresh: while an entry exists and carries Multica's ownership marker,
+Refresh: while an entry exists and carries morechat.co's ownership marker,
 `daemon start` silently rewrites it so a moved executable (a Homebrew
-upgrade, a self-update) heals. An entry at the same path that Multica did
+upgrade, a self-update) heals. An entry at the same path that morechat.co did
 not create — your own systemd unit, a hand-written LaunchAgent — is never
 refreshed and never overwritten: `enable`/`disable` refuse it and say which
 file is in the way, and the refresh is additionally skipped when the daemon
@@ -217,7 +217,7 @@ the managed unit file stays (unlinked), so the current session keeps the
 unit's restart policy across a binary update and only the next-login start
 goes away; on macOS the plist is deleted without a `launchctl bootout`, so
 the process launchd is supervising keeps running. Daemons started by the
-Multica Desktop app are never registered or refreshed here: the app owns
+morechat.co Desktop app are never registered or refreshed here: the app owns
 that daemon's lifecycle through its own app-start daemon preference.
 
 ### Stop
@@ -297,7 +297,7 @@ The daemon auto-detects these AI CLIs on your PATH:
 | [Qwen Code](https://github.com/QwenLM/qwen-code) | `qwen` | Alibaba Qwen Code (`qwen -p` with stream-json) |
 | [QwenPaw](https://github.com/agentscope-ai/QwenPaw) | `qwenpaw` | QwenPaw ACP coding agent (ACP via `qwenpaw acp`; model is fixed by its own configuration) |
 | [MiniMax Code](https://github.com/MiniMax-AI/minimax-code) | `mcode` | MiniMax Code ACP coding agent (ACP via `mcode acp`; model is managed by MCode) |
-| [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) | `dsh` | DeepSeek Harness (`dsh --profile multica --stdio`; requires the Multica runtime profile to be installed; reads AGENTS.md and .dsh/skills/) |
+| [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) | `dsh` | DeepSeek Harness (`dsh --profile multica --stdio`; requires the morechat.co runtime profile to be installed; reads AGENTS.md and .dsh/skills/) |
 
 You need at least one installed. The daemon registers each detected CLI as an available runtime.
 
@@ -373,7 +373,7 @@ Daemon behavior is configured via flags or environment variables:
 | GC enabled | — | `MULTICA_GC_ENABLED` | `true` (set `false`/`0` to disable) |
 | GC scan interval | — | `MULTICA_GC_INTERVAL` | `2h` |
 | GC TTL (done/cancelled issues) | — | `MULTICA_GC_TTL` | `24h` |
-| GC completed-task TTL (issue tasks) | — | `MULTICA_GC_COMPLETED_TASK_TTL` | `14d` on Multica Cloud, `0` (disabled) elsewhere |
+| GC completed-task TTL (issue tasks) | — | `MULTICA_GC_COMPLETED_TASK_TTL` | `14d` on morechat.co Cloud, `0` (disabled) elsewhere |
 | GC orphan TTL (no `.gc_meta.json`) | — | `MULTICA_GC_ORPHAN_TTL` | `72h` |
 | GC artifact TTL (completed tasks) | — | `MULTICA_GC_ARTIFACT_TTL` | `12h` (set `0` to disable) |
 | GC artifact patterns | — | `MULTICA_GC_ARTIFACT_PATTERNS` | `node_modules,.next,.turbo` |
@@ -389,7 +389,7 @@ The daemon periodically scans `MULTICA_WORKSPACES_ROOT` for cleanup. The active-
 
 - **Full task cleanup** — when an issue's status is `done` or `cancelled` and has been idle for `MULTICA_GC_TTL`, the entire task directory is removed.
 - **Completed-task retention bound** — `MULTICA_GC_COMPLETED_TASK_TTL` fully removes an inactive issue task once its `.gc_meta.json` `completed_at` age exceeds the configured duration, even while the parent issue remains open. Cleanup waits for a successful parent-issue status check, never removes an active environment, and never fully removes a `local_directory` environment. A later rerun provisions a fresh environment instead of resuming the removed checkout.
-  - The default depends on where the daemon points: `14d` against Multica Cloud, and `0` (disabled, retain indefinitely) for self-host and every other origin — including cloud staging and previews. Set the variable to opt in or out on either side; an explicit `0` disables the policy on Cloud too.
+  - The default depends on where the daemon points: `14d` against morechat.co Cloud, and `0` (disabled, retain indefinitely) for self-host and every other origin — including cloud staging and previews. Set the variable to opt in or out on either side; an explicit `0` disables the policy on Cloud too.
   - Removing an environment discards work an agent left uncommitted or unpushed on its branch, along with that task's `output/` and `logs/`. The per-issue Codex session store lives outside `MULTICA_WORKSPACES_ROOT` under its own TTL, so a later rerun still resumes the agent's prior session — it just starts from a fresh checkout. Size the TTL against that trade, and keep it comfortably above `MULTICA_GC_INTERVAL`: the active-root guard protects a task that is currently running, not one whose follow-up run is queued but unclaimed.
 - **Orphan cleanup** — task directories with no `.gc_meta.json` (e.g. left over from a daemon crash) are removed once they exceed `MULTICA_GC_ORPHAN_TTL`.
 - **Artifact-only cleanup** — when a task has been completed for at least `MULTICA_GC_ARTIFACT_TTL` but the issue is still open, regenerable build outputs whose directory basename matches `MULTICA_GC_ARTIFACT_PATTERNS` are removed. The daemon also reclaims the exact managed path `codex-home/.sandbox-bin`; old task metadata without `completed_at` becomes eligible for this managed-only cleanup after its `.gc_meta.json` file has been idle for `MULTICA_GC_ORPHAN_TTL`. The rest of the task (source, `.git`, `output/`, `logs/`, `.gc_meta.json`, Codex auth/config/session state) is preserved so the agent can resume it. The same basename patterns apply to unarchived chats that use a daemon-managed work directory once the chat status check succeeds and the last run has been complete for `MULTICA_GC_ARTIFACT_TTL`. After a successful cleanup, the daemon skips repeat scans for that run. A later completed run becomes eligible again after the same delay.
@@ -485,9 +485,9 @@ Two consequences are worth knowing before debugging a missing MCP tool:
 If a configured server produces no tools, check the daemon log for those warnings first, then confirm the runtime itself exposes the server's tools to the model — some ACP adapters apply their own tool-profile filtering after connecting.
 
 
-The daemon launches QwenPaw as `qwenpaw acp --workspace <per-task dir>`. It writes the task brief to `AGENTS.md`, and materialises the run's bound skills into `<per-task dir>/skills/` plus a `skill.json` manifest, so QwenPaw discovers them through its own workspace skill discovery. `acp` and `--workspace` are reserved: `custom_args` cannot override them. QwenPaw is the one runtime with no `MULTICA_QWENPAW_MODEL`: its `session/set_model` writes to a shared, persistent agent config rather than the session, so Multica never sends it a model and leaves that choice to QwenPaw's own configuration.
+The daemon launches QwenPaw as `qwenpaw acp --workspace <per-task dir>`. It writes the task brief to `AGENTS.md`, and materialises the run's bound skills into `<per-task dir>/skills/` plus a `skill.json` manifest, so QwenPaw discovers them through its own workspace skill discovery. `acp` and `--workspace` are reserved: `custom_args` cannot override them. QwenPaw is the one runtime with no `MULTICA_QWENPAW_MODEL`: its `session/set_model` writes to a shared, persistent agent config rather than the session, so morechat.co never sends it a model and leaves that choice to QwenPaw's own configuration.
 
-The daemon launches MiniMax Code as `mcode acp`, writes the task brief to `AGENTS.md`, and injects bound skills under `.minimax/skills/`. MCode owns model selection and currently advertises `loadSession: false`; Multica therefore starts a fresh MCode session when a later run cannot load the saved session.
+The daemon launches MiniMax Code as `mcode acp`, writes the task brief to `AGENTS.md`, and injects bound skills under `.minimax/skills/`. MCode owns model selection and currently advertises `loadSession: false`; morechat.co therefore starts a fresh MCode session when a later run cannot load the saved session.
 
 #### Hermes agent memory
 
@@ -498,7 +498,7 @@ tool descendants remain in a Windows job object and are terminated on task clean
 or cancellation; agent jobs do not permit breakaway. Other platforms and older or
 unrecognized Hermes versions retain their existing ACP startup behavior.
 
-Hermes discovers skills only from its own home, so binding Multica skills to a Hermes agent makes the daemon build a per-task `HERMES_HOME` overlay for that agent. The agent's long-term memory (`memories/`) does **not** live inside that task-scoped overlay: it is linked to a persistent store at
+Hermes discovers skills only from its own home, so binding morechat.co skills to a Hermes agent makes the daemon build a per-task `HERMES_HOME` overlay for that agent. The agent's long-term memory (`memories/`) does **not** live inside that task-scoped overlay: it is linked to a persistent store at
 
 ```
 <profile dir>/hermes-state/<agent-id>/<hermes-profile>/
@@ -508,17 +508,17 @@ so the same agent keeps its memory across tasks and issues. `<hermes-profile>` i
 
 Consequences worth knowing:
 
-- **Memory is agent-scoped but runtime-local.** One agent's memory is never visible to another, and the user's own `~/.hermes/memories` is never read or written. The store lives in this runtime's Multica profile directory, so it does **not** follow the agent to another machine — an agent that runs on two runtimes has a separate memory line on each. Everything else in the home — auth, config, plugins — is still shared from the user's real home by symlink, so the agent does not need its own login.
+- **Memory is agent-scoped but runtime-local.** One agent's memory is never visible to another, and the user's own `~/.hermes/memories` is never read or written. The store lives in this runtime's morechat.co profile directory, so it does **not** follow the agent to another machine — an agent that runs on two runtimes has a separate memory line on each. Everything else in the home — auth, config, plugins — is still shared from the user's real home by symlink, so the agent does not need its own login.
 - **To carry existing local memory in**, copy it into the store once: `cp -R ~/.hermes/memories/. "<profile dir>/hermes-state/<agent-id>/default/"`. To wipe an agent's memory, delete that directory.
 - **Conversation history is covered too, in a separate store.** Hermes keeps every ACP session in `<HERMES_HOME>/state.db`, which the overlay links to a per-conversation store at `<profile dir>/hermes-sessions/<agent-id>/<hermes-profile>/<issue-id | chat_\<chat-session-id\>>/`, so a follow-up turn resumes the actual transcript. The shard is per conversation rather than per agent on purpose: tasks of one conversation run one after another, so a shard has a single writer at a time, while two issues never share a database. A host that cannot create the link (Windows without symlink privileges) keeps the database task-local instead, untouched — the link is proven creatable before anything is moved, and a copy is never used, because a copied SQLite database would absorb the turn's writes into a file the next task discards.
 - **Concurrent tasks of one agent are last-writer-wins.** Hermes rewrites its memory files whole, so two tasks writing memory at the same time can overwrite each other.
-- **Every Hermes agent gets the overlay in practice**, so every one of them gets a persistent memory store. The daemon builds the overlay only when a task carries skills, but the server appends Multica's built-in skills to every agent's skill set (`LoadAgentSkillBundles`), so that list is never empty — leaving an agent's own skill list empty does not opt out of the overlay, and is not a way to keep using the host's `~/.hermes/memories`.
+- **Every Hermes agent gets the overlay in practice**, so every one of them gets a persistent memory store. The daemon builds the overlay only when a task carries skills, but the server appends morechat.co's built-in skills to every agent's skill set (`LoadAgentSkillBundles`), so that list is never empty — leaving an agent's own skill list empty does not opt out of the overlay, and is not a way to keep using the host's `~/.hermes/memories`.
 
-`MULTICA_CLAUDE_ARGS`, `MULTICA_CODEX_ARGS`, `MULTICA_CODEBUDDY_ARGS`, `MULTICA_QWEN_ARGS`, and `MULTICA_QWENPAW_ARGS` are parsed with POSIX shellword quoting, so values such as `--model "gpt-5.1 codex" --sandbox read-only` are split like a shell command line. Agent arguments are applied in this order: hardcoded Multica defaults, daemon-wide env defaults, then per-agent `custom_args` from the task.
+`MULTICA_CLAUDE_ARGS`, `MULTICA_CODEX_ARGS`, `MULTICA_CODEBUDDY_ARGS`, `MULTICA_QWEN_ARGS`, and `MULTICA_QWENPAW_ARGS` are parsed with POSIX shellword quoting, so values such as `--model "gpt-5.1 codex" --sandbox read-only` are split like a shell command line. Agent arguments are applied in this order: hardcoded morechat.co defaults, daemon-wide env defaults, then per-agent `custom_args` from the task.
 
 ### Self-Hosted Server
 
-When connecting to a self-hosted Multica instance, the easiest approach is:
+When connecting to a self-hosted morechat.co instance, the easiest approach is:
 
 ```bash
 # One command — configures for localhost, authenticates, starts daemon
@@ -810,8 +810,8 @@ design — same flag, different scope:
 
 Outside those two modes (`--thread` without `--tail`, or no `--thread`
 and no `--recent`) the cursor flags are rejected so they cannot silently
-no-op. The server emits the cursor headers (`X-Multica-Next-Before` /
-`X-Multica-Next-Before-Id`) only when an older page actually exists —
+no-op. The server emits the cursor headers (`X-morechat.co-Next-Before` /
+`X-morechat.co-Next-Before-Id`) only when an older page actually exists —
 exact-boundary pages (e.g. `--tail 3` on a thread with exactly 3
 replies) intentionally return no cursor so callers stop paginating.
 
@@ -982,7 +982,7 @@ multica issue search "Login" --project <project-id>
 ## Setup
 
 ```bash
-# One-command setup for Multica Cloud: configure, authenticate, and start the daemon
+# One-command setup for morechat.co Cloud: configure, authenticate, and start the daemon
 multica setup
 
 # For local self-hosted deployments
@@ -995,7 +995,7 @@ multica setup self-host --port 9090 --frontend-port 4000
 multica setup self-host --server-url https://api.example.com --app-url https://app.example.com
 ```
 
-`multica setup` configures the CLI, opens your browser for authentication, and starts the daemon — all in one step. Use `multica setup self-host` to connect to a self-hosted server instead of Multica Cloud.
+`multica setup` configures the CLI, opens your browser for authentication, and starts the daemon — all in one step. Use `multica setup self-host` to connect to a self-hosted server instead of morechat.co Cloud.
 
 ## Configuration
 

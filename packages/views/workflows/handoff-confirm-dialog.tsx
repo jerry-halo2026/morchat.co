@@ -2,13 +2,13 @@
 
 import { Fragment, useEffect, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, ChevronDown, ChevronRight, TriangleAlert } from "@multica/ui/icons";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { workflowHandoffPreviewOptions } from "@multica/core/issue-workflows";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { Button } from "@multica/ui/components/ui/button";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
+import { ArrowRight, ChevronDown, ChevronRight, TriangleAlert } from "@morechat/ui/icons";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { workflowHandoffPreviewOptions } from "@morechat/core/issue-workflows";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -16,8 +16,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Spinner } from "@multica/ui/components/ui/spinner";
+} from "@morechat/ui/components/ui/dialog";
+import { Spinner } from "@morechat/ui/components/ui/spinner";
 import { ActorAvatar } from "../common/actor-avatar";
 import { StatusIcon } from "../issues/components/status-icon";
 import { useStatusLabel } from "../issues/utils/status-label";

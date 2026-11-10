@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/multica-ai/multica/server/internal/handler"
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/handler"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 // TestAutopilotWebhookTokenIsNotBroadcastToTheWorkspace is the end-to-end proof

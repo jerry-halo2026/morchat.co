@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Workflow } from "@multica/ui/icons";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { useProjectWithWorkflow } from "@multica/core/issue-workflows";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { Button } from "@multica/ui/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@multica/ui/components/ui/popover";
-import { cn } from "@multica/ui/lib/utils";
+import { Settings, Workflow } from "@morechat/ui/icons";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { useProjectWithWorkflow } from "@morechat/core/issue-workflows";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@morechat/ui/components/ui/popover";
+import { cn } from "@morechat/ui/lib/utils";
 import { ActorAvatar } from "../common/actor-avatar";
 import { StatusIcon } from "../issues/components/status-icon";
 import { useStatusLabel } from "../issues/utils/status-label";

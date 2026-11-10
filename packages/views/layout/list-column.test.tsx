@@ -1,6 +1,6 @@
 import { act, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { SidebarProvider } from "@multica/ui/components/ui/sidebar";
+import { SidebarProvider } from "@morechat/ui/components/ui/sidebar";
 import { renderWithI18n } from "../test/i18n";
 import { AppShellProvider, useAppShell } from "./app-shell-context";
 import { ListColumn } from "./list-column";

@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
-import { collectDeliverableFiles } from "@multica/core/attachments/deliverables";
-import type { Attachment } from "@multica/core/types";
+import { collectDeliverableFiles } from "@morechat/core/attachments/deliverables";
+import type { Attachment } from "@morechat/core/types";
 import { renderWithI18n } from "../../../test/i18n";
 
 // The real viewer (PreviewSequenceProvider) and the real overview, wired to
 // the link session the way IssueDetail wires them. `onLinkDone` stands for
 // the route putting the plain issue address back.
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: { getBaseUrl: () => "", getAttachmentTextContent: vi.fn() },
   PreviewTooLargeError: class extends Error {},
   PreviewUnsupportedError: class extends Error {},
@@ -21,8 +21,8 @@ vi.mock("../../../editor/hooks/use-inline-media-url", async (importOriginal) => 
   ...(await importOriginal<typeof import("../../../editor/hooks/use-inline-media-url")>()),
   useResignedInlineMedia: (_id: string | undefined, url: string) => ({ url, pending: false }),
 }));
-vi.mock("@multica/core/workspace/avatar-url", () => ({ resolvePublicFileUrl: (url: string) => url }));
-vi.mock("@multica/core/workspace/hooks", () => ({
+vi.mock("@morechat/core/workspace/avatar-url", () => ({ resolvePublicFileUrl: (url: string) => url }));
+vi.mock("@morechat/core/workspace/hooks", () => ({
   useActorName: () => ({ getActorName: () => "Lambda" }),
 }));
 vi.mock("../../../common/actor-avatar", () => ({ ActorAvatar: () => null }));

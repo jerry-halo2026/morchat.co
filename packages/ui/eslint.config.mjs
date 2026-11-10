@@ -1,5 +1,5 @@
-import reactConfig from "@multica/eslint-config/react";
-import { NO_ROUND_CONTROLS } from "@multica/eslint-config/control-shape";
+import reactConfig from "@morechat/eslint-config/react";
+import { NO_ROUND_CONTROLS } from "@morechat/eslint-config/control-shape";
 
 export default [
   ...reactConfig,

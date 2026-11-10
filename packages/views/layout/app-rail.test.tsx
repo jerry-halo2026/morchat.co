@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { act, fireEvent, screen, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useRailOrderStore } from "@multica/core/navigation";
-import { SidebarProvider, useSidebar } from "@multica/ui/components/ui/sidebar";
+import { useRailOrderStore } from "@morechat/core/navigation";
+import { SidebarProvider, useSidebar } from "@morechat/ui/components/ui/sidebar";
 import { renderWithI18n } from "../test/i18n";
 import { AppRail } from "./app-rail";
 import { AppShellProvider, useAppShell } from "./app-shell-context";
@@ -30,31 +30,31 @@ vi.mock("../navigation", () => ({
   ),
   useNavigation: () => ({ pathname: state.pathname, push: vi.fn() }),
 }));
-vi.mock("@multica/core/paths", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/paths")>();
+vi.mock("@morechat/core/paths", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/paths")>();
   return {
     ...actual,
     useCurrentWorkspace: () => ({ id: "ws-1", name: "Acme", slug: "acme" }),
     useWorkspacePaths: () => actual.paths.workspace("acme"),
   };
 });
-vi.mock("@multica/core/inbox/queries", () => ({
+vi.mock("@morechat/core/inbox/queries", () => ({
   useInboxUnreadCount: () => state.inboxUnread,
 }));
-vi.mock("@multica/core/chat/queries", () => ({
+vi.mock("@morechat/core/chat/queries", () => ({
   chatSessionsOptions: (wsId: string) => ({
     queryKey: ["chat", wsId, "sessions"],
     queryFn: async () => state.chatSessions,
   }),
 }));
 // Callable-store shape (selectorFn + getState) per the repo testing rules.
-vi.mock("@multica/core/chat", () => ({
+vi.mock("@morechat/core/chat", () => ({
   useChatStore: Object.assign(
     (selector: (s: typeof state.chat) => unknown) => selector(state.chat),
     { getState: () => state.chat },
   ),
 }));
-vi.mock("@multica/core/shortcuts", () => ({ useShortcut: () => null }));
+vi.mock("@morechat/core/shortcuts", () => ({ useShortcut: () => null }));
 vi.mock("../common/use-app-foreground", () => ({
   useAppForeground: () => state.appForeground,
 }));
@@ -64,7 +64,7 @@ vi.mock("./panels/team-status", () => ({
 vi.mock("./rail-workspaces", () => ({ RailWorkspaces: () => null }));
 vi.mock("./help-launcher", () => ({ HelpLauncher: () => null }));
 vi.mock("./account-menu", () => ({ AccountMenu: () => null }));
-vi.mock("@multica/ui/components/common/tooltip-hint", () => ({
+vi.mock("@morechat/ui/components/common/tooltip-hint", () => ({
   TooltipHint: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 

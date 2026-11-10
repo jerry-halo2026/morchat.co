@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/events"
-	"github.com/multica-ai/multica/server/internal/integrations/channel"
-	"github.com/multica-ai/multica/server/internal/integrations/channel/engine"
-	"github.com/multica-ai/multica/server/internal/util"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/events"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel/engine"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 func TestOutboundArchiveClearsPendingReceiptsOnlyForItsAgent(t *testing.T) {

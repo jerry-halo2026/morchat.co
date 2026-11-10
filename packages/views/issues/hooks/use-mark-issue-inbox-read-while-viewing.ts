@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useMarkIssueInboxRead } from "@multica/core/inbox";
-import { useWSEvent, useWSReconnect } from "@multica/core/realtime";
-import type { InboxNewPayload } from "@multica/core/types";
+import { useMarkIssueInboxRead } from "@morechat/core/inbox";
+import { useWSEvent, useWSReconnect } from "@morechat/core/realtime";
+import type { InboxNewPayload } from "@morechat/core/types";
 import { useAppForeground } from "../../common/use-app-foreground";
 
 /**

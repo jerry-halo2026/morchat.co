@@ -26,7 +26,7 @@
  */
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 import { HtmlPreviewSurface } from "./html-preview-surface";
 import { useT } from "../i18n";
 import { CodeBlockIframe } from "./code-block-iframe";

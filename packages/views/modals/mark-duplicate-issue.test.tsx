@@ -2,11 +2,11 @@ import { useState } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
-import { ApiError } from "@multica/core/api";
-import { buildIssueStatusCatalog } from "@multica/core/issue-statuses";
-import { issueKeys } from "@multica/core/issues/queries";
-import { createQueryClient } from "@multica/core/query-client";
-import type { Issue } from "@multica/core/types";
+import { ApiError } from "@morechat/core/api";
+import { buildIssueStatusCatalog } from "@morechat/core/issue-statuses";
+import { issueKeys } from "@morechat/core/issues/queries";
+import { createQueryClient } from "@morechat/core/query-client";
+import type { Issue } from "@morechat/core/types";
 import { renderWithI18n } from "../test/i18n";
 import { MarkDuplicateIssueModal } from "./mark-duplicate-issue";
 
@@ -19,12 +19,12 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("sonner", () => ({ toast: mocks.toast }));
-vi.mock("@multica/core/api", async (importOriginal) => ({
-  ...await importOriginal<typeof import("@multica/core/api")>(),
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@morechat/core/api")>(),
   api: mocks,
 }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
-vi.mock("@multica/core/issue-statuses/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/issue-statuses/hooks", () => ({
   useIssueStatuses: () => buildIssueStatusCatalog(undefined),
 }));
 

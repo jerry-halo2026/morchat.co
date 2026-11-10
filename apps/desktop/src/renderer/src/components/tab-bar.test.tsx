@@ -8,10 +8,10 @@ import {
   within,
   type RenderResult,
 } from "@testing-library/react";
-import { I18nProvider } from "@multica/core/i18n/react";
-import type { SupportedLocale } from "@multica/core/i18n";
-import { RESOURCES } from "@multica/views/locales";
-import { useScrollFade } from "@multica/ui/hooks/use-scroll-fade";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import type { SupportedLocale } from "@morechat/core/i18n";
+import { RESOURCES } from "@morechat/views/locales";
+import { useScrollFade } from "@morechat/ui/hooks/use-scroll-fade";
 
 type MockTab = {
   id: string;
@@ -69,9 +69,9 @@ vi.mock("@/stores/tab-store", () => {
   return { useTabStore, useActiveGroup };
 });
 
-vi.mock("@multica/core/paths", async (importOriginal) => ({
+vi.mock("@morechat/core/paths", async (importOriginal) => ({
   // Spread the real module so pure helpers (parseTabSubject etc.) keep working.
-  ...(await importOriginal<typeof import("@multica/core/paths")>()),
+  ...(await importOriginal<typeof import("@morechat/core/paths")>()),
   paths: {
     workspace: (slug: string) => ({
       issues: () => `/${slug}/issues`,
@@ -86,7 +86,7 @@ vi.mock("@multica/core/paths", async (importOriginal) => ({
 // fallback); a test can set `pres.title` to simulate a resolved title that
 // differs, to exercise resolved-title persistence.
 const pres = vi.hoisted(() => ({ title: null as string | null, titleResolved: true }));
-vi.mock("@multica/views/layout", () => ({
+vi.mock("@morechat/views/layout", () => ({
   useTabPresentation: vi.fn((_url: string, fallbackTitle?: string) => ({
     visual: { kind: "icon", icon: "ListTodo" },
     title: pres.title ?? fallbackTitle ?? "",
@@ -98,7 +98,7 @@ vi.mock("@multica/views/layout", () => ({
 }));
 
 import { TabBar } from "./tab-bar";
-import { useTabPresentation } from "@multica/views/layout";
+import { useTabPresentation } from "@morechat/views/layout";
 
 function render(
   ui: ReactElement,

@@ -1,6 +1,6 @@
 # Brand assets
 
-Every logo file in the repo is generated from `packages/ui/lib/multica-brand.ts`.
+Every logo file in the repo is generated from `packages/ui/lib/morechat-brand.ts`.
 After editing that file, regenerate and commit what changed:
 
 ```sh
@@ -34,7 +34,7 @@ with `--check` and fails when a copy drifts from `multica-brand.ts`.
 - `apps/web/public/favicon.svg`, `apps/docs/app/icon.svg`: favicon, with a dark-mode variant
 - `apps/web/public/icons/icon.svg`: full-bleed source for the home-screen icons
 - `docs/assets/logo-{light,dark}.svg`: the README wordmark
-- `apps/mobile/components/brand/multica-logo.tsx`: the block between the `GENERATED` markers. Mobile does not depend on `@multica/ui`.
+- `apps/mobile/components/brand/multica-logo.tsx`: the block between the `GENERATED` markers. Mobile does not depend on `@morechat/ui`.
 - `server/cmd/multica/cmd_auth.go`: the `.brand` SVG on the `multica login` callback page
 
 `generate.mjs` runs `sync.mjs`, then renders the bitmaps in Chromium:
@@ -56,7 +56,7 @@ At 24px and below, the star grows and thickens (`iconStar`). The margins in
 
 ## Recording the GIF
 
-The write-on timings mirror `MulticaWordmark` (`multica-wordmark.tsx`) and its
+The write-on timings mirror `MorechatWordmark` (`multica-wordmark.tsx`) and its
 keyframes in `packages/ui/styles/base.css`. Change all three together.
 
 Frames are captured by pausing every animation and seeking it to each frame's

@@ -2,17 +2,17 @@
 
 import { useId, useState } from "react";
 import { toast } from "sonner";
-import type { AgentTask, IssueWakeup } from "@multica/core/types";
-import { Switch } from "@multica/ui/components/ui/switch";
-import { Input } from "@multica/ui/components/ui/input";
+import type { AgentTask, IssueWakeup } from "@morechat/core/types";
+import { Switch } from "@morechat/ui/components/ui/switch";
+import { Input } from "@morechat/ui/components/ui/input";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Button } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dialog";
+import { Button } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../../i18n";
 import { isActiveWakeupRun, useWakeupText } from "./wakeup-presentation";
 

@@ -28,7 +28,7 @@ const LAUNCHER_ENV = {
   npm_config_verify_deps_before_run: "false",
   npm_execpath: "/pnpm/bin/pnpm.cjs",
   npm_lifecycle_event: "dev",
-  npm_package_name: "@multica/desktop",
+  npm_package_name: "@morechat/desktop",
   pnpm_config_verify_deps_before_run: "false",
   TURBO_HASH: "1cb7045295f9eb44",
   TURBO_INVOCATION_DIR: repo,

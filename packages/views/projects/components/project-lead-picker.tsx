@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { UserMinus } from "@multica/ui/icons";
+import { UserMinus } from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { memberListOptions, agentListOptions } from "@multica/core/workspace/queries";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useAuthStore } from "@multica/core/auth";
-import { canChangeProjectLead } from "@multica/core/projects/access";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { Popover, PopoverContent, PopoverTrigger } from "@multica/ui/components/ui/popover";
-import type { Project, UpdateProjectRequest } from "@multica/core/types";
+import { memberListOptions, agentListOptions } from "@morechat/core/workspace/queries";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useAuthStore } from "@morechat/core/auth";
+import { canChangeProjectLead } from "@morechat/core/projects/access";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { Popover, PopoverContent, PopoverTrigger } from "@morechat/ui/components/ui/popover";
+import type { Project, UpdateProjectRequest } from "@morechat/core/types";
 import { useT } from "../../i18n";
 import { matchesPinyin } from "../../editor/extensions/pinyin-match";
 import { ActorAvatar } from "../../common/actor-avatar";

@@ -26,26 +26,26 @@ import {
   Trash2,
   Unlink,
   UserMinus,
-} from "@multica/ui/icons";
-import { useIssueDeletion } from "@multica/core/issues/use-issue-deletion";
-import type { AgentTask, Issue } from "@multica/core/types";
-import { resolveWorkdirCopyTarget } from "@multica/core/issues";
-import { todayDateOnly, addDaysDateOnly } from "@multica/core/issues/date";
-import { api } from "@multica/core/api";
-import { agentTaskSnapshotOptions } from "@multica/core/agents";
+} from "@morechat/ui/icons";
+import { useIssueDeletion } from "@morechat/core/issues/use-issue-deletion";
+import type { AgentTask, Issue } from "@morechat/core/types";
+import { resolveWorkdirCopyTarget } from "@morechat/core/issues";
+import { todayDateOnly, addDaysDateOnly } from "@morechat/core/issues/date";
+import { api } from "@morechat/core/api";
+import { agentTaskSnapshotOptions } from "@morechat/core/agents";
 import {
   PRIORITY_DISPLAY_ORDER,
   PRIORITY_CONFIG,
-} from "@multica/core/issues/config";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useIssueUnread, useMarkIssueRead, useMarkIssueUnread } from "@multica/core/issues/unread";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { stepHandsOff, workflowAllowsStatus, workflowStep } from "@multica/core/issue-workflows";
-import { useModalStore } from "@multica/core/modals";
+} from "@morechat/core/issues/config";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useIssueUnread, useMarkIssueRead, useMarkIssueUnread } from "@morechat/core/issues/unread";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { stepHandsOff, workflowAllowsStatus, workflowStep } from "@morechat/core/issue-workflows";
+import { useModalStore } from "@morechat/core/modals";
 import { useIssueStatusOptions } from "../utils/status-options";
 import { useStatusLabel } from "../utils/status-label";
-import { issueKeys } from "@multica/core/issues/queries";
+import { issueKeys } from "@morechat/core/issues/queries";
 import { StatusIcon } from "../components/status-icon";
 import { PriorityIcon } from "../components/priority-icon";
 import { selectIssueTasks } from "../surface/activity";
@@ -56,15 +56,15 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
   DropdownMenuSeparator,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import {
   ContextMenuItem,
   ContextMenuSub,
   ContextMenuSubTrigger,
   ContextMenuSubContent,
   ContextMenuSeparator,
-} from "@multica/ui/components/ui/context-menu";
-import { copyText } from "@multica/ui/lib/clipboard";
+} from "@morechat/ui/components/ui/context-menu";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import type { UseIssueActionsResult } from "./use-issue-actions";
 import { InboxRestoreMenuItem } from "./inbox-restore";
 import { PluginHookMenuItems, PluginModalMenuItems } from "../../plugins";

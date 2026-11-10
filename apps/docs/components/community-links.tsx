@@ -18,13 +18,13 @@ export function CommunityLinks({
     },
     {
       label: "GitHub",
-      href: "https://github.com/multica-ai/multica",
+      href: "https://github.com/jerry-halo2026/morchat.co",
       description: githubDescription,
       Icon: GitHubMark,
     },
     {
       label: "X（Twitter）",
-      href: "https://x.com/MulticaAI",
+      href: "https://x.com/morechat.coAI",
       description: xDescription,
       Icon: XMark,
     },

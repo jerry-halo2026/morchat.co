@@ -1,17 +1,17 @@
 import { useState, useEffect, useCallback, type ReactNode } from "react";
-import { AlertCircle, Info, LogIn } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { Switch } from "@multica/ui/components/ui/switch";
-import { cn } from "@multica/ui/lib/utils";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
+import { AlertCircle, Info, LogIn } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Switch } from "@morechat/ui/components/ui/switch";
+import { cn } from "@morechat/ui/lib/utils";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
 import { toast } from "sonner";
 import {
   SettingsCard,
   SettingsRow,
   SettingsSection,
   SettingsTab,
-} from "@multica/views/settings";
-import { useT } from "@multica/views/i18n";
+} from "@morechat/views/settings";
+import { useT } from "@morechat/views/i18n";
 import { reauthenticateDaemon } from "../platform/daemon-reauth";
 import type { DaemonPrefs, DaemonStatus } from "../../../shared/daemon-types";
 import {
@@ -176,7 +176,7 @@ export function DaemonSettingsTab() {
               size="sm"
               onClick={() =>
                 window.desktopAPI.openExternal(
-                  "https://github.com/multica-ai/multica#cli-installation",
+                  "https://github.com/jerry-halo2026/morchat.co#cli-installation",
                 )
               }
             >

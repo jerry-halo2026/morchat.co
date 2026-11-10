@@ -2,9 +2,9 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, CalendarClock, Loader2, Trash2, Upload } from "@multica/ui/icons";
+import { AlertCircle, CalendarClock, Loader2, Trash2, Upload } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { useCurrentMember } from "@multica/core/permissions";
+import { useCurrentMember } from "@morechat/core/permissions";
 import {
   pluginInstallationsOptions,
   pluginPackagesOptions,
@@ -15,29 +15,29 @@ import {
   usePublishPluginPackage,
   useSetPluginEnabled,
   useUninstallPlugin,
-} from "@multica/core/plugins";
-import { useCurrentWorkspace } from "@multica/core/paths";
+} from "@morechat/core/plugins";
+import { useCurrentWorkspace } from "@morechat/core/paths";
 import type {
   PluginConfigField,
   PluginInstallation,
   PluginPackage,
   PluginPreview,
-} from "@multica/core/types";
-import { Alert, AlertDescription, AlertTitle } from "@multica/ui/components/ui/alert";
-import { Badge } from "@multica/ui/components/ui/badge";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Input } from "@multica/ui/components/ui/input";
+} from "@morechat/core/types";
+import { Alert, AlertDescription, AlertTitle } from "@morechat/ui/components/ui/alert";
+import { Badge } from "@morechat/ui/components/ui/badge";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Input } from "@morechat/ui/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@multica/ui/components/ui/select";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { Textarea } from "@multica/ui/components/ui/textarea";
-import { Switch } from "@multica/ui/components/ui/switch";
+} from "@morechat/ui/components/ui/select";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
+import { Switch } from "@morechat/ui/components/ui/switch";
 import { mcpHooks, PluginHookActivity, PluginMCPApproval, PluginScheduleActivity } from "../../plugins";
 import { useLocale, useT } from "../../i18n";
 import {

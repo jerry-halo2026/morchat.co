@@ -23,7 +23,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { WebNavigationProvider } from "./navigation";
-import { useNavigation, type NavigationAdapter } from "@multica/views/navigation";
+import { useNavigation, type NavigationAdapter } from "@morechat/views/navigation";
 
 function navigate(path: string) {
   window.dispatchEvent(
@@ -80,7 +80,7 @@ describe("WebNavigationProvider internal link bridge", () => {
 
 /**
  * `canGoBack` decides whether a page whose subject was just deleted steps back
- * or replaces with a fallback. A wrong `true` walks the user out of Multica,
+ * or replaces with a fallback. A wrong `true` walks the user out of morechat.co,
  * so the adapter must expose the browser's own answer and nothing derived.
  */
 describe("WebNavigationProvider canGoBack", () => {

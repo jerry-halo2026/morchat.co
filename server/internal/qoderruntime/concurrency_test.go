@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/daemon"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon"
 )
 
 // multiHarness serves several tasks and sessions at once; setup() models one.

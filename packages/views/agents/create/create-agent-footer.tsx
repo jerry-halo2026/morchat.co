@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Loader2 } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
+import { Loader2 } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
 import { useT } from "../../i18n";
 import { AGENT_CREATE_STEP_COUNT, type AgentCreateStep } from "./create-shell";
 

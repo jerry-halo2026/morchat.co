@@ -2,13 +2,13 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createQueryClient } from "@multica/core/query-client";
-import { api } from "@multica/core/api";
-import { issueUnreadKeys } from "@multica/core/issues/unread";
-import type { IssueUnread } from "@multica/core/types";
+import { createQueryClient } from "@morechat/core/query-client";
+import { api } from "@morechat/core/api";
+import { issueUnreadKeys } from "@morechat/core/issues/unread";
+import type { IssueUnread } from "@morechat/core/types";
 import { useMarkIssueReadWhileViewing } from "./use-mark-issue-read-while-viewing";
 
-vi.mock("@multica/core/api", () => ({ api: { listIssueUnread: vi.fn(), markIssueRead: vi.fn() } }));
+vi.mock("@morechat/core/api", () => ({ api: { listIssueUnread: vi.fn(), markIssueRead: vi.fn() } }));
 vi.mock("../../common/use-app-foreground", () => ({ useAppForeground: () => true }));
 
 const completed: IssueUnread = {

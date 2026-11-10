@@ -11,7 +11,7 @@ import {
   Megaphone,
   MessageCircle,
   Star,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,13 +20,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import { useModalStore } from "@multica/core/modals";
-import { useConfigStore } from "@multica/core/config";
-import { formatStarCount, githubStarsOptions, MULTICA_GITHUB_URL } from "@multica/core/github/stars";
-import { createLogger } from "@multica/core/logger";
-import { markStarPromptStarred } from "@multica/core/star-prompt";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import { useModalStore } from "@morechat/core/modals";
+import { useConfigStore } from "@morechat/core/config";
+import { formatStarCount, githubStarsOptions, MULTICA_GITHUB_URL } from "@morechat/core/github/stars";
+import { createLogger } from "@morechat/core/logger";
+import { markStarPromptStarred } from "@morechat/core/star-prompt";
 import { isDesktopShell } from "../platform/local-directory";
 import { DISCORD_URL, DiscordIcon } from "./discord";
 import { GitHubIcon } from "../onboarding/components/brand-icons";

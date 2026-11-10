@@ -1,7 +1,7 @@
 import type { ComponentProps, CSSProperties, ReactNode } from "react";
 import Link from "@/features/landing/components/landing-link";
-import { ArrowUpRight } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
+import { ArrowUpRight } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
 
 export const focusRing =
   "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-site-ink";

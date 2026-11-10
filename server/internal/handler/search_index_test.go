@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/featureflags"
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/featureflags"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 // searchIndexWorkspace creates an isolated workspace so manifest and snapshot

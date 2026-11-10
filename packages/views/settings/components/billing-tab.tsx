@@ -11,9 +11,9 @@ import {
   Loader2,
   Plus,
   RefreshCw,
-} from "@multica/ui/icons";
-import { ApiError, errorCode } from "@multica/core/api";
-import { autopilotQuotaUsageOptions } from "@multica/core/autopilots";
+} from "@morechat/ui/icons";
+import { ApiError, errorCode } from "@morechat/core/api";
+import { autopilotQuotaUsageOptions } from "@morechat/core/autopilots";
 import {
   useCreateWorkspaceSubscriptionCheckout,
   useCreateWorkspaceSubscriptionPortal,
@@ -22,20 +22,20 @@ import {
   issueLimitUsageOptions,
   workspaceSubscriptionPricesOptions,
   workspaceSubscriptionSummaryOptions,
-} from "@multica/core/billing";
-import { useFeatureEnabled } from "@multica/core/config";
-import { BILLING_WORKSPACE_SUBSCRIPTIONS_FLAG } from "@multica/core/feature-flags";
-import { useCurrentWorkspace } from "@multica/core/paths";
+} from "@morechat/core/billing";
+import { useFeatureEnabled } from "@morechat/core/config";
+import { BILLING_WORKSPACE_SUBSCRIPTIONS_FLAG } from "@morechat/core/feature-flags";
+import { useCurrentWorkspace } from "@morechat/core/paths";
 import type {
   PurchaseWorkspaceSeatsRequest,
   WorkspaceSeatPurchasePreview,
   WorkspaceSubscriptionInterval,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
-} from "@multica/ui/components/ui/alert";
+} from "@morechat/ui/components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,10 +45,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import { Badge } from "@multica/ui/components/ui/badge";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
+} from "@morechat/ui/components/ui/alert-dialog";
+import { Badge } from "@morechat/ui/components/ui/badge";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import {
   Dialog,
   DialogContent,
@@ -56,20 +56,20 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Input } from "@multica/ui/components/ui/input";
+} from "@morechat/ui/components/ui/dialog";
+import { Input } from "@morechat/ui/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverDescription,
   PopoverTrigger,
-} from "@multica/ui/components/ui/popover";
+} from "@morechat/ui/components/ui/popover";
 import {
   Progress,
   ProgressLabel,
   ProgressValue,
-} from "@multica/ui/components/ui/progress";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
+} from "@morechat/ui/components/ui/progress";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
 import { useLocale, useT } from "../../i18n";
 import { useNavigation } from "../../navigation";
 import { openExternal } from "../../platform";

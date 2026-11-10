@@ -12,11 +12,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { computePosition, offset, flip, shift } from "@floating-ui/dom";
-import { ExternalLink, Copy } from "@multica/ui/icons";
+import { ExternalLink, Copy } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { copyText } from "@multica/ui/lib/clipboard";
-import { useWorkspaceSlug } from "@multica/core/paths";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { copyText } from "@morechat/ui/lib/clipboard";
+import { useWorkspaceSlug } from "@morechat/core/paths";
 import { useAppOrigin } from "../navigation";
 import { useT } from "../i18n";
 import { openLink, isMentionHref } from "./utils/link-handler";

@@ -9,20 +9,20 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
-} from "@multica/ui/components/ui/card";
-import { Alert, AlertDescription } from "@multica/ui/components/ui/alert";
-import { Input } from "@multica/ui/components/ui/input";
-import { Button } from "@multica/ui/components/ui/button";
-import { Label } from "@multica/ui/components/ui/label";
+} from "@morechat/ui/components/ui/card";
+import { Alert, AlertDescription } from "@morechat/ui/components/ui/alert";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Label } from "@morechat/ui/components/ui/label";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "@multica/ui/components/ui/input-otp";
-import { useAuthStore } from "@multica/core/auth";
-import { workspaceKeys } from "@multica/core/workspace/queries";
-import { api } from "@multica/core/api";
-import type { User } from "@multica/core/types";
+} from "@morechat/ui/components/ui/input-otp";
+import { useAuthStore } from "@morechat/core/auth";
+import { workspaceKeys } from "@morechat/core/workspace/queries";
+import { api } from "@morechat/core/api";
+import type { User } from "@morechat/core/types";
 import { useT } from "../i18n";
 
 // Types

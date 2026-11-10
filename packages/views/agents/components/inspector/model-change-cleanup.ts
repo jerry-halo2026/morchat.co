@@ -1,4 +1,4 @@
-import type { RuntimeModel } from "@multica/core/types";
+import type { RuntimeModel } from "@morechat/core/types";
 import {
   findModelCapabilityEntry,
   thinkingLevelRequiredForProvider,

@@ -2,9 +2,9 @@ import { useLayoutEffect, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createChatStore, registerChatStore } from "@multica/core/chat";
-import { setCurrentWorkspace } from "@multica/core/platform";
-import type { ChatSession, Project, StorageAdapter } from "@multica/core/types";
+import { createChatStore, registerChatStore } from "@morechat/core/chat";
+import { setCurrentWorkspace } from "@morechat/core/platform";
+import type { ChatSession, Project, StorageAdapter } from "@morechat/core/types";
 import { useChatController } from "./use-chat-controller";
 
 const route = vi.hoisted(() => ({ workspaceId: "ws-source", isActive: true }));
@@ -13,14 +13,14 @@ const data = vi.hoisted(() => ({
   projects: {} as Record<string, Project[]>,
 }));
 
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => route.workspaceId,
 }));
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: (selector: (state: { user: { id: string } }) => unknown) =>
     selector({ user: { id: "user-1" } }),
 }));
-vi.mock("@multica/core/agents", () => ({
+vi.mock("@morechat/core/agents", () => ({
   isAgentRuntimeBound: () => false,
   useAgentPresenceDetail: () => ({ availability: "online" }),
   useCustomizeConversationStartersHref: () => null,

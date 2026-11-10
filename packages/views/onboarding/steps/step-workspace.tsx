@@ -1,24 +1,24 @@
 "use client";
 
 import { type ReactNode, useRef, useEffect, useState } from "react";
-import { Dices, Plus } from "@multica/ui/icons";
+import { Dices, Plus } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { Button } from "@multica/ui/components/ui/button";
-import { Input } from "@multica/ui/components/ui/input";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Input } from "@morechat/ui/components/ui/input";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
-} from "@multica/ui/components/ui/field";
-import { cn } from "@multica/ui/lib/utils";
-import { useCreateWorkspace } from "@multica/core/workspace/mutations";
-import type { Workspace } from "@multica/core/types";
-import { isImeComposing } from "@multica/core/utils";
-import { matchLocale } from "@multica/core/i18n";
-import { useConfigStore } from "@multica/core/config";
-import { workspaceUrlHost } from "@multica/core/workspace/workspace-url";
+} from "@morechat/ui/components/ui/field";
+import { cn } from "@morechat/ui/lib/utils";
+import { useCreateWorkspace } from "@morechat/core/workspace/mutations";
+import type { Workspace } from "@morechat/core/types";
+import { isImeComposing } from "@morechat/core/utils";
+import { matchLocale } from "@morechat/core/i18n";
+import { useConfigStore } from "@morechat/core/config";
+import { workspaceUrlHost } from "@morechat/core/workspace/workspace-url";
 import { useLogout } from "../../auth";
 import {
   StepFooter,
@@ -33,7 +33,7 @@ import {
   nameToWorkspaceSlug,
   randomCelestialWorkspaceIdentity,
 } from "../../workspace/slug";
-import { isReservedSlug } from "@multica/core/paths";
+import { isReservedSlug } from "@morechat/core/paths";
 
 /**
  * Step 2 — create your first workspace, or continue with one set up in

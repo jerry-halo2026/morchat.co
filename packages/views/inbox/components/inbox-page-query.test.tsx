@@ -2,18 +2,18 @@ import { useEffect, type ReactNode } from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { setApiInstance } from "@multica/core/api";
-import type { ApiClient } from "@multica/core/api/client";
-import { EMPTY_INBOX_FILTERS, filterInboxItems, useInboxFilterStore, type InboxFilters } from "@multica/core/inbox/filter-store";
-import { archivedInboxLookupOptions, inboxKeys } from "@multica/core/inbox/queries";
-import { onInboxIssueDeleted, patchInboxIssueProjection } from "@multica/core/inbox/ws-updaters";
-import type { ArchivedInboxPage } from "@multica/core/types/inbox";
-import type { InboxItem } from "@multica/core/types";
+import { setApiInstance } from "@morechat/core/api";
+import type { ApiClient } from "@morechat/core/api/client";
+import { EMPTY_INBOX_FILTERS, filterInboxItems, useInboxFilterStore, type InboxFilters } from "@morechat/core/inbox/filter-store";
+import { archivedInboxLookupOptions, inboxKeys } from "@morechat/core/inbox/queries";
+import { onInboxIssueDeleted, patchInboxIssueProjection } from "@morechat/core/inbox/ws-updaters";
+import type { ArchivedInboxPage } from "@morechat/core/types/inbox";
+import type { InboxItem } from "@morechat/core/types";
 import { InboxPage } from "./inbox-page";
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({
     inbox: () => "/acme/inbox",
     issueDetail: (id: string) => `/acme/issues/${id}`,
@@ -37,7 +37,7 @@ vi.mock("../../navigation", () => ({
   useNavigation: () => ({ searchParams, replace }),
   useReportNavigating: () => {},
 }));
-vi.mock("@multica/ui/hooks/use-mobile", () => ({ useIsCompact: () => false }));
+vi.mock("@morechat/ui/hooks/use-mobile", () => ({ useIsCompact: () => false }));
 vi.mock("./inbox-list", () => ({
   InboxList: ({ items, onSelect }: { items: InboxItem[]; onSelect: (item: InboxItem) => void }) => (
     <div>{items.map((row) => (

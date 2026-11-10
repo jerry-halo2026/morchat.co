@@ -6,22 +6,22 @@ import {
   agentActivity30dOptions,
   agentRunCounts30dOptions,
   agentTaskSnapshotOptions,
-} from "@multica/core/agents/queries";
-import { autopilotListOptions } from "@multica/core/autopilots/queries";
-import { chatSessionsOptions } from "@multica/core/chat/queries";
-import { inboxListOptions } from "@multica/core/inbox/queries";
-import { useAuthStore } from "@multica/core/auth";
-import { paths, useCurrentWorkspace, useWorkspaceSlug } from "@multica/core/paths";
-import { pinListOptions } from "@multica/core/pins/queries";
-import { projectListOptions } from "@multica/core/projects/queries";
-import { runtimeProfileListOptions } from "@multica/core/runtimes";
-import { runtimeListOptions } from "@multica/core/runtimes/queries";
+} from "@morechat/core/agents/queries";
+import { autopilotListOptions } from "@morechat/core/autopilots/queries";
+import { chatSessionsOptions } from "@morechat/core/chat/queries";
+import { inboxListOptions } from "@morechat/core/inbox/queries";
+import { useAuthStore } from "@morechat/core/auth";
+import { paths, useCurrentWorkspace, useWorkspaceSlug } from "@morechat/core/paths";
+import { pinListOptions } from "@morechat/core/pins/queries";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import { runtimeProfileListOptions } from "@morechat/core/runtimes";
+import { runtimeListOptions } from "@morechat/core/runtimes/queries";
 import {
   agentListOptions,
   memberListOptions,
   skillListOptions,
   squadListOptions,
-} from "@multica/core/workspace/queries";
+} from "@morechat/core/workspace/queries";
 import { RouteDataPrefetchProvider } from "../navigation/route-data-prefetch";
 
 type WarmRoute = (qc: QueryClient, wsId: string, userId: string | null) => void;

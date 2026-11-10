@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { useBatchDeleteIssues, useCancelIssueRun } from "@multica/core/issues/mutations";
+import { useBatchDeleteIssues, useCancelIssueRun } from "@morechat/core/issues/mutations";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +11,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
+} from "@morechat/ui/components/ui/alert-dialog";
 import { AutopilotDialog } from "../autopilots/components/autopilot-dialog";
 import { TerminateTaskConfirmDialog } from "../issues/components/terminate-task-confirm-dialog";
 import { useT } from "../i18n";

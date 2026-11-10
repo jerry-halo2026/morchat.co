@@ -2,7 +2,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve, join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
-import { BUILT_IN_THEMES, type ThemeTokens } from "@multica/core/appearance";
+import { BUILT_IN_THEMES, type ThemeTokens } from "@morechat/core/appearance";
 
 /**
  * Is every tone the product paints text and marks with actually legible, and is

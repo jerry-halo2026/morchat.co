@@ -2,14 +2,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { IssueViewPreference } from "@multica/core/api/schemas";
-import { issueViewPreferenceOptions } from "@multica/core/issue-views/preferences";
-import { buildIssueStatusCatalog } from "@multica/core/issue-statuses/queries";
-import { SIDEBAR_PROJECTS_SCOPE } from "@multica/core/issues/sidebar-project-prefs";
+import type { IssueViewPreference } from "@morechat/core/api/schemas";
+import { issueViewPreferenceOptions } from "@morechat/core/issue-views/preferences";
+import { buildIssueStatusCatalog } from "@morechat/core/issue-statuses/queries";
+import { SIDEBAR_PROJECTS_SCOPE } from "@morechat/core/issues/sidebar-project-prefs";
 import {
   DEFAULT_SIDEBAR_ISSUE_SETTINGS,
   DEFAULT_SIDEBAR_PROJECT_SETTINGS,
-} from "@multica/core/issues/stores/sidebar-tree-store";
+} from "@morechat/core/issues/stores/sidebar-tree-store";
 import { renderWithI18n } from "../../test/i18n";
 import { ProjectsSectionSettings } from "./sidebar-settings";
 
@@ -18,14 +18,14 @@ const server = vi.hoisted(() => ({
   getIssueViewPreference: vi.fn(),
   putIssueViewPreference: vi.fn(),
 }));
-vi.mock("@multica/core/api", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/api")>()),
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/api")>()),
   api: {
     getIssueViewPreference: server.getIssueViewPreference,
     putIssueViewPreference: server.putIssueViewPreference,
   },
 }));
-vi.mock("@multica/core/issue-statuses/hooks", () => ({
+vi.mock("@morechat/core/issue-statuses/hooks", () => ({
   useIssueStatuses: () =>
     buildIssueStatusCatalog(
       [

@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"github.com/multica-ai/multica/server/internal/analytics"
+	"github.com/jerry-halo2026/morchat.co/server/internal/analytics"
 	"github.com/prometheus/client_golang/prometheus"
 )
 

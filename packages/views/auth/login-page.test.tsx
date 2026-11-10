@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement, ReactNode } from "react";
-import { I18nProvider } from "@multica/core/i18n/react";
+import { I18nProvider } from "@morechat/core/i18n/react";
 import enCommon from "../locales/en/common.json";
 import enAuth from "../locales/en/auth.json";
 import enSettings from "../locales/en/settings.json";
@@ -45,7 +45,7 @@ vi.mock("@tanstack/react-query", async () => {
   return { ...actual, useQueryClient: () => ({ setQueryData: mockSetQueryData }) };
 });
 
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: Object.assign(
     // Zustand hook form — component may call useAuthStore(selector)
     (selector?: (s: unknown) => unknown) => {
@@ -65,7 +65,7 @@ vi.mock("@multica/core/auth", () => ({
   ),
 }));
 
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: {
     listWorkspaces: mockApiListWorkspaces,
     verifyCode: mockApiVerifyCode,
@@ -75,7 +75,7 @@ vi.mock("@multica/core/api", () => ({
   },
 }));
 
-vi.mock("@multica/core/types", () => ({}));
+vi.mock("@morechat/core/types", () => ({}));
 
 // ---------------------------------------------------------------------------
 // Import after mocks
@@ -134,7 +134,7 @@ describe("LoginPage", () => {
     expect(screen.queryByText(/your session expired/i)).not.toBeInTheDocument();
   });
 
-  it("renders email form with 'Sign in to Multica' title", () => {
+  it("renders email form with 'Sign in to morechat.co' title", () => {
     renderWithI18n(<LoginPage onSuccess={onSuccess} />);
     expect(
       screen.getByText(/sign in to multica/i),

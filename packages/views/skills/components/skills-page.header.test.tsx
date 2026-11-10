@@ -3,11 +3,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { SkillSummary } from "@multica/core/types";
+import type { SkillSummary } from "@morechat/core/types";
 import {
   EMPTY_SKILL_FILTERS,
   useSkillsViewStore,
-} from "@multica/core/skills/stores";
+} from "@morechat/core/skills/stores";
 import { renderWithI18n } from "../../test/i18n";
 import { NavigationProvider, type NavigationAdapter } from "../../navigation";
 
@@ -38,35 +38,35 @@ vi.mock("@tanstack/react-virtual", () => ({
   }),
 }));
 
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: (selector: (state: unknown) => unknown) =>
     selector({ user: { id: "user-1" } }),
 }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
 // Partial mock: SkillIcon resolves its icon from the real WORKSPACE_PAGES.
-vi.mock("@multica/core/paths", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/paths")>()),
+vi.mock("@morechat/core/paths", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/paths")>()),
   useWorkspacePaths: () => ({
     skillDetail: (id: string) => `/acme/skills/${id}`,
   }),
 }));
-vi.mock("@multica/core/workspace/queries", () => ({
+vi.mock("@morechat/core/workspace/queries", () => ({
   skillListOptions: () => ({ queryKey: ["skills"] }),
   agentListOptions: () => ({ queryKey: ["agents"] }),
   memberListOptions: () => ({ queryKey: ["members"] }),
   selectSkillAssignments: () => new Map(),
 }));
-vi.mock("@multica/core/labels/queries", () => ({
+vi.mock("@morechat/core/labels/queries", () => ({
   labelListOptions: () => ({ queryKey: ["labels"] }),
 }));
-vi.mock("@multica/core/runtimes", () => ({
+vi.mock("@morechat/core/runtimes", () => ({
   runtimeListOptions: () => ({ queryKey: ["runtimes"] }),
   runtimeDisplayLabel: () => "runtime",
 }));
-vi.mock("@multica/core/workspace/avatar-url", () => ({
+vi.mock("@morechat/core/workspace/avatar-url", () => ({
   resolvePublicFileUrl: (u: string | null) => u,
 }));
-vi.mock("@multica/ui/components/common/actor-avatar", () => ({
+vi.mock("@morechat/ui/components/common/actor-avatar", () => ({
   ActorAvatar: () => null,
 }));
 vi.mock("../../labels/label-manager", () => ({ LabelManager: () => null }));

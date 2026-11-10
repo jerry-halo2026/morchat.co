@@ -3,20 +3,20 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronRight, Trash2 } from "@multica/ui/icons";
+import { ChevronRight, Trash2 } from "@morechat/ui/icons";
 import { WecomMark } from "./wecom-mark";
-import { cn } from "@multica/ui/lib/utils";
-import { Button } from "@multica/ui/components/ui/button";
-import { Card, CardContent } from "@multica/ui/components/ui/card";
+import { cn } from "@morechat/ui/lib/utils";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Card, CardContent } from "@morechat/ui/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Input } from "@multica/ui/components/ui/input";
-import { Label } from "@multica/ui/components/ui/label";
+} from "@morechat/ui/components/ui/dialog";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Label } from "@morechat/ui/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,19 +26,19 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { memberListOptions } from "@multica/core/workspace/queries";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { wecomInstallationsOptions, wecomKeys } from "@multica/core/wecom";
-import { errorCode } from "@multica/core/api";
-import { api } from "@multica/core/api";
-import type { WecomInstallation } from "@multica/core/types";
+} from "@morechat/ui/components/ui/alert-dialog";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { memberListOptions } from "@morechat/core/workspace/queries";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { wecomInstallationsOptions, wecomKeys } from "@morechat/core/wecom";
+import { errorCode } from "@morechat/core/api";
+import { api } from "@morechat/core/api";
+import type { WecomInstallation } from "@morechat/core/types";
 import { WecomScanInstallDialog } from "./wecom-scan-install-dialog";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { useT } from "../../i18n";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 
 // WecomTab is the workspace settings panel for WeCom smart-bot
 // installations. Listing is member-visible; the disconnect action is
@@ -46,7 +46,7 @@ import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
 // admins to match).
 //
 // Adding a new installation flows through the Agent detail page: the install
-// path is per-agent (each Multica agent gets exactly one bot — the
+// path is per-agent (each morechat.co agent gets exactly one bot — the
 // (workspace_id, agent_id, channel_type) UNIQUE in channel_installation), so
 // asking the user to pick an agent here would re-create that page's picker.
 export function WecomTab() {

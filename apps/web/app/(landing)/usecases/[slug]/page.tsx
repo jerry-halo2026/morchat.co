@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import Link from "@/features/landing/components/landing-link";
 import { notFound } from "next/navigation";
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 import { SiteHeader } from "@/features/landing/site/site-header";
 import { SiteFooter } from "@/features/landing/site/site-footer";
 import { Screenshot } from "@/features/landing/components/mdx/screenshot";
@@ -12,7 +12,7 @@ import {
   getUseCaseLocale,
   useCaseText,
 } from "@/lib/use-cases-i18n";
-import type { SupportedLocale } from "@multica/core/i18n";
+import type { SupportedLocale } from "@morechat/core/i18n";
 import { SHARE_IMAGE } from "@/features/landing/share-image";
 import { landingAlternates, localizeHref } from "@/lib/landing-locale-path";
 import { liveMetadata, requireLiveRoute } from "@/features/landing/site/sitemap";

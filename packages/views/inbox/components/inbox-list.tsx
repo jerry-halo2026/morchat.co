@@ -9,9 +9,9 @@ import {
   type ReactNode,
 } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
-import { isEditableShortcutTarget } from "@multica/core/shortcuts";
-import { isImeComposing } from "@multica/core/utils";
-import type { InboxItem } from "@multica/core/types";
+import { isEditableShortcutTarget } from "@morechat/core/shortcuts";
+import { isImeComposing } from "@morechat/core/utils";
+import type { InboxItem } from "@morechat/core/types";
 import type { InboxView } from "./inbox-view";
 import { InboxListItem } from "./inbox-list-item";
 import { VirtuosoSeed, VIRTUOSO_SEED_COUNT } from "../../common/virtuoso-seed";

@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useAuthStore } from "@multica/core/auth";
-import { useConfigStore } from "@multica/core/config";
-import { createLogger } from "@multica/core/logger";
-import { markWhatsNewSeen, unreadReleases, visibleReleases } from "@multica/core/whats-new";
+import { useAuthStore } from "@morechat/core/auth";
+import { useConfigStore } from "@morechat/core/config";
+import { createLogger } from "@morechat/core/logger";
+import { markWhatsNewSeen, unreadReleases, visibleReleases } from "@morechat/core/whats-new";
 import { WHATS_NEW_RELEASES, type WhatsNewRelease } from "./releases";
 
 const logger = createLogger("whats-new");

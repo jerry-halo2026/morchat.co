@@ -2,11 +2,11 @@
 
 import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@multica/core/auth";
-import { DRAFT_NEW_SESSION, useChatStore } from "@multica/core/chat";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { agentListOptions, memberListOptions } from "@multica/core/workspace/queries";
+import { useAuthStore } from "@morechat/core/auth";
+import { DRAFT_NEW_SESSION, useChatStore } from "@morechat/core/chat";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { agentListOptions, memberListOptions } from "@morechat/core/workspace/queries";
 import { canAssignAgent } from "../issues/components/pickers/assignee-picker";
 import { useNavigation } from "../navigation";
 

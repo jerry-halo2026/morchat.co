@@ -1,17 +1,17 @@
 "use client";
 
-import { Monitor, Moon, Sun } from "@multica/ui/icons";
+import { Monitor, Moon, Sun } from "@morechat/ui/icons";
 import { useTheme } from "next-themes";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { Button } from "@multica/ui/components/ui/button";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { cn } from "@morechat/ui/lib/utils";
 import { i18n } from "@/lib/i18n";
 import { localeLabels } from "@/lib/translations";
 

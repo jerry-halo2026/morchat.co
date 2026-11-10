@@ -12,31 +12,31 @@ import {
   Plus,
   Star,
   Trash2,
-} from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Button } from "@multica/ui/components/ui/button";
+} from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@multica/ui/components/ui/dropdown-menu";
-import type { IssueView } from "@multica/core/api/schemas";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { projectListOptions } from "@multica/core/projects/queries";
-import { memberListOptions } from "@multica/core/workspace/queries";
-import { issueViewEverywhereOptions } from "@multica/core/issue-views/queries";
-import { issueViewFilterCount } from "@multica/core/issue-views/baseline";
-import { issueViewSeedDefinition } from "@multica/core/issue-views/definition";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import type { IssueView } from "@morechat/core/api/schemas";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import { memberListOptions } from "@morechat/core/workspace/queries";
+import { issueViewEverywhereOptions } from "@morechat/core/issue-views/queries";
+import { issueViewFilterCount } from "@morechat/core/issue-views/baseline";
+import { issueViewSeedDefinition } from "@morechat/core/issue-views/definition";
 import {
   BUILTIN_VIEW_KEYS,
   builtinViewItemId,
   savedViewItemId,
   type BuiltinViewKey,
-} from "@multica/core/issue-views/sidebar-views";
-import { issueViewTarget } from "@multica/core/issue-views/view-target";
-import { useActiveIssueViewStore } from "@multica/core/issue-views/active-view-store";
+} from "@morechat/core/issue-views/sidebar-views";
+import { issueViewTarget } from "@morechat/core/issue-views/view-target";
+import { useActiveIssueViewStore } from "@morechat/core/issue-views/active-view-store";
 import { ActorAvatar } from "../common/actor-avatar";
 import {
   CollectionCreateButton,

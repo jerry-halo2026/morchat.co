@@ -39,18 +39,18 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
-import { cn } from "@multica/ui/lib/utils";
-import { useWorkspaceSlug } from "@multica/core/paths";
-import { useConfigStore } from "@multica/core/config";
-import { api } from "@multica/core/api";
-import type { Attachment } from "@multica/core/types";
-import { attachmentIdFromDownloadURL } from "@multica/core/types";
+import { cn } from "@morechat/ui/lib/utils";
+import { useWorkspaceSlug } from "@morechat/core/paths";
+import { useConfigStore } from "@morechat/core/config";
+import { api } from "@morechat/core/api";
+import type { Attachment } from "@morechat/core/types";
+import { attachmentIdFromDownloadURL } from "@morechat/core/types";
 import {
   isAllowedFileCardHref,
   isIssueIdentifier,
   markdownSanitizeSchema,
   markdownUrlTransform,
-} from "@multica/ui/markdown";
+} from "@morechat/ui/markdown";
 import {
   resolveClickIntent,
   useAppOrigin,
@@ -262,7 +262,7 @@ function RichLink({ href, children }: { href?: string; children?: ReactNode }) {
   // and navigates to the credential-bearing URL the server mints for this
   // click (capability / presign / CloudFront, per deployment mode). Same
   // click-time re-sign the file-card renderer already does (MUL-3130).
-  // Also require this deployment's origin; another Multica instance may use
+  // Also require this deployment's origin; another morechat.co instance may use
   // the same path shape with unrelated attachment IDs.
   const attachmentId = href
     ? ownAttachmentDownloadId(href, appOrigin, attachmentPublicUrl)

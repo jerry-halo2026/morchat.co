@@ -1,7 +1,7 @@
 "use client";
 
-import type { InboxItem } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
+import type { InboxItem } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
 import { useT } from "../../i18n";
 
 function formatResetAt(value: string | undefined): string {

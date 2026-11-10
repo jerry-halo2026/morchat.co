@@ -28,7 +28,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/events"
+	"github.com/jerry-halo2026/morchat.co/server/internal/events"
 )
 
 // logRecorder keeps what the manager logged. A refusal writes no frame and no

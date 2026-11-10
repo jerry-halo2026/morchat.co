@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
-import { ApiError } from "@multica/core/api";
-import { configStore } from "@multica/core/config";
-import { COMPOSIO_MCP_APPS_FLAG } from "@multica/core/feature-flags";
+import { ApiError } from "@morechat/core/api";
+import { configStore } from "@morechat/core/config";
+import { COMPOSIO_MCP_APPS_FLAG } from "@morechat/core/feature-flags";
 
 const state = vi.hoisted(() => ({
   error: null as Error | null,

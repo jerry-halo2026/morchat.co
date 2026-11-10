@@ -1,17 +1,17 @@
-import { api } from "@multica/core/api";
+import { api } from "@morechat/core/api";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { AgentRuntime } from "@multica/core/types";
+import type { AgentRuntime } from "@morechat/core/types";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { I18nProvider } from "@multica/core/i18n/react";
-import { configStore } from "@multica/core/config";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import { configStore } from "@morechat/core/config";
 import enCommon from "../../locales/en/common.json";
 import enOnboarding from "../../locales/en/onboarding.json";
 
 import enAgents from "../../locales/en/agents.json";
-vi.mock("@multica/core/api", async (importOriginal) => ({
-  ...await importOriginal<typeof import("@multica/core/api")>(),
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@morechat/core/api")>(),
   api: { initiateListModels: vi.fn() },
 }));
 

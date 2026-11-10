@@ -1,4 +1,4 @@
-import { ApiError, clientErrorMessage, errorCode } from "@multica/core/api";
+import { ApiError, clientErrorMessage, errorCode } from "@morechat/core/api";
 
 export type CallbackError =
   | {

@@ -2,27 +2,27 @@ import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { EMPTY_ISSUE_VIEW_PREFERENCE } from "@multica/core/api/schemas";
-import { issueViewPreferenceOptions } from "@multica/core/issue-views/preferences";
-import { SIDEBAR_PROJECTS_SCOPE } from "@multica/core/issues/sidebar-project-prefs";
-import { useSidebarTreeStore } from "@multica/core/issues/stores/sidebar-tree-store";
-import { projectListOptions } from "@multica/core/projects/queries";
-import type { Project } from "@multica/core/types";
+import { EMPTY_ISSUE_VIEW_PREFERENCE } from "@morechat/core/api/schemas";
+import { issueViewPreferenceOptions } from "@morechat/core/issue-views/preferences";
+import { SIDEBAR_PROJECTS_SCOPE } from "@morechat/core/issues/sidebar-project-prefs";
+import { useSidebarTreeStore } from "@morechat/core/issues/stores/sidebar-tree-store";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import type { Project } from "@morechat/core/types";
 import { NavigationProvider, type NavigationAdapter } from "../../navigation";
 import { useShowInSidebar } from "./show-in-sidebar";
 
-vi.mock("@multica/core/paths", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/paths")>();
+vi.mock("@morechat/core/paths", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/paths")>();
   return { ...actual, useWorkspacePaths: () => actual.paths.workspace("acme") };
 });
-vi.mock("@multica/core/hooks", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/hooks")>()),
+vi.mock("@morechat/core/hooks", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/hooks")>()),
   useWorkspaceId: () => "ws-1",
 }));
-vi.mock("@multica/core/auth", async (importOriginal) => {
+vi.mock("@morechat/core/auth", async (importOriginal) => {
   const state = { user: { id: "u1" } };
   return {
-    ...(await importOriginal<typeof import("@multica/core/auth")>()),
+    ...(await importOriginal<typeof import("@morechat/core/auth")>()),
     useAuthStore: Object.assign((selector: (s: typeof state) => unknown) => selector(state), {
       getState: () => state,
     }),
@@ -34,8 +34,8 @@ const layout = vi.hoisted(() => ({
   sidebar: null as { isCompact: boolean; setOpenMobile: (open: boolean) => void } | null,
 }));
 vi.mock("../app-shell-context", () => ({ useAppShell: () => layout.shell }));
-vi.mock("@multica/ui/components/ui/sidebar", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/ui/components/ui/sidebar")>()),
+vi.mock("@morechat/ui/components/ui/sidebar", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/ui/components/ui/sidebar")>()),
   useSidebarSafe: () => layout.sidebar,
 }));
 

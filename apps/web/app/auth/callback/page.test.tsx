@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import type { SupportedLocale } from "@multica/core/i18n";
-import { I18nProvider } from "@multica/core/i18n/react";
-import { paths } from "@multica/core/paths";
-import { RESOURCES } from "@multica/views/locales";
-import { ApiError } from "@multica/core/api";
+import type { SupportedLocale } from "@morechat/core/i18n";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import { paths } from "@morechat/core/paths";
+import { RESOURCES } from "@morechat/views/locales";
+import { ApiError } from "@morechat/core/api";
 
 const {
   mockPush,
@@ -30,10 +30,10 @@ const {
   };
 });
 
-vi.mock("@multica/core/logger", async () => {
+vi.mock("@morechat/core/logger", async () => {
   const actual =
-    await vi.importActual<typeof import("@multica/core/logger")>(
-      "@multica/core/logger",
+    await vi.importActual<typeof import("@morechat/core/logger")>(
+      "@morechat/core/logger",
     );
   return {
     ...actual,
@@ -54,7 +54,7 @@ const makeUser = (
 ) => ({
   id: "user-1",
   name: "Test",
-  email: "test@multica.ai",
+  email: "test@morechat.co",
   avatar_url: null,
   onboarded_at: null,
   onboarding_questionnaire: { source: ["search"] },
@@ -74,10 +74,10 @@ vi.mock("@tanstack/react-query", () => ({
 
 // Preserve the real sanitizeNextUrl so the "drop unsafe ?next=" behavior is
 // exercised rather than silently diverging from the source of truth.
-vi.mock("@multica/core/auth", async () => {
+vi.mock("@morechat/core/auth", async () => {
   const actual =
-    await vi.importActual<typeof import("@multica/core/auth")>(
-      "@multica/core/auth",
+    await vi.importActual<typeof import("@morechat/core/auth")>(
+      "@morechat/core/auth",
     );
   return {
     ...actual,
@@ -86,16 +86,16 @@ vi.mock("@multica/core/auth", async () => {
   };
 });
 
-vi.mock("@multica/core/workspace/queries", () => ({
+vi.mock("@morechat/core/workspace/queries", () => ({
   workspaceKeys: {
     list: () => ["workspaces"],
     myInvitations: () => ["invitations", "mine"],
   },
 }));
 
-vi.mock("@multica/core/api", async () => {
-  const actual = await vi.importActual<typeof import("@multica/core/api")>(
-    "@multica/core/api",
+vi.mock("@morechat/core/api", async () => {
+  const actual = await vi.importActual<typeof import("@morechat/core/api")>(
+    "@morechat/core/api",
   );
   return {
     ...actual,
@@ -242,7 +242,7 @@ describe("CallbackPage", () => {
     ["Desktop", "platform:desktop"],
     ["CLI", "cli_callback:http://127.0.0.1:46233/callback,cli_state:test"],
   ])("uses the same localized error handling for the %s callback", async (_flow, state) => {
-    const { api: mockedApi } = await import("@multica/core/api");
+    const { api: mockedApi } = await import("@morechat/core/api");
     vi.mocked(mockedApi.googleLogin).mockRejectedValue(
       new ApiError("English fallback", 403, "Forbidden", { code: "signup_prohibited" }),
     );
@@ -356,7 +356,7 @@ describe("CallbackPage", () => {
   });
 
   it("redirects to CLI callback with token when state contains valid cli_callback", async () => {
-    const { api: mockedApi } = await import("@multica/core/api");
+    const { api: mockedApi } = await import("@morechat/core/api");
     const mockGoogleLogin = mockedApi.googleLogin as ReturnType<typeof vi.fn>;
 
     const hrefSetter = vi.fn();
@@ -404,7 +404,7 @@ describe("CallbackPage", () => {
     "cli_callback:%broken",
     "cli_callback:http://localhost:46233/callback,cli_state:%broken",
   ])("blocks an invalid CLI OAuth handoff without logging into the web: %s", async (state) => {
-    const { api: mockedApi } = await import("@multica/core/api");
+    const { api: mockedApi } = await import("@morechat/core/api");
     mockSearchParams.set("state", state);
     renderCallback();
     expect(await screen.findByText("CLI authorization incomplete")).toBeInTheDocument();
@@ -416,7 +416,7 @@ describe("CallbackPage", () => {
   it("redirects to CLI callback even when state also contains platform:desktop", async () => {
     // cli_callback takes precedence over platform:desktop — the CLI flow
     // is a specific user intent that should not be derailed by desktop flag.
-    const { api: mockedApi } = await import("@multica/core/api");
+    const { api: mockedApi } = await import("@morechat/core/api");
     const mockGoogleLogin = mockedApi.googleLogin as ReturnType<typeof vi.fn>;
 
     const hrefSetter = vi.fn();

@@ -5,46 +5,46 @@ export const zhSiteCopy: Pick<LandingDict, "site" | "home" | "demo" | "meta"> = 
   demo: zhDemoCopy,
   meta: {
     home: {
-      title: "Multica — 人和智能体团队的项目管理平台",
+      title: "morechat.co — 人和智能体团队的项目管理平台",
       description: "源码公开的平台，把编码智能体变成真正的队友。分派任务、跟进进度、沉淀技能。",
-      ogTitle: "Multica — 人和智能体团队的项目管理平台",
+      ogTitle: "morechat.co — 人和智能体团队的项目管理平台",
       ogDescription: "在一个地方管理你的人和智能体团队。",
     },
     about: {
       title: "关于我们",
-      description: "了解 Multica（Multiplexed Information and Computing Agent）：一个源码公开、为人和智能体团队打造的项目管理平台。",
-      ogTitle: "关于 Multica",
-      ogDescription: "Multica 背后的故事，以及我们为什么要为人和智能体团队做项目管理。",
+      description: "了解 morechat.co（Multiplexed Information and Computing Agent）：一个源码公开、为人和智能体团队打造的项目管理平台。",
+      ogTitle: "关于 morechat.co",
+      ogDescription: "morechat.co 背后的故事，以及我们为什么要为人和智能体团队做项目管理。",
     },
     changelog: {
       title: "更新日志",
-      description: "看看 Multica 有什么新变化：最新功能、改进和修复。",
-      ogTitle: "更新日志 | Multica",
-      ogDescription: "Multica 的最新更新和版本发布。",
+      description: "看看 morechat.co 有什么新变化：最新功能、改进和修复。",
+      ogTitle: "更新日志 | morechat.co",
+      ogDescription: "morechat.co 的最新更新和版本发布。",
     },
     contactSales: {
       title: "联系销售",
-      description: "和 Multica 团队聊聊，怎么在你的公司落地人和智能体协作的工作流。",
-      ogTitle: "联系销售 — Multica",
+      description: "和 morechat.co 团队聊聊，怎么在你的公司落地人和智能体协作的工作流。",
+      ogTitle: "联系销售 — morechat.co",
       ogDescription: "介绍一下你的团队，我们会在三个工作日内回复。",
     },
     download: {
-      title: "下载 Multica",
-      description: "下载适用于 macOS、Windows 或 Linux 的 Multica，或在服务器和远程开发机上安装 CLI。",
-      ogTitle: "下载 Multica",
-      ogDescription: "获取自带守护进程的 Multica 桌面应用，或在服务器和远程开发机上安装 CLI。",
+      title: "下载 morechat.co",
+      description: "下载适用于 macOS、Windows 或 Linux 的 morechat.co，或在服务器和远程开发机上安装 CLI。",
+      ogTitle: "下载 morechat.co",
+      ogDescription: "获取自带守护进程的 morechat.co 桌面应用，或在服务器和远程开发机上安装 CLI。",
     },
     licensing: {
       title: "许可协议",
-      description: "什么时候可以免费使用 Multica，什么时候需要商业许可，用常见场景讲清楚。",
-      ogTitle: "许可协议 — Multica",
-      ogDescription: "在组织内部自托管免费。把 Multica 作为托管服务提供给他人，需要商业许可。",
+      description: "什么时候可以免费使用 morechat.co，什么时候需要商业许可，用常见场景讲清楚。",
+      ogTitle: "许可协议 — morechat.co",
+      ogDescription: "在组织内部自托管免费。把 morechat.co 作为托管服务提供给他人，需要商业许可。",
     },
     privacy: {
       title: "隐私政策",
-      description: "Multica 如何在 multica.ai 和 Multica Cloud 上收集、使用和保护个人信息。",
-      ogTitle: "隐私政策 — Multica",
-      ogDescription: "Multica 如何收集、使用和保护个人信息。",
+      description: "morechat.co 如何在 morechat.co 和 morechat.co Cloud 上收集、使用和保护个人信息。",
+      ogTitle: "隐私政策 — morechat.co",
+      ogDescription: "morechat.co 如何收集、使用和保护个人信息。",
     },
   },
   site: {
@@ -70,7 +70,7 @@ export const zhSiteCopy: Pick<LandingDict, "site" | "home" | "demo" | "meta"> = 
       privacy: "隐私政策",
     },
     header: {
-      home: "Multica 首页",
+      home: "morechat.co 首页",
       githubStars: "GitHub，{count} 颗星",
       logIn: "登录",
       getStarted: "开始使用",
@@ -80,11 +80,11 @@ export const zhSiteCopy: Pick<LandingDict, "site" | "home" | "demo" | "meta"> = 
       tagline: "人和智能体一起工作的团队空间。",
       navigation: "页脚导航",
       language: "语言",
-      copyright: "© {year} Multica. 保留所有权利。",
+      copyright: "© {year} morechat.co. 保留所有权利。",
       starTurns: "大家已经把这颗星吹转了 {count} 圈",
     },
     localeSuggestion: {
-      message: "Multica 提供中文版。",
+      message: "morechat.co 提供中文版。",
       action: "切换到中文",
       dismiss: "关闭",
     },
@@ -110,7 +110,7 @@ export const zhSiteCopy: Pick<LandingDict, "site" | "home" | "demo" | "meta"> = 
           label: "交付一个功能",
           short: "交付",
           description:
-            "一个由工作流驱动的 Multica 项目看板：Issue 依次经过方案、开发、代码审查、审批和已上线，轮流交给规划智能体、编码智能体、审查智能体和一位同事",
+            "一个由工作流驱动的 morechat.co 项目看板：Issue 依次经过方案、开发、代码审查、审批和已上线，轮流交给规划智能体、编码智能体、审查智能体和一位同事",
         },
         launch: {
           label: "发布内容",
@@ -126,14 +126,14 @@ export const zhSiteCopy: Pick<LandingDict, "site" | "home" | "demo" | "meta"> = 
         },
       },
     },
-    logoWall: { title: "这些公司和高校的人在用 Multica" },
+    logoWall: { title: "这些公司和高校的人在用 morechat.co" },
     features: {
       title: "为人和智能体组成的团队而生",
       items: {
         runtimes: {
           title: "跑在你的机器上，也能跑在我们的云上",
-          body: "一条命令接入笔记本或服务器，Multica 会自动找到上面装好的编码智能体。也可以直接在托管的云沙箱里运行。",
-          alt: "运行时页面：列出两台机器和 Multica Cloud，以及每台上找到的编码工具",
+          body: "一条命令接入笔记本或服务器，morechat.co 会自动找到上面装好的编码智能体。也可以直接在托管的云沙箱里运行。",
+          alt: "运行时页面：列出两台机器和 morechat.co Cloud，以及每台上找到的编码工具",
         },
         workflows: {
           title: "工作流把每一步交接好",
@@ -143,7 +143,7 @@ export const zhSiteCopy: Pick<LandingDict, "site" | "home" | "demo" | "meta"> = 
         chat: {
           title: "在聊天里 @ 智能体",
           body: "在 Slack、飞书、钉钉、企业微信或 Telegram 里都可以。智能体会读完对话、建好 Issue，然后开工。",
-          alt: "团队聊天频道：Mia 就导出失败的问题 @ 了 Backend Agent，智能体在频道里回复，附上它新建并正在处理的 Multica Issue 链接",
+          alt: "团队聊天频道：Mia 就导出失败的问题 @ 了 Backend Agent，智能体在频道里回复，附上它新建并正在处理的 morechat.co Issue 链接",
         },
         autopilots: {
           title: "Autopilot 按计划自动运行",

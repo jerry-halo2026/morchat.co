@@ -1,6 +1,6 @@
 import type { ComponentType, ReactNode } from "react";
-import type { ShortcutChord } from "@multica/core/shortcuts";
-import type { Agent, ChatSession, Issue, Project } from "@multica/core/types";
+import type { ShortcutChord } from "@morechat/core/shortcuts";
+import type { Agent, ChatSession, Issue, Project } from "@morechat/core/types";
 
 /** The issues an issue command acts on: the open issue, or a list selection. */
 export type IssueTarget =

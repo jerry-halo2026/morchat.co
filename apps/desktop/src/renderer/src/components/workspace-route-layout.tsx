@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import { Outlet, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { WorkspaceSlugProvider } from "@multica/core/paths";
+import { WorkspaceSlugProvider } from "@morechat/core/paths";
 import {
   workspaceBySlugOptions,
   workspaceListOptions,
-} from "@multica/core/workspace";
-import { getCurrentSlug, setCurrentWorkspace } from "@multica/core/platform";
-import { isWorkspaceDeletePending } from "@multica/core/workspace/pending-delete";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceSeen } from "@multica/views/workspace/use-workspace-seen";
-import { WorkspacePresencePrefetch } from "@multica/views/layout";
-import { SourceBackfillModal } from "@multica/views/onboarding";
+} from "@morechat/core/workspace";
+import { getCurrentSlug, setCurrentWorkspace } from "@morechat/core/platform";
+import { isWorkspaceDeletePending } from "@morechat/core/workspace/pending-delete";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceSeen } from "@morechat/views/workspace/use-workspace-seen";
+import { WorkspacePresencePrefetch } from "@morechat/views/layout";
+import { SourceBackfillModal } from "@morechat/views/onboarding";
 import { useTabStore } from "@/stores/tab-store";
 import { useWindowOverlayStore } from "@/stores/window-overlay-store";
 

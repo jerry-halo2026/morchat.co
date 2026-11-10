@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useState } from "react";
-import { CornerDownRight, Ellipsis, ListEnd, Loader2, Pencil, Square, Trash2 } from "@multica/ui/icons";
+import { CornerDownRight, Ellipsis, ListEnd, Loader2, Pencil, Square, Trash2 } from "@morechat/ui/icons";
 import {
   CoachMark,
   DemoAvatar,

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, lazy, Suspense } from "react";
-import { SmilePlus } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { Popover, PopoverTrigger, PopoverContent } from "@multica/ui/components/ui/popover";
+import { SmilePlus } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { Popover, PopoverTrigger, PopoverContent } from "@morechat/ui/components/ui/popover";
 import { DeferredTooltip } from "./deferred-tooltip";
 
 const EmojiPicker = lazy(() =>

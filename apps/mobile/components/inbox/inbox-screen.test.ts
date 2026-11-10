@@ -1,5 +1,5 @@
 // @vitest-environment node
-import type { InboxItem } from "@multica/core/types";
+import type { InboxItem } from "@morechat/core/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { router } from "expo-router";
 import Inbox from "@/app/(app)/[workspace]/(tabs)/inbox";

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { SUPPORTED_LOCALES } from "@multica/core/i18n";
+import { SUPPORTED_LOCALES } from "@morechat/core/i18n";
 import { RESOURCES } from "../locales";
 import { getTestResources } from "./i18n";
 

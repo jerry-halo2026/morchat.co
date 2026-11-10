@@ -2,14 +2,14 @@
 
 import { memo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ShimmerText } from "@multica/ui/components/common/shimmer-text";
+import { ShimmerText } from "@morechat/ui/components/common/shimmer-text";
 import {
   HoverCard,
   HoverCardTrigger,
   HoverCardContent,
-} from "@multica/ui/components/ui/hover-card";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { workspaceWorkingAgentsOptions } from "@multica/core/agents";
+} from "@morechat/ui/components/ui/hover-card";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { workspaceWorkingAgentsOptions } from "@morechat/core/agents";
 import { AgentAvatarStack } from "../../agents/components/agent-avatar-stack";
 import { WorkingAgentsHoverContent } from "./workspace-agent-working-chip";
 import { useT } from "../../i18n";

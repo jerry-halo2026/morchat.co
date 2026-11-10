@@ -2207,10 +2207,10 @@ describe("Plugin schemas", () => {
     // state where a component could render it.
     const parsed = PluginInstallationSchema.parse({
       id: "installation-1",
-      config: { repo: "multica-ai/multica" },
+      config: { repo: "jerry-halo2026/morchat.co" },
       configured_secrets: ["token"],
     });
-    expect(parsed.config).toEqual({ repo: "multica-ai/multica" });
+    expect(parsed.config).toEqual({ repo: "jerry-halo2026/morchat.co" });
     expect(parsed.configured_secrets).toEqual(["token"]);
     expect(Object.keys(parsed)).not.toContain("secrets");
   });

@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowUpRight, X } from "@multica/ui/icons";
-import { useConfigStore } from "@multica/core/config";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { cn } from "@multica/ui/lib/utils";
+import { ArrowUpRight, X } from "@morechat/ui/icons";
+import { useConfigStore } from "@morechat/core/config";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../i18n";
 import { CHANGELOG_URL } from "../layout/help-links";
 import { HighlightActionButton } from "./highlight-action";

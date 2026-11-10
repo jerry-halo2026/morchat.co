@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/realtime"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/realtime"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 func TestNotifyRuntimeGone(t *testing.T) {

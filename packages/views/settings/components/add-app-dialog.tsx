@@ -2,19 +2,19 @@
 
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Check, Loader2 } from "@multica/ui/icons";
-import { Badge } from "@multica/ui/components/ui/badge";
-import { Button } from "@multica/ui/components/ui/button";
+import { Check, Loader2 } from "@morechat/ui/icons";
+import { Badge } from "@morechat/ui/components/ui/badge";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Input } from "@multica/ui/components/ui/input";
-import { api } from "@multica/core/api";
-import type { AppAccountScope, AppCatalogEntry, AppsOverview } from "@multica/core/types";
+} from "@morechat/ui/components/ui/dialog";
+import { Input } from "@morechat/ui/components/ui/input";
+import { api } from "@morechat/core/api";
+import type { AppAccountScope, AppCatalogEntry, AppsOverview } from "@morechat/core/types";
 import { ComposioToolkitLogo } from "../../common/composio-toolkit-logo";
 import { useT } from "../../i18n";
 

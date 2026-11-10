@@ -3,20 +3,20 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronRight, ExternalLink, Trash2 } from "@multica/ui/icons";
+import { ChevronRight, ExternalLink, Trash2 } from "@morechat/ui/icons";
 import { TelegramMark } from "./telegram-mark";
-import { cn } from "@multica/ui/lib/utils";
-import { Button } from "@multica/ui/components/ui/button";
-import { Card, CardContent } from "@multica/ui/components/ui/card";
+import { cn } from "@morechat/ui/lib/utils";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Card, CardContent } from "@morechat/ui/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Input } from "@multica/ui/components/ui/input";
-import { Label } from "@multica/ui/components/ui/label";
+} from "@morechat/ui/components/ui/dialog";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Label } from "@morechat/ui/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,19 +26,19 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { memberListOptions } from "@multica/core/workspace/queries";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { telegramInstallationsOptions, telegramKeys } from "@multica/core/telegram";
-import { api } from "@multica/core/api";
-import type { TelegramInstallation } from "@multica/core/types";
+} from "@morechat/ui/components/ui/alert-dialog";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { memberListOptions } from "@morechat/core/workspace/queries";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { telegramInstallationsOptions, telegramKeys } from "@morechat/core/telegram";
+import { api } from "@morechat/core/api";
+import type { TelegramInstallation } from "@morechat/core/types";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { docsLocalePrefix } from "../../common/docs-locale";
 import { openExternal } from "../../platform";
 import { useLocale, useT } from "../../i18n";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 
 // TelegramTab is the workspace settings panel for Telegram bot installations,
 // mirroring SlackTab: listing is member-visible; the disconnect action is
@@ -236,7 +236,7 @@ function InstallationRow({
 // telegramDocsUrl points at the Telegram integration guide on the docs site,
 // localized like the Slack docs link.
 function telegramDocsUrl(lang: string | undefined): string {
-  return `https://multica.ai/docs${docsLocalePrefix(lang)}/telegram-bot-integration`;
+  return `https://morechat.co/docs${docsLocalePrefix(lang)}/telegram-bot-integration`;
 }
 
 // TelegramAgentBindButton is the per-agent CTA on the agent detail page.

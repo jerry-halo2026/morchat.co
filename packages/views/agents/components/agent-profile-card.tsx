@@ -1,23 +1,23 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { Agent, AgentRuntime } from "@multica/core/types";
-import { useAgentPresenceDetail } from "@multica/core/agents";
-import { useWorkspaceId } from "@multica/core/hooks";
+import type { Agent, AgentRuntime } from "@morechat/core/types";
+import { useAgentPresenceDetail } from "@morechat/core/agents";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   deriveRuntimeHealth,
   runtimeDisplayLabel,
   type RuntimeHealth,
-} from "@multica/core/runtimes";
-import { agentListOptions, memberListOptions } from "@multica/core/workspace/queries";
-import { resolvePublicFileUrl } from "@multica/core/workspace/avatar-url";
-import { runtimeListOptions } from "@multica/core/runtimes/queries";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { ActorAvatar as ActorAvatarBase } from "@multica/ui/components/common/actor-avatar";
-import { Settings2 } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
+} from "@morechat/core/runtimes";
+import { agentListOptions, memberListOptions } from "@morechat/core/workspace/queries";
+import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
+import { runtimeListOptions } from "@morechat/core/runtimes/queries";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { ActorAvatar as ActorAvatarBase } from "@morechat/ui/components/common/actor-avatar";
+import { Settings2 } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
 import { AppLink } from "../../navigation";
 import { HealthIcon } from "../../runtimes/components/shared";
 import { availabilityConfig } from "../presence";

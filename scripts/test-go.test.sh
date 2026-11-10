@@ -27,10 +27,10 @@ case "${1:-}" in
       exit 2
     fi
     printf '%s\n' \
-      github.com/multica-ai/multica/server \
-      github.com/multica-ai/multica/server/internal/daemon \
-      github.com/multica-ai/multica/server/pkg/agent \
-      github.com/multica-ai/multica/server/pkg/agent/internal/testutil
+      github.com/jerry-halo2026/morchat.co/server \
+      github.com/jerry-halo2026/morchat.co/server/internal/daemon \
+      github.com/jerry-halo2026/morchat.co/server/pkg/agent \
+      github.com/jerry-halo2026/morchat.co/server/pkg/agent/internal/testutil
     ;;
   test)
     printf '%s\n' "$*" >>"$MULTICA_TEST_GO_CALLS"
@@ -43,7 +43,7 @@ esac
 FAKE
 chmod 755 "$BIN_DIR/go"
 
-regular_call='test -race github.com/multica-ai/multica/server github.com/multica-ai/multica/server/internal/daemon'
+regular_call='test -race github.com/jerry-halo2026/morchat.co/server github.com/jerry-halo2026/morchat.co/server/internal/daemon'
 agent_call='test -race -p 2 -parallel 2 ./pkg/agent/...'
 
 # $1: case label; $2: expected go calls, one per line. Clears the log after.

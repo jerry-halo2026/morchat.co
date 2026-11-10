@@ -1,5 +1,5 @@
-import { defaultWorkflow, useIssueWorkflows, useProjectWorkflow } from "@multica/core/issue-workflows";
-import type { IssueStatus, IssueWorkflow } from "@multica/core/types";
+import { defaultWorkflow, useIssueWorkflows, useProjectWorkflow } from "@morechat/core/issue-workflows";
+import type { IssueStatus, IssueWorkflow } from "@morechat/core/types";
 
 /**
  * The status columns of a surface whose columns follow a workflow (MUL-7420):

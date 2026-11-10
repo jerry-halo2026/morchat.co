@@ -1,8 +1,8 @@
 "use client";
 
-import type { Autopilot } from "@multica/core/types";
-import type { AutopilotListFilters } from "@multica/core/autopilots/stores";
-import { useActorName } from "@multica/core/workspace/hooks";
+import type { Autopilot } from "@morechat/core/types";
+import type { AutopilotListFilters } from "@morechat/core/autopilots/stores";
+import { useActorName } from "@morechat/core/workspace/hooks";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -11,7 +11,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { FILTER_ITEM_CLASS, HoverCheck } from "../../common/hover-check";
 import { useT } from "../../i18n";

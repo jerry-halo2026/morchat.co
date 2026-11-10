@@ -1,4 +1,4 @@
-import type { TimelineEntry } from "@multica/core/types";
+import type { TimelineEntry } from "@morechat/core/types";
 
 export function commentContentFromTimeline(
   timeline: TimelineEntry[] | undefined,

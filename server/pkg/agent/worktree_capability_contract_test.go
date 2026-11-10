@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // The capability token is a cross-version protocol contract: the daemon

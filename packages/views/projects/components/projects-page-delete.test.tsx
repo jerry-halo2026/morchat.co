@@ -12,11 +12,11 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
-import { setApiInstance } from "@multica/core/api";
-import type { ApiClient } from "@multica/core/api/client";
-import type { Project } from "@multica/core/types";
-import { useProjectViewStore } from "@multica/core/projects";
-import { projectKeys } from "@multica/core/projects/queries";
+import { setApiInstance } from "@morechat/core/api";
+import type { ApiClient } from "@morechat/core/api/client";
+import type { Project } from "@morechat/core/types";
+import { useProjectViewStore } from "@morechat/core/projects";
+import { projectKeys } from "@morechat/core/projects/queries";
 import { toast } from "sonner";
 import { renderWithI18n } from "../../test/i18n";
 import { NavigationProvider } from "../../navigation";
@@ -24,28 +24,28 @@ import { ProjectsPage } from "./projects-page";
 
 // Keep the page, project queries, mutation and React subscriptions real.
 // Stub unrelated navigation, membership and pin boundaries.
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({
     projectDetail: (id: string) => `/test/projects/${id}`,
   }),
 }));
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: (selector: (state: unknown) => unknown) =>
     selector({ user: { id: "user-1" } }),
 }));
-vi.mock("@multica/core/workspace/queries", () => ({
+vi.mock("@morechat/core/workspace/queries", () => ({
   memberListOptions: () => ({ queryKey: ["members"], queryFn: async () => [] }),
   agentListOptions: () => ({ queryKey: ["agents"], queryFn: async () => [] }),
 }));
-vi.mock("@multica/core/workspace/hooks", () => ({
+vi.mock("@morechat/core/workspace/hooks", () => ({
   useActorName: () => ({
     getActorName: () => "User",
     getActorInitials: () => "U",
     getActorAvatarUrl: () => null,
   }),
 }));
-vi.mock("@multica/core/pins", () => ({
+vi.mock("@morechat/core/pins", () => ({
   pinListOptions: () => ({ queryKey: ["pins"], queryFn: async () => [] }),
   useCreatePin: () => ({ mutate: vi.fn() }),
   useDeletePin: () => ({ mutate: vi.fn() }),

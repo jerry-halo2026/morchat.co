@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Clock } from "@multica/ui/icons";
+import { Clock } from "@morechat/ui/icons";
 
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 
 // Adapted from openstatusHQ/time-picker (MIT).
 // Segmented HH:MM input with keyboard arrow increment / digit typing.

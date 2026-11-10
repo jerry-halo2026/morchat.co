@@ -6,9 +6,9 @@ import { describe, expect, it } from "vitest";
 import { OUTPUTS, exportNames } from "./drawings/generate.mjs";
 import * as icons from "./index";
 
-describe("@multica/ui/icons", () => {
+describe("@morechat/ui/icons", () => {
   it.each(Object.entries(OUTPUTS))("%s matches drawings/drawings.mjs", (file, render) => {
-    expect(readFileSync(join(__dirname, file), "utf8"), "run pnpm --filter @multica/ui icons").toBe(render());
+    expect(readFileSync(join(__dirname, file), "utf8"), "run pnpm --filter @morechat/ui icons").toBe(render());
   });
 
   it("exports every drawn name and nothing borrowed from an icon library", () => {
@@ -17,7 +17,7 @@ describe("@multica/ui/icons", () => {
     expect(readFileSync(join(__dirname, "index.ts"), "utf8")).not.toMatch(/from "(?!\.\/)/);
   });
 
-  it.each(Object.keys(exportNames()))("%s renders a Multica glyph", (name) => {
+  it.each(Object.keys(exportNames()))("%s renders a morechat.co glyph", (name) => {
     const Icon = icons[name as keyof typeof icons] as icons.IconComponent;
     const markup = renderToStaticMarkup(createElement(Icon));
     expect(markup).toMatch(/^<svg [^>]*class="icon icon-[a-z0-9-]+"/);

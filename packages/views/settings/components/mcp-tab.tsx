@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowRight, Blocks, Loader2, Plug, Plus, Server } from "@multica/ui/icons";
+import { ArrowRight, Blocks, Loader2, Plug, Plus, Server } from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -13,21 +13,21 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import { Badge } from "@multica/ui/components/ui/badge";
-import { Button } from "@multica/ui/components/ui/button";
-import { useCurrentWorkspace } from "@multica/core/paths";
-import { useCurrentMember } from "@multica/core/permissions";
-import { useFeatureEnabled } from "@multica/core/config";
-import { PLUGINS_V1_FLAG } from "@multica/core/feature-flags";
-import { cn } from "@multica/ui/lib/utils";
-import { workspaceMcpServersOptions } from "@multica/core/workspace/queries";
+} from "@morechat/ui/components/ui/alert-dialog";
+import { Badge } from "@morechat/ui/components/ui/badge";
+import { Button } from "@morechat/ui/components/ui/button";
+import { useCurrentWorkspace } from "@morechat/core/paths";
+import { useCurrentMember } from "@morechat/core/permissions";
+import { useFeatureEnabled } from "@morechat/core/config";
+import { PLUGINS_V1_FLAG } from "@morechat/core/feature-flags";
+import { cn } from "@morechat/ui/lib/utils";
+import { workspaceMcpServersOptions } from "@morechat/core/workspace/queries";
 import {
   useCreateWorkspaceMcpServer,
   useDeleteWorkspaceMcpServer,
   useUpdateWorkspaceMcpServer,
-} from "@multica/core/workspace/mutations";
-import type { WorkspaceMcpServer } from "@multica/core/types";
+} from "@morechat/core/workspace/mutations";
+import type { WorkspaceMcpServer } from "@morechat/core/types";
 import { McpServerDialog } from "../../agents/components/tabs/mcp-server-dialog";
 import type { ManagedMcpServer } from "../../agents/components/tabs/mcp-config-model";
 import { McpServerRow } from "../../common/mcp-server-row";

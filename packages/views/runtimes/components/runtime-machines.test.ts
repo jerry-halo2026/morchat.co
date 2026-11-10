@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { describe, expect, it } from "vitest";
-import type { AgentRuntime } from "@multica/core/types";
+import type { AgentRuntime } from "@morechat/core/types";
 import {
   buildRuntimeMachines,
   countRuntimeMachines,

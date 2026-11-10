@@ -1,5 +1,5 @@
 {
-  "name": "@multica/docs",
+  "name": "@morechat/docs",
   "version": "0.2.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "@multica/ui": "workspace:*",
+    "@morechat/ui": "workspace:*",
     "fumadocs-core": "catalog:",
     "fumadocs-mdx": "catalog:",
     "fumadocs-ui": "catalog:",

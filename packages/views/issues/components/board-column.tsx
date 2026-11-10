@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useMemo, useState, type ReactNode } from "react";
 import { Virtuoso } from "react-virtuoso";
-import { Ban, EyeOff, FolderMinus, MoreHorizontal, Plus, UserMinus } from "@multica/ui/icons";
+import { Ban, EyeOff, FolderMinus, MoreHorizontal, Plus, UserMinus } from "@morechat/ui/icons";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type {
@@ -10,18 +10,18 @@ import type {
   IssueAssigneeType,
   IssueStatus,
   Project,
-} from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
+} from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { useViewStoreApi } from "@multica/core/issues/stores/view-store-context";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { useViewStoreApi } from "@morechat/core/issues/stores/view-store-context";
 import { useViewBaseline } from "../surface/view-baseline-context";
 import { StatusHeading } from "./status-heading";
 import { DraggableBoardCard } from "./board-card";

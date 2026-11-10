@@ -4,7 +4,7 @@ import {
   APPEARANCE_STORAGE_KEY,
   DEFAULT_APPEARANCE,
   useAppearanceStore,
-} from "@multica/core/appearance";
+} from "@morechat/core/appearance";
 import { AppearanceSync } from "./appearance-sync";
 
 const html = () => document.documentElement;

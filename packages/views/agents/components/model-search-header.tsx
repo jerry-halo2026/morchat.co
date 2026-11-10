@@ -1,8 +1,8 @@
 "use client";
 
-import { RefreshCw } from "@multica/ui/icons";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Input } from "@multica/ui/components/ui/input";
+import { RefreshCw } from "@morechat/ui/icons";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Input } from "@morechat/ui/components/ui/input";
 import { useT } from "../../i18n";
 
 export function ModelSearchHeader({

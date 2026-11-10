@@ -1,15 +1,15 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import { ArrowLeft, Check } from "@multica/ui/icons";
+import { ArrowLeft, Check } from "@morechat/ui/icons";
 import {
   ONBOARDING_STEP_ORDER,
   type OnboardingStep,
-} from "@multica/core/onboarding";
-import { cn } from "@multica/ui/lib/utils";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { MulticaWordmark } from "@multica/ui/components/common/multica-wordmark";
-import { DotSphere } from "@multica/ui/components/ui/dot-sphere";
+} from "@morechat/core/onboarding";
+import { cn } from "@morechat/ui/lib/utils";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { MorechatWordmark } from "@morechat/ui/components/common/morechat-wordmark";
+import { DotSphere } from "@morechat/ui/components/ui/dot-sphere";
 import {
   Stepper,
   StepperIndicator,
@@ -17,7 +17,7 @@ import {
   StepperNav,
   StepperSeparator,
   StepperTitle,
-} from "@multica/ui/components/ui/stepper";
+} from "@morechat/ui/components/ui/stepper";
 import { useT } from "../../i18n";
 
 /**
@@ -164,7 +164,7 @@ export function StepSidebar({
 
         <div className="relative flex min-h-0 flex-1 flex-col pt-5">
           <header className="flex min-h-9 shrink-0 items-center justify-between gap-3">
-            <MulticaWordmark
+            <MorechatWordmark
               title={t(($) => $.step_nav.wordmark)}
               className="h-[17px] text-foreground"
             />

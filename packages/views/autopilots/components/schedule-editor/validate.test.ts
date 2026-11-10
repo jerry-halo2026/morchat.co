@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi } from "vitest";
 import { QueryClient } from "@tanstack/react-query";
-import { ApiError } from "@multica/core/api";
+import { ApiError } from "@morechat/core/api";
 import { findScheduleRejection } from "./validate";
 import { parseCron } from "./cron-mapping";
 
@@ -16,7 +16,7 @@ const behavior: { mode: "ok" | "invalid_cron" | "invalid_timezone" | "transport"
   mode: "ok",
 };
 
-vi.mock("@multica/core/autopilots/queries", () => ({
+vi.mock("@morechat/core/autopilots/queries", () => ({
   cronPreviewOptions: (wsId: string, expr: string, tz: string) => ({
     queryKey: ["autopilots", wsId, "cron-preview", expr, tz, behavior.mode],
     queryFn: async () => {

@@ -1,19 +1,19 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Check } from "@multica/ui/icons";
+import { Check } from "@morechat/ui/icons";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@multica/ui/components/ui/popover";
+} from "@morechat/ui/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
-import { isImeComposing } from "@multica/core/utils";
+} from "@morechat/ui/components/ui/tooltip";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
+import { isImeComposing } from "@morechat/core/utils";
 import { useT } from "../../../i18n";
 
 const HIGHLIGHT_CLASS = "bg-accent";

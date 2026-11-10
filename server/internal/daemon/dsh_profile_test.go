@@ -699,7 +699,7 @@ func TestDshProvisionOutput(t *testing.T) {
 	t.Run("leaves ordinary URLs intact", func(t *testing.T) {
 		for _, raw := range []string{
 			"GET https://registry.example.com:8443/@acme/pkg failed",
-			"cloning ssh://git@github.com/multica-ai/multica.git",
+			"cloning ssh://git@github.com/jerry-halo2026/morchat.co.git",
 			"see https://example.com/a:b for details",
 		} {
 			if got := dshProvisionOutput([]byte(raw)); got != raw {

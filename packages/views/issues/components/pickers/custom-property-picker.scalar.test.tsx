@@ -3,18 +3,18 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { api } from "@multica/core/api";
-import { I18nProvider } from "@multica/core/i18n/react";
-import { issueDetailOptions, issueKeys } from "@multica/core/issues/queries";
-import { onIssuePropertiesChanged } from "@multica/core/issues/ws-updaters";
-import type { Issue, IssueProperty, IssuePropertyValue } from "@multica/core/types";
+import { api } from "@morechat/core/api";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import { issueDetailOptions, issueKeys } from "@morechat/core/issues/queries";
+import { onIssuePropertiesChanged } from "@morechat/core/issues/ws-updaters";
+import type { Issue, IssueProperty, IssuePropertyValue } from "@morechat/core/types";
 import enIssues from "../../../locales/en/issues.json";
 import { CustomPropertyValueEditor, CustomPropertyValueInput } from "./custom-property-picker";
 
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: { getIssue: vi.fn(), setIssueProperty: vi.fn(), unsetIssueProperty: vi.fn() },
 }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
 
 const property: IssueProperty = {
   id: "p-1", workspace_id: "ws-1", name: "Reference", type: "text",

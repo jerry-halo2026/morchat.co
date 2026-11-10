@@ -1,22 +1,22 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { FileText, MessageSquare } from "@multica/ui/icons";
+import { FileText, MessageSquare } from "@morechat/ui/icons";
 import { Command as CommandPrimitive } from "cmdk";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { issueStatusCategory } from "@multica/core/issues";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { PROJECT_STATUS_CONFIG } from "@multica/core/projects/config";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { issueStatusCategory } from "@morechat/core/issues";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { PROJECT_STATUS_CONFIG } from "@morechat/core/projects/config";
 import type {
   AgentAvailability,
-} from "@multica/core/agents";
+} from "@morechat/core/agents";
 import type {
   Issue,
   ProjectStatus,
   SearchIssueResult,
   SearchProjectResult,
-} from "@multica/core/types";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/core/types";
+import { cn } from "@morechat/ui/lib/utils";
 import { ActorAvatar } from "../common/actor-avatar";
 import { availabilityConfig } from "../agents/presence";
 import { StatusIcon } from "../issues/components";

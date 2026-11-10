@@ -1,8 +1,8 @@
 import {
   ALL_STATUSES,
   BUILT_IN_STATUS_ORDER,
-} from "@multica/core/issues/config";
-import { issueColumnCategory } from "@multica/core/issues";
+} from "@morechat/core/issues/config";
+import { issueColumnCategory } from "@morechat/core/issues";
 import type {
   Issue,
   IssueTableGroupDescriptor,
@@ -13,7 +13,7 @@ import type {
   IssueTableRowsRequest,
   ListIssuesParams,
   ListIssuesResponse,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 
 type LegacyListIssues = (
   params?: ListIssuesParams,

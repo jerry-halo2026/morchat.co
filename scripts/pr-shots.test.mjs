@@ -5,7 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { runPrShots } from "./pr-shots";
 
-const prUrl = "https://github.com/multica-ai/multica/pull/123";
+const prUrl = "https://github.com/jerry-halo2026/morchat.co/pull/123";
 
 function setup(t, body = "## Problem\n\nExisting prose and formatting.\n") {
   const directory = mkdtempSync(join(tmpdir(), "pr-shots-test-"));
@@ -50,7 +50,7 @@ test("preserves prose, emits attachment Markdown, and reuses content after a ren
   const { state, file, run, directory } = setup(t);
   const original = state.body;
   const image = file("before [login] #1.png");
-  const first = run("--repo", "multica-ai/multica", "123", image);
+  const first = run("--repo", "jerry-halo2026/morchat.co", "123", image);
   assert.equal(first.status, 0, first.stderr);
   assert.ok(state.body.startsWith(original));
   assert.match(first.stdout, /^!\[before \\\[login\\\] #1\.png\]\(https:\/\/github\.com\/user-attachments\/assets\//);
@@ -104,7 +104,7 @@ test("nonzero gh exit after a successful write is read back and not reuploaded",
 });
 
 test("migration replaces the image in place, preserving captions and alt text", (t) => {
-  const old = "https://github.com/multica-ai/multica/raw/2492562/pr-10077/loader-frames.png";
+  const old = "https://github.com/jerry-halo2026/morchat.co/raw/2492562/pr-10077/loader-frames.png";
   const before = `Before caption.\n\n![Original alt](${old})\n\nAfter caption.\n`;
   const { state, file, run } = setup(t, before);
   const image = file("screen.png");

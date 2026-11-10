@@ -2,10 +2,10 @@
 
 import { useCallback, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bell } from "@multica/ui/icons";
-import { issueTasksOptions, issueWakeupsOptions } from "@multica/core/issues";
-import type { AgentTask, IssueWakeup } from "@multica/core/types";
-import { useWorkspaceId } from "@multica/core/hooks";
+import { Bell } from "@morechat/ui/icons";
+import { issueTasksOptions, issueWakeupsOptions } from "@morechat/core/issues";
+import type { AgentTask, IssueWakeup } from "@morechat/core/types";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import { useT } from "../../i18n";
 import { useWakeupText } from "./wakeup-presentation";
 

@@ -112,7 +112,7 @@ export function attachmentIdFromLocalUploadURL(rawURL: string): string | undefin
 
 /**
  * Extract the attachment id from a raw storage URL on the configured CDN
- * domain, e.g. `https://static.multica.ai/workspaces/<ws>/<id>.jpg`.
+ * domain, e.g. `https://static.morechat.co/workspaces/<ws>/<id>.jpg`.
  *
  * Markdown can embed a storage URL whose attachment record is not in the
  * surrounding surface's attachment list (an agent quoting an image from

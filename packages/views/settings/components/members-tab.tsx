@@ -17,7 +17,7 @@ import {
   UserMinus,
   Users,
   X,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { AppLink, useOptionalNavigation } from "../../navigation";
 import type {
@@ -27,11 +27,11 @@ import type {
   PurchaseWorkspaceSeatsRequest,
   ShareLink,
   WorkspaceSeatPurchasePreview,
-} from "@multica/core/types";
-import { Input } from "@multica/ui/components/ui/input";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Label } from "@multica/ui/components/ui/label";
+} from "@morechat/core/types";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Label } from "@morechat/ui/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -39,8 +39,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Badge } from "@multica/ui/components/ui/badge";
+} from "@morechat/ui/components/ui/dialog";
+import { Badge } from "@morechat/ui/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -50,14 +50,14 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
   AlertDialogAction,
-} from "@multica/ui/components/ui/alert-dialog";
+} from "@morechat/ui/components/ui/alert-dialog";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@multica/ui/components/ui/select";
+} from "@morechat/ui/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -67,27 +67,27 @@ import {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "@multica/core/auth";
+import { useAuthStore } from "@morechat/core/auth";
 import {
   usePreviewWorkspaceSeatPurchase,
   usePurchaseWorkspaceSeats,
   workspaceSubscriptionSummaryOptions,
-} from "@multica/core/billing";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useFeatureEnabled } from "@multica/core/config";
-import { BILLING_WORKSPACE_SUBSCRIPTIONS_FLAG } from "@multica/core/feature-flags";
-import { useCurrentWorkspace } from "@multica/core/paths";
+} from "@morechat/core/billing";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useFeatureEnabled } from "@morechat/core/config";
+import { BILLING_WORKSPACE_SUBSCRIPTIONS_FLAG } from "@morechat/core/feature-flags";
+import { useCurrentWorkspace } from "@morechat/core/paths";
 import {
   invitationListOptions,
   memberListOptions,
   shareLinkListOptions,
   workspaceKeys,
-} from "@multica/core/workspace/queries";
-import { api, errorCode } from "@multica/core/api";
+} from "@morechat/core/workspace/queries";
+import { api, errorCode } from "@morechat/core/api";
 import { useLocale, useT } from "../../i18n";
 import { ObjectSectionEmpty } from "../../layout/object-page";
 import {

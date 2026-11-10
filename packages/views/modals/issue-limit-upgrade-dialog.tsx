@@ -2,22 +2,22 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Gauge, Loader2 } from "@multica/ui/icons";
+import { Gauge, Loader2 } from "@morechat/ui/icons";
 import {
   useCreateWorkspaceSubscriptionPortal,
   workspaceSubscriptionSummaryOptions,
-} from "@multica/core/billing";
-import { resolveBillingRecovery } from "@multica/core/billing/recovery";
-import { useFeatureEnabled } from "@multica/core/config";
-import { BILLING_WORKSPACE_SUBSCRIPTIONS_FLAG } from "@multica/core/feature-flags";
-import { useWorkspaceId } from "@multica/core/hooks";
+} from "@morechat/core/billing";
+import { resolveBillingRecovery } from "@morechat/core/billing/recovery";
+import { useFeatureEnabled } from "@morechat/core/config";
+import { BILLING_WORKSPACE_SUBSCRIPTIONS_FLAG } from "@morechat/core/feature-flags";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   useModalStore,
   type IssueLimitRecoveryReason,
-} from "@multica/core/modals";
-import { useWorkspacePaths } from "@multica/core/paths";
-import type { WorkspaceSubscriptionSummary } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
+} from "@morechat/core/modals";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import type { WorkspaceSubscriptionSummary } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +25,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import { useT } from "../i18n";
 import { useNavigation } from "../navigation";
 import { openExternal } from "../platform";

@@ -4,7 +4,7 @@ import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip"
 
 import { useEffect } from "react"
 
-import { cn } from "@multica/ui/lib/utils"
+import { cn } from "@morechat/ui/lib/utils"
 
 /** Hover time before a tooltip opens, shared by every tooltip in the app. */
 const TOOLTIP_OPEN_DELAY = 500

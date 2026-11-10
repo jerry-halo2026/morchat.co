@@ -3,8 +3,8 @@
 import * as React from "react"
 import { Menu as MenuPrimitive } from "@base-ui/react/menu"
 
-import { cn } from "@multica/ui/lib/utils"
-import { ChevronRightIcon, CheckIcon } from "@multica/ui/icons"
+import { cn } from "@morechat/ui/lib/utils"
+import { ChevronRightIcon, CheckIcon } from "@morechat/ui/icons"
 
 function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
   return <MenuPrimitive.Root data-slot="dropdown-menu" {...props} />

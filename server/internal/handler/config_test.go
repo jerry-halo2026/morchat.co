@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/auth"
-	"github.com/multica-ai/multica/server/internal/storage"
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/auth"
+	"github.com/jerry-halo2026/morchat.co/server/internal/storage"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 func TestGetConfigReportsCdnSignedMode(t *testing.T) {

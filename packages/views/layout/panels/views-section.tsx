@@ -7,19 +7,19 @@ import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type D
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToFirstScrollableAncestor, restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
-import { Bot, CircleUser, Copy, EyeOff, Filter, Layers, Link2, ListTodo, MoreHorizontal, Pencil, Plus, Trash2 } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { IconButton } from "@multica/ui/components/common/icon-button";
+import { Bot, CircleUser, Copy, EyeOff, Filter, Layers, Link2, ListTodo, MoreHorizontal, Pencil, Plus, Trash2 } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import type { IssueView } from "@multica/core/api/schemas";
-import { isMyAgentsSearch, useWorkspacePaths } from "@multica/core/paths";
-import { sidebarIssuesOptions } from "@multica/core/issues/queries";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import type { IssueView } from "@morechat/core/api/schemas";
+import { isMyAgentsSearch, useWorkspacePaths } from "@morechat/core/paths";
+import { sidebarIssuesOptions } from "@morechat/core/issues/queries";
 import {
   SIDEBAR_FIRST_PAGE,
   builtinSidebarRequest,
@@ -28,33 +28,33 @@ import {
   viewSidebarRequest,
   viewSidebarSource,
   type SidebarIssuesRequest,
-} from "@multica/core/issues/sidebar-list";
-import { todayDateOnly } from "@multica/core/issues/date";
-import { useIssueUnreadIds } from "@multica/core/issues/unread";
-import { filterDependencyState, statusCatalogSource } from "@multica/core/issues/surface/filter-dependency";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { useSidebarProjectPrefs } from "@multica/core/issues/sidebar-project-prefs";
-import { useSidebarTreeStore } from "@multica/core/issues/stores/sidebar-tree-store";
+} from "@morechat/core/issues/sidebar-list";
+import { todayDateOnly } from "@morechat/core/issues/date";
+import { useIssueUnreadIds } from "@morechat/core/issues/unread";
+import { filterDependencyState, statusCatalogSource } from "@morechat/core/issues/surface/filter-dependency";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { useSidebarProjectPrefs } from "@morechat/core/issues/sidebar-project-prefs";
+import { useSidebarTreeStore } from "@morechat/core/issues/stores/sidebar-tree-store";
 import {
   myIssuesRelationFromScope,
   myIssuesScopeFor,
   myIssuesViewStore,
-} from "@multica/core/issues/stores/my-issues-view-store";
+} from "@morechat/core/issues/stores/my-issues-view-store";
 import {
   issueViewContainerKey,
   useActiveIssueViewStore,
-} from "@multica/core/issue-views/active-view-store";
-import { issueViewEverywhereOptions } from "@multica/core/issue-views/queries";
-import { issueViewSeedDefinition } from "@multica/core/issue-views/definition";
-import { useIssueViewRenameStore } from "@multica/core/issue-views/rename-store";
+} from "@morechat/core/issue-views/active-view-store";
+import { issueViewEverywhereOptions } from "@morechat/core/issue-views/queries";
+import { issueViewSeedDefinition } from "@morechat/core/issue-views/definition";
+import { useIssueViewRenameStore } from "@morechat/core/issue-views/rename-store";
 import {
   BUILTIN_VIEW_KEYS,
   builtinViewItemId,
   type BuiltinViewKey,
   type SidebarViewItem,
-} from "@multica/core/issue-views/sidebar-views";
-import { issueViewTarget } from "@multica/core/issue-views/view-target";
-import { UNREAD_VIEW, UNREAD_VIEW_ID } from "@multica/core/issue-views/unread-view";
+} from "@morechat/core/issue-views/sidebar-views";
+import { issueViewTarget } from "@morechat/core/issue-views/view-target";
+import { UNREAD_VIEW, UNREAD_VIEW_ID } from "@morechat/core/issue-views/unread-view";
 import type { IssueViewActions } from "../../issue-views/use-view-actions";
 import { DeleteViewDialog } from "../../issue-views/delete-view-dialog";
 import { ViewNameInput } from "../../issue-views/view-name-input";

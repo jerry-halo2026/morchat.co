@@ -12,7 +12,7 @@ const BANNED = [
   "@radix-ui/react-icons",
   "@phosphor-icons/react/dist/ssr",
 ];
-const ALLOWED = ["@multica/ui/icons", "react-icons-extra", "@radix-ui/react-dialog", "@heroicons/reactive"];
+const ALLOWED = ["@morechat/ui/icons", "react-icons-extra", "@radix-ui/react-dialog", "@heroicons/reactive"];
 
 async function restricted(eslint, filePath, source) {
   const [result] = await eslint.lintText(`import { X } from "${source}";\nexport { X };\n`, { filePath });
@@ -33,7 +33,7 @@ for (const [label, eslint, filePath] of targets) {
     for (const source of BANNED) assert.equal(await restricted(eslint, filePath, source), 1, source);
   });
 
-  test(`${label} allows @multica/ui/icons and look-alike packages`, async () => {
+  test(`${label} allows @morechat/ui/icons and look-alike packages`, async () => {
     for (const source of ALLOWED) assert.equal(await restricted(eslint, filePath, source), 0, source);
   });
 }

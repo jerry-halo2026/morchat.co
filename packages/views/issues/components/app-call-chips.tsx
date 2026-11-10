@@ -2,14 +2,14 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Ban, CircleCheck, Clock, XCircle } from "@multica/ui/icons";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@multica/ui/components/ui/tooltip";
-import { cn } from "@multica/ui/lib/utils";
-import { useFeatureEnabled } from "@multica/core/config";
-import { COMPOSIO_MCP_APPS_FLAG } from "@multica/core/feature-flags";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { appCatalogOptions, issueAppCallsOptions } from "@multica/core/connected-apps";
-import type { IssueAppCall } from "@multica/core/types";
+import { Ban, CircleCheck, Clock, XCircle } from "@morechat/ui/icons";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@morechat/ui/components/ui/tooltip";
+import { cn } from "@morechat/ui/lib/utils";
+import { useFeatureEnabled } from "@morechat/core/config";
+import { COMPOSIO_MCP_APPS_FLAG } from "@morechat/core/feature-flags";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { appCatalogOptions, issueAppCallsOptions } from "@morechat/core/connected-apps";
+import type { IssueAppCall } from "@morechat/core/types";
 import { ComposioToolkitLogo } from "../../common/composio-toolkit-logo";
 import { useT } from "../../i18n";
 

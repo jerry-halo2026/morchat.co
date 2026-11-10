@@ -4,11 +4,11 @@ import {
   ALL_ACCESS_SCOPES,
   effectiveAccessScope,
   type AgentAvailability,
-} from "@multica/core/agents";
-import type { MemberWithUser } from "@multica/core/types";
-import { runtimeDisplayLabel } from "@multica/core/runtimes";
-import { resolvePublicFileUrl } from "@multica/core/workspace/avatar-url";
-import type { AgentListFilters } from "@multica/core/agents/stores";
+} from "@morechat/core/agents";
+import type { MemberWithUser } from "@morechat/core/types";
+import { runtimeDisplayLabel } from "@morechat/core/runtimes";
+import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
+import type { AgentListFilters } from "@morechat/core/agents/stores";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -17,8 +17,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { ActorAvatar } from "@multica/ui/components/common/actor-avatar";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
 import { FILTER_ITEM_CLASS, HoverCheck } from "../../common/hover-check";
 import { CollectionFilterButton } from "../../layout/collection-page";
 import { availabilityConfig } from "../presence";

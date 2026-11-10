@@ -11,7 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/multica-ai/multica/server/internal/cli"
+	"github.com/jerry-halo2026/morchat.co/server/internal/cli"
 )
 
 // newWorkspaceSwitchTestCmd builds a standalone cobra command with the flags

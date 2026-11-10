@@ -8,12 +8,12 @@ import {
   Save,
   Terminal,
   Trash2,
-} from "@multica/ui/icons";
-import type { Agent, RuntimeDevice } from "@multica/core/types";
-import { createSafeId } from "@multica/core/utils";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Input } from "@multica/ui/components/ui/input";
+} from "@morechat/ui/icons";
+import type { Agent, RuntimeDevice } from "@morechat/core/types";
+import { createSafeId } from "@morechat/core/utils";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Input } from "@morechat/ui/components/ui/input";
 import { toast } from "sonner";
 import { useT } from "../../../i18n";
 import {

@@ -3,22 +3,22 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
-import { api } from "@multica/core/api";
-import { chatKeys } from "@multica/core/chat/queries";
-import { issueKeys } from "@multica/core/issues/queries";
-import type { AgentTask, TimelineEntry } from "@multica/core/types";
-import type { TaskMessagePayload } from "@multica/core/types/events";
+import { api } from "@morechat/core/api";
+import { chatKeys } from "@morechat/core/chat/queries";
+import { issueKeys } from "@morechat/core/issues/queries";
+import type { AgentTask, TimelineEntry } from "@morechat/core/types";
+import type { TaskMessagePayload } from "@morechat/core/types/events";
 import { renderWithI18n } from "../../test/i18n";
 import { InlineCommentRun } from "./inline-comment-run";
 
 const dispatchReasonCodeMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@multica/core/api", () => ({ api: {
+vi.mock("@morechat/core/api", () => ({ api: {
   getIssue: vi.fn(), listTaskMessages: vi.fn(), cancelTask: vi.fn(), rerunIssue: vi.fn(),
   listTasksByIssue: vi.fn(),
 }, dispatchReasonCode: dispatchReasonCodeMock }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "workspace" }));
-vi.mock("@multica/core/workspace/hooks", () => ({ useActorName: () => ({ getActorName: () => "Reviewer" }) }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "workspace" }));
+vi.mock("@morechat/core/workspace/hooks", () => ({ useActorName: () => ({ getActorName: () => "Reviewer" }) }));
 vi.mock("../../common/actor-avatar", () => ({ ActorAvatar: () => <span /> }));
 vi.mock("../../editor", () => ({ ReadonlyContent: ({ content }: { content: string }) => <div>{content}</div> }));
 vi.mock("../../common/task-transcript/agent-transcript-dialog", () => ({

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, ChevronRight } from "@multica/ui/icons";
-import type { TimelineEntry } from "@multica/core/types";
-import { isDeletedComment } from "@multica/core/issues/comment-deletion";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { useReducedMotion } from "@multica/core/appearance";
-import { cn } from "@multica/ui/lib/utils";
-import { ActorAvatar } from "@multica/ui/components/common/actor-avatar";
-import { resolvePublicFileUrl } from "@multica/core/workspace/avatar-url";
+import { CheckCircle2, ChevronRight } from "@morechat/ui/icons";
+import type { TimelineEntry } from "@morechat/core/types";
+import { isDeletedComment } from "@morechat/core/issues/comment-deletion";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { useReducedMotion } from "@morechat/core/appearance";
+import { cn } from "@morechat/ui/lib/utils";
+import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
+import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
 import { useT, useTimeAgo } from "../../i18n";
 import { ProgressRing } from "./progress-ring";
 

@@ -19,19 +19,19 @@ import {
   type Row,
   type SortingState,
 } from "@tanstack/react-table";
-import { Check, Copy, Search, X } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { DataTable } from "@multica/ui/components/ui/data-table";
+import { Check, Copy, Search, X } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { DataTable } from "@morechat/ui/components/ui/data-table";
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Input } from "@multica/ui/components/ui/input";
-import { copyText } from "@multica/ui/lib/clipboard";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dialog";
+import { Input } from "@morechat/ui/components/ui/input";
+import { copyText } from "@morechat/ui/lib/clipboard";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../i18n";
 import { SortHeader, compareCells, textWidth } from "../editor/table-preview";
 import { tableToCsv, type RichTableModel } from "./rich-table-model";

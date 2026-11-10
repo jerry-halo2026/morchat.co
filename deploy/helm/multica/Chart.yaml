@@ -8,7 +8,7 @@ version: 0.1.0
 appVersion: "latest"
 home: https://multica.ai
 sources:
-  - https://github.com/multica-ai/multica
+  - https://github.com/jerry-halo2026/morchat.co
 keywords:
   - multica
   - issue-tracker

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSidebar } from "@multica/ui/components/ui/sidebar";
+import { useSidebar } from "@morechat/ui/components/ui/sidebar";
 import {
   getShortcut,
   isEditableShortcutTarget,
@@ -9,12 +9,12 @@ import {
   SHORTCUT_ACTION_BY_ID,
   useShortcutStore,
   type ShortcutActionId,
-} from "@multica/core/shortcuts";
-import { useChatStore } from "@multica/core/chat";
-import { useSearchStore } from "@multica/core/command-bar";
-import { useModalStore } from "@multica/core/modals";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { isImeComposing } from "@multica/core/utils";
+} from "@morechat/core/shortcuts";
+import { useChatStore } from "@morechat/core/chat";
+import { useSearchStore } from "@morechat/core/command-bar";
+import { useModalStore } from "@morechat/core/modals";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { isImeComposing } from "@morechat/core/utils";
 import { isFloatingChatRouteSuppressed } from "../chat/floating-chat-visibility";
 import { useAppShell } from "./app-shell-context";
 import { openCreateIssueForPath } from "./global-actions";

@@ -1,8 +1,8 @@
 "use client";
 
-import { Archive, ArchiveRestore, Check, CircleDot, ExternalLink } from "@multica/ui/icons";
-import { paths, useWorkspaceSlug } from "@multica/core/paths";
-import type { InboxItem } from "@multica/core/types";
+import { Archive, ArchiveRestore, Check, CircleDot, ExternalLink } from "@morechat/ui/icons";
+import { paths, useWorkspaceSlug } from "@morechat/core/paths";
+import type { InboxItem } from "@morechat/core/types";
 import type { RowActionItem } from "../../common/row-actions-menu";
 import { useIntentNavigate } from "../../navigation";
 import { useT } from "../../i18n";

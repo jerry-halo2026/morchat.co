@@ -13,14 +13,14 @@ import {
   Palette,
   Sun,
   User,
-} from "@multica/ui/icons";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspacePaths } from "@multica/core/paths";
-import type { SupportedLocale } from "@multica/core/i18n";
-import { resolvePublicFileUrl } from "@multica/core/workspace/avatar-url";
-import { ActorAvatar } from "@multica/ui/components/common/actor-avatar";
-import { useTheme } from "@multica/ui/components/common/theme-provider";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+} from "@morechat/ui/icons";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import type { SupportedLocale } from "@morechat/core/i18n";
+import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
+import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
+import { useTheme } from "@morechat/ui/components/common/theme-provider";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,8 +33,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { cn } from "@morechat/ui/lib/utils";
 import { useLogout } from "../auth";
 import { docsLocalePrefix } from "../common/docs-locale";
 import { useLanguageSwitch } from "../common/use-language-switch";

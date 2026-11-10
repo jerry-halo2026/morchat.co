@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/multica-ai/multica/server/internal/entitlement"
-	"github.com/multica-ai/multica/server/internal/entitlement/entitlementtest"
-	"github.com/multica-ai/multica/server/internal/service"
-	"github.com/multica-ai/multica/server/pkg/agent"
+	"github.com/jerry-halo2026/morchat.co/server/internal/entitlement"
+	"github.com/jerry-halo2026/morchat.co/server/internal/entitlement/entitlementtest"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
 )
 
 // TestQuickCreateIssueParentTrustBoundary locks the server-side trust boundary

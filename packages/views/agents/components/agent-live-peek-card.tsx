@@ -1,20 +1,20 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ActorAvatar as ActorAvatarBase } from "@multica/ui/components/common/actor-avatar";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { agentListOptions } from "@multica/core/workspace/queries";
-import { resolvePublicFileUrl } from "@multica/core/workspace/avatar-url";
+import { ActorAvatar as ActorAvatarBase } from "@morechat/ui/components/common/actor-avatar";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { agentListOptions } from "@morechat/core/workspace/queries";
+import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
 import {
   agentTaskSnapshotOptions,
   useAgentPresenceDetail,
-} from "@multica/core/agents";
-import { issueDetailOptions } from "@multica/core/issues";
-import type { AgentTask } from "@multica/core/types";
-import { AlertTriangle } from "@multica/ui/icons";
+} from "@morechat/core/agents";
+import { issueDetailOptions } from "@morechat/core/issues";
+import type { AgentTask } from "@morechat/core/types";
+import { AlertTriangle } from "@morechat/ui/icons";
 import { AppLink } from "../../navigation";
 import { useT, useTimeAgo } from "../../i18n";
 import { availabilityConfig, workloadConfig } from "../presence";

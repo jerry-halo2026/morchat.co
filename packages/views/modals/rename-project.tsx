@@ -9,11 +9,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Button } from "@multica/ui/components/ui/button";
-import { Input } from "@multica/ui/components/ui/input";
-import { Spinner } from "@multica/ui/components/ui/spinner";
-import { useUpdateProject } from "@multica/core/projects/mutations";
+} from "@morechat/ui/components/ui/dialog";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Spinner } from "@morechat/ui/components/ui/spinner";
+import { useUpdateProject } from "@morechat/core/projects/mutations";
 import { useT } from "../i18n";
 
 /**

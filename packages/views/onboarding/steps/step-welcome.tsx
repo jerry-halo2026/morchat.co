@@ -1,15 +1,15 @@
 "use client";
 
-import { statusCategoryOfKey } from "@multica/core/issues";
+import { statusCategoryOfKey } from "@morechat/core/issues";
 import { useState } from "react";
-import { ArrowRight, Download, Loader2 } from "@multica/ui/icons";
-import { Button, buttonVariants } from "@multica/ui/components/ui/button";
-import { MulticaWordmark } from "@multica/ui/components/common/multica-wordmark";
-import { MulticaStarRow } from "@multica/ui/components/common/multica-graphics";
-import { cn } from "@multica/ui/lib/utils";
-import { DragStrip } from "@multica/views/platform";
-import { STATUS_CONFIG } from "@multica/core/issues/config";
-import type { BuiltInIssueStatus } from "@multica/core/types";
+import { ArrowRight, Download, Loader2 } from "@morechat/ui/icons";
+import { Button, buttonVariants } from "@morechat/ui/components/ui/button";
+import { MorechatWordmark } from "@morechat/ui/components/common/morechat-wordmark";
+import { MorechatArcade } from "@morechat/ui/components/common/morechat-graphics";
+import { cn } from "@morechat/ui/lib/utils";
+import { DragStrip } from "@morechat/views/platform";
+import { STATUS_CONFIG } from "@morechat/core/issues/config";
+import type { BuiltInIssueStatus } from "@morechat/core/types";
 import { StatusIcon } from "../../issues/components/status-icon";
 import { ProviderLogo } from "../../runtimes/components/provider-logo";
 import { useT } from "../../i18n";
@@ -79,8 +79,7 @@ export function StepWelcome({
         <DragStrip />
         <div className="flex flex-1 flex-col justify-center px-6 pb-12 sm:px-10 md:px-20 lg:px-20 xl:px-24">
           <div className="flex w-full max-w-[540px] flex-col gap-8">
-            <MulticaWordmark
-              writeDelayMs={200}
+            <MorechatWordmark
               title={t(($) => $.welcome.wordmark)}
               className="h-[35px] self-start text-foreground"
             />
@@ -173,7 +172,7 @@ export function StepWelcome({
           centers the mock cards vertically, mirroring the left
           column's copy-center layout. */}
       <div className="relative hidden border-l bg-muted/40 lg:flex lg:flex-1 lg:flex-col lg:overflow-hidden">
-        <MulticaStarRow
+        <MorechatArcade
           count={9}
           className="pointer-events-none absolute -bottom-10 left-1/2 w-[130%] -translate-x-1/2 text-muted"
         />

@@ -1,8 +1,8 @@
 "use client";
 
 import type { ComponentType, ReactNode } from "react";
-import { ArrowUpRight, Check, Star } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
+import { ArrowUpRight, Check, Star } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
 import { useLocale } from "../../i18n";
 import { PROVIDER_MARKS } from "../../site/demo/mock-kit";
 import { ActionLink, Container, Eyebrow, actionClassName, focusRing } from "../../site/primitives";
@@ -141,7 +141,7 @@ export function DownloadStarted({
             <div className="relative">
               <p className="flex items-center gap-2 font-site-mono text-[0.8125rem] text-site-ink-secondary">
                 <GitHubMark className="size-4 text-site-ink" />
-                multica-ai/multica
+                jerry-halo2026/morchat.co
               </p>
               <h2 className="mt-4 font-site-display text-site-title text-site-ink text-balance">{d.community.githubTitle}</h2>
               <p className="mt-2 max-w-[28rem] text-site-small text-site-muted text-pretty">{d.community.githubBody}</p>

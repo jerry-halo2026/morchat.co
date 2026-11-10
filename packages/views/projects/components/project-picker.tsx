@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { FolderKanban } from "@multica/ui/icons";
+import { FolderKanban } from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { projectListOptions } from "@multica/core/projects/queries";
-import { useWorkspaceId } from "@multica/core/hooks";
-import type { UpdateIssueRequest } from "@multica/core/types";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import type { UpdateIssueRequest } from "@morechat/core/types";
 import { ProjectIcon } from "./project-icon";
 import {
   PropertyPicker,

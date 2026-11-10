@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 
 export function RadioMark({ selected }: { selected: boolean }) {
   return (

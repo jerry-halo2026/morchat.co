@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/events"
-	"github.com/multica-ai/multica/server/internal/testutil"
-	"github.com/multica-ai/multica/server/pkg/llm"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/events"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/llm"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 func TestChannelChatTitle_UsesCurrentSourceForLLMAndPublishesAfterCAS(t *testing.T) {

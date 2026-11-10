@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/auth"
+	"github.com/jerry-halo2026/morchat.co/server/internal/auth"
 )
 
 // TestCredentialRoutesRejectTaskToken exercises the real Auth -> router ->

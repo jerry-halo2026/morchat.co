@@ -2,16 +2,16 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { api } from "@multica/core/api";
-import { I18nProvider } from "@multica/core/i18n/react";
-import type { Issue, IssueProperty } from "@multica/core/types";
+import { api } from "@morechat/core/api";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import type { Issue, IssueProperty } from "@morechat/core/types";
 import enIssues from "../../../locales/en/issues.json";
 import { CustomPropertyValueEditor, CustomPropertyValueInput } from "./custom-property-picker";
 
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: { setIssueProperty: vi.fn(), unsetIssueProperty: vi.fn() },
 }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
 
 const property: IssueProperty = {
   id: "p-1", workspace_id: "ws-1", name: "Related links", type: "multi_url",

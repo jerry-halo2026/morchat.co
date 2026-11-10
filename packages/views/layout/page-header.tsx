@@ -1,8 +1,8 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { cn } from "@multica/ui/lib/utils";
-import { SidebarTrigger, useSidebarSafe } from "@multica/ui/components/ui/sidebar";
+import { cn } from "@morechat/ui/lib/utils";
+import { SidebarTrigger, useSidebarSafe } from "@morechat/ui/components/ui/sidebar";
 import { ActionShortcutKeycaps } from "../common/shortcut-keycaps";
 import {
   useWindowTitleBar,

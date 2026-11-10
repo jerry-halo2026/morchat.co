@@ -2,18 +2,18 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Tag, Plus, Settings2 } from "@multica/ui/icons";
+import { Tag, Plus, Settings2 } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import type { Label } from "@multica/core/types";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
+import type { Label } from "@morechat/core/types";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
 import {
   labelListOptions,
   issueLabelsOptions,
   useAttachLabel,
   useDetachLabel,
   useCreateLabel,
-} from "@multica/core/labels";
+} from "@morechat/core/labels";
 import { LabelChip } from "../../../labels/label-chip";
 import { useNavigation } from "../../../navigation";
 import {

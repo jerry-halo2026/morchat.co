@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { AgentRuntime } from "@multica/core/types";
-import { useWorkspaceId } from "@multica/core/hooks";
+import type { AgentRuntime } from "@morechat/core/types";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   AGENT_MAX_CONCURRENT_TASKS_MAX,
   AGENT_MAX_CONCURRENT_TASKS_MIN,
-} from "@multica/core/agents";
-import { useUpdateRuntime } from "@multica/core/runtimes/mutations";
-import { isImeComposing } from "@multica/core/utils";
-import { Input } from "@multica/ui/components/ui/input";
+} from "@morechat/core/agents";
+import { useUpdateRuntime } from "@morechat/core/runtimes/mutations";
+import { isImeComposing } from "@morechat/core/utils";
+import { Input } from "@morechat/ui/components/ui/input";
 import { useT } from "../../i18n";
 
 /**

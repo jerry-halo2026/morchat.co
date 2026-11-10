@@ -2,17 +2,17 @@
 
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, ListTree, Settings, Workflow } from "@multica/ui/icons";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
+import { ChevronRight, ListTree, Settings, Workflow } from "@morechat/ui/icons";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
 import {
   resolveProjectWorkflow,
   statusAcceptsHandoff,
   useIssueWorkflows,
-} from "@multica/core/issue-workflows";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { projectListOptions } from "@multica/core/projects/queries";
-import type { IssueWorkflow, Project } from "@multica/core/types";
+} from "@morechat/core/issue-workflows";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import type { IssueWorkflow, Project } from "@morechat/core/types";
 import {
   DropdownMenuGroup,
   DropdownMenuItem,
@@ -21,9 +21,9 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@multica/ui/components/ui/sheet";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@morechat/ui/components/ui/sheet";
+import { cn } from "@morechat/ui/lib/utils";
 import { ActorAvatar } from "../common/actor-avatar";
 import { StatusIcon } from "../issues/components/status-icon";
 import { useStatusLabel } from "../issues/utils/status-label";

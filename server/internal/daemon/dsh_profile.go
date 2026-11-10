@@ -14,9 +14,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/multica-ai/multica/server/internal/daemon/processtree"
-	"github.com/multica-ai/multica/server/pkg/agent"
-	"github.com/multica-ai/multica/server/pkg/redact"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/processtree"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/redact"
 )
 
 // The DSH backend drives `dsh --profile multica --stdio`, and that profile is

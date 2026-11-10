@@ -17,9 +17,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/integrations/channel/engine"
-	"github.com/multica-ai/multica/server/internal/integrations/wecom"
-	"github.com/multica-ai/multica/server/internal/util/secretbox"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel/engine"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/wecom"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util/secretbox"
 )
 
 // TestWecomScanBeginErrorMatrix pins status + code for every refusal the scan

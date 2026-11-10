@@ -1,10 +1,10 @@
 "use client";
 
-import { Crown, Plus, Users } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { ActorAvatar } from "@multica/ui/components/common/actor-avatar";
-import { formatAvatarEmoji } from "@multica/ui/lib/avatar-emoji";
-import { cn } from "@multica/ui/lib/utils";
+import { Crown, Plus, Users } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
+import { formatAvatarEmoji } from "@morechat/ui/lib/avatar-emoji";
+import { cn } from "@morechat/ui/lib/utils";
 import {
   FeatureIntro,
   FeatureIntroCarousel,

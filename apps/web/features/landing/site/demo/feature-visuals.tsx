@@ -15,10 +15,10 @@ import {
   Workflow,
   Zap,
   type IconComponent,
-} from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { MulticaIcon } from "@multica/ui/components/common/multica-icon";
-import { StatusIcon } from "@multica/views/issues/components/status-icon";
+} from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { MorechatIcon } from "@morechat/ui/components/common/morechat-icon";
+import { StatusIcon } from "@morechat/views/issues/components/status-icon";
 import { useLocale } from "../../i18n";
 import type { Status } from "./hero-board";
 import {
@@ -51,7 +51,7 @@ import {
 } from "./mock-kit";
 
 /*
- * Product screens for the feature cards. Each one is the Multica app (see
+ * Product screens for the feature cards. Each one is the morechat.co app (see
  * AppWindow) opened on the page the card is about, starting just inside the
  * card's top-left corner and running off the right and bottom edges like a
  * cropped screenshot. The canvas zooms with the card (see ZoomCanvas): keep
@@ -107,7 +107,7 @@ export function RuntimesVisual() {
     { name: "build-02", icon: Server, detail: copy.server, tools: ["Claude Code", "Codex", "OpenCode"], fresh: true },
     { name: copy.laptop, icon: Laptop, detail: copy.thisDevice, tools: ["Claude Code", "Cursor"] },
   ];
-  const cloud: Runtime[] = [{ name: "Multica Cloud", icon: Cloud, detail: copy.sandboxes, tools: ["Claude Code", "Codex"] }];
+  const cloud: Runtime[] = [{ name: "morechat.co Cloud", icon: Cloud, detail: copy.sandboxes, tools: ["Claude Code", "Codex"] }];
   return (
     <Screen active="team">
       <PageHeader icon={Server} title={copy.title} filter={false}>
@@ -225,9 +225,9 @@ export function WorkflowVisual() {
 // --- Chat -------------------------------------------------------------------
 
 /*
- * The chat card is the team's own chat app, not Multica: a Slack-style
+ * The chat card is the team's own chat app, not morechat.co: a Slack-style
  * workspace where the agent is an installed app, so the frame stays generic
- * (no vendor logo) and only Multica's link preview is ours.
+ * (no vendor logo) and only morechat.co's link preview is ours.
  */
 
 const CHANNELS = ["general", "eng-support", "releases", "random"];
@@ -297,9 +297,9 @@ export function ChatVisual() {
             <p className="px-1.5 pb-1 text-micro">{copy.apps}</p>
             <p className="flex items-center gap-1.5 rounded-md px-1.5 py-1">
               <span className="flex size-3.5 shrink-0 items-center justify-center rounded-sm bg-white text-[#3f0e40]">
-                <MulticaIcon className="size-2.5" />
+                <MorechatIcon className="size-2.5" />
               </span>
-              Multica
+              morechat.co
             </p>
           </div>
         </div>
@@ -318,7 +318,7 @@ export function ChatVisual() {
               {copy.reply}
               <div className="mt-1.5 border-l-4 border-border pl-2.5">
                 <p className="flex items-center gap-1 text-micro text-muted-foreground">
-                  <MulticaIcon className="size-2.5" /> Multica
+                  <MorechatIcon className="size-2.5" /> morechat.co
                 </p>
                 <p className="mt-0.5 truncate font-bold text-[#1264a3]">ACM-151 {copy.issue}</p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-caption text-muted-foreground">

@@ -3,31 +3,31 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api, clientErrorMessage } from "@multica/core/api";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { useSetWorkflowHandoff, workflowNextStatus } from "@multica/core/issue-workflows";
-import { projectListOptions } from "@multica/core/projects/queries";
-import { agentListOptions, memberListOptions, squadListOptions } from "@multica/core/workspace/queries";
-import type { IssueWorkflow, IssueWorkflowStep, Project } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
+import { api, clientErrorMessage } from "@morechat/core/api";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { useSetWorkflowHandoff, workflowNextStatus } from "@morechat/core/issue-workflows";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import { agentListOptions, memberListOptions, squadListOptions } from "@morechat/core/workspace/queries";
+import type { IssueWorkflow, IssueWorkflowStep, Project } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-} from "@multica/ui/components/ui/select";
-import { Spinner } from "@multica/ui/components/ui/spinner";
-import { Textarea } from "@multica/ui/components/ui/textarea";
-import { cn } from "@multica/ui/lib/utils";
-import { ChevronDown } from "@multica/ui/icons";
+} from "@morechat/ui/components/ui/select";
+import { Spinner } from "@morechat/ui/components/ui/spinner";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
+import { cn } from "@morechat/ui/lib/utils";
+import { ChevronDown } from "@morechat/ui/icons";
 import { ActorAvatar } from "../common/actor-avatar";
 import { PickerEmpty, PickerItem, PickerSection, PropertyPicker } from "../issues/components/pickers/property-picker";
 import { StatusIcon } from "../issues/components/status-icon";

@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/multica-ai/multica/server/internal/logger"
-	obsmetrics "github.com/multica-ai/multica/server/internal/metrics"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/logger"
+	obsmetrics "github.com/jerry-halo2026/morchat.co/server/internal/metrics"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // Model list request store
@@ -29,7 +29,7 @@ import (
 // (Multica Cloud) MUST use the Redis-backed implementation, otherwise the
 // pending request is invisible to whichever replica receives the next call
 // and the picker shows "No models available" (regression: see issue
-// review on multica-ai/multica#2009).
+// review on jerry-halo2026/morchat.co#2009).
 
 // ModelListStatus represents the lifecycle of a model list request.
 type ModelListStatus string

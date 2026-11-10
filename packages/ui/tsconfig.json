@@ -1,5 +1,5 @@
 {
-  "extends": "@multica/tsconfig/react-library.json",
+  "extends": "@morechat/tsconfig/react-library.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": ".",
@@ -7,8 +7,8 @@
       "@/lib/utils": ["./lib/utils.ts"],
       "@/hooks/*": ["./hooks/*"],
       "@/components/ui/*": ["./components/ui/*"],
-      "@multica/ui/components": ["./components"],
-      "@multica/ui/lib": ["./lib"]
+      "@morechat/ui/components": ["./components"],
+      "@morechat/ui/lib": ["./lib"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

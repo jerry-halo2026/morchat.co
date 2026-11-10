@@ -12,11 +12,11 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@multica/ui/components",
-    "ui": "@multica/ui/components/ui",
-    "hooks": "@multica/ui/hooks",
-    "lib": "@multica/ui/lib",
-    "utils": "@multica/ui/lib/utils"
+    "components": "@morechat/ui/components",
+    "ui": "@morechat/ui/components/ui",
+    "hooks": "@morechat/ui/hooks",
+    "lib": "@morechat/ui/lib",
+    "utils": "@morechat/ui/lib/utils"
   },
   "registries": {
     "@reui": {

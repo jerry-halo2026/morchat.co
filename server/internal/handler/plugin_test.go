@@ -12,10 +12,10 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/multica-ai/multica/server/internal/middleware"
-	"github.com/multica-ai/multica/server/internal/service"
-	"github.com/multica-ai/multica/server/internal/util/secretbox"
-	"github.com/multica-ai/multica/server/pkg/plugincontract"
+	"github.com/jerry-halo2026/morchat.co/server/internal/middleware"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util/secretbox"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/plugincontract"
 )
 
 // The reference manifest for handler tests declares only capabilities this
@@ -478,7 +478,7 @@ func TestPluginInstallConfigureAndUninstall(t *testing.T) {
 	}
 
 	params := map[string]string{"id": testWorkspaceID, "installationId": installed.ID}
-	configure, _ := json.Marshal(map[string]any{"values": map[string]any{"repo": "multica-ai/multica", "token": "sk-super-secret"}})
+	configure, _ := json.Marshal(map[string]any{"values": map[string]any{"repo": "jerry-halo2026/morchat.co", "token": "sk-super-secret"}})
 	recorder = httptest.NewRecorder()
 	testHandler.ConfigurePlugin(recorder, pluginHandlerRequest(http.MethodPut, "/plugins/config", configure, params))
 	if recorder.Code != http.StatusOK {
@@ -496,7 +496,7 @@ func TestPluginInstallConfigureAndUninstall(t *testing.T) {
 	if err := json.Unmarshal(recorder.Body.Bytes(), &configured); err != nil {
 		t.Fatalf("decode configured installation: %v", err)
 	}
-	if configured.Config["repo"] != "multica-ai/multica" {
+	if configured.Config["repo"] != "jerry-halo2026/morchat.co" {
 		t.Fatalf("plain config value was not stored: %v", configured.Config)
 	}
 	if _, present := configured.Config["token"]; present {

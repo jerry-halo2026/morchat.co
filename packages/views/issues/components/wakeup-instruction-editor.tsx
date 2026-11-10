@@ -2,19 +2,19 @@
 
 import { useId, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Pencil } from "@multica/ui/icons";
+import { Pencil } from "@morechat/ui/icons";
 import {
   issueWakeupsOptions,
   useEditWakeupInstruction,
-} from "@multica/core/issues/wakeups";
-import type { IssueWakeup } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
-import { Textarea } from "@multica/ui/components/ui/textarea";
+} from "@morechat/core/issues/wakeups";
+import type { IssueWakeup } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
+} from "@morechat/ui/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +22,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogTrigger,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import { useT } from "../../i18n";
 import { useWakeupText } from "./wakeup-presentation";
 

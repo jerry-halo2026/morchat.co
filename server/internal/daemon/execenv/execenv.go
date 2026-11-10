@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/runtimeapps"
+	"github.com/jerry-halo2026/morchat.co/server/internal/runtimeapps"
 )
 
 // RepoContextForEnv describes a workspace repo available for checkout.

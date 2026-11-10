@@ -2,16 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import Cropper, { type Area, type Point } from "react-easy-crop";
-import { Loader2, Minus, Plus, RotateCw } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { Slider } from "@multica/ui/components/ui/slider";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { Loader2, Minus, Plus, RotateCw } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Slider } from "@morechat/ui/components/ui/slider";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import { useT } from "../i18n";
 import {
   AVATAR_OUTPUT_SIZE,

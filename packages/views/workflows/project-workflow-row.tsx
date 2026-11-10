@@ -2,14 +2,14 @@
 
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronDown, Settings, Workflow } from "@multica/ui/icons";
+import { Check, ChevronDown, Settings, Workflow } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { api, clientErrorMessage } from "@multica/core/api";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { handoffStepCount, resolveProjectWorkflow, useIssueWorkflows, useSetProjectWorkflow } from "@multica/core/issue-workflows";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { projectListOptions } from "@multica/core/projects/queries";
-import type { IssueWorkflow, IssueWorkflowMappingPlan, Project } from "@multica/core/types";
+import { api, clientErrorMessage } from "@morechat/core/api";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { handoffStepCount, resolveProjectWorkflow, useIssueWorkflows, useSetProjectWorkflow } from "@morechat/core/issue-workflows";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import type { IssueWorkflow, IssueWorkflowMappingPlan, Project } from "@morechat/core/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +18,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import { useNavigation } from "../navigation";
 import { useT } from "../i18n";
 import { WorkflowMappingDialog } from "./workflow-mapping-dialog";

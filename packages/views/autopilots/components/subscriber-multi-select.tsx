@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, X } from "@multica/ui/icons";
+import { Plus, X } from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { memberListOptions } from "@multica/core/workspace/queries";
-import { cn } from "@multica/ui/lib/utils";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { memberListOptions } from "@morechat/core/workspace/queries";
+import { cn } from "@morechat/ui/lib/utils";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 import { ActorAvatar } from "../../common/actor-avatar";
 import {
   PropertyPicker,

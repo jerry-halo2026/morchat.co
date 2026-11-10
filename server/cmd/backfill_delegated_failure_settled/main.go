@@ -44,8 +44,8 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/multica-ai/multica/server/internal/delegatedrecoverybackfill"
-	"github.com/multica-ai/multica/server/internal/logger"
+	"github.com/jerry-halo2026/morchat.co/server/internal/delegatedrecoverybackfill"
+	"github.com/jerry-halo2026/morchat.co/server/internal/logger"
 )
 
 const advisoryLockName = "delegated_failure_recovery_settled_backfill"

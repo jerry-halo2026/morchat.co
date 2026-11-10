@@ -160,7 +160,7 @@ describe("AuthInitializer recovery", () => {
     if (commands.status !== "ready") throw new Error("expected self-host commands");
     expect(commands.tokenCmd).toContain("server_url https://api.example.com");
     expect(commands.tokenCmd).toContain("app_url https://app.example.com");
-    expect(commands.tokenCmd).not.toContain("multica.ai");
+    expect(commands.tokenCmd).not.toContain("morechat.co");
   });
 
   it.each([

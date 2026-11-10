@@ -12,14 +12,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { setApiInstance } from "@multica/core/api";
-import type { ApiClient } from "@multica/core/api/client";
-import { EMPTY_SKILL_FILTERS } from "@multica/core/skills/stores";
-import type { Label } from "@multica/core/types";
+import { setApiInstance } from "@morechat/core/api";
+import type { ApiClient } from "@morechat/core/api/client";
+import { EMPTY_SKILL_FILTERS } from "@morechat/core/skills/stores";
+import type { Label } from "@morechat/core/types";
 import { renderWithI18n } from "../../test/i18n";
 import { SkillFilterMenu } from "./skill-list-controls";
 
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => "ws-1",
 }));
 // The label catalog dialog is mounted closed; it is not what this exercises.

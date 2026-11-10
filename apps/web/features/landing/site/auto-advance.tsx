@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FocusEvent, type PointerEvent } from "react";
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 import { usePrefersReducedMotion } from "./demo/mock-kit";
 
 /**

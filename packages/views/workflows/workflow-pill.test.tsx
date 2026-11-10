@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { IssueWorkflow } from "@multica/core/types";
+import type { IssueWorkflow } from "@morechat/core/types";
 import { renderWithI18n } from "../test/i18n";
 import { WorkflowPill } from "./workflow-pill";
 
@@ -19,9 +19,9 @@ function workflow(id: string, name: string, isDefault: boolean): IssueWorkflow {
   };
 }
 
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
 const workflows = vi.hoisted(() => ({ list: [] as IssueWorkflow[] }));
-vi.mock("@multica/core/issue-workflows", () => ({
+vi.mock("@morechat/core/issue-workflows", () => ({
   useIssueWorkflows: () => ({ workflows: workflows.list }),
 }));
 

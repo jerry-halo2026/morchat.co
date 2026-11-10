@@ -260,7 +260,7 @@ desktop_app_data_root() {
 }
 
 desktop_user_data_dir() {
-  printf '%s/Multica Canary %s' "$(desktop_app_data_root)" "$1"
+  printf '%s/morechat.co Canary %s' "$(desktop_app_data_root)" "$1"
 }
 
 # Desktop's daemon manager derives its own CLI profile from the backend URL

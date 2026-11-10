@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { IssueView } from "@multica/core/api/schemas";
-import { myIssuesViewStore } from "@multica/core/issues/stores/my-issues-view-store";
-import { ViewStoreProvider } from "@multica/core/issues/stores/view-store-context";
-import { getIssueSurfaceViewStore } from "@multica/core/issues/stores/surface-view-store";
-import { issueViewSeedDefinition } from "@multica/core/issue-views/definition";
-import { useIssueViewRenameStore } from "@multica/core/issue-views/rename-store";
-import { useIssueViewEditStore } from "@multica/core/issue-views/edit-store";
+import type { IssueView } from "@morechat/core/api/schemas";
+import { myIssuesViewStore } from "@morechat/core/issues/stores/my-issues-view-store";
+import { ViewStoreProvider } from "@morechat/core/issues/stores/view-store-context";
+import { getIssueSurfaceViewStore } from "@morechat/core/issues/stores/surface-view-store";
+import { issueViewSeedDefinition } from "@morechat/core/issue-views/definition";
+import { useIssueViewRenameStore } from "@morechat/core/issue-views/rename-store";
+import { useIssueViewEditStore } from "@morechat/core/issue-views/edit-store";
 import { NavigationProvider, type NavigationAdapter } from "../navigation";
 import { renderWithI18n } from "../test/i18n";
 import type { IssueSurfaceController } from "../issues/surface/use-issue-surface-controller";
@@ -17,12 +17,12 @@ const copyLink = vi.hoisted(() => vi.fn());
 const rename = vi.hoisted(() => vi.fn());
 const active = vi.hoisted(() => ({ view: null as IssueView | null }));
 
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
-vi.mock("@multica/core/paths", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/paths")>();
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/paths", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/paths")>();
   return { ...actual, useWorkspacePaths: () => actual.paths.workspace("acme") };
 });
-vi.mock("@multica/core/issue-views/use-active-view", () => ({
+vi.mock("@morechat/core/issue-views/use-active-view", () => ({
   useActiveIssueView: () => ({ activeView: active.view, setActive: vi.fn(), missing: false }),
 }));
 vi.mock("./use-view-actions", () => ({

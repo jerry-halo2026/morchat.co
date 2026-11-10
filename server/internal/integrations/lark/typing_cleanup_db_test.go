@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	dbfx "github.com/multica-ai/multica/server/internal/testutil"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	dbfx "github.com/jerry-halo2026/morchat.co/server/internal/testutil"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 type retryTypingAPI struct {

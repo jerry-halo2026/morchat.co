@@ -23,10 +23,10 @@ import {
   ListTree,
   Trash2,
   Users,
-} from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Separator } from "@multica/ui/components/ui/separator";
+} from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Separator } from "@morechat/ui/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,45 +40,45 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { cn } from "@multica/ui/lib/utils";
-import type { CreateIssueViewRequest, IssueView } from "@multica/core/api/schemas";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { useActiveIssueView } from "@multica/core/issue-views/use-active-view";
-import type { IssueViewScope } from "@multica/core/issue-views/queries";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { cn } from "@morechat/ui/lib/utils";
+import type { CreateIssueViewRequest, IssueView } from "@morechat/core/api/schemas";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { useActiveIssueView } from "@morechat/core/issue-views/use-active-view";
+import type { IssueViewScope } from "@morechat/core/issue-views/queries";
 import {
   builtinViewItemId,
   savedViewItemId,
   type BuiltinViewKey,
-} from "@multica/core/issue-views/sidebar-views";
-import { issueViewTarget } from "@multica/core/issue-views/view-target";
-import { isUnreadView } from "@multica/core/issue-views/unread-view";
+} from "@morechat/core/issue-views/sidebar-views";
+import { issueViewTarget } from "@morechat/core/issue-views/view-target";
+import { isUnreadView } from "@morechat/core/issue-views/unread-view";
 import {
   isIssueViewModified,
   isIssueViewUndefined,
   issueViewDefinitionFromState,
   issueViewSeedDefinition,
   modifiedFilterDimensions,
-} from "@multica/core/issue-views/definition";
-import { useIssueViewRenameStore } from "@multica/core/issue-views/rename-store";
-import { useIssueViewEditStore } from "@multica/core/issue-views/edit-store";
+} from "@morechat/core/issue-views/definition";
+import { useIssueViewRenameStore } from "@morechat/core/issue-views/rename-store";
+import { useIssueViewEditStore } from "@morechat/core/issue-views/edit-store";
 import {
   myIssuesViewStore,
   type MyIssuesScope,
-} from "@multica/core/issues/stores/my-issues-view-store";
+} from "@morechat/core/issues/stores/my-issues-view-store";
 import {
   useIssuesScope,
   useIssuesScopeStore,
   type IssuesScope,
-} from "@multica/core/issues/stores/issues-scope-store";
-import { actorKindForViewVariant } from "@multica/core/issues/surface/scope";
-import { useViewStore, useViewStoreApi } from "@multica/core/issues/stores/view-store-context";
+} from "@morechat/core/issues/stores/issues-scope-store";
+import { actorKindForViewVariant } from "@morechat/core/issues/surface/scope";
+import { useViewStore, useViewStoreApi } from "@morechat/core/issues/stores/view-store-context";
 import {
   countAdvancedConditions,
   type NegatableFilterDimension,
-} from "@multica/core/issues/stores/filter-tree";
-import type { Project } from "@multica/core/types";
+} from "@morechat/core/issues/stores/filter-tree";
+import type { Project } from "@morechat/core/types";
 import { PageHeader } from "../layout/page-header";
 import { RefreshablePageIcon } from "../layout/refreshable-page-icon";
 import { ActionShortcutKeycaps } from "../common/shortcut-keycaps";

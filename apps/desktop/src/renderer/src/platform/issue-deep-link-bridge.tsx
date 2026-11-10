@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceList } from "@multica/core/workspace";
-import { useT } from "@multica/views/i18n";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceList } from "@morechat/core/workspace";
+import { useT } from "@morechat/views/i18n";
 import { parseIssueDeepLink } from "../../../shared/issue-deep-link";
 import { routeIssueDeepLinkPath } from "./navigation";
 

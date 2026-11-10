@@ -1,14 +1,14 @@
 "use client";
 
 import type { ReactNode, SyntheticEvent } from "react";
-import { ArrowUp, Loader2, Square } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
+import { ArrowUp, Loader2, Square } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/tooltip";
+import { cn } from "@morechat/ui/lib/utils";
 
 interface SubmitButtonProps {
   onClick: () => void;
@@ -35,7 +35,7 @@ interface SubmitButtonProps {
    * Tooltip shown over the send button when idle. Pass a string or a node
    * (e.g. `Send · ⌘↵`). Omit to render no tooltip.
    * Callers compose the shortcut hint themselves to keep this component
-   * free of `@multica/core` (platform-detection) and i18n imports.
+   * free of `@morechat/core` (platform-detection) and i18n imports.
    */
   tooltip?: ReactNode;
   /** Accessible name for the icon-only submit button. */

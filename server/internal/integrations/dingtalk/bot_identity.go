@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/sync/singleflight"
 
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 const (

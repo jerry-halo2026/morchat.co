@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Attachment } from "@multica/core/types";
+import type { Attachment } from "@morechat/core/types";
 
 const state = vi.hoisted(() => ({
   contexts: new Map<unknown, unknown>(),

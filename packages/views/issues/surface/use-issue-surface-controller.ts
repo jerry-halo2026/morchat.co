@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { hashKey, keepPreviousData, useQuery } from "@tanstack/react-query";
-import { api } from "@multica/core/api";
+import { api } from "@morechat/core/api";
 import type {
   Issue,
   IssueStatus,
@@ -13,14 +13,14 @@ import type {
   IssueTableQuerySpec,
   Project,
   WorkingAgentSummary,
-} from "@multica/core/types";
-import { workspaceWorkingAgentsOptions } from "@multica/core/agents";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
+} from "@morechat/core/types";
+import { workspaceWorkingAgentsOptions } from "@morechat/core/agents";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
 import { useColumnWorkflow, workflowColumns } from "../utils/workflow-columns";
-import { statusFilterColumns, visibleStatusKeys } from "@multica/core/issues";
-import { dateOnlyToLocalDate, todayDateOnly } from "@multica/core/issues/date";
-import { useIssueUnreadIds } from "@multica/core/issues/unread";
+import { statusFilterColumns, visibleStatusKeys } from "@morechat/core/issues";
+import { dateOnlyToLocalDate, todayDateOnly } from "@morechat/core/issues/date";
+import { useIssueUnreadIds } from "@morechat/core/issues/unread";
 import {
   advancedFilterToTableQuery,
   advancedFilterUsesField,
@@ -29,37 +29,37 @@ import {
   statusColumnFilter,
   propertyIdOfField,
   withoutAdvancedFilterConditions,
-} from "@multica/core/issues/stores/filter-tree";
-import type { IssueSortParam } from "@multica/core/issues/queries";
-import { issueTableFacetsOptions } from "@multica/core/issues/queries";
+} from "@morechat/core/issues/stores/filter-tree";
+import type { IssueSortParam } from "@morechat/core/issues/queries";
+import { issueTableFacetsOptions } from "@morechat/core/issues/queries";
 import {
   buildIssueSurfaceQueryPlan,
   type IssueSurfaceQueryPlan,
-} from "@multica/core/issues/surface/query-plan";
+} from "@morechat/core/issues/surface/query-plan";
 import {
   assigneeTypesForActorKind,
   type IssueScope,
-} from "@multica/core/issues/surface/scope";
+} from "@morechat/core/issues/surface/scope";
 import {
   combineFilterDependencies,
   filterDependencyState,
   statusCatalogSource,
   type FilterDependencyState,
-} from "@multica/core/issues/surface/filter-dependency";
+} from "@morechat/core/issues/surface/filter-dependency";
 import type {
   IssueDateFilter,
   NegatableFilterDimension,
   SortField,
-} from "@multica/core/issues/stores/view-store";
-import { propertyListOptions } from "@multica/core/properties";
+} from "@morechat/core/issues/stores/view-store";
+import { propertyListOptions } from "@morechat/core/properties";
 import {
   effectiveNegatedFilters,
   propertyIdFromViewKey,
-} from "@multica/core/issues/stores/view-store";
-import { useViewStore } from "@multica/core/issues/stores/view-store-context";
-import { useAuthStore } from "@multica/core/auth";
-import { agentListOptions } from "@multica/core/workspace/queries";
-import { subscribedIssueIdsOptions } from "@multica/core/issues/subscribed";
+} from "@morechat/core/issues/stores/view-store";
+import { useViewStore } from "@morechat/core/issues/stores/view-store-context";
+import { useAuthStore } from "@morechat/core/auth";
+import { agentListOptions } from "@morechat/core/workspace/queries";
+import { subscribedIssueIdsOptions } from "@morechat/core/issues/subscribed";
 import { useShallow } from "zustand/react/shallow";
 import type { IssueFilters, IssueRelationContext } from "../utils/filter";
 import type { ChildProgress } from "../components/list-row";

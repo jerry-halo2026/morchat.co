@@ -1,10 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle } from "@multica/ui/icons";
-import { pluginInvocationsOptions } from "@multica/core/plugins";
-import type { PluginHook, PluginInvocation } from "@multica/core/types";
-import { cn } from "@multica/ui/lib/utils";
+import { AlertTriangle } from "@morechat/ui/icons";
+import { pluginInvocationsOptions } from "@morechat/core/plugins";
+import type { PluginHook, PluginInvocation } from "@morechat/core/types";
+import { cn } from "@morechat/ui/lib/utils";
 import { useLocale, useT } from "../i18n";
 
 /**

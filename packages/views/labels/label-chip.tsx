@@ -1,10 +1,10 @@
 "use client";
 
-import type { Label } from "@multica/core/types";
-import { X } from "@multica/ui/icons";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import type { Label } from "@morechat/core/types";
+import { X } from "@morechat/ui/icons";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 import { useT } from "../i18n";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
 
 /**
  * Map a label's `#rrggbb` color to a readable text color.

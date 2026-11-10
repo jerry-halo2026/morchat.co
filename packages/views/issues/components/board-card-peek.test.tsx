@@ -1,10 +1,10 @@
-import { useIssueOpeningStore } from "@multica/core/issues/stores/issue-opening-store";
+import { useIssueOpeningStore } from "@morechat/core/issues/stores/issue-opening-store";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
-import type { Issue } from "@multica/core/types";
+import type { Issue } from "@morechat/core/types";
 import { NavigationProvider, type NavigationAdapter } from "../../navigation";
 import {
   IssuePeekActionsContext,
@@ -18,19 +18,19 @@ vi.mock("@tanstack/react-query", async (importOriginal) => ({
   useQuery: () => ({ data: [] }),
 }));
 
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => "ws-1",
 }));
 
-vi.mock("@multica/core/properties", () => ({
+vi.mock("@morechat/core/properties", () => ({
   propertyListOptions: () => ({ queryKey: ["properties"] }),
 }));
 
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({ issueDetail: (id: string) => `/acme/issues/${id}` }),
 }));
 
-vi.mock("@multica/core/issues/stores/view-store-context", () => ({
+vi.mock("@morechat/core/issues/stores/view-store-context", () => ({
   useViewStore: (selector: (state: unknown) => unknown) =>
     selector({
       viewMode: "board",
@@ -41,7 +41,7 @@ vi.mock("@multica/core/issues/stores/view-store-context", () => ({
     }),
 }));
 
-vi.mock("@multica/core/workspace/hooks", () => ({
+vi.mock("@morechat/core/workspace/hooks", () => ({
   useActorName: () => ({ getActorName: () => "Someone" }),
 }));
 

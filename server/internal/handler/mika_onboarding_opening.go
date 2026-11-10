@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/multica-ai/multica/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
 )
 
 // mikaOnboardingOpenings is Mika's first reply, written by the product rather

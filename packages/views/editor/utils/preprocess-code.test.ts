@@ -3,8 +3,8 @@ import { Editor } from "@tiptap/core";
 import { createEditorExtensions } from "../extensions";
 import { preprocessMarkdown } from "./preprocess";
 import { highlightToHtml } from "./highlight-markdown";
-import { preprocessLinks } from "@multica/ui/markdown/linkify";
-import { preprocessIssueIdentifiers } from "@multica/ui/markdown";
+import { preprocessLinks } from "@morechat/ui/markdown/linkify";
+import { preprocessIssueIdentifiers } from "@morechat/ui/markdown";
 
 describe("code boundaries in editor and read-only preprocessing", () => {
   it("keeps tab-indented list code literal through editor preprocessing", () => {

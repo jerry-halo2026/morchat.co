@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import type { ChatMessage } from "@multica/core/types";
-import type { ChatTimelineItem } from "@multica/core/chat";
+import type { ChatMessage } from "@morechat/core/types";
+import type { ChatTimelineItem } from "@morechat/core/chat";
 import {
   canonicalAnswerText,
   extractCopyText,

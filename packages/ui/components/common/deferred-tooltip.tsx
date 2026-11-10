@@ -14,7 +14,7 @@ import {
   TooltipContent,
   TOOLTIP_OPEN_DELAY,
   isTooltipInstantPhase,
-} from "@multica/ui/components/ui/tooltip";
+} from "@morechat/ui/components/ui/tooltip";
 
 // Counts key presses page-wide, so a focus can tell whether a key moved it.
 let keyPresses = 0;

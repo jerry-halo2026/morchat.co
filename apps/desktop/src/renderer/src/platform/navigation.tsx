@@ -3,9 +3,9 @@ import {
   NavigationProvider,
   type LinkClickIntent,
   type NavigationAdapter,
-} from "@multica/views/navigation";
-import { useAuthStore } from "@multica/core/auth";
-import { workspaceSlugForPath, paths } from "@multica/core/paths";
+} from "@morechat/views/navigation";
+import { useAuthStore } from "@morechat/core/auth";
+import { workspaceSlugForPath, paths } from "@morechat/core/paths";
 import {
   useTabStore,
   getActiveTab,

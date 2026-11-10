@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Ellipsis, ListTree, Plus, SlidersHorizontal } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { Input } from "@multica/ui/components/ui/input";
-import { cn } from "@multica/ui/lib/utils";
+import { ChevronDown, Ellipsis, ListTree, Plus, SlidersHorizontal } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Input } from "@morechat/ui/components/ui/input";
+import { cn } from "@morechat/ui/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -15,7 +15,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -23,8 +23,8 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-} from "@multica/ui/components/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@multica/ui/components/ui/tooltip";
+} from "@morechat/ui/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@morechat/ui/components/ui/tooltip";
 import {
   ADVANCED_FILTER_MAX_CONDITIONS,
   advancedFilterConditionSlots,
@@ -42,7 +42,7 @@ import {
   type DimensionFilterCondition,
   type NegatableFilterDimension,
   type PropertyFilterCondition,
-} from "@multica/core/issues/stores/filter-tree";
+} from "@morechat/core/issues/stores/filter-tree";
 import {
   conditionOperator,
   conditionText,
@@ -54,12 +54,12 @@ import {
   withConditionText,
   type FilterFieldKind,
   type FilterOperator,
-} from "@multica/core/issues/stores/filter-operators";
-import { useViewStore } from "@multica/core/issues/stores/view-store-context";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { isImeComposing } from "@multica/core/utils";
-import { propertyListOptions } from "@multica/core/properties";
-import { memberListOptions } from "@multica/core/workspace/queries";
+} from "@morechat/core/issues/stores/filter-operators";
+import { useViewStore } from "@morechat/core/issues/stores/view-store-context";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { isImeComposing } from "@morechat/core/utils";
+import { propertyListOptions } from "@morechat/core/properties";
+import { memberListOptions } from "@morechat/core/workspace/queries";
 import {
   isActorPropertyType,
   isFilterablePropertyType,
@@ -67,7 +67,7 @@ import {
   propertyFilterValueKey,
   type IssueProperty,
   type PropertyFilterValue,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import { useT } from "../../i18n";
 import { FILTER_ITEM_CLASS, HoverCheck } from "../../common/hover-check";
 import { PropertyIcon } from "../../common/property-icon";

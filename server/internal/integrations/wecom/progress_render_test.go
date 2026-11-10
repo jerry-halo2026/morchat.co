@@ -18,7 +18,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // testClock drives the throttle without sleeping.

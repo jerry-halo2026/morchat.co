@@ -14,10 +14,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/service"
-	"github.com/multica-ai/multica/server/internal/util/secretbox"
-	"github.com/multica-ai/multica/server/pkg/plugincontract"
-	"github.com/multica-ai/multica/server/pkg/remotemcp"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util/secretbox"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/plugincontract"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/remotemcp"
 )
 
 // examples/plugins/deploy-sentinel, driven end to end.

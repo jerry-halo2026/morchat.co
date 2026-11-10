@@ -16,9 +16,9 @@ import {
   Search,
   Settings2,
   User,
-} from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import type { QuestionnaireAnswers, Role, UseCase } from "@multica/core/onboarding";
+} from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import type { QuestionnaireAnswers, Role, UseCase } from "@morechat/core/onboarding";
 import {
   StepFooter,
   StepHeading,

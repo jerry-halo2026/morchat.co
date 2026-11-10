@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Pencil } from "@multica/ui/icons";
+import { Pencil } from "@morechat/ui/icons";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NavigationProvider, type NavigationAdapter } from "../navigation";
 import { renderWithI18n } from "../test/i18n";

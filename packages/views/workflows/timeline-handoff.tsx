@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CornerDownRight } from "@multica/ui/icons";
-import { useActorName } from "@multica/core/workspace/hooks";
+import { CornerDownRight } from "@morechat/ui/icons";
+import { useActorName } from "@morechat/core/workspace/hooks";
 import { ActorAvatar } from "../common/actor-avatar";
 import { useT } from "../i18n";
 import { BriefBlock } from "./handoff-form";

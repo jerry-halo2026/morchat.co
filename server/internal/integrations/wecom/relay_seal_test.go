@@ -8,7 +8,7 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/util"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
 )
 
 // ---- every ending reaches the bubble, including the ones with no words ----

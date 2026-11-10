@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/daemon/execenv"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/execenv"
 )
 
 // The two tests below are composition tests, not text-presence tests. The

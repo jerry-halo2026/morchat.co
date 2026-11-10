@@ -2,11 +2,11 @@ import { cloneElement, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { agentTaskSnapshotOptions } from "@multica/core/agents";
-import { buildIssueStatusCatalog } from "@multica/core/issue-statuses/queries";
-import { issueKeys } from "@multica/core/issues/queries";
-import { issueUnreadOptions } from "@multica/core/issues/unread";
-import type { AgentTask, Issue, IssueUnread, ListIssuesParams } from "@multica/core/types";
+import { agentTaskSnapshotOptions } from "@morechat/core/agents";
+import { buildIssueStatusCatalog } from "@morechat/core/issue-statuses/queries";
+import { issueKeys } from "@morechat/core/issues/queries";
+import { issueUnreadOptions } from "@morechat/core/issues/unread";
+import type { AgentTask, Issue, IssueUnread, ListIssuesParams } from "@morechat/core/types";
 import { renderWithI18n } from "../../test/i18n";
 import { IssueContextMenuProvider } from "../../issues/actions";
 import { SidebarIssueList, TreeRow } from "./sidebar-tree";
@@ -42,7 +42,7 @@ vi.mock("../../issues/components/pickers/status-picker", () => ({
   ),
 }));
 
-vi.mock("@multica/core/issue-statuses/hooks", () => ({
+vi.mock("@morechat/core/issue-statuses/hooks", () => ({
   useIssueStatuses: () => buildIssueStatusCatalog([]),
 }));
 vi.mock("../../navigation", () => ({
@@ -58,14 +58,14 @@ vi.mock("../../navigation", () => ({
   ),
 }));
 vi.mock("../../issues/components/status-icon", () => ({ StatusIcon: () => <span /> }));
-vi.mock("@multica/core/workspace/hooks", () => ({
+vi.mock("@morechat/core/workspace/hooks", () => ({
   useActorName: () => ({ getActorName: () => "Lambda" }),
 }));
 vi.mock("../../agents/components/agent-avatar-stack", () => ({
   AgentAvatarStack: ({ agentIds }: { agentIds: string[] }) => <span data-testid="agents">{agentIds.join(",")}</span>,
 }));
-vi.mock("@multica/core/paths", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/paths")>();
+vi.mock("@morechat/core/paths", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/paths")>();
   return { ...actual, useWorkspacePaths: () => actual.paths.workspace("acme") };
 });
 

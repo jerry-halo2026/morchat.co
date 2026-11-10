@@ -2,23 +2,23 @@
 
 import { useMemo, useState, type MouseEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AppWindow, ArrowBigUp, Check, Pin, Plus } from "@multica/ui/icons";
-import { api } from "@multica/core/api";
-import { useConfigStore } from "@multica/core/config";
+import { AppWindow, ArrowBigUp, Check, Pin, Plus } from "@morechat/ui/icons";
+import { api } from "@morechat/core/api";
+import { useConfigStore } from "@morechat/core/config";
 import {
   inboxUnreadSummaryEnabled,
   inboxUnreadSummaryOptions,
   unreadWorkspaceIds,
-} from "@multica/core/inbox/queries";
-import { paths, useCurrentWorkspace } from "@multica/core/paths";
-import type { Invitation, Workspace } from "@multica/core/types";
+} from "@morechat/core/inbox/queries";
+import { paths, useCurrentWorkspace } from "@morechat/core/paths";
+import type { Invitation, Workspace } from "@morechat/core/types";
 import {
   myInvitationListOptions,
   workspaceKeys,
   workspaceListOptions,
-} from "@multica/core/workspace/queries";
-import { useSetWorkspacePinned } from "@multica/core/workspace/mutations";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+} from "@morechat/core/workspace/queries";
+import { useSetWorkspacePinned } from "@morechat/core/workspace/mutations";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,9 +30,9 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { Kbd, KbdGroup } from "@multica/ui/components/ui/kbd";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { Kbd, KbdGroup } from "@morechat/ui/components/ui/kbd";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../i18n";
 import { AppLink, useNavigation } from "../navigation";
 import { WorkspaceAvatar } from "../workspace/workspace-avatar";

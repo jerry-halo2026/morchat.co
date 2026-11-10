@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { fireEvent, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useSidebarTreeStore } from "@multica/core/issues/stores/sidebar-tree-store";
-import { useActiveIssueViewStore } from "@multica/core/issue-views/active-view-store";
+import { useSidebarTreeStore } from "@morechat/core/issues/stores/sidebar-tree-store";
+import { useActiveIssueViewStore } from "@morechat/core/issue-views/active-view-store";
 import { renderWithI18n } from "../../test/i18n";
 import { NavigationProvider, type NavigationAdapter } from "../../navigation";
 import { ViewsSection } from "./views-section";
@@ -18,19 +18,19 @@ const actions = vi.hoisted(() => ({
 
 vi.mock("../../issue-views/use-view-actions", () => ({ useIssueViewActions: () => actions }));
 vi.mock("../../issue-views/delete-view-dialog", () => ({ DeleteViewDialog: () => null }));
-vi.mock("@multica/ui/components/common/tooltip-hint", () => ({
+vi.mock("@morechat/ui/components/common/tooltip-hint", () => ({
   TooltipHint: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
-vi.mock("@multica/core/paths", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/paths")>();
+vi.mock("@morechat/core/paths", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/paths")>();
   return { ...actual, useWorkspacePaths: () => actual.paths.workspace("acme") };
 });
-vi.mock("@multica/core/hooks", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/hooks")>()),
+vi.mock("@morechat/core/hooks", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/hooks")>()),
   useWorkspaceId: () => "ws-1",
 }));
-vi.mock("@multica/core/issue-statuses/hooks", async () => {
-  const { buildIssueStatusCatalog } = await import("@multica/core/issue-statuses/queries");
+vi.mock("@morechat/core/issue-statuses/hooks", async () => {
+  const { buildIssueStatusCatalog } = await import("@morechat/core/issue-statuses/queries");
   return { useIssueStatuses: () => buildIssueStatusCatalog([]) };
 });
 vi.mock("@tanstack/react-query", async (importOriginal) => ({

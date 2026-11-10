@@ -4,11 +4,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const installUserTimingCap = vi.hoisted(() => vi.fn());
 
-vi.mock("@multica/core/diagnostics", () => ({ installUserTimingCap }));
-vi.mock("@multica/core/platform", () => ({
+vi.mock("@morechat/core/diagnostics", () => ({ installUserTimingCap }));
+vi.mock("@morechat/core/platform", () => ({
   CoreProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
-vi.mock("@multica/core/i18n/browser", () => ({
+vi.mock("@morechat/core/i18n/browser", () => ({
   createBrowserCookieLocaleAdapter: () => ({}),
 }));
 vi.mock("@/platform/navigation", () => ({

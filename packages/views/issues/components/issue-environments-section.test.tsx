@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { I18nProvider } from "@multica/core/i18n/react";
-import type { AgentRuntime, IssueEnvironment } from "@multica/core/types";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import type { AgentRuntime, IssueEnvironment } from "@morechat/core/types";
 import enCommon from "../../locales/en/common.json";
 import enIssues from "../../locales/en/issues.json";
 
@@ -12,29 +12,29 @@ let mockEnvironments: IssueEnvironment[] = [];
 let mockRuntimes: AgentRuntime[] = [];
 let mockLocalDaemonId: string | null = null;
 
-vi.mock("@multica/core/issues/queries", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/issues/queries")>()),
+vi.mock("@morechat/core/issues/queries", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/issues/queries")>()),
   issueEnvironmentsOptions: (wsId: string, issueId: string) => ({
     queryKey: ["issues", wsId, "environments", issueId],
     queryFn: async () => ({ environments: mockEnvironments }),
   }),
 }));
-vi.mock("@multica/core/runtimes/queries", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/runtimes/queries")>()),
+vi.mock("@morechat/core/runtimes/queries", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/runtimes/queries")>()),
   runtimeListOptions: (wsId: string) => ({
     queryKey: ["runtimes", wsId, "list"],
     queryFn: async () => mockRuntimes,
   }),
 }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: (select: (state: { user: { id: string } }) => unknown) => select({ user: { id: "user-1" } }),
 }));
 vi.mock("../../platform/use-local-daemon-status", () => ({
   useLocalDaemonStatus: () => ({ daemonId: mockLocalDaemonId, deviceName: null, running: !!mockLocalDaemonId }),
 }));
 const copyText = vi.hoisted(() => vi.fn(async () => true));
-vi.mock("@multica/ui/lib/clipboard", () => ({ copyText }));
+vi.mock("@morechat/ui/lib/clipboard", () => ({ copyText }));
 
 import { IssueEnvironmentsSection } from "./issue-environments-section";
 

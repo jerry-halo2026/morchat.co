@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Plus, Settings2, X } from "@multica/ui/icons";
+import { Loader2, Plus, Settings2, X } from "@morechat/ui/icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { Agent } from "@multica/core/types";
-import { api } from "@multica/core/api";
-import { useWorkspaceId } from "@multica/core/hooks";
+import type { Agent } from "@morechat/core/types";
+import { api } from "@morechat/core/api";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   skillListOptions,
   workspaceKeys,
-} from "@multica/core/workspace/queries";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/core/workspace/queries";
+import { cn } from "@morechat/ui/lib/utils";
 import { SkillIcon } from "../../skills/lib/skill-icon";
 import {
   ObjectSection,

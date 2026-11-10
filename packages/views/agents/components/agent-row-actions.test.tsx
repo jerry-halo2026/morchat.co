@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { Agent } from "@multica/core/types";
+import type { Agent } from "@morechat/core/types";
 import { renderWithI18n } from "../../test/i18n";
 
 const mockIntentNavigate = vi.hoisted(() => vi.fn());
 
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({ agentDetail: (id: string) => `/acme/agents/${id}` }),
 }));
-vi.mock("@multica/core/api", () => ({ api: {} }));
+vi.mock("@morechat/core/api", () => ({ api: {} }));
 vi.mock("../../navigation", () => ({
   AppLink: ({ href, children }: { href: string; children: React.ReactNode }) => (
     <a href={href}>{children}</a>

@@ -2,11 +2,11 @@
 
 import { memo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, TriangleAlert } from "@multica/ui/icons";
-import { issueSystemWakeupsOptions, issueWakeupsOptions } from "@multica/core/issues";
-import type { IssueWakeup, SystemWakeup } from "@multica/core/types";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { cn } from "@multica/ui/lib/utils";
+import { Bell, TriangleAlert } from "@morechat/ui/icons";
+import { issueSystemWakeupsOptions, issueWakeupsOptions } from "@morechat/core/issues";
+import type { IssueWakeup, SystemWakeup } from "@morechat/core/types";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../../i18n";
 import { useWakeupText } from "./wakeup-presentation";
 

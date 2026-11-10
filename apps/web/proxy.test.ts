@@ -101,7 +101,7 @@ describe("proxy legacy workspace route redirects", () => {
     ).toBe("https://app.multica.test/login");
   });
 
-  it.each(["multica.ai", "www.multica.ai"])(
+  it.each(["morechat.co", "www.morechat.co"])(
     "resolves a slugless session off the marketing host %s instead of stranding it",
     (host) => {
       expect(
@@ -120,7 +120,7 @@ describe("proxy legacy workspace route redirects", () => {
     );
   });
 
-  it.each(["multica.ai", "www.multica.ai"])(
+  it.each(["morechat.co", "www.morechat.co"])(
     "does not redirect public marketing root on %s",
     (host) => {
       expect(redirectLocation("/", sessionCookies, host)).toBeNull();
@@ -128,8 +128,8 @@ describe("proxy legacy workspace route redirects", () => {
   );
 
   it("still redirects explicit legacy app routes on the public marketing host", () => {
-    expect(redirectLocation("/issues/ABC-123", sessionCookies, "multica.ai")).toBe(
-      "https://multica.ai/acme/issues/ABC-123",
+    expect(redirectLocation("/issues/ABC-123", sessionCookies, "morechat.co")).toBe(
+      "https://morechat.co/acme/issues/ABC-123",
     );
   });
 });
@@ -293,7 +293,7 @@ describe("proxy root and locale handling", () => {
 describe("proxy marketing-site language URLs", () => {
   const localeOf = (res: Response) => res.headers.get(`x-middleware-request-${MULTICA_LOCALE_HEADER}`);
   const withAcceptLanguage = (path: string, acceptLanguage: string) =>
-    new NextRequest(`https://www.multica.ai${path}`, { headers: { "accept-language": acceptLanguage } });
+    new NextRequest(`https://www.morechat.co${path}`, { headers: { "accept-language": acceptLanguage } });
 
   it.each([
     ["/zh", "/", "zh-Hans"],
@@ -328,7 +328,7 @@ describe("proxy marketing-site language URLs", () => {
     ["/download?started=mac", { "multica-locale": "ko" }, "/ko/download?started=mac"],
     ["/about", { "multica-locale": "zh-Hant" }, "/zh/about"],
   ])("sends %s to the language the visitor picked", (path, cookies, location) => {
-    expect(redirectLocation(path, cookies, "www.multica.ai")).toBe(`https://www.multica.ai${location}`);
+    expect(redirectLocation(path, cookies, "www.morechat.co")).toBe(`https://www.morechat.co${location}`);
   });
 
   it("leaves app routes under a language-like slug to the app", () => {

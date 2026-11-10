@@ -9,8 +9,8 @@ import {
   isGlobalPath,
   isKnownWorkspacePath,
   workspaceSlugForPath,
-} from "@multica/core/paths";
-import { isIssueIdentifier } from "@multica/ui/markdown";
+} from "@morechat/core/paths";
+import { isIssueIdentifier } from "@morechat/ui/markdown";
 import type { LinkClickIntent } from "../../navigation/click-intent";
 
 /**

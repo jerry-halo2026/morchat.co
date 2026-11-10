@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // TestClient_ClaimTasks_PostsRuntimeSetAndParsesTasks verifies the machine-level

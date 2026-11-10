@@ -36,7 +36,7 @@ vi.mock("@tiptap/react", () => ({
   }),
 }));
 
-vi.mock("@multica/core/issues/mutations", () => ({
+vi.mock("@morechat/core/issues/mutations", () => ({
   useCreateIssue: () => ({
     mutateAsync: vi.fn(),
   }),

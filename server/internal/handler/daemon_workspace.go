@@ -8,9 +8,9 @@ import (
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/dbreader"
-	"github.com/multica-ai/multica/server/internal/middleware"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/dbreader"
+	"github.com/jerry-halo2026/morchat.co/server/internal/middleware"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 type DaemonWorkspaceResponse struct {

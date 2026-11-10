@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // requireProjectDeletion mirrors requireIssueDeletion before any cleanup starts.

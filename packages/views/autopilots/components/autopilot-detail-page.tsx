@@ -5,37 +5,37 @@ import {
   Zap, Play, Clock, Plus, Trash2, CheckCircle2, XCircle, Loader2, Pencil,
   Ban, ChevronDown, ChevronRight, MoreHorizontal, Link2, ArrowUpRight, FilePlus2,
   Webhook, RotateCw, Server, FileQuestion, FileText, Square,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { autopilotDetailOptions, autopilotRunsOptions, autopilotRunOptions } from "@multica/core/autopilots/queries";
-import { projectDetailOptions } from "@multica/core/projects/queries";
+import { autopilotDetailOptions, autopilotRunsOptions, autopilotRunOptions } from "@morechat/core/autopilots/queries";
+import { projectDetailOptions } from "@morechat/core/projects/queries";
 import {
   useUpdateAutopilot,
   useDeleteAutopilot,
   useCreateAutopilotTrigger,
   useDeleteAutopilotTrigger,
   useRotateAutopilotTriggerWebhookToken,
-} from "@multica/core/autopilots/mutations";
-import { buildAutopilotWebhookUrl } from "@multica/core/autopilots";
-import { api } from "@multica/core/api";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { memberListOptions } from "@multica/core/workspace/queries";
+} from "@morechat/core/autopilots/mutations";
+import { buildAutopilotWebhookUrl } from "@morechat/core/autopilots";
+import { api } from "@morechat/core/api";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { memberListOptions } from "@morechat/core/workspace/queries";
 import { useNavigation, AppLink } from "../../navigation";
 import { ActorAvatar } from "../../common/actor-avatar";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { Button, buttonVariants } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Switch } from "@multica/ui/components/ui/switch";
-import { cn } from "@multica/ui/lib/utils";
-import { copyText } from "@multica/ui/lib/clipboard";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { Button, buttonVariants } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Switch } from "@morechat/ui/components/ui/switch";
+import { cn } from "@morechat/ui/lib/utils";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,7 +44,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,7 +54,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
+} from "@morechat/ui/components/ui/alert-dialog";
 import { ScheduleEditor } from "./schedule-editor/schedule-editor";
 import { WebhookUrlField } from "./webhook-url-field";
 import { getDefaultScheduleConfig, type ScheduleConfig } from "./schedule-editor/model";
@@ -69,8 +69,8 @@ import type {
   AutopilotExecutionMode,
   AutopilotRun,
   AutopilotTrigger,
-} from "@multica/core/types";
-import type { AgentTask } from "@multica/core/types/agent";
+} from "@morechat/core/types";
+import type { AgentTask } from "@morechat/core/types/agent";
 import { ReadonlyContent } from "../../editor";
 import { TranscriptButton } from "../../common/task-transcript";
 import { AutopilotDialog } from "./autopilot-dialog";

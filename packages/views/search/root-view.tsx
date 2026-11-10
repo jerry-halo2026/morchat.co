@@ -1,15 +1,15 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Clock, Loader2, MessageSquare, Sparkles, SquarePen, UserPlus, Zap, type IconComponent } from "@multica/ui/icons";
+import { Clock, Loader2, MessageSquare, Sparkles, SquarePen, UserPlus, Zap, type IconComponent } from "@morechat/ui/icons";
 import { Command as CommandPrimitive } from "cmdk";
 import { useQuery } from "@tanstack/react-query";
-import { inboxUnreadSummaryOptions, unreadWorkspaceIds } from "@multica/core/inbox/queries";
-import { paths, useWorkspacePaths } from "@multica/core/paths";
-import type { InboxWorkspaceUnread } from "@multica/core/types";
-import { openCreateIssueWithPreference } from "@multica/core/issues/stores";
-import { useModalStore } from "@multica/core/modals";
-import { cn } from "@multica/ui/lib/utils";
+import { inboxUnreadSummaryOptions, unreadWorkspaceIds } from "@morechat/core/inbox/queries";
+import { paths, useWorkspacePaths } from "@morechat/core/paths";
+import type { InboxWorkspaceUnread } from "@morechat/core/types";
+import { openCreateIssueWithPreference } from "@morechat/core/issues/stores";
+import { useModalStore } from "@morechat/core/modals";
+import { cn } from "@morechat/ui/lib/utils";
 import { ActorAvatar } from "../common/actor-avatar";
 import { routeIconForPath } from "../layout/route-icon-components";
 import { ProjectIcon } from "../projects/components/project-icon";

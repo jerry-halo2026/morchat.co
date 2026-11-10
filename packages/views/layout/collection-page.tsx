@@ -9,16 +9,16 @@ import {
   SlidersHorizontal,
   X,
   type IconComponent,
-} from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
+} from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import {
   Empty,
   EmptyContent,
@@ -26,20 +26,20 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@multica/ui/components/ui/empty";
+} from "@morechat/ui/components/ui/empty";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@multica/ui/components/ui/input-group";
-import { cn } from "@multica/ui/lib/utils";
-import { useModalStore } from "@multica/core/modals";
+} from "@morechat/ui/components/ui/input-group";
+import { cn } from "@morechat/ui/lib/utils";
+import { useModalStore } from "@morechat/core/modals";
 import {
   createShortcutChord,
   isEditableShortcutTarget,
   isPortalLayerShortcutTarget,
-} from "@multica/core/shortcuts";
-import { isImeComposing } from "@multica/core/utils";
+} from "@morechat/core/shortcuts";
+import { isImeComposing } from "@morechat/core/utils";
 import { ShortcutKeycaps } from "../common/shortcut-keycaps";
 import { useT } from "../i18n";
 import { PageHeader } from "./page-header";

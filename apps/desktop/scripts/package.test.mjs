@@ -112,7 +112,7 @@ describe("deriveVersion (real git describe)", () => {
     const run = (...args) =>
       execFileSync("git", args, { cwd: dir, encoding: "utf-8" });
     run("init", "-q");
-    run("config", "user.email", "test@multica.ai");
+    run("config", "user.email", "test@morechat.co");
     run("config", "user.name", "test");
     run("config", "commit.gpgsign", "false");
     run("commit", "-q", "--allow-empty", "-m", "root");
@@ -429,7 +429,7 @@ describe("envWithLocalBins", () => {
 });
 
 describe("electron-builder.yml packaging config", () => {
-  // Regression guard for github.com/multica-ai/multica/issues/5595. The
+  // Regression guard for github.com/jerry-halo2026/morchat.co/issues/5595. The
   // multi-arch release build writes each target's output to
   // dist/<platform>-<arch> in the same apps/desktop dir; electron-builder
   // only auto-excludes the *current* target's output dir, so without an

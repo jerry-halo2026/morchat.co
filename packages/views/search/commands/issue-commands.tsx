@@ -24,20 +24,20 @@ import {
   Trash2,
   UserPlus,
   Zap,
-} from "@multica/ui/icons";
-import { dispatchReasonCode } from "@multica/core/api";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
+} from "@morechat/ui/icons";
+import { dispatchReasonCode } from "@morechat/core/api";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   issueSubscribersOptions,
   issueTasksOptions,
   issueTimelineOptions,
-} from "@multica/core/issues/queries";
-import { useRetryIssueRun, useToggleIssueSubscriber } from "@multica/core/issues/mutations";
-import { useCommentCollapseStore, useResolvedExpandStore } from "@multica/core/issues/stores";
-import { quickActionListOptions } from "@multica/core/quick-actions";
-import type { AgentTask, Issue } from "@multica/core/types";
-import { copyText } from "@multica/ui/lib/clipboard";
+} from "@morechat/core/issues/queries";
+import { useRetryIssueRun, useToggleIssueSubscriber } from "@morechat/core/issues/mutations";
+import { useCommentCollapseStore, useResolvedExpandStore } from "@morechat/core/issues/stores";
+import { quickActionListOptions } from "@morechat/core/quick-actions";
+import type { AgentTask, Issue } from "@morechat/core/types";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import { useIssueActions } from "../../issues/actions/use-issue-actions";
 import { resolvedThreadRootIds, rootCommentIds } from "../../issues/components/thread-utils";
 import { canRetryRun } from "../../issues/components/retry-run-button";

@@ -2,7 +2,7 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { RESERVED_SLUGS } from "@multica/core/paths";
+import { RESERVED_SLUGS } from "@morechat/core/paths";
 import { enSiteCopy } from "../i18n/site-en";
 import {
   PRODUCT_GROUPS,

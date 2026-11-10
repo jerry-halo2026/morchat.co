@@ -1,8 +1,8 @@
 "use client";
 
-import { Check, Workflow } from "@multica/ui/icons";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useIssueWorkflows } from "@multica/core/issue-workflows";
+import { Check, Workflow } from "@morechat/ui/icons";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useIssueWorkflows } from "@morechat/core/issue-workflows";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import { PillButton } from "../common/pill-button";
 import { useT } from "../i18n";
 

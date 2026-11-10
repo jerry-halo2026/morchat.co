@@ -2,17 +2,17 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { autopilotListOptions } from "@multica/core/autopilots/queries";
-import { chatSessionsOptions } from "@multica/core/chat/queries";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { skillListOptions, workspaceListOptions } from "@multica/core/workspace/queries";
+import { autopilotListOptions } from "@morechat/core/autopilots/queries";
+import { chatSessionsOptions } from "@morechat/core/chat/queries";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { skillListOptions, workspaceListOptions } from "@morechat/core/workspace/queries";
 import type {
   Autopilot,
   ChatSession,
   MemberWithUser,
   SkillSummary,
   Workspace,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import { scoreRow, scoreText } from "./matching";
 import { useActorDirectory, type AgentEntry, type SquadEntry } from "./use-actor-directory";
 

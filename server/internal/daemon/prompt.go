@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/multica-ai/multica/server/internal/daemon/execenv"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/execenv"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
 // sessionContinuityNoticeFor picks the notice matching what this surface

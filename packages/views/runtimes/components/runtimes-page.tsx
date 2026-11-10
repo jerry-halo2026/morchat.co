@@ -17,43 +17,43 @@ import {
   Plus,
   Server,
   SquareTerminal,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   memberNeedsMikaSetup,
   useBootstrapMika,
-} from "@multica/core/onboarding";
+} from "@morechat/core/onboarding";
 import { MIKA_PLACEHOLDER_EMOJI } from "../../onboarding/components/mika-intro";
 import {
   useRequiredWorkspaceSlug,
   useWorkspacePaths,
-} from "@multica/core/paths";
-import { agentTaskSnapshotOptions } from "@multica/core/agents";
-import { chatSessionsOptions } from "@multica/core/chat/queries";
-import { runtimeProfileListOptions } from "@multica/core/runtimes";
+} from "@morechat/core/paths";
+import { agentTaskSnapshotOptions } from "@morechat/core/agents";
+import { chatSessionsOptions } from "@morechat/core/chat/queries";
+import { runtimeProfileListOptions } from "@morechat/core/runtimes";
 import {
   runtimeListOptions,
   runtimeKeys,
-} from "@multica/core/runtimes/queries";
-import { useWSEvent } from "@multica/core/realtime";
+} from "@morechat/core/runtimes/queries";
+import { useWSEvent } from "@morechat/core/realtime";
 import {
   agentListOptions,
   memberListOptions,
-} from "@multica/core/workspace/queries";
-import type { AgentRuntime, MemberWithUser } from "@multica/core/types";
-import type { QoderConnection } from "@multica/core/runtimes/qoder";
-import { Badge } from "@multica/ui/components/ui/badge";
-import { Button, buttonVariants } from "@multica/ui/components/ui/button";
+} from "@morechat/core/workspace/queries";
+import type { AgentRuntime, MemberWithUser } from "@morechat/core/types";
+import type { QoderConnection } from "@morechat/core/runtimes/qoder";
+import { Badge } from "@morechat/ui/components/ui/badge";
+import { Button, buttonVariants } from "@morechat/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,7 +62,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import {
   MikaRuntimeChoice,
   type MikaRuntimeSelection,
@@ -81,10 +81,10 @@ import {
   type CollectionColumn,
   type CollectionGroup,
 } from "../../layout/collection-list";
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 import { useNavigation } from "../../navigation";
 import { getMikaOnboarding, pickContentLang } from "../../onboarding/templates";
-import { qoderOptions } from "@multica/core/runtimes/qoder";
+import { qoderOptions } from "@morechat/core/runtimes/qoder";
 import { QODER_RUNTIME_LOCATOR } from "./qoder-detail-page";
 import { RemoteRuntimeDialog } from "./remote-runtime-dialog";
 import { ConnectRemoteDialog } from "./connect-remote-dialog";

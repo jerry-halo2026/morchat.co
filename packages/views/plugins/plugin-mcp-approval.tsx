@@ -2,14 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, Loader2 } from "@multica/ui/icons";
-import { pluginMCPToolsOptions, useApprovePluginMCPTools } from "@multica/core/plugins";
-import type { PluginHook, PluginMCPTool } from "@multica/core/types";
-import { Alert, AlertDescription, AlertTitle } from "@multica/ui/components/ui/alert";
-import { Badge } from "@multica/ui/components/ui/badge";
-import { Button } from "@multica/ui/components/ui/button";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
+import { AlertCircle, Loader2 } from "@morechat/ui/icons";
+import { pluginMCPToolsOptions, useApprovePluginMCPTools } from "@morechat/core/plugins";
+import type { PluginHook, PluginMCPTool } from "@morechat/core/types";
+import { Alert, AlertDescription, AlertTitle } from "@morechat/ui/components/ui/alert";
+import { Badge } from "@morechat/ui/components/ui/badge";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
 import { toast } from "sonner";
 import { useT } from "../i18n";
 

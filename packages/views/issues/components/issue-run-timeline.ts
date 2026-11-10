@@ -1,4 +1,4 @@
-import type { AgentTask } from "@multica/core/types";
+import type { AgentTask } from "@morechat/core/types";
 import {
   estimateCost,
   estimateCostBreakdown,

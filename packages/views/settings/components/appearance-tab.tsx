@@ -7,9 +7,9 @@ import {
   Moon,
   RotateCcw,
   Sun,
-} from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { Button } from "@multica/ui/components/ui/button";
+} from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -19,11 +19,11 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-} from "@multica/ui/components/ui/select";
-import { Input } from "@multica/ui/components/ui/input";
-import { Slider } from "@multica/ui/components/ui/slider";
-import { Switch } from "@multica/ui/components/ui/switch";
-import { useTheme } from "@multica/ui/components/common/theme-provider";
+} from "@morechat/ui/components/ui/select";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Slider } from "@morechat/ui/components/ui/slider";
+import { Switch } from "@morechat/ui/components/ui/switch";
+import { useTheme } from "@morechat/ui/components/common/theme-provider";
 import {
   BUILT_IN_THEMES,
   CJK_FONTS,
@@ -59,7 +59,7 @@ import {
   type ThemeOptionValue,
   type ThemedColor,
   type UiFont,
-} from "@multica/core/appearance";
+} from "@morechat/core/appearance";
 import { useLocale, useT } from "../../i18n";
 import { SegmentedToggle } from "../../common/segmented-toggle";
 import {

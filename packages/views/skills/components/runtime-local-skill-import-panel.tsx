@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { useReducedMotion } from "@multica/core/appearance";
+import { useReducedMotion } from "@morechat/core/appearance";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
@@ -15,33 +15,33 @@ import {
   Search,
   SkipForward,
   XCircle,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import type {
   RuntimeLocalSkillImportConflict,
   RuntimeLocalSkillSummary,
   Skill,
-} from "@multica/core/types";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
+} from "@morechat/core/types";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   runtimeDisplayLabel,
   runtimeListOptions,
   runtimeLocalSkillsKeys,
   runtimeLocalSkillsOptions,
   resolveRuntimeLocalSkillImport,
-} from "@multica/core/runtimes";
+} from "@morechat/core/runtimes";
 import {
   memberListOptions,
   skillDetailOptions,
   workspaceKeys,
-} from "@multica/core/workspace/queries";
-import { Button } from "@multica/ui/components/ui/button";
-import { Badge } from "@multica/ui/components/ui/badge";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
-import { Input } from "@multica/ui/components/ui/input";
-import { Label } from "@multica/ui/components/ui/label";
-import { Progress } from "@multica/ui/components/ui/progress";
-import { Textarea } from "@multica/ui/components/ui/textarea";
+} from "@morechat/core/workspace/queries";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Badge } from "@morechat/ui/components/ui/badge";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Label } from "@morechat/ui/components/ui/label";
+import { Progress } from "@morechat/ui/components/ui/progress";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -50,13 +50,13 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@multica/ui/components/ui/select";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { useScrollFade } from "@multica/ui/hooks/use-scroll-fade";
+} from "@morechat/ui/components/ui/select";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { useScrollFade } from "@morechat/ui/hooks/use-scroll-fade";
 import {
   UI_EASE_OUT,
   UI_MOTION_DURATION,
-} from "@multica/ui/lib/motion";
+} from "@morechat/ui/lib/motion";
 import { useT } from "../../i18n";
 import { HighlightText } from "../../search/highlight-text";
 import { ProviderLogo } from "../../runtimes/components/provider-logo";

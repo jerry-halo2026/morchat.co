@@ -38,7 +38,7 @@ for (const [name, files, selected] of [
   ["reserved slug source", ["server/internal/handler/reserved_slugs.json"], ["backend", "runtime", "scripts"]],
   ["reserved slug output", ["packages/core/paths/reserved-slugs.ts"], ["frontend", "quality", "scripts"]],
   ["integration key gates", ["server/cmd/server/router.go"], ["backend", "runtime", "scripts"]],
-  ["brand source", ["packages/ui/lib/multica-brand.ts"], ["frontend", "quality", "scripts"]],
+  ["brand source", ["packages/ui/lib/morechat-brand.ts"], ["frontend", "quality", "scripts"]],
   ["CLI brand copy", ["server/cmd/multica/cmd_auth.go"], ["backend", "runtime", "scripts"]],
   ["mobile brand copy", ["apps/mobile/components/brand/multica-logo.tsx"], ["quality", "scripts"]],
   ["README logo", ["docs/assets/logo-dark.svg"], ["scripts"]],

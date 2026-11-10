@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/integrations/lark"
-	"github.com/multica-ai/multica/server/internal/util/secretbox"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/lark"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util/secretbox"
 )
 
 // Lark-handler unit tests focus on the no-config short-circuits —

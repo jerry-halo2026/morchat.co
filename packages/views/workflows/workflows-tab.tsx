@@ -11,17 +11,17 @@ import {
   Plus,
   Search,
   User,
-} from "@multica/ui/icons";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { statusColumnKeys } from "@multica/core/issues";
-import { useIssueWorkflows } from "@multica/core/issue-workflows";
-import { projectListOptions } from "@multica/core/projects/queries";
-import { memberListOptions } from "@multica/core/workspace/queries";
-import type { IssueWorkflow, IssueWorkflowStep, Project } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
+} from "@morechat/ui/icons";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { statusColumnKeys } from "@morechat/core/issues";
+import { useIssueWorkflows } from "@morechat/core/issue-workflows";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import { memberListOptions } from "@morechat/core/workspace/queries";
+import type { IssueWorkflow, IssueWorkflowStep, Project } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,14 +30,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import {
   Popover,
   PopoverContent,
   PopoverDescription,
   PopoverTitle,
   PopoverTrigger,
-} from "@multica/ui/components/ui/popover";
+} from "@morechat/ui/components/ui/popover";
 import { ActorAvatar } from "../common/actor-avatar";
 import { matchesPinyin } from "../editor/extensions/pinyin-match";
 import { StatusIcon } from "../issues/components/status-icon";

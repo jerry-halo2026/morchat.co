@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/multica-ai/multica/server/pkg/plugincontract"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/plugincontract"
 )
 
 // The shipped examples are documentation, and documentation that does not parse

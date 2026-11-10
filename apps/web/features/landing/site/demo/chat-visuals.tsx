@@ -1,20 +1,20 @@
 "use client";
 
 import type { ComponentType, ReactNode } from "react";
-import { Hash, MessageSquare, Plus } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { StatusIcon } from "@multica/views/issues/components/status-icon";
-import { DingTalkMark } from "@multica/views/settings/components/dingtalk-mark";
-import { LarkMark } from "@multica/views/settings/components/lark-mark";
-import { SlackMark } from "@multica/views/settings/components/slack-mark";
-import { TelegramMark } from "@multica/views/settings/components/telegram-mark";
-import { WecomMark } from "@multica/views/settings/components/wecom-mark";
-import { MulticaIcon } from "@multica/ui/components/common/multica-icon";
+import { Hash, MessageSquare, Plus } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { StatusIcon } from "@morechat/views/issues/components/status-icon";
+import { DingTalkMark } from "@morechat/views/settings/components/dingtalk-mark";
+import { LarkMark } from "@morechat/views/settings/components/lark-mark";
+import { SlackMark } from "@morechat/views/settings/components/slack-mark";
+import { TelegramMark } from "@morechat/views/settings/components/telegram-mark";
+import { WecomMark } from "@morechat/views/settings/components/wecom-mark";
+import { MorechatIcon } from "@morechat/ui/components/common/morechat-icon";
 import { Avatar, BACKEND, FLOATING, LEAD, LEO, MIA, SAM, TRIAGE, ZoomCanvas, type Actor } from "./mock-kit";
 
 /*
  * Mockups for the Chat integrations page: a team chat where people talk to a
- * Multica agent through its Bot, and the Messaging settings where each Bot is
+ * morechat.co agent through its Bot, and the Messaging settings where each Bot is
  * bound to one agent. The chat client is drawn plain so it reads as any of the
  * supported platforms; the Bot's replies follow the product's own copy. Data
  * is fictional.
@@ -30,12 +30,12 @@ export const CHANNELS: { id: ChannelId; name: string; Mark: ComponentType<{ clas
   { id: "telegram", name: "Telegram", Mark: TelegramMark },
 ];
 
-const BOT = { name: "Multica", agent: BACKEND };
+const BOT = { name: "morechat.co", agent: BACKEND };
 
 function Message({ actor, bot, time, children }: { actor: Actor; bot?: boolean; time: string; children: ReactNode }) {
   return (
     <div className="flex gap-2.5">
-      <span className="pt-0.5">{bot ? <MulticaIcon shape="circle" size={24} /> : <Avatar actor={actor} size={24} />}</span>
+      <span className="pt-0.5">{bot ? <MorechatIcon shape="circle" size={24} /> : <Avatar actor={actor} size={24} />}</span>
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1.5 text-caption">
           <span className="font-semibold">{bot ? BOT.name : actor.name}</span>
@@ -102,7 +102,7 @@ function ChannelConversation() {
         Export for the Northwind workspace failed again last night.
       </Message>
       <Message actor={MIA} time="9:41">
-        <Mention>@Multica</Mention> why did last night’s export job fail?
+        <Mention>@morechat.co</Mention> why did last night’s export job fail?
       </Message>
       <ThreadReplies count={2}>
         <Message actor={BOT.agent} bot time="9:42">
@@ -205,7 +205,7 @@ const PANEL = "h-[300px] w-[340px]";
 
 export function DirectMessageVisual() {
   return (
-    <ChatWindow title="Multica" icon={MessageSquare} composer="Message Multica" className={PANEL}>
+    <ChatWindow title="morechat.co" icon={MessageSquare} composer="Message morechat.co" className={PANEL}>
       <Message actor={LEO} time="10:02">
         What changed in the billing API this week?
       </Message>
@@ -221,7 +221,7 @@ export function MentionVisual() {
   return (
     <ChatWindow title="eng-support" icon={Hash} composer="Reply in thread" className={PANEL}>
       <Message actor={SAM} time="11:20">
-        <Mention>@Multica</Mention> why is the checkout test flaky?
+        <Mention>@morechat.co</Mention> why is the checkout test flaky?
       </Message>
       <ThreadReplies count={1}>
         <Message actor={BOT.agent} bot time="11:21">
@@ -234,7 +234,7 @@ export function MentionVisual() {
 
 export function IssueCommandVisual() {
   return (
-    <ChatWindow title="Multica" icon={MessageSquare} composer="Message Multica" className={PANEL}>
+    <ChatWindow title="morechat.co" icon={MessageSquare} composer="Message morechat.co" className={PANEL}>
       <Message actor={MIA} time="9:43">
         <Slash>/issue</Slash> Batch the nightly export job
       </Message>

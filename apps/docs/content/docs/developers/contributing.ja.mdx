@@ -1,11 +1,11 @@
 ---
 title: 開発に参加する
-description: Multica のローカル開発環境を構築し、テストを実行して、リポジトリの規約に従って変更を提出します。
+description: morechat.co のローカル開発環境を構築し、テストを実行して、リポジトリの規約に従って変更を提出します。
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
 
-Multica は Go バックエンドと pnpm monorepo で構成されています。ローカルで起動する最も簡単な方法は `make dev` です。現在の checkout 用に環境、データベース、migration を準備し、Web と API を起動します。
+morechat.co は Go バックエンドと pnpm monorepo で構成されています。ローカルで起動する最も簡単な方法は `make dev` です。現在の checkout 用に環境、データベース、migration を準備し、Web と API を起動します。
 
 ## 必要な環境
 
@@ -20,7 +20,7 @@ Multica は Go バックエンドと pnpm monorepo で構成されています�
 ## 初回起動
 
 ```bash
-git clone https://github.com/multica-ai/multica.git
+git clone https://github.com/jerry-halo2026/morchat.co.git
 cd multica
 make dev
 ```
@@ -148,7 +148,7 @@ Migration は `server/migrations/`、クエリは `server/pkg/db/queries/` に�
 まず変更に最も近いチェックを実行し、その後に範囲を広げます。Docs だけの変更例:
 
 ```bash
-pnpm --filter @multica/docs typecheck
+pnpm --filter @morechat/docs typecheck
 ```
 
 共有フロントエンドの変更:
@@ -186,8 +186,8 @@ make start
 
 ## GitHub Issue の作成
 
-- **[機能リクエスト](https://github.com/multica-ai/multica/blob/main/.github/ISSUE_TEMPLATE/feature_request.yml)：** **問題（Problem）**と**目標（Goal）**を説明します。設計の概要（Proposal）、代替案（Alternatives）、スクリーンショット（Screenshots）は任意です。解決策を設計していなくても報告できます。
-- **[バグ報告](https://github.com/multica-ai/multica/blob/main/.github/ISSUE_TEMPLATE/bug_report.yml)：** **問題**、**期待する動作**、**再現手順**を分けて記載します。断続的に発生する場合は、試した操作と頻度を説明してください。画像、ログ、環境情報は任意です。
+- **[機能リクエスト](https://github.com/jerry-halo2026/morchat.co/blob/main/.github/ISSUE_TEMPLATE/feature_request.yml)：** **問題（Problem）**と**目標（Goal）**を説明します。設計の概要（Proposal）、代替案（Alternatives）、スクリーンショット（Screenshots）は任意です。解決策を設計していなくても報告できます。
+- **[バグ報告](https://github.com/jerry-halo2026/morchat.co/blob/main/.github/ISSUE_TEMPLATE/bug_report.yml)：** **問題**、**期待する動作**、**再現手順**を分けて記載します。断続的に発生する場合は、試した操作と頻度を説明してください。画像、ログ、環境情報は任意です。
 
 報告を担当者に振り分けるため、影響する領域を選びます。バグ報告ではデプロイ方法も選択します。Issue の報告では画像は任意であり、UI や操作を変更する PR の画像必須ルールは適用されません。
 
@@ -201,7 +201,7 @@ make start
 
 ### PR の提出要件
 
-[PR テンプレート](https://github.com/multica-ai/multica/blob/main/.github/PULL_REQUEST_TEMPLATE.md)を使い、[貢献要件](https://github.com/multica-ai/multica/blob/main/CONTRIBUTING.md#pull-request-requirements)に従ってください。
+[PR テンプレート](https://github.com/jerry-halo2026/morchat.co/blob/main/.github/PULL_REQUEST_TEMPLATE.md)を使い、[貢献要件](https://github.com/jerry-halo2026/morchat.co/blob/main/CONTRIBUTING.md#pull-request-requirements)に従ってください。
 
 1. **問題（Problem）：** 解決する具体的な問題、影響を受ける人、問題の重要性を説明します。
 2. **目標（Goal）：** 変更によって実現したい結果を示します。

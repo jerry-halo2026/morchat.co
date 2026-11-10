@@ -1,8 +1,8 @@
 "use client";
 
-import { Settings2 } from "@multica/ui/icons";
-import { selectConversationStarters } from "@multica/core/agents";
-import type { Agent } from "@multica/core/types";
+import { Settings2 } from "@morechat/ui/icons";
+import { selectConversationStarters } from "@morechat/core/agents";
+import type { Agent } from "@morechat/core/types";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { useT } from "../../i18n";
 import { AppLink } from "../../navigation";

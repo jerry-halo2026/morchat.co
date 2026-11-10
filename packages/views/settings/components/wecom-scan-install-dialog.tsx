@@ -19,7 +19,7 @@ import { toast } from "sonner";
 // Named import: the default export is an object, not a component, and using it
 // throws "Element type is invalid" the moment the QR mounts.
 import { QRCode } from "react-qr-code";
-import { Button } from "@multica/ui/components/ui/button";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -27,10 +27,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { api, ApiError, errorCode } from "@multica/core/api";
-import { createSafeId } from "@multica/core/utils";
-import { wecomKeys } from "@multica/core/wecom";
+} from "@morechat/ui/components/ui/dialog";
+import { api, ApiError, errorCode } from "@morechat/core/api";
+import { createSafeId } from "@morechat/core/utils";
+import { wecomKeys } from "@morechat/core/wecom";
 import { useT } from "../../i18n";
 
 // Terminal error reasons this dialog renders copy for. Anything else falls back

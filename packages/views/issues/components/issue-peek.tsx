@@ -2,25 +2,25 @@
 
 import { memo, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { AnimatePresence, motion, useIsPresent } from "motion/react";
-import { useReducedMotion } from "@multica/core/appearance";
-import { ChevronDown, ChevronUp, Maximize2, X } from "@multica/ui/icons";
-import { Button, buttonVariants } from "@multica/ui/components/ui/button";
+import { useReducedMotion } from "@morechat/core/appearance";
+import { ChevronDown, ChevronUp, Maximize2, X } from "@morechat/ui/icons";
+import { Button, buttonVariants } from "@morechat/ui/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
-import { ErrorBoundary } from "@multica/ui/components/common/error-boundary";
-import { cn } from "@multica/ui/lib/utils";
-import { UI_EASE_OUT, UI_MOTION_DURATION } from "@multica/ui/lib/motion";
-import { useModalStore } from "@multica/core/modals";
-import { useWorkspacePaths } from "@multica/core/paths";
+} from "@morechat/ui/components/ui/tooltip";
+import { ErrorBoundary } from "@morechat/ui/components/common/error-boundary";
+import { cn } from "@morechat/ui/lib/utils";
+import { UI_EASE_OUT, UI_MOTION_DURATION } from "@morechat/ui/lib/motion";
+import { useModalStore } from "@morechat/core/modals";
+import { useWorkspacePaths } from "@morechat/core/paths";
 import {
   createShortcutChord,
   isEditableShortcutTarget,
   isPortalLayerShortcutTarget,
-} from "@multica/core/shortcuts";
-import { isImeComposing } from "@multica/core/utils";
+} from "@morechat/core/shortcuts";
+import { isImeComposing } from "@morechat/core/utils";
 import { AppLink } from "../../navigation";
 import { PAGE_GUTTER } from "../../layout/page-header";
 import { WindowTitleBarProvider } from "../../platform/window-title-bar";

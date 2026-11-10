@@ -8,8 +8,8 @@ import {
   within,
 } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { I18nProvider } from "@multica/core/i18n/react";
-import type { AgentRuntime } from "@multica/core/types";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import type { AgentRuntime } from "@morechat/core/types";
 import enCommon from "../../locales/en/common.json";
 import enLayout from "../../locales/en/layout.json";
 import enRuntimes from "../../locales/en/runtimes.json";
@@ -42,9 +42,9 @@ const { ApiError, mocks, nav } = vi.hoisted(() => {
     nav: { push: vi.fn(), replace: vi.fn() },
   };
 });
-vi.mock("@multica/core/api", () => ({ api: mocks, ApiError }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-test" }));
-vi.mock("@multica/core/auth", () => {
+vi.mock("@morechat/core/api", () => ({ api: mocks, ApiError }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-test" }));
+vi.mock("@morechat/core/auth", () => {
   const state = { user: { id: "owner" } };
   return {
     useAuthStore: Object.assign(
@@ -53,10 +53,10 @@ vi.mock("@multica/core/auth", () => {
     ),
   };
 });
-vi.mock("@multica/core/agents", () => ({
+vi.mock("@morechat/core/agents", () => ({
   useWorkspacePresenceMap: () => ({ byAgent: new Map() }),
 }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useWorkspacePaths: () => ({
     runtimes: () => "/acme/runtimes",
     newAgentManual: () => "/acme/agents/new/manual",

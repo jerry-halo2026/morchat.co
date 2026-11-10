@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GitBranch, Pencil, TriangleAlert } from "@multica/ui/icons";
-import type { LocalDirectoryExecutionMode } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
+import { GitBranch, Pencil, TriangleAlert } from "@morechat/ui/icons";
+import type { LocalDirectoryExecutionMode } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import { useT } from "../../i18n/use-t";
 
 /**

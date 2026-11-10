@@ -9,7 +9,7 @@
 // props and children reach the button too, so they count as well.
 //
 // A native `<button>` has no size to go by, so it is checked only when all of
-// its content is icons imported from @multica/ui/icons, possibly chosen by a
+// its content is icons imported from @morechat/ui/icons, possibly chosen by a
 // conditional. Any other child could render text, so the button is left alone.
 //
 // Registered by the shared React config, so every package that extends it
@@ -17,7 +17,7 @@
 
 const NAME_ATTRIBUTES = new Set(["aria-label", "aria-labelledby"]);
 const SR_ONLY = /(^|\s)sr-only(\s|$)/;
-const ICONS_MODULE = "@multica/ui/icons";
+const ICONS_MODULE = "@morechat/ui/icons";
 
 function attributeName(attr) {
   return attr.type === "JSXAttribute" && attr.name.type === "JSXIdentifier"
@@ -171,7 +171,7 @@ const iconButtonName = {
     schema: [],
     messages: {
       unnamed:
-        "Icon-only Button has no accessible name: screen readers announce a bare \"button\" and tests can't find it by role. Use IconButton from @multica/ui/components/common/icon-button — its `label` sets the name and the tooltip. In a row that repeats, keep the Button, add `aria-label`, and show the tooltip with DeferredTooltip.",
+        "Icon-only Button has no accessible name: screen readers announce a bare \"button\" and tests can't find it by role. Use IconButton from @morechat/ui/components/common/icon-button — its `label` sets the name and the tooltip. In a row that repeats, keep the Button, add `aria-label`, and show the tooltip with DeferredTooltip.",
     },
   },
   create(context) {
@@ -196,6 +196,6 @@ const iconButtonName = {
 };
 
 export default {
-  meta: { name: "@multica/eslint-config/a11y" },
+  meta: { name: "@morechat/eslint-config/a11y" },
   rules: { "icon-button-name": iconButtonName },
 };

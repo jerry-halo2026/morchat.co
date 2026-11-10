@@ -6,7 +6,7 @@ import {
   Newspaper,
   Shield,
   type IconComponent,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import type { ScheduleConfig } from "./schedule-editor/model";
 
 // Templates offered by the empty state and the Autopilots panel.

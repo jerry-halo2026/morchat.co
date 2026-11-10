@@ -2,13 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Plug } from "@multica/ui/icons";
+import { Loader2, Plug } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { useFeatureEnabled } from "@multica/core/config";
-import { PLUGINS_V1_FLAG } from "@multica/core/feature-flags";
-import { useCurrentWorkspace } from "@multica/core/paths";
-import { pluginInstallationsOptions, useInvokePluginHook } from "@multica/core/plugins";
-import type { PluginHook, PluginInstallation } from "@multica/core/types";
+import { useFeatureEnabled } from "@morechat/core/config";
+import { PLUGINS_V1_FLAG } from "@morechat/core/feature-flags";
+import { useCurrentWorkspace } from "@morechat/core/paths";
+import { pluginInstallationsOptions, useInvokePluginHook } from "@morechat/core/plugins";
+import type { PluginHook, PluginInstallation } from "@morechat/core/types";
 import { useT } from "../i18n";
 
 /**

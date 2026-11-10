@@ -13,20 +13,20 @@ import {
   PinOff,
   Square,
   Trash2,
-} from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { paths, useWorkspaceSlug } from "@multica/core/paths";
-import { useWorkspacePresenceMap } from "@multica/core/agents";
-import { api } from "@multica/core/api";
-import { pendingChatTasksOptions, chatKeys, sortChatSessions } from "@multica/core/chat/queries";
+} from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { paths, useWorkspaceSlug } from "@morechat/core/paths";
+import { useWorkspacePresenceMap } from "@morechat/core/agents";
+import { api } from "@morechat/core/api";
+import { pendingChatTasksOptions, chatKeys, sortChatSessions } from "@morechat/core/chat/queries";
 import {
   useDeleteChatSession,
   useSetChatSessionArchived,
   useSetChatSessionPinned,
-} from "@multica/core/chat/mutations";
-import { useChatStore } from "@multica/core/chat";
-import type { Agent, ChatSession, PendingChatTasksResponse } from "@multica/core/types";
+} from "@morechat/core/chat/mutations";
+import { useChatStore } from "@morechat/core/chat";
+import type { Agent, ChatSession, PendingChatTasksResponse } from "@morechat/core/types";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { DeferredTooltip } from "../../common/deferred-tooltip";
 import {
@@ -35,8 +35,8 @@ import {
   type RowActionItem,
 } from "../../common/row-actions-menu";
 import { resolveClickIntent, useOptionalNavigation } from "../../navigation";
-import { createLogger } from "@multica/core/logger";
-import { removeChatMessageFromCaches } from "@multica/core/realtime";
+import { createLogger } from "@morechat/core/logger";
+import { removeChatMessageFromCaches } from "@morechat/core/realtime";
 import { useLocale, useT } from "../../i18n";
 import { SessionHistoryList } from "./session-history-list";
 

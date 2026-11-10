@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef } from "react";
-import { api } from "@multica/core/api";
-import { useAuthStore } from "@multica/core/auth";
-import { getOrCreateInstallId, utcDay } from "@multica/core/client-usage";
-import { defaultStorage } from "@multica/core/platform";
+import { api } from "@morechat/core/api";
+import { useAuthStore } from "@morechat/core/auth";
+import { getOrCreateInstallId, utcDay } from "@morechat/core/client-usage";
+import { defaultStorage } from "@morechat/core/platform";
 import type { LocalRuntimeProbe } from "../../../shared/daemon-types";
 
 const LAST_RUNTIME_PREFIX = "multica_runtime_probe_last_reported";

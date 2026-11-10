@@ -1,8 +1,8 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { Pencil, X } from "@multica/ui/icons";
-import type { Agent } from "@multica/core/types";
+import { Pencil, X } from "@morechat/ui/icons";
+import type { Agent } from "@morechat/core/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,8 +12,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/alert-dialog";
+import { cn } from "@morechat/ui/lib/utils";
 import { ReadonlyContent } from "../../editor/readonly-content";
 import {
   ObjectSection,

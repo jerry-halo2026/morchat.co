@@ -17,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/pkg/agent"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
 )
 
 // batchFixture wires a Daemon against a fake server that serves a configurable

@@ -23,8 +23,8 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/multica-ai/multica/server/internal/issueactivitybackfill"
-	"github.com/multica-ai/multica/server/internal/logger"
+	"github.com/jerry-halo2026/morchat.co/server/internal/issueactivitybackfill"
+	"github.com/jerry-halo2026/morchat.co/server/internal/logger"
 )
 
 const (

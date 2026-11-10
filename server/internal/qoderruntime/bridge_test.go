@@ -20,8 +20,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/daemon"
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 const workspaceID = "11111111-1111-4111-8111-111111111111"

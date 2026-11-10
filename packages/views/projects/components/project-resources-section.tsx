@@ -10,42 +10,42 @@ import {
   Plus,
   Search,
   Trash2,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { toast } from "sonner";
 import {
   projectResourcesOptions,
   useCreateProjectResource,
   useDeleteProjectResource,
   useUpdateProjectResource,
-} from "@multica/core/projects";
-import { splitGithubUrlRef } from "@multica/core/github";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useCurrentWorkspace } from "@multica/core/paths";
+} from "@morechat/core/projects";
+import { splitGithubUrlRef } from "@morechat/core/github";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useCurrentWorkspace } from "@morechat/core/paths";
 import type {
   GithubRepoResourceRef,
   LocalDirectoryExecutionMode,
   LocalDirectoryResourceRef,
   ProjectResource,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import {
   runtimeAdvertisesLocalWorktree,
   runtimeListOptions,
-} from "@multica/core/runtimes";
-import { useConfigStore } from "@multica/core/config";
-import { Badge } from "@multica/ui/components/ui/badge";
-import { Button } from "@multica/ui/components/ui/button";
-import { Spinner } from "@multica/ui/components/ui/spinner";
+} from "@morechat/core/runtimes";
+import { useConfigStore } from "@morechat/core/config";
+import { Badge } from "@morechat/ui/components/ui/badge";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Spinner } from "@morechat/ui/components/ui/spinner";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@multica/ui/components/ui/popover";
+} from "@morechat/ui/components/ui/popover";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-} from "@multica/ui/components/ui/tooltip";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+} from "@morechat/ui/components/ui/tooltip";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 import {
   isDesktopShell,
   pickDirectory,
@@ -67,7 +67,7 @@ import { githubShortLabel } from "../../common/github-url";
 //
 // Type-dispatched at the row + add-flow level. Add a new resource_type by:
 //   (1) extending the server validator
-//   (2) extending ProjectResourceType in @multica/core/types
+//   (2) extending ProjectResourceType in @morechat/core/types
 //   (3) adding a render case in ResourceRow and an add-control here
 function isGithubRef(r: ProjectResource): r is ProjectResource & {
   resource_ref: GithubRepoResourceRef;

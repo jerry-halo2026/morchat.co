@@ -3,21 +3,21 @@
 import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildIssueStatusCatalog } from "@multica/core/issue-statuses";
-import { agentListOptions, memberListOptions } from "@multica/core/workspace/queries";
-import { projectListOptions } from "@multica/core/projects/queries";
+import { buildIssueStatusCatalog } from "@morechat/core/issue-statuses";
+import { agentListOptions, memberListOptions } from "@morechat/core/workspace/queries";
+import { projectListOptions } from "@morechat/core/projects/queries";
 import { renderWithI18n } from "../test/i18n";
 import { WorkflowEditorPage } from "./workflow-editor-page";
 
 const { createWorkflow } = vi.hoisted(() => ({ createWorkflow: vi.fn() }));
 
-vi.mock("@multica/core/api", () => ({ api: {}, ApiError: class extends Error {}, clientErrorMessage: () => null }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
-vi.mock("@multica/core/paths", () => ({ useCurrentWorkspace: () => ({ id: "ws-1", name: "Acme" }) }));
-vi.mock("@multica/core/issue-statuses/hooks", () => ({ useIssueStatuses: () => buildIssueStatusCatalog([]) }));
-vi.mock("@multica/core/workspace/hooks", () => ({ useActorName: () => ({ getActorName: () => "Builder" }) }));
-vi.mock("@multica/core/issue-workflows", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/issue-workflows")>()),
+vi.mock("@morechat/core/api", () => ({ api: {}, ApiError: class extends Error {}, clientErrorMessage: () => null }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/paths", () => ({ useCurrentWorkspace: () => ({ id: "ws-1", name: "Acme" }) }));
+vi.mock("@morechat/core/issue-statuses/hooks", () => ({ useIssueStatuses: () => buildIssueStatusCatalog([]) }));
+vi.mock("@morechat/core/workspace/hooks", () => ({ useActorName: () => ({ getActorName: () => "Builder" }) }));
+vi.mock("@morechat/core/issue-workflows", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/issue-workflows")>()),
   useIssueWorkflows: () => ({ workflows: [], isLoaded: true }),
   useCreateIssueWorkflow: () => ({ mutateAsync: createWorkflow, isPending: false }),
   useUpdateIssueWorkflow: () => ({ mutateAsync: vi.fn(), isPending: false }),

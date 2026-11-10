@@ -12,12 +12,12 @@ import {
   type ReactNode,
 } from "react";
 import { toast } from "sonner";
-import type { AgentTask, Issue } from "@multica/core/types";
-import { useCancelIssueRun } from "@multica/core/issues/mutations";
+import type { AgentTask, Issue } from "@morechat/core/types";
+import { useCancelIssueRun } from "@morechat/core/issues/mutations";
 import {
   ContextMenu,
   ContextMenuContent,
-} from "@multica/ui/components/ui/context-menu";
+} from "@morechat/ui/components/ui/context-menu";
 import { useIssueActions } from "./use-issue-actions";
 import {
   IssueActionsMenuItems,

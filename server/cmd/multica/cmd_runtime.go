@@ -13,8 +13,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/multica-ai/multica/server/internal/agentconfig"
-	"github.com/multica-ai/multica/server/internal/cli"
+	"github.com/jerry-halo2026/morchat.co/server/internal/agentconfig"
+	"github.com/jerry-halo2026/morchat.co/server/internal/cli"
 )
 
 var runtimeCmd = &cobra.Command{

@@ -1,6 +1,6 @@
 # Contributing Guide
 
-This guide documents issue and pull request requirements and the local development workflow for contributors working on the Multica codebase.
+This guide documents issue and pull request requirements and the local development workflow for contributors working on the morechat.co codebase.
 
 It covers:
 
@@ -16,15 +16,15 @@ It covers:
 
 ## Contribution Terms
 
-By submitting a contribution to Multica — a pull request, a patch, or any
-other work — you agree to condition 2 of the [Multica License](LICENSE):
+By submitting a contribution to morechat.co — a pull request, a patch, or any
+other work — you agree to condition 2 of the [morechat.co License](LICENSE):
 
-- your contribution is submitted under the Multica License as a whole (the
+- your contribution is submitted under the morechat.co License as a whole (the
   additional conditions in Part I together with the incorporated Apache
   License 2.0 text in Part II), not under the Apache License 2.0 alone;
 - your contributed code may be used for commercial purposes, including the
   producer's cloud business operations;
-- the producer can adjust the Multica License to be more strict or relaxed
+- the producer can adjust the morechat.co License to be more strict or relaxed
   as deemed necessary.
 
 See the [LICENSE](LICENSE) file for the full terms.
@@ -82,7 +82,7 @@ From the repository root, upload files to an existing PR with Node.js 22+ and
 [GitHub CLI 2.103.2+](https://github.com/cli/cli/releases/tag/v2.103.2):
 
 ```bash
-scripts/pr-shots --repo multica-ai/multica 123 ./before.png ./after.png ./demo.mp4
+scripts/pr-shots --repo jerry-halo2026/morchat.co 123 ./before.png ./after.png ./demo.mp4
 ```
 
 By default, the script appends attachments at the end of the PR description
@@ -111,7 +111,7 @@ To migrate an existing screenshot while keeping its caption and position, use
 Markdown image, such as `![Original caption](https://example.com/old.png)`:
 
 ```bash
-scripts/pr-shots --repo multica-ai/multica \
+scripts/pr-shots --repo jerry-halo2026/morchat.co \
   --replace https://example.com/old.png 123 ./after.png
 ```
 
@@ -706,7 +706,7 @@ make destroy ARGS="--yes"
 
 The script finds the window by its owner PID, the process listening on the
 CDP port that `make status` has verified for this environment. It never matches
-by app name or window title: a dev build is also called "Multica Canary", and
+by app name or window title: a dev build is also called "morechat.co Canary", and
 its title is the current page, so either could pick up your own Desktop window.
 Transparent rounded corners are flattened onto white, and the colour profile is
 kept. The app running the command needs Screen Recording permission.
@@ -734,7 +734,7 @@ Nothing in this flow touches the system-installed `multica` or the default
 | Workspaces dir | `~/multica_workspaces/` | `~/multica_workspaces_dev-<slug>-<offset>/` |
 | Database | remote / production | local: `multica_<slug>_<offset>` |
 | Registry | — | `~/.multica/dev/envs/<name>/` |
-| Desktop profile | `desktop-api.multica.ai` | `desktop-localhost-<port>` |
+| Desktop profile | `desktop-api.morechat.co` | `desktop-localhost-<port>` |
 
 Multiple environments run simultaneously without conflict; `make list` shows
 all of them.

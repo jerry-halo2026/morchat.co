@@ -1,20 +1,20 @@
 "use client";
 
 import { memo, useCallback, useMemo, useState } from "react";
-import { Bell, Clock3, TriangleAlert } from "@multica/ui/icons";
+import { Bell, Clock3, TriangleAlert } from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { ShimmerText } from "@multica/ui/components/common/shimmer-text";
+import { ShimmerText } from "@morechat/ui/components/common/shimmer-text";
 import {
   HoverCard,
   HoverCardTrigger,
   HoverCardContent,
-} from "@multica/ui/components/ui/hover-card";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { agentTaskSnapshotOptions } from "@multica/core/agents";
-import type { AgentTask, IssueWakeupSummaryRow, PausedWakeup } from "@multica/core/types";
-import { pausedWakeupsOptions, workspaceWakeupSummariesOptions } from "@multica/core/issues/wakeups";
-import { cn } from "@multica/ui/lib/utils";
-import type { AvatarSize } from "@multica/ui/lib/avatar-size";
+} from "@morechat/ui/components/ui/hover-card";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { agentTaskSnapshotOptions } from "@morechat/core/agents";
+import type { AgentTask, IssueWakeupSummaryRow, PausedWakeup } from "@morechat/core/types";
+import { pausedWakeupsOptions, workspaceWakeupSummariesOptions } from "@morechat/core/issues/wakeups";
+import { cn } from "@morechat/ui/lib/utils";
+import type { AvatarSize } from "@morechat/ui/lib/avatar-size";
 import { AgentAvatarStack } from "../../agents/components/agent-avatar-stack";
 import { AgentActivityHoverContent } from "../../agents/components/agent-activity-hover-content";
 import { selectIssueTasks, type IssueTaskGroups } from "../surface/activity";

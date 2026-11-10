@@ -1,23 +1,23 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Loader2, MessageSquare, X } from "@multica/ui/icons";
+import { Loader2, MessageSquare, X } from "@morechat/ui/icons";
 import {
   applyDraftModelChange,
   applyDraftRuntimeChange,
   stripBuilderDraft,
   type AgentDraft,
   type BuilderRestore,
-} from "@multica/core/agents";
-import { isRuntimeUsableForUser } from "@multica/core/runtimes";
+} from "@morechat/core/agents";
+import { isRuntimeUsableForUser } from "@morechat/core/runtimes";
 import type {
   ChatMessage,
   MemberWithUser,
   RuntimeDevice,
-} from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { cn } from "@morechat/ui/lib/utils";
 import { ChatInput } from "../../chat/components/chat-input";
 import { CHAT_COLUMN, CHAT_GUTTER } from "../../chat/components/chat-column";
 import {

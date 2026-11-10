@@ -3,8 +3,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { setApiInstance } from "@multica/core/api";
-import type { ApiClient } from "@multica/core/api/client";
+import { setApiInstance } from "@morechat/core/api";
+import type { ApiClient } from "@morechat/core/api/client";
 import { renderWithI18n } from "../../test/i18n";
 
 const updateMock = vi.fn().mockResolvedValue({});
@@ -17,7 +17,7 @@ const PINNED = {
   workspace_id: "workspace-1",
   resource_type: "github_repo",
   resource_ref: {
-    url: "https://github.com/multica-ai/multica",
+    url: "https://github.com/jerry-halo2026/morchat.co",
     ref: "release/2026-09",
   },
   // A custom name, which is what used to hide the ref: the row rendered
@@ -40,7 +40,7 @@ const ATTACHABLE_REPO = {
 };
 
 const PINNED_REPO = {
-  url: "https://github.com/multica-ai/multica",
+  url: "https://github.com/jerry-halo2026/morchat.co",
   description: "The main monorepo",
 };
 
@@ -67,23 +67,23 @@ vi.mock("@tanstack/react-query", async (importOriginal) => ({
   queryOptions: (options: unknown) => options,
 }));
 
-vi.mock("@multica/core/projects", () => ({
+vi.mock("@morechat/core/projects", () => ({
   projectResourcesOptions: () => ({ queryKey: ["project-resources"], queryFn: vi.fn() }),
   useCreateProjectResource: () => ({ mutateAsync: createMock, isPending: false }),
   useUpdateProjectResource: () => ({ mutateAsync: updateMock }),
   useDeleteProjectResource: (...args: unknown[]) => deleteHookMock(...args),
 }));
 
-vi.mock("@multica/core/config", () => ({
+vi.mock("@morechat/core/config", () => ({
   useConfigStore: (selector: (state: { localWorktreeSupported: boolean }) => unknown) =>
     selector({ localWorktreeSupported: true }),
 }));
-vi.mock("@multica/core/runtimes", () => ({
+vi.mock("@morechat/core/runtimes", () => ({
   runtimeListOptions: () => ({ queryKey: ["runtimes"], queryFn: vi.fn() }),
   runtimeAdvertisesLocalWorktree: () => true,
 }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
+vi.mock("@morechat/core/paths", () => ({
   useCurrentWorkspace: () => ({
     id: "workspace-1",
     slug: "ws",
@@ -110,7 +110,7 @@ describe("ProjectResourcesSection — github_repo checkout ref", () => {
   });
 
   it.each(["success", "failure"])("prevents duplicate deletes per row and releases pending state on %s", async (outcome) => {
-    const actual = await vi.importActual<typeof import("@multica/core/projects")>("@multica/core/projects");
+    const actual = await vi.importActual<typeof import("@morechat/core/projects")>("@morechat/core/projects");
     deleteHookMock.mockImplementation(actual.useDeleteProjectResource);
     let resolveFirst!: () => void;
     let rejectFirst!: (error: Error) => void;
@@ -198,7 +198,7 @@ describe("ProjectResourcesSection — github_repo checkout ref", () => {
     // deep-merging, so an edit that sends only `ref` is a 400 at best and
     // drops the repository at worst.
     expect(payload.data.resource_ref).toEqual({
-      url: "https://github.com/multica-ai/multica",
+      url: "https://github.com/jerry-halo2026/morchat.co",
       ref: "release/2026-10",
     });
   });
@@ -217,7 +217,7 @@ describe("ProjectResourcesSection — github_repo checkout ref", () => {
       data: { resource_ref: Record<string, unknown> };
     };
     expect(payload.data.resource_ref).toEqual({
-      url: "https://github.com/multica-ai/multica",
+      url: "https://github.com/jerry-halo2026/morchat.co",
       ref: undefined,
     });
   });

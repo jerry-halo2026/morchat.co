@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import type { TaskMessagePayload } from "@multica/core/types";
+import type { TaskMessagePayload } from "@morechat/core/types";
 import { AgentTaskSchema } from "@/data/schemas";
 import {
   buildRunTranscript,

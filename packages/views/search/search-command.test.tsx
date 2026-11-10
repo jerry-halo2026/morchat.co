@@ -2,29 +2,29 @@ import { act, type ReactNode } from "react";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
-import { buildIssueStatusCatalog } from "@multica/core/issue-statuses/queries";
+import { buildIssueStatusCatalog } from "@morechat/core/issue-statuses/queries";
 import {
   useCommandBarContextStore,
   useSearchStore,
   type CommandBarContext,
-} from "@multica/core/command-bar";
-import { inboxUnreadSummaryOptions } from "@multica/core/inbox/queries";
-import { I18nProvider } from "@multica/core/i18n/react";
-import { issueDetailOptions, issueTimelineOptions } from "@multica/core/issues/queries";
-import { WORKSPACE_PAGES } from "@multica/core/paths";
-import type { Issue } from "@multica/core/types";
+} from "@morechat/core/command-bar";
+import { inboxUnreadSummaryOptions } from "@morechat/core/inbox/queries";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import { issueDetailOptions, issueTimelineOptions } from "@morechat/core/issues/queries";
+import { WORKSPACE_PAGES } from "@morechat/core/paths";
+import type { Issue } from "@morechat/core/types";
 import {
   agentListOptions,
   memberListOptions,
   squadListOptions,
   workspaceListOptions,
-} from "@multica/core/workspace/queries";
+} from "@morechat/core/workspace/queries";
 import { RESOURCES } from "../locales";
 import enLayout from "../locales/en/layout.json";
 import zhHansProjects from "../locales/zh-Hans/projects.json";
 import { SearchCommand } from "./search-command";
 
-vi.mock("@multica/core/issue-statuses/hooks", () => ({
+vi.mock("@morechat/core/issue-statuses/hooks", () => ({
   useIssueStatuses: () => buildIssueStatusCatalog([]),
 }));
 
@@ -150,33 +150,33 @@ vi.mock("@tanstack/react-query", async (importOriginal) => {
   };
 });
 
-vi.mock("@multica/core/api", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/api")>()),
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/api")>()),
   api: mockApi,
 }));
 
-vi.mock("@multica/core/auth", async (importOriginal) => {
+vi.mock("@morechat/core/auth", async (importOriginal) => {
   const state = { user: { id: "user-me", name: "Me Myself", email: "me@example.com" } };
   return {
-    ...(await importOriginal<typeof import("@multica/core/auth")>()),
+    ...(await importOriginal<typeof import("@morechat/core/auth")>()),
     useAuthStore: Object.assign((selector?: (s: typeof state) => unknown) => (selector ? selector(state) : state), {
       getState: () => state,
     }),
   };
 });
 
-vi.mock("@multica/core/hooks", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/hooks")>()),
+vi.mock("@morechat/core/hooks", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/hooks")>()),
   useWorkspaceId: () => "ws-test",
 }));
 
-vi.mock("@multica/core", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core")>()),
+vi.mock("@morechat/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core")>()),
   useWorkspaceId: () => "ws-test",
 }));
 
-vi.mock("@multica/core/paths", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/paths")>();
+vi.mock("@morechat/core/paths", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/paths")>();
   return {
     ...actual,
     useWorkspacePaths: () => actual.paths.workspace("ws-test"),
@@ -190,8 +190,8 @@ vi.mock("../common/actor-avatar", () => ({
   ),
 }));
 
-vi.mock("@multica/core/issues/stores", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/issues/stores")>();
+vi.mock("@morechat/core/issues/stores", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/issues/stores")>();
   const EMPTY: Array<{ id: string; visitedAt: number }> = [];
   return {
     ...actual,
@@ -216,10 +216,10 @@ vi.mock("@multica/core/issues/stores", async (importOriginal) => {
   };
 });
 
-vi.mock("@multica/core/modals", async (importOriginal) => {
+vi.mock("@morechat/core/modals", async (importOriginal) => {
   const state = { open: mockOpenModal };
   return {
-    ...(await importOriginal<typeof import("@multica/core/modals")>()),
+    ...(await importOriginal<typeof import("@morechat/core/modals")>()),
     useModalStore: Object.assign((selector?: (s: typeof state) => unknown) => (selector ? selector(state) : state), {
       getState: () => state,
     }),
@@ -238,7 +238,7 @@ vi.mock("../navigation/context", () => {
   return { useNavigation: adapter, useOptionalNavigation: adapter };
 });
 
-vi.mock("@multica/ui/components/common/theme-provider", () => ({
+vi.mock("@morechat/ui/components/common/theme-provider", () => ({
   useTheme: () => ({ theme: mockTheme.current, setTheme: mockSetTheme }),
 }));
 

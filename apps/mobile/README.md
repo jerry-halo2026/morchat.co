@@ -1,16 +1,16 @@
-# Multica Mobile (iOS)
+# morechat.co Mobile (iOS)
 
-Expo + React Native iOS client for Multica. Independent from web/desktop — shares types and pure utilities from `@multica/core/`. See [`AGENTS.md`](./AGENTS.md) for mobile architecture and development rules; `package.json` records the current dependency versions.
+Expo + React Native iOS client for morechat.co. Independent from web/desktop — shares types and pure utilities from `@morechat/core/`. See [`AGENTS.md`](./AGENTS.md) for mobile architecture and development rules; `package.json` records the current dependency versions.
 
 ## Just want to use it on your phone? (no development)
 
-Multica isn't on the App Store yet — until that changes, anyone who wants it on their iPhone builds from source. One command:
+morechat.co isn't on the App Store yet — until that changes, anyone who wants it on their iPhone builds from source. One command:
 
 ```bash
 pnpm ios:mobile:device:prod:release
 ```
 
-This connects to the same backend as `multica.ai`, so your existing account just works. To use a private backend or your own bundle ID, copy `apps/mobile/.env.production.example` to `apps/mobile/.env.production.local` and edit the copy — it overrides the committed `.env.production` key by key and is gitignored, so personal values stay local.
+This connects to the same backend as `morechat.co`, so your existing account just works. To use a private backend or your own bundle ID, copy `apps/mobile/.env.production.example` to `apps/mobile/.env.production.local` and edit the copy — it overrides the committed `.env.production` key by key and is gitignored, so personal values stay local.
 
 **Prerequisites**: Mac with Xcode, a free Apple ID added under Xcode → Settings → Accounts, iPhone connected via USB with [Developer Mode enabled](https://docs.expo.dev/guides/ios-developer-mode/). Walk through Expo's [Set up your environment](https://docs.expo.dev/get-started/set-up-your-environment/) (pick **Development build → iOS Device**) if any of that is missing.
 
@@ -76,7 +76,7 @@ change to SDK 57 or mobile moves to SDK 58+.
 
 `eslint-config-expo` and TypeScript are temporarily excluded from
 `expo install --check`: upgrading them enables additional compiler lint rules
-that need a focused cleanup. [#9165](https://github.com/multica-ai/multica/issues/9165)
+that need a focused cleanup. [#9165](https://github.com/jerry-halo2026/morchat.co/issues/9165)
 tracks removing the exclusions and aligning both tools with SDK 57.
 
 After updating dependencies, regenerate an existing native project once (save
@@ -105,7 +105,7 @@ cp apps/mobile/.env.example apps/mobile/.env.development.local
 # then edit EXPO_PUBLIC_API_URL inside it to your Mac's LAN IP, e.g. http://192.168.1.42:8080
 ```
 
-If your Apple ID isn't on the Multica Apple Developer team yet, also set `EXPO_BUNDLE_IDENTIFIER_DEV` to a reverse-domain you own (e.g. `com.yourname.multica.dev`). For a personal production build, set `EXPO_BUNDLE_IDENTIFIER_PROD` in `.env.production.local`.
+If your Apple ID isn't on the morechat.co Apple Developer team yet, also set `EXPO_BUNDLE_IDENTIFIER_DEV` to a reverse-domain you own (e.g. `com.yourname.multica.dev`). For a personal production build, set `EXPO_BUNDLE_IDENTIFIER_PROD` in `.env.production.local`.
 
 For staging builds, export `EXPO_BUNDLE_IDENTIFIER_STAGING=com.yourname.multica.staging` before running an `ios:*:staging` script. Each override applies only to its named variant, so development, staging, and production can stay installed side by side.
 

@@ -26,11 +26,11 @@ import {
   SquarePen,
   X,
   type IconComponent,
-} from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { ShimmerText } from "@multica/ui/components/common/shimmer-text";
-import { StatusIcon } from "@multica/views/issues/components/status-icon";
-import { PriorityIcon } from "@multica/views/issues/components/priority-icon";
+} from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { ShimmerText } from "@morechat/ui/components/common/shimmer-text";
+import { StatusIcon } from "@morechat/views/issues/components/status-icon";
+import { PriorityIcon } from "@morechat/views/issues/components/priority-icon";
 import {
   APP_CARD,
   AppRail,

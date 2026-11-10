@@ -1,22 +1,22 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ArrowRight, AtSign, CircleCheck, ListPlus, Users } from "@multica/ui/icons";
+import { ArrowRight, AtSign, CircleCheck, ListPlus, Users } from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useModalStore } from "@multica/core/modals";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { runtimeDisplayLabel } from "@multica/core/runtimes";
-import { runtimeListOptions } from "@multica/core/runtimes/queries";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useModalStore } from "@morechat/core/modals";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { runtimeDisplayLabel } from "@morechat/core/runtimes";
+import { runtimeListOptions } from "@morechat/core/runtimes/queries";
 import {
   agentDetailOptions,
   agentListOptions,
   squadListOptions,
-} from "@multica/core/workspace/queries";
-import { MulticaStarRow } from "@multica/ui/components/common/multica-graphics";
-import { Button } from "@multica/ui/components/ui/button";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/core/workspace/queries";
+import { MorechatArcade } from "@morechat/ui/components/common/morechat-graphics";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { cn } from "@morechat/ui/lib/utils";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { AppLink, useNavigation } from "../../navigation";
 import { useT } from "../../i18n";
@@ -58,9 +58,8 @@ export function AgentCreatedPage({ agentId }: { agentId: string }) {
         <div className="m-auto w-full max-w-xl">
           <div aria-hidden="true" className="relative mb-10 h-36 overflow-hidden rounded-xl bg-multica-ink">
             {stars && agent ? (
-              <MulticaStarRow
+              <MorechatArcade
                 count={stars}
-                join
                 delay={0.2}
                 className="absolute top-1/2 left-1/2 h-8 w-auto -translate-x-1/2 -translate-y-1/2 text-multica-paper/15"
                 lastClassName="fill-multica-paper"

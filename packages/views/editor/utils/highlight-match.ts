@@ -15,7 +15,7 @@
  *     literal paragraphs, matching how the editor lexes it)
  */
 
-import { findCodeRanges } from "@multica/ui/markdown/linkify";
+import { findCodeRanges } from "@morechat/ui/markdown/linkify";
 
 export interface Range {
   start: number;

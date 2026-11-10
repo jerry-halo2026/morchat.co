@@ -17,9 +17,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 
-	"github.com/multica-ai/multica/server/internal/cli"
-	"github.com/multica-ai/multica/server/internal/issueproperty"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/cli"
+	"github.com/jerry-halo2026/morchat.co/server/internal/issueproperty"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // multica property {list|get|create|update|archive|unarchive} — workspace

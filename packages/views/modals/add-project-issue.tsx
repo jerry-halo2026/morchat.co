@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
-import { useUpdateIssue } from "@multica/core/issues/mutations";
+import { useUpdateIssue } from "@morechat/core/issues/mutations";
 import { IssuePickerModal } from "./issue-picker-modal";
 import { useT } from "../i18n";
 

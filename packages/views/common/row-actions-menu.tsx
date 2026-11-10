@@ -1,14 +1,14 @@
 "use client";
 
 import { Fragment, type KeyboardEvent, type ReactNode } from "react";
-import { MoreHorizontal } from "@multica/ui/icons";
+import { MoreHorizontal } from "@morechat/ui/icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 
 export interface RowActionItem {
   key: string;

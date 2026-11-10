@@ -3,22 +3,22 @@
 import { cleanup, fireEvent, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { buildIssueStatusCatalog } from "@multica/core/issue-statuses";
-import { agentListOptions, memberListOptions, squadListOptions } from "@multica/core/workspace/queries";
-import { projectListOptions } from "@multica/core/projects/queries";
-import type { IssueWorkflow, IssueWorkflowStep } from "@multica/core/types";
+import { buildIssueStatusCatalog } from "@morechat/core/issue-statuses";
+import { agentListOptions, memberListOptions, squadListOptions } from "@morechat/core/workspace/queries";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import type { IssueWorkflow, IssueWorkflowStep } from "@morechat/core/types";
 import { renderWithI18n } from "../test/i18n";
 import { HandoffFields, WorkflowHandoffForm } from "./handoff-form";
 
 const { mutateAsync } = vi.hoisted(() => ({ mutateAsync: vi.fn() }));
 
-vi.mock("@multica/core/api", () => ({ api: {}, clientErrorMessage: () => null }));
-vi.mock("@multica/core/issue-workflows", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/issue-workflows")>()),
+vi.mock("@morechat/core/api", () => ({ api: {}, clientErrorMessage: () => null }));
+vi.mock("@morechat/core/issue-workflows", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/issue-workflows")>()),
   useSetWorkflowHandoff: () => ({ mutateAsync, isPending: false }),
 }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
-vi.mock("@multica/core/issue-statuses/hooks", () => ({ useIssueStatuses: () => buildIssueStatusCatalog([]) }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/issue-statuses/hooks", () => ({ useIssueStatuses: () => buildIssueStatusCatalog([]) }));
 vi.mock("../common/actor-avatar", () => ({
   ActorAvatar: ({ actorId }: { actorId: string }) => <span data-testid={`avatar-${actorId}`} />,
 }));

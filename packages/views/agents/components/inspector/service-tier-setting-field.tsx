@@ -2,9 +2,9 @@
 
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Gauge } from "@multica/ui/icons";
-import type { RuntimeModelServiceTier } from "@multica/core/types";
-import { runtimeModelsOptions } from "@multica/core/runtimes";
+import { ChevronDown, Gauge } from "@morechat/ui/icons";
+import type { RuntimeModelServiceTier } from "@morechat/core/types";
+import { runtimeModelsOptions } from "@morechat/core/runtimes";
 import {
   PickerItem,
   PropertyPicker,
@@ -12,7 +12,7 @@ import {
 import { SettingsRow } from "../../../settings/components/settings-layout";
 import { useT } from "../../../i18n";
 import { findModelCapabilityEntry } from "./model-capability";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 
 /**
  * Full-width service-tier field for Codex agents. Capability comes from the

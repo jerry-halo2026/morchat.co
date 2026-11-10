@@ -26,9 +26,9 @@
 
 import { memo, useEffect, useMemo, useState, type ReactNode } from "react";
 import { toHtml } from "hast-util-to-html";
-import { Check, Copy } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { copyText } from "@multica/ui/lib/clipboard";
+import { Check, Copy } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import { useT } from "../i18n";
 import { DeferredTooltip } from "../common/deferred-tooltip";
 import {

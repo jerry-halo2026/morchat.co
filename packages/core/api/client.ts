@@ -3481,7 +3481,7 @@ export class ApiClient {
       : "";
     return this.fetch<unknown>(`/api/plugin-bridge/v1${request.path}${query}`, {
       method: request.method,
-      headers: { "X-Multica-Plugin-Installation": installationId },
+      headers: { "X-morechat.co-Plugin-Installation": installationId },
       body: request.body === undefined ? undefined : JSON.stringify(request.body),
     });
   }
@@ -3502,7 +3502,7 @@ export class ApiClient {
   ): Promise<PluginHookResult> {
     const raw = await this.fetch<unknown>(`/api/plugin-bridge/v1/hooks/${encodeURIComponent(hookKey)}`, {
       method: "POST",
-      headers: { "X-Multica-Plugin-Installation": installationId },
+      headers: { "X-morechat.co-Plugin-Installation": installationId },
       body: JSON.stringify({ trigger: request.trigger, issue_id: request.issueId, input: request.input }),
     });
     return parseWithFallback(raw, PluginHookResultSchema, {
@@ -5795,8 +5795,8 @@ export class ApiClient {
   }
 
   // redeemWecomBindingToken binds the WeCom aibot userid carried by the
-  // token to the logged-in Multica user. Called by the /wecom/bind redeem
-  // page after the user clicks through the "link your Multica account"
+  // token to the logged-in morechat.co user. Called by the /wecom/bind redeem
+  // page after the user clicks through the "link your morechat.co account"
   // prompt the bot sent in WeCom. Status codes:
   //   410 Gone      → invalid / expired / already consumed
   //   409 Conflict  → the WeCom user is already bound to a different user

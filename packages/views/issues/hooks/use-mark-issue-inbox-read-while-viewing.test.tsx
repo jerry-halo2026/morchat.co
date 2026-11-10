@@ -2,13 +2,13 @@ import { act, renderHook } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createQueryClient } from "@multica/core/query-client";
-import { api } from "@multica/core/api";
-import { inboxKeys } from "@multica/core/inbox";
-import type { InboxItem, InboxWorkspaceUnread } from "@multica/core/types";
+import { createQueryClient } from "@morechat/core/query-client";
+import { api } from "@morechat/core/api";
+import { inboxKeys } from "@morechat/core/inbox";
+import type { InboxItem, InboxWorkspaceUnread } from "@morechat/core/types";
 import { useMarkIssueInboxReadWhileViewing } from "./use-mark-issue-inbox-read-while-viewing";
 
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: { markIssueInboxRead: vi.fn(), getInboxUnreadSummary: vi.fn() },
 }));
 
@@ -17,7 +17,7 @@ vi.mock("../../common/use-app-foreground", () => ({ useAppForeground: () => fore
 
 const wsHandlers = vi.hoisted(() => new Map<string, (payload: unknown) => void>());
 const reconnectHandlers = vi.hoisted(() => ({ current: null as (() => void) | null }));
-vi.mock("@multica/core/realtime", () => ({
+vi.mock("@morechat/core/realtime", () => ({
   useWSEvent: (event: string, handler: (payload: unknown) => void) => {
     wsHandlers.set(event, handler);
   },

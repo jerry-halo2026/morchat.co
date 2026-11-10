@@ -1,10 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
 
-export const MULTICA_GITHUB_REPO = "multica-ai/multica";
+export const MULTICA_GITHUB_REPO = "jerry-halo2026/morchat.co";
 export const MULTICA_GITHUB_URL = `https://github.com/${MULTICA_GITHUB_REPO}`;
 
 /**
- * Star count for the Multica repository, or null when GitHub cannot be reached
+ * Star count for the morechat.co repository, or null when GitHub cannot be reached
  * (offline, rate-limited, an air-gapped self-hosted install). Callers fall back
  * to a label without a count. Fetched from the browser on purpose: each user
  * spends their own IP's anonymous rate limit instead of a shared server one.

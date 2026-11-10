@@ -7,8 +7,8 @@ import {
   type RefObject,
 } from "react";
 import { motion } from "motion/react";
-import { useReducedMotion } from "@multica/core/appearance";
-import { X, Plus, Pin, PinOff, ListX, AppWindow } from "@multica/ui/icons";
+import { useReducedMotion } from "@morechat/core/appearance";
+import { X, Plus, Pin, PinOff, ListX, AppWindow } from "@morechat/ui/icons";
 import {
   DndContext,
   PointerSensor,
@@ -33,17 +33,17 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from "@multica/ui/components/ui/context-menu";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import { useScrollFade } from "@multica/ui/hooks/use-scroll-fade";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/context-menu";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import { useScrollFade } from "@morechat/ui/hooks/use-scroll-fade";
+import { cn } from "@morechat/ui/lib/utils";
 import { useTabStore, useActiveGroup, type Tab } from "@/stores/tab-store";
-import { paths } from "@multica/core/paths";
-import { useT } from "@multica/views/i18n";
+import { paths } from "@morechat/core/paths";
+import { useT } from "@morechat/views/i18n";
 import {
   useTabPresentation,
   ResourceLeadingVisual,
-} from "@multica/views/layout";
+} from "@morechat/views/layout";
 import { parseIssueWindowPath } from "../../../shared/issue-window";
 
 const TAB_SCROLL_FADE_SIZE = 24;
@@ -161,7 +161,7 @@ function SortableTabItem({
   // The tab's leading visual and title are derived live from its URL and the
   // query cache — a resource's own icon/status/avatar and its real title,
   // updated as the cache updates. `tab.title` is only a persisted first-frame
-  // fallback. See @multica/views useTabPresentation.
+  // fallback. See @morechat/views useTabPresentation.
   const { visual, title, titleResolved } = useTabPresentation(tab.url, tab.title, { fetch: true });
   const pinLabel = tab.pinned
     ? t(($) => $.desktop.tab_bar.unpin)

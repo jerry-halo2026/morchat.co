@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/metrics"
+	"github.com/jerry-halo2026/morchat.co/server/internal/metrics"
 	dto "github.com/prometheus/client_model/go"
 )
 

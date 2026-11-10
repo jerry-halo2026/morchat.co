@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart3 } from "@multica/ui/icons";
+import { BarChart3 } from "@morechat/ui/icons";
 import {
   DailyCostChart,
   DailyTokensChart,

@@ -30,7 +30,7 @@ func TestCursorRealSupplementReachesTheTurn(t *testing.T) {
 		t.Skipf("cursor-agent %q predates hook additional_context", strings.TrimSpace(string(version)))
 	}
 	relay := filepath.Join(t.TempDir(), "multica")
-	if out, err := exec.Command("go", "build", "-o", relay, "github.com/multica-ai/multica/server/cmd/multica").CombinedOutput(); err != nil {
+	if out, err := exec.Command("go", "build", "-o", relay, "github.com/jerry-halo2026/morchat.co/server/cmd/multica").CombinedOutput(); err != nil {
 		t.Fatalf("build multica relay: %v\n%s", err, out)
 	}
 

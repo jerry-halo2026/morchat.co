@@ -2,7 +2,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { I18nProvider } from "@multica/core/i18n/react";
+import { I18nProvider } from "@morechat/core/i18n/react";
 import enCommon from "../../locales/en/common.json";
 import enSettings from "../../locales/en/settings.json";
 
@@ -36,11 +36,11 @@ vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ invalidateQueries: mockInvalidate }),
 }));
 
-vi.mock("@multica/core/wecom", () => ({
+vi.mock("@morechat/core/wecom", () => ({
   wecomKeys: { installations: (wsId: string) => ["wecom", "installations", wsId] },
 }));
 
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: { beginWecomInstall: mockBegin, getWecomInstallStatus: mockStatus },
   ApiError: FakeApiError,
   // Same contract as the real helper: the body's `code`, when there is one.

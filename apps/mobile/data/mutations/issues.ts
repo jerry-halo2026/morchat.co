@@ -23,12 +23,12 @@ import type {
   Reaction,
   TimelineEntry,
   UpdateIssueRequest,
-} from "@multica/core/types";
-import type { AppConfigResponse } from "@multica/core/api/schemas";
+} from "@morechat/core/types";
+import type { AppConfigResponse } from "@morechat/core/api/schemas";
 import {
   applyCommentDeletion,
   removeCommentSubtree,
-} from "@multica/core/issues/comment-deletion";
+} from "@morechat/core/issues/comment-deletion";
 import { api } from "@/data/api";
 import { isBuiltInIssueStatus, statusCategoryOfKey } from "@/lib/issue-status";
 import { appConfigOptions } from "@/data/queries/billing";

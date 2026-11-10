@@ -1,13 +1,13 @@
 "use client";
 
 import { useId, type ComponentProps, type ReactNode } from "react";
-import { Button } from "@multica/ui/components/ui/button";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/tooltip";
+import { cn } from "@morechat/ui/lib/utils";
 
 type IconButtonProps = Omit<ComponentProps<typeof Button>, "aria-label"> & {
   /** Names the action: the accessible name and the tooltip text. */

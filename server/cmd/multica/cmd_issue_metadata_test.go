@@ -11,7 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/multica-ai/multica/server/internal/cli"
+	"github.com/jerry-halo2026/morchat.co/server/internal/cli"
 )
 
 // Tests for `multica issue metadata list` 404-degradation behavior, plus
@@ -19,7 +19,7 @@ import (
 // we don't lose signal when the user actually depends on the metadata
 // endpoint working.
 //
-// Background: GitHub issue multica-ai/multica#3711 — on self-hosted
+// Background: GitHub issue jerry-halo2026/morchat.co#3711 — on self-hosted
 // backends that pre-date the per-issue metadata route, agent runtime
 // bootstrap calls `multica issue metadata list <issue> --output json`
 // best-effort and any non-zero exit was being escalated by the Hermes

@@ -1,12 +1,12 @@
 import { fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { SidebarProvider, useSidebar } from "@multica/ui/components/ui/sidebar";
-import { configStore } from "@multica/core/config";
+import { SidebarProvider, useSidebar } from "@morechat/ui/components/ui/sidebar";
+import { configStore } from "@morechat/core/config";
 import {
   BILLING_WORKSPACE_SUBSCRIPTIONS_FLAG,
   PLUGINS_V1_FLAG,
-} from "@multica/core/feature-flags";
+} from "@morechat/core/feature-flags";
 import { renderWithI18n } from "../../test/i18n";
 
 // This file tests the settings SHELL — the chrome around the tabs — so every
@@ -70,16 +70,16 @@ vi.mock("./connected-apps-tab", () => ({
   useComposioAvailable: () => shell.appsAvailable,
 }));
 
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useCurrentWorkspace: () => ({ id: "ws-1", name: "Acme" }),
 }));
-vi.mock("@multica/core/workspace/avatar-url", () => ({
+vi.mock("@morechat/core/workspace/avatar-url", () => ({
   resolvePublicFileUrl: (url: string | null | undefined) => url ?? null,
 }));
-vi.mock("@multica/core/permissions", () => ({
+vi.mock("@morechat/core/permissions", () => ({
   useCurrentMember: () => ({ role: shell.role, isLoading: false }),
 }));
-vi.mock("@multica/core/auth", () => {
+vi.mock("@morechat/core/auth", () => {
   const state = { user: { id: "user-1", name: "Ada Lovelace", avatar_url: null } };
   const useAuthStore = Object.assign(
     (selector?: (s: typeof state) => unknown) =>
@@ -106,7 +106,7 @@ vi.mock("../../navigation/context", async (importOriginal) => ({
 // Compact by default: that is the width where the nav is a sheet and this
 // trigger is the only way to reach it.
 const layout = { compact: true };
-vi.mock("@multica/ui/hooks/use-mobile", () => ({
+vi.mock("@morechat/ui/hooks/use-mobile", () => ({
   useIsMobile: () => layout.compact,
   useIsCompact: () => layout.compact,
 }));

@@ -3,12 +3,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   bucketDiagnosticPath,
   setDiagnosticRoute,
-} from "@multica/core/diagnostics";
+} from "@morechat/core/diagnostics";
 import {
   NavigationProvider,
   type LinkClickIntent,
   type NavigationAdapter,
-} from "@multica/views/navigation";
+} from "@morechat/views/navigation";
 import { parseIssueWindowPath } from "../../../shared/issue-window";
 
 /**

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 func TestProjectResourceLifecycle(t *testing.T) {
@@ -38,7 +38,7 @@ func TestProjectResourceLifecycle(t *testing.T) {
 	req = newRequest("POST", "/api/projects/"+project.ID+"/resources", map[string]any{
 		"resource_type": "github_repo",
 		"resource_ref": map[string]any{
-			"url": "https://github.com/multica-ai/multica",
+			"url": "https://github.com/jerry-halo2026/morchat.co",
 			"ref": "release/v2",
 		},
 	})
@@ -61,7 +61,7 @@ func TestProjectResourceLifecycle(t *testing.T) {
 	if err := json.Unmarshal(created.ResourceRef, &ref); err != nil {
 		t.Fatalf("decode resource_ref: %v", err)
 	}
-	if ref.URL != "https://github.com/multica-ai/multica" {
+	if ref.URL != "https://github.com/jerry-halo2026/morchat.co" {
 		t.Errorf("created.ResourceRef.url = %q", ref.URL)
 	}
 	if ref.Ref != "release/v2" {
@@ -95,7 +95,7 @@ func TestProjectResourceLifecycle(t *testing.T) {
 	req = newRequest("POST", "/api/projects/"+project.ID+"/resources", map[string]any{
 		"resource_type": "github_repo",
 		"resource_ref": map[string]any{
-			"url": "https://github.com/multica-ai/multica",
+			"url": "https://github.com/jerry-halo2026/morchat.co",
 			"ref": "release/v2",
 		},
 	})
@@ -178,8 +178,8 @@ func TestProjectResourceAcceptsSSHRepoURLs(t *testing.T) {
 		name string
 		url  string
 	}{
-		{"scp-like", "git@github.com:multica-ai/multica.git"},
-		{"ssh-scheme", "ssh://git@github.com/multica-ai/multica.git"},
+		{"scp-like", "git@github.com:jerry-halo2026/morchat.co.git"},
+		{"ssh-scheme", "ssh://git@github.com/jerry-halo2026/morchat.co.git"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -212,18 +212,18 @@ func TestProjectResourceAcceptsSSHRepoURLs(t *testing.T) {
 
 func TestIsValidGitRepoURL(t *testing.T) {
 	good := []string{
-		"https://github.com/multica-ai/multica",
-		"https://github.com/multica-ai/multica.git",
+		"https://github.com/jerry-halo2026/morchat.co",
+		"https://github.com/jerry-halo2026/morchat.co.git",
 		"http://github.example.com/x/y",
-		"ssh://git@github.com/multica-ai/multica.git",
-		"ssh://git@github.com:22/multica-ai/multica.git",
-		"git@github.com:multica-ai/multica.git",
+		"ssh://git@github.com/jerry-halo2026/morchat.co.git",
+		"ssh://git@github.com:22/jerry-halo2026/morchat.co.git",
+		"git@github.com:jerry-halo2026/morchat.co.git",
 		"git@gitlab.example.com:group/sub/repo.git",
 	}
 	bad := []string{
 		"",
 		"not-a-url",
-		"github.com/multica-ai/multica", // no scheme, no scp-style colon
+		"github.com/jerry-halo2026/morchat.co", // no scheme, no scp-style colon
 		"https://",                      // empty host
 		"git@github.com",                // missing :path
 		"git@:foo/bar",                  // missing host
@@ -475,7 +475,7 @@ func TestCreateProjectAttachesResources(t *testing.T) {
 		"resources": []map[string]any{
 			{
 				"resource_type": "github_repo",
-				"resource_ref":  map[string]any{"url": "https://github.com/multica-ai/multica"},
+				"resource_ref":  map[string]any{"url": "https://github.com/jerry-halo2026/morchat.co"},
 			},
 		},
 	})
@@ -1781,7 +1781,7 @@ func TestProjectResourceRejectsInvalidCheckoutRef(t *testing.T) {
 		req := newRequest("POST", "/api/projects/"+project.ID+"/resources", map[string]any{
 			"resource_type": "github_repo",
 			"resource_ref": map[string]any{
-				"url": "https://github.com/multica-ai/multica",
+				"url": "https://github.com/jerry-halo2026/morchat.co",
 				"ref": ref,
 			},
 		})
@@ -1816,7 +1816,7 @@ func TestProjectResourceRejectsInvalidCheckoutRef(t *testing.T) {
 	w = httptest.NewRecorder()
 	req = newRequest("PUT", "/api/projects/"+project.ID+"/resources/"+created.ID, map[string]any{
 		"resource_ref": map[string]any{
-			"url": "https://github.com/multica-ai/multica",
+			"url": "https://github.com/jerry-halo2026/morchat.co",
 			"ref": "not a ref",
 		},
 	})
@@ -1852,7 +1852,7 @@ func TestProjectResourceRejectsInvalidCheckoutRef(t *testing.T) {
 	w = httptest.NewRecorder()
 	req = newRequest("PUT", "/api/projects/"+project.ID+"/resources/"+created.ID, map[string]any{
 		"resource_ref": map[string]any{
-			"url": "https://github.com/multica-ai/multica",
+			"url": "https://github.com/jerry-halo2026/morchat.co",
 			"ref": "",
 		},
 	})
@@ -1875,7 +1875,7 @@ func TestProjectResourceRejectsInvalidCheckoutRef(t *testing.T) {
 	if clearedRef.Ref != "" {
 		t.Fatalf("ref after clear = %q, want empty", clearedRef.Ref)
 	}
-	if clearedRef.URL != "https://github.com/multica-ai/multica" {
+	if clearedRef.URL != "https://github.com/jerry-halo2026/morchat.co" {
 		t.Fatalf("url after clearing the ref = %q, want it preserved", clearedRef.URL)
 	}
 }

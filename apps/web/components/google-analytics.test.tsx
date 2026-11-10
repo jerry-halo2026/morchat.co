@@ -51,7 +51,7 @@ it("stops for the document after visiting a sensitive URL", () => {
 
 it("stops before a signed download click, but not for clean or blob links", () => {
   start("/about");
-  click("https://github.com/multica-ai/multica");
+  click("https://github.com/jerry-halo2026/morchat.co");
   click("blob:https://app.example.invalid/uuid");
   expect(disabled()).toBe(false);
   click("https://cdn.example.invalid/a.pdf?Signature=s");
@@ -66,7 +66,7 @@ const pageTitles = () =>
   );
 
 it("pins page_title to route labels instead of the workspace document title", () => {
-  document.title = "Fix the secret launch · Multica";
+  document.title = "Fix the secret launch · morechat.co";
   start("/acme/issues/MUL-1");
   window.history.pushState(null, "", "/acme/projects");
   window.history.replaceState(null, "", "/changelog");

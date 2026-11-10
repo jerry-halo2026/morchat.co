@@ -26,13 +26,13 @@ describe("runtime config", () => {
   it("strips the leading api. label when deriving appUrl", () => {
     expect(
       parseRuntimeConfig(
-        JSON.stringify({ schemaVersion: 1, apiUrl: "https://api.multica.ai" }),
+        JSON.stringify({ schemaVersion: 1, apiUrl: "https://api.morechat.co" }),
       ),
     ).toEqual({
       schemaVersion: 1,
-      apiUrl: "https://api.multica.ai",
-      wsUrl: "wss://api.multica.ai/ws",
-      appUrl: "https://multica.ai",
+      apiUrl: "https://api.morechat.co",
+      wsUrl: "wss://api.morechat.co/ws",
+      appUrl: "https://morechat.co",
     });
   });
 
@@ -113,30 +113,30 @@ describe("runtime config", () => {
   it("derives dev appUrl by stripping the leading api. label", () => {
     // When the dev renderer is pointed at a remote backend (e.g. a test
     // environment), copy-link / share URLs must reflect that environment's
-    // public web host, not the api host. Multica's convention exposes the
+    // public web host, not the api host. morechat.co's convention exposes the
     // api at `api.<web-host>`, so stripping the leading label gives the
     // right web origin without a separate VITE_APP_URL.
     expect(
-      runtimeConfigFromDevEnv({ apiUrl: "https://api.test.multica.ai" }),
+      runtimeConfigFromDevEnv({ apiUrl: "https://api.test.morechat.co" }),
     ).toEqual({
       schemaVersion: 1,
-      apiUrl: "https://api.test.multica.ai",
-      wsUrl: "wss://api.test.multica.ai/ws",
-      appUrl: "https://test.multica.ai",
+      apiUrl: "https://api.test.morechat.co",
+      wsUrl: "wss://api.test.morechat.co/ws",
+      appUrl: "https://test.morechat.co",
     });
   });
 
   it("dev VITE_APP_URL still wins over apiUrl-derived value", () => {
     expect(
       runtimeConfigFromDevEnv({
-        apiUrl: "https://api.test.multica.ai",
-        appUrl: "https://staging.multica.ai",
+        apiUrl: "https://api.test.morechat.co",
+        appUrl: "https://staging.morechat.co",
       }),
     ).toEqual({
       schemaVersion: 1,
-      apiUrl: "https://api.test.multica.ai",
-      wsUrl: "wss://api.test.multica.ai/ws",
-      appUrl: "https://staging.multica.ai",
+      apiUrl: "https://api.test.morechat.co",
+      wsUrl: "wss://api.test.morechat.co/ws",
+      appUrl: "https://staging.morechat.co",
     });
   });
 });

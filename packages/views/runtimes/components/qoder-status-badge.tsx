@@ -1,5 +1,5 @@
-import type { QoderConnection } from "@multica/core/runtimes/qoder";
-import { Badge } from "@multica/ui/components/ui/badge";
+import type { QoderConnection } from "@morechat/core/runtimes/qoder";
+import { Badge } from "@morechat/ui/components/ui/badge";
 import { useT } from "../../i18n";
 
 export function QoderStatusBadge({

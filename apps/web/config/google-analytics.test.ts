@@ -16,14 +16,14 @@ it("enables only a valid GA4 measurement ID", () => {
 });
 
 it("strips credentials from URLs but keeps campaign params", () => {
-  expect(sanitizeAnalyticsUrl("https://multica.ai/wecom/bind?token=t")).toBe("https://multica.ai/wecom/bind");
-  expect(sanitizeAnalyticsUrl("https://multica.ai/invite/inv_1")).toBe("https://multica.ai/invite/[id]");
-  expect(sanitizeAnalyticsUrl("https://multica.ai/?utm_source=x&code=c")).toBe("https://multica.ai/?utm_source=x");
+  expect(sanitizeAnalyticsUrl("https://morechat.co/wecom/bind?token=t")).toBe("https://morechat.co/wecom/bind");
+  expect(sanitizeAnalyticsUrl("https://morechat.co/invite/inv_1")).toBe("https://morechat.co/invite/[id]");
+  expect(sanitizeAnalyticsUrl("https://morechat.co/?utm_source=x&code=c")).toBe("https://morechat.co/?utm_source=x");
   expect(sanitizeAnalyticsUrl("javascript:alert(1)")).toBe("");
 });
 
 it("reports route labels as page_title, never workspace content", () => {
-  const t = (path: string) => analyticsPageTitle(`https://multica.ai${path}`);
+  const t = (path: string) => analyticsPageTitle(`https://morechat.co${path}`);
   expect(t("/")).toBe("Home");
   expect(t("/changelog")).toBe("Changelog");
   expect(t("/contact-sales")).toBe("Contact sales");
@@ -35,5 +35,5 @@ it("reports route labels as page_title, never workspace content", () => {
   expect(t("/acme/my-issues")).toBe("Workspace · My issues");
   // Unknown segments are not echoed back.
   expect(t("/acme/secret-roadmap")).toBe("Workspace · Page");
-  expect(analyticsPageTitle("not a url")).toBe("Multica");
+  expect(analyticsPageTitle("not a url")).toBe("morechat.co");
 });

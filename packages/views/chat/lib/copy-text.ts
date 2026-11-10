@@ -1,5 +1,5 @@
-import type { ChatMessage } from "@multica/core/types";
-import type { ChatTimelineItem } from "@multica/core/chat";
+import type { ChatMessage } from "@morechat/core/types";
+import type { ChatTimelineItem } from "@morechat/core/chat";
 import { stripChatQuickActionsProtocol } from "./quick-actions";
 
 /**

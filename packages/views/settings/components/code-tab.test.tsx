@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { I18nProvider } from "@multica/core/i18n/react";
-import { configStore } from "@multica/core/config";
+import { I18nProvider } from "@morechat/core/i18n/react";
+import { configStore } from "@morechat/core/config";
 import enCommon from "../../locales/en/common.json";
 import enSettings from "../../locales/en/settings.json";
 
@@ -40,29 +40,29 @@ vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ setQueryData: vi.fn(), invalidateQueries: mockInvalidate }),
   queryOptions: <T,>(opts: T) => opts,
 }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
-vi.mock("@multica/core/paths", () => ({ useCurrentWorkspace: () => workspaceRef.current }));
-vi.mock("@multica/core/permissions", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
+vi.mock("@morechat/core/paths", () => ({ useCurrentWorkspace: () => workspaceRef.current }));
+vi.mock("@morechat/core/permissions", () => ({
   useCurrentMember: () => ({
     role: roleRef.current,
     member: { role: roleRef.current },
     isLoading: false,
   }),
 }));
-vi.mock("@multica/core/workspace/queries", () => ({
+vi.mock("@morechat/core/workspace/queries", () => ({
   memberListOptions: () => ({ queryKey: ["members"] }),
   workspaceKeys: { list: () => ["workspaces"] },
 }));
-vi.mock("@multica/core/github", async () => {
-  const actual = await vi.importActual<typeof import("@multica/core/github")>(
-    "@multica/core/github",
+vi.mock("@morechat/core/github", async () => {
+  const actual = await vi.importActual<typeof import("@morechat/core/github")>(
+    "@morechat/core/github",
   );
   return {
     ...actual,
     githubInstallationsOptions: () => ({ queryKey: ["github", "installations"] }),
   };
 });
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: {
     updateWorkspace: mockUpdateWorkspace,
     deleteGitHubInstallation: mockDeleteInstallation,

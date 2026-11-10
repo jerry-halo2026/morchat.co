@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
-import { LayoutGrid, Link2, MessageSquareText, X } from "@multica/ui/icons";
-import type { DeliverableFile } from "@multica/core/attachments/deliverables";
-import type { TimelineEntry } from "@multica/core/types";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { Dialog, DialogContent, DialogTitle } from "@multica/ui/components/ui/dialog";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { LayoutGrid, Link2, MessageSquareText, X } from "@morechat/ui/icons";
+import type { DeliverableFile } from "@morechat/core/attachments/deliverables";
+import type { TimelineEntry } from "@morechat/core/types";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { Dialog, DialogContent, DialogTitle } from "@morechat/ui/components/ui/dialog";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 import { useLocale, useT, useTimeAgo } from "../../../i18n";
 import { ActorAvatar } from "../../../common/actor-avatar";
 import { formatBytes } from "../../../common/format-bytes";

@@ -3,20 +3,20 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api, ApiError } from "@multica/core/api";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { chatKeys } from "@multica/core/chat/queries";
+import { api, ApiError } from "@morechat/core/api";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { chatKeys } from "@morechat/core/chat/queries";
 import {
   prioritizePendingChatTask,
   removePendingChatTask,
-} from "@multica/core/chat/pending";
-import { removeChatMessageFromCaches } from "@multica/core/realtime";
-import { createLogger } from "@multica/core/logger";
+} from "@morechat/core/chat/pending";
+import { removeChatMessageFromCaches } from "@morechat/core/realtime";
+import { createLogger } from "@morechat/core/logger";
 import type {
   Attachment,
   CancelTaskResponse,
   ChatPendingTask,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import { useT } from "../../i18n";
 
 const apiLogger = createLogger("chat.api");

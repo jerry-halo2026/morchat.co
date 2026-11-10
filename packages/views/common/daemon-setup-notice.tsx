@@ -1,4 +1,4 @@
-import type { DaemonCommands } from "@multica/core/runtimes";
+import type { DaemonCommands } from "@morechat/core/runtimes";
 import { useT } from "../i18n";
 
 export function DaemonSetupNotice({

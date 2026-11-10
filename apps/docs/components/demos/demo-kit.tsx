@@ -18,16 +18,16 @@ import {
   CornerDownRight,
   Loader2,
   RotateCcw,
-} from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
 import { useDocsLocale } from "@/components/locale-link";
 import type { Lang } from "@/lib/i18n";
 import { demoChromeCopy } from "@/lib/translations";
 
 // Building blocks for the scripted product demos embedded in docs pages. The
 // demos imitate the product with docs-local markup instead of importing
-// @multica/views, which needs live stores and queries.
+// @morechat/views, which needs live stores and queries.
 
 /** Picks a demo's scenario copy for the page language, falling back to English. */
 export function useDemoCopy<T>(copy: { en: T } & Partial<Record<Lang, T>>): T {

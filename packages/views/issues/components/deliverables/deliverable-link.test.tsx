@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { collectDeliverableFiles } from "@multica/core/attachments/deliverables";
-import type { Attachment } from "@multica/core/types";
+import { collectDeliverableFiles } from "@morechat/core/attachments/deliverables";
+import type { Attachment } from "@morechat/core/types";
 import { NavigationProvider, type NavigationAdapter } from "../../../navigation";
 import { renderWithI18n } from "../../../test/i18n";
 
@@ -20,12 +20,12 @@ vi.mock("../../../editor", () => ({
   useDownloadAttachment: () => downloadMock,
 }));
 
-vi.mock("@multica/ui/lib/clipboard", () => ({ copyText: copyTextMock }));
+vi.mock("@morechat/ui/lib/clipboard", () => ({ copyText: copyTextMock }));
 vi.mock("sonner", () => ({ toast: toastMock }));
 
-vi.mock("@multica/core/paths", async () => {
-  const actual = await vi.importActual<typeof import("@multica/core/paths")>(
-    "@multica/core/paths",
+vi.mock("@morechat/core/paths", async () => {
+  const actual = await vi.importActual<typeof import("@morechat/core/paths")>(
+    "@morechat/core/paths",
   );
   return { ...actual, useWorkspacePaths: () => actual.paths.workspace("acme") };
 });

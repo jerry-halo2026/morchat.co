@@ -11,12 +11,12 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { setApiInstance } from "@multica/core/api";
-import type { ApiClient } from "@multica/core/api/client";
+import { setApiInstance } from "@morechat/core/api";
+import type { ApiClient } from "@morechat/core/api/client";
 import {
   getIssueSurfaceViewStore,
   pruneIssueSurfaceViewStates,
-} from "@multica/core/issues/stores/surface-view-store";
+} from "@morechat/core/issues/stores/surface-view-store";
 import type {
   AgentTask,
   Issue,
@@ -24,13 +24,13 @@ import type {
   ListIssuesParams,
   ListIssuesResponse,
   WorkspaceWorkingAgent,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import { IssueSurface, IssueSurfaceWithStore } from "./issue-surface";
-import { createIssueStatusListStore } from "@multica/core/issue-statuses";
-import { baselineFromQuery } from "@multica/core/issue-views/baseline";
-import { useActiveIssueViewStore } from "@multica/core/issue-views/active-view-store";
-import { UNREAD_VIEW_ID } from "@multica/core/issue-views/unread-view";
-import { setCurrentWorkspace } from "@multica/core/platform";
+import { createIssueStatusListStore } from "@morechat/core/issue-statuses";
+import { baselineFromQuery } from "@morechat/core/issue-views/baseline";
+import { useActiveIssueViewStore } from "@morechat/core/issue-views/active-view-store";
+import { UNREAD_VIEW_ID } from "@morechat/core/issue-views/unread-view";
+import { setCurrentWorkspace } from "@morechat/core/platform";
 import { statusTableMethodsFromLegacy } from "./status-table-test-api";
 
 // Mutable so tests can simulate a workspace switch — the workspace layout
@@ -38,7 +38,7 @@ import { statusTableMethodsFromLegacy } from "./status-table-test-api";
 // wsId change itself.
 const mockWsId = vi.hoisted(() => ({ current: "ws-1" }));
 const mockTranslate = vi.hoisted(() => vi.fn(() => "translated"));
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => mockWsId.current,
 }));
 
@@ -70,7 +70,7 @@ vi.mock("@tanstack/react-virtual", () => ({
 }));
 
 const mockAuthUser = { id: "user-1", email: "test@test.com", name: "Test User" };
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: Object.assign(
     (selector?: (state: unknown) => unknown) => {
       const state = { user: mockAuthUser, isAuthenticated: true };
@@ -100,9 +100,9 @@ vi.mock("../../navigation", () => ({
   useIntentNavigate: () => () => {},
 }));
 
-vi.mock("@multica/core/paths", async () => {
-  const actual = await vi.importActual<typeof import("@multica/core/paths")>(
-    "@multica/core/paths",
+vi.mock("@morechat/core/paths", async () => {
+  const actual = await vi.importActual<typeof import("@morechat/core/paths")>(
+    "@morechat/core/paths",
   );
   return {
     ...actual,
@@ -344,7 +344,7 @@ describe("IssueSurface — table pagination ownership", () => {
 
   it("waits for working membership, offers retry on failure, and starts only the resolved cursor root branch", async () => {
     const { getIssueSurfaceViewStore } = await import(
-      "@multica/core/issues/stores/surface-view-store"
+      "@morechat/core/issues/stores/surface-view-store"
     );
     const store = getIssueSurfaceViewStore("project:pt");
     store.getState().setViewMode("table");
@@ -437,7 +437,7 @@ describe("IssueSurface — table pagination ownership", () => {
 
   it("keeps loaded rows when a continuation page reports zero", async () => {
     const { getIssueSurfaceViewStore } = await import(
-      "@multica/core/issues/stores/surface-view-store"
+      "@morechat/core/issues/stores/surface-view-store"
     );
     const store = getIssueSurfaceViewStore("project:pt-pages");
     store.getState().setViewMode("table");
@@ -532,7 +532,7 @@ describe("IssueSurface — table pagination ownership", () => {
 
   it("feeds loaded Table rows to the shared batch toolbar", async () => {
     const { getIssueSurfaceViewStore } = await import(
-      "@multica/core/issues/stores/surface-view-store"
+      "@morechat/core/issues/stores/surface-view-store"
     );
     const store = getIssueSurfaceViewStore("project:pt-batch");
     store.getState().setViewMode("table");
@@ -588,7 +588,7 @@ describe("IssueSurface — table pagination ownership", () => {
 
   it("keeps the previous Table rows painted while a new sort is loading", async () => {
     const { getIssueSurfaceViewStore } = await import(
-      "@multica/core/issues/stores/surface-view-store"
+      "@morechat/core/issues/stores/surface-view-store"
     );
     const store = getIssueSurfaceViewStore("project:pt-sort-transition");
     store.getState().setViewMode("table");
@@ -647,7 +647,7 @@ describe("IssueSurface — table pagination ownership", () => {
 
   it("keeps selected Table rows in the batch universe after their group collapses", async () => {
     const { getIssueSurfaceViewStore } = await import(
-      "@multica/core/issues/stores/surface-view-store"
+      "@morechat/core/issues/stores/surface-view-store"
     );
     const store = getIssueSurfaceViewStore("project:pt-collapsed-batch");
     store.getState().setViewMode("table");

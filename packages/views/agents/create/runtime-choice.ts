@@ -1,8 +1,8 @@
 import {
   isRuntimeUsableForUser,
   providerDisplayName,
-} from "@multica/core/runtimes";
-import type { RuntimeDevice } from "@multica/core/types";
+} from "@morechat/core/runtimes";
+import type { RuntimeDevice } from "@morechat/core/types";
 import {
   runtimeRowLabel,
   type RuntimeMachine,

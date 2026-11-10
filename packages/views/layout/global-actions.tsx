@@ -1,12 +1,12 @@
 "use client";
 
 import type { ComponentProps } from "react";
-import { Search, SquarePen } from "@multica/ui/icons";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import { useSearchStore } from "@multica/core/command-bar";
-import { openCreateIssueWithPreference } from "@multica/core/issues/stores";
-import { useIssueDraftStore } from "@multica/core/issues/stores/draft-store";
-import { useShortcut } from "@multica/core/shortcuts";
+import { Search, SquarePen } from "@morechat/ui/icons";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import { useSearchStore } from "@morechat/core/command-bar";
+import { openCreateIssueWithPreference } from "@morechat/core/issues/stores";
+import { useIssueDraftStore } from "@morechat/core/issues/stores/draft-store";
+import { useShortcut } from "@morechat/core/shortcuts";
 import { ShortcutKeycaps } from "../common/shortcut-keycaps";
 import { useT } from "../i18n";
 import { useNavigation } from "../navigation";

@@ -12,10 +12,10 @@ import {
   useManualAgentDraftStore,
   type AgentDraft,
   type StoredAgentDraft,
-} from "@multica/core/agents";
-import { EMPTY_SKILL_SUMMARY } from "@multica/core/api/schemas";
-import type { Agent, SkillSummary } from "@multica/core/types";
-import { workspaceKeys } from "@multica/core/workspace/queries";
+} from "@morechat/core/agents";
+import { EMPTY_SKILL_SUMMARY } from "@morechat/core/api/schemas";
+import type { Agent, SkillSummary } from "@morechat/core/types";
+import { workspaceKeys } from "@morechat/core/workspace/queries";
 import { useBuilderDraftSync } from "./use-builder-draft-sync";
 import { useCreateAgentForm } from "./use-create-agent-form";
 import { useManualDraftSync } from "./use-manual-draft-sync";
@@ -28,14 +28,14 @@ const api = vi.hoisted(() => ({
 }));
 const workspace = vi.hoisted(() => ({ id: "ws-1" }));
 
-vi.mock("@multica/core/api", async (importOriginal) => ({
-  ...await importOriginal<typeof import("@multica/core/api")>(),
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@morechat/core/api")>(),
   api,
 }));
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => workspace.id,
 }));
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: Object.assign(
     (selector: (state: { user: null }) => unknown) => selector({ user: null }),
     { getState: () => ({ user: null }) },

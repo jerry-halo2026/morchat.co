@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/pkg/agent"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
 )
 
 // Real-CLI acceptance for Pi MCP delivery. Opt-in twice: the agentintegration

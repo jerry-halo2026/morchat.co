@@ -6,28 +6,28 @@ import {
   useState,
   type PointerEventHandler,
 } from "react";
-import { ArrowLeft, ArrowRight } from "@multica/ui/icons";
-import { SidebarTrigger } from "@multica/ui/components/ui/sidebar";
+import { ArrowLeft, ArrowRight } from "@morechat/ui/icons";
+import { SidebarTrigger } from "@morechat/ui/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
-import { TruncatedTooltip } from "@multica/ui/components/common/truncated-tooltip";
+} from "@morechat/ui/components/ui/tooltip";
+import { TruncatedTooltip } from "@morechat/ui/components/common/truncated-tooltip";
 import {
   ResourceLeadingVisual,
   useAppShell,
   useTabPresentation,
-} from "@multica/views/layout";
-import { ActionShortcutKeycaps } from "@multica/views/common/shortcut-keycaps";
-import { useT } from "@multica/views/i18n";
+} from "@morechat/views/layout";
+import { ActionShortcutKeycaps } from "@morechat/views/common/shortcut-keycaps";
+import { useT } from "@morechat/views/i18n";
 import { useTabHistory } from "@/hooks/use-tab-history";
 import { browsingHistoryKeyForUrl } from "@/stores/tab-store";
 

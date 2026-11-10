@@ -9,19 +9,19 @@ import {
   useRef,
 } from "react";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { MulticaBleedMark } from "@multica/ui/components/common/multica-graphics";
-import { ApiError, errorCode } from "@multica/core/api";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { useModalStore } from "@multica/core/modals";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { MorechatBleedMark } from "@morechat/ui/components/common/morechat-graphics";
+import { ApiError, errorCode } from "@morechat/core/api";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { useModalStore } from "@morechat/core/modals";
 import {
   getShortcut,
   isEditableShortcutTarget,
   isPortalLayerShortcutTarget,
   shortcutMatchesEvent,
-} from "@multica/core/shortcuts";
-import { isImeComposing } from "@multica/core/utils";
-import { useIssueDraftStore } from "@multica/core/issues/stores/draft-store";
+} from "@morechat/core/shortcuts";
+import { isImeComposing } from "@morechat/core/utils";
+import { useIssueDraftStore } from "@morechat/core/issues/stores/draft-store";
 import {
   inboxListOptions,
   archivedInboxPagesOptions,
@@ -29,7 +29,7 @@ import {
   deduplicateInboxItems,
   deduplicateArchivedInboxItems,
   useInboxUnreadCount,
-} from "@multica/core/inbox/queries";
+} from "@morechat/core/inbox/queries";
 import {
   useMarkInboxRead,
   useMarkInboxUnread,
@@ -40,7 +40,7 @@ import {
   useArchiveAllReadInbox,
   useArchiveCompletedInbox,
   useRetrySourceContextQuickCreate,
-} from "@multica/core/inbox/mutations";
+} from "@morechat/core/inbox/mutations";
 import {
   effectiveInboxFilters,
   filterInboxItems,
@@ -51,7 +51,7 @@ import {
   useInboxFilterStore,
   type InboxAgentFilter,
   type InboxFilterSupport,
-} from "@multica/core/inbox/filter-store";
+} from "@morechat/core/inbox/filter-store";
 
 import { IssueDetail, issueHighlightMementoKey } from "../../issues/components/issue-detail";
 import { ActionShortcutKeycaps } from "../../common/shortcut-keycaps";
@@ -59,7 +59,7 @@ import { useRegisterCommandBarContext } from "../../search/register-context";
 import { IssuePeekHost } from "../../issues/components/issue-peek";
 import { useIssueSurfaceActivity } from "../../issues/surface/activity";
 import { useViewStateWriter } from "../../platform";
-import { ErrorBoundary } from "@multica/ui/components/common/error-boundary";
+import { ErrorBoundary } from "@morechat/ui/components/common/error-boundary";
 import { useNavigation, useReportNavigating } from "../../navigation";
 import { toast } from "sonner";
 import {
@@ -72,17 +72,17 @@ import {
   ChevronDown,
   ListChecks,
   ArrowLeft,
-} from "@multica/ui/icons";
-import type { InboxItem } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
+} from "@morechat/ui/icons";
+import type { InboxItem } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { NumberFlow } from "@multica/ui/components/ui/number-flow";
+} from "@morechat/ui/components/ui/tooltip";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { NumberFlow } from "@morechat/ui/components/ui/number-flow";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -91,9 +91,9 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { useIsCompact } from "@multica/ui/hooks/use-mobile";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { useIsCompact } from "@morechat/ui/hooks/use-mobile";
+import { cn } from "@morechat/ui/lib/utils";
 import { CollapsedNavTrigger, PAGE_GUTTER, PageHeader } from "../../layout/page-header";
 import { PanelHeader } from "../../layout/panel-nav";
 import { useListColumnCollapsed } from "../../layout/app-shell-context";
@@ -1131,9 +1131,9 @@ export function InboxPage() {
           )}
           <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden text-muted-foreground">
             {inboxZeroCount === 0 ? (
-              <MulticaBleedMark
+              <MorechatBleedMark
                 key={inboxZeroRises ? "rise" : "rest"}
-                enterDelay={inboxZeroRises ? 0.2 : undefined}
+                riseDelay={inboxZeroRises ? 0.2 : undefined}
                 className="pointer-events-none absolute -right-[14%] -bottom-[26%] w-[min(560px,58%)] text-muted"
               />
             ) : (

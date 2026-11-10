@@ -180,7 +180,7 @@ describe("contentReferencesAttachment", () => {
 
 describe("attachmentIdFromStorageURL", () => {
   const WS = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
-  const CDN = "static.multica.ai";
+  const CDN = "static.morechat.co";
 
   it("extracts the attachment id from a workspace object on the CDN", () => {
     expect(attachmentIdFromStorageURL(`https://${CDN}/workspaces/${WS}/${ID}.jpg`, CDN)).toBe(ID);

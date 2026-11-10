@@ -30,9 +30,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	dbfx "github.com/multica-ai/multica/server/internal/testutil"
+	dbfx "github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // originLab is one workspace holding the task shapes the gate has to tell

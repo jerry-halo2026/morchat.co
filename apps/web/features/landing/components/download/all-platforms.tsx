@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 import { useLocale } from "../../i18n";
 import { SiteTextLink, focusRing } from "../../site/primitives";
 import { osOf, platformOf, type PlatformKey } from "../../utils/download-target";
@@ -8,7 +8,7 @@ import type { DownloadAssets, DownloadKey } from "../../utils/parse-release-asse
 import { DownloadLink } from "./download-link";
 import { OSIcon } from "./os-icons";
 
-export const ALL_RELEASES_URL = "https://github.com/multica-ai/multica/releases";
+export const ALL_RELEASES_URL = "https://github.com/jerry-halo2026/morchat.co/releases";
 
 type FormatLabel = "formatDmg" | "formatZip" | "formatExe" | "formatAppImage" | "formatDeb" | "formatRpm";
 

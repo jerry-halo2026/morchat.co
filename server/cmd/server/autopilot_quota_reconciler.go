@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
 )
 
 const (

@@ -5,10 +5,10 @@ test("members can delete their own shared project while keeping its issues", asy
   const owner = new TestApiClient();
   const member = new TestApiClient();
   const suffix = `${Date.now()}-${testInfo.workerIndex}`;
-  const memberEmail = `project-member-${suffix}@multica.ai`;
+  const memberEmail = `project-member-${suffix}@morechat.co`;
   const apiBase = process.env.NEXT_PUBLIC_API_URL || `http://localhost:${process.env.PORT || "8080"}`;
 
-  await owner.login(`project-owner-${suffix}@multica.ai`, "Project owner");
+  await owner.login(`project-owner-${suffix}@morechat.co`, "Project owner");
   const workspace = await owner.ensureWorkspace("Project permissions", `project-permissions-${suffix}`);
   try {
     await member.login(memberEmail, "Project member");

@@ -7,9 +7,9 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { setCurrentWorkspace } from "@multica/core/platform";
-import { skillDetailOptions } from "@multica/core/workspace/queries";
-import { I18nProvider } from "@multica/core/i18n/react";
+import { setCurrentWorkspace } from "@morechat/core/platform";
+import { skillDetailOptions } from "@morechat/core/workspace/queries";
+import { I18nProvider } from "@morechat/core/i18n/react";
 import enCommon from "../../locales/en/common.json";
 import enSkills from "../../locales/en/skills.json";
 
@@ -23,10 +23,10 @@ const mockListSkills = vi.hoisted(() => vi.fn());
 const mockWorkspaceId = vi.hoisted(() => ({ value: "ws-1" }));
 const mockWrap = vi.hoisted(() => vi.fn());
 
-vi.mock("@multica/core/api", async () => {
+vi.mock("@morechat/core/api", async () => {
   const { ApiError } =
-    await vi.importActual<typeof import("@multica/core/api")>(
-      "@multica/core/api",
+    await vi.importActual<typeof import("@morechat/core/api")>(
+      "@morechat/core/api",
     );
   return {
     ApiError,
@@ -38,13 +38,13 @@ vi.mock("@multica/core/api", async () => {
   };
 });
 
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => mockWorkspaceId.value,
 }));
 
-vi.mock("@multica/core/skills", async () => {
-  const actual = await vi.importActual<typeof import("@multica/core/skills")>(
-    "@multica/core/skills",
+vi.mock("@morechat/core/skills", async () => {
+  const actual = await vi.importActual<typeof import("@morechat/core/skills")>(
+    "@morechat/core/skills",
   );
   return {
     ...actual,
@@ -387,7 +387,7 @@ describe("CreateSkillDialog local import", () => {
 
   it("clears a previous import error when a new folder is picked", async () => {
     mockImportSkillArchive.mockRejectedValueOnce(
-      new (await import("@multica/core/api")).ApiError(
+      new (await import("@morechat/core/api")).ApiError(
         "a skill with this name already exists",
         409,
         "Conflict",
@@ -459,7 +459,7 @@ describe("CreateSkillDialog local import", () => {
     await screen.findByText("alpha");
     fireEvent.click(screen.getByRole("checkbox", { name: "gamma" }));
     mockImportSkillArchive.mockRejectedValueOnce(
-      new (await import("@multica/core/api")).ApiError(
+      new (await import("@morechat/core/api")).ApiError(
         "name exists",
         409,
         "Conflict",
@@ -603,7 +603,7 @@ describe("CreateSkillDialog local import", () => {
     pickBatch(["alpha", "beta"]);
     await screen.findByText("alpha");
     mockImportSkillArchive.mockRejectedValueOnce(
-      new (await import("@multica/core/api")).ApiError(
+      new (await import("@morechat/core/api")).ApiError(
         "server error",
         500,
         "Internal Server Error",
@@ -625,10 +625,10 @@ describe("CreateSkillDialog local import", () => {
   });
   it("must stop queued writes after unmount and workspace change", async () => {
     const { ApiClient } =
-      await vi.importActual<typeof import("@multica/core/api")>(
-        "@multica/core/api",
+      await vi.importActual<typeof import("@morechat/core/api")>(
+        "@morechat/core/api",
       );
-    const { setCurrentWorkspace } = await import("@multica/core/platform");
+    const { setCurrentWorkspace } = await import("@morechat/core/platform");
     const client = new ApiClient("https://api.example.test");
     let resolveFirst!: (value: Response) => void;
     const first = new Promise<Response>((resolve) => {
@@ -687,8 +687,8 @@ describe("CreateSkillDialog local import", () => {
     "keeps archive identity unknown when the verified list contains %s",
     async (listedName) => {
       const actual = await vi.importActual<
-        typeof import("@multica/core/skills")
-      >("@multica/core/skills");
+        typeof import("@morechat/core/skills")
+      >("@morechat/core/skills");
       mockWrap.mockImplementation(actual.wrapExistingSkillArchive);
       const packed = actual.packStoreZip([
         {
@@ -734,8 +734,8 @@ describe("CreateSkillDialog local import", () => {
     "only unlocks directory imports with a verified list: $verified",
     async ({ body, verified }) => {
       const { ApiClient } =
-        await vi.importActual<typeof import("@multica/core/api")>(
-          "@multica/core/api",
+        await vi.importActual<typeof import("@morechat/core/api")>(
+          "@morechat/core/api",
         );
       const client = new ApiClient("https://api.example.test");
       const { onClose } = pickBatch(["alpha", "beta"]);
@@ -798,8 +798,8 @@ describe("CreateSkillDialog local import", () => {
   );
   it("does not upload when unmounted during asynchronous archive preparation", async () => {
     const { ApiClient } =
-      await vi.importActual<typeof import("@multica/core/api")>(
-        "@multica/core/api",
+      await vi.importActual<typeof import("@morechat/core/api")>(
+        "@morechat/core/api",
       );
     const client = new ApiClient("https://api.example.test");
     const fetchMock = vi.fn();
@@ -835,8 +835,8 @@ describe("CreateSkillDialog local import", () => {
     "stops an A queue when workspace changes without unmounting during %s",
     async (phase) => {
       const { ApiClient } =
-        await vi.importActual<typeof import("@multica/core/api")>(
-          "@multica/core/api",
+        await vi.importActual<typeof import("@morechat/core/api")>(
+          "@morechat/core/api",
         );
       const client = new ApiClient("https://api.example.test");
       let resolveUpload!: (value: Response) => void;
@@ -955,8 +955,8 @@ describe("CreateSkillDialog local import", () => {
     expect(mockImportSkillArchive).not.toHaveBeenCalled();
   });
   it("keeps a BOM directory uncertain when its server fallback name exists", async () => {
-    const actual = await vi.importActual<typeof import("@multica/core/skills")>(
-      "@multica/core/skills",
+    const actual = await vi.importActual<typeof import("@morechat/core/skills")>(
+      "@morechat/core/skills",
     );
     const packed = actual.prepareSkillArchiveFromEntries([
       {

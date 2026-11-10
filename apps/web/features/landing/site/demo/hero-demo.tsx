@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { GitPullRequest, Inbox, Megaphone, UserRound, Zap } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
+import { GitPullRequest, Inbox, Megaphone, UserRound, Zap } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
 import { useLocale } from "../../i18n";
 import type { DemoDict } from "../../i18n/types";
 import { focusRing } from "../primitives";

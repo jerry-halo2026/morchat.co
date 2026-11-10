@@ -1,5 +1,5 @@
-import type { AgentTask, TaskMessagePayload } from "@multica/core/types";
-import { redactSecrets } from "@multica/core/security/redact-secrets";
+import type { AgentTask, TaskMessagePayload } from "@morechat/core/types";
+import { redactSecrets } from "@morechat/core/security/redact-secrets";
 import { failureReasonKey } from "./failure-reason-label";
 
 const UUID_PATTERN =

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { issueUnreadOptions, useMarkIssueRead } from "@multica/core/issues/unread";
-import type { IssueUnread } from "@multica/core/types";
+import { issueUnreadOptions, useMarkIssueRead } from "@morechat/core/issues/unread";
+import type { IssueUnread } from "@morechat/core/types";
 import { useAppForeground } from "../../common/use-app-foreground";
 
 /**

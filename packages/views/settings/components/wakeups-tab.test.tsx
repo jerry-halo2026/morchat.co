@@ -1,19 +1,19 @@
 import { beforeEach, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { api } from "@multica/core/api";
+import { api } from "@morechat/core/api";
 import { renderWithI18n } from "../../test/i18n";
 import { WakeupsTab } from "./wakeups-tab";
 
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: { listWorkspaceSystemWakeups: vi.fn(), updateWorkspaceSystemWakeup: vi.fn() },
 }));
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws" }));
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws" }));
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: (selector: (s: unknown) => unknown) => selector({ user: { id: "u" } }),
 }));
 let role = "admin";
-vi.mock("@multica/core/workspace/queries", () => ({
+vi.mock("@morechat/core/workspace/queries", () => ({
   memberListOptions: () => ({ queryKey: ["members", "ws"], queryFn: async () => [{ user_id: "u", role }] }),
 }));
 

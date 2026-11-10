@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Rebuilds every brand asset from packages/ui/lib/multica-brand.ts. Prerequisites
+// Rebuilds every brand asset from packages/ui/lib/morechat-brand.ts. Prerequisites
 // and the list of outputs: scripts/brand/README.md.
 //
 //   node scripts/brand/generate.mjs
@@ -91,7 +91,7 @@ try {
   <div style="position:absolute;left:64px;bottom:70px;color:#fff;font:600 60px/1.12 Inter;letter-spacing:-.02em;white-space:nowrap">People and agents,<br>working as one team.</div></div>`, { alpha: false });
   await page.close();
 
-  // README hero: the write-on from MulticaWordmark (timings in multica-wordmark.tsx,
+  // README hero: the write-on from MorechatWordmark (timings in multica-wordmark.tsx,
   // keyframes in packages/ui/styles/base.css). Transform animations do not advance
   // under CDP virtual time, so every animation is paused and seeked per frame. The
   // seeked transform reaches the compositor a frame or two later; capturing sooner

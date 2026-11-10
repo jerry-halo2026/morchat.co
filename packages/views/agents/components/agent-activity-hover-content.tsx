@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell } from "@multica/ui/icons";
+import { Bell } from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { ActorAvatar as ActorAvatarBase } from "@multica/ui/components/common/actor-avatar";
-import { useActorName } from "@multica/core/workspace/hooks";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { runtimeListOptions } from "@multica/core/runtimes/queries";
-import { agentListOptions } from "@multica/core/workspace/queries";
-import { deriveAgentPresenceDetail } from "@multica/core/agents/derive-presence";
-import type { AgentTask, Issue } from "@multica/core/types";
+import { ActorAvatar as ActorAvatarBase } from "@morechat/ui/components/common/actor-avatar";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { runtimeListOptions } from "@morechat/core/runtimes/queries";
+import { agentListOptions } from "@morechat/core/workspace/queries";
+import { deriveAgentPresenceDetail } from "@morechat/core/agents/derive-presence";
+import type { AgentTask, Issue } from "@morechat/core/types";
 import { workloadConfig } from "../presence";
 import { useT } from "../../i18n";
 

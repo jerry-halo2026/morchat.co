@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { onlineManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { Project, UpdateProjectRequest } from "@multica/core/types";
+import type { Project, UpdateProjectRequest } from "@morechat/core/types";
 import { renderWithI18n } from "../test/i18n";
 import { RenameProjectModal } from "./rename-project";
 
@@ -12,12 +12,12 @@ const { mockUpdate, toastErrorMock, toastSuccessMock } = vi.hoisted(() => ({
   toastSuccessMock: vi.fn(),
 }));
 
-vi.mock("@multica/core/api", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@multica/core/api")>()),
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/api")>()),
   api: { updateProject: mockUpdate },
 }));
 
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
 
 vi.mock("sonner", () => ({
   toast: { success: toastSuccessMock, error: toastErrorMock },

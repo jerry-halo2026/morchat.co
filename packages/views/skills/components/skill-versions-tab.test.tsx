@@ -4,8 +4,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { MemberWithUser, Skill, SkillVersion, SkillVersionSummary } from "@multica/core/types";
-import { I18nProvider } from "@multica/core/i18n/react";
+import type { MemberWithUser, Skill, SkillVersion, SkillVersionSummary } from "@morechat/core/types";
+import { I18nProvider } from "@morechat/core/i18n/react";
 import enCommon from "../../locales/en/common.json";
 import enSkills from "../../locales/en/skills.json";
 
@@ -16,7 +16,7 @@ const apiMock = vi.hoisted(() => ({
   getSkillVersion: vi.fn(),
   restoreSkillVersion: vi.fn(),
 }));
-vi.mock("@multica/core/api", () => ({ api: apiMock }));
+vi.mock("@morechat/core/api", () => ({ api: apiMock }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 import { SkillVersionsTab } from "./skill-versions-tab";

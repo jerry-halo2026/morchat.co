@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Milestone } from "@multica/ui/icons";
-import type { UpdateIssueRequest } from "@multica/core/types";
+import { Milestone } from "@morechat/ui/icons";
+import type { UpdateIssueRequest } from "@morechat/core/types";
 import { PropertyPicker, PickerItem } from "./property-picker";
 import { useT } from "../../../i18n";
 

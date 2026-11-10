@@ -13,27 +13,27 @@ import {
   RuntimeSettingsPage,
 } from "./pages/runtime-detail-page";
 import { AttachmentPreviewRoute } from "./pages/attachment-preview-page";
-import { IssuesPage } from "@multica/views/issues/components";
-import { ProjectsPage } from "@multica/views/projects/components";
-import { DashboardPage } from "@multica/views/dashboard";
-import { AutopilotsPage } from "@multica/views/autopilots/components";
-import { MyIssuesPage } from "@multica/views/my-issues";
-import { SkillsPage } from "@multica/views/skills";
+import { IssuesPage } from "@morechat/views/issues/components";
+import { ProjectsPage } from "@morechat/views/projects/components";
+import { DashboardPage } from "@morechat/views/dashboard";
+import { AutopilotsPage } from "@morechat/views/autopilots/components";
+import { MyIssuesPage } from "@morechat/views/my-issues";
+import { SkillsPage } from "@morechat/views/skills";
 import { DesktopRuntimesPage } from "./components/desktop-runtimes-page";
 import { DesktopAgentsPage } from "./components/desktop-agents-page";
 import {
   AiCreateAgentPage,
   ManualCreateAgentPage,
-} from "@multica/views/agents";
+} from "@morechat/views/agents";
 import { DesktopChooseRuntimePage } from "./components/desktop-choose-runtime-page";
 import { AgentCreatedPage } from "./pages/agent-created-page";
-import { SquadsPage, SquadDetailPage as SquadDetailPageView } from "@multica/views/squads/components";
-import { AllViewsPage } from "@multica/views/issue-views";
-import { InboxPage } from "@multica/views/inbox";
-import { ChatPage } from "@multica/views/chat";
-import { SettingsPage } from "@multica/views/settings";
-import { useT } from "@multica/views/i18n";
-import { Download, Server } from "@multica/ui/icons";
+import { SquadsPage, SquadDetailPage as SquadDetailPageView } from "@morechat/views/squads/components";
+import { AllViewsPage } from "@morechat/views/issue-views";
+import { InboxPage } from "@morechat/views/inbox";
+import { ChatPage } from "@morechat/views/chat";
+import { SettingsPage } from "@morechat/views/settings";
+import { useT } from "@morechat/views/i18n";
+import { Download, Server } from "@morechat/ui/icons";
 import { DaemonSettingsTab } from "./components/daemon-settings-tab";
 import { UpdatesSettingsTab } from "./components/updates-settings-tab";
 import { WorkspaceRouteLayout } from "./components/workspace-route-layout";

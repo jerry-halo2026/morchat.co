@@ -2,18 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Cpu, Loader2, Plus, Check, Info } from "@multica/ui/icons";
+import { ChevronDown, Cpu, Loader2, Plus, Check, Info } from "@morechat/ui/icons";
 import {
   refreshRuntimeModels,
   runtimeModelsOptions,
-} from "@multica/core/runtimes";
-import type { RuntimeModel } from "@multica/core/types";
+} from "@morechat/core/runtimes";
+import type { RuntimeModel } from "@morechat/core/types";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@multica/ui/components/ui/popover";
-import { Label } from "@multica/ui/components/ui/label";
+} from "@morechat/ui/components/ui/popover";
+import { Label } from "@morechat/ui/components/ui/label";
 import { useT } from "../../i18n";
 import { UnavailableModelsNote } from "./unavailable-models-note";
 import { ModelSearchHeader } from "./model-search-header";

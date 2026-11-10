@@ -2,12 +2,12 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { AlarmClock, Code, Clock, Plus, Webhook, Zap } from "@multica/ui/icons";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { autopilotListOptions } from "@multica/core/autopilots/queries";
-import { useAutopilotsViewStore } from "@multica/core/autopilots/stores";
-import { useCurrentWorkspace, useWorkspacePaths } from "@multica/core/paths";
-import type { Autopilot } from "@multica/core/types";
+import { AlarmClock, Code, Clock, Plus, Webhook, Zap } from "@morechat/ui/icons";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { autopilotListOptions } from "@morechat/core/autopilots/queries";
+import { useAutopilotsViewStore } from "@morechat/core/autopilots/stores";
+import { useCurrentWorkspace, useWorkspacePaths } from "@morechat/core/paths";
+import type { Autopilot } from "@morechat/core/types";
 import { useNavigation } from "../../navigation";
 import { useT } from "../../i18n";
 import { AUTOPILOT_TEMPLATES } from "../../autopilots/components/autopilot-templates";

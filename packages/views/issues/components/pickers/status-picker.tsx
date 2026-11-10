@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CircleEqual, CornerDownRight } from "@multica/ui/icons";
-import type { IssueStatus, UpdateIssueRequest } from "@multica/core/types";
-import { STATUS_CONFIG } from "@multica/core/issues/config";
-import { useIssueStatuses } from "@multica/core/issue-statuses/hooks";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { stepHandsOff, workflowStep } from "@multica/core/issue-workflows";
-import type { IssueWorkflowStep, Project } from "@multica/core/types";
+import { CircleEqual, CornerDownRight } from "@morechat/ui/icons";
+import type { IssueStatus, UpdateIssueRequest } from "@morechat/core/types";
+import { STATUS_CONFIG } from "@morechat/core/issues/config";
+import { useIssueStatuses } from "@morechat/core/issue-statuses/hooks";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { stepHandsOff, workflowStep } from "@morechat/core/issue-workflows";
+import type { IssueWorkflowStep, Project } from "@morechat/core/types";
 import { StatusIcon } from "../status-icon";
 import { PropertyPicker, PickerItem } from "./property-picker";
 import { useT } from "../../../i18n";

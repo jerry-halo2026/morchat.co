@@ -15,8 +15,8 @@
  */
 
 import { useState, type ReactNode } from "react";
-import { ChevronRight } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
+import { ChevronRight } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../i18n";
 import "./styles/code.css";
 

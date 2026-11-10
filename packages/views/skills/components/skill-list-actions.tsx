@@ -10,22 +10,22 @@ import {
   RotateCw,
   Search,
   Trash2,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { Agent, SkillSummary } from "@multica/core/types";
-import { api } from "@multica/core/api";
-import { workspaceKeys } from "@multica/core/workspace/queries";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { resolvePublicFileUrl } from "@multica/core/workspace/avatar-url";
-import { Button } from "@multica/ui/components/ui/button";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
-import { Input } from "@multica/ui/components/ui/input";
+import type { Agent, SkillSummary } from "@morechat/core/types";
+import { api } from "@morechat/core/api";
+import { workspaceKeys } from "@morechat/core/workspace/queries";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
+import { Input } from "@morechat/ui/components/ui/input";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@multica/ui/components/ui/collapsible";
+} from "@morechat/ui/components/ui/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -33,18 +33,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@multica/ui/components/ui/tooltip";
-import { ActorAvatar } from "@multica/ui/components/common/actor-avatar";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/tooltip";
+import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../../i18n";
 import { useIntentNavigate } from "../../navigation";
 import {

@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Input } from "@multica/ui/components/ui/input";
-import { DropdownMenuCheckboxItem } from "@multica/ui/components/ui/dropdown-menu";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { isImeComposing } from "@multica/core/utils";
-import { memberListOptions } from "@multica/core/workspace/queries";
+import { Input } from "@morechat/ui/components/ui/input";
+import { DropdownMenuCheckboxItem } from "@morechat/ui/components/ui/dropdown-menu";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { isImeComposing } from "@morechat/core/utils";
+import { memberListOptions } from "@morechat/core/workspace/queries";
 import {
   formatActorRef,
   isActorPropertyType,
@@ -20,11 +20,11 @@ import {
   type IssueProperty,
   type PropertyFilterOp,
   type PropertyFilterValue,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { FILTER_ITEM_CLASS, HoverCheck } from "../../common/hover-check";
 import { useT } from "../../i18n";
-import type { ActorFilterValue } from "@multica/core/issues/stores/view-store";
+import type { ActorFilterValue } from "@morechat/core/issues/stores/view-store";
 import { NO_PROPERTY_VALUE } from "../utils/filter";
 
 /**

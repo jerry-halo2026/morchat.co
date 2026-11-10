@@ -1,25 +1,25 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, within } from "@testing-library/react";
-import type { AgentTask, CommentTriggerPreviewAgent } from "@multica/core/types";
+import type { AgentTask, CommentTriggerPreviewAgent } from "@morechat/core/types";
 import {
   recipientActions,
   resolveRecipientAction,
   type AgentRunState,
   type RecipientAction,
-} from "@multica/core/issues/run-steering";
+} from "@morechat/core/issues/run-steering";
 import type { RecipientEntry } from "../hooks/use-recipient-actions";
 import { renderWithI18n } from "../../test/i18n";
 import { CommentTriggerChips } from "./comment-trigger-chips";
 
-vi.mock("@multica/core/agents", () => ({
+vi.mock("@morechat/core/agents", () => ({
   useAgentPresenceDetail: () => ({ availability: "online", workload: "idle" }),
 }));
 
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: { getBaseUrl: () => "https://api.example.test" },
 }));
 
-vi.mock("@multica/core/paths", () => ({
+vi.mock("@morechat/core/paths", () => ({
   useCurrentWorkspace: () => ({ id: "ws-1" }),
 }));
 

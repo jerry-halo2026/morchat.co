@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockCall = vi.hoisted(() => vi.fn());
-vi.mock("@multica/core/api", () => ({ api: { callPluginAction: mockCall } }));
+vi.mock("@morechat/core/api", () => ({ api: { callPluginAction: mockCall } }));
 
 import { createSurfaceBridge } from "./surface-bridge";
 

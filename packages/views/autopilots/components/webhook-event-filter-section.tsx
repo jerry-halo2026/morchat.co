@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { X, Plus, Filter, ExternalLink } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import type { WebhookEventFilter } from "@multica/core/types";
+import { X, Plus, Filter, ExternalLink } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import type { WebhookEventFilter } from "@morechat/core/types";
 import { useT } from "../../i18n";
 import { isTraditionalChinese } from "../../common/docs-locale";
 
@@ -21,12 +21,12 @@ export function WebhookEventFilterSection({
   const [newEvent, setNewEvent] = useState("");
   const [newActions, setNewActions] = useState("");
   const docsHref = isTraditionalChinese(i18n.language)
-    ? `https://multica.ai/docs/zh-Hant/autopilots#${encodeURIComponent("事件過濾")}`
+    ? `https://morechat.co/docs/zh-Hant/autopilots#${encodeURIComponent("事件過濾")}`
     : i18n.language?.startsWith("zh")
-      ? `https://multica.ai/docs/zh/autopilots#${encodeURIComponent("事件过滤")}`
+      ? `https://morechat.co/docs/zh/autopilots#${encodeURIComponent("事件过滤")}`
       : i18n.language?.startsWith("fr")
-        ? `https://multica.ai/docs/fr/autopilots#${encodeURIComponent("filtres-dévénements")}`
-        : "https://multica.ai/docs/autopilots#event-filters";
+        ? `https://morechat.co/docs/fr/autopilots#${encodeURIComponent("filtres-dévénements")}`
+        : "https://morechat.co/docs/autopilots#event-filters";
 
   const addFilter = () => {
     const event = newEvent.trim();

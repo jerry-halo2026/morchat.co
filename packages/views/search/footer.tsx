@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { createShortcutChord } from "@multica/core/shortcuts";
-import { Kbd } from "@multica/ui/components/ui/kbd";
+import { createShortcutChord } from "@morechat/core/shortcuts";
+import { Kbd } from "@morechat/ui/components/ui/kbd";
 import { ShortcutKeycaps } from "../common/shortcut-keycaps";
 import { useT } from "../i18n";
 

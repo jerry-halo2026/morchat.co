@@ -2,8 +2,8 @@ import type {
   AgentRuntime,
   RuntimeUsage,
   RuntimeUsageByAgent,
-} from "@multica/core/types";
-import { getCustomPricing } from "@multica/core/runtimes/custom-pricing-store";
+} from "@morechat/core/types";
+import { getCustomPricing } from "@morechat/core/runtimes/custom-pricing-store";
 
 // A live local daemon re-registers itself within seconds of a server-side
 // delete (daemon self-heal, #2404), so deleting an online local runtime from
@@ -176,7 +176,7 @@ export function formatCredits(n: number): string {
  * A run's spend for display. Credits have no USD rate, so a credit-billed run
  * shows its credits and a mix shows both; `creditsLabel` supplies the
  * translated unit and provider name. Different providers' credits cannot
- * be added together or combined with Multica's own billing credits.
+ * be added together or combined with morechat.co's own billing credits.
  */
 export function formatSpend(
   usage: Pick<TaskUsageSummary, "cost" | "credits">,

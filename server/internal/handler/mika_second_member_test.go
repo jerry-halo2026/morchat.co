@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/service"
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
 )
 
 // addSecondWorkspaceMember creates another member of the handler test

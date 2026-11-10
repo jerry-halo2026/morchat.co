@@ -11,7 +11,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
+} from "@morechat/ui/components/ui/alert-dialog";
 import { BuilderWorkspaceLayout } from "./builder-workspace-layout";
 import {
   applyDraftRuntimeChange,
@@ -21,12 +21,12 @@ import {
   parseBuilderDraft,
   stripBuilderDraft,
   type AgentDraft,
-} from "@multica/core/agents";
+} from "@morechat/core/agents";
 import {
   runtimeDisplayLabel,
   runtimeModelsOptions,
-} from "@multica/core/runtimes";
-import type { AgentBuilderSessionSummary } from "@multica/core/types";
+} from "@morechat/core/runtimes";
+import type { AgentBuilderSessionSummary } from "@morechat/core/types";
 import { AgentConfigurationPanel } from "./agent-configuration-panel";
 import { BuilderConversation } from "./builder-conversation";
 import { CreateAgentFooter } from "./create-agent-footer";

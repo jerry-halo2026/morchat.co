@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/multica-ai/multica/server/internal/integrations/channel"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel"
 )
 
 // User-facing copy the bot speaks in Telegram. English, matching the Slack

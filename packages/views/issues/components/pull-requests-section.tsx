@@ -5,26 +5,26 @@ import { IssueSidebarSectionHeader } from "./issue-sidebar-section";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CircleSlash, MoreHorizontal, Plus, RotateCcw, Settings } from "@multica/ui/icons";
-import { ApiError } from "@multica/core/api";
+import { CircleSlash, MoreHorizontal, Plus, RotateCcw, Settings } from "@morechat/ui/icons";
+import { ApiError } from "@morechat/core/api";
 import {
   issuePullRequestsOptions,
   useGitHubSettings,
   useLinkIssuePullRequest,
   useSetIssuePRAutoComplete,
-} from "@multica/core/github";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
+} from "@morechat/core/github";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { Input } from "@multica/ui/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@multica/ui/components/ui/popover";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { Input } from "@morechat/ui/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@morechat/ui/components/ui/popover";
 import { useNavigation } from "../../navigation";
 import { useT } from "../../i18n";
 import { PullRequestList } from "./pull-request-list";

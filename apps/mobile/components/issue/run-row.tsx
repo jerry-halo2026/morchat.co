@@ -12,7 +12,7 @@ import { Pressable, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
 import { router } from "expo-router";
-import type { AgentTask } from "@multica/core/types";
+import type { AgentTask } from "@morechat/core/types";
 import { Text } from "@/components/ui/text";
 import { ActorAvatar } from "@/components/ui/actor-avatar";
 import { RunCancelButton } from "./run-cancel-button";

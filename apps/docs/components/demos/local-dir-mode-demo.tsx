@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Clock, FileText, Folder, GitBranch, Loader2, Pencil } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { cn } from "@multica/ui/lib/utils";
+import { Check, Clock, FileText, Folder, GitBranch, Loader2, Pencil } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { cn } from "@morechat/ui/lib/utils";
 import {
   CoachMark,
   DemoAvatar,

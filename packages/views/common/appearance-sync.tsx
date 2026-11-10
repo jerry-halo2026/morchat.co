@@ -13,8 +13,8 @@ import {
   appearanceThemeCss,
   selectAppearance,
   useAppearanceStore,
-} from "@multica/core/appearance";
-import { getShortcutPlatform, getShortcutRuntime } from "@multica/core/shortcuts";
+} from "@morechat/core/appearance";
+import { getShortcutPlatform, getShortcutRuntime } from "@morechat/core/shortcuts";
 
 const STYLE_ELEMENT_ID = "multica-appearance";
 const THEME_CSS_ELEMENT_ID = "multica-theme-css";

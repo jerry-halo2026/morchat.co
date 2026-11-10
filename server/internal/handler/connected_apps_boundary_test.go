@@ -12,10 +12,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/auth"
-	"github.com/multica-ai/multica/server/internal/middleware"
-	sdk "github.com/multica-ai/multica/server/pkg/composio"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/auth"
+	"github.com/jerry-halo2026/morchat.co/server/internal/middleware"
+	sdk "github.com/jerry-halo2026/morchat.co/server/pkg/composio"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 func (f *appsFixture) submitSend(t *testing.T) AppRequestResponse {

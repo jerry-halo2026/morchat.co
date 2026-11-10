@@ -15,10 +15,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/multica-ai/multica/server/pkg/agent"
-	"github.com/multica-ai/multica/server/pkg/httptransport"
-	"github.com/multica-ai/multica/server/pkg/protocol"
-	"github.com/multica-ai/multica/server/pkg/remotemcp"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/httptransport"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/remotemcp"
 )
 
 // requestError is returned by postJSON/getJSON when the server responds with an error status.

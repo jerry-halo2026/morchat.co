@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 // Migration 467 fills a legacy trigger's missing creator from its autopilot's

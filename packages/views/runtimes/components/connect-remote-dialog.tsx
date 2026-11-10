@@ -8,15 +8,15 @@ import {
   type ReactNode,
 } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { useReducedMotion } from "@multica/core/appearance";
-import { Check, ChevronRight, Copy, Terminal } from "@multica/ui/icons";
+import { useReducedMotion } from "@morechat/core/appearance";
+import { Check, ChevronRight, Copy, Terminal } from "@morechat/ui/icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "@multica/core/auth";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { runtimeKeys, runtimeListOptions } from "@multica/core/runtimes/queries";
-import { useDaemonSetupCommands } from "@multica/core/runtimes";
-import { useWSEvent, useWSReconnect } from "@multica/core/realtime";
-import { paths, useWorkspaceSlug } from "@multica/core/paths";
+import { useAuthStore } from "@morechat/core/auth";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { runtimeKeys, runtimeListOptions } from "@morechat/core/runtimes/queries";
+import { useDaemonSetupCommands } from "@morechat/core/runtimes";
+import { useWSEvent, useWSReconnect } from "@morechat/core/realtime";
+import { paths, useWorkspaceSlug } from "@morechat/core/paths";
 import {
   Dialog,
   DialogContent,
@@ -24,16 +24,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { Button } from "@multica/ui/components/ui/button";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import { CODE_LIGATURE_CLASS } from "@multica/ui/lib/code-style";
-import { copyText } from "@multica/ui/lib/clipboard";
+} from "@morechat/ui/components/ui/dialog";
+import { Button } from "@morechat/ui/components/ui/button";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import { CODE_LIGATURE_CLASS } from "@morechat/ui/lib/code-style";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import {
   UI_EASE_OUT,
   UI_MOTION_DURATION,
-} from "@multica/ui/lib/motion";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/lib/motion";
+import { cn } from "@morechat/ui/lib/utils";
 import { CliInstallCommand } from "../../common/cli-install-command";
 import { DaemonSetupNotice } from "../../common/daemon-setup-notice";
 import { useNavigation } from "../../navigation";

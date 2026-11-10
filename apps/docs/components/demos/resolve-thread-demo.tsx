@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
-import { CheckCircle2, ChevronRight, Copy, ListChevronsDownUp, MoreHorizontal } from "@multica/ui/icons";
+import { CheckCircle2, ChevronRight, Copy, ListChevronsDownUp, MoreHorizontal } from "@morechat/ui/icons";
 import { CoachMark, DemoAvatar, DemoFrame, useDemoCopy, useStartWhenVisible } from "./demo-kit";
 
 type Entry = { author: string; agent: boolean; body: string };

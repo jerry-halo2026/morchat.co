@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "@multica/ui/icons";
+import { Plus } from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import type { Agent } from "@multica/core/types";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { skillListOptions } from "@multica/core/workspace/queries";
+import type { Agent } from "@morechat/core/types";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { skillListOptions } from "@morechat/core/workspace/queries";
 import { SkillAddDialog } from "../skill-add-dialog";
 import { useT } from "../../../i18n";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
 
 /**
  * Inline "+ Attach" trigger for the inspector's Skills row. The trigger is

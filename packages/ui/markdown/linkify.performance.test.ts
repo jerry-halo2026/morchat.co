@@ -2,7 +2,7 @@
 import { writeFileSync } from 'node:fs'
 import { performance } from 'node:perf_hooks'
 
-// MULTICA_MARKDOWN_BENCHMARK=1 pnpm --filter @multica/ui test markdown/linkify.performance.test.ts --maxWorkers=1 -t benchmarks
+// MULTICA_MARKDOWN_BENCHMARK=1 pnpm --filter @morechat/ui test markdown/linkify.performance.test.ts --maxWorkers=1 -t benchmarks
 import { describe, expect, it, vi } from 'vitest'
 
 const { stats } = vi.hoisted(() => ({ stats: { calls: 0 } }))

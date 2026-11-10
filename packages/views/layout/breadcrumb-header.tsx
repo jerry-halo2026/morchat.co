@@ -1,8 +1,8 @@
 "use client";
 
 import { Fragment, type ReactNode } from "react";
-import { ChevronRight } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
+import { ChevronRight } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
 import { PageHeader } from "./page-header";
 import { AppLink } from "../navigation";
 

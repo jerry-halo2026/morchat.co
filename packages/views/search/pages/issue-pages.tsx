@@ -3,24 +3,24 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CalendarClock, CalendarX, FolderMinus, Lock, Network, UserMinus, Zap } from "@multica/ui/icons";
+import { CalendarClock, CalendarX, FolderMinus, Lock, Network, UserMinus, Zap } from "@morechat/ui/icons";
 import { Command as CommandPrimitive } from "cmdk";
-import { dispatchReasonCode } from "@multica/core/api";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { PRIORITY_DISPLAY_ORDER } from "@multica/core/issues/config";
-import { addDaysDateOnly, todayDateOnly } from "@multica/core/issues/date";
+import { dispatchReasonCode } from "@morechat/core/api";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { PRIORITY_DISPLAY_ORDER } from "@morechat/core/issues/config";
+import { addDaysDateOnly, todayDateOnly } from "@morechat/core/issues/date";
 import {
   sharedWorkflowStatusKeys,
   stepHandsOff,
   useIssueWorkflows,
   workflowStep,
-} from "@multica/core/issue-workflows";
-import { issueLabelsOptions, labelListOptions } from "@multica/core/labels/queries";
-import { useAttachLabelToIssue, useDetachLabel } from "@multica/core/labels/mutations";
-import { useModalStore } from "@multica/core/modals";
-import { projectListOptions } from "@multica/core/projects/queries";
-import { quickActionListOptions, useRunQuickAction } from "@multica/core/quick-actions";
-import type { Issue, IssuePriority, Label } from "@multica/core/types";
+} from "@morechat/core/issue-workflows";
+import { issueLabelsOptions, labelListOptions } from "@morechat/core/labels/queries";
+import { useAttachLabelToIssue, useDetachLabel } from "@morechat/core/labels/mutations";
+import { useModalStore } from "@morechat/core/modals";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import { quickActionListOptions, useRunQuickAction } from "@morechat/core/quick-actions";
+import type { Issue, IssuePriority, Label } from "@morechat/core/types";
 import { StatusIcon } from "../../issues/components/status-icon";
 import { PriorityIcon } from "../../issues/components/priority-icon";
 import { outcomeMessage } from "../../issues/components/quick-actions-section";

@@ -1,14 +1,14 @@
 "use client";
 
-import { FileQuestion } from "@multica/ui/icons";
-import { buttonVariants } from "@multica/ui/components/ui/button";
+import { FileQuestion } from "@morechat/ui/icons";
+import { buttonVariants } from "@morechat/ui/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import type { AgentRuntime } from "@multica/core/types";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { runtimeListOptions } from "@multica/core/runtimes/queries";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { cn } from "@multica/ui/lib/utils";
+import type { AgentRuntime } from "@morechat/core/types";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { runtimeListOptions } from "@morechat/core/runtimes/queries";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { cn } from "@morechat/ui/lib/utils";
 import { CollectionPageState } from "../../layout/collection-page";
 import { AppLink } from "../../navigation";
 import { OBJECT_PAGE_BODY, ObjectPage } from "../../layout/object-page";

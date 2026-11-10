@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/dispatch"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/dispatch"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // TestDispatchFailReasonCode is the regression for Elon must-fix 2, case 1: a

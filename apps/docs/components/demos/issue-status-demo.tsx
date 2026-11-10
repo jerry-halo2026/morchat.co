@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ChevronDown } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
+import { ChevronDown } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
 import {
   CoachMark,
   DemoAvatar,

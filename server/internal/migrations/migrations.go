@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/multica-ai/multica/server/internal/selfexec"
+	"github.com/jerry-halo2026/morchat.co/server/internal/selfexec"
 )
 
 const maxSearchDepth = 4

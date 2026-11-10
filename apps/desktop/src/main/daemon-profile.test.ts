@@ -20,8 +20,8 @@ const DEFAULT_CLI_CONFIG = join(MULTICA_DIR, "config.json");
 
 describe("deriveProfileName", () => {
   it("names the profile after the target host", () => {
-    expect(deriveProfileName("https://api.multica.ai")).toBe(
-      "desktop-api.multica.ai",
+    expect(deriveProfileName("https://api.morechat.co")).toBe(
+      "desktop-api.morechat.co",
     );
   });
 
@@ -38,18 +38,18 @@ describe("deriveProfileName", () => {
 
 describe("profile paths", () => {
   it("always resolves under profiles/<name>", () => {
-    const dir = join(MULTICA_DIR, "profiles", "desktop-api.multica.ai");
-    expect(profileDir("desktop-api.multica.ai")).toBe(dir);
-    expect(profileConfigPath("desktop-api.multica.ai")).toBe(
+    const dir = join(MULTICA_DIR, "profiles", "desktop-api.morechat.co");
+    expect(profileDir("desktop-api.morechat.co")).toBe(dir);
+    expect(profileConfigPath("desktop-api.morechat.co")).toBe(
       join(dir, "config.json"),
     );
-    expect(profileLogPath("desktop-api.multica.ai")).toBe(
+    expect(profileLogPath("desktop-api.morechat.co")).toBe(
       join(dir, "daemon.log"),
     );
-    expect(profilePidPath("desktop-api.multica.ai")).toBe(
+    expect(profilePidPath("desktop-api.morechat.co")).toBe(
       join(dir, "daemon.pid"),
     );
-    expect(profileUserIdPath("desktop-api.multica.ai")).toBe(
+    expect(profileUserIdPath("desktop-api.morechat.co")).toBe(
       join(dir, ".desktop-user-id"),
     );
   });
@@ -65,7 +65,7 @@ describe("profile paths", () => {
   });
 
   it("never yields the default CLI config path for any input", () => {
-    for (const name of ["desktop-api.multica.ai", "desktop", "x"]) {
+    for (const name of ["desktop-api.morechat.co", "desktop", "x"]) {
       expect(profileConfigPath(name)).not.toBe(DEFAULT_CLI_CONFIG);
     }
     expect(() => profileConfigPath("")).toThrow();
@@ -74,9 +74,9 @@ describe("profile paths", () => {
 
 describe("profileArgs", () => {
   it("selects the Desktop-owned profile", () => {
-    expect(profileArgs("desktop-api.multica.ai")).toEqual([
+    expect(profileArgs("desktop-api.morechat.co")).toEqual([
       "--profile",
-      "desktop-api.multica.ai",
+      "desktop-api.morechat.co",
     ]);
   });
 
@@ -96,14 +96,14 @@ describe("healthPortForProfile", () => {
   });
 
   it("never derives the default profile's port", () => {
-    for (const name of ["desktop-api.multica.ai", "desktop", "x", "a".repeat(50)]) {
+    for (const name of ["desktop-api.morechat.co", "desktop", "x", "a".repeat(50)]) {
       expect(healthPortForProfile(name)).not.toBe(DEFAULT_HEALTH_PORT);
     }
   });
 
   it("derives a stable per-profile port above the default", () => {
-    const port = healthPortForProfile("desktop-api.multica.ai");
+    const port = healthPortForProfile("desktop-api.morechat.co");
     expect(port).toBeGreaterThan(DEFAULT_HEALTH_PORT);
-    expect(port).toBe(healthPortForProfile("desktop-api.multica.ai"));
+    expect(port).toBe(healthPortForProfile("desktop-api.morechat.co"));
   });
 });

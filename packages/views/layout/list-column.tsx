@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import { useSidebarSafe } from "@multica/ui/components/ui/sidebar";
-import { cn } from "@multica/ui/lib/utils";
+import { useSidebarSafe } from "@morechat/ui/components/ui/sidebar";
+import { cn } from "@morechat/ui/lib/utils";
 import { useAppShell } from "./app-shell-context";
 import { PanelResizeHandle, type PanelWidth } from "./panel-resize-handle";
 import { LIST_COLUMN_WIDTH_CLASS, NAV_COLUMN_MOTION_CLASS, NAV_PEEK_CLASS } from "./rail-styles";

@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { useAuthStore } from "@multica/core/auth";
-import { workspaceSlugForPath } from "@multica/core/paths";
-import { useWorkspaceList } from "@multica/core/workspace";
-import { useT } from "@multica/views/i18n";
+import { useAuthStore } from "@morechat/core/auth";
+import { workspaceSlugForPath } from "@morechat/core/paths";
+import { useWorkspaceList } from "@morechat/core/workspace";
+import { useT } from "@morechat/views/i18n";
 import { useTabStore } from "@/stores/tab-store";
 import {
   nextWorkspaceForNewWindow,

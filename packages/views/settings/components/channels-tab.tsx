@@ -1,16 +1,16 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ChevronRight } from "@multica/ui/icons";
+import { ChevronRight } from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useCurrentMember } from "@multica/core/permissions";
-import { larkInstallationsOptions } from "@multica/core/lark";
-import { slackInstallationsOptions } from "@multica/core/slack";
-import { dingtalkInstallationsOptions } from "@multica/core/dingtalk";
-import { wecomInstallationsOptions } from "@multica/core/wecom";
-import { telegramInstallationsOptions } from "@multica/core/telegram";
-import { cn } from "@multica/ui/lib/utils";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useCurrentMember } from "@morechat/core/permissions";
+import { larkInstallationsOptions } from "@morechat/core/lark";
+import { slackInstallationsOptions } from "@morechat/core/slack";
+import { dingtalkInstallationsOptions } from "@morechat/core/dingtalk";
+import { wecomInstallationsOptions } from "@morechat/core/wecom";
+import { telegramInstallationsOptions } from "@morechat/core/telegram";
+import { cn } from "@morechat/ui/lib/utils";
 import { AppLink, useNavigation } from "../../navigation";
 import { useT } from "../../i18n";
 import { LarkTab } from "./lark-tab";

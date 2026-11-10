@@ -20,8 +20,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 
-	"github.com/multica-ai/multica/server/internal/cli"
-	"github.com/multica-ai/multica/server/internal/handler"
+	"github.com/jerry-halo2026/morchat.co/server/internal/cli"
+	"github.com/jerry-halo2026/morchat.co/server/internal/handler"
 )
 
 // stderrCapture redirects os.Stderr through a pipe so a test can assert on
@@ -1452,7 +1452,7 @@ func TestRunIssuePullRequestsListsLinkedPRsAsJSON(t *testing.T) {
 			json.NewEncoder(w).Encode(map[string]any{
 				"pull_requests": []map[string]any{
 					{
-						"url":    "https://github.com/multica-ai/multica/pull/42",
+						"url":    "https://github.com/jerry-halo2026/morchat.co/pull/42",
 						"number": float64(42),
 						"state":  "open",
 						"title":  "MUL-2818 add issue PR CLI",
@@ -1496,7 +1496,7 @@ func TestRunIssuePullRequestsListsLinkedPRsAsJSON(t *testing.T) {
 		t.Fatalf("pull_requests length = %d, want 1", len(prs))
 	}
 	pr, _ := prs[0].(map[string]any)
-	if pr["url"] != "https://github.com/multica-ai/multica/pull/42" || pr["number"] != float64(42) || pr["state"] != "open" || pr["title"] != "MUL-2818 add issue PR CLI" {
+	if pr["url"] != "https://github.com/jerry-halo2026/morchat.co/pull/42" || pr["number"] != float64(42) || pr["state"] != "open" || pr["title"] != "MUL-2818 add issue PR CLI" {
 		t.Fatalf("unexpected PR payload: %#v", pr)
 	}
 }
@@ -1682,7 +1682,7 @@ func TestRunIssueUsageTableSeparatesRunsFromMeteredRuns(t *testing.T) {
 
 func TestRunIssuePullRequestsTableIncludesCoreFields(t *testing.T) {
 	prs := []map[string]any{{
-		"url":    "https://github.com/multica-ai/multica/pull/42",
+		"url":    "https://github.com/jerry-halo2026/morchat.co/pull/42",
 		"number": float64(42),
 		"state":  "open",
 		"title":  "MUL-2818 add issue PR CLI",
@@ -1698,7 +1698,7 @@ func TestRunIssuePullRequestsTableIncludesCoreFields(t *testing.T) {
 	os.Stdout = old
 	out := <-drainCh
 	text := string(out)
-	for _, want := range []string{"NUMBER", "STATE", "TITLE", "URL", "42", "open", "MUL-2818 add issue PR CLI", "https://github.com/multica-ai/multica/pull/42"} {
+	for _, want := range []string{"NUMBER", "STATE", "TITLE", "URL", "42", "open", "MUL-2818 add issue PR CLI", "https://github.com/jerry-halo2026/morchat.co/pull/42"} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("table output missing %q:\n%s", want, text)
 		}
@@ -2508,7 +2508,7 @@ func TestResolveAssigneeRespectsKinds(t *testing.T) {
 }
 
 // TestResolveAssigneeExactMatchWins covers the substring-collision scenario from
-// multica-ai/multica#1620: when one name is a substring of another (e.g.
+// jerry-halo2026/morchat.co#1620: when one name is a substring of another (e.g.
 // "reviewer" vs "peer-reviewer"), an exact match on the shorter name must
 // short-circuit substring matching instead of erroring out as ambiguous.
 func TestResolveAssigneeExactMatchWins(t *testing.T) {
@@ -2577,7 +2577,7 @@ func TestResolveAssigneeExactMatchWins(t *testing.T) {
 }
 
 // TestResolveAssigneeByID covers the ID/ShortID escape hatch from
-// multica-ai/multica#1620: passing a full UUID or its 8-char prefix must
+// jerry-halo2026/morchat.co#1620: passing a full UUID or its 8-char prefix must
 // resolve directly without going through name matching.
 func TestResolveAssigneeByID(t *testing.T) {
 	membersResp := []map[string]any{

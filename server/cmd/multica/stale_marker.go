@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/multica-ai/multica/server/internal/cli"
-	"github.com/multica-ai/multica/server/internal/daemon/execenv"
+	"github.com/jerry-halo2026/morchat.co/server/internal/cli"
+	"github.com/jerry-halo2026/morchat.co/server/internal/daemon/execenv"
 )
 
 // taskMarkerHint renders the tail every refusal path appends when a

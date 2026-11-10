@@ -9,15 +9,15 @@ import {
   Settings2,
   Square,
   Trash2,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { Agent } from "@multica/core/types";
-import type { AgentPresenceDetail } from "@multica/core/agents";
-import { api } from "@multica/core/api";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { workspaceKeys } from "@multica/core/workspace/queries";
+import type { Agent } from "@morechat/core/types";
+import type { AgentPresenceDetail } from "@morechat/core/agents";
+import { api } from "@morechat/core/api";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { workspaceKeys } from "@morechat/core/workspace/queries";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,11 +27,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
+} from "@morechat/ui/components/ui/alert-dialog";
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@multica/ui/components/ui/dropdown-menu";
+} from "@morechat/ui/components/ui/dropdown-menu";
 import { useT } from "../../i18n";
 import { AppLink, useIntentNavigate } from "../../navigation";
 import { CollectionRowMenu } from "../../layout/collection-list";
@@ -82,7 +82,7 @@ export function AgentRowActions({
   // branches.
   const showStop = canManage && !isArchived && hasActiveWork;
   const showDuplicate = !isArchived; // any workspace member can duplicate
-  // Multica's built-in agents cannot be archived — the server refuses it, and
+  // morechat.co's built-in agents cannot be archived — the server refuses it, and
   // the workspace's entry point runs through one. Hide the action rather than
   // let it fail with a toast.
   const isSystemAgent = !!agent.system_key;

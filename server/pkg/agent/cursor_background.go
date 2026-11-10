@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/multica-ai/multica/server/pkg/awakeclock"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/awakeclock"
 )
 
 type cursorBackgroundTool struct {

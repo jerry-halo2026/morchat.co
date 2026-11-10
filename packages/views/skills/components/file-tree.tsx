@@ -12,17 +12,17 @@ import {
   Pencil,
   PencilLine,
   Trash2,
-} from "@multica/ui/icons";
-import { Input } from "@multica/ui/components/ui/input";
+} from "@morechat/ui/icons";
+import { Input } from "@morechat/ui/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../../i18n";
-import { DeferredTooltip } from "@multica/ui/components/common/deferred-tooltip";
+import { DeferredTooltip } from "@morechat/ui/components/common/deferred-tooltip";
 
 /**
  * What a row may offer beyond selection. Absent for read-only viewers, so the

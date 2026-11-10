@@ -3,22 +3,22 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { sanitizeNextUrl, useAuthStore } from "@multica/core/auth";
-import { workspaceKeys } from "@multica/core/workspace/queries";
-import { paths, resolvePostAuthDestination } from "@multica/core/paths";
-import { api } from "@multica/core/api";
-import { createLogger } from "@multica/core/logger";
-import { validateCliCallback, redirectToCliCallback } from "@multica/views/auth";
+import { sanitizeNextUrl, useAuthStore } from "@morechat/core/auth";
+import { workspaceKeys } from "@morechat/core/workspace/queries";
+import { paths, resolvePostAuthDestination } from "@morechat/core/paths";
+import { api } from "@morechat/core/api";
+import { createLogger } from "@morechat/core/logger";
+import { validateCliCallback, redirectToCliCallback } from "@morechat/views/auth";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-} from "@multica/ui/components/ui/card";
-import { Button } from "@multica/ui/components/ui/button";
-import { useT } from "@multica/views/i18n";
-import { Loader2 } from "@multica/ui/icons";
+} from "@morechat/ui/components/ui/card";
+import { Button } from "@morechat/ui/components/ui/button";
+import { useT } from "@morechat/views/i18n";
+import { Loader2 } from "@morechat/ui/icons";
 import { CliCallbackError } from "@/features/auth/cli-callback-error";
 import { callbackErrorFrom, type CallbackError } from "./callback-error";
 
@@ -126,7 +126,7 @@ function CallbackContent() {
 
           // 2. Un-onboarded users may have pending invitations on their
           //    email even when no `next=` was carried (came from a fresh
-          //    login on multica.ai instead of clicking the email link,
+          //    login on morechat.co instead of clicking the email link,
           //    or `state` was lost across the round-trip). Look them up by
           //    email and route to the batch /invitations page if any.
           //    Already-onboarded users skip this lookup — their new invites

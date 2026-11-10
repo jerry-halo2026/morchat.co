@@ -5,24 +5,24 @@ import { useQuery } from "@tanstack/react-query";
 import { Radio } from "@base-ui/react/radio";
 import { RadioGroup } from "@base-ui/react/radio-group";
 import { toast } from "sonner";
-import { AlertTriangle, Loader2, Lock, Plug, User, Users } from "@multica/ui/icons";
-import { Switch } from "@multica/ui/components/ui/switch";
-import { useWorkspaceId } from "@multica/core/hooks";
+import { AlertTriangle, Loader2, Lock, Plug, User, Users } from "@morechat/ui/icons";
+import { Switch } from "@morechat/ui/components/ui/switch";
+import { useWorkspaceId } from "@morechat/core/hooks";
 import {
   agentAppsOptions,
   appCatalogOptions,
   appsOverviewOptions,
   useUpdateAgentApps,
   useRestoreAppAccess,
-} from "@multica/core/connected-apps";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/core/connected-apps";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { cn } from "@morechat/ui/lib/utils";
 import type {
   Agent,
   AgentApp,
   AppAccountScope,
   AppCatalogEntry,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import { ComposioToolkitLogo } from "../../../common/composio-toolkit-logo";
 import { SavedAppRestriction } from "../../../common/saved-app-restriction";
 import { AppLink } from "../../../navigation";

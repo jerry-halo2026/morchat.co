@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { issueStatusListOptions, buildIssueStatusCatalog } from "@multica/core/issue-statuses/queries";
+import { issueStatusListOptions, buildIssueStatusCatalog } from "@morechat/core/issue-statuses/queries";
 import {
   parseTabSubject,
   resolveTabPresentation,
@@ -12,27 +12,27 @@ import {
   type TabTitleSpec,
   type TabEntityData,
   type TabLabelKey,
-} from "@multica/core/paths";
-import { useCanonicalIssue } from "@multica/core/issues/canonical-id";
-import { projectDetailOptions } from "@multica/core/projects/queries";
-import { autopilotDetailOptions } from "@multica/core/autopilots/queries";
+} from "@morechat/core/paths";
+import { useCanonicalIssue } from "@morechat/core/issues/canonical-id";
+import { projectDetailOptions } from "@morechat/core/projects/queries";
+import { autopilotDetailOptions } from "@morechat/core/autopilots/queries";
 import {
   skillDetailOptions,
   agentListOptions,
   memberListOptions,
   squadListOptions,
-} from "@multica/core/workspace/queries";
-import { runtimeListOptions } from "@multica/core/runtimes/queries";
-import { runtimeDisplayName } from "@multica/core/runtimes";
-import { chatSessionsOptions } from "@multica/core/chat/queries";
+} from "@morechat/core/workspace/queries";
+import { runtimeListOptions } from "@morechat/core/runtimes/queries";
+import { runtimeDisplayName } from "@morechat/core/runtimes";
+import { chatSessionsOptions } from "@morechat/core/chat/queries";
 import {
   inboxListOptions,
   archivedInboxPagesOptions,
   archivedInboxLookupOptions,
-} from "@multica/core/inbox/queries";
-import { useInboxFilters } from "@multica/core/inbox/filter-store";
-import { cn } from "@multica/ui/lib/utils";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
+} from "@morechat/core/inbox/queries";
+import { useInboxFilters } from "@morechat/core/inbox/filter-store";
+import { cn } from "@morechat/ui/lib/utils";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
 import { StatusIcon } from "../issues/components";
 import { ProjectIcon } from "../projects/components/project-icon";
 import { ActorAvatar } from "../common/actor-avatar";
@@ -43,7 +43,7 @@ import { ROUTE_ICON_COMPONENTS } from "./route-icon-components";
 /**
  * Desktop tab presentation: turn a tab URL into a leading visual and a title,
  * live from the query cache. This is the view half of the contract whose pure
- * core is `@multica/core/paths` (`parseTabSubject` + `resolveTabPresentation`).
+ * core is `@morechat/core/paths` (`parseTabSubject` + `resolveTabPresentation`).
  *
  * Reads are cache-only by default. The desktop tab strip opts into fetching
  * issue details and the status catalog so restored background tabs resolve

@@ -3,8 +3,8 @@
 import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { useCurrentWorkspace } from "@multica/core/paths";
-import { buildQuickActionBody, quickActionListOptions } from "@multica/core/quick-actions";
+import { useCurrentWorkspace } from "@morechat/core/paths";
+import { buildQuickActionBody, quickActionListOptions } from "@morechat/core/quick-actions";
 import { useT } from "../../i18n";
 
 /**

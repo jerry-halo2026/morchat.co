@@ -7,7 +7,7 @@ import test from "node:test";
 import { sync, targets } from "./sync.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const SOURCE = "packages/ui/lib/multica-brand.ts";
+const SOURCE = "packages/ui/lib/morechat-brand.ts";
 
 function copyOfRepo(t) {
   const root = mkdtempSync(join(tmpdir(), "brand-sync-"));

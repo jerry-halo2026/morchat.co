@@ -1,10 +1,10 @@
 "use client";
 
 import { useRef } from "react";
-import { Paperclip } from "@multica/ui/icons";
+import { Paperclip } from "@morechat/ui/icons";
 import { useTranslation } from "react-i18next";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { cn } from "@multica/ui/lib/utils";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { cn } from "@morechat/ui/lib/utils";
 
 interface FileUploadButtonProps {
   /** Called with the selected File — caller handles upload. */

@@ -6,10 +6,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { appActivityOptions } from "@multica/core/connected-apps";
-import type { AppAccountScope } from "@multica/core/types";
+} from "@morechat/ui/components/ui/dialog";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { appActivityOptions } from "@morechat/core/connected-apps";
+import type { AppAccountScope } from "@morechat/core/types";
 import { useT, useTimeAgo } from "../../i18n";
 
 /** Recent calls through one connected account. */

@@ -2,24 +2,24 @@
 
 import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { api } from "@multica/core/api";
-import { useAuthStore } from "@multica/core/auth";
+import { api } from "@morechat/core/api";
+import { useAuthStore } from "@morechat/core/auth";
 import {
   myInvitationListOptions,
   workspaceKeys,
   workspaceListOptions,
-} from "@multica/core/workspace/queries";
-import { paths } from "@multica/core/paths";
-import type { Invitation } from "@multica/core/types";
+} from "@morechat/core/workspace/queries";
+import { paths } from "@morechat/core/paths";
+import type { Invitation } from "@morechat/core/types";
 import { AppLink, useNavigation } from "../navigation";
 import { useLogout } from "../auth";
 import { DragStrip } from "../platform";
 import { useT } from "../i18n";
-import { Button } from "@multica/ui/components/ui/button";
-import { Card, CardContent } from "@multica/ui/components/ui/card";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { LogOut, Mail, Users } from "@multica/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Card, CardContent } from "@morechat/ui/components/ui/card";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { LogOut, Mail, Users } from "@morechat/ui/icons";
 
 /**
  * Batch invitation handling page for first-contact users who land here

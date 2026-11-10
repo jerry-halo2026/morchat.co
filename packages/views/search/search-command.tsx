@@ -1,21 +1,21 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronRight, SearchIcon } from "@multica/ui/icons";
+import { ChevronRight, SearchIcon } from "@morechat/ui/icons";
 import { Command as CommandPrimitive } from "cmdk";
 import {
   selectCommandBarContexts,
   useCommandBarContextStore,
   useSearchStore,
-} from "@multica/core/command-bar";
-import { createShortcutChord } from "@multica/core/shortcuts";
+} from "@morechat/core/command-bar";
+import { createShortcutChord } from "@morechat/core/shortcuts";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@multica/ui/components/ui/dialog";
+} from "@morechat/ui/components/ui/dialog";
 import { ShortcutKeycaps } from "../common/shortcut-keycaps";
 import { resolveClickIntent, useIntentNavigate, type LinkClickIntent } from "../navigation";
 import { useT } from "../i18n";

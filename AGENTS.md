@@ -1,6 +1,6 @@
 # Repository Instructions
 
-Multica is a task management platform where people and agents collaborate on issues. These instructions apply to all coding agents working in this repository.
+morechat.co is a task management platform where people and agents collaborate on issues. These instructions apply to all coding agents working in this repository.
 
 ## Scope and Reading Order
 
@@ -14,7 +14,7 @@ Multica is a task management platform where people and agents collaborate on iss
 | --- | --- |
 | `server/` | Go backend; Chi, sqlc, WebSocket |
 | `packages/core/` | Headless logic, API client, Query hooks, shared Zustand stores. No UI libraries, `react-dom`, `next/*`, or `process.env`. Client persistence goes through `StorageAdapter`; only the default adapter (`platform/storage.ts`) and tab-scoped exception dedupe (`analytics/exception-dedupe.ts`) touch Web Storage. Cookies are only for values the server or Next.js proxy reads. Lint enforces the import, `process.env`, and Web Storage rules outside tests (`packages/core/eslint.config.mjs`). |
-| `packages/ui/` | UI primitives and shared styles. No business logic or `@multica/core` imports. |
+| `packages/ui/` | UI primitives and shared styles. No business logic or `@morechat/core` imports. |
 | `packages/views/` | Shared web/desktop pages and business components. No store definitions, `next/*`, or `react-router-dom`; use `NavigationAdapter`, `useNavigation()`, and `<AppLink>`. Lint enforces the store rule outside tests (`packages/views/eslint.config.mjs`). |
 | `apps/web/` | Next.js routes/layouts and web-only UI. Framework APIs stay here; shared navigation adapters live in `apps/web/platform/`. |
 | `apps/desktop/` | Electron and desktop-only UI/state. Application navigation goes through `apps/desktop/src/renderer/src/platform/`. |
@@ -91,10 +91,10 @@ Workspace-scoped queries filter by `workspace_id`; membership gates access and `
 ## Desktop Rules
 
 - Workspace session routes are tab destinations. Pre-workspace one-shot flows (create workspace, accept invite) use `WindowOverlay` in `apps/desktop/src/renderer/src/stores/window-overlay-store.ts`, not new routes. Stale workspace tabs heal by dropping stale tab groups.
-- Workspace route layouts own `setCurrentWorkspace(slug, uuid)` from `@multica/core/platform`; leaving workspace context calls `setCurrentWorkspace(null, null)`.
+- Workspace route layouts own `setCurrentWorkspace(slug, uuid)` from `@morechat/core/platform`; leaving workspace context calls `setCurrentWorkspace(null, null)`.
 - Cross-workspace navigation uses the adapter's `switchWorkspace(slug, targetPath)` flow; do not bypass it with direct router navigation.
 - Workspace leave clears/navigates first to avoid the `member:removed` race; this is known debt in `packages/views/settings/components/workspace-tab.tsx`, not a pattern for new flows.
-- Full-window views outside the dashboard shell mount `<DragStrip />` from `@multica/views/platform` as the first flex child. Interactive controls in the top 48px need `WebkitAppRegion: "no-drag"`.
+- Full-window views outside the dashboard shell mount `<DragStrip />` from `@morechat/views/platform` as the first flex child. Interactive controls in the top 48px need `WebkitAppRegion: "no-drag"`.
 
 ## UI Copy
 
@@ -106,7 +106,7 @@ Workspace-scoped queries filter by `workspace_id`; membership gates access and `
 - For Button and Dialog usage, read `packages/ui/docs/button.md` and `packages/ui/docs/dialog.md`.
 - Prefer existing shadcn/Base UI primitives. Add components with `pnpm ui:add <component>`.
 - For `pnpm ui:add @reui/<name>`, decline overwrite prompts. Keep `REUI_LICENSE_KEY` in the environment, never in repo files. Adapt vendored primitives into `packages/ui/components/ui/` and compositions into `packages/views/`.
-- Import icons from `@multica/ui/icons`; no icon library is installed. If the icon you need is missing, draw it by following `.agents/skills/multica-icons/SKILL.md`. Do not substitute an inline SVG or an emoji. Rewrite icon imports in `ui:add` output before committing.
+- Import icons from `@morechat/ui/icons`; no icon library is installed. If the icon you need is missing, draw it by following `.agents/skills/morechat-icons/SKILL.md`. Do not substitute an inline SVG or an emoji. Rewrite icon imports in `ui:add` output before committing.
 - Use shared semantic tokens in `packages/ui/styles/`. Typography uses the role-named `--text-*` scale in `packages/ui/styles/tokens.css`, not Tailwind's default size ramp.
 - Selected states remain identifiable on hover. Handle overflow, long text, and scrolling deliberately; avoid unnecessary local state and dividers.
 
@@ -115,8 +115,8 @@ Workspace-scoped queries filter by `workspace_id`; membership gates access and `
 - Tests live beside their implementation: shared logic in core, shared components in views, platform wiring in apps, E2E in `e2e/`, Go tests in server. Do not test shared behavior in app suites.
 - Give each behavior one canonical test layer: helper tests own parsing/state matrices; component tests cover wiring, accessibility, happy paths, and named regressions. Prefer a failing regression test before behavioral fixes.
 - DOM-free `.test.ts` files start with `// @vitest-environment node`; do not use it if it would silently switch the code under test to an SSR path.
-- Every workspace with jsdom suites loads `@multica/vitest-setup/web-storage` in its Vitest setup; do not add per-package `localStorage` shims.
-- Views tests must not mock `next/*` or `react-router-dom`. Mock stores with their Zustand callable shape plus `getState`; mock API calls at `@multica/core/api`.
+- Every workspace with jsdom suites loads `@morechat/vitest-setup/web-storage` in its Vitest setup; do not add per-package `localStorage` shims.
+- Views tests must not mock `next/*` or `react-router-dom`. Mock stores with their Zustand callable shape plus `getState`; mock API calls at `@morechat/core/api`.
 - E2E setup/teardown uses `TestApiClient`.
 - DB-backed Go tests use `server/internal/testutil` fixtures (`dbfx.Issue`, `dbfx.Task`, `dbfx.Insert`) and `testutil.Call(h, req).Want(status).JSON(&out)`. Keep product assertions and case-specific diagnostics in the test, not fixture helpers.
 - DB-backed Go tests share one database with packages running in parallel. When code under test reads across workspaces (sweeps, outbox scans, GC), assert on your fixture's rows (task state, `pending` / `settled` for your IDs), never on the call's totals or result length.

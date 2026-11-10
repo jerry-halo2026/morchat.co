@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/multica-ai/multica/server/pkg/taskfailure"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/taskfailure"
 )
 
 // finalizeRefusal builds the error runTask's Finalize defer returns when the

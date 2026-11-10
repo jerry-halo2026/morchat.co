@@ -33,25 +33,25 @@ import type { Editor } from "@tiptap/core";
 import { posToDOMRect } from "@tiptap/core";
 import { NodeSelection } from "@tiptap/pm/state";
 import { toast } from "sonner";
-import { useCreateIssue } from "@multica/core/issues/mutations";
+import { useCreateIssue } from "@morechat/core/issues/mutations";
 import { useT } from "../i18n";
-import { createShortcutChord, type ShortcutChord } from "@multica/core/shortcuts";
+import { createShortcutChord, type ShortcutChord } from "@morechat/core/shortcuts";
 import { ShortcutKeycaps } from "../common/shortcut-keycaps";
-import { Toggle, toggleVariants } from "@multica/ui/components/ui/toggle";
-import { Separator } from "@multica/ui/components/ui/separator";
+import { Toggle, toggleVariants } from "@morechat/ui/components/ui/toggle";
+import { Separator } from "@morechat/ui/components/ui/separator";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
   TooltipProvider,
-} from "@multica/ui/components/ui/tooltip";
+} from "@morechat/ui/components/ui/tooltip";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@multica/ui/components/ui/popover";
-import { Input } from "@multica/ui/components/ui/input";
-import { IconButton } from "@multica/ui/components/common/icon-button";
+} from "@morechat/ui/components/ui/popover";
+import { Input } from "@morechat/ui/components/ui/input";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import {
   Bold,
   Italic,
@@ -74,7 +74,7 @@ import {
   FilePlus,
   Loader2,
   MessageSquarePlus,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 
 // Helpers
 

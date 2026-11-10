@@ -1,14 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import type { Agent, MemberRole } from "@multica/core/types";
-import { useWorkspaceId } from "@multica/core";
-import { agentRunCounts30dOptions } from "@multica/core/agents";
-import { agentListOptions, memberListOptions } from "@multica/core/workspace/queries";
-import { resolvePublicFileUrl } from "@multica/core/workspace/avatar-url";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { ActorAvatar as ActorAvatarBase } from "@multica/ui/components/common/actor-avatar";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
+import type { Agent, MemberRole } from "@morechat/core/types";
+import { useWorkspaceId } from "@morechat/core";
+import { agentRunCounts30dOptions } from "@morechat/core/agents";
+import { agentListOptions, memberListOptions } from "@morechat/core/workspace/queries";
+import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { ActorAvatar as ActorAvatarBase } from "@morechat/ui/components/common/actor-avatar";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
 import { ActorAvatar } from "../common/actor-avatar";
 import { AppLink } from "../navigation";
 import { useT } from "../i18n";

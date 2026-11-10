@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Cpu, History, Plug } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
+import { Check, Cpu, History, Plug } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
 import { CoachMark, DemoFrame, useDemoCopy, useStartWhenVisible } from "./demo-kit";
 
 type Need = "resume" | "mcp" | "model";
@@ -52,8 +52,8 @@ const copy = {
     needsLabel: "I need",
     needs: {
       resume: "Session resumption",
-      mcp: "Multica-managed MCP",
-      model: "Model picked in Multica",
+      mcp: "morechat.co-managed MCP",
+      model: "Model picked in morechat.co",
     } as Record<Need, string>,
     toolsLabel: "Tools",
     matching: (n: number, total: number) => `Matching tools: ${n} of ${total}`,
@@ -69,8 +69,8 @@ const copy = {
     needsLabel: "我需要",
     needs: {
       resume: "会话恢复",
-      mcp: "Multica 管理 MCP",
-      model: "在 Multica 选模型",
+      mcp: "morechat.co 管理 MCP",
+      model: "在 morechat.co 选模型",
     } as Record<Need, string>,
     toolsLabel: "工具",
     matching: (n: number, total: number) => `符合的工具 ${n} 个（共 ${total} 个）`,
@@ -86,8 +86,8 @@ const copy = {
     needsLabel: "必要なもの",
     needs: {
       resume: "セッション再開",
-      mcp: "Multica による MCP 管理",
-      model: "Multica でのモデル選択",
+      mcp: "morechat.co による MCP 管理",
+      model: "morechat.co でのモデル選択",
     } as Record<Need, string>,
     toolsLabel: "ツール",
     matching: (n: number, total: number) => `条件に合うツール: ${n} 個（全 ${total} 個）`,
@@ -103,8 +103,8 @@ const copy = {
     needsLabel: "필요한 기능",
     needs: {
       resume: "세션 복원",
-      mcp: "Multica의 MCP 관리",
-      model: "Multica에서 모델 선택",
+      mcp: "morechat.co의 MCP 관리",
+      model: "morechat.co에서 모델 선택",
     } as Record<Need, string>,
     toolsLabel: "도구",
     matching: (n: number, total: number) => `조건에 맞는 도구 ${n}개 (전체 ${total}개)`,
@@ -120,8 +120,8 @@ const copy = {
     needsLabel: "J'ai besoin de",
     needs: {
       resume: "Reprise de session",
-      mcp: "MCP géré par Multica",
-      model: "Modèle choisi dans Multica",
+      mcp: "MCP géré par morechat.co",
+      model: "Modèle choisi dans morechat.co",
     } as Record<Need, string>,
     toolsLabel: "Outils",
     matching: (n: number, total: number) => `Outils correspondants : ${n} sur ${total}`,

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import type { AgentPresenceDetail } from "@multica/core/agents";
+import type { AgentPresenceDetail } from "@morechat/core/agents";
 import { isAgentStuck } from "./team-status";
 
 const detail = (overrides: Partial<AgentPresenceDetail>) =>

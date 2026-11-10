@@ -2,9 +2,9 @@
 
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "@multica/core/auth";
-import { clearClientSessionData } from "@multica/core/platform";
-import { paths } from "@multica/core/paths";
+import { useAuthStore } from "@morechat/core/auth";
+import { clearClientSessionData } from "@morechat/core/platform";
+import { paths } from "@morechat/core/paths";
 import { useNavigation } from "../navigation";
 
 /**

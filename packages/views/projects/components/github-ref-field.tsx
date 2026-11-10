@@ -5,7 +5,7 @@ import {
   looksLikeCommitSha,
   validateGitRef,
   type GitRefInvalidReason,
-} from "@multica/core/github";
+} from "@morechat/core/github";
 import { useT } from "../../i18n/use-t";
 
 /**

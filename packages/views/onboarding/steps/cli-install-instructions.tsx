@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Check, Copy, Terminal } from "@multica/ui/icons";
-import { Card, CardContent } from "@multica/ui/components/ui/card";
-import { TooltipHint } from "@multica/ui/components/common/tooltip-hint";
-import { CODE_LIGATURE_CLASS } from "@multica/ui/lib/code-style";
-import { cn } from "@multica/ui/lib/utils";
-import { copyText } from "@multica/ui/lib/clipboard";
-import { useDaemonSetupCommands } from "@multica/core/runtimes";
+import { Check, Copy, Terminal } from "@morechat/ui/icons";
+import { Card, CardContent } from "@morechat/ui/components/ui/card";
+import { TooltipHint } from "@morechat/ui/components/common/tooltip-hint";
+import { CODE_LIGATURE_CLASS } from "@morechat/ui/lib/code-style";
+import { cn } from "@morechat/ui/lib/utils";
+import { copyText } from "@morechat/ui/lib/clipboard";
+import { useDaemonSetupCommands } from "@morechat/core/runtimes";
 import { CliInstallCommand } from "../../common/cli-install-command";
 import { DaemonSetupNotice } from "../../common/daemon-setup-notice";
 import { useT } from "../../i18n";

@@ -1,11 +1,11 @@
 ---
 name: multica-icons
-description: Use when a Multica web/desktop UI change needs an icon that `@multica/ui/icons` does not export yet, or when redrawing or reviewing a Multica glyph. Covers the grid, corner and stroke construction, the body/detail markers, and the generate-and-preview loop. Never reach for an icon library, inline SVG, or emoji instead.
+description: Use when a morechat.co web/desktop UI change needs an icon that `@morechat/ui/icons` does not export yet, or when redrawing or reviewing a morechat.co glyph. Covers the grid, corner and stroke construction, the body/detail markers, and the generate-and-preview loop. Never reach for an icon library, inline SVG, or emoji instead.
 ---
 
-# Drawing Multica icons
+# Drawing morechat.co icons
 
-Every icon in the product is a Multica drawing exported from `@multica/ui/icons`. No icon library is installed, and lint rejects imports from one. When you need a new symbol, draw it.
+Every icon in the product is a morechat.co drawing exported from `@morechat/ui/icons`. No icon library is installed, and lint rejects imports from one. When you need a new symbol, draw it.
 
 ## Before drawing
 
@@ -45,10 +45,10 @@ Every icon in the product is a Multica drawing exported from `@multica/ui/icons`
 ## Loop
 
 1. Add the drawing to `DRAWINGS` in `drawings.mjs`. Keep sections grouped by subject.
-2. Run `pnpm --filter @multica/ui icons --preview NewName Neighbour1 Neighbour2`. Open the printed HTML file in a browser and check four things:
+2. Run `pnpm --filter @morechat/ui icons --preview NewName Neighbour1 Neighbour2`. Open the printed HTML file in a browser and check four things:
    - At 48px: does the geometry sit on the grid, with even optical weight next to its neighbours?
    - At 18px and 14px: is it still legible, or do inner details merge?
    - In the tinted (active) tile: does only the silhouette fill?
    - Against similar glyphs: can it be told apart at a glance?
-3. Run `pnpm --filter @multica/ui icons` to regenerate `glyphs.ts` and `index.ts`.
-4. Import the new name from `@multica/ui/icons`. Then run `pnpm --filter @multica/ui test` and the typecheck for the package that uses it.
+3. Run `pnpm --filter @morechat/ui icons` to regenerate `glyphs.ts` and `index.ts`.
+4. Import the new name from `@morechat/ui/icons`. Then run `pnpm --filter @morechat/ui test` and the typecheck for the package that uses it.

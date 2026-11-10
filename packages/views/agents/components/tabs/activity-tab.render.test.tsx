@@ -5,10 +5,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { VirtuosoMockContext } from "react-virtuoso";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { api } from "@multica/core/api";
-import type { Agent, AgentActivityBucket, AgentTask } from "@multica/core/types";
-import { WorkspaceSlugProvider } from "@multica/core/paths";
-import { I18nProvider } from "@multica/core/i18n/react";
+import { api } from "@morechat/core/api";
+import type { Agent, AgentActivityBucket, AgentTask } from "@morechat/core/types";
+import { WorkspaceSlugProvider } from "@morechat/core/paths";
+import { I18nProvider } from "@morechat/core/i18n/react";
 import enCommon from "../../../locales/en/common.json";
 import enAgents from "../../../locales/en/agents.json";
 import {
@@ -18,11 +18,11 @@ import {
 
 const TEST_RESOURCES = { en: { common: enCommon, agents: enAgents } };
 
-vi.mock("@multica/core/hooks", () => ({
+vi.mock("@morechat/core/hooks", () => ({
   useWorkspaceId: () => "ws-1",
 }));
 
-vi.mock("@multica/core/api", () => ({ api: {
+vi.mock("@morechat/core/api", () => ({ api: {
   getIssue: vi.fn((id: string) => Promise.resolve({ id, title: `Issue ${id}`, identifier: id })),
 } }));
 
@@ -37,8 +37,8 @@ const agentTasksRef = vi.hoisted(() => ({
   current: (_before?: string) => new Promise<unknown>(() => {}),
 }));
 const activityRef = vi.hoisted(() => ({ current: [] as AgentActivityBucket[] }));
-vi.mock("@multica/core/agents", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@multica/core/agents")>();
+vi.mock("@morechat/core/agents", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@morechat/core/agents")>();
   return {
     ...actual,
     agentTaskSnapshotOptions: () => ({

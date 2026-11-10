@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/multica-ai/multica/server/internal/analytics"
-	"github.com/multica-ai/multica/server/internal/featureflags"
-	"github.com/multica-ai/multica/server/internal/storage"
+	"github.com/jerry-halo2026/morchat.co/server/internal/analytics"
+	"github.com/jerry-halo2026/morchat.co/server/internal/featureflags"
+	"github.com/jerry-halo2026/morchat.co/server/internal/storage"
 )
 
 type AppConfig struct {

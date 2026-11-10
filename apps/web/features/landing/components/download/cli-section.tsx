@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy } from "@multica/ui/icons";
-import { CliInstallCommand } from "@multica/views/common/cli-install-command";
-import { copyText } from "@multica/ui/lib/clipboard";
-import { cn } from "@multica/ui/lib/utils";
+import { Check, Copy } from "@morechat/ui/icons";
+import { CliInstallCommand } from "@morechat/views/common/cli-install-command";
+import { copyText } from "@morechat/ui/lib/clipboard";
+import { cn } from "@morechat/ui/lib/utils";
 import { useLocale } from "../../i18n";
 import { Container, Eyebrow, focusRing } from "../../site/primitives";
 

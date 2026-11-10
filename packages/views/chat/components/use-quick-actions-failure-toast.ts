@@ -3,8 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   chatKeys,
   chatQuickActionsFailureOptions,
-} from "@multica/core/chat/queries";
-import type { ChatQuickActionsFailureState } from "@multica/core/types";
+} from "@morechat/core/chat/queries";
+import type { ChatQuickActionsFailureState } from "@morechat/core/types";
 import { toast } from "sonner";
 import { useT } from "../../i18n";
 

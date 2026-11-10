@@ -43,13 +43,13 @@ import type {
   Agent,
   ChatMessage,
   ChatPendingTask,
-} from "@multica/core/types";
+} from "@morechat/core/types";
 import {
   enqueuePendingChatTask,
   hideQueuedChatMessages,
   removePendingChatTask,
-} from "@multica/core/chat/pending";
-import { canAssignAgentToIssue } from "@multica/core/permissions/rules";
+} from "@morechat/core/chat/pending";
+import { canAssignAgentToIssue } from "@morechat/core/permissions/rules";
 import { api } from "@/data/api";
 import { useAuthStore } from "@/data/auth-store";
 import { useWorkspaceStore } from "@/data/workspace-store";

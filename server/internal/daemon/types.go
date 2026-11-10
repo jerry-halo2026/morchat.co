@@ -3,9 +3,9 @@ package daemon
 import (
 	"encoding/json"
 
-	"github.com/multica-ai/multica/server/internal/runtimeapps"
-	"github.com/multica-ai/multica/server/pkg/protocol"
-	"github.com/multica-ai/multica/server/pkg/remotemcp"
+	"github.com/jerry-halo2026/morchat.co/server/internal/runtimeapps"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/remotemcp"
 )
 
 // AgentEntry describes a single available agent CLI.

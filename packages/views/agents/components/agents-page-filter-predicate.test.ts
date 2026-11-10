@@ -2,11 +2,11 @@ import { describe, it, expect } from "vitest";
 import {
   effectiveAccessScope,
   type AccessScope,
-} from "@multica/core/agents";
+} from "@morechat/core/agents";
 import {
   EMPTY_AGENT_FILTERS,
   type AgentListFilters,
-} from "@multica/core/agents/stores";
+} from "@morechat/core/agents/stores";
 import {
   matchesAgentSearch,
   rowMatchesFilters,

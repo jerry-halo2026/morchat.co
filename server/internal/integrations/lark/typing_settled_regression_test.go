@@ -2,9 +2,9 @@ package lark
 
 import (
 	"context"
-	"github.com/multica-ai/multica/server/internal/integrations/channel"
-	"github.com/multica-ai/multica/server/internal/integrations/channel/engine"
-	dbfx "github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel"
+	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel/engine"
+	dbfx "github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 	"testing"
 )
 

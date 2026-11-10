@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bot, Users } from "@multica/ui/icons";
-import { cn } from "@multica/ui/lib/utils";
+import { Bot, Users } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
 import {
   AVATAR_SIZE_PX,
   DEFAULT_AVATAR_SIZE,
   type AvatarSize,
-} from "@multica/ui/lib/avatar-size";
-import { parseAvatarEmoji } from "@multica/ui/lib/avatar-emoji";
-import { MulticaIcon } from "./multica-icon";
+} from "@morechat/ui/lib/avatar-size";
+import { parseAvatarEmoji } from "@morechat/ui/lib/avatar-emoji";
+import { MorechatIcon } from "./morechat-icon";
 
 interface ActorAvatarProps {
   name: string;
@@ -79,7 +79,7 @@ function ActorAvatar({
         />
       ) : isSystem ? (
         // `size` only picks the optical size; the slot decides the rendered size.
-        <MulticaIcon shape="circle" size={AVATAR_SIZE_PX[size]} style={{ width: "100%", height: "100%" }} />
+        <MorechatIcon shape="circle" size={AVATAR_SIZE_PX[size]} style={{ width: "100%", height: "100%" }} />
       ) : isAgent ? (
         <Bot style={{ width: scaled(0.55), height: scaled(0.55) }} />
       ) : isSquad ? (

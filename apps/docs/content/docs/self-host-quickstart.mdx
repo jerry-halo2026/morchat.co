@@ -1,6 +1,6 @@
 ---
 title: Self-host quickstart
-description: Start Multica with Docker Compose, log in, and connect your first computer.
+description: Start morechat.co with Docker Compose, log in, and connect your first computer.
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
@@ -8,20 +8,20 @@ import { Step, Steps } from "fumadocs-ui/components/steps";
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
 
-Self-hosting Multica has two parts:
+Self-hosting morechat.co has two parts:
 
 | Part | What it runs | Where it lives |
 |---|---|---|
-| **Multica service** | Web, API, and PostgreSQL | One machine with Docker installed |
-| **Computer** | The Multica daemon and AI coding tools | The computer developers actually work on |
+| **morechat.co service** | Web, API, and PostgreSQL | One machine with Docker installed |
+| **Computer** | The morechat.co daemon and AI coding tools | The computer developers actually work on |
 
-They can be the same machine or separate ones. Self-hosting replaces only the Multica Cloud part.
+They can be the same machine or separate ones. Self-hosting replaces only the morechat.co Cloud part.
 
-This guide uses Docker Compose. For Kubernetes deployments, see the [Self-hosting guide](https://github.com/multica-ai/multica/blob/main/SELF_HOSTING.md#kubernetes-deployment-alternative) in the repository.
+This guide uses Docker Compose. For Kubernetes deployments, see the [Self-hosting guide](https://github.com/jerry-halo2026/morchat.co/blob/main/SELF_HOSTING.md#kubernetes-deployment-alternative) in the repository.
 
 ## Before you start
 
-The machine running the Multica service needs:
+The machine running the morechat.co service needs:
 
 - Docker Engine or Docker Desktop, with `docker compose` working
 - Git, Make, curl, and OpenSSL
@@ -34,19 +34,19 @@ docker info
 docker compose version
 ```
 
-Multica uses Compose v2, invoked as `docker compose`. The legacy `docker-compose` v1 is not supported.
+morechat.co uses Compose v2, invoked as `docker compose`. The legacy `docker-compose` v1 is not supported.
 
-The computer also needs at least one [AI coding tool](/providers) installed and logged in, such as Claude Code, Codex, or Cursor. The Multica CLI is installed in step 5.
+The computer also needs at least one [AI coding tool](/providers) installed and logged in, such as Claude Code, Codex, or Cursor. The morechat.co CLI is installed in step 5.
 
 <Steps>
 <Step>
 
-## Start Multica [#1-start-multica]
+## Start morechat.co [#1-start-multica]
 
 On the machine that will run the service:
 
 ```bash
-git clone --depth 1 https://github.com/multica-ai/multica.git
+git clone --depth 1 https://github.com/jerry-halo2026/morchat.co.git
 cd multica
 make selfhost
 ```
@@ -58,7 +58,7 @@ Running `make selfhost` again reuses the existing `.env` and volumes; it does no
 
 1. Create `.env` from `.env.example`
 2. Generate a random `JWT_SECRET`, PostgreSQL password, and `MULTICA_VCS_SECRET_KEY` (the encryption key for self-hosted Git integrations)
-3. Pull the PostgreSQL, Multica backend, and Multica frontend images
+3. Pull the PostgreSQL, morechat.co backend, and morechat.co frontend images
 4. Create persistent volumes and start the three containers
 5. Wait until the backend starts answering health checks
 
@@ -118,7 +118,7 @@ Docker Compose binds `3000` and `8080` to `127.0.0.1` only. Do not switch this t
 
 The example below uses two domains:
 
-- `app.example.com`: the Multica web app
+- `app.example.com`: the morechat.co web app
 - `api.example.com`: the API, health checks, and daemon connections
 
 First set the public URLs in `.env`:
@@ -260,26 +260,26 @@ Run the commands below on **the computer that runs your AI coding tools**, which
 Runs execute with the full permissions of the user running the daemon — they can read and write everything that user can. Run the daemon as a dedicated Unix user, in a container, or in a VM rather than under your personal account. See the [security model](/security-model).
 </Callout>
 
-Install the Multica CLI first:
+Install the morechat.co CLI first:
 
 <Tabs groupId="os" persist items={["macOS / Linux", "Windows"]}>
 <Tab value="macOS / Linux">
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.sh | bash
 ```
 
 </Tab>
 <Tab value="Windows">
 
 ```powershell
-irm https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex
 ```
 
 </Tab>
 </Tabs>
 
-Then point the CLI at your service. Pick where the Multica service runs:
+Then point the CLI at your service. Pick where the morechat.co service runs:
 
 <Tabs items={["On this computer", "On another machine"]}>
 <Tab value="On this computer">
@@ -319,7 +319,7 @@ The output should show:
 
 ## Complete the first run [#6-complete-the-first-run]
 
-Back in Multica, once an online runtime appears in the runtime list, create an agent and assign it your first issue.
+Back in morechat.co, once an online runtime appears in the runtime list, create an agent and assign it your first issue.
 
 When the run shows as completed and the agent's reply appears in the timeline, the self-hosted service, the computer, and the AI coding tool are all connected. For detailed steps, see steps 3-5 of the [quickstart](/cloud-quickstart).
 
@@ -441,7 +441,7 @@ Anything other than HTTP 200 with both checks `ok` means the new version did not
 <Accordions type="multiple">
 <Accordion title="What git pull actually does" id="what-git-pull-actually-does">
 
-`git pull` updates **`docker-compose.selfhost.yml` itself** — new environment variables, new services, changed healthchecks. It is **not** how you get a new Multica version.
+`git pull` updates **`docker-compose.selfhost.yml` itself** — new environment variables, new services, changed healthchecks. It is **not** how you get a new morechat.co version.
 
 The version you end up running is resolved by `docker compose pull`, which asks GHCR what the tag points at right now. A checkout that is months out of date will still pull today's `latest` images; conversely, `git pull` alone changes nothing until you pull images and recreate the containers.
 
@@ -455,7 +455,7 @@ The version you end up running is resolved by `docker compose pull`, which asks 
 
 Helm has its own upgrade path: set `images.backend.tag` / `images.frontend.tag` to the release you want in your values file, then `helm upgrade`. Changing the tag changes the pod spec, so Kubernetes pulls the new image and rolls the Deployments — this is the reliable route.
 
-`kubectl -n multica rollout restart` is **not** an upgrade on its own. The chart ships `pullPolicy: IfNotPresent` (`deploy/helm/multica/values.yaml`), so a node that already has that tag cached reuses the old image and the restart silently changes nothing — the same class of trap as a pinned `MULTICA_IMAGE_TAG`. If you want to track a floating tag that way, set `images.backend.pullPolicy` / `images.frontend.pullPolicy` to `Always` first. See the [Self-hosting guide](https://github.com/multica-ai/multica/blob/main/SELF_HOSTING.md#kubernetes-deployment-alternative).
+`kubectl -n multica rollout restart` is **not** an upgrade on its own. The chart ships `pullPolicy: IfNotPresent` (`deploy/helm/multica/values.yaml`), so a node that already has that tag cached reuses the old image and the restart silently changes nothing — the same class of trap as a pinned `MULTICA_IMAGE_TAG`. If you want to track a floating tag that way, set `images.backend.pullPolicy` / `images.frontend.pullPolicy` to `Always` first. See the [Self-hosting guide](https://github.com/jerry-halo2026/morchat.co/blob/main/SELF_HOSTING.md#kubernetes-deployment-alternative).
 
 </Accordion>
 </Accordions>
@@ -476,5 +476,5 @@ For more scenarios, see [Troubleshooting](/troubleshooting).
 
 - [Auth setup](/auth-setup) — configure email, Google login, and signup scope.
 - [Environment variables](/environment-variables) — the full server configuration reference.
-- [Self-hosting guide](https://github.com/multica-ai/multica/blob/main/SELF_HOSTING.md) — Kubernetes, upgrades, and manual deployment.
+- [Self-hosting guide](https://github.com/jerry-halo2026/morchat.co/blob/main/SELF_HOSTING.md) — Kubernetes, upgrades, and manual deployment.
 - [Desktop app](/desktop-app) — connect Desktop to a self-hosted service.

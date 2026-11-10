@@ -4,29 +4,29 @@ import { act, cleanup, fireEvent, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import { api } from "@multica/core/api";
-import type { SupportedLocale } from "@multica/core/i18n";
-import type { AgentRuntime, AgentTask } from "@multica/core/types/agent";
-import { useTranscriptViewStore } from "@multica/core/agents/stores";
+import { api } from "@morechat/core/api";
+import type { SupportedLocale } from "@morechat/core/i18n";
+import type { AgentRuntime, AgentTask } from "@morechat/core/types/agent";
+import { useTranscriptViewStore } from "@morechat/core/agents/stores";
 import { renderWithI18n } from "../../test/i18n";
 import { AgentTranscriptDialog } from "./agent-transcript-dialog";
 import type { TimelineItem } from "./build-timeline";
 
-vi.mock("@multica/core/hooks", () => ({ useWorkspaceId: () => "workspace" }));
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "workspace" }));
 vi.mock("./use-trace-issue-labels", () => ({
   useTraceIssueLabels: () => (text: string) => text.replaceAll("01a07eca-8e82-775e-be06-e4a97ccfa299", "DEV-17"),
 }));
 
 const copyTextMock = vi.hoisted(() => vi.fn().mockResolvedValue(true));
 
-vi.mock("@multica/core/api", () => ({
+vi.mock("@morechat/core/api", () => ({
   api: {
     getAgent: vi.fn().mockResolvedValue(null),
     listRuntimes: vi.fn().mockResolvedValue([]),
   },
 }));
 
-vi.mock("@multica/ui/lib/clipboard", () => ({
+vi.mock("@morechat/ui/lib/clipboard", () => ({
   copyText: copyTextMock,
 }));
 
@@ -54,7 +54,7 @@ vi.mock("../actor-avatar", () => ({
   ActorAvatar: () => <span data-testid="actor-avatar" />,
 }));
 
-vi.mock("@multica/ui/components/ui/dialog", () => ({
+vi.mock("@morechat/ui/components/ui/dialog", () => ({
   Dialog: ({ open, children }: { open: boolean; children: ReactNode }) =>
     open ? <>{children}</> : null,
   DialogContent: ({ children }: { children: ReactNode }) => (
@@ -63,7 +63,7 @@ vi.mock("@multica/ui/components/ui/dialog", () => ({
   DialogTitle: ({ children }: { children: ReactNode }) => <h2>{children}</h2>,
 }));
 
-vi.mock("@multica/ui/components/ui/dropdown-menu", async () => {
+vi.mock("@morechat/ui/components/ui/dropdown-menu", async () => {
   const React = await import("react");
   const RadioContext = React.createContext<{
     value?: string;
@@ -419,12 +419,12 @@ describe("AgentTranscriptDialog", () => {
           { seq: 2, type: "text", content: "Now adding the Feishu row:" },
           { seq: 3, type: "text", content: "Now the version bump:" },
         ]}
-        agentName="【Chores|Opus5】Multica Helper"
+        agentName="【Chores|Opus5】morechat.co Helper"
       />,
     );
 
     expect(screen.getAllByTestId("rich-content")).toHaveLength(3);
-    expect(screen.getAllByText("【Chores|Opus5】Multica Helper")).toHaveLength(1);
+    expect(screen.getAllByText("【Chores|Opus5】morechat.co Helper")).toHaveLength(1);
     expect(screen.getAllByTestId("actor-avatar")).toHaveLength(1);
   });
 

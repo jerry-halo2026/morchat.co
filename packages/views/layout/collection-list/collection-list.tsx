@@ -13,16 +13,16 @@ import {
   type ReactNode,
 } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { ArrowDown, ArrowUp, Loader2 } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { Checkbox } from "@multica/ui/components/ui/checkbox";
-import { Skeleton } from "@multica/ui/components/ui/skeleton";
-import { cn } from "@multica/ui/lib/utils";
+import { ArrowDown, ArrowUp, Loader2 } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { Checkbox } from "@morechat/ui/components/ui/checkbox";
+import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { cn } from "@morechat/ui/lib/utils";
 import {
   isEditableShortcutTarget,
   isPortalLayerShortcutTarget,
-} from "@multica/core/shortcuts";
-import { useModalStore } from "@multica/core/modals";
+} from "@morechat/core/shortcuts";
+import { useModalStore } from "@morechat/core/modals";
 import { useIntentNavigate, useRowLink } from "../../navigation";
 import { useT } from "../../i18n";
 import { CollectionRowContext, type RowMenuState } from "./row-context";

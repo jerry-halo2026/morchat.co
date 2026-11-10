@@ -17,21 +17,21 @@ import {
   Settings2,
   SquarePen,
   UserPlus,
-} from "@multica/ui/icons";
-import { isAgentRuntimeBound } from "@multica/core/agents";
-import { useAuthStore } from "@multica/core/auth";
-import type { CommandBarContext } from "@multica/core/command-bar";
-import { useUpdateAutopilot } from "@multica/core/autopilots/mutations";
-import { usePinChatAgent, useSetChatSessionPinned, useUnpinChatAgent } from "@multica/core/chat/mutations";
-import { chatPinnedAgentsOptions } from "@multica/core/chat/queries";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { openCreateIssueWithPreference } from "@multica/core/issues/stores";
-import { useModalStore } from "@multica/core/modals";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { canAssignAgentToIssue, useCurrentMember } from "@multica/core/permissions";
-import { pinListOptions, useCreatePin, useDeletePin } from "@multica/core/pins";
-import { getShortcut } from "@multica/core/shortcuts";
-import { copyText } from "@multica/ui/lib/clipboard";
+} from "@morechat/ui/icons";
+import { isAgentRuntimeBound } from "@morechat/core/agents";
+import { useAuthStore } from "@morechat/core/auth";
+import type { CommandBarContext } from "@morechat/core/command-bar";
+import { useUpdateAutopilot } from "@morechat/core/autopilots/mutations";
+import { usePinChatAgent, useSetChatSessionPinned, useUnpinChatAgent } from "@morechat/core/chat/mutations";
+import { chatPinnedAgentsOptions } from "@morechat/core/chat/queries";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { openCreateIssueWithPreference } from "@morechat/core/issues/stores";
+import { useModalStore } from "@morechat/core/modals";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { canAssignAgentToIssue, useCurrentMember } from "@morechat/core/permissions";
+import { pinListOptions, useCreatePin, useDeletePin } from "@morechat/core/pins";
+import { getShortcut } from "@morechat/core/shortcuts";
+import { copyText } from "@morechat/ui/lib/clipboard";
 import { useRunAutopilotNow } from "../../autopilots/components/use-run-autopilot-now";
 import { useNavigation } from "../../navigation";
 import { useT } from "../../i18n";

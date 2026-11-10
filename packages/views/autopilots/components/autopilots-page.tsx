@@ -8,21 +8,21 @@ import {
   Pause,
   Webhook,
   Zap,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import { useQuery } from "@tanstack/react-query";
-import { autopilotListOptions } from "@multica/core/autopilots/queries";
+import { autopilotListOptions } from "@morechat/core/autopilots/queries";
 import {
   useAutopilotsViewStore,
   AUTOPILOT_SCOPES,
   type AutopilotColumnKey,
   type AutopilotScope,
   type AutopilotSortField,
-} from "@multica/core/autopilots/stores";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { useWorkspacePaths } from "@multica/core/paths";
-import { useActorName } from "@multica/core/workspace/hooks";
-import type { Autopilot } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
+} from "@morechat/core/autopilots/stores";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { useWorkspacePaths } from "@morechat/core/paths";
+import { useActorName } from "@morechat/core/workspace/hooks";
+import type { Autopilot } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
 import { WorkspaceWakeups } from "./workspace-wakeups";
 import { useNavigation } from "../../navigation";
 import { ActorAvatar } from "../../common/actor-avatar";

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Trash2 } from "@multica/ui/icons";
+import { Trash2 } from "@morechat/ui/icons";
 import { toast } from "sonner";
-import { Button } from "@multica/ui/components/ui/button";
+import { Button } from "@morechat/ui/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,16 +13,16 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@multica/ui/components/ui/alert-dialog";
+} from "@morechat/ui/components/ui/alert-dialog";
 import { useQuery } from "@tanstack/react-query";
-import { useIssueDeletion } from "@multica/core/issues/use-issue-deletion";
-import type { Issue, UpdateIssueRequest } from "@multica/core/types";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { commonIssueFields } from "@multica/core/issues/batch";
-import { sharedWorkflowStatusKeys, useIssueWorkflows } from "@multica/core/issue-workflows";
-import { projectListOptions } from "@multica/core/projects/queries";
-import { useBatchUpdateIssues, useBatchDeleteIssues } from "@multica/core/issues/mutations";
-import { useModalStore } from "@multica/core/modals";
+import { useIssueDeletion } from "@morechat/core/issues/use-issue-deletion";
+import type { Issue, UpdateIssueRequest } from "@morechat/core/types";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { commonIssueFields } from "@morechat/core/issues/batch";
+import { sharedWorkflowStatusKeys, useIssueWorkflows } from "@morechat/core/issue-workflows";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import { useBatchUpdateIssues, useBatchDeleteIssues } from "@morechat/core/issues/mutations";
+import { useModalStore } from "@morechat/core/modals";
 import { StatusPicker, PriorityPicker, AssigneePicker } from "./pickers";
 import { useT } from "../../i18n";
 import { CollectionBatchBar } from "../../layout/collection-list";

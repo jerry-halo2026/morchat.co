@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Plus } from "@multica/ui/icons";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@multica/ui/components/ui/tooltip";
+import { Plus } from "@morechat/ui/icons";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@morechat/ui/components/ui/tooltip";
 import { ActorAvatar } from "../../common/actor-avatar";
 import {
   PickerEmpty,
@@ -13,8 +13,8 @@ import {
   PropertyPicker,
 } from "../../issues/components/pickers/property-picker";
 import { matchesPinyin } from "../../editor/extensions/pinyin-match";
-import type { Agent } from "@multica/core/types";
-import { isAgentRuntimeBound } from "@multica/core/agents";
+import type { Agent } from "@morechat/core/types";
+import { isAgentRuntimeBound } from "@morechat/core/agents";
 import { toast } from "sonner";
 import { useT } from "../../i18n";
 

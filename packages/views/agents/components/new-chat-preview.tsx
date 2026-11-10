@@ -1,9 +1,9 @@
 "use client";
 
-import { selectConversationStarters } from "@multica/core/agents";
-import type { AgentConversationStarter } from "@multica/core/types";
-import { resolvePublicFileUrl } from "@multica/core/workspace/avatar-url";
-import { ActorAvatar } from "@multica/ui/components/common/actor-avatar";
+import { selectConversationStarters } from "@morechat/core/agents";
+import type { AgentConversationStarter } from "@morechat/core/types";
+import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
+import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
 import {
   ConversationStarterList,
   useFallbackConversationStarters,

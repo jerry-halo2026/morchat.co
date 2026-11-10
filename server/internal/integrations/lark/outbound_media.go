@@ -10,12 +10,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/multica-ai/multica/server/internal/util"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
-	"github.com/multica-ai/multica/server/pkg/protocol"
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
 
-// Based on multica-ai/multica#8332, commit 95756b4f0f98d620278619029fae863fa90bc680.
+// Based on jerry-halo2026/morchat.co#8332, commit 95756b4f0f98d620278619029fae863fa90bc680.
 // Text is delivered first, then uploaded images update that same card; files
 // are separate messages. Only server-bound attachments are read; response
 // Markdown and provider URLs are never treated as authority to fetch a file.

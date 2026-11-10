@@ -2,14 +2,14 @@
 
 import { useMemo } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
-import { autopilotListOptions } from "@multica/core/autopilots/queries";
-import { selectRecentVisits, useRecentVisitsStore } from "@multica/core/command-bar";
-import { useWorkspaceId } from "@multica/core/hooks";
-import { issueDetailOptions } from "@multica/core/issues/queries";
-import { selectRecentIssues, useRecentIssuesStore } from "@multica/core/issues/stores";
-import { projectListOptions } from "@multica/core/projects/queries";
-import { agentListOptions } from "@multica/core/workspace/queries";
-import type { Agent, Autopilot, Issue, Project } from "@multica/core/types";
+import { autopilotListOptions } from "@morechat/core/autopilots/queries";
+import { selectRecentVisits, useRecentVisitsStore } from "@morechat/core/command-bar";
+import { useWorkspaceId } from "@morechat/core/hooks";
+import { issueDetailOptions } from "@morechat/core/issues/queries";
+import { selectRecentIssues, useRecentIssuesStore } from "@morechat/core/issues/stores";
+import { projectListOptions } from "@morechat/core/projects/queries";
+import { agentListOptions } from "@morechat/core/workspace/queries";
+import type { Agent, Autopilot, Issue, Project } from "@morechat/core/types";
 
 export type RecentItem =
   | { type: "issue"; id: string; visitedAt: number; issue: Issue }

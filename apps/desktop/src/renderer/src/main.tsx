@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom/client";
-import { installUserTimingCap } from "@multica/core/diagnostics";
+import { installUserTimingCap } from "@morechat/core/diagnostics";
 import App from "./App";
 import { AppCrashBoundary } from "./components/app-crash-boundary";
 import { launchWorkspaceSlug } from "./platform/workspace-windows";

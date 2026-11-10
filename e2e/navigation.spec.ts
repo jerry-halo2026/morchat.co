@@ -15,19 +15,19 @@ test.describe("Navigation", () => {
     await expect(page).toHaveURL(/\/inbox/, { timeout: ROUTE_CHANGE_TIMEOUT });
     await waitForPageText(page, "Inbox");
     // Each destination renames the browser tab after itself (MUL-6222).
-    await expect(page).toHaveTitle("Inbox | Multica");
+    await expect(page).toHaveTitle("Inbox | morechat.co");
 
     // Team lands on its first page, Agents.
     await rail.getByRole("link", { name: "Team" }).click();
     await expect(page).toHaveURL(/\/agents/, { timeout: ROUTE_CHANGE_TIMEOUT });
     await waitForPageText(page, "Agents");
-    await expect(page).toHaveTitle("Agents | Multica");
+    await expect(page).toHaveTitle("Agents | morechat.co");
 
     // Work lands on its first page, Issues.
     await rail.getByRole("link", { name: "Work", exact: true }).click();
     await expect(page).toHaveURL(/\/issues/, { timeout: ROUTE_CHANGE_TIMEOUT });
     await waitForPageText(page, "Issues");
-    await expect(page).toHaveTitle("Issues | Multica");
+    await expect(page).toHaveTitle("Issues | morechat.co");
   });
 
   test("settings page loads via the rail", async ({ page }) => {

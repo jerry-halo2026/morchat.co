@@ -13,7 +13,7 @@ import {
   Option,
   Space,
   type IconComponent,
-} from "@multica/ui/icons";
+} from "@morechat/ui/icons";
 import {
   formatShortcut,
   getShortcutPlatform,
@@ -21,9 +21,9 @@ import {
   type ShortcutActionId,
   type ShortcutChord,
   type ShortcutPlatform,
-} from "@multica/core/shortcuts";
-import { Kbd } from "@multica/ui/components/ui/kbd";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/core/shortcuts";
+import { Kbd } from "@morechat/ui/components/ui/kbd";
+import { cn } from "@morechat/ui/lib/utils";
 
 type ShortcutToken = {
   id: string;

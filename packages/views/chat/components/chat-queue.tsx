@@ -8,18 +8,18 @@ import {
   Loader2,
   Pencil,
   Trash2,
-} from "@multica/ui/icons";
-import type { ChatQueuedTask } from "@multica/core/types";
-import { Button } from "@multica/ui/components/ui/button";
-import { IconButton } from "@multica/ui/components/common/icon-button";
+} from "@morechat/ui/icons";
+import type { ChatQueuedTask } from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@multica/ui/components/ui/dropdown-menu";
-import { cn } from "@multica/ui/lib/utils";
+} from "@morechat/ui/components/ui/dropdown-menu";
+import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../../i18n";
 import { CHAT_COLUMN, CHAT_GUTTER } from "./chat-column";
 
