@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 157,
-  "fingerprint": "fc9d2550b712ffab66f15c0858ab4cbf344b444a4161a258137c78323cdbbee9",
+  "count": 158,
+  "fingerprint": "8803376a7a68214c28d9d7a2464fa278c28cb4f087a1263b1e4fea8535fc4d36",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -2340,8 +2340,26 @@
       "links_out": [],
       "links_in": [
         "docs/tasks/MC-00-results.md",
+        "docs/upstream/SYNC-0.8.2-PORT.md",
         "docs/upstream/SYNC-0.8.2-RESULT.md"
       ]
+    },
+    {
+      "path": "docs/upstream/SYNC-0.8.2-PORT.md",
+      "title": "主线 8 提交移植到 `sync/0.8.2`（U6 执行）",
+      "purpose": "U6 移植记录：把主线 8 个提交搬到 sync/0.8.2，逐提交冲突处理、641/642 迁移改号、丢弃的 hunk 与门禁输出",
+      "owner": "u6-sync",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/upstream/SYNC-0.8.2-RESULT.md",
+        "docs/upstream/README.md"
+      ],
+      "links_out": [
+        "docs/upstream/README.md",
+        "docs/upstream/SYNC-0.8.2-RESULT.md"
+      ],
+      "links_in": []
     },
     {
       "path": "docs/upstream/SYNC-0.8.2-RESULT.md",
@@ -2357,7 +2375,9 @@
       "links_out": [
         "docs/upstream/README.md"
       ],
-      "links_in": []
+      "links_in": [
+        "docs/upstream/SYNC-0.8.2-PORT.md"
+      ]
     }
   ],
   "problems": [],
