@@ -897,7 +897,7 @@ function SquadProperties({
   const leaderCandidates = members.filter((m) => m.member_type === "agent" && !isArchived(m));
   const leaderValue = (
     <>
-      <ActorAvatar actorType="agent" actorId={squad.leader_id} size="xs" />
+      <ActorAvatar size="xs" actorType="agent" actorId={squad.leader_id} />
       <span className="truncate">{leaderName}</span>
     </>
   );
@@ -927,7 +927,7 @@ function SquadProperties({
               >
                 {leaderCandidates.map((m) => (
                   <DropdownMenuRadioItem key={m.member_id} value={m.member_id}>
-                    <ActorAvatar actorType="agent" actorId={m.member_id} size="xs" />
+                    <ActorAvatar size="xs" actorType="agent" actorId={m.member_id} />
                     <span className="truncate">{getEntityName("agent", m.member_id)}</span>
                   </DropdownMenuRadioItem>
                 ))}
@@ -1218,7 +1218,7 @@ function AddMemberDialog({
                             setPickerFilter("");
                           }}
                         >
-                          <ActorAvatar actorType="agent" actorId={a.id} size="sm" showStatusDot />
+                          <ActorAvatar size="sm" actorType="agent" actorId={a.id} showStatusDot />
                           <span>{a.name}</span>
                         </PickerItem>
                       ))}

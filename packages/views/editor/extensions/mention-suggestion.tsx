@@ -34,6 +34,9 @@ import type {
   Squad,
 } from "@morechat/core/types";
 import { ListTodo } from "@morechat/ui/icons";
+import { FileText } from "@morechat/ui/icons";
+import { knowledgeApi } from "../../knowledge/data/knowledge-api";
+import { knowledgeMentionRef } from "../../knowledge/hooks/use-knowledge";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { StatusIcon } from "../../issues/components/status-icon";
 import { ProjectIcon } from "../../projects/components/project-icon";
@@ -71,11 +74,16 @@ import { blockedReasonLabel } from "../../issues/blocked-trigger-copy";
 export interface MentionItem {
   id: string;
   label: string;
-  type: "member" | "agent" | "squad" | "issue" | "project" | "all";
+  type: "member" | "agent" | "squad" | "issue" | "project" | "knowledge" | "all";
   /** Optional grouping hint for injected context items. */
   group?: "current" | "recent" | "search";
   /** Secondary text shown beside the label (e.g. issue title) */
   description?: string;
+  /**
+   * Knowledge mentions only: the page revision the chip pins. A cited page keeps
+   * pointing at the paragraph it was cited for, even after the page moves on.
+   */
+  knowledgeRevision?: number;
   /** Issue status for StatusIcon rendering */
   status?: IssueStatus;
   /**
@@ -106,17 +114,25 @@ export interface MentionListRef {
 
 // Group items by section
 
-interface MentionGroup {
+export interface MentionGroup {
   label: string;
   items: MentionItem[];
 }
 
-function groupItems(items: MentionItem[], query: string): MentionGroup[] {
+/**
+ * Bucket the picker's items into the rendered groups.
+ *
+ * Exported because the group order is a product rule (work first, knowledge
+ * second, cancelled last) and the knowledge mention tests assert it directly
+ * rather than through the popup.
+ */
+export function groupItems(items: MentionItem[], query: string): MentionGroup[] {
   const current: MentionItem[] = [];
   const recent: MentionItem[] = [];
   const search: MentionItem[] = [];
   const users: MentionItem[] = [];
   const issues: MentionItem[] = [];
+  const knowledge: MentionItem[] = [];
   const cancelled: MentionItem[] = [];
 
   for (const item of items) {
@@ -128,6 +144,8 @@ function groupItems(items: MentionItem[], query: string): MentionGroup[] {
       recent.push(item);
     } else if (item.group === "search") {
       search.push(item);
+    } else if (item.type === "knowledge") {
+      knowledge.push(item);
     } else if (item.type === "issue" || item.type === "project") {
       issues.push(item);
     } else {
@@ -141,6 +159,8 @@ function groupItems(items: MentionItem[], query: string): MentionGroup[] {
   if (search.length > 0) groups.push({ label: "Search", items: search });
   if (users.length > 0) groups.push({ label: "Users", items: users });
   if (issues.length > 0) groups.push({ label: "Issues", items: issues });
+  // Knowledge pages come after issues: work first, background second.
+  if (knowledge.length > 0) groups.push({ label: "Knowledge", items: knowledge });
   // Always last: no cancelled row of any type may precede a live one.
   if (cancelled.length > 0) groups.push({ label: "Cancelled", items: cancelled });
   return groups;
@@ -151,6 +171,7 @@ function groupItems(items: MentionItem[], query: string): MentionGroup[] {
 const MAX_ITEMS = 20;
 const SERVER_ISSUE_SEARCH_LIMIT = 20;
 const SERVER_CONTEXT_SEARCH_LIMIT = 8;
+const KNOWLEDGE_MENTION_LIMIT = 5;
 const SERVER_SEARCH_DEBOUNCE_MS = 150;
 
 function mentionItemKey(item: MentionItem): string {
@@ -269,6 +290,7 @@ export const MentionList = forwardRef<MentionListRef, MentionListProps>(
     // → the first rendered row is highlighted by default.
     const [selectedKey, setSelectedKey] = useState<string | null>(null);
     const [serverItems, setServerItems] = useState<MentionItem[]>([]);
+    const [knowledgeItems, setKnowledgeItems] = useState<MentionItem[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [searchedQuery, setSearchedQuery] = useState("");
     const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -277,6 +299,7 @@ export const MentionList = forwardRef<MentionListRef, MentionListProps>(
     useEffect(() => {
       const q = normalizedQuery;
       setServerItems([]);
+      setKnowledgeItems([]);
 
       if (!q) {
         setIsSearching(false);
@@ -298,6 +321,26 @@ export const MentionList = forwardRef<MentionListRef, MentionListProps>(
       const timer = setTimeout(() => {
         void (async () => {
           try {
+            // Knowledge pages are searched alongside issues/projects. A
+            // workspace without a knowledge API answers 404: the search
+            // resolves to an empty list, so the group simply never appears.
+            void knowledgeApi
+              .search(wsId, q, KNOWLEDGE_MENTION_LIMIT)
+              .then((result) => {
+                if (cancelled || controller.signal.aborted) return;
+                setKnowledgeItems(
+                  result.pages.map((page) => ({
+                    id: knowledgeMentionRef(page.space, page.path, page.revision),
+                    label: page.title || page.path,
+                    type: "knowledge" as const,
+                    description: `${page.space}/${page.path}`,
+                    knowledgeRevision: page.revision,
+                  })),
+                );
+              })
+              .catch(() => {
+                /* no knowledge API (or a network blip): no group */
+              });
             if (includeProjectSearch) {
               const [issues, projects] = await Promise.all([
                 searchIssues({
@@ -350,11 +393,15 @@ export const MentionList = forwardRef<MentionListRef, MentionListProps>(
 
     const displayItems = useMemo(() => {
       const currentServerItems = searchedQuery === normalizedQuery ? serverItems : [];
+      const currentKnowledgeItems = searchedQuery === normalizedQuery ? knowledgeItems : [];
       return demoteCancelledItems(
-        mergeMentionItems(items, currentServerItems),
+        mergeMentionItems(
+          mergeMentionItems(items, currentKnowledgeItems),
+          currentServerItems,
+        ),
         normalizedQuery,
       ).slice(0, MAX_ITEMS);
-    }, [items, normalizedQuery, searchedQuery, serverItems]);
+    }, [items, knowledgeItems, normalizedQuery, searchedQuery, serverItems]);
 
     // The single index space for selection. groupItems() re-buckets displayItems
     // (current → recent → search → users → issues); orderedItems is exactly what
@@ -464,6 +511,7 @@ export const MentionList = forwardRef<MentionListRef, MentionListProps>(
       if (label === "Users") return t(($) => $.mention.group_users);
       if (label === "Issues") return t(($) => $.mention.group_issues);
       if (label === "Cancelled") return t(($) => $.mention.group_cancelled);
+      if (label === "Knowledge") return t(($) => $.mention.group_knowledge);
       return label;
     };
 
@@ -583,6 +631,34 @@ function MentionRow({
             )}
           </span>
         </span>
+      </button>
+    );
+  }
+
+  if (item.type === "knowledge") {
+    return (
+      <button
+        type="button"
+        ref={buttonRef}
+        className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-caption transition-colors ${
+          selected ? "bg-accent" : "hover:bg-accent/50"
+        }`}
+        onClick={onSelect}
+      >
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-surface-border">
+          <FileText className="h-3.5 w-3.5 text-faint-foreground" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-medium text-foreground">{item.label}</span>
+          {item.description && (
+            <span className="block truncate text-muted-foreground">{item.description}</span>
+          )}
+        </span>
+        {item.knowledgeRevision ? (
+          <Badge variant="outline" className="ml-auto h-4 px-1 text-micro">
+            {`v${item.knowledgeRevision}`}
+          </Badge>
+        ) : null}
       </button>
     );
   }

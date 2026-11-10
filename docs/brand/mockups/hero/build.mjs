@@ -1,4 +1,4 @@
-// 生成 index.html：数据驱动，避免手写 15 张卡片重复标记。
+﻿// 生成 index.html：数据驱动，避免手写 15 张卡片重复标记。
 // 只产出纯 HTML/CSS，无外链字体、无外链图片。
 import fs from "node:fs";
 import path from "node:path";
@@ -309,7 +309,7 @@ const prioLabel = { urgent: "紧急", high: "高", medium: "中", low: "低" };
 /* 头像：成员用成员 id、智能体用智能体 id，全部交给 caps.mjs 出内联样式。
  *
  * 尺寸只有一档：`AVATAR_PX = 32`，就是线上智能体头像的产品标准
- * （`AGENT_AVATAR_PX`）。卡片、侧栏智能体列表、侧栏底部「正在执行」都按 32px 排，
+ * （`AVATAR_SLOT_PX.list` = 20px）。卡片、侧栏智能体列表、侧栏底部「正在执行」都按 20px 排。
  * 不再出现 15/18/20/24 混排；顶栏成员叠头像仍是成员尺寸，成员不在智能体标准内。 */
 const AVATAR_PX = 32;
 const memberAvatar = (ch, size = 24) => capAvatar(MEMBERS[ch] ?? ch, size);

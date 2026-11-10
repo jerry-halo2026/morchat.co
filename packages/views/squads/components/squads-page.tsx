@@ -113,7 +113,7 @@ function LeaderCell({
 }) {
   return (
     <>
-      <ActorAvatar actorType="agent" actorId={leaderId} size="sm" />
+      <ActorAvatar size="sm" actorType="agent" actorId={leaderId} />
       <span className="min-w-0 truncate">{leader?.name ?? leaderId.slice(0, 8)}</span>
     </>
   );
@@ -311,7 +311,7 @@ function SquadFilterMenu({
                 className={FILTER_ITEM_CLASS}
               >
                 <HoverCheck checked={filters.leaders.includes(o.id)} />
-                <ActorAvatar actorType="agent" actorId={o.id} size="sm" />
+                <ActorAvatar size="sm" actorType="agent" actorId={o.id} />
                 <span className="min-w-0 truncate">{o.name}</span>
                 {countBadge(o.count)}
               </DropdownMenuCheckboxItem>

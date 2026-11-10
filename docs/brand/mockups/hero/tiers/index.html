@@ -15,9 +15,9 @@
   .grid {
     margin-top: 16px;
     display: grid;
-    grid-template-columns: 118px repeat(3, 96px);
+    grid-template-columns: 132px repeat(4, 104px);
     align-items: end;
-    column-gap: 10px;
+    column-gap: 8px;
   }
   .col-head {
     display: flex; align-items: baseline; gap: 2px; justify-content: center;
@@ -78,52 +78,55 @@
 
   .foot {
     margin-top: 8px; padding-top: 10px; border-top: 1px solid #ececE8;
-    font-size: 10.5px; color: #8a8a84; letter-spacing: 0.005em;
+    font-size: 10.5px; color: #8a8a84; letter-spacing: 0.005em; line-height: 1.55;
   }
+  .foot code { font-size: 10px; color: #55554f; }
   .foot-key { color: #55554f; font-weight: 600; }
   .foot-key + * { font-weight: 400; }
 </style></head>
 <body>
 <div class="panel">
   <div class="title-row">
-    <div class="title">智能体头像 · 纯色本体 + 眼睛</div>
-    <div class="subtitle">标准 32px；48 / 64 仅用于单实例展示（详情页头、身份弹层）</div>
+    <div class="title">包豪斯色板 · 上游槽位尺寸</div>
+    <div class="subtitle">列表 20 / 评论 24 / 详情 40 / 主视觉 56 —— 按调用方给的槽位渲染，不做统一钳制</div>
   </div>
   <div class="grid">
     <div class="row-head-spacer"></div>
-    <div class="col-head"><span class="px">32</span><span class="px-unit">px</span><span class="px-tag">标准</span></div><div class="col-head"><span class="px">48</span><span class="px-unit">px</span></div><div class="col-head"><span class="px">64</span><span class="px-unit">px</span></div>
+    <div class="col-head"><span class="px">20</span><span class="px-unit">px</span><span class="px-tag">列表</span></div><div class="col-head"><span class="px">24</span><span class="px-unit">px</span><span class="px-tag">评论</span></div><div class="col-head"><span class="px">40</span><span class="px-unit">px</span><span class="px-tag">详情</span></div><div class="col-head"><span class="px">56</span><span class="px-unit">px</span><span class="px-tag">主视觉</span></div>
     
   <div class="row">
     <div class="row-head">
-      <span class="swatch" style="background-color:#C2A26B"></span>
+      <span class="swatch" style="background-color:#F2C300"></span>
       <span class="row-name">amber</span>
-      <span class="row-hex">#C2A26B / #6E5735</span>
+      <span class="row-hex">#F2C300 / #7A6100</span>
     </div>
-    <div class="cell"><div class="cap cap-32" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="32" data-palette="amber"></div></div><div class="cell"><div class="cap cap-48" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="48" data-palette="amber"></div></div><div class="cell"><div class="cap cap-64" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="64" data-palette="amber"></div></div>
+    <div class="cell"><div class="cap cap-static" data-slot="cap-avatar" data-tier="css" data-shape="blob" data-size="20" data-palette="amber"><span class="cap-body" aria-hidden="true" style="width:20px;height:20px;background-color:#F2C300;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span></div></div><div class="cell"><div class="cap cap-static" data-slot="cap-avatar" data-tier="static" data-shape="blob" data-size="24" data-palette="amber"><span class="cap-body" aria-hidden="true" style="width:24px;height:24px;background-color:#F2C300;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span><svg class="cap-eyes" aria-hidden="true" viewBox="0 0 100 100"><circle cx="36" cy="42" r="10" fill="#7A6100" /><circle cx="64" cy="42" r="10" fill="#7A6100" /></svg></div></div><div class="cell"><div class="cap" data-slot="cap-avatar" data-tier="animated" data-shape="blob" data-size="40" data-palette="amber" data-engine></div></div><div class="cell"><div class="cap" data-slot="cap-avatar" data-tier="animated" data-shape="blob" data-size="56" data-palette="amber" data-engine></div></div>
   </div>
   <div class="row">
     <div class="row-head">
-      <span class="swatch" style="background-color:#6E8B9E"></span>
+      <span class="swatch" style="background-color:#1B4F9C"></span>
       <span class="row-name">deep-tide</span>
-      <span class="row-hex">#6E8B9E / #334A5C</span>
+      <span class="row-hex">#1B4F9C / #95A2B6</span>
     </div>
-    <div class="cell"><div class="cap cap-32" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="32" data-palette="deep-tide"></div></div><div class="cell"><div class="cap cap-48" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="48" data-palette="deep-tide"></div></div><div class="cell"><div class="cap cap-64" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="64" data-palette="deep-tide"></div></div>
+    <div class="cell"><div class="cap cap-static" data-slot="cap-avatar" data-tier="css" data-shape="blob" data-size="20" data-palette="deep-tide"><span class="cap-body" aria-hidden="true" style="width:20px;height:20px;background-color:#1B4F9C;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span></div></div><div class="cell"><div class="cap cap-static" data-slot="cap-avatar" data-tier="static" data-shape="blob" data-size="24" data-palette="deep-tide"><span class="cap-body" aria-hidden="true" style="width:24px;height:24px;background-color:#1B4F9C;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span><svg class="cap-eyes" aria-hidden="true" viewBox="0 0 100 100"><circle cx="36" cy="42" r="10" fill="#95A2B6" /><circle cx="64" cy="42" r="10" fill="#95A2B6" /></svg></div></div><div class="cell"><div class="cap" data-slot="cap-avatar" data-tier="animated" data-shape="blob" data-size="40" data-palette="deep-tide" data-engine></div></div><div class="cell"><div class="cap" data-slot="cap-avatar" data-tier="animated" data-shape="blob" data-size="56" data-palette="deep-tide" data-engine></div></div>
   </div>
   <div class="row">
     <div class="row-head">
-      <span class="swatch" style="background-color:#9C8397"></span>
-      <span class="row-name">plum</span>
-      <span class="row-hex">#9C8397 / #5A4657</span>
+      <span class="swatch" style="background-color:#C8392B"></span>
+      <span class="row-name">ember</span>
+      <span class="row-hex">#C8392B / #43120E</span>
     </div>
-    <div class="cell"><div class="cap cap-32" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="32" data-palette="plum"></div></div><div class="cell"><div class="cap cap-48" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="48" data-palette="plum"></div></div><div class="cell"><div class="cap cap-64" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="blob" data-size="64" data-palette="plum"></div></div>
+    <div class="cell"><div class="cap cap-static" data-slot="cap-avatar" data-tier="css" data-shape="blob" data-size="20" data-palette="ember"><span class="cap-body" aria-hidden="true" style="width:20px;height:20px;background-color:#C8392B;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span></div></div><div class="cell"><div class="cap cap-static" data-slot="cap-avatar" data-tier="static" data-shape="blob" data-size="24" data-palette="ember"><span class="cap-body" aria-hidden="true" style="width:24px;height:24px;background-color:#C8392B;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span><svg class="cap-eyes" aria-hidden="true" viewBox="0 0 100 100"><circle cx="36" cy="42" r="10" fill="#43120E" /><circle cx="64" cy="42" r="10" fill="#43120E" /></svg></div></div><div class="cell"><div class="cap" data-slot="cap-avatar" data-tier="animated" data-shape="blob" data-size="40" data-palette="ember" data-engine></div></div><div class="cell"><div class="cap" data-slot="cap-avatar" data-tier="animated" data-shape="blob" data-size="56" data-palette="ember" data-engine></div></div>
   </div>
   </div>
   <div class="foot">
     <span class="foot-key">amber</span> 橙子（cap:blob:amber）·
-    <span class="foot-key">deep-tide</span> / <span class="foot-key">plum</span> 另外两个色板 ·
-    形状一致性来自 cap-v1 哈希，颜色来自 palettes.ts（a = 本体，b = 眼睛）<br>
-    三档都是引擎真身：它跑参考实现的 idle 姿态（17° / −14° / 29°），所以眼睛略偏上、
-    带一点斜和视线。列表里默认停在静态帧（animated={false}），只有单实例展示位开动画；
-    16px / 24px 两档已从产品里删除，不再出现在本图上。
+    <span class="foot-key">deep-tide</span> / <span class="foot-key">ember</span> 另外两个色板 ·
+    本体 = <code>palette.a</code> 纯色，眼睛 = <code>palette.b</code>，每对对比 ≥ 3:1<br>
+    三档分层：<span class="foot-key">≤20 无眼</span>（纯色本体，列表行）·
+    <span class="foot-key">21–31 静态瞳片</span>（同一本体 + 一层 SVG 眼睛，评论作者）·
+    <span class="foot-key">≥32 引擎</span>（<code>engine/motion-engine.js</code>，视线/眨眼/姿态，
+    详情页头与主视觉）。40 / 56 两列跑参考实现的 idle 姿态（17° / −14° / 29°），
+    所以眼睛略偏上、带一点斜和视线。
   </div>
 </div><script src="./bundle.js"></script></body></html>

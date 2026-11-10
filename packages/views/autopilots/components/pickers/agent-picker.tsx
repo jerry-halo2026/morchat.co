@@ -142,7 +142,7 @@ export function AgentPicker({
                     }
                     onClick={() => handlePick("agent", a.id)}
                   >
-                    <ActorAvatar actorType="agent" actorId={a.id} size="sm" showStatusDot />
+                    <ActorAvatar size="sm" actorType="agent" actorId={a.id} showStatusDot />
                     <span className="truncate">{a.name}</span>
                   </PickerItem>
                 );

@@ -717,7 +717,7 @@ function CostByBlock({
               const agent = agents.find((a) => a.id === key);
               return (
                 <div className="flex min-w-0 items-center gap-2">
-                  <ActorAvatar actorType="agent" actorId={key} size="md" enableHoverCard />
+                  <ActorAvatar size="md" actorType="agent" actorId={key} enableHoverCard />
                   <span className="cursor-pointer truncate text-body font-medium">
                     {agent?.name ?? key}
                   </span>

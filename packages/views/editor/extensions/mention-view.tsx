@@ -22,12 +22,25 @@ import { NodeViewWrapper } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import { IssueMentionCard } from "../../issues/components/issue-mention-card";
 import { ProjectMentionCard } from "../../projects/components/project-mention-card";
+import { KnowledgeMentionCard } from "../../knowledge/components/knowledge-mention-card";
 
 export function MentionView({ node }: NodeViewProps) {
   const { type, id, label } = node.attrs;
 
   // stopPropagation mirrors the readonly renderer's mention wrappers: a chip
   // click must not reach surrounding click handlers.
+  if (type === "knowledge") {
+    return (
+      <NodeViewWrapper
+        as="span"
+        className="inline"
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+      >
+        <KnowledgeMentionCard ref={id} fallbackLabel={label} />
+      </NodeViewWrapper>
+    );
+  }
+
   if (type === "issue") {
     return (
       <NodeViewWrapper

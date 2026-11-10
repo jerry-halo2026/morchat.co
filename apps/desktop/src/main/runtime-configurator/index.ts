@@ -46,8 +46,10 @@ import type { BackupStore, ConfiguratorFs, ConfiguratorLogger } from "./ports";
 import {
   CredentialUnavailableError,
   NoCredentialError,
+  describeCredentials,
   readCredentialValue,
   resolveCredential,
+  type CredentialStatusSummary,
   type ResolvedCredential,
 } from "./credential";
 import type { Keychain } from "./keychain";
@@ -100,6 +102,12 @@ export interface RuntimeConfigurator {
   apply(profile: RuntimeProfile): Promise<ApplyOutcome>;
   /** Manual revert of a completed apply (support / "restore my settings"). */
   revert(record: BackupRecord): Promise<VerifyResult>;
+  /**
+   * Which credentials are stored for this account right now, for Settings to
+   * render. Read-only, no network, no self-check — see `describeCredentials`.
+   * Without a `userId`/`keychain` (headless, preview) every slot reads empty.
+   */
+  credentialStatus(): Promise<CredentialStatusSummary>;
 }
 
 interface CredentialStage {
@@ -599,7 +607,27 @@ export function createRuntimeConfigurator(
     return failures.length === 0 ? { ok: true } : { ok: false, failures };
   }
 
-  return { plan, apply, revert };
+  /**
+   * `credentialStatus` is the Settings readback: which of the two credentials
+   * exist for this account. It deliberately shares `describeCredentials` with
+   * the bootstrap's IPC answer, so the page and the pushed status can never
+   * disagree about what is stored. With no account there is nothing to report,
+   * and an empty summary is the honest answer rather than an error.
+   */
+  async function credentialStatus(): Promise<CredentialStatusSummary> {
+    const { keychain, userId } = deps;
+    if (!keychain || !userId) {
+      return {
+        keychainAvailable: keychain?.available ?? false,
+        company: { configured: false, suffix: null },
+        personal: { configured: false, suffix: null },
+        effective: null,
+      };
+    }
+    return describeCredentials(keychain, userId);
+  }
+
+  return { plan, apply, revert, credentialStatus };
 }
 
 /**

@@ -29,6 +29,7 @@
     "./modals/create-issue": "./modals/create-issue.tsx",
     "./my-issues": "./my-issues/index.ts",
     "./skills": "./skills/index.ts",
+    "./presets": "./presets/index.ts",
     "./agents": "./agents/index.ts",
     "./agents/agent-detail-page": "./agents/components/agent-detail-page.tsx",
     "./agents/agents-page": "./agents/components/agents-page.tsx",
@@ -74,7 +75,8 @@
     "./i18n": "./i18n/index.ts",
     "./attachments": "./attachments/index.ts",
     "./locales": "./locales/index.ts",
-    "./locales/*": "./locales/*"
+    "./locales/*": "./locales/*",
+    "./knowledge": "./knowledge/index.ts"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",

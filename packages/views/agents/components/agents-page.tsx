@@ -228,6 +228,7 @@ function NameCell({ row }: { row: AgentListRow }) {
     <CollectionNameCell
       icon={
         <ActorAvatar
+          size="sm"
           actorType="agent"
           actorId={agent.id}
           size="sm"

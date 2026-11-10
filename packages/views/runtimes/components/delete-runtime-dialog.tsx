@@ -482,6 +482,7 @@ function AgentPlanTable({
             >
               <span className="inline-flex min-w-0 items-center gap-2">
                 <ActorAvatar
+                  size="sm"
                   actorType="agent"
                   actorId={agent.id}
                   size="sm"

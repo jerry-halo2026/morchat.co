@@ -1,4 +1,4 @@
----
+﻿---
 purpose: "首屏假看板（landing hero mock）"
 owner: design
 status: reference
@@ -37,7 +37,7 @@ index.html 也可单独用浏览器打开预览（1320×890 视口即设计稿�
 
 形态与参考实现（`web/motion-engine.js`：纯色本体 + `EYE_HALF` 眼睛）一致：本体是一块**纯色**（`palette.a` 的 `background-color`，不再有 `linear-gradient`），眼睛是叠在上面的**深色小圆**（`palette.b`）。每个演示智能体用**真实 agent id** 跑一遍，把 `capStaticStyle` 的结果（尺寸、纯色、`border-radius`、`clip-path`、内阴影）**内联**写进 `.cap-avatar` 节点，与 ≤20px 层的线上渲染逐值一致。
 
-卡片头像按产品标准 32px 排（`AVATAR_PX = 32`，与线上 `AGENT_AVATAR_PX` 同值），瞳片比例直接沿用 `capEyeFrame` 的 20% 眼径 / 28% 瞳距 / 42% 瞳高——32px 下眼睛读得清，不需要再放大。
+卡片头像按列表槽位 20px 排（`AVATAR_SLOT_PX.list`），瞳片比例直接沿用 `capEyeFrame` 的 20% 眼径 / 28% 瞳距 / 42% 瞳高——20px 不画眼、24px 起读得清，所以这张 mockup 里的 32px 只代表"卡片位放大一档"的示意，不是产品标准。
 
 内置橙子用的是线上持久化值 `cap:blob:amber`（`resolveCap` 语义）。形状与色板随 id 走，所以 `reviewer` 与 `designer` 会撞到同一组 hex/coral —— 这是哈希的真实结果，不做手工修饰。
 

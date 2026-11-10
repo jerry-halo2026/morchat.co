@@ -120,7 +120,7 @@ function AgentCell({ row }: { row: WorkspaceWakeup }) {
   if (!row.agent_id) return <>{t(($) => $.wakeups.no_target)}</>;
   return (
     <>
-      <ActorAvatar actorType="agent" actorId={row.agent_id} name={row.agent_name} size="sm" />
+      <ActorAvatar size="sm" actorType="agent" actorId={row.agent_id} name={row.agent_name} />
       <span className="truncate">
         {row.source === "system"
           ? t(($) => $.wakeups.assignee_target, { name: row.agent_name })

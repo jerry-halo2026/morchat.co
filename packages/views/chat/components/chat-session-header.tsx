@@ -213,6 +213,7 @@ export function ChatSessionHeader({
                   label: (
                     <>
                       <ActorAvatar
+                        size="sm"
                         actorType="agent"
                         actorId={agent.id}
                         size="sm"

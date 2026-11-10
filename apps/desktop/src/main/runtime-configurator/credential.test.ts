@@ -16,10 +16,12 @@ import {
   PERSONAL_KEY_LABEL,
   clearPersonalCredential,
   companyAccount,
+  describeCredentials,
   personalAccount,
   readCredentialValue,
   resolveCredential,
   storePersonalCredential,
+  validatePersonalKey,
 } from "./credential";
 import { createMemoryKeychain, type Keychain } from "./keychain";
 import { createTestProfile } from "./testing";
@@ -128,5 +130,63 @@ describe("personal key lifecycle", () => {
     await expect(
       resolveCredential(profile, { keychain: store, userId }),
     ).rejects.toBeInstanceOf(NoCredentialError);
+  });
+});
+
+// Settings renders exactly this shape, so it is the one place where "what is
+// stored" becomes user-visible. The invariants that matter: a key never appears,
+// the suffix is only the last four characters, and a machine without a keychain
+// reports both slots empty rather than pretending.
+describe("describeCredentials", () => {
+  it("reports each slot with a four-character suffix and the effective source", async () => {
+    const summary = await describeCredentials(
+      keychain("company-key-aaaa", "personal-key-zzzz"),
+      userId,
+    );
+    expect(summary).toEqual({
+      keychainAvailable: true,
+      company: { configured: true, suffix: "aaaa" },
+      personal: { configured: true, suffix: "zzzz" },
+      effective: "company",
+    });
+    expect(JSON.stringify(summary)).not.toContain("company-key-aaaa");
+    expect(JSON.stringify(summary)).not.toContain("personal-key-zzzz");
+  });
+
+  it("falls back to personal as effective when only that slot is filled", async () => {
+    const summary = await describeCredentials(keychain(null, "personal-key-zzzz"), userId);
+    expect(summary.effective).toBe("personal");
+    expect(summary.company).toEqual({ configured: false, suffix: null });
+  });
+
+  it("reports nothing stored, and no effective source, on an empty keychain", async () => {
+    const summary = await describeCredentials(keychain(null, null), userId);
+    expect(summary.effective).toBeNull();
+    expect(summary.personal.configured).toBe(false);
+  });
+
+  it("treats a keychain with no OS backend as empty instead of guessing", async () => {
+    const unavailable = {
+      available: false,
+      get: async () => {
+        throw new Error("must not be read");
+      },
+      set: async () => {},
+      delete: async () => {},
+    } as unknown as Keychain;
+    const summary = await describeCredentials(unavailable, userId);
+    expect(summary.keychainAvailable).toBe(false);
+    expect(summary.company.configured).toBe(false);
+    expect(summary.effective).toBeNull();
+  });
+});
+
+describe("validatePersonalKey", () => {
+  it("accepts an opaque token and rejects the shapes a paste actually produces", () => {
+    expect(validatePersonalKey("sk-live-0123456789abcdef")).toBeNull();
+    expect(validatePersonalKey("   ")).toBe("empty");
+    expect(validatePersonalKey("short")).toBe("too-short");
+    expect(validatePersonalKey("sk-live 0123456789abcdef")).toBe("contains-whitespace");
+    expect(validatePersonalKey("sk-live-0123456789abcde\u00e9")).toBe("not-a-key");
   });
 });

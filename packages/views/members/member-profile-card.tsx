@@ -138,6 +138,7 @@ function OwnedAgentsSection({ agents }: { agents: Agent[] }) {
             className="group -mx-1 flex cursor-pointer items-start gap-2 rounded-md px-1 py-1 transition-colors hover:bg-accent"
           >
             <ActorAvatar
+              size="sm"
               actorType="agent"
               actorId={a.id}
               size="sm"

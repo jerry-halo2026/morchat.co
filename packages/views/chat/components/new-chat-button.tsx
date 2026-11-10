@@ -138,6 +138,7 @@ function AgentPickerItem({
       onClick={() => onSelect(agent)}
     >
       <ActorAvatar
+        size="md"
         actorType="agent"
         actorId={agent.id}
         size="md"

@@ -23784,17 +23784,17 @@
   // docs/brand/mockups/hero/tiers/specs.json
   var specs_default = [
     {
-      shape: "blob",
-      size: 32,
       palette: "amber",
+      size: 40,
+      shape: "blob",
       props: {
         shape: "blob",
-        size: 32,
+        size: 40,
         state: "idle",
         seed: 51811,
         active: true,
-        background: "#C2A26B",
-        ink: "#6E5735",
+        background: "#F2C300",
+        ink: "#7A6100",
         faceTune: {
           size: 1,
           gap: 1,
@@ -23816,22 +23816,23 @@
           turn: 17,
           tilt: -14,
           roll: 29
-        }
+        },
+        gazeTarget: null
       },
       seed: 51811
     },
     {
-      shape: "blob",
-      size: 48,
       palette: "amber",
+      size: 56,
+      shape: "blob",
       props: {
         shape: "blob",
-        size: 48,
+        size: 56,
         state: "idle",
         seed: 51811,
         active: true,
-        background: "#C2A26B",
-        ink: "#6E5735",
+        background: "#F2C300",
+        ink: "#7A6100",
         faceTune: {
           size: 1,
           gap: 1,
@@ -23853,59 +23854,23 @@
           turn: 17,
           tilt: -14,
           roll: 29
-        }
+        },
+        gazeTarget: null
       },
       seed: 51811
     },
     {
-      shape: "blob",
-      size: 64,
-      palette: "amber",
-      props: {
-        shape: "blob",
-        size: 64,
-        state: "idle",
-        seed: 51811,
-        active: true,
-        background: "#C2A26B",
-        ink: "#6E5735",
-        faceTune: {
-          size: 1,
-          gap: 1,
-          height: 1,
-          eyeWidth: 1.2,
-          eyeHeight: 1.16
-        },
-        uniformEyes: true,
-        eyeTopology: true,
-        naturalLids: true,
-        eyeScale: 1,
-        pose: {
-          turn: 17,
-          tilt: -14,
-          roll: 29,
-          scale: 1.040524017467249
-        },
-        poseHome: {
-          turn: 17,
-          tilt: -14,
-          roll: 29
-        }
-      },
-      seed: 51811
-    },
-    {
-      shape: "blob",
-      size: 32,
       palette: "deep-tide",
+      size: 40,
+      shape: "blob",
       props: {
         shape: "blob",
-        size: 32,
+        size: 40,
         state: "idle",
         seed: 51811,
         active: true,
-        background: "#6E8B9E",
-        ink: "#334A5C",
+        background: "#1B4F9C",
+        ink: "#95A2B6",
         faceTune: {
           size: 1,
           gap: 1,
@@ -23927,22 +23892,23 @@
           turn: 17,
           tilt: -14,
           roll: 29
-        }
+        },
+        gazeTarget: null
       },
       seed: 51811
     },
     {
-      shape: "blob",
-      size: 48,
       palette: "deep-tide",
+      size: 56,
+      shape: "blob",
       props: {
         shape: "blob",
-        size: 48,
+        size: 56,
         state: "idle",
         seed: 51811,
         active: true,
-        background: "#6E8B9E",
-        ink: "#334A5C",
+        background: "#1B4F9C",
+        ink: "#95A2B6",
         faceTune: {
           size: 1,
           gap: 1,
@@ -23964,22 +23930,23 @@
           turn: 17,
           tilt: -14,
           roll: 29
-        }
+        },
+        gazeTarget: null
       },
       seed: 51811
     },
     {
+      palette: "ember",
+      size: 40,
       shape: "blob",
-      size: 64,
-      palette: "deep-tide",
       props: {
         shape: "blob",
-        size: 64,
+        size: 40,
         state: "idle",
         seed: 51811,
         active: true,
-        background: "#6E8B9E",
-        ink: "#334A5C",
+        background: "#C8392B",
+        ink: "#43120E",
         faceTune: {
           size: 1,
           gap: 1,
@@ -24001,22 +23968,23 @@
           turn: 17,
           tilt: -14,
           roll: 29
-        }
+        },
+        gazeTarget: null
       },
       seed: 51811
     },
     {
+      palette: "ember",
+      size: 56,
       shape: "blob",
-      size: 32,
-      palette: "plum",
       props: {
         shape: "blob",
-        size: 32,
+        size: 56,
         state: "idle",
         seed: 51811,
         active: true,
-        background: "#9C8397",
-        ink: "#5A4657",
+        background: "#C8392B",
+        ink: "#43120E",
         faceTune: {
           size: 1,
           gap: 1,
@@ -24038,81 +24006,8 @@
           turn: 17,
           tilt: -14,
           roll: 29
-        }
-      },
-      seed: 51811
-    },
-    {
-      shape: "blob",
-      size: 48,
-      palette: "plum",
-      props: {
-        shape: "blob",
-        size: 48,
-        state: "idle",
-        seed: 51811,
-        active: true,
-        background: "#9C8397",
-        ink: "#5A4657",
-        faceTune: {
-          size: 1,
-          gap: 1,
-          height: 1,
-          eyeWidth: 1.2,
-          eyeHeight: 1.16
         },
-        uniformEyes: true,
-        eyeTopology: true,
-        naturalLids: true,
-        eyeScale: 1,
-        pose: {
-          turn: 17,
-          tilt: -14,
-          roll: 29,
-          scale: 1.040524017467249
-        },
-        poseHome: {
-          turn: 17,
-          tilt: -14,
-          roll: 29
-        }
-      },
-      seed: 51811
-    },
-    {
-      shape: "blob",
-      size: 64,
-      palette: "plum",
-      props: {
-        shape: "blob",
-        size: 64,
-        state: "idle",
-        seed: 51811,
-        active: true,
-        background: "#9C8397",
-        ink: "#5A4657",
-        faceTune: {
-          size: 1,
-          gap: 1,
-          height: 1,
-          eyeWidth: 1.2,
-          eyeHeight: 1.16
-        },
-        uniformEyes: true,
-        eyeTopology: true,
-        naturalLids: true,
-        eyeScale: 1,
-        pose: {
-          turn: 17,
-          tilt: -14,
-          roll: 29,
-          scale: 1.040524017467249
-        },
-        poseHome: {
-          turn: 17,
-          tilt: -14,
-          roll: 29
-        }
+        gazeTarget: null
       },
       seed: 51811
     }

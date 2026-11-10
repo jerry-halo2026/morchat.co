@@ -44,7 +44,7 @@ function findMentionStart(src: string): number {
 /** A mention as text, the way its pill reads: issues and projects by name. */
 export function mentionText(attrs: Record<string, unknown>): string {
   const type = attrs.type ?? "member";
-  const prefix = type === "issue" || type === "project" ? "" : "@";
+  const prefix = type === "issue" || type === "project" || type === "knowledge" ? "" : "@";
   return `${prefix}${String(attrs.label ?? attrs.id ?? "")}`;
 }
 

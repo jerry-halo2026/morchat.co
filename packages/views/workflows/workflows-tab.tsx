@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -57,7 +57,7 @@ const TEMPLATE_PARAM = "template";
 const NEW_WORKFLOW = "new";
 
 /**
- * Settings → Workflows (MUL-7420): the workflows, then the status library
+ * Settings 鈫?Workflows (MUL-7420): the workflows, then the status library
  * they all draw from. `?workflow=<id>` (or `new`) opens the editor in place,
  * so a workflow is a linkable page rather than a dialog.
  */
@@ -392,7 +392,7 @@ function StepChain({ steps }: { steps: IssueWorkflowStep[] }) {
         const handler = handlerLabel(step);
         const actor = (type === "agent" || type === "squad" || type === "member") && id ? { type, id } : null;
         // The arrow travels with the step it points to, so a wrapped line
-        // starts with "→ step" instead of ending on an arrow beside the
+        // starts with "鈫?step" instead of ending on an arrow beside the
         // row's chevron.
         return (
           <span key={step.status_key} className="inline-flex items-center gap-1">
@@ -408,6 +408,8 @@ function StepChain({ steps }: { steps: IssueWorkflowStep[] }) {
                 className="h-3 w-3"
               />
               {labelOf(step.status_key)}
+
+
               {handler && (
                 <span className="inline-flex h-4 max-w-40 items-center gap-1 rounded-full bg-muted pl-px pr-1.5 text-muted-foreground [--avatar-slot-size:14px]">
                   {actor ? (

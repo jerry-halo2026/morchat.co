@@ -358,9 +358,8 @@ function RuntimeProperties({
         </ObjectProperty>
         <ObjectProperty label={t(($) => $.detail.fact_device)}>
           {device?.hostname ? (
-            <TruncatedTooltip content={device.hostname} focusable>
-              {/* The value column clips, so the focus ring draws inside. */}
-              <span className="block truncate font-mono focus-visible:ring-2 focus-visible:ring-inset">{device.hostname}</span>
+            <TruncatedTooltip content={device.hostname}>
+              <span className="block truncate font-mono">{device.hostname}</span>
             </TruncatedTooltip>
           ) : (
             <span className="text-muted-foreground">—</span>
@@ -433,7 +432,7 @@ export function ServingAgentList({
             href={agentHref(agent.id)}
             className="group flex items-center gap-2.5 px-3 py-2 transition-colors hover:bg-accent/40 focus-visible:bg-accent/40 focus-visible:outline-none"
           >
-            <ActorAvatar actorType="agent" actorId={agent.id} size="sm" enableHoverCard showStatusDot />
+            <ActorAvatar size="sm" actorType="agent" actorId={agent.id} enableHoverCard showStatusDot />
             <span className="min-w-0 flex-1 truncate text-body font-medium">
               {agent.name}
             </span>

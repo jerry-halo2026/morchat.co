@@ -267,6 +267,7 @@ export function Leaderboard({
                       ) : (
                         <>
                           <ActorAvatar
+                            size="md"
                             actorType="agent"
                             actorId={row.agentId}
                             size="md"

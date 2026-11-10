@@ -235,3 +235,109 @@ export function credentialHint(source: CredentialSource | "none"): string {
       return "公司额度不可用，请在设置里填自己的 Key 或联系管理员";
   }
 }
+
+// ---------------------------------------------------------------------------
+// Settings readback
+// ---------------------------------------------------------------------------
+
+/**
+ * What Settings may show about one stored credential. Never the key: `suffix`
+ * is the last four characters, which is what a person needs to answer "is this
+ * the key I just pasted", and is not usable to reconstruct the rest.
+ *
+ * `null` suffix with `configured: true` would be a bug (nothing to show), so the
+ * shape keeps the two consistent: configured implies a suffix.
+ */
+export interface CredentialSlotStatus {
+  readonly configured: boolean;
+  readonly suffix: string | null;
+}
+
+/**
+ * The whole answer the 模型凭据 section renders:
+ *
+ *   - per-source state, so the page can say "公司凭据已配置 ····a1b2" and
+ *     "个人 Key 未设置";
+ *   - `effective`, i.e. which one a run would use right now, which is NOT the
+ *     same question as "is the company key configured" — a company key can be
+ *     stored and still be the one the gateway rejects, in which case the retry
+ *     is what actually decided. This reports the stored preference order only;
+ *     the orchestrator's self-check remains the authority at run time.
+ *   - `keychainAvailable`, because on a machine without a usable OS keychain
+ *     both slots are permanently unavailable and the page must say so instead of
+ *     offering a form that cannot work.
+ */
+export interface CredentialStatusSummary {
+  readonly keychainAvailable: boolean;
+  readonly company: CredentialSlotStatus;
+  readonly personal: CredentialSlotStatus;
+  /** The source a run would try first and, absent a gateway rejection, use. */
+  readonly effective: CredentialSource | null;
+}
+
+/** Last four characters of a stored value; `null` when there is no value. */
+function suffixOf(value: string | null): string | null {
+  const trimmed = value?.trim() ?? "";
+  if (trimmed.length === 0) return null;
+  return trimmed.length <= 4 ? trimmed : trimmed.slice(-4);
+}
+
+/**
+ * Read the credential state for Settings. Two keychain reads, no self-check, no
+ * network: opening a settings page must not spend a request against the
+ * gateway, and must not ring the "company key is being rate-limited" bell by
+ * probing it. That is the orchestrator's job, at run time.
+ */
+export async function describeCredentials(
+  keychain: Keychain,
+  userId: string,
+): Promise<CredentialStatusSummary> {
+  if (!keychain.available) {
+    return {
+      keychainAvailable: false,
+      company: { configured: false, suffix: null },
+      personal: { configured: false, suffix: null },
+      effective: null,
+    };
+  }
+  const [companyValue, personalValue] = await Promise.all([
+    keychain.get(KEYCHAIN_SERVICE, companyAccount(userId)),
+    keychain.get(KEYCHAIN_SERVICE, personalAccount(userId)),
+  ]);
+  const companySuffix = suffixOf(companyValue);
+  const personalSuffix = suffixOf(personalValue);
+  return {
+    keychainAvailable: true,
+    company: { configured: companySuffix !== null, suffix: companySuffix },
+    personal: { configured: personalSuffix !== null, suffix: personalSuffix },
+    effective:
+      companySuffix !== null ? "company" : personalSuffix !== null ? "personal" : null,
+  };
+}
+
+/**
+ * Validation for the personal-key form, shared by the IPC handler and the page's
+ * own pre-submit check so both refuse the same inputs for the same reason.
+ *
+ * Returns `null` when the value is acceptable, otherwise a stable machine code
+ * the renderer maps to a localised message — the main process never ships
+ * user-facing prose for this surface, because it has no locale context.
+ */
+export type PersonalKeyRejection =
+  | "empty"
+  | "too-short"
+  | "not-a-key"
+  | "contains-whitespace";
+
+export function validatePersonalKey(value: string): PersonalKeyRejection | null {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return "empty";
+  // Every gateway key this repo mints or accepts is a single opaque token. A
+  // value with internal whitespace is a paste of the surrounding sentence, not
+  // a key, and storing it would only produce a 401 later with no explanation.
+  if (/\s/.test(trimmed)) return "contains-whitespace";
+  if (trimmed.length < 16) return "too-short";
+  if (!/^[\x21-\x7e]+$/.test(trimmed)) return "not-a-key";
+  return null;
+}
+

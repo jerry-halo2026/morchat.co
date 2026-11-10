@@ -1080,6 +1080,7 @@ export function AgentDropdown({
       trigger={
         <>
           <ActorAvatar
+            size="md"
             actorType="agent"
             actorId={activeAgent.id}
             size="md"
@@ -1146,6 +1147,7 @@ function AgentPickerItem({
       onClick={() => onSelect(agent)}
     >
       <ActorAvatar
+        size="md"
         actorType="agent"
         actorId={agent.id}
         size="md"
@@ -1429,6 +1431,7 @@ function SessionDropdown({
         {isCurrent && <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-brand" />}
         {agent ? (
           <ActorAvatar
+            size="md"
             actorType="agent"
             actorId={agent.id}
             size="md"
@@ -1562,6 +1565,7 @@ function SessionDropdown({
           <PopoverTrigger className="flex max-w-96 min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 transition-colors hover:bg-accent data-[popup-open]:bg-accent data-open:bg-accent">
             {triggerAgent && (
               <ActorAvatar
+                size="md"
                 actorType="agent"
                 actorId={triggerAgent.id}
                 size="md"

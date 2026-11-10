@@ -41,6 +41,7 @@ import {
   type WorkspacePathOptions,
   type WorkspacePathRequest,
 } from "../shared/workspace-window";
+import { createRuntimeConfiguratorAPI } from "./runtime-credentials";
 
 // Synchronously fetch app metadata from main at preload time so the renderer
 // can pass it into CoreProvider during the initial render — the alternative
@@ -363,6 +364,10 @@ const daemonAPI = {
     ipcRenderer.invoke("daemon:open-log-file"),
 };
 
+// 模型凭据 settings section: which credentials this device stores, and the two
+// writes that change them. Values travel in only — nothing here returns a key.
+const runtimeConfiguratorAPI = createRuntimeConfiguratorAPI();
+
 const updaterAPI = {
   onUpdateAvailable: (callback: (info: { version: string; releaseNotes?: string }) => void) => {
     const handler = (_: unknown, info: { version: string; releaseNotes?: string }) => callback(info);
@@ -397,6 +402,7 @@ if (process.contextIsolated) {
   contextBridge.exposeInMainWorld("desktopAPI", desktopAPI);
   contextBridge.exposeInMainWorld("daemonAPI", daemonAPI);
   contextBridge.exposeInMainWorld("updater", updaterAPI);
+  contextBridge.exposeInMainWorld("runtimeConfigurator", runtimeConfiguratorAPI);
 } else {
   // @ts-expect-error - fallback for non-isolated context
   window.electron = electronAPI;
@@ -406,4 +412,6 @@ if (process.contextIsolated) {
   window.daemonAPI = daemonAPI;
   // @ts-expect-error - fallback for non-isolated context
   window.updater = updaterAPI;
+  // @ts-expect-error - fallback for non-isolated context
+  window.runtimeConfigurator = runtimeConfiguratorAPI;
 }

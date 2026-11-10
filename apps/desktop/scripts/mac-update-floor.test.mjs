@@ -83,7 +83,10 @@ describe("mac-update-floor beforePack hook", () => {
     const config = yaml.load(
       readFileSync(resolve(desktopRoot, "electron-builder.yml"), "utf8"),
     );
-    expect(config.beforePack).toBe("./scripts/mac-update-floor.cjs");
+    // electron-builder takes a single `beforePack` hook, so the wired entry is
+    // the chain (scripts/before-pack.cjs) that applies this module first and
+    // then bundles the DSH runtime. The floor itself is asserted below.
+    expect(config.beforePack).toBe("./scripts/before-pack.cjs");
     expect(config.mac.minimumSystemVersion).toBe("13.0.0");
   });
 });

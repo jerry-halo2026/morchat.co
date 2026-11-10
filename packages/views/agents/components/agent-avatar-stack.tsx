@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ActorAvatar as ActorAvatarBase } from "@morechat/ui/components/common/actor-avatar";
 import { AVATAR_SIZE_PX, type AvatarSize } from "@morechat/ui/lib/avatar-size";
@@ -7,25 +7,23 @@ import { cn } from "@morechat/ui/lib/utils";
 import { useT } from "../../i18n";
 
 interface AgentAvatarStackProps {
-  // Agent ids to render, in display order. The component does NOT dedupe —
-  // callers are expected to pass a unique list (`new Set(...)` upstream).
+  // Agent ids to render, in display order. The component does NOT dedupe 鈥?  // callers are expected to pass a unique list (`new Set(...)` upstream).
   agentIds: readonly string[];
-  // Semantic avatar tier. Avatars overlap by ~30% so the visible spacing
-  // scales naturally with size. Defaults match a compact toolbar / card-corner
-  // density (sm / 20 px).
+  // Semantic avatar tier, upstream rungs (`sm` = 20px is the list/chip default).
+  // Avatars overlap by ~30% so the visible spacing scales with the slot.
   size?: AvatarSize;
   // Maximum head count before collapsing the tail into a `+N` chip. Three
-  // is the plan default — beyond that the stack visually crowds.
+  // is the plan default 鈥?beyond that the stack visually crowds.
   max?: number;
   // `half` drops opacity to 50%. Used by IssueAgentActivityIndicator to
-  // signal a queued-only state (no running task) — same heads, weakened
+  // signal a queued-only state (no running task) 鈥?same heads, weakened
   // visual.
   opacity?: "full" | "half";
   className?: string;
 }
 
 /**
- * Overlapping avatar group for agents. Pure presentational — no data
+ * Overlapping avatar group for agents. Pure presentational 鈥?no data
  * fetching, no hover handling. Wrap it in a HoverCardTrigger upstream
  * (IssueAgentActivityIndicator / WorkspaceAgentWorkingChip) to surface
  * per-agent detail.

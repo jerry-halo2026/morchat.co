@@ -1,12 +1,13 @@
-// 头像尺寸对照图（32 / 48 / 64px × 橙子 amber / 深潮 / 梅紫）
+// 头像档位对照图 —— 包豪斯 17 色板 × 上游槽位尺寸（20 / 24 / 40 / 56）
 //
-// 产品只有一档标准尺寸：**32px**（`AGENT_AVATAR_PX`）。48 / 64 只出现在单实例
-// 展示位（智能体详情页头、弹层里的身份卡），不进列表、不进卡片。16px / 24px 两列
-// 已经删掉：agent 头像不再有这两个档位。
+// 尺寸口径是**上游槽位**，不是产品统一钳制：
+//   - 20px 列表行 → CSS 层（纯色本体，无眼）
+//   - 24px 评论作者 → 静态瞳片（同一本体 + 一层 SVG 眼睛）
+//   - 40px 详情页头 / 56px 主视觉 → 引擎真身（`capEngineProps` + `clock.createEngineClock`，Chrome 里跑 rAF）
 //
-// 三列都按**产品真实渲染**出图，不手抄像素：32/48/64 都是引擎真身
-// （`capEngineProps` + `clock.createEngineClock`，Chrome 里跑 rAF）。
-// 渲染走 9222 端口的 CDP，DPR 4 截图 → docs/brand/avatar-tiers.png。
+// 每一格都按**产品真实渲染**出图，不手抄像素：20/24 用 `capStaticStyle` /
+// `capEyeFrame` 的返回值生成 DOM，40/56 直接挂 `engine/motion-engine.js` 的
+// `GrokBot`。渲染走 9222 端口的 CDP，DPR 4 截图 → docs/brand/avatar-tiers.png。
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import { registerHooks } from "node:module";
@@ -28,16 +29,22 @@ registerHooks({
   },
 });
 
-const { capEngineProps, capSeed } = await import(
+const { capEngineProps, capEyeFrame, capSeed, capStaticStyle, selectCapTier } = await import(
   pathToFileURL(path.join(agentBotDir, "caps.ts")).href
 );
-const { AVATAR_SIZE_PX } = await import(
+const { AVATAR_SLOT_PX } = await import(
   pathToFileURL(path.join(agentBotDir, "../avatar-size.ts")).href
 );
 const { PALETTES } = await import(pathToFileURL(path.join(agentBotDir, "palettes.ts")).href);
 
-const SIZE_COLUMNS = [AVATAR_SIZE_PX.lg, 48, 64];
-const ROWS = ["amber", "deep-tide", "plum"].map((id) => PALETTES.find((p) => p.id === id));
+/** 上游槽位：列表 20 / 评论 24 / 详情 40 / 主视觉 56。 */
+const SIZE_COLUMNS = [
+  { px: AVATAR_SLOT_PX.list, slot: "列表", hint: "列表行" },
+  { px: AVATAR_SLOT_PX.comment, slot: "评论", hint: "评论作者" },
+  { px: AVATAR_SLOT_PX.detail, slot: "详情", hint: "详情页头" },
+  { px: AVATAR_SLOT_PX.hero, slot: "主视觉", hint: "单实例" },
+];
+const ROWS = ["amber", "deep-tide", "ember"].map((id) => PALETTES.find((p) => p.id === id));
 const SHAPE = "blob";
 const AGENT_ID = "mika"; // 线上内置橙子的 agent id（cap:blob:amber）
 
@@ -53,22 +60,40 @@ const cssText = (style) =>
     })
     .join(";");
 
-/** 三列都是引擎挂载点。颜色走 `capEngineProps`，类规则直接引产品自己的 CSS。 */
-function engineCell(palette, size) {
-  return `<div class="cell"><div class="cap cap-${size}" data-slot="cap-avatar" data-tier="animated" data-engine data-shape="${SHAPE}" data-size="${size}" data-palette="${palette.id}"></div></div>`;
+// 每一列画哪一层，由 `selectCapTier(px, true)` 决定：20 → CSS 纯色本体，
+// 24 → 静态瞳片，40 / 56 → 引擎真身（详情页头、主视觉这类单实例展示位才会
+// 开动画，列表行保持静态帧）。
+for (const column of SIZE_COLUMNS) {
+  column.tier = selectCapTier(column.px, true);
 }
 
 const engineSpecs = [];
-for (const palette of ROWS) {
-  for (const size of SIZE_COLUMNS) {
+
+/** 一格里到底画什么，由 `selectCapTier` 决定，而不是由这张图自己猜。 */
+function cell(palette, column) {
+  const cap = { paletteId: palette.id, bodyId: SHAPE };
+  const tier = selectCapTier(column.px, true);
+  const attrs = `data-slot="cap-avatar" data-tier="${tier}" data-shape="${SHAPE}" data-size="${column.px}" data-palette="${palette.id}"`;
+
+  if (tier === "animated") {
     engineSpecs.push({
-      shape: SHAPE,
-      size,
       palette: palette.id,
-      props: capEngineProps({ paletteId: palette.id, bodyId: SHAPE }, size, AGENT_ID),
+      size: column.px,
+      shape: SHAPE,
+      props: capEngineProps(cap, column.px, AGENT_ID),
       seed: capSeed(AGENT_ID),
     });
+    return `<div class="cell"><div class="cap" ${attrs} data-engine></div></div>`;
   }
+
+  const body = `<span class="cap-body" aria-hidden="true" style="${cssText(capStaticStyle(cap, column.px))}"></span>`;
+  const frame = capEyeFrame(cap, column.px);
+  const eyes = frame
+    ? `<svg class="cap-eyes" aria-hidden="true" viewBox="${frame.viewBox}">${frame.eyes
+        .map((eye) => `<circle cx="${eye.cx}" cy="${eye.cy}" r="${eye.r}" fill="${frame.fill}" />`)
+        .join("")}</svg>`
+    : "";
+  return `<div class="cell"><div class="cap cap-static" ${attrs}>${body}${eyes}</div></div>`;
 }
 
 const row = (palette) => `
@@ -78,21 +103,19 @@ const row = (palette) => `
       <span class="row-name">${palette.id}</span>
       <span class="row-hex">${palette.a} / ${palette.b}</span>
     </div>
-    ${SIZE_COLUMNS.map((size) => engineCell(palette, size)).join("")}
+    ${SIZE_COLUMNS.map((column) => cell(palette, column)).join("")}
   </div>`;
 
 const HEADER = SIZE_COLUMNS.map(
-  (size) =>
-    `<div class="col-head"><span class="px">${size}</span><span class="px-unit">px</span>${
-      size === SIZE_COLUMNS[0] ? '<span class="px-tag">标准</span>' : ""
-    }</div>`,
+  (column) =>
+    `<div class="col-head"><span class="px">${column.px}</span><span class="px-unit">px</span><span class="px-tag">${column.slot}</span></div>`,
 ).join("");
 
 const panel = `
 <div class="panel">
   <div class="title-row">
-    <div class="title">智能体头像 · 纯色本体 + 眼睛</div>
-    <div class="subtitle">标准 32px；48 / 64 仅用于单实例展示（详情页头、身份弹层）</div>
+    <div class="title">包豪斯色板 · 上游槽位尺寸</div>
+    <div class="subtitle">列表 20 / 评论 24 / 详情 40 / 主视觉 56 —— 按调用方给的槽位渲染，不做统一钳制</div>
   </div>
   <div class="grid">
     <div class="row-head-spacer"></div>
@@ -101,11 +124,13 @@ const panel = `
   </div>
   <div class="foot">
     <span class="foot-key">amber</span> 橙子（cap:blob:amber）·
-    <span class="foot-key">deep-tide</span> / <span class="foot-key">plum</span> 另外两个色板 ·
-    形状一致性来自 cap-v1 哈希，颜色来自 palettes.ts（a = 本体，b = 眼睛）<br>
-    三档都是引擎真身：它跑参考实现的 idle 姿态（17° / −14° / 29°），所以眼睛略偏上、
-    带一点斜和视线。列表里默认停在静态帧（animated={false}），只有单实例展示位开动画；
-    16px / 24px 两档已从产品里删除，不再出现在本图上。
+    <span class="foot-key">deep-tide</span> / <span class="foot-key">ember</span> 另外两个色板 ·
+    本体 = <code>palette.a</code> 纯色，眼睛 = <code>palette.b</code>，每对对比 ≥ 3:1<br>
+    三档分层：<span class="foot-key">≤20 无眼</span>（纯色本体，列表行）·
+    <span class="foot-key">21–31 静态瞳片</span>（同一本体 + 一层 SVG 眼睛，评论作者）·
+    <span class="foot-key">≥32 引擎</span>（<code>engine/motion-engine.js</code>，视线/眨眼/姿态，
+    详情页头与主视觉）。40 / 56 两列跑参考实现的 idle 姿态（17° / −14° / 29°），
+    所以眼睛略偏上、带一点斜和视线。
   </div>
 </div>`;
 
@@ -131,9 +156,9 @@ const html = `<!doctype html>
   .grid {
     margin-top: 16px;
     display: grid;
-    grid-template-columns: 118px repeat(3, 96px);
+    grid-template-columns: 132px repeat(4, 104px);
     align-items: end;
-    column-gap: 10px;
+    column-gap: 8px;
   }
   .col-head {
     display: flex; align-items: baseline; gap: 2px; justify-content: center;
@@ -163,8 +188,9 @@ const html = `<!doctype html>
   ${productEngineCss}
   .foot {
     margin-top: 8px; padding-top: 10px; border-top: 1px solid #ececE8;
-    font-size: 10.5px; color: #8a8a84; letter-spacing: 0.005em;
+    font-size: 10.5px; color: #8a8a84; letter-spacing: 0.005em; line-height: 1.55;
   }
+  .foot code { font-size: 10px; color: #55554f; }
   .foot-key { color: #55554f; font-weight: 600; }
   .foot-key + * { font-weight: 400; }
 </style></head>
@@ -173,7 +199,7 @@ const html = `<!doctype html>
 await fs.writeFile(path.join(here, "index.html"), html);
 await fs.writeFile(
   path.join(here, "specs.json"),
-  `${JSON.stringify(engineSpecs.map((s) => ({ ...s })), null, 2)}\n`,
+  `${JSON.stringify(engineSpecs, null, 2)}\n`,
 );
 
 /* ------------------------------ 引擎 bundle ------------------------------ */
@@ -246,7 +272,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 await send("Runtime.enable");
 await send("Page.enable");
 await send("Emulation.setDeviceMetricsOverride", {
-  width: 118 + 3 * 96 + 3 * 10 + 60,
+  width: 132 + SIZE_COLUMNS.length * 104 + SIZE_COLUMNS.length * 8 + 60,
   height: 640,
   deviceScaleFactor: 4,
   mobile: false,
@@ -260,7 +286,9 @@ const box = await send("Runtime.evaluate", {
     const el = document.querySelector('.panel');
     const r = el.getBoundingClientRect();
     const engines = [...document.querySelectorAll('[data-engine] svg')].length;
-    return JSON.stringify({ w: Math.ceil(r.width), h: Math.ceil(r.height), engines });
+    const staticEyes = [...document.querySelectorAll('.cap-eyes')].length;
+    const flatBodies = [...document.querySelectorAll('.cap-body')].length;
+    return JSON.stringify({ w: Math.ceil(r.width), h: Math.ceil(r.height), engines, staticEyes, flatBodies });
   })()`,
   returnByValue: true,
 });

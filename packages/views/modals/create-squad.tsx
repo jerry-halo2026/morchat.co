@@ -301,7 +301,7 @@ function LeaderPicker({
         >
           <PopoverTrigger className="flex w-full min-w-0 items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-left text-body transition-colors hover:bg-muted">
             {selected ? (
-              <ActorAvatar actorType="agent" actorId={selected.id} size="sm" showStatusDot />
+              <ActorAvatar size="sm" actorType="agent" actorId={selected.id} showStatusDot />
             ) : (
               <UserPlus className="h-4 w-4 shrink-0 text-muted-foreground" />
             )}
@@ -345,7 +345,7 @@ function LeaderPicker({
                         setFilter("");
                       }}
                     >
-                      <ActorAvatar actorType="agent" actorId={a.id} size="sm" showStatusDot />
+                      <ActorAvatar size="sm" actorType="agent" actorId={a.id} showStatusDot />
                       <span className="truncate">{a.name}</span>
                     </PickerItem>
                   ))}
@@ -363,7 +363,7 @@ function LeaderPicker({
                         setFilter("");
                       }}
                     >
-                      <ActorAvatar actorType="agent" actorId={a.id} size="sm" showStatusDot />
+                      <ActorAvatar size="sm" actorType="agent" actorId={a.id} showStatusDot />
                       <span className="truncate">{a.name}</span>
                     </PickerItem>
                   ))}
@@ -471,7 +471,6 @@ function AdditionalMembersPicker({
             nesting interactive content. Base UI injects click/keyboard/ARIA
             wiring into the rendered element. */}
         <PopoverTrigger
-          nativeButton={false}
           render={
             <div
               role="combobox"
@@ -536,7 +535,7 @@ function AdditionalMembersPicker({
                       toggle({ type: "agent", id: a.id, name: a.name })
                     }
                   >
-                    <ActorAvatar actorType="agent" actorId={a.id} size="sm" showStatusDot />
+                    <ActorAvatar size="sm" actorType="agent" actorId={a.id} showStatusDot />
                     <span className="truncate">{a.name}</span>
                   </PickerItem>
                 ))}
@@ -552,7 +551,7 @@ function AdditionalMembersPicker({
                       toggle({ type: "agent", id: a.id, name: a.name })
                     }
                   >
-                    <ActorAvatar actorType="agent" actorId={a.id} size="sm" showStatusDot />
+                    <ActorAvatar size="sm" actorType="agent" actorId={a.id} showStatusDot />
                     <span className="truncate">{a.name}</span>
                   </PickerItem>
                 ))}
@@ -591,7 +590,7 @@ function MemberChip({
 }) {
   const { t } = useT("modals");
   return (
-    <span className="inline-flex items-center gap-1 rounded-md border bg-background px-1.5 py-0.5 text-caption">
+    <span className="inline-flex items-center gap-1 rounded-full border bg-background px-1.5 py-0.5 text-caption">
       <ActorAvatar actorType={m.type} actorId={m.id} size="xs" />
       <span className="max-w-[120px] truncate">{m.name}</span>
       <TooltipHint label={t(($) => $.create_squad.members_remove_aria, { name: m.name })}>
@@ -603,7 +602,7 @@ function MemberChip({
             onRemove();
           }}
           aria-label={t(($) => $.create_squad.members_remove_aria, { name: m.name })}
-          className="rounded-sm text-muted-foreground hover:text-foreground"
+          className="rounded-full text-muted-foreground hover:text-foreground"
         >
           <X className="h-3 w-3" />
         </button>

@@ -2,7 +2,7 @@
 
 import { useId, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, BookOpenText, Bot, Monitor, Plus, User, UserPlus, Users } from "@morechat/ui/icons";
+import { BarChart3, BookOpenText, Bot, FileText, Monitor, Package, Plus, User, UserPlus, Users } from "@morechat/ui/icons";
 import { cn } from "@morechat/ui/lib/utils";
 import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
 import { IconButton } from "@morechat/ui/components/common/icon-button";
@@ -311,6 +311,18 @@ export function TeamPanel() {
 
         <PanelSection label={t(($) => $.panels.team.resources)}>
           <PanelList>
+            <PanelLink
+              href={p.presets()}
+              icon={<Package />}
+              label={t(($) => $.nav.presets)}
+              active={isPathWithin(pathname, p.presets())}
+            />
+            <PanelLink
+              href={p.knowledge()}
+              icon={<FileText />}
+              label={t(($) => $.nav.knowledge)}
+              active={isPathWithin(pathname, p.knowledge())}
+            />
             <PanelLink
               href={p.skills()}
               icon={<BookOpenText />}

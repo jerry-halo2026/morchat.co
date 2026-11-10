@@ -299,6 +299,7 @@ function MemberProperties({ member }: { member: MemberWithUser }) {
               className="-mx-2 flex min-h-8 items-center gap-2 rounded-md px-2 text-caption transition-colors hover:bg-accent/50"
             >
               <ActorAvatar
+                size="xs"
                 actorType="agent"
                 actorId={agent.id}
                 size="xs"

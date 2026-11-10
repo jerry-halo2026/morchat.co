@@ -41,6 +41,11 @@ function run(command, args, { shell = false, env = process.env } = {}) {
 
 const node = process.execPath;
 run(node, [join(here, "bundle-cli.mjs")]);
+// The DSH runtime + portable Node the first-launch bootstrap probes
+// (src/main/dsh-bootstrap.ts). Idempotent: an unchanged tree is a ~2 s no-op,
+// and no DSH install on this machine degrades to a warning, not a failed dev
+// start — the app then reports "no runtime" instead of pretending it has one.
+run(node, [join(here, "bundle-dsh.mjs")]);
 run(node, [join(here, "brand-dev-electron.mjs")]);
 
 const isWin = process.platform === "win32";

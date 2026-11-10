@@ -373,13 +373,7 @@ export function AgentCreatePanel({
     (baseVersionCheck.state !== "ok" ||
       (usesExplicitFields && fieldVersionCheck.state !== "ok"));
 
-  // An opener's prompt (⌘K "Hand to agent") is newer than any unfinished
-  // draft, so it wins, and is written through so a mode switch keeps it.
-  const seedPrompt = typeof data?.prompt === "string" && data.prompt.trim() ? data.prompt : null;
-  const initialPrompt = seedPrompt ?? (draft.agent.prompt || "");
-  useEffect(() => {
-    if (seedPrompt) setAgent({ prompt: seedPrompt });
-  }, [seedPrompt, setAgent]);
+  const initialPrompt = draft.agent.prompt || (data?.prompt as string) || "";
   // The editor is uncontrolled — we read the latest markdown via the ref at
   // submit/switch time. `hasContent` mirrors emptiness so the Create button
   // can disable correctly without a controlled-input rerender on every keystroke.
@@ -916,7 +910,7 @@ export function AgentCreatePanel({
           {parentIssueId && (
             <span
               data-testid="agent-sub-issue-chip"
-              className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-caption text-muted-foreground"
+              className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-caption text-muted-foreground"
               title={t(($) => $.create_issue.agent.sub_issue_of, {
                 identifier: parentIssueIdentifier ?? "",
               })}
@@ -1083,7 +1077,7 @@ function ActorPicker({
                     setOpen(false);
                   }}
                 >
-                  <ActorAvatar actorType="agent" actorId={a.id} size="sm" />
+                  <ActorAvatar size="sm" actorType="agent" actorId={a.id} />
                   <span className="truncate">{a.name}</span>
                 </PickerItem>
               ))}

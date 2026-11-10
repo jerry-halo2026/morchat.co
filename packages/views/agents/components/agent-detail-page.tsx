@@ -634,6 +634,7 @@ export function AgentDetailPage({ agentId }: AgentDetailPageProps) {
         leaf={
           <span className="flex min-w-0 items-center gap-1.5 text-foreground">
             <ActorAvatar
+              size="xs"
               actorType="agent"
               actorId={agent.id}
               size="xs"

@@ -426,6 +426,7 @@ function AgentStack({ agentIds }: { agentIds: string[] }) {
           className="inline-flex rounded-full ring-2 ring-background"
         >
           <ActorAvatar
+            size="sm"
             actorType="agent"
             actorId={id}
             size="sm"

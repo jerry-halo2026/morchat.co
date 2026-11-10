@@ -29,9 +29,13 @@ import { ipcMain, safeStorage } from "electron";
 
 import {
   clearPersonalCredential,
+  describeCredentials,
   storePersonalCredential,
+  validatePersonalKey,
   CredentialUnavailableError,
   NoCredentialError,
+  type CredentialStatusSummary,
+  type PersonalKeyRejection,
 } from "./credential";
 import { createBackupStore, createNodeConfiguratorFs } from "./fs";
 import { createRuntimeConfigurator } from "./index";
@@ -48,6 +52,7 @@ import type {
 } from "./types";
 
 export const RUNTIME_CONFIGURATOR_STATUS_CHANNEL = "runtime-configurator:status";
+export const RUNTIME_CONFIGURATOR_GET_STATUS_CHANNEL = "runtime-configurator:get-status";
 export const RUNTIME_CONFIGURATOR_SET_PERSONAL_KEY_CHANNEL =
   "runtime-configurator:set-personal-key";
 export const RUNTIME_CONFIGURATOR_CLEAR_PERSONAL_KEY_CHANNEL =
@@ -66,6 +71,13 @@ export interface RuntimeConfiguratorStatus {
   readonly credentialSource?: CredentialSource;
   readonly applyId?: string;
   readonly updatedAt?: string;
+  /**
+   * Which credentials are stored for the signed-in account, so the 模型凭据
+   * section can render without waiting for an apply. Absent before sign-in and
+   * when the keychain read itself failed; its absence means "unknown", and the
+   * page asks for `get-status` rather than drawing a conclusion.
+   */
+  readonly credentials?: CredentialStatusSummary;
 }
 
 export interface RuntimeConfiguratorHandle {
@@ -74,6 +86,13 @@ export interface RuntimeConfiguratorHandle {
   /** Forgets the account (logout / account switch). */
   readonly reset: () => void;
   readonly status: () => RuntimeConfiguratorStatus;
+  /**
+   * Status plus a *fresh* credential readback, for a settings page opening
+   * long after the last state change. Read-only: it neither re-runs the apply
+   * nor re-broadcasts, so a page that refreshes on mount cannot loop with the
+   * status subscription.
+   */
+  readonly getStatus: () => Promise<RuntimeConfiguratorStatus>;
   readonly setPersonalKey: (
     userId: string,
     value: string,
@@ -264,6 +283,37 @@ export function installRuntimeConfigurator(
     return runApply(userId, false);
   }
 
+  /**
+   * The credential half of a status, read fresh from the keychain. Absent
+   * before sign-in, and swallowed (with a desensitised log line) when the
+   * keychain read itself fails — a status that cannot answer "what is stored"
+   * is still a status worth showing, but it must not guess.
+   */
+  async function readCredentials(): Promise<CredentialStatusSummary | undefined> {
+    const userId = currentUserId;
+    if (!userId) return undefined;
+    try {
+      return await describeCredentials(keychain, userId);
+    } catch (err) {
+      logger.warn("runtime-configurator: credential status read failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return undefined;
+    }
+  }
+
+  /**
+   * Publish a state change together with the credential readback. Every path
+   * that stores or clears a key goes through here, so the renderer never has to
+   * assume that "configured" still holds after a click it just made.
+   */
+  async function publishWithCredentials(
+    next: RuntimeConfiguratorStatus,
+  ): Promise<RuntimeConfiguratorStatus> {
+    const credentials = await readCredentials();
+    return publish({ ...next, ...(credentials ? { credentials } : {}) });
+  }
+
   async function runApply(
     userId: string,
     force: boolean,
@@ -280,7 +330,7 @@ export function installRuntimeConfigurator(
       logger.info("runtime-configurator: skipped apply", {
         reason: "gateway-not-configured",
       });
-      return publish({
+      return await publishWithCredentials({
         state: "unconfigured",
         detail: "未配置：还没有收到网关地址",
         updatedAt: now().toISOString(),
@@ -308,7 +358,7 @@ export function installRuntimeConfigurator(
       const outcome = await configurator.apply(profile);
       const updatedAt = now().toISOString();
       if (outcome.ok) {
-        return publish({
+        return await publishWithCredentials({
           state: "configured",
           detail:
             outcome.changed.length === 0
@@ -321,7 +371,7 @@ export function installRuntimeConfigurator(
           updatedAt,
         });
       }
-      return publish({
+      return await publishWithCredentials({
         state: "unconfigured",
         detail: describeFailure(outcome.failure),
         ...(lastCredentialSource() ? { credentialSource: lastCredentialSource() } : {}),
@@ -341,7 +391,7 @@ export function installRuntimeConfigurator(
       logger.warn("runtime-configurator: apply failed", {
         reason: err instanceof Error ? err.name : "unknown",
       });
-      return publish({
+      return await publishWithCredentials({
         state: "unconfigured",
         detail,
         ...(credentialSource ? { credentialSource } : {}),
@@ -359,14 +409,20 @@ export function installRuntimeConfigurator(
     userId: string,
     value: string,
   ): Promise<RuntimeConfiguratorStatus> {
-    const trimmed = value.trim();
-    if (trimmed.length === 0) {
-      return publish({ ...status, detail: "个人 Key 为空，未保存" });
+    const rejection = validatePersonalKey(value);
+    if (rejection) {
+      // The renderer maps the code to its own copy; the main process has no
+      // locale context, and the detail string stays content-free.
+      logger.warn("runtime-configurator: personal key rejected", { reason: rejection });
+      return await publishWithCredentials({ ...status, detail: "个人 Key 未保存：格式不符合要求" });
     }
     if (!keychain.available) {
-      return publish({ ...status, detail: "本机没有可用的系统钥匙串，无法保存 Key" });
+      return await publishWithCredentials({
+        ...status,
+        detail: "本机没有可用的系统钥匙串，无法保存 Key",
+      });
     }
-    await storePersonalCredential(keychain, userId, trimmed);
+    await storePersonalCredential(keychain, userId, value.trim());
     logger.info("runtime-configurator: personal key stored", { only_this_device: true });
     return runApply(userId, true);
   }
@@ -377,6 +433,16 @@ export function installRuntimeConfigurator(
     await clearPersonalCredential(keychain, userId);
     logger.info("runtime-configurator: personal key cleared");
     return runApply(userId, true);
+  }
+
+  /**
+   * Fresh status for a page that is opening, not reacting. Reads the keychain
+   * but changes nothing and broadcasts nothing: a settings page that refreshes
+   * on mount must not be able to feed itself through the status subscription.
+   */
+  async function getStatus(): Promise<RuntimeConfiguratorStatus> {
+    const credentials = await readCredentials();
+    return credentials ? { ...status, credentials } : status;
   }
 
   installIpc();
@@ -391,17 +457,25 @@ export function installRuntimeConfigurator(
   });
 
   function installIpc(): void {
+    ipcMain.removeHandler(RUNTIME_CONFIGURATOR_GET_STATUS_CHANNEL);
     ipcMain.removeHandler(RUNTIME_CONFIGURATOR_SET_PERSONAL_KEY_CHANNEL);
     ipcMain.removeHandler(RUNTIME_CONFIGURATOR_CLEAR_PERSONAL_KEY_CHANNEL);
+
+    // Page initialisation: the renderer asks once on mount instead of relying
+    // on a push it may have missed (a window opened after the last apply never
+    // saw one).
+    ipcMain.handle(RUNTIME_CONFIGURATOR_GET_STATUS_CHANNEL, async () => getStatus());
 
     ipcMain.handle(
       RUNTIME_CONFIGURATOR_SET_PERSONAL_KEY_CHANNEL,
       async (_event, value: unknown) => {
         if (typeof value !== "string") return { ok: false, reason: "invalid" } as const;
+        const rejection: PersonalKeyRejection | null = validatePersonalKey(value);
+        if (rejection) return { ok: false, reason: rejection } as const;
         const userId = currentUserId;
         if (!userId) return { ok: false, reason: "signed-out" } as const;
         const next = await setPersonalKey(userId, value);
-        return { ok: next.state === "configured", status: next } as const;
+        return { ok: true, status: next } as const;
       },
     );
     ipcMain.handle(
@@ -424,6 +498,7 @@ export function installRuntimeConfigurator(
       publish({ state: "idle", detail: "已退出登录" });
     },
     status: () => status,
+    getStatus,
     setPersonalKey,
     clearPersonalKey,
   };
