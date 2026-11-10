@@ -1,0 +1,72 @@
+{
+  "previousSnapshotSha256": "d7bcac65e293a63531ae2d059ad3246c5bfd356a77af2efe2ade6bad5f6198bf",
+  "windows": "SOURCE_FIX1_ACTIVE_NATIVE_ALL_CLOSED_TWO_PE_NEVER_RUN",
+  "agent": "/root",
+  "allRepoSourceWriters": "CLOSED",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "SQLBinding": {
+    "route": "gpt-6.1-sol high",
+    "runtimeLeaseRelease": "NOT_CREATED_NOT_AUTHORIZED",
+    "handover": "0241d025d45cad0048da970adf0d1d3e52a114172d6230a26d638a744d3fcb1f",
+    "review": "e87cbcca37ee699678c5cd97430a5ab9f8754c8c1790e796e02cd010a63a787a",
+    "status": "SCOPED_RESOURCE_BINDING_SOURCE_ACTIVE",
+    "writer": "/root/admin_sqlfix_impl",
+    "r2TF": "c5390bdd0c69aa3317be387447bb102d64236c5eaf32984cf97e29c6843bee3b",
+    "actualExtraRead": 0,
+    "newSafetyNegative": "NOT_RUN_NOT_BOUND",
+    "oldResult": "FAIL3_CLAIM_PERMANENT_CONSUMED",
+    "actualOldRead": 1,
+    "amendment": "8a95370b5a2e1b43c5be0125095239f2963893e52cc6180e92afd98123596271"
+  },
+  "checkpoint": "R81",
+  "previousReviewSha256": "2d5f6edd0842caeff41bd665f9334c30e4b66f746d055ef008597a5a4bc73258",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "schemaVersion": 1,
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "previousCheckpoint": "R80",
+  "previousSha256": "622b47b8ab6e5059093d3cd9004e72e3a5d5a18dedcb81439079d721ca24166d",
+  "creator": {
+    "status": "ACTUAL_ONE_STOPPED_CREATED_NOTSTARTED",
+    "readQueryGrant": 0,
+    "actualCID": "5db1b87bace3f37cd48849be82fb9bbd24b438103f400c43e1b9cb575cf6ed2b",
+    "actualCreateReview": "3a8e62717d3a4678a0a3c78ffa2bda33fd3662f8e552c628bb0655294a8212df",
+    "createBindingReview": "36f8c0a11e78ece9e7b026c462a29c71709ec0a71ed376ab43a495d7fa35f02d",
+    "source": "20d9dee495590f44421cdce78b4f0397d5f445df975735967f75f6dc52308492",
+    "absenceReceipt": "090a315cdf98cc74a827bbc506987a9a59a5d09c7603b7d61e322a6a1c5350aa",
+    "nativeHandle": "5ee4d5c2a40062661522cc05a830d6126d73c7acd89a368412c06d9c8abb3432",
+    "starts": 0,
+    "sourceReview": "769e41fa4d91d4ce8b2e7478d551c064109083934184dd571bd2a7cd759de885",
+    "creatorReceipt": "157a14b963669d9f52f036808d8152c45350f80389fe501182dca5c9bdc0725c"
+  },
+  "files": [
+    {
+      "sha256": "955c144a0414d39d1f0ee804b0ad0d72d940e3ff21561a63b7688a957c9368cc",
+      "appendOnly": true,
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeBytes": 178337,
+      "beforeSha256": "cd68c698d8943b8896a34dfb4d624632c39d1a93833493c15c7dc411dc57f63d"
+    },
+    {
+      "sha256": "21286420aba2dc133c63b260e2f49bd229150227088e545e999159e7527a1ce1",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-results.md",
+      "beforeBytes": 169501,
+      "beforeSha256": "bc2c017446601f960baad6c0cc6c56d6eb0b5cd91ffacdc48f08dea8ecab2e96"
+    },
+    {
+      "sha256": "c04e60b9c5cd2659a36f06822cce3c33b76352bf473fc0643391136376748943",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "beforeBytes": 29607,
+      "beforeSha256": "ec302694cb0545bd4ab5a287b1c8b50feb2b4ab38301edcd5982fd3e99ead032"
+    },
+    {
+      "createdSincePreviousCheckpoint": true,
+      "immutableSourceHandoverBinding": true,
+      "path": "docs/tasks/contracts/R1-03B-ADMIN-SQLCOMPAT-r2-resource-binding-test-frozen.json",
+      "sha256": "c5390bdd0c69aa3317be387447bb102d64236c5eaf32984cf97e29c6843bee3b"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "checkpoint": "R128",
+  "root": "/root",
+  "model": "unknown",
+  "baseline": "efdc54aaf3fcc4e3eaee369b980ac054ccc0bb54",
+  "branch": "codex/round1-continuous",
+  "stagedCount": 0,
+  "classification": "PROGRESS_COMPLETE_SOURCE_ABI_ACCEPTED_FRESH_COMPILE_PREP_ACTIVE",
+  "sourceReview": "89b1f7e2f63a00e4380093b944297b45bc0939532982cf8f91075e38b1801f75",
+  "sourceRootAcceptance": "f76aeff0a68cdc36806f9c4ca46b17c3c03b69f1979fa78f1c0c0fcc53b1815d",
+  "pureIndependentPass": 104,
+  "nativeSemanticProof": false,
+  "activationGap": "SYNTHETIC_CALLERSCOPE_NO_MECHANICAL_ROOT_ENTRY_GUARD",
+  "nextOwner": "/root/apiset_compile_prep",
+  "nextOwnerRoute": "gpt-6.1-sol high",
+  "compileBrief": "0a0fac9345a4f6a968700b17b505d4ff5cd895769e365bacafaba93a8b8e80fb",
+  "compileStatus": "PREP_ACTIVE_RECIPE_NOT_DELIVERED",
+  "compilerPermission": false,
+  "loadPermission": false,
+  "nativePermission": false,
+  "rootOwnedExecLive": false,
+  "productModelCalls": 0,
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "docsReview": "PENDING_AT_CAPTURE",
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "b1625186577b8ad5f05e5c0a20a598055835c881029f7e87ada8b1be67204ebe",
+      "sha256": "d9da99007b62906a11f420dab65a4e1833dcee9a5f26ed3274e940e455216656",
+      "bytes": 343196
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "ef7aaedd2c9aefdedbd173bc46601689faf89659ab750dea0bca4f25e6647106",
+      "sha256": "18e13562541fdbf4380efec98d61de8b4d5b3d9c1d09a5e68b65a313b031cfe0",
+      "bytes": 324694
+    },
+    {
+      "path": "docs/tasks/R1-02E-api-set-query-source.md",
+      "beforeSha256": "d6345ff395e118d3318b5bdd12e4161d0e8c09985c94f553dafab321ba7c7b56",
+      "sha256": "b498337457a3511416cb4575b7fb385efa5032bc13df294d2ad7aa7fd5e0e270",
+      "bytes": 15754
+    },
+    {
+      "path": "docs/tasks/R1-02E-api-set-query-compile.md",
+      "beforeSha256": "1c6fcbea3c59432ce66d9a4e82c73ac938b2d817836ff83c25a4a48ca0d8b3c8",
+      "sha256": "6c6f542c73575a32fad8e243492a875bd54b1a27bc88ad5f3aaf122eb99cb8af",
+      "bytes": 4157
+    }
+  ],
+  "utc": "2026-11-09T05:22:20.3745309Z"
+}

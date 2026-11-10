@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R91",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "branch": "codex/round1-continuous",
+  "previousCheckpoint": "R90",
+  "previousSha256": "2715d1ed8ef047e6650c8b6a529bdac6d72041dc1a3e369fb83b129ce5675210",
+  "previousReviewSha256": "3d0290ed323c07e45b263d2f64777a697b5072e055c8e0fbb16814ba29de8a13",
+  "previousSnapshotSha256": "b337b05eadde7e7f2352c520e95c0d939d66934cd065b476a95b2f373d2370ef",
+  "currentProgress": "ACTUAL_INSTALL_FAILURE_EVIDENCE_PLUS_SOURCE_HANDOFF",
+  "installer": {
+    "runtimeBindingReview": "a3ade2b154b4be6da4173db584494e73bb2072240cad3847518a6f1f4ff8a22b",
+    "sourcePreservation": "2aa39edbc6005bb9e6b74acbf41a3f0001e00aa990daef087a83bdc5c0beefbe",
+    "oldClaims": "CONSUMED_NO_RETRY",
+    "checkers": "NOT_RUN",
+    "actualObservation": "7da4aea957adebd6e545e3af54d624661d8e6343d4eca7a5c906dc157591468a",
+    "actualIndependentReview": "d56a0c518b84d2f2e08ce9f7e2c9dd30cb939dc316c6eff260df8d4e9b131964",
+    "beforeAfterSHA": "a60e4f2c04058955ed75cd9ebc4c4f3a9ff644c18afd8af877af78a545f793aa",
+    "tableReview": "9b4471de3ffe177c192f37259c54f9f88a002e6524e51879bb9e145a5e090c19",
+    "actualNode": "STARTED_EXIT1",
+    "result": "20e05019de0dda5406dba428eda96e192d937bb3bf81ab767ffbe2766737eb8e",
+    "actualInstall": "FAIL_UNKNOWN_THREE_OPTIONS",
+    "tablePaths": 8359,
+    "RCA": "ACTIVE_READONLY_ORIGINAL_OWNER"
+  },
+  "NativePin": {
+    "host": "163P0F_SYNTHETIC_ONLY",
+    "historicalCause": "UNKNOWN",
+    "sourceReview": "216e5623ebe2694afbc6b85e8399f09d5dbaed52cbd9c83f8312e979f2e925b8",
+    "runtimeReview": "PENDING",
+    "actual": "NOT_RUN",
+    "RootPreparation": "f97278140700c52f367146de76779de6db5dbec8bbed41077173dfbccbc3bad6",
+    "rootRelease": "1d681b14a208f9aa1a6f88082f7bb5fcecca4e154cf1a13060b11350f9327b22",
+    "driver": "8d9ee98946fa70f0cb9561ecdc06b17be289b0e80854ae0f7f619325e768f0a5",
+    "extraPrivateRead": 0
+  },
+  "WindowsR2": {
+    "native": "CLOSED",
+    "status": "SOURCE_FIX1_ACTIVE_SIX_CANDIDATES",
+    "finalHandoff": "NOT_DONE",
+    "observer": "UNBOUND"
+  },
+  "allRepoSourceWriters": "CLOSED_DOCS_ONLY_AFTER_ACTUAL_COMPLETE",
+  "goal": "ACTIVE",
+  "fullGoal": "ORIGINAL_THREE_SLICES_SAME_CANDIDATE_ALL_HARD_GATES_UNCHANGED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "files": [
+    {
+      "beforeBytes": 211946,
+      "sha256": "b2a2b586603919513db5278f7a303f885aa4053d43e7d7c5ba9aa68d6030e4d2",
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "c756f8090163a0c588dac274895d01dc9eb45ec35415a719d1325e852096c463",
+      "appendOnly": true
+    },
+    {
+      "beforeBytes": 201985,
+      "sha256": "c847ab41d2706a901142fc40ba6329898944efb3919b0760b6c2e9bc4705b2d1",
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "e21fab91670aa28fcb676f762828d7d7f7ebef5317fe5364d409245270062920",
+      "appendOnly": true
+    },
+    {
+      "beforeBytes": 16167,
+      "sha256": "7a5a1e300a5012dfc34389973cebd6ead23cf07283cb7981418e6a8b7ec3f531",
+      "path": "docs/tasks/R1-00-baseline.md",
+      "beforeSha256": "3a72cac85397a2f12f381b97c279e7a5c254e723518fa929593c169ccbe740c3",
+      "appendOnly": true
+    },
+    {
+      "beforeBytes": 1551,
+      "sha256": "4b86de71eb62953614d3ee8945735c929fcae88c187d970be2cfd0989abf3ae9",
+      "path": "docs/tasks/R1-00-pnpm-install-runner.md",
+      "beforeSha256": "482136a9b2c2f3128e049d4904591dc6c2659c553c6cd2312e11e84532668a7e",
+      "appendOnly": true
+    },
+    {
+      "beforeBytes": 548,
+      "sha256": "03481a7e1b2b355eef14d2ce173911a2ed07196cf3de703419a59603679ad868",
+      "path": "docs/tasks/R1-03B-native-pins-diagnostic.md",
+      "beforeSha256": "53cadfb3eee0aaa63d9fcf21a5c06efd76ef98617396b000e9b4ea9d6dc5d09e",
+      "appendOnly": true
+    },
+    {
+      "beforeBytes": 1064,
+      "sha256": "749382ee10f6dcb088c4b14e0114e15efeac7259699467fb95ac3257fca1a20f",
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "beforeSha256": "b3d1f56e15a96335fd06895401095ec5af88574ee05059e3a04dafce2fb2588b",
+      "appendOnly": true
+    },
+    {
+      "beforeBytes": 31804,
+      "sha256": "bb607ede5d54173c71b2871438e9f08285f26b8e757e55bd812086924da3b66d",
+      "path": "docs/tasks/R1-02-execution.md",
+      "beforeSha256": "b79eeb3dfefa61df0572039d23b85fdcf90f037188d921189a68bced0042bc71",
+      "appendOnly": true
+    },
+    {
+      "beforeBytes": 5783,
+      "sha256": "21cfc5516946869c7bf840d32e82b074f703490c01be9a1c2afd32c7e6e63f99",
+      "path": "docs/tasks/R1-03-reliability.md",
+      "beforeSha256": "bcdf34af45975c2d65e4256001dab80921b8969d8b0143d3328dcc2879feafb0",
+      "appendOnly": true
+    }
+  ]
+}

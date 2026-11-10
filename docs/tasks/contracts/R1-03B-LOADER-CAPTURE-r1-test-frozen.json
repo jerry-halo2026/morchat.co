@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "task": "R1-03B-LOADER-CAPTURE",
+  "revision": "r1",
+  "status": "TEST-FROZEN_SOURCE_ONLY_NO_ACTUAL_LOADER_CHILD_OR_SQL",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "owner": "/root/admin_sqlfix_impl",
+  "ownerConfiguredModel": "gpt-6.1-sol high",
+  "consumer": "/root",
+  "consumerModel": "unknown",
+  "reviewer": "/root/guard_review",
+  "reviewerConfiguredModel": "gpt-6-astra high",
+  "normativePackage": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-freeze-package.json",
+    "mdSHA": "0da026bc8830552362ecff9413dae8bd0ae273a87b4af10fb2041ab39d1f83c5",
+    "sha256": "2447445cc481b2ce05caf6010708970bb10544af5a960b681ea0012f781aa9d5"
+  },
+  "independentReview": {
+    "sha256": "6bfec0a22d4dfc3dbe8910276584dd1887429e6adcc54f160c8d37d3000ea9a3",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-freeze-package-independent-review.json"
+  },
+  "sourceWriteSet": [
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-driver.CLOSED.ps1",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-host-tests.ps1",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-host-results.json",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-source-manifest.json",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-exact-extraction-diff.json",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-source-report.md",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-loader-capture-r1-source-report.json"
+  ],
+  "exactScope": "25 original AST declaration/body/scope nodes + native literal + DeferredCaptureResources state; 33 finite historical JSON/code/runtime leaves; literal397B child/full5argv/24Bstdin/22Bstdout/22Bstderr from244744",
+  "sourceTesting": "DefinitionsOnly default0IO; AST identity + pure HOST/descriptor/sharedrealfunctions seams only, no actual nofollow/oldloader/capture/clock/ProcessStartInfo or Process/child/target/oldraw/private",
+  "pathAdmission": "Two-pass: pin complete fixedliteral manifest with held nodelete/shareRead leases, then validate only named refslots against that table BEFORE untouched original loader traverses; no genericcollector/unknownsignedrefs",
+  "rawDistinction": "-Raw switch returns fixedcreator.ps1 bytes, never historical.raw. Future original capture only its NEW enumerated protected internal stdout.raw/stderr.raw/result leaves, explicitly allowed sealedMessages; outward diagnostic only phase/type/Int32HResult, never dump raw/internalerrors.",
+  "nativeAndCaptureFuture": "Separate runtime packet needed: protected newoutroot/ownonce, bound literalcode/exe/argv/wire hashes, originalcapture5000/cleanup10000/drain10000, oneactualpublicchild, stdinsettled/cleared+streamscomplete+cleanup required",
+  "budgetSource": {
+    "models": 0,
+    "SDK": 0,
+    "Process": 0,
+    "oldRawRead": 0,
+    "Docker": 0,
+    "SQL": 0,
+    "child": 0,
+    "privateIO": 0,
+    "native": 0,
+    "newResources": 0,
+    "clock": 0
+  },
+  "futureBudget": {
+    "retry": 0,
+    "privateIO": 0,
+    "Process": 1,
+    "Docker": 0,
+    "SQL": 0,
+    "child": 1,
+    "maxEntries": 1,
+    "PGTarget": 0,
+    "newResources": 0
+  },
+  "authority": "Newpurpose/sourceapproval/Rootrelease/actualUTC2gates/ownonce, externalpins acyclic. Legacy333/3941/OBS/probe/oldclaims not authority. History metadata neverlive.",
+  "deferred": "No SQLcandidate/derivedcreator/helper nonce/CID/CREATE/START/secret/readlease/migration/foundation window here. Oldca148/b580/read1FAIL3/extra1total2bootstrap0 unchanged.",
+  "requiredHOST": "Unknownrefs/hash/schema/path/lease denial, actual exactoriginalfunction invocation through HOSTseams only, fixedchild/wire/IOownership, pendingstdincleanup, initialfailstopbeforechild, privacy/once/expiry/source identities; retainRED",
+  "noSubagents": true
+}

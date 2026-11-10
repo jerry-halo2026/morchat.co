@@ -1,83 +1,72 @@
+---
+purpose: "Discovery 基线、最小 MVP 与证伪登记"
+owner: docs-maintainers
+status: current
+updated: 2026-11-07
+related:
+  - docs/ROUND1-DELIVERY.md
+  - docs/ENGINEERING-BASELINE.md
+  - docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md
+---
 # Discovery 基线、最小 MVP 与证伪登记
 
-> 2026-11-06，评审稿。本轮只修订 docs。产品方向已确认；下列接口尚未冻结，P0 实验全部 NOT RUN。固定源码证据不等于部署版本或运行验收。本文是八项工作边界、契约状态、P0 依赖和未决项的唯一登记处；开发协作规则以 [工程基线](D:/dev/morchat.co/docs/ENGINEERING-BASELINE.md) 为准。
->
-> **〔2026-11-06 基座切换〕**任务/run 权威由 Paperclip 切换为 **Multica fork**（Ethan 确认；`D:\dev\multica`，基线 164290ee，product-base/product-dev 双分支）。新基座契约见 [MULTICA-BASE](D:/dev/morchat.co/docs/MULTICA-BASE.md)。影响：①下文 B/C/PC/F 各条中以 Paperclip 源码为证据的条目，其**语义要求继续有效**，但证据锚点与门禁实现需按 Multica 重定位（登记为 D11，MC-01–20 骨架已立，全部 NOT RUN）；②Paperclip 机制研究归档为参考；③**GATE-L**：向组织外提供托管使用（含免费）前须完成 Multica 商业授权，改品牌另行授权；④新增迁移编号从 617 起、核心对象 UUID。C01–C08 仍为 DRAFT，本切换不改变任何冻结状态。
+**R1-AUTH-r1（2026-11-06）已批准三切片连续开发和本地持续动作。** 全局 C01–C08 仍 DRAFT；下面的子集登记必须由真实工程角色填齐，不虚构冻结。授权与验收不是同一状态，详见 [首轮授权](ROUND1-DELIVERY.md)。
 
-## 1. 本轮结论与首版边界
+2026-11-06。**设计基线已统一到 Multica；企业契约仍为 DRAFT，正式开发与上线验收未完成。** 本文登记 B01–B08 工作边界、C01–C08 契约、验证门禁和待决事项。产品事实以当前专项文档为准，工程开工规则见 [工程基线](ENGINEERING-BASELINE.md)。旧 Paperclip 实施方案已移出当前规范，保存在 [迁移前快照](archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md)，不得据此生成任务卡。
 
-**未被否定的是产品方向；被静态反例否定的是“把参考项目配置连接起来就已经闭环”。**当前路线需要企业适配及受控的 Paperclip 原生扩展，不能承诺零核心改动，也不能把 Windows 节点、权限强制和接续协议统称为一个很薄的 adapter。
+## 1. 当前结论与首版边界
 
-**设备前提已确认：**员工保留本机管理员权限；平台约束 Agent，不接管整机。公用 Bot 仅能在设备及管理人均获对应资料授权的节点运行；宿主管理员身份不授予 Agent 管理员权。权限要覆盖新增资料及换机接续，详细唯一规则见 [设备池 §3.1](D:/dev/morchat.co/docs/DISTRIBUTED-COLLABORATION.md)。这一确认不代表 Windows 隔离已验证，也不自动批准 run 级模型出口或工具域方案。
+Multica 同时承担统一客户端、中央协作后台及唯一 Issue/task/run/调度事实。Paperclip 是公司治理与机制参考，不部署第二任务后台；OpenMausBot 是协作操作链与独立源码候选，不导入整套对话 Store/runtime。直接复用和移植候选必须区分，见 [复用边界](REFERENCE-REUSE.md)。八项是模块所有权，不是八个微服务。
 
-**执行时段已确认：**不要求全部员工关机后继续工作，撤回常在线执行节点提前进入首版的建议。无合格在线设备时等待，中央继续数据接收/校验、权限与任务治理、资产保留及费用对账，不运行员工 harness；在线授权池和既有安全接续要求不变。模型推理仍由云端供应商提供。此项不是恢复实验降标：有合格在线目标设备的正向接续仍须通过。
+目标是公司内部的人与 AI 协作：提出目标→组建团队→拆分认领→协作交付→复盘沉淀→下次复用。员工、负责人和老板使用同一客户端，默认“我的工作”，各看当前获授权范围。千川只是场景，关闭它仍须跑通一般协作。
 
-首版仍是企业人机协作平台：目标→组队→拆分认领→协作交付→复盘→复用。员工、负责人、老板同一客户端；个人/部门/获授权跨部门面板同源。中央协调、员工本地完整 harness、云端模型；公司统一 Key，工作资产按权保留。千川只读是场景之一，关闭它仍须完成非千川协作。
+已确认：Windows 优先、本地完整 DSH、云端模型、公司统一模型入口；员工保留电脑管理员权，Agent 不继承；公共 Bot 仅在设备及管理人均获资料授权的节点运行；独立任务并行，无合格在线设备明确等待，全关机不中央代跑。自动保存用于工作接续，不迁移进程，也不保证断电前未上传内存不丢失。知识/多维表外部 CLI/MCP 接入暂缓，不豁免平台自身权限、归档与撤权。
 
 ### 1.1 八项最小工作边界
 
-八项是相对 Paperclip 整体产品的差异交付与所有权边界，**不是八个微服务、八套数据库、八套独立产品，也不是全部产品功能目录**。公司/成员、Inbox/人工决策、技能工作室、连接与审查、成果及审计等原生能力的保留/适配/暂缓处置统一见 [复用 §4.6](D:/dev/morchat.co/docs/REFERENCE-REUSE.md)，不因不在八项标题里就删掉。中央自有模块优先模块化单体；Paperclip 保持独立权威边界。D=已有能力直接消费；A=外围适配/企业语义；P=进入 Paperclip 原生服务/事务/运行准备路径的受控扩展，优先上游 hook，必要时维护最小补丁。
+D=复用 Multica 已确认原生基础；A=同一产品内适配；P=必要时修改 Multica 原生服务/事务/强制点。D 不代表企业验收通过，P 不表示另起后端。Paperclip/OMB 片段只有经依赖、许可、接口与回归评审后才可迁入。
 
-| ID / 边界 | D 直接复用 | A 最小自建或适配 | P 不能仅靠外围代理解决的点 |
+| ID / owner 边界 | D 原生基础 | A 最小补齐 | P 必须覆盖的原生入口 |
 |---|---|---|---|
-| B01 企业权限桥 | 原生 company/user/membership 与邀请/归档、Agent、project/issue/source ACL、指令授权及连接/grants 基础 | 部门/群/资源/发布/设备政策及真实身份映射 | 导入副作用、最终运行准入、内部指令回写、测试证据读取等入口接企业政策；原生权限保留，不以管理员代理替代 |
-| B02 统一协作客户端 | Paperclip 整体前端及正式 Inbox/任务视图、interaction/attention、回答 outbox、queued-comments/修订、审批与 run cancel；OMB 展示/输入/附件/配置预览按需抽取 | 工作首页、群/任务线程投影、定向意图/回执、防重及根链限额；人工介入与本次协作停止范围聚合；不新建审批、输入队列或任务系统 | 员工认领/转派 CAS、评论/分配/唤醒的同意图防重若缺受支持入口，须评审原生扩展；不能另存负责人/任务状态 |
-| B03 组合与受控发布 | AGENTS/TEAM 包、preview/import、配置 revision、skill fork/测试/恢复 | 一套有类型的组合元数据供岗位包/Bot 模板/小队模板/能力发布复用；真实成员映射、冻结包、步骤回执、业务评判、条件生效/回退 | import 同源冻结与逐效果政策；配置回退接原生 CAS；最终技能集合准入，不能只核查 Agent 页面绑定 |
-| B04 版本证据与授权资产 | 原生 Agent files 的 blob/hash/current manifest、skill 包/版本、documents/revisions/annotations、资产与搜索服务 | 历史保留引用、能力组合、来源 ACL、实际消费证据；仅自有消息/业务材料另建索引 | 历史引用进入 GC 保留根或复用公司保留资产；测试快照/历史/下载当前授权过滤；已有查询服务注入条件，文档恢复缺基线时接原生条件更新或最小扩展 |
-| B05 Windows 本地 runtime | DSH agent loop、官方 ACP SDK、MXC ProcessContainer、受控浏览器组件 | 公司 supervisor、独立 profile/HOME、每 run 边界、安装更新/诊断 | 不自造 OS 隔离或 harness；具体 SDK 能力不足就阻塞/换候选，不绕权限 |
-| B06 设备派发与远程 adapter | Paperclip 外部 adapter 生命周期、task/run、唤醒/取消基础 | 授权池、容量预留、claim、租约/代次、事件/取消/重连回执 | 接受派单不等于运行完成；现有入口不足时受支持扩展；不另建任务运行权威 |
-| B07 自动保存与双设备接续 | PCWS 快照、上传回执、epoch/writer/parent 条件发布、Git/既有对象存储 | Windows 一致采集/恢复、自动触发、效果对账与接续桥 | 明确新增员工节点 PCWS 入口/transport，固定样本只认 paperrunner+sandbox 且有 POSIX 假设；不能只接 task RPC |
-| B08 公司模型网关与成本回执 | provider 协议、公司秘密存储组件、Paperclip 成本/预算账 | run 限范围准入、公司路由/额度、真实 usage 归属与防重回执 | 入口计量和原生账一致；需要扩展时在既有成本入口做，不另起成本总账 |
+| B01 企业权限 | Workspace 成员/角色、Agent Access、runtime sharing、task token；成员撤销事务、在线断开、搜索/草稿清理 | 公司/部门与资源政策、真人委托、设备及管理人资料资格；公司全域停用/责任交接、未覆盖缓存与清理回执 | 列表/搜索/下载、内部读写、claim/模型上下文/最终提交；原生粗分区不冒充细粒度 ACL，不重建撤销基础 |
+| B02 统一客户端与协作 | 共享 views、Web/Electron、我的工作/项目、看板/甘特/状态工作流、多人 Issue 评论、多目标 mention/trigger_outcomes、Squad、Inbox、原生 run 展示 | 当前授权范围、S1-D 所选多人工作面、追问/审批/补充/验收投影及防风暴 | 所有普通评论隐式唤醒回退、引用/Bot文本命令边界、认领/改派约束、意图持久确认；不新建任务/聊天/流程库 |
+| B03 组合与受控发布 | Agent/Squad/Skill 当前对象、插件与 bundle 基础 | Bot/岗位包/小队模板、不可变 release manifest、差异预览/评审/条件生效/回退 | claim/prepare/resolve 实际加载固定版本；普通 Skill hash 不等于发布历史，不静默升级旧实例 |
+| B04 版本证据与授权资产 | 原生附件、对象存储、Issue/run 关联 | 自动成果接收、版本/来源 ACL/保留根、索引裁剪、交接和清理回执 | 裸 uploads 旁路、历史/预览/下载、存储成功但关联失败；复用原生存储不造文档引擎 |
+| B05 Windows runtime | Electron daemon 管理、原生 daemon、DSH JSONL v1 driver/bundle | 固定发行物、隔离 profile、Agent 权限限制、工具边界/诊断 | 启动、取消/真实终止和受控工具域；原生继承宿主权限不满足本项目要求；MXC 等仍候选 |
+| B06 设备派发 | 原生持久队列、SKIP LOCKED/局部串行/容量、stage/条件唤醒及 receipts/限频、心跳、取消 ACK、终态报告重放 | 授权设备池、管理人资格、每 run 准入、可靠意图、离线原因与旧代次拒绝 | Issue 写入与 enqueue 故障窗口、启动/最终提交/DSH 实际停止对账；不重写基本领取/重试 |
+| B07 自动保存与接续 | 原生会话管理、repocache/local_worktree、脏状态重放/收尾自动 commit、Git/VCS | 周期一致检查点、公司 durable ACK、完整 Git 分层/普通文件、恢复包、效果对账与冲突 | 同一 run/attempt/epoch 条件发布、旧机回连拒绝；本机 commit 不等于公司保存，终态报告不含文件快照 |
+| B08 公司模型与用量 | 原生 DSH usage 映射、task_usage/统计基础 | 窄范围短期凭证、公司网关、预算预留、真实回执防重与费用对账 | 所有启用模型入口准入/计量；中央辅助入口也必须建立真实 task/run 并派本地，未纳管功能关闭；custom_env 不放公司原始 Key，不接 Paperclip 成本总账 |
 
-首版缩减：一套 DSH/Windows 路线、两份岗位包及 Bot 模板示例、一个小队模板；两个真实模型协议路由先冒烟，再冻结一个模型组合做故障实验。OpenMausBot 不部署独立后台；对话展示与 @ 输入按源码优先抽取适配，其他能力只择取确有价值且许可/依赖合适的片段；完整操作链见复用 §4.5，已有 Paperclip 控制卡/队列/文档版本优先，不移植其整套 skill store/importer/memory runtime。Multica 仅参考模式。原生资产/搜索服务能按权查询的内容不再复制成第二套库。所有门禁复用一套纵向 fixture、故障注入与证据格式，不为 NG/WI/DV/DC/WC/LC 各造一个测试平台。
+首版一套 Windows/DSH 路线、两岗位包与 Bot 模板示例、一个小队模板；先冻结一个真实模型组合完成纵切，第二协议做独立兼容验收，不宣称全供应商通用。不包含移动端执行、低代码工作流、公共市场、自动改平台代码、多 harness、多系统首发或第三方生产写入。已有原生能力按权开放，不因不在八个标题中就删除。
 
-不包含：公共模板市场、任意插件 YAML、DSH Teams、多 harness 同时建设、全供应商矩阵、多系统首发、低代码工作流、自动改平台源码、真实第三方业务写入。详见 [PRD](D:/dev/morchat.co/docs/PRD.md)。
+## 2. 事实与缺口：不能把局部通过拼成企业闭环
 
-## 2. 源码反例及必要修正
-
-固定 Paperclip：40ea7a9b8994e9bdb3d13794b5847388be0f7a92；以下是静态代码路径与本项目要求的差距，不是动态复现报告，也不是泛称上游存在安全漏洞。原生策略不等于我们额外要求的企业策略。
-
-| 发现 | 反例与已具备能力 | 首版收口 |
+| 证据 | 已知事实 | 当前结论 |
 |---|---|---|
-| F01 指令历史的字节未必保得住 | durable Agent files 已有 S3/hash/manifest；没有 durable head 且开关关闭时不走该持久化。GC 只保 current head，非当前对象按对象创建年龄超过 30 天可被删除；历史 manifest 本身不保字节 | 验证 durable 模式；复用 blob/manifest，增加历史保留根或接既有保留资产。不重造归档引擎；普通指令 history 路由不保证新保存历史 |
-| F02 版本清单不等于执行选择 | 普通新 run 读当前 Agent/config/目录；已准入 native run 的 persisted input/skill map 则可保留，不能混为一谈。原生配置 rollback 并非所有路径都有 expected revision | 采用选定组合的 per-run 物化，生效/回退用原生条件事务；配置 revision、指令 manifest、skill 版本必须完整，不反复翻共享全局配置模拟历史并行 |
-| F03 自动回写不天然产候选 | native instruction tool 可直达服务；warm checkpoint/停止回收均能 apply。Agent directory 同文件采用 last-sync-wins，旧 run 可能覆盖人工较新版 | 正常 run 的正式能力投影只读；建议以任务成果/候选提交。必要 hook 覆盖 commit/apply，不阻断任务工作文件保存；拒绝后候选仍须留存 |
-| F04 最终技能超出页面绑定 | task 标题/描述/评论可临时扩充 run 的技能集合，环境插件可自动安装/同名覆盖；这不是永久修改 Agent 绑定 | 所有 mention/environment/connector 注入完成后，对最终集合与版本做用途准入，再物化；来源可读不等于获准生产使用 |
-| F05 模板预览/安装不等于原子冻结 | preview/install 分别 prepare；来源重写使源 hash 不等于有效 hash。默认 claude_local、rename、新建对象、部分 warning、routine/trigger 生效均非我们所需语义 | 固定内部包，核验规范化最终效果；显式 remote adapter/include、bind-existing ID、步骤幂等、routine paused 且无活跃 trigger。未满足依赖 BLOCKED，不能只套 hire 审批 |
-| F06 测试证据可能跨来源范围 | 原生 test detail/list/template 以 skill/company 范围取输入、Agent/输出快照及 issue 成果，不保证叠加原测试任务/素材 ACL | 测试输入/模板/输出/快照全部关联持久源政策，查询取权限交集。修复前共享测试只用合成/明确公开材料；issue 到期不消除快照权限义务 |
-| F07 缓存幂等回执也要当前鉴权 | public MCP 普通操作经过原生授权，但 completed receipt 可直接返回旧 result；公司成员有效不等于仍有该资源读取权 | 保留防重，不重放 mutation；先验资源再返回正文，或仅返回无敏感回执再走当前授权读。MVP 不启用的 public MCP 整体关闭，不只是藏按钮 |
-| F08 断开来源不等于撤权 | source detach/disconnect 保留来源限制有其语义；skill 历史一般按当前 skill ACL 读取，不是每版独立 ACL | 历史/缓存/派生材料按当前政策。私密方法脱敏后扩大传播，创建独立 ACL 根的安全资产/skill，不放宽旧 identity 导致旧版也外露 |
-| F09 搜索/目录已有轮子 | 原生 company-artifacts/search 服务支持 issue/project 条件；某些公司级路由只校验公司 | 接服务的按权条件及下载授权，不把原始公司级 API 裸露员工；只补自有材料索引 |
-| F10 task 接通不是 Windows 接续 | HTTP adapter 的 200 可直接成为 exit 0；PCWS remote 入口约束 paperrunner+sandbox，transport 有 POSIX 路径，但 epoch/writer/parent 条件发布已有 | 完整异步生命周期 + 员工节点扩展 + Windows capture/restore；复用提交 CAS，不新建第二快照/任务权威 |
+| Multica 真实实验 | Web 结构化 @→原生 run→Windows DSH→本地文件/线程回复/真实 token 已发生 | 仅此链通过；Electron 构建/启动不等于桌面交互通过 |
+| 成果归档 | 自动归档未通过，之后人工辅助上传并回读 hash 通过 | 不能记无人值守端到端通过；B04 补自动接收 |
+| 权限 | 两账号跨 Workspace/私有 Bot/同 revision 竞争路径有实测 | 不外推部门 ACL、撤销、群上下文或离职交接 |
+| 安全失败 | 实验 LocalStorage 裸 uploads 匿名读取同一文件返回 200 | P0 FAIL；私有存储或受权下载方案须复测所有原始 URL，不能只隐藏按钮 |
+| 桌面风险 | 固定源码主 renderer 设置 webSecurity:false | 发行前必须收敛并测 IPC/外部内容边界；未声称已利用或 RCE |
+| 版本与接续 | 当前 Agent/普通 Skill 可变；daemon 有队列/重连但不是自动工作包迁移 | B03/B07 仍未验证，不把 bundle hash、session ID 当完整闭环 |
+| 阶段状态静态冲突 | 原生已有 stage/child_done/other_issue 与持久唤醒/限频；运行指令称 in_review 给 barrier 信号，但实际闭合只认 done/closed，取消也可能闭合 | 新增待测反例，不记运行 PASS/FAIL；MC-05G 分测待验收/成功/取消/重复事件，阶段闭合不当成果齐备。不因提示冲突重建流程引擎 |
+| OMB dev | 群 @/分线程在合成引擎下验证；342 测试通过、3 失败 | 非真实 DSH/公司权限测试；新线程输入含其他群/私聊摘要，必须当前授权裁剪 |
 
-### 2.1 固定源码定位
-
-- F01：[durability 模式与 current head](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/agent-file-durability.ts#L21-L84)、[GC 保留根与删除](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/agent-file-maintenance.ts#L61-L98)。skill-version-retention 清的是可重建物化缓存，不要混成删除 skill 版本。
-- F02/F03：[普通 run 准备](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/heartbeat.ts#L2025-L2047)、[已准入输入](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/heartbeat/runtime-selection.ts#L533-L558)、[配置条件事务](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/modules/agent-lifecycle/adapters/configuration.ts#L15-L23)、[working-copy apply](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/agent-directory-working-copies.ts#L417-L494)、[last-sync-wins](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/agent-file-store.ts#L255-L315)。
-- F04：[任务提及](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/heartbeat/run-preparation.ts#L673-L780)、[环境技能](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/environment-skills.ts#L30-L62)。
-- F05：[catalog 默认值/preview/install](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/teams-catalog.ts#L684-L950)、[导入 partial failure](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/company-portability.ts#L5751-L5773)、[routine 生效](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/company-portability.ts#L6066-L6141)。
-- F06/F08：[测试输出读取](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/company-skills.ts#L7035-L7167)、[历史访问](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/company-skills.ts#L3515-L3527)、[来源权限](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/skill-access.ts#L18-L95)。
-- F07：[MCP 缓存回执](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/public-mcp/capabilities.ts#L163-L197)。
-- F09：[资产过滤条件](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/company-artifacts.ts#L319-L325)、[搜索过滤条件](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/company-search.ts#L553-L562)。
-- F10：[PCWS 入口约束](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspaces.ts#L62-L73)、[原生条件发布](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspaces.ts#L553-L595)、[HTTP adapter](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/adapters/http/execute.ts#L14-L50)。
-
-### 2.2 完整操作链补充反例（静态证据）
-
-- Paperclip 已有问答交互、事务投递、queued-comments 修改/撤销、运行取消；“人工介入后台必须全部自建”不成立。企业 ACL、DSH 传输与 root 范围聚合仍需补；native steer 依赖活动 native session，不能推定 DSH remote 可用。
-- OMB Stop 不停止全部队友，待发队列还可继续；默认 Full access、语言词干判断真人问题、Ask 下 direct apply 均不符合本方案的明确控制和受控生效。
-- 本机文件/个人 Cloud/可变路径不是公司不可变交付；TeamDialog 侧边栏分组不是人机小队，包可带 memory，org release 可自动改实例。
-- OMB 个人记忆 hash 非全路径必需且 Undo 无当前 hash 防护；team-memory 有条件版本不能代表全部。Paperclip 文档有条件更新但 restore 缺 expected base；用已有条件更新实现恢复或补最小 hook，不再造知识版本库。
-
-完整可核对的文件/行号在 [复用 §4.5](D:/dev/morchat.co/docs/REFERENCE-REUSE.md)。这些新增子反例归原 B01–B08/C01–C08，不增加审批、输入队列、记忆或学习平台。
-
-### 2.3 全产品入口补查：不是“官网有”就可以开放
-
-Paperclip 原生 Apps 核心在固定样本默认启用，Decisions/Goals 导航默认隐藏、TeamCatalog 组件没有生产页挂载、MyIssues 是未挂载旧页；Skills Studio 正式路由存在，但普通 run 历史技能选择仍需独立门禁。Multica 项目页实际挂载计划甘特，Paperclip Timeline 是活动甘特，二者不可互换。OMB @ 候选最终写名称文本，部门分组非权限墙；Nodo 是角色路由/固定岗位槽而非通用画布。逐项证据见复用 §4.6。
-
-沿用 FE-01–06 检查抽取与真实路由/开关/权限，MSG 检查定向触发，OP 检查操作闭环；不再另造一套 UI 验证平台。若仅有演示页/未挂载组件却声称功能可用，需管理员代理才可给员工操作，或功能抽取带来第二账号/任务/审批/技能/连接/成本权威，则对应前端接入不通过。功能开关不是安全边界，原生未露出写入口也要纳入政策覆盖。以上均为静态发现，FE/MSG/OP 仍全部 NOT RUN。
-
+事实唯一报告：[Multica](../experiments/multica-spike/INTEGRATION-RESULT.md)、[控制面审计](../experiments/multica-spike/control-plane-audit.md)、[OMB](../experiments/openmausbot-spike/DEV-RESULT.md)。Paperclip 实验和 F01–F10 静态审计是历史对照，不继承为 Multica PASS/FAIL；历史审计见迁移前快照。其版本保留、最终集合准入、内部回写、缓存回执和副作用反例保留在下列平台无关门禁。
 
 ## 3. 共享契约登记与冻结
+
+### 3.0 首轮子集的连续放行
+
+| 子集候选 ID | 消费主题 | 实现授权 | 当前精确契约/证据 |
+|---|---|---|---|
+| R1-ACL-r1（完整范围） | C01/C02/C04/C06 的部门/资源、委托、出口和资格 | R1-01 已批准 | 其余仍 DRAFT / NOT RUN；仅下面 NM-02a 已局部签认 |
+| R1-ACL-r1/NM-02a@r3 | C01 真人/原生成员/部门资源、C02 原生读取与严格 title-only | TEST-FROZEN，隔离测试/最小实现 | [精确签认与写集](tasks/contracts/R1-ACL-r1-test-frozen.json)、[真实 runner 绑定](tasks/contracts/R1-ACL-r1-runner-binding.json)；schema/fixture/NM 仍 NOT RUN，无 BUILD/发布；原生640完成后方开三文件源任务 |
+| R1-EXEC-r1 | C01–C06/C08 的输入固定、派发、归档、终态补传和计量 | R1-02 已批准 | DRAFT / NOT RUN；真实模型费用仍未批准 |
+| R1-CONT-r1 | C01–C08 的 Leader 汇合、版本/撤权、自动保存接续 | R1-03 已批准 | DRAFT / NOT RUN；双机环境/故障窗口待登记 |
+
+这些是 C 的消费子集 ID，不是第二协议。owner、消费者及独立安全 reviewer 有权按 R1-AUTH-r1 完成技术签认，并将 manifest/源码/用例/参数/记录链接回本表；不需 Ethan 逐个审字段。状态只能随实际证据更新。
+TEST-FROZEN 后允许隔离合成环境内最小产品实现/修复，使缺失能力可被验证；不得要求修复前先通过该修复要建立的测试。适用证据通过才 BUILD-FROZEN，不能自审或伪造消费者 ACK。范围/安全政策/费用变化另问 Ethan。
 
 ### 3.1 两个冻结点，不把文字变成运行保证
 
@@ -90,31 +79,41 @@ Paperclip 原生 Apps 核心在固定样本默认启用，Decisions/Goals 导航
 
 | ID | 唯一契约主题与权威正文 | 提供方角色 / 主要消费方 | 冻结必须包含 |
 |---|---|---|---|
-| C01 | 身份/企业政策：[架构 §4](D:/dev/morchat.co/docs/ARCHITECTURE.md)、[资产 §3](D:/dev/morchat.co/docs/ASSETS-AND-LEARNING.md) | B01 / 全部 | company/user/Agent/actor/delegation/resource/policy revision；设备及管理人资料双授权、身份不继承；默认拒绝、源与受众交集、撤销生效点、离线和缓存限制 |
-| C02 | 任务命令/事件：[Multica 基座 §1–§2](D:/dev/morchat.co/docs/MULTICA-BASE.md)、[群协作](D:/dev/morchat.co/docs/DISTRIBUTED-COLLABORATION.md) | B02 的任务接入 owner + Multica 基座 owner / B03、B06、客户端 | 原生 ID、真人原子认领/转派、expected revision；群/线程/消息/修订及原生评论投影；单输入框 @ 的稳定 Bot ID/正文锚点/修订绑定、候选与发送时验权、逐目标受理/失败/未知回执；真人父任务与 Bot 子任务关联；显式意图、root/causation、同意图跨入口防重、持久回执与事件游标、停止/迟到/超时待确认；唤醒矩阵、根链限额、依赖批次/结果版本/消费界标；P1 首页期限/逾期所需截止日期的含义、来源、时区与唯一写入方先冻结；P2 再补只读计划甘特的计划起止、未排期和依赖类型（先核验可用原生扩展，不另存任务状态）；单任务权威；原生 interaction/审批/steer 类型（Multica 语境按 MC-03/05/07 重定位） |
-| C03 | 组合/生效：[产品流程 §3.3–3.6](D:/dev/morchat.co/docs/PRODUCT-LIFECYCLE.md) | B03 / B01、B04、B05、B06 | 原始包与有效包 hash、配置 revision/指令 manifest/skill map、base release、批准范围、原子生效点、per-run 加载、回退/候选保留 |
-| C04 | 资产/证据：[资产](D:/dev/morchat.co/docs/ASSETS-AND-LEARNING.md) | B04 / 全部 | 不可变内容引用、hash、来源 ACL、保留根、测试快照、删除/撤权、索引/下载；归档/可接手/验收分离；附件上传幂等/版本验收、知识 baseRevisionId、恢复追加版本、加载投影与来源权限 |
-| C05 | 本地 runtime：[Windows 接入](D:/dev/morchat.co/docs/WINDOWS-DSH-INTEGRATION.md)、[客户端](D:/dev/morchat.co/docs/CLIENT-RUNTIME.md) | B05 / B06、B07、B08 | platform/capability/协议版本、profile/插件摘要、身份/文件/网络域、stdio；管理员员工账号下 Agent 受限运行、安装/运行分权、取消及可信终止证据；追问/工具许可/补充/steer 的真实 capability、原回调失效对账；不以自报作防篡改证明 |
-| C06 | 派发/续租：[群协作 §6](D:/dev/morchat.co/docs/DISTRIBUTED-COLLABORATION.md) | B06 / B01、B05、B07、B08 | logical dispatch、task/run/attempt、epoch、pool、设备管理责任人及授权 revision、claim、ack、cursor；资料进入/恢复时重验，允许并行、局部互斥、ACK 丢失/重复/旧代次状态；交互投递与实际消费分离、root 停止准入/逐 run 取消回执聚合 |
-| C07 | 保存/接续：[工作空间](D:/dev/morchat.co/docs/WORKSPACE-CONTINUITY.md)、参数只在 [DV §3](D:/dev/morchat.co/docs/DUAL-DEVICE-VALIDATION.md) | B07 + Paperclip owner / B04、B05、B06 | parent snapshot、writer run/epoch、manifest、完整 durable ACK、operation sequence/effect receipts、R1/R2、冲突/恢复/GC |
-| C08 | 模型/成本：[Multica 基座 §2、§4](D:/dev/morchat.co/docs/MULTICA-BASE.md)（MC-12–14）、[客户端 §7](D:/dev/morchat.co/docs/CLIENT-RUNTIME.md) | B08 / B01、B05、B06、面板 | company/run/model route、短期授权、调用/重试/receipt ID、真实 usage 与未知、预算准入、唯一记账入口、迟到撤销后对账；公司网关注入（daemon/CLI 无原始 Key，task_usage 对账） |
+| C01 | 身份/企业政策：[架构 §4](ARCHITECTURE.md)、[资产 §3](ASSETS-AND-LEARNING.md) | B01 / 全部 | company/workspace/user/Agent/actor/delegation/resource/policy revision；设备及管理人资料双授权、身份不继承；默认拒绝、源与受众交集、撤销生效点、离线和缓存限制；外部 tenant/user 稳定绑定、用户/应用身份固定、Bot/task/设备交集及源 ACL 权威，见架构 §7.1/资产 §3.3 |
+| C02 | 任务命令/事件：[群协作](DISTRIBUTED-COLLABORATION.md) | B02 + Multica 原生集成 owner / B03、B06、客户端 | 原生 ID、真人原子认领/转派、expected revision；群/线程/消息/修订及原生评论投影；单输入框 @ 的稳定 Bot ID/正文锚点/修订绑定、候选与发送时验权、逐目标受理/失败/未知回执；真人父任务与 Bot 子任务关联；显式意图、root/causation、同意图跨入口防重、持久回执与事件游标、停止/迟到/超时待确认；唤醒矩阵、根链限额、依赖批次/结果版本/消费界标；P1 首页期限/逾期所需截止日期的含义、来源、时区与唯一写入方先冻结；原生 start_date/due_date 日历日和 GanttView 直接映射；P2 只补企业计划/依赖差异，不另存任务状态；单任务权威；统一 interaction/approval 类型、queueId/item/revision/targetRunId（先核原生等价物，缺项在同一后台补齐，不假设原生已有），回答记录/投递/消费，停止 run/root 与 interrupt 继续的区别（群协作 §4.6） |
+| C03 | 组合/生效：[产品流程 §3.3–3.6](PRODUCT-LIFECYCLE.md) | B03 / B01、B04、B05、B06 | 原始包与有效包 hash、配置 revision/指令 manifest/skill map、base release、批准范围、原子生效点、per-run 加载、回退/候选保留 |
+| C04 | 资产/证据：[资产](ASSETS-AND-LEARNING.md) | B04 / 全部 | 不可变内容引用、hash、来源 ACL、保留根、测试快照、删除/撤权、索引/下载；归档/可接手/验收分离；附件上传幂等/版本验收、知识 baseRevisionId、恢复追加版本、加载投影与来源权限；外部内容 ID/源版本或读取证据、源端条件写、公共/私有附件与实时撤权、受控归档和移交，见资产 §3.3/KD-01–08 |
+| C05 | 本地 runtime：[Windows 接入](WINDOWS-DSH-INTEGRATION.md)、[客户端](CLIENT-RUNTIME.md) | B05 / B06、B07、B08 | platform/capability/协议版本、profile/插件摘要、身份/文件/网络域、stdio；管理员员工账号下 Agent 受限运行、安装/运行分权、取消及可信终止证据；追问/工具许可/补充/steer 的真实 capability、原回调失效对账；不以自报作防篡改证明 |
+| C06 | 派发/续租：[群协作 §6](DISTRIBUTED-COLLABORATION.md) | B06 / B01、B05、B07、B08 | logical dispatch、task/run/attempt、epoch、pool、设备管理责任人及授权 revision、claim、ack、cursor；资料进入/恢复时重验，允许并行、局部互斥、ACK 丢失/重复/旧代次状态；交互投递与实际消费分离、root 停止准入/逐 run 取消回执聚合 |
+| C07 | 保存/接续：[工作空间](WORKSPACE-CONTINUITY.md)、参数只在 [DV §3](DUAL-DEVICE-VALIDATION.md) | B07 + Multica 原生集成 owner / B04、B05、B06 | parent snapshot、writer run/epoch、manifest、完整 durable ACK、operation sequence/effect receipts、R1/R2、冲突/恢复/GC |
+| C08 | 模型/成本：[客户端 §7](CLIENT-RUNTIME.md) | B08 / B01、B05、B06、面板 | company/run/model route、短期授权、调用/重试/receipt ID、真实 usage 与未知、预算准入、唯一记账入口、迟到撤销后对账 |
 
 引用关系：C01 是安全底线；C02/C04 先供真实对象/内容依据；C03 消费其版本与政策；C05/C08 的受控本地执行先验证；C06 消费 C01/C02/C05/C08；C07 消费 C02/C04/C05/C06。可并行设计、只读研究和独立测试准备；循环依赖的最小接口由共同 owner 先定，不能互等“对方全做完”或两个 agent 各做一份。
 
+### 3.2 最小链路切片 MC-S1（r8，精确子集仍 DRAFT）
+
+当前体验优先沿原生 Multica 工作面；PRODUCT-EXPERIENCE §3.7 的 v4 仅是需求走查与分期参考，不据此重建原生看板/甘特：项目上下文、最薄看板/预置输入/收件箱/成果同源，完整阶段和排期后续。两角色合成界面走查只验证展示与交互，不改变本页原生路径、版本、撤权和双设备的证据状态，也不将任何 C 标为冻结。
+
+[MINIMUM-CHAIN](MINIMUM-CHAIN.md) 将“我的工作→多人群/任务线程多目标 @→本地 DSH 并行与 Bot 交接→自动归档→逐 run 真实用量→真人验收”裁成 C01/C02/C04/C05/C06/C08 主链及 C03 固定输入、C07 收尾接缝；不重编号、不替代专项正文。首轮必须多人、多 Agent，单 Bot 只用于排障，不能作为验收出口。MC-00–08（含新增 MC-01G 群/上下文权限、MC-05G 交接/汇合/防风暴）仍是 NEEDS_CONTEXT 草案。S1-A 已确认；S1-D 原生任务讨论入口已确认；S1-B 采用 R1-AUTH-r1 小包工程默认；三切片开发与无模型验证已获持续授权，S1-C 真实调用费用仍待批准。原生 Issue 与 task_usage.task_id（运行队列 ID）必须区别，字段/错误/事务映射由 MC-00 冻结。
+
+MC-S1 必须实证双人同群、双 Bot 跨设备并行/交接、同 Bot 多线程隔离、权限撤销和基本防风暴；具体样本和参数由 MC-00 事前固定。它不代表大规模群负载、完整企业版本发布/权限治理或断电双设备接续已交付。终态自动上传不等于 C07 周期检查点；通过这条链不豁免下列 G2–G5。所有 C 当前仍 DRAFT；本轮仅同步既有实验：G3-R6 子样本 FAIL、回传汇总未通过，没有修复或改为 PASS。
+
 ## 4. P0 验证顺序与判失败
 
-**顺序是基础接入预检 → 版本生效 → 权限撤销 → 完整节点/双设备接续 → 汇总放行。**所有测试先获实施/实验授权，使用合成材料；本轮没有运行。测试切片不要求先完成产品 UI，也不要求 NG-06 在其自身最小适配实现之前通过。
+**顺序是基础接入预检 → 版本生效 → 权限撤销 → 完整节点/双设备接续 → 汇总放行。**所有测试先获实施/实验授权，使用合成材料；完整正式 P0 未通过；局部已运行证据逐项登记（含 G3-R6 的 FAIL），不能写成全部未测或作为整门放行证据。测试切片不要求先完成产品 UI，也不要求 NG-06 在其自身最小适配实现之前通过。
 
 | 波次 | 必要前置与执行 | 覆盖既有门禁 / 退出 |
 |---|---|---|
 | G0 设计及开工准备 | 解决 §5 阻塞项的当期部分，绑定 owner/审核人、准备仓库基线与任务卡；C01–C08 按切片 TEST-FROZEN，测试版本/阈值事前签认 | 文档、样例、拒绝用例与授权齐全；含 MSG 参数/故障切点和消息→原生触发映射；不把冻结标 PASS |
-| G1 安全最小执行 | 两台 Windows 以员工有管理员权限但 Agent 受限运行的真实前提做 build/DSH/MXC/ACP 预检；公司网关两个真实协议路由、密钥隔离、取消/进程树与本地工具；最小 Paperclip 身份/任务路径 | NG-01–04，WI-01–04/07/10，PC-01/12–15 的基础项；失败不进入真实资料运行 |
+| G1 安全最小执行 | 两台 Windows 以员工有管理员权限但 Agent 受限运行的真实前提做 build/DSH 官方 JSONL driver/选定隔离组件预检；公司网关两个真实协议路由、密钥隔离、取消/进程树与本地工具；最小 Multica 身份/任务路径及附件原始 URL、桌面安全负例；前置 G3-R6 的 A 直调/受托调用、创建归属回归，再做获权文本派工/回传汇合，按 MC-01G/05/05G | NG-01–04，WI-01–04/07/10，PC-01/12–15 的基础项；失败不进入真实资料运行 |
 | G2 版本生效 | 下表 V1–V5，包含候选、包导入、不可变内容、最终技能集合、条件生效/回退和本地实际加载 | PC-06，LC-03–05/08/11 的契约子集；不要求完整组队 UI |
-| G3 权限撤销 | 下表 R1–R5；直接 HTTP/原生内部调用、缓存、历史、测试快照和运行中撤权都要测 | PC-08/09/11/19，LC-02/09/10 的权限子集及 MSG-06；无当前授权不得续用历史组合/消息补拉 |
-| G4 接续最小闭环 | 建 B06/B07 最小真实 adapter + PCWS 节点入口，先 NG-05/06，再按 DV-01→08 双向测试；补完整 DC-01–08/WC-01–12 | WI-05/06/08/09，PC-02/15/17–20，MSG-01–05/07–08 的协议/最薄投影；两台做 NG/DV，完整 DC/WC 另需第三不合格设备负例，不能拿两机成绩冒充 |
-| G5 P0 合流 | 对同一冻结组合收齐 PC-01–20、NG-01–06、WI-01–10、DV-01–08、DC-01–08、WC-01–12、MSG-01–08、OP-01–08 适用契约及上述 LC 契约子集；检查原生补丁和回归 | 全部适用关键项 PASS；形成 BUILD-FROZEN。完整 US-01–22/LC-01–12 的产品体验验收仍在 P1–P3，不要求 P0 先造完整应用 |
+| G3 权限撤销 | 下表 R1–R6；G1 基础委托回归不能代替执行前/运行中撤销；直接 HTTP/原生内部调用、缓存、历史、测试快照和运行中撤权都要测 | PC-08/09/11/19，LC-02/09/10 的权限子集及 MSG-06；无当前授权不得续用历史组合/消息补拉 |
+| G4 接续最小闭环 | 在 Multica 原生 daemon/队列上补 B06/B07 授权派发与自动检查点接续，先 NG-05/06，再按 DV-01→08 双向测试；补完整 DC-01–08/WC-01–12 | WI-05/06/08/09，PC-02/15/17–20，MSG-01–05/07–08 的协议/最薄投影；两台做 NG/DV，完整 DC/WC 另需第三不合格设备负例，不能拿两机成绩冒充 |
+| G5 P0 合流 | 对同一冻结组合收齐 PC-01–20、NG-01–06、WI-01–10、DV-01–08、DC-01–08、WC-01–12、MSG-01–08、OP-01–08 适用契约及上述 LC 契约子集；检查 Multica 原生补丁和回归 | 全部适用关键项 PASS；形成 BUILD-FROZEN。完整 US-01–22/LC-01–12 的产品体验验收仍在 P1–P3，不要求 P0 先造完整应用 |
 
-G2/G3 是“判定版本方案成立”的先后依赖，不允许先通过保存演示再忽略权限漏洞。G1 的平台预检与中央静态分析可以并行；G4 的 mock 可用于开发但不能计作 PCWS/接续通过。
+已失败的委托准入不是等 G3 才修：先在 G1 复验 MC-01G，再按 MC-05/05G 先文本后资产验证协作；最终仍按 G2/G3 覆盖版本与运行中撤权。组队实验未预签汇合时限且仅观察最后结果后约 19 秒，下一轮必须先冻结期限、工具限制与结果类型，不能据此断言永久失唤醒。
+
+G2/G3 是“判定版本方案成立”的先后依赖，不允许先通过保存演示再忽略权限漏洞。G1 的平台预检与中央静态分析可以并行；G4 的 mock 可用于开发但不能计作真实保存/接续通过。
 
 ### 4.1 版本生效反例
 
@@ -125,12 +124,12 @@ V1–V5 只是既有 PC/LC 门禁的子样本标签，不新建测试框架。
 | V1 历史持久 | 连续发布 A/B/C，修改配置+指令+资源+skill；分别注入存储/关联失败，推进对象年龄并执行受控 GC，再取回获保留的 A | 已生效版本字节取不回；仅凭 hash/活动日志称可回退；归档失败仍生效；把 skill cache 清理当删除历史 |
 | V2 精确运行 | 同一 Bot 两个隔离任务分别消费已批准 A/B；验证普通新 run、已准入恢复、工具/slash 实际正文及资源，禁个人 roots | 共享配置来回翻；悄用 current/latest；必须 skill 缺失后降普通文本仍运行；目录 digest 冒充正文；版本不符仍可调用模型 |
 | V3 条件生效/回退 | 两发布者同基线竞争；旧 run 的自改/warm/stop 回写在新版本生效后迟到；测试回退 | 双方成功覆盖；迟到自改污染正式版本；只回配置却称整组回退；拒绝回写丢候选；回退复活旧权限 |
-| V4 导入冻结 | preview 后替换源、注入不允许 skill/adapter/routine；安装中断后重试并绑定现有 Bot/真人 | 校验源 hash 却执行不同最终包；自动 claude_local/rename 克隆；partial warning 当完整成功；重复对象；未经准许启用 trigger |
+| V4 导入冻结 | preview 后替换源、注入不允许 skill/adapter/routine；安装中断后重试并绑定现有 Bot/真人 | 校验源 hash 却执行不同最终包；未批准的默认 harness/重命名克隆；partial warning 当完整成功；重复对象；未经准许启用 trigger |
 | V5 最终集合 | 页面只批准 S1；任务评论提及可读但未发布 S2，环境注入同名技能，再发普通 run/授权测试 run | 普通运行绕批准集合或同名覆盖；仅验绑定不验最终物化；测试例外泄漏为生产授权 |
 
 ### 4.2 撤权及传播反例
 
-这里 R1–R5 是本节撤权子样本，不是工作空间的“恢复模式 R1/R2”；报告必须使用 G3-R1 等完整标签避免混淆。
+这里 R1–R6 是本节撤权子样本，不是工作空间的“恢复模式 R1/R2”；报告必须使用 G3-R1 等完整标签避免混淆。
 
 | 子样本 | 操作 | 任一出现即 FAIL |
 |---|---|---|
@@ -139,14 +138,15 @@ V1–V5 只是既有 PC/LC 门禁的子样本标签，不新建测试框架。
 | G3-R3 发布边界 | 私密源生成候选，尝试断开来源/放宽旧 skill ACL 后共享；再用独立脱敏 identity 做正例 | 断开来源就当脱敏；新公开版本连带泄露旧私密历史；未批准扩大受众 |
 | G3-R4 运行中撤权 | 输入已选但未送模型/设备、提交已预检但被挂起、旧 session 恢复等切点撤权；服务端先提交新 policy revision 再放行旧请求 | 已撤权的新读取/模型准入/权威提交仍成功；预检代替提交时校验；旧授权随版本恢复 |
 | G3-R5 离线/终止 | 断控制链但保留模型/工具通路；分别撤设备授权/管理人资料权后重连；测终止 ACK、实际动作和迟到成本，覆盖设备与管理人双授权负例 | 租约到期当进程必死；超既定离线期限仍产生新的有效模型/共享动作；旧执行权复活；真成本因撤权丢失 |
+| G3-R6 对话组队委托 | A 发起、B 管理设备、Leader 执行；分别测试创建/增员/改职责/新建永久 Bot，明确允许与拒绝，并在执行前撤销委托；依据 MULTICA-BASE-EVALUATION 合成组队实测：A 直改 403、受托 Bot 改 B 职责成功、创建归 B，**已测子样本 FAIL**；增员/换 Leader/永久 Bot、撤销、幂等及设备资料资格负例 NOT RUN | 以 runtime owner 的管理权代替 A 的当前委托；仅凭 leader 头衔管理别人小队；角色/模板带入旧资料授权；重试重复建队；审计丢失实际 Agent/run 与真人来源 |
 
-服务端撤权以权威政策提交为生效点，新准入/提交必须校验当前版本；不能等待客户端 UI 刷新。已发生、已送模型或已获准在途效果不能倒带，记录/核对而非伪造零泄露。设备物理停止与离线限制分开度量，使用 [DV §3](D:/dev/morchat.co/docs/DUAL-DEVICE-VALIDATION.md) 的租约/断联参数；在线停止目标、数据外发和已缓存内容处置需 §5 的公司政策签认。员工管理员权限下不承诺远程擦除所有本地副本。
+服务端撤权以权威政策提交为生效点，新准入/提交必须校验当前版本；不能等待客户端 UI 刷新。已发生、已送模型或已获准在途效果不能倒带，记录/核对而非伪造零泄露。设备物理停止与离线限制分开度量，使用 [DV §3](DUAL-DEVICE-VALIDATION.md) 的租约/断联参数；在线停止目标、数据外发和已缓存内容处置需 §5 的公司政策签认。员工管理员权限下不承诺远程擦除所有本地副本。
 
 ### 4.3 接续失败与证据规则
 
-双设备按 [DV §4](D:/dev/morchat.co/docs/DUAL-DEVICE-VALIDATION.md) 操作，不另复制一份参数：自动保存/同机并行基线→确认后断电/ACK 丢失→采集中断电→断网但旧进程存活→旧机重连→文件冲突→容量/重试→未知效果与撤权。
+双设备按 [DV §4](DUAL-DEVICE-VALIDATION.md) 操作，不另复制一份参数：自动保存/同机并行基线→确认后断电/ACK 丢失→采集中断电→断网但旧进程存活→旧机重连→文件冲突→容量/重试→未知效果与撤权。
 
-已确认损失必须 0；建议未确认窗口 60 秒/5 MiB、恢复 180 秒、周期/保存期限各 30 秒等完整限定只以 DV §3 为准，仍待实验前签认，不是实测 SLA。旧代次写入成功、混合文件截面、人工 commit/补传依赖、未知效果自动重放、冲突静默覆盖、确认前伪称已保存、超预签门槛均失败。模型思考/未落盘内存不假称已保存。
+已确认保存点零丢失是要求；未确认窗口、保存周期/期限、大小与恢复时限的建议值只在 DV §3 定义，须实验前签认，不是实测 SLA。旧代次写入成功、混合文件截面、人工 commit/补传依赖、未知效果自动重放、冲突静默覆盖、确认前伪称已保存、超预签门槛均失败。模型思考/未落盘内存不假称已保存。
 
 证据统一包含 baseline/契约 revision、原生 SHA+补丁、任务/run/attempt/epoch、政策版本、内容 manifest/hash、原生对象/回执、注入切点、单调时序、实际拒绝/停止/加载结果、测试命令与退出码、PASS/FAIL/NOT RUN/BLOCKED。不得以截图或模型自报代替权威记录。冻结组合变化须重跑受影响项；每方向每切点至少三次，不用平均掩盖失败。
 
@@ -154,9 +154,9 @@ FAIL 先定位配置/适配/核心扩展/架构问题，允许同一已批准边
 
 ### 4.4 消息可见、定向唤醒与防风暴反例
 
-MSG-01–08 是同一纵向 fixture 的新增子样本，不是新测试平台；全部 **NOT RUN**。协议权威见 [群协作 §4](D:/dev/morchat.co/docs/DISTRIBUTED-COLLABORATION.md)，展示要求见 [体验 §3.2–3.3](D:/dev/morchat.co/docs/PRODUCT-EXPERIENCE.md)。G0 必须签认其根链/消息/控制参数和可观察断言，缺值即 BLOCKED；不临场提高上限换 PASS。
+MSG-01–08 是同一纵向 fixture 的新增子样本，不是新测试平台；全部 **NOT RUN**。协议权威见 [群协作 §4](DISTRIBUTED-COLLABORATION.md)，展示要求见 [体验 §3.2–3.3](PRODUCT-EXPERIENCE.md)。G0 必须签认其根链/消息/控制参数和可观察断言，缺值即 BLOCKED；不临场提高上限换 PASS。
 
-G3 先做 MSG-06 权限；G4 用相同 Paperclip/adapter 链完成其余样本，允许合成事件/可控假 provider 注入极端消息，但要另外包含两个真实本地 DSH Bot 的回复、派工、回传和补拉冒烟。假 provider/静态截图不能代替真实桥接证据。P0 只需最薄展示/消费者验证，不要求先完成整套前端；完整首页与跨视图体验在 P1–P3。
+G3 先做 MSG-06 权限；G4 用相同 Multica/daemon 链完成其余样本，允许合成事件/可控假 provider 注入极端消息，但要另外包含两个真实本地 DSH Bot 的回复、派工、回传和补拉冒烟。假 provider/静态截图不能代替真实桥接证据。P0 只需最薄展示/消费者验证，不要求先完成整套前端；完整首页与跨视图体验在 P1–P3。
 
 | ID | 操作 | 任一出现即 FAIL |
 |---|---|---|
@@ -183,27 +183,84 @@ G3 先做 MSG-06 权限；G4 用相同 Paperclip/adapter 链完成其余样本�
 | OP-04 停止范围 | 两 Bot 一个 root，加一无关 root；分别单 run 停止、整协作停止、明确中断继续；旧补充/结果迟到及设备离线重连 | 只停主 Bot 却称整组停止；普通停止自动继续；停止前输入/迟到结果复活 root；换设备绕停止；误停无关工作/越权分支；ACK 当真实终止；未知效果未核对就重做 |
 | OP-05 文件交付 | 本机产物未上传/上传超时重试/同键异字节；归档后改原路径；替换/退回/验收竞争；撤来源权限后测图片/Range/下载和旧链接 | 待归档被显示可交付；重试多份；历史链接字节漂移；旧 run 覆盖；非指定人验收；撤权泄露；物理删唯一保留版本；.env/个人文件自动归档 |
 | OP-06 Bot/小队配置 | 预览后改源；已有真人/Bot 绑定；含 memory/秘密/grants/routine/MCP 的导入；部分失败重试；AI 改配置与 org 新版自动更新；双维护者竞争 | 复制权限/私人记忆或自动执行；重复建 Bot/小队；把侧边栏分组当完整小队；AI 自批/默认 full 放行；模板静默改实例/run；半安装假报就绪；过期基线覆盖 |
-| OP-07 知识维护 | 两人同文档编辑；新改动后撤销旧版本；同 Bot 两个 run 并行；撤权后读历史/投影/模型输入；关机后触发整理 | 无条件 Undo 覆盖新版；同写 MEMORY 串数据；仅关 memory UI 就宣称撤权；正文只在离职员工设备；日志丢失仍称完整审计；所有设备离线中央偷跑学习 |
+| OP-07 工作记录与知识维护 | 首版在平台任务/归档资产版本上测试纠错、来源授权和候选，外部知识文档条件写按 KD 后接；两人对同一受控材料编辑；新改动后撤销旧版本；同 Bot 两个 run 并行；撤权后读历史/投影/模型输入；关机后触发整理 | 无条件 Undo 覆盖新版；同写 MEMORY 串数据；仅关 memory UI 就宣称撤权；正文只在离职员工设备；日志丢失仍称完整审计；所有设备离线中央偷跑学习 |
 | OP-08 skill 迭代 | Ask 模式建议改 live；过期 stage/Undo；发布时测试失败/并发候选；旧 run 与新发布版并行；撤源权限/回退 | 未评审候选直接生效；用 scripted bench/token 估算当业务成绩；共享正文热改旧 run；执行成功冒充质量合格；撤回恢复旧权限；引入第二版本/测试权威 |
 
-附加证据沿 §4.3，记录原生 interaction/approval/queue ID 与 revision、原请求与实际消费目标、决策/策略版本、控制范围及每目标实际停止、文件/知识/skill 精确版本、接收/验收者。展示和原生操作回执不能独立分叉；协议权限先通过，组件外观不能作为代替。即时 steer 未选可标明确不启用并验证下一轮/安全中断正例，不得将必要追问、取消或文件链也标“不支持”蒙混过关。
+附加证据沿 §4.3，记录Multica 原生或同域扩展的 interaction/approval/queue ID 与 revision、原请求与实际消费目标、决策/策略版本、控制范围及每目标实际停止、文件/知识/skill 精确版本、接收/验收者。展示和原生操作回执不能独立分叉；协议权限先通过，组件外观不能作为代替。即时 steer 未选可标明确不启用并验证下一轮/安全中断正例，不得将必要追问、取消或文件链也标“不支持”蒙混过关。
+
+### 4.6 外部知识/业务资料接入 KD-01–08（全部 NOT RUN，接入阶段恢复）
+
+2026-11-06 三路只读源码复核见 REFERENCE-REUSE §1.5，飞书见 §1.6，腾讯初查见 §1.7；最新 §1.8 查实新版企微 CLI 既有内容入口及腾讯企业 SaaS 独立 OpenAPI/MCP/官方 Skill，修正先前接口未明判断。Ethan 确认尚无测试授权，要求官方核查后收束，先跑客户端与 Agent 协作，连接器后接（PLAN §0.2）。故 KD 保留为后续启用门禁，不阻塞未启用外部内容的核心切片，也不删除平台自身权限/归档/撤权/接续 P0。暂不替换飞书；现有 Multica uploads 失败保留原报告，不覆盖成新实测。
+
+| 顺序 / ID | 最小验收 | 判 FAIL 的条件 |
+|---|---|---|
+| 0 / KD-01 | 固定提供方、实际租户/套餐、CLI/MCP/Skill SHA、工具清单、源权限权威；两部门员工及内容管理员独立身份，绑定/切租户/停用/旧会话；先取得既有文档 API 与用户委托契约 | 把个人版 MCP/私有化 SDK 当 SaaS 权益；同名/同邮箱误绑定；失效回退更高权限；SSO/通讯录同步被记作内容授权通过；无实际授权却开放工具 |
+| 1 / KD-02 | 员工预先创建的一篇受限文档、一张行/字段受限表及附件；真人与 Bot 按权读和最小修改正例；再测 Bot 新建；用户有权但 Bot/task 无权及不合格设备负例 | 只验自建资料冒充既有内容可写；永久只读冒充完成；只验工具名；模型取得无权正文；同群借用他人委托；开放任务未批准的 raw API |
+| 2 / KD-03 | 在线撤权后搜索/摘要、历史、原始附件/Range、预览/导出、旧签名链接、实时连接、排队同步和迟到模型输出；中断撤销通知；清点平台/桌面/DSH 的正文缓存、索引、摘要和记忆并验证阻断/清理两个回执；断网重连先对账再恢复 | 任一入口在规定边界后继续读/写或旧任务续用；只关 UI；只发清理命令却称完成；清理后重启/重连恢复旧投影；敏感资料离线继续用；误删公司原件。测试前冻结源端传播和在线清理上限，状态不明拒绝，离线待清理不能标成功 |
+| 3 / KD-04 | 人类在源站改动后，旧 Bot 草稿提交；重复调用、超时、标题/正文部分失败、历史恢复 | 旧稿无声覆盖；代理先读后写被当原子 CAS；未知效果盲重放；垃圾箱恢复冒充版本恢复。若写能力关闭可验安全禁用，不能记为写入通过 |
+| 4 / KD-05 | 任务关联固定版本/读取证据；原创建者停用且不再登录，公司接管人继续维护私密工作文档、表、知识库、附件/版本与未完任务；区分我的空间/共享空间/公司目录，核对转交数量与失败项，导出恢复后重验当前 ACL | 只留可变 URL 冒充版本；复制到公开 uploads；公司无法接管或需离职者密码/重新授权；为转交而公开私密资产；遗失附件/版本却宣称全量成功；隐私被错误纳入；恢复旧授权 |
+| 5 / KD-06 | 网页官方组件与桌面外部内容分别测试登录、账号隔离、导航/弹窗、下载/IPC和退出 | 外网页获得主 preload/本地工具能力；关闭 webSecurity 或改响应头强行嵌入；一个端显示成功外推另一个端；无法嵌入则保留浏览器回源 |
+| 6 / KD-07 | Base 四类权限及历史/搜索/公式/关联/导出/实时推送；同表两个角色与禁止字段混合写入 | 任何通道泄露无权行/字段；用管理员权限绕过；只隐藏列；混合非法字段静默成功。表功能未上线可保持 NOT RUN，不能称已验证 |
+| 7 / KD-08 | 过期/撤销凭据、限流、断网、重复回执、同文档并发与独立任务并行；核对 task/run 审计 | app secret/长期用户 token 暴露给通用 harness；用同机 sidecar demo 冒充跨设备授权；全公司单队列规避局部冲突；飞书/表格执行面变成第二任务权威 |
+
+原生复用优先：Multica task token/MCP broker 与回执、最终选定提供方的官方工具/内容服务；适配只补身份/资源范围/审计、公司接管清单、撤销清理回执和有证据的版本缺口，不重做文档或表格引擎。受测业务写入仅用另行获准的合成资源，不凭本轮只读研究授权执行。KD 扩展 C01/C04 并引用 C02/C05/C06/C08，不新立一套身份或任务契约。
+
+第一轮最短顺序：KD-01 接口/套餐资格 → KD-02 人工既有内容正例与 KD-07 权限负例 → KD-04 并发条件写入 → KD-03/08 撤权、受控清理与重连 → KD-05 离职资产接管 → KD-06 内嵌。编号保留，不以表格编号充当依赖；任一关键能力缺失先停止该路线，而非继续铺界面。清理范围遵循资产 §3.4，不将任意管理员副本/截图/取证级擦除列为可完成承诺，也不得借此豁免受控缓存的严格清理。无权数据未进入模型才算权限通过，事后删日志不补救。
+
+
+### 4.7 跨底座集成验收编号（PC-01–20）
+
+PC 前缀仅保留历史测试追踪编号，**当前测试对象全部为 Multica 及本项目扩展，不表示依赖 Paperclip**。不能复用旧 Paperclip 实验 PASS；以下完整企业验收均未通过，具体局部事实见 §2。
+
+| 编号 | 验证目标 |
+|---|---|
+| PC-01 | company/user/agent 映射准确，实际请求身份可审计；缺失/错误公司或用户不可越权 |
+| PC-02 | 两人并发认领/转派的结果确定，重复请求不重复建单或运行；不依赖未经证实的乐观锁字段 |
+| PC-03 | 群消息→任务→运行→成果关联可恢复；跨系统超时不会留下无人知道的双任务 |
+| PC-04 | 允许的状态转换和选择的审核策略在实际写入路径有效；拒绝绕过入口 |
+| PC-05 | Agent 委派/唤醒有来源、授权、去重与循环限制；普通 @ 不被假设为可靠派单 |
+| PC-06 | Bot 配置 revision、指令内容快照/hash、skill 版本关联实际 run；历史 GC 后可取、最终技能集准入、条件生效/回退和自动回写候选隔离，见 G2-V1–V5；新指令连续变更可追溯且自动归档失败不生效；不拿其他参考项目 history 路由或只回配置冒充完整 Bot 历史/回退；版本不改旧运行、不复活权限，受限内容不外泄 |
+| PC-07 | 事件/API 同步可补偿和对账；断线后群卡、待办、面板可收敛，显示延迟 |
+| PC-08 | 撤销用户/Agent 权限、取消任务后不能继续新的授权动作；最终准入/内部调用/缓存回执/历史/测试快照/下载都复核当前权限；已发生副作用另行处理，见 G3-R1–R6 |
+| PC-09 | 原生 UI 的列表、详情、搜索、附件和写入都符合开放范围；管理角色的广泛权限被明确限制 |
+| PC-10 | 数据库、对象、密钥引用与映射一致恢复；离职后原账号失效，接手者可续办 |
+| PC-11 | 同部门普通任务明细默认可读；跨部门项目/任务授权覆盖相应业务流转；敏感内容/私密群独立授权，依赖不扩权；读取权限不自动授予写入或管理 |
+| PC-12 | 云端模型经公司连接调用；秘密引用、轮换和撤销可用；客户端/本地工具/任务代码无原始 Key，个人登录态不能绕过计量 |
+| PC-13 | 公司/Agent/项目预算在实际适配路径生效；并发预留、在途调用、未知费用和命中后的停止边界有证据 |
+| PC-14 | 网关/daemon 成本粒度对齐且不双计；重复、迟到、失败、取消和实际重试计量正确；启用模型入口均有真实任务/run 和归属，非任务旁路关闭；设备失联/撤销后中央仍能恢复费用证据 |
+| PC-15 | 所选完整 harness 在员工设备运行；派发/领取/启动/等待与 Multica 原生运行契约对应，中央执行不冒充员工远程执行；无个人 CLI/Key 依赖且公司配置失败不回退个人身份 |
+| PC-16 | 本地文件提交公司存储后才形成正式资产；hash/版本/权限与任务关联一致，用量面板和资产面板均按当前身份过滤 |
+| PC-17 | 同逻辑派单多调度器/多 runtime 不重复启动；预检后冻结写请求再换代，迟到提交不能生效；启动许可 ACK 丢失判未知；检查点之后已提交效果对账不重做；离线分类、证据上传和费用独立验证 |
+| PC-18 | 同机无冲突任务与跨设备独立任务实际并行；共享 Agent 多 task/run 会话/目录隔离，per-run 选机不改共享配置；控制通信不被执行占住，冲突局部互斥/超额限流，全池离线不中央代跑 |
+| PC-19 | 员工助手默认设备/公用池自动选机；设备和管理人须均有对应资料授权，管理员身份不授 Agent 权；运行中升敏/撤权及工具新资料在送达宿主前校验，旧 session/同任务新身份不能绕过当前授权；群成员不决定电脑权限 |
+| PC-20 | 在 Multica 同一任务域补齐的 workspace/snapshot 接续能力可保存/恢复 Git 与普通文件；权威提交验证代次/父版本/权限，ACK 丢失可查询同一回执；不引入第二任务权威，不把 last-write-wins 用于项目冲突；对应 WC-02–11 有实证 |
+
 
 ## 5. 尚未确定的方案和决策顺序
 
-已确认的平台定位、同一客户端、部门与跨部门可见性、Bot=AI 同事、DSH 优先、Windows 优先、公司 Key、自动保存与授权池并行不是待决项。员工保留本机管理员权限、平台只管 Agent、公用 Bot 的设备与管理人资料双授权也已确认，不再问是否接管员工电脑。以下才是未决；“建议”尚未被当成已批准选择。
+Multica 底座、工作首页、同一客户端、部门/跨部门权限、Bot=AI 同事、Windows 本地 DSH、公司模型入口、自动保存及授权池并行已确认，不再作为悬而未决的选型。以下是具体落地参数，不能由各 agent 独自猜定：
 
-| ID / 待决 | 当前建议与取舍 | 决策角色 / 最晚阻塞点 |
+| ID | 待冻结内容 | 责任与阻塞点 |
 |---|---|---|
-| D01 仓库与集成基线 | morchat 应用一个受控仓库；Paperclip 独立固定上游+最小补丁维护线，不复制源码混进自有目录。确认当前真实 Git 归属、remote、分支保护、CI 与 bot 身份；本轮只读检查已发现工作区 .git；归属、remote、保护和 CI 尚未核验，不把目录存在当治理已完成 | Ethan 指定技术集成人 / 任何实现任务前 |
-| D02 企业身份代理与原生强制点 | 保留真实 user/Agent，复用原生 auth，优先受支持 hook；人员认领 CAS、import/final-admission/writeback/evidence/cache 各明确 owner 和补丁。部署版本不是直接等于研究 SHA | B01 + Paperclip owner + 安全审核 / G0-G2 |
-| D03 历史保留与发布事务 | 首选启用并验原生 durable，历史引用纳入保留根；已有公司保留存储合适则复用。确定保留期/删除例外、GC、条件激活/回退和 Beta pin 策略 | B03/B04 + 公司资产责任人 / G2 |
-| D04 Windows 实际组合与出口粒度 | DSH+ACP+MXC 是候选；确认实际 build/tier、发行/更新来源、浏览器域。选择 run 级模型出口（同 run 代码也可达）还是独立工具域/broker；不能同时宣传工具完全无网 | B05 + 安全责任人 / G1 |
-| D05 云模型与凭据部署 | 两个实际协议路由的供应商/型号、数据外发、秘密存储、额度/在途容差、usage 与价格证据；先一个固定故障实验模型组合 | B08 + Ethan 指定数据/费用责任人 / G1 |
-| D06 设备池与停止承诺（部分确认） | 已确认：员工保留管理员权、平台不接管整机、Agent 不继承权限、设备及管理人均需对应资料授权；全部合格设备关机可停工，不需常在线/云端执行兜底。待定：实际节点/管理人登记与变更通知、具体资料承载范围、并行配额、在线停止目标及 R1/R2 证据；不承诺抹除已落地副本 | B01/B05/B06 + 设备管理人 / G1/G3/G4 |
-| D07 保存与恢复阈值 | DV §3 建议值、工作包边界、源/正式 Git 与恢复包保留策略；双机实验资源及完整 DC/WC 第三不合格设备；RPO/RTO 不在测试后放宽 | B07 + 业务/资产责任人 / G4 |
-| D08 前端统一与客户端载体（部分确认） | 已确认工作首页、同一角色工作台、Paperclip 整体前端源码＋OpenMausBot 对话源码优先抽取；低保真串联首页/对话/看板/只读计划甘特/成果，已将模式切换改为 @ 发送，见体验 §3.4。三路源码依赖与最小接缝已查，见复用 §4.4；FE-01–06 提取门禁全部 NOT RUN；完整人机操作按复用 §4.5、OP-01–08 纳入，原生卡片优先，不额外搬 OMB 控制后台。全产品界面/官方文档与固定源码差异现登记在复用 §4.6，组织/成员/Skills Studio/Apps/审计等不能被八项差异清单漏掉；体验 §3.1/§3.6 新分组仍为提案。待验证 UI/服务兼容版本、实际 route/flag/角色命令、组件实际构建闭包/主题、导航细节、桌面壳与分发；不带入 OpenMausBot 完整 Store/后台。前端集成 owner 先完成最小抽取评审与共享边界；计划日期契约属 C02，获实现授权后才定包/CI，不生成骨架 | 技术集成人 + B02/B05 / 相应前端实现卡前；不阻塞无完整 UI 的 P0 |
-| D09 业务与发布责任 | 两部门试点人员、两岗位包/一小队模板材料、维护/发布/验收人、按原生请求类型的回答/批准角色与期限、私密与留存政策；工作资产与个人隐私的申诉/纠正入口 | Ethan 指定业务及数据责任人 / 真实资料进入前 |
-| D10 开发执行授权与人员绑定 | 本轮只 docs；确定各 owner、控制 agent、独立审核人、模型成本边界和获准实验动作。安全/权限/生产范围变更不由 agent 的 ruling 擅自批准 | Ethan + 技术集成人 / 任何实施派发前 |
-| D11 基座切换契约重定位（新增 2026-11-06） | Multica fork（164290ee）为新任务/run 权威后：①C01–C08 证据锚点与 B01–B08 中 Paperclip 专属条目按 Multica 重写（B02/B05/B06/B07/B08 受影响最大：前端基座、Windows daemon 发行物、派发协议=daemon WS、PCWS→workspace 接续、成本账=task_usage+公司网关）；②PC-01–20 → MC-01–20 逐条冻结（骨架见 [Multica 基座 §4](D:/dev/morchat.co/docs/MULTICA-BASE.md)，全部 NOT RUN）；③F01–F10 反例在 Multica 的等价物核查；④GATE-L 授权评估（组织外试用前完成，含免费与改品牌两种触发） | 技术集成人 + 基座 owner / ①② 须 G0 前完成，③④ 可与 G1 并行 |
+| D01 仓库基线 | **唯一产品仓已确认：现有 morchat.co**；GitHub jerry-halo2026/morchat.co 公开空仓与 origin 已建立，未推送。MC-00 已根级导入 Multica@164290ee14f63fe009ca304db21de9879db104c8，来源 manifest、隔离工具链和本地检查已建立，实测查 [MC-00](tasks/MC-00-results.md)。文档/main 收敛、目标提交、历史公开审查、完整 CI/保护与产品卡责任仍待完成；旧实验不迁记 | 技术集成人；工程准备已启动，产品卡前需满足所依赖基线 |
+| D02 权限落地 | **产品映射及继承已确认（2026-11-06）：一公司一个 Workspace、部门/资源细权，项目授权默认覆盖后续普通任务，私密单授**。C01 字段/动作/事务、委托、撤销/索引/附件/WS/上下文仍待冻；新成员普通历史默认仍属建议。无模型验证 NM-ACL-r1 见 MINIMUM-CHAIN §9，新 SHA 动态 NOT RUN | B01 + 原生 owner 冻实施契约；MC-01/01G 先无模型矩阵。R1-AUTH-r1 已放行受门禁约束的三切片代码，不含真实资料 |
+| D03 发布保留 | 发布/回退事务、不可变内容与保留根、GC/留存期、候选与实际加载证据 | B03/B04，G2 前 |
+| D04 Windows 安全 | 具体系统 build、DSH/bundle pin、隔离组件可用性、浏览器/网络出口与工具域；ACP 非主路径必选 | B05 + 安全审核，G1 前 |
+| D05 公司模型 | 一个首测模型/网关部署、两协议兼容范围、秘密保管、在途预算容差、价格证据与未知费用处理 | B08 + 数据/费用责任人，付费实验前 |
+| D06 授权设备池 | 设备及管理人登记、资格变更、容量、在线停止目标和离线时限；无设备等待已确认 | B01/B05/B06，G1/G3/G4 前 |
+| D07 保存接续 | DV 参数事前签认、工作包边界、保留/冲突策略、两台合格 Windows 及第三不合格设备负例 | B07 + 资产责任人，G4 前 |
+| D08 客户端切片 | 直接使用完整 Multica Web/Electron；已确认 S1-D 原生项目/Issue 评论（独立群入口后补）的映射、必要 DTO/授权/状态差异、原生日历日期映射、桌面安全与分发 | B02/B05，相关页面卡前；不按 v4 重建原生工作流/甘特，不再讨论换成 Paperclip UI |
+| D09 业务责任 | 两部门试点、岗位包材料、发布/验收/批准责任、私密及留存政策、误归档纠正入口 | 业务/数据责任人，真实资料前 |
+| D10 开发授权 | **已批准 R1-AUTH-r1 三切片连续开发**，含同仓工作树、合成库、本地提交及专用分支审核集成；真实 owner/reviewer 与子集技术冻结由工程方落实。main/push/真实资料/生产/模型费用仍不在批准内 | 技术集成人执行；仅新增外部权限向 Ethan 确认 |
 
-**当前判断：文档主题和工作规则可以统一，但 discovery 不能标为全部完成，接口也不能标已冻结，更不能说已有 PR/CI/工作树门禁在运行。**下一轮优先决策 D01/D02/D04/D05 与当期 C01–C08 测试契约；D08 壳选择不应拖延无 UI 的 P0 验证设计，未解的安全/版本/接续硬条件不放到上线后。
+**文档映射统一不等于 discovery 全完成。** C01–C08 全部 DRAFT；需按最小切片完成样例、拒绝用例、参数与 owner 签认，再 TEST-FROZEN；真实门禁通过才 BUILD-FROZEN。不声称 PR/CI/权限已部署。
+
+本轮已明确无模型验证的样本、步骤和失败规则，见 [NM-ACL-r1](MINIMUM-CHAIN.md#9-不调用模型的合成权限验证nm-acl-r1)。它是 G1/MC-01/01G 的前置切片，同时覆盖 G3-R1/R4/R6 的部分负例，不替代 G3 真实在途撤权、Windows 隔离或双设备实验。缺失企业 ACL 必须记差距，不因原生默认宽权限而修改期望。
+
+### 首个认证数据库 RED 源码子集：R1-AUTH-DB-r1
+
+基于真实schemaGREEN5ada0817及三方精确签认，R1-AUTH-DB-r1仅登记TEST-FROZEN SOURCE-ONLY：一个新HTTP测试文件、retainedA1原生OTP/PAT/CLI数据库路径，见tasks/contracts/R1-AUTH-DB-r1-test-frozen.json与tasks/R1-01B-auth-db.md。实际seed/login/capture运行及M1/M2产品源码尚未放行；先审source/binary/retained前态/私密sink/完整CID隔离胶囊。原proposal DRAFT头为不可变历史，由此登记定义有效范围。不是完整来源边界或C01–C08冻结，globalC仍DRAFT/NoBUILD；原九title/七mint及其他出口不迁记。
+
+R1-AUTH-CAPTURE-LINUX-r1 仅两阶段空文件/metadata隔离验证子集登记TEST-FROZEN，权威tasks/contracts/R1-AUTH-CAPTURE-LINUX-r1-test-frozen.json与精确candidate97b7ff2a。新非DB测试volume、一次root仅CHOWN初始化与单独非root真实负例证明，均需root分段释放及actual证据独立接受；不开放auth runtime/secret/SQL/产品源码。原Windows bind mode777失败保持，source0600不变，全局C仍DRAFT/NoBUILD。
+
+R1-AUTH-FOUNDATION-r1 source-only子集TEST-FROZEN：在真实RED已提交base0aaf9b0与owner/rootconsumer/independent精确签认下，仅9source M1+M2+privateverifiedorigin/离线编译，见tasks/contracts/R1-AUTH-FOUNDATION-r1-test-frozen.json及tasks/R1-01B-auth-foundation.md。字段只能来自native verified principal/binding，未绑定空，不从header推断；v1签发与CLI关PATmint同候选、两renew不升级。actualunit/HTTP/secret/SQL/restore另profile审，不由源码TF偷开；未通过Issue/title/其他出口/完整C01/BUILD，全局C仍DRAFT/Goal全scope保持。

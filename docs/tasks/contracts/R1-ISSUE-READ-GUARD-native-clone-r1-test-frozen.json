@@ -1,0 +1,598 @@
+{
+  "schemaVersion": 1,
+  "taskId": "R1-01D-NATIVE-CLONE",
+  "revision": "r1",
+  "status": "TEST-FROZEN",
+  "kind": "TEST_INFRASTRUCTURE_AMENDMENT_ONLY_NOT_PRODUCT_BUILD",
+  "authority": "R1-AUTH-r1",
+  "sourceRoot": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co",
+  "branch": "codex/round1-continuous",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "owner": "/root/native_clone_impl gpt-6.1-sol high",
+  "consumer": "/root model unknown",
+  "independentReviewer": "/root/guard_review gpt-6-astra high",
+  "originalAuthority": {
+    "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\tasks\\contracts\\R1-ISSUE-READ-GUARD-r2-test-frozen.json",
+    "sha256": "122ecf2523369c1184c2e74037801b3df019dda847f0a3ae554bb1e9417c2624",
+    "modified": false
+  },
+  "spec": {
+    "path": "docs/tasks/contracts/R1-ISSUE-READ-GUARD-native-clone-r1-spec.md",
+    "sha256": "1ae090cc61424d273334395850dc08296dc55781c8142fc1f6a091cbb55ca95d"
+  },
+  "plan": {
+    "path": "docs/superpowers/plans/2026-11-07-native-clone-guard.md",
+    "sha256": "269c3175349529d0db1eeade974481b6ef7df9ea524b836fcd222b597569e9d3"
+  },
+  "ownerAck": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\native-clone-r1-owner-ack.json",
+    "sha256": "6e0dd56b29c9d9bfefddbb4e787d910a818726391e7cb6f1ae25124257a01e45"
+  },
+  "independentInputReview": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\native-clone-r1-owner-input-independent-review.md",
+    "sha256": "c43d04e9114239327da9ca0bb44323faf777ca36df857f1cc1c0fc3b133d122d",
+    "decision": "APPROVE entering localTF with entryDoc drift explicitly reconciled; pureRED37/32pass5fail"
+  },
+  "consumerAck": "Exactone Issue-read _test.go helpercall/newlocalhelpers/pureparents only; originalsharedcanonicalhelper/twootherconsumers/TestMain/old4events/OTP/permissionassertions unchanged. New helper ONLY exactrouterDB/role/127.0.0.1:5432/actualSQLcurrent_database,current_user,session_user same; no canonical fallback/pgxquery override/devbypass. Separate37 infrastructure events, not GuardbusinessRED.",
+  "writeSet": [
+    "server/cmd/server/r1_acl_issue_read_integration_test.go"
+  ],
+  "sourceBeforeAndProtected": [
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\service\\resource_access.go",
+      "repositoryPath": "server/internal/service/resource_access.go",
+      "bytes": 16949,
+      "sha256": "e32bb3dea3c3d756f450cd291dca911a2e34a3e2c21e9e700ef51ebcbf35a083",
+      "gitHeadBlob": null,
+      "gitHeadBlobSHA256": null,
+      "worktreeEqualsHEAD": null,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\service\\resource_access_test.go",
+      "repositoryPath": "server/internal/service/resource_access_test.go",
+      "bytes": 23645,
+      "sha256": "4520438893a890ef0be6d2685a7bf8b88a462a3159fe68ed124e758bb08bdd20",
+      "gitHeadBlob": null,
+      "gitHeadBlobSHA256": null,
+      "worktreeEqualsHEAD": null,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\issue_access.go",
+      "repositoryPath": "server/internal/handler/issue_access.go",
+      "bytes": 7229,
+      "sha256": "c65db4e07d66a7e47dd4d9492c5608af2ccbda6a3553b30c95b8d9e353cb52a8",
+      "gitHeadBlob": null,
+      "gitHeadBlobSHA256": null,
+      "worktreeEqualsHEAD": null,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\issue_access_test.go",
+      "repositoryPath": "server/internal/handler/issue_access_test.go",
+      "bytes": 26644,
+      "sha256": "b520a8a4b5491c84021af926801e6f9e151a5e7cb6f29bc8e53d4b1930ce2d3f",
+      "gitHeadBlob": null,
+      "gitHeadBlobSHA256": null,
+      "worktreeEqualsHEAD": null,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\db\\queries\\enterprise_acl.sql",
+      "repositoryPath": "server/pkg/db/queries/enterprise_acl.sql",
+      "bytes": 3334,
+      "sha256": "af1937b2d734da8029f620dc54b07656be90f4ef62bf01f3929dafd4a4118c72",
+      "gitHeadBlob": null,
+      "gitHeadBlobSHA256": null,
+      "worktreeEqualsHEAD": null,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\db\\generated\\enterprise_acl.sql.go",
+      "repositoryPath": "server/pkg/db/generated/enterprise_acl.sql.go",
+      "bytes": 12331,
+      "sha256": "428b4f17cb32bdea5f9a6c7148724a37ca8480cb63fdbb202b0c69b9f0343f89",
+      "gitHeadBlob": null,
+      "gitHeadBlobSHA256": null,
+      "worktreeEqualsHEAD": null,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\issue.go",
+      "repositoryPath": "server/internal/handler/issue.go",
+      "bytes": 191046,
+      "sha256": "566790b3071caab6371177741cef9b5054b67a870b51ed7acd8ffdb628708afd",
+      "gitHeadBlob": "aaa708241efa2dd983fee2a73db5d0a0d080dc98",
+      "gitHeadBlobSHA256": "9e70f255a77c5a3557472c9a6721a1bd503af2b699b660d0e957fd1074091b98",
+      "worktreeEqualsHEAD": false,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\source_context.go",
+      "repositoryPath": "server/internal/handler/source_context.go",
+      "bytes": 46209,
+      "sha256": "91509ee13212c69627705e1d50680299d5fdaaadf9c4d657090c2d03e002b3ec",
+      "gitHeadBlob": "104552298c5797acc5136e0456bac9bd7d9bfcb6",
+      "gitHeadBlobSHA256": "8d372e90c9c61c25dc722731535e22b594a86604791b3c12b2e6189acd115631",
+      "worktreeEqualsHEAD": false,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\db\\generated\\models.go",
+      "repositoryPath": "server/pkg/db/generated/models.go",
+      "bytes": 95073,
+      "sha256": "0c3adba67ab5dc5e0217456655dde42651090e25680a6421d154f8f18230de05",
+      "gitHeadBlob": "303482873a188fb68612dea8ddb4a5cc590cae96",
+      "gitHeadBlobSHA256": "29d9afbe7c9e6e3dc0314dfbc0dc71ff20548b148985811d10cc366e03291b5e",
+      "worktreeEqualsHEAD": false,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_acl_issue_read_integration_test.go",
+      "repositoryPath": "server/cmd/server/r1_acl_issue_read_integration_test.go",
+      "bytes": 17611,
+      "sha256": "92ef12604083e19d4f7d279b0c1a8f2808b003d6f86d22007f82c6159c267257",
+      "gitHeadBlob": "6e2a2b99669134060dd1a922b489b8c4dc61b6be",
+      "gitHeadBlobSHA256": "fba7b818bb9f72d42786a8532a19d995adad33c0ef813f2135f29754be0c42e2",
+      "worktreeEqualsHEAD": false,
+      "futureWrite": "ONE_FILE_TEST_ONLY_AFTER_NEW_TF_ROOT_RELEASE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\handler.go",
+      "repositoryPath": "server/internal/handler/handler.go",
+      "bytes": 55025,
+      "sha256": "fbe785bcda4d6508d220dc2abe097fc43b814441bbcb2b8a24009716862c10ef",
+      "gitHeadBlob": "de551221c118492a44b86880ecbae2b41e3d265a",
+      "gitHeadBlobSHA256": "fbe785bcda4d6508d220dc2abe097fc43b814441bbcb2b8a24009716862c10ef",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\service\\source_context.go",
+      "repositoryPath": "server/internal/service/source_context.go",
+      "bytes": 33449,
+      "sha256": "effc0dbc9d30d1fc1799ce8f758f22239e99b7e2c6d8b6078bafef05c6905d84",
+      "gitHeadBlob": "c49379906cb13ed16ce1e4ec08af02f826e36ba7",
+      "gitHeadBlobSHA256": "effc0dbc9d30d1fc1799ce8f758f22239e99b7e2c6d8b6078bafef05c6905d84",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\file.go",
+      "repositoryPath": "server/internal/handler/file.go",
+      "bytes": 62669,
+      "sha256": "8b294732d2cce9e66b6ab826407f7b7b434d40640c23b807dcc8dff459d06dba",
+      "gitHeadBlob": "9959e55e02c92f57959f116e5d9df471ddf0b627",
+      "gitHeadBlobSHA256": "8b294732d2cce9e66b6ab826407f7b7b434d40640c23b807dcc8dff459d06dba",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\middleware\\verified_identity.go",
+      "repositoryPath": "server/internal/middleware/verified_identity.go",
+      "bytes": 1551,
+      "sha256": "aa384557c44433f78521559c4c3236569fda824b749fe0c86d4d3908d0bec933",
+      "gitHeadBlob": "1c76c1984d396e8097714b9b670b0182a2e1dc40",
+      "gitHeadBlobSHA256": "aa384557c44433f78521559c4c3236569fda824b749fe0c86d4d3908d0bec933",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\middleware\\auth.go",
+      "repositoryPath": "server/internal/middleware/auth.go",
+      "bytes": 14095,
+      "sha256": "f52329508d6de885706e161627b73ec3514f6783d6b0e44a85626403558fd8e5",
+      "gitHeadBlob": "13e7c934c62b4114cb603addd4a47d7e0b60b34b",
+      "gitHeadBlobSHA256": "f52329508d6de885706e161627b73ec3514f6783d6b0e44a85626403558fd8e5",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\middleware\\workspace.go",
+      "repositoryPath": "server/internal/middleware/workspace.go",
+      "bytes": 9941,
+      "sha256": "64521c31d3f55ecb6d3a5bc8b123004db3e4da572c351d5af1d0a14ba7c36e90",
+      "gitHeadBlob": "4fb58c33c8d2c99cb7d44fad8fd8b75856d36f99",
+      "gitHeadBlobSHA256": "64521c31d3f55ecb6d3a5bc8b123004db3e4da572c351d5af1d0a14ba7c36e90",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\issuestatus\\issuestatus.go",
+      "repositoryPath": "server/internal/issuestatus/issuestatus.go",
+      "bytes": 29319,
+      "sha256": "81ad659ce3bfe7f7b0b7d3752c104494d372ae48489d53b21d37f9bd107358f6",
+      "gitHeadBlob": "c808c1f056ba7564d3975ead91ca9819605785a9",
+      "gitHeadBlobSHA256": "81ad659ce3bfe7f7b0b7d3752c104494d372ae48489d53b21d37f9bd107358f6",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\db\\generated\\db.go",
+      "repositoryPath": "server/pkg/db/generated/db.go",
+      "bytes": 564,
+      "sha256": "0c9302e79a855e76de414411e9c730a96b56c46782e65d19f7f4b919a7771799",
+      "gitHeadBlob": "468d1fa3b688ee256327e2e873a4b5c146db33bc",
+      "gitHeadBlobSHA256": "0c9302e79a855e76de414411e9c730a96b56c46782e65d19f7f4b919a7771799",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\db\\queries\\issue.sql",
+      "repositoryPath": "server/pkg/db/queries/issue.sql",
+      "bytes": 37280,
+      "sha256": "389db653b8e103b89f6e42274fd768f949f2a6b4ea4cfc90bfcd68745275c044",
+      "gitHeadBlob": "ac608905c6fd95c397131124284145f6126e10a1",
+      "gitHeadBlobSHA256": "389db653b8e103b89f6e42274fd768f949f2a6b4ea4cfc90bfcd68745275c044",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\db\\queries\\source_context.sql",
+      "repositoryPath": "server/pkg/db/queries/source_context.sql",
+      "bytes": 6398,
+      "sha256": "a70a4807b0c21041ff08ec387a3f40becbe6e5acde9193383cd9574a64e84f03",
+      "gitHeadBlob": "065159e2d100baa031c79c0f8b38b26e5cffbadf",
+      "gitHeadBlobSHA256": "a70a4807b0c21041ff08ec387a3f40becbe6e5acde9193383cd9574a64e84f03",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\db\\queries\\comment.sql",
+      "repositoryPath": "server/pkg/db/queries/comment.sql",
+      "bytes": 40811,
+      "sha256": "d05bee2790a3303e81373b477c71dd4cb138fc7d26035898c92fcab1ae5fbbb2",
+      "gitHeadBlob": "c014e57ecf8d2c14e54452c7e0aa43f62e658883",
+      "gitHeadBlobSHA256": "d05bee2790a3303e81373b477c71dd4cb138fc7d26035898c92fcab1ae5fbbb2",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\sqlc.yaml",
+      "repositoryPath": "server/sqlc.yaml",
+      "bytes": 403,
+      "sha256": "4eda341cdbf85e504ad5561c5c7e9414725f583e76fff049db5cb1c15f5a19fc",
+      "gitHeadBlob": "22e074281d33b4cfb5e4bd792631fc5c5bed3316",
+      "gitHeadBlobSHA256": "4eda341cdbf85e504ad5561c5c7e9414725f583e76fff049db5cb1c15f5a19fc",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\tasks\\contracts\\R1-ACL-r1.md",
+      "repositoryPath": "docs/tasks/contracts/R1-ACL-r1.md",
+      "bytes": 22310,
+      "sha256": "f5e810595f5f30b07d07c29926cd7eb0228d3d8a9c8283f822ee6d194c87f414",
+      "gitHeadBlob": "b87e6d0ae25d3907d08601b66d19e3fbeb1331e8",
+      "gitHeadBlobSHA256": "f5e810595f5f30b07d07c29926cd7eb0228d3d8a9c8283f822ee6d194c87f414",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\tasks\\contracts\\R1-ACL-r1-schema.sql",
+      "repositoryPath": "docs/tasks/contracts/R1-ACL-r1-schema.sql",
+      "bytes": 9770,
+      "sha256": "e21aed0fb0702d2db6ce5ce04ed6170056b691cde43ba4d3121aa23292888af9",
+      "gitHeadBlob": "f758f9dddc1dd65bc124938a7d9d35884459b936",
+      "gitHeadBlobSHA256": "e21aed0fb0702d2db6ce5ce04ed6170056b691cde43ba4d3121aa23292888af9",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\tasks\\contracts\\R1-ACL-r1-fixture.sql",
+      "repositoryPath": "docs/tasks/contracts/R1-ACL-r1-fixture.sql",
+      "bytes": 12438,
+      "sha256": "fd4c9bcb53ec1d47438b27bc836c414e227dd16a8140d9dfb4e66eccfa77eb61",
+      "gitHeadBlob": "1210cf603801c52db972c6404f760cb8a6bee1eb",
+      "gitHeadBlobSHA256": "fd4c9bcb53ec1d47438b27bc836c414e227dd16a8140d9dfb4e66eccfa77eb61",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\integration_test.go",
+      "repositoryPath": "server/cmd/server/integration_test.go",
+      "bytes": 52464,
+      "sha256": "2739256fe6bf679deeae39f40bf9e77b2996fbff177abe0ddba482a101eff796",
+      "gitHeadBlob": "24fe08b4e0bddf4ce173749775209fd3e6904573",
+      "gitHeadBlobSHA256": "2739256fe6bf679deeae39f40bf9e77b2996fbff177abe0ddba482a101eff796",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_acl_nm02_integration_test.go",
+      "repositoryPath": "server/cmd/server/r1_acl_nm02_integration_test.go",
+      "bytes": 32607,
+      "sha256": "3d78123dacfc8d0f499525151fec7845ea4479c06814f3cec42fca1d702cf24e",
+      "gitHeadBlob": "2ecf78319e86f8da36b5b95ebf84875ffec4f52a",
+      "gitHeadBlobSHA256": "3d78123dacfc8d0f499525151fec7845ea4479c06814f3cec42fca1d702cf24e",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\r1_acl_cli_token_origin_integration_test.go",
+      "repositoryPath": "server/cmd/server/r1_acl_cli_token_origin_integration_test.go",
+      "bytes": 22892,
+      "sha256": "8e350f1475d265a8b1b4d19c76c437ebb9fe7f8a9ba19902e10b7f13f32882f1",
+      "gitHeadBlob": "881490aba91505e3ac5f89773bca772a04ca2923",
+      "gitHeadBlobSHA256": "8e350f1475d265a8b1b4d19c76c437ebb9fe7f8a9ba19902e10b7f13f32882f1",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\main.go",
+      "repositoryPath": "server/cmd/server/main.go",
+      "bytes": 40961,
+      "sha256": "6582be8dfdb49fc84d6e32105905bfbf7b24645b973654e832af63ccede266b9",
+      "gitHeadBlob": "5bb3253a13b2c842105fb436f2a07888fa613848",
+      "gitHeadBlobSHA256": "6582be8dfdb49fc84d6e32105905bfbf7b24645b973654e832af63ccede266b9",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\cmd\\server\\router.go",
+      "repositoryPath": "server/cmd/server/router.go",
+      "bytes": 133765,
+      "sha256": "f6d56506348e7a1faf59ec8283c82727b4ca8a37a3db29e021c6e0724e01c5a8",
+      "gitHeadBlob": "f92744e804891300d6fcd8ce4142a0539af5e919",
+      "gitHeadBlobSHA256": "f6d56506348e7a1faf59ec8283c82727b4ca8a37a3db29e021c6e0724e01c5a8",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\handler\\auth.go",
+      "repositoryPath": "server/internal/handler/auth.go",
+      "bytes": 28788,
+      "sha256": "27a04ac4f7b205881dfcce6ba04bf0edcc2812c740c86653b6233f905364b78b",
+      "gitHeadBlob": "61336b6a6cadbb9c7e3fe31e8f52c8055adedf94",
+      "gitHeadBlobSHA256": "27a04ac4f7b205881dfcce6ba04bf0edcc2812c740c86653b6233f905364b78b",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\auth\\jwt.go",
+      "repositoryPath": "server/internal/auth/jwt.go",
+      "bytes": 3018,
+      "sha256": "f907ca9f8927f70804601c4e627187873370fde8392c27327727529921d867df",
+      "gitHeadBlob": "c77f033e9983af58c411de81b7be8c8633bf1594",
+      "gitHeadBlobSHA256": "f907ca9f8927f70804601c4e627187873370fde8392c27327727529921d867df",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\internal\\auth\\session.go",
+      "repositoryPath": "server/internal/auth/session.go",
+      "bytes": 10902,
+      "sha256": "335ba9ddadcbe09701b2923dec543896027205e3f73e1a7561524c6a4c14621d",
+      "gitHeadBlob": "b2ff7628fece991af26e0feeeabf6d8eaaeeaaee",
+      "gitHeadBlobSHA256": "335ba9ddadcbe09701b2923dec543896027205e3f73e1a7561524c6a4c14621d",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\dsh.go",
+      "repositoryPath": "server/pkg/agent/dsh.go",
+      "bytes": 15504,
+      "sha256": "f48eb3a4d8f555c66ce4fea447e6877c8bd222486ea609605176fca1368a00e1",
+      "gitHeadBlob": "459e039a78dd98dd407a83afb786fb61c314169b",
+      "gitHeadBlobSHA256": "9132ccdc9fcd8e91bcf53eae58461aa3fedbbfc69ddcb591b1536b76f538d6ab",
+      "worktreeEqualsHEAD": false,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\go.mod",
+      "repositoryPath": "server/go.mod",
+      "bytes": 3429,
+      "sha256": "616f1d455fc5f9ac436c9aea8773e5a5c491271f321ad9663cc675063205230e",
+      "gitHeadBlob": "199b6289de6987b973c64b90390f45a93731e34b",
+      "gitHeadBlobSHA256": "616f1d455fc5f9ac436c9aea8773e5a5c491271f321ad9663cc675063205230e",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\go.sum",
+      "repositoryPath": "server/go.sum",
+      "bytes": 18550,
+      "sha256": "5e6088b07fa11ab4ebe3f5896fb5dd6cc369bc8800d5462485d85f0f97abd786",
+      "gitHeadBlob": "3c6ba1362985dda5eaa2c911691fed320d55c6d0",
+      "gitHeadBlobSHA256": "5e6088b07fa11ab4ebe3f5896fb5dd6cc369bc8800d5462485d85f0f97abd786",
+      "worktreeEqualsHEAD": true,
+      "futureWrite": "PROTECTED_NO_WRITE"
+    }
+  ],
+  "metadataRebind": {
+    "source36": "all exact bytes verified unchanged; old git blob observations are historical",
+    "currentHead": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+    "decision": "Only mutableACTIVE statusadvanced via reviewedR58; all other17 evidence/current source pins match. NewHEAD includessource-identical DSHintegration; originalOwner artifacts retained, not falselyrehashed.",
+    "entryDocBeforeRegistration": {
+      "gitBlob": "9deb86654f0f81e227b436a440fd9c4a6ef9a453:docs/tasks/ACTIVE.md",
+      "sha256": "f40792b58bac7c675bd955f0ad63fc7070a1af4c042b4b2dcb2690ae77f8f3b2"
+    },
+    "entryDocDrift": [
+      {
+        "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\tasks\\ACTIVE.md",
+        "before": "db15703e87c309d81a13620e1e0bc1934319cdece81412d848ee0a117665701b",
+        "now": "f40792b58bac7c675bd955f0ad63fc7070a1af4c042b4b2dcb2690ae77f8f3b2"
+      }
+    ],
+    "oldOwnerHead": "d683932b1aeb3ff536c7e6672ec808c52f8535e6"
+  },
+  "binding": {
+    "database": "r1_guard_router_r2_20261107",
+    "port": 5432,
+    "urlPath": "/r1_guard_router_r2_20261107",
+    "allThreeSQLIdentities": "r1_guard_router_r2_20261107",
+    "oldOtherConsumersPreserved": [
+      "TestR1ACLNM02Schema",
+      "TestR1ACLCliMintDatabaseBoundary"
+    ],
+    "urlUser": "r1_guard_router_r2_20261107",
+    "sql": "SELECT current_database(), current_user, session_user",
+    "canonicalAllowed": false,
+    "query": {
+      "sslmode": "disable",
+      "connect_timeout": "5"
+    },
+    "host": "127.0.0.1",
+    "role": "r1_guard_router_r2_20261107"
+  },
+  "nativeAcceptance": {
+    "package": "github.com/jerry-halo2026/morchat.co/server/cmd/server",
+    "selector": "^(TestR1ACLNM02IssueReadCrossDepartment)$",
+    "parents": [
+      "TestR1ACLNM02IssueReadCrossDepartment"
+    ],
+    "names": [
+      "TestR1ACLNM02IssueReadCrossDepartment",
+      "TestR1ACLNM02IssueReadCrossDepartment/SameDepartmentRead",
+      "TestR1ACLNM02IssueReadCrossDepartment/ExplicitIssueReadGrant",
+      "TestR1ACLNM02IssueReadCrossDepartment/UnsharedCrossDepartment"
+    ],
+    "expectedEvents": 4,
+    "expectedGoExit": 0,
+    "expectedConverterExit": 0,
+    "expectedTerminal": "pass",
+    "expectedPackageTerminal": "pass",
+    "skipAllowed": false,
+    "runCount": 0,
+    "observedResult": "NOTRUN",
+    "testArgv": [
+      "-test.v=test2json",
+      "-test.count=1",
+      "-test.parallel=1",
+      "-test.timeout=180s",
+      "-test.run",
+      "^(TestR1ACLNM02IssueReadCrossDepartment)$"
+    ]
+  },
+  "newPureInfrastructure": {
+    "identityChildren": [
+      "ExactRouterIdentity",
+      "CanonicalDatabase",
+      "ServiceDatabase",
+      "HandlerDatabase",
+      "WrongCurrentUser",
+      "WrongSessionUser",
+      "EmptyIdentity",
+      "AllSameNonRouter"
+    ],
+    "selector": "^(TestR1IssueReadRouterCloneURLBinding|TestR1IssueReadRouterCloneSQLIdentity)$",
+    "skipAllowed": false,
+    "expectedConverterExit": 0,
+    "urlChildren": [
+      "RouterPostgres",
+      "RouterPostgresql",
+      "CanonicalDatabase",
+      "ServiceClone",
+      "HandlerClone",
+      "WrongDatabase",
+      "WrongRole",
+      "MissingUser",
+      "Hostname",
+      "IPv6Loopback",
+      "WrongPort",
+      "MissingPort",
+      "NonPostgres",
+      "EmptyURL",
+      "MalformedURL",
+      "DevBypass",
+      "QueryHostOverride",
+      "QueryUserOverride",
+      "QueryDatabaseOverride",
+      "QueryPortOverride",
+      "QueryOptions",
+      "WrongConnectTimeout",
+      "DuplicateQueryKey",
+      "Fragment",
+      "EscapedDatabasePath",
+      "ExtraPath",
+      "MissingSSLMode"
+    ],
+    "names": [
+      "TestR1IssueReadRouterCloneURLBinding",
+      "TestR1IssueReadRouterCloneURLBinding/RouterPostgres",
+      "TestR1IssueReadRouterCloneURLBinding/RouterPostgresql",
+      "TestR1IssueReadRouterCloneURLBinding/CanonicalDatabase",
+      "TestR1IssueReadRouterCloneURLBinding/ServiceClone",
+      "TestR1IssueReadRouterCloneURLBinding/HandlerClone",
+      "TestR1IssueReadRouterCloneURLBinding/WrongDatabase",
+      "TestR1IssueReadRouterCloneURLBinding/WrongRole",
+      "TestR1IssueReadRouterCloneURLBinding/MissingUser",
+      "TestR1IssueReadRouterCloneURLBinding/Hostname",
+      "TestR1IssueReadRouterCloneURLBinding/IPv6Loopback",
+      "TestR1IssueReadRouterCloneURLBinding/WrongPort",
+      "TestR1IssueReadRouterCloneURLBinding/MissingPort",
+      "TestR1IssueReadRouterCloneURLBinding/NonPostgres",
+      "TestR1IssueReadRouterCloneURLBinding/EmptyURL",
+      "TestR1IssueReadRouterCloneURLBinding/MalformedURL",
+      "TestR1IssueReadRouterCloneURLBinding/DevBypass",
+      "TestR1IssueReadRouterCloneURLBinding/QueryHostOverride",
+      "TestR1IssueReadRouterCloneURLBinding/QueryUserOverride",
+      "TestR1IssueReadRouterCloneURLBinding/QueryDatabaseOverride",
+      "TestR1IssueReadRouterCloneURLBinding/QueryPortOverride",
+      "TestR1IssueReadRouterCloneURLBinding/QueryOptions",
+      "TestR1IssueReadRouterCloneURLBinding/WrongConnectTimeout",
+      "TestR1IssueReadRouterCloneURLBinding/DuplicateQueryKey",
+      "TestR1IssueReadRouterCloneURLBinding/Fragment",
+      "TestR1IssueReadRouterCloneURLBinding/EscapedDatabasePath",
+      "TestR1IssueReadRouterCloneURLBinding/ExtraPath",
+      "TestR1IssueReadRouterCloneURLBinding/MissingSSLMode",
+      "TestR1IssueReadRouterCloneSQLIdentity",
+      "TestR1IssueReadRouterCloneSQLIdentity/ExactRouterIdentity",
+      "TestR1IssueReadRouterCloneSQLIdentity/CanonicalDatabase",
+      "TestR1IssueReadRouterCloneSQLIdentity/ServiceDatabase",
+      "TestR1IssueReadRouterCloneSQLIdentity/HandlerDatabase",
+      "TestR1IssueReadRouterCloneSQLIdentity/WrongCurrentUser",
+      "TestR1IssueReadRouterCloneSQLIdentity/WrongSessionUser",
+      "TestR1IssueReadRouterCloneSQLIdentity/EmptyIdentity",
+      "TestR1IssueReadRouterCloneSQLIdentity/AllSameNonRouter"
+    ],
+    "parents": [
+      "TestR1IssueReadRouterCloneURLBinding",
+      "TestR1IssueReadRouterCloneSQLIdentity"
+    ],
+    "TestMainWarning": "Pure predicates are side-effect-free; native package process still needs clone bootstrap/context/audit release",
+    "expectedEvents": 37,
+    "observedResult": "NOTRUN",
+    "runCount": 0
+  },
+  "expectedRed": {
+    "fail": 5,
+    "selector": "^(TestR1IssueReadRouterCloneURLBinding|TestR1IssueReadRouterCloneSQLIdentity)$",
+    "pass": 32,
+    "run": 37,
+    "reason": "Threepositivechildren and bothparents fail against deny-all scaffolds; setup/undefinedcompile not actualRED",
+    "kind": "EXPECTED_NOTRUN_SAFETY_INFRASTRUCTURE_ASSERTION_RED_ONLY",
+    "skip": 0,
+    "goExit": 1
+  },
+  "expectedGreen": {
+    "run": 37,
+    "status": "EXPECTED_NOTRUN",
+    "pass": 37,
+    "fail": 0,
+    "selector": "^(TestR1IssueReadRouterCloneURLBinding|TestR1IssueReadRouterCloneSQLIdentity)$",
+    "goExit": 0,
+    "skip": 0
+  },
+  "nativeOriginalExpected": {
+    "run": 4,
+    "status": "NOTRUN separate actualSQL/GET/OTPproof required",
+    "pass": 4,
+    "fail": 0,
+    "selector": "^(TestR1ACLNM02IssueReadCrossDepartment)$",
+    "skip": 0
+  },
+  "phase1": "Only append literal tests BEFORE functions + two pure returnfalse scaffolds; oldparentcall untouched; preserve test-before-scaffold source hashes; no permissive helper/wiring before actualinfraRED independent acceptance/newRoot release",
+  "sourceWindow": "CLOSED pending exactregistration review/Roottest-only handoff",
+  "compile": "NOTRELEASED; lockedofflineGo1.27.3/new outputs separatelyreviewed",
+  "runtime": "NOTRELEASED; evenpure tests execute originalNativeTestMain/bootstrap/server/JWT. Fresh synthetic context/privatekey/ownclone/audits+separate Rootrelease mandatory; no TestMain bypass/copiedpkg/overlay",
+  "excludes": [
+    "OriginalcanonicalDBruntime",
+    "Sharedhelper/TestMain/Auth/schema/routes/grants/prod changes",
+    "RealModel/DSH/Windows",
+    "AnynewDB/server/reset/reGRANT/fixturecleanup/triggerdisable",
+    "GuardbusinessPASS/fullR1/Goalcompletion"
+  ],
+  "goal": "ACTIVE full original scope",
+  "build": "NOT_BUILD_FROZEN"
+}

@@ -1,0 +1,237 @@
+# morechat.co — 一键部署（Quickstart）Compose 文件
+#
+# 用法（推荐）：先跑 install.sh / install.ps1，它负责生成 .env 里的密钥。
+# 手工用法：
+#   cd deploy/quickstart
+#   cp .env.example .env      # 然后把 JWT_SECRET / MULTICA_VCS_SECRET_KEY /
+#                             # POSTGRES_PASSWORD / DATABASE_URL 换成真随机值
+#   docker compose up -d
+#
+# 本文件不从仓库根目录的 .env 读值：Compose 的项目目录 = 本文件所在目录，
+# 所以 .env 必须是 deploy/quickstart/.env。若要从别处启动，显式加
+#   --env-file deploy/quickstart/.env --project-directory deploy/quickstart
+#
+# 端口策略：除 caddy（profile `tls`，默认不启动）外，所有发布端口只绑 127.0.0.1。
+# 想让公网访问，请起 caddy（见 README.md「形态二」）或自己的反代 / 隧道，
+# 不要把这些绑定改成 0.0.0.0 —— Docker 会绕过宿主机防火墙（ufw/iptables），
+# 直接暴露等于把没有 TLS 的 API 和数据库端口摊在公网上。
+#
+# 所有变量：必填项用 ${VAR:?err}（缺失即启动失败），可选项用 ${VAR:-默认}。
+# 本文件不含任何写死密钥。
+
+name: morechat-quickstart
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 17。pgcrypto + pg_trgm 是迁移的硬依赖，官方 postgres:17 已内置，
+  # 这里沿用仓库既有镜像 pgvector/pgvector:pg17（只是历史命名，本项目不用 vector）。
+  # 不发布端口：只有同一 Compose 网络里的 api 需要连它。
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB 未设置，见 .env.example}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER 未设置，见 .env.example}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD 未设置，见 .env.example}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # 必须 healthy 之后 api 才会启动（见 api.depends_on）。
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:?} -d ${POSTGRES_DB:?}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # API（Go：REST + WebSocket）。从仓库根目录的 Dockerfile 本地构建。
+  # 监听容器内的 $PORT（默认 8080），并以同一端口号发布到宿主机 127.0.0.1。
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # 镜像自带 ENTRYPOINT 已经是 docker/entrypoint.sh（先跑 ./migrate up 再 exec
+    # ./server），但这里显式写出来，让「迁移先于 API 启动」这件事在本文件里可见、
+    # 可改。脚本逐字复刻 entrypoint.sh 的关键语义：
+    #   - MULTICA_INTERNAL_DATABASE_STARTUP_STARTED_AT_UNIX 是迁移与启动共享的
+    #     重试预算起点，必须每次重启都重写，否则会继承上一次的旧时间戳；
+    #   - migrate 失败则不启动 server（set -eu 保证）。
+    # 二进制路径取自 Dockerfile：WORKDIR /app，COPY 到 /app/{migrate,server}；
+    # 迁移 SQL 在 /app/migrations（migrate 按当前工作目录找）。
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        export MULTICA_INTERNAL_DATABASE_STARTUP_STARTED_AT_UNIX="$(date +%s)"
+        echo "Running database migrations..."
+        ./migrate up
+        echo "Starting server..."
+        exec ./server
+    environment:
+      # 数据库连接串（.env 里写全，指向 postgres 服务名）。
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL 未设置，见 .env.example}
+      # 容器内监听端口；main.go 读 PORT，缺省 8080。
+      PORT: ${PORT:?PORT 未设置，见 .env.example}
+      # production 会开启配置安全校验（JWT_SECRET 不允许为空/占位值）。
+      APP_ENV: ${APP_ENV:?APP_ENV 未设置，见 .env.example}
+      # 必填：JWT / daemon token / 附件签名 HMAC 的签名密钥（openssl rand -hex 32）。
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET 未设置，生成方式：openssl rand -hex 32}
+      # 必填：前端公开源。浏览器直连 http://<host>:3000 时也必须填这个值，
+      # 否则 WebSocket Origin 校验会 403（默认只允许 localhost）。
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:?FRONTEND_ORIGIN 未设置，见 .env.example}
+      # 必填：应用自身对外的 URL（邮件里的链接、daemon 安装命令用它）。
+      MULTICA_APP_URL: ${MULTICA_APP_URL:?MULTICA_APP_URL 未设置，见 .env.example}
+      # 必填：VCS 集成（Forgejo/Gitea/GitLab + Qoder token）的静态加密密钥。
+      # 必须是 base64 编码的 32 字节，即 `openssl rand -base64 32`。
+      MULTICA_VCS_SECRET_KEY: ${MULTICA_VCS_SECRET_KEY:?MULTICA_VCS_SECRET_KEY 未设置，生成方式：openssl rand -base64 32}
+      # 可选：CORS / WebSocket 允许的源列表（逗号分隔）。留空则回落到
+      # FRONTEND_ORIGIN + 本地开发源。
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
+
+      # —— 可选：邮件（未配置时验证码打到容器日志，见 README「首次登录」）——
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-25}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      SMTP_TLS: ${SMTP_TLS:-}
+
+      # —— 可选：对象存储（留空则附件落本地卷 api_uploads）——
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_REGION: ${S3_REGION:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL:-}
+      S3_USE_PATH_STYLE: ${S3_USE_PATH_STYLE:-}
+
+      # —— 可选：Supabase 托管身份（两个都填才生效，见 README「形态三」）——
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-}
+    volumes:
+      # 未配置 S3 时附件写到 LOCAL_UPLOAD_DIR（默认 ./data/uploads，
+      # 即容器内 /app/data/uploads），不挂卷会随容器重建丢失。
+      - api_uploads:/app/data/uploads
+    ports:
+      - "127.0.0.1:${PORT:?}:${PORT:?}"
+    healthcheck:
+      # /readyz = 依赖感知就绪（DB + 迁移已应用）；首次安装迁移较慢，
+      # 因此 start_period 给到 120s、retries 30。alpine 自带 busybox wget。
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:${PORT:?}/readyz || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Web（Next.js standalone）。从仓库根目录的 Dockerfile.web 本地构建。
+  # 容器内固定监听 3000（Dockerfile.web 里 EXPOSE/PORT=3000），宿主机发布到
+  # 127.0.0.1:$WEB_PORT。
+  # ---------------------------------------------------------------------------
+  web:
+    build:
+      context: ../..
+      dockerfile: Dockerfile.web
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      HOSTNAME: "0.0.0.0"
+      PORT: "3000"
+      # 服务名是 api（不是仓库 template 里的 backend）。Next 的 rewrites 把
+      # /api、/v1、/auth、/uploads 转到这个地址；WebSocket 不走 rewrites，
+      # 需要反代（见 README 形态二）或直接把 /ws 指到 api。
+      REMOTE_API_URL: http://api:${PORT:?}
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Caddy 反代 + TLS（单域名同源布局）。**默认不启动**，由 profile 控制：
+  #   - 打开：.env 里设 COMPOSE_PROFILES=tls（或 `docker compose --profile tls up -d`）
+  #   - 关闭：注释掉 COMPOSE_PROFILES，caddy 就不进默认的 `up -d`
+  #            显式点名的 `docker compose up -d caddy` 仍然可以单独拉起它。
+  # 启用步骤（README「形态二」有完整版）：
+  #   1) cp Caddyfile.example Caddyfile
+  #   2) .env 里设 DOMAIN（无公网域名就写 localhost，走内部 CA 自签）
+  #   3) docker compose up -d caddy
+  # 只有 caddy 会占用 80/443；api/web 仍然只监听 127.0.0.1。
+  # Caddyfile 是 bind mount：文件不存在时 Docker 会自动建一个同名**目录**，
+  # 于是 Caddy 报 "is a directory"。必须先 cp 再 up。
+  # ---------------------------------------------------------------------------
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["tls"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    environment:
+      # 站点地址：公网域名 app.example.com，或本地 localhost / 127.0.0.1。
+      DOMAIN: ${DOMAIN:-localhost}
+      # ACME 通知邮箱；TLS_SNIPPET=tls_acme 时必填（Caddyfile 里有占位默认）。
+      ACME_EMAIL: ${ACME_EMAIL:-}
+      # tls_local = 内部 CA 自签（默认，无需公网）；tls_acme = Let's Encrypt。
+      TLS_SNIPPET: ${TLS_SNIPPET:-tls_local}
+      # 上游：compose 网络内的服务名 + 容器内端口。
+      API_UPSTREAM: api:${PORT:?}
+      WEB_UPSTREAM: web:3000
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      # 80 只用于 ACME HTTP-01 与跳转；443 是真正的入口（443/udp 给 HTTP/3）。
+      # 宿主机端口可用 HTTP_PORT / HTTPS_PORT 改（例如已被占用时）。
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
+    healthcheck:
+      # 用 Caddy 自己的 admin API 判定「配置已加载 + 进程在跑」。
+      # 不用 https://localhost：DOMAIN 是公网域名时那条会 404/证书不符。
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:2019/config/ || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  api_uploads:
+  # caddy 的内部 CA、ACME 账户与已签证书都在这里；删掉 = 证书重签
+  # （tls_local 的根证书会变，浏览器要重新信任）。
+  caddy_data:
+  caddy_config:

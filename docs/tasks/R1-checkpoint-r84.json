@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R84",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "branch": "codex/round1-continuous",
+  "previousCheckpoint": "R83",
+  "previousSha256": "5e1d322e032780037e05717d463c1d40d23f81d684f2076890619414a527ef6c",
+  "previousReviewSha256": "aace80bdc326823fe4373c041c47ac8ed9dba7d91e7f8e3ca281a8cd66a80206",
+  "previousSnapshotSha256": "41212561c1180c72b9e514d7a2935fb93db66072a7d6ba1caf8f5fa46e25db0e",
+  "previousTurn": "NO_PROGRESS_USER_STATUS_READONLY_REVALIDATED",
+  "currentProgress": "ACTUAL_CSHARP_MANAGED_COMPILE_TWO_PASS_INDEPENDENTLY_ACCEPTED_AND_TWO_SOURCE_TASKS_OPENED",
+  "managedCompile": {
+    "compilerProcesses": 2,
+    "rawRecordsSHA": "a13f3c4a4afbe289c1d2e8abb15cd6b4ec27f9b281fad2faaeec46d70be5ddeb",
+    "fail": 0,
+    "pass": 2,
+    "sourceAssemblyLoaded": false,
+    "actualReviewSha256": "deb906c22b3a083dee1da9c18190a8aad808c86f141d5048632c5e418182020f",
+    "targetExecuted": false,
+    "manifestSHA": "aee74905eb2b3105ef272e0c96e39f53132cc48709530164c9477f832acc9a87"
+  },
+  "sql": {
+    "oldFailure": "FAIL3_CLAIM_CONSUMED",
+    "rootCause": "UNDETERMINED",
+    "oldReadAttempts": 1,
+    "publicProbe": "SOURCE_PREP_IN_PROGRESS_RUNTIME_CLOSED",
+    "thirdOldOpEntry": false,
+    "extraPrivateReadAttempts": 0
+  },
+  "apphost": {
+    "actualGets": 0,
+    "sourcePrep": "IN_PROGRESS",
+    "templateOfficialEquality": "NOTBOUND",
+    "linked": 0,
+    "targetRuns": 0
+  },
+  "allRepoSourceWriters": "CLOSED",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "fullGoal": "NOT_COMPLETE",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "evidence": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-csharp-compile-r2-independent-review.json",
+      "sha256": "c67c9f5f36f38db1f8663fa8ce916cc8896c25a13e3e21e3ec368005dcd4d416"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-csharp-compile-r2-final-binding-independent-approval.json",
+      "sha256": "718004e124c1fd9265631e66039ff53bf00acd7440dc6145a5f21b1c43a2072a"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-csharp-compile-r2-actual-independent-review.json",
+      "sha256": "deb906c22b3a083dee1da9c18190a8aad808c86f141d5048632c5e418182020f"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-preflight-failure-rca.json",
+      "sha256": "54849db3fde2fdf8d5d5db0f5e28d8689b319bd4a6a2f221f3dae7ddc3c3fd45"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-public-adapter-probe-r1-design-independent-review.json",
+      "sha256": "789b10a20065a511ab7652c03e695bbca8396cd7b245d00fd93c914eec7fb69a"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-public-adapter-probe-r1-source-handover.json",
+      "sha256": "0343d91fd43c8a0c6b4b84d6e50afc3e2ccbb122a323a1c670ed36f74848d085"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-acquisition-design-independent-review.json",
+      "sha256": "367565451fb71276577ca4a2567bfffac8c1ad39345b745fa1698904e79393bd"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-acquisition-source-handover.json",
+      "sha256": "e11d0f74024c717336ced8495861f6f13a56314781bdab9cc78ce7f6688fa5ed"
+    }
+  ],
+  "files": [
+    {
+      "sha256": "e35970a32f3925c67b72c50477ea1bdfea759f2f64c98fb111af92caf8338c53",
+      "appendOnly": true,
+      "beforeSha256": "1c7f73bde527df2c70028ab308347988354cce250a644003dea2fff38370fbcb",
+      "path": "docs/tasks/R1-03B-public-adapter-probe.md",
+      "beforeBytes": 1348
+    },
+    {
+      "sha256": "4e2b7409e5af9ef6156d4faa8ea0985ec4e3f8784f95c46a469eb9961c9d039b",
+      "appendOnly": true,
+      "beforeSha256": "1e36f88c6ea611a530ee365c848345457cb0c4cf289492fa863daff1a5af73c9",
+      "path": "docs/tasks/R1-03B-admin-sqlcompat.md",
+      "beforeBytes": 4138
+    },
+    {
+      "sha256": "ac053e543b3116fdb811540495eec805a8965ffb9fdbf14e5972309c996c9a50",
+      "appendOnly": true,
+      "beforeSha256": "4455c3d6e6296530ddcacc746d2b682b52eeb5064c633ef6beb04b929081a1a3",
+      "path": "docs/tasks/R1-02E-windows-runtime-source.md",
+      "beforeBytes": 6241
+    },
+    {
+      "sha256": "8ba2f0305c911003d4239ce0ab23b5c0336396c8dab0f9a8c57206722239834d",
+      "appendOnly": true,
+      "beforeSha256": "746abc5f4b36c05fbe4220d53e17f2bda3b4e4822e64af0b07730b22f9dce320",
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeBytes": 187025
+    },
+    {
+      "sha256": "d6222e5f073b92d2bfbee5110305fcde6aa277062bf39b799407af6b4a3307d7",
+      "appendOnly": true,
+      "beforeSha256": "2faec4f6bbf39ed22029351910d179b2647d00157aeb0dfe0beca3d8356e57dc",
+      "path": "docs/tasks/R1-results.md",
+      "beforeBytes": 177064
+    },
+    {
+      "sha256": "9980ec5d0ff567118ae73d8d609deb7d0f71b8ff0195cfd78d2898b8ae66e0b4",
+      "appendOnly": true,
+      "beforeSha256": "6c2833a07bf492b99591642d7bb6f037333f6ab9e8e76fd11c5ca44232642e8c",
+      "path": "docs/tasks/R1-02E-apphost-acquisition.md",
+      "beforeBytes": 684
+    },
+    {
+      "bytes": 3354,
+      "newContract": true,
+      "actualRuntimeAllowed": false,
+      "sha256": "411880be5c82696b27ab3399e7b1e183f3e7c071f9faf57319c6076ccd17ec32",
+      "path": "docs/tasks/contracts/R1-03B-PUBLIC-ADAPTER-PROBE-r1-test-frozen.json"
+    },
+    {
+      "bytes": 2557,
+      "newContract": true,
+      "actualRuntimeAllowed": false,
+      "sha256": "64b19528576c05ac5e041b26e7fc2d7cfeecec27418363fb8db4fcda0b6c9ac1",
+      "path": "docs/tasks/contracts/R1-02E-APPHOST-ACQUISITION-r1-test-frozen.json"
+    }
+  ]
+}

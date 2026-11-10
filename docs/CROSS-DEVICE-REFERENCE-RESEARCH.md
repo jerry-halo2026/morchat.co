@@ -1,10 +1,22 @@
+---
+purpose: "跨设备协作与工作空间接续：参考项目证据"
+owner: b07-continuity
+status: reference
+updated: 2026-11-06
+related:
+  - docs/WORKSPACE-CONTINUITY.md
+  - docs/DISTRIBUTED-COLLABORATION.md
+  - docs/NATIVE-RUNTIME-RESEARCH.md
+---
 # 跨设备协作与工作空间接续：参考项目证据
-
-> **〔2026-11-06 基座切换注记〕** 任务/run 权威已由 Paperclip 切换为 Multica fork（基线 164290ee），新基座契约见 [MULTICA-BASE](D:/dev/morchat.co/docs/MULTICA-BASE.md)。本文中 Paperclip/相关机制研究保留为参考；受影响条款的等价契约在 MC 门禁族重定位（DISCOVERY D11）完成前暂缓作为权威引用。
 
 > 核查日期：2026-11-04。三路 subagent 分别研究 OpenMausBot、GitHub 分布式派工、文件/会话持久化；主审补读 Paperclip 核心源码并抽查关键结论。仅官方文档和固定源码静态核验，没有安装、运行、fork、实测跨机恢复或修改参考仓库。源码中的测试文件存在不等于本轮测试通过。
 >
-> 用户本轮写 openmusebot；公开搜索未确认另一个相关项目，本文沿用此前明确参考的 milind-soni/OpenMausBot，不擅自当作新项目。方案见 [任务与工作空间接续](D:/dev/morchat.co/docs/WORKSPACE-CONTINUITY.md)。
+> 用户本轮写 openmusebot；公开搜索未确认另一个相关项目，本文沿用此前明确参考的 milind-soni/OpenMausBot，不擅自当作新项目。方案见 [任务与工作空间接续](WORKSPACE-CONTINUITY.md)。
+
+> **2026-11-06 当前基线：Multica 是统一客户端/后台及唯一 task/run/调度权威；DSH 完整 harness 在员工 Windows 本机运行，云模型经公司网关调用。** Paperclip 只作治理参考或经许可/依赖/安全审查后的独立源码候选，不要求其 remote adapter、Runner 或 PCWS；OpenMausBot 仅作协作参考，不导入 runtime。Multica 原生 Web @→本地 DSH 文件/回复/token 已实测通过；自动归档失败、手动上传通过、匿名 uploads 返回 200 是 P0 失败，不能称端到端通过。企业隔离/权限/自动保存/接续仍待验证。
+
+本文固定源码章节仅为历史证据，不是实施规范。当前只沿 Multica 官方 daemon DSH 路径验证；ACP 可选、PCWS 非必需，不把源码能力改名冒充 Multica 原生。参考与实验目录只读。
 
 ## 1. 研究问题与判定
 
@@ -14,8 +26,8 @@
 
 | 项目 | 固定提交 | 已见核心能力 | 推荐位置 |
 |---|---|---|---|
-| Paperclip | 40ea7a9b8994e9bdb3d13794b5847388be0f7a92 | 任务/run、隔离 workspace、远程快照/恢复、提交代次、Agent 文件持久化 | 首选内核，优先适配原生文件基础，不重新堆一套任务库 |
-| OpenMausBot | 597e70d7930db632747acfb4ea047ca520bd958c | 群委派、桌面本地引擎、离线文件副本和回写冲突保留 | 桌面/文件组件参考，不作为员工池故障接续整体底座 |
+| Paperclip | 40ea7a9b8994e9bdb3d13794b5847388be0f7a92 | 任务/run、隔离 workspace、远程快照/恢复、提交代次、Agent 文件持久化 | 治理/独立源码候选；不作当前内核，不运行其任务库/调度器 |
+| OpenMausBot | 597e70d7930db632747acfb4ea047ca520bd958c | 群委派、桌面本地引擎、离线文件副本和回写冲突保留 | 仅协作交互参考；桌面/文件事实为历史证据，不导入 runtime |
 | Horde | 601b563bef8f0d9c1744342d838591c0b4ecb8b7 | 真正远端 worker 派工、worktree、子任务结果验收 | 最贴近设备池/分工协议的新增参考 |
 | Code Coordinator | fee7824b71e45e1f8a11cbd3c2fc8a62bb7dfbc6 | GitHub issue→指定 worker→分支/worktree→PR | 开发任务交付模式参考，非产品源码底座 |
 | OpenHands SDK | e1896aaf78878cc6e0bc1ab134981d51387ed2d6 | 会话事件冷加载、Git binary diff、目录归档 | 文件适配器备选与恢复反例 |
@@ -23,7 +35,7 @@
 | Happy | 9ed5bab6339041e241b8838ed10171aaef917501 | 设备 daemon、远端查看/会话恢复入口 | 远控体验与重连参考，不作文件迁移器 |
 | Vibe Kanban | 08064e043c2d78ad123b473257ed867e7ce74768 | 本地多 worktree、差异审阅、远控 relay | UX/旧架构对照，不新增托管依赖 |
 
-## 2. Paperclip：优先复用，但必须区分两条文件路径
+## 2. Paperclip：历史快照证据与独立源码候选
 
 ### 2.1 项目工作空间已有真正的快照机制
 
@@ -33,10 +45,10 @@
 
 - [remote-workspace-snapshot-archive.ts L186–242](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspace-snapshot-archive.ts#L186-L242)：构造可移植归档，复制 Git refs/对象及所选 worktree 的 HEAD/index，独立化借用对象；不只是 git archive HEAD。普通文件逐项哈希，必要 Git 配置白名单化，不携带 hooks/credential helpers；[L108–120](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspace-snapshot-archive.ts#L108-L120) 拒绝进行中的 rebase/merge 等操作，不能宣称任何 Git 状态无损迁移。
 - [remote-workspace-snapshot-storage.ts L99–152](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspace-snapshot-storage.ts#L99-L152)：已有上传状态、丢回执后核验已有对象、摘要校验、归档加密和作用域绑定。
-- [remote-workspaces.ts L553–595](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspaces.ts#L553-L595)：先捕获/上传，再在事务中校验 epoch、writerRunId、父 snapshot；更新 committed、workspace 指针、run 引用和审计。**这正是“内容先保存，指针后生效”的可复用基础。**
+- [remote-workspaces.ts L553–595](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspaces.ts#L553-L595)：先捕获/上传，再在事务中校验 epoch、writerRunId、父 snapshot；更新 committed、workspace 指针、run 引用和审计。**这是“内容先保存，指针后生效”的源码证据，不是 Multica 已有实现；独立提取须审查。**
 - [迁移 L36–107](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspace-migration.ts#L36-L107) 检查任务绑定、活动执行、未决回写、租约、运行服务；[L160–199](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspace-migration.ts#L160-L199) 下载恢复验证并再检源摘要，之后迁到 cloud_sandbox 权威模式。
 
-**适配缺口：**[入口 L62–73](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspaces.ts#L62-L73) 限定 paperclip_runner＋sandbox 环境，[存储前提 L102–116](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspaces.ts#L102-L116) 要求共享对象存储、外部数据库与稳定加密材料；[准备 L319–340](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspaces.ts#L319-L340) 旧 allocation 仍 dirty 时拒绝替换。不能仅打开开关就声称员工设备池、动态授权/非代码交付、硬断电后安全新尝试已覆盖。应复用存储/发布契约，适配员工节点 transport 与企业政策，不把云 sandbox 变成服务器默认 harness。
+**适配缺口：**[入口 L62–73](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspaces.ts#L62-L73) 限定 paperclip_runner＋sandbox 环境，[存储前提 L102–116](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspaces.ts#L102-L116) 要求共享对象存储、外部数据库与稳定加密材料；[准备 L319–340](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspaces.ts#L319-L340) 旧 allocation 仍 dirty 时拒绝替换。不能仅打开开关就声称员工设备池、动态授权/非代码交付、硬断电后安全新尝试已覆盖。可借鉴存储/发布语义，是否独立提取另审；当前不要求适配其 transport，不把云 sandbox 变成服务器默认 harness。
 
 归档复制所有 refs 的做法还需企业 ACL 审查：一个 worktree 可见内容不代表接手人有权看仓库全部分支历史。原生归档的排除规则不是我们的隐私策略，不能直接镜像员工任意仓库。
 
@@ -56,7 +68,7 @@
 - [房间委派](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/docs/verification/room-coordination.md#L200-L252) 有派工、等待、子会话与结果卡；[runtime L77–120](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/runtime/runtime.ts#L77-L120) 重启重整事件状态，不把所有已知外部动作盲重放。这不能替代动作成功但回执未存时的端到端核对。
 - [迁移 L119–127](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/cloud-send-chats.ts#L119-L127) 剥除运行状态/恢复游标；[备份 L48–57](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/workspace-backup.ts#L48-L57) 排除外部项目目录和活动执行。未见一份绑定任务版本、全部工作文件与效果回执的完整跨机恢复包。
 
-结论：文件传输、新鲜度、冲突保留和委派交互可优先参考；My Cloud 常驻执行和原机目录权威不是我们的方案。Team Cloud 私聊离职删除/备份排除策略也不符合“公司工作资产默认留存但独立授权”；详见 [离职处理](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/host/team-member-left.ts#L59-L115)。
+结论：当前只参考委派协作交互；文件传输、新鲜度与冲突保留仅作历史证据，不导入相关 runtime/同步模块。My Cloud 常驻执行和原机目录权威不是我们的方案。Team Cloud 私聊离职删除/备份排除策略也不符合“公司工作资产默认留存但独立授权”；详见 [离职处理](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/host/team-member-left.ts#L59-L115)。
 
 ## 4. Horde：新增参考中最贴近跨设备分工
 
@@ -66,7 +78,7 @@
 - [git.rs L339–383](https://github.com/gethamster/horde/blob/601b563bef8f0d9c1744342d838591c0b4ecb8b7/src/git.rs#L339-L383) 每个 worker 独立分支/worktree；[结果导入 L919–985](https://github.com/gethamster/horde/blob/601b563bef8f0d9c1744342d838591c0b4ecb8b7/src/federation.rs#L919-L985) 限同仓、直接子任务并校验 hash/base，cherry-pick 冲突停止，父验收后确认。这支持“分工执行＋受控汇合”而非共享一个进程。
 - **关键限制**：[归档 L108–147](https://github.com/gethamster/horde/blob/601b563bef8f0d9c1744342d838591c0b4ecb8b7/src/federation/archive.rs#L108-L147) 只取 Git HEAD；[官方委派 L91–117](https://github.com/gethamster/horde/blob/601b563bef8f0d9c1744342d838591c0b4ecb8b7/docs/delegation.md#L91-L117) 明说掉线等待、远端任务不能恢复为本地工作；[重启 L33–57](https://github.com/gethamster/horde/blob/601b563bef8f0d9c1744342d838591c0b4ecb8b7/src/runtime.rs#L33-L57) 标记 uncertain/blocked。
 
-借设备注册、路由、授权和子结果验收，不部署其 controller 取代/并列 Paperclip。每 worker 自有 provider 凭据不能直接满足公司中央 Key；[项目授权例外](https://github.com/gethamster/horde/blob/601b563bef8f0d9c1744342d838591c0b4ecb8b7/src/projects.rs#L298-L337) 不照搬。[当前安装支持](https://github.com/gethamster/horde/blob/601b563bef8f0d9c1744342d838591c0b4ecb8b7/docs/installing.md#L1-L12) 仅列 macOS/Linux，不能许诺其原生组件直接覆盖 Windows 员工端。
+借设备注册、路由、授权和子结果验收，不部署其 controller 取代/并列 Multica。每 worker 自有 provider 凭据不能直接满足公司中央 Key；[项目授权例外](https://github.com/gethamster/horde/blob/601b563bef8f0d9c1744342d838591c0b4ecb8b7/src/projects.rs#L298-L337) 不照搬。[当前安装支持](https://github.com/gethamster/horde/blob/601b563bef8f0d9c1744342d838591c0b4ecb8b7/docs/installing.md#L1-L12) 仅列 macOS/Linux，不能许诺其原生组件直接覆盖 Windows 员工端。
 
 ## 5. Code Coordinator：issue 分工与 PR 汇合，不是企业权限层
 
@@ -110,14 +122,20 @@
 已被源码边界否定的过强假设：
 
 1. “OpenMausBot 没有任何离线文件方案”——不对，它有文件副本，但不是企业任务整体交接。
-2. “Paperclip 只管 issue，工作空间保存需要完全自建”——不对，它已有较完整快照、恢复和发布基础；具体员工节点接入仍待验证。
+2. “Paperclip 只管 issue，工作空间保存需要完全自建”——不对，它已有较完整快照、恢复和发布基础；这些是该项目的历史能力，不是当前必须适配的员工节点路线。
 3. “远控/会话 resume/worktree 等于异机接续”——不对，文件内容、效果、权限和发布边界各自缺一不可。
 4. “找一个分布式 Agent 项目 fork 就解决所有问题”——本次找到的最贴近项目也各有明确边界，不能用同类产品存在代替我们的组合测试。
 
-未被实证确认：候选组合在两台员工设备断电/分区、重复提交、混合 Git/二进制文件与权限变化下满足全部企业契约。下一步应先评审设计，再授权小范围 P0 实验；具体反例和成功判据为 [WC-01–12](D:/dev/morchat.co/docs/WORKSPACE-CONTINUITY.md) 与 [DC-01–08](D:/dev/morchat.co/docs/DISTRIBUTED-COLLABORATION.md)。不增加完整参考产品运行依赖，不提前开工作流平台建设。
+未被实证确认：候选组合在两台员工设备断电/分区、重复提交、混合 Git/二进制文件与权限变化下满足全部企业契约。下一步应先评审设计，再授权小范围 P0 实验；具体反例和成功判据为 [WC-01–12](WORKSPACE-CONTINUITY.md) 与 [DC-01–08](DISTRIBUTED-COLLABORATION.md)。不增加完整参考产品运行依赖，不提前开工作流平台建设。
 
 ## 9. 2026-11-05 原生系统补充核查
 
-新增 [原生运行与 Harness 核查](D:/dev/morchat.co/docs/NATIVE-RUNTIME-RESEARCH.md)：Paperclip 直接 Codex 启动存在，但 Windows 发布/整树终止/指定工具 IPC、通用隔离与 snapshot transport 有缺口；OpenMausBot 有 Windows/macOS 原生安装和 Codex/DeepSeek driver，可复用模块但不整体搬后台。DeepSeek Harness 官方样本 fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159 按最新多模型方向作为优先验证候选（未定选），原生 Windows ACL 写限制不能外推为读/网络隔离。
+新增 [原生运行与 Harness 核查](NATIVE-RUNTIME-RESEARCH.md)：Paperclip 直接 Codex 启动存在，但 Windows 发布/整树终止/指定工具 IPC、通用隔离与 snapshot transport 有缺口；OpenMausBot 有 Windows/macOS 原生安装和 Codex/DeepSeek driver，当前仅作历史源码证据，不导入 runtime/驱动或后台。DeepSeek Harness 官方样本 fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159 按最新多模型方向为早期优先研究样本（当前已选 Multica 官方 DSH 路径，具体发行物/安全组合未验收），原生 Windows ACL 写限制不能外推为读/网络隔离。
 
 本补充不改变此前固定样本证据，不声称任何运行实验通过；最新以两台 Windows 11 x64 原生双向 NG/DV 方案为准，Mac 只预备平台接口、不阻塞首轮；这取代上一版 Win/Mac 必须同轮验证的安排，仍不使用 VM/WSL/Docker 代替员工原生环境。
+
+## 10. 当前使用方式（2026-11-06）
+
+参考证据不改变权威：Multica 唯一 task/run/调度，公司中央控制/数据/日志/权限/模型网关，员工 Windows 本机完整 DSH，模型云端。管理员员工不赋予 Agent 整机权；个人默认本人设备，公用设备及管理人均需对应资料授权。同机独立任务可并行，冲突只局部互斥，无合格设备明确等待，全关机停止，无云端 harness 兜底。
+
+当前必须验证自动一致保存、条件发布、旧 epoch 拒绝、冲突保留、外部副作用对账和双设备工作重建，而非进程迁移。Paperclip PCWS 的现成 CAS/归档证据不能自动满足这些门槛；只采用可审查的独立候选，不绑定运行栈。公司 Key 不进入通用 harness；撤权停止新准入并清理在线受控缓存，离线不能承诺立即抹除。DV 具体参数与失败门槛以双设备规程为准，不因迁移降低；C05–08/B05–08 按 Discovery 当前映射，旧 PC 实现绑定作废。

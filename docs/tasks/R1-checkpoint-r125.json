@@ -1,0 +1,56 @@
+{
+  "checkpoint": "R125",
+  "root": "/root",
+  "model": "unknown",
+  "baseline": "efdc54aaf3fcc4e3eaee369b980ac054ccc0bb54",
+  "branch": "codex/round1-continuous",
+  "stagedCount": 0,
+  "classification": "PROGRESS_STATIC_CORE_ACCEPTED_EXACT_VERSION_SOURCE_TDD_RELEASED",
+  "candidateReview": "82f4a4c082a3e205ba92c7b084ff30ebd11e585f0c522ef1b57528c98016f578",
+  "wholeCandidateReportAccepted": false,
+  "candidatePending": 3119,
+  "apiSetPending": 1867,
+  "physicalMissingPending": 1252,
+  "proposal": "e36161be9b7d6fd13200935cf7d86b825c3b76e00bd8b85c482ce5b9b3cb6a6f",
+  "designReview": "bda606eb2ab7ec3642a8a66cad8dd97be0e813a55af75b56a8fbab9831ab579d",
+  "sourceTF": "adf7095b79e9e678442028c02764c8d51f960f37199a5180b56b511b9d05e2f9",
+  "sourceOwner": "/root/apiset_source_impl",
+  "sourceOwnerRoute": "gpt-6.1-sol high",
+  "sourceStatus": "ACTUAL_OWNER_ACK_ACTIVE_NO_TEST_RESULTS_YET",
+  "sourceNewFiles": 5,
+  "actualNativePermission": false,
+  "actualBuildPermission": false,
+  "actualLoadPermission": false,
+  "actualForExecutionPermission": false,
+  "rootOwnedExecLive": false,
+  "productModelCalls": 0,
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "docsReview": "PENDING_AT_CAPTURE",
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "424fc222da6c71ca82cd73b492de36345bbef037829e3d90c288aea5a0c2c5d4",
+      "sha256": "99474d00e30f7aa0b385c80e7dcdc153fc2dc3c3c2ad1d91945d0ca865962741",
+      "bytes": 332707
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "8d34aed2130d3354eaa1f428185e69746344d643a4c679b86097b0726aa694a4",
+      "sha256": "f2c373a82a993f65143d43165eadd3087168831f058bf07d2c23ca785ad2d3ed",
+      "bytes": 314205
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-api-set-contract.md",
+      "beforeSha256": "0ec177b2b71feb6fd27e6f249491a864635af6fafe302680a442c4be5a68c84c",
+      "sha256": "1fb223e20fa654900ae237d2d14f1f23591cc97f399c27801b86a26e2f70f830",
+      "bytes": 5182
+    },
+    {
+      "path": "docs/tasks/R1-02E-api-set-query-source.md",
+      "beforeSha256": "1b096d46bca0bc02f46731398e67e0639d9f3a36cba1e05202b0ab98c48b37d1",
+      "sha256": "7431b286fd99e8b959c4710403849fa5513021b792b2fee00da58049fe1335e9",
+      "bytes": 5265
+    }
+  ],
+  "utc": "2026-11-09T04:49:02.2112921Z"
+}

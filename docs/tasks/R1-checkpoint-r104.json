@@ -1,0 +1,66 @@
+{
+  "checkpoint": "R104",
+  "root": "/root",
+  "model": "unknown",
+  "head": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "branch": "codex/round1-continuous",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "previousTurn": "PROGRESS",
+  "thisTurn": "PROGRESS_ACTUAL_API_RED_ACCEPTED_AND_CS2_SOURCE_IMPLEMENTATION",
+  "actualT1": {
+    "observation": "2008d292da807d88ff57aef2a1ae96b63f72ba17be5dfeb8a4afd9ddb8e72280",
+    "compileExit": 0,
+    "apiFailures": 12,
+    "blockedBehavior": 156,
+    "unitRawExit": 1,
+    "native": "NOT_RUN",
+    "claim": "CONSUMED_NO_RERUN",
+    "review": "3bdf8c63fb9595f2a1de0984e93e6b26acd134e8ce2c798ebc779614ce0a5ea8",
+    "harnessErrors": 0,
+    "unitRawStatus": "FAIL",
+    "tool": "deb086 terminal0"
+  },
+  "fixtureACK": "a6f7416e56739f52b23809115a8fdc251db18dd112457dbf9261e2bd15fcfb41",
+  "T2": {
+    "contract": "d4fb97738d58737d057ad9b0e3f5dd459742146056fe3b842d4a33f9589283a5",
+    "status": "SOURCE_ONLY_ACTIVE_CS2_PLUS3REPORT",
+    "model": "configured gpt-6-astra high",
+    "executionAllowed": false,
+    "owner": "/root/final_observer_cs_impl"
+  },
+  "greenPrep": {
+    "contract": "b50997d55693c7c8266d25ae32af44b9dc858670a64ec33269149d9cbbb5610f",
+    "status": "SOURCE_ONLY_4NEW_ACTIVE",
+    "executionAllowed": false,
+    "owner": "/root/final_observer_green_prep",
+    "model": "configured gpt-6.1-sol high",
+    "actualSourcePins": "UNBOUND_PENDING_T2_REVIEW"
+  },
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSHA256": "2e8c234ac43121a3b7b5d45ba94b27afd0b5f7c3647a3a5ede7cc395b8adba23",
+      "sha256": "0588dac0772a083d0342d4031c0e3a132be33f33520f5cec1ef09fc6a9e7b0b0"
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "beforeSHA256": "1eb89cab93b5e159297649313bfbc0fa288f66852f9fb1d40bd475982900740c",
+      "sha256": "0b2d4be551368953b39f86dc42fd360e91ec557cafe22ca86d9501b1337c91c0"
+    },
+    {
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "beforeSHA256": "c586a99fe78c83f1b0ff81a2d8a105a6a502fa81017c2e8ab0fe4541d40ba1c4",
+      "sha256": "c8fd12ddd48b313df48169975c6513be736c5b4c2377e562080be084e66a556f"
+    },
+    {
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "beforeSHA256": "74600bab5716cb5adf65d124bdd9ccf68b14abf2104a3072fd8c1a933b7a6e2d",
+      "sha256": "f615eb6f97c0bb1a9dd79f661219f4c8fc384c0d978b68bbe15d42003fc548f2"
+    }
+  ],
+  "independentDocsReview": "PENDING",
+  "rootOwnedProductExecLive": false,
+  "productModelCalls": 0,
+  "blockerAudit": 0,
+  "utc": "2026-11-08T16:29:20.0482534+00:00"
+}

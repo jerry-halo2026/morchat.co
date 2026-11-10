@@ -1,9 +1,19 @@
+---
+purpose: "千川 API 开发手册（实测版）"
+owner: integrations
+status: current
+updated: 2026-11-06
+related:
+  - docs/PRD.md
+  - docs/PLAN.md
+  - docs/QIANCHUAN-DATA.md
+---
 # 千川 API 开发手册（实测版）
 
-> 文档定位更新（2026-11-04）：本文件仅为 morchat 首个业务场景的技术资料，不定义平台定位或 MVP 建设顺序。接口/实测结论保留原记录日期，本轮未重新调用验证。历史“下一步”、排期和部署描述不构成当前执行授权；当前只读场景范围以 [平台 PRD](D:/dev/morchat.co/docs/PRD.md) 和 [建设路线](D:/dev/morchat.co/docs/PLAN.md) 为准。生产写入、预算审批、直播监测另行立项。
+> 文档定位更新（2026-11-04）：本文件仅为 morchat 首个业务场景的技术资料，不定义平台定位或 MVP 建设顺序。接口/实测结论保留原记录日期，本轮未重新调用验证。历史“下一步”、排期和部署描述不构成当前执行授权；当前只读场景范围以 [平台 PRD](PRD.md) 和 [建设路线](PLAN.md) 为准。生产写入、预算审批、直播监测另行立项。
 
 > 历史内部开发记录：原稿记录了 **2026-11-04 真实 token 实测**及资料汇总；具体条目按其证据判断。本轮只整理定位，不复验运行状态。
-> 配套：[数据面与字段语义](D:/dev/morchat.co/docs/QIANCHUAN-DATA.md)；历史证据目录为 D:/dev/morchat.co/data，凭据不随文档分发。
+> 配套：[数据面与字段语义](QIANCHUAN-DATA.md)；历史证据目录为 D:/dev/morchat.co/data，凭据不随文档分发。
 > 原则：**每个配方都附实测可用的 curl；每个陷阱都写明报错原文。**
 
 ---
@@ -306,42 +316,3 @@ curl -G ".../open_api/v1.0/qianchuan/report/search_word/get/" \
 3. **关传输层重试**；超时先查后重试（平台无幂等）
 4. **token 单持有者**：刷新即落盘 `.env.local`，刷新任务互斥
 5. **字段名以本手册实测为准**，SDK 模型名（SERIALIZED_NAME）做交叉验证；报错信息常自带正确枚举（campaign_scene 六值就是这么拿的）——**用错误驱动探参是官方认可的调试路径**（可视化调试工具同款行为）
-
----
-
-## 7. 调用形状裁定（2026-11-06 全参数探测，修复 plans 静默丢失后固化）
-
-> 背景：45 账户 180 天回填跑了 ~1000 次调用，逐一验证"能不能一口气抓完"。结论：**调用矩阵是 API 形状决定的下限，不是客户端可优化项**。以下全部为当日实测（错误驱动探参，报错原文为准）。
-
-### 7.1 硬约束（实测裁定）
-
-| # | 问题 | 裁定 | 证据 |
-|---|---|---|---|
-| 1 | plans `page_size` 上限 | **100**（SDK 注释写 10/20/50/100/200 已过时） | `code=40000 msg=pageSize is invalid.`（200 被拒） |
-| 2 | plans 不传 `marketing_goal` | **必填**，45 户 × 2 目标 = 90 次是下限 | `marketing_goal: value is required but missing` |
-| 3 | LIVE 报表去掉 anchor 过滤一次拉全部主播 | **不可能**，anchor_id 是必填筛选项 | `参数错误：筛选条件中缺少必填项: anchor_id`（此前先报 `缺少必填项: ecp_app_id`） |
-| 4 | `dimension_data/author/get` 不传 aweme_id | **必填**，该族接口按实体逐个查 | `aweme_id: value is required but missing` |
-| 5 | data/get 长跨度 | **179 天整段一次请求 OK**（无 30 天切块需求；30 天上限只存在于 dimension_data 族） | 44 个 uni_image 文件 code=0，行内含 2026-05 至今日期 |
-| 6 | data/get 必填项 | `filters`（可空数组）+ `order_by`（排序字段必须在 metrics/dimensions 里）+ topic 专属维度（VIDEO 必带 `roi2_material_video_name`） | 报错原文逐条见探测记录 |
-| 7 | plans 返回行键名 | **`data.ad_list`**（不是 list/rows）——曾致 88 个文件全 0 行静默丢失 | 实测 shape：`{ad_list, page_info}`；1756451153073160 LIVE 2 条计划落盘 0 行实锤 |
-
-### 7.2 可优化项（已实施）
-
-| # | 项 | 前 → 后 | 接口 |
-|---|---|---|---|
-| 1 | 余额 | 45 次/户 → **1 次批量**（每 50 户一批） | `GET /open_api/v3.0/account/fund/get/?account_ids=[...]&account_type=AD` 实测 code=0，返回 `data.list` |
-| 2 | anchors 翻页 | 生成器空页停止（省 ~88 次） | 已上线 |
-| 3 | 指标 | 单请求全带（LIVE 98 指标一次） | 已上线 |
-
-### 7.3 本次同步引擎新修（#17-#20）
-
-- **#17 P0** `callOEPaged` 只读 `list`/`rows`，漏 `ad_list` → plans 全量静默丢失。修复：`data.list || data.rows || data.ad_list`
-- **#18 P1** 40105（token 被吊销）不触发刷新，只按时间刷新 → 双进程竞态时 40105 风暴不自愈。修复：`invalidateToken()` + 重试内强刷
-- **#19 P1** 无进程互斥 → 双回填并行互刷 token。修复：`data/sync.lock` PID 锁
-- **#20 P2** 坏文件（code=0 但内容错）无法断点重拉。修复：`--refetch <source>` 旁路
-
-### 7.4 后续机会（未实施，记录待用）
-
-- **SPI 实时推送**：官方有「千川全域计划报表实时数据」「千川全域客户报表实时数据」订阅（数据推送服务/SPI 消息订阅）——直播轮询场景可换推送，免轮询
-- **61002**：开发者日累计调用量上限存在（错误码附录），大规模并发前查开发者后台配额
-- 官方 MCP 工具列表（doc 1847297003631945）可作为接口 path 速查表

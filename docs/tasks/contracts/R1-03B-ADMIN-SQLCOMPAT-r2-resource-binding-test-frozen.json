@@ -1,0 +1,80 @@
+{
+  "runtimeResourceOrPrivatePermission": "NONE_NO_CREATE_START_SQL_ENTRY_READER_PROBES",
+  "backendTelemetry": "UNAVAILABLE",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "reviewer": "/root/guard_review",
+  "writeRoot": "E:\\CodexData\\incidents\\morchat-20261106T233131",
+  "writeSet": [
+    "leader-pg-adminfacts-sqlcompat-r1-impl.CLOSED.ps1",
+    "leader-pg-adminfacts-sqlcompat-r1-impl-host-tests.ps1",
+    "leader-pg-adminfacts-sqlcompat-r1-impl-host-results.json",
+    "leader-pg-adminfacts-sqlcompat-r1-resource-amendment-source-report.md",
+    "leader-pg-adminfacts-sqlcompat-r1-resource-amendment-source-report.json",
+    "leader-pg-adminfacts-sqlcompat-r1-resource-amendment-source.diff",
+    "leader-pg-adminfacts-sqlcompat-r1-impl-public-fixtures/"
+  ],
+  "fixedResourceBundle": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-sqlfix-resource-r1-actual\\resource-evidence-bundle.json",
+  "newResourceProfile": "ef769dc0558752127a09b7c4542243cacedd58132b2a1a6afed2758dc25cbc6f",
+  "reviewerModel": "gpt-6-astra high",
+  "producer": "/root/leader_pg_facility_prep",
+  "actualNewCreateHandleSHA": "5ee4d5c2a40062661522cc05a830d6126d73c7acd89a368412c06d9c8abb3432",
+  "newCreatorSource": "20d9dee495590f44421cdce78b4f0397d5f445df975735967f75f6dc52308492",
+  "consumer": "/root",
+  "newSafetyNegativeFreshRuntime": "NOTBOUND_NOTRUN_DO_NOT_FAKE",
+  "fixedResourceAuthorization": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-sqlfix-resource-r1-runtime-authorization.json",
+  "oldClaims": "PERMANENT_CONSUMED_NEVER_RESET",
+  "cap": "UNCHANGED_EXTRAREAD1_TOTAL2_BOOTSTRAP0",
+  "inputs": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-resource-binding-amendment.json",
+      "sha256": "8a95370b5a2e1b43c5be0125095239f2963893e52cc6180e92afd98123596271"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-resource-binding-root-consumer-ack.json",
+      "sha256": "b5af659d5759f2baabab7b497c02a00e019e3568445e5153f5e46fb1c2d79041"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-resource-binding-independent-review.json",
+      "sha256": "e87cbcca37ee699678c5cd97430a5ab9f8754c8c1790e796e02cd010a63a787a"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-impl-fix1-independent-review.json",
+      "sha256": "12b7604d3a4de739bcc14238eb76747ed19955190be70cbb95e8a92b4bc300bd"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-sqlfix-resource-r1-fix1-independent-review.json",
+      "sha256": "769e41fa4d91d4ce8b2e7478d551c064109083934184dd571bd2a7cd759de885"
+    }
+  ],
+  "configuredRoute": "gpt-6.1-sol high",
+  "noAutomaticHelperChain": true,
+  "task": "R1-03B-ADMIN-SQLCOMPAT",
+  "scope": "ONLY_NEW_ONE_REPAIR1_RESOURCE_BUNDLE_AUTHORIZATION_TRUE_CREATOR_HANDLE_SOURCE_CAPTURES_RECEIPTS_STRICT_TIME_ADAPTATION",
+  "newFixedResourceRoot": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-sqlfix-resource-r1-actual",
+  "allOtherLogic": "PRESERVE_REVIEWED_I1I2I3I4_FIXES_AND_FIXED_PRIVATE_PATH_ACL83_CREATION_ONCE_CLEANUP",
+  "consumerModel": "unknown",
+  "status": "TEST_FROZEN_SCOPED_SOURCE_AMENDMENT_RUNTIME_CLOSED",
+  "owner": "/root/admin_sqlfix_impl",
+  "UTC": "RAW_UTC0TO9_FRACTION_DECIMAL_NS_EXACT_NO_TRUNCATION_AGE0TO1680_NO_CALLER_CLOCK",
+  "baseTF": "b609572fdd3e89905bf2eb15ed641cbf2b46c6e1a40b6d6346929fa8e485d440",
+  "SQL": "b58032ef488172f4234059ad2254df76830362b3853c0db7018796efdcc4bdcc",
+  "revision": "r2_RESOURCE_BINDING_ONLY",
+  "baseSnapshots": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-impl.CLOSED.ps1",
+      "sha256": "f99a752fa078c226d9b312d8134a4f7ad46305d6b9bb86a0a65bf9f517503f98",
+      "snapshot": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-impl-public-fixtures\\REVIEW-FIX1\\leader-pg-adminfacts-sqlcompat-r1-impl.CLOSED.ps1"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-impl-host-tests.ps1",
+      "sha256": "a491854c03efce565d1463c0b658db78c2b055c5ab59975814d71b198b1ec31a",
+      "snapshot": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-impl-public-fixtures\\REVIEW-FIX1\\leader-pg-adminfacts-sqlcompat-r1-impl-host-tests.ps1"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-impl-host-results.json",
+      "sha256": "a373f2f516a049b810ee1e7290f72fcaefa43c2d31fff1a94e2f8a0ea6184bdb",
+      "snapshot": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-impl-public-fixtures\\REVIEW-FIX1\\leader-pg-adminfacts-sqlcompat-r1-impl-host-results.json"
+    }
+  ],
+  "actualNewCreateHandle": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-sqlfix-resource-r1-actual\\A01-helper-handle.json"
+}

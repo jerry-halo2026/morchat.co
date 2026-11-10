@@ -1,0 +1,16 @@
+{
+  "extends": "@morechat/tsconfig/react-library.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
+    "paths": {
+      "@/lib/utils": ["./lib/utils.ts"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/components/ui/*": ["./components/ui/*"],
+      "@morechat/ui/components": ["./components"],
+      "@morechat/ui/lib": ["./lib"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,50 @@
+{
+  "page": {
+    "title": "預設",
+    "stats": "{{agents}} 個智慧體 · {{teams}} 支小隊 · {{skills}} 個技能",
+    "search": "搜尋預設、技能或成員",
+    "reset": "重設",
+    "loading": "正在載入預設目錄…",
+    "catalog_error": "預設目錄載入失敗。",
+    "catalog_error_hint": "畫廊從 {{baseUrl}} 讀取 index.json。請將預設內容倉以靜態檔案發布到該位址後重試。",
+    "retry": "重試",
+    "no_matches": "沒有符合目前篩選的預設。",
+    "offline": "預設內容倉暫時無法存取，已顯示內建清單；技能包與開場白連網後才會載入。"
+  },
+  "kinds": {
+    "all": "全部",
+    "agent": "智慧體",
+    "team": "小隊"
+  },
+  "card": {
+    "meta": "v{{version}} · {{skills}} 個技能"
+  },
+  "preview": {
+    "no_description": "此預設尚無說明。",
+    "version": "版本",
+    "skills": "技能",
+    "skill_counts": "索引 {{indexed}} / 宣告 {{declared}}",
+    "files": "檔案",
+    "members": "成員",
+    "mismatch": "plugin.json 與 index.json 的技能清單不一致，匯入以索引為準。",
+    "skill_list": "包含的技能",
+    "requires": "相依：{{list}}",
+    "plugin_error": "無法讀取 plugin.json：{{error}}",
+    "starters": "開場白"
+  },
+  "import": {
+    "start": "匯入預設",
+    "running": "匯入中…",
+    "runtime_required": "匯入預設前請先連接執行環境：智慧體需要執行環境才能運作。",
+    "done": "已匯入 {{skills}} 個技能、{{agents}} 個智慧體（其中 {{updated}} 個技能為更新）。",
+    "failed": "匯入失敗。",
+    "step": {
+      "load_skills": "讀取技能包",
+      "import_skills": "匯入技能",
+      "create_agent": "建立智慧體",
+      "create_members": "建立團隊成員",
+      "create_squad": "建立小隊",
+      "save_instructions": "儲存小隊指令"
+    }
+  }
+}

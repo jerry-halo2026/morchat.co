@@ -1,0 +1,43 @@
+/* Login → onboarding handoff, ENTER half. Mirrors the exit in
+   packages/views/auth/login-handoff.css: 200ms out, then 240ms in, with the
+   content rising into place behind the fade.
+
+   Keyframes rather than a two-frame React flip because `both` fill mode makes
+   the browser paint opacity 0 on the very first frame — there is no window in
+   which the old page's blank background is visible, and no chance of the first
+   frame rendering at full opacity before the transition starts.
+
+   Opacity is on the step root; the rise is on the content block inside it. A
+   translate on the `h-full` root counts into the scroll container's overflow
+   and flashes a scrollbar (the same reason the flow's own entrance is
+   opacity-only). */
+@keyframes login-handoff-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes login-handoff-rise {
+  from {
+    translate: 0 8px;
+  }
+}
+
+.login-handoff-enter {
+  animation: login-handoff-fade-in 240ms ease both;
+}
+
+.login-handoff-rise {
+  animation: login-handoff-rise 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* The rise starts a beat after the fade so the two are not one gesture. */
+  animation-delay: 20ms;
+}
+
+/* Reduced motion: the screen simply is. No fade to wait through, no rise to
+   watch. */
+@media (prefers-reduced-motion: reduce) {
+  .login-handoff-enter,
+  .login-handoff-rise {
+    animation: none;
+  }
+}

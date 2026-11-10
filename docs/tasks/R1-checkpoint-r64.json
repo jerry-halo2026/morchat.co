@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R1-64-handlerSETUP42501-noBusinessEvents-retained",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "01a1b0e9-ce05-7273-bbb3-b6f3d0708f30",
+  "status": "active",
+  "previousCheckpoint": "docs/tasks/R1-checkpoint-r63.json",
+  "previousSha256": "ed89b6349793e898b51369bb277184dc00687dd1c89191549743b397bd4c74a7",
+  "previousReviewSha256": "5ec41a8efd926566c3b772d0e1356fabb6082037e532a978c1f923b529c4eb63",
+  "files": [
+    {
+      "sha256": "05b0fd9d7fa3155fa4ee7f25d7d209b6171e48534c910ad76a26616c5587b1ee",
+      "appendOnly": true,
+      "beforeSha256": "18d9ccef6df7ff29edc38db7bb318301147c4c6968e070572ad60bde1b4bb81b",
+      "path": "docs/tasks/ACTIVE.md"
+    },
+    {
+      "sha256": "6360d09bf472dd0e5520fb03ef97af1911a416b92b205816293311484f0f484f",
+      "appendOnly": true,
+      "beforeSha256": "c39db7737d15a358a39a8901fedd549c13a0a575ecf2bd199840f46409bdd94c",
+      "path": "docs/tasks/R1-01D-issue-guard.md"
+    },
+    {
+      "sha256": "19cbec45c7cb2033a3e3f2ecb56032ffb539040b3250ee355073e80dad2a0130",
+      "appendOnly": true,
+      "beforeSha256": "9d34ddde4cc1d383ebe13b17bfc05fb47056285bfab137e3472a3c47f487b63b",
+      "path": "docs/tasks/R1-results.md"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-handler-runtime-r2-final-approval.json",
+      "sha256": "c942c8856675c6a9df9e7094b24a4416239e1301f269b5f4eecb559fc8a4fbd6"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-handler-runtime-r2-root-release.json",
+      "sha256": "492d0240f03f541835a867f35d5ed509d1cb0932c86b8f7fa909cf19d23237f2"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-tests-r1-source-independent-review.md",
+      "sha256": "09d4a9795e26a46d285ab53730581d50d2f0be66b83a6541d29df38abc6045ed"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-tests-r1-fix1-source-root-release.json",
+      "sha256": "712cf043e09ce6716cb1ccbf387498478b3b99bdf8a3885faf1a35f434efe85d"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-tests-r1-fix1-source-scope-clarification.json",
+      "sha256": "d6a45aaccc73d835d4a81e04c2eecb08bafa0dae98877681babd21696ef6c232"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-vertical-r1-terminal-wire-addendum.json",
+      "sha256": "d14038e252942659606d571e4081aa0998bc8ffcb315daf205593aca3f9fa7f3"
+    }
+  ],
+  "handlerFailure": {
+    "rawManifestSha256": "4d03d7d3e079df7ef58a013db16d346c3f57e54829e0d1d88223bed6e331121f",
+    "actualGoExit": 1,
+    "beforeAccepted": true,
+    "state": "bootstrapretained/helpernotautomaticallyremoved",
+    "run": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-handler-runtime-r2-actual-bab8efa1e78c473f933bbbab49554da5",
+    "cleanupConfirmed": false,
+    "noRetry": true,
+    "namedBusinessEvents": 0,
+    "actualReview": "PENDING",
+    "postAccepted": false,
+    "classification": "SETUPFAIL_PERMISSION42501_NOT_BUSINESSRED",
+    "resultSha256": "93495494b63966f874100b86cd1701a49f53a137c8bf1f9e8b82d778360ea294"
+  },
+  "repair": "Rootcauseonly/narrowreadonlydiagnosticcandidate; no newgrant/cleanup/reset",
+  "leader": "Sourcefix1_5P1inprogress/NoCompileNoRuntime",
+  "service42": "Accepted349981/retained35 preserved",
+  "native37and4": "NOTRUN",
+  "newRuntimePermission": "NONE",
+  "fullGoal": "ACTIVE NOTCOMPLETE",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

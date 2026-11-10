@@ -1,10 +1,20 @@
+---
+purpose: "edict 与调度模式参考边界"
+owner: b06-dispatch
+status: reference
+updated: 2026-11-06
+related:
+  - docs/archive/2026-11-04-pre-platform-review/EDICT-FLOW.md
+  - docs/ARCHITECTURE.md
+  - docs/PRD.md
+---
 # edict 与调度模式参考边界
 
-> 2026-11-04 重整。本文只保留可借鉴原则，不是 morchat 的流程设计或建设任务。原源码梳理与历史映射完整保留在 [旧 EDICT-FLOW](D:/dev/morchat.co/docs/archive/2026-11-04-pre-platform-review/EDICT-FLOW.md)。
+> 2026-11-04 重整。本文只保留可借鉴原则，不是 morchat 的流程设计或建设任务。原源码梳理与历史映射完整保留在 [旧 EDICT-FLOW](archive/2026-11-04-pre-platform-review/EDICT-FLOW.md)。
 
 ## 1. 参考来源
 
-历史研究样本：edict 14a2075、dsh-edict 93279b9。旧稿包含源码观察、文档推演和未运行验证的场景，不能一概称为系统实测。当前平台架构见 [整体架构](D:/dev/morchat.co/docs/ARCHITECTURE.md)。
+历史研究样本：edict 14a2075、dsh-edict 93279b9。旧稿包含源码观察、文档推演和未运行验证的场景，不能一概称为系统实测。当前平台架构见 [整体架构](ARCHITECTURE.md)。
 
 ## 2. 可以借鉴的原则
 
@@ -24,9 +34,9 @@
 - 不采用轮次用尽就强制放行的策略。
 - 不将 agent 参数、环境变量或角色文件作为真实权限证明。
 - 不把状态快照回滚视为撤销外部动作；不盲目重放未知结果操作。
-- 不直接复制另一套调度器/状态数据库与 Paperclip 竞争权威。
+- 不直接复制另一套调度器/状态数据库与 Multica 竞争权威。
 - 不复制“日志只留 5000 条”等不符合公司留存政策的默认值。
 
 ## 4. 在本期的地位
 
-不部署 edict/dsh-edict，不以移植其代码作为 MVP 前置。确有需要时，只选择独立、可解释、经许可核对和测试的机制。人机协作与资产沉淀的验收以 [平台 PRD](D:/dev/morchat.co/docs/PRD.md)为准。
+不部署 edict/dsh-edict，不以移植其代码作为 MVP 前置。确有需要时，只选择独立、可解释、经许可核对和测试的机制。人机协作与资产沉淀的验收以 [平台 PRD](PRD.md)为准。

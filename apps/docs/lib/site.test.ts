@@ -1,0 +1,135 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const existingDocs = vi.hoisted(() => new Set<string>());
+
+vi.mock("node:fs", () => ({
+  existsSync: vi.fn((path: string) => {
+    const normalized = path.replaceAll("\\", "/");
+    return [...existingDocs].some((suffix) => normalized.endsWith(suffix));
+  }),
+}));
+
+const pages = new Map<string, { url: string }>([
+  ["en:", { url: "/" }],
+  ["zh:", { url: "/zh" }],
+  ["zh-Hant:", { url: "/zh-Hant" }],
+  ["ko:", { url: "/ko" }],
+  ["ja:", { url: "/ja" }],
+  ["fr:", { url: "/fr" }],
+  ["en:agents", { url: "/agents" }],
+  ["zh:agents", { url: "/zh/agents" }],
+  ["zh-Hant:agents", { url: "/zh-Hant/agents" }],
+  ["ko:agents", { url: "/ko/agents" }],
+  ["ja:agents", { url: "/ja/agents" }],
+  ["fr:agents", { url: "/fr/agents" }],
+]);
+
+vi.mock("@/lib/source", () => ({
+  source: {
+    getPage: vi.fn((slugs: string[], lang: string) => {
+      return pages.get(`${lang}:${slugs.join("/")}`) ?? null;
+    }),
+  },
+}));
+
+beforeEach(() => {
+  existingDocs.clear();
+  existingDocs.add("index.mdx");
+  existingDocs.add("index.zh.mdx");
+  existingDocs.add("agents.mdx");
+  existingDocs.add("agents.zh.mdx");
+});
+
+describe("docsAlternates", () => {
+  it("omits Korean hreflang when no Korean MDX file exists for the page", async () => {
+    const { docsAlternates } = await import("./site");
+
+    expect(docsAlternates(["agents"])).toEqual({
+      canonical: "https://www.morechat.co/docs/agents",
+      languages: {
+        en: "https://www.morechat.co/docs/agents",
+        zh: "https://www.morechat.co/docs/zh/agents",
+        "x-default": "https://www.morechat.co/docs/agents",
+      },
+    });
+  });
+
+  it("omits Korean hreflang even when source.getPage returns a page for Korean", async () => {
+    const { docsAlternates } = await import("./site");
+
+    expect(docsAlternates(["agents"]).languages).not.toHaveProperty("ko");
+  });
+
+  it("includes Korean hreflang when a real *.ko.mdx page exists", async () => {
+    existingDocs.add("agents.ko.mdx");
+    const { docsAlternates } = await import("./site");
+
+    expect(docsAlternates(["agents"])).toEqual({
+      canonical: "https://www.morechat.co/docs/agents",
+      languages: {
+        en: "https://www.morechat.co/docs/agents",
+        zh: "https://www.morechat.co/docs/zh/agents",
+        ko: "https://www.morechat.co/docs/ko/agents",
+        "x-default": "https://www.morechat.co/docs/agents",
+      },
+    });
+  });
+
+  it("includes Japanese hreflang when a real *.ja.mdx page exists", async () => {
+    existingDocs.add("agents.ja.mdx");
+    const { docsAlternates } = await import("./site");
+
+    expect(docsAlternates(["agents"])).toEqual({
+      canonical: "https://www.morechat.co/docs/agents",
+      languages: {
+        en: "https://www.morechat.co/docs/agents",
+        zh: "https://www.morechat.co/docs/zh/agents",
+        ja: "https://www.morechat.co/docs/ja/agents",
+        "x-default": "https://www.morechat.co/docs/agents",
+      },
+    });
+  });
+
+  it("includes Traditional Chinese hreflang when a real *.zh-Hant.mdx page exists", async () => {
+    existingDocs.add("agents.zh-Hant.mdx");
+    const { docsAlternates } = await import("./site");
+
+    expect(docsAlternates(["agents"])).toEqual({
+      canonical: "https://www.morechat.co/docs/agents",
+      languages: {
+        en: "https://www.morechat.co/docs/agents",
+        zh: "https://www.morechat.co/docs/zh/agents",
+        "zh-Hant": "https://www.morechat.co/docs/zh-Hant/agents",
+        "x-default": "https://www.morechat.co/docs/agents",
+      },
+    });
+  });
+
+  it("includes French hreflang when a real *.fr.mdx page exists", async () => {
+    existingDocs.add("agents.fr.mdx");
+    const { docsAlternates } = await import("./site");
+
+    expect(docsAlternates(["agents"])).toEqual({
+      canonical: "https://www.morechat.co/docs/agents",
+      languages: {
+        en: "https://www.morechat.co/docs/agents",
+        zh: "https://www.morechat.co/docs/zh/agents",
+        fr: "https://www.morechat.co/docs/fr/agents",
+        "x-default": "https://www.morechat.co/docs/agents",
+      },
+    });
+  });
+
+  it("keeps the locale root alternates limited to real localized MDX pages", async () => {
+    const { docsAlternates } = await import("./site");
+
+    expect(docsAlternates([])).toEqual({
+      canonical: "https://www.morechat.co/docs",
+      languages: {
+        en: "https://www.morechat.co/docs",
+        zh: "https://www.morechat.co/docs/zh",
+        "x-default": "https://www.morechat.co/docs",
+      },
+    });
+  });
+});

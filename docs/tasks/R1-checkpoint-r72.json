@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R72",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "status": "NEW_PG_ACTUAL_START_FAILURE_AND_PRESTART_BOUNDARY_HOLD_SOURCE_ALL_CLOSED",
+  "previousCheckpoint": "R71",
+  "previousSha256": "66e11b91d7748fdb6af8acfa80014b906a0108892a0ffbbb54f7c1051367bcc9",
+  "previousReviewSha256": "925a718ad9e28fa7b58490609aab7e1e047fffea36cdb584d94fcb3826a97c69",
+  "previousSnapshotSha256": "af62234b43023211c1b3452e2f05da3a6d3f8b9552cb7cc6ca3b191fed9366dc",
+  "files": [
+    {
+      "beforeSha256": "75dd7f2d30945181bd977d61a958671cf245ebae8d44d64dbab1dda6e62c1a34",
+      "path": "docs/tasks/R1-results.md",
+      "appendOnly": true,
+      "sha256": "f8ed183a12672c1475426261ffb75bbc415c8856109de71331a65a443c6e2fda"
+    },
+    {
+      "beforeSha256": "e887a968310ee191877e64f20a9b92fb5a2da0d1653cc9287aee2fb0b7a6fb79",
+      "path": "docs/tasks/R1-01D-native-clone.md",
+      "appendOnly": true,
+      "sha256": "d168d557416f2cb334326a1eb85113d2bab8e209d428920ae33f9560fe8fca25"
+    },
+    {
+      "beforeSha256": "8f2ed73d1bbe5634d554199883bcc2198adc0fe0af90dfe61e7e55f936ef50a6",
+      "path": "docs/tasks/ACTIVE.md",
+      "appendOnly": true,
+      "sha256": "bf022d5761e0ca29211f8dc1eefe21d6262e85698bc19f2e0191ab9df13aa7dc"
+    },
+    {
+      "beforeSha256": "674d26784584d070b921ff4534801c5aaea6461ce7f28630675859dae82abe9d",
+      "path": "docs/tasks/R1-01D-issue-guard.md",
+      "appendOnly": true,
+      "sha256": "6712f160ce0464eae1882a79c60fa1360c68d656bc986170d7e34dda5966e8d5"
+    },
+    {
+      "beforeSha256": "7c2db9e9ad6516d7ef3bdb0f0e49a0abaf34e74927f5d3f50fd0873990c83485",
+      "path": "docs/tasks/R1-03A-leader-text.md",
+      "appendOnly": true,
+      "sha256": "813276db9a2e1f8c7e903509a3ab26935b60c04337629fdcbe56e5fa2bdb77e1"
+    },
+    {
+      "beforeSha256": "88baddeb3163b658cf7418fdc98d9f99614f8a5fce8c7d3adc56839b5e567ffc",
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "appendOnly": true,
+      "sha256": "aa190ca79e7a4d3cb3ff7b6ba11cfd42d0a5140ea3a740ca02150a120d4ee133"
+    }
+  ],
+  "migratorCompile": {
+    "source": "29537c8c6e29370b419f427f6d4880726534ac6fed05fecd3ca48c2558ec72e1",
+    "manifest": "5480bb03312fe1a683f1cf5bafcc72349b2e293352a7cf9b79380ec70a445e32",
+    "review": "101986a183bee78b48f1cc4992f7cfaa1c1c3a5fd69d61e4192d1f18a484b513",
+    "executed": false,
+    "elf": "bb47117e0db95876254755aae7b17cb2570c4e16d6724e6d12166157ce2db32e",
+    "sourceCount": 125
+  },
+  "handlerCompile": {
+    "source": "d42f9e9ffb570bfe86ef411fa1bf1b32254fbb791c0468f58e6b1b77dfa98781",
+    "manifest": "65ceb7b98250a46a065bdaca8c31baa48c67d371f355de9d1bee12fe4ffdd3f6",
+    "testExecuted": false,
+    "review": "5e069fda4a20301d0bb28e1e6370fc65e4e47677c2f55bb1d85bcf4607313f38",
+    "elf": "ca1f2e930cc01f29d762f212a5a57f90bcf2b500496f2ba15e4f9824a1055ae5",
+    "sourceCount": 1217
+  },
+  "startup": {
+    "retryOrCleanup": "NOT_AUTHORIZED",
+    "startCalls": 1,
+    "logStdout": "63cefc5fa111a1ffc2227e54ec599401aa85aca27c5c56eec02960558153a5c9",
+    "exitCode": 2,
+    "failureReview": "91fb60723d3e44663ebce72490781384673d334687a23e339c13700a08a4c4ca",
+    "volume": "morchat-leader-pgdata-s1-98a7b696d4792af11102650a50745099",
+    "S02Raw": "dfe0f25442a2b27e0b74c3b06b0ac44242f480304e8b0feb53d1cc609325f3ac",
+    "status": "FAILURE_EVIDENCE_ACCEPTED_STARTUP_HOLD_ALL_HANDLES_RETAINED",
+    "running": false,
+    "privateEnvBytes": 83,
+    "logStderr": "44463e4227c5039b0eebe2c15aa68cec92fffb8dbc72692f08d21a4eea913ef6",
+    "appMigration": "NOT_RUN",
+    "privateReadOrHashed": false,
+    "oomKilled": false,
+    "facts": "31731313a16ba6346d42e0b18b8077eb5e796314ff9f547ddd4f5d08bb40fadf",
+    "runRoot": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-startup-r1-actual-98a7b696d4792af11102650a50745099",
+    "boundaryDeviation": "MISSING_P01_TO_P04_AND_INDEPENDENT_C03_BEFORE_S01_NO_RETROACTIVE_ACCEPTANCE",
+    "readyScram3Caps": "NOT_PROVEN",
+    "id": "77dabdb59f73d031b0d83525a035e2abbecc18973da1bbf601504af308f0d3f6"
+  },
+  "allSourceWindows": "CLOSED",
+  "currentPreparationOnly": "/root/leader_pg_facility_prep startup fixround1",
+  "old53": "49PASS4FAIL_RETAINED",
+  "newF5NativeLeaderRuntime": "NOT_RUN",
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

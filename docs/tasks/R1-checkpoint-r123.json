@@ -1,0 +1,59 @@
+{
+  "checkpoint": "R123",
+  "root": "/root",
+  "model": "unknown",
+  "baseline": "efdc54aaf3fcc4e3eaee369b980ac054ccc0bb54",
+  "branch": "codex/round1-continuous",
+  "stagedCount": 0,
+  "classification": "PROGRESS_CORE_FRONTIER_AND_ACTUAL_SINGLE_DLL_DATA",
+  "frontierCoreReview": "f0814d45b3194b8679210d69ccb348e295ecc609b34ab56e88abe54fa3ebafe8",
+  "frontierWholeAccepted": false,
+  "derivedProvenance": "HOLD_92_GROUPS_89_SAMPLES",
+  "actualKinds": {
+    "FORWARDER": 22,
+    "NORMAL": 3777
+  },
+  "win32uTask": "a14adff66633c21db470eeb6fa221281bd9be56cd28d0cf43d3cf30825cb5f71",
+  "owner": "/root/o0_win32u_data",
+  "ownerRoute": "gpt-6.1-sol high",
+  "observationSHA256": "3c92cc815b341ff971b274b28b6c3a56f76d964a7393bd6a41acaae21981965e",
+  "observedFileSHA256": "d46a695db805e808efa63d1095ce3e1b6be9c0155dad405d444530efc1ed0362",
+  "observedBytes": 182632,
+  "ownerStreams": 1,
+  "ownerReadCalls": 3,
+  "independentDataReview": "ACTIVE",
+  "dataIngested": false,
+  "netPendingReduction": "NOT_MEASURED",
+  "rootOwnedExecLive": false,
+  "nativeExecutionPermission": false,
+  "modelCalls": 0,
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "docsReview": "PENDING_AT_CAPTURE",
+  "files": [
+    {
+      "sha256": "dcd9da53e1cf7d5972bafd1dcd578681f6382bbc32a7f33d63b139250d859c81",
+      "bytes": 324478,
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "fd769717a0f901a03084bf2383a11dc5c659201851025dd4c5d432076b28737e"
+    },
+    {
+      "sha256": "444f2a47b5019b4fd5841a341608dcb9d990fb3cd17dce856ba09b0a68cd039d",
+      "bytes": 305976,
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "622611594c9a13c6050be9c12d98044b3497e68587c5945021625c6a86f21789"
+    },
+    {
+      "sha256": "43bcdf391353fc198520808de6e2cb24d1af4bb5b337845e80105feca3d94564",
+      "bytes": 7264,
+      "path": "docs/tasks/R1-02E-O0-frontier-evidence.md",
+      "beforeSha256": "ef78b1c36389a62a035beee1564e50d709262fa6966faa76f0e6c00bfe9b956b"
+    },
+    {
+      "sha256": "437a7092206453a4d1e281457cc7c88c535773f952e4e3289b5438ecd964e413",
+      "bytes": 4565,
+      "path": "docs/tasks/R1-02E-O0-win32u-data.md",
+      "beforeSha256": "2e33c1b587bd62db8231060b1929cd1c38ba8a6ce7d72a09c6a82fb98d307742"
+    }
+  ],
+  "utc": "2026-11-09T04:07:08.9327700Z"
+}

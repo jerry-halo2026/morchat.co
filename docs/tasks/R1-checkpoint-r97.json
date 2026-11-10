@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R97",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "branch": "codex/round1-continuous",
+  "previousCheckpoint": "R96",
+  "previousReview": "01fe1ffa4863a4fe7eea93af61ead3f5a54e11e0e18ff80e8aad3249d96f266c",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "previousTurn": "NO_PROGRESS_STATUS_ONLY",
+  "thisTurn": "PROGRESS_ACTUAL_UNIT_REGRESSION_AND_TEST_SOURCE_DISPATCH",
+  "engineeringUnit": {
+    "sha256": "52b279b55b8294531d4bf310856ff36e9e3d25b36b8a7e269352cc75ea54b1dc",
+    "exit": 0,
+    "fail": 0,
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\r97-engineering-node-tests\\result.json",
+    "skip": 0,
+    "productPass": false,
+    "pass": 35
+  },
+  "controlledEnvironment": "ACTUAL19_EVIDENCE_ACCEPTED_NOT_COMPILER_PASS",
+  "env20": "SOURCE_ONLY_ACTIVE",
+  "frontendSampler": "CLOSED_SOURCE_ACCEPTED_ACTUAL_BINDING_HOLD",
+  "sourceTrust": "RAWFACTS_PARTIAL_FAILURE_NOT_APPROVED",
+  "productTests": "SOURCE_IN_PROGRESS_NATIVE_RED_NOT_RUN",
+  "files": [
+    {
+      "beforeSHA256": "4096782632d81773f4b5445fb07c1eb7e411b5c4983e22e85bc8369eabb241d9",
+      "sha256": "a73f090dd838bb0eb3d29140299e1a753ea3ea55a6ab447f5b9aa82f91753e79",
+      "path": "docs/tasks/ACTIVE.md"
+    },
+    {
+      "beforeSHA256": "06c702d70889264a6f77cb6225f1c22ed7916bea2cae1df42ef0d8b42a758685",
+      "sha256": "77ac3bb44041f4f57191fce4fced4074573c3cdf9c2046a0bb11f15ac628093c",
+      "path": "docs/tasks/R1-results.md"
+    },
+    {
+      "beforeSHA256": "fd121802748be5c20f213a8dfc203ec9c7948d41b51ccff2e5a6ada845ce1022",
+      "sha256": "33e2cd6f1ff7d6670d30376737c44fcac59fd76c5305b69e835c00ef0cc3f8b9",
+      "path": "docs/tasks/R1-00-baseline.md"
+    },
+    {
+      "beforeSHA256": "412a1794950b9eaf37eb60df35ecd464069d7a55a82030828976e3f4d3008ab4",
+      "sha256": "cf7742a3bf9fee4f3b3a169030141d9bfac64b60284426b0e10014ad7d330234",
+      "path": "docs/tasks/R1-02D-windows-dsh-process.md"
+    },
+    {
+      "beforeSHA256": null,
+      "sha256": "8e04a9edb9c30ea730729fc99744c47f2922ee71532dc60132102034fd451492",
+      "path": "docs/tasks/R1-02D2-windows-failclosed-tests.md"
+    },
+    {
+      "beforeSHA256": null,
+      "sha256": "bc0b13351a5687b27e5425125b95255a6bca2bed8c1e52e0c9dc69335040108d",
+      "path": "docs/tasks/contracts/R1-02D2-WINDOWS-FAILCLOSED-r1-test-frozen.json"
+    }
+  ],
+  "independentReview": "PENDING",
+  "utc": "2026-11-08T09:57:55.6306035Z"
+}

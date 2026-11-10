@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "task": "R1-02E-APPHOST-LINK",
+  "revision": "r1",
+  "status": "TEST-FROZEN_SOURCE_ONLY_SDK_LOAD_LINK_CLOSED",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "owner": "/root/service_compile_r1",
+  "ownerConfiguredModel": "gpt-6.1-sol medium",
+  "consumer": "/root",
+  "consumerModel": "unknown",
+  "reviewer": "/root/dsh_runtime_review",
+  "reviewerConfiguredModel": "gpt-6.1-sol high",
+  "candidate": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-design-candidate.json",
+    "sha256": "4fc659e4717af5711b0a4098deb826e4fb717e8e9bf7e8b77bfa0abdfc69af91"
+  },
+  "independentDesign": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-design-independent-review.json",
+    "sha256": "3fc7aba832a9fc05dbca444624ac8c960c5cafcf886381d314f1bb191c9b62cf"
+  },
+  "managedActualReviewSHA": "deb906c22b3a083dee1da9c18190a8aad808c86f141d5048632c5e418182020f",
+  "officialTemplateActualReviewSHA": "807f421cc291e93998b212d0f23e1741fb4b342545af04da9ecf9a92db88850c",
+  "sourcePrefix": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-",
+  "sourceWriteSet": [
+    "driver.CLOSED.ps1",
+    "host-tests.ps1",
+    "host-results.json",
+    "source-report.md",
+    "source-manifest.json",
+    "source-diff.json",
+    "profile.CLOSED.json"
+  ],
+  "fixedHostModel": {
+    "sha256": "40b79652020b467a074728440bcdbba213347c829bc56645149fcf00930060d1",
+    "bytes": 255784,
+    "path": "C:\\Program Files\\dotnet\\sdk\\10.0.300\\Microsoft.NET.HostModel.dll"
+  },
+  "fixedTemplate": {
+    "sha256": "24c240dec556f92d330edbf4e996b9e511d44f12c7ddf52ccb3165e534c52df3",
+    "bytes": 160768,
+    "path": "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Host.win-x64\\10.0.8\\runtimes\\win-x64\\native\\apphost.exe"
+  },
+  "fixedAPI": "Microsoft.NET.HostModel.AppHost.HostWriter.CreateAppHost",
+  "exactBindings": [
+    {
+      "runtimeconfig": {
+        "sha256": "d04b999267585998898a3009bfb6c9cbee8cc8c20d00d02561173343a59df080",
+        "bytes": 180,
+        "path": "E:\\CodexData\\morchat-r1-local\\build\\windows-runtime-containment-r1-compile\\launcher.runtimeconfig.json"
+      },
+      "nativeOutputSha256": "NOTBOUND",
+      "parameters": [
+        "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Host.win-x64\\10.0.8\\runtimes\\win-x64\\native\\apphost.exe",
+        "E:\\CodexData\\morchat-r1-local\\build\\windows-runtime-containment-r1-compile\\launcher.exe",
+        "launcher.dll",
+        false,
+        null,
+        false,
+        false,
+        null
+      ],
+      "destinationAbsent": true,
+      "destination": "E:\\CodexData\\morchat-r1-local\\build\\windows-runtime-containment-r1-compile\\launcher.exe",
+      "SDKCall": "Microsoft.NET.HostModel.AppHost.HostWriter.CreateAppHost(TEMPLATE, \"E:\\CodexData\\morchat-r1-local\\build\\windows-runtime-containment-r1-compile\\launcher.exe\", \"launcher.dll\", false, null, false, false, null)",
+      "managed": {
+        "sha256": "5b00dc161f464abdc8dd84ab655260ba4ae9a3f84c69612c179b6393fa678577",
+        "bytes": 107008,
+        "path": "E:\\CodexData\\morchat-r1-local\\build\\windows-runtime-containment-r1-compile\\launcher.dll"
+      },
+      "startup": "WrcR1.Launcher",
+      "maxCalls": 1
+    },
+    {
+      "runtimeconfig": {
+        "sha256": "d04b999267585998898a3009bfb6c9cbee8cc8c20d00d02561173343a59df080",
+        "bytes": 180,
+        "path": "E:\\CodexData\\morchat-r1-local\\build\\windows-runtime-containment-r1-compile\\probe.runtimeconfig.json"
+      },
+      "nativeOutputSha256": "NOTBOUND",
+      "parameters": [
+        "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Host.win-x64\\10.0.8\\runtimes\\win-x64\\native\\apphost.exe",
+        "E:\\CodexData\\morchat-r1-local\\build\\windows-runtime-containment-r1-compile\\probe.exe",
+        "probe.dll",
+        false,
+        null,
+        false,
+        false,
+        null
+      ],
+      "destinationAbsent": true,
+      "destination": "E:\\CodexData\\morchat-r1-local\\build\\windows-runtime-containment-r1-compile\\probe.exe",
+      "SDKCall": "Microsoft.NET.HostModel.AppHost.HostWriter.CreateAppHost(TEMPLATE, \"E:\\CodexData\\morchat-r1-local\\build\\windows-runtime-containment-r1-compile\\probe.exe\", \"probe.dll\", false, null, false, false, null)",
+      "managed": {
+        "sha256": "b320ee855b073e755a31ef88887489384c4580143beb94fbe68cb73dd84917dd",
+        "bytes": 107008,
+        "path": "E:\\CodexData\\morchat-r1-local\\build\\windows-runtime-containment-r1-compile\\probe.dll"
+      },
+      "startup": "WrcR1.Probe",
+      "maxCalls": 1
+    }
+  ],
+  "sourceTesting": "Only PEReader static tool API/AssemblyRef/identity/path-hash closure, pure descriptor/memory TDD; no SDK/HostModel assembly load or invoke, no compiler or native files",
+  "closureRequirement": "Freeze exact selected trusted SDK/current PowerShell BCL and support module paths/hashes/identities. Reject unknown dependency/target/cwd probing; no arbitrary SDK folder load or source/target AssemblyLoad.",
+  "futureToolProcess": {
+    "timeoutMs": 60000,
+    "cleanupMs": 10000,
+    "SDKLoad": "Only reviewed fixed HostModel and exact reviewed dependency closure; source/target DLL load forbidden",
+    "drainMs": 10000,
+    "environment": "Clear then fixed ownHOME/TMP/evidencecwd/SystemRoot/etc allowlist, no startup/profiler/helper/provider/proxy/customresolver/module inheritance",
+    "maxChildren": 1,
+    "host": "fixed trusted pwsh7.6.9 path/hash2a6769",
+    "flags": [
+      "-NoLogo",
+      "-NoProfile",
+      "-NonInteractive"
+    ]
+  },
+  "maxDriverEntries": 1,
+  "maxSDKCalls": 2,
+  "maxCallsPerDestination": 1,
+  "outerRetry": false,
+  "SDKInternalRetryDelete": "Official bound HostWriter internal IO retries and deletion-on-failure accepted ONLY two verified-absent canonical nonreparse Goal-owned new leaves; never old file or installation",
+  "sourceDefault": "FunctionsOnly no IO/load/link",
+  "requiredTests": [
+    "exact tuples/API/pins",
+    "unknown dependency or target assembly deny",
+    "existing/reparse/escaped destination",
+    "source approval and root release once acyclic binding",
+    "default no-load/link",
+    "SDKfailure/partial/new-leaf deletion bounds",
+    "capture drain cleanup UNKNOWN/scalar-only pending evidence"
+  ],
+  "actualPermission": "CLOSED_UNTIL_EXACT_SOURCE_PROFILE_LOADER_CLOSURE_REVIEW_AND_ROOT_ONCE_RELEASE",
+  "actualSDKLoad": false,
+  "actualLink": false,
+  "nativeOutputExecution": false,
+  "sourceDLLLoad": false,
+  "recompile": false,
+  "GET": false,
+  "install": false,
+  "OSOrACLMutation": false,
+  "sourceOrLockWrite": false,
+  "privateIO": 0,
+  "modelCalls": 0
+}

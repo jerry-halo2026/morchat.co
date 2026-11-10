@@ -1,0 +1,74 @@
+{
+  "task": "R1-02D2-WINDOWS-FAILCLOSED",
+  "revision": "r1",
+  "status": "TEST_FROZEN_TEST_SOURCE_ONLY",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "sourceRoot": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co",
+  "domainOwner": "/root/windows_process_owner",
+  "consumer": "/root/windows_process_consumer",
+  "priorIndependentReviewer": "/root/windows_process_contract_review",
+  "implementer": "/root/windows_failclosed_tests",
+  "implementerConfiguredRoute": "gpt-6.1-sol high",
+  "controller": "/root",
+  "controllerModel": "unknown",
+  "reviewer": "/root/guard_review",
+  "reviewerConfiguredRoute": "gpt-6-astra high",
+  "acceptedInputs": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-process-failclosed-r1-proposal.md",
+      "sha256": "a47baae077b4f418974e7b27ebad23276f86d2de516b0e2a07eb59561b4f9c30"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-process-failclosed-r1-proposal.json",
+      "sha256": "10cc40dca26439d8c4f777dff9c11f27c5522562308d14646c2b47c23071d88a"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-process-failclosed-r1-evidence-inventory.json",
+      "sha256": "4a92db10fbb7ccb7cd747ca103e16438d25ec638738100dc5e9dc4f25469e2ed"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-process-failclosed-r1-producer-addendum.md",
+      "sha256": "9ac1381674316161a3fca2efe94a77892dedc8f11623759ebe49adc9a68f90de"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-process-failclosed-r1-producer-addendum.json",
+      "sha256": "e6b312c4cff958cf4adbc21b6a9611205f714068facc73e55863d8831e3271ca"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-process-failclosed-r1-consumer-ack.json",
+      "sha256": "e9ef5e4ace1653a15d12828953e1041f7996284bda46bf0aa32d766be7c52fea"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-process-failclosed-r1-consumer-addendum-review.json",
+      "sha256": "9f72bc47231d16d120ec16e10e26490017f986a3b0bf0e9937261477e361608c"
+    }
+  ],
+  "beforePins": [
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\proc_windows.go",
+      "sha256": "7519f71c483bee200c7eb60a65406cdd84d59f89c9b77ff7540ce6c3ac5315e7"
+    },
+    {
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\proc_windows_test.go",
+      "sha256": "bb3ac563ec561ac74d2ce4a07ed7a3310be32d3ef23cf0a3d8a9dd911d110289"
+    }
+  ],
+  "writeSet": [
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\proc_windows_test.go"
+  ],
+  "readOnlyProduction": [
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\agent\\proc_windows.go"
+  ],
+  "productionRepair": "CLOSED_UNTIL_INDEPENDENTLY_ACCEPTED_BEHAVIORAL_RED",
+  "compile": "SEPARATE_LOCKED_TOOLCHAIN_HANDOVER_REQUIRED",
+  "runtime": "CLOSED_UNTIL_EXISTING_OUTER_CONTAINMENT_INIT_ENV_NETWORK_GATES",
+  "requirements": [
+    "Append unchanged-public-API native ownership-assignment-denial regression tests before production repair",
+    "Both nil and real logger; confirmed OS rejection and positive marker control; same restrictions",
+    "No new production adapter API; unavailable exhaustive injected cases stay NOT RUN",
+    "Original-handle exit and cleanup oracle, not PID alone; no ambiguous skip/pass",
+    "Keep existing tests and APIs; no shared global hook, no raw environment/config/private/model/network",
+    "Only source and locked gofmt approved now; do not build/run test package or helper"
+  ],
+  "ruling": "Existing independently approved contract and real consumer ACK permit test implementation now; do not wait for runtime harness to WRITE tests. TEST-FROZEN is not BUILD-FROZEN or actual RED."
+}

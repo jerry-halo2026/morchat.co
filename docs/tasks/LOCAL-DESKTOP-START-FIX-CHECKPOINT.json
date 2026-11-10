@@ -1,0 +1,26 @@
+{
+  "task": "LOCAL-DESKTOP-START-PATH-FIX",
+  "head": "51e23d9e7a8d6d3b3cdf46db7df68ad1b0938271",
+  "launcher": "E:\\CodexData\\morchat-r1-local\\run\\multica-local-demo\\start-desktop.ps1",
+  "launcherSHA256": "db38f3ad2d77b9b0ebdac32067c0e92a2e2f31c9fceb20be00e4cd77e922a0ad",
+  "desktopPID": 28668,
+  "desktopWindow": 594198,
+  "desktopSession": 8295,
+  "daemonPID": 30736,
+  "daemonStatus": "running",
+  "profile": "desktop-localhost-8080",
+  "launchedBy": "desktop",
+  "agents": [
+    "dsh"
+  ],
+  "runtimeID": "31c27f22-5bd7-4fba-ac55-552c79228782",
+  "uiStopStart": "PASS, actual native Desktop buttons",
+  "loginPreserved": true,
+  "queuedTaskCancelledByUserApproval": true,
+  "chatPreserved": true,
+  "modelInference": "NOT RUN",
+  "genericInstaller": "NOT DONE",
+  "mainChanged": false,
+  "globalPathChanged": false,
+  "goal": "ACTIVE_FULL_NEW_SCOPE"
+}

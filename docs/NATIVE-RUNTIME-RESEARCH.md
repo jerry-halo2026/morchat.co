@@ -1,30 +1,36 @@
+---
+purpose: "原生双设备运行与 Harness 选型核查"
+owner: b05-runtime
+status: reference
+updated: 2026-11-06
+related:
+  - docs/WINDOWS-DSH-INTEGRATION.md
+  - docs/REFERENCE-REUSE.md
+  - docs/DUAL-DEVICE-VALIDATION.md
+---
 # 原生双设备运行与 Harness 选型核查
 
-> **〔2026-11-06 基座切换注记〕** 任务/run 权威已由 Paperclip 切换为 Multica fork（基线 164290ee），新基座契约见 [MULTICA-BASE](D:/dev/morchat.co/docs/MULTICA-BASE.md)。本文中 Paperclip/相关机制研究保留为参考；受影响条款的等价契约在 MC 门禁族重定位（DISCOVERY D11）完成前暂缓作为权威引用。
+> **2026-11-06 当前基线：Multica 是统一客户端/后台及唯一 task/run/调度权威；DSH 完整 harness 在员工 Windows 本机运行，云模型经公司网关调用。** Paperclip 只作治理参考或经许可/依赖/安全审查后的独立源码候选，不要求其 remote adapter、Runner 或 PCWS；OpenMausBot 仅作协作参考，不导入 runtime。Multica 原生 Web @→本地 DSH 文件/回复/token 已实测通过；自动归档失败、手动上传通过、匿名 uploads 返回 200 是 P0 失败，不能称端到端通过。企业隔离/权限/自动保存/接续仍待验证。
 
-> 2026-11-05，设计评审稿。Ethan 最新确认先验证两台 Windows 11 x64 原生设备，Mac 只预留适配边界、不阻塞首轮；模型接入面向 OpenAI Chat Completions／Anthropic Messages 等兼容接口；不以虚拟机、WSL、Docker、服务器代跑为员工使用前提。本轮只核查官方资料、固定源码并修改 docs；没有安装、构建、模型调用或运行实验。技术路线与数值是建议，所有 NG/DV 结果仍为 NOT RUN。
+> 历史静态核查保留固定源码及版本证据，不是当前实施规范。两台 Windows 11 x64 首轮，Mac 预备；不以 VM/WSL/Docker 或中央代跑为使用前提。所有 NG/DV 正式门禁仍 NOT RUN；功能实测与门禁分开。
 
-## 1. 结论与候选路线
+## 1. 当前结论与验证路线
 
-**Ethan 已确认先按 DeepSeek Harness 优先方向推进核查；Codex App Server 保留为对照/备选。方向确认不等于固定发行物和安全组合已通过验收。** Ethan 要的是多供应商、可扩展的企业本地运行时，不限定 DeepSeek 模型。Paperclip 仍是任务/run/skill/成本权威，员工本机运行完整 harness，供应商模型仍在云端，公司网关持有原始 Key。
+**Multica 统一客户端/后台和唯一 task/run/调度，官方 daemon 的 DSH 路径优先。** DSH 完整 loop 在员工 Windows 本机，模型云端、Key 在公司网关。员工管理员权限不等于 Agent 权限；不接管整机。个人 Bot 默认本人设备，公用 Bot 要设备及管理人均有对应资料权；同机独立任务可并行，只有冲突资源局部互斥。无合格在线设备明确等待，全关机停止，不设云端 harness 兜底。
 
-撤回上一版“Codex 默认优先”的推荐：该推荐偏重已有 Paperclip/公司配置接入链较短，不能替代本项目对模型协议中立与可扩展性的要求。DSH 的多协议模型插件更贴合当前方向；它的 Windows 安全缺口不会因此消失。两候选均未通过本项目端到端验证。
-
-| 路线 | 取舍与状态 |
+| 路线 | 当前处理 |
 |---|---|
-| C：DeepSeek Harness SDK/ACP＋同一中央契约 | 优先验证模型接入和企业扩展适配性；首轮载体优先官方 ACP SDK＋MXC stdio，SDK路线保留对比。复用官方模型适配/agent loop 与 OpenMausBot ACP 接入经验；补公司配置、Windows 原生边界、Paperclip 派发与快照契约。Windows 读/网络隔离、developer preview 升级风险仍是硬门槛；不因有 ACP 就认为 Paperclip Windows ACPX 可用 |
-| A：Paperclip 直接 Codex provider＋最小原生宿主适配 | 保留对照：已有运行协议/中央持久化接入较短；自定义模型通道须满足 Responses 语义。若公司网关原生具备且验证该通道，可能减少集成工作；Windows 生命周期、IPC、隔离和 transport 仍需补，不是增加打包目标即可 |
-| B：受管理原生节点直接接 Codex App Server＋Paperclip adapter | A 的平台适配面过大时比较的替代路线；选择性利用 OpenMausBot 模块。设备派发、取消、事件及快照仍接回 Paperclip；不能用 task-only 插件冒充项目快照，也不双重托管同一进程 |
+| Multica 官方 daemon＋DSH | 优先。原生 @/文件/回复/token 已验证；隔离、模型治理、自动归档/恢复尚未通过 |
+| ACP / DSH SDK | 可选控制接口，取决于官方路径的真实接口与缺口；不强制 ACP，不重写 loop |
+| MXC 等 Windows 原生隔离 | 候选组件；完整执行域、真实 build/tier、启动/取消、文件与网络策略须实测，不假定 daemon 已有注入 seam |
+| Codex App Server | 同层对照/备选，不同时建设第二引擎 |
+| 旧 Paperclip A/B/C 接入方案 | 当前作废；只保留历史固定源码证据，不要求 remote adapter/Runner/PCWS |
 
-P0 顺序：协议与原生能力预检，比较 C 与 A/B 的真实缺口 → 冻结一个引擎、载体及发行物 → 经实施授权建设必要的最薄接入 → 完成 NG-01–06 全部门禁 → 计分 DV。选路前预检不要求 NG-06 已完成；NG-06 是接好真实 Paperclip/快照链后的验收，不是建设前提。任何路线不能守住原生、权限、自动保存和并行条件，就停止修正/重选，不以 VM 或放宽权限凑通过。首版不同时建设多引擎兼容产品。
+P0 顺序：核查官方路径与原生/模型协议 → 冻结一个引擎、载体和发行物 → 经授权补齐最薄企业契约 → NG-01–06 → 双向 DV。NG-06 是真实 Multica 任务关联/保存链验收，不要求建设前已完成。无法满足原生、权限、自动保存和并行则修正/重选，不降低门槛。
 
-已确认的是 Windows 优先、Mac 预备、多供应商协议与 DSH 优先研究方向；具体载体/发行物/隔离组合尚未验收，不冒称已可上线。DeepSeek、MiniMax、Qwen、GLM、Kimi 是目标供应商范围，不是已经逐型号验证通过的清单。具体端点、模型版本、地区、能力和公司采购权限在 P0 登记，不索取或写入原始 Key。
+DeepSeek、MiniMax、Qwen、GLM、Kimi 是目标供应商范围，不是全部型号通过清单；具体型号/协议、外发权限与费用逐项核验。详见 [Windows DSH 接入](WINDOWS-DSH-INTEGRATION.md)。
 
-### 本轮深化：DSH＋Windows＋Paperclip
-
-详见 [Windows DSH 最小接入与失败条件](D:/dev/morchat.co/docs/WINDOWS-DSH-INTEGRATION.md)。本轮推荐优先验证官方 ACP SDK＋Microsoft MXC 正式 SDK 的原生 ProcessContainer，以每 run/attempt 独立进程接 Paperclip 外部远程 adapter；快照另补明确 PCWS 节点入口，不全面移植 Runner ACPX。MXC 不等于 VM，但受 Windows build、有效隔离 tier 与策略能力限制。
-
-新增关键证据：DSH 内建 fs 读取不受其写入 fence 限制，不能只包 shell；ACP cancel 不等于全树停止，usage_update 是上下文占用而非费用；SDK 固定客户端没有可直接注入 MXC 启动器的公开 seam。DSH 自带 ACL 不与 MXC 默认盲叠。公司网关保留成本证据，原生权限与接入缺口用 WI-01–10 细化 NG 门禁，所有实测仍 NOT RUN。
+DSH 内建读取不受写 fence 完整限制；ACP cancel 不是整树终止、usage_update 不是费用；固定 SDK launcher seam 的限制仅适用于固定样本。不能把官方功能可达、插件钩子或独立 HOME 视为隔离证明。
 
 ### 版本证据而非安装指令
 
@@ -33,9 +39,9 @@ P0 顺序：协议与原生能力预检，比较 C 与 A/B 的真实缺口 → �
 - DeepSeek Harness：官方 deepseek-ai/deepseek-harness，读取 master 当时提交 fcc0ad462172522aaf5c93a7b2e01f6b9f0b0159（2026-11-04，合入 0.2.2-rc.1 分支）。提交、npm 包与 Desktop 安装包不是同一交付物；执行前核对实际版本/摘要，不混用旧驱动验证结论。
 - 两端 OS build、架构、引擎/Node/Python/Git、浏览器工具、gateway、adapter 与安装包摘要均在执行前记录；不使用 latest 自动漂移。
 
-## 2. Paperclip Runner 的真实原生缺口
+## 2. 历史证据：Paperclip Runner 的原生缺口（非实施路线）
 
-下表针对固定源码，不将没发布、没验证和明确拒绝混为一谈。
+下表仅解释旧方案为何不能直接使用，针对固定源码，不将没发布、没验证和明确拒绝混为一谈。表内适配项是当时研究判断，不构成当前建设任务；当前不部署该 Runner，也不要求补其 Windows transport。
 
 | 层次 | 证据与判定 | 对本项目的处理 |
 |---|---|---|
@@ -47,27 +53,27 @@ P0 顺序：协议与原生能力预检，比较 C 与 A/B 的真实缺口 → �
 | 通用隔离 | [local-process-sandbox L341–349](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/packages/adapter-utils/src/local-process-sandbox.ts#L341-L349) 通用文件/网络 scope 仅 Linux | Win/Mac 必须验证所选 harness/工具的原生边界；独立 HOME、venv 和目录不是安全证明 |
 | 快照传输 | [transport L11–41](https://github.com/paperclipai/paperclip/blob/40ea7a9b8994e9bdb3d13794b5847388be0f7a92/server/src/services/remote-workspace-transport.ts#L11-L41) 要 remote+sandbox、execute/syncIn/syncOut 且排除 runnerTask；路径处理含 POSIX 根与 /dev/null | task plugin 可跑任务不等于可用该存储链；补显式平台 capture/restore/transport 契约，必要扩展需单独评审 |
 
-**保留底层，不重造整个同步系统：**原生 PCWS 归档、Git refs/对象/HEAD/index、内容哈希、对象存储、上传回执、epoch/writerRunId/父 snapshot 事务发布都值得保留。Windows transport 与目标平台名称/链接校验是适配点，不应连同中央版本事实一起推倒。旧 allocation dirty 时拒绝替换的保护也不能简单删除；安全接续必须通过显式新尝试与隔离/对账契约。
+**可借鉴的是正确性语义，不是运行依赖：**固定 PCWS 的 Git refs/对象/HEAD/index、哈希、epoch/writerRunId/父 snapshot 条件发布是源码证据；不证明 Multica 已有同名能力。仅在许可、依赖和安全审查后可独立提取算法/模块，不要求 PCWS 格式、Paperclip 数据库或 Runner。当前必须在唯一 Multica 权威下证明同等保存/旧写隔离语义。
 
 原生归档的稳定读取不等于所有文件及任务事件的原子截面；仍需受管理写入边界。Runner 状态检查点、provider 会话日志、项目文件保存点是三个对象，只有最后一个与任务/效果一起确认后，才能显示“公司已保存”。
 
-## 3. OpenMausBot 原生能力的复用清单
+## 3. 历史证据：OpenMausBot 原生能力（不导入 runtime）
 
-OpenMausBot 不是只有聊天界面，已有原生宿主和多 harness 驱动；但不整体接入它的身份/任务/Team Cloud 后台。
+OpenMausBot 的原生宿主/驱动事实仅保留为历史证据。当前只参考组队、分工、协作交互，不抽取安装器、driver、引擎目录、进程控制或其他 runtime，也不接入身份/任务/Team Cloud 后台。下表说明历史能力及限制，不是复用任务单。
 
 具体分发证据：[electron-builder.yml](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/electron-builder.yml#L95-L190) 声明 Windows x64 NSIS/ZIP 与 macOS arm64/x64 DMG/ZIP；[main.mjs L1131–1215](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/electron/main.mjs#L1131-L1215) 以 Electron utilityProcess 启动本地宿主。Codex/DSH 安装描述均需要 Node，不是所有引擎都已提供独立二进制。Windows 签名、macOS notarization、第三方 CUA 分发及目标设备实际安装需单独验收，不由打包配置自动证明。
 
 | 可利用部分 | 源码与边界 |
 |---|---|
-| 桌面与引擎准备 | Electron 桌面、引擎目录、安装与可执行性诊断可选择性复用；[engine-install](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/engine-install.ts)、[engine-roots](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/engine-roots.ts)。改成固定已测版本/完整性/回退，不沿用 latest，不全局污染员工环境 |
-| Codex App Server | [codex driver](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/drivers/codex.ts) 已处理进程、会话与协议，并有公司配置路径；与 PC 原生驱动功能重复，选一个拥有会话生命周期，不双重托管同一进程 |
-| DeepSeek ACP | [deepseek.ts L1–21](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/drivers/acp/deepseek.ts#L1-L21) 与通用 acp/core.ts 已实现 dsh --profile acp、配置选择、resume/cancel；不从零写 ACP 客户端，但必须重新对齐选定 dsh 版本 |
+| 桌面与引擎准备 | 历史曾评估 Electron 桌面、引擎目录、安装与可执行性诊断；当前不导入；[engine-install](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/engine-install.ts)、[engine-roots](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/engine-roots.ts)。固定版本/完整性/回退是当前客户端的独立要求，不表示需要移植这些模块 |
+| Codex App Server | [codex driver](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/drivers/codex.ts) 已处理进程、会话与协议，并有公司配置路径；仅为历史驱动证据，当前不导入；所选 Multica 官方路径独占会话生命周期 |
+| DeepSeek ACP | [deepseek.ts L1–21](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/drivers/acp/deepseek.ts#L1-L21) 与通用 acp/core.ts 已实现 dsh --profile acp、配置选择、resume/cancel；当前不导入此 driver，若选择 ACP 则使用官方协议实现并锁版本 |
 | Windows 进程处理 | [procs.ts L369–384](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/procs.ts#L369-L384) 已有 taskkill /T /F；失败可退为主进程退出也算成功，不能直接复用为“整树停止”的验收证据 |
 | 公司认证隔离 | Codex 已有独立配置可参考；[DeepSeek L68–118](https://github.com/milind-soni/OpenMausBot/blob/597e70d7930db632747acfb4ea047ca520bd958c/server/drivers/acp/deepseek.ts#L68-L118) 会探测 DSH_HOME/个人目录和存储凭据，旧驱动注明存储凭据优先环境。公司 DSH 需要独立 home、固定 profile、明确网关且禁止个人回退；仅注入一个环境变量不够 |
 
 不能照搬的默认：Client 连接 Host 会关闭本机 harness；bot-box 的额外隔离依赖 Linux bubblewrap；工具 scope 中 mcp 范围不保证可关掉 harness 原生 shell/file；DeepSeek 旧驱动未声明图像输入，不应外推到全部当前 DSH 版本。浏览器自动化与任意桌面应用控制分开验收，首版仍暂缓通用 GUI 操作。
 
-模块抽取前列清依赖和适用许可：核心与 enterprise 目录不同，不因 imports 可解析就当企业功能可直接商业复用。源码许可初筛沿用 [参考边界](D:/dev/morchat.co/docs/REFERENCE-REUSE.md)，不将整个 OpenMausBot 当可直接嵌入的组件包。
+当前不抽取 OpenMausBot runtime。其核心与 enterprise 许可差异仅作历史风险记录，不能因 imports 可解析就当可直接嵌入组件。协作参考边界见 [参考边界](REFERENCE-REUSE.md)。
 
 ## 4. Codex 与 DeepSeek Harness 的同层比较
 
@@ -121,15 +127,15 @@ Ethan 的“标准 OpenAI 接口或者 Anthropic 接口”按具体协议记录�
 | NG-03 | 单任务取消、主进程崩溃、子孙/后台工具、休眠/唤醒、锁屏/解锁；同机第二任务不被误杀 | 父进程退出即报整树终止；旧授权唤醒后恢复有效写入；取消误伤无关任务。锁屏对 GUI 可阻塞但普通任务按实际能力处理 |
 | NG-04 | 公司网关 Chat Completions 与 Messages 路由按 §4.1 验证流式工具调用、限额/撤销、全部启用模型入口与 usage；错/缺公司配置、遗留个人配置、假凭据标记的负例 | 原始 Key 下发、个人回退、未归属请求、成本丢失或重复；无凭据的探针不冒充真实通道验证 |
 | NG-05 | W1→W2、W2→W1：独立 Windows 目录的相对路径映射、中文/空格、大小写/Unicode、CRLF/LF、Git HEAD/index/工作层、二进制、文件占用与名称不兼容拒绝 | 字节或 Git 状态静默变化、跳过不支持文件仍报完整、路径逃逸；不搬 OS ACL/整份 HOME/venv/node_modules/Cookie，依赖按已锁定清单重建 |
-| NG-06 | 所选载体接通真实 Paperclip 任务/run、每次运行设备目标、公司快照运输/事务发布、旧代次隔离；浏览器 profile 与任务目录独立，接手机先验权限 | 用 mock task库、task-only RPC 当完整快照、普通上传当中央确认、两个任务共享可变全局 cwd/env；候选适配依赖未解决则 BLOCKED |
+| NG-06 | 所选官方路径接通真实 Multica 任务/run、每次运行设备目标、公司快照运输/事务发布、旧代次隔离；浏览器 profile 与任务目录独立，接手机先验权限 | 用 mock task库、task-only RPC 当完整快照、普通上传当中央确认、两个任务共享可变全局 cwd/env；候选适配依赖未解决则 BLOCKED |
 
 NG-02 不能因 dedicated 测试账号没有真实秘密就省略：用假标记检验边界；如果只能靠用户手工隔离电脑才能通过，属于产品前提变更，不算当前员工原生方案成立。浏览器优先受控独立工作 profile，范围为授权读取/导航/下载；通用桌面 GUI 暂缓，不将它混入首轮必须完成的任意应用支持。
 
 ## 6. 与自动保存实验的衔接
 
-参数和故障规程以 [DUAL-DEVICE-VALIDATION](D:/dev/morchat.co/docs/DUAL-DEVICE-VALIDATION.md) 为单一来源。候选目标：30 秒周期检查、30 秒保存期限、已确认零丢失、未确认 60 秒/5 MiB 风险界限、180 秒 R1 实际接续；这些是小文件条件下待确认/待测的门槛，不是上线 SLA。
+参数和故障规程以 [DUAL-DEVICE-VALIDATION](DUAL-DEVICE-VALIDATION.md) 为单一来源。周期、保存期限、未确认窗口/大小和恢复时限只引用该文 §3，本文不复制数值；已确认保存点零丢失是要求，建议阈值须事前签认，不是上线 SLA。
 
-总体顺序按 [Discovery G0–G5](D:/dev/morchat.co/docs/DISCOVERY-BASELINE.md)，版本生效和权限撤销前提不得被原生工具演示替代。NG-06 在获授权的最小节点扩展之后验证，不是禁止编写该验证适配的循环前置。NG 通过才能开始计入 DV-01–08；W1→W2、W2→W1 分别执行，不用单方向代替另一方向。两台 Windows 的成绩不证明 macOS、跨系统恢复或全部 Windows build 可用。Mac 后续单独资格认证，不阻塞本轮。
+总体顺序按 [Discovery G0–G5](DISCOVERY-BASELINE.md)，版本生效和权限撤销前提不得被原生工具演示替代。NG-06 在获授权的最小节点扩展之后验证，不是禁止编写该验证适配的循环前置。NG 通过才能开始计入 DV-01–08；W1→W2、W2→W1 分别执行，不用单方向代替另一方向。两台 Windows 的成绩不证明 macOS、跨系统恢复或全部 Windows build 可用。Mac 后续单独资格认证，不阻塞本轮。
 
 Mac 预备只保留平台接口与数据契约：进程树/取消、安全存储、路径/名称、工具授权及 capture/restore 分开；中央资产使用相对路径和显式能力清单，不写死盘符或 POSIX 语义。不为此先开发第二平台实现，也不承诺以后零成本移植；macOS 发布、权限和跨系统 NG/DV 后续单列。
 
@@ -137,8 +143,10 @@ Mac 预备只保留平台接口与数据契约：进程树/取消、安全存储
 
 ## 7. 避免重复建设与当前交付状态
 
-不自建第二套模型循环、ACP协议、任务/身份权威或 skill 版本库；不把 Paperclip、OpenMausBot、DSH Desktop 三套后台拼起来。优先保留已有 PCWS 格式、哈希和中央事务；OpenMausBot 的安装/诊断/原生模块仅在依赖清晰且更便宜时抽取。Horde 用于设备选择思想，其他参考按 [REFERENCE-REUSE](D:/dev/morchat.co/docs/REFERENCE-REUSE.md) 收敛；工作流仍暂缓。
+不自建第二套模型循环、任务/身份权威或并列 skill 版本库；不把 Multica、Paperclip、OpenMausBot 三套后台拼接。Multica 官方 daemon/DSH 路径优先，Paperclip 只作治理/独立源码候选，OpenMausBot 只作协作参考、不导入 runtime。自动保存和条件发布须真实验证，不能把 PCWS 能力改名当现成。C05/B05 runtime、C06/B06 派发、C07/B07 接续保存、C08/B08 模型用量以 Discovery 为准，旧 PC 绑定作废。
 
 确需自建/适配的是企业设备授权与池路由、受控原生生命周期/工具边界、自动一致保存策略、跨设备效果/权限对账、员工协作界面与组织资产规则。已有能力与缺口分层后再估工作量，不以“薄适配”一词代替实现成本评估。
 
 本轮交付为源码/官方文档证据与调整后的设计，不新增运行模块、测试脚本、密钥或模型请求。NG/DV/WC/DC 均没有新增 PASS；真实执行和安装需另行授权。
+
+撤权立即阻止新的中央准入，清理在线受管理缓存并记录结果；离线设备不承诺立即抹除。旧 epoch 拒绝、冲突不覆盖、外部效果对账及所有 DV 推荐参数/失败门槛保持不变。研究来源及 experiments/multica-spike、experiments/integration-spike、D:/dev/refs 只读。

@@ -1,0 +1,86 @@
+{
+  "checkpoint": "R80",
+  "files": [
+    {
+      "beforeSha256": "110352f0c149f63e5afb13e9bdd62600b88a19ca9327f2899c3530eabf47bf40",
+      "beforeBytes": 175746,
+      "sha256": "cd68c698d8943b8896a34dfb4d624632c39d1a93833493c15c7dc411dc57f63d",
+      "path": "docs/tasks/ACTIVE.md",
+      "appendOnly": true
+    },
+    {
+      "beforeSha256": "ed035f1665be8bc55cd4509d5f13bab3e310cada636178a594e607f3a586190b",
+      "beforeBytes": 166910,
+      "sha256": "bc2c017446601f960baad6c0cc6c56d6eb0b5cd91ffacdc48f08dea8ecab2e96",
+      "path": "docs/tasks/R1-results.md",
+      "appendOnly": true
+    },
+    {
+      "beforeSha256": "d6823a9a20cc21be1c391e40c356e85fbce66dbf029c3e5109da7516be87bb26",
+      "beforeBytes": 27016,
+      "sha256": "ec302694cb0545bd4ab5a287b1c8b50feb2b4ab38301edcd5982fd3e99ead032",
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "appendOnly": true
+    },
+    {
+      "immutableSourceHandoverBinding": true,
+      "sha256": "cc5f2f987487a6ec9bf75da6cda7d4f9388f59177a12f2414a721b275a4cd86a",
+      "path": "docs/tasks/R1-03C-sqlfix-resource.md",
+      "createdSincePreviousCheckpoint": true
+    },
+    {
+      "immutableSourceHandoverBinding": true,
+      "sha256": "d95a5cd92bc9fc03c7c29c03abc35b47259cdbc3de8d55f68f4bd8e34982828c",
+      "path": "docs/tasks/contracts/R1-03C-SQLFIX-RESOURCE-r1-test-frozen.json",
+      "createdSincePreviousCheckpoint": true
+    },
+    {
+      "immutableSourceHandoverBinding": true,
+      "sha256": "2368fd22126a129aa60e3b2d4d020393c9bad290387ebdc4e8929062ee467746",
+      "path": "docs/superpowers/plans/2026-11-08-sqlfix-resource.md",
+      "createdSincePreviousCheckpoint": true
+    }
+  ],
+  "sqlFix1": {
+    "oldRead1": "FAIL3_GLOBALCLAIM_PERMANENT_CONSUMED",
+    "report": "cd6ae5d34e48eaa7aef8f4d9bfff6ef84c3738fbe4f01aa9fd9912c1f57c4eef",
+    "status": "SOURCE_APPROVED_RUNTIME_NO_RESOURCE",
+    "host102": "PASS_ONLY_PUBLIC_MODELS",
+    "source": "f99a752fa078c226d9b312d8134a4f7ad46305d6b9bb86a0a65bf9f517503f98",
+    "sourceReview": "12b7604d3a4de739bcc14238eb76747ed19955190be70cbb95e8a92b4bc300bd",
+    "resourceBindingDelta": "DESIGN_IN_PROGRESS_NO_F99_WRITE",
+    "actualExtraReads": 0
+  },
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "resource": {
+    "newCreateAttemptsActual": 0,
+    "status": "SOURCE_ONLY_IN_PROGRESS",
+    "writer": "/root/sqlfix_resource_impl",
+    "SQLreadQuota": "UNCHANGED_EXTRA1_TOTAL2_BOOTSTRAP0",
+    "newReadQueryGrants": 0,
+    "proposal": "faf60a7fac84c15c63cc46eb71eb3831e74315c91e54953535e2f12a8a7b6e34",
+    "oldExpiredHelpers": "NO_RESTART_DELETE_ADOPT",
+    "TF": "d95a5cd92bc9fc03c7c29c03abc35b47259cdbc3de8d55f68f4bd8e34982828c",
+    "route": "gpt-6.1-sol medium",
+    "handover": "8789476656a2c1990717a9d238ae19fd6e662190dc60b2d8e593964b7525f938",
+    "review": "f19c0506fd973a8d83e71bac2f1a542f20e0ecaa6e35fb4ad11b7044c52b2351"
+  },
+  "previousSnapshotSha256": "4192e92d78d1d0160931212bf0c52777606601a127d2de00741e4aa0db4bab03",
+  "allOldFailures": "PRESERVED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "previousCheckpoint": "R79",
+  "previousSha256": "22109ca1625d9f67ace35b263fab76a99be96491e99ae9ca79264761771a0637",
+  "previousReviewSha256": "6d34277b1381c65609dde66d09bc997cd5d3d7ce4d0e181a47837cb24c8ce601",
+  "agent": "/root",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "windowsSource": {
+    "fixRelease": "a27c7fc834d070cb48765ef7e459b917acd19bd233d9190afc601b4dde9fd1b4",
+    "status": "HOLD_3_IMPORTANT_ORIGINAL_FIX1_ACTIVE",
+    "compileNativeOSPermission": "NONE",
+    "review": "b3a3f86917f34577815ff10c9ef28a53cad96209dee1e9a3f8c9b74eb7404cd6"
+  },
+  "model": "unknown",
+  "allRepoSourceWriters": "CLOSED",
+  "schemaVersion": 1,
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE"
+}

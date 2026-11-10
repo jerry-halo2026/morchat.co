@@ -1,0 +1,67 @@
+{
+  "checkpoint": "R121",
+  "root": "/root",
+  "model": "unknown",
+  "baseline": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "branch": "codex/round1-continuous",
+  "classification": "PROGRESS_ACTUAL_COMPONENT_AND_FINAL_SOURCE_FIX_ACCEPTED",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "o0SourceReview": "2b8187d1acf674b89484535880a2890b76caafa9c0f7abe012ae1876e69c48e6",
+  "o0SourceChecks": 143,
+  "o0SourceFailures": 0,
+  "o0RuntimePending": 3799,
+  "o0ActualNativePermission": false,
+  "manifestActualResult": "ba910f595591af6d12ec53f4e166b0ae369093f034b475296445103cb40bf660",
+  "manifestActualReview": "fe188c1840f9c8cc4bbdb6f1e1bc856ade79993275192032d388c35b4992eae1",
+  "manifestBUILD": "619f44df1f8372fd6fd155ab6f531a48f09220e60d40f717b32cebc3de34539d",
+  "manifestRun": 13,
+  "manifestPass": 13,
+  "manifestFail": 0,
+  "manifestSkip": 0,
+  "rootOwnedExecLive": false,
+  "original82208": "TERMINAL0_8c2dab",
+  "nextAudit": "/root/o0_execution_path_audit",
+  "nextAuditStatus": "ACTIVE_READ_ONLY_NOT_PERMISSION",
+  "frontend39539": "MANUAL_QUESTION_PENDING_NO_ACTION",
+  "modelCalls": 0,
+  "independentDocsReview": "PENDING_AT_CAPTURE",
+  "files": [
+    {
+      "bytes": 318242,
+      "beforeSha256": "ddb94dc5bb42f27c044f915ee6a56ecde40031240e635b2a2240e17857883951",
+      "path": "docs/tasks/ACTIVE.md",
+      "sha256": "34e367482f62c603aaa39a15b7dc367e2ec3ae3262a4549d31e191ee1f61a8e6"
+    },
+    {
+      "bytes": 299740,
+      "beforeSha256": "56c75d5f59932ed9e49c4d3abd69411755131ae1f3bda34fe25bb70d2d4cc9c1",
+      "path": "docs/tasks/R1-results.md",
+      "sha256": "f62fa8aaa5ba32b442e6d04f895cd5857a3db4af7568c825795c4d236f96f86c"
+    },
+    {
+      "bytes": 8566,
+      "beforeSha256": "c0652946e9933d1ec333b4d5292a93f8a57ee21e51648174db093fe90e5c8474",
+      "path": "docs/tasks/R1-02E-O0-source-fix5.md",
+      "sha256": "2c62698120b4de0837cefdcd5b2d7b41736b804efd094cd5ae7042d6e29d6834"
+    },
+    {
+      "bytes": 84855,
+      "beforeSha256": "6d402d787293bee425dd2fd6e97a394d0823fd7780d5429be15172ddb7d7be50",
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "sha256": "67b69c7bd5a361a38f78a9904f484436e0093b94feccaff8528f65cc7b75be1b"
+    },
+    {
+      "bytes": 66436,
+      "beforeSha256": "1067778b469c8b2713ebe542d66916f3a31809db261b3eeb13d4240e0417680c",
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "sha256": "48cd1b26394abbf31fd6548f2549a5082cd1432d28d2b9e9d311f35289e558fd"
+    },
+    {
+      "bytes": 5837,
+      "beforeSha256": "1cf1252276458840db4c9ab584589a2504f6796e1c8b8bf9c4a702c4bf4431a4",
+      "path": "docs/tasks/R1-02B-manifest-version-regression.md",
+      "sha256": "411c3eca6f34c27df98292a22f32ae43be3880e36ff10feb576ee4010338b8f3"
+    }
+  ],
+  "utc": "2026-11-09T03:22:45.7746998Z"
+}

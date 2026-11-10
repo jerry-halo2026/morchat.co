@@ -1,0 +1,349 @@
+{
+  "monitor": {
+    "drainMilliseconds": 10000,
+    "scanEntries": 200000,
+    "workerGraceMilliseconds": 3000,
+    "scanMilliseconds": 4000,
+    "timeoutMilliseconds": 1800000,
+    "inventoryMilliseconds": 120000,
+    "captureCharacters": 8388608,
+    "sampleMilliseconds": 5000,
+    "logicalStopBytes": 8589934592,
+    "captureChunkCharacters": 4096,
+    "pollMilliseconds": 100,
+    "inventoryEntries": 500000,
+    "linkRoots": [
+      "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\web\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\desktop\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\core\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\ui\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\views\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\plugin-sdk\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\eslint-config\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\tsconfig\\node_modules",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\vitest-setup\\node_modules"
+    ],
+    "workspaceTargets": [
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\web",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\desktop",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\core",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\ui",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\views",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\plugin-sdk",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\eslint-config",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\tsconfig",
+      "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\vitest-setup"
+    ],
+    "projectMarkerPairs": [
+      {
+        "type": "Junction",
+        "profileAndFrozenValidatorBindPair": true,
+        "cardinality": 1,
+        "followResolveTargetStatHashOrContent": false,
+        "existingNineWorkspacePackageTargetsUnchanged": true,
+        "target": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co",
+        "result": "NOT_TRAVERSED",
+        "sourceAndTargetExactCanonical": true,
+        "source": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\store\\v10\\projects\\38af3e4d727d051959b3bea93310ff79",
+        "targetRegularBytesExcluded": true
+      }
+    ]
+  },
+  "revision": "r3",
+  "monitorRoots": [
+    "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\web\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\desktop\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\core\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\ui\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\views\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\plugin-sdk\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\eslint-config\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\tsconfig\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\vitest-setup\\node_modules"
+  ],
+  "writeRoots": [
+    "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\web\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\desktop\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\core\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\ui\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\views\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\plugin-sdk\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\eslint-config\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\tsconfig\\node_modules",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\vitest-setup\\node_modules"
+  ],
+  "sourcePins": [
+    {
+      "sha256": "940dc1ec1467b54c221ac514a7b65c0f9ee157b9a2a5899c2302b8a15523193c",
+      "bytes": 2634,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\package.json"
+    },
+    {
+      "sha256": "f9330ba1eece6ec81a77c2ca71bbf80ef962af6cee789d60bb262e557479c7c1",
+      "bytes": 1202,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\pnpm-workspace.yaml"
+    },
+    {
+      "sha256": "d8ce587411c76846769ef7f3b28c6717d871fbec31ace56633748e062c1f43c6",
+      "bytes": 905625,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\pnpm-lock.yaml"
+    },
+    {
+      "sha256": "4b84eb91234d80d48c16b50746106405c4cd6d97581f7464001a7dc84dd9d185",
+      "bytes": 22,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\.npmrc"
+    },
+    {
+      "sha256": "34eebc15eb95ab5fe4addefef3ac0e97f746a6524373c8da41e47c2ed54ef6ef",
+      "bytes": 3667,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\turbo.json"
+    },
+    {
+      "sha256": "702e0cd2616e6733fdef21135db4a39e5bcb72c5e2aff9c876effc9f9bb4ef7c",
+      "bytes": 1384,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\web\\package.json"
+    },
+    {
+      "sha256": "14f28485d11afd07536ddb037ae57ce5b4e8d161bb1d6bde98099d80e89c6576",
+      "bytes": 2828,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\apps\\desktop\\package.json"
+    },
+    {
+      "sha256": "72a2e76620da75190a46833ca1a9739cbec5498393b4c5b8314e7c67cf6e89e3",
+      "bytes": 9975,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\core\\package.json"
+    },
+    {
+      "sha256": "638806e9f316da59a247b596a247d705115ee73292e5533a7de1dbcbeba67c4e",
+      "bytes": 2654,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\ui\\package.json"
+    },
+    {
+      "sha256": "fcc78ee6b71459c40d9e62dc588ed2ad73eb22979ce4a9fb16313f6ff870bd41",
+      "bytes": 6206,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\views\\package.json"
+    },
+    {
+      "sha256": "f578d534f2bc297408dc8ab5e6b15722fa65339f958d14e22eb0074412676e7b",
+      "bytes": 567,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\plugin-sdk\\package.json"
+    },
+    {
+      "sha256": "c5554232b86803c9329f6742ac89dc5036b2b01a1372834b43dfcffab8a5b90e",
+      "bytes": 590,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\eslint-config\\package.json"
+    },
+    {
+      "sha256": "58d7a428babe4ae14d78517267522498800d16276d9ada5f9eaac484390a23ab",
+      "bytes": 75,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\tsconfig\\package.json"
+    },
+    {
+      "sha256": "673840955635766ae01110894bdcdb093bb84228a9d1bc00a0bb761b3d436216",
+      "bytes": 159,
+      "path": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\vitest-setup\\package.json"
+    },
+    {
+      "sha256": "b276da51dc8ca5b0d3ee3371695b50fc8b3244b281b091c63a3f082a88dadeb9",
+      "bytes": 1102,
+      "path": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\bin\\pnpm.cjs"
+    },
+    {
+      "sha256": "930fe74c335e95a8f9f6786f115f00c37ae82493ba7bdbddaddd9e06de542f43",
+      "bytes": 7546648,
+      "path": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpm.cjs"
+    },
+    {
+      "sha256": "6985e6e532eed7e6fd69a7d560ac5a5753d74a9f9709627092d5be02afddd84e",
+      "bytes": 161,
+      "path": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\dist\\pnpmrc"
+    },
+    {
+      "sha256": "b74e71cf954512126aaddaa4afc339f17ee2ab747a0328d58df3b6220d38c7f7",
+      "bytes": 6075,
+      "path": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\package.json"
+    },
+    {
+      "path": "E:\\CodexData\\morchat-r1-local\\tools\\node22\\node-v22.23.4-win-x64\\node.exe",
+      "sha256": "dccc52de28d8df2ee22d2062424f8c563070d95d8ad70c54c4bf01d590dec14f"
+    }
+  ],
+  "indexWitnesses": [
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\.git",
+    "D:\\dev\\morchat.co\\.git\\worktrees\\morchat.co1\\index"
+  ],
+  "publicTable": "8363 historical base only; R92/newTF/card must enter future exact metadata authority. No blind reuse.",
+  "exactNotReadPaths": [
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\qianchuan-sync",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\QIANCHUAN-DATA.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\QIANCHUAN-API-DEV.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\archive\\2026-11-06-before-multica-authority-migration\\QIANCHUAN-DATA.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\archive\\2026-11-06-before-multica-authority-migration\\QIANCHUAN-API-DEV.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\archive\\2026-11-04-pre-platform-review\\QIANCHUAN-DATA.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\archive\\2026-11-04-pre-platform-review\\QIANCHUAN-API-DEV.md"
+  ],
+  "execution": {
+    "maxInstallInvocations": 1,
+    "versionCount": 0,
+    "importers": [
+      ".",
+      "apps/web",
+      "apps/desktop",
+      "packages/core",
+      "packages/ui",
+      "packages/views",
+      "packages/plugin-sdk",
+      "packages/eslint-config",
+      "packages/tsconfig",
+      "packages/vitest-setup"
+    ],
+    "argv": [
+      "install",
+      "--filter=@multica/web...",
+      "--filter=@multica/desktop...",
+      "--filter=multica",
+      "--fail-if-no-match",
+      "--frozen-lockfile",
+      "--config.include-workspace-root=false",
+      "--config.save=false",
+      "--fetch-retries=0",
+      "--fetch-timeout=120000",
+      "--network-concurrency=4",
+      "--child-concurrency=1",
+      "--store-dir=E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\store",
+      "--cache-dir=E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\cache",
+      "--config.state-dir=E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\state",
+      "--reporter=append-only",
+      "--ignore-scripts",
+      "--ignore-pnpmfile",
+      "--config.manage-package-manager-versions=false",
+      "--config.package-manager-strict=true",
+      "--config.package-manager-strict-version=true",
+      "--config.update-notifier=false",
+      "--config.side-effects-cache=false",
+      "--config.verify-store-integrity=true",
+      "--config.enable-pre-post-scripts=false",
+      "--registry=https://registry.npmjs.org/",
+      "--config.userconfig=E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\config\\empty-user.npmrc",
+      "--config.globalconfig=E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\config\\empty-global.npmrc"
+    ],
+    "emptyConfigs": [
+      "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\config\\empty-user.npmrc",
+      "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\config\\empty-global.npmrc",
+      "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\config\\pnpm\\rc"
+    ],
+    "cwd": "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co",
+    "entry": "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1\\pnpm\\package\\bin\\pnpm.cjs",
+    "node": "E:\\CodexData\\morchat-r1-local\\tools\\node22\\node-v22.23.4-win-x64\\node.exe",
+    "ownedRoot": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3",
+    "environment": {
+      "NPM_CONFIG_REGISTRY": "https://registry.npmjs.org/",
+      "TMP": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\tmp",
+      "NO_UPDATE_NOTIFIER": "1",
+      "SystemRoot": "C:\\Windows",
+      "NPM_CONFIG_GLOBALCONFIG": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\config\\empty-global.npmrc",
+      "NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS": "false",
+      "HOME": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\home",
+      "ELECTRON_SKIP_BINARY_DOWNLOAD": "1",
+      "PATH": "E:\\CodexData\\morchat-r1-local\\tools\\node22\\node-v22.23.4-win-x64;C:\\Windows\\System32;C:\\Windows",
+      "PNPM_HOME": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\pnpm-home",
+      "NPM_CONFIG_IGNORE_PNPMFILE": "true",
+      "COREPACK_ENABLE_NETWORK": "0",
+      "XDG_CACHE_HOME": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\cache",
+      "TURBO_TELEMETRY_DISABLED": "1",
+      "NPM_CONFIG_USERCONFIG": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\config\\empty-user.npmrc",
+      "TEMP": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\tmp",
+      "XDG_DATA_HOME": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\data",
+      "XDG_CONFIG_HOME": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\config",
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "NPM_CONFIG_CACHE": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\npm-cache",
+      "USERPROFILE": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\home",
+      "ComSpec": "C:\\Windows\\System32\\cmd.exe",
+      "LOCALAPPDATA": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\home\\AppData\\Local",
+      "APPDATA": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\home\\AppData\\Roaming",
+      "XDG_STATE_HOME": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\state",
+      "WINDIR": "C:\\Windows",
+      "NPM_CONFIG_IGNORE_SCRIPTS": "true",
+      "CI": "true",
+      "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
+      "NODE_DISABLE_COMPILE_CACHE": "1",
+      "DISABLE_V8_COMPILE_CACHE": "1",
+      "NODE_COMPILE_CACHE": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3\\compile-cache",
+      "NPM_CONFIG_UPDATE_NOTIFIER": "false"
+    }
+  },
+  "next": "Original reviewer design review then Root ruling/TF/source-only fix3/5; retain original63 HOST and prior41 function bodies as much as possible; separate source/table/control/runtime approvals, no retry",
+  "protectionRoots": [
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co",
+    "E:\\CodexData\\morchat-r1-local\\frontend-baseline-r1",
+    "E:\\CodexData\\morchat-r1-local\\tools\\node22"
+  ],
+  "sourceWitnessesUnchanged": 23,
+  "futureOnceLeaf": "projectlink-r3-install-once.created.json",
+  "futureApprovalPath": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-projectlink-r3-runtime-approval.json",
+  "task": "R1-00-PNPM-INSTALL-PROJECTLINK-R3",
+  "futureInstallPurpose": "R1_INSTALL_PROJECTLINK_R3_ONCE",
+  "futureControlEvidenceRoot": "E:\\CodexData\\morchat-r1-local\\frontend-install-projectlink-r3-control-evidence",
+  "sourcePrefix": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-projectlink-r3-",
+  "schemaVersion": 1,
+  "state": "TEST-FROZEN",
+  "authorization": "R1-AUTH-r1_SOURCE_ONLY",
+  "root": "/root",
+  "rootModel": "unknown",
+  "owner": "/root/frontend_install_impl",
+  "ownerConfiguredModel": "gpt-6.1-sol high",
+  "consumer": "/root",
+  "consumerModel": "unknown",
+  "reviewer": "/root/frontend_baseline_review",
+  "reviewerConfiguredModel": "gpt-6.1-sol high",
+  "branch": "codex/round1-continuous",
+  "baseHead": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "lineageFixRound": "3/5",
+  "RootRulingPath": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-projectlink-r3-root-ruling.json",
+  "RootRulingSHA": "911b942feb6e31b46a8041ac6cd6a65f88cea95bccc3034c10c51caa1b05c221",
+  "proposalPath": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-projectlink-r3-proposal.json",
+  "proposalSHA": "c02bc47f2ed27a667025a144fec97129aaac1e70453d952af737946c9770d73a",
+  "designReviewPath": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-projectlink-r3-design-independent-review.json",
+  "designReviewSHA": "19fecf38747725445631d9884d9a941952cac4f54675ec0ec8a700e417b22dd2",
+  "sourceWriteSet": [
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-projectlink-r3-launcher.CLOSED.ps1",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-projectlink-r3-profile.CLOSED.json",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-projectlink-r3-host-tests.ps1",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-projectlink-r3-host-results.json",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-projectlink-r3-source-report.md",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-projectlink-r3-source-manifest.json",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-projectlink-r3-source-diff.json"
+  ],
+  "oldSourceBase": {
+    "profile": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-argv-r2-profile.CLOSED.json",
+    "profileSHA": "34f389d50b06873229b0f244a040276397b4023b221361fc2f2abe3e15ff5b32",
+    "launcherSHA": "0430c08e756ce0cc7949752d6d846adc4896e17b63ed51aa7124869053ce66e0",
+    "sourceReviewSHA": "5c25f88d8893076584a64bb596209df8a6120b20f06f4c0ed7430be79f71defb",
+    "launcher": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-argv-r2-launcher.CLOSED.ps1"
+  },
+  "requiredTDD": [
+    "Only exactsource+target+Junction pair accepted, targetbytes NOTREAD and NOTTRAVERSED",
+    "Reject wrongsource/projecthash/type/canonicalform/targetchild/rootsuffix/any generic root-target junction",
+    "ExistingnineTargets and all prior63 guards retained; no general rootprefix permission",
+    "Profile and runtimevalidator compare exactpair and exactlynine unchanged targets to this TF",
+    "Newnamespace/purpose/root/approval/once reject all R1/R2 contracts/claims; 28argv33env unchanged after mechanical rebase",
+    "No resource/capture/cleanup weakening; sourcebody proof identifies only pairguard/newbinding/namespace changes"
+  ],
+  "allowedSourceTests": "AST and purememory shared guard/FS/authority tests only",
+  "prohibited": [
+    "Node/parser/install/scan/clock/Process/native/network/DB/private/SDK",
+    "Any oldsource/currentR2controls/claims/partialoutputs mutation",
+    "DirectoryMove/rename/copy/delete/preservation operation",
+    "Effectiveapproval/token/buildroot/once creation",
+    "Repo product/auth/schema/state/lock writes"
+  ],
+  "preservationPermission": false,
+  "runtimePermission": false,
+  "buildFrozen": false
+}

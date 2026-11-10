@@ -1,0 +1,134 @@
+"use client";
+
+import type { ReactNode } from "react";
+import { ArrowUpRight, Check } from "@morechat/ui/icons";
+import { cn } from "@morechat/ui/lib/utils";
+import { useLocale } from "../../i18n";
+import { PROVIDER_MARKS } from "../../site/demo/mock-kit";
+import { Container, actionClassName, focusRing } from "../../site/primitives";
+import { fileName, formatSize } from "../../utils/download-target";
+import type { DownloadKey } from "../../utils/parse-release-assets";
+
+const AGENTS = ["Claude Code", "Codex", "OpenCode"] as const;
+
+/** Opens the installed desktop app, or does nothing when it is not installed yet. */
+const OPEN_APP_URL = "multica://open";
+
+type InstallStep = "dmg" | "zip" | "exe" | "appImage" | "deb" | "rpm";
+
+function installStep(key: DownloadKey): InstallStep {
+  if (key.endsWith("Dmg")) return "dmg";
+  if (key.endsWith("Zip")) return "zip";
+  if (key.endsWith("Exe")) return "exe";
+  if (key.endsWith("Deb")) return "deb";
+  if (key.endsWith("Rpm")) return "rpm";
+  return "appImage";
+}
+
+/**
+ * What the download page becomes once a file is on its way: confirmation
+ * with a retry, the three steps to a working setup, and the places to
+ * follow the project while the file downloads.
+ */
+export function DownloadStarted({
+  downloadKey,
+  href,
+  size,
+  onBack,
+}: {
+  downloadKey: DownloadKey;
+  href: string;
+  size?: number;
+  onBack: () => void;
+}) {
+  const { t } = useLocale();
+  const d = t.download.started;
+
+  const steps: { title: string; body: ReactNode; extra?: ReactNode }[] = [
+    { title: d.install.title, body: d.install[installStep(downloadKey)] },
+    {
+      title: d.signIn.title,
+      body: `${d.signIn.body} ${d.signIn.installed}`,
+      extra: (
+        <a href={OPEN_APP_URL} className={cn(actionClassName("secondary"), "mt-3")}>
+          {d.signIn.open}
+          <ArrowUpRight className="size-3.5" aria-hidden />
+        </a>
+      ),
+    },
+    {
+      title: d.agents.title,
+      body: d.agents.body,
+      extra: (
+        <ul className="mt-3 flex flex-wrap gap-1.5">
+          {AGENTS.map((name) => {
+            const Mark = PROVIDER_MARKS.get(name);
+            return (
+              <li
+                key={name}
+                className="inline-flex h-7 items-center gap-1.5 rounded-site-inner bg-site-sunken px-2.5 text-[0.8125rem] text-site-ink-secondary"
+              >
+                {Mark ? <Mark className="size-3.5" /> : null}
+                {name}
+              </li>
+            );
+          })}
+        </ul>
+      ),
+    },
+  ];
+
+  return (
+    <>
+      <Container className="pt-site-hero pb-site-block">
+        <div className="flex items-start gap-4">
+          <span className="mt-1 flex size-10 shrink-0 items-center justify-center rounded-full bg-site-inverse text-site-inverse-ink">
+            <Check className="size-5" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <h1 className="font-site-display text-site-heading text-site-ink text-balance">{d.title}</h1>
+            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-site-small text-site-muted">
+              <span className="break-all">
+                {fileName(href)}
+                {size ? ` · ${formatSize(size)}` : null}
+              </span>
+              <span aria-hidden className="text-site-faint">
+                ·
+              </span>
+              <a href={href} className={cn("rounded-sm text-site-ink underline decoration-site-line-strong underline-offset-4", focusRing)}>
+                {d.retry}
+              </a>
+              <span aria-hidden className="text-site-faint">
+                ·
+              </span>
+              <button
+                type="button"
+                onClick={onBack}
+                className={cn("rounded-sm text-site-ink underline decoration-site-line-strong underline-offset-4", focusRing)}
+              >
+                {d.allDownloads}
+              </button>
+            </p>
+          </div>
+        </div>
+
+        <ol className="mt-10 grid border-t border-site-line md:grid-cols-3">
+          {steps.map((step, index) => (
+            <li
+              key={step.title}
+              className={cn(
+                "relative border-b border-site-rule py-5 md:border-b-0 md:pr-8",
+                index === 0 && "before:absolute before:-top-px before:left-0 before:h-px before:w-2/5 before:bg-site-ink",
+              )}
+            >
+              <span className="font-site-mono text-site-label text-site-muted">0{index + 1}</span>
+              <h2 className="mt-2 text-site-card text-site-ink">{step.title}</h2>
+              <p className="mt-1.5 max-w-[22rem] text-site-small text-site-muted text-pretty">{step.body}</p>
+              {step.extra}
+            </li>
+          ))}
+        </ol>
+      </Container>
+    </>
+  );
+}

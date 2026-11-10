@@ -1,0 +1,34 @@
+{
+  "schema": "r1-manifest-version-regression-test-frozen-v1",
+  "task": "R1-02B-MANIFEST-VERSION-REGRESSION",
+  "revision": "r1",
+  "state": "TEST_FROZEN_TEST_SOURCE_ONLY",
+  "baseline": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "branch": "codex/round1-continuous",
+  "owner": "/root/skill_manifest_regression_impl",
+  "ownerConfiguredModel": "gpt-6.1-sol high",
+  "consumer": "/root",
+  "consumerModel": "unknown",
+  "independentReviewer": "/root/product_next_slice_audit",
+  "reviewerConfiguredModel": "gpt-6.1-sol high",
+  "protectedInputs": {
+    "server/pkg/skillbundle/hash.go": "afceea154d0ff8b4596ac72aece5d137817d10df08bc99ddc3f0a167fddd8f05",
+    "server/pkg/skillbundle/hash_test.go": "6fac6869d8fdba876ce982bc2db47040a751a35424f19ba867f8dc5f14251dba",
+    "docs/tasks/contracts/R1-02B-CLAIM-PIN-r1-build-frozen.json": "c8f9cf862279227ac62696c921a436fffb64474144ef0714dac4705bcffad51c",
+    "docs/tasks/contracts/R1-02B-CLAIM-PIN-r1-test-frozen.json": "294faae944e9e31c7fb612212300443a534772bc5d9f3ecc6547623e367c36f3",
+    "docs/tasks/contracts/R1-02B-CLAIM-PIN-r2-spec.md": "59f629e3b3ba477526d6733fb1f82b15cee1a6a1e311d10ab4aa0121f3246cb5"
+  },
+  "sourceWriteSet": [
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\server\\pkg\\skillbundle\\hash_version_regression_test.go"
+  ],
+  "reportWriteSet": [
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\r120-skill-manifest-regression-source-report.json"
+  ],
+  "brief": "E:\\CodexData\\incidents\\morchat-20261106T233131\\r120-skill-manifest-regression-brief.md",
+  "briefSHA256": "c91d47575f8467e5b13159d39c32c50b0cc3be7e6d29f28a8554e0d723856b71",
+  "sourceAbsentVerified": true,
+  "productionChanges": false,
+  "runtimePermission": false,
+  "modelCalls": 0,
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE"
+}

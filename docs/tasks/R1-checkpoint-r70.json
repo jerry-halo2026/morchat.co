@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R70",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "status": "F5_FIX1_SOURCE_ACCEPTED_NEW_COMPILE_AND_FACILITY_SCOPED_REVIEWS_PENDING",
+  "previousCheckpoint": "R69",
+  "previousSha256": "0bf6966587c1b33200fea68215e3d9a9ee760296347378995ea40dd26e3c7394",
+  "previousReviewSha256": "263c5acb1ef625b48b5ccdba9d650b79eebe99e0371b724e7168e7b46310b675",
+  "previousSnapshotSha256": "b8a7c95e4335afb5767dae9adc74c395372dbfa4851f82f69751fd54aff3003e",
+  "files": [
+    {
+      "sha256": "8ad4198f972f63b0db213bdf731e2598584f9db6629f949bed063a63c249d108",
+      "path": "docs/tasks/R1-results.md",
+      "appendOnly": true,
+      "beforeSha256": "10d60f9b7e6c4fa146d53a173b616481dbaa3471610289c015fa17dd8c7c052e"
+    },
+    {
+      "sha256": "964a17653efd751d4895f274702278a327ce1f748225424ab7457faa14ff65b6",
+      "path": "docs/tasks/R1-01D-native-clone.md",
+      "appendOnly": true,
+      "beforeSha256": "ddd30291e145e735e4b17ff3efa6071ba7c7036e49169426f14aba7a331ca45f"
+    },
+    {
+      "sha256": "c5ede4713775fc9bb6ab2b92e198c4cb8eb4ac01ca08d23a5a5b104e6a9f7c94",
+      "path": "docs/tasks/ACTIVE.md",
+      "appendOnly": true,
+      "beforeSha256": "8b19cd836d5f8698838eaea919ffb66d70b28e44a4a0c889b792e48e09db25d4"
+    },
+    {
+      "sha256": "38086e4e9eb85bfa53f3f7efecba9434fc67b0403b92a66f7306310e93475303",
+      "path": "docs/tasks/R1-01D-issue-guard.md",
+      "appendOnly": true,
+      "beforeSha256": "158d20a815af660ffcfc049fc2895bafdf7b0e57e01139cdf21ee512e52a33d0"
+    },
+    {
+      "sha256": "123eeb1c091c177c5d8b5d31830877e4744e281223a43d637c99091488e3188b",
+      "path": "docs/tasks/R1-03A-leader-text.md",
+      "appendOnly": true,
+      "beforeSha256": "8261964025f9583074e93ce44dc4365f83e89c5e6998faabdacb65e75dda4a9d"
+    },
+    {
+      "sha256": "55b4f298d4fc358da24d30dc6e92bd73e7c89682bae945a032d7c57c70481ba5",
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "appendOnly": true,
+      "beforeSha256": "44636ae16a34f73b826b96cac89c564951e49b806477a560cabbefd9c8194cdd"
+    }
+  ],
+  "f5": {
+    "handoff": "b1a7f7d53acc84555e65ad4d59968d7345f6dda4a9dc8ee13dde36c5b0266a9f",
+    "sourceWindow": "CLOSED",
+    "expectedEvents": 9,
+    "byteSnapshot": "3836c05ad020ed3563597cd241eeeb47a3dd4f46dcb031ca3faf0aa6b38ddb7c",
+    "actualSourceReview": "bea0e584fde7eb28836926c334e4815bc42e3ff61c2c447212ed349fff0ee332",
+    "actualSchema": "NOT_RUN",
+    "byteSnapshotReview": "PENDING",
+    "source": "1a7feaf6931ea38eb498dbaaf9fdac30388540e55542089d7acf5103384e7f07"
+  },
+  "compileR4": {
+    "boundProfile": "483527c8f0b690bc866dcee5ff99d7c8b0385adf541ae62b65c2ecabc199a0e1",
+    "candidate": "1152c4a721d0247744bdb553888d0350122b4d7e7c7c45ba0d6af6e4b2141a79",
+    "status": "INDEPENDENT_REVIEW_PENDING_NO_GO"
+  },
+  "facility": {
+    "r2Manifest": "a1fa26a9582c177db5d5d6634cae6c91cb3310d3ba792678e93125df5c0cc15e",
+    "fix": "MIGRATOR_PURPOSE_EXPLICIT_STARTUP_TIMEOUT_ZERO_NO_NATIVE_SOURCE_CHANGE",
+    "host": 31,
+    "actualTarget": 0,
+    "r1Review": "f796acf48d903ab7c7f28934ac7b61025f139a51ac8faa95decc2526312c9c7a",
+    "status": "SCOPED_REVIEW_PENDING"
+  },
+  "projection": {
+    "review": "96c8590d46de37c60eb344f7c92dba9636d0349bc2fe2b9376e884a5958acdc6",
+    "verdict": "HOLD_TWO_ITEMS_FIX1_PREPARATION",
+    "sourceAndTarget": "NOT_CHANGED"
+  },
+  "allSourceWindows": "CLOSED",
+  "handler53": "49_PASS_4_FAIL_OVERALL_FAIL_RETAINED",
+  "native37and4": "NOT_RUN",
+  "leader118": "NOT_RUN",
+  "actualNewGoOrDb": 0,
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

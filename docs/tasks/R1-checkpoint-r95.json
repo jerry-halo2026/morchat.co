@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R95",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "branch": "codex/round1-continuous",
+  "previousCheckpoint": "R94",
+  "previousSha256": "cdcad13fb8ed3ad9a89164fc022ee78ea47efed7346a9ef5818625e805bab183",
+  "previousReviewSha256": "327e1fb290a4d297aab1dbf8f19ec0dc62fe0d5162b7e1031bfdde3a166c30ac",
+  "previousSnapshotSha256": "fb166f0b3b519f38b4f5cd4fa0f96cfbef3e47450efc145e55031336a7725f7e",
+  "previousRootAcceptance": "826979a24add147b309840d06ebccecec291203dee20f549c0bcb2ce0bb9ca47",
+  "progress": "REAL_COMPILER_PREBIRTH_FAILURE_AND_PRECISE_SOURCE_FIX4_NOT_BUILD_PASS",
+  "compiler": {
+    "R": "3ac25e6a161d5be3a0316e2936cbcf882281038a62594a49b2a2bb74bbbf67ec",
+    "sourceFix3Review": "2a4ff8ec4a118755ee235b148a2293be628f360fada9f95abecd6b323fab1894",
+    "legacyCharacters": 2276918,
+    "A": "c270ce751dd573388b46e5598ddbfe9bae25ab527cf64a42f0c84e0e7b296cfb",
+    "P": "e2e7d35cb2883c2676991c72a03b8892596c11691315f4f9bcb123164ad565c6",
+    "sourceFix4Contract": "b5bbc225f708fd03193cd5eb5bdfd42977fce33a9bde66eef284b07b9e58e3be",
+    "freshOwner": "/root/compiler_json_fix4 configuredgpt6astra xhigh",
+    "actualNewPermission": false,
+    "PB": "7d8ce5cb9b22ecd3d080077c2633ea748d1c9bc0e311d8fc73849d571e436bfb",
+    "defaultCap": 1048576,
+    "parentOnce": false,
+    "source": "ACTIVE8",
+    "actualReview": "a5933854a628b6dedd2f9dead4a95b399f3b6592ea659fd9718a4e248e782ac5",
+    "actualTool": "833628 terminal1",
+    "controlOnce": false,
+    "actualCsc": 0,
+    "observation": "0883a23e9a53847d06c5436b08c8d48fa85cd5a441bbdbc2c5029391314240fc",
+    "buildroot": false,
+    "status": "FAIL_JSON_CAP_PREBIRTH"
+  },
+  "copy": {
+    "stage": "ACTIVE4_CWD_JSON_LITERAL_FIX",
+    "actual": "CLOSED_SOURCETRUST_NOTBOUND",
+    "sourceReview": "e5ff2357424bd0c80ad12d79cb7916c39b608e9838079506eef729f6851d31f4",
+    "fix1Release": "3cd6ba355236a4486ff333843dfb90f521960b31d8459722501f32036f070ebb"
+  },
+  "sampler": {
+    "HOST": 18,
+    "actual": "CLOSED",
+    "nativeGuard": "UNIMPLEMENTED_UNBOUND",
+    "sharedFix1Review": "a4a3a9f695a0a943a5b95c54ad85ab09ce5f5d42a8f461d9d2cbebeb8a636edc",
+    "oldInstaller5Cap": "SOURCECLEAN_NOT_REOPENED"
+  },
+  "metadata698": "79f3_a402_ONLY_NOT_CONTENTHASH_COPY_ACTIVATION",
+  "Goal": "ACTIVE",
+  "fullGoal": "ORIGINAL3SLICES_SAMECANDIDATE_HARDGATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "sha256": "2d96ef6fefe24a2a85d2a84eac11a9e91c055ab5549aeb5e0f0d6cdcd3f99adb",
+      "beforeBytes": 230375,
+      "appendOnly": true,
+      "beforeSha256": "a6191660e75cc9dd33bfe1b1dae381aa4a8fc656700f4609ace615cccffa4106"
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "sha256": "ad06bcb811ed712e99762fd4e1eb242321a3fa8d9696189164075a7c44265582",
+      "beforeBytes": 216182,
+      "appendOnly": true,
+      "beforeSha256": "6557628148f0fcdc9f7cedb5f41305548559ba8878b41ad25e06e7653be2ac10"
+    },
+    {
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "sha256": "cb3e1c5913c1d22a7cca1f2b866f42e3c20689dc3645ce2f247523c9685442c9",
+      "beforeBytes": 8791,
+      "appendOnly": true,
+      "beforeSha256": "a1d5fd523279d9eb534d2995243198d01b364b11123afa0f51b3dfb7dec1060e"
+    },
+    {
+      "path": "docs/tasks/R1-03B-native-pins-diagnostic.md",
+      "sha256": "fbe07ba51f33514c0a7fec44f212c2fe60fe820c3cdec4eaaab414a8bf9c1faa",
+      "beforeBytes": 8759,
+      "appendOnly": true,
+      "beforeSha256": "9af739afc55e583e3637aa5b4c5e77cf78583d0f98d514a73d3934faa7993d67"
+    },
+    {
+      "path": "docs/tasks/R1-00-baseline.md",
+      "sha256": "9d993e864652f5dd5acc4d603aaa7131b12af00d57bea604fc9d4845d50357b0",
+      "beforeBytes": 24560,
+      "appendOnly": true,
+      "beforeSha256": "9df858b5e441f824427b3cb57d81f29265f50549fedce140362311671942bfa1"
+    },
+    {
+      "path": "docs/tasks/R1-00-pnpm-install-projectlink-r3.md",
+      "sha256": "58ab0692b67e19c4adc6952966cacb9e4993c17e39a092b131a169bfc66d2bf7",
+      "beforeBytes": 7577,
+      "appendOnly": true,
+      "beforeSha256": "9909102b9baba1ce2ed6afe804a631a9a9162e0b5e793a97458a6fea461a18fc"
+    },
+    {
+      "path": "docs/tasks/R1-02-execution.md",
+      "sha256": "fdfa8228781118a7141f2912df674c9ea3c5817e2c4cb50a5ccd76681616618a",
+      "beforeBytes": 38442,
+      "appendOnly": true,
+      "beforeSha256": "efbd97ba1b1abc5fb1f71598bf19bbbf988cdd752e742c5704c2c9339a6dc29a"
+    }
+  ]
+}

@@ -1,0 +1,261 @@
+{
+  "task": "R1-NM03B-NATIVE-CREATE-READ",
+  "revision": "B-r2",
+  "status": "R4_LIMITED_DEVELOPMENT_CANDIDATE_ACCEPTED_501_SELECTED_PASS_NOT_FULL_M1",
+  "head": "96085ec414511f7537aabe6b73d22a7aac641a7c",
+  "contractBeforeManifestSHA": "3E23C86EE5B867645FCA343ED909885BC932A7B467E728EE9E8B6F0B785D5C1A",
+  "testPath": "server/cmd/server/r1_nm03b_native_create_read_integration_test.go",
+  "testSHA": "5447F0B1AE3C761205C9573D27CFA8B5FFBF7520122A9C2C1CD8349F8774F8C6",
+  "owner": "/root/native_create_read_impl_r1",
+  "contractOwner": "/root/invitation_path_review",
+  "consumer": "/root",
+  "reviewer": "/root/workspace_invitation_review_r2",
+  "model": "gpt-6.1-sol",
+  "actual": {
+    "fail": 1,
+    "auth": "nativeOTP_and_Me200",
+    "workspacePost": 201,
+    "failure": "PROJECT policy expected1 got0 after natural POST201",
+    "stderrBytes": 0,
+    "rawSHA": "32E91B2DFDE93943DF5752D32BD4708979AA18F5D52B32AA68B4673A6BFD4D9E",
+    "projectPost": 201,
+    "pass": 0,
+    "skip": 0,
+    "exit": 1,
+    "run": 1,
+    "fixturePolicyInserted": false
+  },
+  "productionSourceWindow": "CLOSED_SNAPSHOT_FROZEN_ALL_CURRENT_WRITERS_TERMINAL",
+  "currentAction": "continue exact remaining original M1/enterprise gates; no live candidate rollout",
+  "servedSource": "51e23d9",
+  "credentialCopyConsent": "PENDING_SEPARATE",
+  "realSupplierModelRequests": 0,
+  "wholeGoalComplete": false,
+  "reviewedM1SHA": "F01B2A5A3C5EB02984C33079E1351154447E5409E00B1FB77D10FE892CED0039",
+  "firstNativeGreen": {
+    "originalNaturalTestSHA": "CD0AB222AC265F1F8D7B34ADD6E8824C394CEB4181AC80B2762B71A37DBC9D45",
+    "exit": 0,
+    "fail": 0,
+    "skip": 0,
+    "run": 8,
+    "pass": 8,
+    "rawSHA": "7DE97C2A1C6DB61A161552D983CCF8D0AA6F07C9E489A3DE422C5DDB3A48B727"
+  },
+  "initialRegressions": {
+    "existingGet": {
+      "pass": 53,
+      "rawSHA": "442D92F0E825E84666367CC7EADFBAE530601760870EC3DAF7D535AB91A1779C"
+    },
+    "negativeService": {
+      "pass": 50,
+      "rawSHA": "594AD49CBC85BA4379F248E76A3B690528B2D5E0E274DDCFFB4DAC911EDFDF0C"
+    },
+    "input": {
+      "pass": 103,
+      "rawSHA": "411B95D3C4AB5B304FD89E44D89BC4AD21D405E827CF078467CA535FDB8DA98F"
+    },
+    "existingService": {
+      "pass": 42,
+      "rawSHA": "8F57DE41FF37EEDD3D40994B679DE119A12B5C72BA137D8239E0CA2210C433C4"
+    },
+    "independentRawConsumption": "PENDING",
+    "allSelectedSkip": 0,
+    "workspaceA": {
+      "pass": 62,
+      "rawSHA": "5F3AA4CFFEE5D0C69042B51D81B5BEC4A8B60DA9549448CD26347AD7D6B32D7A"
+    },
+    "allSelectedExit": 0
+  },
+  "openReviewFindings": [],
+  "initialProductHashes": {
+    "server/internal/service/native_creation_access.go": "AB8831FE1928CA712F36795F98A11AF4F4A9D3F36B177A38691A95DEA99BFB82",
+    "server/internal/service/native_project_read.go": "51EAFCB32842714E03D95A861B93A30DBE6DFB888410603845AAA5FDF89228CC",
+    "server/internal/service/issue.go": "EBFC62387CB420524B7A850FA9BA335699172EB0F28CF4209C660AB5EB606315",
+    "server/internal/service/resource_access.go": "F584D3EF0DE5024D8562DD63800D5EA53BAE60920A2AAA9733826131E5343ABD",
+    "server/internal/handler/native_resource_creation.go": "F044C9DCA94AA11209216912B534328C31FCF42B14E29CC425788E85FCB81B57",
+    "server/internal/handler/project.go": "97C568663F4D854982EEABE0C91D6931A0077D079930BEF66C489F22DF7A621B",
+    "server/internal/handler/issue.go": "39EC58249249F99D964ECD4688ABAB00BBC857CD1BC6A38C2D881F6E6809067C"
+  },
+  "milestoneDate": "2026-11-10",
+  "closedProductFindings": [
+    "stats stale binding/current status",
+    "source/anchor lock ranks and sorted IDs",
+    "builtin status_category",
+    "enum400 before unsupported422",
+    "custom closed terminal count",
+    "precise private/assignment422 reason"
+  ],
+  "closedProofFindings": [
+    "NoAdopt authorized fresh positive and old-ID early rejection",
+    "Decision invalid bindings zero policy INSERT before FK",
+    "Encode callbackFired",
+    "ProjectTrace all four required locks seen"
+  ],
+  "latestEvidence": {
+    "statsFixed": {
+      "rawSHA": "3CE98EC6B9FB73CD4EC28F495B9D24ACF7587D952E97B375CDC1B9B9E5F4E8AE",
+      "pass": 4
+    },
+    "issueAtomicDecisionLocks": {
+      "rawSHA": "9D1244862B266D51DCFA5F9AA9D0C6F9EC68C4A3A9890354B1B07F15D9A065AE",
+      "pass": 54
+    },
+    "allSelectedExit": 0,
+    "unsupportedText": {
+      "rawSHA": "191614AB2C3B577745AF93BDB77C79A41DBF1B5F8AC38035B6E725A8A4C61C12",
+      "pass": 7
+    },
+    "nativeRoleFixed": {
+      "rawSHA": "F9CAD82B0D0CB3EF9538D8F943EDC39FB7AB7E93B9917D5CEFA89528BB48CA88",
+      "pass": 13
+    },
+    "departmentAndOldGraph": {
+      "rawSHA": "0EE772401CAA080067B6FD90C5F68D9B777DB40256E6CC936A94401555B76C7B",
+      "pass": 23,
+      "foreignRealWorkspace": "NOT_YET_PROVED"
+    },
+    "enumFixed": {
+      "rawSHA": "9AACFC7CC920EE2AF70FC484DB198226B89C95E3EAB2DE2BF33EF27988255047",
+      "pass": 5
+    },
+    "customTerminalAndSource": {
+      "rawSHA": "600385A86EB8A66CC254DA96AE8FA75A1C29EE614F6F5ADA23B07AF89AAF0952",
+      "pass": 18
+    },
+    "projectAtomic": {
+      "rawSHA": "60052A116134544B48D5D667AE1079ADA11582D5659F4D18FE7DF3FD972C5A53",
+      "pass": 16
+    },
+    "projectTraceSeen": {
+      "rawSHA": "1D1122B5D006B3D8F47877B7A4E74D88293167EE4FF959CE9C03CC0BC58162C2",
+      "pass": 2
+    },
+    "allSelectedSkip": 0,
+    "credential": {
+      "MCN": "loopback synthetic verifier only",
+      "rawSHA": "896077AF29739C501138D4606583DC8C38B84A7F02662AF8B9D32B8CA160FA36",
+      "pass": 34,
+      "independentReview": "ACK_EXACT_KIND_USER_FRESH34_RAW_8AED119430976EDA3844D4E7D6E2ED652956952FF0B5C775848E239950A55839"
+    }
+  },
+  "rulings": {
+    "oldR2Lab": "SETUP_HOLD_preserved_no_old_framework_restore",
+    "triggerFailure": "NOT_CLAIMED_any_trigger; real_native23505_counterrollback_pending",
+    "projectEncode": "N_A_UNREACHABLE_IN_CURRENT_FIXED_PRIMITIVE_DTO_NOT_PASS",
+    "wrongFilter": "BC37 only emptycustomparent plus duplicate, NOT terminal evidence; exactA00 RED retained",
+    "snapshotVersion": "same native int16 type decoding and source/anchor identity; no new version whitelist"
+  },
+  "remaining": [
+    "NoHandoff/real foreign department/private duplicate exact response and side effects",
+    "stats fault/rows.Err/cancelcleanup/retry/secondchange/full-union StatsTrace",
+    "real native constraint23505 with counter rollback and IssueDecision WrongProject",
+    "remaining M1 actual field combinations",
+    "same-candidate final regression source/sqlc/vet/typecheck and independent whole diff",
+    "NO deployment/fullB BUILD claim; wider enterprise lifecycle and real model/dual device still unfinished"
+  ],
+  "milestoneProductHashes": {
+    "server/internal/service/native_creation_access.go": "265D1754EE70A67322DF3C41687AEB1A1A0E0C6028052EF80DE478D4B5120BD2",
+    "server/internal/service/native_project_read.go": "24CF27FC1B292304CFCED7EB92C3E9B5E26F2AFF88FD607D224AB066F35ACE39",
+    "server/internal/service/issue.go": "B9EDBCEBE7EAE60A926ED69EE3A500C174BFC44AB8F40515482F38B37F9BD772",
+    "server/internal/service/resource_access.go": "F584D3EF0DE5024D8562DD63800D5EA53BAE60920A2AAA9733826131E5343ABD",
+    "server/internal/handler/native_resource_creation.go": "CC01A6CE0821F931C33C43AACF663F37B54D4397B5A73160C4A5507375CF66AE",
+    "server/internal/handler/project.go": "97C568663F4D854982EEABE0C91D6931A0077D079930BEF66C489F22DF7A621B",
+    "server/internal/handler/issue.go": "39EC58249249F99D964ECD4688ABAB00BBC857CD1BC6A38C2D881F6E6809067C"
+  },
+  "finalSelected": {
+    "pinsBeforeAfterMatch": true,
+    "allSelectedExit": 0,
+    "native": {
+      "pass": 35,
+      "rawSHA": "6F47C50A268164B226F9170B77201020D8E7D5D18690319478727E5D8A3CA78B",
+      "run": 35
+    },
+    "service": {
+      "pass": 177,
+      "rawSHA": "3A5149FFDE0A277EDB6FB70ED06C6D23FADF0AA3E83F0112796C76510AC8246F",
+      "run": 177
+    },
+    "selectedParentChildEvents": 494,
+    "handler": {
+      "pass": 282,
+      "rawSHA": "DC5EFF0E30C5AD8AFCB4DF767C570D12471D411C0DBEBEB630961C0D313F1BA5",
+      "run": 282
+    },
+    "allSelectedSkip": 0,
+    "allSelectedFail": 0,
+    "manifestSHA": "DC2A92BA1DAD582ADBE857A3D95E89A57E5193DB3E97C7D1FD67DBE553D70A3B",
+    "independentReview": "ACCEPT_LIMITED_DEVELOPMENT_BASELINE_NOT_FULL_M1_BUILD_OR_DEPLOY",
+    "privateExtraNotAddedToTotal": {
+      "pass": 3,
+      "rawSHA": "64372DD1AA87B117CC7DDD7F20B14AEA730AAAADB274691DAC70AF2A93AC6090"
+    },
+    "sourcePins": 25
+  },
+  "rootQuality": {
+    "gofmt": "CLEAN",
+    "linuxBackend": "BUILD_EXIT0_5B58C92635344E7BA88FC8704E0492CAC55306E71FFEA72D96C6854AA169613D",
+    "runningSource": "51e23d9",
+    "windowsBackend": "BUILD_EXIT0_C4D3397C99B0731894AFDE04793538A868223676055F38132D0B227A51AB4A4B",
+    "compiler": "catalogwrapper6.0.2_locked_transitiveTS6.0.3_actualCLI6.0.3",
+    "deployed": false,
+    "coreTypecheck": "599currenttrackedfiles_strict_EXIT0_empty_output",
+    "sqlc": "locked1.31.1_full76outputs_match_source_ownerproof_independentlineage_review",
+    "vet": "3packages EXIT0"
+  },
+  "r4": {
+    "date": "2026-11-10",
+    "manifestSHA": "90E48DF59573293D44014EC2FABFB6D4E3A3CF2D1E99DAEAD9056B955BBCFCC0",
+    "gofmt": "CLEAN",
+    "allStderrBytes": 0,
+    "baselineManifestSHA": "DC2A92BA1DAD582ADBE857A3D95E89A57E5193DB3E97C7D1FD67DBE553D70A3B",
+    "service": {
+      "rawSHA": "F5B0BF6CA03DA919AB1CA3902A6DC3E3DB63E6EEE08F775C97EBD07F45030269",
+      "pass": 178,
+      "fail": 0,
+      "skip": 0
+    },
+    "independentReview": "ACCEPT_LIMITED_DEVELOPMENT_NOT_FULL_M1_BUILD_DEPLOY_OR_GOAL",
+    "customStatusP2": "CLOSED_actual_RED2BD3229B_then_GREEN850768D8_and_final501",
+    "model": "gpt-6-astra",
+    "owner": "/root/custom_status_r4",
+    "reviewer": "/root/workspace_invitation_review_r2",
+    "unchangedBaselinePaths": 22,
+    "coreStrictTypecheck": "unchanged2corefiles; Root599source mirrored strictEXIT0 same current source",
+    "allExit": 0,
+    "vet3packages": 0,
+    "catalogFault": "service query error propagation actual; dynamic HTTP500 not claimed",
+    "changedPaths": 3,
+    "native": {
+      "rawSHA": "BCECFB6283FC7C2E9FEC919979796C01845832BA33C7944B42DB61908A51795D",
+      "pass": 41,
+      "fail": 0,
+      "skip": 0
+    },
+    "linuxBackend": {
+      "sha": "983B599E97BD17A5C64F9776E5011D3AC919BB0B20DC1904DA2E830FEB2700DF",
+      "exit": 0
+    },
+    "selectedParentChildEvents": 501,
+    "pinsBeforeAfterMatch": true,
+    "handler": {
+      "rawSHA": "E954E01213D49BA3C57DCEE0115D2DBB8BC67BF117FEF5953FA05F414F57B569",
+      "pass": 282,
+      "fail": 0,
+      "skip": 0
+    },
+    "windowsBackend": {
+      "sha": "E7534D33EE5D1F9439EEF379F0A9283E46C12531EDE9B2162F8EA7DA2A06EA4F",
+      "exit": 0
+    }
+  },
+  "remainingExact": [
+    "M1 full Cartesian input combinations not all executed",
+    "dedicated deadlock/timeout and StatsNoLinkConcurrentInsert cases NOT_RUN",
+    "CreateAssociationRetry specific case/implementation not promoted from readretry",
+    "ProjectCreatorNoGrant and independent otherDepartment identity fixture limits retained",
+    "old641 SETUP/HOLD unchanged",
+    "UI generic409 toast/draft source-safe, actual UI regression not yet done",
+    "real two-user invitation UI/model reply/real usage/device pool/lifecycle/revocation/dual-device remain unproved",
+    "no BUILD_FROZEN/full enterprise acceptance/main merge/push/deployment"
+  ]
+}

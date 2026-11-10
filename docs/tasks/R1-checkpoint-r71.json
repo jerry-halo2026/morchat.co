@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R71",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "status": "CURRENT_F5_COMPILE_ACCEPTED_ACTIVE_MAT_SOURCE_APPLIED_PUBLIC_IMAGE_FACTS_ONLY",
+  "previousCheckpoint": "R70",
+  "previousSha256": "669d5256050f857f24bb1e8e7818668a7205c59ba56580306ea9e89dc295d97b",
+  "previousReviewSha256": "d466d81db1d73ab49cdccd0d48c77dd50b93478e6f7af7636baef3e9b4ae5719",
+  "previousSnapshotSha256": "315c9ba170582d789a7fcbfe7aa9446acf5cf6953f55adfc2583583947755f69",
+  "files": [
+    {
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "8ad4198f972f63b0db213bdf731e2598584f9db6629f949bed063a63c249d108",
+      "sha256": "75dd7f2d30945181bd977d61a958671cf245ebae8d44d64dbab1dda6e62c1a34",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-01D-native-clone.md",
+      "beforeSha256": "964a17653efd751d4895f274702278a327ce1f748225424ab7457faa14ff65b6",
+      "sha256": "e887a968310ee191877e64f20a9b92fb5a2da0d1653cc9287aee2fb0b7a6fb79",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "c5ede4713775fc9bb6ab2b92e198c4cb8eb4ac01ca08d23a5a5b104e6a9f7c94",
+      "sha256": "8f2ed73d1bbe5634d554199883bcc2198adc0fe0af90dfe61e7e55f936ef50a6",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-01D-issue-guard.md",
+      "beforeSha256": "38086e4e9eb85bfa53f3f7efecba9434fc67b0403b92a66f7306310e93475303",
+      "sha256": "674d26784584d070b921ff4534801c5aaea6461ce7f28630675859dae82abe9d",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-03A-leader-text.md",
+      "beforeSha256": "123eeb1c091c177c5d8b5d31830877e4744e281223a43d637c99091488e3188b",
+      "sha256": "7c2db9e9ad6516d7ef3bdb0f0e49a0abaf34e74927f5d3f50fd0873990c83485",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "beforeSha256": "55b4f298d4fc358da24d30dc6e92bd73e7c89682bae945a032d7c57c70481ba5",
+      "sha256": "88baddeb3163b658cf7418fdc98d9f99614f8a5fce8c7d3adc56839b5e567ffc",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/contracts/R1-ISSUE-READ-GUARD-active-mat-diagnostic-r1-test-frozen.json",
+      "sha256": "95f64ee8c2a83e7e92f0e8366c048fce043332919d5f057ce35c65dba807caf8",
+      "newSinceR70": true
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-handler-active-mat-diagnostic.md",
+      "sha256": "90d773813977e010700d5d53e21a1738214dca36231604b9e3ae3bca09d5fc3b",
+      "newSinceR70": true
+    }
+  ],
+  "compileR4": {
+    "sourceCount": 853,
+    "elf": "107458feb6ae4b5f2313a1cc41674420920dbf39b89e1ce2acc499e36ca1e821",
+    "actualReview": "d976abc6dcd26dfaf6f6bbd6bf1367a44c1578002e3fa8e37e4a767b4a5241e8",
+    "manifest": "e8d4e600c3d8fdbc624e439356dc2a5756ba4b265bcb2605476bf60effb551aa",
+    "source": "f4c662a5b2223264614325cf6a5f0a2a563665cdf63146e01482c7ee3fb1b8d4",
+    "testExecuted": false
+  },
+  "handlerSource": {
+    "actualReview": "0797c8421a0e0c3bfa59753a50427947aee0c43f843647c375a99c2183b669c4",
+    "runtime": "NOT_RUN_NEW_EPOCH_REQUIRED",
+    "current": "fe6be35ab907af586caf95478846595767ebf8c286a580355675e3b7df706258",
+    "before": "c9af45e4093d6c0e062c67725cd62a5e8fec43ec6650a7dc9c4f0969c607bd56",
+    "panicCause": "UNDETERMINED"
+  },
+  "projectionReview": "3485cbcc03c144d5d458ab19d0acba151ff5837463bdd5a389149ed03f64e2b8",
+  "imageFacts": {
+    "publicEntrypoint": "9c440299ae04a0a79d55b8bf03307036d890a40979d2fb698073c9050d4b20a5",
+    "startup3Caps": "NOT_PROVEN",
+    "extractorFacts": "cfb7f44533b91d704adaa6275c75fc50b8738154063104c728048c9771c3f897",
+    "review": "a9dc568495a4dd4e598541dca31d315ac07f0bf8a2580c06210c117f25827d23",
+    "status": "PUBLIC_IMAGE_AND_SOURCE_FACTS_ONLY_EXTRACTOR_REMOVED",
+    "actualResult": "8da8758cdbd7c5bb04501e81f9eebd695f8132978adf0b966fd47abfe24f78ff",
+    "extractorCleanup": "f34a13fb7c524cdbe409e19a419106c3c0040f54f46d74676a071eb52a14ca4f",
+    "pgFacility": "NOT_CREATED"
+  },
+  "allSourceWindows": "CLOSED",
+  "handler53": "OLD49_PASS4_FAIL_NO_NEW_RUNTIME",
+  "native37and4": "NOT_RUN",
+  "leader118": "NOT_RUN",
+  "f5Schema9": "NOT_RUN",
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

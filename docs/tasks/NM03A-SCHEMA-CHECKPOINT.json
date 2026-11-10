@@ -1,0 +1,35 @@
+{
+  "task": "NM03-A-r1",
+  "head": "cf05990b53f37271345128e3a7b56f507c552513",
+  "status": "SCHEMA_ONLY_GREEN_AUTH_BLOCKED_PENDING_HUMAN_POLICY",
+  "schemaMigration": "619_r1_native_creation",
+  "appliedMigrationCount": 643,
+  "schemaTests": {
+    "run": 9,
+    "pass": 9,
+    "exit": 0,
+    "skip": 0,
+    "rawSHA256": "6E06C376D32F42769C6B90720B0CC07FE09B1908FB71D1BD51AE48EDBAECC204",
+    "fail": 0
+  },
+  "bootstrap": {
+    "run": 1,
+    "pass": 0,
+    "reason": "department expected1 got0",
+    "skip": 0,
+    "rawSHA256": "4EE3EA310BF0921AAB5641AEF1ACF0F9756E356281A7DD144077D540E6F702C7",
+    "fail": 1,
+    "status": "RED_RETAINED"
+  },
+  "workspaceSourceSHA256": "A9CEC22D642EC0220D7709EE4C820328F74D4CB7992915F467D35CE06AC7E88F",
+  "nativeActorHelperExists": false,
+  "reviewer": "/root/nm03a_review",
+  "owner": "/root/nm03a_impl",
+  "actualModels": "unknown",
+  "humanPolicyQuestion": "Should new-company creation require a current normal login session instead of API/old login tokens? PENDING",
+  "credentialCopyConsent": "PENDING separate explicit two-record risk question",
+  "realModelCallsByAgent": 0,
+  "deployed": false,
+  "buildFrozen": false,
+  "fullGoal": "ACTIVE_UNFINISHED"
+}

@@ -1,0 +1,78 @@
+{
+  "R2bound": {
+    "driver": "d3d8ec30c4a857dbc5916f9fa16de4a55eed9b81e08363030a5f3731d3c96723",
+    "profile": "e46bb12aa42c269735269595d36c990158964000b31ba541375eb8954a9e121e",
+    "tests": "254_HOST_ONLY_NOT_CSC",
+    "bindingNotice": "aff769b8dfdbdec051ead7fa1f4150dc97692fb3d8d1089d12d35af84d5bd83e",
+    "actualCompilePermission": false,
+    "sourceReview": "ACTIVE_PENDING"
+  },
+  "independentDocsReview": "PENDING",
+  "sourceFix3": {
+    "owner": "/root/native_o0_source_impl",
+    "writeCount": 6,
+    "round": "3/5",
+    "release": "f41af14cadbee8ad0a700b1c8b13db05cb5a769d29d6daba79946b22c46a8ef3",
+    "helperReadOnly": "903f4a0009f6d3cff7c8e25a917c8d2ef692a7b8d7beaa79ad15b2b016edc7a6",
+    "status": "RUNNING"
+  },
+  "fullSource7Review": "a48ca2ad956023a24d489968487a8b5ef7c6033e0c93da69ac457bc7b5b00cc4",
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeBytes": 296662,
+      "beforeSha256": "5b16ccbc7e608e2eb64cb31ca243d55c04192b03e2a6ca0493e26d6901ec7bb2",
+      "bytes": 300014,
+      "sha256": "a29cbd0a42de744568695dd135f2619fdd407c12a959599bba08ceb4b40346e0"
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "beforeBytes": 278160,
+      "beforeSha256": "6dffed7b5d588466da24bda226675f5cf3e6801045eb5fd9a742654feb22f793",
+      "bytes": 281512,
+      "sha256": "002bd17159a0d0ab63bce6c932bd2362a4e62d28c963db47ee12c1a95e98b722"
+    },
+    {
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "beforeBytes": 63275,
+      "beforeSha256": "4be4243e838e464df908d00d4f1551005cae8bf17f79d52f2159b01cc5b1034d",
+      "bytes": 66627,
+      "sha256": "a6427a0c0e1ca9e5fd8d208c663ec6f0ac1ea6f08db333f7c803416ba95a9814"
+    },
+    {
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "beforeBytes": 44856,
+      "beforeSha256": "953b10559c33ae7c01f32dd30885a80db9767266fa02d93e046d0d6451aef825",
+      "bytes": 48208,
+      "sha256": "c28995498f2d1768881a0982e51dcd64f1961ba72db164911d071d1429e5f897"
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-source-fix2.md",
+      "beforeBytes": 4536,
+      "beforeSha256": "a33b219763707c850377259148727b9788ff0ede3370ff3f0c2bf41d0de3c62f",
+      "bytes": 7888,
+      "sha256": "233d9d4258d944346bafe46b00cb0f7f97758ec466b6198d206e4d2c214e83a9"
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-helper-compile-r2.md",
+      "beforeBytes": 1128,
+      "beforeSha256": "8f217c95f37a3e33aee2ec1d439e64dd70aa3b4d99b9002885fcfa469e929242",
+      "bytes": 4480,
+      "sha256": "331db7dd034f7b2abd6535ddfde28beb2d78883f957176610e7a7b7933559e14"
+    }
+  ],
+  "baseline": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "frontend39539": "HOLD_MANUAL_ACTION_PENDING_NO_MORE_SIGNALS",
+  "rootOwnedExecLive": false,
+  "globalBlockerAudit": 0,
+  "model": "unknown",
+  "apiDeltaReview": "fad00b43b4ab7377a53bb4ef6c9e42cf3992045bf008a68f7bd5278f3a104c09",
+  "utc": "2026-11-08T23:10:42.7917793Z",
+  "branch": "codex/round1-continuous",
+  "checkpoint": "R116",
+  "helperOnlyAcceptance": "68014d58f610d162878f4da79bb03b5b7215cbd170e4e00e88cfb12d7adcaab7",
+  "productModelCalls": 0,
+  "root": "/root",
+  "classification": "PROGRESS_SOURCE7_HOLD_CORRECTLY_SPLIT_HELPER_SUBSET_AND_BOUND_R2"
+}

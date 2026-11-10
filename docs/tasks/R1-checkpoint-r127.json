@@ -1,0 +1,54 @@
+{
+  "checkpoint": "R127",
+  "root": "/root",
+  "model": "unknown",
+  "baseline": "efdc54aaf3fcc4e3eaee369b980ac054ccc0bb54",
+  "branch": "codex/round1-continuous",
+  "stagedCount": 0,
+  "classification": "PROGRESS_SOURCE_FIX1_104_PURE_STATIC_GREEN_FULL_REVIEW_ACTIVE",
+  "owner": "/root/apiset_source_impl",
+  "ownerRoute": "gpt-6.1-sol high",
+  "fixRound": "1/5",
+  "sourceReport": "4431d1e451a0ac22c7a5bdb15fa145f993767fee6b3be49e441031f59572d648",
+  "results": "f1ff608b812177c499c427c44a118bd5bb690b66b1a0868f9d14390c1e6bc58a",
+  "run": 104,
+  "pass": 104,
+  "fail": 0,
+  "skip": 0,
+  "stdoutBytes": 4747,
+  "stdoutMaxBytes": 16384,
+  "totalOwned5Bytes": 98949,
+  "original97Preserved": true,
+  "historicalFailuresPreserved": true,
+  "fullSourceABIReview": "ACTIVE",
+  "reviewer": "/root/windows_runtime_r2_review",
+  "sourceAccepted": false,
+  "compilerPermission": false,
+  "nativePermission": false,
+  "loadPermission": false,
+  "rootOwnedExecLive": false,
+  "productModelCalls": 0,
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "docsReview": "PENDING_AT_CAPTURE",
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "55402a0e7575f362fb89e9bb3918e72bf0aa10283ebd5da11e3bb6a761b9d21e",
+      "bytes": 339903,
+      "sha256": "b1625186577b8ad5f05e5c0a20a598055835c881029f7e87ada8b1be67204ebe"
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "18fb49e875a1b47fc996e3fbf18a1fcc6e694b01192ced744796a3dd4e5320ec",
+      "bytes": 321401,
+      "sha256": "ef7aaedd2c9aefdedbd173bc46601689faf89659ab750dea0bca4f25e6647106"
+    },
+    {
+      "path": "docs/tasks/R1-02E-api-set-query-source.md",
+      "beforeSha256": "5a68f1b2bcd8b9bdb576d3284c32b0a3467901f6975c79224c5b7930a762e7aa",
+      "bytes": 12461,
+      "sha256": "d6345ff395e118d3318b5bdd12e4161d0e8c09985c94f553dafab321ba7c7b56"
+    }
+  ],
+  "utc": "2026-11-09T05:13:40.1149846Z"
+}

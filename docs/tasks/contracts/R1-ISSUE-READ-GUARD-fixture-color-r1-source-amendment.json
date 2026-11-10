@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "taskId": "R1-01D-HANDLER-FIXTURE-COLOR-r1",
+  "status": "SOURCE_MINFIX_INDEPENDENTLY_ACCEPTED_RUNTIME_NOTRUN",
+  "authority": "R1-AUTH-r1/originalGuardTF122_TESTFROZEN",
+  "owner": "/root/guard_fixture_impl gpt-6.1-sol high",
+  "consumer": "/root model unknown",
+  "independentReviewer": "/root/guard_review gpt-6-astra high",
+  "source": "server/internal/handler/issue_access_test.go",
+  "beforeSha256": "b520a8a4b5491c84021af926801e6f9e151a5e7cb6f29bc8e53d4b1930ce2d3f",
+  "afterSha256": "c9af45e4093d6c0e062c67725cd62a5e8fec43ec6650a7dc9c4f0969c607bd56",
+  "delta": "OnlycustomstatusINSERT addcolor/#6b7280; started/53names/allassertions/defaults/constraints unchanged",
+  "rootCause": "ActualacceptedcurrentcolorNOTNULL/defaultNULL; actualsourceomission",
+  "hostProof": "Samechecker actualSTATICSOURCE-SCHEMARED1→GREEN0, notPostgreSQLbusinessRED",
+  "sourceReview": {
+    "sha256": "2fa5b3b6133431ac6be61ab699b088ddf6c3166498415a0a9567884da0f3f272",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-handler-fixture-color-r1-independent-review.md"
+  },
+  "originalTF": {
+    "path": "docs/tasks/contracts/R1-ISSUE-READ-GUARD-r2-test-frozen.json",
+    "sha256": "122ecf2523369c1184c2e74037801b3df019dda847f0a3ae554bb1e9417c2624",
+    "unchanged": true
+  },
+  "nativeConsumerRebind": "OriginalNativeTF801immutable; thisoneprotectedtestfileoldb520historical→currentc9 explicitlyaccepted. Nativeeditedfile0364 unchanged, production/Auth/schema/grants/otherprotectedsource unchanged. Futurephase/actualGo dependencycollector mustbindcurrent, notpretendoldall36match.",
+  "freshCompile": "R2handler actual937f3827/source1217/ELFe4bfa133; independentactualreviewpending atcapture",
+  "no": "NoDB/defaults/permissions/testdeletions/skip/nativehelper/contextrecovery",
+  "runtime": "NOTRELEASED/handler53NOTRUN",
+  "goal": "ACTIVE"
+}

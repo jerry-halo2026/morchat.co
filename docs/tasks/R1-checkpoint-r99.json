@@ -1,0 +1,61 @@
+{
+  "checkpoint": "R99",
+  "schemaVersion": 1,
+  "root": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "branch": "codex/round1-continuous",
+  "previousTurn": "NO_PROGRESS_EXTERNAL_QUOTA",
+  "thisTurn": "PROGRESS_ACTUAL_ENV20_AND_REVIEWED_SOURCE_FIX",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "blockerAudit": 0,
+  "env20": {
+    "csc": 0,
+    "strict20Match": true,
+    "review": "ca52e1d5ea975f803aa1656d0a15f35ba259b6668b2ea87f0d9c5229a3ec717b",
+    "observation": "6e375cbf8bffaa53780fefd53639b5025526cdba8dd664b1c50e30dc922e1da6",
+    "actual": "353e1e exit0"
+  },
+  "goCompile": {
+    "finalReview": "ACTIVE",
+    "sourceFixRound": 1,
+    "driver": "65afa8635e12c4b88819d6f4f58201f361667b48318b61a6234b39b4cf5758e8",
+    "rootRelease": "4c5a0969926708ca7601cae27e71f33a301296aa72e1c50284998219602d774f",
+    "sourceReview": "2442e899ef9c86183f46a4c77d3ed3b12b3140b61035a0f6d117616b0bfae55b",
+    "actual": "NOT_RUN"
+  },
+  "csharp": {
+    "actualCompiler": 0,
+    "model": "configured gpt-6-astra xhigh",
+    "owner": "/root/compiler_env_fix5",
+    "shared2df4": "READONLY",
+    "round": "5/5",
+    "status": "SOURCE_ONLY_ACTIVE",
+    "sourceContract": "2a3c04b3ecb0e8ee3d0677b200d8bd48dc54c62e874c5db34d27a058ffea1307"
+  },
+  "r98": "ROOT_UNREVIEWED_PRESERVATION_NOT_REVIEWED_SNAPSHOT",
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSHA256": "00ac74efe098159dd09f36d12aaacede895a8ba6647b79c471fa6cfea61d729e",
+      "sha256": "d294fe7889d35014f4acf8808ed3af45602cfd97e5a620f9df11ca1013e8fa42"
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "beforeSHA256": "3e55188f33abfa061faec37fad0c6dfaac0eae184731ac0e8d8cc8a43ebee4e5",
+      "sha256": "386d9ad582957c9f29e52de756069e2ed331f9e72b77c35b7ced27cd8f7fbf3b"
+    },
+    {
+      "path": "docs/tasks/R1-02D2-windows-failclosed-tests.md",
+      "beforeSHA256": "b91627a94e24c34ec2c2a9f1ff853d3f32223da3667a9e5b9a72e89a131c00b9",
+      "sha256": "b37ebb9f45116f9b514edcf4fb8ea320fb96a3ba26d8609048c91c16dbc4da54"
+    },
+    {
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "beforeSHA256": "901ce77c8abef22f922b516619b7a42c37a55ef610706c79240b857338a2ca4a",
+      "sha256": "48f750c2f7b0e5cc5718e810f0929cd8809599bf7a0ad91107e0fbc3e3220f1f"
+    }
+  ],
+  "independentReview": "PENDING",
+  "utc": "2026-11-08T12:40:53.4483352+00:00"
+}

@@ -1,18 +1,26 @@
+---
+purpose: "自动保存与最小双设备接续证伪方案"
+owner: b07-continuity
+status: current
+updated: 2026-11-06
+related:
+  - docs/NATIVE-RUNTIME-RESEARCH.md
+  - docs/WINDOWS-DSH-INTEGRATION.md
+  - docs/WORKSPACE-CONTINUITY.md
+---
 # 自动保存与最小双设备接续证伪方案
-
-> **〔2026-11-06 基座切换注记〕** 任务/run 权威已由 Paperclip 切换为 Multica fork（基线 164290ee），新基座契约见 [MULTICA-BASE](D:/dev/morchat.co/docs/MULTICA-BASE.md)。本文中 Paperclip/相关机制研究保留为参考；受影响条款的等价契约在 MC 门禁族重定位（DISCOVERY D11）完成前暂缓作为权威引用。
 
 > 2026-11-05，两台 Windows 11 x64 原生设备的待执行验证方案（Mac 预备）。本轮只写文档，没有编写测试代码、安装服务、调用模型或实施断电/断网。Ethan 已确认：要接续工作，不搬进程；保存点必须自动，不能依赖员工手动提交。本文件是 P0 的最小实验规程，不是编码实施计划或执行授权。
 
 **目标：**证明所选最小技术组合能自动留下完整的公司保存点；原执行设备不可用时，另一台获授权设备能继续工作；不能以丢文件、重复动作、旧写覆盖或越权换取可用性。
 
-**架构：**公司后台保留 Paperclip 任务/运行权威和已确认保存点，Git/版本资产持有实际内容；A、B 各运行本地完整 harness，模型经公司网关调用云端。接续创建新尝试和新工作区，不迁移旧进程。
+**架构：**Multica 是统一客户端/后台及唯一 task/run/调度权威，中央持有已确认保存点关联，Git/版本资产持有实际内容；A、B 各运行本地完整 DSH harness，模型经公司网关调用云端。接续创建新尝试和新工作区，不迁移旧进程；不依赖 Paperclip remote adapter/PCWS，不导入 OpenMausBot runtime。
 
-**技术范围：**一个选定 harness、两台独立 Windows 11 x64 原生设备、固定发行物及版本；Mac 仅保留接口准备，不阻塞首轮；不以 VM、WSL 或 Docker 作为客户端依赖或替代验收。先按 [原生运行与 Harness 核查](D:/dev/morchat.co/docs/NATIVE-RUNTIME-RESEARCH.md) 做原生能力预检和选路，获实施授权后建立含 Paperclip workspace/snapshot 的最薄链；NG-01–06 全部通过后，才计分验证 W1→W2 与 W2→W1 的 Git/普通文件恢复；不扩展工作流、多引擎产品或任意桌面软件控制。按多供应商 Chat Completions／Messages 需求，DeepSeek Harness 调整为优先验证候选，Codex App Server 保留对照/备选；不是已通过选型，NG-04 协议门禁见原生核查 §4.1。
+**技术范围：**一个选定 harness、两台独立 Windows 11 x64 原生设备、固定发行物及版本；Mac 仅保留接口准备，不阻塞首轮；不以 VM、WSL 或 Docker 作为客户端依赖或替代验收。先按 [原生运行与 Harness 核查](NATIVE-RUNTIME-RESEARCH.md) 做原生能力预检和选路，获实施授权后建立 Multica 权威任务关联＋公司自动保存/恢复的最薄链；NG-01–06 全部通过后，才计分验证 W1→W2 与 W2→W1 的 Git/普通文件恢复；不扩展工作流、多引擎产品或任意桌面软件控制。按多供应商 Chat Completions／Messages 需求，DeepSeek Harness 调整为优先验证候选，Codex App Server 保留对照/备选；不是已通过选型，NG-04 协议门禁见原生核查 §4.1。
 
-**DSH 优先的组件细化：**按 [Windows DSH最小接入](D:/dev/morchat.co/docs/WINDOWS-DSH-INTEGRATION.md) 优先验证官方ACP＋MXC原生ProcessContainer。先冻结实际Windows build/有效tier、公司profile、run级模型通道或更细工具隔离；补远程adapter与明确PCWS节点入口后完成WI/NG，不因ACP能聊天或HTTP返回成功就进入计分故障实验。浏览器另域，ACP占用事件不作计费，取消ACK不作整树终止。以下保存/损失/恢复参数保持不变。
+**DSH 优先的组件细化：**按 [Windows DSH 最小接入](WINDOWS-DSH-INTEGRATION.md) 优先沿 Multica 官方 daemon DSH 路径验证。ACP 非必需协议；MXC 等仅为待验证隔离组件。冻结实际 Windows build/有效 tier、公司 profile、run 级模型通道或更细工具隔离；在唯一 Multica 权威下完成自动保存、条件提交与恢复验权，再完成 WI/NG。不能把能聊天、HTTP 成功、手动上传或会话落盘当作计分前提已满足。以下保存/损失/恢复参数全部保持不变。
 
-**依据：**[工作空间接续设计](D:/dev/morchat.co/docs/WORKSPACE-CONTINUITY.md)、[群协作与设备池](D:/dev/morchat.co/docs/DISTRIBUTED-COLLABORATION.md)、[源码证据](D:/dev/morchat.co/docs/CROSS-DEVICE-REFERENCE-RESEARCH.md)。本方案是 WC/DC 的第一轮小实验，不能替代完整门禁或上线验收。
+**依据：**[工作空间接续设计](WORKSPACE-CONTINUITY.md)、[群协作与设备池](DISTRIBUTED-COLLABORATION.md)、[源码证据](CROSS-DEVICE-REFERENCE-RESEARCH.md)。本方案是 WC/DC 的第一轮小实验，不能替代完整门禁或上线验收。
 
 ## 1. 自动保存的硬要求
 
@@ -59,7 +67,7 @@
 
 ### Windows 原生断言与 Mac 预备边界
 
-原生安装、公司认证、Python/Node 与选定浏览器、权限隔离、进程树取消、休眠/唤醒、文件兼容和真实 Paperclip 快照接入先按 NG-01–06 核验。任何一端不通过，不进入计分 DV。第一次安装的系统授权或正常业务审批允许人工确认，但自动保存/补传不能靠人工。
+原生安装、公司认证、Python/Node 与选定浏览器、权限隔离、进程树取消、休眠/唤醒、文件兼容和真实 Multica 任务关联与保存点接入先按 NG-01–06 核验。任何一端不通过，不进入计分 DV。第一次安装的系统授权或正常业务审批允许人工确认，但自动保存/补传不能靠人工。
 
 工作包使用跨平台相对路径，预置受支持依赖而非复制 A 的 venv/node_modules；两端核对实际字节和 Git staged/unstaged 层次，不自动做行尾转换。中文/空格路径作为正例，名称大小写/Unicode 碰撞、Windows 保留名/ADS/尾点尾空格、链接逃逸、文件被占用作为负例；不能静默改名或漏存仍称完整。检测不兼容后保留公司版本并明确拒绝激活。
 
@@ -197,9 +205,9 @@ Mac 预备保留平台生命周期、安全存储、路径/名称、工具权限
 
 ## 6. 最小建设与执行顺序（本轮不执行）
 
-以下是 G4 的接续子流程，不替代总体 [G0→G1 预检→G2 版本生效→G3 权限撤销→G4 接续→G5 合流](D:/dev/morchat.co/docs/DISCOVERY-BASELINE.md)。G2/G3 的安全与版本前提先通过，再计分 DV；无需先实现完整产品 UI。NG/DV 两台原生设备与完整 DC/WC 第三不合格设备负例分别记证据。
+以下是 G4 的接续子流程，不替代总体 [G0→G1 预检→G2 版本生效→G3 权限撤销→G4 接续→G5 合流](DISCOVERY-BASELINE.md)。G2/G3 的安全与版本前提先通过，再计分 DV；无需先实现完整产品 UI。NG/DV 两台原生设备与完整 DC/WC 第三不合格设备负例分别记证据。
 
-1. **前置确认：**确认两台 Windows 11 x64 原生范围、参数、版本/摘要、合成资料及专用设备；按原生核查的多协议要求做两端能力预检并比较 C 与 A/B 接入成本，冻结一个载体，核对设备与中央相互独立；这里不要求 NG-06 已接通。没有真实试验/实施授权不进入下一步。
+1. **前置确认：**确认两台 Windows 11 x64 原生范围、参数、版本/摘要、合成资料及专用设备；按原生核查的多协议要求做两端能力预检沿 Multica 官方 daemon DSH 路径核查，必要时比较备选后冻结一个载体，核对设备与中央相互独立；这里不要求 NG-06 已接通。没有真实试验/实施授权不进入下一步。
 2. **建立最薄验证链：**仅接任务/设备、本地 harness、公司模型通道、自动保存与恢复；读取上述阶段证据并提供可控故障切点。无须先做完整群聊、面板和业务连接器，必要状态用受控诊断页/日志呈现；正式任务权威不得用 mock 替换。建好必要接入后完成 NG-01–06 全部验收，NG-06 验的正是这条真实链，全部通过才进入下一步计分 DV。
 3. **先跑 DV-01：**自动保存和并行基线不通过，先修它，不靠手动提交继续演示。
 4. **按 DV-02→DV-05：**确认后断电→保存中断电→断网旧进程存活→旧机重连，逐步证明恢复与旧写隔离。
@@ -211,3 +219,9 @@ Mac 预备保留平台生命周期、安全存储、路径/名称、工具权限
 ## 7. 文档交付与当前状态
 
 2026-11-05 按 Ethan 最新收敛：从 Win/Mac 双系统首轮改为两台 Windows 11 x64 原生双向实验，Mac 预备但不阻塞；按多供应商协议方向将 DSH 设为优先验证候选。保留 NG 前置门禁、故障切点与建议参数，并同步导航、PRD、runtime、工程与建设顺序；不创建产品模块、测试脚本或假数据报告。后续真实执行才记录 RESULT_LOG 和证据文件，当前所有 DV 用例均为 **NOT RUN**。
+
+## 8. 2026-11-06 基线迁移与状态边界
+
+> **2026-11-06 当前基线：Multica 是统一客户端/后台及唯一 task/run/调度权威；DSH 完整 harness 在员工 Windows 本机运行，云模型经公司网关调用。** Paperclip 只作治理参考或经许可/依赖/安全审查后的独立源码候选，不要求其 remote adapter、Runner 或 PCWS；OpenMausBot 仅作协作参考，不导入 runtime。Multica 原生 Web @→本地 DSH 文件/回复/token 已实测通过；自动归档失败、手动上传通过、匿名 uploads 返回 200 是 P0 失败，不能称端到端通过。企业隔离/权限/自动保存/接续仍待验证。
+
+本次仅迁移实现归属，DV-01–08、全部子切点/双向重复、参数与失败门槛未放宽。当前所有 DV 仍 NOT RUN；推荐参数不是批准的 SLA，也不是通过记录。C07/B07 负责接续/保存，C05/B05 runtime、C06/B06 派发、C08/B08 模型用量按 Discovery。无合格在线设备明确等待，全关机停止，不设云端 harness 兜底。撤权立即阻止新的中央准入；在线设备按受控范围清理公司缓存并记录回执，离线设备不能承诺立即抹除。

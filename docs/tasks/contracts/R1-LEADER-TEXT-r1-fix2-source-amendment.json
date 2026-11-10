@@ -1,0 +1,65 @@
+{
+  "revision": "R1-LEADER-TEXT-r1-fix2-format1",
+  "status": "TEST_FROZEN_SOURCE_ACCEPTED_COMPILE_NOT_RUN",
+  "originalFrozenContract": {
+    "sha256": "cd2ad1f68e01d4470f1e3e27eff163b25599a4237b0e0b8cac00ead60ee98ef3",
+    "path": "docs/tasks/contracts/R1-LEADER-TEXT-r1-test-frozen.json"
+  },
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "owner": "/root/leader_test_impl",
+  "ownerModelRoute": "gpt-6-sol high",
+  "consumer": "/root",
+  "consumerModel": "unknown",
+  "reviewer": "/root/leader_joint_review",
+  "reviewerModelRoute": "gpt-6-astra high",
+  "sourceReview": {
+    "sha256": "52ab5b59a2d24792200c024fdd57bf41fc6008fc10ab141c39282294fb60efca",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-tests-r1-fix2-independent-source-review.md"
+  },
+  "formatReview": {
+    "route": "gpt-6-sol medium",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-tests-r1-format-r1-independent-review.md",
+    "agent": "/root/leader_format_review",
+    "sha256": "1b2bbd064f7609d30240851368cf724cc1be726048f61062c86c64207a9d4a55"
+  },
+  "source": [
+    {
+      "sha256": "117104d3a3f70d6d207b03353480c69686c67ce3865a887cbad3c196d7ae8977",
+      "path": "server/cmd/server/r1_leader_auth_tx_integration_test.go"
+    },
+    {
+      "sha256": "204555ffa9f2ddb3df86cce9c216e9f2a00eece644eab6cf5c14029bcbb6286d",
+      "path": "server/cmd/server/r1_leader_vertical_integration_test.go"
+    },
+    {
+      "sha256": "2e874fc7e1003c10cb81251ce432c482e8230c70050e3dc0d06bbff22f7d60b5",
+      "path": "server/cmd/server/r1_member_revocation_epoch_integration_test.go"
+    }
+  ],
+  "writeSet": [
+    "server/cmd/server/r1_leader_auth_tx_integration_test.go",
+    "server/cmd/server/r1_leader_vertical_integration_test.go",
+    "server/cmd/server/r1_member_revocation_epoch_integration_test.go"
+  ],
+  "sourceWindow": "CLOSED_AUTHOR_STOPPED",
+  "inventory": {
+    "expectedNamedEvents": 118,
+    "leaves": 106,
+    "parents": 4,
+    "pureOracleLeaves": 15,
+    "sha256": "041b99fbcb466c688d6b19f090c340e76c9d619823f4188e004a64c21a08950c",
+    "groups": 8,
+    "apiLeaves": 91,
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-tests-r1-fix2-source-inventory.json"
+  },
+  "runtime": "NOT_BOUND_NOT_RELEASED_NOT_RUN",
+  "compile": "NOT_RELEASED_NOT_RUN",
+  "production89Paths": "CLOSED",
+  "requiredPending": [
+    "actual typecheck/compile and expected named-event accounting",
+    "new isolated Leader schema/role/fixtures/key before original TestMain",
+    "source/attachment phantom and pre-auth actual observation remain NOTBOUND hard failures",
+    "full UI, Windows, real model/usage, asset/version and actual dual-device gates"
+  ],
+  "note": "Original frozen contract and prior handoffs/reviews remain immutable. This records reviewed test-source revisions only, no BUILD freeze or product completion."
+}

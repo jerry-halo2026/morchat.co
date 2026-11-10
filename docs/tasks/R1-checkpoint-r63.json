@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R1-63-handlerfixture-currentcandidate-Leader3testsfreeze",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "01a1b0e9-ce05-7273-bbb3-b6f3d0708f30",
+  "status": "active",
+  "previousCheckpoint": "docs/tasks/R1-checkpoint-r62.json",
+  "previousSha256": "e43f106525182b05663477a58729e41fd8bb04efc73a930524232e0d8a849ff9",
+  "previousReviewSha256": "5846462265617f7aba6ea0c92a7ebfeecf5a2764d0002d0fe3d1b4ff1fcee509",
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "sha256": "18d9ccef6df7ff29edc38db7bb318301147c4c6968e070572ad60bde1b4bb81b",
+      "beforeSha256": "b5a32ba88c61ad42b3f1e7300f9e2f3ec3d474f7184f4284e7d87be3399b0521",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-01D-issue-guard.md",
+      "sha256": "c39db7737d15a358a39a8901fedd549c13a0a575ecf2bd199840f46409bdd94c",
+      "beforeSha256": "9388b8acd7ff46d1bfca5633be550e14d543e470c629a3686b6c182c29f64c8d",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-03-reliability.md",
+      "sha256": "bcdf34af45975c2d65e4256001dab80921b8969d8b0143d3328dcc2879feafb0",
+      "beforeSha256": "2b62d6b9cc6d5ac295e758d826612be7cb24e335cff2ceffb5f7eb2327ce556a",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "sha256": "9d34ddde4cc1d383ebe13b17bfc05fb47056285bfab137e3472a3c47f487b63b",
+      "beforeSha256": "dacb4b52630760949081eeda7bcb8920b46028ee382dcd77d166ee8fadac2d9e",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/contracts/R1-ISSUE-READ-GUARD-fixture-color-r1-source-amendment.json",
+      "sha256": "d5592ed386cca2011ea24f72c7df3f0edfb217a18a8ab4aa042ab08c968d75d1"
+    },
+    {
+      "path": "docs/tasks/contracts/R1-LEADER-TEXT-r1-test-frozen.json",
+      "sha256": "cd2ad1f68e01d4470f1e3e27eff163b25599a4237b0e0b8cac00ead60ee98ef3"
+    },
+    {
+      "path": "docs/tasks/R1-03A-leader-text.md",
+      "sha256": "749205668c855e0b944cf9b00c7b3f2c3f1fc54d0682220bff6301d95b97f4c6"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-leader-text-tests-first.md",
+      "sha256": "8afdec86ed0b35ec058918402252ea77752c820311b21fa796c47b49f87fa43a"
+    }
+  ],
+  "evidence": [
+    {
+      "sha256": "68108ff63c6f620ae88c786a363b3a157d6f8b4d5af0023f3c68d78108f88945",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-handler-fixture-color-r1-handoff.json"
+    },
+    {
+      "sha256": "2fa5b3b6133431ac6be61ab699b088ddf6c3166498415a0a9567884da0f3f272",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-handler-fixture-color-r1-independent-review.md"
+    },
+    {
+      "sha256": "4baae4585bff939d7145cd8d8fe49cbe8bc3a0f8ebcd2fa391b452c25dc5b430",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-handler-runtime-r2-independent-scoped-review.md"
+    },
+    {
+      "sha256": "c6063f50f837204063e46fbeeb697861a4f3f1579ba499297568dfe6936952c4",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-handler-context-r2-generation-metadata.json"
+    },
+    {
+      "sha256": "a67b01b64e5f981084fce89438cb147577c0f0e1611bbfeb35542cebe78a2685",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-joint-r1-independent-review.md"
+    },
+    {
+      "sha256": "09b071d503a62c827492400b5f8871cd63943323b4a24bf313937fe3114e6611",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-tests-r1-owner-ack.json"
+    }
+  ],
+  "sourceFixtureCurrent": "c9/SOURCEAPPROVED2fa5/staticonly",
+  "handlerR2compile": "937f/e4bf/1217 actual5steps0; actualreviewPENDING",
+  "handlerRuntime": "NOTRUN;H1static4baa/probe+finalbindingpending",
+  "newContext": "FreshprivateRootCSPRNGmetadata c606/privatehash4337/newnotrecovered; noJWT/helper/model",
+  "leaderSourceWindow": "CLOSED pendingexactregistration/Rootdispatch",
+  "leaderRuntime": "NOTRELEASED/79plannedleavesnotruns",
+  "production89": "NOTAUTHORIZED",
+  "fullGoal": "ACTIVE NOTCOMPLETE",
+  "review": "PENDING_INDEPENDENT_REGISTRATION_REVIEW"
+}

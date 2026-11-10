@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R92",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "branch": "codex/round1-continuous",
+  "previousCheckpoint": "R91",
+  "previousSha256": "bf42ef14202a1175b4ba5233e43b92c4c550b383774f6d20146a24ab2d3b3f42",
+  "previousReviewSha256": "72fb9adfc5c40d09bb62964b83de5746c80ccbc1de14403648e8dbfc76b6dc02",
+  "previousSnapshotSha256": "ae62d4ae5a19814e5cef4adbae7ba8308ce582670a41c470131495af8a4ddfa2",
+  "previousRootAcceptance": "c2d7fd0e62a53676d0d4238ac451fa6dc490023e902a56dc1903244c16dc4369",
+  "currentProgress": "ACTUAL_INSTALL2_FAIL_WITH_POSTMORTEM_EVIDENCE_AND_THREE_ISOLATED_SOURCE_WINDOWS",
+  "installer": {
+    "cleanup": "COMPLETE",
+    "newActualPermission": false,
+    "beforeAfter": "b42ded61d8b3d969ad1d240ef3932122a2ac88403cf7d555e0ba5222a7478c5a",
+    "actualObservation": "97b152ddceb8c1cc6318d4bb06797aa0e1ba676e4b6f78fcdee04ce9ecb19ebf",
+    "RootRelease": "d257e33e537bdb22abfb7938f38b1f82b6f95ded8f7ab62b26bbe4fdd79375ce",
+    "postmortemMetadata": "aafca6f03284a31f0549654195e8e307feb89432328019e486f56243b160c91c",
+    "actualReview": "2bd0e973d80363db8a4797faa12626db5e42735bb80a5cd754829581b47ebb8d",
+    "tableReview": "0d1167ae6687310b8c3988deba30974a02236d525a356ec3e96dc54a222f5888",
+    "movePermission": false,
+    "actualStatus": "FAIL_SCAN_TERMINATED_CAPTURE_UNKNOWN_NODE_EXIT_NULL",
+    "source": "ACTIVE_7NEW",
+    "nextDesign": "19fecf38747725445631d9884d9a941952cac4f54675ec0ec8a700e417b22dd2",
+    "fix3Handover": "09072d12fa68d7e9bbc1531f1d4270da054c0768d0146b54e21e8006b203183f",
+    "actualResult": "901ec94ebe18556728c5057ef5060d84bb070415fdbc84e39bf00665b3fe7987",
+    "paths": 8363,
+    "fix3TF": "7c54f45550910fb37e085c2ff40030e50e026db0770ec5b44e8381e6091ae1be",
+    "runtimeReview": "a5abb08bce0c0125435b7bbd7d228dcbacc64a84018d84fb7c58a4364f05c70a",
+    "sourceReview": "5c25f88d8893076584a64bb596209df8a6120b20f06f4c0ed7430be79f71defb"
+  },
+  "Windows": {
+    "runtime": "CLOSED_OBSERVER_UNBOUND",
+    "compileControlTF": "cd0aca1e3944c8ed4a1f1da93ad275903c62bdf097c6757517bfeedfdcc74de9",
+    "actualR2Compile": "NOT_RUN",
+    "source": "ACTIVE_7NEW",
+    "HOST": 121,
+    "sixFindings": "SOURCE_ADDRESSED_ONLY",
+    "sourceReview": "0860a6bc376121c1caa1dea67888ee07dbf692cfac14bdb3890aa1acb42d05a1",
+    "compileDesign": "21e3b5a766250a0bb7ddd4d1546249181822fef16cd2f6115e8c346bd303b8a0"
+  },
+  "NativeP32": {
+    "oldCause": "UNKNOWN",
+    "source": "ACTIVE_7NEW",
+    "actual": "CLOSED",
+    "freezePackage": "fd7cfa697078facb6f24c72920c2ae29ee974d3b4ac80b8d64369752eb4c9a09",
+    "HOST": 13,
+    "sourceTF": "62c7e403378a2fd32876a43190beba6608cddd133de29e0519d8b4a7d1479dde",
+    "memoryReview": "fa25c5062cdb938a026cd05ed0bc19aeef19213ebd547307fd45ef845ac809e0",
+    "extraPrivateRead": 0,
+    "packageReview": "31d1aa04a5994de5c86761c1fd3d0610658845d783e1a4dee4d9629fcaf31784"
+  },
+  "pgLocalAuthAudit": {
+    "sha": "3528de4043e97586779d6b63cd7007fb1e8a1f6747452af648adb2ce3aa449d3",
+    "status": "SOURCE_NEGATIVE_ROUTE_ONLY_PENDING_INDEPENDENT_REVIEW",
+    "actualTargetOps": 0
+  },
+  "allRepoProductWriters": "CLOSED",
+  "goal": "ACTIVE",
+  "fullGoal": "ORIGINAL_SCOPE_ALL_THREE_SLICES_AND_SAME_CANDIDATE_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "files": [
+    {
+      "beforeSha256": "2fba6f0aabea2485cd2cd66842ca130f4d13e950e2a65c2d0d23e22bbfd1026f",
+      "beforeBytes": 217550,
+      "sha256": "34b8f7bf0fa830c75d4abec61b54d63ad93980adb4692473ad7cfcc940d1a2b5",
+      "appendOnly": true,
+      "path": "docs/tasks/ACTIVE.md"
+    },
+    {
+      "beforeSha256": "31afc3d86f697661a6b8e6e1c52742b265da40858e13e8d21c281ce6d88f53b7",
+      "beforeBytes": 207589,
+      "sha256": "72f0093f0342387e0338c2bb6ef458c415a00ec35d831ea09ecd425b9de8260b",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-results.md"
+    },
+    {
+      "beforeSha256": "2262f1944c5993015f9611903e08850161c1efab0719c7ca0b20c6b7df00ea0f",
+      "beforeBytes": 19419,
+      "sha256": "e54aa36e1c284aeed17cf1b02439b2e92ffa3860a7a34dd364755f19d1135b21",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-00-baseline.md"
+    },
+    {
+      "beforeSha256": "606e774cd7eab38eea820dce518e9f5b109843b0a1d151e913a341ff4f537f8f",
+      "beforeBytes": 2779,
+      "sha256": "22cb5223c1e6d7d72f6ee1b820578118bb2b4cc19d664a7b3cc31bcbb718e981",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-00-pnpm-install-argv-compat-r2.md"
+    },
+    {
+      "beforeSha256": "e865e1ddf36f28a8f14528cb161707993c02e83f5914c865096e0a86680c3a5c",
+      "beforeBytes": 944,
+      "sha256": "f7ae7a56bc56ddad643a0ac3d8d74dc3f0853f3daa4d5f6b30a1db7de1ec17eb",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-00-pnpm-install-projectlink-r3.md"
+    },
+    {
+      "beforeSha256": "700a785be3bb916cbecdd4a029b3a0504fb7c50dcabab1ecf02f7620ad43c536",
+      "beforeBytes": 3731,
+      "sha256": "70d0d96849c17fa6f32aa24132e12837b05ead6a7ae25dd794f315fd19a571c6",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md"
+    },
+    {
+      "beforeSha256": "ea5cc7b81f77b8294db4989191c6df1320458c7c46aa4d40da00775c5cbf7518",
+      "beforeBytes": 3790,
+      "sha256": "60a180010a7428b6d7b9078108104f16f4e9da72b571a50100ec04ae48e2de2b",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-03B-native-pins-diagnostic.md"
+    },
+    {
+      "beforeSha256": "fdbbd4d21b69fab4f222f3e973a0d04bb9e0e905bfddbd5ee33c68f2313f3fa9",
+      "beforeBytes": 34569,
+      "sha256": "839a4a2923a990492c1340642ee76dca25d33335b9326594054879a94a882068",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-03B-leader-foundation.md"
+    },
+    {
+      "beforeSha256": "bb607ede5d54173c71b2871438e9f08285f26b8e757e55bd812086924da3b66d",
+      "beforeBytes": 34114,
+      "sha256": "4b023a1268862f3ea7af3400e9782f3996829780783e4aa700bec363b3f4cc18",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-02-execution.md"
+    },
+    {
+      "beforeSha256": "21cfc5516946869c7bf840d32e82b074f703490c01be9a1c2afd32c7e6e63f99",
+      "beforeBytes": 8093,
+      "sha256": "870d541ed152ac67513424a5dabe3c0ff57dd9eb70762847c3f4b1144a993a92",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-03-reliability.md"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+export { RetrievalTestPage as default } from "@morechat/views/knowledge";

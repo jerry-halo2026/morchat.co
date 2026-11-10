@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R69",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "status": "F5_SOURCE_REVIEW_HOLD_FIX1_IN_PROGRESS_PRECISION_TEST_FROZEN",
+  "previousCheckpoint": "R68",
+  "previousSha256": "c0a5fe03e568f43f53d5260c0155827e58cc85ac35f13de08ad95ec57eb945ea",
+  "previousReviewSha256": "786f35d15cc89439000708fb241976b0e497a0ac8038c2639912ce7adf59f242",
+  "previousSnapshotSha256": "0a02c39f4f3879787cb14d9b70b70c36a8bb43c311283c5a5d8b10c74514a4b7",
+  "files": [
+    {
+      "appendOnly": true,
+      "sha256": "10d60f9b7e6c4fa146d53a173b616481dbaa3471610289c015fa17dd8c7c052e",
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "2eb1a8aed010189a93b001c8fe87f8cadde04c2058db39570b12c0a363e78093"
+    },
+    {
+      "appendOnly": true,
+      "sha256": "ddd30291e145e735e4b17ff3efa6071ba7c7036e49169426f14aba7a331ca45f",
+      "path": "docs/tasks/R1-01D-native-clone.md",
+      "beforeSha256": "3d289f18920ea0651d2ca7a50abd5f08e96689c6428263c1def42d256f967ee0"
+    },
+    {
+      "appendOnly": true,
+      "sha256": "8b19cd836d5f8698838eaea919ffb66d70b28e44a4a0c889b792e48e09db25d4",
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "e9c1aef9ef8bae3be6f3279194ca977af17e18d7cbfb75e4269570baa823b108"
+    },
+    {
+      "appendOnly": true,
+      "sha256": "158d20a815af660ffcfc049fc2895bafdf7b0e57e01139cdf21ee512e52a33d0",
+      "path": "docs/tasks/R1-01D-issue-guard.md",
+      "beforeSha256": "4f6d913e12378274e11922e3000694e7a4f00b77778a053c15870005a3a972e8"
+    },
+    {
+      "appendOnly": true,
+      "sha256": "8261964025f9583074e93ce44dc4365f83e89c5e6998faabdacb65e75dda4a9d",
+      "path": "docs/tasks/R1-03A-leader-text.md",
+      "beforeSha256": "4f54863b0fff24c4220b54b8f9a47cccac80af866a55b49cc6b70f030897ead0"
+    },
+    {
+      "appendOnly": true,
+      "sha256": "44636ae16a34f73b826b96cac89c564951e49b806477a560cabbefd9c8194cdd",
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "beforeSha256": "ba6d44292983a892ec63cfc3e02c4974c23ea346e1141a4e018071861ab6ef16"
+    },
+    {
+      "newSinceR68": true,
+      "sha256": "574fd168c8ecb0aefb402208eca18f52ee17cbd13a84f1fe3d516ea36f2817f6",
+      "path": "docs/tasks/contracts/R1-LEADER-FOUNDATION-r1-schema-precision-test-frozen.json"
+    }
+  ],
+  "foundation": {
+    "sourceHandoff": "e1f960f971b074286f24b7012e8db68e55fb87bf2316a6da1d7e7c1a3ddcf9e5",
+    "verdict": "HOLD_4_ITEMS",
+    "soleWriter": "/root/leader_foundation_impl",
+    "expectedEvents": 9,
+    "precisionFrozen": "574fd168c8ecb0aefb402208eca18f52ee17cbd13a84f1fe3d516ea36f2817f6",
+    "sourceReview": "43848779a7cc1d674875a942bd1ac59f66878009dd133570ba6eff686f4443c3",
+    "configuredRoute": "gpt-6.1-sol high",
+    "precisionReview": "0398429708ab0d40358ad345f7efbf1fac5888ce9d4bd49838dff92b921a0de4",
+    "sourceBeforeFix": "c3c69498db7d4a298b6912847559f9211c1b3cc99cb77a0356a1ac10efb17cdb",
+    "actualSchema": "NOT_RUN",
+    "sourceRelease": "767c657a895246770c5f0735ec7bd3b0cc1c13dc6672cff8c1a5f5318e55517b",
+    "currentSourceAfter": "NOT_CAPTURED_WHILE_WRITER_ACTIVE",
+    "fixRound": "1/5"
+  },
+  "guardFixture": {
+    "runtimeProjection": "20_TABLES_286_COLUMNS_NEW_EPOCH_PENDING",
+    "sourceApplied": false,
+    "review": "5f46f08b6d824e3540dc25ab69fddf88125f3753ce1bed45a0dbd2f8d29afa6f",
+    "candidatePatch": "72160788ceb3d4f6a154eb83aad16dd2de0dcefe37314dcb31181285568f34f7"
+  },
+  "facility": "PREPARATION_ONLY_NATIVE_641_FULL_MIGRATION_BASENAMES_MAX617_NOT_CREATED",
+  "handler53": "49_PASS_4_FAIL_OVERALL_FAIL_RETAINED",
+  "native37and4": "NOT_RUN",
+  "leader118": "NOT_RUN",
+  "allOtherSourceWindows": "CLOSED",
+  "actualGoOrDb": "NO_NEW_EXECUTIONS",
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

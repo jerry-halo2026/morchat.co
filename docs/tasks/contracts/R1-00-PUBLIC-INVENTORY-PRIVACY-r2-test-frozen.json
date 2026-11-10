@@ -1,0 +1,83 @@
+{
+  "actualContentReadOrHash": 0,
+  "consumer": "/root",
+  "reviewer": "/root/frontend_baseline_review",
+  "task": "R1-00-PUBLIC-INVENTORY-PRIVACY",
+  "ownerConfiguredModel": "gpt-6.1-sol high",
+  "actualMetadataCollection": 0,
+  "privateIO": 0,
+  "models": 0,
+  "metadataCandidateSHA": "74c6d0f9274f4aede20a0abd400574087d146debe4ae0184732d2f6d9165644d",
+  "consumerModel": "unknown",
+  "priorSourceFix1ApprovalSHA": "4ed25a070c1de8c750ecc5a32e4263f4e4a0c3d9a28806a36639b62dbe959a0d",
+  "reviewerConfiguredModel": "gpt-6.1-sol high",
+  "rules": [
+    "Exact canonical fixed7paths, qianchuan-sync directory includes descendants; matched before candidateauthority check/descent/Hash/targetaccess",
+    "Do not read content or metadata beyond available parentname for excludedpaths; record explicitNOT_READ_EXACT notbyteunchanged",
+    "Root approvalcannot include excludedpath/subtree; existing names exclusions and allrequiredpins/index/root coverage remain",
+    "No exemption for anyrequiredRoot/pin/index/source config; deny duplicates/overlap/empty/UNC/escapingpaths",
+    "Only7exceptions fixed; do not infer64source namedcredentials areprivate; classification uses separateHEAD/index metadata review",
+    "No actualpathscan/tableextension duringcodephase"
+  ],
+  "unchanged": "FixedNode/pnpm/28argv33env10importers/ignoreScripts/noPnpmfile/version0/lock/protectedEsource/index/noDcontent/monitor/capture/once/53sourcefixsemantics",
+  "exactNOT_READ": [
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\packages\\qianchuan-sync",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\QIANCHUAN-DATA.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\QIANCHUAN-API-DEV.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\archive\\2026-11-06-before-multica-authority-migration\\QIANCHUAN-DATA.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\archive\\2026-11-06-before-multica-authority-migration\\QIANCHUAN-API-DEV.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\archive\\2026-11-04-pre-platform-review\\QIANCHUAN-DATA.md",
+    "E:\\CodexData\\worktrees\\r1-02b-claim-pin\\morchat.co\\docs\\archive\\2026-11-04-pre-platform-review\\QIANCHUAN-API-DEV.md"
+  ],
+  "schemaVersion": 1,
+  "testScope": "Purememory fakeFS andAST TDD: zeroaccess excludedfile/dir descendants, exactboundarynotprefixcollision, authorityexclusiondeny evencallerapproved, ordinarysource64 notglobexcluded, requiredinputexemptiondeny, lifecycle regressions",
+  "revision": "r2",
+  "sourceModifyOnly": [
+    {
+      "beforeSHA": "90dd68510624b90735647cc2f789c4c710d5ece2254f8d04817e558ab21bd7e2",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-launcher.CLOSED.ps1",
+      "preserved": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-PRIVACY-BEFORE\\launcher.CLOSED.ps1"
+    },
+    {
+      "beforeSHA": "30c55a0a21590c3941931e3511f8b5a30d19c73f1efcdced631f2b5b3be8c0fa",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-profile.CLOSED.json",
+      "preserved": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-PRIVACY-BEFORE\\profile.CLOSED.json"
+    },
+    {
+      "beforeSHA": "ac0f36c58ff8bde66937c1cf506590b620a0472cafa5cd44ddd4d211f1ad3c0f",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-host-tests.ps1",
+      "preserved": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-PRIVACY-BEFORE\\host-tests.ps1"
+    },
+    {
+      "beforeSHA": "eecfe94fcb63c183a12133e4a0398e8ceab46b75781ebb0894c21561bf387e1f",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-host-results.json",
+      "preserved": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-PRIVACY-BEFORE\\host-results.json"
+    },
+    {
+      "beforeSHA": "8d09cbb3984e56ad745ea1af738070276f0aaeb9303221d9a8adc55aef59109d",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-source-report.md",
+      "preserved": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-PRIVACY-BEFORE\\source-report.md"
+    },
+    {
+      "beforeSHA": "6e2044707eefcd40c69bd72ad0afa3fa7ed382543a1e245ea4001c2f74eee2d2",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-source-manifest.json",
+      "preserved": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-PRIVACY-BEFORE\\source-manifest.json"
+    },
+    {
+      "beforeSHA": "48da223bbdb1428f6232f891c2e23bffaa0f8dd82f79b1aeff637d738b1c8727",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-source-diff.json",
+      "preserved": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-PRIVACY-BEFORE\\source-diff.json"
+    }
+  ],
+  "metadataBoundaryReview": {
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-install-r1-public-path-boundary-independent-review-r1.json",
+    "sha256": "239a798d3547e29f8c3e2984130630d0bf3a696f414948dfc326b40f51250bdc"
+  },
+  "status": "TEST-FROZEN_NARROW_SOURCE_ONLY_NOT_INSTALL",
+  "noSubagents": true,
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "sourceDelta": "Only profile exact-path exceptions+Get-PublicInventory+Test-PublicPathAuthority and their direct shared helpers/tests/report/manifest/diff. No broadnameglob substitute.",
+  "NodeOrNetworkOrInstall": 0,
+  "OSProcessSDK": 0,
+  "producerOwner": "/root/frontend_install_impl"
+}

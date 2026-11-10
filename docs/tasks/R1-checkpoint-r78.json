@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R78",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "previousCheckpoint": "R77",
+  "previousSha256": "a407b4dda8eb8f4d7cd007c1ad25fa456ad0b51faf951c97896f217d18b20b38",
+  "previousReviewSha256": "df37ee8cc0f4d65a0de1a5485d592fedacf6efbf0859f29af85f6533adc1a129",
+  "previousSnapshotSha256": "8b970318f7ef2eadb0397bdf6abc9aee67f6a4fc7ac0cb6cc33fcae90780cfe1",
+  "files": [
+    {
+      "sha256": "d841475956b4627b13b450b2c54137785729330ef84430a61bf3e815e531dbb8",
+      "beforeBytes": 169581,
+      "beforeSha256": "209a3cccaeb229d7a45c2d15b674f5a379cb37e72c6d5cf6989e1d2e72882d5e",
+      "appendOnly": true,
+      "path": "docs/tasks/ACTIVE.md"
+    },
+    {
+      "sha256": "dc663959afed0e3fe3cb3dc05d870744acea59703b0ddf41de2d352bf0f816cf",
+      "beforeBytes": 161582,
+      "beforeSha256": "8f21cd9f533b1b97f382d0a81850c6e8b914e7bab0d0d379944a4a3690b743e0",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-results.md"
+    },
+    {
+      "sha256": "b79eeb3dfefa61df0572039d23b85fdcf90f037188d921189a68bced0042bc71",
+      "beforeBytes": 29066,
+      "beforeSha256": "e8f7a9e3bccb90a2a2faddcc12de85d741a983f529909d1e63ce01269e5525be",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-02-execution.md"
+    },
+    {
+      "sha256": "ef3a21ac01c882ca4628198bef803a657c038625d1e83881623ce5b22785bb20",
+      "beforeBytes": 12917,
+      "beforeSha256": "a795f8e1f4c9a0ef072ed2b1dac6882e2608ed219c3a5da382556c0a08baf07a",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-02D-windows-dsh-process.md"
+    },
+    {
+      "sha256": "76cbf26b306989ac82c60300cdc64780d7b2c25e25ab9215c2baecf09f0e6d18",
+      "beforeBytes": 21688,
+      "beforeSha256": "c241d48486e01ed4ad97edcbe1e974ebc5f9d8ffedf8b79477771b3b62837678",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-03B-leader-foundation.md"
+    },
+    {
+      "sha256": "e1d2b73e37f0549a645831959cee8b917ac306a5d87eaf2a7f5474acd882e059",
+      "beforeBytes": 11126,
+      "beforeSha256": "8579e52a2999095fc8cfdd34e30dea911caf6fbfff83a1d57b21342fe1172fd4",
+      "appendOnly": true,
+      "path": "docs/tasks/R1-00-baseline.md"
+    },
+    {
+      "sha256": "d76dd5522c1ea9ea5844257a1dd24b93d7180288458b43ba567a8b7e1cde6847",
+      "immutableSourceHandoverBinding": true,
+      "createdSincePreviousCheckpoint": true,
+      "path": "docs/tasks/R1-03B-admin-sqlcompat.md"
+    },
+    {
+      "sha256": "b609572fdd3e89905bf2eb15ed641cbf2b46c6e1a40b6d6346929fa8e485d440",
+      "immutableSourceHandoverBinding": true,
+      "createdSincePreviousCheckpoint": true,
+      "path": "docs/tasks/contracts/R1-03B-ADMIN-SQLCOMPAT-r1-test-frozen.json"
+    },
+    {
+      "sha256": "d229c0d85bc58d613e453d75d4a3b5d7fec260e1c3efee75c0f2592870e322f9",
+      "immutableSourceHandoverBinding": true,
+      "createdSincePreviousCheckpoint": true,
+      "path": "docs/superpowers/plans/2026-11-08-admin-sqlcompat.md"
+    }
+  ],
+  "windowsCompile": {
+    "manifest": "ec85ace38093c9bcfdeeae2ca8bb6d0d25ce1266a0d8e827fdffe58533abe4fe",
+    "fixturePE": "3fe44875f155c878c96bb98919920b5cfaba2864e8f377445a317a72e439f59c",
+    "actualReview": "0bc6d8b3f95741258073fb5e3ce1df74b963ece28e8664a939fce1b2e1f3b36b",
+    "executed": false,
+    "runtimePermission": "NONE",
+    "agentSourceRows": 219,
+    "status": "ACTUAL_EIGHT_PASS_EXIT0_INDEPENDENTLY_ACCEPTED_COMPILE_ONLY",
+    "session4004": "TERMINAL_EXIT0_SAME_HANDLE",
+    "fixtureSourceRows": 3,
+    "testPE": "e9c87a61181cef5a364a51443f564862464bdc6a97a16cb89cbf30cf078e00b4"
+  },
+  "sqlCompatibility": {
+    "newActualReadAttempts": 0,
+    "newSourceContract": "b609572fdd3e89905bf2eb15ed641cbf2b46c6e1a40b6d6346929fa8e485d440",
+    "implementer": "/root/admin_sqlfix_impl",
+    "newPurposeApproval": "15f7c3a0bed1e2812a75fcfd2031f28684cc2640599bf71a87a106fb8deb2929",
+    "oldClaim": "PERMANENT_CONSUMED_OLD_READER_UNUSABLE",
+    "oldA04": "FAIL3_BASELINE_NOT_PASSED",
+    "newRuntimeLease": "NOT_CREATED_NOT_APPROVED",
+    "extraCap": 1,
+    "status": "TEST_FROZEN_SOURCE_IMPLEMENTATION_RUNTIME_CLOSED",
+    "allRepoSourceWriters": "CLOSED_ONLY_INCIDENT_IMPL_ARTIFACTS_OPEN",
+    "actualOldReadAttempts": 1,
+    "currentTotalCap": 2,
+    "sql": "b58032ef488172f4234059ad2254df76830362b3853c0db7018796efdcc4bdcc",
+    "configuredRoute": "gpt-6.1-sol high",
+    "sourceHandover": "57030e74b55250740eff00ad9bfa6493b72cc8425b274a69a720f41bdfdb368a",
+    "bootstrapBudget": 0
+  },
+  "windowsRuntime": "READONLY_CAPABILITY_PROPOSAL_ONLY_NO_JOB_PROFILE_TOKEN_RULE_CREATED",
+  "oldFailures": "PRESERVED_ALL_NO_MAIN_PUSH_PRODUCTION_MODEL_FEES",
+  "fullGoal": "NOT_COMPLETE_ALL_ORIGINAL_HARD_GATES_RETAINED",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

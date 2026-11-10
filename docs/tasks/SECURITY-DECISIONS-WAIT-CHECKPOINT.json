@@ -1,0 +1,29 @@
+{
+  "status": "WAITING_TWO_EXPLICIT_HUMAN_SECURITY_DECISIONS",
+  "head": "2d0215f37da0897c66df686fc5948df74a76257d",
+  "fullObjectiveRetained": true,
+  "credentialCopy": {
+    "sourceSecretReadByAgent": false,
+    "workaroundAttempted": false,
+    "denial": "auto-review before CreateProcess",
+    "decision": "PENDING",
+    "snapshotExists": false
+  },
+  "newCompanyPolicy": {
+    "deniedAuthHunkApplied": false,
+    "blockedHelperExists": false,
+    "decision": "PENDING",
+    "workspaceSHA256": "A9CEC22D642EC0220D7709EE4C820328F74D4CB7992915F467D35CE06AC7E88F"
+  },
+  "safeCurrentSlices": {
+    "noOtherReleasedIndependentWork": "current source windows closed; dependent B/real model integration require pending decisions",
+    "schemaOnly": "619UP9actualPASS, originalbootstrapRED retained",
+    "startupLogin": "reviewed local commits dc8fe73/51e23d9, real user login confirmed",
+    "localAccountGuards": "2d0215f37da0897c66df686fc5948df74a76257d: exact4file reviewed local commit,20unit/6scope plus4nativeOFFLINE modes",
+    "dshLiveUsage": "cf05990: reviewed27Linux/23Windows/4consumer, real fees not claimed"
+  },
+  "realSupplierModelRequestsByAgent": 0,
+  "mainMerged": false,
+  "publicPush": false,
+  "wholeGoalComplete": false
+}

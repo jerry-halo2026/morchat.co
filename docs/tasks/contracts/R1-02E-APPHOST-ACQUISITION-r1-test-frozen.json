@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "task": "R1-02E-APPHOST-ACQUISITION",
+  "revision": "r1",
+  "status": "TEST-FROZEN_SOURCE_PREPARATION_ONLY_ACTUAL_GET_CLOSED",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "owner": "/root/service_compile_r1",
+  "ownerConfiguredModel": "gpt-6.1-sol medium",
+  "consumer": "/root",
+  "consumerModel": "unknown",
+  "reviewer": "/root/dsh_runtime_review",
+  "reviewerConfiguredModel": "gpt-6.1-sol high",
+  "exactProfile": {
+    "sha256": "8d16c3e190be4235df84c38446259903f05c9099d53f445bc502ca05a9c29051",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-profile.CLOSED.json"
+  },
+  "rootConsumer": {
+    "sha256": "3eaf61e39481b241af3106ff5c35f10600ad8da8e5e116036ebbc0973eab5d96",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-root-consumer-ack.json"
+  },
+  "designReview": {
+    "sha256": "367565451fb71276577ca4a2567bfffac8c1ad39345b745fa1698904e79393bd",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-acquisition-design-independent-review.json"
+  },
+  "sourcePrefix": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-acquisition-",
+  "sourceWriteSet": [
+    "driver.CLOSED.ps1",
+    "host-tests.ps1",
+    "host-results.json",
+    "source-report.md",
+    "source-manifest.json",
+    "source-diff.json"
+  ],
+  "maxGetAttempts": 1,
+  "deadlineSeconds": 300,
+  "maxBytes": 1073741824,
+  "unknownContentLengthAccepted": true,
+  "downloadAuthorization": "CLOSED_UNTIL_DRIVER_REVIEW_AND_ROOT_ONCE_RELEASE",
+  "permittedSourceTests": "Pure/memory-stream response descriptors and archive synthetic in-memory fixtures, no network/file acquisition outputs, no compiler or target",
+  "requiredNegativeCases": [
+    "redirect/non200",
+    "oversize known and unknown stream",
+    "timeout/cancellation/cleanup",
+    "partial EOF or SHA512 mismatch",
+    "duplicate/alias/traversal/ADS/symlink target",
+    "wrong target length/hash",
+    "existing output/refuse overwrite",
+    "no SDK/installation mutation"
+  ],
+  "templateExtraction": "Only exact fixed member after full archive SHA512 match; CreateNew owned leaf; do not install",
+  "autoRetry": false,
+  "cookies": false,
+  "defaultCredentials": false,
+  "proxy": false,
+  "redirect": false,
+  "SDKOrHostModelLoad": false,
+  "compile": false,
+  "link": false,
+  "target": false,
+  "productSourceWrites": false,
+  "modelCalls": 0,
+  "privateIO": 0
+}

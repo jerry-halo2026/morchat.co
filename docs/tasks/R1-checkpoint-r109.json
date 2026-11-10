@@ -1,0 +1,58 @@
+{
+  "checkpoint": "R109",
+  "root": "/root",
+  "model": "unknown",
+  "head": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "branch": "codex/round1-continuous",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "previousTurn": "PROGRESS",
+  "thisTurn": "PROGRESS_LINKFIX1_DELIVERY_AND_COLDSTART_ABI_AMENDMENT",
+  "link": {
+    "ownershipFacts": "UNBOUND",
+    "status": "FIX1_SOURCE_NARROW_REVIEW_ACTIVE",
+    "driver": "6db9b872622dafd99be14a4d449bc603800a2659c0a2bade7f69e7df727c139c",
+    "profile": "40dab0b110a22cf66ef13fb938ac0814cbb327bbaae3c8abc01f8136599ec274",
+    "actualPermission": false,
+    "reviewer": "/root/guard_review"
+  },
+  "O0": {
+    "actualPermission": false,
+    "owner": "/root/native_o0_source_impl",
+    "SourceReady": false,
+    "model": "configured gpt-6.1-sol high",
+    "O0Ready": false,
+    "sourceAmendment": "d6136117635c9e5306cc843cf5c6691a752f40bce98902078061c34b075ad8e2",
+    "ownerACK": "ACTUAL",
+    "status": "SAME6SOURCE_AMENDMENT_ACTIVE",
+    "initialReport": "1329925c8c5d6eb033ebbc989698aba0e9f425904901238a92fdd7c8c64ab565",
+    "actorACK": "ACTUAL",
+    "coldstartDesign": "68cdc52ee64b44dcc93dfbe5ef8f69b1f798a76ca3fa7af3f26cc6ec4ba7a2dd"
+  },
+  "files": [
+    {
+      "sha256": "21a2b1e419b1eeedf35215cbc608fe850f171a00779cc4bc10e6761cca79c273",
+      "beforeSHA256": "8676bfeea472346ccaa6cf90837de3867137854a8a2e49aca00706002f1e0406",
+      "path": "docs/tasks/ACTIVE.md"
+    },
+    {
+      "sha256": "312e5aec6aa293316cbbd44f0f3255a81bb3d993a62bb3c0c82f938499b1fcfb",
+      "beforeSHA256": "e6f62599afc6052cf431014c1a52d6f8ca786c65db882bf64a7a4356fed971d2",
+      "path": "docs/tasks/R1-results.md"
+    },
+    {
+      "sha256": "c58c0e4357eacf80da3ca49e8703e13bdfaaadfbee3a2604f49dc32fa06bc7f8",
+      "beforeSHA256": "ca08ae723fbe046600b1a6038d12c92cb12134cbab2c6318ecb522fbd8a036ab",
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md"
+    },
+    {
+      "sha256": "1559705a4dd91c761516bfd386d57a8d3ce551977f0a3e933e9ce23d57e8064e",
+      "beforeSHA256": "27684c77c961f57a9f297cc1717bee833efe76ce3ac0b0415324bfcb730fede0",
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md"
+    }
+  ],
+  "independentDocsReview": "PENDING",
+  "rootOwnedProductExecLive": false,
+  "productModelCalls": 0,
+  "blockerAudit": 0,
+  "utc": "2026-11-08T18:50:54.1378650+00:00"
+}

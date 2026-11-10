@@ -1,0 +1,64 @@
+{
+  "actualCreateNow": 0,
+  "newPositiveQueryBatchesGranted": 0,
+  "producerRoute": "gpt-6.1-sol high",
+  "SQLRepairReadQuota": "UNCHANGED_EXTRA1_TOTAL2_BOOTSTRAP0",
+  "writeSet": [
+    "leader-pg-sqlfix-resource-r1-executor.CLOSED.ps1",
+    "leader-pg-sqlfix-resource-r1-host-tests.ps1",
+    "leader-pg-sqlfix-resource-r1-host-results.json",
+    "leader-pg-sqlfix-resource-r1-implementation-report.md",
+    "leader-pg-sqlfix-resource-r1-implementation-report.json",
+    "leader-pg-sqlfix-resource-r1-implementation-manifest.json",
+    "leader-pg-sqlfix-resource-r1-public-fixtures/"
+  ],
+  "futureResourceCap": 1,
+  "revision": "r1",
+  "futureCreateAttemptCap": 1,
+  "allRepoSourceWriters": "CLOSED",
+  "status": "TEST_FROZEN_SOURCE_PREPARATION_ONLY_RUNTIME_CLOSED",
+  "sourceTask": "MINIMAL_DERIVE_FIXED93_NEW_PROFILE_SIX_RESOURCE_RECORDS_NO_A04_NO_READER",
+  "task": "R1-03C-SQLFIX-RESOURCE",
+  "implementerRoute": "gpt-6.1-sol medium",
+  "writeRoot": "E:\\CodexData\\incidents\\morchat-20261106T233131",
+  "runtime": "NONE_PENDING_NEW_SOURCE_REVIEW_EXACT_RUNTIME_BINDINGS",
+  "commandsNow": "PUBLIC_HOST_PURE_TDD_ONLY_NO_PROCESSSTART",
+  "producer": "/root/leader_pg_facility_prep",
+  "oldExpiredResources": "NO_RESTART_DELETE_EXTEND",
+  "inputs": [
+    {
+      "sha256": "faf60a7fac84c15c63cc46eb71eb3831e74315c91e54953535e2f12a8a7b6e34",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-sqlfix-resource-r1-proposal.json"
+    },
+    {
+      "sha256": "ef769dc0558752127a09b7c4542243cacedd58132b2a1a6afed2758dc25cbc6f",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-sqlfix-resource-r1-plan.CLOSED.json"
+    },
+    {
+      "sha256": "6402e461c7393bebc4cbd3482697bf4d23a4d44494851ced930a03d202f249a9",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-sqlfix-resource-r1-root-consumer-ack.json"
+    },
+    {
+      "sha256": "f19c0506fd973a8d83e71bac2f1a542f20e0ecaa6e35fb4ad11b7044c52b2351",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-sqlfix-resource-r1-independent-review.json"
+    },
+    {
+      "sha256": "8e261376ea693c9bb6e2f328c2166037f808e36b1aadd8dc587b561f1a226a3f",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-sqlfix-resource-r1-implementation-brief.md"
+    },
+    {
+      "sha256": "93a88e4bbadf2c0f08afbd71340db2bae98bb385c04831c306d80170e46156ff",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-r4-executor.ps1"
+    }
+  ],
+  "NoAutomaticReplacementChain": true,
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "backendTelemetry": "UNAVAILABLE",
+  "newReadsGranted": 0,
+  "consumerModel": "unknown",
+  "implementer": "/root/sqlfix_resource_impl",
+  "reviewerRoute": "gpt-6-astra high",
+  "oldClaims": "PERMANENT_CONSUMED_NO_REUSE",
+  "reviewer": "/root/guard_review",
+  "consumer": "/root"
+}

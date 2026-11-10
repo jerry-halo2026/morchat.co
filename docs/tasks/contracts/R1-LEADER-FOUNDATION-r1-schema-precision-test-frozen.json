@@ -1,0 +1,63 @@
+{
+  "task": "R1-03B-LEADER-FOUNDATION",
+  "revision": "r1-schema-precision-role-erratum",
+  "status": "TEST_FROZEN_PRECISION_ONLY_NOT_BUILD_FROZEN",
+  "originalSourceContract": {
+    "sha256": "31c8b6159597108528671702a2c59776c252ff897e64ddfa21cfdf9804316d3f",
+    "path": "docs/tasks/contracts/R1-LEADER-FOUNDATION-r1-test-frozen.json"
+  },
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "schemaOwner": "/root/leader_auth_owner",
+  "schemaOwnerConfiguredRoute": "gpt-6-astra high",
+  "producerConsumer": "/root/leader_vertical_owner",
+  "sourceConsumer": "/root/leader_foundation_impl",
+  "sourceConsumerConfiguredRoute": "gpt-6.1-sol high",
+  "reviewer": "/root/leader_joint_review",
+  "reviewerConfiguredRoute": "gpt-6-astra high",
+  "controller": "/root",
+  "controllerModel": "unknown",
+  "independentBackendModelTelemetry": "UNAVAILABLE",
+  "inputs": [
+    {
+      "sha256": "7fdafdd9319c12dd67fb52117913ebdc30fa61bc24cb96e18a140848036b73ed",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-schema-precision.md"
+    },
+    {
+      "sha256": "f09266478bc12a5bac0549785bf538d53ffb8f7afe30902e51fde06b5e8bb99f",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-schema-precision.json"
+    },
+    {
+      "sha256": "a9f280081bcf40bd79c488744aa2bc3e79379a3ccd8d71384f656616de88d885",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-schema-precision-role-erratum.json"
+    },
+    {
+      "sha256": "466dda2b501d9767c3e7ae08a1ccc40f9c13d142bc38f47042aa6d3d3edfd0ee",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-schema-precision-producer-ack.json"
+    },
+    {
+      "sha256": "966ff63ae87382715ffc6e60a1832821cb541c60733e1abd7c687e528fefc74a",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-schema-precision-independent-review.json"
+    },
+    {
+      "sha256": "e1f960f971b074286f24b7012e8db68e55fb87bf2316a6da1d7e7c1a3ddcf9e5",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-foundation-r1-f5-source-handoff.json"
+    }
+  ],
+  "frozenLayout": "Exact root23 / permission19 / tombstone10 columns, types, nullability, PK-FK, deferral and SQLSTATE from f092, only rolepredicate amended by a9f28; ordinary native Squad role unrestricted",
+  "rolePredicate": "Controlled member_1/member_2 references native squad_member.role=member; native task leader_role worker_1/worker_2 is separate; no changes to native084/API/current118",
+  "slots": "10 fixed slots; leader_wait uses existing native task.result metadata-only control receipt, never new11th root slot/second queue-or-authority",
+  "hashes": "BYTEA32 digests distinct from slot hex64; root expires bound max30m, permission itself has no borrowed30m cap",
+  "loaderRuling": "Pure private schema loader only in F5 file, own F5 fixture SHA/Epoch NOTBOUND. Replaces old r1LeaderOpen login/Redis/full118 dependency, not any Auth test. Original NativeTestMain and external prelaunch ownedDB/profile/strictURI/live database-user-session/source-pinned v1 fixture and six exact CurrentQueryProofs baseline canonical/hash fences retained.",
+  "bindings": "All real newDB identities/baseline hashes/fixture SHA/Epoch/private context remain NOTBOUND until actual separately reviewed facility and binding",
+  "sourceState": "F5_SOURCE_WRITER_STOPPED_SOURCE_C3C69498_PENDING_INDEPENDENT_CODE_REVIEW; ALL_OTHER_SOURCE_WINDOWS_CLOSED",
+  "source": {
+    "runtimeExecuted": false,
+    "expectedNamedEvents": 9,
+    "path": "server/cmd/server/r1_leader_foundation_schema_test.go",
+    "sha256": "c3c69498db7d4a298b6912847559f9211c1b3cc99cb77a0356a1ac10efb17cdb",
+    "actualSourceReview": "PENDING"
+  },
+  "tdd": "Actual applicable schema RED with independent acceptance before F1-F4 implementation; F0 Auth-file literals separate native borrow lane needs approved fixture/freshELF; F6 only after accepted actual nativebusinessRED otherwise no unnecessary patch",
+  "scope": "No eighth source, production Auth/query/generated/newLeaderAPI/other89 open; no old4DB/globalcatalog/roles/service35/handler42/sealedJWT/privatekey changes",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE_ALL_HARD_GATES_RETAINED"
+}

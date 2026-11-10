@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "task": "R1-02E-RUNTIME-ADAPTERS",
+  "revision": "r2",
+  "status": "TEST-FROZEN_SOURCE_ONLY_NO_OS_NATIVE_COMPILE_LINK",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "producer": "/root/windows_runtime_owner",
+  "producerConfiguredModel": "gpt-6-astra high",
+  "owner": "/root/windows_runtime_impl",
+  "ownerConfiguredModel": "gpt-6-astra high",
+  "actualB05Consumer": "/root/windows_process_consumer",
+  "B05ConfiguredModel": "gpt-6.1-sol medium",
+  "RootConsumer": "/root",
+  "RootModel": "unknown",
+  "reviewer": "/root/windows_runtime_r2_review",
+  "reviewerConfiguredModel": "gpt-6-astra high",
+  "proposal": {
+    "mdSHA": "219893cba2821edda64eccdb19966b364ccf71f9e71e4f8bef4452a002ac8b2f",
+    "sha256": "13346e7abd34db7ec6b98ecc33663655e02f52320460211f8644e600e4c680a9",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r2-next-source-proposal.json"
+  },
+  "ACKs": {
+    "Root": "289364ea7b379698e05224ff81ee46e33b37f8c257fc28cebf8076f24fb58ede",
+    "implementer": "848b0a1abab36e197c1443ebd9830d470871be5eb414af2475f6b6dd43ff20ad",
+    "B05": "c43e8353211a9267fa7340ed0866fde7170aa8d872d76bc67137780654950ab1"
+  },
+  "independentDesign": {
+    "mdSHA": "dfca0c27c523119ced6f925738d4b155b6896b77e146351a7701bf2e0808fd4a",
+    "sha256": "cc5fb1fc44b5cdcac41e8e89f8ac58acc390fb9445c07ae9a1e157a6c917b112",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r2-design-independent-review.json"
+  },
+  "sourceModify": [
+    {
+      "beforeSha256": "b4655984d802f869a1b1850c2645a85d7768e5ea7f67b780db5462da1b88a4ed",
+      "preservedPath": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r1-source-edition-PRESERVED\\windows-runtime-containment-r1-launcher.cs",
+      "preservedSHA": "b4655984d802f869a1b1850c2645a85d7768e5ea7f67b780db5462da1b88a4ed",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-containment-r1-launcher.cs"
+    },
+    {
+      "beforeSha256": "db505ffa3343b765cc5530579bffd9f6ccc622adef1dcd4a3f0f3fd63fec1a6c",
+      "preservedPath": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r1-source-edition-PRESERVED\\windows-runtime-containment-r1-probe.cs",
+      "preservedSHA": "db505ffa3343b765cc5530579bffd9f6ccc622adef1dcd4a3f0f3fd63fec1a6c",
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-containment-r1-probe.cs"
+    }
+  ],
+  "sourceNew": [
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r2-bound-runtime.cs",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r2-supervisor.cs",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r2-prepare.CLOSED.ps1",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r2-source-tests.ps1",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r2-profile.CLOSED.json",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r2-source-report.md",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r2-source-report.json",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r2-source-manifest.json",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r2-source.diff",
+    "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-r2-source-tests.results.json"
+  ],
+  "allOtherWrites": "FORBIDDEN including oldprofile/statictests/reports/once/Repo-Go-TestMain/SDK-lock-DLL-PE-RunRoot",
+  "mandatoryCorrections": [
+    "typedfactory fails closed/noeffects SOURCE-COMPILE/onlyPROBEpartial3cases/TARGETconverterreject; precreate livechecks vs postcreate tokenJobfacts beforeResume separated",
+    "both supervisor->launcher rescue assignment atcreate and launcher->probe inheritedrescue windows closed; no ordinaryCreateThenAssign fallback",
+    "role-rights-closeowner-ACK table; only originalCreateProcess handles via authenticated finite DuplicateHandle, noPIDreopen/integertransfer; no testJob/rescue owner duplication/leak; localreaders staylocal; boundedloss stickyunknown",
+    "AssignmentAttemptLease controls actual AssignProcessToJobObject handle; real negative reducedrequiredrights/BOOL+LastErrorimmediate, originalfullhandle retainedkillwait, noMockFalse asnative",
+    "freshnonce exacttransactionhashes retained; explicitsecurity-recipe normalization only enumeratedfreshness identities/path derivations, neversecuritysemanticdifferences; expectedNegative separatefromPassed and requirespositivecontrol/cleanup",
+    "fixedsyntheticwritecontract all6surfaces, bothpositivecases marker+roleEvidence inSCRATCH, optionalaccessGate/controllerprotection, CLR/WER/profileHKCUunknown/overflowdeny; nohardquotaJobmemorysubstitute",
+    "partialBOOTSTRAP_PROBE_PARTIAL neverfullsuite/TARGET; newsource invalidatesoldDLLPE binding; threeentries r2source/provenance/newoutputs requirelatercompilelink, no oldonceresume",
+    "preparedefinitions/staticloadnoOS/clock/writes, no selfRootgrant/elevation/feature/user/globalACL/firewallservicechanges; comparebeforechange/ownedrollback/unknownquarantine"
+  ],
+  "firstCaseSet": [
+    "Marker",
+    "TokenFacts",
+    "BeforeResumeFailure"
+  ],
+  "firstNativeBatchAuthority": "NOT_GRANTED_futureatmost3 independentnonceRootreleasesonlyaftercodecompileOSimpactreview",
+  "sourceTests": "PowerShell HOST/AST/model REDGREEN only, no Add-Type/C#assembly/native/realOSClockQuery/Process/Identity/Job/Token/ACL; later actualC#fakeinterface tests separatelyreviewed",
+  "requiredMatrices": [
+    "default/null/unbound/expired/replay/oldartifact/peerhash/caseTARGETdeny",
+    "death at everytwoBirth/registerACK boundary/noresume/noownerjobduplicate",
+    "rightsownershipcloseonce/localrecovery/lateack/watchdog/cleanupstickyUnknown",
+    "realparameternegativeleasemechanism/normalownernotclosed/unknownNoAcceptance",
+    "freshhashdifferent/sameexactrecipepair/no securitynormalization",
+    "sixsurfaceunknown/sharedpositivewrites/controllerreceiptprotected/newsourceOldPEDeny"
+  ],
+  "runtime": "CLOSED",
+  "TARGET": "HARD_ENFORCED_ALL_SURFACES_UNRESOLVED_NO_EXEMPTION",
+  "W2": "fouroriginalabsolutereadonlysources/omitGORACE/full274init34extern/actualGoP0RED-originalfuncnilnon-nillogger/2canceltests3s10s45s/allunchanged",
+  "OSPermission": "NONE: futureRootasksEthanonceexactperuserprofile/HKCU/ACL/OSobjects AFTERsourcecompile/fullimpactevidence; no UAC/firewall/features/VM/users/rootrunsnow",
+  "budgets": {
+    "models": 0,
+    "WindowsIdentity": 0,
+    "OSQuery": 0,
+    "privateIO": 0,
+    "link": 0,
+    "compile": 0,
+    "network": 0,
+    "SDK": 0,
+    "profileHKCUACL": 0,
+    "Process": 0,
+    "native": 0,
+    "DB": 0,
+    "Docker": 0,
+    "actualTests": 0
+  },
+  "noSubagents": true
+}

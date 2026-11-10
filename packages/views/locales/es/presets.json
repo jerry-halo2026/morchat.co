@@ -1,0 +1,50 @@
+{
+  "page": {
+    "title": "Preesets",
+    "stats": "{{agents}} agentes · {{teams}} equipos · {{skills}} habilidades",
+    "search": "Buscar preesets, habilidades o miembros",
+    "reset": "Restablecer",
+    "loading": "Cargando el catálogo de preesets…",
+    "catalog_error": "No se pudo cargar el catálogo de preesets.",
+    "catalog_error_hint": "La galería lee index.json desde {{baseUrl}}. Publica el repositorio de preesets como archivos estáticos en esa ruta y vuelve a intentarlo.",
+    "retry": "Reintentar",
+    "no_matches": "Ningún preeset coincide con este filtro.",
+    "offline": "No se pudo acceder al repositorio de presets. Se muestra la lista integrada; las habilidades y los inicios se cargan al recuperar la conexión."
+  },
+  "kinds": {
+    "all": "Todos",
+    "agent": "Agentes",
+    "team": "Equipos"
+  },
+  "card": {
+    "meta": "v{{version}} · {{skills}} habilidades"
+  },
+  "preview": {
+    "no_description": "Este preeset aún no tiene descripción.",
+    "version": "Versión",
+    "skills": "Habilidades",
+    "skill_counts": "{{indexed}} indexadas / {{declared}} declaradas",
+    "files": "Archivos",
+    "members": "Miembros",
+    "mismatch": "plugin.json e index.json no coinciden en el paquete de habilidades. La importación usa las del índice.",
+    "skill_list": "Habilidades incluidas",
+    "requires": "Requiere: {{list}}",
+    "plugin_error": "No se pudo leer plugin.json: {{error}}",
+    "starters": "Inicios de conversación"
+  },
+  "import": {
+    "start": "Importar preeset",
+    "running": "Importando…",
+    "runtime_required": "Conecta un runtime antes de importar un preeset: un agente necesita un runtime para ejecutarse.",
+    "done": "Se importaron {{skills}} habilidades y {{agents}} agentes ({{updated}} habilidades actualizadas).",
+    "failed": "La importación falló.",
+    "step": {
+      "load_skills": "Leyendo los paquetes de habilidades",
+      "import_skills": "Importando habilidades",
+      "create_agent": "Creando el agente",
+      "create_members": "Creando los miembros del equipo",
+      "create_squad": "Creando el equipo",
+      "save_instructions": "Guardando las instrucciones del equipo"
+    }
+  }
+}

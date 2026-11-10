@@ -1,0 +1,59 @@
+{
+  "checkpoint": "R101",
+  "root": "/root",
+  "model": "unknown",
+  "head": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "branch": "codex/round1-continuous",
+  "sourceReadBase": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "previousTurn": "PROGRESS",
+  "thisTurn": "PROGRESS_WHITELIST_SOURCE_COMMIT_AND_FIXED_SPEC_ACK",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "localCommit": {
+    "files": [
+      "server/pkg/agent/proc_windows_test.go"
+    ],
+    "sha": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+    "deletions": 0,
+    "mainMerged": false,
+    "pushed": false,
+    "review": "830dca50fcfa364ad30bb0e4aac58df6d41c58b25ef9f719a9a8792c29e4f80c",
+    "actualCompileReview": "9c33071a01926d815effe195312c611bd36e6620cee27ba89bb88c3eb0bd0e8f",
+    "sourceBytes": "328058dbfd9a231dde2fa3fb0470e3f621b77aa29c8600afbd95b94c0320e572",
+    "nativeRED": "NOT_RUN",
+    "insertions": 326,
+    "formatFresh": "PASS"
+  },
+  "observer": {
+    "b05ACK": "abc58edbbeb795c56c5c46d9bcaf91266e7595d7cda21f46462e028385fbb65e",
+    "reviewer": "/root/windows_runtime_r2_review",
+    "testFrozen": false,
+    "status": "SPEC_REVIEW_ACTIVE_DAG_AND_TDD_LAYER_CLARIFICATION",
+    "sourceImplementationAllowed": false,
+    "spec": "0587df2cf693c712dedd8d7a0657dca3ed74e4945538a5d9fec43061fb3e9dda",
+    "nativePermission": false
+  },
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSHA256": "584d977efee4b5b8e5ec95fdc23e4528c825efd72811d13db7828fbfe82f7dc8",
+      "sha256": "0908736cf56081c789a9002460f31b8fba24afa2f84a48b34168a8ad0d7eaf22"
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "beforeSHA256": "b3a372b2dd4243466eb45ccb07cb4b0db5974121afebb4eaeac12b535b598df5",
+      "sha256": "ee3e0cf3ee796962e28a2437ea54665bb943e3b9dab0c4ca7b7984037b40e95e"
+    },
+    {
+      "path": "docs/tasks/R1-02D2-windows-failclosed-tests.md",
+      "beforeSHA256": "241cf3b64fb51456ccb4858526ba2489c95e22182bf181192d16881ffb488155",
+      "sha256": "1669e28070cdda2425ab4ec162d901e559d8f2262dd8c30dd572b9b407a14584"
+    },
+    {
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "beforeSHA256": "f38c6ad2bfd98a392dc4194a5e34289f5856e29a690634fbcb6755291eea9b6f",
+      "sha256": "73f632e4d2e9776510c8869a3b7888ac42412732febce187f2da5a0e13565014"
+    }
+  ],
+  "independentDocsReview": "PENDING",
+  "utc": "2026-11-08T14:25:44.2314688+00:00"
+}

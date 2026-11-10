@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>avatar slot sizes</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f7f7f5; color: #1b1b1a;
+    font-family: "Inter", -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  .sheet { padding: 28px; display: flex; flex-direction: column; gap: 20px; width: 760px; }
+  .section { background: #fff; border: 1px solid #e6e6e0; border-radius: 10px; padding: 14px 16px; }
+  .section h2 { margin: 0 0 2px; font-size: 13px; font-weight: 600; }
+  .section .note { margin: 0 0 12px; font-size: 10.5px; color: #8a8a84; }
+  .cap { position: relative; display: inline-flex; align-items: center; justify-content: center; overflow: hidden; flex: 0 0 auto; }
+  .cap-body { position: relative; display: block; }
+  .cap-eyes { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .list-row { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 8px; border-radius: 6px; }
+  .list-row + .list-row { border-top: 1px solid #f0f0ea; }
+  .row-id { width: 64px; font-size: 11px; color: #9a9a93; font-variant-numeric: tabular-nums; }
+  .row-title { font-size: 12.5px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .row-spacer { flex: 1; }
+  .row-time { font-size: 10.5px; color: #9a9a93; width: 54px; text-align: right; }
+
+  .comment { display: flex; gap: 10px; padding: 8px 0; }
+  .comment + .comment { border-top: 1px solid #f0f0ea; }
+  .comment-head { display: flex; align-items: baseline; gap: 6px; }
+  .comment-name { font-size: 12px; font-weight: 600; }
+  .comment-time { font-size: 10.5px; color: #9a9a93; }
+  .comment-text { margin-top: 2px; font-size: 12px; color: #55554f; line-height: 1.5; }
+
+  .board { display: flex; gap: 10px; align-items: flex-start; }
+  .card { width: 240px; border: 0.5px solid #e2e2dc; border-radius: 8px; padding: 12px 10px; background: #fff; }
+  .card-top { display: flex; align-items: center; justify-content: space-between; }
+  .card-id { font-size: 10.5px; color: #9a9a93; }
+  .card-status { font-size: 10px; border-radius: 4px; padding: 1px 5px; background: #f0f0ea; color: #6f6f69; }
+  .card-status.doing { background: #e8f0ff; color: #2a4a73; }
+  .card-title { margin: 6px 0 8px; font-size: 12.5px; line-height: 1.35; }
+  .card-meta { display: flex; align-items: center; gap: 6px; }
+  .card-badge { font-size: 10px; color: #9a9a93; }
+
+  .tree-row { display: flex; align-items: center; gap: 6px; min-height: 26px; padding: 3px 8px; border-radius: 8px; }
+  .tree-row + .tree-row { border-top: 1px solid #f4f4ef; }
+  .tree-icon { width: 8px; height: 8px; border-radius: 2px; background: #dcdcd4; }
+  .tree-id { font-size: 10.5px; color: #9a9a93; font-variant-numeric: tabular-nums; }
+  .tree-title { flex: 1; font-size: 11.5px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .tree-badge { display: inline-flex; }
+
+  .detail-head { display: flex; align-items: center; gap: 12px; }
+  .detail-avatar { display: inline-flex; }
+  .detail-name { font-size: 15px; font-weight: 600; }
+  .detail-sub { margin-top: 2px; font-size: 10.5px; color: #8a8a84; }
+  .detail-hero { margin-top: 14px; display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid #f0f0ea; }
+  .hero-note { font-size: 10.5px; color: #8a8a84; }
+
+  .foot { font-size: 10px; color: #8a8a84; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .swatch { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+  .foot code { font-size: 10px; color: #55554f; }
+</style></head>
+<body>
+  <div class="sheet">
+    <div class="section">
+      <h2>包豪斯 17 色板 · 上游槽位尺寸</h2>
+      <p class="note">本体 = palette.a 纯色，眼睛 = palette.b；列表 20 / 评论 24 / 详情 40 / 主视觉 56</p>
+      <div class="foot"><span class="swatch" style="background-color:#F2C300"></span><code>amber #F2C300</code> · <span class="swatch" style="background-color:#1B4F9C"></span><code>deep-tide #1B4F9C</code> · <span class="swatch" style="background-color:#C8392B"></span><code>ember #C8392B</code></div>
+    </div>
+    <div class="section" data-shot="issue-list-row"><h2>issue 列表行</h2><p class="note">行高 36px（--issue-row-height）· 头像槽位 20px（size="sm"）· 行内留白 8px 上下</p>
+      <div class="row-list">
+        
+          <div class="list-row">
+            <span class="row-id">MUL-145</span>
+            <span class="row-title">企业工作区支持 SAML 登录</span>
+            <span class="row-spacer"></span>
+            <span class="cap" data-slot="cap-avatar" data-cap-body="blob" data-cap-palette="amber" data-size="20"><span class="cap-body" style="width:20px;height:20px;background-color:#F2C300;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span></span>
+            <span class="row-time">1 小时前</span>
+          </div>
+          <div class="list-row">
+            <span class="row-id">MUL-144</span>
+            <span class="row-title">给账单管理员发用量提醒</span>
+            <span class="row-spacer"></span>
+            <span class="cap" data-slot="cap-avatar" data-cap-body="blob" data-cap-palette="deep-tide" data-size="20"><span class="cap-body" style="width:20px;height:20px;background-color:#1B4F9C;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span></span>
+            <span class="row-time">3 小时前</span>
+          </div>
+          <div class="list-row">
+            <span class="row-id">MUL-143</span>
+            <span class="row-title">按工作区分配带权限范围的 API 密钥</span>
+            <span class="row-spacer"></span>
+            <span class="cap" data-slot="cap-avatar" data-cap-body="blob" data-cap-palette="ember" data-size="20"><span class="cap-body" style="width:20px;height:20px;background-color:#C8392B;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span></span>
+            <span class="row-time">4 小时前</span>
+          </div>
+          <div class="list-row">
+            <span class="row-id">MUL-141</span>
+            <span class="row-title">轮换 webhook 签名密钥</span>
+            <span class="row-spacer"></span>
+            <span class="cap" data-slot="cap-avatar" data-cap-body="blob" data-cap-palette="amber" data-size="20"><span class="cap-body" style="width:20px;height:20px;background-color:#F2C300;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span></span>
+            <span class="row-time">昨天</span>
+          </div>
+      </div></div>
+<div class="section" data-shot="comment-header"><h2>评论头</h2><p class="note">评论作者槽位 24px（size="md"）· 与作者名 / 时间的基线间距</p>
+      <div class="comments">
+        
+          <div class="comment">
+            <span class="cap" data-slot="cap-avatar" data-cap-body="blob" data-cap-palette="amber" data-size="24"><span class="cap-body" style="width:24px;height:24px;background-color:#F2C300;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span><svg class="cap-eyes" viewBox="0 0 100 100"><circle cx="36" cy="42" r="10" fill="#7A6100"/><circle cx="64" cy="42" r="10" fill="#7A6100"/></svg></span>
+            <div class="comment-body">
+              <div class="comment-head"><span class="comment-name">橙子</span><span class="comment-time">刚刚</span></div>
+              <div class="comment-text">把 SAML 元数据接进企业工作区，登录回跳已验证。</div>
+            </div>
+          </div>
+          <div class="comment">
+            <span class="cap" data-slot="cap-avatar" data-cap-body="blob" data-cap-palette="deep-tide" data-size="24"><span class="cap-body" style="width:24px;height:24px;background-color:#1B4F9C;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span><svg class="cap-eyes" viewBox="0 0 100 100"><circle cx="36" cy="42" r="10" fill="#95A2B6"/><circle cx="64" cy="42" r="10" fill="#95A2B6"/></svg></span>
+            <div class="comment-body">
+              <div class="comment-head"><span class="comment-name">深潮</span><span class="comment-time">12 分钟前</span></div>
+              <div class="comment-text">限流改成按工作区配额，压测跑了 3 轮。</div>
+            </div>
+          </div>
+      </div></div>
+<div class="section" data-shot="board-card"><h2>看板卡片</h2><p class="note">卡片 meta 行 20px 头像 · 卡片内边距 12px / 10px，与上游一致</p>
+      <div class="board">
+        
+          <div class="card">
+            <div class="card-top"><span class="card-id">MUL-145</span><span class="card-status todo">todo</span></div>
+            <div class="card-title">企业工作区支持 SAML 登录</div>
+            <div class="card-meta"><span class="cap" data-slot="cap-avatar" data-cap-body="blob" data-cap-palette="amber" data-size="20"><span class="cap-body" style="width:20px;height:20px;background-color:#F2C300;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span></span><span class="card-badge">进行中</span></div>
+          </div>
+          <div class="card">
+            <div class="card-top"><span class="card-id">MUL-142</span><span class="card-status doing">doing</span></div>
+            <div class="card-title">把认证 webhook 移到任务队列</div>
+            <div class="card-meta"><span class="cap" data-slot="cap-avatar" data-cap-body="blob" data-cap-palette="ember" data-size="20"><span class="cap-body" style="width:20px;height:20px;background-color:#C8392B;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span></span><span class="card-badge">进行中</span></div>
+          </div>
+      </div></div>
+<div class="section" data-shot="sidebar"><h2>侧栏</h2><p class="note">树行 26px（TREE_CHILD_ROW_CLASS）· running badge 里的头像 16px（size="xs"）</p>
+      <div class="sidebar">
+        
+          <div class="tree-row">
+            <span class="tree-icon"></span>
+            <span class="tree-id">MUL-145</span>
+            <span class="tree-title">企业工作区支持 SAML 登录</span>
+            <span class="tree-badge"><span class="cap" data-slot="cap-avatar" data-cap-body="blob" data-cap-palette="amber" data-size="16"><span class="cap-body" style="width:16px;height:16px;background-color:#F2C300;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span></span></span>
+          </div>
+          <div class="tree-row">
+            <span class="tree-icon"></span>
+            <span class="tree-id">MUL-144</span>
+            <span class="tree-title">给账单管理员发用量提醒</span>
+            
+          </div>
+          <div class="tree-row">
+            <span class="tree-icon"></span>
+            <span class="tree-id">MUL-143</span>
+            <span class="tree-title">按工作区分配带权限范围的 API 密钥</span>
+            <span class="tree-badge"><span class="cap" data-slot="cap-avatar" data-cap-body="blob" data-cap-palette="ember" data-size="16"><span class="cap-body" style="width:16px;height:16px;background-color:#C8392B;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span></span></span>
+          </div>
+      </div></div>
+<div class="section" data-shot="agent-detail"><h2>agent 详情</h2><p class="note">详情页头槽位 40px（--avatar-slot-size:3rem 同口径，40px）· 主视觉 56px 对照</p>
+      <div class="detail">
+        <div class="detail-head">
+          <span class="detail-avatar"><span class="cap" data-slot="cap-avatar" data-cap-body="blob" data-cap-palette="amber" data-size="40"><span class="cap-body" style="width:40px;height:40px;background-color:#F2C300;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span><svg class="cap-eyes" viewBox="0 0 100 100"><circle cx="36" cy="42" r="10" fill="#7A6100"/><circle cx="64" cy="42" r="10" fill="#7A6100"/></svg></span></span>
+          <div class="detail-text">
+            <div class="detail-name">橙子</div>
+            <div class="detail-sub">Lead Agent · 正在执行 · 详情页头</div>
+          </div>
+        </div>
+        <div class="detail-hero">
+          <span class="cap" data-slot="cap-avatar" data-cap-body="blob" data-cap-palette="amber" data-size="56"><span class="cap-body" style="width:56px;height:56px;background-color:#F2C300;border-radius:46% 54% 52% 48% / 50% 44% 56% 50%;position:relative;flex:0 0 auto"></span><svg class="cap-eyes" viewBox="0 0 100 100"><circle cx="36" cy="42" r="10" fill="#7A6100"/><circle cx="64" cy="42" r="10" fill="#7A6100"/></svg></span>
+          <span class="hero-note">主视觉 56px（单实例展示，引擎档）</span>
+        </div>
+      </div></div>
+  </div>
+</body></html>

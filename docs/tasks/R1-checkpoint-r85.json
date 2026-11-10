@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R85",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "branch": "codex/round1-continuous",
+  "previousCheckpoint": "R84",
+  "previousSha256": "404bab38d4e933abd1b85abe21940828ca801c35fdf65f92f1d42b72343e97e0",
+  "previousReviewSha256": "bb078396b3ec6ba4b65fb8786ae7896bf0c57ec5e732e6ebc1e08611710f0072",
+  "previousSnapshotSha256": "1ef66cd1c2d0cdcb5d3aaa687dbcee9832e0fcf4e3da0ead52c06f35a1ba17b5",
+  "currentProgress": "ACTUAL_PUBLIC_NATIVE_ADAPTER_THREE_TARGETS_PASS_INDEPENDENTLY_ACCEPTED",
+  "publicProbe": {
+    "privateReadAttempts": 0,
+    "actualReviewSHA": "2af0e1944198edd980ad65a9d675307c2c8781c62a9d479e3fe052f4e3ef0801",
+    "entries": 1,
+    "sql": 0,
+    "targetProcesses": 0,
+    "pass": true,
+    "rerunPermission": false,
+    "cleanupOk": true
+  },
+  "sql": {
+    "observabilityAmendment": "DESIGN_ONLY_IN_PROGRESS_ORIGINAL_SOURCE_UNCHANGED",
+    "oldOpThirdEntry": false,
+    "extraPrivateReadAttempts": 0,
+    "priorPrivateReadAttempts": 1,
+    "historicalCause": "UNDETERMINED",
+    "oldQuery": "FAIL3"
+  },
+  "apphostAcquisition": {
+    "actualGets": 0,
+    "fixRound": "ORIGINAL_AUTHOR_1_OF_5_IN_PROGRESS",
+    "SDKLinkCalls": 0,
+    "targetExecution": 0,
+    "sourceReview": "HOLD_2_IMPORTANT"
+  },
+  "frontendBaseline": "READONLY_PREPARATION_IN_PROGRESS_NO_INSTALL",
+  "allRepoSourceWriters": "CLOSED",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "fullGoal": "NOT_COMPLETE",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "evidence": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-public-adapter-probe-r1-source-independent-review.json",
+      "sha256": "1139e374453b6f9b9bec23cc0bdaa8467b8f80d8c14855ea85b4c5185613aa74"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-public-adapter-probe-r1-runtime-release.json",
+      "sha256": "c1523a22bb833297deb22c6577825d54001766d82d3c0e736d421e7eef741c9f"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-public-adapter-probe-r1-runtime-preparation.json",
+      "sha256": "45ac9da9fb3f21592a802a176f981adac8fa2e525b5816faf5496ba078c1783c"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-public-adapter-probe-r1-actual-stdout.json",
+      "sha256": "6975de869bc40f4339aca14325ee6fcabff0a83e140c516040298d6fedbb1887"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-public-adapter-probe-r1-actual\\probe.once.json",
+      "sha256": "cc766d1bb62a49c4d9a717424b9e9f01b55a0692a80399c26d73971eb6258386"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-public-adapter-probe-r1-actual-independent-review.json",
+      "sha256": "2af0e1944198edd980ad65a9d675307c2c8781c62a9d479e3fe052f4e3ef0801"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-acquisition-source-independent-review.json",
+      "sha256": "3e6bb5cc7f3e19a952c3ea3544de52386f3bb71b1f1e753b11bb537183b16cfd"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-acquisition-fix1-root-release.json",
+      "sha256": "a0549beb9bdadb15afe4898510b5e25b0fb1728fd4758d2bd22c94f0407b4b10"
+    }
+  ],
+  "files": [
+    {
+      "beforeSha256": "8ba2f0305c911003d4239ce0ab23b5c0336396c8dab0f9a8c57206722239834d",
+      "beforeBytes": 189536,
+      "path": "docs/tasks/ACTIVE.md",
+      "sha256": "27ceb820cb8c251bd2e4b9080c5a03e2fcc96ca9062ad6760f3a3a03243c43f0",
+      "appendOnly": true
+    },
+    {
+      "beforeSha256": "d6222e5f073b92d2bfbee5110305fcde6aa277062bf39b799407af6b4a3307d7",
+      "beforeBytes": 179575,
+      "path": "docs/tasks/R1-results.md",
+      "sha256": "77e0683908eb5d213993ec5467d1869869fc7b80a1da5c80c5f9f9c616da2672",
+      "appendOnly": true
+    },
+    {
+      "beforeSha256": "4e2b7409e5af9ef6156d4faa8ea0985ec4e3f8784f95c46a469eb9961c9d039b",
+      "beforeBytes": 4405,
+      "path": "docs/tasks/R1-03B-admin-sqlcompat.md",
+      "sha256": "2a14b41aa586c3b052a91798586005bfba597db538c5be23faaed695ac1088e3",
+      "appendOnly": true
+    },
+    {
+      "beforeSha256": "e35970a32f3925c67b72c50477ea1bdfea759f2f64c98fb111af92caf8338c53",
+      "beforeBytes": 1673,
+      "path": "docs/tasks/R1-03B-public-adapter-probe.md",
+      "sha256": "cf3c800110fc83eabd19d2fbe4d0a9577d2ee794fd4bed5a544ef2ae4c79eb25",
+      "appendOnly": true
+    }
+  ]
+}

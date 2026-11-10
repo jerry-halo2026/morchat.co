@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "task": "R1-03B-PUBLIC-OBSERVABILITY",
+  "revision": "r1",
+  "status": "TEST-FROZEN_SOURCE_ONLY_ACTUAL_PUBLIC_DIAGNOSTIC_CLOSED",
+  "baseline": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "owner": "/root/admin_sqlfix_impl",
+  "ownerConfiguredModel": "gpt-6.1-sol high",
+  "consumer": "/root",
+  "consumerModel": "unknown",
+  "reviewer": "/root/guard_review",
+  "reviewerConfiguredModel": "gpt-6-astra high",
+  "freezePackage": {
+    "mdSHA": "ad6a3ad58e83de991e429f099ec540efeae846486ed542aa175c1a88e95eba31",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-observability-freeze-package.json",
+    "sha256": "08b4d8ce0be52e99733f0182608c72b2f82e84c5da5a58a3c6778e080669e469"
+  },
+  "independentReview": {
+    "sha256": "a97b689c25938833f4d5170388c5bab60d64e8a3c6674f0ca08e8e5f14056558",
+    "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-observability-freeze-package-fix1-independent-review.json"
+  },
+  "consumerACKSHA": "1ba0826eef6574fdb6cdec4e353433283b03e035f37202960960c1fc68983882",
+  "sourcePrefix": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-observability-",
+  "sourceWriteSet": [
+    "public-driver.CLOSED.ps1",
+    "host-tests.ps1",
+    "host-results.json",
+    "source-manifest.json",
+    "exact-extraction-diff.json",
+    "source-report.md",
+    "source-report.json"
+  ],
+  "exactFrozenSemantics": "Package08b4 is normative: 9 exact original sibling declarations plus nestedWalk, 11 named new helpers, 8 finite public content inputs, finite metadata-only ancestors/ACL dirs, full original F01 descriptor child cwd=$out distinct from host cwd=incident",
+  "diagnosticScope": "A partial metadata/managed-snapshot subset only; B StartInfo pure construction, not original op continuation",
+  "default": "FunctionsOnly no IO/clock/constructor",
+  "sourceTestScope": "Pure AST identity/descriptor/memory models only, never realNow, nativeAPI, actualStartInfo, file targets, Process/SDK/Docker/SQL/private/raw calls",
+  "SQLeligibility": "Always false; historical expired remains DATA_INELIGIBLE, resource freshness UNOBSERVED",
+  "timePolicy": "Future new diagnostic expiry actual UTC sampled internally, no callerNow; HOST clocks models only",
+  "futureAuthority": "Exact frozen separate purpose/control/ownonce/protected output; runtime hashes NOTBOUND until source review+Root actualrelease, old333/3941/probeclaim not authority",
+  "maxFutureEntries": 1,
+  "fixedSafeOutput": "fixed phase/exceptionType/Int32HResult and explicit fixed bools only; no Message/inner/stack/bytes/StartInfo/env/object serialization",
+  "budgets": {
+    "privateIO": 0,
+    "models": 0,
+    "ProcessObjects": 0,
+    "ProcessStarts": 0,
+    "Docker": 0,
+    "nativeAPI": 0,
+    "newResources": 0,
+    "SQL": 0,
+    "rawReads": 0,
+    "SDKLoad": 0
+  },
+  "productionSourceWrite": false,
+  "originalCa148Write": false,
+  "observableSQLCandidateWrite": false,
+  "oldClaimOrLeaseMutation": false,
+  "noSubagents": true
+}

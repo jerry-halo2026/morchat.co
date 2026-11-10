@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R1-62-actual-service42-accepted-no-wholeGuardBuild",
+  "agent": "/root",
+  "model": "unknown",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "goal": "01a1b0e9-ce05-7273-bbb3-b6f3d0708f30",
+  "status": "active",
+  "previousCheckpoint": "docs/tasks/R1-checkpoint-r61.json",
+  "previousSha256": "9449598ce80dae1df8ea496374e966c516b6062823f24e34c6efe400c2a0eeac",
+  "previousReviewSha256": "4d893e2b2efc7f08ea2a6cc2103756af9f39a9be1caaf4d3882ec5525765293e",
+  "files": [
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "d23a9304637710ae7aaa01d9abd84cedb5d847d06632ab5c9d77836e2b000bab",
+      "sha256": "b5a32ba88c61ad42b3f1e7300f9e2f3ec3d474f7184f4284e7d87be3399b0521",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-01D-issue-guard.md",
+      "beforeSha256": "7ff49b7e6c6d783baae6d7ba2576552bd9ddcdb294bba863f7d813e012afde5a",
+      "sha256": "9388b8acd7ff46d1bfca5633be550e14d543e470c629a3686b6c182c29f64c8d",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "759839647709db138558b8a256e7d7e118eb9a9f141365931b950cf236dff91a",
+      "sha256": "dacb4b52630760949081eeda7bcb8920b46028ee382dcd77d166ee8fadac2d9e",
+      "appendOnly": true
+    }
+  ],
+  "evidence": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-service-compile-r1-actual-independent-review.md",
+      "sha256": "a394479e616a335f64ac3650f4b766d950e861ade89cab79540aae3ca768ee56"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-service-readonly-r2-actual-independent-review.md",
+      "sha256": "8e0dd3d27bd735c2b324b7e04c7e27e6d05a1f40d85af1ce487aacef4b11a251"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-service-runtime-r2-final-binding-independent-review.md",
+      "sha256": "b8fc81c2ac71d7162c675a11fc53d057beb50813772490aaf670c502c3a3658b"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-service-runtime-r2-root-strict-result.json",
+      "sha256": "52bd73cc6b2e976e274e7b477bb4c2f4c9a88acad200903dbdd6be0d0fc62576"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-service-runtime-r2-actual-independent-review.md",
+      "sha256": "349981c16d4574ac786e5c7318380a99c8403149eba2aea911b577d3fc3daae8"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-ui-r1-consumer-ack.md",
+      "sha256": "f7da75d5cb45ed398f555ff31476b603a5ef47879820a766258d163f04720bc4"
+    }
+  ],
+  "service42": {
+    "converterExit": 0,
+    "cleanupConfirmed": true,
+    "run": "E:\\CodexData\\incidents\\morchat-20261106T233131\\guard-service-runtime-r2-actual-9ba2ac5c642942f785ac68440f2a57ec",
+    "fixtureRetained": "35ownworkspace source-shapeddelta, noautomaticreplayorcleanup",
+    "actualReview": "ACCEPTED349981c1",
+    "testExit": 0,
+    "pass": 42,
+    "skip": 0,
+    "prePostAccepted": true,
+    "resultSha256": "ea4063005874e9e4456ea9a24b024c7c58401089055c30f7740bd73f26ae47cd",
+    "rawManifestSha256": "f547120683d17f4b5e1a69b98ef43716837f2f66508419f5c1c150874655d28a",
+    "fail": 0,
+    "runCount": 42
+  },
+  "handler53": "NOTRUN/preparationonly",
+  "native4and37": "NOTRUN/sourceonly",
+  "GuardBuild": "NOTBUILD_FROZEN_ALL_APPLICABLE_GATES_PENDING",
+  "leader": "DRAFT13paths/B01write+revoke/newschemaepoch/B02conditionalUI; SOURCECLOSED",
+  "fullGoal": "NOTCOMPLETE ACTIVE",
+  "newRuntimePermission": "NONE",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW"
+}

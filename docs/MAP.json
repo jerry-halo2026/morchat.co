@@ -1,0 +1,2418 @@
+{
+  "schema": 1,
+  "generated_by": "scripts/docs-map.mjs",
+  "docs_root": "docs",
+  "skipped": [
+    "docs/archive/**"
+  ],
+  "count": 158,
+  "fingerprint": "8803376a7a68214c28d9d7a2464fa278c28cb4f087a1263b1e4fea8535fc4d36",
+  "docs": [
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "title": "morchat 整体架构与职责边界",
+      "purpose": "morchat 整体架构与职责边界",
+      "owner": "b01-permission",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/REFERENCE-REUSE.md"
+      ],
+      "links_out": [
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/MINIMUM-CHAIN.md",
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/REFERENCE-REUSE.md"
+      ],
+      "links_in": [
+        "docs/ASSETS-AND-LEARNING.md",
+        "docs/CLIENT-RUNTIME.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/EDICT-FLOW.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/README.md"
+      ]
+    },
+    {
+      "path": "docs/ASSETS-AND-LEARNING.md",
+      "title": "公司资产与持续升级闭环",
+      "purpose": "公司资产与持续升级闭环",
+      "owner": "b04-assets",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/WORKSPACE-CONTINUITY.md",
+        "docs/REFERENCE-REUSE.md",
+        "docs/PRODUCT-LIFECYCLE.md"
+      ],
+      "links_out": [
+        "docs/ARCHITECTURE.md",
+        "docs/CLIENT-RUNTIME.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/REFERENCE-REUSE.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ],
+      "links_in": [
+        "docs/CLIENT-RUNTIME.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/PRD.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/README.md"
+      ]
+    },
+    {
+      "path": "docs/CLIENT-RUNTIME.md",
+      "title": "统一客户端与员工本地完整 Harness",
+      "purpose": "统一客户端与员工本地完整 Harness",
+      "owner": "b05-runtime",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/NATIVE-RUNTIME-RESEARCH.md",
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/PRODUCT-LIFECYCLE.md"
+      ],
+      "links_out": [
+        "docs/ARCHITECTURE.md",
+        "docs/ASSETS-AND-LEARNING.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/NATIVE-RUNTIME-RESEARCH.md",
+        "docs/PLAN.md",
+        "docs/PRD.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/WINDOWS-DSH-INTEGRATION.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ],
+      "links_in": [
+        "docs/ASSETS-AND-LEARNING.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/PRD.md",
+        "docs/README.md"
+      ]
+    },
+    {
+      "path": "docs/CROSS-DEVICE-REFERENCE-RESEARCH.md",
+      "title": "跨设备协作与工作空间接续：参考项目证据",
+      "purpose": "跨设备协作与工作空间接续：参考项目证据",
+      "owner": "b07-continuity",
+      "status": "reference",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/WORKSPACE-CONTINUITY.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/NATIVE-RUNTIME-RESEARCH.md"
+      ],
+      "links_out": [
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/NATIVE-RUNTIME-RESEARCH.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ],
+      "links_in": [
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/README.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ]
+    },
+    {
+      "path": "docs/DEVELOPMENT-HANDOFF.md",
+      "title": "连续开发交接：准备到首轮验收",
+      "purpose": "连续开发交接：准备到首轮验收",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [
+        "docs/ROUND1-DELIVERY.md",
+        "docs/tasks/R1-00-baseline.md",
+        "docs/tasks/R1-results.md"
+      ],
+      "links_out": [
+        "docs/ROUND1-DELIVERY.md",
+        "docs/superpowers/plans/2026-11-06-round1-continuous.md",
+        "docs/tasks/R1-00-baseline.md",
+        "docs/tasks/R1-results.md"
+      ],
+      "links_in": [
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/README.md",
+        "docs/ROUND1-DELIVERY.md",
+        "docs/tasks/MC-00-results.md"
+      ]
+    },
+    {
+      "path": "docs/DISCOVERY-BASELINE.md",
+      "title": "Discovery 基线、最小 MVP 与证伪登记",
+      "purpose": "Discovery 基线、最小 MVP 与证伪登记",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [
+        "docs/ROUND1-DELIVERY.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md"
+      ],
+      "links_out": [
+        "docs/ARCHITECTURE.md",
+        "docs/ASSETS-AND-LEARNING.md",
+        "docs/CLIENT-RUNTIME.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/MINIMUM-CHAIN.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/REFERENCE-REUSE.md",
+        "docs/ROUND1-DELIVERY.md",
+        "docs/WINDOWS-DSH-INTEGRATION.md",
+        "docs/WORKSPACE-CONTINUITY.md",
+        "docs/tasks/MC-00-results.md"
+      ],
+      "links_in": [
+        "docs/ARCHITECTURE.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/DOCS-REBASE.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/NATIVE-RUNTIME-RESEARCH.md",
+        "docs/PAPERCLIP-BASE.md",
+        "docs/PLAN.md",
+        "docs/README.md",
+        "docs/WINDOWS-DSH-INTEGRATION.md",
+        "docs/tasks/ACTIVE.md",
+        "docs/tasks/MC-00-engineering.md"
+      ]
+    },
+    {
+      "path": "docs/DISTRIBUTED-COLLABORATION.md",
+      "title": "群内 Agent 协作与授权设备池",
+      "purpose": "群内 Agent 协作与授权设备池",
+      "owner": "b02-client",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/DISCOVERY-BASELINE.md"
+      ],
+      "links_out": [
+        "docs/ARCHITECTURE.md",
+        "docs/CLIENT-RUNTIME.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/PLAN.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/REFERENCE-REUSE.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ],
+      "links_in": [
+        "docs/CLIENT-RUNTIME.md",
+        "docs/CROSS-DEVICE-REFERENCE-RESEARCH.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/PRD.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/README.md"
+      ]
+    },
+    {
+      "path": "docs/DOCS-REBASE.md",
+      "title": "历史迁移记录入口",
+      "purpose": "历史迁移记录入口",
+      "owner": "docs-maintainers",
+      "status": "reference",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/archive/2026-11-06-development-readiness/README.md",
+        "docs/archive/README.md",
+        "docs/README.md"
+      ],
+      "links_out": [
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/README.md"
+      ],
+      "links_in": [
+        "docs/README.md"
+      ]
+    },
+    {
+      "path": "docs/DUAL-DEVICE-VALIDATION.md",
+      "title": "自动保存与最小双设备接续证伪方案",
+      "purpose": "自动保存与最小双设备接续证伪方案",
+      "owner": "b07-continuity",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/NATIVE-RUNTIME-RESEARCH.md",
+        "docs/WINDOWS-DSH-INTEGRATION.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ],
+      "links_out": [
+        "docs/CROSS-DEVICE-REFERENCE-RESEARCH.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/NATIVE-RUNTIME-RESEARCH.md",
+        "docs/WINDOWS-DSH-INTEGRATION.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ],
+      "links_in": [
+        "docs/CLIENT-RUNTIME.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/NATIVE-RUNTIME-RESEARCH.md",
+        "docs/PRD.md",
+        "docs/README.md",
+        "docs/WINDOWS-DSH-INTEGRATION.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ]
+    },
+    {
+      "path": "docs/EDICT-FLOW.md",
+      "title": "edict 与调度模式参考边界",
+      "purpose": "edict 与调度模式参考边界",
+      "owner": "b06-dispatch",
+      "status": "reference",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/archive/2026-11-04-pre-platform-review/EDICT-FLOW.md",
+        "docs/ARCHITECTURE.md",
+        "docs/PRD.md"
+      ],
+      "links_out": [
+        "docs/ARCHITECTURE.md",
+        "docs/PRD.md"
+      ],
+      "links_in": [
+        "docs/README.md"
+      ]
+    },
+    {
+      "path": "docs/ENGINEERING-BASELINE.md",
+      "title": "工程与验证基线",
+      "purpose": "工程与验证基线",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/NATIVE-RUNTIME-RESEARCH.md",
+        "docs/WINDOWS-DSH-INTEGRATION.md"
+      ],
+      "links_out": [
+        "docs/CLIENT-RUNTIME.md",
+        "docs/DEVELOPMENT-HANDOFF.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/NATIVE-RUNTIME-RESEARCH.md",
+        "docs/PRD.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/REFERENCE-REUSE.md",
+        "docs/ROUND1-DELIVERY.md",
+        "docs/WINDOWS-DSH-INTEGRATION.md",
+        "docs/WORKSPACE-CONTINUITY.md",
+        "docs/tasks/ACTIVE.md",
+        "docs/tasks/MC-00-results.md",
+        "docs/tasks/TEMPLATE.md"
+      ],
+      "links_in": [
+        "docs/ARCHITECTURE.md",
+        "docs/ASSETS-AND-LEARNING.md",
+        "docs/CLIENT-RUNTIME.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/DOCS-REBASE.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/README.md",
+        "docs/tasks/MC-00-engineering.md"
+      ]
+    },
+    {
+      "path": "docs/EVOSE-PRODUCT-RESEARCH.md",
+      "title": "Evose 产品结构与企业协作研究",
+      "purpose": "Evose 产品结构与企业协作研究",
+      "owner": "b02-client",
+      "status": "reference",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/MULTICA-BASE-EVALUATION.md"
+      ],
+      "links_out": [
+        "docs/MULTICA-BASE-EVALUATION.md"
+      ],
+      "links_in": [
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/README.md",
+        "docs/REFERENCE-REUSE.md"
+      ]
+    },
+    {
+      "path": "docs/MINIMUM-CHAIN.md",
+      "title": "最小纵向链路：契约切片与任务卡草案",
+      "purpose": "最小纵向链路：契约切片与任务卡草案",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/PRODUCT-EXPERIENCE.md"
+      ],
+      "links_out": [
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/PRODUCT-EXPERIENCE.md"
+      ],
+      "links_in": [
+        "docs/ARCHITECTURE.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/PLAN.md",
+        "docs/README.md",
+        "docs/superpowers/plans/2026-11-06-round1-continuous.md",
+        "docs/tasks/MC-00-engineering.md",
+        "docs/tasks/MC-01G-preflight.md"
+      ]
+    },
+    {
+      "path": "docs/MULTICA-BASE-EVALUATION.md",
+      "title": "Multica 当前底座：事实、门禁与实测",
+      "purpose": "Multica 当前底座：事实、门禁与实测",
+      "owner": "docs-maintainers",
+      "status": "reference",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/archive/2026-11-06-before-multica-authority-migration/MULTICA-BASE-EVALUATION.md",
+        "docs/REFERENCE-REUSE.md"
+      ],
+      "links_out": [
+        "docs/REFERENCE-REUSE.md"
+      ],
+      "links_in": [
+        "docs/ARCHITECTURE.md",
+        "docs/CLIENT-RUNTIME.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/EVOSE-PRODUCT-RESEARCH.md",
+        "docs/MINIMUM-CHAIN.md",
+        "docs/PAPERCLIP-BASE.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/README.md",
+        "docs/REFERENCE-REUSE.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ]
+    },
+    {
+      "path": "docs/NATIVE-RUNTIME-RESEARCH.md",
+      "title": "原生双设备运行与 Harness 选型核查",
+      "purpose": "原生双设备运行与 Harness 选型核查",
+      "owner": "b05-runtime",
+      "status": "reference",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/WINDOWS-DSH-INTEGRATION.md",
+        "docs/REFERENCE-REUSE.md",
+        "docs/DUAL-DEVICE-VALIDATION.md"
+      ],
+      "links_out": [
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/REFERENCE-REUSE.md",
+        "docs/WINDOWS-DSH-INTEGRATION.md"
+      ],
+      "links_in": [
+        "docs/CLIENT-RUNTIME.md",
+        "docs/CROSS-DEVICE-REFERENCE-RESEARCH.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/README.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ]
+    },
+    {
+      "path": "docs/PAPERCLIP-BASE.md",
+      "title": "Paperclip 治理参考与源码迁移边界",
+      "purpose": "Paperclip 治理参考与源码迁移边界",
+      "owner": "docs-maintainers",
+      "status": "reference",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/archive/2026-11-06-before-multica-authority-migration/PAPERCLIP-BASE.md",
+        "docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md",
+        "docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md"
+      ],
+      "links_out": [
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/MULTICA-BASE-EVALUATION.md"
+      ],
+      "links_in": [
+        "docs/README.md",
+        "docs/REFERENCE-REUSE.md"
+      ]
+    },
+    {
+      "path": "docs/PLAN.md",
+      "title": "morchat MVP 分阶段建设顺序",
+      "purpose": "morchat MVP 分阶段建设顺序",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/tasks/MC-00-results.md",
+        "docs/ROUND1-DELIVERY.md"
+      ],
+      "links_out": [
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/MINIMUM-CHAIN.md",
+        "docs/ROUND1-DELIVERY.md",
+        "docs/superpowers/plans/2026-11-06-round1-continuous.md",
+        "docs/tasks/MC-00-results.md"
+      ],
+      "links_in": [
+        "docs/CLIENT-RUNTIME.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/PRD.md",
+        "docs/QIANCHUAN-API-DEV.md",
+        "docs/QIANCHUAN-DATA.md",
+        "docs/README.md",
+        "docs/tasks/MC-00-engineering.md"
+      ]
+    },
+    {
+      "path": "docs/PRD.md",
+      "title": "morchat 产品需求与首版 MVP",
+      "purpose": "morchat 产品需求与首版 MVP",
+      "owner": "b02-client",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/ROUND1-DELIVERY.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/PRODUCT-EXPERIENCE.md"
+      ],
+      "links_out": [
+        "docs/ASSETS-AND-LEARNING.md",
+        "docs/CLIENT-RUNTIME.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/PLAN.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/ROUND1-DELIVERY.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ],
+      "links_in": [
+        "docs/CLIENT-RUNTIME.md",
+        "docs/EDICT-FLOW.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/QIANCHUAN-API-DEV.md",
+        "docs/QIANCHUAN-DATA.md",
+        "docs/README.md"
+      ]
+    },
+    {
+      "path": "docs/PRODUCT-EXPERIENCE.md",
+      "title": "统一工作台、工作首页与角色面板",
+      "purpose": "统一工作台、工作首页与角色面板",
+      "owner": "b02-client",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/EVOSE-PRODUCT-RESEARCH.md",
+        "docs/REFERENCE-REUSE.md",
+        "docs/DISTRIBUTED-COLLABORATION.md"
+      ],
+      "links_out": [
+        "docs/ARCHITECTURE.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/EVOSE-PRODUCT-RESEARCH.md",
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/PRD.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/REFERENCE-REUSE.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ],
+      "links_in": [
+        "docs/CLIENT-RUNTIME.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/MINIMUM-CHAIN.md",
+        "docs/PRD.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/README.md"
+      ]
+    },
+    {
+      "path": "docs/PRODUCT-LIFECYCLE.md",
+      "title": "从目标到团队、交付和持续复用",
+      "purpose": "从目标到团队、交付和持续复用",
+      "owner": "b02-client",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/WORKSPACE-CONTINUITY.md",
+        "docs/EVOSE-PRODUCT-RESEARCH.md",
+        "docs/MULTICA-BASE-EVALUATION.md"
+      ],
+      "links_out": [
+        "docs/ASSETS-AND-LEARNING.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/EVOSE-PRODUCT-RESEARCH.md",
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/REFERENCE-REUSE.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ],
+      "links_in": [
+        "docs/ASSETS-AND-LEARNING.md",
+        "docs/CLIENT-RUNTIME.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/PRD.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/README.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ]
+    },
+    {
+      "path": "docs/QIANCHUAN-API-DEV.md",
+      "title": "千川 API 开发手册（实测版）",
+      "purpose": "千川 API 开发手册（实测版）",
+      "owner": "integrations",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/PRD.md",
+        "docs/PLAN.md",
+        "docs/QIANCHUAN-DATA.md"
+      ],
+      "links_out": [
+        "docs/PLAN.md",
+        "docs/PRD.md",
+        "docs/QIANCHUAN-DATA.md"
+      ],
+      "links_in": [
+        "docs/README.md"
+      ]
+    },
+    {
+      "path": "docs/QIANCHUAN-DATA.md",
+      "title": "千川官方数据面与时效性 — 数据可得性文档",
+      "purpose": "千川官方数据面与时效性 — 数据可得性文档",
+      "owner": "integrations",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/PRD.md",
+        "docs/PLAN.md",
+        "docs/REFERENCE-REUSE.md"
+      ],
+      "links_out": [
+        "docs/PLAN.md",
+        "docs/PRD.md",
+        "docs/REFERENCE-REUSE.md"
+      ],
+      "links_in": [
+        "docs/QIANCHUAN-API-DEV.md",
+        "docs/README.md"
+      ]
+    },
+    {
+      "path": "docs/README.md",
+      "title": "morchat 文档入口与权威顺序",
+      "purpose": "morchat 文档入口与权威顺序",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [
+        "docs/ARCHITECTURE.md",
+        "docs/ASSETS-AND-LEARNING.md",
+        "docs/CLIENT-RUNTIME.md",
+        "docs/CROSS-DEVICE-REFERENCE-RESEARCH.md",
+        "docs/DEVELOPMENT-HANDOFF.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/DOCS-REBASE.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/EDICT-FLOW.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/EVOSE-PRODUCT-RESEARCH.md",
+        "docs/MINIMUM-CHAIN.md",
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/NATIVE-RUNTIME-RESEARCH.md",
+        "docs/PAPERCLIP-BASE.md",
+        "docs/PLAN.md",
+        "docs/PRD.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/QIANCHUAN-API-DEV.md",
+        "docs/QIANCHUAN-DATA.md",
+        "docs/REFERENCE-REUSE.md",
+        "docs/ROUND1-DELIVERY.md",
+        "docs/WINDOWS-DSH-INTEGRATION.md",
+        "docs/WORKSPACE-CONTINUITY.md",
+        "docs/superpowers/plans/2026-11-06-round1-continuous.md",
+        "docs/tasks/ACTIVE.md",
+        "docs/tasks/MC-00-closeout-plan.md",
+        "docs/tasks/MC-00-engineering.md",
+        "docs/tasks/MC-00-results.md",
+        "docs/tasks/TEMPLATE.md"
+      ],
+      "links_in": [
+        "docs/DOCS-REBASE.md"
+      ]
+    },
+    {
+      "path": "docs/REFERENCE-REUSE.md",
+      "title": "参考项目的复用与非复用边界",
+      "purpose": "参考项目的复用与非复用边界",
+      "owner": "docs-maintainers",
+      "status": "reference",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/EVOSE-PRODUCT-RESEARCH.md",
+        "docs/PAPERCLIP-BASE.md"
+      ],
+      "links_out": [
+        "docs/EVOSE-PRODUCT-RESEARCH.md",
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/PAPERCLIP-BASE.md"
+      ],
+      "links_in": [
+        "docs/ARCHITECTURE.md",
+        "docs/ASSETS-AND-LEARNING.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/NATIVE-RUNTIME-RESEARCH.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/QIANCHUAN-DATA.md",
+        "docs/README.md",
+        "docs/WINDOWS-DSH-INTEGRATION.md"
+      ]
+    },
+    {
+      "path": "docs/ROUND1-DELIVERY.md",
+      "title": "首轮连续开发范围与授权",
+      "purpose": "首轮连续开发范围与授权",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/DEVELOPMENT-HANDOFF.md"
+      ],
+      "links_out": [
+        "docs/DEVELOPMENT-HANDOFF.md"
+      ],
+      "links_in": [
+        "docs/DEVELOPMENT-HANDOFF.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/PLAN.md",
+        "docs/PRD.md",
+        "docs/README.md",
+        "docs/superpowers/plans/2026-11-06-round1-continuous.md",
+        "docs/tasks/ACTIVE.md",
+        "docs/tasks/MC-00-results.md"
+      ]
+    },
+    {
+      "path": "docs/WINDOWS-DSH-INTEGRATION.md",
+      "title": "Windows 原生 DSH：Multica 官方路径与隔离验证",
+      "purpose": "Windows 原生 DSH：Multica 官方路径与隔离验证",
+      "owner": "b05-runtime",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/REFERENCE-REUSE.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/DISCOVERY-BASELINE.md"
+      ],
+      "links_out": [
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/REFERENCE-REUSE.md"
+      ],
+      "links_in": [
+        "docs/CLIENT-RUNTIME.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/NATIVE-RUNTIME-RESEARCH.md",
+        "docs/README.md",
+        "docs/WORKSPACE-CONTINUITY.md"
+      ]
+    },
+    {
+      "path": "docs/WORKSPACE-CONTINUITY.md",
+      "title": "任务进度、工作空间与跨设备接续设计",
+      "purpose": "任务进度、工作空间与跨设备接续设计",
+      "owner": "b07-continuity",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/CROSS-DEVICE-REFERENCE-RESEARCH.md",
+        "docs/DUAL-DEVICE-VALIDATION.md"
+      ],
+      "links_out": [
+        "docs/CROSS-DEVICE-REFERENCE-RESEARCH.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/MULTICA-BASE-EVALUATION.md",
+        "docs/NATIVE-RUNTIME-RESEARCH.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/WINDOWS-DSH-INTEGRATION.md"
+      ],
+      "links_in": [
+        "docs/ASSETS-AND-LEARNING.md",
+        "docs/CLIENT-RUNTIME.md",
+        "docs/CROSS-DEVICE-REFERENCE-RESEARCH.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/DISTRIBUTED-COLLABORATION.md",
+        "docs/DUAL-DEVICE-VALIDATION.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/PRD.md",
+        "docs/PRODUCT-EXPERIENCE.md",
+        "docs/PRODUCT-LIFECYCLE.md",
+        "docs/README.md"
+      ]
+    },
+    {
+      "path": "docs/brand/DECISIONS.md",
+      "title": "品牌、头像与内容库决定（2026-11-10，Ethan 口头批准后固化）",
+      "purpose": "品牌、头像与内容库决定（2026-11-10，Ethan 口头批准后固化）",
+      "owner": "design",
+      "status": "reference",
+      "updated": "2026-11-10",
+      "related": [
+        "docs/tasks/DSH-ASK-SPIKE.md"
+      ],
+      "links_out": [
+        "docs/tasks/DSH-ASK-SPIKE.md"
+      ],
+      "links_in": []
+    },
+    {
+      "path": "docs/brand/mockups/hero/README.md",
+      "title": "首屏假看板（landing hero mock）",
+      "purpose": "首屏假看板（landing hero mock）",
+      "owner": "design",
+      "status": "reference",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/brand/reference/avatar-sizes/README.md",
+      "title": "头像槽位图（avatar-sizes）",
+      "purpose": "头像尺寸回归上游后的逐屏对比截图与说明（列表 20 / 评论 24 / 详情 40 / 主视觉 56）",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/brand/reference/knowledge-ui/README.md",
+      "title": "Knowledge UI — reference captures (B1)",
+      "purpose": "知识库六屏的实拍与说明（S1 首页 / S2 阅读 / S4 条目 / S5 导入）",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/brand/reference/login-onboarding/README.md",
+      "title": "Login → onboarding: reference shots",
+      "purpose": "登录到 onboarding 的参考截图采集说明（CDP 采集脚本 + 产物索引）",
+      "owner": "design",
+      "status": "reference",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/engineering/COMMIT-PLAN.md",
+      "title": "提交批次计划（COMMIT-PLAN）",
+      "purpose": "把当前大型未提交改动拆成可独立回滚的提交批次（含文件区间与验证命令）",
+      "owner": "lead",
+      "status": "draft",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/engineering/issue-wakeups.md",
+      "title": "Issue wakeups",
+      "purpose": "Issue wakeups",
+      "owner": "engineering",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/issue-status-lifecycle-rollout.md",
+      "title": "Four-category issue lifecycle (MUL-7240)",
+      "purpose": "Four-category issue lifecycle (MUL-7240)",
+      "owner": "platform",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/maintenance-jobs.md"
+      ],
+      "links_out": [
+        "docs/maintenance-jobs.md"
+      ],
+      "links_in": [
+        "docs/maintenance-jobs.md"
+      ]
+    },
+    {
+      "path": "docs/lark-inbound-media.md",
+      "title": "Lark inbound context media",
+      "purpose": "Lark inbound context media",
+      "owner": "integrations",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/lark-outbound-media.md",
+      "title": "Lark outbound images and files",
+      "purpose": "Lark outbound images and files",
+      "owner": "integrations",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/lark-typing-cleanup.md",
+      "title": "Lark Typing reaction cleanup",
+      "purpose": "Lark Typing reaction cleanup",
+      "owner": "integrations",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/maintenance-jobs.md",
+      "title": "Operator-driven maintenance jobs",
+      "purpose": "Operator-driven maintenance jobs",
+      "owner": "platform",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/issue-status-lifecycle-rollout.md"
+      ],
+      "links_out": [
+        "docs/issue-status-lifecycle-rollout.md"
+      ],
+      "links_in": [
+        "docs/issue-status-lifecycle-rollout.md"
+      ]
+    },
+    {
+      "path": "docs/plans/2026-11-10-platform-names-supabase-knowledge.md",
+      "title": "平台化计划：名称收口 / Supabase 统一数据面 / 资料库",
+      "purpose": "平台化计划：名称收口 / Supabase 统一数据面 / 资料库",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/plans/KNOWLEDGE-INTEGRATION-PLAN.md",
+      "title": "知识能力集成方案（Evose 对标）— 调研与决策稿",
+      "purpose": "知识能力集成方案（Evose 对标）— 调研与决策稿",
+      "owner": "b04-assets",
+      "status": "draft",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/plans/RUNTIME-CONFIGURATOR.md",
+      "title": "Runtime Configurator 设计 + New API 集成评估",
+      "purpose": "Runtime Configurator 设计 + New API 集成评估",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-06-round1-continuous.md",
+      "title": "首轮连续交付 Implementation Plan",
+      "purpose": "首轮连续交付 Implementation Plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/ROUND1-DELIVERY.md",
+        "docs/MINIMUM-CHAIN.md"
+      ],
+      "links_out": [
+        "docs/MINIMUM-CHAIN.md",
+        "docs/ROUND1-DELIVERY.md"
+      ],
+      "links_in": [
+        "docs/DEVELOPMENT-HANDOFF.md",
+        "docs/PLAN.md",
+        "docs/README.md",
+        "docs/tasks/MC-00-closeout-plan.md"
+      ]
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-dsh-foreign-frame.md",
+      "title": "R1-02C-DSH-FOREIGN-FRAME Implementation Plan",
+      "purpose": "R1-02C-DSH-FOREIGN-FRAME Implementation Plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-handler-active-mat-diagnostic.md",
+      "title": "Active MAT fixture and panic observation — one-file source implementation",
+      "purpose": "Active MAT fixture and panic observation — one-file source implementation",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-handler-bootstrap-lifecycle.md",
+      "title": "Handler bootstrap lifecycle — reviewed one-file implementation",
+      "purpose": "Handler bootstrap lifecycle — reviewed one-file implementation",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-issue-read-guard-recovery-r2.md",
+      "title": "Issue GET guard — operational recovery binding r2",
+      "purpose": "Issue GET guard — operational recovery binding r2",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-issue-read-guard.md",
+      "title": "Native Issue GET read guard — detailed task implementation plan",
+      "purpose": "Native Issue GET read guard — detailed task implementation plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-leader-foundation-first.md",
+      "title": "Leader foundation first — gated executable plan",
+      "purpose": "Leader foundation first — gated executable plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-leader-text-tests-first.md",
+      "title": "Leader tests r1 — owner ACK / tests-first source plan",
+      "purpose": "Leader tests r1 — owner ACK / tests-first source plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-native-clone-guard.md",
+      "title": "R1-01D Native Router Clone Implementation Plan",
+      "purpose": "R1-01D Native Router Clone Implementation Plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-skill-claim-pin.md",
+      "title": "Skill claim pin Implementation Plan",
+      "purpose": "Skill claim pin Implementation Plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-08-admin-sqlcompat.md",
+      "title": "Approved narrow source plan: admin SQL compatibility",
+      "purpose": "Approved narrow source plan: admin SQL compatibility",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-08-final-observer-tdd.md",
+      "title": "Final observer tests-first Implementation Plan",
+      "purpose": "Final observer tests-first Implementation Plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-08-sqlfix-resource.md",
+      "title": "Resource creator source plan",
+      "purpose": "Resource creator source plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-08-windows-dsh-process-tests.md",
+      "title": "Windows DSH direct-process tests — source-only plan",
+      "purpose": "Windows DSH direct-process tests — source-only plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-08-windows-runtime-source.md",
+      "title": "Four-source Windows containment plan",
+      "purpose": "Four-source Windows containment plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-09-api-set-query-source.md",
+      "title": "Exact API-set diagnostic source Implementation Plan",
+      "purpose": "Exact API-set diagnostic source Implementation Plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-09-nm03a-workspace-bootstrap.md",
+      "title": "NM03-A Workspace Bootstrap Implementation Plan",
+      "purpose": "NM03-A Workspace Bootstrap Implementation Plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-09-o0-helper-compile-r2.md",
+      "title": "O0 helper CSC_R2 minimum epoch derivation",
+      "purpose": "O0 helper CSCR2 minimum epoch derivation",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-09-o0-helper-library-compile.md",
+      "title": "Readonly O0 helper Library compile plan",
+      "purpose": "Readonly O0 helper Library compile plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-09-persistent-host-consumer.md",
+      "title": "Persistent-host consumer implementation plan",
+      "purpose": "Persistent-host consumer implementation plan",
+      "owner": "docs-maintainers",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "title": "当前执行入口",
+      "purpose": "当前执行入口",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-07",
+      "related": [
+        "docs/ROUND1-DELIVERY.md",
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/tasks/R1-00-baseline.md"
+      ],
+      "links_out": [
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/ROUND1-DELIVERY.md",
+        "docs/tasks/R1-00-baseline.md",
+        "docs/tasks/R1-01-collaboration.md",
+        "docs/tasks/R1-02-execution.md",
+        "docs/tasks/R1-03-reliability.md",
+        "docs/tasks/R1-results.md"
+      ],
+      "links_in": [
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/README.md",
+        "docs/tasks/MC-00-results.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/CLIENT-GITHUB-INTEGRATION-UI-r1.md",
+      "title": "CLIENT-GITHUB-INTEGRATION-UI-r1",
+      "purpose": "CLIENT-GITHUB-INTEGRATION-UI-r1",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/CLIENT-GITHUB-PROJECT-SKILL-UI-r1.md",
+      "title": "CLIENT-GITHUB-PROJECT-SKILL-UI-r1",
+      "purpose": "CLIENT-GITHUB-PROJECT-SKILL-UI-r1",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/CLIENT-HELP-FEISHU-r1.md",
+      "title": "CLIENT-HELP-FEISHU-r1 — bounded client help destination",
+      "purpose": "CLIENT-HELP-FEISHU-r1 — bounded client help destination",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/COLLABORATION-NEXT.md",
+      "title": "COLLABORATION-NEXT — 先验证真人任务协作闭环",
+      "purpose": "COLLABORATION-NEXT — 先验证真人任务协作闭环",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/CURRENT-GOAL.md",
+      "title": "当前确认目标（Ethan，2026-11-09）",
+      "purpose": "当前确认目标（Ethan，2026-11-09）",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-09",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/DESKTOP-DEV-RUN.md",
+      "title": "Desktop dev actual run — 2026-11-09",
+      "purpose": "Desktop dev actual run — 2026-11-09",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/DSH-ASK-SPIKE.md",
+      "title": "DSH 审批 / 提问协议实测（W6 只读侦查）",
+      "purpose": "DSH 审批 / 提问协议实测（W6 只读侦查）",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/brand/DECISIONS.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/DSH-LIVE-USAGE-SLICE.md",
+      "title": "DSH live usage callback — LOCAL-DSH-LIVE-USAGE-r1",
+      "purpose": "DSH live usage callback — LOCAL-DSH-LIVE-USAGE-r1",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-09",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/DSH-RUNTIME-REVIEW.md",
+      "title": "DSH runtime dependency review — 2026-11-09",
+      "purpose": "DSH runtime dependency review — 2026-11-09",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/EVOSE-KB-API.md",
+      "title": "Evose 知识库 API — 导入 / 分块 / 召回 实测记录",
+      "purpose": "Evose 知识库 API — 导入 / 分块 / 召回 实测记录",
+      "owner": "b02-client",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/GET-GUARD-LOCAL-RETEST.md",
+      "title": "GET guard isolated retest — 2026-11-09",
+      "purpose": "GET guard isolated retest — 2026-11-09",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/LOCAL-DSH-ACCOUNT-CONNECTION.md",
+      "title": "Local existing DeepSeek account connection — r1 candidate",
+      "purpose": "Local existing DeepSeek account connection — r1 candidate",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-09",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/LOCAL-FIRST-STAGE-ACCEPTANCE.md",
+      "title": "本地第一阶段实机验收（2026-11-09）",
+      "purpose": "本地第一阶段实机验收（2026-11-09）",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-09",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/LOCAL-INVITATION-COLLABORATION.md",
+      "title": "Native invitation collaboration — local existing-feature acceptance",
+      "purpose": "Native invitation collaboration — local existing-feature acceptance",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-09",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/LOCAL-RUN.md",
+      "title": "当前源码本机运行（2026-11-09）",
+      "purpose": "当前源码本机运行（2026-11-09）",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-09",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/MC-00-closeout-plan.md",
+      "title": "MC-00 收束计划入口（授权已更新）",
+      "purpose": "MC-00 收束计划入口（授权已更新）",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/archive/2026-11-06-pre-continuous-development/MC-00-closeout-plan.md",
+        "docs/superpowers/plans/2026-11-06-round1-continuous.md",
+        "docs/tasks/R1-00-baseline.md"
+      ],
+      "links_out": [
+        "docs/superpowers/plans/2026-11-06-round1-continuous.md",
+        "docs/tasks/R1-00-baseline.md"
+      ],
+      "links_in": [
+        "docs/README.md",
+        "docs/tasks/MC-00-results.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/MC-00-commands.md",
+      "title": "MC-00 本地复验命令",
+      "purpose": "MC-00 本地复验命令",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/tasks/MC-00-results.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/MC-00-engineering.md",
+      "title": "MC-00：工程接入与基线准备",
+      "purpose": "MC-00：工程接入与基线准备",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/tasks/R1-00-baseline.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/PLAN.md"
+      ],
+      "links_out": [
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/MINIMUM-CHAIN.md",
+        "docs/PLAN.md",
+        "docs/tasks/MC-00-results.md",
+        "docs/tasks/R1-00-baseline.md"
+      ],
+      "links_in": [
+        "docs/README.md",
+        "docs/tasks/MC-01G-preflight.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/MC-00-results.md",
+      "title": "MC-00 执行记录",
+      "purpose": "MC-00 执行记录",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/tasks/R1-results.md",
+        "docs/ROUND1-DELIVERY.md",
+        "docs/tasks/MC-01G-preflight.md"
+      ],
+      "links_out": [
+        "docs/DEVELOPMENT-HANDOFF.md",
+        "docs/ROUND1-DELIVERY.md",
+        "docs/tasks/ACTIVE.md",
+        "docs/tasks/MC-00-closeout-plan.md",
+        "docs/tasks/MC-00-commands.md",
+        "docs/tasks/MC-01G-preflight.md",
+        "docs/tasks/R1-results.md",
+        "docs/tasks/TEMPLATE.md",
+        "docs/upstream/README.md"
+      ],
+      "links_in": [
+        "docs/DISCOVERY-BASELINE.md",
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/PLAN.md",
+        "docs/README.md",
+        "docs/tasks/MC-00-engineering.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/MC-01G-preflight.md",
+      "title": "MC-01G 无模型权限切片：工程交接",
+      "purpose": "MC-01G 无模型权限切片：工程交接",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [
+        "docs/MINIMUM-CHAIN.md",
+        "docs/tasks/MC-00-engineering.md"
+      ],
+      "links_out": [
+        "docs/MINIMUM-CHAIN.md",
+        "docs/tasks/MC-00-engineering.md"
+      ],
+      "links_in": [
+        "docs/tasks/MC-00-results.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/NATIVE-CREATE-READ-SLICE.md",
+      "title": "Native authenticated project/task create → read, local slice",
+      "purpose": "Native authenticated project/task create → read, local slice",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/NATIVE-CREATION-CONTRACT.md",
+      "title": "NM03 原生创建＋分类同事务候选",
+      "purpose": "NM03 原生创建＋分类同事务候选",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/NATIVE-CREATION-REVIEW.md",
+      "title": "NM03 原生创建契约独立评审",
+      "purpose": "NM03 原生创建契约独立评审",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/NM03A-WORKSPACE-BOOTSTRAP.md",
+      "title": "NM03-A new-workspace atomic authorization bootstrap",
+      "purpose": "NM03-A new-workspace atomic authorization bootstrap",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/NM03B-NATIVE-CREATE-READ.md",
+      "title": "NM03-B：原生项目／普通任务创建→授权读回候选",
+      "purpose": "NM03-B：原生项目／普通任务创建→授权读回候选",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-00-baseline.md",
+      "title": "R1-00：恢复工程基线与可执行派工",
+      "purpose": "R1-00：恢复工程基线与可执行派工",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/DEVELOPMENT-HANDOFF.md",
+        "docs/tasks/ACTIVE.md",
+        "docs/tasks/MC-00-closeout-plan.md",
+        "docs/tasks/MC-00-engineering.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/R1-00-pnpm-bootstrap.md",
+      "title": "R1-00-PNPM-BOOTSTRAP",
+      "purpose": "R1-00-PNPM-BOOTSTRAP",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-00-pnpm-install-argv-compat-r2.md",
+      "title": "R1-00-PNPM-INSTALL-ARGV-COMPAT-R2",
+      "purpose": "R1-00-PNPM-INSTALL-ARGV-COMPAT-R2",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-00-pnpm-install-projectlink-r3.md",
+      "title": "R1-00-PNPM-INSTALL-PROJECTLINK-R3",
+      "purpose": "R1-00-PNPM-INSTALL-PROJECTLINK-R3",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-00-pnpm-install-runner.md",
+      "title": "R1-00-PNPM-INSTALL-RUNNER",
+      "purpose": "R1-00-PNPM-INSTALL-RUNNER",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-00-pnpm-offline-extract.md",
+      "title": "R1-00-PNPM-OFFLINE-EXTRACT",
+      "purpose": "R1-00-PNPM-OFFLINE-EXTRACT",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-00-public-inventory-privacy-r2.md",
+      "title": "R1-00-PUBLIC-INVENTORY-PRIVACY r2",
+      "purpose": "R1-00-PUBLIC-INVENTORY-PRIVACY r2",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-00-review.md",
+      "title": "R1-00 独立评审记录",
+      "purpose": "R1-00 独立评审记录",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-00R4-persistent-host-consumer.md",
+      "title": "R1-00-R4-PERSISTENT-HOST-CONSUMER",
+      "purpose": "R1-00-R4-PERSISTENT-HOST-CONSUMER",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-01-collaboration.md",
+      "title": "R1-01：多人原生协作与企业权限",
+      "purpose": "R1-01：多人原生协作与企业权限",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/tasks/ACTIVE.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/R1-01A-schema.md",
+      "title": "R1-01A 初始权限结构与真实夹具 Implementation Plan",
+      "purpose": "R1-01A 初始权限结构与真实夹具 Implementation Plan",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-01B-auth-db.md",
+      "title": "R1-01B-DB：首个真实 PAT→CLI HTTP RED",
+      "purpose": "R1-01B-DB：首个真实 PAT→CLI HTTP RED",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-01B-auth-foundation.md",
+      "title": "R1-01B-AUTH：同候选 M1+M2 与可信凭据来源修复",
+      "purpose": "R1-01B-AUTH：同候选 M1+M2 与可信凭据来源修复",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-01C-issue-read.md",
+      "title": "R1-ISSUE-READ-RED：原生跨部门任务读取反例",
+      "purpose": "R1-ISSUE-READ-RED：原生跨部门任务读取反例",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-01D-issue-guard.md",
+      "title": "R1-01D / R1-ISSUE-READ-GUARD：最小原生GET权限修复",
+      "purpose": "R1-01D / R1-ISSUE-READ-GUARD：最小原生GET权限修复",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-01D-native-clone.md",
+      "title": "R1-01D-NATIVE-CLONE — Issue-read 测试隔离目标适配",
+      "purpose": "R1-01D-NATIVE-CLONE — Issue-read 测试隔离目标适配",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02-execution.md",
+      "title": "R1-02：Windows 本地执行、自动归档与用量",
+      "purpose": "R1-02：Windows 本地执行、自动归档与用量",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/tasks/ACTIVE.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/R1-02A-cache.md",
+      "title": "R1-02A-CACHE：拒绝无效输入并保护已有缓存",
+      "purpose": "R1-02A-CACHE：拒绝无效输入并保护已有缓存",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02B-claim-pin.md",
+      "title": "R1-02B — claim固定版本最小拒绝漂移",
+      "purpose": "R1-02B — claim固定版本最小拒绝漂移",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02B-manifest-version-regression.md",
+      "title": "R1-02B Manifest version regression r1",
+      "purpose": "R1-02B Manifest version regression r1",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02C-dsh-foreign-frame.md",
+      "title": "R1-02C — DSH foreign-request 帧隔离",
+      "purpose": "R1-02C — DSH foreign-request 帧隔离",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02D-windows-dsh-process.md",
+      "title": "R1-02D — Windows direct-process DSH coverage",
+      "purpose": "R1-02D — Windows direct-process DSH coverage",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02D2-windows-failclosed-tests.md",
+      "title": "R1-02D2 — Windows ownership-denial tests before repair",
+      "purpose": "R1-02D2 — Windows ownership-denial tests before repair",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-api-set-contract.md",
+      "title": "R1-02E single versioned APIset contract evidence",
+      "purpose": "R1-02E single versioned APIset contract evidence",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-frontier-evidence.md",
+      "title": "R1-02E O0 frontier evidence",
+      "purpose": "R1-02E O0 frontier evidence",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-helper-compile-r2.md",
+      "title": "R1-02E-NATIVE-O0-HELPER-COMPILE-R2-PREP",
+      "purpose": "R1-02E-NATIVE-O0-HELPER-COMPILE-R2-PREP",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-helper-compile.md",
+      "title": "R1-02E-NATIVE-O0-HELPER-COMPILE-PREP",
+      "purpose": "R1-02E-NATIVE-O0-HELPER-COMPILE-PREP",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-source-fix2.md",
+      "title": "R1-02E-NATIVE-O0-SOURCE fix2/5",
+      "purpose": "R1-02E-NATIVE-O0-SOURCE fix2/5",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-source-fix4.md",
+      "title": "R1-02E-NATIVE-O0-SOURCE fix4/5",
+      "purpose": "R1-02E-NATIVE-O0-SOURCE fix4/5",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-source-fix5.md",
+      "title": "R1-02E-NATIVE-O0-SOURCE fix5/5",
+      "purpose": "R1-02E-NATIVE-O0-SOURCE fix5/5",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-win32u-candidate.md",
+      "title": "R1-02E O0 stored win32u candidate",
+      "purpose": "R1-02E O0 stored win32u candidate",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-O0-win32u-data.md",
+      "title": "R1-02E O0 win32u first DATA observation",
+      "purpose": "R1-02E O0 win32u first DATA observation",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-api-set-query-compile.md",
+      "title": "R1-02E APIset diagnostic separate library compile",
+      "purpose": "R1-02E APIset diagnostic separate library compile",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-api-set-query-source.md",
+      "title": "R1-02E exact APIset query source",
+      "purpose": "R1-02E exact APIset query source",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-apphost-acquisition.md",
+      "title": "R1-02E-APPHOST-ACQUISITION",
+      "purpose": "R1-02E-APPHOST-ACQUISITION",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-apphost-link.md",
+      "title": "R1-02E-APPHOST-LINK",
+      "purpose": "R1-02E-APPHOST-LINK",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "title": "R1-02E-FINAL-OBSERVER — tests-first source slice",
+      "purpose": "R1-02E-FINAL-OBSERVER — tests-first source slice",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "title": "R1-02E-RUNTIME-ADAPTERS r2",
+      "purpose": "R1-02E-RUNTIME-ADAPTERS r2",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-02E-windows-runtime-source.md",
+      "title": "R1-02E — Windows containment source",
+      "purpose": "R1-02E — Windows containment source",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-03-reliability.md",
+      "title": "R1-03：Leader 回传闭环、版本与双设备可靠性",
+      "purpose": "R1-03：Leader 回传闭环、版本与双设备可靠性",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/tasks/ACTIVE.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/R1-03A-leader-text.md",
+      "title": "R1-03A — Leader原生文本产品纵切：tests-first",
+      "purpose": "R1-03A — Leader原生文本产品纵切：tests-first",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-03B-admin-sqlcompat.md",
+      "title": "R1-03B-ADMIN-SQLCOMPAT — PG native metadata compatibility repair",
+      "purpose": "R1-03B-ADMIN-SQLCOMPAT — PG native metadata compatibility repair",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-03B-leader-foundation.md",
+      "title": "R1-03B — Leader foundation，首个可运行生产基础切片",
+      "purpose": "R1-03B — Leader foundation，首个可运行生产基础切片",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-03B-loader-capture.md",
+      "title": "R1-03B-LOADER-CAPTURE",
+      "purpose": "R1-03B-LOADER-CAPTURE",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-03B-native-pins-diagnostic.md",
+      "title": "R1-03B-NATIVE-PINS-DIAGNOSTIC",
+      "purpose": "R1-03B-NATIVE-PINS-DIAGNOSTIC",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-03B-public-adapter-probe.md",
+      "title": "R1-03B-PUBLIC-ADAPTER-PROBE",
+      "purpose": "R1-03B-PUBLIC-ADAPTER-PROBE",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-03B-public-observability.md",
+      "title": "R1-03B-PUBLIC-OBSERVABILITY",
+      "purpose": "R1-03B-PUBLIC-OBSERVABILITY",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-03C-sqlfix-resource.md",
+      "title": "R1-03C — ONE SQLFIX replacement resource creator",
+      "purpose": "R1-03C — ONE SQLFIX replacement resource creator",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-INCIDENT-WORKTREE-01.md",
+      "title": "R1-INCIDENT-WORKTREE-01 — startup-cleanup incident / recovery gate",
+      "purpose": "R1-INCIDENT-WORKTREE-01 — startup-cleanup incident / recovery gate",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "title": "首轮恢复与连续开发记录",
+      "purpose": "首轮恢复与连续开发记录",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-07",
+      "related": [
+        "docs/tasks/R1-review.md"
+      ],
+      "links_out": [
+        "docs/tasks/R1-review.md"
+      ],
+      "links_in": [
+        "docs/DEVELOPMENT-HANDOFF.md",
+        "docs/tasks/ACTIVE.md",
+        "docs/tasks/MC-00-results.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/R1-review.md",
+      "title": "R1 交接文档独立审查",
+      "purpose": "R1 交接文档独立审查",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/tasks/R1-results.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/STARTUP-DELIVERY-REVIEW.md",
+      "title": "本地启动与文档交付独立审核",
+      "purpose": "本地启动与文档交付独立审核",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-09",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/STARTUP-STAGED-REVIEW.md",
+      "title": "本地启动实际索引独立复核",
+      "purpose": "本地启动实际索引独立复核",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/SUPABASE-LOGIN-REVIEW.md",
+      "title": "SUPABASE-LOGIN independent review",
+      "purpose": "SUPABASE-LOGIN independent review",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-09",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/SUPABASE-LOGIN-STAGED-REVIEW.md",
+      "title": "SUPABASE-LOGIN staged review — APPROVED",
+      "purpose": "SUPABASE-LOGIN staged review — APPROVED",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/SUPABASE-LOGIN.md",
+      "title": "SUPABASE-LOGIN — email/password to native Multica session",
+      "purpose": "SUPABASE-LOGIN — email/password to native Multica session",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-09",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/TASK-DETAIL-404.md",
+      "title": "TASK-DETAIL-404 — 自然创建与读取政策未接通",
+      "purpose": "TASK-DETAIL-404 — 自然创建与读取政策未接通",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/TEMPLATE.md",
+      "title": "TASK-ID：任务标题",
+      "purpose": "TASK-ID：任务标题",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-06",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/ENGINEERING-BASELINE.md",
+        "docs/README.md",
+        "docs/tasks/MC-00-results.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/WORKTREE-STATUS.md",
+      "title": "本地分支与工作树梳理",
+      "purpose": "本地分支与工作树梳理",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-09",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/contracts/R1-02B-CLAIM-PIN-r2-spec.md",
+      "title": "R1-02B-SKILL-CLAIM-PIN — r2 DRAFT exact component proposal",
+      "purpose": "R1-02B-SKILL-CLAIM-PIN — r2 DRAFT exact component proposal",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/contracts/R1-02C-DSH-FOREIGN-FRAME-r1-spec.md",
+      "title": "R56 DSH foreign-frame owner specification (DRAFT pending Root TEST-FROZEN)",
+      "purpose": "R56 DSH foreign-frame owner specification (DRAFT pending Root TEST-FROZEN)",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/contracts/R1-ACL-r1.md",
+      "title": "R1-ACL-r1: initial persisted NM-02a candidate",
+      "purpose": "R1-ACL-r1: initial persisted NM-02a candidate",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-06",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/contracts/R1-AUTH-DB-r1-proposal.md",
+      "title": "R1-01B first HTTP RED: auth-only retained-DB fixture proposal",
+      "purpose": "R1-01B first HTTP RED: auth-only retained-DB fixture proposal",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/contracts/R1-AUTH-FOUNDATION-r1-proposal.md",
+      "title": "R1-01B-AUTH foundation task/card amendment — DRAFT",
+      "purpose": "R1-01B-AUTH foundation task/card amendment — DRAFT",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/contracts/R1-ISSUE-READ-GUARD-native-clone-r1-spec.md",
+      "title": "R1-01D-NATIVE-CLONE r1 owner specification",
+      "purpose": "R1-01D-NATIVE-CLONE r1 owner specification",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/contracts/R1-ISSUE-READ-GUARD-r2-spec.md",
+      "title": "R1-ISSUE-READ-GUARD-r1 — owner source-contract proposal r2",
+      "purpose": "R1-ISSUE-READ-GUARD-r1 — owner source-contract proposal r2",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-07",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/theming.md",
+      "title": "Theming Multica",
+      "purpose": "主题包的构成：manifest、CSS 变量、稳定锚点与内置主题（上游 0.8.2 文档，随同步引入）",
+      "owner": "sync-0.8.2",
+      "status": "reference",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/upstream/README.md",
+      "title": "Multica 导入来源",
+      "purpose": "Multica 导入来源",
+      "owner": "upstream",
+      "status": "reference",
+      "updated": "2026-11-06",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/tasks/MC-00-results.md",
+        "docs/upstream/SYNC-0.8.2-PORT.md",
+        "docs/upstream/SYNC-0.8.2-RESULT.md"
+      ]
+    },
+    {
+      "path": "docs/upstream/SYNC-0.8.2-PORT.md",
+      "title": "主线 8 提交移植到 `sync/0.8.2`（U6 执行）",
+      "purpose": "U6 移植记录：把主线 8 个提交搬到 sync/0.8.2，逐提交冲突处理、641/642 迁移改号、丢弃的 hunk 与门禁输出",
+      "owner": "u6-sync",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/upstream/SYNC-0.8.2-RESULT.md",
+        "docs/upstream/README.md"
+      ],
+      "links_out": [
+        "docs/upstream/README.md",
+        "docs/upstream/SYNC-0.8.2-RESULT.md"
+      ],
+      "links_in": []
+    },
+    {
+      "path": "docs/upstream/SYNC-0.8.2-RESULT.md",
+      "title": "v0.8.2 同步结果（U2 执行）",
+      "purpose": "multica v0.8.2 同步的执行记录：提交序列、迁移重编号、冲突决定、未合并项与验证输出",
+      "owner": "u2-sync",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [
+        "docs/upstream/SYNC-0.8.2.md",
+        "docs/upstream/README.md"
+      ],
+      "links_out": [
+        "docs/upstream/README.md"
+      ],
+      "links_in": [
+        "docs/upstream/SYNC-0.8.2-PORT.md"
+      ]
+    }
+  ],
+  "problems": [],
+  "dead_links": [
+    "docs/ASSETS-AND-LEARNING.md -> docs/archive/2026-11-06-before-multica-authority-migration/ASSETS-AND-LEARNING.md",
+    "docs/DISCOVERY-BASELINE.md -> docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
+    "docs/DISCOVERY-BASELINE.md -> docs/tasks/contracts/R1-ACL-r1-runner-binding.json",
+    "docs/DISCOVERY-BASELINE.md -> docs/tasks/contracts/R1-ACL-r1-test-frozen.json",
+    "docs/DISCOVERY-BASELINE.md -> related docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
+    "docs/DISTRIBUTED-COLLABORATION.md -> docs/archive/2026-11-06-before-multica-authority-migration/DISTRIBUTED-COLLABORATION.md",
+    "docs/DOCS-REBASE.md -> docs/archive/2026-11-06-development-readiness/README.md",
+    "docs/DOCS-REBASE.md -> docs/archive/README.md",
+    "docs/DOCS-REBASE.md -> related docs/archive/2026-11-06-development-readiness/README.md",
+    "docs/DOCS-REBASE.md -> related docs/archive/README.md",
+    "docs/EDICT-FLOW.md -> docs/archive/2026-11-04-pre-platform-review/EDICT-FLOW.md",
+    "docs/EDICT-FLOW.md -> related docs/archive/2026-11-04-pre-platform-review/EDICT-FLOW.md",
+    "docs/MULTICA-BASE-EVALUATION.md -> docs/archive/2026-11-06-before-multica-authority-migration/MULTICA-BASE-EVALUATION.md",
+    "docs/MULTICA-BASE-EVALUATION.md -> related docs/archive/2026-11-06-before-multica-authority-migration/MULTICA-BASE-EVALUATION.md",
+    "docs/PAPERCLIP-BASE.md -> docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
+    "docs/PAPERCLIP-BASE.md -> docs/archive/2026-11-06-before-multica-authority-migration/PAPERCLIP-BASE.md",
+    "docs/PAPERCLIP-BASE.md -> docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md",
+    "docs/PAPERCLIP-BASE.md -> related docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
+    "docs/PAPERCLIP-BASE.md -> related docs/archive/2026-11-06-before-multica-authority-migration/PAPERCLIP-BASE.md",
+    "docs/PAPERCLIP-BASE.md -> related docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md",
+    "docs/PRD.md -> docs/archive/2026-11-06-before-multica-authority-migration/PRD.md",
+    "docs/PRODUCT-EXPERIENCE.md -> docs/archive/2026-11-06-before-multica-authority-migration/PRODUCT-EXPERIENCE.md",
+    "docs/PRODUCT-LIFECYCLE.md -> docs/archive/2026-11-06-before-multica-authority-migration/PRODUCT-LIFECYCLE.md",
+    "docs/README.md -> docs/archive/2026-11-06-before-multica-authority-migration/README.md",
+    "docs/README.md -> docs/archive/README.md",
+    "docs/REFERENCE-REUSE.md -> docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md",
+    "docs/tasks/ACTIVE.md -> docs/tasks/R1-00-checkpoint.json",
+    "docs/tasks/MC-00-closeout-plan.md -> docs/archive/2026-11-06-pre-continuous-development/MC-00-closeout-plan.md",
+    "docs/tasks/MC-00-closeout-plan.md -> related docs/archive/2026-11-06-pre-continuous-development/MC-00-closeout-plan.md",
+    "docs/tasks/R1-results.md -> docs/tasks/R1-recovery-evidence.json",
+    "docs/upstream/README.md -> docs/upstream/multica-import.json",
+    "docs/upstream/SYNC-0.8.2-RESULT.md -> related docs/upstream/SYNC-0.8.2.md"
+  ]
+}

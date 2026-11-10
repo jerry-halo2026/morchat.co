@@ -1,9 +1,19 @@
+---
+purpose: "千川官方数据面与时效性 — 数据可得性文档"
+owner: integrations
+status: current
+updated: 2026-11-06
+related:
+  - docs/PRD.md
+  - docs/PLAN.md
+  - docs/REFERENCE-REUSE.md
+---
 # 千川官方数据面与时效性 — 数据可得性文档
 
-> 文档定位更新（2026-11-04）：本文件仅为 morchat 首个业务场景的技术资料，不定义平台定位或 MVP 建设顺序。接口/实测结论保留原记录日期，本轮未重新调用验证。历史“下一步”、排期和部署描述不构成当前执行授权；当前只读场景范围以 [平台 PRD](D:/dev/morchat.co/docs/PRD.md) 和 [建设路线](D:/dev/morchat.co/docs/PLAN.md) 为准。生产写入、预算审批、直播监测另行立项。
+> 文档定位更新（2026-11-04）：本文件仅为 morchat 首个业务场景的技术资料，不定义平台定位或 MVP 建设顺序。接口/实测结论保留原记录日期，本轮未重新调用验证。历史“下一步”、排期和部署描述不构成当前执行授权；当前只读场景范围以 [平台 PRD](PRD.md) 和 [建设路线](PLAN.md) 为准。生产写入、预算审批、直播监测另行立项。
 
 > 生成：2026-11-03 · 依据：`ad_open_sdk_java` pin `e8c324c`（官方 OpenAPI 规格生成物，本地可 grep 复现）+ 官方文档验证
-> 配套：[当前平台建设路线](D:/dev/morchat.co/docs/PLAN.md) · [参考项目复用边界](D:/dev/morchat.co/docs/REFERENCE-REUSE.md)；凭据不随文档分发。
+> 配套：[当前平台建设路线](PLAN.md) · [参考项目复用边界](REFERENCE-REUSE.md)；凭据不随文档分发。
 > 状态标注：✅=SDK 源码证实 · 📄=官方文档证实 · ⏳=待 token 实测
 
 ---

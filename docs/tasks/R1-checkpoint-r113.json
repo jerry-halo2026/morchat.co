@@ -1,0 +1,92 @@
+{
+  "checkpoint": "R113",
+  "actualLibraryCompile": {
+    "unitProcesses": 0,
+    "actual": "adb6a1 terminal0",
+    "helperLoads": 0,
+    "review": "849e3310fe003c4ea1663601e83bb2311f83c5df558de20a567146f783e91fee",
+    "manifest": "9c3d0769b2174df60f87fe82e3e81ed298a1441320ac60482c476ee7553c16b2",
+    "compilerProcesses": 1,
+    "dll": "2b2f213cd599bdf75f3f437ea49dff4479fc253518bcd607d1f1e3fd0ad5ec44",
+    "claim": "CONSUMED_NO_RETRY",
+    "nativeQueries": 0
+  },
+  "independentDocsReview": "PENDING",
+  "files": [
+    {
+      "bytes": 289855,
+      "beforeSha256": "09df9f02651e26f40557783b226ae7d60ed668094bff346523d20b939137f892",
+      "priorSnapshot": "R112",
+      "beforeBytes": 285811,
+      "path": "docs/tasks/ACTIVE.md",
+      "sha256": "d95747627b912122c9b690c82a7fa29a97b5cf3a4b6582e433ddec637f162cc3"
+    },
+    {
+      "bytes": 271353,
+      "beforeSha256": "3e24bade4454a5b194932a2b85023498be9d867a4593170b00e7fd15e5123a4f",
+      "priorSnapshot": "R112",
+      "beforeBytes": 267309,
+      "path": "docs/tasks/R1-results.md",
+      "sha256": "12bb86c94710a7b1b4c1d7c36d762d6f5f49736874c6cff16b8471cb1775c680"
+    },
+    {
+      "bytes": 56468,
+      "beforeSha256": "7fd48a312b1481dbdbf7d4d50bcd515fb5e0a815a10a46510b0a3a4e1d83cb93",
+      "priorSnapshot": "R112",
+      "beforeBytes": 52424,
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "sha256": "ac4871df2bf49ae7994561057cd1021c2836acc11081dc86e200a2ccf17720d2"
+    },
+    {
+      "bytes": 38049,
+      "beforeSha256": "b73c2ce79af1f1e23bf1e7553955f2c7851c64949fc0978cff4fba923c71299b",
+      "priorSnapshot": "R112",
+      "beforeBytes": 34005,
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "sha256": "6379989dcc38f01b4087bbc83afdce03acfddf0e34247faa3801fffa9a7ae3b6"
+    },
+    {
+      "bytes": 5512,
+      "beforeSha256": "2cd0f648cc2f173bc71fdee59e11a8737bfe8e813cd06c34ea60780f35a873e8",
+      "priorSnapshot": "NEW_CARD_CREATED_A4E824_AFTER_R112_CAPTURE",
+      "beforeBytes": 1468,
+      "path": "docs/tasks/R1-02E-O0-helper-compile.md",
+      "sha256": "ad2f36aabc324f651d02a244cb246d8b538aed12b7242a48fd64909d5a4ddc5d"
+    },
+    {
+      "note": "UNMODIFIED_PLAN_FIRST_INCLUDED_IN_FORMAL_SNAPSHOT",
+      "path": "docs/superpowers/plans/2026-11-09-o0-helper-library-compile.md",
+      "bytes": 1584,
+      "sha256": "ba0cf2b6f6f2465f4fb2319d658c2879810e87df24b663870f26640341e99ba9"
+    }
+  ],
+  "loadScope": {
+    "owner": "/root/o0_load_query_scope",
+    "earlyConsumerGap": "Wrapper old pinned path+assembly simpleName mismatch accepted helper.dll, source repair not yet granted",
+    "status": "READONLY2REPORT_ACTIVE",
+    "runtimeClosure": "UNBOUND"
+  },
+  "branch": "codex/round1-continuous",
+  "rootOwnedExecLive": false,
+  "compileAdapter": {
+    "review": "b8f262b0fac6a1e839cf9341965782294ccaf29f457d5c8874fa0797c68999d3",
+    "driver": "f3bf366054c614c9493fb8b2c6b761e15bd93dcfccd8e7d61b0b29a83e823469",
+    "tests": "86_HOST_AST_FINITE_FAKE_NOT_NATIVE",
+    "profile": "697aa970cb2849753a0016d025868746686c2af67c694da6182c59fb91223232"
+  },
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "thisTurn": "PROGRESS_SOURCE5_REVIEW_AND_ACTUAL_ACCEPTED_CSC_LIBRARY",
+  "utc": "2026-11-08T21:26:39.3503605Z",
+  "previousTurn": "PROGRESS",
+  "model": "unknown",
+  "frontend39539": "HOLD_ORIGINAL_OWNER_LAST_LIVE_ONE_SIGNAL_CONSUMED_USER_ACTION_PENDING",
+  "productModelCalls": 0,
+  "blockedAudit": 0,
+  "root": "/root",
+  "helperSource": {
+    "review": "8b1ac954e19c47cb3496ccab55d6d66e938e410c6dcec4aebad089b7397ed793",
+    "bytes": 58340,
+    "sha256": "32dcbc697f4183d1b5e9d2fc0cfca3ef96e0f68b9df69f7ee45710f8448d8b2b"
+  },
+  "baseline": "0a1efe057948fac563783ef9e0ccd698f6a8220f"
+}

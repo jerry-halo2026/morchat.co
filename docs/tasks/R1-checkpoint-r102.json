@@ -1,0 +1,62 @@
+{
+  "checkpoint": "R102",
+  "root": "/root",
+  "model": "unknown",
+  "head": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "branch": "codex/round1-continuous",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "previousTurn": "PROGRESS",
+  "thisTurn": "PROGRESS_ACTUAL_T0_TEST_SOURCE6_AND_SPEC_REVIEW",
+  "specReview": "1f778e149bcd05963893414b5ae6d07f60c3eb1433f1ef177ca6a06a0ee35489",
+  "b05ReACK": "891085808bd80a67e62a5c0cfd25f8dbcf4b9bacb7d960416de30db407dc1d55",
+  "T0": {
+    "actualExecutionPermission": false,
+    "CS4": "READONLY_UNCHANGED",
+    "filesWritten": 6,
+    "implementer": "/root/final_observer_tests_impl",
+    "auxiliaryPass": 9,
+    "sourceMissingFail": 9,
+    "CSharpRED": "NOT_RUN",
+    "unitRSP182": true,
+    "rootIndependentHashes": "MATCH6_AND_8READONLY",
+    "unitFixtureFiles": 12,
+    "contract": "0d39fab5c71334218d95dcb683453709365ad692e8837fcdf7a4ba167953b3e9",
+    "fixtureHash": "3603cfa724f442ce71dbe196606472366ad0a969df91f978a6d429f35ca38c0f",
+    "model": "configured gpt-6.1-sol high",
+    "sourceReview": "ACTIVE",
+    "sourceReviewActor": "/root/windows_runtime_r2_review"
+  },
+  "next": "SOURCE_REVIEW_THEN_EXACTPUREUNITCOMPILE_AND_ACTUAL_EXPECTEDRED",
+  "nativePermission": false,
+  "productModelCalls": 0,
+  "blockerAudit": 0,
+  "files": [
+    {
+      "beforeSHA256": "fb0f0799094e7a50bddeb70727e4f84f90be0722559d8ec3fff8aa9f408fb952",
+      "sha256": "8de2aa39bfd13143e9358083ab640db0031898a243cc18dc5a9dc8d76110883c",
+      "path": "docs/tasks/ACTIVE.md"
+    },
+    {
+      "beforeSHA256": "2e0b4642a274a2cc9bc180759835bc78e2a548bc1b5ecdce19650b7a042317b4",
+      "sha256": "f5b5d182974116ad008d91bf1e199164878553613859ce528089a9da46a35a93",
+      "path": "docs/tasks/R1-results.md"
+    },
+    {
+      "beforeSHA256": "1b4681b85dfaff662e97ca7b9a6688d61cb64e0cd6484c4d8b7d2a2d2600c365",
+      "sha256": "2cd7db3d8c4ba8e16f40b5000d3059ace555b4d34600faedd9081fe7ef9f175b",
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md"
+    },
+    {
+      "beforeSHA256": "b59bc20a5936d5b962c1575136b9b0cd0e9358051a946f73026ce6b3c02fce54",
+      "sha256": "1657c1e6a09d7536cf0dff646c334d2eec5440131dee86ab2910e21ceaef526a",
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md"
+    },
+    {
+      "beforeSHA256": null,
+      "sha256": "21d5e7b03db5aaabb15c8d17e8afa324ca0bb999731efb014cf49f26734721c6",
+      "path": "docs/superpowers/plans/2026-11-08-final-observer-tdd.md"
+    }
+  ],
+  "independentDocsReview": "PENDING",
+  "utc": "2026-11-08T15:10:34.2297322+00:00"
+}

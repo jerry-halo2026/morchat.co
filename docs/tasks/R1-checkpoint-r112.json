@@ -1,0 +1,86 @@
+{
+  "link": {
+    "actualReview": "5084aa6bd6d50d40b8132c67c94772151d01491bf4ef8b297b45510aadb79262",
+    "status": "ACCEPTED_THREE_APPHOST_DATA_ONLY",
+    "targetExecuted": false,
+    "observation": "0d537d46b3d35771c4f4b9d9667c742c0684e5b30732461d0a8cf62ed0ad575b"
+  },
+  "helperCompileScope": {
+    "status": "READONLY_TWO_REPORTS_ACTIVE",
+    "actor": "/root/o0_helper_compile_scope",
+    "actualCompilePermission": false
+  },
+  "files": [
+    {
+      "beforeBytes": 281009,
+      "sha256": "09df9f02651e26f40557783b226ae7d60ed668094bff346523d20b939137f892",
+      "bytes": 285811,
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeSha256": "4575e66a2e179ae3687d0028f44fd0e989d3045a0c919e1254d756d853b039d2"
+    },
+    {
+      "beforeBytes": 262507,
+      "sha256": "3e24bade4454a5b194932a2b85023498be9d867a4593170b00e7fd15e5123a4f",
+      "bytes": 267309,
+      "path": "docs/tasks/R1-results.md",
+      "beforeSha256": "865d4271449bb377b4fc6a4993c9863079cec6bc84976368d34c566a4b67158f"
+    },
+    {
+      "beforeBytes": 47622,
+      "sha256": "7fd48a312b1481dbdbf7d4d50bcd515fb5e0a815a10a46510b0a3a4e1d83cb93",
+      "bytes": 52424,
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "beforeSha256": "b3902e63ec2a59333c3f6449012aed9362cecec3fb77b7d6883093778d9c12eb"
+    },
+    {
+      "beforeBytes": 29203,
+      "sha256": "b73c2ce79af1f1e23bf1e7553955f2c7851c64949fc0978cff4fba923c71299b",
+      "bytes": 34005,
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "beforeSha256": "483d9f8eeb531cecb5b19d02a8cf0209007551faa1fb3bfb1b3485adde15b196"
+    },
+    {
+      "beforeBytes": 2318,
+      "sha256": "cacda132e56d70b98d5f7859fb914426633644b8ccc3a8749f0376fa11beb225",
+      "bytes": 7120,
+      "path": "docs/tasks/R1-00R4-persistent-host-consumer.md",
+      "beforeSha256": "39f70403c83d33bec5c283afa29faa938e17fe964c4741b6d15cc643fb13a4bb"
+    }
+  ],
+  "O0": {
+    "actualBuildLoadQueryReceipt": 0,
+    "status": "SOURCE_FIX1_DELIVERED_REVIEW_ACTIVE",
+    "fix1Report": "3c4608461a5cf8a5aed2639c3f51fa55f55ea2339665a9a2e6a9bf38b3d60d08"
+  },
+  "productModelCalls": 0,
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "independentDocsReview": "PENDING",
+  "baseline": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "checkpoint": "R112",
+  "utc": "2026-11-08T20:36:50.8970939Z",
+  "model": "unknown",
+  "agentOwnedUnitExecLive": true,
+  "branch": "codex/round1-continuous",
+  "frontend": {
+    "status": "HOLD_HARNESS_CONTROL_PATH",
+    "behaviorRED": "NOT_PROVEN",
+    "preservedSourcePins": {
+      "-results.json": "f432d1b9fac1fc965bb1378c6166cd84e7b6bc61082b6da64d26d8334284b820",
+      "-tests.ps1": "f3a83e9bc89c6516d23aad65660b457e238145200d7e2aef63e1f32f269fef10",
+      ".CLOSED.ps1": "8ddd750a832d9a68ce2ed8f72b1c1903401b19752b8bf303560a4714ea99468e",
+      "-binding.DRAFT.json": "09d535795d0433334d9dadfa341a3b9abff407a75c0cf59dd58da7c251823e3d"
+    },
+    "originalToolSession": 39539,
+    "originalOwnerLatestPoll": "LIVE_NO_EXIT",
+    "cancelSignalsConsumed": 1,
+    "cancelRuling": "d1016301aa576cef34e8b7b8c06657e36d32431f3148eda1180bb0f491eb538c",
+    "GREEN": "NOT_RUN",
+    "sameObjectSettlement": "UNKNOWN",
+    "harnessReview": "236ddb1d4888956e34feac591e9c2eb48aa1095e2ca8cce532fe3d1af0c7207d",
+    "userManualAction": "ASKED_ONCE_PENDING"
+  },
+  "root": "/root",
+  "classification": "PROGRESS_ACTUAL_ACCEPTED_DATA_LINK_AND_REAL_HARNESS_FAIL",
+  "blockedAudit": 0,
+  "rootOwnedExecLive": false
+}

@@ -1,0 +1,60 @@
+{
+  "thisTurn": "PROGRESS_NEW_ROOT_AUTHORITY_ACTUAL_FAILED_LINK_SOURCE_DELIVERY",
+  "O0": {
+    "reviewer": "/root/guard_review",
+    "reportSha256": "4891e9c4eac57317115b11ba9e1b8e93d4b044bd709efc15e174efd3373b43f2",
+    "actualQuery": 0,
+    "actualLoad": 0,
+    "source": "DELIVERED_PENDING_INDEPENDENT_SOURCE_REVIEW"
+  },
+  "files": [
+    {
+      "sha256": "534623a14791f9f9e7e790ce9ba6a5fe5d7cabeb5a65a1d4b33aee3471ab0b27",
+      "bytes": 276904,
+      "beforeSha256": "21a2b1e419b1eeedf35215cbc608fe850f171a00779cc4bc10e6761cca79c273",
+      "path": "docs/tasks/ACTIVE.md",
+      "beforeBytes": 273784
+    },
+    {
+      "sha256": "9d4bebdd0e4e8de06ab2e197155bdce3e8711093ae30b5d2ca2d74f2f8133c87",
+      "bytes": 258402,
+      "beforeSha256": "312e5aec6aa293316cbbd44f0f3255a81bb3d993a62bb3c0c82f938499b1fcfb",
+      "path": "docs/tasks/R1-results.md",
+      "beforeBytes": 255282
+    },
+    {
+      "sha256": "df82e1494e424853d6073f19773a4957953bc799f2ca50805afc5974fb7fe684",
+      "bytes": 43517,
+      "beforeSha256": "c58c0e4357eacf80da3ca49e8703e13bdfaaadfbee3a2604f49dc32fa06bc7f8",
+      "path": "docs/tasks/R1-02E-runtime-adapters-r2.md",
+      "beforeBytes": 40397
+    },
+    {
+      "sha256": "80e3e5be89894f7dd635bee4869af18d5a46fe6c98085ed85f70b0ac0e0b8195",
+      "bytes": 25098,
+      "beforeSha256": "1559705a4dd91c761516bfd386d57a8d3ce551977f0a3e933e9ce23d57e8064e",
+      "path": "docs/tasks/R1-02E-final-observer-tdd.md",
+      "beforeBytes": 21978
+    }
+  ],
+  "branch": "codex/round1-continuous",
+  "link": {
+    "claims": "CONSUMED_NO_RETRY",
+    "actual": "bd7500 terminal1",
+    "targetExecuted": false,
+    "SDKCalls": 0,
+    "status": "FAIL_BEFORE_SDK_ENTRY",
+    "independentActualReview": "ACTIVE"
+  },
+  "blockerAudit": 0,
+  "root": "/root",
+  "model": "unknown",
+  "independentDocsReview": "PENDING",
+  "utc": "2026-11-08T19:34:24.4411545Z",
+  "rootOwnedProductExecLive": false,
+  "checkpoint": "R110",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "productModelCalls": 0,
+  "head": "0a1efe057948fac563783ef9e0ccd698f6a8220f",
+  "previousTurn": "NO_PROGRESS_USER_STATUS_ONLY"
+}

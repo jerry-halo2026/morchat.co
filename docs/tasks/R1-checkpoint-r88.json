@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "checkpoint": "R88",
+  "agent": "/root",
+  "model": "unknown",
+  "branch": "codex/round1-continuous",
+  "head": "9deb86654f0f81e227b436a440fd9c4a6ef9a453",
+  "previousCheckpoint": "R87",
+  "previousSha256": "513d44b8184d02c211f2f83d38b4e7538ae37e7cdd0c5ce8a2ccb7e7876d0acd",
+  "previousReviewSha256": "3f31e210689075a8b77767b8d6a2d3ff7c614db4fecf3a3bd70869ebeec8ddbf",
+  "previousSnapshotSha256": "82dac11f238b4ff060292f5fe495448f949faf5f7b1655c8c8790047bde2b912",
+  "previousGoalTurn": "PROGRESS_REAL_EXECUTION_FAILURE_REPRO_FIX_AND_REVIEW",
+  "currentProgress": "ACTUAL_PUBLIC_DIAGNOSTIC_ACCEPTED_OFFLINE_PACKAGE_BYTES_ACCEPTED_LINK_PARENT_FAIL_PRESERVED_AND_SOURCE_FIX",
+  "obs": {
+    "extraPrivateReadAttempts": 0,
+    "freshnessObserved": false,
+    "sqlEligible": false,
+    "exit": 0,
+    "actualEntries": 1,
+    "acceptedReviewSHA": "38d83a401ebf0f3d4573555e4c6f7dd3b43c636c978d3b155463756b7b460613"
+  },
+  "pnpm": {
+    "files": 1068,
+    "install": 0,
+    "bytes": 17522153,
+    "zeroFiles": 2,
+    "exit": 0,
+    "next": "READONLY10IMPORTER_INSTALL_PROFILE_PREP",
+    "NodeOrPackageExecution": 0,
+    "actualOfflineEntries": 1,
+    "actualReviewSHA": "a018e436f159543f42f5cb581b16cb75e129bd19d66e1191df4842ffd2f48764"
+  },
+  "link": {
+    "sourceFix1": "E1A9_16_HOST_PENDING_REVIEW",
+    "evidenceRootCreated": false,
+    "actualFailure": "GET_LOCATION_UNAVAILABLE_AUTOLOAD_DISABLED",
+    "nativeOutputs": 0,
+    "oldReleaseRetry": false,
+    "parentActualExit": 1,
+    "oldRuntimeEdition": "F881_PRESERVED_SOURCE471_CLOSED"
+  },
+  "allRepoSourceWriters": "CLOSED",
+  "goal": "ACTIVE_FULL_ORIGINAL_SCOPE",
+  "fullGoal": "NOT_COMPLETE",
+  "review": "PENDING_INDEPENDENT_DOCS_REVIEW",
+  "evidence": [
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-observability-runtime-binding-independent-review.json",
+      "sha256": "6272898ea6380c7dba1a6dbc19880ba082154d755d87b8d409c4026a01e944b7"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-observability-actual-independent-review.json",
+      "sha256": "38d83a401ebf0f3d4573555e4c6f7dd3b43c636c978d3b155463756b7b460613"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\leader-pg-adminfacts-sqlcompat-r1-observability-actual-public-result.json",
+      "sha256": "7b03dc6c2208ac1b58db9c25e6f23499dcfb999f6aeb578fabb252d29b7f7f9e"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-final-approval.ACTUAL.json",
+      "sha256": "88c27d528dcb7ed7e1012dbecc33169c4dc3d3c0208c2a1c22d20bf9eaaab2cc"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-root-profile-materialization.json",
+      "sha256": "f1fb654b1024e9a1d844ab953538e25f1d14c82b60651eca9a161917218092e2"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-parent-host\\parent.result.json",
+      "sha256": "48ddbf958741e059e04b260ab94d3b76879628c24f309f8cc9967de50f9a88ba"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-actual-failure-summary.json",
+      "sha256": "3aa38012e010b4a659a3c4f67938c5b0bcce379c8ef6ba9ae9fab0e3bc1bc936"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\windows-runtime-apphost-r1-link-fix1-root-release.json",
+      "sha256": "29c8074cce2cf2c7a9ff1b5496ef244342e8a70edd2c3edb7a76b049461a1564"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-offline-extraction-fix1-independent-review.json",
+      "sha256": "a5b16a0bdd6333044fa41dbbf9428ebe8900cec0c4672e64668e2e2a4e044e0e"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-offline-extraction-root-binding-independent-review-r1.json",
+      "sha256": "f9e219fe76f6021aa57f9feb44f3e7bc749edb9cc6923ba5f2d5c75b4392271d"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-offline-extraction-root-host-r1\\extract.result.json",
+      "sha256": "df387626b83379e92bcdb6adf8b7ad03923b19ddcfa0c2e72691396a1c6e55a8"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-offline-extraction-actual-root-observation.json",
+      "sha256": "2286b3d284c91205dbb423836062dcfd4bc04bb231b7e1a42779980f55a0e18f"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\frontend-baseline-r1-offline-extraction-actual-independent-review.json",
+      "sha256": "a018e436f159543f42f5cb581b16cb75e129bd19d66e1191df4842ffd2f48764"
+    },
+    {
+      "path": "E:\\CodexData\\incidents\\morchat-20261106T233131\\r88-source-evidence\\link-fix1-source-manifest.json",
+      "sha256": "1b13afae70a07b671d974d4fb6829dd90f04befe06dda75b4d32f7c65c8e1702"
+    }
+  ],
+  "files": [
+    {
+      "path": "docs/tasks/R1-00-pnpm-offline-extract.md",
+      "sha256": "62fc693813d3afd5a738f9ee52c6f2dafe2cfb84995233fb605721c629b5fb47",
+      "beforeBytes": 666,
+      "beforeSha256": "1e7a04ca16b8168c3f62fdbd720d710e3b3357569cf35296b085782bf8a689fa",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-02E-apphost-link.md",
+      "sha256": "0295701922d2a6fa431c7bd3bcd492d40fb345dacfb9d532f44e2236f882dd0a",
+      "beforeBytes": 742,
+      "beforeSha256": "29351682c9175ccd2dc8695266fcc8494a276d94b42066dc272d12fd3ff3c84e",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-03B-public-observability.md",
+      "sha256": "58f806ce9f02c9cb5457fed539dfb9edb82c713596bada5c3990c04859fb3fff",
+      "beforeBytes": 756,
+      "beforeSha256": "60550078cbb33f3719e67d31e69d1adaf3b6f52e278a2c51e8beb5941f2b3f40",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-results.md",
+      "sha256": "a61313683103817da4fdb6e0f3efc027c53886c1064b02deb0bd82b76146236f",
+      "beforeBytes": 188548,
+      "beforeSha256": "a5df830ca3da7d532a6ce613a584865f5cb276bc324b8f09d55018580f1156d9",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/R1-00-baseline.md",
+      "sha256": "171e80154033c92c07845ee4def5bfc761d6f27c24231c1fd1007a7dc8804c22",
+      "beforeBytes": 14528,
+      "beforeSha256": "5b4bc5e16cf64bcb71cd5cc1c0999e9ec399695d4c7c780830cb920257862635",
+      "appendOnly": true
+    },
+    {
+      "path": "docs/tasks/ACTIVE.md",
+      "sha256": "811b5005170ce6dc7cfc7627c0da73626bafbffc3459ed4c10a68653d75111dc",
+      "beforeBytes": 198509,
+      "beforeSha256": "a65f30169758eb3799561644dc504b876e5ec67ce5fc96b3230d02f06c80ccb0",
+      "appendOnly": true
+    },
+    {
+      "bytes": 4508,
+      "path": "docs/tasks/contracts/R1-00-PNPM-OFFLINE-EXTRACT-r1-test-frozen.json",
+      "sha256": "e48689a84062a8d6488808a17c1522295ef53443d25e602b6b9c036e7630d2a5",
+      "runtimeAuthority": "Source-only contract, actual eb6/f9e separate",
+      "newControlFile": true
+    }
+  ]
+}

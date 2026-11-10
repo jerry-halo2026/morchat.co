@@ -1,0 +1,241 @@
+{
+    "schemaVersion": 1,
+    "characterVersion": "cap-v1",
+    "algorithm": "h=0; for c in agentId: h=(h*31+cp(c))%17; palette=palettes[h]; h2=(h*31+runeLength(agentId))%10; body=bodies[h2]",
+    "notes": "Frozen. TS and Go MUST implement this exact integer arithmetic; changing it requires cap-v2. Presentation (solid body + eyes) is documented in `presentation` and is not part of the identity.",
+    "presentation": {
+        "body": "solid palette.a (background-color, no background-image gradient)",
+        "eyes": "palette.b (engine `ink`); static SVG eye frame from 21px up, engine gaze/blink at 32px and above",
+        "tiers": {
+            "css": "<=20px: solid only, eyes not distinguishable",
+            "static": "21-31px: solid body + static eye frame",
+            "animated": ">=32px: engine layer"
+        }
+    },
+    "palettes": [
+        {
+            "b": "#95A2B6",
+            "id": "deep-tide",
+            "a": "#1B4F9C"
+        },
+        {
+            "b": "#43120E",
+            "id": "ember",
+            "a": "#C8392B"
+        },
+        {
+            "b": "#2F3D2B",
+            "id": "moss",
+            "a": "#6E8B6A"
+        },
+        {
+            "b": "#9697AF",
+            "id": "cobalt",
+            "a": "#3B3F9E"
+        },
+        {
+            "b": "#B8AEB4",
+            "id": "plum",
+            "a": "#7D4E6B"
+        },
+        {
+            "b": "#6B5326",
+            "id": "sand",
+            "a": "#C9A66B"
+        },
+        {
+            "b": "#4A5056",
+            "id": "slate",
+            "a": "#9AA0A6"
+        },
+        {
+            "b": "#6E2D07",
+            "id": "coral",
+            "a": "#E8641B"
+        },
+        {
+            "b": "#0A361E",
+            "id": "jade",
+            "a": "#1F8A4C"
+        },
+        {
+            "b": "#7A6100",
+            "id": "amber",
+            "a": "#F2C300"
+        },
+        {
+            "b": "#9A8CA7",
+            "id": "indigo",
+            "a": "#5B2C8D"
+        },
+        {
+            "b": "#BC9EAC",
+            "id": "rose",
+            "a": "#A3175A"
+        },
+        {
+            "b": "#042B2E",
+            "id": "teal",
+            "a": "#0E7C86"
+        },
+        {
+            "b": "#563F05",
+            "id": "olive",
+            "a": "#B8860B"
+        },
+        {
+            "b": "#989898",
+            "id": "steel",
+            "a": "#4A4A4A"
+        },
+        {
+            "b": "#B2A29E",
+            "id": "violet",
+            "a": "#8C3B2E"
+        },
+        {
+            "b": "#264267",
+            "id": "clay",
+            "a": "#5B8FD1"
+        }
+    ],
+    "bodies": [
+        "blob",
+        "pebble",
+        "egg",
+        "squircle",
+        "capsule",
+        "hex",
+        "cloud",
+        "teardrop",
+        "heart",
+        "star6"
+    ],
+    "vectors": [
+        {
+            "agentId": "agent-0001",
+            "paletteId": "rose",
+            "bodyId": "pebble"
+        },
+        {
+            "agentId": "agent-0002",
+            "paletteId": "teal",
+            "bodyId": "egg"
+        },
+        {
+            "agentId": "agent-0003",
+            "paletteId": "olive",
+            "bodyId": "squircle"
+        },
+        {
+            "agentId": "agent-0004",
+            "paletteId": "steel",
+            "bodyId": "capsule"
+        },
+        {
+            "agentId": "agent-0005",
+            "paletteId": "violet",
+            "bodyId": "hex"
+        },
+        {
+            "agentId": "agent-0006",
+            "paletteId": "clay",
+            "bodyId": "cloud"
+        },
+        {
+            "agentId": "agent-0007",
+            "paletteId": "deep-tide",
+            "bodyId": "blob"
+        },
+        {
+            "agentId": "agent-0008",
+            "paletteId": "ember",
+            "bodyId": "pebble"
+        },
+        {
+            "agentId": "01a1bf47-2f47-7d26-9192-13db2a468350",
+            "paletteId": "plum",
+            "bodyId": "blob"
+        },
+        {
+            "agentId": "01a1c162-5b3f-7c41-9a2e-77d1a0c9f001",
+            "paletteId": "jade",
+            "bodyId": "capsule"
+        },
+        {
+            "agentId": "01a1c324-4875-7c8a-a06f-b04b9acd01df",
+            "paletteId": "clay",
+            "bodyId": "egg"
+        },
+        {
+            "agentId": "a4f0f7f0-0ea1-4daf-a58e-5ba46cb22522",
+            "paletteId": "plum",
+            "bodyId": "blob"
+        },
+        {
+            "agentId": "b4e47a0f-dd5c-420d-8dc2-dab3d01cc54f",
+            "paletteId": "clay",
+            "bodyId": "egg"
+        },
+        {
+            "agentId": "deepseek-live-20261110",
+            "paletteId": "sand",
+            "bodyId": "teardrop"
+        },
+        {
+            "agentId": "mika",
+            "paletteId": "sand",
+            "bodyId": "star6"
+        },
+        {
+            "agentId": "cocoa",
+            "paletteId": "clay",
+            "bodyId": "pebble"
+        },
+        {
+            "agentId": "opc-team-lead",
+            "paletteId": "deep-tide",
+            "bodyId": "squircle"
+        },
+        {
+            "agentId": "ai-engineer",
+            "paletteId": "violet",
+            "bodyId": "cloud"
+        },
+        {
+            "agentId": "douyin-strategist",
+            "paletteId": "indigo",
+            "bodyId": "teardrop"
+        },
+        {
+            "agentId": "finance-analyst",
+            "paletteId": "jade",
+            "bodyId": "squircle"
+        },
+        {
+            "agentId": "koc-ops-expert",
+            "paletteId": "rose",
+            "bodyId": "hex"
+        },
+        {
+            "agentId": "workspace-builder",
+            "paletteId": "slate",
+            "bodyId": "squircle"
+        },
+        {
+            "agentId": "0f3a5c11-9d2e-4e77-8f10-2b6c9a4d5e70",
+            "paletteId": "olive",
+            "bodyId": "star6"
+        },
+        {
+            "agentId": "9b2c7e44-1a3f-4d58-b6c2-7e0f1a9d3c85",
+            "paletteId": "rose",
+            "bodyId": "teardrop"
+        },
+        {
+            "agentId": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+            "paletteId": "steel",
+            "bodyId": "blob"
+        }
+    ]
+}
