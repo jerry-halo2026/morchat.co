@@ -13,12 +13,15 @@
  *   multica-ai/multica                   -> jerry-halo2026/morchat.co
  *   @multica/                            -> @morechat/
  *   brand module identifiers / paths     -> morechat equivalents
+ *   Multica glued to an identifier char  -> Morechat (symbols stay PascalCase)
  *   Multica (user-visible copy)          -> morechat.co   (outside the gate allowlist)
  *   multica.ai                           -> morechat.co   (outside the gate allowlist)
  *
  * Frozen on purpose (runtime contracts, not product copy): MULTICA_* env vars,
  * the `multica` CLI verb, ~/.multica, the multica:// scheme, multica.plugin.json
  * and X-Multica-Plugin-Installation. None of them match the patterns above.
+ *
+ * This file is skipped: it has to spell the source tokens out to do its job.
  *
  * Usage: node scripts/brand/rename-sweep.mjs [--dry]
  */
@@ -34,7 +37,7 @@ const SKIP_PREFIXES = [
   "testdata/",
   ".git/",
 ];
-const SKIP_FILES = new Set(["pnpm-lock.yaml"]);
+const SKIP_FILES = new Set(["pnpm-lock.yaml", "scripts/brand/rename-sweep.mjs"]);
 const BINARY_EXT = new Set([
   ".png",
   ".jpg",
@@ -94,6 +97,12 @@ const BRAND = [
   ["/multica-wordmark", "/morechat-wordmark"],
   ["/multica-graphics", "/morechat-graphics"],
   ["/multica-brand", "/morechat-brand"],
+  // Any other `Multica` glued to an identifier character is a symbol, a type or
+  // a class name, not visible copy: keep it PascalCase instead of splicing a
+  // domain into it. The first pattern also repairs trees swept before the rule
+  // existed (`morechat.coPluginError` -> `MorechatPluginError`).
+  [/morechat\.co(?=[A-Za-z0-9_])/g, "Morechat"],
+  [/Multica(?=[A-Za-z0-9_])/g, "Morechat"],
   ["Multica", "morechat.co"],
   ["multica.ai", "morechat.co"],
 ];
@@ -119,7 +128,9 @@ for (const rel of tracked) {
   let next = source;
   for (const [from, to] of IDENTITY) next = next.split(from).join(to);
   if (!BRAND_ALLOWLIST.some((p) => rel === p || rel.startsWith(p))) {
-    for (const [from, to] of BRAND) next = next.split(from).join(to);
+    for (const [from, to] of BRAND) {
+      next = typeof from === "string" ? next.split(from).join(to) : next.replace(from, to);
+    }
   }
   if (next === source) continue;
   touched += 1;
