@@ -799,6 +799,7 @@ function RowShell({
       <span className={cn("flex shrink-0", multiline && "mt-0.5")}>
         {task.agent_id ? (
           <ActorAvatar
+            size="sm"
             actorType="agent"
             actorId={task.agent_id}
             size="sm"

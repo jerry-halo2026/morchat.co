@@ -195,7 +195,7 @@ export function RunCumulativeChart({
           <div className={cn(plotHeight > 0 && "mt-[9px]")}>
             {timeline.lanes.map((lane) => (
               <div key={lane.agentId} className="flex h-5 min-w-0 items-center gap-1.5">
-                <ActorAvatar actorType="agent" actorId={lane.agentId} size="xs" />
+                <ActorAvatar size="xs" actorType="agent" actorId={lane.agentId} />
                 <span className="truncate text-micro text-muted-foreground">
                   {getActorName("agent", lane.agentId)}
                 </span>
@@ -402,7 +402,7 @@ function PeakLabel({
     >
       <span className="font-medium text-foreground">+{formatUsd(run.usage?.cost ?? 0)}</span>
       <RunTriggerLabel task={run.task} fallback={trigger}>
-        {(label) => <span className="truncate text-muted-foreground">{[run.task.issue_identifier, label].filter(Boolean).join(" · ")}</span>}
+        {(label) => <span className="truncate text-muted-foreground">{label}</span>}
       </RunTriggerLabel>
     </span>
   );
@@ -430,10 +430,10 @@ function CumulativeRunCard({ run }: { run: TimelineRun }) {
   return (
     <div className="flex min-w-0 flex-col gap-1">
       <RunTriggerLabel task={run.task} fallback={trigger}>
-        {(label) => <span className="truncate font-medium">{[run.task.issue_identifier, label].filter(Boolean).join(" · ")}</span>}
+        {(label) => <span className="truncate font-medium">{label}</span>}
       </RunTriggerLabel>
       <span className="flex min-w-0 items-center gap-1.5 text-micro text-muted-foreground">
-        <ActorAvatar actorType="agent" actorId={run.task.agent_id} size="xs" />
+        <ActorAvatar size="xs" actorType="agent" actorId={run.task.agent_id} />
         <span className="truncate">{[getActorName("agent", run.task.agent_id), ...facts].join(" · ")}</span>
       </span>
       <span className="text-micro tabular-nums">

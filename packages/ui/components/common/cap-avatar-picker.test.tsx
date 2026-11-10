@@ -166,3 +166,54 @@ describe("CapAvatarPicker 清除与键盘", () => {
     expect(currentValue()).toBe("cap:hex:teal");
   });
 });
+
+/**
+ * 选择器的两块面板是"所见即所得"：形状预览就是 32px 的真实 `<CapAvatar>`
+ * （引擎档起点），色板方块是同一 32px 的纯色本体 —— 不是缩小版装饰。
+ */
+describe("CapAvatarPicker 网格尺寸与选中态", () => {
+  it("形状预览一律 32px，并且是真正的 cap 头像", () => {
+    const { container } = render(<Harness initial={null} />);
+    const previews = container.querySelectorAll<HTMLElement>('[data-slot="cap-avatar"]');
+    // 顶部预览 + 10 个形状预览
+    expect(previews).toHaveLength(11);
+    for (const preview of previews) {
+      expect(preview.style.width).toBe("32px");
+      expect(preview.style.height).toBe("32px");
+    }
+  });
+
+  it("色板方块 32px、纯色、无渐变，并带眼睛墨点", () => {
+    const { container } = render(<Harness initial={null} />);
+    const swatches = container.querySelectorAll<HTMLElement>('[data-slot="cap-palette-swatch"]');
+    expect(swatches).toHaveLength(17);
+    for (const swatch of swatches) {
+      expect(swatch.style.width).toBe("32px");
+      expect(swatch.style.height).toBe("32px");
+      // 本体是一个纯色，不是渐变（`background-color` 而不是 `background-image`）。
+      expect(swatch.style.backgroundColor).not.toBe("");
+      expect(swatch.style.backgroundImage).toBe("");
+    }
+    const inks = container.querySelectorAll<HTMLElement>('[data-slot="cap-palette-ink"]');
+    expect(inks).toHaveLength(17);
+  });
+
+  it("选中项带我们的 ring，未选中项没有", () => {
+    render(<Harness initial="cap:heart:jade" />);
+    // 逐 token 比较：`focus-visible:ring-2` 是焦点圈，不是选中圈。
+    const tokens = (el: HTMLElement) => el.className.split(/\s+/);
+
+    expect(tokens(shape("heart"))).toContain("ring-2");
+    expect(tokens(shape("heart"))).toContain("ring-ring");
+    expect(tokens(shape("blob"))).not.toContain("ring-2");
+
+    expect(tokens(palette("jade"))).toContain("ring-2");
+    expect(tokens(palette("amber"))).not.toContain("ring-2");
+  });
+
+  it("随机与清除是普通按钮，含 aria-label", () => {
+    render(<Harness initial={null} />);
+    expect(screen.getByRole("button", { name: "随机造型" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "清除造型" })).toBeInTheDocument();
+  });
+});

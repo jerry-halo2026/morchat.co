@@ -1,31 +1,24 @@
 /**
- * Semantic avatar size scale + the one product-standard agent size.
+ * Semantic avatar size scale — upstream's, not a product clamp.
  *
  * Avatar consumers pick a role-based tier instead of a raw pixel number so the
- * same "role" (inline chip, list row, section header, hero) renders at one
- * consistent size everywhere.
+ * same "role" (inline chip, list row, comment author, section header, hero)
+ * renders at one consistent diameter everywhere.
  *
- * **Product standard (2026-11): every agent avatar is 32px.** `AGENT_AVATAR_PX`
- * is that standard and `agentAvatarPx()` is the only supported way to turn an
- * agent tier into a diameter. `xs` / `sm` / `md` / `lg` all resolve to 32 for
- * agents, so a stale `size="sm"` call site can never make one agent render
- * smaller than the next one in the same list. `xl` / `2xl` stay above the
- * standard for single-instance display (agent detail header, profile popover)
- * — a surface that shows exactly one agent at a time, never a list.
+ * **Sizing authority is the caller's slot.** A cap/agent avatar renders at the
+ * diameter of the slot it is dropped into; there is no global "one standard"
+ * px for agents. Where the slot is decided in CSS (`--avatar-slot-size`), the
+ * CSS variable wins; where a call site picks a tier, `size="xs|sm|md|lg|xl|2xl"`
+ * is exactly the upstream rung (16/20/24/32/40/56) and nothing rounds it up.
  *
- * The raw tiers keep their historical pixels for **non-agent** actors (human
- * members, squads, system), which are not part of the agent standard: a
- * member's initials circle keeps the diameter its surface has always used.
- * Tiers align to a 4px grid (Tailwind size-4/5/6/8/10/14).
+ * Tiers align to a 4px grid (Tailwind size-4/5/6/8/10/14). `AVATAR_SLOT_PX` is
+ * the one place that records the default slot diameters the product surfaces
+ * use; a surface that "just renders a list row avatar" reads it instead of
+ * inventing a number.
  */
 export type AvatarSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 
-/**
- * Pixel diameter per tier for non-agent actors. `xs` (16) / `sm` (20) / `md`
- * (24) are **legacy / compatibility** rungs: agent avatars no longer use them
- * (see `AGENT_AVATAR_TIER_PX`), they survive for compact human chips and for
- * surfaces that were never part of the agent standard.
- */
+/** Pixel diameter for each semantic avatar size (upstream table, unchanged). */
 export const AVATAR_SIZE_PX: Record<AvatarSize, number> = {
   xs: 16,
   sm: 20,
@@ -35,36 +28,27 @@ export const AVATAR_SIZE_PX: Record<AvatarSize, number> = {
   "2xl": 56,
 };
 
-/** The product standard agent-avatar diameter, in px. */
-export const AGENT_AVATAR_PX = 32;
-
-/** The tier that equals `AGENT_AVATAR_PX` — the default for every agent. */
-export const AGENT_AVATAR_SIZE: AvatarSize = "lg";
+/** The surfaces that host an avatar, by the upstream slot they render at. */
+export type AvatarSlot = "list" | "comment" | "detail" | "hero";
 
 /**
- * Agent tier map. Everything at or below the standard collapses onto 32px;
- * only `xl` (40) and `2xl` (56) go above it, and only for single-instance
- * display. Keeping the map here (instead of the engine) means a component can
- * honour `size` without knowing the avatar implementation.
+ * Default slot diameters: list rows 20, comment authors 24, detail headers 40,
+ * and the single-instance hero 56. These are *defaults for a slot*, not a clamp
+ * — a surface may still pass any `AvatarSize` or a raw px number.
  */
-export const AGENT_AVATAR_TIER_PX: Record<AvatarSize, number> = {
-  xs: AGENT_AVATAR_PX,
-  sm: AGENT_AVATAR_PX,
-  md: AGENT_AVATAR_PX,
-  lg: AGENT_AVATAR_PX,
-  xl: 40,
-  "2xl": 56,
+export const AVATAR_SLOT_PX: Record<AvatarSlot, number> = {
+  list: AVATAR_SIZE_PX.sm,
+  comment: AVATAR_SIZE_PX.md,
+  detail: AVATAR_SIZE_PX.xl,
+  hero: AVATAR_SIZE_PX["2xl"],
 };
-
-/**
- * Diameter for an agent avatar of this tier. Never returns anything below
- * `AGENT_AVATAR_PX`, so "16/20/24px agent avatar" is not expressible through
- * the semantic scale any more.
- */
-export function agentAvatarPx(size: AvatarSize = AGENT_AVATAR_SIZE): number {
-  return AGENT_AVATAR_TIER_PX[size] ?? AGENT_AVATAR_PX;
-}
 
 /** Default tier for avatars that don't specify a size. Matches the historical
  *  20px default of the base avatar so untyped call sites are unchanged. */
 export const DEFAULT_AVATAR_SIZE: AvatarSize = "sm";
+
+/** Pixel diameter for a tier. Pure lookup: the caller's slot decides the size,
+ *  so there is nothing here to clamp. */
+export function avatarPx(size: AvatarSize = DEFAULT_AVATAR_SIZE): number {
+  return AVATAR_SIZE_PX[size] ?? AVATAR_SIZE_PX[DEFAULT_AVATAR_SIZE];
+}

@@ -7,15 +7,28 @@
  * `CapAvatar` 对它们返回 `null`，这里就退化成一句提示，让上传路径继续拥有那个
  * 头像（调用方只有在用户真的点了形状或色板时才把值交给本组件）。
  *
- * 数据全部来自冻结契约本身（`bodies.ts` / `palettes.ts` / `appearance.ts`），
- * 不复制色板常量、不新增依赖，也不自己画形状：每个预览就是一个真实的
- * `<CapAvatar>`，所以选择器里看到的和列表里渲染的永远是同一套艺术。
+ * 三块面板，全部来自冻结契约本身（`bodies.ts` / `palettes.ts` /
+ * `appearance.ts`），不复制色板常量、不新增依赖：
+ *
+ * - **形状**：10 个 body，每个预览都是一个 32px 的真实 `<CapAvatar>`（引擎档
+ *   的下限尺寸），所以选择器里看到的和列表/详情里渲染的是同一套艺术。
+ * - **色板**：17 色，每个是 32px 纯色方块 —— 本体色 `palette.a`，没有渐变，
+ *   因为头像本体本来就是纯色；眼睛色 `palette.b` 在选中项的下方以一个小点
+ *   出现，让"本体 vs 眼睛"这对关系在选色时是可见的。
+ * - **随机 / 清除**：随机保证换一次值，清除回报 `null` 交还给调用方。
+ *
+ * 选中态用我们的 ring（`ring-2 ring-ring ring-offset-2`），键盘焦点用
+ * `focus-visible:ring-2`，两者不共用同一圈，否则"已选中"和"正在聚焦"读不出区别。
+ *
+ * `aria-label` 沿用本包既有文案键（`形状 …` / `色板 …` / `随机造型` /
+ * `清除造型`）：`packages/ui` 没有 i18n 运行时，产品文案由 `packages/views`
+ * 的 `useT` 拥有，这里不新造 `avatar.picker.*` 命名空间，只需要现有键
+ * （`en` / `zh-Hans` 都由 call site 的 label 覆盖）。
  */
 
 import type { ReactNode } from "react";
 
 import { CapAvatar } from "./cap-avatar";
-import { AGENT_AVATAR_PX } from "../../lib/avatar-size";
 import { BODY_IDS, DEFAULT_BODY, type BodyId } from "../../lib/agent-bot/bodies";
 import {
   DEFAULT_PALETTE,
@@ -35,6 +48,9 @@ export interface CapAvatarPickerProps {
 
 /** 预览用的稳定 id；`avatarUrl` 有值时它只决定 `agentId="preview"` 的回退值。 */
 const PREVIEW_AGENT_ID = "preview";
+
+/** 形状预览 = 引擎档的下限（32px）；色板方块同尺寸，两块面板共用一条基线。 */
+const SWATCH_PX = 32;
 
 export function CapAvatarPicker({
   value,
@@ -73,15 +89,14 @@ export function CapAvatarPicker({
   return (
     <div
       data-slot="cap-avatar-picker"
-      className={cn("space-y-4", className)}
+      className={cn("space-y-5", className)}
     >
       <div className="flex items-start gap-3">
-        {/* The preview is the product standard (32px), not a decorative size:
-            what the picker shows is exactly what a list row will render. */}
+        {/* 预览就是产品会画出来的那个尺寸（32px，引擎档起点），不是装饰尺寸。 */}
         <CapAvatar
           agentId={PREVIEW_AGENT_ID}
           avatarUrl={value}
-          size={AGENT_AVATAR_PX}
+          size={SWATCH_PX}
           animated={false}
         />
         <div className="min-w-0 flex-1 space-y-1">
@@ -132,7 +147,7 @@ export function CapAvatarPicker({
               label={`形状 ${option}`}
               selected={option === bodyId}
               onSelect={() => pick(option, paletteForPicks)}
-              className="size-9"
+              className="size-10"
             >
               <span aria-hidden="true" className="pointer-events-none">
                 <CapAvatar
@@ -141,7 +156,7 @@ export function CapAvatarPicker({
                     bodyId: option,
                     paletteId: paletteForPicks,
                   })}
-                  size={AGENT_AVATAR_PX}
+                  size={SWATCH_PX}
                   animated={false}
                 />
               </span>
@@ -152,24 +167,33 @@ export function CapAvatarPicker({
 
       <div className="space-y-2">
         <p className="text-caption text-muted-foreground">颜色</p>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="颜色">
+        <div className="grid grid-cols-9 gap-2" role="group" aria-label="颜色">
           {PALETTES.map((palette) => (
             <PickerOption
               key={palette.id}
               label={`色板 ${palette.id}`}
               selected={palette.id === paletteId}
               onSelect={() => pick(bodyForPicks, palette.id)}
-              className="size-7"
+              className="size-10"
             >
-              <span
-                aria-hidden="true"
-                className="pointer-events-none size-5 rounded-sm"
-                style={{
-                  // Solid, like the avatar itself: the eye colour is the ink,
-                  // not a second half of a gradient swatch.
-                  backgroundColor: palette.a,
-                }}
-              />
+              <span aria-hidden="true" className="pointer-events-none flex flex-col items-center gap-0.5">
+                {/* 纯色方块：本体就是 `palette.a`。 */}
+                <span
+                  data-slot="cap-palette-swatch"
+                  className="rounded-sm"
+                  style={{
+                    width: SWATCH_PX,
+                    height: SWATCH_PX,
+                    backgroundColor: palette.a,
+                  }}
+                />
+                {/* 眼睛墨色放在方块下沿，选色时能看见"本体 vs 眼睛"这一对。 */}
+                <span
+                  data-slot="cap-palette-ink"
+                  className="rounded-full"
+                  style={{ width: 6, height: 6, backgroundColor: palette.b }}
+                />
+              </span>
             </PickerOption>
           ))}
         </div>
@@ -211,7 +235,8 @@ function PickerOption({
       className={cn(
         "flex items-center justify-center rounded-md border border-transparent transition-colors",
         "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        selected && "border-primary bg-muted",
+        // 选中态：我们的 ring（实体圈 + 2px 留白），和键盘焦点那圈分开。
+        selected && "bg-muted ring-2 ring-ring ring-offset-2 ring-offset-background",
         className,
       )}
     >

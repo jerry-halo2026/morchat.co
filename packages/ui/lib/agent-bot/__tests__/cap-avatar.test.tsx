@@ -7,6 +7,10 @@ function avatarOf(container: HTMLElement): HTMLElement | null {
   return container.querySelector<HTMLElement>('[data-slot="cap-avatar"]');
 }
 
+function widthOf(element: { container: HTMLElement }): string | undefined {
+  return avatarOf(element.container)?.style.width;
+}
+
 describe("CapAvatar ownership", () => {
   it("returns null for avatars it does not own", () => {
     for (const avatarUrl of ["emoji:🐼", "https://cdn.example/a.png", "/uploads/agent/a.png"]) {
@@ -24,24 +28,28 @@ describe("CapAvatar ownership", () => {
   });
 });
 
-describe("CapAvatar standard size", () => {
-  it("defaults to the 32px product standard", () => {
+/**
+ * The size is the slot. Upstream's default is the untyped 20px list row, and a
+ * semantic tier is that tier's own pixels — `sm` is 20, not "the product size".
+ */
+describe("CapAvatar slot size", () => {
+  it("defaults to upstream's 20px untyped avatar", () => {
     const { container } = render(<CapAvatar agentId="agent-0001" />);
     const el = avatarOf(container);
-    expect(el?.style.width).toBe("32px");
-    expect(el?.style.height).toBe("32px");
+    expect(el?.style.width).toBe("20px");
+    expect(el?.style.height).toBe("20px");
   });
 
-  it("collapses every small semantic tier onto 32px", () => {
-    for (const size of ["xs", "sm", "md", "lg"] as const) {
-      const { container } = render(<CapAvatar agentId="agent-0001" size={size} />);
-      expect(avatarOf(container)?.style.width).toBe("32px");
+  it("renders every semantic tier at its own diameter", () => {
+    const expected = { xs: "16px", sm: "20px", md: "24px", lg: "32px", xl: "40px", "2xl": "56px" } as const;
+    for (const [tier, px] of Object.entries(expected)) {
+      expect(widthOf(render(<CapAvatar agentId="agent-0001" size={tier as keyof typeof expected} />))).toBe(px);
     }
   });
 
-  it("keeps the single-instance tiers above the standard", () => {
-    expect(avatarOf(render(<CapAvatar agentId="agent-0001" size="xl" />).container)?.style.width).toBe("40px");
-    expect(avatarOf(render(<CapAvatar agentId="agent-0001" size={"2xl" as const} />).container)?.style.width).toBe("56px");
+  it("takes a raw pixel slot verbatim", () => {
+    expect(widthOf(render(<CapAvatar agentId="agent-0001" size={40} />))).toBe("40px");
+    expect(widthOf(render(<CapAvatar agentId="agent-0001" size={56} />))).toBe("56px");
   });
 });
 
@@ -57,10 +65,10 @@ describe("CapAvatar tiers", () => {
     expect(avatarOf(container)?.getAttribute("data-cap-tier")).toBe("static");
   });
 
-  it("stays on the static frame by default at the 32px standard", () => {
+  it("draws no eyes on the 20px default (css tier)", () => {
     const { container } = render(<CapAvatar agentId="agent-0001" />);
-    expect(avatarOf(container)?.getAttribute("data-cap-tier")).toBe("static");
-    expect(container.querySelector('[data-cap-frame="eyes"]')).not.toBeNull();
+    expect(avatarOf(container)?.getAttribute("data-cap-tier")).toBe("css");
+    expect(container.querySelector('[data-cap-frame="eyes"]')).toBeNull();
   });
 
   it("never animates at 40px when animated is false", () => {
@@ -78,7 +86,7 @@ describe("CapAvatar paint", () => {
   it("paints a flat body colour and no gradient at 16px", () => {
     const { container } = render(<CapAvatar agentId="agent-0001" avatarUrl="cap:blob:amber" size={16} />);
     const frame = container.querySelector<HTMLElement>('[data-cap-frame="static"]');
-    expect(frame?.style.backgroundColor).toBe("rgb(194, 162, 107)");
+    expect(frame?.style.backgroundColor).toBe("rgb(242, 195, 0)");
     expect(frame?.style.backgroundImage).toBe("");
     expect(container.querySelector('[data-cap-frame="eyes"]')).toBeNull();
   });
@@ -89,7 +97,7 @@ describe("CapAvatar paint", () => {
     expect(eyes).not.toBeNull();
     const circles = eyes?.querySelectorAll("circle") ?? [];
     expect(circles).toHaveLength(2);
-    expect(circles[0]?.getAttribute("fill")).toBe("#6E5735");
+    expect(circles[0]?.getAttribute("fill")).toBe("#7A6100");
   });
 });
 

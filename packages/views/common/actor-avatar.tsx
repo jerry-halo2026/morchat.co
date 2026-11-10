@@ -2,7 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ActorAvatar as ActorAvatarBase } from "@morechat/ui/components/common/actor-avatar";
-import { AVATAR_SIZE_PX, type AvatarSize } from "@morechat/ui/lib/avatar-size";
+import { CapAvatar, parseCap } from "@morechat/ui/components/common/cap-avatar";
+import {
+  AVATAR_SIZE_PX,
+  type AvatarSize,
+} from "@morechat/ui/lib/avatar-size";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -53,6 +57,14 @@ interface ActorAvatarProps {
   size?: AvatarSize;
   className?: string;
   /**
+   * Let a *single-instance* agent avatar animate (agent detail header, a
+   * running-agent indicator, the sidebar's "正在执行" strip). Lists, boards,
+   * tables and feeds must leave this off: from 32px up an animated face is an
+   * engine subscriber, and a row of forty of them would compete for the same
+   * governor slots. Static frame by default (see `CapAvatar`).
+   */
+  animated?: boolean;
+  /**
    * Wrap the avatar in a hover-card preview on dwell. Use for "who is this?"
    * surfaces — comment authors, list rows, subscriber chips. Independent of
    * `showStatusDot`: a surface can have one, both, or neither.
@@ -92,6 +104,7 @@ export function ActorAvatar({
   profileRequiresDirectoryEntry = false,
   size,
   className,
+  animated = false,
   enableHoverCard,
   showStatusDot,
   hoverCardVariant = "profile",
@@ -111,7 +124,30 @@ export function ActorAvatar({
       : avatarUrl?.startsWith("/")
         ? resolvePublicFileUrl(avatarUrl)
         : avatarUrl;
-  const avatar = (
+  // `size` is the caller's slot, verbatim: `xs|sm|md|lg|xl|2xl` is upstream's
+  // 16/20/24/32/40/56 and a raw px number is the escape hatch. Nothing here
+  // rounds an agent up (or down) — the slot decides, exactly as it does for
+  // members and squads.
+  const resolvedSize: AvatarSize | undefined = size;
+  // Generated agent avatars (`cap:<body>:<palette>`) render through the bot
+  // engine instead of the img/emoji fallback chain. `CapAvatar` returns null for
+  // every other avatar value, so the legacy pipeline is untouched — but the test
+  // is done here rather than relying on that, because a null child inside the
+  // circle wrapper would silently collapse the slot.
+  const generatedAvatar =
+    actorType === "agent" && parseCap(resolvedAvatarUrl)
+      ? (
+          <CapAvatar
+            agentId={actorId}
+            size={resolvedSize}
+            avatarUrl={resolvedAvatarUrl}
+            animated={animated}
+            label={resolvedName}
+            className={className}
+          />
+        )
+      : null;
+  const avatar = generatedAvatar ?? (
     <ActorAvatarBase
       name={resolvedName}
       initials={getActorInitials(actorType, actorId, resolvedName)}
@@ -119,7 +155,7 @@ export function ActorAvatar({
       isAgent={actorType === "agent"}
       isSystem={actorType === "system"}
       isSquad={actorType === "squad"}
-      size={size}
+      size={resolvedSize}
       className={className}
     />
   );
@@ -252,7 +288,10 @@ export function AgentStatusDot({ agentId, size }: { agentId: string; size?: Avat
   if (detail === "loading") return null;
 
   const { dotClass } = availabilityConfig[detail.availability];
-  const px = size ? AVATAR_SIZE_PX[size] : 24;
+  // The dot rides the avatar's own slot: a 20px list-row face gets the 4px dot,
+  // anything 24px and up gets 6px. Untyped call sites use the 24px default,
+  // which matches the base avatar's untyped diameter.
+  const px = size ? AVATAR_SIZE_PX[size] : AVATAR_SIZE_PX.md;
   const dotSize = px >= 24 ? "h-1.5 w-1.5" : "h-1 w-1";
 
   return (

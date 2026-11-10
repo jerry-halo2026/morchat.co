@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import { BODY_IDS, BODY_TO_ENGINE_SHAPE, engineShapeFor, isBodyId } from "../bodies";
 import {
-  CAP_ANIMATED_MIN_PX,
   CAP_CSS_MAX_PX,
-  CAP_STANDARD_PX,
+  CAP_DEFAULT_PX,
+  CAP_ENGINE_MIN_PX,
   CAP_STATIC_MAX_PX,
   capEngineProps,
   capEyeFrame,
@@ -15,29 +15,38 @@ import {
   selectCapTier,
 } from "../caps";
 import { frameFloorMs, SMALL_AVATAR_PX } from "../clock";
-import { AGENT_AVATAR_PX, agentAvatarPx, AVATAR_SIZE_PX } from "../../avatar-size";
+import {
+  AVATAR_SIZE_PX,
+  AVATAR_SLOT_PX,
+  DEFAULT_AVATAR_SIZE,
+  avatarPx,
+} from "../../avatar-size";
 import { PALETTES } from "../palettes";
 
-describe("agent size standard", () => {
-  it("exposes one standard diameter and it is 32px", () => {
-    expect(AGENT_AVATAR_PX).toBe(32);
-    expect(CAP_STANDARD_PX).toBe(AGENT_AVATAR_PX);
+/**
+ * Sizing is the caller's slot. Upstream's tier table (16/20/24/32/40/56) is the
+ * only scale, and nothing rounds an agent up to a product-wide diameter: a
+ * `size="sm"` list row is a 20px face, a `size="2xl"` hero is 56px.
+ */
+describe("avatar size scale", () => {
+  it("is upstream's table, unmodified", () => {
+    expect(AVATAR_SIZE_PX).toEqual({ xs: 16, sm: 20, md: 24, lg: 32, xl: 40, "2xl": 56 });
   });
 
-  it("collapses every small tier onto the standard, keeps xl/2xl above it", () => {
-    for (const tier of ["xs", "sm", "md", "lg"] as const) {
-      expect(agentAvatarPx(tier)).toBe(AGENT_AVATAR_PX);
+  it("resolves every tier to its own pixel diameter (no clamping)", () => {
+    for (const tier of ["xs", "sm", "md", "lg", "xl", "2xl"] as const) {
+      expect(avatarPx(tier)).toBe(AVATAR_SIZE_PX[tier]);
     }
-    expect(agentAvatarPx("xl")).toBe(40);
-    expect(agentAvatarPx("2xl")).toBe(56);
-    // Non-agent tiers keep their historical pixels.
-    expect(AVATAR_SIZE_PX.xs).toBe(16);
-    expect(AVATAR_SIZE_PX.sm).toBe(20);
-    expect(AVATAR_SIZE_PX.md).toBe(24);
   });
 
-  it("defaults to the standard when no tier is given", () => {
-    expect(agentAvatarPx()).toBe(AGENT_AVATAR_PX);
+  it("defaults to the 20px list-row slot when no tier is given", () => {
+    expect(DEFAULT_AVATAR_SIZE).toBe("sm");
+    expect(avatarPx()).toBe(20);
+    expect(CAP_DEFAULT_PX).toBe(20);
+  });
+
+  it("records the upstream slot diameters (list 20 / comment 24 / detail 40 / hero 56)", () => {
+    expect(AVATAR_SLOT_PX).toEqual({ list: 20, comment: 24, detail: 40, hero: 56 });
   });
 });
 
@@ -70,19 +79,27 @@ describe("selectCapTier", () => {
   it("treats the tier boundaries exactly", () => {
     expect(selectCapTier(CAP_CSS_MAX_PX)).toBe("css");
     expect(selectCapTier(CAP_CSS_MAX_PX + 1)).toBe("static");
-    expect(selectCapTier(CAP_ANIMATED_MIN_PX - 1)).toBe("static");
-    expect(selectCapTier(CAP_ANIMATED_MIN_PX)).toBe("animated");
-    // The product standard is exactly the engine boundary.
-    expect(CAP_STANDARD_PX).toBe(32);
-    expect(selectCapTier(CAP_STANDARD_PX)).toBe("animated");
-    expect(selectCapTier(CAP_STANDARD_PX, false)).toBe("static");
-    expect(CAP_STATIC_MAX_PX).toBe(CAP_ANIMATED_MIN_PX - 1);
+    expect(selectCapTier(CAP_ENGINE_MIN_PX - 1)).toBe("static");
+    expect(selectCapTier(CAP_ENGINE_MIN_PX)).toBe("animated");
+    expect(CAP_ENGINE_MIN_PX).toBe(32);
+    expect(CAP_STATIC_MAX_PX).toBe(CAP_ENGINE_MIN_PX - 1);
   });
 
-  it("falls back to the standard size for non-finite sizes", () => {
-    expect(selectCapTier(Number.NaN)).toBe(selectCapTier(CAP_STANDARD_PX));
-    expect(selectCapTier(Number.POSITIVE_INFINITY)).toBe(selectCapTier(CAP_STANDARD_PX));
-    expect(selectCapTier(Number.NaN, false)).toBe("static");
+  it("maps the upstream slots onto the three layers", () => {
+    // What a real surface gets: list rows and comments are flat/static, detail
+    // headers and the hero are engine-tier when the caller opts into animation.
+    expect(selectCapTier(AVATAR_SLOT_PX.list)).toBe("css");
+    expect(selectCapTier(AVATAR_SLOT_PX.comment)).toBe("static");
+    expect(selectCapTier(AVATAR_SLOT_PX.detail, false)).toBe("static");
+    expect(selectCapTier(AVATAR_SLOT_PX.detail)).toBe("animated");
+    expect(selectCapTier(AVATAR_SLOT_PX.hero)).toBe("animated");
+  });
+
+  it("falls back to the default slot for non-finite sizes", () => {
+    expect(selectCapTier(Number.NaN)).toBe(selectCapTier(CAP_DEFAULT_PX));
+    expect(selectCapTier(Number.POSITIVE_INFINITY)).toBe(selectCapTier(CAP_DEFAULT_PX));
+    // The default slot is the 20px list row, i.e. the CSS layer either way.
+    expect(selectCapTier(Number.NaN, false)).toBe("css");
   });
 });
 
@@ -127,6 +144,8 @@ describe("static CSS layer", () => {
       expect(style.height).toBe(16);
       expect(Boolean(style.borderRadius ?? style.clipPath)).toBe(true);
     }
+    // A slot above the CSS band keeps its own diameter — nothing clamps it.
+    expect(capStaticStyle({ paletteId: "rose", bodyId: "blob" }, 40).width).toBe(40);
   });
 
   it("uses clip-path only where a border-radius cannot describe the shape", () => {
@@ -146,7 +165,7 @@ describe("static eye frame", () => {
     for (const size of [21, 24, 32, 64]) {
       const frame = capEyeFrame({ paletteId: "amber", bodyId: "blob" }, size);
       expect(frame).not.toBeNull();
-      expect(frame?.fill).toBe("#6E5735");
+      expect(frame?.fill).toBe("#7A6100");
       expect(frame?.eyes).toHaveLength(2);
       const [left, right] = frame!.eyes;
       // Level with each other, symmetric about the centre, above the middle.
@@ -192,8 +211,8 @@ describe("engine layer descriptors", () => {
     expect(props.shape).toBe("star6");
     expect(props.size).toBe(40);
     expect(props.state).toBe("idle");
-    expect(props.background).toBe("#8FA9A0");
-    expect(props.ink).toBe("#4C625A");
+    expect(props.background).toBe("#1F8A4C");
+    expect(props.ink).toBe("#0A361E");
     expect(JSON.stringify(props.background)).not.toContain("gradient");
   });
 
@@ -206,5 +225,22 @@ describe("engine layer descriptors", () => {
     // Reference shape scale: blob is 0.92 → eyeScale 1, pose scale 0.92 * 259 / 229.
     expect(props.eyeScale).toBeCloseTo(1, 6);
     expect(props.pose.scale).toBeCloseTo((0.92 * 259) / 229, 6);
+  });
+
+  it("passes gaze the way `bot-element.jsx` does: viewport point, or null", () => {
+    // No pointer → `gazeTarget: null`, the reference's "pointerActive === false".
+    expect(capEngineProps({ paletteId: "jade", bodyId: "blob" }, 40, "agent-0001").gazeTarget).toBeNull();
+    // Pointer → client coordinates, untouched: the engine projects them itself.
+    const looking = capEngineProps({ paletteId: "jade", bodyId: "blob" }, 40, "agent-0001", {
+      x: 640,
+      y: 220,
+    });
+    expect(looking.gazeTarget).toEqual({ x: 640, y: 220 });
+  });
+
+  it("keeps the engine size equal to the caller's slot", () => {
+    for (const slot of [32, 40, 56]) {
+      expect(capEngineProps({ paletteId: "amber", bodyId: "blob" }, slot, "a").size).toBe(slot);
+    }
   });
 });

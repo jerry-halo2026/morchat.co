@@ -163,7 +163,7 @@ export function useFilterValueCatalog(
           value: `agent:${a.id}`,
           label: a.name,
           group: agentsGroup,
-          icon: <ActorAvatar actorType="agent" actorId={a.id} size="xs" profileLink={false} />,
+          icon: <ActorAvatar size="xs" actorType="agent" actorId={a.id} profileLink={false} />,
         })),
       ...(withSquads
         ? squads

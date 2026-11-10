@@ -1,12 +1,9 @@
 "use client";
 
-import { useId, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { issueTasksOptions } from "@morechat/core/issues/queries";
+import { useMemo, useRef, useState } from "react";
 import { ArrowRight, Ban, ChevronRight, XCircle } from "@morechat/ui/icons";
 import type { AgentTask } from "@morechat/core/types";
 import { cn } from "@morechat/ui/lib/utils";
-import { Checkbox } from "@morechat/ui/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -57,8 +54,8 @@ import { useFormatSpend, useStatusLabel, useTriggerText } from "./task-run-label
 // newest first — it is also the chart's accessible, exact-value view. The
 // cumulative cost curve over time is the chart's second view.
 //
-// Every figure uses the same pricing helpers as the sidebar, but the dialog
-// can independently narrow or expand the scope after opening.
+// Every figure comes from the same `summarizeTaskUsage` helpers the sidebar
+// uses, so the total here can never disagree with the total that opened it.
 
 // Cost categories in the order and colours the runtime usage charts stack them
 // (`costStackConfig` in runtimes/components/charts/daily-cost-chart.tsx), so a
@@ -111,51 +108,35 @@ function usePercent(): (share: number) => string {
   return (share) => fmt.format(share);
 }
 
-type IssueRunsDialogProps = {
+export function IssueRunsDialog({
+  open,
+  onOpenChange,
+  issueId,
+  identifier,
+  issueTitle,
+  tasks,
+}: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   issueId: string;
   identifier: string;
   issueTitle?: string;
-  hasChildren?: boolean;
-  includeDescendants?: boolean;
-};
-
-export function IssueRunsDialog({ open, onOpenChange, ...props }: IssueRunsDialogProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* Each opening inherits the sidebar scope; edits remain local to this session. */}
-      {open && <IssueRunsDialogContent key={props.issueId} {...props} />}
-    </Dialog>
-  );
-}
-
-function IssueRunsDialogContent({
-  issueId,
-  identifier,
-  issueTitle,
-  hasChildren = false,
-  includeDescendants = false,
-}: Omit<IssueRunsDialogProps, "open" | "onOpenChange">) {
+  tasks: AgentTask[];
+}) {
   const { t } = useT("issues");
-  const [includeChildren, setIncludeChildren] = useState(includeDescendants);
-  const scopeLabelId = useId();
-  const { data: tasks = [], isPending, isError, refetch } = useQuery(
-    issueTasksOptions(issueId, includeChildren),
-  );
   // `estimateCost` reads custom rates imperatively out of the Zustand store,
   // so nothing re-renders this dialog when the user saves a new rate. Subscribe
   // to the snapshot and carry it into every memo that prices usage — same
   // reason the runtime usage page subscribes in usage-section.tsx.
   const pricings = useCustomPricingStore((s) => s.pricings);
   // Active runs stretch to "now". The clock is re-read when the task list
-  // changes or the dialog mounts rather than ticking: the bars move by
+  // changes or the dialog reopens rather than ticking: the bars move by
   // minutes, and a live timer already runs in the sidebar row.
   const timeline = useMemo(
     () => buildRunTimeline(tasks, Date.now()),
-    // `pricings` re-prices on a saved custom rate.
+    // `pricings` re-prices on a saved custom rate; `open` re-reads the clock.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tasks, pricings],
+    [tasks, pricings, open],
   );
   // Models with no rate-table entry and no provider-reported cost: their tokens
   // are counted but their spend is not, so the totals understate reality.
@@ -166,42 +147,19 @@ function IssueRunsDialogContent({
   );
 
   return (
-    <>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       {/* DialogContent's base is `sm:max-w-sm`, which a same-specificity
           `max-w-5xl` does not beat — `!` wins it, matching the transcript
           dialog. Fixed height so the chart stays put while the list scrolls. */}
       <DialogContent className="flex !h-[min(56rem,calc(100dvh-4rem))] !w-[calc(100vw-4rem)] !max-w-5xl flex-col !gap-0 overflow-hidden !p-0">
         <DialogHeader className="px-6 pt-5 pb-4">
           <DialogTitle>{t(($) => $.runs_timeline.title)}</DialogTitle>
-          <div className="flex min-w-0 items-start justify-between gap-3">
-            <DialogDescription className="min-w-0 break-words">
-              {issueTitle ? `${identifier} · ${issueTitle}` : identifier}
-            </DialogDescription>
-            {(hasChildren || includeDescendants) && (
-              <label className="ml-auto flex min-h-5 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap text-micro text-muted-foreground">
-                <Checkbox
-                  className="size-3 [&_svg]:size-2.5"
-                  checked={includeChildren}
-                  onCheckedChange={setIncludeChildren}
-                  aria-labelledby={scopeLabelId}
-                />
-                <span id={scopeLabelId}>{t(($) => $.execution_log.include_children)}</span>
-              </label>
-            )}
-          </div>
+          <DialogDescription>
+            {issueTitle ? `${identifier} · ${issueTitle}` : identifier}
+          </DialogDescription>
         </DialogHeader>
 
-        {isPending ? (
-          <p role="status" aria-label={t(($) => $.execution_log.loading)} className="px-6 py-4 text-body text-muted-foreground">
-            {t(($) => $.execution_log.loading)}
-          </p>
-        ) : isError ? (
-          <button type="button" onClick={() => void refetch()} className="mx-6 my-4 self-start text-body text-muted-foreground hover:text-foreground">
-            {t(($) => $.execution_log.load_failed_retry)}
-          </button>
-        ) : timeline.runs.length === 0 ? (
-          <p className="px-6 py-4 text-body text-muted-foreground">{t(($) => $.execution_log.empty)}</p>
-        ) : (
+        {timeline.runs.length > 0 && (
           <>
             <RunStats timeline={timeline} />
             <RunCharts timeline={timeline} />
@@ -209,7 +167,7 @@ function IssueRunsDialogContent({
             {/* `min-h-0`: the dialog is a flex column; without it this flex
                 item sizes to its content and the list never scrolls. */}
             <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-5">
-              <RunDayList timeline={timeline} issueId={issueId} showIssue={includeChildren} />
+              <RunDayList timeline={timeline} issueId={issueId} />
               <div className="mt-4 space-y-1 text-micro text-muted-foreground">
                 {unmapped.length > 0 && (
                   <p>{t(($) => $.runs_timeline.note_unmapped, { models: unmapped.join(", ") })}</p>
@@ -220,7 +178,7 @@ function IssueRunsDialogContent({
           </>
         )}
       </DialogContent>
-    </>
+    </Dialog>
   );
 }
 
@@ -650,7 +608,6 @@ function RunHoverCard({ run, parts }: { run: TimelineRun; parts: boolean }) {
     hour12: false,
   }).format(run.startMs);
   const facts = [
-    run.task.issue_identifier,
     when,
     run.task.status === "completed" && run.durationMs != null
       ? formatDuration(run.durationMs / 1000, UNDER_A_SECOND)
@@ -662,7 +619,7 @@ function RunHoverCard({ run, parts }: { run: TimelineRun; parts: boolean }) {
         {(label) => <span className="truncate font-medium">{label}</span>}
       </RunTriggerLabel>
       <span className="flex min-w-0 items-center gap-1.5 text-micro text-muted-foreground">
-        <ActorAvatar actorType="agent" actorId={run.task.agent_id} size="xs" />
+        <ActorAvatar size="xs" actorType="agent" actorId={run.task.agent_id} />
         <span className="truncate">{[getActorName("agent", run.task.agent_id), ...facts].join(" · ")}</span>
       </span>
       <span className="text-micro tabular-nums">
@@ -790,7 +747,7 @@ const COL = {
   toggle: "w-6 shrink-0",
 } as const;
 
-function RunDayList({ timeline, issueId, showIssue }: { timeline: RunTimeline; issueId: string; showIssue: boolean }) {
+function RunDayList({ timeline, issueId }: { timeline: RunTimeline; issueId: string }) {
   const { t } = useT("issues");
   const formatSpend = useFormatSpend();
   const locale = useLocale();
@@ -850,7 +807,7 @@ function RunDayList({ timeline, issueId, showIssue }: { timeline: RunTimeline; i
               </span>
             </div>
             {group.runs.map((run) => (
-              <RunListRow key={run.task.id} run={run} issueId={run.task.issue_id || issueId} showIssue={showIssue} costWidth={costWidth} />
+              <RunListRow key={run.task.id} run={run} issueId={issueId} costWidth={costWidth} />
             ))}
           </section>
         );
@@ -871,7 +828,7 @@ function useStatusReason(task: AgentTask): string | null {
   return [cancelledBy, reason].filter(Boolean).join(" · ") || null;
 }
 
-function RunListRow({ run, issueId, showIssue, costWidth }: { run: TimelineRun; issueId: string; showIssue: boolean; costWidth: string }) {
+function RunListRow({ run, issueId, costWidth }: { run: TimelineRun; issueId: string; costWidth: string }) {
   const { t } = useT("issues");
   const formatSpend = useFormatSpend();
   const locale = useLocale();
@@ -915,11 +872,6 @@ function RunListRow({ run, issueId, showIssue, costWidth }: { run: TimelineRun; 
                   run.usage || run.active ? "text-foreground" : "text-muted-foreground",
                 )}
               >
-                {showIssue && (
-                  <span className="mr-2 font-mono text-micro text-muted-foreground" title={task.issue_title}>
-                    {task.issue_identifier || task.issue_id}
-                  </span>
-                )}
                 {text}
               </span>
             </TruncatedTooltip>
@@ -927,7 +879,7 @@ function RunListRow({ run, issueId, showIssue, costWidth }: { run: TimelineRun; 
         </RunTriggerLabel>
         <ArrowRight aria-hidden className={cn(COL.arrow, "size-3 text-faint-foreground")} />
         <span className={cn(COL.agent, "flex items-center gap-1.5")}>
-          <ActorAvatar actorType="agent" actorId={task.agent_id} size="xs" enableHoverCard />
+          <ActorAvatar size="xs" actorType="agent" actorId={task.agent_id} enableHoverCard />
           <span className="truncate">{agentName}</span>
         </span>
         <span className={cn(COL.model, "min-w-0")}>
@@ -1102,7 +1054,7 @@ function RunDetails({ id, run, reason }: { id: string; run: TimelineRun; reason:
         {run.task.branch_name && (
           <>
             <dt className="text-muted-foreground">{t(($) => $.runs_timeline.detail_branch)}</dt>
-            <TruncatedTooltip content={run.task.branch_name} focusable>
+            <TruncatedTooltip content={run.task.branch_name}>
               <dd className="min-w-0 truncate font-mono text-micro">
                 {run.task.branch_name}
               </dd>

@@ -14,12 +14,11 @@
  *   21–31px→ the same flat body plus one static SVG frame of the eyes
  *   ≥32px  → engine layer (`engine/motion-engine.js`), gated by the shared clock
  *
- * **32px is the product standard**, and it is the default here. Every list,
- * board, table, feed and chat surface renders agents at 32px: 16/20/24px agent
- * avatars are out of the semantic scale (`avatar-size.ts`). 32px is also the
- * engine tier, so `animated` defaults to `false` — a list of forty faces stays
- * on the static frame, and only single-instance surfaces (agent detail, a
- * running indicator, the sidebar's "正在执行" strip) opt back into the engine.
+ * **The size is the caller's slot.** There is no product-wide agent diameter:
+ * `size` is either a semantic tier (`xs|sm|md|lg|xl|2xl` → 16/20/24/32/40/56,
+ * upstream's table) or an explicit px number, and the avatar renders at exactly
+ * that diameter. The default is upstream's untyped default, 20px — the list-row
+ * slot — so an untyped call site behaves like the base `ActorAvatar`.
  *
  * Either way the body is one solid colour (`palette.a`) and the eyes are drawn in
  * `palette.b` — the reference implementation's form.
@@ -27,11 +26,12 @@
 
 import { createElement, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 
-import { AGENT_AVATAR_PX, agentAvatarPx, type AvatarSize } from "../avatar-size";
+import { DEFAULT_AVATAR_SIZE, avatarPx, type AvatarSize } from "../avatar-size";
 import { cn } from "../utils";
 import { resolveCap } from "./appearance";
-import { capEngineProps, capEyeFrame, capStaticStyle, selectCapTier } from "./caps";
+import { CAP_DEFAULT_PX, capEngineProps, capEyeFrame, capStaticStyle, selectCapTier } from "./caps";
 import { acquireAnimator, createEngineClock, watchIntersection, watchMotionEnvironment } from "./clock";
+import { type GazePoint, subscribeGaze } from "./gaze";
 // The engine paints head/eyes through class rules its consumer supplied; these are ours.
 import "./cap-avatar-engine.css";
 
@@ -41,10 +41,9 @@ export interface CapAvatarProps {
   /** Stable agent id — the only input that decides palette + body. */
   agentId: string;
   /**
-   * Semantic tier or a raw pixel diameter. Defaults to the product standard,
-   * 32px. Semantic tiers resolve through `AGENT_AVATAR_TIER_PX`: `xs`/`sm`/
-   * `md`/`lg` all mean 32, and only `xl`/`2xl` go above it. A raw number is the
-   * explicit escape hatch used by tier-comparison surfaces.
+   * Semantic tier or a raw pixel diameter. Defaults to upstream's 20px
+   * (`DEFAULT_AVATAR_SIZE`), the list-row slot. Semantic tiers resolve through
+   * `AVATAR_SIZE_PX` with no rounding, so `size="xs"` really is 16px.
    */
   size?: number | AvatarSize;
   /**
@@ -54,9 +53,9 @@ export interface CapAvatarProps {
    */
   avatarUrl?: string | null;
   /**
-   * Allows the ≥32px tier to animate. Static frame by default: at the product
-   * standard every list row would otherwise be an engine subscriber. Turn it on
-   * only where a single face is on screen.
+   * Allows the ≥32px tier to animate. Static frame by default: a list row would
+   * otherwise be one engine subscriber per face. Turn it on only where a single
+   * face is on screen (detail header, hero, a running indicator).
    */
   animated?: boolean;
   /** Accessible label (usually the agent name). */
@@ -66,14 +65,14 @@ export interface CapAvatarProps {
 
 function resolveSizePx(size: number | AvatarSize): number {
   if (typeof size === "number") {
-    return Number.isFinite(size) && size > 0 ? size : AGENT_AVATAR_PX;
+    return Number.isFinite(size) && size > 0 ? size : CAP_DEFAULT_PX;
   }
-  return agentAvatarPx(size);
+  return avatarPx(size);
 }
 
 function CapAvatar({
   agentId,
-  size = AGENT_AVATAR_PX,
+  size = DEFAULT_AVATAR_SIZE,
   avatarUrl,
   animated = false,
   label,
@@ -88,6 +87,7 @@ function CapAvatar({
   const [inView, setInView] = useState(false);
   const [envAllows, setEnvAllows] = useState(false);
   const [hasSlot, setHasSlot] = useState(false);
+  const [gaze, setGaze] = useState<GazePoint | null>(null);
 
   // Concurrency quota: at most `registerGovernor(max)` avatars animate at once;
   // the rest fall back to the static frame instead of queueing up frames.
@@ -128,6 +128,17 @@ function CapAvatar({
   }, [tier]);
 
   const animate = tier === "animated" && envAllows && inView && hasSlot;
+
+  // One shared viewport pointer, like the reference element's single
+  // `pointermove` listener: the engine turns it into an eye offset itself.
+  // Only animated faces subscribe — a static frame has no eyes to move.
+  useEffect(() => {
+    if (!animate) {
+      setGaze(null);
+      return;
+    }
+    return subscribeGaze(setGaze);
+  }, [animate]);
 
   // The engine reads time through this clock object; it rides the shared rAF loop
   // from `clock.ts`, so avatars never each start their own timer.
@@ -171,7 +182,11 @@ function CapAvatar({
       style={{ width: sizePx, height: sizePx }}
     >
       {showEngine
-        ? createElement(engine, { ...capEngineProps(cap, sizePx, agentId), clock: engineClock, "aria-hidden": true })
+        ? createElement(engine, {
+            ...capEngineProps(cap, sizePx, agentId, gaze),
+            clock: engineClock,
+            "aria-hidden": true,
+          })
         : (
           <>
             <span aria-hidden="true" data-cap-frame="static" style={style} />

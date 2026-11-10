@@ -660,7 +660,7 @@ function AgentChoice({
       trigger={
         <>
           {selected ? (
-            <ActorAvatar actorType="agent" actorId={selected.id} size="sm" />
+            <ActorAvatar size="sm" actorType="agent" actorId={selected.id} />
           ) : (
             <Bot className="size-3.5 text-muted-foreground" aria-hidden="true" />
           )}
@@ -687,7 +687,7 @@ function AgentChoice({
               disabled={!allowAny && !isAgentRuntimeBound(a)}
               onClick={() => pick(a.id)}
             >
-              <ActorAvatar actorType="agent" actorId={a.id} size="sm" showStatusDot />
+              <ActorAvatar size="sm" actorType="agent" actorId={a.id} showStatusDot />
               <span className="truncate">{a.name}</span>
             </PickerItem>
           ))
@@ -770,7 +770,7 @@ function ActorChoice({
               selected={value?.type === "agent" && value.id === a.id}
               onClick={() => pick({ type: "agent", id: a.id })}
             >
-              <ActorAvatar actorType="agent" actorId={a.id} size="sm" />
+              <ActorAvatar size="sm" actorType="agent" actorId={a.id} />
               <span className="truncate">{a.name}</span>
             </PickerItem>
           )),
@@ -1021,7 +1021,7 @@ function AssigneeChoice({
           .filter((a) => matches(a.name))
           .map((a) => (
             <PickerItem key={a.id} selected={value?.type === "agent" && value.id === a.id} onClick={() => pick({ type: "agent", id: a.id })}>
-              <ActorAvatar actorType="agent" actorId={a.id} size="sm" />
+              <ActorAvatar size="sm" actorType="agent" actorId={a.id} />
               <span className="truncate">{a.name}</span>
             </PickerItem>
           )),

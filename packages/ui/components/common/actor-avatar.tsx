@@ -4,10 +4,8 @@ import { useState, useEffect } from "react";
 import { Bot, Users } from "@morechat/ui/icons";
 import { cn } from "@morechat/ui/lib/utils";
 import {
-  AGENT_AVATAR_PX,
   AVATAR_SIZE_PX,
   DEFAULT_AVATAR_SIZE,
-  agentAvatarPx,
   type AvatarSize,
 } from "@morechat/ui/lib/avatar-size";
 import { parseAvatarEmoji } from "@morechat/ui/lib/avatar-emoji";
@@ -40,13 +38,11 @@ function ActorAvatar({
   // control. A CSS variable rather than React context: it follows the DOM, so
   // hover cards portaled out of the control keep their own avatar sizes.
   //
-  // Agent avatars are the exception: the product standardised on 32px for every
-  // agent (see `AGENT_AVATAR_PX`), so an agent slot can grow the control but
-  // can never shrink the face below the standard. `max()` does that in CSS, so
-  // a slot that asks for more (the 3rem identity avatar) still wins.
-  const diameter = isAgent
-    ? `max(${AGENT_AVATAR_PX}px, var(--avatar-slot-size, ${agentAvatarPx(size)}px))`
-    : `var(--avatar-slot-size, ${AVATAR_SIZE_PX[size]}px)`;
+  // Agents are not special here: the slot decides the diameter, exactly as it
+  // does for members, squads and system actors. A surface that wants a 20px
+  // list-row face passes `size="sm"`; one that wants a 56px hero passes
+  // `size="2xl"` or a `--avatar-slot-size` of 3.5rem.
+  const diameter = `var(--avatar-slot-size, ${AVATAR_SIZE_PX[size]}px)`;
   const scaled = (ratio: number) => `calc(${diameter} * ${ratio})`;
   const emoji = parseAvatarEmoji(avatarUrl);
 
