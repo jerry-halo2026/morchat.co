@@ -1,14 +1,14 @@
 // @vitest-environment jsdom
 
 import { describe, expect, it, vi } from "vitest";
-import { screen, waitFor, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithI18n } from "../../test/i18n";
 import PresetsPage from "./presets-page";
 import {
   parsePresetCatalog,
+  parsePresetPackageDetail,
   type PresetCatalog,
-  type PresetPackage,
   type PresetPluginSummary,
 } from "../lib/catalog";
 
@@ -63,40 +63,53 @@ const catalog: PresetCatalog = parsePresetCatalog({
   ],
 });
 
-const pluginByPath: Record<string, PresetPluginSummary | null> = {
-  "packages/agent/ai-engineer": {
-    name: "ai-engineer",
-    version: "1.0.2",
-    description: "plugin description",
-    expertType: "agent",
-    skillPaths: ["skills/ai-engineer--deep-research", "skills/x"],
-    agentPaths: ["agents/ai-engineer.md"],
-  },
-  "packages/team/opc-team": null,
+const plugin: PresetPluginSummary = {
+  name: "ai-engineer",
+  version: "1.0.2",
+  description: "plugin description",
+  expertType: "agent",
+  skillPaths: ["skills/ai-engineer--deep-research", "skills/x"],
+  agentPaths: ["agents/ai-engineer.md"],
 };
 
+const detail = parsePresetPackageDetail({
+  schemaVersion: 1,
+  id: "ai-engineer",
+  kind: "agent",
+  name: { en: "Amy", zh: "\u6df1\u7f51\u7f51" },
+  description: "Full-stack AI engineer",
+  personaPath: "catalog/packages/agent/ai-engineer/agents/ai-engineer.md",
+  skills: ["ai-engineer--deep-research"],
+  conversationStarters: ["Integrate AI into our product", "Design an intelligent system"],
+  team: { leadAgent: "ai-engineer", members: [] },
+  requires: ["python"],
+  sourcePackage: "catalog/packages/agent/ai-engineer",
+  packageVersion: "1.0.2",
+  contentSha256: "b60157c2",
+});
+
 function renderPage(
-  overrides: {
-    onImport?: (pkg: PresetPackage) => void;
-    loadCatalog?: () => Promise<PresetCatalog>;
-    loadPlugin?: (pkg: PresetPackage) => Promise<PresetPluginSummary | null>;
-  } = {},
+  overrides: Partial<React.ComponentProps<typeof PresetsPage>> = {},
 ) {
   const onImport = overrides.onImport ?? vi.fn();
-  const loadCatalog = overrides.loadCatalog ?? (async () => catalog);
-  const loadPlugin =
-    overrides.loadPlugin ??
-    (async (pkg: PresetPackage) => pluginByPath[pkg.path] ?? null);
-  renderWithI18n(
-    <PresetsPage
-      baseUrl="/presets"
-      locale="en"
-      loadCatalog={loadCatalog}
-      loadPlugin={loadPlugin}
-      onImport={onImport}
-    />,
-  );
-  return { onImport };
+  const onSelect = overrides.onSelect ?? vi.fn();
+  const onRetry = overrides.onRetry ?? vi.fn();
+  const props: React.ComponentProps<typeof PresetsPage> = {
+    baseUrl: "https://raw.example/presets",
+    catalog,
+    loading: false,
+    error: null,
+    onRetry,
+    detail,
+    plugin,
+    pluginError: null,
+    locale: "en",
+    onSelect,
+    onImport,
+    ...overrides,
+  };
+  const view = renderWithI18n(<PresetsPage {...props} />);
+  return { onImport, onSelect, onRetry, view };
 }
 
 // The card title and the preview header both render the display name, so the
@@ -108,9 +121,9 @@ const filterButton = (label: string) =>
   screen.getByRole("button", { name: new RegExp(`^${label}\\s*\\d+$`) });
 
 describe("PresetsPage", () => {
-  it("lists both kinds with their counts", async () => {
+  it("lists both kinds with their counts", () => {
     renderPage();
-    await waitFor(() => expect(countText("Amy")).toBeGreaterThan(0));
+    expect(countText("Amy")).toBeGreaterThan(0);
     expect(countText("One-Person Company Team")).toBeGreaterThan(0);
     expect(filterButton("Agents")).toHaveTextContent("1");
     expect(filterButton("Teams")).toHaveTextContent("1");
@@ -119,7 +132,6 @@ describe("PresetsPage", () => {
   it("filters by agent/team", async () => {
     const user = userEvent.setup();
     renderPage();
-    await waitFor(() => expect(countText("Amy")).toBeGreaterThan(0));
 
     await user.click(filterButton("Teams"));
     expect(countText("Amy")).toBe(0);
@@ -132,11 +144,10 @@ describe("PresetsPage", () => {
   it("searches names and skill namespaces", async () => {
     const user = userEvent.setup();
     renderPage();
-    await waitFor(() => expect(countText("Amy")).toBeGreaterThan(0));
 
     const search = screen.getByLabelText("Search presets, skills or members");
     await user.type(search, "deep-research");
-    await waitFor(() => expect(countText("One-Person Company Team")).toBe(0));
+    expect(countText("One-Person Company Team")).toBe(0);
     expect(countText("Amy")).toBeGreaterThan(0);
 
     await user.clear(search);
@@ -146,12 +157,10 @@ describe("PresetsPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("previews the selected package from plugin.json", async () => {
-    renderPage();
-    await waitFor(() => expect(countText("Amy")).toBeGreaterThan(0));
-
+  it("previews the selected package and reports it upward", async () => {
+    const { onSelect } = renderPage();
     const preview = screen.getByRole("complementary");
-    expect(await within(preview).findByText("1.0.2")).toBeInTheDocument();
+    expect(within(preview).getByText("1.0.2")).toBeInTheDocument();
     // index.json lists one skill, plugin.json declares two → mismatch warning.
     expect(
       within(preview).getByText("1 indexed / 2 declared"),
@@ -161,30 +170,44 @@ describe("PresetsPage", () => {
     ).toBeInTheDocument();
     expect(within(preview).getByText("AI Engineering")).toBeInTheDocument();
     expect(within(preview).getByText("Requires: python")).toBeInTheDocument();
+    // Starters come from the package's preset.json.
+    expect(
+      within(preview).getByText("Integrate AI into our product"),
+    ).toBeInTheDocument();
+    expect(onSelect).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "ai-engineer" }),
+    );
   });
 
   it("hands the selected package to the import action", async () => {
     const user = userEvent.setup();
     const { onImport } = renderPage();
-    await waitFor(() => expect(countText("Amy")).toBeGreaterThan(0));
     await user.click(screen.getByRole("button", { name: "Import preset" }));
     expect(onImport).toHaveBeenCalledWith(
       expect.objectContaining({ id: "ai-engineer" }),
     );
   });
 
-  it("shows the base URL hint when the catalog cannot load", async () => {
-    renderPage({
-      loadCatalog: async () => {
-        throw new Error("index.json -> HTTP 404");
-      },
+  it("shows the base URL hint and retries when the catalog cannot load", async () => {
+    const user = userEvent.setup();
+    const { onRetry } = renderPage({
+      catalog: null,
+      loading: false,
+      error: "preset catalog is unavailable",
     });
     expect(
-      await screen.findByText("The preset catalog could not be loaded."),
+      screen.getByText("The preset catalog could not be loaded."),
     ).toBeInTheDocument();
-    expect(screen.getByText("index.json -> HTTP 404")).toBeInTheDocument();
+    expect(screen.getByText("preset catalog is unavailable")).toBeInTheDocument();
     expect(
-      screen.getByText(/Publish the preset repository/),
+      screen.getByText(/https:\/\/raw\.example\/presets/),
     ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Retry/ }));
+    expect(onRetry).toHaveBeenCalled();
+  });
+
+  it("warns when the bundled fallback index is in use", () => {
+    renderPage({ catalog: { ...catalog, degraded: true } });
+    expect(screen.getByText(/bundled package list/)).toBeInTheDocument();
   });
 });

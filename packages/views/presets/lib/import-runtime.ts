@@ -14,6 +14,7 @@
 // avatar rules are testable without a server.
 
 import { capFor, formatCap } from "@morechat/ui/components/common/cap-avatar";
+import type { PresetPackageDetail } from "@morechat/core/presets/types";
 import {
   presetDescription,
   presetDisplayName,
@@ -52,6 +53,8 @@ export interface PresetAgentInput {
   runtime_id: string;
   skill_ids: string[];
   template: string;
+  /** Quick prompts the agent's empty state offers (preset.json's starters). */
+  conversation_starters?: { label: string; prompt: string }[];
 }
 
 export interface PresetSquadInput {
@@ -64,6 +67,7 @@ export interface PresetSquadInput {
 export interface PresetImportRuntime {
   loadSkill(skill: PresetSkill): Promise<PresetSkillBundle>;
   loadAgentDoc?(pkg: PresetPackage): Promise<string | null>;
+  loadMemberDoc?(pkg: PresetPackage, memberId: string): Promise<string | null>;
   importSkill(bundle: PresetSkillBundle): Promise<PresetSkillImportResult>;
   createAgent(input: PresetAgentInput): Promise<{ id: string }>;
   createSquad(input: PresetSquadInput): Promise<{ id: string }>;
@@ -139,6 +143,38 @@ export function planPresetImport(
 export interface RunPresetImportOptions {
   locale: string;
   runtimeId: string;
+  /**
+   * The package's preset.json. Carries the conversation starters; without it
+   * the lead agent is created exactly as before, just with no quick prompts.
+   */
+  detail?: PresetPackageDetail | null;
+  /** Called before each stage so the gallery can advance its progress toast. */
+  onStep?: (step: PresetImportStep["step"]) => void;
+}
+
+/**
+ * A starter label: the prompt itself, cut on a word boundary at ~32 chars so
+ * the chip stays a chip and the prompt keeps its full text.
+ */
+export function presetStarterLabel(prompt: string, limit = 32): string {
+  const clean = prompt.trim().replace(/\s+/g, " ");
+  if (clean.length <= limit) return clean;
+  const hard = clean.slice(0, limit);
+  // A word boundary exactly at the limit needs no trimming.
+  if (clean[limit] === " ") return `${hard.trimEnd()}…`;
+  const space = hard.lastIndexOf(" ");
+  return `${(space > 0 ? hard.slice(0, space) : hard).trimEnd()}…`;
+}
+
+/** preset.json's starter texts → the agent's conversation_starter payload. */
+export function presetConversationStarters(
+  detail: PresetPackageDetail | null | undefined,
+): { label: string; prompt: string }[] {
+  return (detail?.conversationStarters ?? [])
+    .map((prompt) => prompt.trim())
+    .filter((prompt) => prompt !== "")
+    .slice(0, 3)
+    .map((prompt) => ({ label: presetStarterLabel(prompt), prompt }));
 }
 
 /**
@@ -177,9 +213,14 @@ export async function runPresetImport(
       return fail(step, error);
     }
   };
+  const done = (step: PresetImportStep["step"]) => {
+    steps.push({ step, status: "done" });
+    options.onStep?.(step);
+  };
 
   // 1. Skills.
-  steps.push({ step: "load_skills", status: "done" });
+  options.onStep?.("load_skills");
+  done("load_skills");
   const bundles: PresetSkillBundle[] = [];
   for (const skill of pkg.skills) {
     try {
@@ -197,7 +238,7 @@ export async function runPresetImport(
       fail("import_skills", error);
     }
   }
-  steps.push({ step: "import_skills", status: "done" });
+  done("import_skills");
 
   // 2. Agents. The lead agent is the package itself; team members become
   // additional agents wired into the squad.
@@ -215,9 +256,10 @@ export async function runPresetImport(
       runtime_id: options.runtimeId,
       skill_ids: skills.map((skill) => skill.id),
       template: `preset:${pkg.id}`,
+      conversation_starters: presetConversationStarters(options.detail),
     }),
   );
-  steps.push({ step: "create_agent", status: "done" });
+  done("create_agent");
 
   const agents: PresetImportOutcome["agents"] = [
     { id: lead.id, name: presetDisplayName(pkg, options.locale), role: "lead" },
@@ -227,10 +269,15 @@ export async function runPresetImport(
     (member) => member.id !== leadAgentId && member.role !== "lead",
   );
   if (memberPresets.length > 0) {
+    options.onStep?.("create_members");
     for (const member of memberPresets) {
       const memberName =
         (options.locale.startsWith("zh") ? member.name.zh : member.name.en) ||
         member.id;
+      // Each member's own persona document is its instructions; the profession
+      // line is what the summary shows, not what the agent runs on.
+      const memberDoc =
+        (await runtime.loadMemberDoc?.(pkg, member.id)) ?? null;
       const created = await attempt("create_members", () =>
         runtime.createAgent({
           name: memberName,
@@ -238,7 +285,11 @@ export async function runPresetImport(
             (options.locale.startsWith("zh")
               ? member.profession.zh
               : member.profession.en) || member.role,
-          instructions: member.profession.en ?? member.profession.zh ?? "",
+          instructions:
+            memberDoc ??
+            [member.profession.en, member.profession.zh]
+              .filter((line) => Boolean(line && line.trim()))
+              .join("\n\n"),
           avatar_url: presetAvatar(member.id),
           runtime_id: options.runtimeId,
           skill_ids: [],
@@ -247,7 +298,7 @@ export async function runPresetImport(
       );
       agents.push({ id: created.id, name: memberName, role: "member" });
     }
-    steps.push({ step: "create_members", status: "done" });
+    done("create_members");
   }
 
   // 3. Squad — create, then PUT the instructions.
@@ -255,6 +306,7 @@ export async function runPresetImport(
   let squadInstructions: string | null = null;
   if (pkg.kind === "team") {
     squadInstructions = presetSquadInstructions(pkg, options.locale);
+    options.onStep?.("create_squad");
     const squad = await attempt("create_squad", () =>
       runtime.createSquad({
         name: presetDisplayName(pkg, options.locale),
@@ -264,7 +316,7 @@ export async function runPresetImport(
       }),
     );
     squadId = squad.id;
-    steps.push({ step: "create_squad", status: "done" });
+    done("create_squad");
 
     for (const agent of agents.slice(1)) {
       await attempt("create_squad", () =>
@@ -272,10 +324,11 @@ export async function runPresetImport(
       );
     }
 
+    options.onStep?.("save_instructions");
     await attempt("save_instructions", () =>
       runtime.updateSquadInstructions(squad.id, squadInstructions ?? ""),
     );
-    steps.push({ step: "save_instructions", status: "done" });
+    done("save_instructions");
   }
 
   return {

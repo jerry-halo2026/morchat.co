@@ -8,6 +8,7 @@ export {
   EMPTY_PRESET_FILTER,
   filterPresets,
   parsePresetCatalog,
+  parsePresetPackageDetail,
   parsePresetPlugin,
   presetDescription,
   presetDisplayName,
@@ -22,6 +23,7 @@ export type {
   PresetKind,
   PresetMember,
   PresetPackage,
+  PresetPackageDetail,
   PresetPluginSummary,
   PresetPreview,
   PresetSkill,
@@ -32,7 +34,9 @@ export type { PresetKindFilter } from "./lib/kinds";
 export {
   planPresetImport,
   presetAvatar,
+  presetConversationStarters,
   presetSquadInstructions,
+  presetStarterLabel,
   runPresetImport,
 } from "./lib/import-runtime";
 export type {
@@ -47,5 +51,10 @@ export type {
 } from "./lib/import-runtime";
 export { createPresetApiRuntime } from "./lib/api-runtime";
 export type { PresetApiClient } from "./lib/api-runtime";
-export { createPresetSource, joinPresetUrl } from "./lib/preset-source";
+export {
+  createPresetSource,
+  getPresetSource,
+  joinPresetUrl,
+  setPresetSource,
+} from "./lib/preset-source";
 export type { PresetSource } from "./lib/preset-source";

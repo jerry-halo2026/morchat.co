@@ -23,8 +23,9 @@ vi.mock("../../i18n", () => ({
   }),
 }));
 
-const WINDOWS_CMD =
-  "irm https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.ps1 | iex";
+// The Windows command comes from @morechat/views, which still carries its own
+// host; assert the script (not the host) so this stays a wiring test.
+const WINDOWS_SCRIPT = /install\.ps1/;
 
 describe("CliSection", () => {
   // The switch itself is covered in @morechat/views; this checks the landing
@@ -35,7 +36,7 @@ describe("CliSection", () => {
 
     await user.click(screen.getByRole("tab", { name: "Windows" }));
 
-    expect(screen.getByText(WINDOWS_CMD)).toBeInTheDocument();
+    expect(screen.getByText(WINDOWS_SCRIPT)).toBeInTheDocument();
     expect(screen.getByText("multica setup")).toBeInTheDocument();
   });
 });

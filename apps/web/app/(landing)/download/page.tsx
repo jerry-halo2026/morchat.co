@@ -10,8 +10,8 @@ export function generateMetadata(): Promise<Metadata> {
 }
 
 // The page renders per request so its first paint names the visitor's
-// platform. The release itself comes from the fetch cache, refreshed at
-// most every 5 minutes (see fetchLatestRelease).
+// platform. The version comes from apps/web/package.json (or
+// NEXT_PUBLIC_APP_VERSION), so nothing here waits on a network call.
 export default async function DownloadPage({
   searchParams,
 }: {

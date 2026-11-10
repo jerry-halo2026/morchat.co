@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="morechat.co"><style>.t{fill:#0b0b0c}.m{fill:#ffffff}@media (prefers-color-scheme:dark){.t{fill:#ffffff}.m{fill:#0b0b0c}}</style><rect class="t" width="100" height="100" rx="22.5"/><path class="m" transform="translate(15 15) scale(0.7)" d="M42 50L42 0.644A50 50 0 0 1 58 0.644L58 50ZM44.343 44.343L79.243 9.443A50 50 0 0 1 90.557 20.757L55.657 55.657ZM50 42L99.356 42A50 50 0 0 1 99.356 58L50 58ZM55.657 44.343L90.557 79.243A50 50 0 0 1 79.243 90.557L44.343 55.657ZM58 50L58 99.356A50 50 0 0 1 42 99.356L42 50ZM55.657 55.657L20.757 90.557A50 50 0 0 1 9.443 79.243L44.343 44.343ZM50 58L0.644 58A50 50 0 0 1 0.644 42L50 42ZM44.343 55.657L9.443 20.757A50 50 0 0 1 20.757 9.443L55.657 44.343Z"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="morechat.co">
+  <rect width="100" height="100" fill="#F7F7F8"/>
+  <g transform="translate(18.2095 22.1076) scale(50.7135)">
+    <rect x="0" y="0.48" width="0.3" height="0.62" rx="0.09" ry="0.09" fill="#ED7B2D" fill-opacity="0.45" transform="translate(0.15 0.79) skewX(-8) translate(-0.15 -0.79)"/>
+    <rect x="0.46" y="0.24" width="0.3" height="0.86" rx="0.09" ry="0.09" fill="#ED7B2D" fill-opacity="0.7" transform="translate(0.61 0.67) skewX(-8) translate(-0.61 -0.67)"/>
+    <rect x="0.92" y="0" width="0.3" height="1.1" rx="0.09" ry="0.09" fill="#ED7B2D" fill-opacity="1" transform="translate(1.07 0.55) skewX(-8) translate(-1.07 -0.55)"/>
+  </g>
+</svg>

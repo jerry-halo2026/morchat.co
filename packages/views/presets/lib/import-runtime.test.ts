@@ -4,7 +4,9 @@ import { parsePresetCatalog, type PresetPackage } from "./catalog";
 import {
   planPresetImport,
   presetAvatar,
+  presetConversationStarters,
   presetSquadInstructions,
+  presetStarterLabel,
   runPresetImport,
   type PresetAgentInput,
   type PresetImportRuntime,
@@ -140,8 +142,7 @@ describe("presetAvatar", () => {
   });
 });
 
-describe("presetSquadInstructions", () => {
-  it("writes profession, description and member roster", () => {
+describe("presetSquadInstructions", () => {  it("writes profession, description and member roster", () => {
     const text = presetSquadInstructions(TEAM_PRESET, "en");
     expect(text).toContain("One-Person Company Team");
     expect(text).toContain("Full-stack AI engineer");
@@ -300,5 +301,89 @@ describe("catalog → import wiring", () => {
     );
     expect(outcome.agents[0]!.name).toBe("Amy");
     expect(recorder.calls).toEqual(["agent:Amy"]);
+  });
+});
+
+const DETAIL = {
+  schemaVersion: 1,
+  id: "ai-engineer",
+  kind: "agent" as const,
+  name: { en: "Amy" },
+  description: "Full-stack AI engineer",
+  personaPath: "catalog/packages/agent/ai-engineer/agents/ai-engineer.md",
+  skills: ["ai-engineer--deep-research"],
+  conversationStarters: [
+    "Integrate AI into our product",
+    "A deliberately long starter prompt that keeps running well past a chip",
+  ],
+  team: { leadAgent: "ai-engineer", members: [] },
+  requires: [],
+  sourcePackage: "catalog/packages/agent/ai-engineer",
+  packageVersion: "1.0.2",
+  contentSha256: "abc",
+};
+
+describe("conversation starters", () => {
+  it("maps preset.json starters to labelled prompts", () => {
+    const starters = presetConversationStarters(DETAIL);
+    expect(starters).toHaveLength(2);
+    expect(starters[0]).toEqual({
+      label: "Integrate AI into our product",
+      prompt: "Integrate AI into our product",
+    });
+    expect(starters[1]!.label.endsWith("…")).toBe(true);
+    expect(starters[1]!.label.length).toBeLessThan(30);
+    expect(starters[1]!.prompt).toBe(DETAIL.conversationStarters[1]);
+  });
+
+  it("never invents starters without a detail document", () => {
+    expect(presetConversationStarters(null)).toEqual([]);
+    expect(presetConversationStarters(undefined)).toEqual([]);
+  });
+
+  it("cuts a long label on a word boundary", () => {
+    expect(presetStarterLabel("alpha beta gamma delta epsilon", 16)).toBe(
+      "alpha beta gamma…",
+    );
+  });
+});
+
+describe("runPresetImport with the preset layer", () => {
+  it("creates the lead agent with the package starters", async () => {
+    const recorder = newRecorder();
+    await runPresetImport(AGENT_PRESET, fakeRuntime(recorder), {
+      locale: "en",
+      runtimeId: "runtime-1",
+      detail: DETAIL,
+    });
+    expect(recorder.agents[0]!.conversation_starters).toEqual(
+      presetConversationStarters(DETAIL),
+    );
+  });
+
+  it("uses each member's own persona document for instructions", async () => {
+    const recorder = newRecorder();
+    const runtime: PresetImportRuntime = {
+      ...fakeRuntime(recorder),
+      loadMemberDoc: async (_pkg, memberId) => `# ${memberId}\n\nmember doc`,
+    };
+    await runPresetImport(TEAM_PRESET, runtime, {
+      locale: "en",
+      runtimeId: "runtime-1",
+    });
+    const member = recorder.agents.find((agent) => agent.name === "Gupan");
+    expect(member?.instructions).toBe("# opc-resource-auditor\n\nmember doc");
+  });
+
+  it("reports each stage to the progress callback", async () => {
+    const seen: string[] = [];
+    await runPresetImport(TEAM_PRESET, fakeRuntime(newRecorder()), {
+      locale: "en",
+      runtimeId: "runtime-1",
+      onStep: (step) => seen.push(step),
+    });
+    expect(seen).toContain("import_skills");
+    expect(seen).toContain("create_squad");
+    expect(seen[seen.length - 1]).toBe("save_instructions");
   });
 });

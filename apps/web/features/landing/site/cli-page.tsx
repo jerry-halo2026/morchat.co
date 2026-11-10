@@ -21,7 +21,7 @@ export function CliPage() {
   );
 }
 
-const SKILL_URL = "https://github.com/multica-ai/multica-cli";
+const SKILL_URL = "https://github.com/jerry-halo2026/morchat.co";
 
 function useCliDocsHref() {
   const { locale } = useLocale();
@@ -60,9 +60,9 @@ const INSTALL: { title: string; body: string; code: CodeVariant[] }[] = [
     title: "Install it",
     body: "One line in a terminal on macOS and Linux, or in PowerShell on Windows. Homebrew works too.",
     code: [
-      { label: "macOS / Linux", code: "curl -fsSL https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.sh | bash" },
-      { label: "Windows", code: "irm https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.ps1 | iex" },
-      { label: "Homebrew", code: "brew install multica-ai/tap/multica" },
+      { label: "macOS / Linux", code: "curl -fsSL https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.sh | bash" },
+      { label: "Windows", code: "irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex" },
+      { label: "Homebrew", code: "brew install jerry-halo2026/tap/morchat" },
     ],
   },
   {

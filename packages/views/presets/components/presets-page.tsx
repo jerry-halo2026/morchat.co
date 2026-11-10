@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, ArrowUpRight, Layers, RefreshCw, Users } from "@morechat/ui/icons";
+import { AlertCircle, ArrowUpRight, Layers, MessageSquarePlus, RefreshCw, Users } from "@morechat/ui/icons";
 import { Button } from "@morechat/ui/components/ui/button";
 import { Input } from "@morechat/ui/components/ui/input";
 import { cn } from "@morechat/ui/lib/utils";
@@ -16,6 +16,7 @@ import {
   presetProfession,
   type PresetCatalog,
   type PresetPackage,
+  type PresetPackageDetail,
   type PresetPluginSummary,
   type PresetPreview,
 } from "../lib/catalog";
@@ -31,10 +32,10 @@ export interface PresetPreviewPanelProps {
 }
 
 /**
- * Right-hand preview: the plugin.json summary (version, declared skill count),
- * the index.json skill bundle, and the import action. Both skill counts are
- * shown because the content repository's plugin.json and index.json do not
- * always agree.
+ * Right-hand preview: the package's own metadata (version, declared skill
+ * count), the index.json skill bundle, the quick prompts the preset ships as
+ * conversation starters, and the import action. Both skill counts are shown
+ * because the package metadata and index.json do not always agree.
  */
 export function PresetPreviewPanel({
   preview,
@@ -121,6 +122,25 @@ export function PresetPreviewPanel({
         </section>
       )}
 
+      {preview.conversationStarters.length > 0 && (
+        <section className="flex flex-col gap-1">
+          <h3 className="text-caption font-medium">
+            {t(($) => $.preview.starters)}
+          </h3>
+          <ul className="flex flex-col gap-1">
+            {preview.conversationStarters.slice(0, 3).map((starter) => (
+              <li
+                key={starter}
+                className="flex items-start gap-1.5 text-caption text-muted-foreground"
+              >
+                <MessageSquarePlus className="mt-0.5 size-3.5 shrink-0" />
+                <span className="line-clamp-2">{starter}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {preview.tags.length > 0 && (
         <ul className="flex flex-wrap gap-1">
           {preview.tags.map((tag) => (
@@ -156,62 +176,49 @@ export function PresetPreviewPanel({
 }
 
 export interface PresetsPageProps {
-  /** Static base URL of the preset content repository (must expose index.json). */
+  /** Static base URL of the preset content repository (shown in error hints). */
   baseUrl: string;
-  loadCatalog: () => Promise<PresetCatalog>;
-  loadPlugin: (pkg: PresetPackage) => Promise<PresetPluginSummary | null>;
+  /** The catalog, or null before the first response. */
+  catalog: PresetCatalog | null;
+  loading: boolean;
+  error: string | null;
+  /** Retries the catalog query after a failure. */
+  onRetry: () => void;
+  /** The selected package's preset.json (starters, persona path). */
+  detail: PresetPackageDetail | null;
+  /** The selected package's plugin.json (what it declares it ships). */
+  plugin: PresetPluginSummary | null;
+  pluginError: string | null;
   /** Locale drives the bilingual copy picked from index.json. */
   locale: string;
   importingPackageId?: string | null;
+  /** Reports the effective selection so the container can load its detail. */
+  onSelect: (pkg: PresetPackage) => void;
   onImport: (pkg: PresetPackage) => void;
 }
 
 /**
- * Preset gallery: read the content repository's index.json, filter by
- * agent/team, search across names/skills/members, preview a package from its
- * plugin.json, and hand the selected package to the import action.
+ * Preset gallery: list the catalog, filter by agent/team, search across
+ * names/skills/members, preview a package from its own metadata, and hand the
+ * selected package to the import action.
  */
 export default function PresetsPage({
   baseUrl,
-  loadCatalog,
-  loadPlugin,
+  catalog,
+  loading,
+  error,
+  onRetry,
+  detail,
+  plugin,
+  pluginError,
   locale,
   importingPackageId = null,
+  onSelect,
   onImport,
 }: PresetsPageProps) {
   const { t } = useT("presets");
-  const [catalog, setCatalog] = useState<PresetCatalog | null>(null);
-  const [catalogError, setCatalogError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState(EMPTY_PRESET_FILTER);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [plugin, setPlugin] = useState<PresetPluginSummary | null>(null);
-  const [pluginError, setPluginError] = useState<string | null>(null);
-  const [pluginLoading, setPluginLoading] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    loadCatalog()
-      .then((next) => {
-        if (cancelled) return;
-        setCatalog(next);
-        setCatalogError(null);
-        setSelectedId((current) => current ?? next.packages[0]?.id ?? null);
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        setCatalogError(
-          error instanceof Error ? error.message : String(error),
-        );
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [loadCatalog]);
 
   const packages = catalog?.packages ?? [];
   const visible = filterPresets(packages, filter);
@@ -222,32 +229,11 @@ export default function PresetsPage({
     visible.find((pkg) => pkg.id === selectedId) ?? visible[0] ?? null;
 
   useEffect(() => {
-    if (!selected) {
-      setPlugin(null);
-      return;
-    }
-    let cancelled = false;
-    setPluginLoading(true);
-    setPluginError(null);
-    loadPlugin(selected)
-      .then((summary) => {
-        if (!cancelled) setPlugin(summary);
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        setPlugin(null);
-        setPluginError(error instanceof Error ? error.message : String(error));
-      })
-      .finally(() => {
-        if (!cancelled) setPluginLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [selected, loadPlugin]);
+    if (selected) onSelect(selected);
+  }, [selected, onSelect]);
 
   const preview = selected
-    ? buildPresetPreview(selected, plugin, locale)
+    ? buildPresetPreview(selected, plugin, locale, detail)
     : null;
 
   return (
@@ -321,7 +307,16 @@ export default function PresetsPage({
             </p>
           )}
 
-          {catalogError !== null && (
+          {catalog?.degraded === true && (
+            <p
+              role="status"
+              className="mb-3 rounded-md border bg-warning/10 px-4 py-2 text-caption text-muted-foreground"
+            >
+              {t(($) => $.page.offline)}
+            </p>
+          )}
+
+          {error !== null && (
             <div
               role="alert"
               className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-caption"
@@ -329,37 +324,19 @@ export default function PresetsPage({
               <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
               <div className="flex flex-col gap-1">
                 <span>{t(($) => $.page.catalog_error)}</span>
-                <span className="text-muted-foreground">{catalogError}</span>
+                <span className="text-muted-foreground">{error}</span>
                 <span className="text-muted-foreground">
                   {t(($) => $.page.catalog_error_hint, { baseUrl })}
                 </span>
               </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setLoading(true);
-                  loadCatalog()
-                    .then((next) => {
-                      setCatalog(next);
-                      setCatalogError(null);
-                    })
-                    .catch((error: unknown) =>
-                      setCatalogError(
-                        error instanceof Error ? error.message : String(error),
-                      ),
-                    )
-                    .finally(() => setLoading(false));
-                }}
-              >
+              <Button type="button" size="sm" variant="outline" onClick={onRetry}>
                 <RefreshCw className="mr-1 size-3.5" />
                 {t(($) => $.page.retry)}
               </Button>
             </div>
           )}
 
-          {!loading && catalogError === null && visible.length === 0 && (
+          {!loading && error === null && visible.length === 0 && (
             <p className="text-caption text-muted-foreground">
               {t(($) => $.page.no_matches)}
             </p>
@@ -419,7 +396,7 @@ export default function PresetsPage({
       {preview && (
         <PresetPreviewPanel
           preview={preview}
-          loading={pluginLoading}
+          loading={loading}
           error={pluginError}
           importing={importingPackageId === preview.packageId}
           importLabel={t(($) => $.import.start)}

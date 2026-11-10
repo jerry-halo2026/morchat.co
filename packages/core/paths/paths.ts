@@ -15,6 +15,18 @@
 const encode = (id: string) => encodeURIComponent(id);
 
 /**
+ * Encode a knowledge page path (a slash-separated tree path) for a URL or a
+ * query string: one segment per part, so `a/b c` survives as `a/b%20c` rather
+ * than collapsing into a single escaped slash.
+ */
+const encodePath = (path: string) =>
+  path
+    .split("/")
+    .filter((part) => part.length > 0)
+    .map(encode)
+    .join("/");
+
+/**
  * `?focus=` token that scrolls the agent's General settings to its
  * conversation-starters editor and flashes it. Lives here because it is URL
  * vocabulary: `agentConversationStarters()` writes it and the page reads it,
@@ -90,6 +102,20 @@ function workspaceScoped(slug: string) {
       `${ws}/runtimes/${encode(machineId)}/runtime/${encode(runtimeId)}`,
     skills: () => `${ws}/skills`,
     skillDetail: (id: string) => `${ws}/skills/${encode(id)}`,
+    // Preset gallery: the content repository's 39 ready-made agents/teams.
+    presets: () => `${ws}/presets`,
+    // Knowledge (the workspace wiki). A page's address is its space plus its
+    // tree path, so both halves are encoded per segment and the path keeps its
+    // slashes: /{slug}/knowledge/{space}/{a}/{b}. Editing is a query on that
+    // same address, so the page keeps one identity across read and write.
+    knowledge: () => `${ws}/knowledge`,
+    knowledgeSpace: (space: string) => `${ws}/knowledge/${encode(space)}`,
+    knowledgePage: (space: string, path: string) =>
+      `${ws}/knowledge/${encode(space)}/${encodePath(path)}`,
+    knowledgeEdit: (space: string, path: string) =>
+      `${ws}/knowledge/${encode(space)}/${encodePath(path)}?mode=edit`,
+    knowledgeItems: () => `${ws}/knowledge/items`,
+    knowledgeRetrievalTest: () => `${ws}/knowledge/retrieval-test`,
     settings: () => `${ws}/settings`,
     attachmentPreview: (id: string) => `${ws}/attachments/${encode(id)}/preview`,
   };

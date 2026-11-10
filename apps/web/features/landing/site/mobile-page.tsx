@@ -157,8 +157,8 @@ function Everything() {
   );
 }
 
-const BUILD_COMMANDS = `git clone https://github.com/multica-ai/multica.git
-cd multica
+const BUILD_COMMANDS = `git clone https://github.com/jerry-halo2026/morchat.co.git
+cd morchat.co
 pnpm install
 pnpm ios:mobile:device:prod:release`;
 
