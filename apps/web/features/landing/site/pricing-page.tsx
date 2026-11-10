@@ -8,7 +8,7 @@ const PLANS = [
   { name: "Free", price: "$0", cadence: "Placeholder", cta: { label: "Get started", href: "/login" } },
   { name: "Team", price: "$—", cadence: "per seat / month", cta: { label: "Start trial", href: "/login" }, featured: true },
   { name: "Business", price: "$—", cadence: "per seat / month", cta: { label: "Start trial", href: "/login" } },
-  { name: "Enterprise", price: "Custom", cadence: "Contract", cta: { label: "Get started", href: "/download" } },
+  { name: "Enterprise", price: "Custom", cadence: "Annual contract", cta: null },
 ];
 
 export function PricingPage() {
@@ -30,13 +30,15 @@ export function PricingPage() {
               <h2 className="text-site-card text-site-ink">{plan.name}</h2>
               <p className="mt-6 font-site-display text-site-title text-site-ink tabular-nums">{plan.price}</p>
               <p className="mt-1 text-site-small text-site-muted">{plan.cadence}</p>
-              <ActionLink
-                href={plan.cta.href}
-                tone={plan.featured ? "primary" : "secondary"}
-                className="mt-6"
-              >
-                {plan.cta.label}
-              </ActionLink>
+              {plan.cta ? (
+                <ActionLink
+                  href={plan.cta.href}
+                  tone={plan.featured ? "primary" : "secondary"}
+                  className="mt-6"
+                >
+                  {plan.cta.label}
+                </ActionLink>
+              ) : null}
               <ul className="mt-8 flex flex-col gap-2.5 border-t border-site-line pt-6">
                 {[0, 1, 2, 3].map((index) => (
                   <li key={index} className="flex items-center gap-2.5 text-site-body text-site-ink-secondary">

@@ -68,6 +68,14 @@ const ALLOWLIST = [
   "docs/archive/",
   "docs/tasks/",
   "testdata/",
+  // The upstream landing page is used exactly as upstream ships it: pages,
+  // dictionaries and demo data (Acme Labs, Mia Chen, build-02, ACM-151,
+  // multica.ai) keep the upstream wording, and only the brand mark, the retired
+  // entry points and the login stage are ours. Rewriting the copy would stop the
+  // page from being the upstream page, so the gate exempts it as it does
+  // docs/upstream — this is deliberate, not a miss.
+  "apps/web/features/landing/",
+  "apps/web/app/(landing)/",
   // Runtime identifiers deliberately frozen this round: DB user/db names, CLI
   // verb, MULTICA_* env names and code comments. The user-visible copy inside
   // server/ (CLI help, auth page, onboarding text, integration titles) is swept
@@ -84,9 +92,6 @@ const ALLOWLIST = [
   "packages/ui/lib/multica-brand.ts",
   // the gate itself names the pattern it hunts for
   "scripts/check-brand-strings.mjs",
-  // the rename sweep is the machine that performs the substitution; it has to
-  // spell the source tokens out in its rule table.
-  "scripts/brand/rename-sweep.mjs",
   "packages/ui/components/common/multica-icon.tsx",
   "packages/ui/components/common/multica-wordmark.tsx",
   "packages/ui/components/common/multica-graphics.tsx",

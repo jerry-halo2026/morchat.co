@@ -6,7 +6,7 @@ import { Globe } from "@morechat/ui/icons";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@morechat/ui/components/ui/select";
 import { cn } from "@morechat/ui/lib/utils";
 import { docsHrefForLocale, localeLabels, locales, useLocale, type Locale } from "../i18n";
-import { MorechatLockup } from "@morechat/ui/components/common/morechat-mark";
+import { MorechatWordmark } from "@morechat/ui/components/common/morechat-wordmark";
 import { FooterWordmark } from "./footer-wordmark";
 import { Container, SiteTextLink, focusRing } from "./primitives";
 import { buildFooterGroups } from "./sitemap";
@@ -26,7 +26,7 @@ export function SiteFooter() {
       <Container className="grid gap-site-block pt-site-section lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)] lg:gap-16">
         <div>
           <Link href="/" aria-label={t.site.header.home} className={cn("inline-flex items-center rounded-sm", focusRing)}>
-              <MorechatLockup aria-hidden className="h-6 text-site-ink" />
+              <MorechatWordmark aria-hidden className="text-[1.5rem] text-site-ink" />
           </Link>
           <p className="mt-4 max-w-[18rem] text-site-small text-site-muted">
             {labels.tagline}
@@ -86,7 +86,7 @@ export function SiteFooter() {
         </nav>
       </Container>
 
-      <FooterWordmark className="pt-site-section" label={labels.starTurns} locale={locale} />
+      <FooterWordmark className="pt-site-section pb-10" />
     </footer>
   );
 }

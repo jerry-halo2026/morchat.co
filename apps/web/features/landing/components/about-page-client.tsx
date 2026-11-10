@@ -3,14 +3,26 @@
 import Link from "@/features/landing/components/landing-link";
 import { SiteHeader } from "../site/site-header";
 import { SiteFooter } from "../site/site-footer";
-import { GitHubMark, githubUrl } from "./shared";
 import { InlineLinks } from "./inline-links";
 import { useLocale } from "../i18n";
+
+/**
+ * The contact cards upstream lists here are the sales address, the licensing
+ * page, Discord, and GitHub. None of them are entry points we keep, so the card
+ * grid drops them out of the copy rather than out of every locale's dictionary.
+ */
+const DROPPED_HOSTS = ["discord.gg", "github.com", "x.com"];
+
+function keptContact(href: string) {
+  if (href === "/contact-sales" || href === "/licensing") return false;
+  return !DROPPED_HOSTS.some((host) => href.includes(host));
+}
 
 export function AboutPageClient() {
   const { t } = useLocale();
   const n = t.about.nameLine;
   const team = t.about.team;
+  const contacts = team.contacts.filter((contact) => keptContact(contact.href));
 
   return (
     <>
@@ -45,18 +57,6 @@ export function AboutPageClient() {
             ))}
           </div>
 
-          <div className="mt-12">
-            <Link
-              href={githubUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2.5 rounded-(--landing-radius-action) bg-[#0a0d12] px-5 py-3 text-body font-semibold text-white transition-colors hover:bg-[#0a0d12]/88"
-            >
-              <GitHubMark className="size-4" />
-              {t.about.cta}
-            </Link>
-          </div>
-
           <section className="mt-16 border-t border-[#0a0d12]/10 pt-12 sm:mt-20 sm:pt-16">
             <h2 className="font-site-display text-site-title">
               {team.title}
@@ -68,8 +68,9 @@ export function AboutPageClient() {
                 </p>
               ))}
             </div>
-            <dl className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-[#0a0d12]/8 bg-[#0a0d12]/8 sm:grid-cols-2">
-              {team.contacts.map((contact) => {
+            {contacts.length > 0 ? (
+              <dl className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-[#0a0d12]/8 bg-[#0a0d12]/8 sm:grid-cols-2">
+                {contacts.map((contact) => {
                 const external = contact.href.startsWith("http");
                 return (
                   <div key={contact.label} className="bg-white p-6">
@@ -90,7 +91,8 @@ export function AboutPageClient() {
                   </div>
                 );
               })}
-            </dl>
+              </dl>
+            ) : null}
           </section>
         </div>
       </main>

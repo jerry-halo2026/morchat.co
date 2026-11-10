@@ -28,9 +28,7 @@ const LocaleContext = createContext<LocaleContextValue | null>(null);
 function localeForPath(pathname: string, current: Locale): Locale {
   const prefixed = splitLandingLocale(pathname);
   if (prefixed) return prefixed.locale;
-  // Unprefixed marketing URLs are the Chinese site; the other languages live
-  // behind /en, /ko and /ja.
-  return landingPathLocale(current) === "zh-Hans" ? current : "zh-Hans";
+  return landingPathLocale(current) === "en" ? current : "en";
 }
 
 export function LocaleProvider({

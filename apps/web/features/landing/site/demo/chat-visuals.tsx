@@ -14,7 +14,7 @@ import { Avatar, BACKEND, FLOATING, LEAD, LEO, MIA, SAM, TRIAGE, ZoomCanvas, typ
 
 /*
  * Mockups for the Chat integrations page: a team chat where people talk to a
- * morechat.co agent through its Bot, and the Messaging settings where each Bot is
+ * Multica agent through its Bot, and the Messaging settings where each Bot is
  * bound to one agent. The chat client is drawn plain so it reads as any of the
  * supported platforms; the Bot's replies follow the product's own copy. Data
  * is fictional.
@@ -30,7 +30,7 @@ export const CHANNELS: { id: ChannelId; name: string; Mark: ComponentType<{ clas
   { id: "telegram", name: "Telegram", Mark: TelegramMark },
 ];
 
-const BOT = { name: "morechat.co", agent: BACKEND };
+const BOT = { name: "Multica", agent: BACKEND };
 
 function Message({ actor, bot, time, children }: { actor: Actor; bot?: boolean; time: string; children: ReactNode }) {
   return (
@@ -102,7 +102,7 @@ function ChannelConversation() {
         Export for the Northwind workspace failed again last night.
       </Message>
       <Message actor={MIA} time="9:41">
-        <Mention>@morechat.co</Mention> why did last night’s export job fail?
+        <Mention>@Multica</Mention> why did last night鈥檚 export job fail?
       </Message>
       <ThreadReplies count={2}>
         <Message actor={BOT.agent} bot time="9:42">
@@ -125,7 +125,7 @@ const BOUND: { channel: ChannelId; agent: Actor | null }[] = [
   { channel: "wecom", agent: null },
 ];
 
-/** Settings → Messaging: one Bot per agent, on each platform the team uses. */
+/** Settings 鈫?Messaging: one Bot per agent, on each platform the team uses. */
 function MessagingPanel({ className, rows = BOUND.length }: { className: string; rows?: number }) {
   return (
     <div className={cn(FLOATING, "absolute overflow-hidden", className)}>
@@ -205,7 +205,7 @@ const PANEL = "h-[300px] w-[340px]";
 
 export function DirectMessageVisual() {
   return (
-    <ChatWindow title="morechat.co" icon={MessageSquare} composer="Message morechat.co" className={PANEL}>
+    <ChatWindow title="Multica" icon={MessageSquare} composer="Message Multica" className={PANEL}>
       <Message actor={LEO} time="10:02">
         What changed in the billing API this week?
       </Message>
@@ -221,11 +221,11 @@ export function MentionVisual() {
   return (
     <ChatWindow title="eng-support" icon={Hash} composer="Reply in thread" className={PANEL}>
       <Message actor={SAM} time="11:20">
-        <Mention>@morechat.co</Mention> why is the checkout test flaky?
+        <Mention>@Multica</Mention> why is the checkout test flaky?
       </Message>
       <ThreadReplies count={1}>
         <Message actor={BOT.agent} bot time="11:21">
-          It waits a fixed 500 ms for the payment form. On a slow runner the form isn’t there yet.
+          It waits a fixed 500 ms for the payment form. On a slow runner the form isn鈥檛 there yet.
         </Message>
       </ThreadReplies>
     </ChatWindow>
@@ -234,12 +234,12 @@ export function MentionVisual() {
 
 export function IssueCommandVisual() {
   return (
-    <ChatWindow title="morechat.co" icon={MessageSquare} composer="Message morechat.co" className={PANEL}>
+    <ChatWindow title="Multica" icon={MessageSquare} composer="Message Multica" className={PANEL}>
       <Message actor={MIA} time="9:43">
         <Slash>/issue</Slash> Batch the nightly export job
       </Message>
       <Message actor={BOT.agent} bot time="9:43">
-        ✅ Created ACM-171 — Batch the nightly export job
+        鉁?Created ACM-171 鈥?Batch the nightly export job
         <span className="mt-2 flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-caption">
           <StatusIcon status="todo" className="size-3.5" />
           <span className="text-muted-foreground tabular-nums">ACM-171</span>

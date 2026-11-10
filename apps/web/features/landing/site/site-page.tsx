@@ -109,11 +109,9 @@ export function PlaceholderPage({ eyebrow, page }: { eyebrow: string; page: Site
         title={page.title}
         lead={page.summary}
         actions={
-          <>
-            <ActionLink href="/login" size="lg">
-              Get started
-            </ActionLink>
-          </>
+          <ActionLink href="/login" size="lg">
+            Get started
+          </ActionLink>
         }
       />
       <Container className="pb-site-section">

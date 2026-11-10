@@ -7,13 +7,13 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "Organization",
-      name: "morechat.co",
-      url: "https://www.morechat.co",
-      sameAs: ["https://github.com/jerry-halo2026/morchat.co"],
+      name: "Multica",
+      url: "https://www.multica.ai",
+      sameAs: ["https://github.com/multica-ai/multica"],
     },
     {
       "@type": "SoftwareApplication",
-      name: "morechat.co",
+      name: "Multica",
       applicationCategory: "ProjectManagement",
       operatingSystem: "Web",
       description:

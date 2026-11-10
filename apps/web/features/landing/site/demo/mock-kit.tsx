@@ -89,7 +89,7 @@ const MAX_ZOOM = 0.88;
 
 /**
  * Fills its positioned parent and renders `children` on a design canvas
- * zoomed to the parent's width. Below `width` the canvas stays `width` ×
+ * zoomed to the parent's width. Below `width` the canvas stays `width` 脳
  * `height` and shrinks to fit; past `MAX_ZOOM` it grows to fill the frame
  * instead, so lay content out against the canvas edges, not at fixed spots.
  * The parent sets the aspect ratio; keep it equal to the canvas's.
@@ -261,7 +261,7 @@ export const APP_CARD =
   "relative flex min-w-0 flex-1 overflow-hidden rounded-xl bg-page-canvas shadow-[var(--surface-shadow)] ring-1 ring-surface-border";
 
 /**
- * The morechat.co app as a window: the rail on the grey app shell, and the page
+ * The Multica app as a window: the rail on the grey app shell, and the page
  * on the content card with the space panel collapsed. A window that runs off
  * the right and bottom of its frame passes `bleed` (in px), and the page keeps
  * its content out of the cropped strip so nothing is cut mid-word.

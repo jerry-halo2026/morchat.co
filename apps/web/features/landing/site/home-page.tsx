@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type ComponentType, type CSSProperties } from "react";
-import Image from "next/image";
 import Link from "@/features/landing/components/landing-link";
 import { ArrowRight, ArrowUpRight, ChevronRight } from "@morechat/ui/icons";
 import { cn } from "@morechat/ui/lib/utils";
@@ -28,6 +27,7 @@ import { osOf, resolvePrimary } from "../utils/download-target";
 import type { HomeDownload } from "../utils/home-download";
 import { CUSTOMER_LOGOS, type CustomerLogo } from "./customer-logos";
 import { AutopilotsVisual, ChatVisual, RuntimesVisual, SkillsVisual, WorkflowVisual } from "./demo/feature-visuals";
+import { HeroDemo } from "./demo/hero-demo";
 import { PROVIDER_MARKS, useStoryLoop } from "./demo/mock-kit";
 import { CtaBand, SitePage } from "./site-page";
 import { SITE_PREVIEW } from "./sitemap";
@@ -94,21 +94,7 @@ function Hero({ download }: { download: HomeDownload }) {
         ) : null}
       </Container>
       <Container className="mt-10 max-w-site-wide lg:mt-12">
-        {/*
-         * First screen: our own hero mock (32px Morandi agent avatars on a real
-         * board) rather than upstream's animated demo. The image is the same
-         * one the previous landing shipped, so the product screenshots a reader
-         * has already seen stay the same.
-         */}
-        <Image
-          src="/images/landing-hero-v7.webp"
-          alt="morechat.co"
-          width={2640}
-          height={1780}
-          priority
-          sizes="(min-width: 1200px) 1120px, 100vw"
-          className="w-full rounded-site-card border border-site-line"
-        />
+        <HeroDemo />
       </Container>
     </section>
   );

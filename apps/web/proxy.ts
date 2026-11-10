@@ -1,18 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { LOCALE_COOKIE, type SupportedLocale } from "@morechat/core/i18n";
+import { LOCALE_COOKIE } from "@morechat/core/i18n";
 import {
-  isSupportedLocale,
   MULTICA_LOCALE_HEADER,
   resolveLocaleFromSignals,
 } from "./lib/locale-routing";
-import {
-  isLandingPath,
-  landingPathLocale,
-  localizeHref,
-  splitLandingLocale,
-} from "./lib/landing-locale-path";
 import { runtimeRewriteDestination } from "./config/runtime-urls";
 import { isOfficialMarketingHost } from "./lib/public-host";
+import { splitLandingLocale } from "./lib/landing-locale-path";
 
 // Old workspace-scoped route segments that existed before the URL refactor
 // (pre-#1131). Any URL with these as the FIRST segment is a legacy URL that
@@ -32,7 +26,7 @@ const LEGACY_ROUTE_SEGMENTS = new Set([
   "usage",
 ]);
 
-function resolveLocale(req: NextRequest): SupportedLocale {
+function resolveLocale(req: NextRequest): string {
   return resolveLocaleFromSignals({
     cookieLocale: req.cookies.get(LOCALE_COOKIE)?.value,
     acceptLanguage: req.headers.get("accept-language"),
@@ -43,45 +37,10 @@ function resolveLocale(req: NextRequest): SupportedLocale {
 // request header. layout.tsx reads it through `await headers()`. The
 // `request: { headers }` form is what makes the header land on the upstream
 // request — without it the value would only sit on the response.
-function nextWithLocale(req: NextRequest, locale = resolveLocale(req)): NextResponse {
+function nextWithLocale(req: NextRequest): NextResponse {
   const headers = new Headers(req.headers);
-  headers.set(MULTICA_LOCALE_HEADER, locale);
+  headers.set(MULTICA_LOCALE_HEADER, resolveLocale(req));
   return NextResponse.next({ request: { headers } });
-}
-
-// The marketing site has one URL per language: Chinese at the root, the others
-// under /en, /ko and /ja (lib/landing-locale-path). Returns null for paths that
-// are not marketing pages.
-function routeLandingLocale(
-  req: NextRequest,
-  hasSession: boolean,
-  lastSlug: string | undefined,
-): NextResponse | null {
-  const { pathname } = req.nextUrl;
-  const prefixed = splitLandingLocale(pathname);
-  if (prefixed) {
-    // A workspace that took a language prefix as its slug before the prefix
-    // was reserved keeps its bare root for its members.
-    if (prefixed.path === "/" && hasSession && lastSlug === pathname.slice(1)) return null;
-    const url = req.nextUrl.clone();
-    url.pathname = prefixed.path;
-    const headers = new Headers(req.headers);
-    headers.set(MULTICA_LOCALE_HEADER, prefixed.locale);
-    return NextResponse.rewrite(url, { request: { headers } });
-  }
-  if (!isLandingPath(pathname)) return null;
-
-  // A remembered language choice goes to that language's URL. Without one the
-  // root URL stays Chinese — the same page crawlers index — and the page offers
-  // the browser's language rather than switching to it.
-  const cookie = req.cookies.get(LOCALE_COOKIE)?.value ?? null;
-  const chosen = isSupportedLocale(cookie) ? landingPathLocale(cookie) : "zh-Hans";
-  if (chosen !== "zh-Hans") {
-    const url = req.nextUrl.clone();
-    url.pathname = localizeHref(chosen, pathname);
-    return NextResponse.redirect(url);
-  }
-  return nextWithLocale(req, "zh-Hans");
 }
 
 // Next.js 16 renamed `middleware` → `proxy`. API surface (NextRequest /
@@ -99,6 +58,20 @@ export function proxy(req: NextRequest) {
 
   const hasSession = req.cookies.has("multica_logged_in");
   const lastSlug = req.cookies.get("last_workspace_slug")?.value;
+
+  // --- Marketing language prefixes: /zh, /ko, /ja ---
+  // The upstream landing page has one URL per language: English at the root and
+  // the others under a prefix (lib/landing-locale-path). The prefix is not a
+  // route, so it is rewritten onto the same page with the locale pinned. A
+  // workspace that already owns the prefix as its slug keeps its bare root.
+  const prefixed = splitLandingLocale(pathname);
+  if (prefixed && !(prefixed.path === "/" && hasSession && lastSlug === pathname.slice(1))) {
+    const url = req.nextUrl.clone();
+    url.pathname = prefixed.path;
+    const headers = new Headers(req.headers);
+    headers.set(MULTICA_LOCALE_HEADER, prefixed.locale);
+    return NextResponse.rewrite(url, { request: { headers } });
+  }
 
   // --- Legacy URL redirect: /issues/... → /{slug}/issues/... ---
   // Old bookmarks and clients that hit us before the slug migration would
@@ -148,9 +121,6 @@ export function proxy(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  const landing = routeLandingLocale(req, hasSession, lastSlug);
-  if (landing) return landing;
-
   // --- Default: forward locale header to RSC, no redirect/rewrite ---
   // Covers logged-out root path, /login, /:slug/*, and everything else.
   return nextWithLocale(req);
@@ -167,6 +137,7 @@ export const config = {
     "/api",
     "/api/((?!upload-file(?:/|$)).*)",
     "/auth/:path*",
+    "/uploads/:path*",
     "/docs/:path*",
     "/ws",
     "/((?!api|v1|_next/static|_next/image|favicon.ico|.*\\.).*)",

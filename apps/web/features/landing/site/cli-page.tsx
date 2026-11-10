@@ -21,7 +21,7 @@ export function CliPage() {
   );
 }
 
-const SKILL_URL = "https://github.com/jerry-halo2026/morchat.co-cli";
+const SKILL_URL = "https://github.com/multica-ai/multica-cli";
 
 function useCliDocsHref() {
   const { locale } = useLocale();
@@ -32,8 +32,8 @@ function Hero() {
   const docsHref = useCliDocsHref();
   return (
     <SurfaceHero
-      eyebrow="morechat.co CLI"
-      title="morechat.co from your terminal."
+      eyebrow="Multica CLI"
+      title="Multica from your terminal."
       subtitle="And from every agent you run."
       lead="The multica command connects a computer as a runtime, then lets you, a script, or another coding agent work with issues, comments, and agents from the shell."
       actions={
@@ -60,16 +60,16 @@ const INSTALL: { title: string; body: string; code: CodeVariant[] }[] = [
     title: "Install it",
     body: "One line in a terminal on macOS and Linux, or in PowerShell on Windows. Homebrew works too.",
     code: [
-      { label: "macOS / Linux", code: "curl -fsSL https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.sh | bash" },
-      { label: "Windows", code: "irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex" },
+      { label: "macOS / Linux", code: "curl -fsSL https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.sh | bash" },
+      { label: "Windows", code: "irm https://raw.githubusercontent.com/multica-ai/multica/main/scripts/install.ps1 | iex" },
       { label: "Homebrew", code: "brew install multica-ai/tap/multica" },
     ],
   },
   {
     title: "Connect the computer",
-    body: "Setup saves the server, signs you in through the browser, and starts the daemon. Running your own morechat.co? Give it your server’s addresses.",
+    body: "Setup saves the server, signs you in through the browser, and starts the daemon. Running your own Multica? Give it your server’s addresses.",
     code: [
-      { label: "morechat.co Cloud", code: "multica setup" },
+      { label: "Multica Cloud", code: "multica setup" },
       {
         label: "Self-hosted",
         code: "multica setup self-host \\\n  --server-url https://api.example.com \\\n  --app-url https://app.example.com",
@@ -168,7 +168,7 @@ function AgentDriven() {
             <span className="block text-site-muted">Without leaving its session.</span>
           </h2>
           <p className="mt-3 max-w-[30rem] text-site-body text-site-muted text-pretty">
-            The morechat.co CLI skill teaches Codex, Claude Code, Cursor, and other agents to work with morechat.co through the
+            The Multica CLI skill teaches Codex, Claude Code, Cursor, and other agents to work with Multica through the
             commands on this page.
           </p>
           <CheckList

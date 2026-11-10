@@ -14,11 +14,13 @@ export const localeLabels: Record<Locale, string> = {
   "zh-Hant": "\u7e41\u9ad4\u4e2d\u6587",
   ko: "\ud55c\uad6d\uc5b4",
   ja: "\u65e5\u672c\u8a9e",
-  // The landing dictionary has no French, Spanish or Russian variant yet.
+  // The landing dictionary has no French or Spanish variant yet.
   // `locales` above still offers four languages; these labels satisfy the Record type.
+  // 0.8.2's `SupportedLocale` carries Russian too; the landing has no copy for
+  // it, so it falls back like French and Spanish.
   fr: "FR",
   es: "ES",
-  ru: "\u0420\u0443\u0441\u0441\u043a\u0438\u0439",
+  ru: "RU",
 };
 
 export function toLandingDictionaryLocale(
@@ -63,6 +65,7 @@ export type SiteDict = {
     about: string;
     careers: string;
     press: string;
+    contactSales: string;
     trust: string;
     security: string;
     licensing: string;
@@ -99,7 +102,7 @@ type DemoWorkflow<S extends string> = {
 };
 
 /**
- * Text inside the product mockups. `app` is the morechat.co interface itself and
+ * Text inside the product mockups. `app` is the Multica interface itself and
  * follows the product's own translations; the rest is the fictional Acme Labs
  * team's work. People's and agents' names stay as they are, like any name.
  */

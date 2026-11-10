@@ -1,7 +1,7 @@
 import { cn } from "@morechat/ui/lib/utils";
 
-export const githubUrl = "https://github.com/jerry-halo2026/morchat.co";
-export const twitterUrl = "https://x.com/MorechatAI";
+export const githubUrl = "https://github.com/multica-ai/multica";
+export const twitterUrl = "https://x.com/MulticaAI";
 export const discordUrl = "https://discord.gg/W8gYBn226t";
 
 export function GitHubMark({ className }: { className?: string }) {

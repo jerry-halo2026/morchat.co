@@ -6,7 +6,7 @@ import { cn } from "@morechat/ui/lib/utils";
 import { useAuthStore } from "@morechat/core/auth";
 import { useLocale } from "../i18n";
 import { useDashboardCtaHref } from "../utils/use-dashboard-cta";
-import { MorechatLockup } from "@morechat/ui/components/common/morechat-mark";
+import { MorechatWordmark } from "@morechat/ui/components/common/morechat-wordmark";
 import { ActionLink, focusRing } from "./primitives";
 
 export function SiteHeader() {
@@ -37,13 +37,16 @@ export function SiteHeader() {
           scrolled ? "border-site-line" : "border-transparent",
         )}
       >
-        <div className="mx-auto flex h-site-header w-full max-w-site-wide items-center justify-between gap-4 px-site-gutter">
+        {/* 64px: the brand lockup is 30% larger than upstream (a 24px mark →
+            31.2px of drawn height, which is 0.73em of this text wordmark), so
+            the bar grows with it to keep the same share of the header. */}
+        <div className="mx-auto flex h-16 w-full max-w-site-wide items-center justify-between gap-4 px-site-gutter">
           <Link
             href="/"
             aria-label={labels.home}
             className={cn("flex shrink-0 items-center rounded-sm", focusRing)}
           >
-            <MorechatLockup aria-hidden className="h-6 text-site-ink" />
+            <MorechatWordmark aria-hidden className="text-[2.6rem] text-site-ink" />
           </Link>
 
           <div className="flex shrink-0 items-center gap-1.5">
