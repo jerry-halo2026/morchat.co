@@ -63,7 +63,6 @@ export type SiteDict = {
     about: string;
     careers: string;
     press: string;
-    contactSales: string;
     trust: string;
     security: string;
     licensing: string;

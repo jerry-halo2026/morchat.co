@@ -104,7 +104,6 @@ export const PLACEHOLDER_PAGES = {
 const EXISTING_ROUTES = [
   "/about",
   "/changelog",
-  "/contact-sales",
   "/download",
   "/licensing",
   "/privacy",
@@ -204,7 +203,6 @@ export function buildFooterGroups(docsHref: string, nav: NavLabels, isLive: IsLi
           { label: nav.customers, href: "/customers" },
           { label: nav.careers, href: "/careers" },
           { label: nav.press, href: "/press" },
-          { label: nav.contactSales, href: "/contact-sales" },
         ],
       },
       {

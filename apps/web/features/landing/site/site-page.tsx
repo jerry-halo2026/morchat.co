@@ -113,9 +113,6 @@ export function PlaceholderPage({ eyebrow, page }: { eyebrow: string; page: Site
             <ActionLink href="/login" size="lg">
               Get started
             </ActionLink>
-            <ActionLink href="/contact-sales" size="lg" tone="secondary">
-              Book a demo
-            </ActionLink>
           </>
         }
       />

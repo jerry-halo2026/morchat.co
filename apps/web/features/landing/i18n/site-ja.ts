@@ -65,7 +65,6 @@ export const jaSiteCopy: Pick<LandingDict, "site" | "home" | "demo" | "meta"> = 
       about: "会社概要",
       careers: "採用情報",
       press: "プレス・ブランド",
-      contactSales: "営業に問い合わせる",
       trust: "トラスト",
       security: "セキュリティ",
       licensing: "ライセンス",

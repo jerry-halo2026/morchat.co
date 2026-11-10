@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 153,
-  "fingerprint": "d91d96426ca0f71aef788d5a5e5cdaa69c6faa38f988682f38241f964c39b110",
+  "count": 154,
+  "fingerprint": "0014042d31e8f168a321400ed507b415aff0e11e70629d909a398173b45393cf",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -816,6 +816,17 @@
       "path": "docs/brand/mockups/hero/README.md",
       "title": "首屏假看板（landing hero mock）",
       "purpose": "首屏假看板（landing hero mock）",
+      "owner": "design",
+      "status": "reference",
+      "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/brand/reference/login-onboarding/README.md",
+      "title": "Login → onboarding: reference shots",
+      "purpose": "登录到 onboarding 的参考截图采集说明（CDP 采集脚本 + 产物索引）",
       "owner": "design",
       "status": "reference",
       "updated": "2026-11-10",

@@ -15,9 +15,6 @@ export function CtaBand({ title, lead }: { title?: string; lead?: string }) {
           <ActionLink href="/login" size="lg">
             {copy.getStarted}
           </ActionLink>
-          <ActionLink href="/contact-sales" size="lg" tone="secondary">
-            {copy.bookDemo}
-          </ActionLink>
         </div>
       </Container>
     </Section>

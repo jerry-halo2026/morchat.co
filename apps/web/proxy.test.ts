@@ -296,43 +296,42 @@ describe("proxy marketing-site language URLs", () => {
     new NextRequest(`https://www.morechat.co${path}`, { headers: { "accept-language": acceptLanguage } });
 
   it.each([
-    ["/zh", "/", "zh-Hans"],
-    ["/zh/download", "/download", "zh-Hans"],
+    ["/en", "/", "en"],
+    ["/en/download", "/download", "en"],
     ["/ko/usecases/auto-data-analysis", "/usecases/auto-data-analysis", "ko"],
     ["/ja/about?ref=x", "/about?ref=x", "ja"],
   ])("serves %s as %s in its language", (path, page, locale) => {
-    const res = proxy(makeRequest(path, { "multica-locale": "en" }));
+    const res = proxy(makeRequest(path, { "multica-locale": "zh-Hans" }));
 
     expect(res.headers.get("location")).toBeNull();
     expect(res.headers.get("x-middleware-rewrite")).toBe(`https://app.multica.test${page}`);
     expect(localeOf(res)).toBe(locale);
   });
 
-  it("keeps English URLs English for visitors who have not picked a language", () => {
-    const res = proxy(withAcceptLanguage("/download", "zh-CN,zh;q=0.9"));
+  it("serves the root in Chinese for visitors who have not picked a language", () => {
+    const res = proxy(withAcceptLanguage("/download", "ko-KR,ko;q=0.9"));
 
     expect(res.headers.get("location")).toBeNull();
     expect(res.headers.get("x-middleware-rewrite")).toBeNull();
-    expect(localeOf(res)).toBe("en");
+    expect(localeOf(res)).toBe("zh-Hans");
   });
 
-  it("keeps locales without a translated site on the English URL", () => {
+  it("sends locales without a translated site to the English URL", () => {
     const res = proxy(makeRequest("/about", { "multica-locale": "fr" }));
 
-    expect(res.headers.get("location")).toBeNull();
-    expect(localeOf(res)).toBe("fr");
+    expect(res.headers.get("location")).toBe("https://app.multica.test/en/about");
   });
 
   it.each([
-    ["/", { "multica-locale": "zh-Hans" }, "/zh"],
     ["/download?started=mac", { "multica-locale": "ko" }, "/ko/download?started=mac"],
-    ["/about", { "multica-locale": "zh-Hant" }, "/zh/about"],
+    ["/about", { "multica-locale": "en" }, "/en/about"],
+    ["/pricing", { "multica-locale": "ja" }, "/ja/pricing"],
   ])("sends %s to the language the visitor picked", (path, cookies, location) => {
     expect(redirectLocation(path, cookies, "www.morechat.co")).toBe(`https://www.morechat.co${location}`);
   });
 
   it("leaves app routes under a language-like slug to the app", () => {
-    const res = proxy(makeRequest("/zh/issues", { "multica-locale": "ja" }));
+    const res = proxy(makeRequest("/en/issues", { "multica-locale": "ja" }));
 
     expect(res.headers.get("x-middleware-rewrite")).toBeNull();
     expect(localeOf(res)).toBe("ja");

@@ -8,7 +8,7 @@ const PLANS = [
   { name: "Free", price: "$0", cadence: "Placeholder", cta: { label: "Get started", href: "/login" } },
   { name: "Team", price: "$—", cadence: "per seat / month", cta: { label: "Start trial", href: "/login" }, featured: true },
   { name: "Business", price: "$—", cadence: "per seat / month", cta: { label: "Start trial", href: "/login" } },
-  { name: "Enterprise", price: "Custom", cadence: "Annual contract", cta: { label: "Contact sales", href: "/contact-sales" } },
+  { name: "Enterprise", price: "Custom", cadence: "Contract", cta: { label: "Get started", href: "/download" } },
 ];
 
 export function PricingPage() {

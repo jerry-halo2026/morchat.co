@@ -64,7 +64,6 @@ export const koSiteCopy: Pick<LandingDict, "site" | "home" | "demo" | "meta"> = 
       about: "회사 소개",
       careers: "채용",
       press: "보도 자료·브랜드",
-      contactSales: "영업팀 문의",
       trust: "신뢰",
       security: "보안",
       licensing: "라이선스",

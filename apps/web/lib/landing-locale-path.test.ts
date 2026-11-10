@@ -26,48 +26,51 @@ describe("landing locale paths", () => {
   });
 
   it("splits prefixed marketing URLs", () => {
-    expect(splitLandingLocale("/zh")).toEqual({ locale: "zh-Hans", path: "/" });
+    expect(splitLandingLocale("/en")).toEqual({ locale: "en", path: "/" });
     expect(splitLandingLocale("/ko/download")).toEqual({ locale: "ko", path: "/download" });
     expect(splitLandingLocale("/ja/usecases/auto-data-analysis")).toEqual({
       locale: "ja",
       path: "/usecases/auto-data-analysis",
     });
+    // Chinese is the root language now, so its old prefix is not a URL.
+    expect(splitLandingLocale("/zh")).toBeNull();
   });
 
   it("leaves app and unprefixed URLs alone", () => {
     expect(splitLandingLocale("/download")).toBeNull();
-    expect(splitLandingLocale("/zh/issues")).toBeNull();
-    expect(splitLandingLocale("/zhong/download")).toBeNull();
+    expect(splitLandingLocale("/en/issues")).toBeNull();
+    expect(splitLandingLocale("/english/download")).toBeNull();
     expect(stripLandingLocale("/acme/issues")).toBe("/acme/issues");
-    expect(stripLandingLocale("/zh/about")).toBe("/about");
+    expect(stripLandingLocale("/en/about")).toBe("/about");
   });
 
   it("maps locales onto the languages the site has", () => {
+    expect(landingPathLocale("zh-Hans")).toBe("zh-Hans");
     expect(landingPathLocale("zh-Hant")).toBe("zh-Hans");
     expect(landingPathLocale("fr")).toBe("en");
     expect(landingPathLocale("ja")).toBe("ja");
   });
 
   it("prefixes marketing links only", () => {
-    expect(localizeHref("zh-Hans", "/")).toBe("/zh");
-    expect(localizeHref("zh-Hans", "/download?started=mac#top")).toBe("/zh/download?started=mac#top");
+    expect(localizeHref("zh-Hans", "/")).toBe("/");
+    expect(localizeHref("zh-Hans", "/download?started=mac#top")).toBe("/download?started=mac#top");
     expect(localizeHref("ko", "/usecases/x")).toBe("/ko/usecases/x");
     expect(localizeHref("ja", "/login")).toBe("/login");
     expect(localizeHref("ja", "/docs/ja")).toBe("/docs/ja");
     expect(localizeHref("ja", "https://github.com/jerry-halo2026/morchat.co")).toBe("https://github.com/jerry-halo2026/morchat.co");
-    expect(localizeHref("ja", "/zh/about")).toBe("/zh/about");
-    expect(localizeHref("en", "/about")).toBe("/about");
-    expect(localizeHref("fr", "/about")).toBe("/about");
+    expect(localizeHref("ja", "/en/about")).toBe("/en/about");
+    expect(localizeHref("en", "/about")).toBe("/en/about");
+    expect(localizeHref("fr", "/about")).toBe("/en/about");
   });
 
-  it("lists every language's URL with English as the default", () => {
+  it("lists every language's URL with Chinese as the default", () => {
     expect(landingAlternates("/", "https://www.morechat.co")).toEqual({
-      en: "https://www.morechat.co/",
-      "zh-Hans": "https://www.morechat.co/zh",
+      en: "https://www.morechat.co/en",
+      "zh-Hans": "https://www.morechat.co/",
       ko: "https://www.morechat.co/ko",
       ja: "https://www.morechat.co/ja",
       "x-default": "https://www.morechat.co/",
     });
-    expect(landingAlternates("/download")).toMatchObject({ "zh-Hans": "/zh/download", "x-default": "/download" });
+    expect(landingAlternates("/download")).toMatchObject({ "zh-Hans": "/download", "x-default": "/download" });
   });
 });

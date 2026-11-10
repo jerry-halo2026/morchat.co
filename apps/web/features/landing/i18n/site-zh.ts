@@ -63,7 +63,6 @@ export const zhSiteCopy: Pick<LandingDict, "site" | "home" | "demo" | "meta"> = 
       about: "关于我们",
       careers: "加入我们",
       press: "媒体与品牌",
-      contactSales: "联系销售",
       trust: "信任与合规",
       security: "安全",
       licensing: "许可协议",

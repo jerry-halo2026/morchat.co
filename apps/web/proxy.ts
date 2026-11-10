@@ -49,9 +49,9 @@ function nextWithLocale(req: NextRequest, locale = resolveLocale(req)): NextResp
   return NextResponse.next({ request: { headers } });
 }
 
-// The marketing site has one URL per language: English at the root, the
-// others under /zh, /ko and /ja (lib/landing-locale-path). Returns null for
-// paths that are not marketing pages.
+// The marketing site has one URL per language: Chinese at the root, the others
+// under /en, /ko and /ja (lib/landing-locale-path). Returns null for paths that
+// are not marketing pages.
 function routeLandingLocale(
   req: NextRequest,
   hasSession: boolean,
@@ -72,17 +72,16 @@ function routeLandingLocale(
   if (!isLandingPath(pathname)) return null;
 
   // A remembered language choice goes to that language's URL. Without one the
-  // root URL stays English — the same page crawlers index — and the page
-  // offers the browser's language rather than switching to it.
+  // root URL stays Chinese — the same page crawlers index — and the page offers
+  // the browser's language rather than switching to it.
   const cookie = req.cookies.get(LOCALE_COOKIE)?.value ?? null;
-  const chosen = isSupportedLocale(cookie) ? landingPathLocale(cookie) : "en";
-  if (chosen !== "en") {
+  const chosen = isSupportedLocale(cookie) ? landingPathLocale(cookie) : "zh-Hans";
+  if (chosen !== "zh-Hans") {
     const url = req.nextUrl.clone();
     url.pathname = localizeHref(chosen, pathname);
     return NextResponse.redirect(url);
   }
-  const resolved = resolveLocale(req);
-  return nextWithLocale(req, landingPathLocale(resolved) === "en" ? resolved : "en");
+  return nextWithLocale(req, "zh-Hans");
 }
 
 // Next.js 16 renamed `middleware` → `proxy`. API surface (NextRequest /

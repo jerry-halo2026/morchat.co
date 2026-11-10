@@ -67,7 +67,6 @@ export const enSiteCopy: Pick<LandingDict, "site" | "home" | "demo" | "meta"> = 
       about: "About",
       careers: "Careers",
       press: "Press & brand",
-      contactSales: "Contact sales",
       trust: "Trust",
       security: "Security",
       licensing: "Licensing",
