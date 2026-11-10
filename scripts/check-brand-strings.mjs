@@ -76,6 +76,9 @@ const ALLOWLIST = [
   // docs/upstream — this is deliberate, not a miss.
   "apps/web/features/landing/",
   "apps/web/app/(landing)/",
+  // The rename sweep script *contains* the rewrite table, so it names the old
+  // brand by design.
+  "scripts/brand/",
   // Runtime identifiers deliberately frozen this round: DB user/db names, CLI
   // verb, MULTICA_* env names and code comments. The user-visible copy inside
   // server/ (CLI help, auth page, onboarding text, integration titles) is swept
