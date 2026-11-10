@@ -298,5 +298,6 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | 文档 | purpose | owner | status | updated |
 |---|---|---|---|---|
 | [Multica 导入来源](upstream/README.md) | Multica 导入来源 | upstream | reference | 2026-11-06 |
+| [v0.8.2 同步结果（U2 执行）](upstream/SYNC-0.8.2-RESULT.md) | multica v0.8.2 同步的执行记录：提交序列、迁移重编号、冲突决定、未合并项与验证输出 | u2-sync | current | 2026-11-10 |
 
 <!-- docs-map:index:end -->

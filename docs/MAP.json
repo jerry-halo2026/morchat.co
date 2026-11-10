@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 154,
-  "fingerprint": "0014042d31e8f168a321400ed507b415aff0e11e70629d909a398173b45393cf",
+  "count": 155,
+  "fingerprint": "103da32dcf9bb6602ef3742c66f975026caa27d36f64fe704868f4e13e4d3ed1",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -2317,8 +2317,25 @@
       "related": [],
       "links_out": [],
       "links_in": [
-        "docs/tasks/MC-00-results.md"
+        "docs/tasks/MC-00-results.md",
+        "docs/upstream/SYNC-0.8.2-RESULT.md"
       ]
+    },
+    {
+      "path": "docs/upstream/SYNC-0.8.2-RESULT.md",
+      "title": "v0.8.2 同步结果（U2 执行）",
+      "purpose": "multica v0.8.2 同步的执行记录：提交序列、迁移重编号、冲突决定、未合并项与验证输出",
+      "owner": "u2-sync",
+      "status": "current",
+      "updated": "2026-11-10",
+      "related": [
+        "docs/upstream/SYNC-0.8.2.md",
+        "docs/upstream/README.md"
+      ],
+      "links_out": [
+        "docs/upstream/README.md"
+      ],
+      "links_in": []
     }
   ],
   "problems": [],
@@ -2353,6 +2370,7 @@
     "docs/tasks/MC-00-closeout-plan.md -> docs/archive/2026-11-06-pre-continuous-development/MC-00-closeout-plan.md",
     "docs/tasks/MC-00-closeout-plan.md -> related docs/archive/2026-11-06-pre-continuous-development/MC-00-closeout-plan.md",
     "docs/tasks/R1-results.md -> docs/tasks/R1-recovery-evidence.json",
-    "docs/upstream/README.md -> docs/upstream/multica-import.json"
+    "docs/upstream/README.md -> docs/upstream/multica-import.json",
+    "docs/upstream/SYNC-0.8.2-RESULT.md -> related docs/upstream/SYNC-0.8.2.md"
   ]
 }
