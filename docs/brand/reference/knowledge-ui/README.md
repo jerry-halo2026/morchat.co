@@ -1,3 +1,10 @@
+---
+purpose: 知识库六屏的实拍与说明（S1 首页 / S2 阅读 / S4 条目 / S5 导入）
+owner: lead
+status: current
+updated: 2026-11-11
+related: [docs/plans/KNOWLEDGE-INTEGRATION-PLAN.md]
+---
 # Knowledge UI — reference captures (B1)
 
 Screens of the knowledge space as it renders on the local dev stack, captured

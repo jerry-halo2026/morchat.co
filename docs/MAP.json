@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 156,
-  "fingerprint": "ccf490056b4df90c5aa129d0227e6c6cfca82a95bb5f42c3c5403f6bc23005ee",
+  "count": 157,
+  "fingerprint": "0afcd54499f39530f8427f39cd238e1388775c762b99706d37f041df9b58711d",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -847,6 +847,17 @@
       "path": "docs/brand/reference/avatar-sizes/README.md",
       "title": "头像槽位图（avatar-sizes）",
       "purpose": "头像尺寸回归上游后的逐屏对比截图与说明（列表 20 / 评论 24 / 详情 40 / 主视觉 56）",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/brand/reference/knowledge-ui/README.md",
+      "title": "Knowledge UI — reference captures (B1)",
+      "purpose": "知识库六屏的实拍与说明（S1 首页 / S2 阅读 / S4 条目 / S5 导入）",
       "owner": "lead",
       "status": "current",
       "updated": "2026-11-11",
