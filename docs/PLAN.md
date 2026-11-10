@@ -1,5 +1,7 @@
 # morchat MVP 分阶段建设顺序
 
+> **〔2026-11-06 基座切换注记〕** 任务/run 权威已由 Paperclip 切换为 Multica fork（基线 164290ee），新基座契约见 [MULTICA-BASE](D:/dev/morchat.co/docs/MULTICA-BASE.md)。本文中 Paperclip/相关机制研究保留为参考；受影响条款的等价契约在 MC 门禁族重定位（DISCOVERY D11）完成前暂缓作为权威引用。
+
 > v16 设计评审稿，2026-11-05。按中央协作控制、员工本地完整 harness、云端模型与公司统一 Key 管理重排；撤回中央 harness 优先及服务器默认执行员工任务。只规划后续建设，本轮不执行代码、安装、部署或业务调用。没有试点规模与契约证据前，不承诺固定周数。
 
 ## 1. 建设主线

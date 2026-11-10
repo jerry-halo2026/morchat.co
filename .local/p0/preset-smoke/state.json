@@ -1,0 +1,144 @@
+{
+  "login": {
+    "sendCode": 200,
+    "verifyCode": 200,
+    "userId": "ba4c4156-94e7-42e3-bd62-b8cc0ac7b10f",
+    "token": "eyJhbGciOiJIUzI1NiIs..."
+  },
+  "workspace": {
+    "id": "1f646165-19ab-46bd-965d-da990e5703c9",
+    "slug": "p1-preset-smoke",
+    "name": "P1 Preset Smoke"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InAxLnByZXNldC5zbW9rZUBsb2NhbC50ZXN0IiwiZXhwIjoxNzk2ODkyOTA1LCJpYXQiOjE3OTQzMDA5MDUsIm1vcmNoYXRfc2Vzc2lvbl9wcm92ZW5hbmNlIjoidjEiLCJuYW1lIjoicDEucHJlc2V0LnNtb2tlIiwic2lkIjoiMDQ2YzFlZGIxZWJmZDE0MzQ0ZTliMTExMGE3M2E4Y2QiLCJzdWIiOiJiYTRjNDE1Ni05NGU3LTQyZTMtYmQ2Mi1iOGNjMGFjN2IxMGYifQ.pAnLvgZQoDUdFKI-hBlYMZRvWw4Ngi8fizgFIGoZCXA",
+  "userId": "ba4c4156-94e7-42e3-bd62-b8cc0ac7b10f",
+  "runtime": {
+    "id": "bfb73405-dfed-481e-8396-2fd6cf0c5db8",
+    "provider": "claude_code"
+  },
+  "skillDirMismatch": [
+    "agent-browser-core",
+    "agent-team-orchestration",
+    "deep-research",
+    "fullstack-dev"
+  ],
+  "skills": {
+    "ai-engineer--agent-browser-core": {
+      "id": "53cfb08d-0754-45ad-8a39-6362fd03a7c8",
+      "name": "ai-engineer--agent-browser-core",
+      "files": 5
+    },
+    "ai-engineer--agent-team-orchestration": {
+      "id": "ed452fd3-8cd1-4cc0-b2de-460b7ce78ae1",
+      "name": "ai-engineer--agent-team-orchestration",
+      "files": 4
+    },
+    "ai-engineer--deep-research": {
+      "id": "3ef22ca5-3c29-4f2f-a0ff-8fdc247e7572",
+      "name": "ai-engineer--deep-research",
+      "files": 7
+    },
+    "ai-engineer--fullstack-dev": {
+      "id": "4350631e-5b09-4673-96c6-8249feb64277",
+      "name": "ai-engineer--fullstack-dev",
+      "files": 8
+    }
+  },
+  "skillIds": [
+    "53cfb08d-0754-45ad-8a39-6362fd03a7c8",
+    "ed452fd3-8cd1-4cc0-b2de-460b7ce78ae1",
+    "3ef22ca5-3c29-4f2f-a0ff-8fdc247e7572",
+    "4350631e-5b09-4673-96c6-8249feb64277"
+  ],
+  "agent": {
+    "id": "340ab88e-b573-4cd2-8228-26ff027ca244",
+    "status": 201,
+    "name": "深网网",
+    "avatar_url": "cap:blob:amber",
+    "skills": 4
+  },
+  "teamAgents": {
+    "opc-team-lead": {
+      "id": "03e0061d-49f4-45b3-a3f7-655d146b1d8a"
+    },
+    "opc-resource-auditor": {
+      "id": "0b274e89-357b-4194-bb6a-a7aafc888a69"
+    },
+    "opc-niche-strategist": {
+      "id": "5adfd44c-47e2-47c9-9b7f-982cde9bc662"
+    }
+  },
+  "squad": {
+    "id": "6d2bb8e4-7a97-4459-9902-577a938a281f",
+    "status": 201,
+    "leader_id": "03e0061d-49f4-45b3-a3f7-655d146b1d8a",
+    "instructions": "",
+    "member_count": 1
+  },
+  "squadMembers": [
+    {
+      "member_id": "0b274e89-357b-4194-bb6a-a7aafc888a69",
+      "role": "member",
+      "status": 201
+    },
+    {
+      "member_id": "5adfd44c-47e2-47c9-9b7f-982cde9bc662",
+      "role": "member",
+      "status": 201
+    }
+  ],
+  "squadInstructionsPut": {
+    "status": 200,
+    "instructions_len": 43
+  },
+  "readback": {
+    "skills_total": 4,
+    "skills_expected": 4,
+    "skills_names": [
+      "ai-engineer--agent-browser-core",
+      "ai-engineer--agent-team-orchestration",
+      "ai-engineer--deep-research",
+      "ai-engineer--fullstack-dev"
+    ],
+    "agent_count": 4,
+    "agent": {
+      "id": "340ab88e-b573-4cd2-8228-26ff027ca244",
+      "name": "深网网",
+      "avatar_url": "cap:blob:amber",
+      "description": "精通ML模型开发部署优化的全栈AI工程师，将AI从论文带到生产环境",
+      "instructions_len": 7323,
+      "starters": 3,
+      "runtime_id": "bfb73405-dfed-481e-8396-2fd6cf0c5db8",
+      "status": "idle",
+      "skills_field": 4,
+      "skill_ids_field": null
+    },
+    "agent_skills_count": 4,
+    "squad": {
+      "id": "6d2bb8e4-7a97-4459-9902-577a938a281f",
+      "leader_id": "03e0061d-49f4-45b3-a3f7-655d146b1d8a",
+      "expected_leader": "03e0061d-49f4-45b3-a3f7-655d146b1d8a",
+      "member_count": 3,
+      "instructions_len": 43,
+      "avatar_url": "cap:blob:amber"
+    },
+    "squad_members": [
+      {
+        "type": "agent",
+        "id": "03e0061d-49f4-45b3-a3f7-655d146b1d8a",
+        "role": "leader"
+      },
+      {
+        "type": "agent",
+        "id": "0b274e89-357b-4194-bb6a-a7aafc888a69",
+        "role": "member"
+      },
+      {
+        "type": "agent",
+        "id": "5adfd44c-47e2-47c9-9b7f-982cde9bc662",
+        "role": "member"
+      }
+    ],
+    "skill_detail_files": 5
+  }
+}

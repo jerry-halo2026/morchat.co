@@ -1,5 +1,7 @@
 # morchat 产品需求与首版 MVP
 
+> **〔2026-11-06 基座切换注记〕** 任务/run 权威已由 Paperclip 切换为 Multica fork（基线 164290ee），新基座契约见 [MULTICA-BASE](D:/dev/morchat.co/docs/MULTICA-BASE.md)。本文中 Paperclip/相关机制研究保留为参考；受影响条款的等价契约在 MC 门禁族重定位（DISCOVERY D11）完成前暂缓作为权威引用。
+
 > 版本：v15 设计评审稿，2026-11-05。统一客户端、中央协作控制、员工本地完整 harness、云端模型与公司统一管理 LLM Key 已确认；撤回中央 harness 优先；具体技术选型、MVP 分期和验收门槛仍为待评审设计。取代旧版“千川统计与预算治理中台”的平台定位。
 
 

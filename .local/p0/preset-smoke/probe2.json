@@ -1,0 +1,45 @@
+{
+  "importFileUrl": 502,
+  "importFileUrlBody": {
+    "error": "could not extract skill slug from URL: file:///D:/dev/morechat-assistant/catalog/packages/agent/ai-engineer/skills/ai-engineer--fullstack-dev"
+  },
+  "importBarePath": 502,
+  "importBarePathBody": {
+    "error": "could not extract skill slug from URL: D:/dev/morechat-assistant/catalog/packages/agent/ai-engineer/skills/ai-engineer--fullstack-dev"
+  },
+  "skillFiles": [
+    "references/agent-browser-command-map.md",
+    "references/agent-browser-overview.md",
+    "references/agent-browser-safety.md",
+    "references/agent-browser-troubleshooting.md",
+    "references/agent-browser-workflows.md"
+  ],
+  "skillDetailKeys": [
+    "id",
+    "workspace_id",
+    "name",
+    "description",
+    "content",
+    "config",
+    "created_by",
+    "created_at",
+    "updated_at",
+    "files"
+  ],
+  "skillContentLen": 2230,
+  "agentSkillsShape": [
+    {
+      "id": "53cfb08d-0754-45ad-8a39-6362fd03a7c8",
+      "name": "ai-engineer--agent-browser-core",
+      "description": "OpenClaw skill for the agent-browser CLI (Rust-based with Node.js fallback) enabling AI-friendly web automation with snapshots, refs, and structured commands.",
+      "enabled": true
+    },
+    {
+      "id": "ed452fd3-8cd1-4cc0-b2de-460b7ce78ae1",
+      "name": "ai-engineer--agent-team-orchestration",
+      "description": "Orchestrate multi-agent teams with defined roles, task lifecycles, handoff protocols, and review workflows. Use when: (1) Setting up a team of 2+ agents with different specializations, (2) Defining task routing and lifecycle (inbox → spec →",
+      "enabled": true
+    }
+  ],
+  "agentRuntimeBound": true
+}

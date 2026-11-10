@@ -1,5 +1,7 @@
 # 原生双设备运行与 Harness 选型核查
 
+> **〔2026-11-06 基座切换注记〕** 任务/run 权威已由 Paperclip 切换为 Multica fork（基线 164290ee），新基座契约见 [MULTICA-BASE](D:/dev/morchat.co/docs/MULTICA-BASE.md)。本文中 Paperclip/相关机制研究保留为参考；受影响条款的等价契约在 MC 门禁族重定位（DISCOVERY D11）完成前暂缓作为权威引用。
+
 > 2026-11-05，设计评审稿。Ethan 最新确认先验证两台 Windows 11 x64 原生设备，Mac 只预留适配边界、不阻塞首轮；模型接入面向 OpenAI Chat Completions／Anthropic Messages 等兼容接口；不以虚拟机、WSL、Docker、服务器代跑为员工使用前提。本轮只核查官方资料、固定源码并修改 docs；没有安装、构建、模型调用或运行实验。技术路线与数值是建议，所有 NG/DV 结果仍为 NOT RUN。
 
 ## 1. 结论与候选路线

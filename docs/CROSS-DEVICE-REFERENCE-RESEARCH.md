@@ -1,5 +1,7 @@
 # 跨设备协作与工作空间接续：参考项目证据
 
+> **〔2026-11-06 基座切换注记〕** 任务/run 权威已由 Paperclip 切换为 Multica fork（基线 164290ee），新基座契约见 [MULTICA-BASE](D:/dev/morchat.co/docs/MULTICA-BASE.md)。本文中 Paperclip/相关机制研究保留为参考；受影响条款的等价契约在 MC 门禁族重定位（DISCOVERY D11）完成前暂缓作为权威引用。
+
 > 核查日期：2026-11-04。三路 subagent 分别研究 OpenMausBot、GitHub 分布式派工、文件/会话持久化；主审补读 Paperclip 核心源码并抽查关键结论。仅官方文档和固定源码静态核验，没有安装、运行、fork、实测跨机恢复或修改参考仓库。源码中的测试文件存在不等于本轮测试通过。
 >
 > 用户本轮写 openmusebot；公开搜索未确认另一个相关项目，本文沿用此前明确参考的 milind-soni/OpenMausBot，不擅自当作新项目。方案见 [任务与工作空间接续](D:/dev/morchat.co/docs/WORKSPACE-CONTINUITY.md)。

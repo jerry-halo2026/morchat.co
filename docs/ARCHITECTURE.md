@@ -1,5 +1,7 @@
 # morchat 整体架构与职责边界
 
+> **〔2026-11-06 基座切换注记〕** 任务/run 权威已由 Paperclip 切换为 Multica fork（基线 164290ee），新基座契约见 [MULTICA-BASE](D:/dev/morchat.co/docs/MULTICA-BASE.md)。本文中 Paperclip/相关机制研究保留为参考；受影响条款的等价契约在 MC 门禁族重定位（DISCOVERY D11）完成前暂缓作为权威引用。
+
 > v14 设计评审稿，2026-11-05。已确认总体方向：自有企业扩展 + Paperclip 公司工作台整体底座及任务/运行权威，OpenMausBot 选件复用、Multica 参考模式。以下接入细节须经 P0 契约验证；不再称“唯一施工图”或宣称已落地。
 
 ## 1. 核心选择与替代路线

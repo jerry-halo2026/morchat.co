@@ -1,5 +1,7 @@
 # 任务进度、工作空间与跨设备接续设计
 
+> **〔2026-11-06 基座切换注记〕** 任务/run 权威已由 Paperclip 切换为 Multica fork（基线 164290ee），新基座契约见 [MULTICA-BASE](D:/dev/morchat.co/docs/MULTICA-BASE.md)。本文中 Paperclip/相关机制研究保留为参考；受影响条款的等价契约在 MC 门禁族重定位（DISCOVERY D11）完成前暂缓作为权威引用。
+
 > 2026-11-05，设计评审稿，尚未运行验证。Ethan 已要求先设计再证伪、保持中央协作控制＋员工本地完整 harness＋云端模型。Ethan 已确认“接续工作而不是搬进程”，且保存点必须自动、不依赖员工手动提交。本稿的具体技术组合与 R1/R2 实现仍须验证，也不是开工授权。
 
 本文的任务保存点不自动构成 Bot 公共指令历史。当前指令正文仍由 Paperclip 管理，缺失的内容历史需显式复用原生 durable 加历史保留根，或公司既有保留资产自动归档，并与配置 revision、skill 版本形成能力清单；任务/run 引用实际使用清单。Bot 能力升级/回退不改变身份，也不替代本文件的工作接续协议。详见 [产品对象与版本](D:/dev/morchat.co/docs/PRODUCT-LIFECYCLE.md)。

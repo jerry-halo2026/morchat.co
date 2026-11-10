@@ -1,0 +1,14 @@
+{
+  "sendCode": 200,
+  "verifyCode": 200,
+  "tokenPrefix": "eyJhbGciOiJI...",
+  "me": {
+    "status": 200,
+    "id": "ba4c4156-94e7-42e3-bd62-b8cc0ac7b10f",
+    "email": "p1.preset.smoke@local.test"
+  },
+  "workspaces": {
+    "status": 200,
+    "data": []
+  }
+}

@@ -1,5 +1,7 @@
 # Windows 原生 DSH：隔离组件复用与 Paperclip 最小接入
 
+> **〔2026-11-06 基座切换注记〕** 任务/run 权威已由 Paperclip 切换为 Multica fork（基线 164290ee），新基座契约见 [MULTICA-BASE](D:/dev/morchat.co/docs/MULTICA-BASE.md)。本文中 Paperclip/相关机制研究保留为参考；受影响条款的等价契约在 MC 门禁族重定位（DISCOVERY D11）完成前暂缓作为权威引用。
+
 > 2026-11-05，静态研究与设计评审稿。Ethan 已确认先按 DeepSeek Harness 优先方向研究，两台 Windows 11 x64 原生设备，Mac 预备；没有授权实现、安装、修改系统权限、调用模型或故障试验。本文细化现有 NG/DV 门禁，不替代原有公司权限、并行、自动保存及资产规则。所有实测结果仍为 NOT RUN。
 
 ## 1. Paperclip 不是模型—工具循环的 Harness

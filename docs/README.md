@@ -1,6 +1,6 @@
 # morchat 文档导航与决策状态
 
-> 更新：2026-11-05。产品定位与总体分工已由 Ethan 确认；本文档集是重新整理后的设计评审稿，不是开工授权，也不表示相关能力已实现或集成验证。
+> 更新：2026-11-06。**基座切换**：任务/run 权威由 Paperclip 切换为 **Multica fork**（Ethan 2026-11-06 确认；开发 fork `D:\dev\multica`，基线 164290ee；新基座契约见 [MULTICA-BASE](D:/dev/morchat.co/docs/MULTICA-BASE.md)，Paperclip 研究归档为参考）。本文档集是设计评审稿，不是开工授权，也不表示相关能力已实现或集成验证。
 
 ## 产品定位
 
@@ -10,7 +10,7 @@ morchat 是公司内人与 AI 共同工作的协作平台。公司与部门组�
 
 ### 全文统一用词
 
-**Bot 就是 AI 同事。**正式 Bot 实例映射同一 Paperclip Agent；产品界面称 Bot/AI 同事，工程文档、源码与 API 保留 Agent，不批量改上游术语。Bot 模板是创建配方；小队模板是人和 Bot 的分工配方；小队实例绑定真实成员；task/run/attempt 是工作及运行/设备尝试，不是新增 Bot。临时子 Agent 不自动进入公司名册。
+**Bot 就是 AI 同事。**正式 Bot 实例映射同一 Multica Agent（2026-11-06 基座切换前为 Paperclip Agent）；产品界面称 Bot/AI 同事，工程文档、源码与 API 保留 Agent，不批量改上游术语。Bot 模板是创建配方；小队模板是人和 Bot 的分工配方；小队实例绑定真实成员；task/run/attempt 是工作及运行/设备尝试，不是新增 Bot。临时子 Agent 不自动进入公司名册。
 
 岗位包是职责/材料/就绪检查，供真人或 Bot 引用，不是另一种身份。稳定 Bot 可加入多个获授权小队、执行多个隔离任务；换设备、升级能力、创建新任务都不等于重新招一位 AI 同事。对象关系和版本记录统一以 [产品流程 §1、§3.6](D:/dev/morchat.co/docs/PRODUCT-LIFECYCLE.md) 为准。
 
@@ -20,8 +20,8 @@ morchat 是公司内人与 AI 共同工作的协作平台。公司与部门组�
 
 | 状态 | 内容 |
 |---|---|
-| 已确认工作首页与消息协作 | 默认“我的工作”首页，侧边栏进入对话等功能；各 Bot 对授权受众的回复独立可见，任务线程承接讨论；显示/上下文/唤醒分离，群内普通消息不派工；@ 选中 Bot 后直接发送，无模式选择；有效委派与约定结果事件才定向启动；Paperclip 保持唯一任务/run 底座 |
-| 已确认方向 | 自有企业扩展 + Paperclip 整体前端与任务/运行权威；OpenMausBot 选件复用；Multica 参考模式；不拼接三套独立产品 |
+| 已确认工作首页与消息协作 | 默认“我的工作”首页，侧边栏进入对话等功能；各 Bot 对授权受众的回复独立可见，任务线程承接讨论；显示/上下文/唤醒分离，群内普通消息不派工；@ 选中 Bot 后直接发送，无模式选择；有效委派与约定结果事件才定向启动；**Multica fork 为唯一任务/run 底座（2026-11-06 切换，原 Paperclip）** |
+| 已确认方向 | 自有企业扩展 + **Multica fork 基座（任务/运行权威，引入源码，product-base/product-dev 双分支）**；OpenMausBot 选件复用；**Paperclip 降为机制研究参考（归档）**；不拼接多套独立产品 |
 | 已确认 Bot 定位 | Bot 是 AI 同事，实例映射原生 Agent；模板/实例/小队/运行分开，已有模板和配置/skill 版本能力优先复用；每次受控生效须可追溯，指令历史缺口待接入验证 |
 | 已确认产品主线 | 提出目标→组建人和 AI 团队→拆分认领任务→协作交付→复盘沉淀→下次复用；员工与负责人均可使用组织助手、维护获授权岗位包/小队模板，具体发布策略与验收为本轮设计建议 |
 | 已确认范围 | 本期不建设通用工作流、低代码画布；未来可评估接 Coze 云等外部能力 |
@@ -60,7 +60,7 @@ morchat 是公司内人与 AI 共同工作的协作平台。公司与部门组�
 | [整体架构](D:/dev/morchat.co/docs/ARCHITECTURE.md) | 模块职责、权威数据、身份权限、协作与执行如何接线 |
 | [资产与持续升级](D:/dev/morchat.co/docs/ASSETS-AND-LEARNING.md) | 留存、知识、skill、权限继承和离职交接 |
 | [参考项目复用边界](D:/dev/morchat.co/docs/REFERENCE-REUSE.md) | 固定源码证据、哪些直接复用、哪些适配、哪些仅借鉴 |
-| [Paperclip 接入边界](D:/dev/morchat.co/docs/PAPERCLIP-BASE.md) | 原生能力、缺口、管理台限制与接入门禁 |
+| [Multica 基座接入边界](D:/dev/morchat.co/docs/MULTICA-BASE.md) | 基座分层/复用范围/GATE-L 授权门禁/MC-01–20 契约骨架（重定位中）；Paperclip 旧基座已归档为参考 |
 | [Discovery 基线与证伪登记](D:/dev/morchat.co/docs/DISCOVERY-BASELINE.md) | 八项最小边界、主反例与 OP-01–08、C01–C08 冻结、P0 顺序及 D01–D10 未决项 |
 | [工程与验证基线](D:/dev/morchat.co/docs/ENGINEERING-BASELINE.md) | 文档权威、模块 owner、任务卡、模型分级、subagent/工作树、提交追溯与合并门禁；安全、测试、发布和恢复 |
 | [分阶段建设顺序](D:/dev/morchat.co/docs/PLAN.md) | P0 到 P3 的交付、依赖、退出标准和阻塞决策 |

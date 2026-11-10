@@ -1,0 +1,50 @@
+{
+  "skills_total": 4,
+  "skills_expected": 4,
+  "skills_names": [
+    "ai-engineer--agent-browser-core",
+    "ai-engineer--agent-team-orchestration",
+    "ai-engineer--deep-research",
+    "ai-engineer--fullstack-dev"
+  ],
+  "agent_count": 4,
+  "agent": {
+    "id": "340ab88e-b573-4cd2-8228-26ff027ca244",
+    "name": "深网网",
+    "avatar_url": "cap:blob:amber",
+    "description": "精通ML模型开发部署优化的全栈AI工程师，将AI从论文带到生产环境",
+    "instructions_len": 7323,
+    "starters": 3,
+    "runtime_id": "bfb73405-dfed-481e-8396-2fd6cf0c5db8",
+    "status": "idle",
+    "skills_field": 4,
+    "skill_ids_field": null
+  },
+  "agent_skills_count": 4,
+  "squad": {
+    "id": "6d2bb8e4-7a97-4459-9902-577a938a281f",
+    "leader_id": "03e0061d-49f4-45b3-a3f7-655d146b1d8a",
+    "expected_leader": "03e0061d-49f4-45b3-a3f7-655d146b1d8a",
+    "member_count": 3,
+    "instructions_len": 43,
+    "avatar_url": "cap:blob:amber"
+  },
+  "squad_members": [
+    {
+      "type": "agent",
+      "id": "03e0061d-49f4-45b3-a3f7-655d146b1d8a",
+      "role": "leader"
+    },
+    {
+      "type": "agent",
+      "id": "0b274e89-357b-4194-bb6a-a7aafc888a69",
+      "role": "member"
+    },
+    {
+      "type": "agent",
+      "id": "5adfd44c-47e2-47c9-9b7f-982cde9bc662",
+      "role": "member"
+    }
+  ],
+  "skill_detail_files": 5
+}

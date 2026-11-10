@@ -1,6 +1,8 @@
 # Discovery 基线、最小 MVP 与证伪登记
 
-> 2026-11-05，评审稿。本轮只修订 docs。产品方向已确认；下列接口尚未冻结，P0 实验全部 NOT RUN。固定源码证据不等于部署版本或运行验收。本文是八项工作边界、契约状态、P0 依赖和未决项的唯一登记处；开发协作规则以 [工程基线](D:/dev/morchat.co/docs/ENGINEERING-BASELINE.md) 为准。
+> 2026-11-06，评审稿。本轮只修订 docs。产品方向已确认；下列接口尚未冻结，P0 实验全部 NOT RUN。固定源码证据不等于部署版本或运行验收。本文是八项工作边界、契约状态、P0 依赖和未决项的唯一登记处；开发协作规则以 [工程基线](D:/dev/morchat.co/docs/ENGINEERING-BASELINE.md) 为准。
+>
+> **〔2026-11-06 基座切换〕**任务/run 权威由 Paperclip 切换为 **Multica fork**（Ethan 确认；`D:\dev\multica`，基线 164290ee，product-base/product-dev 双分支）。新基座契约见 [MULTICA-BASE](D:/dev/morchat.co/docs/MULTICA-BASE.md)。影响：①下文 B/C/PC/F 各条中以 Paperclip 源码为证据的条目，其**语义要求继续有效**，但证据锚点与门禁实现需按 Multica 重定位（登记为 D11，MC-01–20 骨架已立，全部 NOT RUN）；②Paperclip 机制研究归档为参考；③**GATE-L**：向组织外提供托管使用（含免费）前须完成 Multica 商业授权，改品牌另行授权；④新增迁移编号从 617 起、核心对象 UUID。C01–C08 仍为 DRAFT，本切换不改变任何冻结状态。
 
 ## 1. 本轮结论与首版边界
 
@@ -89,13 +91,13 @@ Paperclip 原生 Apps 核心在固定样本默认启用，Decisions/Goals 导航
 | ID | 唯一契约主题与权威正文 | 提供方角色 / 主要消费方 | 冻结必须包含 |
 |---|---|---|---|
 | C01 | 身份/企业政策：[架构 §4](D:/dev/morchat.co/docs/ARCHITECTURE.md)、[资产 §3](D:/dev/morchat.co/docs/ASSETS-AND-LEARNING.md) | B01 / 全部 | company/user/Agent/actor/delegation/resource/policy revision；设备及管理人资料双授权、身份不继承；默认拒绝、源与受众交集、撤销生效点、离线和缓存限制 |
-| C02 | 任务命令/事件：[Paperclip §2、§4](D:/dev/morchat.co/docs/PAPERCLIP-BASE.md)、[群协作](D:/dev/morchat.co/docs/DISTRIBUTED-COLLABORATION.md) | B02 的任务接入 owner + Paperclip owner / B03、B06、客户端 | 原生 ID、真人原子认领/转派、expected revision；群/线程/消息/修订及原生评论投影；单输入框 @ 的稳定 Bot ID/正文锚点/修订绑定、候选与发送时验权、逐目标受理/失败/未知回执；真人父任务与 Bot 子任务关联；显式意图、root/causation、同意图跨入口防重、持久回执与事件游标、停止/迟到/超时待确认；唤醒矩阵、根链限额、依赖批次/结果版本/消费界标；P1 首页期限/逾期所需截止日期的含义、来源、时区与唯一写入方先冻结；P2 再补只读计划甘特的计划起止、未排期和依赖类型（先核验可用原生扩展，不另存任务状态）；单任务权威；原生 interaction/approval 类型、queueId/item/revision/targetRunId，回答记录/投递/消费，停止 run/root 与 interrupt 继续的区别（群协作 §4.6） |
+| C02 | 任务命令/事件：[Multica 基座 §1–§2](D:/dev/morchat.co/docs/MULTICA-BASE.md)、[群协作](D:/dev/morchat.co/docs/DISTRIBUTED-COLLABORATION.md) | B02 的任务接入 owner + Multica 基座 owner / B03、B06、客户端 | 原生 ID、真人原子认领/转派、expected revision；群/线程/消息/修订及原生评论投影；单输入框 @ 的稳定 Bot ID/正文锚点/修订绑定、候选与发送时验权、逐目标受理/失败/未知回执；真人父任务与 Bot 子任务关联；显式意图、root/causation、同意图跨入口防重、持久回执与事件游标、停止/迟到/超时待确认；唤醒矩阵、根链限额、依赖批次/结果版本/消费界标；P1 首页期限/逾期所需截止日期的含义、来源、时区与唯一写入方先冻结；P2 再补只读计划甘特的计划起止、未排期和依赖类型（先核验可用原生扩展，不另存任务状态）；单任务权威；原生 interaction/审批/steer 类型（Multica 语境按 MC-03/05/07 重定位） |
 | C03 | 组合/生效：[产品流程 §3.3–3.6](D:/dev/morchat.co/docs/PRODUCT-LIFECYCLE.md) | B03 / B01、B04、B05、B06 | 原始包与有效包 hash、配置 revision/指令 manifest/skill map、base release、批准范围、原子生效点、per-run 加载、回退/候选保留 |
 | C04 | 资产/证据：[资产](D:/dev/morchat.co/docs/ASSETS-AND-LEARNING.md) | B04 / 全部 | 不可变内容引用、hash、来源 ACL、保留根、测试快照、删除/撤权、索引/下载；归档/可接手/验收分离；附件上传幂等/版本验收、知识 baseRevisionId、恢复追加版本、加载投影与来源权限 |
 | C05 | 本地 runtime：[Windows 接入](D:/dev/morchat.co/docs/WINDOWS-DSH-INTEGRATION.md)、[客户端](D:/dev/morchat.co/docs/CLIENT-RUNTIME.md) | B05 / B06、B07、B08 | platform/capability/协议版本、profile/插件摘要、身份/文件/网络域、stdio；管理员员工账号下 Agent 受限运行、安装/运行分权、取消及可信终止证据；追问/工具许可/补充/steer 的真实 capability、原回调失效对账；不以自报作防篡改证明 |
 | C06 | 派发/续租：[群协作 §6](D:/dev/morchat.co/docs/DISTRIBUTED-COLLABORATION.md) | B06 / B01、B05、B07、B08 | logical dispatch、task/run/attempt、epoch、pool、设备管理责任人及授权 revision、claim、ack、cursor；资料进入/恢复时重验，允许并行、局部互斥、ACK 丢失/重复/旧代次状态；交互投递与实际消费分离、root 停止准入/逐 run 取消回执聚合 |
 | C07 | 保存/接续：[工作空间](D:/dev/morchat.co/docs/WORKSPACE-CONTINUITY.md)、参数只在 [DV §3](D:/dev/morchat.co/docs/DUAL-DEVICE-VALIDATION.md) | B07 + Paperclip owner / B04、B05、B06 | parent snapshot、writer run/epoch、manifest、完整 durable ACK、operation sequence/effect receipts、R1/R2、冲突/恢复/GC |
-| C08 | 模型/成本：[Paperclip §5](D:/dev/morchat.co/docs/PAPERCLIP-BASE.md)、[客户端 §7](D:/dev/morchat.co/docs/CLIENT-RUNTIME.md) | B08 / B01、B05、B06、面板 | company/run/model route、短期授权、调用/重试/receipt ID、真实 usage 与未知、预算准入、唯一记账入口、迟到撤销后对账 |
+| C08 | 模型/成本：[Multica 基座 §2、§4](D:/dev/morchat.co/docs/MULTICA-BASE.md)（MC-12–14）、[客户端 §7](D:/dev/morchat.co/docs/CLIENT-RUNTIME.md) | B08 / B01、B05、B06、面板 | company/run/model route、短期授权、调用/重试/receipt ID、真实 usage 与未知、预算准入、唯一记账入口、迟到撤销后对账；公司网关注入（daemon/CLI 无原始 Key，task_usage 对账） |
 
 引用关系：C01 是安全底线；C02/C04 先供真实对象/内容依据；C03 消费其版本与政策；C05/C08 的受控本地执行先验证；C06 消费 C01/C02/C05/C08；C07 消费 C02/C04/C05/C06。可并行设计、只读研究和独立测试准备；循环依赖的最小接口由共同 owner 先定，不能互等“对方全做完”或两个 agent 各做一份。
 
@@ -202,5 +204,6 @@ G3 先做 MSG-06 权限；G4 用相同 Paperclip/adapter 链完成其余样本�
 | D08 前端统一与客户端载体（部分确认） | 已确认工作首页、同一角色工作台、Paperclip 整体前端源码＋OpenMausBot 对话源码优先抽取；低保真串联首页/对话/看板/只读计划甘特/成果，已将模式切换改为 @ 发送，见体验 §3.4。三路源码依赖与最小接缝已查，见复用 §4.4；FE-01–06 提取门禁全部 NOT RUN；完整人机操作按复用 §4.5、OP-01–08 纳入，原生卡片优先，不额外搬 OMB 控制后台。全产品界面/官方文档与固定源码差异现登记在复用 §4.6，组织/成员/Skills Studio/Apps/审计等不能被八项差异清单漏掉；体验 §3.1/§3.6 新分组仍为提案。待验证 UI/服务兼容版本、实际 route/flag/角色命令、组件实际构建闭包/主题、导航细节、桌面壳与分发；不带入 OpenMausBot 完整 Store/后台。前端集成 owner 先完成最小抽取评审与共享边界；计划日期契约属 C02，获实现授权后才定包/CI，不生成骨架 | 技术集成人 + B02/B05 / 相应前端实现卡前；不阻塞无完整 UI 的 P0 |
 | D09 业务与发布责任 | 两部门试点人员、两岗位包/一小队模板材料、维护/发布/验收人、按原生请求类型的回答/批准角色与期限、私密与留存政策；工作资产与个人隐私的申诉/纠正入口 | Ethan 指定业务及数据责任人 / 真实资料进入前 |
 | D10 开发执行授权与人员绑定 | 本轮只 docs；确定各 owner、控制 agent、独立审核人、模型成本边界和获准实验动作。安全/权限/生产范围变更不由 agent 的 ruling 擅自批准 | Ethan + 技术集成人 / 任何实施派发前 |
+| D11 基座切换契约重定位（新增 2026-11-06） | Multica fork（164290ee）为新任务/run 权威后：①C01–C08 证据锚点与 B01–B08 中 Paperclip 专属条目按 Multica 重写（B02/B05/B06/B07/B08 受影响最大：前端基座、Windows daemon 发行物、派发协议=daemon WS、PCWS→workspace 接续、成本账=task_usage+公司网关）；②PC-01–20 → MC-01–20 逐条冻结（骨架见 [Multica 基座 §4](D:/dev/morchat.co/docs/MULTICA-BASE.md)，全部 NOT RUN）；③F01–F10 反例在 Multica 的等价物核查；④GATE-L 授权评估（组织外试用前完成，含免费与改品牌两种触发） | 技术集成人 + 基座 owner / ①② 须 G0 前完成，③④ 可与 G1 并行 |
 
 **当前判断：文档主题和工作规则可以统一，但 discovery 不能标为全部完成，接口也不能标已冻结，更不能说已有 PR/CI/工作树门禁在运行。**下一轮优先决策 D01/D02/D04/D05 与当期 C01–C08 测试契约；D08 壳选择不应拖延无 UI 的 P0 验证设计，未解的安全/版本/接续硬条件不放到上线后。
