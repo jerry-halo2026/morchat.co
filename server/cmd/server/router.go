@@ -1755,6 +1755,56 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 		r.Post("/api/feedback", h.CreateFeedback)
 		r.With(handler.RequireHumanActor).Post("/api/client-usage", h.UpsertClientUsage)
 
+		// Knowledge base (task 624): import pipeline, hybrid retrieval test, and
+		// the agent tool surface. Workspace-scoped through the membership
+		// middleware — the workspace id comes from X-Workspace-ID / the slug
+		// header / the query fallbacks, never from a request body — so every
+		// handler below sees only the workspaces its caller belongs to. The
+		// viewer is X-User-ID, which is what the retrieval ACL's private-item
+		// branch compares against.
+		r.Route("/api/knowledge", func(r chi.Router) {
+			r.Use(middleware.RequireWorkspaceMember(queries))
+			// P1 CRUD and reads: spaces and items are the objects users and the
+			// API address; pages are the wiki tree they are distilled from.
+			// Workspace-scoped and ACL-filtered by the handlers below (reads via
+			// the knowledge package's canViewItem, writes via the caller's
+			// workspace role).
+			r.Get("/spaces", h.ListKnowledgeSpaces)
+			r.Post("/spaces", h.CreateKnowledgeSpace)
+			r.Get("/spaces/{spaceId}", h.GetKnowledgeSpace)
+			r.Get("/pages", h.ListKnowledgePages)
+			r.Post("/pages", h.CreateKnowledgePage)
+			r.Get("/pages/{pageId}", h.GetKnowledgePage)
+			r.Put("/pages/{pageId}", h.UpdateKnowledgePage)
+			r.Get("/pages/{pageId}/revisions", h.ListKnowledgePageRevisions)
+			r.Get("/pages/{pageId}/backlinks", h.ListKnowledgePageBacklinks)
+			// Step 1/2 of an import: mint a presigned PUT (30 min), then record
+			// the task that consumes the object it uploads.
+			r.Post("/upload-url", h.RequestKnowledgeUploadURL)
+			r.Post("/import", h.StartKnowledgeImport)
+			// The task is readable two ways on purpose: SSE for a live view,
+			// GET for a client that cannot hold a stream (or lost it).
+			r.Get("/import/{taskId}", h.GetKnowledgeImportTask)
+			r.Get("/import/{taskId}/events", h.StreamKnowledgeImportEvents)
+			r.Get("/items", h.ListKnowledgeItems)
+			r.Post("/items", h.CreateKnowledgeItem)
+			r.Get("/items/{itemId}", h.GetKnowledgeItem)
+			r.Patch("/items/{itemId}", h.UpdateKnowledgeItem)
+			r.Delete("/items/{itemId}", h.DeleteKnowledgeItem)
+			// Persisted chunks of the active generation (the preview twin is below).
+			r.Get("/items/{itemId}/chunks", h.ListKnowledgeItemChunks)
+			r.Get("/items/{itemId}/links", h.ListKnowledgeItemLinks)
+			// Rehearsal: the same chunker, nothing written.
+			r.Post("/items/{itemId}/chunks/preview", h.PreviewKnowledgeChunks)
+			// Workspace search, on the same pipeline as retrieval-test.
+			r.Get("/search", h.SearchKnowledge)
+			// The production retrieval pipeline, exposed for tuning.
+			r.Post("/retrieval-test", h.TestKnowledgeRetrieval)
+			// The agent tool surface: declared schemas plus one invoke route.
+			r.Get("/tools", h.ListKnowledgeTools)
+			r.Post("/tools/{name}/invoke", h.InvokeKnowledgeTool)
+		})
+
 		// Note (MUL-4309): the generic OpenAI-compatible passthrough endpoints
 		// (POST /api/llm/v1/chat/completions[/stream]) were intentionally
 		// removed. Exposing a general LLM proxy backed by the deployment's own
@@ -2451,12 +2501,23 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 				})
 			})
 
+			// Presets — the gallery's catalog, proxied so browsers do not have
+			// to reach the content repository's raw host directly.
+			r.Route("/api/presets", func(r chi.Router) {
+				r.Get("/catalog", h.GetPresetCatalog)
+			})
+
 			// Dashboard — workspace-wide token + run-time rollups for the
 			// "/{slug}/dashboard" page. Optional ?project_id filter scopes
 			// the rollup to a single project.
 			r.Route("/api/dashboard", func(r chi.Router) {
 				r.Get("/usage/daily", h.GetDashboardUsageDaily)
 				r.Get("/usage/by-agent", h.GetDashboardUsageByAgent)
+				// Which credential paid for the window's usage — `company`
+				// (the minted gateway key) vs `personal` (an employee's own
+				// key on one device). Reporting dimension only (migration
+				// 624); no amount is derived from it.
+				r.Get("/usage/by-credential-source", h.GetTaskUsageByCredentialSource)
 				r.Get("/agent-runtime", h.GetDashboardAgentRunTime)
 				r.Get("/runtime/daily", h.GetDashboardRunTimeDaily)
 				r.Get("/failures/daily", h.GetDashboardFailuresDaily)

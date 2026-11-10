@@ -154,6 +154,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 |---|---|---|---|---|
 | [品牌、头像与内容库决定（2026-11-10，Ethan 口头批准后固化）](brand/DECISIONS.md) | 品牌、头像与内容库决定（2026-11-10，Ethan 口头批准后固化） | design | reference | 2026-11-10 |
 | [首屏假看板（landing hero mock）](brand/mockups/hero/README.md) | 首屏假看板（landing hero mock） | design | reference | 2026-11-10 |
+| [头像槽位图（avatar-sizes）](brand/reference/avatar-sizes/README.md) | 头像尺寸回归上游后的逐屏对比截图与说明（列表 20 / 评论 24 / 详情 40 / 主视觉 56） | lead | current | 2026-11-11 |
 | [Login → onboarding: reference shots](brand/reference/login-onboarding/README.md) | 登录到 onboarding 的参考截图采集说明（CDP 采集脚本 + 产物索引） | design | reference | 2026-11-10 |
 
 ### engineering

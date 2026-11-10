@@ -25,9 +25,12 @@ type Store struct {
 
 // querier is the slice of pgx a Store needs; *pgxpool.Pool and pgx.Tx both
 // satisfy it, which keeps the write→read contract test able to run inside one
-// transaction.
+// transaction. Query joined the slice with the P1 listing paths (spaces, items,
+// pages, revisions), which return many rows and cannot be expressed with
+// QueryRow.
 type querier interface {
 	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 }
 
@@ -250,6 +253,13 @@ func (s *Store) GetDocument(ctx context.Context, workspaceID, documentID string)
 var ErrDocumentNotFound = errors.New("knowledge: document not found")
 
 // NewChunk is the create payload for one chunk of a document generation.
+//
+// Metadata carries the pipeline's bookkeeping (migration 624 / import.go):
+// {"level": "chunk"|"parent"|"child", "chunk_mode": ...} plus parent_ord in
+// parent_child mode. It is write-only from this package's point of view — the
+// Chunk wire type is pinned to packages/views/lib/knowledge/types.ts by
+// enums_test.go, so a reader that needs the metadata reads the column directly
+// (search.go does, to attach a child's parent text to a hit).
 type NewChunk struct {
 	WorkspaceID string
 	DocumentID  string
@@ -261,13 +271,14 @@ type NewChunk struct {
 	PageFrom    *int
 	PageTo      *int
 	ACLTags     []string
+	Metadata    map[string]any
 }
 
 const chunkColumns = `id, workspace_id, document_id, generation, ord, content, tokens,
 	heading_path, page_from, page_to, acl_tags, created_at`
 
 // CreateChunk inserts one chunk. Generation <= 0 means generation 1; ACLTags nil
-// becomes the empty array, never SQL NULL.
+// becomes the empty array, never SQL NULL; a nil Metadata becomes '{}'.
 func (s *Store) CreateChunk(ctx context.Context, in NewChunk) (Chunk, error) {
 	if strings.TrimSpace(in.WorkspaceID) == "" || strings.TrimSpace(in.DocumentID) == "" {
 		return Chunk{}, fmt.Errorf("%w: workspace_id and document_id are required", ErrInvalidField)
@@ -278,14 +289,17 @@ func (s *Store) CreateChunk(ctx context.Context, in NewChunk) (Chunk, error) {
 	if in.ACLTags == nil {
 		in.ACLTags = []string{}
 	}
+	if in.Metadata == nil {
+		in.Metadata = map[string]any{}
+	}
 	var chunk Chunk
 	err := s.db.QueryRow(ctx, `
 		INSERT INTO knowledge_chunks
-			(workspace_id, document_id, generation, ord, content, tokens, heading_path, page_from, page_to, acl_tags)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			(workspace_id, document_id, generation, ord, content, tokens, heading_path, page_from, page_to, acl_tags, metadata)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		RETURNING `+chunkColumns,
 		in.WorkspaceID, in.DocumentID, in.Generation, in.Ord, in.Content, in.Tokens,
-		in.HeadingPath, in.PageFrom, in.PageTo, in.ACLTags).Scan(
+		in.HeadingPath, in.PageFrom, in.PageTo, in.ACLTags, in.Metadata).Scan(
 		&chunk.ID, &chunk.WorkspaceID, &chunk.DocumentID, &chunk.Generation, &chunk.Ord,
 		&chunk.Content, &chunk.Tokens, &chunk.HeadingPath, &chunk.PageFrom,
 		&chunk.PageTo, &chunk.ACLTags, &chunk.CreatedAt)

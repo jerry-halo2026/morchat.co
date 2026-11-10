@@ -60,6 +60,11 @@ func countKnowledgeTables(t *testing.T, tx pgx.Tx) int {
 func TestMigration637RoundTrip(t *testing.T) {
 	tx := beginTx(t)
 
+	// The state the test found, so the rollback assertion does not have to know
+	// how many knowledge_* tables later migrations have added since 620.
+	before := countKnowledgeTables(t, mustTx(t))
+
+	rollBackAfter620(t, tx)
 	execMigrationFile(t, tx, migrationDown)
 	if n := countKnowledgeTables(t, tx); n != 0 {
 		t.Fatalf("after down: %d knowledge_* tables remain", n)
@@ -107,8 +112,8 @@ func TestMigration637RoundTrip(t *testing.T) {
 	if err := tx.Rollback(context.Background()); err != nil {
 		t.Fatalf("rollback: %v", err)
 	}
-	if n := countKnowledgeTables(t, mustTx(t)); n != 12 {
-		t.Fatalf("after rollback: %d knowledge_* tables, want the 12 the migration left", n)
+	if n := countKnowledgeTables(t, mustTx(t)); n != before {
+		t.Fatalf("after rollback: %d knowledge_* tables, want the %d the database had", n, before)
 	}
 }
 
@@ -134,6 +139,7 @@ func TestMigration637AppliesWithoutPgvector(t *testing.T) {
 	tx := beginTx(t)
 	ctx := context.Background()
 
+	rollBackAfter620(t, tx)
 	execMigrationFile(t, tx, migrationDown)
 
 	suffix := make([]byte, 4)
@@ -208,6 +214,7 @@ func TestMigration637CreatesEmbeddingWherePgvectorExists(t *testing.T) {
 		t.Skip("pgvector is not installed on this database")
 	}
 
+	rollBackAfter620(t, tx)
 	execMigrationFile(t, tx, migrationDown)
 	execMigrationFile(t, tx, migrationUp)
 

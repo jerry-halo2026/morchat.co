@@ -316,6 +316,14 @@ type TaskUsageEntry struct {
 	// server then leaves the column NULL and the client estimates from the
 	// pricing table instead. See agent.TokenUsage.CostUSDTicks.
 	CostUSDTicks int64 `json:"cost_usd_ticks,omitempty"`
+	// CredentialSource names the credential that paid for these tokens —
+	// `company` (the gateway key the server minted) or `personal` (a key the
+	// employee stored on this device). The server stores it as the
+	// `task_usage.credential_source` reporting dimension (migration 624) and
+	// never prices anything off it. Omitted when the runner cannot say, which
+	// the server records as "unknown" rather than guessing, because a wrong
+	// guess bills an employee's own spend to the company.
+	CredentialSource string `json:"credential_source,omitempty"`
 }
 
 // TaskResult is the outcome of executing a task.

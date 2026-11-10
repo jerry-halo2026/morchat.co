@@ -5485,6 +5485,14 @@ type TaskUsagePayload struct {
 	// (Qoder Cloud Agents). A pointer because 0 credits is a real answer that
 	// must stay distinct from "this provider does not report credits".
 	CreditsMicros *int64 `json:"credits_micros,omitempty"`
+	// CredentialSource is which key actually paid for these tokens: `company`
+	// for the per-user gateway key the server minted, `personal` for a key the
+	// employee stored on that one machine (migration 624). Empty from daemons
+	// that predate the dimension, and from any report that has nothing to say —
+	// in which case the column stays NULL and the report shows `unknown`, never
+	// a guess, because the wrong guess puts an employee's own spend on the
+	// company ledger.
+	CredentialSource string `json:"credential_source,omitempty"`
 }
 
 // reportedCredits converts a reported credit charge into the nullable column.
@@ -5568,6 +5576,15 @@ func (h *Handler) ReportTaskUsage(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		updated = true
+		// Stamp the credential dimension on the row just upserted. Kept off the
+		// sqlc query so the generated contract (and every other caller of
+		// UpsertTaskUsage) stays untouched; the update is a no-op when the report
+		// says nothing, which is what stops a snapshot from erasing what the
+		// terminal report established.
+		if err := h.setTaskUsageCredentialSource(r.Context(), task.ID, provider, u.Model, u.CredentialSource); err != nil {
+			slog.Warn("stamp task usage credential source failed",
+				"task_id", taskID, "model", u.Model, "error", err)
+		}
 		// A snapshot reports the run's total so far, so it is not a new charge:
 		// RecordLLMUsage adds, and each flush would bill the tokens the previous
 		// flush already billed. The terminal report carries them once.
