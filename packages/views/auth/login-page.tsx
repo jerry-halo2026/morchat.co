@@ -2,14 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@morechat/ui/components/ui/card";
 import { Alert, AlertDescription } from "@morechat/ui/components/ui/alert";
 import { Input } from "@morechat/ui/components/ui/input";
 import { Button } from "@morechat/ui/components/ui/button";
@@ -19,11 +11,18 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@morechat/ui/components/ui/input-otp";
+import { MorechatArcade } from "@morechat/ui/components/common/morechat-graphics";
+import { MorechatWordmark } from "@morechat/ui/components/common/morechat-wordmark";
+import { cn } from "@morechat/ui/lib/utils";
 import { useAuthStore } from "@morechat/core/auth";
 import { workspaceKeys } from "@morechat/core/workspace/queries";
 import { api } from "@morechat/core/api";
 import type { User } from "@morechat/core/types";
+import { DragStrip } from "../platform";
 import { useT } from "../i18n";
+// Exit half of the login → onboarding handoff. Imported here (not from the
+// web shell) because this component owns the element that animates.
+import "./login-handoff.css";
 
 // Types
 
@@ -55,11 +54,21 @@ interface LoginPageProps {
   onTokenObtained?: () => void;
   /** Override Google login handler (e.g. desktop opens browser externally). When provided, renders the Google button even if `google` config is omitted. */
   onGoogleLogin?: () => void;
-  /** Slot rendered at the bottom of the sign-in card, below the
+  /** Slot rendered at the bottom of the sign-in panel, below the
    *  Google button. The web shell uses it for a "Prefer the desktop
    *  app?" prompt; desktop omits it (a download prompt inside the app
    *  would be absurd). */
   extra?: ReactNode;
+  /** True while the caller is moving the member on to the next route (see
+   *  `apps/web/features/auth/login-handoff.ts`). It plays this stage's exit
+   *  half of the login → onboarding transition and takes the form out of the
+   *  accessibility tree, so the handoff is not announced twice: once by the
+   *  login page and again by the screen that replaces it.
+   *
+   *  The caller owns the timing: it flips this on, waits for the exit (or not,
+   *  under `prefers-reduced-motion`) and only then navigates. The view cannot
+   *  own that wait, because only the caller knows where the member is going. */
+  exiting?: boolean;
 }
 
 // Helpers
@@ -90,6 +99,138 @@ export function validateCliCallback(cliCallback: string): boolean {
   }
 }
 
+// Stage
+
+/**
+ * The login stage — the same spatial language as `/onboarding`, not a copy of
+ * its flow.
+ *
+ * Three things are borrowed from onboarding's welcome screen, and nothing
+ * else:
+ *
+ *   - **A split stage, not a centred card.** Onboarding never draws a bordered
+ *     card: it puts one plain editorial column beside one muted panel. The
+ *     login screen now does the same, which is what makes the two screens feel
+ *     like one product instead of a form that happens to precede a flow. The
+ *     panel edge (`lg:border-l`) does the separating, so the card's border and
+ *     shadow are gone.
+ *   - **The brand gets a zone, not a header slot.** The wordmark sits in the
+ *     editorial column over the brand arcade — the same graphic, at the same
+ *     geometry, that the welcome step raises behind its mock activity cards —
+ *     so the eye meets the brand before the form. The caller's `logo` (the
+ *     李陌茶 lockup) stays in the panel, where it belongs as the form's own
+ *     header.
+ *   - **One measure.** 26rem for the form; onboarding's steps cap at 28rem, so
+ *     the input line length barely changes between the two screens.
+ *
+ * `DragStrip` is the first flex child for the same reason onboarding makes it
+ * one: on desktop the window has to stay draggable from its top edge.
+ *
+ * Mobile drops the editorial column entirely and keeps the panel full-width —
+ * onboarding hides its illustration column below `lg` for the same reason.
+ */
+function LoginStage({
+  logo,
+  exiting,
+  children,
+}: {
+  logo?: ReactNode;
+  exiting?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      data-login-stage
+      data-login-handoff={exiting ? "out" : undefined}
+      inert={exiting || undefined}
+      // The exit itself lives in ./login-handoff.css, keyed off
+      // `data-login-handoff="out"`: one attribute carries the whole state, the
+      // same attribute the tests assert and the reduced-motion rule overrides.
+      className="relative flex h-svh flex-col overflow-hidden bg-background"
+    >
+      <DragStrip />
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <BrandStage />
+        <div
+          className={cn(
+            // `flex-1` below `lg` so the panel fills the column and the form's
+            // `m-auto` can actually centre it; at `lg` it goes back to a fixed
+            // half and the editorial column takes the rest.
+            "flex min-h-0 w-full flex-1 flex-col overflow-y-auto bg-muted/40",
+            "px-6 py-10 sm:px-10 lg:flex-none lg:w-1/2 lg:border-l lg:px-14 lg:py-12 xl:px-16",
+          )}
+        >
+          <div className="m-auto flex w-full max-w-[26rem] flex-col gap-8">
+            {logo ? <div className="text-[1.4rem]">{logo}</div> : null}
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The editorial column: brand arcade rising from the bottom edge behind the
+ * wordmark. Decorative only — every string on this screen is a real control in
+ * the panel, so the column carries no text a screen reader needs.
+ *
+ * The arcade reuses the welcome step's exact geometry (`count 9 / legs 120 /
+ * w-130% / -bottom-6`), so the two screens read as the same backdrop rather
+ * than two takes on it.
+ */
+function BrandStage() {
+  return (
+    <div
+      aria-hidden
+      className="relative hidden min-h-0 flex-1 items-center overflow-hidden px-10 lg:flex xl:px-16"
+    >
+      <MorechatArcade
+        count={9}
+        legs={120}
+        rise="center"
+        delay={0.5}
+        className="pointer-events-none absolute -bottom-6 left-1/2 w-[130%] max-w-none -translate-x-1/2 text-muted"
+      />
+      <div className="relative flex w-full max-w-[26rem] flex-col gap-6">
+        <span className="h-px w-14 bg-border" />
+        <MorechatWordmark className="text-[clamp(2.25rem,3vw,3.25rem)] text-foreground" />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Title + one supporting line, in onboarding's type hierarchy: the serif
+ * display face carries the headline (its welcome hero), the lede is a single
+ * muted line. No eyebrow, no second label for the same screen.
+ *
+ * `aria-live` mirrors onboarding's `StepHeading`: the panes persist across
+ * steps, so a screen reader user moving email → code gets no navigation event
+ * and the new heading has to announce itself. It is scoped to this block, not
+ * the stage, so the form controls are never re-read along with it.
+ */
+function StageHeading({
+  title,
+  description,
+}: {
+  title: ReactNode;
+  description?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2.5" aria-live="polite">
+      <h1 className="text-balance font-serif text-display font-medium leading-[1.12] tracking-tight text-foreground">
+        {title}
+      </h1>
+      {description ? (
+        <p className="text-pretty text-body-lg text-muted-foreground">
+          {description}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 // Component
 
 export function LoginPage({
@@ -100,12 +241,15 @@ export function LoginPage({
   onTokenObtained,
   onGoogleLogin,
   extra,
+  exiting = false,
 }: LoginPageProps) {
   const { t } = useT("auth");
   const qc = useQueryClient();
   const [step, setStep] = useState<"email" | "code" | "cli_confirm">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordEnabled, setPasswordEnabled] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -117,6 +261,15 @@ export function LoginPage({
   // because the user asked to leave. Without saying so, landing here reads as
   // the app having lost their work for no reason.
   const sessionExpired = useAuthStore((state) => state.expired);
+
+  // Optional runtime adapter. No provider SDK session or password persistence.
+  useEffect(() => {
+    let active = true;
+    api.getSupabaseConfig()
+      .then((config) => { if (active) setPasswordEnabled(config.enabled === true); })
+      .catch(() => { /* Older/unconfigured servers keep native OTP. */ });
+    return () => { active = false; };
+  }, []);
 
   // Check for existing session when CLI callback is present.
   // Prioritises cookie auth (= current browser session) to avoid authorising
@@ -193,6 +346,32 @@ export function LoginPage({
     },
     [email, t],
   );
+
+  const handlePasswordLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!email || !password || loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      if (cliCallback) {
+        const { token } = await api.loginWithPassword(email, password);
+        onTokenObtained?.();
+        redirectToCliCallback(cliCallback.url, token, cliCallback.state);
+        return;
+      }
+      await useAuthStore.getState().loginWithPassword(email, password);
+      const wsList = await api.listWorkspaces();
+      qc.setQueryData(workspaceKeys.list(), wsList);
+      onTokenObtained?.();
+      onSuccess();
+    } catch {
+      // Do not echo provider/network request details or credentials into UI.
+      setError(t(($) => $.signin.password_failed));
+    } finally {
+      setPassword("");
+      setLoading(false);
+    }
+  };
 
   const handleVerify = useCallback(
     async (value: string) => {
@@ -294,22 +473,22 @@ export function LoginPage({
   // CLI confirm step
 
   if (step === "cli_confirm" && existingUser) {
+    // No step-change live region on this screen: it replaced the form, and it
+    // is the first thing a keyboard or screen-reader user reaches anyway.
+    // Announcing the heading again on mount is the duplicate to avoid.
     return (
-      <div className="flex min-h-svh items-center justify-center">
-        <Card className="w-full max-w-sm">
-          <CardHeader className="text-center">
-            {logo && <div className="mx-auto mb-4">{logo}</div>}
-            <CardTitle className="text-display-sm">
-              {t(($) => $.cli.title)}
-            </CardTitle>
-            <CardDescription>
-              {t(($) => $.cli.description, { email: existingUser.email })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
+      <LoginStage logo={logo} exiting={exiting}>
+        <div className="flex flex-col gap-8">
+          <StageHeading
+            title={t(($) => $.cli.title)}
+            description={t(($) => $.cli.description, {
+              email: existingUser.email,
+            })}
+          />
+          <div className="flex flex-col gap-3">
             <Button
               onClick={handleCliAuthorize}
-              disabled={loading}
+              disabled={loading || exiting}
               className="w-full"
               size="lg"
             >
@@ -320,6 +499,7 @@ export function LoginPage({
             <Button
               variant="ghost"
               className="w-full"
+              disabled={exiting}
               onClick={() => {
                 setExistingUser(null);
                 setStep("email");
@@ -327,9 +507,9 @@ export function LoginPage({
             >
               {t(($) => $.cli.different_account)}
             </Button>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
+      </LoginStage>
     );
   }
 
@@ -337,18 +517,13 @@ export function LoginPage({
 
   if (step === "code") {
     return (
-      <div className="flex min-h-svh items-center justify-center">
-        <Card className="w-full max-w-sm">
-          <CardHeader className="text-center">
-            {logo && <div className="mx-auto mb-4">{logo}</div>}
-            <CardTitle className="text-display-sm">
-              {t(($) => $.verify.title)}
-            </CardTitle>
-            <CardDescription>
-              {t(($) => $.verify.description, { email })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center gap-4">
+      <LoginStage logo={logo} exiting={exiting}>
+        <div className="flex flex-col gap-8">
+          <StageHeading
+            title={t(($) => $.verify.title)}
+            description={t(($) => $.verify.description, { email })}
+          />
+          <div className="flex flex-col items-start gap-5">
             <InputOTP
               autoFocus
               maxLength={6}
@@ -357,7 +532,7 @@ export function LoginPage({
                 setCode(value);
                 if (value.length === 6) handleVerify(value);
               }}
-              disabled={loading}
+              disabled={loading || exiting}
             >
               <InputOTPGroup>
                 <InputOTPSlot index={0} />
@@ -375,7 +550,7 @@ export function LoginPage({
               <button
                 type="button"
                 onClick={handleResend}
-                disabled={cooldown > 0}
+                disabled={cooldown > 0 || exiting}
                 className="text-primary underline-offset-4 hover:underline disabled:text-muted-foreground disabled:no-underline disabled:cursor-not-allowed"
               >
                 {cooldown > 0
@@ -383,77 +558,96 @@ export function LoginPage({
                   : t(($) => $.verify.resend)}
               </button>
             </div>
-          </CardContent>
-          <CardFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              onClick={() => {
-                setStep("email");
-                setCode("");
-                setError("");
-              }}
-            >
-              {t(($) => $.common.back)}
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full"
+            disabled={exiting}
+            onClick={() => {
+              setStep("email");
+              setCode("");
+              setError("");
+            }}
+          >
+            {t(($) => $.common.back)}
+          </Button>
+        </div>
+      </LoginStage>
     );
   }
 
   // Email step
 
   return (
-    <div className="flex min-h-svh items-center justify-center">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          {logo && <div className="mx-auto mb-4">{logo}</div>}
-          <CardTitle className="text-display-sm">
-            {t(($) => $.signin.title)}
-          </CardTitle>
-          <CardDescription>
-            {t(($) => $.signin.description)}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+    <LoginStage logo={logo} exiting={exiting}>
+      <div className="flex flex-col gap-8">
+        <StageHeading
+          title={t(($) => $.signin.title)}
+          description={
+            passwordEnabled
+              ? t(($) => $.signin.password_description)
+              : t(($) => $.signin.description)
+          }
+        />
+
+        <form
+          id="login-form"
+          onSubmit={passwordEnabled ? handlePasswordLogin : handleSendCode}
+          className="flex flex-col gap-5"
+        >
           {sessionExpired && (
-            <Alert>
+            <Alert className="bg-background">
               <AlertDescription>
                 {t(($) => $.errors.session_expired)}
               </AlertDescription>
             </Alert>
           )}
-          <form id="login-form" onSubmit={handleSendCode} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="login-email">{t(($) => $.common.email)}</Label>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="login-email">{t(($) => $.common.email)}</Label>
+            <Input
+              id="login-email"
+              type="email"
+              placeholder={t(($) => $.common.email_placeholder)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoFocus
+              required
+              disabled={exiting}
+              className="h-10 bg-background"
+            />
+          </div>
+          {passwordEnabled && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="login-password">{t(($) => $.signin.password)}</Label>
               <Input
-                id="login-email"
-                type="email"
-                placeholder={t(($) => $.common.email_placeholder)}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoFocus
+                id="login-password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                disabled={loading || exiting}
                 required
+                className="h-10 bg-background"
               />
             </div>
-            {error && (
-              <p className="text-body text-destructive">{error}</p>
-            )}
-          </form>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-3">
+          )}
+          {error && (
+            <p className="text-body text-destructive">{error}</p>
+          )}
+        </form>
+
+        <div className="flex flex-col gap-3">
           <Button
             type="submit"
             form="login-form"
             className="w-full"
             size="lg"
-            disabled={!email || loading}
+            disabled={!email || loading || exiting || (passwordEnabled && !password)}
           >
-            {loading
-              ? t(($) => $.signin.sending)
-              : t(($) => $.signin.continue)}
+            {passwordEnabled
+              ? (loading ? t(($) => $.signin.signing_in) : t(($) => $.signin.sign_in))
+              : (loading ? t(($) => $.signin.sending) : t(($) => $.signin.continue))}
           </Button>
           {(google || onGoogleLogin) && (
             <Button
@@ -462,7 +656,7 @@ export function LoginPage({
               className="w-full"
               size="lg"
               onClick={handleGoogleLogin}
-              disabled={loading}
+              disabled={loading || exiting}
             >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                 <path
@@ -485,9 +679,9 @@ export function LoginPage({
               {t(($) => $.signin.google)}
             </Button>
           )}
-          {extra && <div className="w-full pt-1 text-center">{extra}</div>}
-        </CardFooter>
-      </Card>
-    </div>
+          {extra && <div className="w-full text-center">{extra}</div>}
+        </div>
+      </div>
+    </LoginStage>
   );
 }

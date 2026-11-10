@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@morechat/core/auth";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@morechat/core/paths";
 import { useWorkspaceList } from "@morechat/core/workspace";
 import { CliInstallInstructions, OnboardingFlow } from "@morechat/views/onboarding";
+import { consumeLoginHandoff } from "@/features/auth/login-handoff";
 
 /**
  * Web shell for the onboarding flow. The route is the platform chrome on
@@ -41,6 +42,10 @@ export default function OnboardingPage() {
   // "completing" right before onComplete navigates keeps the guard
   // silent for the in-flight transition.
   const completingRef = useRef(false);
+  // Read once, on mount: did the member arrive here from a login? If so the
+  // welcome step plays the short handoff entrance and takes focus. Consumed on
+  // read, so a reload of this route (or a later visit) never replays it.
+  const [enteringFromLogin] = useState(() => consumeLoginHandoff());
 
   useEffect(() => {
     if (isLoading || !user) {
@@ -87,6 +92,7 @@ export default function OnboardingPage() {
           }
         }}
         runtimeInstructions={<CliInstallInstructions />}
+        enteringFromLogin={enteringFromLogin}
       />
     </div>
   );

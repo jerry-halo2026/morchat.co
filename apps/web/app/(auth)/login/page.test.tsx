@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { I18nProvider } from "@morechat/core/i18n/react";
 import enCommon from "@morechat/views/locales/en/common.json";
 import enAuth from "@morechat/views/locales/en/auth.json";
 import enSettings from "@morechat/views/locales/en/settings.json";
 import type { ReactNode } from "react";
+import { consumeLoginHandoff } from "@/features/auth/login-handoff";
 
 const TEST_RESOURCES = {
   en: { common: enCommon, auth: enAuth, settings: enSettings },
@@ -78,6 +80,7 @@ vi.mock("@/features/auth/auth-cookie", () => ({
 // Mock api
 vi.mock("@morechat/core/api", () => ({
   api: {
+    getSupabaseConfig: vi.fn().mockResolvedValue({ enabled: false }),
     listWorkspaces: mockListWorkspaces,
     listMyInvitations: mockListMyInvitations,
     verifyCode: vi.fn(),
@@ -224,5 +227,28 @@ describe("LoginPage", () => {
       });
       expect(mockListWorkspaces).not.toHaveBeenCalled();
     });
+  });
+
+  // The login → onboarding handoff. The marker is written before the
+  // navigation and read (once) by the onboarding route, which is how the
+  // landing screen knows to play the entrance half instead of its normal one.
+  it("marks the handoff to onboarding, then navigates", async () => {
+    const user = userEvent.setup();
+    render(<LoginPage />, { wrapper: createWrapper() });
+
+    await user.type(screen.getByLabelText("Email"), "new@morechat.co");
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await waitFor(() => {
+      expect(screen.getByText("Check your email")).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByRole("textbox", { hidden: true }), "123456");
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/onboarding");
+    });
+    expect(consumeLoginHandoff()).toBe(true);
+    // One-shot: a later visit to /onboarding must not replay the entrance.
+    expect(consumeLoginHandoff()).toBe(false);
   });
 });

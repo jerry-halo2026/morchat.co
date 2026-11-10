@@ -27,8 +27,13 @@ import { Button } from "@morechat/ui/components/ui/button";
 import { Loader2 } from "@morechat/ui/icons";
 import { CliCallbackError } from "@/features/auth/cli-callback-error";
 import { setLoggedInCookie } from "@/features/auth/auth-cookie";
+import {
+  markLoginHandoffPending,
+  waitForLoginHandoffExit,
+} from "@/features/auth/login-handoff";
 import Link from "next/link";
 import { LoginPage, validateCliCallback } from "@morechat/views/auth";
+import { MorechatLockup } from "@morechat/ui/components/common/morechat-mark";
 import { useT } from "@morechat/views/i18n";
 
 /**
@@ -80,6 +85,10 @@ function LoginPageContent() {
 
   const [desktopToken, setDesktopToken] = useState<string | null>(null);
   const [desktopError, setDesktopError] = useState("");
+  // Drives the login stage's exit animation while `handleSuccess` resolves the
+  // post-login destination. Purely visual: the form is still mounted, but it is
+  // `inert` and disabled so no second submit can start behind the fade.
+  const [exiting, setExiting] = useState(false);
   const hasOnboarded = useHasOnboarded();
 
   // Latched once auth has been observed settled as logged-out on this page.
@@ -147,8 +156,27 @@ function LoginPageContent() {
       router.push(nextUrl);
       return;
     }
+
+    // Handoff into `/onboarding` (or, for an un-onboarded member with pending
+    // invitations, the batch invitations screen). The exit is started before
+    // the destination is known because resolving it can wait on a network
+    // round-trip; deciding first would leave the just-authenticated form
+    // sitting perfectly still for that whole time. See
+    // `@/features/auth/login-handoff` for why the two screens fade in sequence
+    // rather than cross-fading.
+    const animatedExit = !onboarded;
+    if (animatedExit) setExiting(true);
+
     const list = qc.getQueryData<Workspace[]>(workspaceKeys.list()) ?? [];
-    router.push(await resolveLoggedInDestination(qc, onboarded, list));
+    const destination = await resolveLoggedInDestination(qc, onboarded, list);
+
+    if (animatedExit) {
+      // Only the welcome step knows how to play the entrance, so only this
+      // destination gets the marker.
+      if (destination === paths.onboarding()) markLoginHandoffPending();
+      await waitForLoginHandoffExit();
+    }
+    router.push(destination);
   };
 
   // Build Google OAuth state: encode platform, next URL, and CLI callback
@@ -221,7 +249,9 @@ function LoginPageContent() {
 
   return (
     <LoginPage
+      logo={<MorechatLockup className="text-[1.4rem]" />}
       onSuccess={handleSuccess}
+      exiting={exiting}
       google={
         googleClientId
           ? {

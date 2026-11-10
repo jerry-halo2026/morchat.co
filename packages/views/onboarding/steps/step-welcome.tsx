@@ -1,7 +1,7 @@
 "use client";
 
 import { statusCategoryOfKey } from "@morechat/core/issues";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Download, Loader2 } from "@morechat/ui/icons";
 import { Button, buttonVariants } from "@morechat/ui/components/ui/button";
 import { MorechatWordmark } from "@morechat/ui/components/common/morechat-wordmark";
@@ -13,6 +13,7 @@ import type { BuiltInIssueStatus } from "@morechat/core/types";
 import { StatusIcon } from "../../issues/components/status-icon";
 import { ProviderLogo } from "../../runtimes/components/provider-logo";
 import { useT } from "../../i18n";
+import "./welcome-handoff.css";
 
 /**
  * Step 0 — the one-shot product intro shown on every onboarding
@@ -37,20 +38,37 @@ import { useT } from "../../i18n";
  * being a lie), and a "Download Desktop" secondary CTA surfaces
  * before the user has invested in questionnaire / workspace. Desktop
  * bundles a daemon, so the same prompt would be noise there.
+ *
+ * `enteringFromLogin` marks the landing side of the login handoff
+ * (`apps/web/features/auth/login-handoff.ts`). It swaps the flow's normal
+ * `animate-onboarding-enter` fade for the shorter, slightly rising entrance
+ * that answers the login stage's 200ms exit, and it moves focus to the
+ * headline. This is the one place where a client-side route swap replaced a
+ * full page load, so nothing announces the new screen to a screen reader
+ * unless we do it: one focus move, and no live region along with it (the
+ * headline is announced once, by focus).
  */
 export function StepWelcome({
   onNext,
   onSkip,
   isWeb = false,
+  enteringFromLogin = false,
 }: {
   onNext: () => void | Promise<void>;
   onSkip?: () => void | Promise<void>;
   isWeb?: boolean;
+  enteringFromLogin?: boolean;
 }) {
   const { t } = useT("onboarding");
   // Tracks which button is mid-flight so we can show a per-button
   // spinner and disable both while one is in progress.
   const [pending, setPending] = useState<"next" | "skip" | null>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (!enteringFromLogin) return;
+    headingRef.current?.focus();
+  }, [enteringFromLogin]);
 
   const handleNext = async () => {
     if (pending) return;
@@ -73,18 +91,40 @@ export function StepWelcome({
   };
 
   return (
-    <div className="animate-onboarding-enter flex h-full min-h-[640px] flex-col lg:flex-row">
+    <div
+      className={cn(
+        "flex h-full min-h-[640px] flex-col lg:flex-row",
+        // Handoff entrance: 240ms fade, the answer to the login stage's 200ms
+        // exit. Both halves live in CSS modules next to the elements they
+        // animate (`./welcome-handoff.css`, `../../auth/login-handoff.css`);
+        // React only decides which entrance applies. Opacity sits on the step
+        // root, the rise on the content block below it — a translate on an
+        // `h-full` root counts into the scroll container's overflow and
+        // flashes a scrollbar, which is why the flow's own entrance is
+        // opacity-only too.
+        enteringFromLogin ? "login-handoff-enter" : "animate-onboarding-enter",
+      )}
+    >
       {/* Left — prose + CTA */}
       <div className="flex flex-col lg:flex-1">
         <DragStrip />
         <div className="flex flex-1 flex-col justify-center px-6 pb-12 sm:px-10 md:px-20 lg:px-20 xl:px-24">
-          <div className="flex w-full max-w-[540px] flex-col gap-8">
+          <div
+            className={cn(
+              "flex w-full max-w-[540px] flex-col gap-8",
+              enteringFromLogin && "login-handoff-rise",
+            )}
+          >
             <MorechatWordmark
-              title={t(($) => $.welcome.wordmark)}
-              className="h-[35px] self-start text-foreground"
+                           title={t(($) => $.welcome.wordmark)}
+              className="text-[32px] self-start text-foreground"
             />
 
-            <h1 className="text-balance font-serif text-5xl font-medium leading-[1.04] tracking-tight sm:text-6xl">
+            <h1
+              ref={headingRef}
+              tabIndex={-1}
+              className="text-balance font-serif text-5xl font-medium leading-[1.04] tracking-tight outline-none sm:text-6xl"
+            >
               {t(($) => $.welcome.headline_line1)}
               <br />
               {t(($) => $.welcome.headline_line2)}{" "}
@@ -174,7 +214,10 @@ export function StepWelcome({
       <div className="relative hidden border-l bg-muted/40 lg:flex lg:flex-1 lg:flex-col lg:overflow-hidden">
         <MorechatArcade
           count={9}
-          className="pointer-events-none absolute -bottom-10 left-1/2 w-[130%] -translate-x-1/2 text-muted"
+          legs={120}
+          rise="center"
+          delay={0.5}
+          className="pointer-events-none absolute -bottom-6 left-1/2 w-[130%] -translate-x-1/2 text-muted"
         />
         <DragStrip />
         <div className="relative flex flex-1 flex-col items-center justify-center gap-7 px-8 py-8">

@@ -1,0 +1,40 @@
+/* Login → onboarding handoff, EXIT half. The enter half lives in
+   packages/views/onboarding/steps/welcome-handoff.css; the two are timed to
+   follow each other (200ms out, 240ms in).
+
+   Driven by the `data-login-handoff="out"` attribute rather than by Tailwind
+   utilities so that:
+     - the attribute is the whole state (React only flips it), which is what
+       tests assert and what the CDP capture harness triggers, and
+     - the reduced-motion rule can override both properties in one place.
+
+   The route swap that follows is a client-side one — only one of the two
+   screens is ever mounted — so this is a fade-out that hands over to a
+   fade-in over an identical background, not a cross-fade. See
+   apps/web/features/auth/login-handoff.ts for why a shared element is out of
+   reach from this slice. */
+[data-login-stage] {
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+
+[data-login-stage][data-login-handoff="out"] {
+  opacity: 0;
+  /* 4px, not the 8px the entering side uses: the stage is the thing that is
+     leaving, so it recedes less than the content that replaces it arrives. */
+  transform: translateY(-4px);
+}
+
+/* Reduced motion: no movement, no fade. The member gets a plain route swap,
+   and the caller skips the wait entirely (see waitForLoginHandoffExit). */
+@media (prefers-reduced-motion: reduce) {
+  [data-login-stage] {
+    transition: none;
+  }
+
+  [data-login-stage][data-login-handoff="out"] {
+    opacity: 1;
+    transform: none;
+  }
+}

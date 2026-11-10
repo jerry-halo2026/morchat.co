@@ -72,8 +72,16 @@ function send(method, params = {}) {
   return new Promise((resolve, reject) => pending.set(id, { resolve, reject }));
 }
 
-function once(method) {
-  return new Promise((resolve) => waiters.push({ method, resolve }));
+function once(method, timeoutMs = 20000) {
+  return new Promise((resolve, reject) => {
+    const entry = { method, resolve: (params) => { clearTimeout(timer); resolve(params); } };
+    const timer = setTimeout(() => {
+      const at = waiters.indexOf(entry);
+      if (at >= 0) waiters.splice(at, 1);
+      reject(new Error(`timed out waiting for ${method}`));
+    }, timeoutMs);
+    waiters.push(entry);
+  });
 }
 
 try {

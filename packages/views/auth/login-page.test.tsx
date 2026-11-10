@@ -28,6 +28,8 @@ function renderWithI18n(ui: ReactElement) {
 // ---------------------------------------------------------------------------
 
 const mockSendCode = vi.hoisted(() => vi.fn());
+const mockPasswordLogin = vi.hoisted(() => vi.fn());
+const mockSupabaseConfig = vi.hoisted(() => vi.fn());
 const mockVerifyCode = vi.hoisted(() => vi.fn());
 const mockApiListWorkspaces = vi.hoisted(() => vi.fn());
 const mockApiVerifyCode = vi.hoisted(() => vi.fn());
@@ -52,6 +54,7 @@ vi.mock("@morechat/core/auth", () => ({
       const state = {
         sendCode: mockSendCode,
         verifyCode: mockVerifyCode,
+        loginWithPassword: mockPasswordLogin,
         expired: mockAuthState.expired,
       };
       return selector ? selector(state) : state;
@@ -60,6 +63,7 @@ vi.mock("@morechat/core/auth", () => ({
       getState: () => ({
         sendCode: mockSendCode,
         verifyCode: mockVerifyCode,
+        loginWithPassword: mockPasswordLogin,
       }),
     },
   ),
@@ -67,6 +71,8 @@ vi.mock("@morechat/core/auth", () => ({
 
 vi.mock("@morechat/core/api", () => ({
   api: {
+    getSupabaseConfig: mockSupabaseConfig,
+    loginWithPassword: mockPasswordLogin,
     listWorkspaces: mockApiListWorkspaces,
     verifyCode: mockApiVerifyCode,
     setToken: mockApiSetToken,
@@ -103,6 +109,7 @@ describe("LoginPage", () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.clearAllMocks();
     mockAuthState.expired = false;
+    mockSupabaseConfig.mockResolvedValue({ enabled: false });
     // Default: no existing session (getMe rejects when no auth)
     mockApiGetMe.mockRejectedValue(new Error("unauthorized"));
     localStorage.clear();
@@ -121,6 +128,36 @@ describe("LoginPage", () => {
   // Email step rendering
   // -------------------------------------------------------------------------
 
+  it("uses configured password sign-in then native workspace routing without sending a code", async () => {
+    mockSupabaseConfig.mockResolvedValue({ enabled: true });
+    mockPasswordLogin.mockResolvedValue({ id: "u1" });
+    mockApiListWorkspaces.mockResolvedValue([]);
+    renderWithI18n(<LoginPage onSuccess={onSuccess} />);
+    const password = await screen.findByLabelText(/^password$/i);
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText(/^email$/i), "test@example.com");
+    await user.type(password, "typed-only-in-test");
+    await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+    await waitFor(() => expect(onSuccess).toHaveBeenCalled());
+    expect(mockPasswordLogin).toHaveBeenCalledWith("test@example.com", "typed-only-in-test");
+    expect(mockSendCode).not.toHaveBeenCalled();
+    expect(localStorage.getItem("password")).toBeNull();
+  });
+
+  it("clears password and keeps login screen on failed password sign-in", async () => {
+    mockSupabaseConfig.mockResolvedValue({ enabled: true });
+    mockPasswordLogin.mockRejectedValue(new Error("invalid proof"));
+    renderWithI18n(<LoginPage onSuccess={onSuccess} />);
+    const password = await screen.findByLabelText(/^password$/i);
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText(/^email$/i), "test@example.com");
+    await user.type(password, "typed-only-in-test");
+    await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+    await waitFor(() => expect(password).toHaveValue(""));
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(mockSendCode).not.toHaveBeenCalled();
+  });
+
   it("says the session expired when that is why the user is here", () => {
     mockAuthState.expired = true;
     renderWithI18n(<LoginPage onSuccess={onSuccess} />);
@@ -137,7 +174,7 @@ describe("LoginPage", () => {
   it("renders email form with 'Sign in to morechat.co' title", () => {
     renderWithI18n(<LoginPage onSuccess={onSuccess} />);
     expect(
-      screen.getByText(/sign in to multica/i),
+      screen.getByText(/sign in to morechat\.co/i),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/enter your email to get a login code/i),
@@ -542,7 +579,7 @@ describe("LoginPage", () => {
     );
 
     expect(
-      screen.getByText(/sign in to multica/i),
+      screen.getByText(/sign in to morechat\.co/i),
     ).toBeInTheDocument();
   });
 
@@ -723,8 +760,32 @@ describe("LoginPage", () => {
     await user.click(screen.getByRole("button", { name: /back/i }));
 
     expect(
-      screen.getByText(/sign in to multica/i),
+      screen.getByText(/sign in to morechat\.co/i),
     ).toBeInTheDocument();
+  });
+
+  // -------------------------------------------------------------------------
+  // Login → onboarding handoff (exit half)
+  // -------------------------------------------------------------------------
+
+  it("marks the stage for the handoff exit only when the caller says so", () => {
+    const { container, rerender } = renderWithI18n(
+      <LoginPage onSuccess={onSuccess} />,
+    );
+    const stage = container.querySelector("[data-login-stage]");
+    expect(stage).not.toBeNull();
+    // Idle stage: no exit attribute, form still reachable.
+    expect(stage).not.toHaveAttribute("data-login-handoff");
+    expect(stage).not.toHaveAttribute("inert");
+
+    rerender(<LoginPage onSuccess={onSuccess} exiting />);
+
+    // Exiting stage: the caller owns the navigation that follows, so the form
+    // must leave the accessibility tree instead of being announced a second
+    // time by the screen that replaces it.
+    expect(stage).toHaveAttribute("data-login-handoff", "out");
+    expect(stage).toHaveAttribute("inert");
+    expect(screen.getByRole("button", { name: /continue/i })).toBeDisabled();
   });
 
 });
