@@ -1,0 +1,158 @@
+clean-install verification log — P3-B (2026-11-11, HEAD 33fcd0c8c)
+repo: D:\dev\morchat.co   machine: Windows (Administrator, 10.0.26200)
+node used to drive scripts: E:\CodexData\morchat-r1-local\tools\node22\node-v22.23.4-win-x64\node.exe (v22.23.4)
+pnpm: 10.28.2
+
+================================================================================
+1. electron-vite build
+================================================================================
+$ pnpm --filter "@morechat/desktop" exec electron-vite build
+out/main/index.js, out/preload/index.js, out/renderer/** written
+✓ built in 5.06s
+exit=0
+
+================================================================================
+2. electron-builder --win --dir (dir mode, no installer)
+================================================================================
+$ cd apps/desktop && pnpm exec electron-builder --win --dir
+  • electron-builder  version=26.8.1 os=10.0.26200
+  • loaded configuration  file=D:\dev\morchat.co\apps\desktop\electron-builder.yml
+[before-pack] bundling the DSH runtime
+[bundle-dsh] source D:\software\deepseekharness\resources\app\dsh (dsh 0.2.2-rc.1): 21112 files / 435.97 MB
+[bundle-dsh] keep 13368 files / 142.98 MB  — drop 7744 files / 292.99 MB
+[bundle-dsh] payload: dsh 142.98 MB + node 83 MB = 225.98 MB (budget 150 MB)
+[bundle-dsh] bundled runtime answers --version: 0.2.2-rc.1
+[bundle-dsh] wrote 13368 files / 142.98 MB → D:\dev\morchat.co\apps\desktop\resources\dsh and node.exe 83 MB → D:\dev\morchat.co\apps\desktop\resources\node
+  • packaging       platform=win32 arch=x64 electron=44.9.3 appOutDir=dist\win-unpacked
+  • updating asar integrity executable resource  executablePath=dist\win-unpacked\morechat.co.exe
+  • signing with signtool.exe  path=dist\win-unpacked\resources\node\node.exe
+  ⨯ cannot execute  cause=exit status 1
+                    errorOut=Fatal error: Unable to commit changes
+                    command='...\Cache\winCodeSign\winCodeSign-2.6.0\rcedit-x64.exe' '...\dist\win-unpacked\morechat.co.exe' --set-version-string FileDescription morechat.co ...
+exit=1   (4 retries, same rcedit failure; no network download was involved — electron 44.9.3 and winCodeSign were already in the local caches)
+
+Retried with the resource-edit step disabled:
+$ pnpm exec electron-builder --win --dir -c.win.signAndEditExecutable=false
+⨯ ENOENT: no such file or directory, open '...\apps\desktop\.win.signAndEditExecutable=false'
+exit=1   (the dotted override is not parsed through `pnpm exec` / cmd shim in this shell)
+
+Output that did get produced (kept and used): dist\win-unpacked\{morechat.co.exe, resources\app.asar, resources\app.asar.unpacked, resources\dsh, resources\node, *.dll, locales}
+
+================================================================================
+3. Packaged build does not start on this machine
+================================================================================
+$ dist\win-unpacked\morechat.co.exe --version        (environment cleaned, ELECTRON_RUN_AS_NODE removed)
+exit=1, stdout empty, stderr empty
+
+same bytes copied to another directory and launched as `electron.exe <app dir>`:
+ALIVE (window created, main process runs)
+
+Chromium logging on the packaged exe (`--enable-logging --v=1 --log-file=...`) stops after:
+[..:VERBOSE1:base\allocator\scheduler_loop_quarantine_config.cc:195] No entry found for browser/global.
+[..:VERBOSE1:base\allocator\scheduler_loop_quarantine_config.cc:195] No entry found for browser/*.
+then the process exits with 1 — the main script is never evaluated (a probe line prepended to
+out/main/index.js inside a repacked app.asar never fired).
+
+Root cause found — dist\win-unpacked\resources\app.asar is internally inconsistent:
+  header: files["package.json"] = {size: 1426, offset: "460355025"}
+  bytes at 16+headerSize+460355025: "},{\"match\":\"\\b0b[01_]+\\b\",\"name\":\"constant.numeric.binary.zig\"},{"
+  => the offset points at an unrelated file's content (a shiki grammar), not package.json
+  same archive, @electron/asar 3.4.1:
+    asar list                    -> lists \out\main\index.js (entry exists in the header)
+    asar extractFile out/main/index.js -> Error: "out/main/index.js" was not found in this archive
+    asar extractFile package.json      -> shiki grammar fragment (garbage)
+  => header offsets and data section disagree; Electron cannot resolve the app entry and exits 1
+     silently. (Hypothesis, not proven: the `!resources/dsh/**` / `asarUnpack: resources/**`
+     filters drop ~143 MB from the archive after offsets are laid out, shifting every later file.)
+  Independent evidence that the layout itself is fine: a hand-built minimal app.asar in the same
+  directory loads and runs (tiny app wrote its boot log and stayed alive).
+
+3. dist\win-unpacked\resources\dsh is missing the whole node_modules tree:
+  $ Get-ChildItem dist\win-unpacked\resources\dsh -Force
+      bin  .morechat-bundle.json  desktop-runtime.json  package.json        (4 files)
+  $ Test-Path dist\win-unpacked\resources\dsh\node_modules\@deepseek-ai\dsh\lib\bin.js
+      False
+  repo source (apps/desktop/resources/dsh) is 13 370 files — the packaged copy lost 13 366 of them.
+  Consequence: resolveBundledDshPaths() -> existsSync(entryPath) fails on a real install, so the
+  app would report "no bundled runtime" even if it started.
+
+================================================================================
+4. Simulated clean machine (no packaged exe available -> app launched from the same
+   main bundle, resolving the bundled runtime through the same code path)
+================================================================================
+HOME        = C:\Users\ADMINI~1\AppData\Local\Temp\clean-home
+USERPROFILE = C:\Users\ADMINI~1\AppData\Local\Temp\clean-home
+APPDATA     = ...\clean-home\AppData\Roaming
+LOCALAPPDATA= ...\clean-home\AppData\Local
+TEMP        = ...\clean-home\tmp
+PATH        = C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0
+ELECTRON_RUN_AS_NODE = <unset>
+NODE_OPTIONS = <unset>
+MULTICA_DSH_PATH = <unset>
+DSH_HOME = <unset>
+PATH entries mentioning node/dsh/multica/electron/pnpm: 0
+Get-Command node     -> not found
+Get-Command dsh      -> not found
+Get-Command multica  -> not found
+Get-Command pnpm     -> not found
+
+launch (two runs, same env):
+  run 1: electron.exe (Electron 44.9.3, extracted from %LOCALAPPDATA%\electron\Cache) "D:\dev\morchat.co\apps\desktop"
+         cwd = D:\dev\morchat.co\apps\desktop, env = the block above
+         probe_ms 2008
+  run 2: same, with the packaged resources\dsh + resources\node copied under <electron>\resources
+         (candidate 1 of resolveBundledDshPaths). Candidate 1 was still rejected because the deep file
+         node_modules\@deepseek-ai\dsh\lib\bin.js did not survive the copy (>260 char paths), so the
+         resolution fell through to candidate 2 <appPath>\resources\dsh. probe_ms 789.
+
+runtime profile written:
+  C:\Users\Administrator\AppData\Local\Temp\clean-home\AppData\Roaming\morechat.co Canary\runtime-profiles\dsh.json
+  {
+    "schemaVersion": 1,
+    "id": "dsh",
+    "kind": "bundled",
+    "command": "D:\\dev\\morchat.co\\apps\\desktop\\resources\\dsh\\bin\\dsh.cmd",
+    "entry": "D:\\dev\\morchat.co\\apps\\desktop\\resources\\dsh\\node_modules\\@deepseek-ai\\dsh\\lib\\bin.js",
+    "nodePath": "D:\\dev\\morchat.co\\apps\\desktop\\resources\\node\\node.exe",
+    "version": "0.2.2-rc.1",
+    "models": [],
+    "probe": { "versionMs": 789, "bootChainOk": true, "bootChainEntries": 99, "listModelsSupported": false },
+    "detectedAt": "2026-11-11T01:36:57.676Z"
+  }
+
+main-process log (stdout of the Electron process):
+[dsh-bootstrap] probing bundled runtime {"command":"D:\\dev\\morchat.co\\apps\\desktop\\resources\\dsh\\bin\\dsh.cmd","entry":"D:\\dev\\morchat.co\\apps\\desktop\\resources\\dsh\\node_modules\\@deepseek-ai\\dsh\\lib\\bin.js","node":"D:\\dev\\morchat.co\\apps\\desktop\\resources\\node\\node.exe","timeout_ms":10000}
+[dsh-bootstrap] registered bundled runtime {"runtime":"dsh","version":"0.2.2-rc.1","command":"D:\\dev\\morchat.co\\apps\\desktop\\resources\\dsh\\bin\\dsh.cmd","profile":"C:\\Users\\Administrator\\AppData\\Local\\Temp\\clean-home\\AppData\\Roaming\\morechat.co Canary\\runtime-profiles\\dsh.json","boot_chain_entries":99,"list_models_supported":false,"probe_ms":789,"env":"MULTICA_DSH_PATH"}
+
+runtime-profiles directory content after the run: exactly 1 file (dsh.json) => runtime_count: 1.
+`/api/runtimes` could not be queried: no multica daemon/backend is reachable from this sandbox
+(the renderer's only successful calls were /api/config and /auth/supabase/config), so the daemon
+side of the registration (MULTICA_DSH_PATH export consumed by provisionAgentCLIs) is unverified here.
+
+teardown: taskkill /T /F on the Electron pid tree; clean-home and the scratch copies removed after
+this log was extracted.
+
+================================================================================
+5. What is verified vs. what is blocked
+================================================================================
+VERIFIED
+  - resources/dsh (142.98 MB, 13 368 files) + resources/node/node.exe (83 MB) are produced by
+    scripts/bundle-dsh.mjs during `electron-builder --win --dir` (beforePack) and the bundled
+    runtime answers --version: 0.2.2-rc.1.
+  - With PATH containing no node/dsh/multica/pnpm, the bootstrap resolves resources/dsh and
+    resources/node by path, runs the shipped node against the shipped CLI (boot chain: 99 entries),
+    writes runtime-profiles/dsh.json, and logs `registered bundled runtime`.
+  - No global runtime is consulted at any point: with `node`, `dsh`, `multica`, `pnpm` all absent
+    from PATH the probe still passed.
+
+BLOCKED
+  - `electron-builder --win --dir` does not exit 0 on this machine: rcedit cannot commit the
+    version/icon resource ("Fatal error: Unable to commit changes", 4 attempts).
+  - The dist\win-unpacked build cannot be launched at all: resources\app.asar is corrupt
+    (header offsets point at other files), so Electron 44.9.3 exits 1 with no output and never
+    evaluates out/main/index.js. Therefore the assertion was NOT made against the packaged exe.
+    The run above used the same main bundle through the electron default-app entry, which is the
+    code path that contains resolveBundledDshPaths/probeBundledDsh/writeRuntimeProfile.
+  - dist\win-unpacked\resources\dsh has no node_modules (4 files instead of 13 370), so a real
+    install would fail resolveBundledDshPaths() on the entry path and show "no bundled runtime".
+    "Install and go" is therefore not satisfied by this build, independent of the two issues above.

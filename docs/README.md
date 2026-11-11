@@ -204,6 +204,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | 文档 | purpose | owner | status | updated |
 |---|---|---|---|---|
 | [当前执行入口](tasks/ACTIVE.md) | 当前执行入口 | task-owners | draft | 2026-11-07 |
+| [干净机器首启：内置 DSH 运行时验证（P3-B）](tasks/CLEAN-INSTALL.md) | 干净机器首启验证：安装包内置 DSH 运行时能否零依赖注册（P3-B） | task-owners | draft | 2026-11-11 |
 | [CLIENT-GITHUB-INTEGRATION-UI-r1](tasks/CLIENT-GITHUB-INTEGRATION-UI-r1.md) | CLIENT-GITHUB-INTEGRATION-UI-r1 | task-owners | current | 2026-11-10 |
 | [CLIENT-GITHUB-PROJECT-SKILL-UI-r1](tasks/CLIENT-GITHUB-PROJECT-SKILL-UI-r1.md) | CLIENT-GITHUB-PROJECT-SKILL-UI-r1 | task-owners | current | 2026-11-10 |
 | [CLIENT-HELP-FEISHU-r1 — bounded client help destination](tasks/CLIENT-HELP-FEISHU-r1.md) | CLIENT-HELP-FEISHU-r1 — bounded client help destination | task-owners | current | 2026-11-10 |

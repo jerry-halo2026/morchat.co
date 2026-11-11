@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 163,
-  "fingerprint": "e52d23d6125811b65328e119f23f34ea48a6af190f7ca933149f2b900106beeb",
+  "count": 164,
+  "fingerprint": "31701747a650dc4ac12b7fea4dd1b70e12f19d2f33af348e39ce85054bb2c7ea",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -1241,8 +1241,26 @@
       "links_in": [
         "docs/ENGINEERING-BASELINE.md",
         "docs/README.md",
+        "docs/tasks/CLEAN-INSTALL.md",
         "docs/tasks/MC-00-results.md"
       ]
+    },
+    {
+      "path": "docs/tasks/CLEAN-INSTALL.md",
+      "title": "干净机器首启：内置 DSH 运行时验证（P3-B）",
+      "purpose": "干净机器首启验证：安装包内置 DSH 运行时能否零依赖注册（P3-B）",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/tasks/ACTIVE.md",
+        "docs/tasks/DSH-RUNTIME-REVIEW.md"
+      ],
+      "links_out": [
+        "docs/tasks/ACTIVE.md",
+        "docs/tasks/DSH-RUNTIME-REVIEW.md"
+      ],
+      "links_in": []
     },
     {
       "path": "docs/tasks/CLIENT-GITHUB-INTEGRATION-UI-r1.md",
@@ -1343,7 +1361,9 @@
       "updated": "2026-11-10",
       "related": [],
       "links_out": [],
-      "links_in": []
+      "links_in": [
+        "docs/tasks/CLEAN-INSTALL.md"
+      ]
     },
     {
       "path": "docs/tasks/EVOSE-KB-API.md",

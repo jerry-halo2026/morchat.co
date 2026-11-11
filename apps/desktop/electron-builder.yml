@@ -34,8 +34,13 @@ protocols:
   - name: morechat.co
     schemes:
       - multica
+# Only the CLI binary needs unpacking. Naming `resources/**` here while `files:`
+# excludes resources/dsh and resources/node made the asar writer compute offsets
+# for entries it then removed, which produced an app.asar whose package.json
+# offset pointed into a different file - the packaged exe exited 1 with no
+# output at all.
 asarUnpack:
-  - resources/**
+  - resources/bin/**
 # The DSH runtime + portable Node are installed as plain directories beside the
 # app (Windows/Linux: `<install>/resources/dsh`, macOS:
 # `<App>.app/Contents/Resources/dsh`), which is exactly what
@@ -45,15 +50,10 @@ asarUnpack:
 # Both are produced by scripts/bundle-dsh.mjs (wired into `beforePack` below) and
 # are intentionally NOT in `files:`: they are executed as files, and putting them
 # in the asar would duplicate the payload.
-extraResources:
-  - from: resources/dsh
-    to: dsh
-    filter:
-      - "**/*"
-  - from: resources/node
-    to: node
-    filter:
-      - "**/*"
+# dsh/node are copied by scripts/after-pack.cjs instead of extraResources:
+# electron-builder's file matcher drops nested node_modules, and the runtime is
+# exactly a node_modules tree - the packaged bundle came out with four files.
+afterPack: ./scripts/after-pack.cjs
 # Publishes `minimumSystemVersion` (Darwin kernel floor) into latest-mac.yml /
 # latest-x64-mac.yml so installed macOS 12 clients skip updates they cannot
 # launch, and bundles the DSH runtime before `extraResources` is collected.
