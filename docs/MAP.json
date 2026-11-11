@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 175,
-  "fingerprint": "b4c3a0f741ce6f25f189b30b4ab1b9c419ebedc0b79ecd879a7396529c1c9163",
+  "count": 176,
+  "fingerprint": "22515d0eaed9bc3a8cac87b7d6884dab4afc1f33bab8fa447713cc88dcf01eac",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -1419,7 +1419,9 @@
         "docs/tasks/DSH-RUNTIME-REVIEW.md",
         "docs/tasks/INSTALLER.md"
       ],
-      "links_in": []
+      "links_in": [
+        "docs/tasks/KNOWLEDGE-MCP.md"
+      ]
     },
     {
       "path": "docs/tasks/DSH-RUNTIME-REVIEW.md",
@@ -1509,6 +1511,7 @@
       ],
       "links_in": [
         "docs/tasks/KNOWLEDGE-CONTRACT-FIX.md",
+        "docs/tasks/KNOWLEDGE-MCP.md",
         "docs/tasks/UI-VERIFICATION.md"
       ]
     },
@@ -1528,6 +1531,27 @@
         "docs/brand/reference/knowledge-ui/README.md",
         "docs/tasks/KNOWLEDGE-BENCH.md",
         "docs/tasks/UI-VERIFICATION.md"
+      ],
+      "links_in": [
+        "docs/tasks/KNOWLEDGE-MCP.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/KNOWLEDGE-MCP.md",
+      "title": "KNOWLEDGE-MCP：知识工具面的 MCP 端点（AG-8 / W3）",
+      "purpose": "把知识库工具面暴露成 MCP 端点（POST /api/mcp/knowledge，JSON-RPC 2.0 over HTTP）：契约、鉴权、工作区 MCP server 注册步骤，以及本机真实 run 的结论与缺口",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/tasks/KNOWLEDGE-CONTRACT-FIX.md",
+        "docs/tasks/KNOWLEDGE-BENCH.md",
+        "docs/tasks/DSH-PROFILE-BUNDLE.md"
+      ],
+      "links_out": [
+        "docs/tasks/DSH-PROFILE-BUNDLE.md",
+        "docs/tasks/KNOWLEDGE-BENCH.md",
+        "docs/tasks/KNOWLEDGE-CONTRACT-FIX.md"
       ],
       "links_in": []
     },

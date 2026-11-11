@@ -224,6 +224,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [Windows 安装包交付与 DSH profile bundle 语义对齐（W1-AG1）](tasks/INSTALLER.md) | Windows 安装包交付（--win --dir 可用产物）与 multica 官方 DSH profile bundle 语义对齐结论 | task-owners | current | 2026-11-11 |
 | [KNOWLEDGE-BENCH：10 万 chunk 知识检索压测](tasks/KNOWLEDGE-BENCH.md) | 知识检索 10 万 chunk 压测：造数、查询集、四项指标与瓶颈归因 | task-owners | current | 2026-11-11 |
 | [KNOWLEDGE-CONTRACT-FIX：以服务端为唯一契约的前端适配（AG-7）](tasks/KNOWLEDGE-CONTRACT-FIX.md) | 把知识库与预设画廊的前端改到服务端实际契约上：space_id 路由、列表/单页信封、search hits、catalog 带工作区与鉴权头 | task-owners | current | 2026-11-11 |
+| [KNOWLEDGE-MCP：知识工具面的 MCP 端点（AG-8 / W3）](tasks/KNOWLEDGE-MCP.md) | 把知识库工具面暴露成 MCP 端点（POST /api/mcp/knowledge，JSON-RPC 2.0 over HTTP）：契约、鉴权、工作区 MCP server 注册步骤，以及本机真实 run 的结论与缺口 | task-owners | current | 2026-11-11 |
 | [Local existing DeepSeek account connection — r1 candidate](tasks/LOCAL-DSH-ACCOUNT-CONNECTION.md) | Local existing DeepSeek account connection — r1 candidate | task-owners | current | 2026-11-09 |
 | [本地第一阶段实机验收（2026-11-09）](tasks/LOCAL-FIRST-STAGE-ACCEPTANCE.md) | 本地第一阶段实机验收（2026-11-09） | task-owners | current | 2026-11-09 |
 | [Native invitation collaboration — local existing-feature acceptance](tasks/LOCAL-INVITATION-COLLABORATION.md) | Native invitation collaboration — local existing-feature acceptance | task-owners | current | 2026-11-09 |

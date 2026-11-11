@@ -1636,6 +1636,22 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 	// task-scoped bearer token, verified by the gateway itself.
 	r.Post("/api/apps/mcp", h.AppsGateway)
 
+	// Knowledge MCP endpoint (docs/tasks/KNOWLEDGE-MCP.md). One POST, JSON-RPC
+	// 2.0, and the very same Auth + membership middleware as /api/knowledge:
+	// the bearer token decides the user (a mat_ token also decides the
+	// workspace) and membership is then checked against it, so an MCP client is
+	// a second protocol over the same door, not a second door. It sits outside
+	// the session group for one reason only — h.MCPTokenExpiryGate has to see
+	// the token before Auth does, to answer an expired agent task token with the
+	// protocol's -32002 instead of a bare 401 the client cannot distinguish
+	// from a wrong credential.
+	r.Group(func(r chi.Router) {
+		r.Use(h.MCPTokenExpiryGate)
+		r.Use(middleware.Auth(queries, patCache, cloudPATVerifier, cfSigner))
+		r.Use(middleware.RequireWorkspaceMember(queries))
+		r.Post("/api/mcp/knowledge", h.KnowledgeMCP)
+	})
+
 	// Daemon API routes (require daemon token or valid user token)
 	r.Route("/api/daemon", func(r chi.Router) {
 		r.Use(middleware.DaemonAuth(queries, patCache, daemonTokenCache, cloudPATVerifier))
