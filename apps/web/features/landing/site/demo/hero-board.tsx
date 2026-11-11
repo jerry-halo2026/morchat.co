@@ -243,7 +243,8 @@ export function HeroBoard({ workflow, label, onLoop }: { workflow: Workflow; lab
     >
       <div
         aria-hidden
-        className={cn("flex text-foreground", !fit && "opacity-0")}
+        // Visible before any measurement: the fit only corrects the zoom.
+        className="flex text-foreground"
         style={{ width: canvasWidth, height: fit?.height, zoom: fit?.zoom }}
       >
         {narrow ? null : <AppRail active="work" />}

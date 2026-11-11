@@ -18,7 +18,7 @@ import {
 } from "./mock-kit";
 
 /*
- * Mockups for the Multica CLI page: a terminal connecting a computer with
+ * Mockups for the morechat.co CLI page: a terminal connecting a computer with
  * `multica setup`, the Runtimes list it lands in, and a coding agent driving
  * the CLI on someone's behalf. Command output follows the CLI's own strings;
  * data is fictional.
@@ -66,9 +66,9 @@ function SetupSession({ compact }: { compact?: boolean }) {
   return (
     <>
       <Cmd>multica setup</Cmd>
-      <p>Configured for Multica Cloud (https://multica.ai).</p>
-      <p>{"  server_url: https://api.multica.ai"}</p>
-      <p>{"  app_url:    https://multica.ai"}</p>
+      <p>Configured for morechat.co Cloud (https://morechat.co).</p>
+      <p>{"  server_url: https://api.morechat.co"}</p>
+      <p>{"  app_url:    https://morechat.co"}</p>
       <Gap />
       <p>Opening browser to authenticate...</p>
       <p>Authenticated as Leo Park (leo@acme.dev)</p>
@@ -76,7 +76,7 @@ function SetupSession({ compact }: { compact?: boolean }) {
       <p>Daemon started (pid 48211, version v0.4.31)</p>
       <Gap />
       <p className="text-foreground">
-        <span className="text-success">✓</span> Setup complete! Your machine is now connected to Multica.
+        <span className="text-success">✓</span> Setup complete! Your machine is now connected to morechat.co.
       </p>
       <Gap />
       {compact ? null : (
@@ -166,7 +166,7 @@ function ToolCall({ name, children }: { name: string; children: ReactNode }) {
   );
 }
 
-/** A coding agent working an issue through the CLI, the way the Multica CLI skill teaches it to. */
+/** A coding agent working an issue through the CLI, the way the morechat.co CLI skill teaches it to. */
 export function AgentSessionVisual() {
   return (
     <TerminalWindow title="Claude Code — acme/web" className="h-[340px] w-[420px]">

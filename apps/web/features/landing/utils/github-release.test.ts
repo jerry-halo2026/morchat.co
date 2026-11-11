@@ -23,7 +23,7 @@ describe("appVersion", () => {
   it("reads the version this repo ships, from package.json", () => {
     delete process.env.NEXT_PUBLIC_APP_VERSION;
     expect(appVersion()).toBe(appPackage.version);
-    expect(appVersion()).toBe("0.8.0");
+    // The exact number belongs to package.json; hardcoding it here only ever
   });
 
   it("prefers NEXT_PUBLIC_APP_VERSION and ignores a leading v", () => {

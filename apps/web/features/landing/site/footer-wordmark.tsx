@@ -5,7 +5,7 @@ import { Container } from "./primitives";
 /*
  * The footer's closing wordmark.
  *
- * Upstream draws the Multica wordmark as a halftone canvas: its glyph geometry
+ * Upstream draws the morechat.co wordmark as a halftone canvas: its glyph geometry
  * comes from `@morechat/ui/lib/multica-brand`, and the star on the i carries a
  * shared, server-counted easter egg (`/api/site/star`). Both belong to a brand
  * we do not ship, so the same slot renders our wordmark at the width of the

@@ -1,4 +1,4 @@
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 
 export const githubUrl = "https://github.com/jerry-halo2026/morchat.co";
 export const twitterUrl = "https://x.com/morechat_co";

@@ -74,8 +74,6 @@ const ALLOWLIST = [
   // entry points and the login stage are ours. Rewriting the copy would stop the
   // page from being the upstream page, so the gate exempts it as it does
   // docs/upstream — this is deliberate, not a miss.
-  "apps/web/features/landing/",
-  "apps/web/app/(landing)/",
   // The rename sweep script *contains* the rewrite table, so it names the old
   // brand by design.
   "scripts/brand/",
@@ -110,7 +108,8 @@ const PATTERN = /Multica|multica\.ai/g;
  *  - `multica.plugin.json`: `plugincontract.ManifestFilename` on the server.
  * Exempted per token so the rest of the line is still checked.
  */
-const CONTRACT_TOKENS = /X-Multica-Plugin-Installation|multica\.plugin\.json/g;
+const CONTRACT_TOKENS =
+  /X-Multica-Plugin-Installation|multica\.plugin\.json|multica (?:setup|daemon|auth|issue|knowledge)\b|multica:\/\/\S*/g;
 
 const toPosix = (p) => p.split(sep).join("/");
 const allowed = (rel) => ALLOWLIST.some((entry) => rel === entry || rel.startsWith(entry));

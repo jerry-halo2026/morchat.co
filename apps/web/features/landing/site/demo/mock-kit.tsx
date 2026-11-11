@@ -114,7 +114,8 @@ export function ZoomCanvas({ width, height, children }: { width: number; height:
     <div ref={ref} className="absolute inset-0 overflow-hidden">
       <div
         aria-hidden
-        className={cn("relative text-foreground", fit === null && "opacity-0")}
+        // Visible before any measurement: the fit only corrects the zoom.
+        className="relative text-foreground"
         style={{ width: fit?.width ?? width, height: fit?.height ?? height, zoom: fit?.zoom }}
       >
         {children}
@@ -261,7 +262,7 @@ export const APP_CARD =
   "relative flex min-w-0 flex-1 overflow-hidden rounded-xl bg-page-canvas shadow-[var(--surface-shadow)] ring-1 ring-surface-border";
 
 /**
- * The Multica app as a window: the rail on the grey app shell, and the page
+ * The morechat.co app as a window: the rail on the grey app shell, and the page
  * on the content card with the space panel collapsed. A window that runs off
  * the right and bottom of its frame passes `bleed` (in px), and the page keeps
  * its content out of the cropped strip so nothing is cut mid-word.
