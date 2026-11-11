@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { capFor, formatCap } from "@morechat/ui/components/common/cap-avatar";
+import { deriveAoraSpec, encodeAoraSpec } from "@morechat/core/avatar/aora-spec";
 import { parsePresetCatalog, type PresetPackage } from "./catalog";
 import {
   planPresetImport,
@@ -127,18 +127,20 @@ function newRecorder(): Recorder {
 }
 
 describe("presetAvatar", () => {
-  it("derives the cap: avatar from the preset agent id", () => {
+  it("derives the aora: avatar from the preset agent id", () => {
     expect(presetAvatar("ai-engineer")).toBe(
-      formatCap(capFor("ai-engineer")),
+      encodeAoraSpec(deriveAoraSpec("ai-engineer")),
     );
-    expect(presetAvatar("ai-engineer")).toMatch(/^cap:[a-z-]+:[a-z-]+$/);
+    expect(presetAvatar("ai-engineer")).toMatch(
+      /^aora:[a-z-]*:[a-z-]+:[a-z-]+:[a-z-]+:[a-z-]+:[0-9a-f]+$/,
+    );
   });
 
   it("is stable and distinct per preset", () => {
     expect(presetAvatar("opc-team-lead")).toBe(presetAvatar("opc-team-lead"));
     const ids = ["ai-engineer", "opc-team", "life-value-advisor"];
-    const caps = new Set(ids.map(presetAvatar));
-    expect(caps.size).toBeGreaterThan(1);
+    const faces = new Set(ids.map(presetAvatar));
+    expect(faces.size).toBeGreaterThan(1);
   });
 });
 

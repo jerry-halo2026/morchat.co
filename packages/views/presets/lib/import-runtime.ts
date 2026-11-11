@@ -13,7 +13,7 @@
 // All I/O goes through PresetImportRuntime so the sequencing, idempotency and
 // avatar rules are testable without a server.
 
-import { capFor, formatCap } from "@morechat/ui/components/common/cap-avatar";
+import { deriveAoraSpec, encodeAoraSpec } from "@morechat/core/avatar/aora-spec";
 import type { PresetPackageDetail } from "@morechat/core/presets/types";
 import {
   presetDescription,
@@ -24,12 +24,12 @@ import {
 } from "./catalog";
 
 /**
- * Generated `cap:` avatar for a preset agent. The identity is derived from the
+ * Derived Aora avatar for a preset agent. The identity is derived from the
  * preset's own agent id, so every workspace that imports the same preset gets
  * the same face and re-imports keep it.
  */
 export function presetAvatar(agentId: string): string {
-  return formatCap(capFor(agentId));
+  return encodeAoraSpec(deriveAoraSpec(agentId));
 }
 
 export interface PresetSkillBundle {

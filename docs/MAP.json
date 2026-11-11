@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 179,
-  "fingerprint": "63e464a002238c078e238897722bdc5e6de849a940ddef5189275461fb7240df",
+  "count": 180,
+  "fingerprint": "02e789453d065b772048c987fcda1a7d450610692744f1b4a39b609d5ed0ae0b",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -903,6 +903,7 @@
       "related": [],
       "links_out": [],
       "links_in": [
+        "docs/tasks/PASSWORD-AUTH.md",
         "docs/tasks/UI-VERIFICATION.md"
       ]
     },
@@ -1813,6 +1814,26 @@
       "links_in": []
     },
     {
+      "path": "docs/tasks/PASSWORD-AUTH.md",
+      "title": "密码登录（不依赖 Supabase）",
+      "purpose": "邮箱 + 密码登录的原生实现：Argon2id 凭据、登录/改密/重置三个接口、失败锁定、CLI 供给与审计落点",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/engineering/CONTRACTS.md",
+        "server/migrations/643_user_password.up.sql",
+        "server/internal/auth/password.go",
+        "server/internal/handler/auth_password.go",
+        "server/internal/handler/user_password.go",
+        "server/cmd/multica/cmd_user_password.go"
+      ],
+      "links_out": [
+        "docs/engineering/CONTRACTS.md"
+      ],
+      "links_in": []
+    },
+    {
       "path": "docs/tasks/PERSONAL-KEY-E2E.md",
       "title": "公司 Key 失效 → 降级个人 Key → 用量记 personal 验证记录",
       "purpose": "公司 Key 失效 → 自动降级个人 Key → 用量记 personal 的端到端验证记录（P3-C）",
@@ -2706,5 +2727,11 @@
     }
   ],
   "problems": [],
-  "dead_links": []
+  "dead_links": [
+    "docs/tasks/PASSWORD-AUTH.md -> related docs/tasks/server/cmd/multica/cmd_user_password.go",
+    "docs/tasks/PASSWORD-AUTH.md -> related docs/tasks/server/internal/auth/password.go",
+    "docs/tasks/PASSWORD-AUTH.md -> related docs/tasks/server/internal/handler/auth_password.go",
+    "docs/tasks/PASSWORD-AUTH.md -> related docs/tasks/server/internal/handler/user_password.go",
+    "docs/tasks/PASSWORD-AUTH.md -> related docs/tasks/server/migrations/643_user_password.up.sql"
+  ]
 }

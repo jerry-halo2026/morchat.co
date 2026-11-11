@@ -75,8 +75,12 @@ const nextConfig: NextConfig = {
               destination: `${remoteApiUrl}/v1/:path*`,
             },
             {
-              source: "/api/:path*",
-              destination: `${remoteApiUrl}/api/:path*`,
+              // `/api/avatar/**` is a Next.js app route (it renders the static
+              // character SVG), so it has to reach the app router. `afterFiles`
+              // rewrites run before app routes are matched, so the API proxy
+              // must step around the one namespace the app owns.
+              source: "/api/:path((?!avatar(?:/|$)).*)",
+              destination: `${remoteApiUrl}/api/:path`,
             },
             {
               source: "/ws",
