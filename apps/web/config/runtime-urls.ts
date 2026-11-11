@@ -122,6 +122,14 @@ export function runtimeRewriteDestination(
   const remoteApiUrl = resolveRemoteApiUrl(env);
   if (!remoteApiUrl) return undefined;
 
+  // The avatar route is a Next.js app route (`app/api/avatar/**`), not a backend
+  // endpoint: it renders the character SVG from `@aora-bot/engine` and caches it
+  // as immutable. Proxying it would send every avatar to the API origin, which
+  // has no such route.
+  if (pathname === "/api/avatar" || pathname.startsWith("/api/avatar/")) {
+    return undefined;
+  }
+
   if (pathname === "/v1" || pathname.startsWith("/v1/")) {
     return appendPath(remoteApiUrl, pathname);
   }

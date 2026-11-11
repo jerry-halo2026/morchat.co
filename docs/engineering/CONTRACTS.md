@@ -58,7 +58,7 @@ avatar_url = aora:<character>:<shape>:<color>:<face>:<style>:<seed>
 - **派生规则**（没人选过头像时）：只随机 `shape`（Aora 的 8 个 16px 可读形状）与 `color`（11 个可分配色）；
   `style` 固定 `vector`（扁平）、`face` 固定 `capsule`（胶囊眼）、`character` 留空由 cast 决定、`seed` 由 id 哈希得出。
 - 空值与历史 `cap:` 值一律视为"派生"，不需要数据迁移；显式 `aora:` 值优先。
-- 渲染：列表（<32px）走 `GET /api/avatar/<spec>.svg`（服务端 `renderStaticSvg`，`Cache-Control: immutable`）；
+- 渲染：列表（<32px）走 `GET /avatar/<spec>.svg`（服务端 `renderStaticSvg`，`Cache-Control: immutable`）；
   单实例（≥32px）走 `@aora-bot/react` 的 `CharacterMark`，尊重 `prefers-reduced-motion`。
 - 尺寸沿用上游槽位 20/24/40/56，不因头像改动布局。
 

@@ -135,6 +135,8 @@ export const config = {
     "/v1/:path*",
     // Uploads stream through an App Router handler instead of Proxy's body clone.
     "/api",
+    // Same reason for avatars: /api/avatar is an App Router route that renders
+    // the SVG itself, so the proxy must not forward it to the Go API.
     "/api/((?!upload-file(?:/|$)).*)",
     "/auth/:path*",
     "/uploads/:path*",

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ActorAvatar as ActorAvatarBase } from "@morechat/ui/components/common/actor-avatar";
-import { CapAvatar, parseCap } from "@morechat/ui/components/common/cap-avatar";
+import { AoraAvatar } from "@morechat/ui/components/common/aora-avatar";
 import {
   AVATAR_SIZE_PX,
   type AvatarSize,
@@ -57,11 +57,9 @@ interface ActorAvatarProps {
   size?: AvatarSize;
   className?: string;
   /**
-   * Let a *single-instance* agent avatar animate (agent detail header, a
-   * running-agent indicator, the sidebar's "正在执行" strip). Lists, boards,
-   * tables and feeds must leave this off: from 32px up an animated face is an
-   * engine subscriber, and a row of forty of them would compete for the same
-   * governor slots. Static frame by default (see `CapAvatar`).
+   * Retained for call-site compatibility. Aora faces are static SVGs served
+   * from `/avatar`, so there is no frame loop to subscribe to and nothing
+   * for this flag to switch on.
    */
   animated?: boolean;
   /**
@@ -96,6 +94,17 @@ const FOCUSABLE_ANCESTOR_SELECTOR =
 const PROFILE_LINK_CONTROL_SELECTOR =
   'button, [role^="menuitem"], [role="option"], [data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="popover-trigger"]';
 
+/**
+ * Whether an agent's `avatar_url` is ours to draw: empty (nobody chose a face)
+ * or a persisted `aora:` / legacy `cap:` value. Upload paths, `emoji:` values
+ * and anything else keep the uploaded-image or emoji rendering.
+ */
+function ownsAgentAvatar(avatarUrl: string | null | undefined): boolean {
+  if (!avatarUrl) return true;
+  const value = avatarUrl.trim();
+  return value.startsWith("aora:") || value.startsWith("cap:");
+}
+
 export function ActorAvatar({
   actorType,
   actorId,
@@ -104,7 +113,6 @@ export function ActorAvatar({
   profileRequiresDirectoryEntry = false,
   size,
   className,
-  animated = false,
   enableHoverCard,
   showStatusDot,
   hoverCardVariant = "profile",
@@ -129,24 +137,23 @@ export function ActorAvatar({
   // rounds an agent up (or down) — the slot decides, exactly as it does for
   // members and squads.
   const resolvedSize: AvatarSize | undefined = size;
-  // Generated agent avatars (`cap:<body>:<palette>`) render through the bot
-  // engine instead of the img/emoji fallback chain. `CapAvatar` returns null for
-  // every other avatar value, so the legacy pipeline is untouched — but the test
-  // is done here rather than relying on that, because a null child inside the
-  // circle wrapper would silently collapse the slot.
+  // Agent faces are Aora characters. An explicit `aora:` spec renders as
+  // written; an empty value or a legacy `cap:` one renders the spec derived
+  // from the agent id, so every agent keeps a face without a data migration.
+  // Uploads, `emoji:` values and any other avatar_url stay on the img/emoji
+  // chain below — the test is done here rather than relying on a child that
+  // renders nothing, because a null child inside the circle wrapper would
+  // silently collapse the slot.
   const generatedAvatar =
-    actorType === "agent" && parseCap(resolvedAvatarUrl)
-      ? (
-          <CapAvatar
-            agentId={actorId}
-            size={resolvedSize}
-            avatarUrl={resolvedAvatarUrl}
-            animated={animated}
-            label={resolvedName}
-            className={className}
-          />
-        )
-      : null;
+    actorType === "agent" && ownsAgentAvatar(resolvedAvatarUrl) ? (
+      <AoraAvatar
+        entityId={actorId}
+        size={resolvedSize}
+        avatarUrl={resolvedAvatarUrl}
+        name={resolvedName}
+        className={className}
+      />
+    ) : null;
   const avatar = generatedAvatar ?? (
     <ActorAvatarBase
       name={resolvedName}
