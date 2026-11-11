@@ -52,6 +52,7 @@ related:
 
 - `bundle-dsh.mjs`：新增产出 `resources/dsh-profile/`（`bundle.json` 清单 + `package/` 载荷）。输入 `MORECHAT_DSH_PROFILE_SRC` 或 `--profile-src`，默认找 `<DSH 安装根>/node_modules/@multica-ai/dsh-runtime`。`BUNDLE_RULES` 升到 `2026-11-11.2`。`--report-only` 只打印状态；`up to date` 判定同时要求两个清单存在，缺一个就重建。没有桥接产物时只写清单（`state: "missing-bridge"`），**不放占位包**。
 - `after-pack.cjs`：拷贝名单加 `dsh-profile`（`["dsh", "node", "dsh-profile"]`）。
+- `apps/desktop/.gitignore`（**超出本轮声明写域的一行**，为让生成物不进提交）：新增 `resources/dsh-profile/`，与已有的 `resources/dsh/`、`resources/node/` 同规则。
 
 ### 测试（`server/internal/daemon/`）
 
@@ -164,13 +165,52 @@ if (existsSync(manifest) && JSON.parse(readFileSync(manifest, "utf8")).state ===
 
 ## 验证（真跑输出）
 
-- `go build ./...` → 0
-- `go vet ./internal/daemon/...` → 0
-- 新增用例：见下（`go test ./internal/daemon/ -count=1 -run 'TestDsh|TestProvision|TestLoadConfig|TestStartDsh|TestInstall|TestMergeDsh|TestKickAgentDiscovery' -v`）
-- `node apps/desktop/scripts/bundle-dsh.mjs` → `resources/dsh-profile/` 文件数与体积见下
-- `node scripts/docs-map.mjs --check` → 通过
+```
+$ go build ./...                       → 0
+$ go vet ./internal/daemon/...         → 0
 
-本机（Windows）**pre-existing 失败**，与本次无关（同样在 `git stash` 后的基线复现）：`repocache` 的 `Filename too long` 与 worktree 注册、`TestLoadConfig_Uses*Codex*` 等 shell fixture 用例、`TestDshPluginPathDirs_FindsBothLayouts/flat`、`TestRunTask*` 的 fake claude。均为环境问题（8.3 短路径 / `#!/bin/sh` fixture），非本轮改动引起。
+$ go test ./internal/daemon/ -count=1 -run 'TestLoadConfig_ZeroCLI|TestDshProfileBundleInstallRegistersDshOnline|TestInstallDshProfileForStartup|TestInstallDshProfileFromBundleDir' -v
+--- PASS: TestLoadConfig_ZeroCLIWithoutABundleStillRefuses (0.02s)          (a)
+    --- PASS: .../variable_unset
+    --- PASS: .../variable_points_at_something_that_is_not_a_bundle
+    --- PASS: .../variable_names_another_package
+    --- PASS: .../read-only_probe_override_still_starts
+--- PASS: TestLoadConfig_ZeroCLIWithAValidBundleStartsAndRecordsTheBundle (0.00s)   (b)
+--- PASS: TestDshProfileBundleInstallRegistersDshOnline (0.39s)                     (c)
+--- PASS: TestInstallDshProfileForStartup_LeavesAnInstalledProfileAlone (0.00s)
+--- PASS: TestInstallDshProfileForStartup_ReportsAnUnusableBundle (0.00s)
+--- PASS: TestInstallDshProfileFromBundleDir_RefusesToMigrateOverAnExistingBridge (0.00s)
+PASS
+ok  github.com/jerry-halo2026/morchat.co/server/internal/daemon  2.726s
+```
+
+`node apps/desktop/scripts/bundle-dsh.mjs`（本机，无桥接构建）：
+
+```
+[bundle-dsh] source D:\software\deepseekharness\resources\app\dsh (dsh 0.2.2-rc.1): 21112 files / 435.97 MB
+[bundle-dsh] keep 13368 files / 142.98 MB — drop 7744 files / 292.99 MB
+[bundle-dsh] bundled runtime answers --version: 0.2.2-rc.1
+[bundle-dsh] wrote 13368 files / 142.98 MB -> resources/dsh 和 node.exe 83 MB -> resources/node
+[bundle-dsh] no @multica-ai/dsh-runtime bridge build found (...\node_modules\@multica-ai\dsh-runtime)
+[bundle-dsh] profile bundle state: missing-bridge
+```
+
+`resources/dsh-profile/`：**1 个文件 / 673 B**（`bundle.json`，`state: "missing-bridge"`、`env: {}`）。
+
+把 `MORECHAT_DSH_PROFILE_SRC` 指向一个合成 fixture（`package.json` name 正确 + `index.js` + `lib/stdio.js` + `src/ignored.ts`）后重跑，证明 ready 分支可用：
+
+```
+[bundle-dsh] profile bundle: 3 files / 0.1 KB from C:\...\dsh-runtime-fixture (@multica-ai/dsh-runtime 0.0.1-fixture) -> resources/dsh-profile/package
+[bundle-dsh] profile bundle state: ready
+→ bundle.json 900 B + package/ 3 files 133 B（`src/**` 被丢规则剔除）
+→ env.MULTICA_DSH_PROFILE_BUNDLE = "dsh-profile/package"
+```
+
+验证完已复跑一次无 fixture 的构建，`resources/dsh-profile/` 回到 `missing-bridge`（不把合成包留在树里）。
+
+`node scripts/docs-map.mjs --check`：`docs-map: 173 documents OK (front-matter, links, index, staleness)`（新增本文后先 `--build` 一次）。
+
+本机（Windows）**pre-existing 失败**，与本次无关（`git stash` 后基线同样失败）：`repocache` 的 `Filename too long` 与 worktree 注册、`TestLoadConfig_Uses*Codex*` 等 `#!/bin/sh` fixture 用例、`TestDshPluginPathDirs_FindsBothLayouts/flat`、`TestRunTask*` 的 fake claude。均为环境问题（8.3 短路径 / POSIX shell fixture），不是本轮改动引起。
 
 ## 仍缺什么
 

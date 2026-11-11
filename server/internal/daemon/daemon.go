@@ -486,6 +486,15 @@ type Daemon struct {
 	// tell "wait, this resolves itself" from "a human has to act".
 	dshInstallInFlight atomic.Bool
 
+	// dshStartupInstallOnly is true when this daemon started with no agent CLI
+	// at all, allowed to do so only because a local DSH runtime bundle is
+	// configured (MULTICA_DSH_PROFILE_BUNDLE). It is the second half of the
+	// startup exception: such a daemon has, by definition, nothing to register
+	// when the first sync runs, so that sync's "no runtimes" verdict must not
+	// kill the process the install depends on. A plain bool, set in New before
+	// any goroutine exists and never written again.
+	dshStartupInstallOnly bool
+
 	// dshInstallWaits are the runtime rows taken offline while an automatic
 	// profile install was still running, so their stated cause claims the wait
 	// resolves itself. An install that ends without a profile has to withdraw
@@ -821,6 +830,10 @@ func New(cfg Config, logger *slog.Logger) *Daemon {
 	}
 	d.activeEnvRootsCond = sync.NewCond(&d.activeEnvRootsMu)
 	d.activeStoresCond = sync.NewCond(&d.activeStoresMu)
+	// The zero-CLI startup exception lives here, not in the flag an install
+	// sets: it outlives the install itself, and reusing dshInstallInFlight for
+	// it would make later offline reasons claim an install is still running.
+	d.dshStartupInstallOnly = cfg.DshProfileBundleDir != "" && len(cfg.Agents) == 0
 	// Seed the copy-on-write availability set from the startup probe. Callers
 	// must go through d.agents() from here on; cfg.Agents is the initial value
 	// only and does not track later refreshes.
@@ -2158,6 +2171,17 @@ func (d *Daemon) run(ctx context.Context, healthLn net.Listener) error {
 	// preflight is never misreported as a started daemon. resolveAuth has
 	// already run, so a missing token still fails fast before we begin serving.
 	go d.serveHealth(ctx, healthLn, time.Now())
+
+	// A daemon that started with no agent CLI solely to install the configured
+	// DSH runtime profile does it now, before the first sync: the install needs
+	// no CLI, and doing it here means the sync that follows can already
+	// register a dsh the install made usable. A failure stops startup with the
+	// installer's own error rather than with "no runtimes registered".
+	if d.cfg.DshProfileBundleDir != "" {
+		if err := d.installDshProfileForStartup(ctx); err != nil {
+			return err
+		}
+	}
 
 	// Renew the PAT before the first API call, then do the initial
 	// workspace sync. Both steps live in preflightAuth so the ordering
@@ -4042,6 +4066,14 @@ func (d *Daemon) preflightAuth(ctx context.Context) error {
 	d.tryRenewToken(ctx)
 	err := d.syncWorkspacesFromAPI(ctx, false)
 	if d.startupMayProceedWithoutRuntimes(err) {
+		if d.dshStartupInstallOnly {
+			// Zero CLI by construction: the profile is already installed and
+			// there is no dsh to register it, so the daemon waits for one
+			// instead of exiting before anything can use the profile.
+			d.logger.Warn("starting with no runtimes registered: the DSH runtime profile is installed, " +
+				"and dsh registers as soon as its CLI is visible (set MULTICA_DSH_PATH or install dsh on PATH)")
+			return nil
+		}
 		d.logger.Warn("starting with no runtimes registered: an automatic DSH runtime profile install is still running; " +
 			"the runtime registers when it finishes")
 		return nil
@@ -4064,7 +4096,7 @@ func (d *Daemon) preflightAuth(ctx context.Context) error {
 // genuinely empty machine all still fail startup, because for those the daemon
 // has no reason to believe the answer is coming.
 func (d *Daemon) startupMayProceedWithoutRuntimes(err error) bool {
-	return errors.Is(err, errNoWorkspaceRuntimesRegistered) && d.dshInstallInFlight.Load()
+	return errors.Is(err, errNoWorkspaceRuntimesRegistered) && (d.dshInstallInFlight.Load() || d.dshStartupInstallOnly)
 }
 
 // trackedWorkspaceCount reports how many workspaces the daemon currently hosts.

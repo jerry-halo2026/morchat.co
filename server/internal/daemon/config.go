@@ -165,7 +165,20 @@ type Config struct {
 	// prefers a matching, executable override over resolving the profile's
 	// command_name on PATH. nil/empty means "always resolve via PATH".
 	ProfileCommandOverrides map[string]string
+
+	// DshProfileBundleDir is the local DSH runtime bundle directory the daemon
+	// installs at startup, set only when it started with NO agent CLI and was
+	// allowed to because that bundle is configured. Empty for every other
+	// startup, which is what keeps the startup install a single, narrow
+	// exception: an ordinary daemon installs the profile through the probe
+	// round (startDshProfileProvision), not before it.
+	DshProfileBundleDir string
 }
+
+// errNoAgentCLI is the refusal a daemon with nothing to run exits with. Named
+// once because the zero-CLI gate now has a second branch that has to prepend a
+// bundle explanation to the same sentence.
+var errNoAgentCLI = fmt.Errorf("no agent CLI found: install claude, codebuddy, codearts, codex, copilot, opencode, deveco, openclaw, hermes, pi, omp, cursor-agent, kimi, reasonix, dsh, kiro-cli, agy, qodercli, qoderclicn, traecli, grok, qwen, qwenpaw, mcode, muse, devin, dim, zeroclaw, or zcode and ensure it is on PATH")
 
 // Overrides allows CLI flags to override environment variables and defaults.
 // Zero values are ignored and the env/default value is used instead.
@@ -266,8 +279,36 @@ func LoadConfig(overrides Overrides) (Config, error) {
 	// Discover installed agent CLIs. Extracted so the periodic workspace sync
 	// can re-run the same discovery on a live daemon (MUL-5439).
 	agents := probeAgentCLIs()
+	// dshProfileBundleDir is set when this daemon started with no agent CLI and
+	// was allowed to because a local DSH runtime bundle is configured. Run uses
+	// it to install that profile before the first registration round; empty
+	// means "no exception applies".
+	dshBundleDir := ""
 	if len(agents) == 0 && !overrides.AllowNoAgents {
-		return Config{}, fmt.Errorf("no agent CLI found: install claude, codebuddy, codearts, codex, copilot, opencode, deveco, openclaw, hermes, pi, omp, cursor-agent, kimi, reasonix, dsh, kiro-cli, agy, qodercli, qoderclicn, traecli, grok, qwen, qwenpaw, mcode, muse, devin, dim, zeroclaw, or zcode and ensure it is on PATH")
+		dir, _, bundleErr := dshProfileBundleDir()
+		switch {
+		case dir == "":
+			// The refusal stands, and a configured-but-unusable bundle is named:
+			// "the variable is set" is not the same fact as "there is something
+			// to install", and only the second one justifies starting with no
+			// runtime.
+			if bundleErr != nil && len(dshProfileBundleSpecs()) > 0 {
+				slog.Warn("MULTICA_DSH_PROFILE_BUNDLE does not name an installable DSH runtime bundle; "+
+					"the daemon still needs one supported CLI to start", "error", bundleErr)
+				return Config{}, fmt.Errorf("%w; %s is set but that is not an installable DSH runtime bundle directory (%w)",
+					errNoAgentCLI, dshProfileBundleEnv, bundleErr)
+			}
+			return Config{}, errNoAgentCLI
+		default:
+			// The one startup exception, and the reason it exists: this daemon
+			// can install the profile with no CLI, package manager or network,
+			// and a host whose only runtime is a dsh that needs that profile
+			// would otherwise exit before the install could finish — taking the
+			// install with it.
+			slog.Warn("no agent CLI found; starting anyway to install the configured DSH runtime profile",
+				"bundle", dir, "profile", dshMulticaProfileName)
+			dshBundleDir = dir
+		}
 	}
 
 	claudeArgs, err := shellArgsFromEnv("MULTICA_CLAUDE_ARGS")
@@ -672,6 +713,7 @@ func LoadConfig(overrides Overrides) (Config, error) {
 		QwenArgs:                        qwenArgs,
 		QwenpawArgs:                     qwenpawArgs,
 		ProfileCommandOverrides:         profileCommandOverrides,
+		DshProfileBundleDir:             dshBundleDir,
 	}, nil
 }
 

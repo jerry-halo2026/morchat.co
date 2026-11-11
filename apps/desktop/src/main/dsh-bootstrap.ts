@@ -31,9 +31,9 @@
  */
 
 import { execFile } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { app, ipcMain } from "electron";
 
@@ -394,9 +394,28 @@ export function installDshBootstrap(options: DshBootstrapOptions): DshBootstrapH
    * spreads `process.env`, and the daemon reads `MULTICA_DSH_PATH`, so exporting
    * it here is the registration — no second config file, no second truth.
    */
+  /**
+   * The daemon may start with zero detected CLIs only while it is installing a
+   * DSH runtime profile from `MULTICA_DSH_PROFILE_BUNDLE`
+   * (server/internal/daemon/config.go). Our bundle ships that directory next to
+   * the runtime, so point the variable at it when it exists; without it the
+   * daemon has to see a working `dsh` on PATH or it refuses to start.
+   */
+  function profileBundleDir(paths: BundledDshPaths): string | null {
+    const resources = resolve(dirname(paths.commandPath), "..", "..");
+    const candidate = join(resources, "dsh-profile");
+    try {
+      return statSync(candidate).isDirectory() ? candidate : null;
+    } catch {
+      return null;
+    }
+  }
+
   function registerEnv(paths: BundledDshPaths): void {
     const env = options.env ?? process.env;
     env.MULTICA_DSH_PATH = paths.commandPath;
+    const profileDir = profileBundleDir(paths);
+    if (profileDir) env.MULTICA_DSH_PROFILE_BUNDLE = profileDir;
     const prepend = [dirname(paths.commandPath), dirname(paths.nodePath)];
     const current = env.PATH ?? env.Path ?? "";
     const parts = current.split(process.platform === "win32" ? ";" : ":");
@@ -412,6 +431,7 @@ export function installDshBootstrap(options: DshBootstrapOptions): DshBootstrapH
     if (registered && env.MULTICA_DSH_PATH === registered.commandPath) {
       delete env.MULTICA_DSH_PATH;
     }
+    delete env.MULTICA_DSH_PROFILE_BUNDLE;
     registered = null;
   }
 

@@ -9,6 +9,20 @@ import (
 	"testing"
 
 	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/pkg/agent"
+)
+
+// dshProbeFixtureEnv turns this test binary into the fake `dsh` the DSH profile
+// install test spawns. It is dispatched here rather than from a helper test
+// because the probe runs the executable as `dsh --profile multica --probe`,
+// with no `-test.run` argument, so a helper test would never be selected.
+const dshProbeFixtureEnv = "MULTICA_TEST_DSH_PROBE_FIXTURE"
+
+// dshProbeFixtureFrame is what a usable `multica` profile prints for `--probe`:
+// the protocol version the backend drives, on the runtime it drives it for.
+var dshProbeFixtureFrame = fmt.Sprintf(
+	"{\"v\":1,\"type\":\"probe\",\"runtime\":\"dsh\",\"plugin_version\":\"test\",\"protocol_version\":%d}\n",
+	agent.DshProtocolVersion,
 )
 
 // TestMain redirects the home environment variables to one scratch directory
@@ -18,6 +32,10 @@ import (
 // their own redirect; per-test t.Setenv overrides still take precedence.
 func TestMain(m *testing.M) {
 	if testutil.RunPiCleanupFixture() {
+		os.Exit(0)
+	}
+	if os.Getenv(dshProbeFixtureEnv) != "" {
+		fmt.Print(dshProbeFixtureFrame)
 		os.Exit(0)
 	}
 	for _, key := range []string{

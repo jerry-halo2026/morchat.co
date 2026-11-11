@@ -185,6 +185,253 @@ func dshProfileBundleSpecs() []string {
 	return specs
 }
 
+// dshProfileBundleManifest is the slice of a candidate bundle's own package.json
+// this daemon reads before installing a directory itself.
+type dshProfileBundleManifest struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
+
+// dshProfileBundleDirForSpec validates one configured candidate as a local
+// bundle directory.
+//
+// A directory is the only shape this daemon can install on its own, and that is
+// the shape the shipped installer produces: it bundles the runtime, so the
+// machine it runs on may have no pnpm, no registry access and no `dsh` to
+// forward `dsh plugin` to. Everything else — an npm spec, a tarball — still goes
+// through `dsh plugin add`, because fetching is the part only that command knows
+// how to do.
+//
+// The name check is not cosmetic. dshProfileNamesRuntime judges the profile by
+// exactly this package name, so a directory whose manifest names anything else
+// would be copied in and then reported missing on every later round. The reason
+// is returned rather than logged so the caller can put the exact repair in one
+// log line.
+func dshProfileBundleDirForSpec(spec string) (string, dshProfileBundleManifest, error) {
+	info, err := os.Stat(spec)
+	if err != nil {
+		return "", dshProfileBundleManifest{}, fmt.Errorf("is not a directory the daemon can read")
+	}
+	if !info.IsDir() {
+		return "", dshProfileBundleManifest{}, fmt.Errorf("is a file, not a bundle directory")
+	}
+	data, err := os.ReadFile(filepath.Join(spec, "package.json"))
+	if err != nil {
+		return "", dshProfileBundleManifest{}, fmt.Errorf("has no readable package.json")
+	}
+	var manifest dshProfileBundleManifest
+	if err := json.Unmarshal(data, &manifest); err != nil {
+		return "", dshProfileBundleManifest{}, fmt.Errorf("has a package.json that is not valid JSON")
+	}
+	if manifest.Name != dshMulticaRuntimePackage {
+		return "", manifest, fmt.Errorf("its package.json names %q, want %q", manifest.Name, dshMulticaRuntimePackage)
+	}
+	return spec, manifest, nil
+}
+
+// dshProfileBundleDir returns the first configured candidate that is an
+// installable local bundle directory, or an error naming why the configured
+// candidates are not.
+//
+// Both halves matter to the startup gate: "a bundle directory is configured" is
+// what lets a daemon with no agent CLI start, and a candidate that merely looks
+// configured (a typo, a file, the wrong package) must not.
+func dshProfileBundleDir() (string, dshProfileBundleManifest, error) {
+	specs := dshProfileBundleSpecs()
+	var lastErr error
+	for i, spec := range specs {
+		dir, manifest, err := dshProfileBundleDirForSpec(spec)
+		if err == nil {
+			return dir, manifest, nil
+		}
+		// Named by position, never by content: a spec can be an absolute path
+		// carrying a username or an npm URL carrying credentials, and this
+		// error reaches a log line.
+		lastErr = fmt.Errorf("candidate %d of %d %w", i+1, len(specs), err)
+	}
+	if lastErr == nil {
+		lastErr = fmt.Errorf("%s is not set", dshProfileBundleEnv)
+	}
+	return "", dshProfileBundleManifest{}, lastErr
+}
+
+// dshProfileInstallDir is <DSH_HOME>/profiles/multica, or "" when the DSH home
+// cannot be resolved.
+func dshProfileInstallDir() string {
+	path := dshMulticaProfileManifestPath()
+	if path == "" {
+		return ""
+	}
+	return filepath.Dir(path)
+}
+
+// dshBundleInstallPath is where a bundle named @multica-ai/dsh-runtime lands
+// inside the profile: the profile's own node_modules, which is what DSH's
+// loadProfile resolves a bundle name against.
+func dshBundleInstallPath(profileDir string) string {
+	return filepath.Join(profileDir, "node_modules", filepath.FromSlash(dshMulticaRuntimePackage))
+}
+
+// newDshProfileObject is the profile DSH itself leaves behind for a profile with
+// no plugins installed. An install extends this rather than inventing a shape,
+// so a profile written here is one DSH could have written.
+func newDshProfileObject() map[string]any {
+	return map[string]any{
+		"name":         "dsh-profile-multica",
+		"private":      true,
+		"dependencies": map[string]any{},
+		"dsh": map[string]any{
+			"profile": map[string]any{"bundles": []any{dshBaseProfileBundle}},
+		},
+	}
+}
+
+// readDshProfileObject returns the existing profile manifest as a generic object
+// so unknown fields survive the rewrite, or DSH's template when there is no
+// manifest yet. A manifest that cannot be parsed is an error, not a template:
+// overwriting one would discard a configuration this daemon was told not to
+// touch.
+func readDshProfileObject() (map[string]any, error) {
+	path := dshMulticaProfileManifestPath()
+	if path == "" {
+		return nil, fmt.Errorf("cannot resolve the DSH profile path")
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return newDshProfileObject(), nil
+		}
+		return nil, fmt.Errorf("read the existing DSH profile manifest: %w", err)
+	}
+	var current map[string]any
+	if err := json.Unmarshal(data, &current); err != nil {
+		return nil, fmt.Errorf("the existing DSH profile manifest is not valid JSON: %w", err)
+	}
+	if current == nil {
+		return nil, fmt.Errorf("the existing DSH profile manifest is not a JSON object")
+	}
+	return current, nil
+}
+
+// dshProfileInstallManifest folds the runtime into a profile manifest: the
+// dependency records what was installed, and the bundles list is what DSH
+// actually loads. The legacy bridge is dropped from that list, because
+// dshProfileNamesRuntime treats the two together as a configuration this daemon
+// must not touch.
+func dshProfileInstallManifest(current map[string]any, version string) map[string]any {
+	dependencies, _ := current["dependencies"].(map[string]any)
+	if dependencies == nil {
+		dependencies = map[string]any{}
+	}
+	dependencies[dshMulticaRuntimePackage] = version
+	current["dependencies"] = dependencies
+
+	dsh, _ := current["dsh"].(map[string]any)
+	if dsh == nil {
+		dsh = map[string]any{}
+	}
+	profile, _ := dsh["profile"].(map[string]any)
+	if profile == nil {
+		profile = map[string]any{}
+	}
+	raw, _ := profile["bundles"].([]any)
+	bundles := make([]any, 0, len(raw)+2)
+	for _, entry := range raw {
+		name, _ := entry.(string)
+		if name == dshLegacyRuntimePackage || name == dshMulticaRuntimePackage {
+			continue
+		}
+		bundles = append(bundles, name)
+	}
+	if len(bundles) == 0 {
+		bundles = append(bundles, dshBaseProfileBundle)
+	}
+	bundles = append(bundles, dshMulticaRuntimePackage)
+	profile["bundles"] = bundles
+	dsh["profile"] = profile
+	current["dsh"] = dsh
+	return current
+}
+
+// saveDshProfileManifest replaces the profile manifest atomically. A half
+// written manifest is the difference between "installed" and "missing" for
+// every later round, and the readers here only ever see one or the other.
+func saveDshProfileManifest(current map[string]any) error {
+	path := dshMulticaProfileManifestPath()
+	if path == "" {
+		return fmt.Errorf("cannot resolve the DSH profile path")
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return fmt.Errorf("create the profile directory: %w", err)
+	}
+	data, err := json.MarshalIndent(current, "", "  ")
+	if err != nil {
+		return fmt.Errorf("encode the profile manifest: %w", err)
+	}
+	temp := path + ".multica-tmp"
+	if err := os.WriteFile(temp, append(data, '\n'), 0o600); err != nil {
+		return fmt.Errorf("write the profile manifest: %w", err)
+	}
+	if err := os.Rename(temp, path); err != nil {
+		_ = os.Remove(temp)
+		return fmt.Errorf("replace the profile manifest: %w", err)
+	}
+	return nil
+}
+
+// installDshProfileFromBundleDir materializes the `multica` profile from a local
+// bundle directory: the bundle's files go into the profile's node_modules and
+// the manifest is extended to load it.
+//
+// Ordering is the contract. The files land first and the manifest last, because
+// dshMulticaProfilePresent judges the manifest — a copy interrupted half way
+// must never leave a profile that looks installed.
+func installDshProfileFromBundleDir(dir string, manifest dshProfileBundleManifest) error {
+	profileDir := dshProfileInstallDir()
+	if profileDir == "" {
+		return fmt.Errorf("cannot resolve the DSH home directory")
+	}
+	target := dshBundleInstallPath(profileDir)
+	if err := os.RemoveAll(target); err != nil {
+		return fmt.Errorf("clear the installed %s: %w", dshMulticaRuntimePackage, err)
+	}
+	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+		return fmt.Errorf("create the profile node_modules: %w", err)
+	}
+	if err := os.CopyFS(target, os.DirFS(dir)); err != nil {
+		return fmt.Errorf("copy the bundle into the profile: %w", err)
+	}
+	current, err := readDshProfileObject()
+	if err != nil {
+		return err
+	}
+	version := strings.TrimSpace(manifest.Version)
+	if version == "" {
+		version = "0.0.0"
+	}
+	return saveDshProfileManifest(dshProfileInstallManifest(current, version))
+}
+
+// installDshProfileCandidate installs one configured local bundle directory and
+// reports success only once the profile every later round judges by is on disk.
+// A copy that produced files but no loadable manifest is a failed candidate, not
+// a quiet success.
+func installDshProfileCandidate(spec, position string, logger *slog.Logger) error {
+	dir, manifest, err := dshProfileBundleDirForSpec(spec)
+	if err != nil {
+		return fmt.Errorf("%s %w", position, err)
+	}
+	if err := installDshProfileFromBundleDir(dir, manifest); err != nil {
+		return fmt.Errorf("%s: %w", position, err)
+	}
+	if !dshMulticaProfilePresent() {
+		return fmt.Errorf("%s: wrote the profile but its manifest does not load %s", position, dshMulticaRuntimePackage)
+	}
+	logger.Info("installed the DSH runtime profile from a local bundle",
+		"bundle_candidate", position, "path", dir, "profile", dshMulticaProfileName)
+	return nil
+}
+
 // dshPluginPathDirs returns the directories that may hold the pnpm `dsh plugin`
 // forwards to, newest first. Only directories that exist are returned:
 // prepending a miss to PATH buys nothing and makes the environment harder to
@@ -331,6 +578,11 @@ func dshProvisionCommand(dshPath, spec string) *exec.Cmd {
 // `multica` profile, so a later discovery round finds a usable dsh. Candidates
 // are tried in order and the first success wins.
 //
+// dshPath may be empty: a candidate that is a local bundle directory is
+// installed by this daemon directly and needs no CLI, while every other
+// candidate needs `dsh plugin` and is reported as a failed candidate when there
+// is no dsh to run it with.
+//
 // Runs the package manager through processtree: `dsh plugin` forwards to pnpm,
 // which spawns node, which spawns whatever the bundle's install script needs.
 // Killing only the direct child would leave that tree writing into the operator's
@@ -360,6 +612,28 @@ func provisionDshMulticaProfile(ctx context.Context, dshPath string, logger *slo
 
 	var lastErr error
 	for i, spec := range specs {
+		// A local bundle directory is installed here instead of through the
+		// CLI: copying a bundle into the profile's node_modules needs no
+		// package manager, no registry and no `dsh` — the three things the
+		// machine this feature exists for is likeliest to be missing.
+		if info, statErr := os.Stat(spec); statErr == nil && info.IsDir() {
+			if lastErr = installDshProfileCandidate(spec, fmt.Sprintf("candidate %d of %d", i+1, len(specs)), logger); lastErr == nil {
+				return nil
+			}
+			logger.Warn("DSH runtime profile install failed",
+				"bundle_candidate", i+1, "candidates", len(specs), "error", lastErr)
+			continue
+		}
+		if dshPath == "" {
+			// Nothing to run `dsh plugin` with. Its own failure rather than
+			// silence: a machine that was told a bundle is configured and has
+			// no CLI gets a line saying exactly that.
+			lastErr = fmt.Errorf("candidate %d of %d needs `dsh plugin --profile %s add`, but no dsh executable is visible",
+				i+1, len(specs), dshMulticaProfileName)
+			logger.Warn("DSH runtime profile install failed",
+				"bundle_candidate", i+1, "candidates", len(specs), "error", lastErr)
+			continue
+		}
 		output, err := processtree.CombinedOutput(ctx, dshProvisionCommand(dshPath, spec), 5*time.Second)
 		switch {
 		case err == nil && dshMulticaProfilePresent():
@@ -452,4 +726,47 @@ func (d *Daemon) startDshProfileProvision(dshPath string) bool {
 		}()
 	})
 	return started
+}
+
+// installDshProfileForStartup installs the configured profile before the first
+// registration round, and is the half of the startup exception that makes it
+// more than a promise.
+//
+// The exception exists because a daemon whose only runtime is a DSH that needs
+// this profile would otherwise exit before the install it just started could
+// finish, taking the install's process tree with it. So a daemon that started
+// with no agent CLI because a bundle directory is configured installs that
+// bundle here — synchronously, with no CLI, no package manager and no network —
+// and fails startup with the installer's own error if it cannot. A failure is
+// never silent: the error is returned to the caller, which exits with it.
+//
+// A profile that is already present is left alone: reinstalling over it would
+// overwrite a working installation on every restart.
+func (d *Daemon) installDshProfileForStartup(ctx context.Context) error {
+	if dshMulticaProfilePresent() {
+		d.logger.Info("DSH runtime profile is already installed; nothing to prepare before startup",
+			"profile", dshMulticaProfileName)
+		return nil
+	}
+	dir, _, err := dshProfileBundleDir()
+	if err != nil {
+		d.logger.Warn("cannot install the DSH runtime profile before startup", "error", err)
+		return err
+	}
+	d.logger.Info("installing the DSH runtime profile before startup",
+		"bundle", dir, "profile", dshMulticaProfileName)
+	// Set for the duration of the install and cleared by the normal path: the
+	// startup exception is carried by dshStartupInstallOnly, not by stretching
+	// this flag past the work it describes.
+	d.dshInstallInFlight.Store(true)
+	err = provisionDshMulticaProfile(ctx, "", d.logger)
+	d.dshInstallInFlight.Store(false)
+	if err != nil {
+		d.logger.Warn("the DSH runtime profile install failed before startup; "+
+			"dsh stays unregistered until a profile is installed", "error", err)
+		return err
+	}
+	d.logger.Info("installed the DSH runtime profile before startup; dsh registers as soon as its CLI is visible",
+		"profile", dshMulticaProfileName)
+	return nil
 }

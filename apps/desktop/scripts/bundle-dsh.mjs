@@ -3,12 +3,23 @@
 // morechat.co can register DSH on first launch instead of asking the user to go
 // install DeepSeek Harness themselves.
 //
-// Two things are copied:
+// Three things are copied:
 //
 //   1. the DSH CLI and everything its boot chain resolves at startup
 //      (`node_modules/**`, the package manifest, and DSH's own
 //      `desktop-runtime.json`) 鈫?`resources/dsh/`;
-//   2. the pinned portable Node that runs that CLI 鈫?`resources/node/`.
+//   2. the pinned portable Node that runs that CLI 鈫?`resources/node/`;
+//   3. the `multica` profile bundle, when a bridge build is available ->
+//      `resources/dsh-profile/` (see `writeDshProfileBundle`).
+//
+// (3) is what turns "the daemon can see dsh" into the official install path:
+// the daemon installs a local bundle directory itself, with no pnpm and no
+// registry, so `MULTICA_DSH_PROFILE_BUNDLE` can point inside the app. The
+// directory layout and the manifest fields it needs are recorded in
+// `resources/dsh-profile/bundle.json`, which is also what a consumer reads to
+// decide whether to export that variable at all — `state` is `ready` only when a
+// real bundle payload was copied. Without one, the daemon correctly reports the
+// profile as missing instead of trusting a placeholder.
 //
 // Why a pinned Node instead of the user's: DSH is a Node program (`bin` is
 // `lib/bin.js`), and "installed but no Node" is the same broken first run as
@@ -35,6 +46,7 @@
 // Environment overrides (same names a CI runner would set):
 //   MORECHAT_DSH_RUNTIME_SRC   upstream install root (鈥?resources/app/dsh)
 //   MORECHAT_PORTABLE_NODE     directory or file holding the pinned node
+//   MORECHAT_DSH_PROFILE_SRC   the @multica-ai/dsh-runtime bridge build to ship
 
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -48,14 +60,24 @@ const desktopDir = resolve(here, "..");
 const outRoot = join(desktopDir, "resources");
 const outDshDir = join(outRoot, "dsh");
 const outNodeDir = join(outRoot, "node");
+const outProfileDir = join(outRoot, "dsh-profile");
 const manifestPath = join(outDshDir, ".morechat-bundle.json");
+const profileManifestPath = join(outProfileDir, "bundle.json");
+
+// The package the daemon's profile check looks for, and the profile it has to
+// end up loaded by. Both are fixed by server/internal/daemon/dsh_profile.go:
+// a bundle whose manifest names anything else installs files the daemon then
+// reports as missing.
+const PROFILE_PACKAGE = "@multica-ai/dsh-runtime";
+const PROFILE_NAME = "multica";
+const PROFILE_PAYLOAD_REL = "package";
 
 const DEFAULT_SRC = "D:\\software\\deepseekharness\\resources\\app\\dsh";
 const DEFAULT_NODE_DIR =
   "E:\\CodexData\\morchat-r1-local\\tools\\node22\\node-v22.23.4-win-x64";
 
 // Bump when the rules change in a way that must invalidate existing bundles.
-const BUNDLE_RULES = "2026-11-11.1";
+const BUNDLE_RULES = "2026-11-11.2";
 
 /**
  * Packages dropped whole, with the reason they are droppable. All four are
@@ -107,6 +129,7 @@ function parseArgs(argv) {
   const out = {
     src: process.env.MORECHAT_DSH_RUNTIME_SRC || DEFAULT_SRC,
     node: process.env.MORECHAT_PORTABLE_NODE || DEFAULT_NODE_DIR,
+    profileSrc: process.env.MORECHAT_DSH_PROFILE_SRC || "",
     maxMb: 150,
     force: false,
     reportOnly: false,
@@ -126,6 +149,9 @@ function parseArgs(argv) {
         break;
       case "--node":
         out.node = value();
+        break;
+      case "--profile-src":
+        out.profileSrc = value();
         break;
       case "--max-mb":
         out.maxMb = Number(value());
@@ -252,6 +278,135 @@ function probeBundle(nodeBinary, entryPath) {
   return { ok: /^[0-9]+\.[0-9]+\.[0-9]+/.test(stdout), version: stdout.split(/\r?\n/)[0] };
 }
 
+/**
+ * Reads a JSON file, tolerating a UTF-8 BOM. A package.json written by a Windows
+ * tool (PowerShell's `-Encoding utf8` writes one) is otherwise a parse error for
+ * `JSON.parse`, and that would fail the whole bundle build over an invisible
+ * character.
+ */
+async function readJsonFile(path) {
+  const text = await readFile(path, "utf8");
+  return JSON.parse(text.replace(/^\uFEFF/, ""));
+}
+
+/**
+ * Locates a built `@multica-ai/dsh-runtime` bridge: an explicit source wins,
+ * otherwise the DSH install tree is asked, which is where `dsh plugin add` would
+ * have put it. Returns null when there is none.
+ */
+async function resolveProfileSource(options) {
+  const candidates = options.profileSrc
+    ? [resolve(options.profileSrc)]
+    : [join(resolve(options.src), "node_modules", ...PROFILE_PACKAGE.split("/"))];
+  for (const candidate of candidates) {
+    if (existsSync(join(candidate, "package.json"))) return candidate;
+  }
+  return null;
+}
+
+/**
+ * Produces `resources/dsh-profile/`: the `multica` profile bundle the daemon
+ * installs, plus the manifest that describes it (`bundle.json`).
+ *
+ * Only a real bridge payload is ever written into `package/`. The bridge is not
+ * on a public registry yet (multica#6936), so a build without one still gets
+ * `bundle.json` — with `state: "missing-bridge"` and no payload — and the daemon
+ * is left to report the profile as missing, which is the truth. Writing a
+ * placeholder package would make the profile look installed and then fail every
+ * `--probe`, which is strictly worse than saying so.
+ *
+ * Volume: this is a profile bundle, not the DSH install. Only the files DSH
+ * loads are kept; sources, source maps, docs and tests are dropped.
+ */
+async function writeDshProfileBundle(options, dshVersion) {
+  await rm(outProfileDir, { recursive: true, force: true });
+  await mkdir(outProfileDir, { recursive: true });
+
+  const source = await resolveProfileSource(options);
+  const manifest = {
+    schemaVersion: 1,
+    rules: BUNDLE_RULES,
+    kind: "dsh-profile-bundle",
+    profile: PROFILE_NAME,
+    package: PROFILE_PACKAGE,
+    // What server/internal/daemon/dsh_profile.go expects. Paths are relative to
+    // the app's resources root.
+    layout: {
+      bundle: `dsh-profile/${PROFILE_PAYLOAD_REL}`,
+      profileManifest: `profiles/${PROFILE_NAME}/package.json`,
+      bundleInstallPath: `profiles/${PROFILE_NAME}/node_modules/${PROFILE_PACKAGE}`,
+      manifestBundlesKey: "dsh.profile.bundles",
+      manifestBundlesEntry: PROFILE_PACKAGE,
+      manifestDependencyKey: `dependencies.${PROFILE_PACKAGE}`,
+    },
+    // For the desktop bootstrap: with no payload there is nothing to export, and
+    // the daemon's existing "report the missing profile" behaviour is correct.
+    env: source ? { MULTICA_DSH_PROFILE_BUNDLE: "dsh-profile/package" } : {},
+    dshVersion,
+    state: "missing-bridge",
+    source: source ?? null,
+    files: 0,
+    bytes: 0,
+    builtAt: new Date().toISOString(),
+  };
+
+  if (!source) {
+    console.warn(
+      `[bundle-dsh] no ${PROFILE_PACKAGE} bridge build found (looked at ` +
+        `${join(resolve(options.src), "node_modules", PROFILE_PACKAGE)}); ` +
+        "resources/dsh-profile carries the manifest only and the daemon will report the profile as missing. " +
+        "Set MORECHAT_DSH_PROFILE_SRC to the built bridge to ship it.",
+    );
+    await writeFile(profileManifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+    return manifest;
+  }
+
+  const pkg = await readJsonFile(join(source, "package.json"));
+  if (pkg.name !== PROFILE_PACKAGE) {
+    // Not a hard failure: a checkout of the wrong package must not break a
+    // release build, and the daemon refuses it by name anyway.
+    console.warn(
+      `[bundle-dsh] ${source}/package.json names "${pkg.name ?? ""}", not ${PROFILE_PACKAGE}; ` +
+        "the daemon only installs a bundle by that exact name, so nothing is shipped.",
+    );
+    manifest.state = "wrong-package";
+    manifest.packageFound = pkg.name ?? null;
+    await writeFile(profileManifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+    return manifest;
+  }
+
+  const payloadDir = join(outProfileDir, PROFILE_PAYLOAD_REL);
+  const kept = [];
+  let bytes = 0;
+  for (const rel of await walk(source)) {
+    const dropRule = DROP_FILE_RULES.find((rule) => rule.test(rel));
+    if (dropRule) continue;
+    const info = await stat(join(source, rel));
+    const dest = join(payloadDir, rel);
+    await mkdir(dirname(dest), { recursive: true });
+    await copyFile(join(source, rel), dest);
+    kept.push({ rel, bytes: info.size });
+    bytes += info.size;
+  }
+
+  manifest.state = "ready";
+  manifest.version = pkg.version ?? null;
+  manifest.files = kept.length;
+  manifest.bytes = bytes;
+  manifest.fingerprint = createHash("sha256")
+    .update(BUNDLE_RULES)
+    .update(`\n${pkg.name}\n${pkg.version ?? ""}\n`)
+    .update(kept.map((file) => `${file.rel}:${file.bytes}`).sort().join("\n"))
+    .digest("hex");
+  await writeFile(profileManifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+
+  console.log(
+    `[bundle-dsh] profile bundle: ${kept.length} files / ${(bytes / 1024).toFixed(1)} KB from ${source} ` +
+      `(${PROFILE_PACKAGE} ${pkg.version ?? "unknown"}) -> ${payloadDir}`,
+  );
+  return manifest;
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const srcDir = resolve(options.src);
@@ -267,6 +422,7 @@ async function main() {
     );
     await rm(outDshDir, { recursive: true, force: true });
     await rm(outNodeDir, { recursive: true, force: true });
+    await rm(outProfileDir, { recursive: true, force: true });
     process.exit(0);
   }
 
@@ -348,11 +504,17 @@ async function main() {
   }
 
   if (options.reportOnly) {
+    const profileSource = await resolveProfileSource(options);
+    console.log(
+      profileSource
+        ? `[bundle-dsh] profile bundle: would ship ${profileSource} -> ${join(outProfileDir, PROFILE_PAYLOAD_REL)}`
+        : `[bundle-dsh] profile bundle: no ${PROFILE_PACKAGE} bridge build; resources/dsh-profile would carry the manifest only`,
+    );
     console.log("[bundle-dsh] --report-only: nothing copied");
     return;
   }
 
-  if (!options.force && existsSync(manifestPath)) {
+  if (!options.force && existsSync(manifestPath) && existsSync(profileManifestPath)) {
     try {
       const existing = JSON.parse(await readFile(manifestPath, "utf8"));
       if (existing.fingerprint === fingerprint) {
@@ -408,10 +570,16 @@ async function main() {
   };
   await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 
+  // After the runtime, not before: the profile bundle is only meaningful next to
+  // the dsh that will load it, and a report-only or missing-source run has
+  // already returned above.
+  const profile = await writeDshProfileBundle(options, dshManifest.version);
+
   console.log(
     `[bundle-dsh] wrote ${kept.length} files / ${mb(keptBytes)} MB 鈫?${outDshDir} ` +
       `and ${nodeName} ${mb(nodeInfo.size)} MB 鈫?${outNodeDir}`,
   );
+  console.log(`[bundle-dsh] profile bundle state: ${profile.state}`);
 }
 
 main().catch((err) => {

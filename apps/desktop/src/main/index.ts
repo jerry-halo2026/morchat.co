@@ -990,6 +990,13 @@ if (!gotTheLock) {
           authSessionGeneration += 1;
           mainRendererMessages.clear("inbox:open");
         }
+        // The local CLI configuration (and the personal-key fallback) belongs to
+        // the signed-in account: apply it on sign-in, forget it on sign-out.
+        if (userId) {
+          void runtimeConfigurator?.applyForUser(userId);
+        } else {
+          runtimeConfigurator?.reset();
+        }
         return;
       }
       if (issueWindows.has(sourceWindow)) {
