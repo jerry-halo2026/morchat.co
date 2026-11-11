@@ -20,6 +20,12 @@ interface ActorAvatarProps {
   isSquad?: boolean;
   size?: AvatarSize;
   className?: string;
+  /**
+   * Accessible `alt` for the image. An avatar inside a control that already
+   * carries a label passes an empty string so the name is not repeated in the
+   * parent's accessible name.
+   */
+  alt?: string;
 }
 
 function ActorAvatar({
@@ -31,6 +37,7 @@ function ActorAvatar({
   isSquad,
   size = DEFAULT_AVATAR_SIZE,
   className,
+  alt,
 }: ActorAvatarProps) {
   const [imgError, setImgError] = useState(false);
   // A control that fixes its own content size (e.g. a toolbar pill) sets
@@ -78,7 +85,7 @@ function ActorAvatar({
       ) : avatarUrl && !imgError ? (
         <img
           src={avatarUrl}
-          alt={name}
+          alt={alt ?? name}
           className="h-full w-full object-cover"
           onError={() => setImgError(true)}
         />

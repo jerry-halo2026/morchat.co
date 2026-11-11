@@ -48,6 +48,9 @@ export async function loginAsDefault(page: Page): Promise<string> {
     throw new Error("E2E login did not return an auth token");
   }
 
+  // The workspace exists, but a first-time user is still sent through onboarding,
+  // and /issues renders nothing to click until that flag is set.
+  await api.markUserOnboarded();
   await page.addInitScript((t) => {
     localStorage.setItem("multica_token", t);
     localStorage.setItem("multica:chat:isOpen", "false");

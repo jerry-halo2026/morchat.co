@@ -85,6 +85,9 @@ export function AccountMenu() {
       name={name}
       initials={(name || "U").charAt(0).toUpperCase()}
       avatarUrl={resolvePublicFileUrl(user?.avatar_url)}
+      // The trigger button already carries the accessible label; a named image
+      // inside it would append the user's name to it.
+      alt=""
       size={size}
     />
   );
