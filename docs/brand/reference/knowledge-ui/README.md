@@ -56,4 +56,30 @@ including the two that had no capture before (S3 editor, S6 retrieval test).
 | `live/s6-retrieval.png` | S6 retrieval test | `/{ws}/knowledge/retrieval-test` |
 | `live/s6-retrieval-run.png` | S6 after 运行测试 | `POST /api/knowledge/retrieval-test` → 404 |
 
+## `live/` — 复跑：HEAD 后端（2026-11-11 14:22–15:20）
+
+The lines above are the state when `:8080` was still the 2026-11-10 binary. With
+the API rebuilt at HEAD (`04da81ef3`) the same files were re-shot; they now carry
+real rows (space, two pages, two items, five retrieval hits) instead of the
+"后端未就绪" card. Two screens still do not render and their files show the app's
+own error boundary: the reader and editor ask `/api/knowledge/pages?space=&path=`,
+which HEAD's handler answers with a list envelope, so the page object the
+components expect is never built.
+
+| File | What it now shows |
+| --- | --- |
+| `live/s1-home.png` | space rail with `verify-space` → `verify-import` / `verify-item`, "最近修改" two rows |
+| `live/s2-reader.png` | error boundary「出现了问题」— the tree link resolves to `/knowledge/undefined/verify-item` |
+| `live/s3-edit.png` | same boundary under `?mode=edit` |
+| `live/s4-items.png` | entries table with the two real items |
+| `live/s5-import.png` | drawer with the real space in the picker |
+| `live/s6-retrieval.png` | "命中 5 条" for `VERIFY-001`, scores 0.016/0.015 |
+| `live/s7-issue.png` | the verify issue (`B1KN-1`) the `@` check ran in |
+| `live/s7-issue-mention.png` | `@verify` picker: task group only, no knowledge entries |
+
+Captures are Edge 1440×900 against a repo-owned `next dev` on
+`http://localhost:3001` (the API stayed on `:8080`). Use `localhost`, never
+`127.0.0.1`: Next 16 blocks its own dev resources for the other origin, which
+leaves the shell un-hydrated and every screen blank.
+
 Details, request/response log and the cleanup result: [UI-VERIFICATION](../../../tasks/UI-VERIFICATION.md).
