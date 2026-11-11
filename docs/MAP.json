@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 162,
-  "fingerprint": "9c31085e72bb6fc14389117b4c2109a41073d387068f98d737e2296a3a058125",
+  "count": 163,
+  "fingerprint": "e52d23d6125811b65328e119f23f34ea48a6af190f7ca933149f2b900106beeb",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -969,7 +969,9 @@
       "updated": "2026-11-10",
       "related": [],
       "links_out": [],
-      "links_in": []
+      "links_in": [
+        "docs/tasks/KNOWLEDGE-BENCH.md"
+      ]
     },
     {
       "path": "docs/plans/RUNTIME-CONFIGURATOR.md",
@@ -1352,7 +1354,9 @@
       "updated": "2026-11-10",
       "related": [],
       "links_out": [],
-      "links_in": []
+      "links_in": [
+        "docs/tasks/KNOWLEDGE-BENCH.md"
+      ]
     },
     {
       "path": "docs/tasks/GET-GUARD-LOCAL-RETEST.md",
@@ -1363,6 +1367,23 @@
       "updated": "2026-11-10",
       "related": [],
       "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/KNOWLEDGE-BENCH.md",
+      "title": "KNOWLEDGE-BENCH：10 万 chunk 知识检索压测",
+      "purpose": "知识检索 10 万 chunk 压测：造数、查询集、四项指标与瓶颈归因",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/tasks/EVOSE-KB-API.md",
+        "docs/plans/KNOWLEDGE-INTEGRATION-PLAN.md"
+      ],
+      "links_out": [
+        "docs/plans/KNOWLEDGE-INTEGRATION-PLAN.md",
+        "docs/tasks/EVOSE-KB-API.md"
+      ],
       "links_in": []
     },
     {

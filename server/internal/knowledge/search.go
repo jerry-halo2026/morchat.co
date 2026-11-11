@@ -451,7 +451,15 @@ func (s *Service) Retrieve(ctx context.Context, in RetrieveInput) (RetrieveResul
 	return result, nil
 }
 
-// keywordChannel runs the full-text + trigram query.
+// keywordChannel runs the full-text channel, and falls back to trigram
+// similarity only when full text finds nothing.
+//
+// The two used to be one OR'd predicate. On a 100k-chunk corpus that cost real
+// time: a four character query gives the trigram index a "shares any trigram"
+// set of 92k rows, the heap has to be visited to reject them, and the query
+// lands at ~3s while the full-text branch alone answers in ~160ms. Trigram is
+// the right rescue for a query that shares no lexeme at all, so it runs second,
+// only when the first pass comes back empty.
 func (s *Service) keywordChannel(ctx context.Context, in RetrieveInput, layer visibilityLayer,
 	caps chunkCapabilities, req RetrievalRequest) ([]*candidate, error) {
 	tsExpr := "to_tsvector('simple', c.content)"
@@ -469,32 +477,17 @@ func (s *Service) keywordChannel(ctx context.Context, in RetrieveInput, layer vi
 		args = append(args, in.SpaceID)
 	}
 
-	match := fmt.Sprintf("%s @@ websearch_to_tsquery('simple', $2)", tsExpr)
-	scores := "ts_rank_cd(" + tsExpr + ", websearch_to_tsquery('simple', $2)) AS kw_rank"
-	admission := match
-	order := "kw_rank DESC"
+	similarityExpr := "NULL::float8"
 	if caps.trigram {
-		scores += ", similarity(c.content, $2) AS kw_similarity"
-		admission = fmt.Sprintf("(%s OR c.content %% $2)", match)
-		// ts_rank_cd never returns 0 for a matching row, so ordering by rank
-		// first and similarity second keeps a real lexical hit ahead of a
-		// trigram-only one: the same precedence the threshold encodes.
-		order = "kw_rank DESC, kw_similarity DESC"
-		if req.ScoreThreshold > 0 {
-			// A full-text match always passes; a trigram-only match has to clear
-			// the threshold. Otherwise the default 0.2 would prune exactly the
-			// matches ts_rank_cd scores lowest, which is a ranking opinion
-			// leaking into a filter.
-			admission = fmt.Sprintf("(%s OR (c.content %% $2 AND similarity(c.content, $2) >= $%d))",
-				match, len(args)+1)
-			args = append(args, req.ScoreThreshold)
-		}
+		similarityExpr = "similarity(c.content, $2)"
 	}
 
-	query := `
+	run := func(admission, order string, extra []any) ([]*candidate, error) {
+		query := `
 		SELECT c.id::text, c.document_id::text, d.item_id::text, i.title, i.kind,
 		       c.ord, c.tokens, c.content, c.heading_path::text, c.metadata,
-		       ` + scores + `
+		       ts_rank_cd(` + tsExpr + `, websearch_to_tsquery('simple', $2)) AS kw_rank,
+		       ` + similarityExpr + ` AS kw_similarity
 		FROM knowledge_chunks c
 		JOIN knowledge_documents d ON d.workspace_id = c.workspace_id AND d.id = c.document_id
 		JOIN knowledge_items i ON i.workspace_id = d.workspace_id AND i.id = d.item_id
@@ -505,33 +498,49 @@ func (s *Service) keywordChannel(ctx context.Context, in RetrieveInput, layer vi
 		ORDER BY ` + order + `
 		LIMIT $3`
 
-	rows, err := s.db.Query(ctx, query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("keyword retrieval: %w", err)
-	}
-	defer rows.Close()
-	var out []*candidate
-	for rows.Next() {
-		c := &candidate{scores: map[string]float64{}}
-		var metadata []byte
-		var rank float64
-		var sim *float64
-		if err := rows.Scan(&c.chunkID, &c.documentID, &c.itemID, &c.itemTitle,
-			&c.itemKind, &c.ord, &c.tokens, &c.content, &c.headingPath, &metadata,
-			&rank, &sim); err != nil {
-			return nil, fmt.Errorf("scan keyword hit: %w", err)
+		rows, err := s.db.Query(ctx, query, append(append([]any{}, args...), extra...)...)
+		if err != nil {
+			return nil, fmt.Errorf("keyword retrieval: %w", err)
 		}
-		c.level, c.parentOrd = chunkLevelFromMetadata(metadata)
-		c.scores[ModeKeyword] = rank
-		if sim != nil {
-			c.scores["keyword_similarity"] = *sim
+		defer rows.Close()
+		var out []*candidate
+		for rows.Next() {
+			c := &candidate{scores: map[string]float64{}}
+			var metadata []byte
+			var rank float64
+			var sim *float64
+			if err := rows.Scan(&c.chunkID, &c.documentID, &c.itemID, &c.itemTitle,
+				&c.itemKind, &c.ord, &c.tokens, &c.content, &c.headingPath, &metadata,
+				&rank, &sim); err != nil {
+				return nil, fmt.Errorf("scan keyword hit: %w", err)
+			}
+			c.level, c.parentOrd = chunkLevelFromMetadata(metadata)
+			c.scores[ModeKeyword] = rank
+			if sim != nil {
+				c.scores["keyword_similarity"] = *sim
+			}
+			out = append(out, c)
 		}
-		out = append(out, c)
+		if err := rows.Err(); err != nil {
+			return nil, fmt.Errorf("keyword retrieval: %w", err)
+		}
+		return out, nil
 	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("keyword retrieval: %w", err)
+
+	out, err := run(fmt.Sprintf("%s @@ websearch_to_tsquery('simple', $2)", tsExpr), "kw_rank DESC", nil)
+	if err != nil || len(out) > 0 || !caps.trigram {
+		return out, err
 	}
-	return out, nil
+
+	// Nothing matched lexically. The query may still spell a word the
+	// tokeniser split apart, which similarity can see and full text cannot.
+	extra := []any{}
+	admission := "c.content % $2"
+	if req.ScoreThreshold > 0 {
+		admission = fmt.Sprintf("(c.content %% $2 AND similarity(c.content, $2) >= $%d)", len(args)+1)
+		extra = append(extra, req.ScoreThreshold)
+	}
+	return run(admission, "kw_similarity DESC", extra)
 }
 
 // vectorChannel runs the cosine search. Only called when an embedder exists and
