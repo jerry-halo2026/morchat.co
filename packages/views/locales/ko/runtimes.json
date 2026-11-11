@@ -250,6 +250,21 @@
     "running_chip_other": "· 실행 중 {{count}}개",
     "queued_chip_other": "· 대기 중 {{count}}개"
   },
+  "offline_guidance": {
+    "copied": "복사됨",
+    "detail_label": "데몬 보고: {{detail}}",
+    "dsh_profile_missing": {
+      "title": "내장 런타임 브리지가 없습니다",
+      "body": "이 컴퓨터에는 DeepSeek Harness가 설치되어 있지만 실행에 쓰는 morechat.co 브리지가 없습니다. 데스크톱 클라이언트를 업그레이드해 복원하거나, DSH의 multica 프로필에 브리지를 설치한 뒤 클라이언트를 다시 시작하세요.",
+      "command_label": "설치 명령 복사",
+      "bundle_hint": "<bundle> 자리에는 앱에 포함된 브리지 디렉터리(resources/dsh-profile/package) 또는 @multica-ai/dsh-runtime 패키지 사양이나 tarball을 넣으세요."
+    },
+    "dsh_login": {
+      "title": "DeepSeek Harness에 로그인되어 있지 않습니다",
+      "body": "이 컴퓨터에서 DeepSeek Harness에 로그인한 뒤 클라이언트를 다시 시작하면 런타임이 다시 연결됩니다. 먼저 CLI가 제대로 잡히는지 확인하세요:",
+      "command_label": "확인 명령 복사"
+    }
+  },
   "detail_page": {
     "not_found_title": "런타임을 찾을 수 없습니다",
     "not_found_hint": "삭제되었거나 접근 권한이 없을 수 있습니다."

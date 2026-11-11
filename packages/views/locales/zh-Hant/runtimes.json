@@ -250,6 +250,21 @@
     "running_chip_other": "· {{count}} 個進行中",
     "queued_chip_other": "· {{count}} 個排隊中"
   },
+  "offline_guidance": {
+    "copied": "已複製",
+    "detail_label": "守護程序回報：{{detail}}",
+    "dsh_profile_missing": {
+      "title": "內建執行時橋接缺失",
+      "body": "這臺機器已安裝 DeepSeek Harness，但缺少它執行所依賴的 morechat.co 橋接。升級桌面應用即可恢復，或把橋接安裝到 DSH 的 multica 設定後重新啟動桌面應用。",
+      "command_label": "複製安裝指令",
+      "bundle_hint": "把 <bundle> 換成本機應用程式內建的橋接目錄（resources/dsh-profile/package），或 @multica-ai/dsh-runtime 的套件名稱、tarball 路徑。"
+    },
+    "dsh_login": {
+      "title": "DeepSeek Harness 尚未登入",
+      "body": "請先在本機登入 DeepSeek Harness，然後重新啟動桌面應用，執行時就會重新連線。下面這條指令用來確認 CLI 本身可用：",
+      "command_label": "複製自查指令"
+    }
+  },
   "detail_page": {
     "not_found_title": "未找到執行時",
     "not_found_hint": "它可能已被刪除，或你沒有訪問權限。"

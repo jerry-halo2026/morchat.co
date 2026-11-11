@@ -53,6 +53,8 @@ import { AppLink, useNavigation } from "../../navigation";
 import { availabilityConfig, workloadConfig } from "../../agents/presence";
 import { HealthBadge, HealthIcon, shortDaemonId, useHealthLabel } from "./shared";
 import { ProviderLogo } from "./provider-logo";
+import { runtimeOfflineGuidance } from "./runtime-offline-guidance";
+import { RuntimeOfflineGuidanceCard } from "./runtime-offline-guidance-card";
 import { UsageSection } from "./usage-section";
 import { DeleteRuntimeDialog } from "./delete-runtime-dialog";
 import { RuntimeAccessEditor, RuntimeAccessReadout } from "./runtime-access-editor";
@@ -115,6 +117,9 @@ export function RuntimeDetail({
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const health = deriveRuntimeHealth(runtime, now);
+  // Only the two states we can hand a repair for. Everything else keeps the
+  // plain offline status the page has always shown.
+  const offlineGuidance = runtimeOfflineGuidance(runtime);
   const ownerMember = runtime.owner_id
     ? members.find((m) => m.user_id === runtime.owner_id) ?? null
     : null;
@@ -219,6 +224,10 @@ export function RuntimeDetail({
             }
             description={summary}
           />
+
+          {offlineGuidance && (
+            <RuntimeOfflineGuidanceCard guidance={offlineGuidance} />
+          )}
 
           <ObjectSection
             title={t(($) => $.page.columns.agents)}

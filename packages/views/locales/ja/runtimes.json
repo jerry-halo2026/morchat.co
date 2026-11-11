@@ -250,6 +250,21 @@
     "running_chip_other": "· 実行中 {{count}} 件",
     "queued_chip_other": "· キュー待ち {{count}} 件"
   },
+  "offline_guidance": {
+    "copied": "コピーしました",
+    "detail_label": "デーモンの報告: {{detail}}",
+    "dsh_profile_missing": {
+      "title": "組み込みランタイムブリッジが見つかりません",
+      "body": "このコンピューターには DeepSeek Harness がインストールされていますが、その実行に使う morechat.co のブリッジが入っていません。デスクトップクライアントを更新して復元するか、DSH の multica プロファイルにブリッジをインストールしてからクライアントを再起動してください。",
+      "command_label": "インストールコマンドをコピー",
+      "bundle_hint": "<bundle> は、アプリに同梱されているブリッジのディレクトリ（resources/dsh-profile/package）、または @multica-ai/dsh-runtime のパッケージ指定や tarball に置き換えてください。"
+    },
+    "dsh_login": {
+      "title": "DeepSeek Harness にサインインしていません",
+      "body": "このコンピューターで DeepSeek Harness にサインインし、クライアントを再起動するとランタイムが再接続します。まず CLI が解決できるかを確認します:",
+      "command_label": "確認コマンドをコピー"
+    }
+  },
   "detail_page": {
     "not_found_title": "ランタイムが見つかりません",
     "not_found_hint": "削除されたか、アクセス権がない可能性があります。"

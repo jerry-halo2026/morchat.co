@@ -1,0 +1,40 @@
+Runtime detail page — DSH profile missing
+==========================================
+Source: packages/views/locales/en/runtimes.json → runtimes.offline_guidance.dsh_profile_missing
+Rendered by: packages/views/runtimes/components/runtime-offline-guidance-card.tsx
+Captured from: packages/views/runtimes/components/runtime-detail-guidance.test.tsx
+  "turns a missing DSH bridge into readable copy and a copyable install command"
+  (textContent of the `section[data-guidance="dsh_profile_missing"]` node, one line per
+  visual block; concatenated in DOM order without separators in the real DOM)
+
+  [warning banner]
+  The built-in runtime bridge is missing
+  DeepSeek Harness is installed on this machine, but the morechat.co bridge it runs
+  through is not. Upgrade the desktop client to restore it, or install the bridge into
+  the DSH multica profile and restart the client.
+  $ dsh plugin --profile multica add <bundle>            [copy]
+  Replace <bundle> with the bridge directory shipped inside the app
+  (resources/dsh-profile/package), or an @multica-ai/dsh-runtime package spec or tarball.
+  Daemon reported: the Multica runtime profile is not installed; add the Multica DSH
+  runtime bundle to the `multica` profile with `dsh plugin`
+
+Verbatim textContent as captured by the test:
+
+  The built-in runtime bridge is missing
+  DeepSeek Harness is installed on this machine, but the morechat.co bridge it runs through is not. Upgrade the desktop client to restore it, or install the bridge into the DSH multica profile and restart the client.
+  dsh plugin --profile multica add <bundle>
+  Replace <bundle> with the bridge directory shipped inside the app (resources/dsh-profile/package), or an @multica-ai/dsh-runtime package spec or tarball.
+  Daemon reported: the Multica runtime profile is not installed; add the Multica DSH runtime bundle to the `multica` profile with `dsh plugin`
+
+Input that produced it (runtime metadata, as the daemon writes it):
+
+  {
+    "status": "offline",
+    "provider": "dsh",
+    "metadata": {
+      "offline_reason": {
+        "code": "dsh_profile",
+        "detail": "the Multica runtime profile is not installed; add the Multica DSH runtime bundle to the `multica` profile with `dsh plugin`"
+      }
+    }
+  }

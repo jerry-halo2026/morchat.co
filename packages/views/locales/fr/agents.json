@@ -462,6 +462,22 @@
       "next": "Suivant"
     }
   },
+  "avatar_editor": {
+    "studio": "Modifier l’avatar",
+    "shapes": "Forme et couleur",
+    "preview": "Aperçu de l’avatar",
+    "character": "Personnage",
+    "shape": "Forme",
+    "color": "Couleur",
+    "face": "Visage",
+    "style": "Style de tracé",
+    "variant": "Variante",
+    "eye_color": "Couleur des yeux",
+    "line_weight": "Épaisseur du trait",
+    "cast_default": "Selon la forme",
+    "variant_default": "Par défaut du style",
+    "eye_default": "Encre du thème"
+  },
   "create_dialog": {
     "title_create": "Créer un agent",
     "title_duplicate": "Dupliquer l'agent",

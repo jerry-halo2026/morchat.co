@@ -447,6 +447,22 @@
       "next": "下一步"
     }
   },
+  "avatar_editor": {
+    "studio": "编辑头像",
+    "shapes": "形状与颜色",
+    "preview": "头像预览",
+    "character": "角色",
+    "shape": "形状",
+    "color": "颜色",
+    "face": "脸型",
+    "style": "绘制风格",
+    "variant": "变体",
+    "eye_color": "眼睛颜色",
+    "line_weight": "线宽",
+    "cast_default": "跟随形状",
+    "variant_default": "风格默认",
+    "eye_default": "主题墨色"
+  },
   "create_dialog": {
     "title_create": "创建智能体",
     "title_duplicate": "复制智能体",

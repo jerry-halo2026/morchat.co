@@ -259,6 +259,21 @@
     "queued_chip_one": "· {{count}} en attente",
     "queued_chip_other": "· {{count}} en attente"
   },
+  "offline_guidance": {
+    "copied": "Copié",
+    "detail_label": "Signalé par le démon : {{detail}}",
+    "dsh_profile_missing": {
+      "title": "Le pont d'exécution intégré est absent",
+      "body": "DeepSeek Harness est installé sur cette machine, mais le pont morechat.co par lequel il s'exécute ne l'est pas. Mettez à jour le client de bureau pour le restaurer, ou installez le pont dans le profil multica de DSH, puis redémarrez le client.",
+      "command_label": "Copier la commande d'installation",
+      "bundle_hint": "Remplacez <bundle> par le répertoire du pont fourni avec l'application (resources/dsh-profile/package), ou par un paquet ou un tarball @multica-ai/dsh-runtime."
+    },
+    "dsh_login": {
+      "title": "DeepSeek Harness n'est pas connecté",
+      "body": "Connectez-vous à DeepSeek Harness sur cette machine, puis redémarrez le client pour que l'exécution se reconnecte. Ceci vérifie que le CLI est bien résolu :",
+      "command_label": "Copier la commande de vérification"
+    }
+  },
   "detail_page": {
     "not_found_title": "Runtime introuvable",
     "not_found_hint": "Il a peut-être été supprimé, ou vous n'y avez pas accès."

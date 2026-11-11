@@ -462,6 +462,22 @@
       "next": "Next"
     }
   },
+  "avatar_editor": {
+    "studio": "Edit avatar",
+    "shapes": "Shape and colour",
+    "preview": "Avatar preview",
+    "character": "Character",
+    "shape": "Shape",
+    "color": "Colour",
+    "face": "Face",
+    "style": "Style",
+    "variant": "Variant",
+    "eye_color": "Eye colour",
+    "line_weight": "Line weight",
+    "cast_default": "Shape default",
+    "variant_default": "Style default",
+    "eye_default": "Theme ink"
+  },
   "create_dialog": {
     "title_create": "Create Agent",
     "title_duplicate": "Duplicate Agent",

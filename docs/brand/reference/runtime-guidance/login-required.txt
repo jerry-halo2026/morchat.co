@@ -1,0 +1,38 @@
+Runtime detail page — DSH not signed in
+=======================================
+Source: packages/views/locales/en/runtimes.json → runtimes.offline_guidance.dsh_login
+Rendered by: packages/views/runtimes/components/runtime-offline-guidance-card.tsx
+Captured from: packages/views/runtimes/components/runtime-detail-guidance.test.tsx
+  "turns a signed-out DSH into the sign-in instruction and the self-check command"
+  (textContent of the `section[data-guidance="dsh_login"]` node)
+
+  [warning banner]
+  DeepSeek Harness is not signed in
+  Sign in to DeepSeek Harness on this computer, then restart the client so the runtime
+  can reconnect. This checks whether the CLI itself resolves:
+  $ dsh --version                                        [copy]
+  Daemon reported: dsh is not logged in; run `dsh login`
+
+Verbatim textContent as captured by the test:
+
+  DeepSeek Harness is not signed in
+  Sign in to DeepSeek Harness on this computer, then restart the client so the runtime can reconnect. This checks whether the CLI itself resolves:
+  dsh --version
+  Daemon reported: dsh is not logged in; run `dsh login`
+
+Input that produced it:
+
+  {
+    "status": "offline",
+    "provider": "dsh",
+    "metadata": {
+      "offline_reason": {
+        "code": "dsh_profile",
+        "detail": "dsh is not logged in; run `dsh login`"
+      }
+    }
+  }
+
+Note: the daemon has no separate login code yet, so this state arrives under the same
+`dsh_profile` code as a missing bridge. The `detail` text is what separates them; the
+classification lives in packages/views/runtimes/components/runtime-offline-guidance.ts.

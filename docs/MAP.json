@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 181,
-  "fingerprint": "99028f42bd2dd16e699f7a896d21bd370d47b36252ab84ed8cc23a9b36a4e247",
+  "count": 182,
+  "fingerprint": "a8f8d851cd5ebf79e9ec18a265933f3ccacf123e7010c59a145f01912829e844",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -1332,6 +1332,7 @@
       ],
       "links_in": [
         "docs/tasks/DSH-PROFILE-BUNDLE.md",
+        "docs/tasks/FIRST-RUN-GUIDANCE.md",
         "docs/tasks/INSTALLER.md"
       ]
     },
@@ -1454,6 +1455,7 @@
         "docs/tasks/INSTALLER.md"
       ],
       "links_in": [
+        "docs/tasks/FIRST-RUN-GUIDANCE.md",
         "docs/tasks/KNOWLEDGE-MCP.md"
       ]
     },
@@ -1506,6 +1508,25 @@
       "links_in": [
         "docs/tasks/KNOWLEDGE-BENCH.md"
       ]
+    },
+    {
+      "path": "docs/tasks/FIRST-RUN-GUIDANCE.md",
+      "title": "首启运行时指引：两种状态、可读提示、可复制命令（W2-AG5）",
+      "purpose": "首启运行时状态的可读指引：把 daemon 的 dsh_profile reason 变成两种可读提示 + 可复制命令，八语言同步",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/tasks/DSH-PROFILE-BUNDLE.md",
+        "docs/tasks/CLEAN-INSTALL.md",
+        "docs/tasks/LOCAL-DSH-ACCOUNT-CONNECTION.md"
+      ],
+      "links_out": [
+        "docs/tasks/CLEAN-INSTALL.md",
+        "docs/tasks/DSH-PROFILE-BUNDLE.md",
+        "docs/tasks/LOCAL-DSH-ACCOUNT-CONNECTION.md"
+      ],
+      "links_in": []
     },
     {
       "path": "docs/tasks/GET-GUARD-LOCAL-RETEST.md",
@@ -1609,7 +1630,9 @@
       "updated": "2026-11-09",
       "related": [],
       "links_out": [],
-      "links_in": []
+      "links_in": [
+        "docs/tasks/FIRST-RUN-GUIDANCE.md"
+      ]
     },
     {
       "path": "docs/tasks/LOCAL-FIRST-STAGE-ACCEPTANCE.md",

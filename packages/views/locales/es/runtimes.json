@@ -259,6 +259,21 @@
     "concurrency_hint": "Máximo de ejecuciones simultáneas entre todos los agentes de este runtime ({{min}}–{{max}}). Déjalo vacío para no limitarlo.",
     "toast_concurrency_failed": "No se ha podido actualizar el límite de concurrencia"
   },
+  "offline_guidance": {
+    "copied": "Copiado",
+    "detail_label": "Informado por el daemon: {{detail}}",
+    "dsh_profile_missing": {
+      "title": "Falta el puente de ejecución integrado",
+      "body": "DeepSeek Harness está instalado en este equipo, pero el puente de morechat.co por el que se ejecuta no lo está. Actualiza el cliente de escritorio para restaurarlo, o instala el puente en el perfil multica de DSH y reinicia el cliente.",
+      "command_label": "Copiar comando de instalación",
+      "bundle_hint": "Sustituye <bundle> por el directorio del puente incluido en la aplicación (resources/dsh-profile/package), o por un paquete o tarball de @multica-ai/dsh-runtime."
+    },
+    "dsh_login": {
+      "title": "DeepSeek Harness no ha iniciado sesión",
+      "body": "Inicia sesión en DeepSeek Harness en este equipo y reinicia el cliente para que la ejecución pueda reconectarse. Esto comprueba que el CLI se resuelve correctamente:",
+      "command_label": "Copiar comando de comprobación"
+    }
+  },
   "detail_page": {
     "not_found_title": "Runtime no encontrado",
     "not_found_hint": "Puede haberse eliminado o puede que no tengas acceso."

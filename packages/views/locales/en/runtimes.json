@@ -259,6 +259,21 @@
     "queued_chip_one": "· {{count}} queued",
     "queued_chip_other": "· {{count}} queued"
   },
+  "offline_guidance": {
+    "copied": "Copied",
+    "detail_label": "Daemon reported: {{detail}}",
+    "dsh_profile_missing": {
+      "title": "The built-in runtime bridge is missing",
+      "body": "DeepSeek Harness is installed on this machine, but the morechat.co bridge it runs through is not. Upgrade the desktop client to restore it, or install the bridge into the DSH multica profile and restart the client.",
+      "command_label": "Copy install command",
+      "bundle_hint": "Replace <bundle> with the bridge directory shipped inside the app (resources/dsh-profile/package), or an @multica-ai/dsh-runtime package spec or tarball."
+    },
+    "dsh_login": {
+      "title": "DeepSeek Harness is not signed in",
+      "body": "Sign in to DeepSeek Harness on this computer, then restart the client so the runtime can reconnect. This checks whether the CLI itself resolves:",
+      "command_label": "Copy check command"
+    }
+  },
   "detail_page": {
     "not_found_title": "Runtime not found",
     "not_found_hint": "It may have been deleted or you may not have access."

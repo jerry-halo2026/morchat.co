@@ -297,6 +297,22 @@
     "discard_keep": "계속 편집",
     "discard_confirm": "변경사항 버리기"
   },
+  "avatar_editor": {
+    "studio": "아바타 편집",
+    "shapes": "모양과 색상",
+    "preview": "아바타 미리보기",
+    "character": "캐릭터",
+    "shape": "모양",
+    "color": "색상",
+    "face": "얼굴",
+    "style": "그리기 스타일",
+    "variant": "변형",
+    "eye_color": "눈 색상",
+    "line_weight": "선 두께",
+    "cast_default": "모양 기본값",
+    "variant_default": "스타일 기본값",
+    "eye_default": "테마 잉크"
+  },
   "create_dialog": {
     "title_create": "에이전트 만들기",
     "title_duplicate": "에이전트 복제",

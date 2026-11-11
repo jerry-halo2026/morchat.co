@@ -447,6 +447,22 @@
       "next": "下一步"
     }
   },
+  "avatar_editor": {
+    "studio": "編輯頭像",
+    "shapes": "形狀與顏色",
+    "preview": "頭像預覽",
+    "character": "角色",
+    "shape": "形狀",
+    "color": "顏色",
+    "face": "臉型",
+    "style": "繪製風格",
+    "variant": "變體",
+    "eye_color": "眼睛顏色",
+    "line_weight": "線寬",
+    "cast_default": "跟隨形狀",
+    "variant_default": "風格預設",
+    "eye_default": "主題墨色"
+  },
   "create_dialog": {
     "title_create": "建立 AI 代理",
     "title_duplicate": "複製 AI 代理",

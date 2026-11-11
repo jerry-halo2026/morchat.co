@@ -277,6 +277,21 @@
     "queued_chip_few": "· {{count}} в очереди",
     "queued_chip_many": "· {{count}} в очереди"
   },
+  "offline_guidance": {
+    "copied": "Скопировано",
+    "detail_label": "Сообщение демона: {{detail}}",
+    "dsh_profile_missing": {
+      "title": "Встроенный мост рантайма отсутствует",
+      "body": "DeepSeek Harness установлен на этом компьютере, но моста morechat.co, через который он работает, нет. Обновите десктопный клиент, чтобы восстановить его, или установите мост в профиль multica DSH и перезапустите клиент.",
+      "command_label": "Скопировать команду установки",
+      "bundle_hint": "Замените <bundle> на каталог моста, поставляемый с приложением (resources/dsh-profile/package), либо на спецификацию пакета или tarball @multica-ai/dsh-runtime."
+    },
+    "dsh_login": {
+      "title": "DeepSeek Harness не авторизован",
+      "body": "Войдите в DeepSeek Harness на этом компьютере и перезапустите клиент, чтобы рантайм снова подключился. Так можно проверить, что CLI находится:",
+      "command_label": "Скопировать команду проверки"
+    }
+  },
   "detail_page": {
     "not_found_title": "Среда выполнения не найдена",
     "not_found_hint": "Возможно, она была удалена или у вас нет доступа."

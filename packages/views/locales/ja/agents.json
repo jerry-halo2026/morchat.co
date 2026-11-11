@@ -289,6 +289,22 @@
     "discard_keep": "編集を続ける",
     "discard_confirm": "変更を破棄"
   },
+  "avatar_editor": {
+    "studio": "アバターを編集",
+    "shapes": "形と色",
+    "preview": "アバターのプレビュー",
+    "character": "キャラクター",
+    "shape": "形",
+    "color": "色",
+    "face": "顔",
+    "style": "描画スタイル",
+    "variant": "バリエーション",
+    "eye_color": "目の色",
+    "line_weight": "線の太さ",
+    "cast_default": "形に合わせる",
+    "variant_default": "スタイルの既定",
+    "eye_default": "テーマのインク"
+  },
   "create_dialog": {
     "title_create": "エージェントを作成",
     "title_duplicate": "エージェントを複製",

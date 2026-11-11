@@ -492,6 +492,22 @@
       "hidden_remote_many": "Ещё {{count}} машин доступны только своим владельцам"
     }
   },
+  "avatar_editor": {
+    "studio": "Изменить аватар",
+    "shapes": "Форма и цвет",
+    "preview": "Предпросмотр аватара",
+    "character": "Персонаж",
+    "shape": "Форма",
+    "color": "Цвет",
+    "face": "Лицо",
+    "style": "Стиль отрисовки",
+    "variant": "Вариант",
+    "eye_color": "Цвет глаз",
+    "line_weight": "Толщина линии",
+    "cast_default": "Как у формы",
+    "variant_default": "По умолчанию в стиле",
+    "eye_default": "Чернила темы"
+  },
   "create_dialog": {
     "title_create": "Создать агента",
     "title_duplicate": "Дублировать агента",
