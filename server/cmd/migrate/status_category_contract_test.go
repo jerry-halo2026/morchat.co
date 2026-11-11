@@ -15,6 +15,34 @@ var categoryContractVersions = []string{
 	"493_issue_status_category_validate", "494_issue_status_category_read_contract",
 }
 
+// The lifecycle-convergence tail is forward-only: 491-494 (and 469 before them)
+// carry no rollback body, only a RAISE. `go run ./cmd/migrate down` from head
+// therefore walks back to 494 and stops there with
+// "ERROR: MUL-7365 is forward-only; apply a corrective migration" (SQLSTATE
+// P0001), leaving every migration below it applied. That halt is the expected
+// result of asking for a down on a forward-only chain, not a broken rollback,
+// and the rollback path for these migrations is a corrective migration.
+func TestCategoryContractDownStopsAtForwardOnlyGuard(t *testing.T) {
+	pool := openTestPool(t)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	for _, version := range categoryContractVersions {
+		path := realMigrationFiles(t, []string{version}, "down")[0]
+		body, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = pool.Exec(ctx, string(body))
+		if err == nil {
+			t.Fatalf("%s down applied; the forward-only guard must refuse it", version)
+		}
+		if !strings.Contains(err.Error(), "forward-only") {
+			t.Fatalf("%s down: err = %v, want the forward-only guard", version, err)
+		}
+	}
+}
+
 // Exercise historical data through the real runner, rather than inserting old
 // spellings into the current (strict) application schema.
 func TestStatusCategoryContractUpgradePaths(t *testing.T) {

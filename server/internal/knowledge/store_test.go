@@ -412,7 +412,7 @@ func TestRetrievalRequestDefaults(t *testing.T) {
 	}
 }
 
-// TestStoreItemRequiresSpace is the 621 contract: an item is space-scoped, so a
+// TestStoreItemRequiresSpace is the 638 contract: an item is space-scoped, so a
 // create without a space is refused before the write — not by the NOT NULL.
 func TestStoreItemRequiresSpace(t *testing.T) {
 	requireDB(t)
@@ -567,9 +567,9 @@ func requireForeignKeyViolation(t *testing.T, err error, conname string) {
 	}
 }
 
-// TestStoreRevisionSpaceMustMatchPage is the 623 contract for revisions: a
+// TestStoreRevisionSpaceMustMatchPage is the 640 contract for revisions: a
 // revision names a page in its own space, and a page of a sibling space — same
-// workspace, so 620's key accepted it — is refused by the composite key with
+// workspace, so 637's key accepted it — is refused by the composite key with
 // SQLSTATE 23503. A revision without a page is still legal, because the
 // composite key is MATCH SIMPLE and its third column is NULL.
 func TestStoreRevisionSpaceMustMatchPage(t *testing.T) {
@@ -604,7 +604,7 @@ func TestStoreRevisionSpaceMustMatchPage(t *testing.T) {
 		t.Fatalf("CreateRevision without a page: %v", err)
 	}
 
-	// The drift 620 allowed and 623 removes.
+	// The drift 637 allowed and 640 removes.
 	_, err = store.CreateRevision(ctx, NewRevision{
 		WorkspaceID: testWorkspaceID,
 		SpaceID:     otherSpaceID,
@@ -682,9 +682,9 @@ func TestStoreBacklinkSpaceMustMatchPage(t *testing.T) {
 	requireForeignKeyViolation(t, err, "knowledge_page_backlinks_target_fkey")
 }
 
-// TestStorePageDeleteCascadesWikiChildren pins the delete behaviour 623 keeps
-// from 620: a page takes its revisions with it, and a backlink edge disappears
-// when either endpoint page goes. The space foreign key is the only one 623
+// TestStorePageDeleteCascadesWikiChildren pins the delete behaviour 640 keeps
+// from 637: a page takes its revisions with it, and a backlink edge disappears
+// when either endpoint page goes. The space foreign key is the only one 640
 // rewrote; the cascade actions are part of the contract it must not disturb.
 func TestStorePageDeleteCascadesWikiChildren(t *testing.T) {
 	requireDB(t)

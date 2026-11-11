@@ -19,15 +19,15 @@ const (
 	migration641Down = "../../migrations/641_knowledge_import.down.sql"
 )
 
-// rollBackAfter620 removes what the migrations newer than 620 added, newest
-// first, so 620's own down file can run.
+// rollBackAfter637 removes what the migrations newer than 637 added, newest
+// first, so 637's own down file can run.
 //
-// This is the migration runner's order, not a test-only arrangement: 620's down
+// This is the migration runner's order, not a test-only arrangement: 637's down
 // drops knowledge_spaces, and 641's knowledge_import_tasks has a foreign key onto
-// it, so a database at head must roll 641 back before 620. The 620 tests apply
+// it, so a database at head must roll 641 back before 637. The 637 tests apply
 // their down file in isolation, which is exactly the case that needs the newer
 // files undone first.
-func rollBackAfter620(t *testing.T, tx pgx.Tx) {
+func rollBackAfter637(t *testing.T, tx pgx.Tx) {
 	t.Helper()
 	execMigrationFile(t, tx, migration641Down)
 }
@@ -81,7 +81,7 @@ func TestMigration641RoundTrips(t *testing.T) {
 			t.Fatalf("knowledge_chunks.%s missing after up", column)
 		}
 	}
-	// acl_tags predates 641 (620 creates it); 641 only guarantees it exists.
+	// acl_tags predates 641 (637 creates it); 641 only guarantees it exists.
 	if !columnExists(t, tx, "knowledge_chunks", "acl_tags") {
 		t.Fatal("knowledge_chunks.acl_tags missing after up")
 	}
@@ -108,9 +108,9 @@ func TestMigration641RoundTrips(t *testing.T) {
 			t.Fatalf("knowledge_chunks.%s survived down", column)
 		}
 	}
-	// The down file must not drop 620's column: acl_tags is not 641's to remove.
+	// The down file must not drop 637's column: acl_tags is not 641's to remove.
 	if !columnExists(t, tx, "knowledge_chunks", "acl_tags") {
-		t.Fatal("down removed acl_tags, which 620 owns")
+		t.Fatal("down removed acl_tags, which 637 owns")
 	}
 
 	execMigrationFile(t, tx, migration641Up)

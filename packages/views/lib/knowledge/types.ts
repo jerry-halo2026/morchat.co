@@ -54,7 +54,7 @@ export const KNOWLEDGE_EMBEDDING_DIM = 1536;
 /**
  * One knowledge entry. Mirrors server/internal/knowledge/types.go:Item.
  *
- * `space_id` is the item's own space and is always present (migration 621 made
+ * `space_id` is the item's own space and is always present (migration 638 made
  * it NOT NULL); `page_id` is the optional binding to the wiki page the item was
  * distilled from. Field names stay snake_case like every other wire field here,
  * because the Go↔TS agreement test reads them by that shape.

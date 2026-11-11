@@ -111,7 +111,9 @@ func TestMigration640RoundTrips(t *testing.T) {
 	}
 
 	// 638 owns knowledge_pages(workspace_id, space_id, id), so it must survive both
-	// directions of 640.
+	// directions of 640. The constraint keeps the name 638 gave it, which embeds
+	// the earlier number this migration had before the 0.8.2 renumbering: it is a
+	// frozen identifier in 638's SQL, not a reference to the current numbering.
 	if def := constraintDef(t, tx, "knowledge_pages", "knowledge_pages_workspace_space_id_621_key"); def == "" {
 		t.Error("after 640: knowledge_pages_workspace_space_id_621_key was dropped")
 	}

@@ -39,13 +39,16 @@ func TestTaskProcessCleanupIndexMigrationAndPlans(t *testing.T) {
 	}
 	// Exercise the real guard predicates: a failure-only partial index misses
 	// the pending-ack branch of the OR and leaves ordinary history scans intact.
-	source, err := os.ReadFile(filepath.Join("..", "..", "pkg", "db", "queries", "task_cleanup.sql"))
+	// Normalized first: a checkout with CRLF endings must find the same queries as
+	// one with LF.
+	raw, err := os.ReadFile(filepath.Join("..", "..", "pkg", "db", "queries", "task_cleanup.sql"))
 	if err != nil {
 		t.Fatal(err)
 	}
+	source := strings.ReplaceAll(string(raw), "\r\n", "\n")
 	queries := make(map[string]string)
 	for _, name := range []string{"TaskBlockedByProcessCleanup", "TaskWaitingForProcessCleanup"} {
-		_, query, ok := strings.Cut(string(source), "-- name: "+name+" :one\n")
+		_, query, ok := strings.Cut(source, "-- name: "+name+" :one\n")
 		if !ok {
 			t.Fatalf("missing query %s", name)
 		}

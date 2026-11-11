@@ -61,18 +61,22 @@ func TestMigration637RoundTrip(t *testing.T) {
 	tx := beginTx(t)
 
 	// The state the test found, so the rollback assertion does not have to know
-	// how many knowledge_* tables later migrations have added since 620.
+	// how many knowledge_* tables later migrations have added since 637.
 	before := countKnowledgeTables(t, mustTx(t))
 
-	rollBackAfter620(t, tx)
+	rollBackAfter637(t, tx)
+	// Counted, not hardcoded: the tables the down file is about to drop are
+	// exactly the ones 637 owns at this commit, so a later migration that adds
+	// another knowledge_* table does not have to edit this test.
+	owned := countKnowledgeTables(t, tx)
 	execMigrationFile(t, tx, migrationDown)
 	if n := countKnowledgeTables(t, tx); n != 0 {
 		t.Fatalf("after down: %d knowledge_* tables remain", n)
 	}
 
 	execMigrationFile(t, tx, migrationUp)
-	if n := countKnowledgeTables(t, tx); n != 12 {
-		t.Fatalf("after up: %d knowledge_* tables, want 12", n)
+	if n := countKnowledgeTables(t, tx); n != owned {
+		t.Fatalf("after up: %d knowledge_* tables, want the %d the down file dropped", n, owned)
 	}
 
 	// Every registry enum must be enforced by the constraint the registry names,
@@ -139,7 +143,8 @@ func TestMigration637AppliesWithoutPgvector(t *testing.T) {
 	tx := beginTx(t)
 	ctx := context.Background()
 
-	rollBackAfter620(t, tx)
+	rollBackAfter637(t, tx)
+	owned := countKnowledgeTables(t, tx)
 	execMigrationFile(t, tx, migrationDown)
 
 	suffix := make([]byte, 4)
@@ -173,8 +178,8 @@ func TestMigration637AppliesWithoutPgvector(t *testing.T) {
 	// Nothing here may fail: every missing extension is caught by its own DO block.
 	execMigrationFile(t, tx, migrationUp)
 
-	if n := countKnowledgeTables(t, tx); n != 12 {
-		t.Fatalf("without pgvector: %d knowledge_* tables, want 12", n)
+	if n := countKnowledgeTables(t, tx); n != owned {
+		t.Fatalf("without pgvector: %d knowledge_* tables, want the %d the down file dropped", n, owned)
 	}
 	var hasEmbedding bool
 	if err := tx.QueryRow(ctx, `
@@ -214,7 +219,7 @@ func TestMigration637CreatesEmbeddingWherePgvectorExists(t *testing.T) {
 		t.Skip("pgvector is not installed on this database")
 	}
 
-	rollBackAfter620(t, tx)
+	rollBackAfter637(t, tx)
 	execMigrationFile(t, tx, migrationDown)
 	execMigrationFile(t, tx, migrationUp)
 

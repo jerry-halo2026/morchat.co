@@ -35,11 +35,15 @@ func TestAgentTaskHistoryIndexMigrationAndPagePlans(t *testing.T) {
 	}
 	// Explain the actual sqlc source query, so a future predicate or ordering
 	// change must still be served by this index without sorting all history.
-	source, err := os.ReadFile(filepath.Join("..", "..", "pkg", "db", "queries", "agent.sql"))
+	// Normalized first: a checkout with CRLF endings must find the same query as
+	// one with LF, otherwise this test fails on the working copy instead of the
+	// index.
+	raw, err := os.ReadFile(filepath.Join("..", "..", "pkg", "db", "queries", "agent.sql"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, history, ok := strings.Cut(string(source), "-- name: ListAgentTasks :many\n")
+	source := strings.ReplaceAll(string(raw), "\r\n", "\n")
+	_, history, ok := strings.Cut(source, "-- name: ListAgentTasks :many\n")
 	if !ok {
 		t.Fatal("ListAgentTasks query missing")
 	}
