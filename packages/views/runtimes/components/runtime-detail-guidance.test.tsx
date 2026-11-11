@@ -124,7 +124,7 @@ import { RuntimeDetail } from "./runtime-detail";
 import { DSH_PROFILE_INSTALL_COMMAND } from "./runtime-offline-guidance";
 
 const MISSING_PROFILE_DETAIL =
-  "the Multica runtime profile is not installed; add the Multica DSH runtime bundle to the `multica` profile with `dsh plugin`";
+  "the runtime profile is not installed; add the DSH runtime bundle to the `multica` profile with `dsh plugin`";
 
 function makeRuntime(overrides: Partial<AgentRuntime> = {}): AgentRuntime {
   return {

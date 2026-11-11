@@ -34,7 +34,7 @@ function makeRuntime(overrides: Partial<AgentRuntime>): AgentRuntime {
 // The daemon's own words, copied from server/internal/daemon/daemon.go so the
 // mapping is pinned against what actually arrives over the wire.
 const MISSING_PROFILE_DETAIL =
-  "the Multica runtime profile is not installed; add the Multica DSH runtime bundle to the `multica` profile with `dsh plugin`, or set MULTICA_DSH_PROFILE_BUNDLE so the daemon installs it";
+  "the runtime profile is not installed; add the DSH runtime bundle to the `multica` profile with `dsh plugin`, or set MULTICA_DSH_PROFILE_BUNDLE so the daemon installs it";
 const MIGRATION_DETAIL =
   "the multica DSH profile needs manual migration; back up the profile, build a compatible @multica-ai/dsh-runtime bundle";
 
@@ -94,7 +94,7 @@ describe("classifyRuntimeOfflineReason", () => {
 
   it("recognises a missing profile from the detail alone", () => {
     expect(
-      classifyRuntimeOfflineReason(null, "the Multica runtime profile is not installed"),
+      classifyRuntimeOfflineReason(null, "the runtime profile is not installed"),
     ).toBe("dsh_profile_missing");
   });
 
