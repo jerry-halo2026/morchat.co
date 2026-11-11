@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 177,
-  "fingerprint": "9bb6c9cb638862e3041a3b296ce90c8fe854bf34f2d13b6514366e38c3c948bf",
+  "count": 178,
+  "fingerprint": "af6af01309c5479367f648cad8dd19f9e9fc5ce0564c9ddb201d0db6956c30d8",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -1390,6 +1390,17 @@
       "links_in": [
         "docs/brand/DECISIONS.md"
       ]
+    },
+    {
+      "path": "docs/tasks/DSH-BUNDLE-SPIKE.md",
+      "title": "DSH 桥接内置：S0 结论",
+      "purpose": "让安装包自带 DSH 桥接（S0 spike）的结论与两处裁剪修复",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
     },
     {
       "path": "docs/tasks/DSH-LIVE-USAGE-SLICE.md",

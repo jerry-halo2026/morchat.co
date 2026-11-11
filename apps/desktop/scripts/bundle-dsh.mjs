@@ -119,9 +119,21 @@ const DROPPED_PACKAGES = [
 const DROP_FILE_RULES = [
   { test: (rel) => rel.endsWith(".map"), why: "source map" },
   { test: (rel) => /\.md$/i.test(rel) || /(^|\/)README(\..*)?$/i.test(rel), why: "docs" },
-  { test: (rel) => /(^|\/)docs?\//i.test(rel), why: "docs" },
+  // Only drop documentation directories of our own tree. A vendored package may
+  // keep runtime code under a folder named `doc` - yaml ships
+  // dist/doc/directives.js and its composer requires it - and dropping those
+  // broke `dsh --profile <name> --probe` with "Cannot find module
+  // '../doc/directives.js'" in an installed client.
+  {
+    test: (rel) => !rel.startsWith("node_modules/") && /(^|\/)docs?\//i.test(rel),
+    why: "docs",
+  },
   { test: (rel) => /(^|\/)(test|tests|__tests__|__mocks__|fixtures)\//i.test(rel), why: "tests" },
-  { test: (rel) => /(^|\/)src\//.test(rel), why: "uncompiled sources" },
+  // Only drop uncompiled sources from our own tree. A vendored package may ship
+  // the code it actually runs under src/ - human-signals keeps build/src/main.js,
+  // and execa imports it, so trimming those made any profile with plugins fail to
+  // load ("Cannot find module human-signals/build/src/main.js").
+  { test: (rel) => !rel.startsWith("node_modules/") && /(^|\/)src\//.test(rel), why: "uncompiled sources" },
   { test: (rel) => /(^|\/)\.[^/]+rc(\.[a-z]+)?$/i.test(rel) && !rel.includes("node_modules/"), why: "dev config" },
 ];
 
@@ -379,6 +391,12 @@ async function writeDshProfileBundle(options, dshVersion) {
   const kept = [];
   let bytes = 0;
   for (const rel of await walk(source)) {
+    // The bridge declares no runtime dependencies - its @deepseek-ai peers are
+    // optional and satisfied by the DSH host. Copying the build's node_modules
+    // shipped 75 MB of .pnpm store and made the bundled runtime refuse the
+    // profile ("required plugin did not activate"), so the payload is the package
+    // itself: dist/, package.json and the cordis patch.
+    if (rel === "node_modules" || rel.startsWith("node_modules/")) continue;
     const dropRule = DROP_FILE_RULES.find((rule) => rule.test(rel));
     if (dropRule) continue;
     const info = await stat(join(source, rel));
