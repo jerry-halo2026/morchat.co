@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 170,
-  "fingerprint": "9262071e41281a356e633260483e82b7c2a440a0e80fbdd3a66bdb931a5b0a5e",
+  "count": 171,
+  "fingerprint": "a10cb4a5af3654ad8e82acaf0c748608db1d4405eb1fcde1ffce477634905799",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -1281,6 +1281,7 @@
         "docs/ENGINEERING-BASELINE.md",
         "docs/README.md",
         "docs/tasks/CLEAN-INSTALL.md",
+        "docs/tasks/INSTALLER.md",
         "docs/tasks/MC-00-results.md"
       ]
     },
@@ -1299,7 +1300,9 @@
         "docs/tasks/ACTIVE.md",
         "docs/tasks/DSH-RUNTIME-REVIEW.md"
       ],
-      "links_in": []
+      "links_in": [
+        "docs/tasks/INSTALLER.md"
+      ]
     },
     {
       "path": "docs/tasks/CLIENT-GITHUB-INTEGRATION-UI-r1.md",
@@ -1401,7 +1404,8 @@
       "related": [],
       "links_out": [],
       "links_in": [
-        "docs/tasks/CLEAN-INSTALL.md"
+        "docs/tasks/CLEAN-INSTALL.md",
+        "docs/tasks/INSTALLER.md"
       ]
     },
     {
@@ -1426,6 +1430,25 @@
       "updated": "2026-11-10",
       "related": [],
       "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/INSTALLER.md",
+      "title": "Windows 安装包交付与 DSH profile bundle 语义对齐（W1-AG1）",
+      "purpose": "Windows 安装包交付（--win --dir 可用产物）与 multica 官方 DSH profile bundle 语义对齐结论",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/tasks/CLEAN-INSTALL.md",
+        "docs/tasks/DSH-RUNTIME-REVIEW.md",
+        "docs/tasks/ACTIVE.md"
+      ],
+      "links_out": [
+        "docs/tasks/ACTIVE.md",
+        "docs/tasks/CLEAN-INSTALL.md",
+        "docs/tasks/DSH-RUNTIME-REVIEW.md"
+      ],
       "links_in": []
     },
     {

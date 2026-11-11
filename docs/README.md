@@ -219,6 +219,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [DSH runtime dependency review — 2026-11-09](tasks/DSH-RUNTIME-REVIEW.md) | DSH runtime dependency review — 2026-11-09 | task-owners | current | 2026-11-10 |
 | [Evose 知识库 API — 导入 / 分块 / 召回 实测记录](tasks/EVOSE-KB-API.md) | Evose 知识库 API — 导入 / 分块 / 召回 实测记录 | b02-client | current | 2026-11-10 |
 | [GET guard isolated retest — 2026-11-09](tasks/GET-GUARD-LOCAL-RETEST.md) | GET guard isolated retest — 2026-11-09 | task-owners | current | 2026-11-10 |
+| [Windows 安装包交付与 DSH profile bundle 语义对齐（W1-AG1）](tasks/INSTALLER.md) | Windows 安装包交付（--win --dir 可用产物）与 multica 官方 DSH profile bundle 语义对齐结论 | task-owners | current | 2026-11-11 |
 | [KNOWLEDGE-BENCH：10 万 chunk 知识检索压测](tasks/KNOWLEDGE-BENCH.md) | 知识检索 10 万 chunk 压测：造数、查询集、四项指标与瓶颈归因 | task-owners | current | 2026-11-11 |
 | [Local existing DeepSeek account connection — r1 candidate](tasks/LOCAL-DSH-ACCOUNT-CONNECTION.md) | Local existing DeepSeek account connection — r1 candidate | task-owners | current | 2026-11-09 |
 | [本地第一阶段实机验收（2026-11-09）](tasks/LOCAL-FIRST-STAGE-ACCEPTANCE.md) | 本地第一阶段实机验收（2026-11-09） | task-owners | current | 2026-11-09 |
