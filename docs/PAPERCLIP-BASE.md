@@ -3,14 +3,11 @@ purpose: "Paperclip 治理参考与源码迁移边界"
 owner: docs-maintainers
 status: reference
 updated: 2026-11-06
-related:
-  - docs/archive/2026-11-06-before-multica-authority-migration/PAPERCLIP-BASE.md
-  - docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md
-  - docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md
+related: []
 ---
 # Paperclip 治理参考与源码迁移边界
 
-2026-11-06。文件名保留用于旧链接兼容，**本文件不是运行底座或任务契约规范**。Multica 是唯一客户端/后台/任务/run/调度权威；Paperclip 不作为独立常驻中台。旧接入正文保存在 [迁移前快照](archive/2026-11-06-before-multica-authority-migration/PAPERCLIP-BASE.md)，不可按旧文实施。
+2026-11-06。文件名保留用于旧链接兼容，**本文件不是运行底座或任务契约规范**。Multica 是唯一客户端/后台/任务/run/调度权威；Paperclip 不作为独立常驻中台。旧接入正文保存在 迁移前快照，不可按旧文实施。
 
 ## 1. 我们保留什么
 
@@ -36,7 +33,7 @@ Paperclip 不是 harness：其治理和运行编排通过适配器调用 harness
 - server/src/services/remote-workspaces.ts：条件发布可参考，但入口和 transport 有环境约束。
 - server/src/services/heartbeat/queue.ts、run-control.ts、retries.ts、recovery.ts：自身完整运行权威，不能无边界叠在 Multica 上。
 
-详细逐行证据保存在 [历史复用审计](archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md) 与 [历史 Discovery F01–F10](archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md)。静态反例不称上游漏洞，也不直接算 Multica 失败。
+详细逐行证据保存在 历史复用审计 与 历史 Discovery F01–F10。静态反例不称上游漏洞，也不直接算 Multica 失败。
 
 ## 3. 当前契约归属
 

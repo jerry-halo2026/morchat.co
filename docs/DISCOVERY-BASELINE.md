@@ -6,13 +6,12 @@ updated: 2026-11-07
 related:
   - docs/ROUND1-DELIVERY.md
   - docs/ENGINEERING-BASELINE.md
-  - docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md
 ---
 # Discovery 基线、最小 MVP 与证伪登记
 
 **R1-AUTH-r1（2026-11-06）已批准三切片连续开发和本地持续动作。** 全局 C01–C08 仍 DRAFT；下面的子集登记必须由真实工程角色填齐，不虚构冻结。授权与验收不是同一状态，详见 [首轮授权](ROUND1-DELIVERY.md)。
 
-2026-11-06。**设计基线已统一到 Multica；企业契约仍为 DRAFT，正式开发与上线验收未完成。** 本文登记 B01–B08 工作边界、C01–C08 契约、验证门禁和待决事项。产品事实以当前专项文档为准，工程开工规则见 [工程基线](ENGINEERING-BASELINE.md)。旧 Paperclip 实施方案已移出当前规范，保存在 [迁移前快照](archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md)，不得据此生成任务卡。
+2026-11-06。**设计基线已统一到 Multica；企业契约仍为 DRAFT，正式开发与上线验收未完成。** 本文登记 B01–B08 工作边界、C01–C08 契约、验证门禁和待决事项。产品事实以当前专项文档为准，工程开工规则见 [工程基线](ENGINEERING-BASELINE.md)。旧 Paperclip 实施方案已移出当前规范，保存在 迁移前快照，不得据此生成任务卡。
 
 ## 1. 当前结论与首版边界
 
@@ -61,7 +60,7 @@ D=复用 Multica 已确认原生基础；A=同一产品内适配；P=必要时�
 | 子集候选 ID | 消费主题 | 实现授权 | 当前精确契约/证据 |
 |---|---|---|---|
 | R1-ACL-r1（完整范围） | C01/C02/C04/C06 的部门/资源、委托、出口和资格 | R1-01 已批准 | 其余仍 DRAFT / NOT RUN；仅下面 NM-02a 已局部签认 |
-| R1-ACL-r1/NM-02a@r3 | C01 真人/原生成员/部门资源、C02 原生读取与严格 title-only | TEST-FROZEN，隔离测试/最小实现 | [精确签认与写集](tasks/contracts/R1-ACL-r1-test-frozen.json)、[真实 runner 绑定](tasks/contracts/R1-ACL-r1-runner-binding.json)；schema/fixture/NM 仍 NOT RUN，无 BUILD/发布；原生640完成后方开三文件源任务 |
+| R1-ACL-r1/NM-02a@r3 | C01 真人/原生成员/部门资源、C02 原生读取与严格 title-only | TEST-FROZEN，隔离测试/最小实现 | 精确签认与写集、真实 runner 绑定；schema/fixture/NM 仍 NOT RUN，无 BUILD/发布；原生640完成后方开三文件源任务 |
 | R1-EXEC-r1 | C01–C06/C08 的输入固定、派发、归档、终态补传和计量 | R1-02 已批准 | DRAFT / NOT RUN；真实模型费用仍未批准 |
 | R1-CONT-r1 | C01–C08 的 Leader 汇合、版本/撤权、自动保存接续 | R1-03 已批准 | DRAFT / NOT RUN；双机环境/故障窗口待登记 |
 

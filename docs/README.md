@@ -82,7 +82,7 @@ D:/dev/multica@164290ee14f63fe009ca304db21de9879db104c8 只作上游样本，不
 | [Paperclip 治理参考](PAPERCLIP-BASE.md) | 历史来源与可借鉴机制，非 API/运行权威 |
 | [Multica 证据](MULTICA-BASE-EVALUATION.md) | 固定样本、已做与未做、已知失败，不定义新产品方向 |
 | [建设顺序](PLAN.md) | G0/P0/P1–P4 顺序和退出条件 |
-| [历史迁移记录入口](DOCS-REBASE.md) / [归档总索引](archive/README.md) | 完整旧日志/快照只追溯，当前状态以本表权威正文和 Discovery 为准 |
+| [历史迁移记录入口](DOCS-REBASE.md) / 归档总索引 | 完整旧日志/快照只追溯，当前状态以本表权威正文和 Discovery 为准 |
 | [千川资料](QIANCHUAN-DATA.md) / [接口历史](QIANCHUAN-API-DEV.md) | 原日期的业务证据，不决定平台范围或调用授权 |
 | [edict](EDICT-FLOW.md) | 非运行依赖的机制参考 |
 
@@ -104,7 +104,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 
 用户最新确认先修入对应权威正文；事实优先于设计断言。范围看 PRD，交互看 PRODUCT-EXPERIENCE，协议看对应 C 正文，状态看 Discovery，分工/门禁看 ENGINEERING。发现冲突先暂停受影响卡，提变更并修正文和消费者，不由 agent 选对自己有利的一版。
 
-[本轮迁移前快照](archive/2026-11-06-before-multica-authority-migration/README.md)与其他 archive、实验报告、旧低保真只有追溯用途。它们不是“低优先级但仍能施工”的方案，而是**不得作为实现指令**。旧“Paperclip 唯一任务底座”“Paperclip 前端＋OMB 对话”“ACP/PCWS 必装”已经撤回。当前任务卡必须列本文档基线、所用 C 的版本/状态、模块 owner 和明确写集；无冻结切片不派产品实现任务。
+本轮迁移前快照与其他 archive、实验报告、旧低保真只有追溯用途。它们不是“低优先级但仍能施工”的方案，而是**不得作为实现指令**。旧“Paperclip 唯一任务底座”“Paperclip 前端＋OMB 对话”“ACP/PCWS 必装”已经撤回。当前任务卡必须列本文档基线、所用 C 的版本/状态、模块 owner 和明确写集；无冻结切片不派产品实现任务。
 
 ## 文档索引（由脚本生成，勿手改）
 
@@ -281,6 +281,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [R1-INCIDENT-WORKTREE-01 — startup-cleanup incident / recovery gate](tasks/R1-INCIDENT-WORKTREE-01.md) | R1-INCIDENT-WORKTREE-01 — startup-cleanup incident / recovery gate | task-owners | current | 2026-11-07 |
 | [首轮恢复与连续开发记录](tasks/R1-results.md) | 首轮恢复与连续开发记录 | task-owners | draft | 2026-11-07 |
 | [R1 交接文档独立审查](tasks/R1-review.md) | R1 交接文档独立审查 | task-owners | current | 2026-11-06 |
+| [回归基线（main @ 0.8.2 之后）](tasks/REGRESSION-BASELINE.md) | 0.8.2 合并后 main 上的隐性回归盘点（门禁 fail-open 掩盖的问题），作为修复基线 | lead | current | 2026-11-11 |
 | [本地启动与文档交付独立审核](tasks/STARTUP-DELIVERY-REVIEW.md) | 本地启动与文档交付独立审核 | task-owners | current | 2026-11-09 |
 | [本地启动实际索引独立复核](tasks/STARTUP-STAGED-REVIEW.md) | 本地启动实际索引独立复核 | task-owners | current | 2026-11-10 |
 | [SUPABASE-LOGIN independent review](tasks/SUPABASE-LOGIN-REVIEW.md) | SUPABASE-LOGIN independent review | task-owners | current | 2026-11-09 |

@@ -44,7 +44,7 @@ MC-00、MC-01G 与 MINIMUM-CHAIN 的 MC-01–08/01G/05G 是以上切片的已有
 - Codex Goal 01a1b0e9-ce05-7273-bbb3-b6f3d0708f30：ACTIVE。执行单写者 /root（本会话，model unknown）；独立基线 reviewer /root/baseline_review（gpt-6.1-sol）；工具链子任务 /root/toolchain（gpt-6.1-sol）；R1-01 首子集只读提案 /root/acl_contract（gpt-6.1-sol）。上面的恢复期身份只作历史。
 - branch codex/round1-continuous，base b353d4c335a2fc2d06cf1f546bde8ad62debbc45，授权 R1-AUTH-r1，输入快照 R1-HANDOFF-r1；本阶段不冻结 C 子集。
 - 首个任务：只修 manifest 指定的 17 个 Git 索引执行位，保持 blob；验收为导入、checker 单测、索引门禁及独立复核。工具链并行定位，未运行产品、数据库、DSH 或真实模型。
-- 当前提交身份未配置，已请求 Ethan 提供；不阻塞本地验证。原始交接快照不重算，增量见 [R1-00 检查点](R1-00-checkpoint.json)。
+- 当前提交身份未配置，已请求 Ethan 提供；不阻塞本地验证。原始交接快照不重算，增量见 R1-00 检查点。
 
 推进记录：执行位已修复，内容 OID 不变，独立暂存复核待回执；Ethan 已授权使用当前登录的 GitHub CLI 身份，只作用于本轮提交。R1-01 的 NM-02a 仍为 DRAFT，仅在准备真实路由与数据夹具。
 

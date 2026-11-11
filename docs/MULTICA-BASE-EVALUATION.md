@@ -4,14 +4,13 @@ owner: docs-maintainers
 status: reference
 updated: 2026-11-06
 related:
-  - docs/archive/2026-11-06-before-multica-authority-migration/MULTICA-BASE-EVALUATION.md
   - docs/REFERENCE-REUSE.md
 ---
 # Multica 当前底座：事实、门禁与实测
 
 **最新证据索引：**2026-11-06 合成组队实验已产生真实模型运行；委托权限子样本 FAIL，回传汇总在采集窗口内未闭环。下文早期“未新增运行/全部未测”仅描述当时阶段，不覆盖本文末尾“合成组队实测”。本轮只是同步已有证据，没有重跑或修复产品。
 
-2026-11-06 更新文档状态。Ethan 已明确按 Multica 统一底座收敛方案；这不是企业安全或上线验收通过。以下固定样本和实验事实保留原日期；前序候选阶段完整记录见 [迁移前快照](archive/2026-11-06-before-multica-authority-migration/MULTICA-BASE-EVALUATION.md)。
+2026-11-06 更新文档状态。Ethan 已明确按 Multica 统一底座收敛方案；这不是企业安全或上线验收通过。以下固定样本和实验事实保留原日期；前序候选阶段完整记录见 迁移前快照。
 
 ## 2026-11-05 实测更新：优先一套 Multica，不叠加调度
 

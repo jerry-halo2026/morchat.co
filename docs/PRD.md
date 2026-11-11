@@ -209,4 +209,4 @@ P0–P3 退出条件全部满足，US-01–22 有证据；业务团队可以从�
 
 ## 9. 当前证据与发布阻断
 
-Multica 实际 @→DSH 文件生成、Bot 回复及 token 回执已走通；自动归档失败，手动上传成功只证明替代上传路径。匿名 uploads 返回 200 是 P0 权限失败，修复并回归前不能用于私密公司成果，也不能称端到端通过。历史 Paperclip/OMB 实验只证明固定样本，不给 Multica 企业能力背书；原文与反例保留在 [迁移前归档](archive/2026-11-06-before-multica-authority-migration/PRD.md)。
+Multica 实际 @→DSH 文件生成、Bot 回复及 token 回执已走通；自动归档失败，手动上传成功只证明替代上传路径。匿名 uploads 返回 200 是 P0 权限失败，修复并回归前不能用于私密公司成果，也不能称端到端通过。历史 Paperclip/OMB 实验只证明固定样本，不给 Multica 企业能力背书；原文与反例保留在 迁移前归档。

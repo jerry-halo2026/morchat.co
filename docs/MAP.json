@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 160,
-  "fingerprint": "3a491f25f3d505abf2fc7e767570fe77e8cb08cd3edb4e0d21ddf613314b0222",
+  "count": 161,
+  "fingerprint": "676a4eb58c0b8f77d9645c65f65e9c4e0e8882fc96e241ea93568551611a3089",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -158,8 +158,7 @@
       "updated": "2026-11-07",
       "related": [
         "docs/ROUND1-DELIVERY.md",
-        "docs/ENGINEERING-BASELINE.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md"
+        "docs/ENGINEERING-BASELINE.md"
       ],
       "links_out": [
         "docs/ARCHITECTURE.md",
@@ -236,8 +235,6 @@
       "status": "reference",
       "updated": "2026-11-06",
       "related": [
-        "docs/archive/2026-11-06-development-readiness/README.md",
-        "docs/archive/README.md",
         "docs/README.md"
       ],
       "links_out": [
@@ -395,7 +392,6 @@
       "status": "reference",
       "updated": "2026-11-06",
       "related": [
-        "docs/archive/2026-11-06-before-multica-authority-migration/MULTICA-BASE-EVALUATION.md",
         "docs/REFERENCE-REUSE.md"
       ],
       "links_out": [
@@ -460,11 +456,7 @@
       "owner": "docs-maintainers",
       "status": "reference",
       "updated": "2026-11-06",
-      "related": [
-        "docs/archive/2026-11-06-before-multica-authority-migration/PAPERCLIP-BASE.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md",
-        "docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md"
-      ],
+      "related": [],
       "links_out": [
         "docs/DISCOVERY-BASELINE.md",
         "docs/MULTICA-BASE-EVALUATION.md"
@@ -1423,7 +1415,6 @@
       "status": "current",
       "updated": "2026-11-06",
       "related": [
-        "docs/archive/2026-11-06-pre-continuous-development/MC-00-closeout-plan.md",
         "docs/superpowers/plans/2026-11-06-round1-continuous.md",
         "docs/tasks/R1-00-baseline.md"
       ],
@@ -2173,6 +2164,17 @@
       ]
     },
     {
+      "path": "docs/tasks/REGRESSION-BASELINE.md",
+      "title": "回归基线（main @ 0.8.2 之后）",
+      "purpose": "0.8.2 合并后 main 上的隐性回归盘点（门禁 fail-open 掩盖的问题），作为修复基线",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
       "path": "docs/tasks/STARTUP-DELIVERY-REVIEW.md",
       "title": "本地启动与文档交付独立审核",
       "purpose": "本地启动与文档交付独立审核",
@@ -2392,7 +2394,6 @@
       "status": "current",
       "updated": "2026-11-10",
       "related": [
-        "docs/upstream/SYNC-0.8.2.md",
         "docs/upstream/README.md"
       ],
       "links_out": [
@@ -2404,36 +2405,5 @@
     }
   ],
   "problems": [],
-  "dead_links": [
-    "docs/ASSETS-AND-LEARNING.md -> docs/archive/2026-11-06-before-multica-authority-migration/ASSETS-AND-LEARNING.md",
-    "docs/DISCOVERY-BASELINE.md -> docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
-    "docs/DISCOVERY-BASELINE.md -> docs/tasks/contracts/R1-ACL-r1-runner-binding.json",
-    "docs/DISCOVERY-BASELINE.md -> docs/tasks/contracts/R1-ACL-r1-test-frozen.json",
-    "docs/DISCOVERY-BASELINE.md -> related docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
-    "docs/DISTRIBUTED-COLLABORATION.md -> docs/archive/2026-11-06-before-multica-authority-migration/DISTRIBUTED-COLLABORATION.md",
-    "docs/DOCS-REBASE.md -> docs/archive/2026-11-06-development-readiness/README.md",
-    "docs/DOCS-REBASE.md -> docs/archive/README.md",
-    "docs/DOCS-REBASE.md -> related docs/archive/2026-11-06-development-readiness/README.md",
-    "docs/DOCS-REBASE.md -> related docs/archive/README.md",
-    "docs/MULTICA-BASE-EVALUATION.md -> docs/archive/2026-11-06-before-multica-authority-migration/MULTICA-BASE-EVALUATION.md",
-    "docs/MULTICA-BASE-EVALUATION.md -> related docs/archive/2026-11-06-before-multica-authority-migration/MULTICA-BASE-EVALUATION.md",
-    "docs/PAPERCLIP-BASE.md -> docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
-    "docs/PAPERCLIP-BASE.md -> docs/archive/2026-11-06-before-multica-authority-migration/PAPERCLIP-BASE.md",
-    "docs/PAPERCLIP-BASE.md -> docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md",
-    "docs/PAPERCLIP-BASE.md -> related docs/archive/2026-11-06-before-multica-authority-migration/DISCOVERY-BASELINE.md",
-    "docs/PAPERCLIP-BASE.md -> related docs/archive/2026-11-06-before-multica-authority-migration/PAPERCLIP-BASE.md",
-    "docs/PAPERCLIP-BASE.md -> related docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md",
-    "docs/PRD.md -> docs/archive/2026-11-06-before-multica-authority-migration/PRD.md",
-    "docs/PRODUCT-EXPERIENCE.md -> docs/archive/2026-11-06-before-multica-authority-migration/PRODUCT-EXPERIENCE.md",
-    "docs/PRODUCT-LIFECYCLE.md -> docs/archive/2026-11-06-before-multica-authority-migration/PRODUCT-LIFECYCLE.md",
-    "docs/README.md -> docs/archive/2026-11-06-before-multica-authority-migration/README.md",
-    "docs/README.md -> docs/archive/README.md",
-    "docs/REFERENCE-REUSE.md -> docs/archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md",
-    "docs/tasks/ACTIVE.md -> docs/tasks/R1-00-checkpoint.json",
-    "docs/tasks/MC-00-closeout-plan.md -> docs/archive/2026-11-06-pre-continuous-development/MC-00-closeout-plan.md",
-    "docs/tasks/MC-00-closeout-plan.md -> related docs/archive/2026-11-06-pre-continuous-development/MC-00-closeout-plan.md",
-    "docs/tasks/R1-results.md -> docs/tasks/R1-recovery-evidence.json",
-    "docs/upstream/README.md -> docs/upstream/multica-import.json",
-    "docs/upstream/SYNC-0.8.2-RESULT.md -> related docs/upstream/SYNC-0.8.2.md"
-  ]
+  "dead_links": []
 }

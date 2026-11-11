@@ -240,4 +240,4 @@ Multica 实际 @→DSH 文件/回复/token 已通过；自动归档失败，手�
 
 源码阅读证明“有这段实现/限制”，不证明我们的企业权限、DSH/Windows 组合已通过。许可初筛和不得复制的目录以 [复用边界](REFERENCE-REUSE.md) 为准；后续抽取前再核验所选文件、依赖和分发义务。
 
-迁移前完整产品/反例细节保留于 [历史流程](archive/2026-11-06-before-multica-authority-migration/PRODUCT-LIFECYCLE.md)；其中 Paperclip API、测试记录和历史限制仅是固定样本证据，不是 Multica 的现成功能。
+迁移前完整产品/反例细节保留于 历史流程；其中 Paperclip API、测试记录和历史限制仅是固定样本证据，不是 Multica 的现成功能。

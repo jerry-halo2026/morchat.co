@@ -188,7 +188,7 @@ Ethan 已确认下述范围；这是验收要求，不代表任何候选或现�
 
 Paperclip 的 Reflection Coach、配置/指令历史差异、Beta pin 与测试替代/到期，OMB 的候选/base hash/过期 Undo 作为治理参考与固定反例。OMB Ask 也可能 direct apply，其 bench 估算 token 不是业务/成本实证；不导入其 Store/chat/runtime/导入器。独立 helper 必须重接 Multica 授权/事件并核依赖/许可，不能把参考 API 换名声称已实现。
 
-自动批量提炼、无界建 Bot、自动全员发布、训练模型和平台/harness/插件自修改不在首版。完整旧证据保留于 [迁移前资产文档](archive/2026-11-06-before-multica-authority-migration/ASSETS-AND-LEARNING.md)。
+自动批量提炼、无界建 Bot、自动全员发布、训练模型和平台/harness/插件自修改不在首版。完整旧证据保留于 迁移前资产文档。
 
 ### 4.4 历史和测试材料也受当前权限约束
 

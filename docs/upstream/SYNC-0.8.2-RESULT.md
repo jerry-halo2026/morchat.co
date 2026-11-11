@@ -4,7 +4,6 @@ owner: u2-sync
 status: current
 updated: 2026-11-10
 related:
-  - docs/upstream/SYNC-0.8.2.md
   - docs/upstream/README.md
 ---
 

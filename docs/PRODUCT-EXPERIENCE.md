@@ -388,4 +388,4 @@ Ethan 明确定位为企业 SaaS Agent 平台。只读查看已登录的 [Evose]
 
 Multica 实际 @→DSH 文件生成、Bot 回复和 token 回执已走通；自动归档失败，手动上传成功。匿名 uploads 返回 200 是 P0 失败：预览/下载授权未补并验证前，不可用于私密成果，更不能称端到端验收通过。精确结果见 [Multica 实验](../experiments/multica-spike/README.md)。
 
-2026-11-05 Paperclip 合成公司提及、重启、DSH、归档及测试修复是历史样本，不再定义本产品组件或 API。其稳定目标、真人责任不被清空、粘贴非执行意图、未知请求先对账等反例继续适用；详见 [迁移前体验](archive/2026-11-06-before-multica-authority-migration/PRODUCT-EXPERIENCE.md)。设计确认不代表部门 ACL、设备池、双设备接续或成本门禁已通过。
+2026-11-05 Paperclip 合成公司提及、重启、DSH、归档及测试修复是历史样本，不再定义本产品组件或 API。其稳定目标、真人责任不被清空、粘贴非执行意图、未知请求先对账等反例继续适用；详见 迁移前体验。设计确认不代表部门 ACL、设备池、双设备接续或成本门禁已通过。

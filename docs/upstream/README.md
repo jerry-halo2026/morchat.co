@@ -10,7 +10,7 @@ related: []
 本目录只记录来源，不覆盖企业文档权威。
 
 - 上游 `https://github.com/multica-ai/multica`，固定 SHA `164290ee14f63fe009ca304db21de9879db104c8`。
-- [完整导入清单](multica-import.json)：7,582 个 tracked 文件；7,564 个原路径原字节导入，1 个工程适配（`.gitattributes`），12 个转为非执行参考，5 个排除。
+- 完整导入清单：7,582 个 tracked 文件；7,564 个原路径原字节导入，1 个工程适配（`.gitattributes`），12 个转为非执行参考，5 个排除。
 - 从 Git archive 提取，不复制上游工作区未跟踪文件、`.git`、node_modules、数据或账号配置。
 - `.agents/` 两个技能与三个非 example 环境文件排除；保留 env example。上游六个 Actions 工作流均改放 `multica/.github/workflows/*.source`，不能自动运行。
 - 上游 README、AGENTS/CLAUDE、CODEOWNERS、gitignore 保留 `.source` 原字节；根 README/AGENTS 是本仓入口。移动后的相对链接仅作为原稿内容，不是当前导航。

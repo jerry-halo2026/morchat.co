@@ -304,7 +304,7 @@ Evose 补充的是完整产品组织和治理需求，不是第二技术栈。�
 | 独立校验/纯函数/测试向量 | 后续按具体任务评审候选 | **当前没有批准直接移植的 Paperclip 功能模块**；TS 服务不能无成本搬到 Go 后台 |
 | 原生 UI、数据库schema、heartbeat/runner、审批/任务/版本/成本服务 | 不作为运行依赖 | 防止双账本、跨后端事务与升级绑定 |
 
-固定 Paperclip LICENSE 为 MIT；仍需保留版权与依赖许可。源码独立性、维护成本和正确性需单独审查，不能把许可允许等同技术可移植。详细机制出处见 [Paperclip 治理参考](PAPERCLIP-BASE.md)；旧逐行审计见 [历史复用审计](archive/2026-11-06-before-multica-authority-migration/REFERENCE-REUSE.md)，其中实施指令全部非规范。
+固定 Paperclip LICENSE 为 MIT；仍需保留版权与依赖许可。源码独立性、维护成本和正确性需单独审查，不能把许可允许等同技术可移植。详细机制出处见 [Paperclip 治理参考](PAPERCLIP-BASE.md)；旧逐行审计见 历史复用审计，其中实施指令全部非规范。
 
 ## 5. 复用决策与维护规则
 
