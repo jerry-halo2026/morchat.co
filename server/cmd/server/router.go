@@ -27,6 +27,7 @@ import (
 	"github.com/jerry-halo2026/morchat.co/server/internal/connectedapps"
 	"github.com/jerry-halo2026/morchat.co/server/internal/daemonws"
 	"github.com/jerry-halo2026/morchat.co/server/internal/entitlement"
+	"github.com/jerry-halo2026/morchat.co/server/internal/gateway"
 	"github.com/jerry-halo2026/morchat.co/server/internal/events"
 	"github.com/jerry-halo2026/morchat.co/server/internal/featureflags"
 	"github.com/jerry-halo2026/morchat.co/server/internal/gitca"
@@ -1711,6 +1712,12 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 	// the host over MessagePort; the host calls this internal route with the
 	// signed-in user's session and the installation header. Keeping it outside
 	// /v1 prevents the Public API from accepting session cookies.
+	// Constructed outside the auth group: the credentials API only needs the
+	// handler (DB access) and the gateway client; the routes below are the
+	// authenticated surface.
+	gatewayClient := gateway.FromEnv()
+	runtimeCredentials := handler.NewRuntimeCredentialAPI(h, gatewayClient)
+	slog.Info("runtime credentials: gateway client resolved", "configured", gatewayClient.Configured())
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Auth(queries, patCache, cloudPATVerifier, cfSigner))
 		r.Route(pluginBridgePrefix, func(r chi.Router) {
@@ -2077,6 +2084,16 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 			r.Delete("/{id}", h.RevokePersonalAccessToken)
 		})
 
+		// Per-user model-gateway credentials (docs/plans/RUNTIME-CONFIGURATOR.md).
+		// The plaintext key appears in exactly one response - POST - and every
+		// later read answers ***<suffix>. Human-only: a prompt-injected agent
+		// holding a mat_ task token must not mint itself a long-lived LLM key.
+		r.Route("/api/runtime/credentials", func(r chi.Router) {
+			r.Use(handler.RequireHumanActor)
+			r.Post("/", runtimeCredentials.Create)
+			r.Get("/", runtimeCredentials.Get)
+			r.Delete("/", runtimeCredentials.Delete)
+		})
 		// Cloud Billing proxy. Same upstream service / port as
 		// cloud-runtime — multica-cloud's Fleet and Billing share
 		// :8080 and the same chi router. All routes here forward

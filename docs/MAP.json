@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 161,
-  "fingerprint": "676a4eb58c0b8f77d9645c65f65e9c4e0e8882fc96e241ea93568551611a3089",
+  "count": 162,
+  "fingerprint": "9c31085e72bb6fc14389117b4c2109a41073d387068f98d737e2296a3a058125",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -980,7 +980,9 @@
       "updated": "2026-11-10",
       "related": [],
       "links_out": [],
-      "links_in": []
+      "links_in": [
+        "docs/tasks/PERSONAL-KEY-E2E.md"
+      ]
     },
     {
       "path": "docs/superpowers/plans/2026-11-06-round1-continuous.md",
@@ -1568,6 +1570,24 @@
       "updated": "2026-11-10",
       "related": [],
       "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/PERSONAL-KEY-E2E.md",
+      "title": "公司 Key 失效 → 降级个人 Key → 用量记 personal 验证记录",
+      "purpose": "公司 Key 失效 → 自动降级个人 Key → 用量记 personal 的端到端验证记录（P3-C）",
+      "owner": "task-owners",
+      "status": "draft",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/plans/RUNTIME-CONFIGURATOR.md",
+        "server/internal/handler/task_usage_credential_source.go",
+        "server/internal/gateway/newapi.go",
+        "apps/desktop/src/main/runtime-configurator/credential.ts"
+      ],
+      "links_out": [
+        "docs/plans/RUNTIME-CONFIGURATOR.md"
+      ],
       "links_in": []
     },
     {
@@ -2405,5 +2425,9 @@
     }
   ],
   "problems": [],
-  "dead_links": []
+  "dead_links": [
+    "docs/tasks/PERSONAL-KEY-E2E.md -> related docs/tasks/apps/desktop/src/main/runtime-configurator/credential.ts",
+    "docs/tasks/PERSONAL-KEY-E2E.md -> related docs/tasks/server/internal/gateway/newapi.go",
+    "docs/tasks/PERSONAL-KEY-E2E.md -> related docs/tasks/server/internal/handler/task_usage_credential_source.go"
+  ]
 }

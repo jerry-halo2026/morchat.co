@@ -229,6 +229,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [NM03 原生创建契约独立评审](tasks/NATIVE-CREATION-REVIEW.md) | NM03 原生创建契约独立评审 | task-owners | draft | 2026-11-10 |
 | [NM03-A new-workspace atomic authorization bootstrap](tasks/NM03A-WORKSPACE-BOOTSTRAP.md) | NM03-A new-workspace atomic authorization bootstrap | task-owners | current | 2026-11-10 |
 | [NM03-B：原生项目／普通任务创建→授权读回候选](tasks/NM03B-NATIVE-CREATE-READ.md) | NM03-B：原生项目／普通任务创建→授权读回候选 | task-owners | draft | 2026-11-10 |
+| [公司 Key 失效 → 降级个人 Key → 用量记 personal 验证记录](tasks/PERSONAL-KEY-E2E.md) | 公司 Key 失效 → 自动降级个人 Key → 用量记 personal 的端到端验证记录（P3-C） | task-owners | draft | 2026-11-11 |
 | [PRESET-IMPORT-SMOKE — 内容仓预设 → Skill → Agent → Squad（本地 dev 实测）](tasks/PRESET-IMPORT-SMOKE.md) | 预设导入冒烟：技能→Agent→Squad 的真实调用记录 | lead | current | 2026-11-11 |
 | [R1-00：恢复工程基线与可执行派工](tasks/R1-00-baseline.md) | R1-00：恢复工程基线与可执行派工 | task-owners | current | 2026-11-07 |
 | [R1-00-PNPM-BOOTSTRAP](tasks/R1-00-pnpm-bootstrap.md) | R1-00-PNPM-BOOTSTRAP | task-owners | current | 2026-11-10 |

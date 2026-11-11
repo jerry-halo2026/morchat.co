@@ -63,9 +63,10 @@ func TestSearchBench(t *testing.T) {
 
 	start := time.Now()
 	fx := seedBench(t, ctx, pool, service)
+	seedTook := time.Since(start)
 	t.Logf("seed: workspace=%s items=%d chunks=%d queries=%d viewers=%d took=%s",
 		fx.workspaceID, ItemCount, ChunkCount, QueryCount, ViewerCount,
-		time.Since(start).Round(time.Millisecond))
+		seedTook.Round(time.Millisecond))
 	for _, v := range fx.viewers {
 		t.Logf("viewer %s: visible=%d/%d index_layer=%s",
 			v.name, v.visibleItems, ItemCount, v.layer)
@@ -84,7 +85,7 @@ func TestSearchBench(t *testing.T) {
 		Viewers:      viewerReports,
 		VectorPath:   fx.vectorPath,
 		ChunkBytes:   fx.chunkBytes,
-		SeedDuration: time.Since(start).Round(time.Millisecond).String(),
+		SeedDuration: seedTook.Round(time.Millisecond).String(),
 	}
 	report.Aggregate = aggregateViewers(viewerReports)
 
@@ -514,6 +515,12 @@ type viewerReport struct {
 	Top1Rate             float64 `json:"top1_rate"`
 	AvgGoldRank          float64 `json:"avg_gold_rank"`
 	AvgKeywordCandidates float64 `json:"avg_keyword_candidates"`
+	// EmptyCallsWithVisibleGold is the part of the empty-result rate that is a
+	// retrieval miss; the rest is the permission filter doing its job (the
+	// annotated chunk, and every chunk containing a rare identifier, is in an
+	// item this viewer cannot see).
+	EmptyCallsWithVisibleGold int `json:"empty_calls_visible_gold"`
+	EmptyCallsWithHiddenGold  int `json:"empty_calls_hidden_gold"`
 
 	identHits, identCalls   int
 	phraseHits, phraseCalls int
@@ -535,6 +542,8 @@ type aggregateReport struct {
 	EmptyRate     float64 `json:"empty_rate"`
 	AvgHits       float64 `json:"avg_hits"`
 	Leaks         int     `json:"permission_leaks"`
+	EmptyVisible  int     `json:"empty_calls_visible_gold"`
+	EmptyHidden   int     `json:"empty_calls_hidden_gold"`
 }
 
 type benchReport struct {
@@ -626,7 +635,13 @@ func measureViewer(t *testing.T, ctx context.Context, service *knowledge.Service
 		// A gold chunk the viewer cannot see is not measurable for that
 		// viewer: excluding it keeps the denominator honest.
 		if !v.visible[gold.ItemIndex] {
+			if len(result.Hits) == 0 {
+				report.EmptyCallsWithHiddenGold++
+			}
 			continue
+		}
+		if len(result.Hits) == 0 {
+			report.EmptyCallsWithVisibleGold++
 		}
 		report.ScoredQueries++
 		if found {
@@ -671,10 +686,11 @@ func measureViewer(t *testing.T, ctx context.Context, service *knowledge.Service
 		report.AvgKeywordCandidates = round(float64(report.keywordCandidates)/float64(report.Calls), 1)
 	}
 
-	t.Logf("viewer %s: recall@10=%.4f (%d/%d) ident=%.4f phrase=%.4f p50=%.1fms p95=%.1fms max=%.1fms empty=%.4f avg_hits=%.2f leaks=%d top1=%.4f avg_gold_rank=%.2f kw_candidates=%.1f",
+	t.Logf("viewer %s: recall@10=%.4f (%d/%d) ident=%.4f phrase=%.4f p50=%.1fms p95=%.1fms max=%.1fms empty=%.4f (visible_gold=%d hidden_gold=%d) avg_hits=%.2f leaks=%d top1=%.4f avg_gold_rank=%.2f kw_candidates=%.1f",
 		report.Viewer, report.RecallAt10, report.recallHits, report.ScoredQueries,
 		report.RecallIdent, report.RecallPhrase, report.P50MS, report.P95MS,
-		report.MaxMS, report.EmptyRate, report.AvgHits, report.Leaks,
+		report.MaxMS, report.EmptyRate, report.EmptyCallsWithVisibleGold,
+		report.EmptyCallsWithHiddenGold, report.AvgHits, report.Leaks,
 		report.Top1Rate, report.AvgGoldRank, report.AvgKeywordCandidates)
 	return report
 }
@@ -692,6 +708,8 @@ func aggregateViewers(viewers []viewerReport) aggregateReport {
 		calls += v.Calls
 		hits += v.hits
 		emptyCalls += v.emptyCalls
+		out.EmptyVisible += v.EmptyCallsWithVisibleGold
+		out.EmptyHidden += v.EmptyCallsWithHiddenGold
 		recallHits += v.recallHits
 		scored += v.ScoredQueries
 		latencies = append(latencies, v.latencies...)
@@ -718,9 +736,10 @@ func aggregateViewers(viewers []viewerReport) aggregateReport {
 
 func emitReport(t *testing.T, report benchReport) {
 	t.Helper()
-	t.Logf("aggregate: recall@10=%.4f (%d scored) p50=%.1fms p95=%.1fms empty=%.4f avg_hits=%.2f leaks=%d vector=%s",
+	t.Logf("aggregate: recall@10=%.4f (%d scored) p50=%.1fms p95=%.1fms empty=%.4f (visible_gold=%d hidden_gold=%d) avg_hits=%.2f leaks=%d vector=%s",
 		report.Aggregate.RecallAt10, report.Aggregate.ScoredQueries,
 		report.Aggregate.P50MS, report.Aggregate.P95MS, report.Aggregate.EmptyRate,
+		report.Aggregate.EmptyVisible, report.Aggregate.EmptyHidden,
 		report.Aggregate.AvgHits, report.Aggregate.Leaks, report.VectorPath)
 
 	met := report.Aggregate.RecallAt10 >= 0.8 && report.Aggregate.P95MS < 300
