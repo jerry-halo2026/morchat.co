@@ -98,7 +98,11 @@
         "webhooks",
         "sdk",
         "tokens",
-        "cli"
+        "cli",
+        "lark",
+        "slack",
+        "telegram",
+        "wecom"
       ]
     },
     {
