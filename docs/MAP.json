@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 164,
-  "fingerprint": "31701747a650dc4ac12b7fea4dd1b70e12f19d2f33af348e39ce85054bb2c7ea",
+  "count": 168,
+  "fingerprint": "09fc55f515888a14d06859f179cde6376ee154a6a57a6d88f5b78de1d02d48da",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -872,6 +872,28 @@
       "links_in": []
     },
     {
+      "path": "docs/engineering/CONTRACTS.md",
+      "title": "接口契约",
+      "purpose": "接口唯一性与命名规则（一个能力一个入口），PR 时逐条对照",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/engineering/TOOLCHAIN.md",
+      "title": "工具链",
+      "purpose": "三层工具链的职责与协作规则（pnpm/turbo、Go、Postgres、入口胶水）",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
       "path": "docs/engineering/issue-wakeups.md",
       "title": "Issue wakeups",
       "purpose": "Issue wakeups",
@@ -1621,10 +1643,7 @@
       "status": "draft",
       "updated": "2026-11-11",
       "related": [
-        "docs/plans/RUNTIME-CONFIGURATOR.md",
-        "server/internal/handler/task_usage_credential_source.go",
-        "server/internal/gateway/newapi.go",
-        "apps/desktop/src/main/runtime-configurator/credential.ts"
+        "docs/plans/RUNTIME-CONFIGURATOR.md"
       ],
       "links_out": [
         "docs/plans/RUNTIME-CONFIGURATOR.md"
@@ -2416,6 +2435,17 @@
       "links_in": []
     },
     {
+      "path": "docs/upstream/DRIFT-BASELINE.md",
+      "title": "漂移基线",
+      "purpose": "与上游 v0.8.2 的既有差异基线（冻结），作为漂移门禁的起点",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
       "path": "docs/upstream/README.md",
       "title": "Multica 导入来源",
       "purpose": "Multica 导入来源",
@@ -2429,6 +2459,17 @@
         "docs/upstream/SYNC-0.8.2-PORT.md",
         "docs/upstream/SYNC-0.8.2-RESULT.md"
       ]
+    },
+    {
+      "path": "docs/upstream/SEAMS.md",
+      "title": "接缝白名单",
+      "purpose": "与上游允许存在差异的路径白名单（接缝），供 check-upstream-drift 使用",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
     },
     {
       "path": "docs/upstream/SYNC-0.8.2-PORT.md",
@@ -2466,9 +2507,5 @@
     }
   ],
   "problems": [],
-  "dead_links": [
-    "docs/tasks/PERSONAL-KEY-E2E.md -> related docs/tasks/apps/desktop/src/main/runtime-configurator/credential.ts",
-    "docs/tasks/PERSONAL-KEY-E2E.md -> related docs/tasks/server/internal/gateway/newapi.go",
-    "docs/tasks/PERSONAL-KEY-E2E.md -> related docs/tasks/server/internal/handler/task_usage_credential_source.go"
-  ]
+  "dead_links": []
 }

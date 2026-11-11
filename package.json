@@ -4,6 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "node scripts/dev.mjs up",
+    "dev:api": "node scripts/dev.mjs api",
+    "dev:daemon": "node scripts/dev.mjs daemon",
+    "dev:status": "node scripts/dev.mjs status",
+    "dev:stop": "node scripts/dev.mjs stop",
+    "dev:env": "node scripts/dev.mjs env",
+    "db:migrate": "node scripts/dev.mjs migrate",
     "dev:web": "turbo dev --filter=@morechat/web",
     "dev:docs": "turbo dev --filter=@morechat/docs",
     "dev:desktop": "turbo dev --filter=@morechat/desktop",

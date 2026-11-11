@@ -164,6 +164,8 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | 文档 | purpose | owner | status | updated |
 |---|---|---|---|---|
 | [提交批次计划（COMMIT-PLAN）](engineering/COMMIT-PLAN.md) | 把当前大型未提交改动拆成可独立回滚的提交批次（含文件区间与验证命令） | lead | draft | 2026-11-10 |
+| [接口契约](engineering/CONTRACTS.md) | 接口唯一性与命名规则（一个能力一个入口），PR 时逐条对照 | lead | current | 2026-11-11 |
+| [工具链](engineering/TOOLCHAIN.md) | 三层工具链的职责与协作规则（pnpm/turbo、Go、Postgres、入口胶水） | lead | current | 2026-11-11 |
 | [Issue wakeups](engineering/issue-wakeups.md) | Issue wakeups | engineering | current | 2026-11-06 |
 
 ### plans
@@ -305,7 +307,9 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 
 | 文档 | purpose | owner | status | updated |
 |---|---|---|---|---|
+| [漂移基线](upstream/DRIFT-BASELINE.md) | 与上游 v0.8.2 的既有差异基线（冻结），作为漂移门禁的起点 | lead | current | 2026-11-11 |
 | [Multica 导入来源](upstream/README.md) | Multica 导入来源 | upstream | reference | 2026-11-06 |
+| [接缝白名单](upstream/SEAMS.md) | 与上游允许存在差异的路径白名单（接缝），供 check-upstream-drift 使用 | lead | current | 2026-11-11 |
 | [主线 8 提交移植到 `sync/0.8.2`（U6 执行）](upstream/SYNC-0.8.2-PORT.md) | U6 移植记录：把主线 8 个提交搬到 sync/0.8.2，逐提交冲突处理、641/642 迁移改号、丢弃的 hunk 与门禁输出 | u6-sync | current | 2026-11-11 |
 | [v0.8.2 同步结果（U2 执行）](upstream/SYNC-0.8.2-RESULT.md) | multica v0.8.2 同步的执行记录：提交序列、迁移重编号、冲突决定、未合并项与验证输出 | u2-sync | current | 2026-11-10 |
 

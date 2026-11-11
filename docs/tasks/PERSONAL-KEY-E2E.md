@@ -1,13 +1,10 @@
 ---
-purpose: "公司 Key 失效 → 自动降级个人 Key → 用量记 personal 的端到端验证记录（P3-C）"
+purpose: 公司 Key 失效 → 自动降级个人 Key → 用量记 personal 的端到端验证记录（P3-C）
 owner: task-owners
 status: draft
 updated: 2026-11-11
 related:
   - docs/plans/RUNTIME-CONFIGURATOR.md
-  - server/internal/handler/task_usage_credential_source.go
-  - server/internal/gateway/newapi.go
-  - apps/desktop/src/main/runtime-configurator/credential.ts
 ---
 
 # 公司 Key 失效 → 降级个人 Key → 用量记 personal 验证记录
