@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 173,
-  "fingerprint": "84939e02dbf33227142be3c117da8cf7b4288e8fa7b4e6e90b80ea296e603461",
+  "count": 175,
+  "fingerprint": "b4c3a0f741ce6f25f189b30b4ab1b9c419ebedc0b79ecd879a7396529c1c9163",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -850,6 +850,7 @@
         "docs/tasks/UI-VERIFICATION.md"
       ],
       "links_in": [
+        "docs/tasks/KNOWLEDGE-CONTRACT-FIX.md",
         "docs/tasks/UI-VERIFICATION.md"
       ]
     },
@@ -1436,6 +1437,17 @@
       ]
     },
     {
+      "path": "docs/tasks/E2E-RUN.md",
+      "title": "E2E 运行记录",
+      "purpose": "Playwright 套件在本机的实际运行结论与阻塞点",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
       "path": "docs/tasks/EVOSE-KB-API.md",
       "title": "Evose 知识库 API — 导入 / 分块 / 召回 实测记录",
       "purpose": "Evose 知识库 API — 导入 / 分块 / 召回 实测记录",
@@ -1496,8 +1508,28 @@
         "docs/tasks/EVOSE-KB-API.md"
       ],
       "links_in": [
+        "docs/tasks/KNOWLEDGE-CONTRACT-FIX.md",
         "docs/tasks/UI-VERIFICATION.md"
       ]
+    },
+    {
+      "path": "docs/tasks/KNOWLEDGE-CONTRACT-FIX.md",
+      "title": "KNOWLEDGE-CONTRACT-FIX：以服务端为唯一契约的前端适配（AG-7）",
+      "purpose": "把知识库与预设画廊的前端改到服务端实际契约上：space_id 路由、列表/单页信封、search hits、catalog 带工作区与鉴权头",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/tasks/UI-VERIFICATION.md",
+        "docs/tasks/KNOWLEDGE-BENCH.md",
+        "docs/brand/reference/knowledge-ui/README.md"
+      ],
+      "links_out": [
+        "docs/brand/reference/knowledge-ui/README.md",
+        "docs/tasks/KNOWLEDGE-BENCH.md",
+        "docs/tasks/UI-VERIFICATION.md"
+      ],
+      "links_in": []
     },
     {
       "path": "docs/tasks/LOCAL-DSH-ACCOUNT-CONNECTION.md",
@@ -2441,7 +2473,8 @@
         "docs/tasks/KNOWLEDGE-BENCH.md"
       ],
       "links_in": [
-        "docs/brand/reference/knowledge-ui/README.md"
+        "docs/brand/reference/knowledge-ui/README.md",
+        "docs/tasks/KNOWLEDGE-CONTRACT-FIX.md"
       ]
     },
     {

@@ -218,10 +218,12 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [DSH live usage callback — LOCAL-DSH-LIVE-USAGE-r1](tasks/DSH-LIVE-USAGE-SLICE.md) | DSH live usage callback — LOCAL-DSH-LIVE-USAGE-r1 | task-owners | current | 2026-11-09 |
 | [DSH profile bundle：把「可见」改成官方安装路径（AG-5）](tasks/DSH-PROFILE-BUNDLE.md) | 把打包内置的 DSH 从「守护进程能看见 dsh」改成对齐官方 profile bundle 安装路径：零 CLI 例外、本地 bundle 安装、装后 probe 复检 | task-owners | current | 2026-11-11 |
 | [DSH runtime dependency review — 2026-11-09](tasks/DSH-RUNTIME-REVIEW.md) | DSH runtime dependency review — 2026-11-09 | task-owners | current | 2026-11-10 |
+| [E2E 运行记录](tasks/E2E-RUN.md) | Playwright 套件在本机的实际运行结论与阻塞点 | lead | current | 2026-11-11 |
 | [Evose 知识库 API — 导入 / 分块 / 召回 实测记录](tasks/EVOSE-KB-API.md) | Evose 知识库 API — 导入 / 分块 / 召回 实测记录 | b02-client | current | 2026-11-10 |
 | [GET guard isolated retest — 2026-11-09](tasks/GET-GUARD-LOCAL-RETEST.md) | GET guard isolated retest — 2026-11-09 | task-owners | current | 2026-11-10 |
 | [Windows 安装包交付与 DSH profile bundle 语义对齐（W1-AG1）](tasks/INSTALLER.md) | Windows 安装包交付（--win --dir 可用产物）与 multica 官方 DSH profile bundle 语义对齐结论 | task-owners | current | 2026-11-11 |
 | [KNOWLEDGE-BENCH：10 万 chunk 知识检索压测](tasks/KNOWLEDGE-BENCH.md) | 知识检索 10 万 chunk 压测：造数、查询集、四项指标与瓶颈归因 | task-owners | current | 2026-11-11 |
+| [KNOWLEDGE-CONTRACT-FIX：以服务端为唯一契约的前端适配（AG-7）](tasks/KNOWLEDGE-CONTRACT-FIX.md) | 把知识库与预设画廊的前端改到服务端实际契约上：space_id 路由、列表/单页信封、search hits、catalog 带工作区与鉴权头 | task-owners | current | 2026-11-11 |
 | [Local existing DeepSeek account connection — r1 candidate](tasks/LOCAL-DSH-ACCOUNT-CONNECTION.md) | Local existing DeepSeek account connection — r1 candidate | task-owners | current | 2026-11-09 |
 | [本地第一阶段实机验收（2026-11-09）](tasks/LOCAL-FIRST-STAGE-ACCEPTANCE.md) | 本地第一阶段实机验收（2026-11-09） | task-owners | current | 2026-11-09 |
 | [Native invitation collaboration — local existing-feature acceptance](tasks/LOCAL-INVITATION-COLLABORATION.md) | Native invitation collaboration — local existing-feature acceptance | task-owners | current | 2026-11-09 |
