@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 182,
-  "fingerprint": "a8f8d851cd5ebf79e9ec18a265933f3ccacf123e7010c59a145f01912829e844",
+  "count": 183,
+  "fingerprint": "d074b234551d8542795b0e3ca376b6d0e90a8a074841f24c5fb194216b5de47b",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -925,6 +925,17 @@
       "owner": "lead",
       "status": "current",
       "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/engineering/RELEASES.md",
+      "title": "发布与版本",
+      "purpose": "版本号与 tag 的纪律（什么时候才允许打 tag）",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-12",
       "related": [],
       "links_out": [],
       "links_in": []
