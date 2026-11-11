@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/jerry-halo2026/morchat.co/server/internal/projectaccess"
 	"io"
 	"net/http"
 	"sort"
@@ -183,6 +184,19 @@ type issueTableSQL struct {
 	args        []any
 	fingerprint string
 	workspaceID pgtype.UUID
+	hidden      projectaccess.Hidden
+	// hiddenProjectsRef is the placeholder holding the viewer's hidden project
+	// ids, empty when the viewer sees every project.
+	hiddenProjectsRef string
+}
+
+// parentVisible is a predicate on a parent issue aliased p: true unless the
+// parent sits in a project the viewer cannot see.
+func (s issueTableSQL) parentVisible() string {
+	if s.hiddenProjectsRef == "" {
+		return "TRUE"
+	}
+	return hiddenProjectPredicate("p.project_id", s.hiddenProjectsRef)
 }
 
 type issueTableCursor struct {
@@ -511,8 +525,10 @@ func (h *Handler) compileIssueTableQuery(w http.ResponseWriter, r *http.Request,
 	if !ok {
 		return issueTableSQL{}, false
 	}
+	hiddenProjectsRef := ""
 	if ids := hidden.Param(); ids != nil {
-		where = append(where, hiddenProjectPredicate("i.project_id", addArg(ids)))
+		hiddenProjectsRef = addArg(ids)
+		where = append(where, hiddenProjectPredicate("i.project_id", hiddenProjectsRef))
 	}
 
 	negated := make(map[string]bool, len(spec.Filters.Negate))
@@ -876,9 +892,11 @@ func (h *Handler) compileIssueTableQuery(w http.ResponseWriter, r *http.Request,
 	where = appendIssueTableSearchFilter(where, addArg, spec.Search)
 
 	return issueTableSQL{
-		where:       strings.Join(where, " AND "),
-		args:        args,
-		fingerprint: fingerprint,
-		workspaceID: workspaceUUID,
+		where:             strings.Join(where, " AND "),
+		args:              args,
+		fingerprint:       fingerprint,
+		workspaceID:       workspaceUUID,
+		hidden:            hidden,
+		hiddenProjectsRef: hiddenProjectsRef,
 	}, true
 }
