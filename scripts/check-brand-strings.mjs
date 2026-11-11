@@ -48,7 +48,8 @@ const SKIP_DIRS = new Set([
   "out",
   "build",
   "coverage",
-]);
+  ".cache",
+  ".local",]);
 
 /**
  * Paths allowed to keep the old name. Each entry is a directory prefix or an
@@ -77,6 +78,9 @@ const ALLOWLIST = [
   // The rename sweep script *contains* the rewrite table, so it names the old
   // brand by design.
   "scripts/brand/",
+  // The Aora-era runtime bridge is vendored upstream code: its own descriptions
+  // name Multica, and we do not rewrite third-party payloads.
+  "apps/desktop/resources/dsh-profile/",
   // Runtime identifiers deliberately frozen this round: DB user/db names, CLI
   // verb, MULTICA_* env names and code comments. The user-visible copy inside
   // server/ (CLI help, auth page, onboarding text, integration titles) is swept

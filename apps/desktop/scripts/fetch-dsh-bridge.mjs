@@ -1,4 +1,4 @@
-// Fetches and builds the Multica DSH runtime bridge, so a release build can ship
+// Fetches and builds the upstream DSH runtime bridge, so a release build can ship
 // a profile payload without a human remembering four commands.
 //
 // The bridge is not on npm yet (multica#6936), so the only reproducible source is
