@@ -1,0 +1,245 @@
+{
+  "note": "shared derivation vectors: Go and TS must both reproduce these",
+  "vectors": [
+    {
+      "id": "fbb43d67-c039-42ff-b77a-761b01bccc37",
+      "spec": {
+        "character": "",
+        "shape": "tofu",
+        "color": "magenta",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "9323"
+      },
+      "encoded": "aora::tofu:magenta:capsule:vector:9323"
+    },
+    {
+      "id": "ae45bf74-5cdd-4332-821b-e25c480f431c",
+      "spec": {
+        "character": "",
+        "shape": "onigiri",
+        "color": "red",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "c933"
+      },
+      "encoded": "aora::onigiri:red:capsule:vector:c933"
+    },
+    {
+      "id": "34ed0ee3-cc00-4cbc-a287-cfd2277851fb",
+      "spec": {
+        "character": "",
+        "shape": "drop",
+        "color": "gray",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "d39b"
+      },
+      "encoded": "aora::drop:gray:capsule:vector:d39b"
+    },
+    {
+      "id": "agent-001",
+      "spec": {
+        "character": "",
+        "shape": "blob",
+        "color": "cyan",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "f3b0"
+      },
+      "encoded": "aora::blob:cyan:capsule:vector:f3b0"
+    },
+    {
+      "id": "agent-002",
+      "spec": {
+        "character": "",
+        "shape": "pebble",
+        "color": "yellow",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "f6b0"
+      },
+      "encoded": "aora::pebble:yellow:capsule:vector:f6b0"
+    },
+    {
+      "id": "agent-003",
+      "spec": {
+        "character": "",
+        "shape": "cloud",
+        "color": "green",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "f5b0"
+      },
+      "encoded": "aora::cloud:green:capsule:vector:f5b0"
+    },
+    {
+      "id": "agent-004",
+      "spec": {
+        "character": "",
+        "shape": "drop",
+        "color": "orange",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "f8b0"
+      },
+      "encoded": "aora::drop:orange:capsule:vector:f8b0"
+    },
+    {
+      "id": "agent-005",
+      "spec": {
+        "character": "",
+        "shape": "onigiri",
+        "color": "yellow",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "f7b0"
+      },
+      "encoded": "aora::onigiri:yellow:capsule:vector:f7b0"
+    },
+    {
+      "id": "user-1",
+      "spec": {
+        "character": "",
+        "shape": "onigiri",
+        "color": "red",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "f553"
+      },
+      "encoded": "aora::onigiri:red:capsule:vector:f553"
+    },
+    {
+      "id": "user-2",
+      "spec": {
+        "character": "",
+        "shape": "hex",
+        "color": "brown",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "f853"
+      },
+      "encoded": "aora::hex:brown:capsule:vector:f853"
+    },
+    {
+      "id": "user-3",
+      "spec": {
+        "character": "",
+        "shape": "mochi",
+        "color": "brown",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "f753"
+      },
+      "encoded": "aora::mochi:brown:capsule:vector:f753"
+    },
+    {
+      "id": "空 id 测试",
+      "spec": {
+        "character": "",
+        "shape": "onigiri",
+        "color": "cyan",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "fce2"
+      },
+      "encoded": "aora::onigiri:cyan:capsule:vector:fce2"
+    },
+    {
+      "id": "emoji-🙂-id",
+      "spec": {
+        "character": "",
+        "shape": "blob",
+        "color": "gray",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "c632"
+      },
+      "encoded": "aora::blob:gray:capsule:vector:c632"
+    },
+    {
+      "id": "a",
+      "spec": {
+        "character": "",
+        "shape": "onigiri",
+        "color": "blue",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "e40c"
+      },
+      "encoded": "aora::onigiri:blue:capsule:vector:e40c"
+    },
+    {
+      "id": "ab",
+      "spec": {
+        "character": "",
+        "shape": "mochi",
+        "color": "blue",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "4d25"
+      },
+      "encoded": "aora::mochi:blue:capsule:vector:4d25"
+    },
+    {
+      "id": "abc",
+      "spec": {
+        "character": "",
+        "shape": "tofu",
+        "color": "pink",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "1a47"
+      },
+      "encoded": "aora::tofu:pink:capsule:vector:1a47"
+    },
+    {
+      "id": "0123456789abcdef",
+      "spec": {
+        "character": "",
+        "shape": "hex",
+        "color": "green",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "87bc"
+      },
+      "encoded": "aora::hex:green:capsule:vector:87bc"
+    },
+    {
+      "id": "deadbeef-dead-beef-dead-beefdeadbeef",
+      "spec": {
+        "character": "",
+        "shape": "pebble",
+        "color": "violet",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "bc11"
+      },
+      "encoded": "aora::pebble:violet:capsule:vector:bc11"
+    },
+    {
+      "id": "zzz",
+      "spec": {
+        "character": "",
+        "shape": "hex",
+        "color": "magenta",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "a7b0"
+      },
+      "encoded": "aora::hex:magenta:capsule:vector:a7b0"
+    },
+    {
+      "id": "42",
+      "spec": {
+        "character": "",
+        "shape": "tofu",
+        "color": "cyan",
+        "face": "capsule",
+        "style": "vector",
+        "seed": "87e3"
+      },
+      "encoded": "aora::tofu:cyan:capsule:vector:87e3"
+    }
+  ]
+}

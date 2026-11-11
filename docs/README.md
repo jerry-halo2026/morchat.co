@@ -166,6 +166,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 |---|---|---|---|---|
 | [提交批次计划（COMMIT-PLAN）](engineering/COMMIT-PLAN.md) | 把当前大型未提交改动拆成可独立回滚的提交批次（含文件区间与验证命令） | lead | draft | 2026-11-10 |
 | [接口契约](engineering/CONTRACTS.md) | 接口唯一性与命名规则（一个能力一个入口），PR 时逐条对照 | lead | current | 2026-11-11 |
+| [数据库](engineering/DB.md) | 数据库的版本底线、扩展依赖与"缺扩展时的降级行为"（保持自建 Postgres，不做跨方言适配） | lead | current | 2026-11-11 |
 | [工具链](engineering/TOOLCHAIN.md) | 三层工具链的职责与协作规则（pnpm/turbo、Go、Postgres、入口胶水） | lead | current | 2026-11-11 |
 | [Issue wakeups](engineering/issue-wakeups.md) | Issue wakeups | engineering | current | 2026-11-06 |
 

@@ -45,3 +45,33 @@ node scripts/check-contracts.mjs --strict   # CI 阻断
 ```
 
 检查项：重复路由、知识 REST/MCP 面是否唯一、`dev*` 是否都走 `scripts/dev.mjs`、`apps/web` 是否还依赖 `sh -c`。
+
+---
+
+## 头像契约（Aora Bot）
+
+```
+avatar_url = aora:<character>:<shape>:<color>:<face>:<style>:<seed>
+```
+- 唯一编码实现：`packages/core/avatar/aora-spec.ts`（前端）与 `server/internal/avatar/spec.go`（后端）**逐字节一致**，
+  由 `testdata/aora-vectors.json` 的 20 组向量双向校验；改任一侧必须同时改另一侧并重生成向量。
+- **派生规则**（没人选过头像时）：只随机 `shape`（Aora 的 8 个 16px 可读形状）与 `color`（11 个可分配色）；
+  `style` 固定 `vector`（扁平）、`face` 固定 `capsule`（胶囊眼）、`character` 留空由 cast 决定、`seed` 由 id 哈希得出。
+- 空值与历史 `cap:` 值一律视为"派生"，不需要数据迁移；显式 `aora:` 值优先。
+- 渲染：列表（<32px）走 `GET /api/avatar/<spec>.svg`（服务端 `renderStaticSvg`，`Cache-Control: immutable`）；
+  单实例（≥32px）走 `@aora-bot/react` 的 `CharacterMark`，尊重 `prefers-reduced-motion`。
+- 尺寸沿用上游槽位 20/24/40/56，不因头像改动布局。
+
+## 登录契约（邮箱 + 密码）
+
+```
+POST /auth/password/login      {email, password} → {token} + Set-Cookie
+POST /api/me/password          {current_password?, new_password}
+POST /api/users/{id}/password  {new_password}          # owner/admin
+GET  /api/config → { auth: { password_enabled, code_login_enabled } }
+```
+- 哈希：**Argon2id，m=64MiB, t=3, p=1**，PHC 字符串存 `user.password_hash`；参数属于契约，不接受别的格式。
+- 错误：`401 invalid_credentials`、`429 too_many_attempts`（5 次失败锁 15 分钟）、`400 weak_password`（<10 位）。
+- `user.password_hash IS NULL` 表示"还没设密码"，这些账号继续用邮箱验证码登录。
+- `must_change_password=true` 的账号登录后必须先改密。
+- 迁移：`643_user_password`；**新增列必须可空或有默认值**，保证外部系统直插 `user` 行时不会因缺列报错。
