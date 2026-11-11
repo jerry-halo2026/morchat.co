@@ -1,4 +1,3 @@
-import { signInWithSupabasePassword, type SupabasePasswordConfig } from "./supabase-password";
 import type { ZodType } from "zod";
 import { AgentRuntimeSchema, EMPTY_RUNTIME } from "../runtimes/schema";
 import type { IssueWakeup, IssueWakeupInput, IssueWakeupSummaryRow, PausedWakeup, SystemWakeup, WakeupRun, WorkspaceSystemWakeup } from "../types/issue-wakeup";
@@ -604,6 +603,50 @@ export interface ClientUsageRequest {
 export interface LoginResponse {
   token: string;
   user: User;
+  /**
+   * The account signed in with a password that must be replaced before the
+   * session may be used (CONTRACTS.md 登录契约). Absent means "no change
+   * needed"; older servers never send it.
+   */
+  must_change_password?: boolean;
+}
+
+/** Which sign-in methods `GET /api/config` advertises under `auth`. */
+export interface AuthConfig {
+  password_enabled: boolean;
+  code_login_enabled: boolean;
+}
+
+/**
+ * The pre-contract shape: a server without the `auth` block has no password
+ * sign-in and keeps email codes, which is exactly how every client behaved
+ * before the endpoints existed.
+ */
+export const DEFAULT_AUTH_CONFIG: AuthConfig = {
+  password_enabled: false,
+  code_login_enabled: true,
+};
+
+function authFlag(source: Record<string, unknown>, key: string, fallback: boolean): boolean {
+  const value = source[key];
+  return typeof value === "boolean" ? value : fallback;
+}
+
+/**
+ * Reads the `auth` block out of an already-fetched `/api/config` payload.
+ * Unknown shapes fall back to {@link DEFAULT_AUTH_CONFIG} instead of throwing:
+ * a login screen that cannot learn its options must still render the flow
+ * that works everywhere.
+ */
+export function parseAuthConfig(raw: unknown): AuthConfig {
+  if (!raw || typeof raw !== "object") return { ...DEFAULT_AUTH_CONFIG };
+  const auth = (raw as { auth?: unknown }).auth;
+  if (!auth || typeof auth !== "object") return { ...DEFAULT_AUTH_CONFIG };
+  const source = auth as Record<string, unknown>;
+  return {
+    password_enabled: authFlag(source, "password_enabled", DEFAULT_AUTH_CONFIG.password_enabled),
+    code_login_enabled: authFlag(source, "code_login_enabled", DEFAULT_AUTH_CONFIG.code_login_enabled),
+  };
 }
 
 function parseSearchIndexResponse<T>(raw: unknown, schema: ZodType, endpoint: string): T {
@@ -843,6 +886,8 @@ export class ApiClient {
   private baseUrl: string;
   private token: string | null = null;
   private logger: Logger;
+  // Set by loginWithPassword, read once through consumeMustChangePassword.
+  private mustChangePassword = false;
   private options: ApiClientOptions;
 
   constructor(baseUrl: string, options?: ApiClientOptions) {
@@ -1060,19 +1105,50 @@ export class ApiClient {
   }
 
   // Auth
-  // Password sign-in against Supabase. The browser mints an access token with
-  // Supabase's public anon key and hands *only* that token to our server, which
-  // verifies it and issues its own session. No password, client user id,
-  // refresh token or metadata crosses our API.
-  async getSupabaseConfig(): Promise<SupabasePasswordConfig> {
-    return this.fetch("/auth/supabase/config");
+
+  /**
+   * Sign-in capabilities from `GET /api/config`. One request, no caching: the
+   * login screen is the only caller and it mounts at most once per session.
+   * Throws when the endpoint is missing or unreachable so the caller can tell
+   * "this server has no password login" apart from "password login is off".
+   */
+  async getAuthConfig(): Promise<AuthConfig> {
+    return parseAuthConfig(await this.fetch<unknown>("/api/config"));
   }
 
+  /**
+   * Email + password sign-in. The credentials go straight to our server, which
+   * verifies the Argon2id hash and issues its own session. No provider SDK and
+   * no third-party access token is involved.
+   */
   async loginWithPassword(email: string, password: string): Promise<LoginResponse> {
-    const config = await this.getSupabaseConfig();
-    const access_token = await signInWithSupabasePassword(config, email, password);
-    return this.fetch("/auth/supabase", {
-      method: "POST", body: JSON.stringify({ access_token }),
+    const response = await this.fetch<LoginResponse>("/auth/password/login", {
+      method: "POST",
+      body: JSON.stringify({ email: email.trim(), password }),
+    });
+    this.mustChangePassword = response.must_change_password === true;
+    return response;
+  }
+
+  /**
+   * True when the most recent password login said the account has to choose a
+   * new password before anything else. One-shot: the flag is cleared on read so
+   * a reload does not reopen the form for an account that already changed it.
+   */
+  consumeMustChangePassword(): boolean {
+    const required = this.mustChangePassword;
+    this.mustChangePassword = false;
+    return required;
+  }
+
+  /** Sets the signed-in account's own password (`POST /api/me/password`). */
+  async changePassword(newPassword: string, currentPassword?: string): Promise<void> {
+    await this.fetch("/api/me/password", {
+      method: "POST",
+      body: JSON.stringify({
+        new_password: newPassword,
+        ...(currentPassword ? { current_password: currentPassword } : {}),
+      }),
     });
   }
   async sendCode(email: string): Promise<void> {

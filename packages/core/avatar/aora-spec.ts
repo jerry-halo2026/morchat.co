@@ -76,8 +76,8 @@ export function deriveAoraSpec(entityId: string): AoraSpec {
   const hash = stableHash(entityId);
   return {
     character: "",
-    shape: AUTO_SHAPE_POOL[hash % AUTO_SHAPE_POOL.length],
-    color: ASSIGNABLE_COLOR_IDS[(hash >>> 8) % ASSIGNABLE_COLOR_IDS.length],
+    shape: AUTO_SHAPE_POOL[hash % AUTO_SHAPE_POOL.length]!,
+    color: ASSIGNABLE_COLOR_IDS[(hash >>> 8) % ASSIGNABLE_COLOR_IDS.length]!,
     face: DERIVED_FACE,
     style: DERIVED_STYLE,
     seed: (hash >>> 16).toString(16).padStart(4, "0"),
@@ -104,7 +104,7 @@ export function decodeAoraSpec(value: string | null | undefined): AoraSpec | nul
   const [character, shape, color, face, style, seed] = parts;
   if (!shape || !color || !face || !style || !seed) return null;
   if (!(STYLE_IDS as readonly string[]).includes(style)) return null;
-  return { character, shape, color, face, style, seed };
+  return { character: character!, shape, color, face, style, seed };
 }
 
 /** True when an entity has not chosen an avatar of its own. */

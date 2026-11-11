@@ -71,6 +71,31 @@ interface LoginPageProps {
   exiting?: boolean;
 }
 
+/** Which sign-in method the panel is currently showing. */
+type LoginMode = "password" | "code";
+
+/** The panel's screens. `form` covers both modes. */
+type LoginStep = "form" | "code" | "cli_confirm" | "force_password";
+
+/** Sign-in capabilities the server advertises under `auth` in `/api/config`. */
+interface AuthCapabilities {
+  password_enabled: boolean;
+  code_login_enabled: boolean;
+}
+
+/** The pre-contract server: no password sign-in, email codes unchanged. */
+const LEGACY_AUTH_CAPABILITIES: AuthCapabilities = {
+  password_enabled: false,
+  code_login_enabled: true,
+};
+
+type PasswordFailure =
+  | "invalid_credentials"
+  | "locked"
+  | "weak_password"
+  | "unavailable"
+  | "unknown";
+
 // Helpers
 
 export function redirectToCliCallback(url: string, token: string, state: string) {
@@ -97,6 +122,67 @@ export function validateCliCallback(cliCallback: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Normalizes both shapes a caller can hand us: the client's own
+ * `{ password_enabled, code_login_enabled }` and a raw `/api/config` payload
+ * that still nests them under `auth`. Anything unknown keeps the legacy
+ * defaults, so a failed probe lands on the flow every server supports.
+ */
+export function normalizeAuthCapabilities(raw: unknown): AuthCapabilities {
+  if (!raw || typeof raw !== "object") return { ...LEGACY_AUTH_CAPABILITIES };
+  const value = raw as Record<string, unknown>;
+  const nested =
+    value.auth && typeof value.auth === "object"
+      ? (value.auth as Record<string, unknown>)
+      : value;
+  return {
+    password_enabled: nested.password_enabled === true,
+    // Absent means "codes still work": the field only arrived with the
+    // password contract, and a server without it only ever had codes.
+    code_login_enabled: nested.code_login_enabled !== false,
+  };
+}
+
+function readRetryAfterSeconds(body: Record<string, unknown> | undefined): number | undefined {
+  const raw = body?.retry_after_seconds ?? body?.retry_after;
+  const seconds =
+    typeof raw === "number" ? raw : typeof raw === "string" ? Number(raw) : NaN;
+  return Number.isFinite(seconds) && seconds > 0 ? Math.ceil(seconds) : undefined;
+}
+
+/**
+ * Classifies a failed password call from the contract's machine-readable code
+ * first (`invalid_credentials`, `too_many_attempts`, `weak_password`) and the
+ * HTTP status second, so a server that only sets the status still produces the
+ * right sentence. A 404/405 means the endpoint itself is missing: the build
+ * predates password login.
+ */
+export function readPasswordFailure(error: unknown): {
+  kind: PasswordFailure;
+  retryAfterSeconds?: number;
+} {
+  const failure = error as { status?: unknown; body?: unknown } | null | undefined;
+  const status = typeof failure?.status === "number" ? failure.status : 0;
+  const body =
+    failure?.body && typeof failure.body === "object"
+      ? (failure.body as Record<string, unknown>)
+      : undefined;
+  const code =
+    typeof body?.code === "string"
+      ? body.code
+      : typeof body?.error === "string"
+        ? body.error
+        : undefined;
+
+  if (code === "too_many_attempts" || status === 429) {
+    return { kind: "locked", retryAfterSeconds: readRetryAfterSeconds(body) };
+  }
+  if (code === "weak_password") return { kind: "weak_password" };
+  if (code === "invalid_credentials" || status === 401) return { kind: "invalid_credentials" };
+  if (status === 404 || status === 405) return { kind: "unavailable" };
+  return { kind: "unknown" };
 }
 
 // Stage
@@ -245,11 +331,20 @@ export function LoginPage({
 }: LoginPageProps) {
   const { t } = useT("auth");
   const qc = useQueryClient();
-  const [step, setStep] = useState<"email" | "code" | "cli_confirm">("email");
+  const [step, setStep] = useState<LoginStep>("form");
+  // Email codes first: that is what every server before the password contract
+  // supports, and the config probe below replaces this with the password form
+  // when the server says it can do better.
+  const [mode, setMode] = useState<LoginMode>("code");
+  const [capabilities, setCapabilities] = useState<AuthCapabilities | null>(null);
+  // The probe found no answer at all (404, old build, or no network): the
+  // panel stays on codes and says so instead of pretending passwords work.
+  const [passwordUnavailable, setPasswordUnavailable] = useState(false);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordEnabled, setPasswordEnabled] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -257,18 +352,49 @@ export function LoginPage({
   // Tracks how the existing session was detected so handleCliAuthorize
   // uses the matching token source (cookie → issueCliToken, localStorage → direct).
   const authSourceRef = useRef<"cookie" | "localStorage">("cookie");
+  // A CLI password login that must change its password first: the redirect
+  // waits for the new one, so the token is parked here.
+  const cliTokenRef = useRef<string | null>(null);
+  // The capability answer is applied once. A probe that resolves after the
+  // visitor has already started typing must not swap the form under them.
+  const capabilitiesSettledRef = useRef(false);
   // The last session ended because the server rejected its credential, not
   // because the user asked to leave. Without saying so, landing here reads as
   // the app having lost their work for no reason.
   const sessionExpired = useAuthStore((state) => state.expired);
 
-  // Optional runtime adapter. No provider SDK session or password persistence.
+  // Which sign-in methods this server offers (CONTRACTS.md 登录契约). The
+  // server owns the answer; a missing endpoint or payload keeps the legacy
+  // email-code flow rather than inventing capabilities.
   useEffect(() => {
     let active = true;
-    api.getSupabaseConfig()
-      .then((config) => { if (active) setPasswordEnabled(config.enabled === true); })
-      .catch(() => { /* Older/unconfigured servers keep native OTP. */ });
-    return () => { active = false; };
+    const settle = (config: unknown) => {
+      if (!active || capabilitiesSettledRef.current) return;
+      capabilitiesSettledRef.current = true;
+      if (config === null || config === undefined) {
+        setPasswordUnavailable(true);
+        setMode("code");
+        return;
+      }
+      const next = normalizeAuthCapabilities(config);
+      setCapabilities(next);
+      setMode(next.password_enabled ? "password" : "code");
+    };
+
+    void (async () => {
+      try {
+        // Optional call: a test double or a very old shell may not expose the
+        // probe at all, which is the same "no answer" case as a 404.
+        const config = await api.getAuthConfig?.();
+        settle(config ?? null);
+      } catch {
+        settle(null);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Check for existing session when CLI callback is present.
@@ -347,6 +473,36 @@ export function LoginPage({
     [email, t],
   );
 
+  const passwordErrorText = useCallback(
+    (failure: { kind: PasswordFailure; retryAfterSeconds?: number }) => {
+      switch (failure.kind) {
+        case "invalid_credentials":
+          return t(($) => $.password.invalid_credentials);
+        case "locked":
+          return failure.retryAfterSeconds
+            ? t(($) => $.password.locked, { seconds: failure.retryAfterSeconds })
+            : t(($) => $.password.locked_no_wait);
+        case "weak_password":
+          return t(($) => $.password.weak_password);
+        case "unavailable":
+          return t(($) => $.password.unavailable);
+        default:
+          return t(($) => $.signin.password_failed);
+      }
+    },
+    [t],
+  );
+
+  // Seeds the workspace list into the Query cache so the caller's onSuccess
+  // can read it synchronously to compute a destination URL (first workspace's
+  // slug, or /workspaces/new for zero-workspace users).
+  const finishLogin = useCallback(async () => {
+    const wsList = await api.listWorkspaces();
+    qc.setQueryData(workspaceKeys.list(), wsList);
+    onTokenObtained?.();
+    onSuccess();
+  }, [qc, onSuccess, onTokenObtained]);
+
   const handlePasswordLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!email || !password || loading) return;
@@ -355,20 +511,72 @@ export function LoginPage({
     try {
       if (cliCallback) {
         const { token } = await api.loginWithPassword(email, password);
+        if (api.consumeMustChangePassword?.() === true) {
+          // Keep the session usable for the password change, then redirect to
+          // the CLI once the new password is saved.
+          localStorage.setItem("multica_token", token);
+          api.setToken(token);
+          cliTokenRef.current = token;
+          setStep("force_password");
+          return;
+        }
         onTokenObtained?.();
         redirectToCliCallback(cliCallback.url, token, cliCallback.state);
         return;
       }
       await useAuthStore.getState().loginWithPassword(email, password);
-      const wsList = await api.listWorkspaces();
-      qc.setQueryData(workspaceKeys.list(), wsList);
-      onTokenObtained?.();
-      onSuccess();
-    } catch {
+      if (api.consumeMustChangePassword?.() === true) {
+        // The account is signed in, but the session is only good for setting
+        // a new password (CONTRACTS.md). Stay on the stage; onSuccess fires
+        // after the change so the caller never routes into the app first.
+        setStep("force_password");
+        return;
+      }
+      await finishLogin();
+    } catch (err) {
       // Do not echo provider/network request details or credentials into UI.
-      setError(t(($) => $.signin.password_failed));
+      setError(passwordErrorText(readPasswordFailure(err)));
     } finally {
       setPassword("");
+      setLoading(false);
+    }
+  };
+
+  const handleChangePassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (loading) return;
+    if (newPassword.length < 10) {
+      setError(t(($) => $.password.weak_password));
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError(t(($) => $.password.passwords_do_not_match));
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      await api.changePassword(newPassword);
+      setNewPassword("");
+      setConfirmPassword("");
+      const cliToken = cliTokenRef.current;
+      if (cliToken && cliCallback) {
+        onTokenObtained?.();
+        redirectToCliCallback(cliCallback.url, cliToken, cliCallback.state);
+        return;
+      }
+      await finishLogin();
+    } catch (err) {
+      const failure = readPasswordFailure(err);
+      // A rejected change without a contract code is the change call failing,
+      // not a wrong current password: say that instead of borrowing the
+      // sign-in sentence.
+      setError(
+        failure.kind === "unknown"
+          ? t(($) => $.password.change_failed)
+          : passwordErrorText(failure),
+      );
+    } finally {
       setLoading(false);
     }
   };
@@ -447,7 +655,7 @@ export function LoginPage({
     } catch {
       setError(t(($) => $.errors.cli_auth_failed));
       setExistingUser(null);
-      setStep("email");
+      setStep("form");
       setLoading(false);
     }
   };
@@ -502,12 +710,76 @@ export function LoginPage({
               disabled={exiting}
               onClick={() => {
                 setExistingUser(null);
-                setStep("email");
+                setStep("form");
               }}
             >
               {t(($) => $.cli.different_account)}
             </Button>
           </div>
+        </div>
+      </LoginStage>
+    );
+  }
+
+  // Forced password change (CONTRACTS.md: must_change_password)
+
+  if (step === "force_password") {
+    return (
+      <LoginStage logo={logo} exiting={exiting}>
+        <div className="flex flex-col gap-8">
+          <StageHeading
+            title={t(($) => $.password.must_change_title)}
+            description={t(($) => $.password.must_change_description)}
+          />
+          <form
+            id="change-password-form"
+            onSubmit={handleChangePassword}
+            className="flex flex-col gap-5"
+          >
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="login-new-password">
+                {t(($) => $.password.new_password)}
+              </Label>
+              <Input
+                id="login-new-password"
+                type="password"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                autoFocus
+                required
+                disabled={loading || exiting}
+                className="h-10 bg-background"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="login-confirm-password">
+                {t(($) => $.password.confirm_password)}
+              </Label>
+              <Input
+                id="login-confirm-password"
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                required
+                disabled={loading || exiting}
+                className="h-10 bg-background"
+              />
+            </div>
+            {error && <p className="text-body text-destructive">{error}</p>}
+          </form>
+          <Button
+            type="submit"
+            form="change-password-form"
+            className="w-full"
+            size="lg"
+            disabled={!newPassword || !confirmPassword || loading || exiting}
+          >
+            {loading
+              ? t(($) => $.password.changing_password)
+              : t(($) => $.password.change_password)}
+          </Button>
         </div>
       </LoginStage>
     );
@@ -565,7 +837,7 @@ export function LoginPage({
             className="w-full"
             disabled={exiting}
             onClick={() => {
-              setStep("email");
+              setStep("form");
               setCode("");
               setError("");
             }}
@@ -577,78 +849,139 @@ export function LoginPage({
     );
   }
 
-  // Email step
+  // Form step (password by default, email code as the fallback)
+
+  const bothDisabled =
+    capabilities !== null &&
+    !capabilities.password_enabled &&
+    !capabilities.code_login_enabled;
+  const canSwitch =
+    capabilities !== null &&
+    (mode === "password"
+      ? capabilities.code_login_enabled
+      : capabilities.password_enabled);
 
   return (
     <LoginStage logo={logo} exiting={exiting}>
       <div className="flex flex-col gap-8">
         <StageHeading
-          title={t(($) => $.signin.title)}
+          title={
+            mode === "password"
+              ? t(($) => $.password.title)
+              : t(($) => $.signin.title)
+          }
           description={
-            passwordEnabled
-              ? t(($) => $.signin.password_description)
+            mode === "password"
+              ? t(($) => $.password.description)
               : t(($) => $.signin.description)
           }
         />
 
-        <form
-          id="login-form"
-          onSubmit={passwordEnabled ? handlePasswordLogin : handleSendCode}
-          className="flex flex-col gap-5"
-        >
-          {sessionExpired && (
-            <Alert className="bg-background">
-              <AlertDescription>
-                {t(($) => $.errors.session_expired)}
-              </AlertDescription>
-            </Alert>
-          )}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="login-email">{t(($) => $.common.email)}</Label>
-            <Input
-              id="login-email"
-              type="email"
-              placeholder={t(($) => $.common.email_placeholder)}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoFocus
-              required
-              disabled={exiting}
-              className="h-10 bg-background"
-            />
-          </div>
-          {passwordEnabled && (
+        {bothDisabled ? (
+          <Alert variant="destructive">
+            <AlertDescription>{t(($) => $.password.disabled)}</AlertDescription>
+          </Alert>
+        ) : (
+          <form
+            id="login-form"
+            onSubmit={mode === "password" ? handlePasswordLogin : handleSendCode}
+            className="flex flex-col gap-5"
+          >
+            {sessionExpired && (
+              <Alert className="bg-background">
+                <AlertDescription>
+                  {t(($) => $.errors.session_expired)}
+                </AlertDescription>
+              </Alert>
+            )}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="login-password">{t(($) => $.signin.password)}</Label>
+              <Label htmlFor="login-email">
+                {mode === "password"
+                  ? t(($) => $.password.email)
+                  : t(($) => $.common.email)}
+              </Label>
               <Input
-                id="login-password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                disabled={loading || exiting}
+                id="login-email"
+                type="email"
+                placeholder={t(($) => $.common.email_placeholder)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoFocus
                 required
+                disabled={exiting}
                 className="h-10 bg-background"
               />
             </div>
-          )}
-          {error && (
-            <p className="text-body text-destructive">{error}</p>
-          )}
-        </form>
+            {mode === "password" && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="login-password">
+                  {t(($) => $.password.password)}
+                </Label>
+                <Input
+                  id="login-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  disabled={loading || exiting}
+                  required
+                  className="h-10 bg-background"
+                />
+              </div>
+            )}
+            {error && (
+              <p className="text-body text-destructive">{error}</p>
+            )}
+          </form>
+        )}
 
         <div className="flex flex-col gap-3">
-          <Button
-            type="submit"
-            form="login-form"
-            className="w-full"
-            size="lg"
-            disabled={!email || loading || exiting || (passwordEnabled && !password)}
-          >
-            {passwordEnabled
-              ? (loading ? t(($) => $.signin.signing_in) : t(($) => $.signin.sign_in))
-              : (loading ? t(($) => $.signin.sending) : t(($) => $.signin.continue))}
-          </Button>
+          {!bothDisabled && (
+            <Button
+              type="submit"
+              form="login-form"
+              className="w-full"
+              size="lg"
+              disabled={
+                !email ||
+                loading ||
+                exiting ||
+                (mode === "password" && !password)
+              }
+            >
+              {mode === "password"
+                ? (loading ? t(($) => $.password.submitting) : t(($) => $.password.submit))
+                : (loading ? t(($) => $.signin.sending) : t(($) => $.signin.continue))}
+            </Button>
+          )}
+          {bothDisabled && (
+            // No method left: the sentence above says so, and the panel keeps
+            // the brand and nothing to press.
+            <Button type="button" className="w-full" size="lg" disabled>
+              {t(($) => $.password.submit)}
+            </Button>
+          )}
+          {canSwitch && !bothDisabled && (
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              disabled={loading || exiting}
+              onClick={() => {
+                setMode(mode === "password" ? "code" : "password");
+                setError("");
+              }}
+            >
+              {mode === "password"
+                ? t(($) => $.password.switch_to_code)
+                : t(($) => $.password.switch_to_password)}
+            </Button>
+          )}
+          {passwordUnavailable && mode === "code" && (
+            <p className="text-body text-muted-foreground">
+              {t(($) => $.password.unavailable)}
+            </p>
+          )}
           {(google || onGoogleLogin) && (
             <Button
               type="button"

@@ -14,6 +14,7 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "@aora-bot/engine": "catalog:",
     "@morechat/core": "workspace:*",
     "@morechat/ui": "workspace:*",
     "@morechat/views": "workspace:*",
@@ -32,7 +33,6 @@
     "@morechat/eslint-config": "workspace:*",
     "@morechat/vitest-setup": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
-    "postcss": "catalog:",
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
     "@testing-library/user-event": "catalog:",
@@ -41,6 +41,7 @@
     "@typescript/native": "catalog:",
     "@vitejs/plugin-react": "catalog:",
     "jsdom": "catalog:",
+    "postcss": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

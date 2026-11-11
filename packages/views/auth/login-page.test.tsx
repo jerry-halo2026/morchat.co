@@ -29,7 +29,9 @@ function renderWithI18n(ui: ReactElement) {
 
 const mockSendCode = vi.hoisted(() => vi.fn());
 const mockPasswordLogin = vi.hoisted(() => vi.fn());
-const mockSupabaseConfig = vi.hoisted(() => vi.fn());
+const mockGetAuthConfig = vi.hoisted(() => vi.fn());
+const mockConsumeMustChangePassword = vi.hoisted(() => vi.fn());
+const mockChangePassword = vi.hoisted(() => vi.fn());
 const mockVerifyCode = vi.hoisted(() => vi.fn());
 const mockApiListWorkspaces = vi.hoisted(() => vi.fn());
 const mockApiVerifyCode = vi.hoisted(() => vi.fn());
@@ -71,7 +73,9 @@ vi.mock("@morechat/core/auth", () => ({
 
 vi.mock("@morechat/core/api", () => ({
   api: {
-    getSupabaseConfig: mockSupabaseConfig,
+    getAuthConfig: mockGetAuthConfig,
+    consumeMustChangePassword: mockConsumeMustChangePassword,
+    changePassword: mockChangePassword,
     loginWithPassword: mockPasswordLogin,
     listWorkspaces: mockApiListWorkspaces,
     verifyCode: mockApiVerifyCode,
@@ -87,7 +91,7 @@ vi.mock("@morechat/core/types", () => ({}));
 // Import after mocks
 // ---------------------------------------------------------------------------
 
-import { LoginPage, validateCliCallback } from "./login-page";
+import { LoginPage, readPasswordFailure, validateCliCallback } from "./login-page";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -97,6 +101,15 @@ function getOTPInput() {
   // input-otp renders a single hidden <input> that holds the OTP value
   return screen.getByRole("textbox", { hidden: true });
 }
+
+/** Builds the shape ApiError has: status + decoded body. */
+function apiFailure(status: number, body?: Record<string, unknown>) {
+  return Object.assign(new Error(`HTTP ${status}`), { status, body });
+}
+
+const CODE_ONLY = { password_enabled: false, code_login_enabled: true };
+const PASSWORD_ONLY = { password_enabled: true, code_login_enabled: false };
+const BOTH = { password_enabled: true, code_login_enabled: true };
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -109,7 +122,11 @@ describe("LoginPage", () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.clearAllMocks();
     mockAuthState.expired = false;
-    mockSupabaseConfig.mockResolvedValue({ enabled: false });
+    // Default: a server that predates password login. Every email-code test
+    // below exercises exactly that path.
+    mockGetAuthConfig.mockResolvedValue(CODE_ONLY);
+    mockConsumeMustChangePassword.mockReturnValue(false);
+    mockChangePassword.mockResolvedValue(undefined);
     // Default: no existing session (getMe rejects when no auth)
     mockApiGetMe.mockRejectedValue(new Error("unauthorized"));
     localStorage.clear();
@@ -125,38 +142,244 @@ describe("LoginPage", () => {
   });
 
   // -------------------------------------------------------------------------
-  // Email step rendering
+  // Email + password (the default once the server enables it)
   // -------------------------------------------------------------------------
 
-  it("uses configured password sign-in then native workspace routing without sending a code", async () => {
-    mockSupabaseConfig.mockResolvedValue({ enabled: true });
-    mockPasswordLogin.mockResolvedValue({ id: "u1" });
-    mockApiListWorkspaces.mockResolvedValue([]);
-    renderWithI18n(<LoginPage onSuccess={onSuccess} />);
-    const password = await screen.findByLabelText(/^password$/i);
-    const user = userEvent.setup();
-    await user.type(screen.getByLabelText(/^email$/i), "test@example.com");
-    await user.type(password, "typed-only-in-test");
-    await user.click(screen.getByRole("button", { name: /^sign in$/i }));
-    await waitFor(() => expect(onSuccess).toHaveBeenCalled());
-    expect(mockPasswordLogin).toHaveBeenCalledWith("test@example.com", "typed-only-in-test");
-    expect(mockSendCode).not.toHaveBeenCalled();
-    expect(localStorage.getItem("password")).toBeNull();
+  describe("password sign-in", () => {
+    beforeEach(() => {
+      mockGetAuthConfig.mockResolvedValue(BOTH);
+    });
+
+    it("defaults to email + password and signs in without sending a code", async () => {
+      mockPasswordLogin.mockResolvedValue({ id: "u1" });
+      mockApiListWorkspaces.mockResolvedValue([]);
+      renderWithI18n(<LoginPage onSuccess={onSuccess} />);
+
+      // The config probe decides the mode; until it answers the panel shows
+      // codes, so wait for the password field to appear.
+      const password = await screen.findByLabelText(/^password$/i);
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText(/^email$/i), "test@example.com");
+      await user.type(password, "typed-only-in-test");
+      await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+      await waitFor(() => expect(onSuccess).toHaveBeenCalled());
+      expect(mockPasswordLogin).toHaveBeenCalledWith("test@example.com", "typed-only-in-test");
+      expect(mockSendCode).not.toHaveBeenCalled();
+      expect(localStorage.getItem("password")).toBeNull();
+    });
+
+    it("clears the password and maps 401 to invalid_credentials", async () => {
+      mockPasswordLogin.mockRejectedValue(apiFailure(401, { code: "invalid_credentials" }));
+      renderWithI18n(<LoginPage onSuccess={onSuccess} />);
+
+      const password = await screen.findByLabelText(/^password$/i);
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText(/^email$/i), "test@example.com");
+      await user.type(password, "wrong-password");
+      await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+      await waitFor(() => expect(password).toHaveValue(""));
+      expect(
+        screen.getByText("Email or password is incorrect."),
+      ).toBeInTheDocument();
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(mockSendCode).not.toHaveBeenCalled();
+    });
+
+    it("maps 429 to the lockout with the remaining wait", async () => {
+      mockPasswordLogin.mockRejectedValue(
+        apiFailure(429, { code: "too_many_attempts", retry_after_seconds: 300 }),
+      );
+      renderWithI18n(<LoginPage onSuccess={onSuccess} />);
+
+      const password = await screen.findByLabelText(/^password$/i);
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText(/^email$/i), "test@example.com");
+      await user.type(password, "wrong-password");
+      await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+      await waitFor(() =>
+        expect(
+          screen.getByText("Too many attempts. Try again in 300 seconds."),
+        ).toBeInTheDocument(),
+      );
+    });
+
+    it("says password login is missing when the endpoint 404s", async () => {
+      mockPasswordLogin.mockRejectedValue(apiFailure(404, { code: "not_found" }));
+      renderWithI18n(<LoginPage onSuccess={onSuccess} />);
+
+      const password = await screen.findByLabelText(/^password$/i);
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText(/^email$/i), "test@example.com");
+      await user.type(password, "typed-only-in-test");
+      await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+      await waitFor(() =>
+        expect(
+          screen.getByText(
+            "Password sign-in is not available on this server yet. Use an email code instead.",
+          ),
+        ).toBeInTheDocument(),
+      );
+    });
+
+    it("switches to the code flow and back", async () => {
+      renderWithI18n(<LoginPage onSuccess={onSuccess} />);
+
+      await screen.findByLabelText(/^password$/i);
+      const user = userEvent.setup();
+      await user.click(
+        screen.getByRole("button", { name: /use an email code instead/i }),
+      );
+
+      expect(
+        screen.getByText(/enter your email to get a login code/i),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /^continue$/i }),
+      ).toBeInTheDocument();
+      expect(screen.queryByLabelText(/^password$/i)).not.toBeInTheDocument();
+
+      await user.click(
+        screen.getByRole("button", { name: /use a password instead/i }),
+      );
+      expect(await screen.findByLabelText(/^password$/i)).toBeInTheDocument();
+    });
+
+    it("hides the switch when the server enables only one method", async () => {
+      mockGetAuthConfig.mockResolvedValue(PASSWORD_ONLY);
+      renderWithI18n(<LoginPage onSuccess={onSuccess} />);
+
+      await screen.findByLabelText(/^password$/i);
+      expect(
+        screen.queryByRole("button", { name: /use an email code instead/i }),
+      ).not.toBeInTheDocument();
+    });
   });
 
-  it("clears password and keeps login screen on failed password sign-in", async () => {
-    mockSupabaseConfig.mockResolvedValue({ enabled: true });
-    mockPasswordLogin.mockRejectedValue(new Error("invalid proof"));
-    renderWithI18n(<LoginPage onSuccess={onSuccess} />);
-    const password = await screen.findByLabelText(/^password$/i);
-    const user = userEvent.setup();
-    await user.type(screen.getByLabelText(/^email$/i), "test@example.com");
-    await user.type(password, "typed-only-in-test");
-    await user.click(screen.getByRole("button", { name: /^sign in$/i }));
-    await waitFor(() => expect(password).toHaveValue(""));
-    expect(onSuccess).not.toHaveBeenCalled();
-    expect(mockSendCode).not.toHaveBeenCalled();
+  // -------------------------------------------------------------------------
+  // Forced password change (must_change_password)
+  // -------------------------------------------------------------------------
+
+  describe("must_change_password", () => {
+    it("asks for a new password before letting the caller navigate", async () => {
+      mockGetAuthConfig.mockResolvedValue(BOTH);
+      mockPasswordLogin.mockResolvedValue({ id: "u1" });
+      mockConsumeMustChangePassword.mockReturnValue(true);
+      mockApiListWorkspaces.mockResolvedValue([]);
+      renderWithI18n(<LoginPage onSuccess={onSuccess} />);
+
+      const password = await screen.findByLabelText(/^password$/i);
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText(/^email$/i), "test@example.com");
+      await user.type(password, "old-password");
+      await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+      const next = await screen.findByLabelText(/^new password$/i);
+      expect(onSuccess).not.toHaveBeenCalled();
+
+      await user.type(next, "a-new-password");
+      await user.type(screen.getByLabelText(/^confirm new password$/i), "a-new-password");
+      await user.click(screen.getByRole("button", { name: /^save and continue$/i }));
+
+      await waitFor(() => expect(onSuccess).toHaveBeenCalled());
+      expect(mockChangePassword).toHaveBeenCalledWith("a-new-password");
+    });
+
+    it("rejects a short password locally and a mismatched confirmation", async () => {
+      mockGetAuthConfig.mockResolvedValue(BOTH);
+      mockPasswordLogin.mockResolvedValue({ id: "u1" });
+      mockConsumeMustChangePassword.mockReturnValue(true);
+      renderWithI18n(<LoginPage onSuccess={onSuccess} />);
+
+      const password = await screen.findByLabelText(/^password$/i);
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText(/^email$/i), "test@example.com");
+      await user.type(password, "old-password");
+      await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+      const next = await screen.findByLabelText(/^new password$/i);
+      await user.type(next, "short");
+      await user.type(screen.getByLabelText(/^confirm new password$/i), "short");
+      await user.click(screen.getByRole("button", { name: /^save and continue$/i }));
+
+      expect(screen.getByText("Use at least 10 characters.")).toBeInTheDocument();
+      expect(mockChangePassword).not.toHaveBeenCalled();
+    });
+
+    it("maps a 400 weak_password from the change endpoint", async () => {
+      mockGetAuthConfig.mockResolvedValue(BOTH);
+      mockPasswordLogin.mockResolvedValue({ id: "u1" });
+      mockConsumeMustChangePassword.mockReturnValue(true);
+      mockChangePassword.mockRejectedValue(apiFailure(400, { code: "weak_password" }));
+      renderWithI18n(<LoginPage onSuccess={onSuccess} />);
+
+      const password = await screen.findByLabelText(/^password$/i);
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText(/^email$/i), "test@example.com");
+      await user.type(password, "old-password");
+      await user.click(screen.getByRole("button", { name: /^sign in$/i }));
+
+      const next = await screen.findByLabelText(/^new password$/i);
+      await user.type(next, "aaaaaaaaaa");
+      await user.type(screen.getByLabelText(/^confirm new password$/i), "aaaaaaaaaa");
+      await user.click(screen.getByRole("button", { name: /^save and continue$/i }));
+
+      await waitFor(() =>
+        expect(mockChangePassword).toHaveBeenCalledWith("aaaaaaaaaa"),
+      );
+      expect(screen.getByText("Use at least 10 characters.")).toBeInTheDocument();
+      expect(onSuccess).not.toHaveBeenCalled();
+    });
   });
+
+  // -------------------------------------------------------------------------
+  // Capability gating
+  // -------------------------------------------------------------------------
+
+  describe("capability gating", () => {
+    it("explains when both sign-in methods are off", async () => {
+      mockGetAuthConfig.mockResolvedValue({
+        password_enabled: false,
+        code_login_enabled: false,
+      });
+      renderWithI18n(<LoginPage onSuccess={onSuccess} />);
+
+      await waitFor(() =>
+        expect(
+          screen.getByText(
+            "Password sign-in and email codes are both turned off on this server. Contact the administrator.",
+          ),
+        ).toBeInTheDocument(),
+      );
+      expect(screen.queryByLabelText(/^email$/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /^continue$/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("falls back to codes when the config probe fails", async () => {
+      mockGetAuthConfig.mockRejectedValue(apiFailure(404));
+      renderWithI18n(<LoginPage onSuccess={onSuccess} />);
+
+      await waitFor(() =>
+        expect(
+          screen.getByText(
+            "Password sign-in is not available on this server yet. Use an email code instead.",
+          ),
+        ).toBeInTheDocument(),
+      );
+      expect(
+        screen.getByRole("button", { name: /^continue$/i }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Email step rendering (email-code flow)
+  // -------------------------------------------------------------------------
 
   it("says the session expired when that is why the user is here", () => {
     mockAuthState.expired = true;
@@ -788,6 +1011,41 @@ describe("LoginPage", () => {
     expect(screen.getByRole("button", { name: /continue/i })).toBeDisabled();
   });
 
+});
+
+// ---------------------------------------------------------------------------
+// readPasswordFailure (exported helper)
+// ---------------------------------------------------------------------------
+
+describe("readPasswordFailure", () => {
+  it("reads the contract's machine-readable codes", () => {
+    expect(readPasswordFailure(apiFailure(401, { code: "invalid_credentials" }))).toEqual({
+      kind: "invalid_credentials",
+    });
+    expect(readPasswordFailure(apiFailure(429, { code: "too_many_attempts" }))).toEqual({
+      kind: "locked",
+      retryAfterSeconds: undefined,
+    });
+    expect(readPasswordFailure(apiFailure(400, { code: "weak_password" }))).toEqual({
+      kind: "weak_password",
+    });
+    expect(readPasswordFailure(apiFailure(404))).toEqual({ kind: "unavailable" });
+  });
+
+  it("carries the remaining wait out of the lockout body", () => {
+    expect(
+      readPasswordFailure(apiFailure(429, { code: "too_many_attempts", retry_after: "120" })),
+    ).toEqual({ kind: "locked", retryAfterSeconds: 120 });
+  });
+
+  it("falls back to the status code and then to unknown", () => {
+    expect(readPasswordFailure(apiFailure(401))).toEqual({ kind: "invalid_credentials" });
+    expect(readPasswordFailure(apiFailure(429))).toEqual({
+      kind: "locked",
+      retryAfterSeconds: undefined,
+    });
+    expect(readPasswordFailure(new Error("offline"))).toEqual({ kind: "unknown" });
+  });
 });
 
 // ---------------------------------------------------------------------------
