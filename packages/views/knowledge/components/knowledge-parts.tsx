@@ -168,7 +168,11 @@ export function KnowledgeSpaceSwitcher({
 }) {
   const { t } = useT("knowledge");
   const p = useWorkspacePaths();
-  const current = spaces.find((space) => space.slug === activeSpace);
+  // Spaces are addressed by id. A surface with no space in its route (the
+  // entries list) still has to name one, so it shows the first space instead of
+  // an empty label.
+  const active = activeSpace || spaces[0]?.id || "";
+  const current = spaces.find((space) => space.id === active);
 
   if (spaces.length === 0) {
     return (
@@ -182,22 +186,22 @@ export function KnowledgeSpaceSwitcher({
         {onSelect ? (
           <select
             aria-label={t(($) => $.home.spaces)}
-            value={activeSpace}
+            value={active}
             onChange={(event) => onSelect(event.target.value)}
             className="max-w-full truncate rounded-md bg-transparent py-1 text-title-sm font-semibold outline-none focus-visible:outline-2 focus-visible:outline-ring"
           >
             {spaces.map((space) => (
-              <option key={space.slug} value={space.slug}>
+              <option key={space.id} value={space.id}>
                 {space.name}
               </option>
             ))}
           </select>
         ) : (
           <AppLink
-            href={p.knowledgeSpace(activeSpace)}
+            href={p.knowledgeSpace(active)}
             className="block truncate rounded-md text-title-sm font-semibold outline-none focus-visible:outline-2 focus-visible:outline-ring"
           >
-            {current?.name ?? activeSpace}
+            {current?.name ?? active}
           </AppLink>
         )}
       </div>

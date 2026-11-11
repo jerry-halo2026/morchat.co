@@ -202,7 +202,7 @@ export function KnowledgeItemsPage({ wsId: wsIdProp }: { wsId?: string }) {
 
   return (
     <div className="flex h-full min-h-0">
-      <KnowledgeRail wsId={wsId} space={items[0]?.space ?? "team"} />
+      <KnowledgeRail wsId={wsId} space={items[0]?.space ?? ""} />
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex h-12 shrink-0 items-center gap-2 pr-4 pl-5">
           <h1 className="min-w-0 flex-1 truncate text-title-sm font-semibold">{t(($) => $.items.title)}</h1>

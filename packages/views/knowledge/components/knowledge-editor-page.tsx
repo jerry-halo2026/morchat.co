@@ -76,13 +76,13 @@ export function KnowledgeEditorPage({
   const nextRevision = (base ?? page?.revision ?? 0) + 1;
 
   const save = () => {
-    if (base === null) return;
+    if (base === null || !page) return;
     setConflict(null);
     savePage.mutate(
-      { space, path, markdown: draft, base_revision: base },
+      { space, path, page_id: page.id, content: draft, base_revision: base, title: page.title || undefined },
       {
         onSuccess: (result) => {
-          const written = result?.revision ?? base + 1;
+          const written = result?.revision || base + 1;
           setBase(written);
           if (result?.page) setDraft(result.page.markdown);
         },
@@ -107,7 +107,7 @@ export function KnowledgeEditorPage({
           <Button size="sm" variant="ghost" onClick={() => navigation?.push(p.knowledgePage(space, path))}>
             {t(($) => $.editor.cancel)}
           </Button>
-          <Button size="sm" className="gap-1.5" onClick={save} disabled={base === null || savePage.isPending}>
+          <Button size="sm" className="gap-1.5" onClick={save} disabled={base === null || !page || savePage.isPending}>
             <Check className="size-3.5" aria-hidden />
             {savePage.isPending
               ? t(($) => $.editor.saving)

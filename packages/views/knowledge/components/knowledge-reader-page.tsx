@@ -23,6 +23,7 @@ import {
   useKnowledgePage,
   useKnowledgePages,
   useKnowledgeRecent,
+  useKnowledgeSpaceName,
   useKnowledgeWorkspaceId,
 } from "../hooks/use-knowledge";
 import { normalizePagePath } from "../lib/wiki";
@@ -49,6 +50,8 @@ export function KnowledgeReaderPage({
   const navigation = useOptionalNavigation();
   const fallbackWsId = useKnowledgeWorkspaceId();
   const wsId = wsIdProp ?? fallbackWsId;
+  // The route carries the space id; a reader is shown the space's name.
+  const spaceName = useKnowledgeSpaceName(wsId, space);
   const pageQuery = useKnowledgePage(wsId, space, path);
   const pagesQuery = useKnowledgePages(wsId, {});
   const createPage = useCreateKnowledgePage(wsId);
@@ -67,7 +70,7 @@ export function KnowledgeReaderPage({
     const normalized = normalizePagePath(targetPath);
     if (!normalized) return;
     createPage.mutate(
-      { space: targetSpace, path: normalized, title: normalized, markdown: "" },
+      { space_id: targetSpace, path: normalized, title: normalized, markdown: "" },
       {
         onSuccess: () => navigation?.push(p.knowledgeEdit(targetSpace, normalized)),
         // The page may already exist (a stale tree): go edit it either way.
@@ -88,7 +91,7 @@ export function KnowledgeReaderPage({
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex h-12 shrink-0 items-center gap-2 pr-4 pl-5">
           <div className="min-w-0 flex-1 truncate text-caption text-faint-foreground">
-            {space} / {path}
+            {spaceName} / {path}
           </div>
           <Button
             size="sm"

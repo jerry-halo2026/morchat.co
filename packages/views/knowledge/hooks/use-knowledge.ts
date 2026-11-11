@@ -58,7 +58,7 @@ export function useKnowledgeSpaces(wsId: string) {
 
 export function useKnowledgePages(
   wsId: string,
-  params: { space?: string; project_id?: string; q?: string; limit?: number } = {},
+  params: { space_id?: string; project_id?: string; q?: string; limit?: number } = {},
 ) {
   return useQuery({
     queryKey: knowledgeKeys.pages(wsId, params),
@@ -66,6 +66,19 @@ export function useKnowledgePages(
     enabled: !!wsId,
     ...NO_RETRY,
   });
+}
+
+/**
+ * The display name of one space id, for breadcrumbs: the route carries the id,
+ * the page shows the name, and a space the listing has not loaded yet degrades
+ * to its id rather than to `undefined`.
+ */
+export function useKnowledgeSpaceName(wsId: string, spaceId: string): string {
+  const { data } = useKnowledgeSpaces(wsId);
+  return useMemo(
+    () => (data ?? []).find((space) => space.id === spaceId)?.name ?? spaceId,
+    [data, spaceId],
+  );
 }
 
 export function useKnowledgePage(wsId: string, space: string, path: string) {
@@ -79,7 +92,7 @@ export function useKnowledgePage(wsId: string, space: string, path: string) {
 
 export function useKnowledgeItems(
   wsId: string,
-  params: { project_id?: string; status?: KnowledgeItemStatus; space?: string } = {},
+  params: { project_id?: string; status?: KnowledgeItemStatus; space_id?: string } = {},
 ) {
   return useQuery({
     queryKey: knowledgeKeys.items(wsId, params),
@@ -99,13 +112,17 @@ export function useKnowledgeSearch(wsId: string, query: string, limit = 8) {
     staleTime: 15_000,
     ...NO_RETRY,
   });
-}
-
-export function useSaveKnowledgePage(wsId: string) {
+}export function useSaveKnowledgePage(wsId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: { space: string; path: string; markdown: string; base_revision: number }) =>
-      knowledgeApi.saveRevision(wsId, input),
+    mutationFn: (input: {
+      space: string;
+      path: string;
+      page_id: string;
+      content: string;
+      base_revision: number;
+      title?: string;
+    }) => knowledgeApi.savePage(wsId, input),
     onSuccess: (_result, input) => {
       void queryClient.invalidateQueries({ queryKey: knowledgeKeys.page(wsId, input.space, input.path) });
       void queryClient.invalidateQueries({ queryKey: knowledgeKeys.pages(wsId, {}) });
@@ -116,7 +133,7 @@ export function useSaveKnowledgePage(wsId: string) {
 export function useCreateKnowledgePage(wsId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: { space: string; path: string; title?: string; markdown?: string }) =>
+    mutationFn: (input: { space_id: string; path: string; title?: string; markdown?: string }) =>
       knowledgeApi.createPage(wsId, input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: knowledgeKeys.pages(wsId, {}) });
@@ -180,12 +197,33 @@ export function parseKnowledgeMentionRef(
 function toMentionItems(result: KnowledgeSearchResult): KnowledgeMentionItem[] {
   return result.pages.map((page) => ({
     id: knowledgeMentionRef(page.space, page.path, page.revision),
-    label: page.title,
+    label: page.title || page.path,
     type: "knowledge" as const,
     ref: knowledgeMentionRef(page.space, page.path, page.revision),
     space: page.space,
     path: page.path,
     revision: page.revision,
+  }));
+}
+
+/**
+ * The retrieval half of a search, as picker entries. `GET /api/knowledge/search`
+ * answers `hits`, and a hit is addressed by its item — `item_id` plus the
+ * revision it was retrieved at — so the chip cites exactly that version. It has
+ * no page path to link to, which is why the page list is tried first; these
+ * entries are the fallback for items that are not (yet) wiki pages.
+ */
+export function knowledgeMentionItemsFromHits(
+  result: KnowledgeSearchResult,
+): KnowledgeMentionItem[] {
+  return result.hits.map((hit) => ({
+    id: `${hit.item_id}#v${hit.revision}`,
+    label: hit.title || hit.item_id,
+    type: "knowledge" as const,
+    ref: `${hit.item_id}#v${hit.revision}`,
+    space: "",
+    path: "",
+    revision: hit.revision,
   }));
 }
 
@@ -198,7 +236,8 @@ export function useKnowledgeMentionItems(wsId: string, query: string): Knowledge
   const { data, error } = useKnowledgeSearch(wsId, query, 5);
   return useMemo(() => {
     if (error || !data) return [];
-    return toMentionItems(data);
+    const pages = toMentionItems(data);
+    return pages.length > 0 ? pages : knowledgeMentionItemsFromHits(data);
   }, [data, error]);
 }
 

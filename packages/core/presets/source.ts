@@ -8,18 +8,26 @@
 //   presets/<kind>/<id>.preset.json   one package's starters + persona path
 //   <package>/skills/<ns>/SKILL.md    the skill body imported on demand
 //
-// Two robustness rules shape this module:
+// Three robustness rules shape this module:
 //
 //  1. The catalog is requested through our own API first (`/api/presets/catalog`
 //     caches it for 300s server-side) because raw.githubusercontent.com is not
-//     reachable from every network. A direct request with `If-None-Match` is
-//     the fallback, so a 304 keeps the cached body and costs no bytes.
-//  2. If neither answers, the gallery still has to render: a bundled copy of
+//     reachable from every network. That route sits behind
+//     RequireWorkspaceMember, so the request carries `X-Workspace-ID` exactly the
+//     way the API client stamps it; without the workspace it answers 400 and the
+//     gallery would silently live on the third-party host.
+//  2. Only when the proxy does not answer is the upstream checkout read directly
+//     with `If-None-Match`, so a 304 keeps the cached body and costs no bytes.
+//     That read is recorded as `indexSource: "upstream"` so the gallery can say
+//     the index is offline.
+//  3. If neither answers, the gallery still has to render: a bundled copy of
 //     index.json (the package list without any package content) is parsed
-//     instead, and the catalog is flagged `degraded`.
+//     instead, and the catalog is flagged `degraded` + `indexSource: "bundled"`.
 //
 // Nothing here writes; writes live in `packages/views/presets/lib/api-runtime.ts`.
 
+import { getApi } from "../api";
+import { getCurrentWsId } from "../platform/workspace-storage";
 import fallbackIndex from "./fallback-index.json";
 import {
   parsePresetCatalog,
@@ -127,10 +135,11 @@ export function createPresetSource(
   const detailCache = new Map<string, CacheEntry<PresetPackageDetail>>();
   const docCache = new Map<string, CacheEntry<string>>();
 
-  const request = async (url: string, etag?: string | null) => {
+  const request = async (url: string, etag?: string | null, extra?: Record<string, string>) => {
     if (!fetcher) throw new Error("fetch is not available in this environment");
     const headers: Record<string, string> = {
       accept: "application/json, text/plain, */*",
+      ...extra,
     };
     if (etag) headers["if-none-match"] = etag;
     return fetcher(url, {
@@ -143,8 +152,8 @@ export function createPresetSource(
     });
   };
 
-  const fetchText = async (url: string, etag?: string | null) => {
-    const response = await request(url, etag);
+  const fetchText = async (url: string, etag?: string | null, extra?: Record<string, string>) => {
+    const response = await request(url, etag, extra);
     if (response.status === 304) return { text: null, etag: etag ?? null, notModified: true };
     if (response.status === 404) throw new PresetNotFoundError(url);
     if (!response.ok) throw new Error(`${url} -> HTTP ${response.status}`);
@@ -155,6 +164,27 @@ export function createPresetSource(
     };
   };
 
+  /**
+   * The proxy route is behind the auth + membership middleware: it resolves the
+   * caller from `Authorization` and the workspace from `X-Workspace-ID` (the
+   * same pair `packages/core/api`'s `authHeaders()` builds) and answers 401/400
+   * without them. Sending both is what keeps the gallery off the third-party
+   * host in the normal case.
+   */
+  const proxyHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {};
+    try {
+      const token = getApi().getToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+    } catch {
+      // No API instance yet (unit tests, SSR): the request still goes out and
+      // the server decides, which is the fallback path either way.
+    }
+    const wsId = getCurrentWsId();
+    if (wsId) headers["X-Workspace-ID"] = wsId;
+    return headers;
+  };
+
   const loadCatalog = async (): Promise<PresetCatalog> => {
     const cached = catalogCache.current;
     if (!isExpired(cached, now(), ttl)) return cached!.value;
@@ -162,9 +192,10 @@ export function createPresetSource(
     // 1. Our own proxy: no third-party host in the browser's path.
     if (proxyUrl !== "") {
       try {
-        const { text } = await fetchText(proxyUrl);
+        const { text } = await fetchText(proxyUrl, null, proxyHeaders());
         if (text !== null) {
           const catalog = parsePresetCatalog(JSON.parse(text));
+          catalog.indexSource = "proxy";
           catalogCache.current = { value: catalog, etag: null, fetchedAt: now() };
           return catalog;
         }
@@ -187,6 +218,9 @@ export function createPresetSource(
       }
       if (text === null) throw new Error(`${catalogUrl} returned no body`);
       const catalog = parsePresetCatalog(JSON.parse(text));
+      // The proxy is what failed, not the repository: the packages are complete
+      // and current, but the gallery must still say the index is offline.
+      catalog.indexSource = "upstream";
       catalogCache.current = { value: catalog, etag, fetchedAt: now() };
       return catalog;
     } catch {
@@ -197,6 +231,7 @@ export function createPresetSource(
       }
       const fallback = parsePresetCatalog(fallbackIndex);
       fallback.degraded = true;
+      fallback.indexSource = "bundled";
       catalogCache.current = { value: fallback, etag: null, fetchedAt: now() };
       return fallback;
     }

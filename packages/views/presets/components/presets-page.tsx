@@ -316,6 +316,25 @@ export default function PresetsPage({
             </p>
           )}
 
+          {/*
+            The proxy answered nothing and the catalog came straight from the
+            content repository: the list is complete but it is the offline
+            index, so the reader is told which index they are looking at. The
+            existing provenance sentence names the source; no new copy.
+          */}
+          {catalog?.degraded !== true && catalog?.indexSource === "upstream" && (
+            <p
+              role="status"
+              data-preset-index="upstream"
+              className="mb-3 flex items-start gap-2 rounded-md border bg-warning/10 px-4 py-2 text-caption text-muted-foreground"
+            >
+              <AlertCircle className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
+              <span className="min-w-0 break-all">
+                {t(($) => $.page.catalog_error_hint, { baseUrl })}
+              </span>
+            </p>
+          )}
+
           {error !== null && (
             <div
               role="alert"

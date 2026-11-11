@@ -7,6 +7,7 @@ import {
   presetDetailPath,
   presetSkillDocPath,
 } from "./source";
+import { setCurrentWorkspace } from "../platform/workspace-storage";
 import { parsePresetCatalog, type PresetSkill } from "./types";
 
 const BASE = "https://raw.example/presets";
@@ -74,6 +75,29 @@ describe("createPresetSource", () => {
     const catalog = await source.loadCatalog();
     expect(catalog.packages.map((pkg) => pkg.id)).toEqual(["ai-engineer"]);
     expect(calls).toEqual(["/api/presets/catalog"]);
+    expect(catalog.indexSource).toBe("proxy");
+    expect(catalog.degraded).toBeFalsy();
+  });
+
+  it("sends the workspace header the catalog proxy requires", async () => {
+    // `/api/presets/catalog` sits behind RequireWorkspaceMember and answers
+    // `400 workspace_id or workspace_slug is required` without this header, so
+    // a missing workspace used to make the raw host the only working path.
+    setCurrentWorkspace("acme", "34ed0ee3-cc00-4cbc-a287-cfd2277851fb");
+    const headers: (string | null)[] = [];
+    const source = createPresetSource({
+      baseUrl: BASE,
+      proxyUrl: "/api/presets/catalog",
+      fetcher: async (_input, init) => {
+        headers.push(new Headers(init?.headers).get("X-Workspace-ID"));
+        return jsonResponse(MINIMAL_INDEX);
+      },
+    });
+
+    await source.loadCatalog();
+
+    expect(headers).toEqual(["34ed0ee3-cc00-4cbc-a287-cfd2277851fb"]);
+    setCurrentWorkspace(null, null);
   });
 
   it("falls back to the raw index.json when the proxy is unavailable", async () => {
@@ -91,6 +115,9 @@ describe("createPresetSource", () => {
     });
     const catalog = await source.loadCatalog();
     expect(catalog.degraded).toBeFalsy();
+    // The packages are complete, but the index is the offline one: the gallery
+    // marks that read instead of passing it off as the server's catalog.
+    expect(catalog.indexSource).toBe("upstream");
     expect(calls).toEqual([
       "/api/presets/catalog",
       `${BASE}/index.json`,
@@ -133,6 +160,7 @@ describe("createPresetSource", () => {
     });
     const catalog = await source.loadCatalog();
     expect(catalog.degraded).toBe(true);
+    expect(catalog.indexSource).toBe("bundled");
     expect(catalog.packages).toHaveLength(39);
     expect(catalog.stats.agents).toBe(34);
     expect(catalog.stats.teams).toBe(5);

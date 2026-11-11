@@ -1,26 +1,33 @@
 /**
- * Wire types for the knowledge (workspace wiki) API.
+ * View types for the knowledge (workspace wiki) API.
  *
- * These mirror the server contract one-for-one, so a field that only exists in
- * the UI (a local draft, a selected tab) belongs in the component's state, not
- * here. Every list response tolerates both `{ items: [...] }` and a bare
- * array: the API is not deployed yet, and a shape drift must degrade to an
- * empty state rather than a crash.
+ * These are what the knowledge components render. They are produced by exactly
+ * one place — the wire mappers in `knowledge-api.ts` — from the server's own
+ * JSON (`server/internal/knowledge`), so a field name here is a UI decision and
+ * a field name there is the contract. No aliases exist on the server: a space is
+ * addressed by `id` (a UUID; there is no slug), a page by (`space_id`, `path`),
+ * and a hit by `item_id`.
+ *
+ * The two vocabularies the UI keeps for itself are the entry status flow
+ * (draft → review → approved → archived, a four-step product story) and the
+ * entry types (page / source / decision). `knowledge-api.ts` maps them onto the
+ * server's `draft|active|deprecated` + `doc|link|repo|note|issue_artifact`.
  */
 
 /** Who may read a page. Mirrors the server's ACL vocabulary. */
 export type KnowledgeAccess = "workspace" | "space" | "restricted";
 
 export interface KnowledgeSpace {
+  /** The space's UUID — the route segment and every link's space field. */
   id: string;
-  slug: string;
   name: string;
   description?: string | null;
-  page_count?: number;
+  item_count?: number;
 }
 
 export interface KnowledgePageSummary {
   id: string;
+  /** The space's `id`, not a slug: the server has no slug. */
   space: string;
   /** Tree path inside the space, e.g. `decisions/2026-11-retrieval.md`. */
   path: string;
@@ -29,7 +36,8 @@ export interface KnowledgePageSummary {
   updated_at: string;
   updated_by?: string | null;
   access?: KnowledgeAccess;
-  /** Project a page is filed under, used by the project's Docs tab. */
+  page_type?: string;
+  /** Project a page is filed under; absent from the server's page listing. */
   project_id?: string | null;
   excerpt?: string | null;
 }
@@ -55,6 +63,7 @@ export interface KnowledgeBacklink {
 }
 
 export interface KnowledgePage extends KnowledgePageSummary {
+  /** The server calls the body `content`; the editor renders `markdown`. */
   markdown: string;
   access: KnowledgeAccess;
   /** Roles that may read a `restricted` page. */
@@ -104,6 +113,11 @@ export interface RetrievalTestRequest {
   query: string;
   mode: RetrievalMode;
   top_k: number;
+  /**
+   * A score floor. The server treats `0` as "unset" and applies its own default
+   * (0.2), so the UI must not send 0 to mean "no floor" — see
+   * {@link RETRIEVAL_DEFAULT_THRESHOLD}.
+   */
   threshold: number;
   rerank: boolean;
   space?: string | null;
@@ -111,11 +125,13 @@ export interface RetrievalTestRequest {
 
 export interface RetrievalHit {
   chunk_id: string;
+  /** The item a chunk belongs to (`item_id`); the only address a hit carries. */
+  item_id: string;
   /** Empty until items carry a space/path address. */
   space: string;
   path: string;
   title?: string | null;
-  /** The item's kind (`page` / `source` / …), straight from the server. */
+  /** The item's kind (`doc` / `link` / …), straight from the server. */
   kind?: string | null;
   /** `heading_path` of the chunk, for the hit card's breadcrumb. */
   heading?: string | null;
@@ -123,7 +139,27 @@ export interface RetrievalHit {
   text: string;
 }
 
+/**
+ * One hit from `GET /api/knowledge/search` (`hits[]`). The revision is the
+ * chunk's document generation: the number a reader needs to pin a citation to.
+ */
+export interface KnowledgeSearchHit {
+  item_id: string;
+  title: string;
+  chunk_id: string;
+  revision: number;
+  score: number;
+  kind?: string | null;
+  heading?: string | null;
+  text: string;
+}
+
+/**
+ * What a knowledge search answers: retrieval hits (`/search`) and page-level
+ * results (`/pages?q=`). They are separate endpoints on the server, so they stay
+ * separate here — a consumer that needs a page address reads `pages`.
+ */
 export interface KnowledgeSearchResult {
+  hits: KnowledgeSearchHit[];
   pages: KnowledgePageSummary[];
-  items: KnowledgeItem[];
 }

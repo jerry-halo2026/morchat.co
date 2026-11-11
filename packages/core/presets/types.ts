@@ -78,6 +78,9 @@ export interface PresetCatalogStats {
   skills: number;
 }
 
+/** Where the catalog in hand was read from. */
+export type PresetCatalogIndexSource = "proxy" | "upstream" | "bundled";
+
 export interface PresetCatalog {
   schemaVersion: number;
   generatedAt: string;
@@ -88,6 +91,12 @@ export interface PresetCatalog {
    * remote index.json could not be read. Never present in index.json itself.
    */
   degraded?: boolean;
+  /**
+   * The read that produced this catalog: our API (`proxy`), the upstream
+   * repository directly (`upstream`, i.e. the proxy was unavailable), or the
+   * bundled copy (`bundled`). Never present in index.json itself.
+   */
+  indexSource?: PresetCatalogIndexSource;
 }
 
 /**

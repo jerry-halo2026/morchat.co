@@ -6,7 +6,10 @@ import { cleanup, screen } from "@testing-library/react";
 import { renderKnowledge } from "../test/render-knowledge";
 import { groupItems, type MentionItem } from "../../editor/extensions/mention-suggestion";
 import { KnowledgeMentionCard } from "./knowledge-mention-card";
-import { parseKnowledgeMentionRef } from "../hooks/use-knowledge";
+import {
+  knowledgeMentionItemsFromHits,
+  parseKnowledgeMentionRef,
+} from "../hooks/use-knowledge";
 
 afterEach(cleanup);
 
@@ -55,9 +58,58 @@ describe("mention picker knowledge group", () => {
     });
     expect(parseKnowledgeMentionRef("not-a-ref")).toBeNull();
   });
+
+  it("maps retrieval hits to chips, pinning item_id and revision", () => {
+    // `GET /api/knowledge/search` answers `hits`; the picker used to read a
+    // `pages` field the response does not have, so a hit produced no chip.
+    const items = knowledgeMentionItemsFromHits({
+      hits: [
+        {
+          item_id: "0b2f2c6e-1111-4aaa-8bbb-9ccccccccccc",
+          title: "Retrieval design",
+          chunk_id: "chunk-1",
+          revision: 3,
+          score: 0.81,
+          text: "BM25 and vectors are fused.",
+        },
+        {
+          item_id: "item-2",
+          title: "",
+          chunk_id: "chunk-2",
+          revision: 0,
+          score: 0.4,
+          text: "",
+        },
+      ],
+      pages: [],
+    });
+
+    expect(items[0]).toMatchObject({
+      id: "0b2f2c6e-1111-4aaa-8bbb-9ccccccccccc#v3",
+      label: "Retrieval design",
+      type: "knowledge",
+      revision: 3,
+      // A hit has no page address; the chip cites the item, not a path.
+      space: "",
+      path: "",
+    });
+    // No title: the item id is the label rather than an empty chip.
+    expect(items[1]?.label).toBe("item-2");
+  });
 });
 
 describe("KnowledgeMentionCard", () => {
+  it("renders a hit chip as a labelled chip, since a hit has no page to open", () => {
+    // `ref` here is the chip's citation ref, not a React ref, so the
+    // string-ref rule does not apply.
+    // eslint-disable-next-line react/no-string-refs
+    renderKnowledge(<KnowledgeMentionCard ref="item-9#v4" fallbackLabel="Retrieval design" />);
+
+    expect(screen.getByText("Retrieval design")).toBeInTheDocument();
+    expect(screen.getByText("v4")).toBeInTheDocument();
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
   it("renders the page name, the pinned revision, and the page link", () => {
     renderKnowledge(
       <>

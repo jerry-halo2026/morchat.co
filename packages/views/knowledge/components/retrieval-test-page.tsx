@@ -21,7 +21,7 @@ import { memberListOptions } from "@morechat/core/workspace/queries";
 import { AppLink } from "../../navigation";
 import { useT } from "../../i18n";
 import type { RetrievalHit, RetrievalMode } from "../data/types";
-import { isKnowledgeUnavailable } from "../data/knowledge-api";
+import { isKnowledgeUnavailable, RETRIEVAL_DEFAULT_THRESHOLD } from "../data/knowledge-api";
 import { useKnowledgeWorkspaceId, useRetrievalTest } from "../hooks/use-knowledge";
 import { KnowledgeNotice, KnowledgeQueryState } from "./knowledge-parts";
 
@@ -64,7 +64,9 @@ export function RetrievalTestPage({ wsId: wsIdProp }: { wsId?: string }) {
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<RetrievalMode>("hybrid");
   const [topK, setTopK] = useState(5);
-  const [threshold, setThreshold] = useState(0.2);
+  // The server's default floor: 0 means "unset" there, so 0.2 is what actually
+  // runs. Starting on it keeps the field honest about what the last run used.
+  const [threshold, setThreshold] = useState(RETRIEVAL_DEFAULT_THRESHOLD);
   const [rerank, setRerank] = useState(true);
 
   const hits = retrieval.data ?? [];
@@ -132,6 +134,13 @@ export function RetrievalTestPage({ wsId: wsIdProp }: { wsId?: string }) {
 
               <label className="text-caption text-muted-foreground">
                 {t(($) => $.retrieval.threshold)}
+                {/*
+                  The server reads 0 as "use my default" (0.20), so the field's
+                  default is stated where the value is entered. Notation rather
+                  than prose: a reader of any locale parses "0 → 0.20".
+                */}
+                {/* eslint-disable-next-line i18next/no-literal-string -- numeric notation for the server's default floor */}
+                <span className="ml-1 text-faint-foreground">0 → {RETRIEVAL_DEFAULT_THRESHOLD.toFixed(2)}</span>
                 <Input
                   type="number"
                   step="0.05"

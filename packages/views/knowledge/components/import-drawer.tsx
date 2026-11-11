@@ -58,7 +58,7 @@ export function KnowledgeImportDrawer({
   const { t } = useT("knowledge");
   const [step, setStep] = useState<Step>("source");
   const [kind, setKind] = useState<KnowledgeImportSourceKind>("file");
-  const [space, setSpace] = useState(defaultSpace ?? spaces[0]?.slug ?? "");
+  const [space, setSpace] = useState(defaultSpace ?? spaces[0]?.id ?? "");
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState("");
   const [repo, setRepo] = useState("");
@@ -164,7 +164,7 @@ export function KnowledgeImportDrawer({
         key = upload.key;
       }
       const started = await knowledgeApi.startImport(wsId, {
-        space: space || spaces[0]?.slug || "",
+        space_id: space || spaces[0]?.id || "",
         source_kind: kind,
         url: kind === "url" ? url.trim() : undefined,
         key,
@@ -265,7 +265,7 @@ export function KnowledgeImportDrawer({
                     className="mt-1 block h-8 w-full rounded-lg border border-input bg-transparent px-2 text-body outline-none focus-visible:border-ring"
                   >
                     {spaces.map((entry) => (
-                      <option key={entry.slug} value={entry.slug}>
+                      <option key={entry.id} value={entry.id}>
                         {entry.name}
                       </option>
                     ))}

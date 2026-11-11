@@ -40,7 +40,9 @@ export function KnowledgeHomePage({ wsId }: { wsId?: string }) {
   const spacesQuery = useKnowledgeSpaces(id);
   const spaces = spacesQuery.data ?? [];
   const [space, setSpace] = useState<string>("");
-  const activeSpace = space || spaces[0]?.slug || "";
+  // The active space is its id: the server has no slug, and the id is what the
+  // route segment and every page link carry.
+  const activeSpace = space || spaces[0]?.id || "";
   const pagesQuery = useKnowledgePages(id, {});
   const createPage = useCreateKnowledgePage(id);
   const [creating, setCreating] = useState(false);
@@ -60,7 +62,7 @@ export function KnowledgeHomePage({ wsId }: { wsId?: string }) {
     const path = normalizePagePath(draftTitle);
     if (!path || !activeSpace) return;
     createPage.mutate(
-      { space: activeSpace, path, title: draftTitle.trim() },
+      { space_id: activeSpace, path, title: draftTitle.trim() },
       {
         onSuccess: () => {
           setCreating(false);
