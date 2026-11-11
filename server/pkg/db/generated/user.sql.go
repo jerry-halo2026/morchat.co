@@ -20,7 +20,7 @@ WHERE id = $2
     whats_new_seen_version IS NULL
     OR string_to_array(whats_new_seen_version, '.')::int[] < string_to_array($1::text, '.')::int[]
   )
-RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at
+RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at, password_hash, password_updated_at, must_change_password
 `
 
 type AdvanceWhatsNewSeenVersionParams struct {
@@ -55,6 +55,9 @@ func (q *Queries) AdvanceWhatsNewSeenVersion(ctx context.Context, arg AdvanceWha
 		&i.StarPromptShownCount,
 		&i.StarPromptLastShownAt,
 		&i.StarPromptStarredAt,
+		&i.PasswordHash,
+		&i.PasswordUpdatedAt,
+		&i.MustChangePassword,
 	)
 	return i, err
 }
@@ -68,7 +71,7 @@ WHERE id = $1
   AND star_prompt_shown_count < $2::int
   AND created_at <= $3::timestamptz
   AND (star_prompt_last_shown_at IS NULL OR star_prompt_last_shown_at <= $4::timestamptz)
-RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at
+RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at, password_hash, password_updated_at, must_change_password
 `
 
 type ClaimStarPromptShowingParams struct {
@@ -109,6 +112,9 @@ func (q *Queries) ClaimStarPromptShowing(ctx context.Context, arg ClaimStarPromp
 		&i.StarPromptShownCount,
 		&i.StarPromptLastShownAt,
 		&i.StarPromptStarredAt,
+		&i.PasswordHash,
+		&i.PasswordUpdatedAt,
+		&i.MustChangePassword,
 	)
 	return i, err
 }
@@ -116,7 +122,7 @@ func (q *Queries) ClaimStarPromptShowing(ctx context.Context, arg ClaimStarPromp
 const createUser = `-- name: CreateUser :one
 INSERT INTO "user" (name, email, avatar_url)
 VALUES ($1, $2, $3)
-RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at
+RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at, password_hash, password_updated_at, must_change_password
 `
 
 type CreateUserParams struct {
@@ -147,12 +153,65 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.StarPromptShownCount,
 		&i.StarPromptLastShownAt,
 		&i.StarPromptStarredAt,
+		&i.PasswordHash,
+		&i.PasswordUpdatedAt,
+		&i.MustChangePassword,
+	)
+	return i, err
+}
+
+const createUserWithPassword = `-- name: CreateUserWithPassword :one
+INSERT INTO "user" (name, email, password_hash, password_updated_at, must_change_password)
+VALUES ($1, $2, $3, now(), $4)
+RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at, password_hash, password_updated_at, must_change_password
+`
+
+type CreateUserWithPasswordParams struct {
+	Name               string      `json:"name"`
+	Email              string      `json:"email"`
+	PasswordHash       pgtype.Text `json:"password_hash"`
+	MustChangePassword bool        `json:"must_change_password"`
+}
+
+// Provisioning path for deployments that hand out credentials instead of an
+// emailed code. Only the hash is written (Argon2id PHC, see
+// docs/engineering/CONTRACTS.md); the caller hashes the plaintext.
+func (q *Queries) CreateUserWithPassword(ctx context.Context, arg CreateUserWithPasswordParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUserWithPassword,
+		arg.Name,
+		arg.Email,
+		arg.PasswordHash,
+		arg.MustChangePassword,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.AvatarUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.OnboardedAt,
+		&i.OnboardingQuestionnaire,
+		&i.CloudWaitlistEmail,
+		&i.CloudWaitlistReason,
+		&i.StarterContentState,
+		&i.Language,
+		&i.ProfileDescription,
+		&i.Timezone,
+		&i.WhatsNewSeenVersion,
+		&i.StarPromptShownCount,
+		&i.StarPromptLastShownAt,
+		&i.StarPromptStarredAt,
+		&i.PasswordHash,
+		&i.PasswordUpdatedAt,
+		&i.MustChangePassword,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at FROM "user"
+SELECT id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at, password_hash, password_updated_at, must_change_password FROM "user"
 WHERE id = $1
 `
 
@@ -178,12 +237,15 @@ func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
 		&i.StarPromptShownCount,
 		&i.StarPromptLastShownAt,
 		&i.StarPromptStarredAt,
+		&i.PasswordHash,
+		&i.PasswordUpdatedAt,
+		&i.MustChangePassword,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at FROM "user"
+SELECT id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at, password_hash, password_updated_at, must_change_password FROM "user"
 WHERE email = $1
 `
 
@@ -209,6 +271,9 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.StarPromptShownCount,
 		&i.StarPromptLastShownAt,
 		&i.StarPromptStarredAt,
+		&i.PasswordHash,
+		&i.PasswordUpdatedAt,
+		&i.MustChangePassword,
 	)
 	return i, err
 }
@@ -259,7 +324,7 @@ UPDATE "user" SET
     cloud_waitlist_reason = $3,
     updated_at = now()
 WHERE id = $1
-RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at
+RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at, password_hash, password_updated_at, must_change_password
 `
 
 type JoinCloudWaitlistParams struct {
@@ -293,6 +358,9 @@ func (q *Queries) JoinCloudWaitlist(ctx context.Context, arg JoinCloudWaitlistPa
 		&i.StarPromptShownCount,
 		&i.StarPromptLastShownAt,
 		&i.StarPromptStarredAt,
+		&i.PasswordHash,
+		&i.PasswordUpdatedAt,
+		&i.MustChangePassword,
 	)
 	return i, err
 }
@@ -301,7 +369,7 @@ const markStarPromptStarred = `-- name: MarkStarPromptStarred :one
 UPDATE "user" SET
     star_prompt_starred_at = COALESCE(star_prompt_starred_at, now())
 WHERE id = $1
-RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at
+RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at, password_hash, password_updated_at, must_change_password
 `
 
 // Keeps the first click time; repeating the call is a no-op.
@@ -327,6 +395,9 @@ func (q *Queries) MarkStarPromptStarred(ctx context.Context, id pgtype.UUID) (Us
 		&i.StarPromptShownCount,
 		&i.StarPromptLastShownAt,
 		&i.StarPromptStarredAt,
+		&i.PasswordHash,
+		&i.PasswordUpdatedAt,
+		&i.MustChangePassword,
 	)
 	return i, err
 }
@@ -336,7 +407,7 @@ UPDATE "user" SET
     onboarded_at = COALESCE(onboarded_at, now()),
     updated_at = now()
 WHERE id = $1
-RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at
+RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at, password_hash, password_updated_at, must_change_password
 `
 
 func (q *Queries) MarkUserOnboarded(ctx context.Context, id pgtype.UUID) (User, error) {
@@ -361,6 +432,9 @@ func (q *Queries) MarkUserOnboarded(ctx context.Context, id pgtype.UUID) (User, 
 		&i.StarPromptShownCount,
 		&i.StarPromptLastShownAt,
 		&i.StarPromptStarredAt,
+		&i.PasswordHash,
+		&i.PasswordUpdatedAt,
+		&i.MustChangePassword,
 	)
 	return i, err
 }
@@ -370,7 +444,7 @@ UPDATE "user" SET
     onboarding_questionnaire = COALESCE($1, onboarding_questionnaire),
     updated_at = now()
 WHERE id = $2
-RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at
+RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at, password_hash, password_updated_at, must_change_password
 `
 
 type PatchUserOnboardingParams struct {
@@ -404,6 +478,57 @@ func (q *Queries) PatchUserOnboarding(ctx context.Context, arg PatchUserOnboardi
 		&i.StarPromptShownCount,
 		&i.StarPromptLastShownAt,
 		&i.StarPromptStarredAt,
+		&i.PasswordHash,
+		&i.PasswordUpdatedAt,
+		&i.MustChangePassword,
+	)
+	return i, err
+}
+
+const setUserPassword = `-- name: SetUserPassword :one
+UPDATE "user" SET
+    password_hash = $1,
+    password_updated_at = now(),
+    must_change_password = $2,
+    updated_at = now()
+WHERE id = $3
+RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at, password_hash, password_updated_at, must_change_password
+`
+
+type SetUserPasswordParams struct {
+	PasswordHash       pgtype.Text `json:"password_hash"`
+	MustChangePassword bool        `json:"must_change_password"`
+	ID                 pgtype.UUID `json:"id"`
+}
+
+// Replaces the credential and stamps password_updated_at. must_change_password
+// is a caller decision: false for a self-service change, true for an
+// administrator handing out a temporary password.
+func (q *Queries) SetUserPassword(ctx context.Context, arg SetUserPasswordParams) (User, error) {
+	row := q.db.QueryRow(ctx, setUserPassword, arg.PasswordHash, arg.MustChangePassword, arg.ID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.AvatarUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.OnboardedAt,
+		&i.OnboardingQuestionnaire,
+		&i.CloudWaitlistEmail,
+		&i.CloudWaitlistReason,
+		&i.StarterContentState,
+		&i.Language,
+		&i.ProfileDescription,
+		&i.Timezone,
+		&i.WhatsNewSeenVersion,
+		&i.StarPromptShownCount,
+		&i.StarPromptLastShownAt,
+		&i.StarPromptStarredAt,
+		&i.PasswordHash,
+		&i.PasswordUpdatedAt,
+		&i.MustChangePassword,
 	)
 	return i, err
 }
@@ -421,7 +546,7 @@ UPDATE "user" SET
     END,
     updated_at = now()
 WHERE id = $1
-RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at
+RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at, password_hash, password_updated_at, must_change_password
 `
 
 type UpdateUserParams struct {
@@ -474,6 +599,9 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.StarPromptShownCount,
 		&i.StarPromptLastShownAt,
 		&i.StarPromptStarredAt,
+		&i.PasswordHash,
+		&i.PasswordUpdatedAt,
+		&i.MustChangePassword,
 	)
 	return i, err
 }

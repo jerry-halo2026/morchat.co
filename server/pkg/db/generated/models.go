@@ -798,6 +798,29 @@ type Feedback struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
+// Per-user long-lived model-gateway tokens. secret_cipher is secretbox ciphertext; the plaintext key is returned exactly once at mint time and never stored.
+type GatewayCredential struct {
+	ID              pgtype.UUID `json:"id"`
+	UserID          pgtype.UUID `json:"user_id"`
+	WorkspaceID     pgtype.UUID `json:"workspace_id"`
+	Provider        string      `json:"provider"`
+	DeviceID        string      `json:"device_id"`
+	UpstreamUserID  pgtype.Text `json:"upstream_user_id"`
+	UpstreamTokenID pgtype.Text `json:"upstream_token_id"`
+	// Gateway token name mul:<uid8>:<dev8>; the reconciliation key in new-api request logs.
+	TokenName string `json:"token_name"`
+	// AES-256-GCM (internal/util/secretbox) ciphertext of the gateway token key, domain-separated with a "gateway-credential:v1:" plaintext prefix. Decrypting one yields a token that can be revoked immediately.
+	SecretCipher []byte `json:"secret_cipher"`
+	// Last 4 characters of the token key, shown in the UI as ***<suffix>. Never the whole key.
+	SecretSuffix string             `json:"secret_suffix"`
+	Models       []string           `json:"models"`
+	Quota        pgtype.Int8        `json:"quota"`
+	Status       string             `json:"status"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	RotatedAt    pgtype.Timestamptz `json:"rotated_at"`
+	RevokedAt    pgtype.Timestamptz `json:"revoked_at"`
+}
+
 type GithubInstallation struct {
 	ID               pgtype.UUID        `json:"id"`
 	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
@@ -1223,6 +1246,224 @@ type IssueWorkflow struct {
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 	IsDefault        bool               `json:"is_default"`
 	OwnerID          pgtype.UUID        `json:"owner_id"`
+}
+
+// Segmented document text. Unique per (document_id, generation, ord); embedding appears only when pgvector is installed.
+type KnowledgeChunk struct {
+	ID          pgtype.UUID        `json:"id"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	DocumentID  pgtype.UUID        `json:"document_id"`
+	Generation  int32              `json:"generation"`
+	Ord         int32              `json:"ord"`
+	Content     string             `json:"content"`
+	Tokens      int32              `json:"tokens"`
+	HeadingPath pgtype.Text        `json:"heading_path"`
+	PageFrom    pgtype.Int4        `json:"page_from"`
+	PageTo      pgtype.Int4        `json:"page_to"`
+	AclTags     []string           `json:"acl_tags"`
+	Metadata    []byte             `json:"metadata"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type KnowledgeDistillationCursor struct {
+	ID                  pgtype.UUID        `json:"id"`
+	WorkspaceID         pgtype.UUID        `json:"workspace_id"`
+	SpaceID             pgtype.UUID        `json:"space_id"`
+	SourceScope         string             `json:"source_scope"`
+	ScopeKey            string             `json:"scope_key"`
+	ProjectID           pgtype.UUID        `json:"project_id"`
+	RootIssueID         pgtype.UUID        `json:"root_issue_id"`
+	SourceKind          string             `json:"source_kind"`
+	LastProcessedAt     pgtype.Timestamptz `json:"last_processed_at"`
+	LastObservedAt      pgtype.Timestamptz `json:"last_observed_at"`
+	PendingEventCount   int32              `json:"pending_event_count"`
+	LastSuccessfulRunID pgtype.UUID        `json:"last_successful_run_id"`
+	LastSourceHash      pgtype.Text        `json:"last_source_hash"`
+	Metadata            []byte             `json:"metadata"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
+}
+
+type KnowledgeDistillationRun struct {
+	ID                pgtype.UUID        `json:"id"`
+	WorkspaceID       pgtype.UUID        `json:"workspace_id"`
+	SpaceID           pgtype.UUID        `json:"space_id"`
+	CursorID          pgtype.UUID        `json:"cursor_id"`
+	WorkItemID        pgtype.UUID        `json:"work_item_id"`
+	ProjectID         pgtype.UUID        `json:"project_id"`
+	RootIssueID       pgtype.UUID        `json:"root_issue_id"`
+	SourceWindowStart pgtype.Timestamptz `json:"source_window_start"`
+	SourceWindowEnd   pgtype.Timestamptz `json:"source_window_end"`
+	SourceHash        pgtype.Text        `json:"source_hash"`
+	Status            string             `json:"status"`
+	OperationIssueID  pgtype.UUID        `json:"operation_issue_id"`
+	RetryCount        int32              `json:"retry_count"`
+	CostCents         int32              `json:"cost_cents"`
+	Warnings          []byte             `json:"warnings"`
+	Metadata          []byte             `json:"metadata"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+}
+
+type KnowledgeDistillationWorkItem struct {
+	ID                 pgtype.UUID        `json:"id"`
+	WorkspaceID        pgtype.UUID        `json:"workspace_id"`
+	SpaceID            pgtype.UUID        `json:"space_id"`
+	WorkItemKind       string             `json:"work_item_kind"`
+	Status             string             `json:"status"`
+	Priority           string             `json:"priority"`
+	ProjectID          pgtype.UUID        `json:"project_id"`
+	RootIssueID        pgtype.UUID        `json:"root_issue_id"`
+	RequestedByIssueID pgtype.UUID        `json:"requested_by_issue_id"`
+	IdempotencyKey     pgtype.Text        `json:"idempotency_key"`
+	Metadata           []byte             `json:"metadata"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+}
+
+type KnowledgeDocument struct {
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	ItemID           pgtype.UUID        `json:"item_id"`
+	Version          int32              `json:"version"`
+	Mime             string             `json:"mime"`
+	Bytes            int64              `json:"bytes"`
+	Sha256           string             `json:"sha256"`
+	StorageKey       pgtype.Text        `json:"storage_key"`
+	ParsedAt         pgtype.Timestamptz `json:"parsed_at"`
+	ParseEngine      string             `json:"parse_engine"`
+	Generation       int32              `json:"generation"`
+	ActiveGeneration int32              `json:"active_generation"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+}
+
+type KnowledgeImportTask struct {
+	ID          pgtype.UUID        `json:"id"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	SpaceID     pgtype.UUID        `json:"space_id"`
+	Title       string             `json:"title"`
+	SourceType  string             `json:"source_type"`
+	SourceRef   string             `json:"source_ref"`
+	Status      string             `json:"status"`
+	Progress    int32              `json:"progress"`
+	Error       pgtype.Text        `json:"error"`
+	ChunkConfig []byte             `json:"chunk_config"`
+	ItemID      pgtype.UUID        `json:"item_id"`
+	DocumentID  pgtype.UUID        `json:"document_id"`
+	ChunkCount  int32              `json:"chunk_count"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	FinishedAt  pgtype.Timestamptz `json:"finished_at"`
+}
+
+// Knowledge container per (workspace_id, wiki_id); ported from Paperclip plugin-llm-wiki 001 (MIT).
+type KnowledgeInstance struct {
+	ID                 pgtype.UUID        `json:"id"`
+	WorkspaceID        pgtype.UUID        `json:"workspace_id"`
+	WikiID             string             `json:"wiki_id"`
+	RootFolderKey      string             `json:"root_folder_key"`
+	ConfiguredRootPath pgtype.Text        `json:"configured_root_path"`
+	SchemaVersion      int32              `json:"schema_version"`
+	SearchMode         string             `json:"search_mode"`
+	Settings           []byte             `json:"settings"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+}
+
+// Canonical knowledge item; enum columns are owned by server/internal/knowledge/enums.go.
+type KnowledgeItem struct {
+	ID          pgtype.UUID        `json:"id"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	ProjectID   pgtype.UUID        `json:"project_id"`
+	Title       string             `json:"title"`
+	Kind        string             `json:"kind"`
+	SourceType  string             `json:"source_type"`
+	SourceRef   string             `json:"source_ref"`
+	Status      string             `json:"status"`
+	OwnerID     pgtype.UUID        `json:"owner_id"`
+	AclMode     string             `json:"acl_mode"`
+	Metadata    []byte             `json:"metadata"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	// Space the item belongs to; (workspace_id, space_id) must reference knowledge_spaces, so a cross-workspace space is unrepresentable.
+	SpaceID pgtype.UUID `json:"space_id"`
+	// Optional link to the wiki page this item was distilled from (knowledge_pages); NULL for items with no page.
+	PageID pgtype.UUID `json:"page_id"`
+}
+
+type KnowledgePage struct {
+	ID                pgtype.UUID        `json:"id"`
+	WorkspaceID       pgtype.UUID        `json:"workspace_id"`
+	SpaceID           pgtype.UUID        `json:"space_id"`
+	Path              string             `json:"path"`
+	Title             pgtype.Text        `json:"title"`
+	PageType          pgtype.Text        `json:"page_type"`
+	Frontmatter       []byte             `json:"frontmatter"`
+	SourceRefs        []byte             `json:"source_refs"`
+	ContentHash       pgtype.Text        `json:"content_hash"`
+	CurrentRevisionID pgtype.UUID        `json:"current_revision_id"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+}
+
+// Derived link edges (target_page_id NULL = red link to an unwritten page).
+type KnowledgePageBacklink struct {
+	ID           pgtype.UUID        `json:"id"`
+	WorkspaceID  pgtype.UUID        `json:"workspace_id"`
+	SpaceID      pgtype.UUID        `json:"space_id"`
+	SourcePageID pgtype.UUID        `json:"source_page_id"`
+	TargetPageID pgtype.UUID        `json:"target_page_id"`
+	TargetPath   string             `json:"target_path"`
+	Anchor       pgtype.Text        `json:"anchor"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+}
+
+type KnowledgePageRevision struct {
+	ID          pgtype.UUID        `json:"id"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	SpaceID     pgtype.UUID        `json:"space_id"`
+	PageID      pgtype.UUID        `json:"page_id"`
+	OperationID pgtype.UUID        `json:"operation_id"`
+	Path        string             `json:"path"`
+	ContentHash string             `json:"content_hash"`
+	Summary     pgtype.Text        `json:"summary"`
+	Metadata    []byte             `json:"metadata"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type KnowledgeSource struct {
+	ID          pgtype.UUID        `json:"id"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	SpaceID     pgtype.UUID        `json:"space_id"`
+	SourceType  string             `json:"source_type"`
+	Title       pgtype.Text        `json:"title"`
+	Url         pgtype.Text        `json:"url"`
+	RawPath     string             `json:"raw_path"`
+	ContentHash string             `json:"content_hash"`
+	Status      string             `json:"status"`
+	Metadata    []byte             `json:"metadata"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type KnowledgeSpace struct {
+	ID                 pgtype.UUID        `json:"id"`
+	WorkspaceID        pgtype.UUID        `json:"workspace_id"`
+	WikiID             string             `json:"wiki_id"`
+	Slug               string             `json:"slug"`
+	DisplayName        string             `json:"display_name"`
+	SpaceType          string             `json:"space_type"`
+	FolderMode         string             `json:"folder_mode"`
+	RootFolderKey      string             `json:"root_folder_key"`
+	PathPrefix         pgtype.Text        `json:"path_prefix"`
+	ConfiguredRootPath pgtype.Text        `json:"configured_root_path"`
+	AccessScope        string             `json:"access_scope"`
+	OwnerID            pgtype.UUID        `json:"owner_id"`
+	TeamKey            pgtype.Text        `json:"team_key"`
+	Settings           []byte             `json:"settings"`
+	Status             string             `json:"status"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 }
 
 type LarkBindingToken struct {
@@ -1738,8 +1979,9 @@ type TaskUsage struct {
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 	// Provider-reported cost in 1e-10 USD. NULL when the provider reports none; those rows are priced client-side from the static rate table.
-	CostUsdTicks  pgtype.Int8 `json:"cost_usd_ticks"`
-	CreditsMicros pgtype.Int8 `json:"credits_micros"`
+	CostUsdTicks     pgtype.Int8 `json:"cost_usd_ticks"`
+	CreditsMicros    pgtype.Int8 `json:"credits_micros"`
+	CredentialSource pgtype.Text `json:"credential_source"`
 }
 
 type TaskUsageHourly struct {
@@ -1806,6 +2048,9 @@ type User struct {
 	StarPromptShownCount  int32              `json:"star_prompt_shown_count"`
 	StarPromptLastShownAt pgtype.Timestamptz `json:"star_prompt_last_shown_at"`
 	StarPromptStarredAt   pgtype.Timestamptz `json:"star_prompt_starred_at"`
+	PasswordHash          pgtype.Text        `json:"password_hash"`
+	PasswordUpdatedAt     pgtype.Timestamptz `json:"password_updated_at"`
+	MustChangePassword    bool               `json:"must_change_password"`
 }
 
 type UserComposioConnection struct {

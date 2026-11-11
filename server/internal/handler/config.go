@@ -11,6 +11,13 @@ import (
 	"github.com/jerry-halo2026/morchat.co/server/internal/storage"
 )
 
+// AuthConfig is the login-method surface /api/config reports. It is public and
+// anonymous-safe: two booleans that decide which form the sign-in screen shows.
+type AuthConfig struct {
+	PasswordEnabled  bool `json:"password_enabled"`
+	CodeLoginEnabled bool `json:"code_login_enabled"`
+}
+
 type AppConfig struct {
 	CdnDomain string `json:"cdn_domain"`
 	// The origin used for durable private-attachment Markdown links. Clients
@@ -29,6 +36,11 @@ type AppConfig struct {
 	// toggle signup or wire Google OAuth.
 	AllowSignup    bool   `json:"allow_signup"`
 	GoogleClientID string `json:"google_client_id,omitempty"`
+	// Auth tells the sign-in form which credential paths this deployment
+	// accepts. Both default to true; AUTH_PASSWORD_ENABLED=false removes the
+	// email+password form, AUTH_CODE_LOGIN_ENABLED=false removes the emailed
+	// code fallback. See docs/engineering/CONTRACTS.md, "登录契约".
+	Auth AuthConfig `json:"auth"`
 	// WorkspaceCreationDisabled mirrors the server-side
 	// DISABLE_WORKSPACE_CREATION env var so the UI can hide every
 	// "Create workspace" affordance on self-hosted instances. Omitted
@@ -124,6 +136,10 @@ func (h *Handler) GetConfig(w http.ResponseWriter, r *http.Request) {
 		AllowSignup:                        os.Getenv("ALLOW_SIGNUP") != "false",
 		GoogleClientID:                     os.Getenv("GOOGLE_CLIENT_ID"),
 		WorkspaceCreationDisabled:          os.Getenv("DISABLE_WORKSPACE_CREATION") == "true",
+		Auth: AuthConfig{
+			PasswordEnabled:  passwordAuthEnabled(),
+			CodeLoginEnabled: codeLoginEnabled(),
+		},
 	}
 	if h.Storage != nil {
 		config.CdnDomain = h.Storage.CdnDomain()

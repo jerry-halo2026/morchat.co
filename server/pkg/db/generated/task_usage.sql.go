@@ -90,7 +90,7 @@ func (q *Queries) GetIssueUsageSummary(ctx context.Context, issueID pgtype.UUID)
 }
 
 const getTaskUsage = `-- name: GetTaskUsage :many
-SELECT id, task_id, provider, model, input_tokens, output_tokens, cache_read_tokens, cache_write_tokens, created_at, updated_at, cost_usd_ticks, credits_micros FROM task_usage
+SELECT id, task_id, provider, model, input_tokens, output_tokens, cache_read_tokens, cache_write_tokens, created_at, updated_at, cost_usd_ticks, credits_micros, credential_source FROM task_usage
 WHERE task_id = $1
 ORDER BY model
 `
@@ -117,6 +117,7 @@ func (q *Queries) GetTaskUsage(ctx context.Context, taskID pgtype.UUID) ([]TaskU
 			&i.UpdatedAt,
 			&i.CostUsdTicks,
 			&i.CreditsMicros,
+			&i.CredentialSource,
 		); err != nil {
 			return nil, err
 		}

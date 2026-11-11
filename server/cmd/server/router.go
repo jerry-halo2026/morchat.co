@@ -1585,6 +1585,13 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 	r.With(authRL).Post("/auth/send-code", h.SendCode)
 	r.With(authVerifyRL).Post("/auth/verify-code", h.VerifyCode)
 	r.With(authRL).Post("/auth/google", h.GoogleLogin)
+	// Email + password sign-in. Deliberately NOT behind authRL: that middleware
+	// is a per-IP request throttle (5/min, shared with send-code) that rejects
+	// even a correct password once the budget is spent, which would defeat the
+	// contract's per-(email, IP) rule — five FAILED attempts lock for 15
+	// minutes, while any number of successes stay allowed. The handler owns that
+	// counter (auth_password.go, passwordLoginFailureGate).
+	r.Post("/auth/password/login", h.PasswordLogin)
 	r.Post("/auth/logout", h.Logout)
 
 	// Public API
@@ -1759,6 +1766,16 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 		// --- User-scoped routes (no workspace context required) ---
 		r.Get("/api/me", h.GetMe)
 		r.Patch("/api/me", h.UpdateMe)
+		// Self-service credential change (docs/engineering/CONTRACTS.md,
+		// "登录契约"). current_password is required once a hash exists; the
+		// route sits in the user-scoped group because it names the caller,
+		// not a workspace.
+		r.Post("/api/me/password", h.ChangeMyPassword)
+		// Owner/admin password reset for a workspace member. Membership
+		// middleware resolves the workspace from X-Workspace-ID / the slug
+		// header; the handler then requires owner|admin on that workspace and
+		// checks that the target user actually belongs to it.
+		r.With(middleware.RequireWorkspaceMember(queries)).Post("/api/users/{id}/password", h.ResetUserPassword)
 		r.Patch("/api/me/onboarding", h.PatchOnboarding)
 		r.Post("/api/me/onboarding/complete", h.CompleteOnboarding)
 		r.Post("/api/me/onboarding/cloud-waitlist", h.JoinCloudWaitlist)

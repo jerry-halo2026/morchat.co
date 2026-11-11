@@ -111,3 +111,23 @@ UPDATE "user" SET
     updated_at = now()
 WHERE id = $1
 RETURNING *;
+
+-- name: CreateUserWithPassword :one
+-- Provisioning path for deployments that hand out credentials instead of an
+-- emailed code. Only the hash is written (Argon2id PHC, see
+-- docs/engineering/CONTRACTS.md); the caller hashes the plaintext.
+INSERT INTO "user" (name, email, password_hash, password_updated_at, must_change_password)
+VALUES (sqlc.arg('name'), sqlc.arg('email'), sqlc.arg('password_hash'), now(), sqlc.arg('must_change_password'))
+RETURNING *;
+
+-- name: SetUserPassword :one
+-- Replaces the credential and stamps password_updated_at. must_change_password
+-- is a caller decision: false for a self-service change, true for an
+-- administrator handing out a temporary password.
+UPDATE "user" SET
+    password_hash = sqlc.arg('password_hash'),
+    password_updated_at = now(),
+    must_change_password = sqlc.arg('must_change_password'),
+    updated_at = now()
+WHERE id = sqlc.arg('id')
+RETURNING *;
