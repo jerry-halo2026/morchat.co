@@ -23,8 +23,16 @@ import { cn } from "@morechat/ui/lib/utils";
  *   is the same hash the server writes, so nothing has to know the pools here.
  */
 
-/** `aora:` + six colon-separated fields; the shape of the frozen encoding. */
-const AORA_SPEC_SHAPE = /^aora:(?:[^:]+:){5}[^:]+$/;
+/**
+ * `aora:` + six colon-separated fields; the shape of the frozen encoding.
+ *
+ * The cast field may be empty: `aora::blob:blue:capsule:vector:1a2b` is what a
+ * spec looks like when nobody named a character and the shape picks the cast —
+ * the decoder in `packages/core/avatar/aora-spec.ts` accepts it, and the route
+ * renders it as written, so recognizing it here keeps the client from deriving
+ * a different face than the route would.
+ */
+const AORA_SPEC_SHAPE = /^aora:(?:[^:]*:){5}[^:]+$/;
 
 /** True when the persisted value is a complete, self-describing Aora spec. */
 export function isAoraSpec(value: string | null | undefined): value is string {

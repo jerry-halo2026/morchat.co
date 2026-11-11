@@ -32,6 +32,16 @@ describe("aoraAvatarUrl", () => {
     );
   });
 
+  it("recognizes a spec whose cast field is empty", () => {
+    // `aora::...` is the shape a spec has when the cast follows the silhouette;
+    // core's decoder accepts it and the route renders it verbatim.
+    const unnamed = "aora::blob:blue:capsule:vector:1a2b";
+    expect(isAoraSpec(unnamed)).toBe(true);
+    expect(aoraAvatarUrl({ entityId: "agent-0001", avatarUrl: unnamed })).toBe(
+      `/avatar/${unnamed}`,
+    );
+  });
+
   it("derives for legacy cap: values and for specs missing a field", () => {
     for (const value of [
       "cap:blob:amber",

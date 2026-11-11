@@ -16,7 +16,9 @@ import { useConfigStore } from "@morechat/core/config";
 import { isImeComposing } from "@morechat/core/utils";
 import { Input } from "@morechat/ui/components/ui/input";
 import { Textarea } from "@morechat/ui/components/ui/textarea";
+import { AoraAvatarEditor } from "@morechat/ui/components/common/aora-avatar-editor";
 import { cn } from "@morechat/ui/lib/utils";
+import { decodeAoraSpec } from "@morechat/core/avatar/aora-spec";
 import { AvatarUploadControl } from "../../common/avatar-upload-control";
 import {
   SettingsCard,
@@ -28,6 +30,7 @@ import {
 import { useAutoSave } from "../../settings/components/use-auto-save";
 import { useT } from "../../i18n";
 import { CharCounter } from "./char-counter";
+import { useAoraEditorLabels } from "./aora-editor-labels";
 import { ConversationStartersEditor } from "./conversation-starters-editor";
 import { NewChatPreview } from "./new-chat-preview";
 import { useConversationStartersFocus } from "./use-conversation-starters-focus";
@@ -88,6 +91,7 @@ export function AgentDetailInspector({
 }: InspectorProps) {
   const { t } = useT("agents");
   const { t: ts } = useT("settings");
+  const avatarLabels = useAoraEditorLabels();
   const update = useCallback(
     (data: Record<string, unknown>) => onUpdate(agent.id, data),
     [agent.id, onUpdate],
@@ -202,6 +206,29 @@ export function AgentDetailInspector({
                     disabled={!canEdit}
                     onUploaded={(url) => update({ avatar_url: url })}
                     onEmojiSelected={(value) => update({ avatar_url: value })}
+                  />
+                </div>
+              </SettingsRow>
+
+              {/* The face itself: cast, shape, colour, face, draw style. Writes
+                  the same single field the upload control does — `avatar_url` —
+                  through the page's update, which patches optimistically and
+                  rolls the row back if the PATCH fails. */}
+              <SettingsRow
+                label={t(($) => $.avatar_editor.character)}
+                size="none"
+                align="start"
+              >
+                <div className="flex justify-start sm:justify-end">
+                  <AoraAvatarEditor
+                    spec={agent.avatar_url ?? null}
+                    entityId={agent.id}
+                    sizePx={56}
+                    disabled={!canEdit}
+                    labels={avatarLabels}
+                    validate={(spec) => decodeAoraSpec(spec) !== null}
+                    onChange={(spec) => update({ avatar_url: spec })}
+                    className="w-full justify-start sm:justify-end"
                   />
                 </div>
               </SettingsRow>

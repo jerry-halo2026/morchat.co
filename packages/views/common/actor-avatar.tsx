@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ActorAvatar as ActorAvatarBase } from "@morechat/ui/components/common/actor-avatar";
-import { AoraAvatar } from "@morechat/ui/components/common/aora-avatar";
+import { AoraAvatarEditor } from "@morechat/ui/components/common/aora-avatar-editor";
+import { AoraCharacter } from "@morechat/ui/components/common/aora-character";
 import {
   AVATAR_SIZE_PX,
+  DEFAULT_AVATAR_SIZE,
   type AvatarSize,
 } from "@morechat/ui/lib/avatar-size";
 import {
@@ -57,11 +59,26 @@ interface ActorAvatarProps {
   size?: AvatarSize;
   className?: string;
   /**
-   * Retained for call-site compatibility. Aora faces are static SVGs served
-   * from `/avatar`, so there is no frame loop to subscribe to and nothing
-   * for this flag to switch on.
+   * Retained for call-site compatibility. Live faces are requested with
+   * {@link ActorAvatarProps.live}; this flag predates the live renderer and
+   * only ever meant "this avatar has an animation".
    */
   animated?: boolean;
+  /**
+   * Ask for the animated Aora renderer. Only takes effect at 32px and up, and
+   * only for actors whose face is ours to draw — below that a list row keeps
+   * the static `<img>` so forty faces cost forty cached images, not forty
+   * frame loops.
+   */
+  live?: boolean;
+  /**
+   * Render the avatar as its own editor (preview + shape/colour/style fields).
+   * Requires {@link ActorAvatarProps.onAvatarChange}; without a writer the
+   * avatar stays a picture.
+   */
+  editable?: boolean;
+  /** Persists a face the person picked. Receives a complete `aora:` spec. */
+  onAvatarChange?: (spec: string) => void | Promise<unknown>;
   /**
    * Wrap the avatar in a hover-card preview on dwell. Use for "who is this?"
    * surfaces — comment authors, list rows, subscriber chips. Independent of
@@ -95,14 +112,22 @@ const PROFILE_LINK_CONTROL_SELECTOR =
   'button, [role^="menuitem"], [role="option"], [data-slot="dropdown-menu-item"], [data-slot="dropdown-menu-checkbox-item"], [data-slot="popover-trigger"]';
 
 /**
- * Whether an agent's `avatar_url` is ours to draw: empty (nobody chose a face)
- * or a persisted `aora:` / legacy `cap:` value. Upload paths, `emoji:` values
- * and anything else keep the uploaded-image or emoji rendering.
+ * Whether an actor's `avatar_url` is ours to draw.
+ *
+ * Agents are the historical case: empty means "nobody chose a face", and the
+ * static route derives one from the agent id; `cap:` is the legacy marker and
+ * `aora:` the current one. Members and squads only ever get an Aora face when
+ * someone wrote a spec on purpose — an empty member avatar is initials, not a
+ * derived blob.
  */
-function ownsAgentAvatar(avatarUrl: string | null | undefined): boolean {
-  if (!avatarUrl) return true;
-  const value = avatarUrl.trim();
-  return value.startsWith("aora:") || value.startsWith("cap:");
+function ownsAoraAvatar(
+  actorType: string,
+  avatarUrl: string | null | undefined,
+): boolean {
+  const value = avatarUrl?.trim() ?? "";
+  if (value.startsWith("aora:")) return true;
+  if (actorType !== "agent") return false;
+  return !value || value.startsWith("cap:");
 }
 
 export function ActorAvatar({
@@ -117,6 +142,9 @@ export function ActorAvatar({
   showStatusDot,
   hoverCardVariant = "profile",
   profileLink,
+  live,
+  editable,
+  onAvatarChange,
 }: ActorAvatarProps) {
   const {
     getActorName,
@@ -138,22 +166,34 @@ export function ActorAvatar({
   // members and squads.
   const resolvedSize: AvatarSize | undefined = size;
   // Agent faces are Aora characters. An explicit `aora:` spec renders as
-  // written; an empty value or a legacy `cap:` one renders the spec derived
-  // from the agent id, so every agent keeps a face without a data migration.
-  // Uploads, `emoji:` values and any other avatar_url stay on the img/emoji
-  // chain below — the test is done here rather than relying on a child that
-  // renders nothing, because a null child inside the circle wrapper would
-  // silently collapse the slot.
-  const generatedAvatar =
-    actorType === "agent" && ownsAgentAvatar(resolvedAvatarUrl) ? (
-      <AoraAvatar
+  // written; an empty agent value or a legacy `cap:` one renders the spec
+  // derived from the agent id, so every agent keeps a face without a data
+  // migration. Uploads, `emoji:` values and any other avatar_url stay on the
+  // img/emoji chain below — the test is done here rather than relying on a
+  // child that renders nothing, because a null child inside the circle wrapper
+  // would silently collapse the slot.
+  const slotPx = AVATAR_SIZE_PX[resolvedSize ?? DEFAULT_AVATAR_SIZE];
+  const canEdit = editable === true && onAvatarChange !== undefined;
+  const generatedAvatar = ownsAoraAvatar(actorType, resolvedAvatarUrl) ? (
+    canEdit ? (
+      <AoraAvatarEditor
+        spec={resolvedAvatarUrl}
         entityId={actorId}
-        size={resolvedSize}
-        avatarUrl={resolvedAvatarUrl}
+        sizePx={slotPx}
+        onChange={onAvatarChange}
+        className={className}
+      />
+    ) : (
+      <AoraCharacter
+        entityId={actorId}
+        sizePx={slotPx}
+        live={live}
+        spec={resolvedAvatarUrl}
         name={resolvedName}
         className={className}
       />
-    ) : null;
+    )
+  ) : null;
   const avatar = generatedAvatar ?? (
     <ActorAvatarBase
       name={resolvedName}
