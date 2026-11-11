@@ -96,6 +96,20 @@ function ensureEnv() {
   console.log(`dev: pointed .env DATABASE_URL at the running container (port ${hostPort})`);
 }
 
+// KEY=VALUE pairs from .env, so `db:migrate` and friends do not have to be run
+// through a POSIX shell to see DATABASE_URL.
+function loadEnv() {
+  const envPath = join(ROOT, ".env");
+  if (!existsSync(envPath)) return {};
+  const env = {};
+  for (const line of readFileSync(envPath, "utf8").split("\n")) {
+    const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(line);
+    if (!match) continue;
+    env[match[1]] = match[2].replace(/^["']|["']$/g, "");
+  }
+  return env;
+}
+
 function execBash(bash, go, argv) {
   const goDir = go === "go" ? null : dirname(go);
   const child = spawn(bash, ["-lc", argv.map((part) => `'${part.replace(/'/g, `'\\''`)}'`).join(" ")], {
@@ -123,7 +137,16 @@ if (command === "migrate") {
   const child = spawn(go, ["run", "./cmd/migrate", ...(rest.length ? rest : ["up"])], {
     cwd: join(ROOT, "server"),
     stdio: "inherit",
-    env: { ...process.env },
+    env: { ...process.env, ...loadEnv() },
+  });
+  child.on("exit", (code) => process.exit(code ?? 1));
+} else if (command === "server") {
+  const go = resolveGo();
+  ensureEnv();
+  const child = spawn(go, ["run", "./cmd/server"], {
+    cwd: join(ROOT, "server"),
+    stdio: "inherit",
+    env: { ...process.env, ...loadEnv() },
   });
   child.on("exit", (code) => process.exit(code ?? 1));
 } else {

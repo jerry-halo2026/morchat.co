@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 171,
-  "fingerprint": "a10cb4a5af3654ad8e82acaf0c748608db1d4405eb1fcde1ffce477634905799",
+  "count": 173,
+  "fingerprint": "84939e02dbf33227142be3c117da8cf7b4288e8fa7b4e6e90b80ea296e603461",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -846,8 +846,12 @@
       "status": "current",
       "updated": "2026-11-11",
       "related": [],
-      "links_out": [],
-      "links_in": []
+      "links_out": [
+        "docs/tasks/UI-VERIFICATION.md"
+      ],
+      "links_in": [
+        "docs/tasks/UI-VERIFICATION.md"
+      ]
     },
     {
       "path": "docs/brand/reference/login-onboarding/README.md",
@@ -897,7 +901,9 @@
       "updated": "2026-11-11",
       "related": [],
       "links_out": [],
-      "links_in": []
+      "links_in": [
+        "docs/tasks/UI-VERIFICATION.md"
+      ]
     },
     {
       "path": "docs/engineering/TOOLCHAIN.md",
@@ -1301,6 +1307,7 @@
         "docs/tasks/DSH-RUNTIME-REVIEW.md"
       ],
       "links_in": [
+        "docs/tasks/DSH-PROFILE-BUNDLE.md",
         "docs/tasks/INSTALLER.md"
       ]
     },
@@ -1395,6 +1402,25 @@
       "links_in": []
     },
     {
+      "path": "docs/tasks/DSH-PROFILE-BUNDLE.md",
+      "title": "DSH profile bundle：把「可见」改成官方安装路径（AG-5）",
+      "purpose": "把打包内置的 DSH 从「守护进程能看见 dsh」改成对齐官方 profile bundle 安装路径：零 CLI 例外、本地 bundle 安装、装后 probe 复检",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/tasks/INSTALLER.md",
+        "docs/tasks/DSH-RUNTIME-REVIEW.md",
+        "docs/tasks/CLEAN-INSTALL.md"
+      ],
+      "links_out": [
+        "docs/tasks/CLEAN-INSTALL.md",
+        "docs/tasks/DSH-RUNTIME-REVIEW.md",
+        "docs/tasks/INSTALLER.md"
+      ],
+      "links_in": []
+    },
+    {
       "path": "docs/tasks/DSH-RUNTIME-REVIEW.md",
       "title": "DSH runtime dependency review — 2026-11-09",
       "purpose": "DSH runtime dependency review — 2026-11-09",
@@ -1405,6 +1431,7 @@
       "links_out": [],
       "links_in": [
         "docs/tasks/CLEAN-INSTALL.md",
+        "docs/tasks/DSH-PROFILE-BUNDLE.md",
         "docs/tasks/INSTALLER.md"
       ]
     },
@@ -1449,7 +1476,9 @@
         "docs/tasks/CLEAN-INSTALL.md",
         "docs/tasks/DSH-RUNTIME-REVIEW.md"
       ],
-      "links_in": []
+      "links_in": [
+        "docs/tasks/DSH-PROFILE-BUNDLE.md"
+      ]
     },
     {
       "path": "docs/tasks/KNOWLEDGE-BENCH.md",
@@ -1466,7 +1495,9 @@
         "docs/plans/KNOWLEDGE-INTEGRATION-PLAN.md",
         "docs/tasks/EVOSE-KB-API.md"
       ],
-      "links_in": []
+      "links_in": [
+        "docs/tasks/UI-VERIFICATION.md"
+      ]
     },
     {
       "path": "docs/tasks/LOCAL-DSH-ACCOUNT-CONNECTION.md",
@@ -2390,6 +2421,27 @@
         "docs/ENGINEERING-BASELINE.md",
         "docs/README.md",
         "docs/tasks/MC-00-results.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/UI-VERIFICATION.md",
+      "title": "UI-VERIFICATION：知识库与预设画廊真数据验收（W1-AG3）",
+      "purpose": "W1-AG3 真数据验收：知识库六屏 + 预设画廊点击导入，记录可复现的请求/响应、截图与失败项",
+      "owner": "task-owners",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/engineering/CONTRACTS.md",
+        "docs/tasks/KNOWLEDGE-BENCH.md",
+        "docs/brand/reference/knowledge-ui/README.md"
+      ],
+      "links_out": [
+        "docs/brand/reference/knowledge-ui/README.md",
+        "docs/engineering/CONTRACTS.md",
+        "docs/tasks/KNOWLEDGE-BENCH.md"
+      ],
+      "links_in": [
+        "docs/brand/reference/knowledge-ui/README.md"
       ]
     },
     {

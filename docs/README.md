@@ -216,6 +216,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [Desktop dev actual run — 2026-11-09](tasks/DESKTOP-DEV-RUN.md) | Desktop dev actual run — 2026-11-09 | task-owners | current | 2026-11-10 |
 | [DSH 审批 / 提问协议实测（W6 只读侦查）](tasks/DSH-ASK-SPIKE.md) | DSH 审批 / 提问协议实测（W6 只读侦查） | task-owners | current | 2026-11-10 |
 | [DSH live usage callback — LOCAL-DSH-LIVE-USAGE-r1](tasks/DSH-LIVE-USAGE-SLICE.md) | DSH live usage callback — LOCAL-DSH-LIVE-USAGE-r1 | task-owners | current | 2026-11-09 |
+| [DSH profile bundle：把「可见」改成官方安装路径（AG-5）](tasks/DSH-PROFILE-BUNDLE.md) | 把打包内置的 DSH 从「守护进程能看见 dsh」改成对齐官方 profile bundle 安装路径：零 CLI 例外、本地 bundle 安装、装后 probe 复检 | task-owners | current | 2026-11-11 |
 | [DSH runtime dependency review — 2026-11-09](tasks/DSH-RUNTIME-REVIEW.md) | DSH runtime dependency review — 2026-11-09 | task-owners | current | 2026-11-10 |
 | [Evose 知识库 API — 导入 / 分块 / 召回 实测记录](tasks/EVOSE-KB-API.md) | Evose 知识库 API — 导入 / 分块 / 召回 实测记录 | b02-client | current | 2026-11-10 |
 | [GET guard isolated retest — 2026-11-09](tasks/GET-GUARD-LOCAL-RETEST.md) | GET guard isolated retest — 2026-11-09 | task-owners | current | 2026-11-10 |
@@ -297,6 +298,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [SUPABASE-LOGIN — email/password to native Multica session](tasks/SUPABASE-LOGIN.md) | SUPABASE-LOGIN — email/password to native Multica session | task-owners | current | 2026-11-09 |
 | [TASK-DETAIL-404 — 自然创建与读取政策未接通](tasks/TASK-DETAIL-404.md) | TASK-DETAIL-404 — 自然创建与读取政策未接通 | task-owners | current | 2026-11-10 |
 | [TASK-ID：任务标题](tasks/TEMPLATE.md) | TASK-ID：任务标题 | task-owners | current | 2026-11-06 |
+| [UI-VERIFICATION：知识库与预设画廊真数据验收（W1-AG3）](tasks/UI-VERIFICATION.md) | W1-AG3 真数据验收：知识库六屏 + 预设画廊点击导入，记录可复现的请求/响应、截图与失败项 | task-owners | current | 2026-11-11 |
 | [本地分支与工作树梳理](tasks/WORKTREE-STATUS.md) | 本地分支与工作树梳理 | task-owners | current | 2026-11-09 |
 | [R1-02B-SKILL-CLAIM-PIN — r2 DRAFT exact component proposal](tasks/contracts/R1-02B-CLAIM-PIN-r2-spec.md) | R1-02B-SKILL-CLAIM-PIN — r2 DRAFT exact component proposal | task-owners | draft | 2026-11-07 |
 | [R56 DSH foreign-frame owner specification (DRAFT pending Root TEST-FROZEN)](tasks/contracts/R1-02C-DSH-FOREIGN-FRAME-r1-spec.md) | R56 DSH foreign-frame owner specification (DRAFT pending Root TEST-FROZEN) | task-owners | draft | 2026-11-07 |

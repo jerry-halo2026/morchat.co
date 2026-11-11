@@ -38,3 +38,22 @@ kinds and the space picker all render without a backend.
 
 Re-shoot after the server lands the browsing routes; nothing in the screens
 changes shape, the states simply fill in.
+
+## `live/` — W1-AG3 re-shoot against the running API (2026-11-11)
+
+A second pass hit the same wall for a different reason: the binary serving `:8080`
+is from `2026-11-10 18:19`, and the knowledge routes landed in `ba1ef19da` at
+`2026-11-11 00:51`. Every screen therefore renders the same "后端未就绪" card,
+including the two that had no capture before (S3 editor, S6 retrieval test).
+
+| File | Screen | Route |
+| --- | --- | --- |
+| `live/s1-home.png` | S1 home | `/{ws}/knowledge` |
+| `live/s2-reader.png` | S2 reader | `/{ws}/knowledge/{space}/{path}` |
+| `live/s3-edit.png` | S3 editor | same route `?mode=edit` |
+| `live/s4-items.png` | S4 entries | `/{ws}/knowledge/items` |
+| `live/s5-import.png` | S5 import drawer | `/{ws}/knowledge` (drawer open) |
+| `live/s6-retrieval.png` | S6 retrieval test | `/{ws}/knowledge/retrieval-test` |
+| `live/s6-retrieval-run.png` | S6 after 运行测试 | `POST /api/knowledge/retrieval-test` → 404 |
+
+Details, request/response log and the cleanup result: [UI-VERIFICATION](../../../tasks/UI-VERIFICATION.md).
