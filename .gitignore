@@ -85,3 +85,4 @@ perf-report/
 # Local scratch (scripts, logs, captured payloads) - never part of the tree.
 .local/
 .verify/
+.cache/

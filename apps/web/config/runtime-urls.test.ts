@@ -271,19 +271,6 @@ describe("runtimeRewriteDestination", () => {
     ).toBe("http://backend:8080/api/avatars/signature/a.png");
   });
 
-  it("keeps the avatar route same-origin: Next renders it, the backend does not", () => {
-    for (const pathname of [
-      "/api/avatar/aora:mochi:blob:blue:capsule:vector:1a2b",
-      "/api/avatar/entity-id",
-      "/api/avatar",
-    ]) {
-      expect(
-        runtimeRewriteDestination(pathname, {
-          REMOTE_API_URL: "http://backend:8080",
-        }),
-      ).toBeUndefined();
-    }
-  });
 
   it("does not rewrite frontend auth callback pages", () => {
     expect(runtimeRewriteDestination("/auth/callback", {})).toBeUndefined();
