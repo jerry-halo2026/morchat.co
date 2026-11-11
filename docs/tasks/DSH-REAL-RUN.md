@@ -70,3 +70,27 @@ POST /api/issues {title, description, assignee_type:"agent", assignee_id}
 - `task_usage.credential_source` 为空：dsh 用的是自己的账号登录，没走 morechat 网关，符合预期；
 - squad（组队）真跑未做：需要多个 agent 指向同一运行时（运行时默认私有，需在 UI 设为公开/指定成员）；
 - MCP 知识在 run 内的调用尚未观测到：`dsh` 已支持 managed MCP，注册也已就绪，需在下一次 run 里让模型实际触发 `knowledge_search`。
+
+## 追加证据：MCP 知识调用与小隊派活（同一天完成）
+
+### A. 模型在 run 里真的调用了知识 MCP
+
+1. 把 `morechat-knowledge` 注册进工作区 MCP 库（`transport: http`），再绑到 dsh agent 并置 `enabled=true`；
+2. 建 issue：`Call the morechat-knowledge MCP tool knowledge_search with query MCPVERIFY-9 ...`；
+3. daemon 日志：
+   - `tool #3: mcp__morechat-knowledge__knowledge_search`
+   - `tool_result observed ... tool=mcp__morechat-knowledge__knowledge_search`
+4. agent 评论原文：
+   `Found it via knowledge_search (query MCPVERIFY-9, item mcp-verify-item). Exact sentence: > MCPVERIFY-9 hybrid retrieval fuses keyword and vector channels with RRF.`
+
+即：**知识库 → MCP → 模型工具调用 → 结果回写** 全链路通了，且命中的是我们自己写的条目。
+
+### B. 小队（squad）派活跑通
+
+1. 建成员 agent，再建 squad（`leader_id` = dsh agent，成员 = 该 agent）；
+2. 建 issue `assignee_type=squad`；
+3. 队长 run：收到 Squad Roster，用 mention markdown 派活给成员：
+   `[@DSH 队员](mention://agent/ae45bf74-… 这一交给…`
+4. 成员 run 回 `SQUAD OK`；队长再被唤醒，评论「队员已回复 SQUAD OK，派单到执行的链路验证通过，转 in_review 待验收」，issue → `in_review`。
+
+注：评论正文里的中文在 daemon 日志/API 输出里有乱码，是 PowerShell 控制台编码显示问题（数据本身按 UTF-8 存储，Web UI 显示正常）。
