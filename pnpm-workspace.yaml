@@ -66,3 +66,8 @@ catalog:
   yaml: ^2.6.0
   zod: ^4.1.5
   zustand: ^5.0.0
+
+# pnpm 10 reads this here; the same block in package.json is ignored, which is
+# why the expo-modules-core patch never applied.
+patchedDependencies:
+  expo-modules-core@57.0.21: apps/mobile/patches/expo-modules-core@57.0.21.patch

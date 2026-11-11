@@ -158,6 +158,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [头像槽位图（avatar-sizes）](brand/reference/avatar-sizes/README.md) | 头像尺寸回归上游后的逐屏对比截图与说明（列表 20 / 评论 24 / 详情 40 / 主视觉 56） | lead | current | 2026-11-11 |
 | [Knowledge UI — reference captures (B1)](brand/reference/knowledge-ui/README.md) | 知识库六屏的实拍与说明（S1 首页 / S2 阅读 / S4 条目 / S5 导入） | lead | current | 2026-11-11 |
 | [Login → onboarding: reference shots](brand/reference/login-onboarding/README.md) | 登录到 onboarding 的参考截图采集说明（CDP 采集脚本 + 产物索引） | design | reference | 2026-11-10 |
+| [Mobile login: reference shot](brand/reference/mobile/README.md) | 移动端登录页参考截图与采集脚本（web 导出 + Playwright，手机视口） | design | reference | 2026-11-11 |
 
 ### engineering
 
@@ -228,6 +229,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [MC-00：工程接入与基线准备](tasks/MC-00-engineering.md) | MC-00：工程接入与基线准备 | task-owners | draft | 2026-11-06 |
 | [MC-00 执行记录](tasks/MC-00-results.md) | MC-00 执行记录 | task-owners | current | 2026-11-06 |
 | [MC-01G 无模型权限切片：工程交接](tasks/MC-01G-preflight.md) | MC-01G 无模型权限切片：工程交接 | task-owners | current | 2026-11-06 |
+| [MOBILE-BUILD：移动端构建并启动到登录页](tasks/MOBILE-BUILD.md) | 移动端构建到登录页：web 导出的可分发物、图标断言、截图与已知卡点（含两处 web 打包修复） | mobile | current | 2026-11-11 |
 | [Native authenticated project/task create → read, local slice](tasks/NATIVE-CREATE-READ-SLICE.md) | Native authenticated project/task create → read, local slice | task-owners | current | 2026-11-10 |
 | [NM03 原生创建＋分类同事务候选](tasks/NATIVE-CREATION-CONTRACT.md) | NM03 原生创建＋分类同事务候选 | task-owners | draft | 2026-11-10 |
 | [NM03 原生创建契约独立评审](tasks/NATIVE-CREATION-REVIEW.md) | NM03 原生创建契约独立评审 | task-owners | draft | 2026-11-10 |

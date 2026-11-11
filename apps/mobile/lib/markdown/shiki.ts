@@ -26,10 +26,10 @@ import {
   type HighlighterCore,
   type ThemedToken,
 } from "@shikijs/core";
-import {
-  createNativeEngine,
-  isNativeEngineAvailable,
-} from "react-native-shiki-engine";
+// Imported through a platform-split module: `react-native-shiki-engine` reads
+// its TurboModule at import time, which the web bundle cannot do. See
+// `shiki-engine.web.ts`.
+import { createNativeEngine, isNativeEngineAvailable } from "./shiki-engine";
 
 // Themes — same JSON as web's packages/ui/markdown/CodeBlock.tsx so the
 // resulting palette is byte-identical.

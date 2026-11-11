@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 168,
-  "fingerprint": "09fc55f515888a14d06859f179cde6376ee154a6a57a6d88f5b78de1d02d48da",
+  "count": 170,
+  "fingerprint": "9262071e41281a356e633260483e82b7c2a440a0e80fbdd3a66bdb931a5b0a5e",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -861,6 +861,23 @@
       "links_in": []
     },
     {
+      "path": "docs/brand/reference/mobile/README.md",
+      "title": "Mobile login: reference shot",
+      "purpose": "移动端登录页参考截图与采集脚本（web 导出 + Playwright，手机视口）",
+      "owner": "design",
+      "status": "reference",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/tasks/MOBILE-BUILD.md"
+      ],
+      "links_out": [
+        "docs/tasks/MOBILE-BUILD.md"
+      ],
+      "links_in": [
+        "docs/tasks/MOBILE-BUILD.md"
+      ]
+    },
+    {
       "path": "docs/engineering/COMMIT-PLAN.md",
       "title": "提交批次计划（COMMIT-PLAN）",
       "purpose": "把当前大型未提交改动拆成可独立回滚的提交批次（含文件区间与验证命令）",
@@ -1578,6 +1595,23 @@
       ],
       "links_in": [
         "docs/tasks/MC-00-results.md"
+      ]
+    },
+    {
+      "path": "docs/tasks/MOBILE-BUILD.md",
+      "title": "MOBILE-BUILD：移动端构建并启动到登录页",
+      "purpose": "移动端构建到登录页：web 导出的可分发物、图标断言、截图与已知卡点（含两处 web 打包修复）",
+      "owner": "mobile",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [
+        "docs/brand/reference/mobile/README.md"
+      ],
+      "links_out": [
+        "docs/brand/reference/mobile/README.md"
+      ],
+      "links_in": [
+        "docs/brand/reference/mobile/README.md"
       ]
     },
     {
