@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 180,
-  "fingerprint": "02e789453d065b772048c987fcda1a7d450610692744f1b4a39b609d5ed0ae0b",
+  "count": 181,
+  "fingerprint": "99028f42bd2dd16e699f7a896d21bd370d47b36252ab84ed8cc23a9b36a4e247",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -823,6 +823,17 @@
       "owner": "design",
       "status": "reference",
       "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/brand/reference/avatar-aora/README.md",
+      "title": "Aora 头像参考图",
+      "purpose": "Aora Bot 头像的四档尺寸实拍与生成脚本（20/24/40/56）",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-11",
       "related": [],
       "links_out": [],
       "links_in": []

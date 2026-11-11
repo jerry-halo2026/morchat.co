@@ -97,7 +97,7 @@ export function AoraAvatar({
       data-slot="avatar"
       data-avatar-engine="aora"
       className={cn(
-        "inline-flex shrink-0 items-center justify-center overflow-hidden bg-muted",
+        "inline-flex shrink-0 items-center justify-center overflow-hidden",
         className,
         // rounded-full stays last so a call-site `className` can never override
         // the circle — avatar shape is a hard invariant, not a per-site choice.
