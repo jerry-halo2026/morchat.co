@@ -157,6 +157,7 @@ export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   "sitemap.xml",
   "manifest.json",
   ".well-known",
+  "avatar",
 ]);
 
 export function isReservedSlug(slug: string): boolean {

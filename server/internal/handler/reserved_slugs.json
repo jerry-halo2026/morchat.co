@@ -154,7 +154,8 @@
         "robots.txt",
         "sitemap.xml",
         "manifest.json",
-        ".well-known"
+        ".well-known",
+        "avatar"
       ]
     }
   ]
