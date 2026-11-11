@@ -70,6 +70,8 @@ const profileManifestPath = join(outProfileDir, "bundle.json");
 // reports as missing.
 const PROFILE_PACKAGE = "@multica-ai/dsh-runtime";
 const PROFILE_NAME = "multica";
+// Same commit scripts/fetch-dsh-bridge.mjs builds and caches.
+const DEFAULT_BRIDGE_COMMIT = "571d7c036d15f58ee88c89fd80afb0a6c7f0023c";
 const PROFILE_PAYLOAD_REL = "package";
 
 const DEFAULT_SRC = "D:\\software\\deepseekharness\\resources\\app\\dsh";
@@ -307,9 +309,21 @@ async function readJsonFile(path) {
  * have put it. Returns null when there is none.
  */
 async function resolveProfileSource(options) {
+  // An explicit source wins, then the checkout scripts/fetch-dsh-bridge.mjs caches
+  // by commit (what a release build produces), then whatever sits in the DSH tree
+  // because someone ran `dsh plugin add` by hand.
+  const cachedBridge = join(
+    here,
+    "..",
+    "..",
+    "..",
+    ".cache",
+    "dsh-bridge",
+    process.env.MORECHAT_DSH_BRIDGE_COMMIT || DEFAULT_BRIDGE_COMMIT,
+  );
   const candidates = options.profileSrc
     ? [resolve(options.profileSrc)]
-    : [join(resolve(options.src), "node_modules", ...PROFILE_PACKAGE.split("/"))];
+    : [cachedBridge, join(resolve(options.src), "node_modules", ...PROFILE_PACKAGE.split("/"))];
   for (const candidate of candidates) {
     if (existsSync(join(candidate, "package.json"))) return candidate;
   }

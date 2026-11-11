@@ -56,3 +56,35 @@ $target="$env:USERPROFILE\.dsh\profiles\installcheck\node_modules\@multica-ai\ds
 1. `fetch-dsh-bridge.mjs`：把 clone/build 固化成脚本（固定 commit `571d7c03`），release 构建机上自动产出 payload；
 2. 打包产物端到端：干净 PATH 启动安装包 → 守护进程注册 dsh 运行时 → 建 issue 跑一次；
 3. 首启指引：payload 缺失 / 未登录 DSH 两种状态的用户可读提示（七语言）。
+
+## A1 + V1：脚本化与端到端验证（已完成）
+
+### A1 `apps/desktop/scripts/fetch-dsh-bridge.mjs`
+固定 commit `571d7c036d15f58ee88c89fd80afb0a6c7f0023c`，缓存到 `.cache/dsh-bridge/<commit>`：
+`git clone --filter=blob:none --no-checkout` → `checkout` → `pnpm install --prefer-offline` → `pnpm build`；
+`bundle-dsh.mjs` 在没有 `MORECHAT_DSH_PROFILE_SRC` 时**自动使用该缓存**（`DEFAULT_BRIDGE_COMMIT` 同值），
+所以 release 构建不再需要任何环境变量。
+
+Windows 注意：`execFileSync('pnpm.cmd', …)` 会 `EINVAL`，脚本里对 win32 用了 `shell: true`。
+
+### V1 端到端（用安装包自带的运行时）
+```powershell
+# 删掉手工装的 profile，模拟新机器
+Remove-Item ~\.dsh\profiles\multica -Recurse -Force
+$env:MULTICA_DSH_PATH="<app>\resources\dsh\bin\dsh.cmd"
+$env:MULTICA_DSH_PROFILE_BUNDLE="<app>\resources\dsh-profile\package"
+multica --profile desktop-localhost-8080 daemon start
+```
+daemon 日志：
+```
+registered runtime workspace_id=34ed0ee3… runtime_id=73dbf779… provider=dsh
+task wakeup websocket connected runtimes=1
+```
+且 `~/.dsh/profiles/multica/node_modules/@multica-ai/dsh-runtime/dist/index.js` 已存在 —— **profile 是 daemon 自己装的**。
+
+随后建 issue（`Bundled runtime check`）→ run 完成 → issue `in_review`，agent 评论 **`BUNDLE OK`**。
+即"新机器 + 自带运行时 + 自带桥接"这条路径整链可用。
+
+### 体积
+打包体积 **167.99 MB**（原 146.03 MB）。超出 150 MB 预算，release 需显式 `--max-mb 175`，
+原因写在上面"两个裁剪缺陷"：保留 vendored 包里的 `src/` 与 `doc/` 才能让插件加载。
