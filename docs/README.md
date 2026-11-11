@@ -217,6 +217,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [DSH 审批 / 提问协议实测（W6 只读侦查）](tasks/DSH-ASK-SPIKE.md) | DSH 审批 / 提问协议实测（W6 只读侦查） | task-owners | current | 2026-11-10 |
 | [DSH live usage callback — LOCAL-DSH-LIVE-USAGE-r1](tasks/DSH-LIVE-USAGE-SLICE.md) | DSH live usage callback — LOCAL-DSH-LIVE-USAGE-r1 | task-owners | current | 2026-11-09 |
 | [DSH profile bundle：把「可见」改成官方安装路径（AG-5）](tasks/DSH-PROFILE-BUNDLE.md) | 把打包内置的 DSH 从「守护进程能看见 dsh」改成对齐官方 profile bundle 安装路径：零 CLI 例外、本地 bundle 安装、装后 probe 复检 | task-owners | current | 2026-11-11 |
+| [DSH 真实 run（已跑通）](tasks/DSH-REAL-RUN.md) | 用本仓库后端 + 本机 DSH 完成一次真实 run 的证据与复现步骤 | lead | current | 2026-11-11 |
 | [DSH runtime dependency review — 2026-11-09](tasks/DSH-RUNTIME-REVIEW.md) | DSH runtime dependency review — 2026-11-09 | task-owners | current | 2026-11-10 |
 | [E2E 运行记录](tasks/E2E-RUN.md) | Playwright 套件在本机的实际运行结论与阻塞点 | lead | current | 2026-11-11 |
 | [Evose 知识库 API — 导入 / 分块 / 召回 实测记录](tasks/EVOSE-KB-API.md) | Evose 知识库 API — 导入 / 分块 / 召回 实测记录 | b02-client | current | 2026-11-10 |

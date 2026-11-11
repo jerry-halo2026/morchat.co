@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 176,
-  "fingerprint": "22515d0eaed9bc3a8cac87b7d6884dab4afc1f33bab8fa447713cc88dcf01eac",
+  "count": 177,
+  "fingerprint": "9bb6c9cb638862e3041a3b296ce90c8fe854bf34f2d13b6514366e38c3c948bf",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -1422,6 +1422,17 @@
       "links_in": [
         "docs/tasks/KNOWLEDGE-MCP.md"
       ]
+    },
+    {
+      "path": "docs/tasks/DSH-REAL-RUN.md",
+      "title": "DSH 真实 run（已跑通）",
+      "purpose": "用本仓库后端 + 本机 DSH 完成一次真实 run 的证据与复现步骤",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
     },
     {
       "path": "docs/tasks/DSH-RUNTIME-REVIEW.md",
