@@ -1,50 +1,50 @@
 {
   "page": {
-    "title": "Presets",
-    "stats": "{{agents}} agents · {{teams}} teams · {{skills}} skills",
-    "search": "Search presets, skills or members",
-    "reset": "Reset",
-    "loading": "Loading the preset catalog…",
-    "catalog_error": "The preset catalog could not be loaded.",
-    "catalog_error_hint": "The gallery reads index.json from {{baseUrl}}. Publish the preset repository as static files there and retry.",
-    "retry": "Retry",
-    "no_matches": "No preset matches this filter.",
-    "offline": "The preset repository could not be reached. Showing the bundled package list; skill bundles and starters load once it is back."
+    "title": "Пресеты",
+    "stats": "Агентов: {{agents}} · Команд: {{teams}} · Навыков: {{skills}}",
+    "search": "Поиск пресетов, навыков или участников",
+    "reset": "Сбросить",
+    "loading": "Загрузка каталога пресетов…",
+    "catalog_error": "Не удалось загрузить каталог пресетов.",
+    "catalog_error_hint": "Галерея читает index.json из {{baseUrl}}. Опубликуйте репозиторий пресетов как статические файлы по этому адресу и повторите попытку.",
+    "retry": "Повторить",
+    "no_matches": "Ни один пресет не подходит под этот фильтр.",
+    "offline": "Репозиторий пресетов недоступен. Показан встроенный список пакетов; наборы навыков и стартовые фразы загрузятся, когда он снова будет доступен."
   },
   "kinds": {
-    "all": "All",
-    "agent": "Agents",
-    "team": "Teams"
+    "all": "Все",
+    "agent": "Агенты",
+    "team": "Команды"
   },
   "card": {
-    "meta": "v{{version}} · {{skills}} skills"
+    "meta": "v{{version}} · навыков: {{skills}}"
   },
   "preview": {
-    "no_description": "This preset has no description yet.",
-    "version": "Version",
-    "skills": "Skills",
-    "skill_counts": "{{indexed}} indexed / {{declared}} declared",
-    "files": "Files",
-    "members": "Members",
-    "mismatch": "plugin.json and index.json disagree about the skill bundle. The import uses the indexed skills.",
-    "skill_list": "Bundled skills",
-    "requires": "Requires: {{list}}",
-    "plugin_error": "plugin.json could not be read: {{error}}",
-    "starters": "Conversation starters"
+    "no_description": "У этого пресета пока нет описания.",
+    "version": "Версия",
+    "skills": "Навыки",
+    "skill_counts": "Проиндексировано {{indexed}} из {{declared}}",
+    "files": "Файлы",
+    "members": "Участники",
+    "mismatch": "plugin.json и index.json расходятся в наборе навыков. При импорте используются проиндексированные навыки.",
+    "skill_list": "Навыки в наборе",
+    "requires": "Требуется: {{list}}",
+    "plugin_error": "Не удалось прочитать plugin.json: {{error}}",
+    "starters": "Стартовые фразы диалога"
   },
   "import": {
-    "start": "Import preset",
-    "running": "Importing…",
-    "runtime_required": "Connect a runtime before importing a preset: agents need a runtime to run on.",
-    "done": "Imported {{skills}} skills and {{agents}} agents ({{updated}} skills updated).",
-    "failed": "The import failed.",
+    "start": "Импортировать пресет",
+    "running": "Импорт…",
+    "runtime_required": "Перед импортом пресета подключите среду выполнения — агентам нужно где запускаться.",
+    "done": "Импортировано навыков: {{skills}}, агентов: {{agents}} (обновлено навыков: {{updated}}).",
+    "failed": "Импорт не выполнен.",
     "step": {
-      "load_skills": "Reading skill bundles",
-      "import_skills": "Importing skills",
-      "create_agent": "Creating the agent",
-      "create_members": "Creating team members",
-      "create_squad": "Creating the squad",
-      "save_instructions": "Saving squad instructions"
+      "load_skills": "Чтение наборов навыков",
+      "import_skills": "Импорт навыков",
+      "create_agent": "Создание агента",
+      "create_members": "Создание участников команды",
+      "create_squad": "Создание отряда",
+      "save_instructions": "Сохранение инструкций отряда"
     }
   }
 }
