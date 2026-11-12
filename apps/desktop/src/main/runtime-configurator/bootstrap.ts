@@ -22,6 +22,7 @@
  * credential the apply stops at `NoCredentialError` before writing a byte.
  */
 
+import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { hostname, homedir as osHomedir } from "node:os";
 import { join } from "node:path";
@@ -57,6 +58,22 @@ import type {
 /** Default ref name for the relay key when the provider config does not name one. */
 const ENV_REF_NAME = "MULTICA_RELAY_KEY";
 
+/** Harness profile this module writes, and the one `--list-models` reads back. */
+const DSH_PROFILE_NAME = "multica";
+
+/** How long the post-apply model list check may take before it is abandoned. */
+const MODEL_CHECK_TIMEOUT_MS = 3_000;
+
+/**
+ * The gateway a signed-in account was issued, as the server's credential
+ * response describes it. Optional everywhere: a build with neither this nor
+ * `MORECHAT_RELAY_BASE_URL` simply has nothing to configure.
+ */
+export interface RelayGateway {
+  readonly baseUrl: string;
+  readonly models?: readonly string[];
+}
+
 export const RUNTIME_CONFIGURATOR_STATUS_CHANNEL = "runtime-configurator:status";
 export const RUNTIME_CONFIGURATOR_GET_STATUS_CHANNEL = "runtime-configurator:get-status";
 export const RUNTIME_CONFIGURATOR_SET_PERSONAL_KEY_CHANNEL =
@@ -87,8 +104,16 @@ export interface RuntimeConfiguratorStatus {
 }
 
 export interface RuntimeConfiguratorHandle {
-  /** Runs the full pipeline for a freshly signed-in account. Never throws. */
-  readonly applyForUser: (userId: string) => Promise<RuntimeConfiguratorStatus>;
+  /**
+   * Runs the full pipeline for a freshly signed-in account. Never throws.
+   *
+   * `gateway` is what the server issued for this account; it outranks the
+   * environment, and a different gateway re-arms the run for the same account.
+   */
+  readonly applyForUser: (
+    userId: string,
+    gateway?: RelayGateway,
+  ) => Promise<RuntimeConfiguratorStatus>;
   /** Forgets the account (logout / account switch). */
   readonly reset: () => void;
   readonly status: () => RuntimeConfiguratorStatus;
@@ -120,6 +145,8 @@ export interface RuntimeConfiguratorOptions {
   readonly hostId?: string;
   readonly logger?: ConfiguratorLogger;
   readonly fetchImpl?: typeof fetch;
+  /** Gateway known before the first apply (already-received credential response). */
+  readonly gateway?: RelayGateway;
   /** Pushes status to the renderers. Called on every state change. */
   readonly notify?: (status: RuntimeConfiguratorStatus) => void;
   readonly now?: () => Date;
@@ -163,6 +190,13 @@ function describeFailure(failure: ApplyFailure): string {
   }
 }
 
+/** Trims and drops empty entries; `undefined` and `[]` mean "no list given". */
+function normaliseModels(models: readonly string[] | undefined): readonly string[] {
+  return (models ?? [])
+    .map((model) => model.trim())
+    .filter((model) => model.length > 0);
+}
+
 /** Model allowlist mirrored from configuration; display + validation only. */
 function readModels(env: NodeJS.ProcessEnv): readonly string[] {
   const raw = env.MORECHAT_RELAY_MODELS?.trim();
@@ -174,22 +208,39 @@ function readModels(env: NodeJS.ProcessEnv): readonly string[] {
   return models.length > 0 ? models : [DEFAULT_MODEL];
 }
 
+/** True when a gateway address is actually usable (present and not blank). */
+export function hasGatewayAddress(value: string | undefined | null): boolean {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 /**
  * Builds the desired state, or `null` when this machine has no gateway address
  * yet. Returning `null` is not a failure: it is "nothing to configure".
+ *
+ * Precedence is explicit `gateway` (what the server issued for this account) >
+ * `MORECHAT_RELAY_BASE_URL` (developer / packaged override) > nothing. Models
+ * follow the same order: a non-empty `gateway.models` beats
+ * `MORECHAT_RELAY_MODELS`, which beats the single default.
  */
 export function buildRelayProfile(input: {
   readonly userId: string;
   readonly hostId: string;
   readonly env: NodeJS.ProcessEnv;
   readonly homedir: string;
+  readonly gateway?: RelayGateway;
 }): RuntimeProfile | null {
-  const baseUrl = input.env.MORECHAT_RELAY_BASE_URL?.trim();
+  const gatewayModels = normaliseModels(input.gateway?.models);
+  const baseUrl =
+    input.gateway?.baseUrl?.trim() || input.env.MORECHAT_RELAY_BASE_URL?.trim();
   if (!baseUrl) return null;
 
-  const models = readModels(input.env);
-  const defaultModel = input.env.MORECHAT_RELAY_MODEL?.trim() || models[0] || DEFAULT_MODEL;
-  const envName = input.env.MORECHAT_RELAY_KEY_ENV?.trim() || "MULTICA_RELAY_KEY";
+  const models = gatewayModels.length > 0 ? gatewayModels : readModels(input.env);
+  const envDefault = input.env.MORECHAT_RELAY_MODEL?.trim();
+  // An explicitly named default only survives when the gateway actually serves
+  // it; otherwise the first allowed model is the only safe choice.
+  const defaultModel =
+    envDefault && models.includes(envDefault) ? envDefault : models[0] || DEFAULT_MODEL;
+  const envName = input.env.MORECHAT_RELAY_KEY_ENV?.trim() || ENV_REF_NAME;
 
   const provider: ProviderProfile = {
     id: "morechat-relay",
@@ -220,7 +271,7 @@ export function buildRelayProfile(input: {
     },
     {
       id: "dsh",
-      paths: { home: dshHome, profileName: "multica" },
+      paths: { home: dshHome, profileName: DSH_PROFILE_NAME },
     },
   ];
 
@@ -230,6 +281,96 @@ export function buildRelayProfile(input: {
     provider,
     targets,
   };
+}
+
+/**
+ * Dedupe key for "we already ran the pipeline for this account". The gateway
+ * fingerprint belongs in it: the same account repointed at another gateway (or
+ * another model list) must run again instead of keeping the previous status.
+ */
+function attemptKeyOf(userId: string, gateway: RelayGateway | undefined): string {
+  const baseUrl = gateway?.baseUrl?.trim();
+  if (!baseUrl) return userId;
+  const models = normaliseModels(gateway?.models).join(",");
+  // A short digest, never the address itself: this only has to differ.
+  return `${userId}#${sha256(`${baseUrl}\n${models}`).slice(0, 8)}`;
+}
+
+export interface ProfileModelCheck {
+  /** `env.DSH_BIN` when set, otherwise the `dsh` on PATH. */
+  readonly binary: string;
+  readonly profileName: string;
+  /** The allowlist this apply just wrote; only membership is reported. */
+  readonly models: readonly string[];
+  readonly env?: NodeJS.ProcessEnv;
+  readonly timeoutMs?: number;
+}
+
+export interface ProfileModelCheckResult {
+  /** True when at least one allowlisted model came back. */
+  readonly ok: boolean;
+  /** How many models the profile listed at all. */
+  readonly listed: number;
+}
+
+/**
+ * Post-apply readback: asks the harness which models `--profile multica` exposes
+ * and logs only booleans and counts — never the list, because a gateway may name
+ * models that identify the account.
+ *
+ * This runs after a successful apply and must never be able to undo it, so it
+ * resolves instead of rejecting and swallows every failure into a `warn`.
+ */
+export function verifyProfileModels(
+  check: ProfileModelCheck,
+  logger: ConfiguratorLogger,
+): Promise<ProfileModelCheckResult> {
+  const expected = normaliseModels(check.models);
+  return new Promise((resolve) => {
+    const settle = (result: ProfileModelCheckResult): void => resolve(result);
+    try {
+      execFile(
+        check.binary,
+        ["--profile", check.profileName, "--list-models"],
+        {
+          timeout: check.timeoutMs ?? MODEL_CHECK_TIMEOUT_MS,
+          windowsHide: true,
+          maxBuffer: 1024 * 1024,
+          ...(check.env ? { env: check.env } : {}),
+        },
+        (error, stdout) => {
+          if (error) {
+            const code = (error as NodeJS.ErrnoException).code ?? "unknown";
+            logger.warn("runtime-configurator: model list check failed", {
+              reason: typeof code === "string" ? code : "unknown",
+              ...(error.killed ? { timed_out: true } : {}),
+            });
+            settle({ ok: false, listed: 0 });
+            return;
+          }
+          const listed = new Set(
+            String(stdout ?? "")
+              .split(/\r?\n/)
+              .map((line) => line.trim())
+              .filter((line) => line.length > 0),
+          );
+          const found = expected.filter((model) => listed.has(model)).length;
+          logger.info("runtime-configurator: model list check", {
+            ok: found > 0,
+            models_expected: expected.length,
+            models_listed: listed.size,
+            models_found: found,
+          });
+          settle({ ok: found > 0, listed: listed.size });
+        },
+      );
+    } catch {
+      // A binary that cannot even be spawned is the same outcome as a failed
+      // run: reported, not thrown.
+      logger.warn("runtime-configurator: model list check failed", { reason: "spawn" });
+      settle({ ok: false, listed: 0 });
+    }
+  });
 }
 
 export function installRuntimeConfigurator(
@@ -273,11 +414,12 @@ export function installRuntimeConfigurator(
   let currentUserId: string | null = null;
   let lastRecord: RunRecord | null = null;
   /**
-   * Account we already ran the pipeline for. Renderers report the auth session
-   * on every refresh; without this guard a flaky gateway would be probed on each
-   * report. Re-armed by `reset()`, `setPersonalKey()` and `clearPersonalKey()`.
+   * Account + gateway we already ran the pipeline for. Renderers report the auth
+   * session on every refresh; without this guard a flaky gateway would be probed
+   * on each report. Re-armed by `reset()`, `setPersonalKey()`, `clearPersonalKey()`
+   * — and by any change of gateway, because the key carries its fingerprint.
    */
-  let attemptedUserId: string | null = null;
+  let attemptedKey: string | null = null;
   /**
    * Env handed to the daemon once a credential is configured: the harness provider
    * reads the key from an env var, so this is the last link between "the account
@@ -329,8 +471,11 @@ export function installRuntimeConfigurator(
     return ref.kind === "env" ? (ref.name ?? "") : "";
   }
 
-  async function applyForUser(userId: string): Promise<RuntimeConfiguratorStatus> {
-    return runApply(userId, false);
+  async function applyForUser(
+    userId: string,
+    gateway?: RelayGateway,
+  ): Promise<RuntimeConfiguratorStatus> {
+    return runApply(userId, false, gateway);
   }
 
   /**
@@ -367,13 +512,24 @@ export function installRuntimeConfigurator(
   async function runApply(
     userId: string,
     force: boolean,
+    gateway?: RelayGateway,
   ): Promise<RuntimeConfiguratorStatus> {
     currentUserId = userId;
-    if (!force && attemptedUserId === userId && status.state !== "applying") {
+    // An install-time gateway is the default; a per-call one is what the server
+    // just issued for this account.
+    const effectiveGateway = gateway ?? options.gateway;
+    const attemptKey = attemptKeyOf(userId, effectiveGateway);
+    if (!force && attemptedKey === attemptKey && status.state !== "applying") {
       return status;
     }
-    attemptedUserId = userId;
-    const profile = buildRelayProfile({ userId, hostId, env, homedir: home });
+    attemptedKey = attemptKey;
+    const profile = buildRelayProfile({
+      userId,
+      hostId,
+      env,
+      homedir: home,
+      ...(effectiveGateway ? { gateway: effectiveGateway } : {}),
+    });
     if (!profile) {
       // Signed in, but this build has no gateway address to point the CLIs at.
       // Say so once, in a way an operator can grep for.
@@ -429,6 +585,17 @@ export function installRuntimeConfigurator(
             DEEPSEEK_BASE_URL: profile.provider.baseUrl,
           };
         }
+        // Fire-and-forget readback: an apply that already succeeded must not be
+        // downgraded by a harness that is slow, missing, or mid-upgrade.
+        void verifyProfileModels(
+          {
+            binary: env.DSH_BIN?.trim() || "dsh",
+            profileName: DSH_PROFILE_NAME,
+            models: profile.provider.models,
+            env,
+          },
+          logger,
+        );
         return await publishWithCredentials({
           state: "configured",
           detail:
@@ -522,7 +689,9 @@ export function installRuntimeConfigurator(
   // from "the feature never ran". Paths and booleans only — never content.
   logger.info("runtime-configurator: installed", {
     keychain_available: keychain.available,
-    gateway_configured: typeof env.MORECHAT_RELAY_BASE_URL === "string" && env.MORECHAT_RELAY_BASE_URL.trim().length > 0,
+    gateway_configured:
+      hasGatewayAddress(env.MORECHAT_RELAY_BASE_URL) ||
+      hasGatewayAddress(options.gateway?.baseUrl),
     backup_root: backupRoot,
     profile_targets: 3,
   });
@@ -565,7 +734,7 @@ export function installRuntimeConfigurator(
     reset: () => {
       currentUserId = null;
       lastRecord = null;
-      attemptedUserId = null;
+      attemptedKey = null;
       if (relay) void clearHarnessRef();
       relay = null;
       publish({ state: "idle", detail: "已退出登录" });

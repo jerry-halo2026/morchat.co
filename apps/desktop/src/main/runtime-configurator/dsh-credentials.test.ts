@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 
-import { removeCredentialRef, upsertCredentialRef } from "./dsh-credentials";
+import { refValue, removeCredentialRef, upsertCredentialRef } from "./dsh-credentials";
 
 const EXISTING = [
   "version: 1",
@@ -71,5 +71,43 @@ describe("removeCredentialRef", () => {
 
   it("is a no-op on a file without refs", () => {
     expect(removeCredentialRef("version: 1\n", "MULTICA_RELAY_KEY")).toBe("version: 1\n");
+  });
+});
+
+describe("refValue", () => {
+  it("reads back what upsert wrote", () => {
+    const next = upsertCredentialRef(EXISTING, "MULTICA_RELAY_KEY", "relay-key-1");
+    expect(refValue(next, "MULTICA_RELAY_KEY")).toBe("relay-key-1");
+    // The ref that was already there is still readable too.
+    expect(refValue(next, "DEEPSEEK_API_KEY")).toBe("sk-old");
+  });
+
+  it("decodes a value that had to be quoted", () => {
+    const next = upsertCredentialRef(EXISTING, "MULTICA_RELAY_KEY", "has space: and #hash");
+    expect(refValue(next, "MULTICA_RELAY_KEY")).toBe("has space: and #hash");
+  });
+
+  it("returns null rather than guessing", () => {
+    expect(refValue(EXISTING, "MULTICA_RELAY_KEY")).toBeNull();
+    expect(refValue("version: 1\n", "MULTICA_RELAY_KEY")).toBeNull();
+    // A name that is a prefix of another ref is not a match.
+    expect(refValue(EXISTING, "DEEPSEEK")).toBeNull();
+  });
+});
+
+describe("upsertCredentialRef idempotence", () => {
+  it("leaves the text byte-identical when the same value is written twice", () => {
+    const once = upsertCredentialRef(EXISTING, "MULTICA_RELAY_KEY", "relay-key-1");
+    const twice = upsertCredentialRef(once, "MULTICA_RELAY_KEY", "relay-key-1");
+    expect(twice).toBe(once);
+    expect(refValue(twice, "MULTICA_RELAY_KEY")).toBe("relay-key-1");
+  });
+
+  it("creates the refs block once, not once per write", () => {
+    const once = upsertCredentialRef("version: 1\nrecords:\n", "MULTICA_RELAY_KEY", "relay-key-1");
+    const twice = upsertCredentialRef(once, "MULTICA_RELAY_KEY", "relay-key-1");
+    expect(twice).toBe(once);
+    expect(twice.match(/refs:/g)).toHaveLength(1);
+    expect(twice.match(/MULTICA_RELAY_KEY/g)).toHaveLength(1);
   });
 });

@@ -10,6 +10,7 @@ import {
 } from "electron";
 import { homedir } from "os";
 import { join } from "path";
+import { readGatewayTarget } from "./runtime-configurator/gateway-credentials";
 import { pathToFileURL } from "url";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import fixPath from "fix-path";
@@ -17,6 +18,7 @@ import { createElectronBusyInstallPrompt, setupAutoUpdater } from "./updater";
 import {
   prepareDaemonForUpdateInstall,
   resumeDaemonAfterAbortedUpdateInstall,
+  setCompanyCredentialObserver,
   setRelayEnvProvider,
   setupDaemonManager,
 } from "./daemon-manager";
@@ -994,7 +996,15 @@ if (!gotTheLock) {
         // The local CLI configuration (and the personal-key fallback) belongs to
         // the signed-in account: apply it on sign-in, forget it on sign-out.
         if (userId) {
-          void runtimeConfigurator?.applyForUser(userId);
+          // A remembered gateway address lets this launch configure the harness
+          // without minting again; without one the apply is a no-op.
+          void (async () => {
+            const target = await readGatewayTarget(app.getPath("userData")).catch(() => null);
+            await runtimeConfigurator?.applyForUser(
+              userId,
+              target ? { baseUrl: target.baseUrl, models: [...target.models] } : undefined,
+            );
+          })();
         } else {
           runtimeConfigurator?.reset();
         }
@@ -1118,6 +1128,16 @@ if (!gotTheLock) {
     // proved, so agent runs reach the gateway without anyone signing into the
     // harness on this machine.
     setRelayEnvProvider(() => runtimeConfigurator?.relayEnv() ?? {});
+
+    // A freshly minted company key arrives with the gateway address that issued it.
+    // Applying again with that address is what writes the harness provider entry and
+    // the credential-store ref; without it the key is stored and never referenced.
+    setCompanyCredentialObserver(({ userId, credential }) => {
+      void runtimeConfigurator?.applyForUser(userId, {
+        baseUrl: credential.baseUrl,
+        models: credential.models,
+      });
+    });
 
     desktopInitialized = true;
     for (const saved of loadWindowSession(windowStateFile())) {

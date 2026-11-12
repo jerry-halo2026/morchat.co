@@ -93,3 +93,36 @@ export function removeCredentialRef(text: string, name: string): string {
   );
   return kept.join("\n");
 }
+
+/**
+ * Reads `refs.<name>` back out of a credentials file's text.
+ *
+ * Pure and side-effect free, for verification and tests only: it answers "did
+ * the value we meant to store actually land, and does it decode to the same
+ * string", without opening the file or touching a keychain. Returns `null` when
+ * the name is absent, so a caller can never confuse "missing" with "empty".
+ */
+export function refValue(text: string, name: string): string | null {
+  const lines = text.split(/\r?\n/);
+  const refsIndex = lines.findIndex((line) => line.trimEnd() === REFS_HEADER);
+  if (refsIndex === -1) return null;
+
+  for (let i = refsIndex + 1; i < lines.length; i += 1) {
+    const line = lines[i];
+    // Same block boundary rule as the writers: the first unindented line ends
+    // the `refs:` block.
+    if (line.length > 0 && !line.startsWith(" ")) return null;
+    const entry = line.trimStart();
+    if (!entry.startsWith(`${name}:`)) continue;
+    const raw = entry.slice(name.length + 1).trim();
+    if (!raw.startsWith('"')) return raw;
+    try {
+      const decoded: unknown = JSON.parse(raw);
+      return typeof decoded === "string" ? decoded : null;
+    } catch {
+      // A value this module did not write; refuse to guess at it.
+      return null;
+    }
+  }
+  return null;
+}

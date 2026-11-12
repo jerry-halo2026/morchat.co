@@ -1,4 +1,12 @@
-import { app, ipcMain, BrowserWindow, shell, dialog, type MessageBoxOptions } from "electron";
+import {
+  app,
+  ipcMain,
+  BrowserWindow,
+  shell,
+  dialog,
+  safeStorage,
+  type MessageBoxOptions,
+} from "electron";
 import { execFile } from "child_process";
 import {
   readFile,
@@ -59,6 +67,24 @@ import {
   type AuthProbeResult,
 } from "./daemon-auth-probe";
 import { daemonSpawnEnv } from "./daemon-spawn-env";
+import { readOrCreateDeviceId } from "./device-id";
+import {
+  MintError,
+  mintCompanyCredential,
+  saveGatewayTarget,
+  type MintedCredential,
+} from "./runtime-configurator/gateway-credentials";
+import {
+  companyAccount,
+  KEYCHAIN_SERVICE,
+  storeCompanyCredential,
+} from "./runtime-configurator/credential";
+import {
+  createSafeStorageKeychain,
+  KeychainUnavailableError,
+  type Keychain,
+} from "./runtime-configurator/keychain";
+import { createNodeConfiguratorFs } from "./runtime-configurator/fs";
 
 const POLL_INTERVAL_MS = 5_000;
 const PREFS_PATH = join(homedir(), ".multica", "desktop_prefs.json");
@@ -730,9 +756,135 @@ async function mintPat(jwt: string): Promise<string> {
  * - Reports a user mismatch to the caller; the IPC boundary owns the gated
  *   restart so internal callers such as reauthenticate never re-enter it.
  */
+/**
+ * Where a freshly minted company gateway key goes.
+ *
+ * A sink rather than a direct keychain call so the entry point can redirect it
+ * once the configurator owns the keychain; the default keeps this file usable on
+ * its own and mirrors the keychain `bootstrap.ts` builds for the same account.
+ */
+export interface CompanyCredentialDelivery {
+  readonly userId: string;
+  readonly credential: MintedCredential;
+}
+
+export type CompanyCredentialSink = (
+  delivery: CompanyCredentialDelivery,
+) => Promise<void>;
+
+/** Same path and cipher as the runtime configurator's own keychain store. */
+function companyCredentialKeychain(): Keychain {
+  return createSafeStorageKeychain({
+    fs: createNodeConfiguratorFs(),
+    path: join(app.getPath("userData"), "runtime-configurator", "keychain.json"),
+    cipher: {
+      available: safeStorage.isEncryptionAvailable(),
+      encrypt: (plain) => safeStorage.encryptString(plain),
+      decrypt: (blob) => safeStorage.decryptString(blob),
+    },
+  });
+}
+
+async function storeDeliveredCompanyCredential(
+  delivery: CompanyCredentialDelivery,
+): Promise<void> {
+  const keychain = companyCredentialKeychain();
+  await storeCompanyCredential(keychain, delivery.userId, delivery.credential.apiKey);
+}
+
+let companyCredentialSink: CompanyCredentialSink = storeDeliveredCompanyCredential;
+
+/**
+ * Told after a credential is stored, so the configurator can point the harness at
+ * the gateway that issued it. Kept separate from the sink: the sink decides where
+ * the key lives, this decides what else happens once it does.
+ */
+let companyCredentialObserver: ((delivery: CompanyCredentialDelivery) => void) | null = null;
+
+export function setCompanyCredentialObserver(
+  observer: ((delivery: CompanyCredentialDelivery) => void) | null,
+): void {
+  companyCredentialObserver = observer;
+}
+
+/** Entry point hook; `null` restores the keychain default. */
+export function setCompanyCredentialSink(
+  sink: CompanyCredentialSink | null,
+): void {
+  companyCredentialSink = sink ?? storeDeliveredCompanyCredential;
+}
+
+/** The account already has a company key for this device: no need to rotate it. */
+async function hasStoredCompanyCredential(userId: string): Promise<boolean> {
+  try {
+    const keychain = companyCredentialKeychain();
+    if (!keychain.available) return false;
+    const stored = await keychain.get(KEYCHAIN_SERVICE, companyAccount(userId));
+    return stored !== null && stored.trim().length > 0;
+  } catch {
+    // A keychain we cannot read is not a reason to skip the mint.
+    return false;
+  }
+}
+
+/**
+ * Ask the server for this device's gateway credential and hand it to the sink.
+ *
+ * Never throws and never blocks a daemon start on failure: a missing company key
+ * degrades to whatever credential is already stored (the configurator's own
+ * precedence handles that), while a thrown error here would break token sync and
+ * with it the daemon. The warning carries the machine code only, because the
+ * value in flight is the key itself.
+ */
+async function publishCompanyCredential(
+  userId: string,
+  token: string,
+  options: { readonly refresh?: boolean } = {},
+): Promise<void> {
+  const apiBaseUrl = targetApiBaseUrl;
+  if (!apiBaseUrl) return;
+  if (!options.refresh && (await hasStoredCompanyCredential(userId))) return;
+
+  try {
+    const deviceId = await readOrCreateDeviceId({ dir: app.getPath("userData") });
+    const credential = await mintCompanyCredential({
+      apiBaseUrl,
+      sessionToken: token,
+      deviceId,
+    });
+    await companyCredentialSink({ userId, credential });
+    // Remember where the gateway lives so the next launch can configure the harness
+    // without minting again; the key itself stays in the keychain.
+    await saveGatewayTarget(app.getPath("userData"), {
+      baseUrl: credential.baseUrl,
+      models: credential.models,
+    });
+    try {
+      companyCredentialObserver?.({ userId, credential });
+    } catch (err) {
+      console.warn("[daemon] gateway credential observer failed", {
+        reason: err instanceof Error ? err.message : String(err),
+      });
+    }
+    // Count only: the key, its suffix, and the token name stay out of logs.
+    console.log(
+      `[daemon] gateway credential stored (models=${credential.models.length})`,
+    );
+  } catch (err) {
+    const code =
+      err instanceof MintError
+        ? err.code
+        : err instanceof KeychainUnavailableError
+          ? "keychain_unavailable"
+          : "unexpected";
+    console.warn("[daemon] gateway credential unavailable", { code });
+  }
+}
+
 async function syncToken(
   tokenFromRenderer: string,
   userId: string,
+  options: { readonly refreshCompanyCredential?: boolean } = {},
 ): Promise<{ active: ActiveProfile; userChanged: boolean }> {
   const active = await ensureActiveProfile();
   if (!active) {
@@ -771,6 +923,13 @@ async function syncToken(
   if (targetApiBaseUrl) config.server_url = targetApiBaseUrl;
   await writeProfileConfig(active.name, config);
   await writeProfileUserId(active.name, userId);
+
+  // The session token, not the PAT just minted from it: the credential endpoint is
+  // human-only by design, so a long-lived agent token is refused outright.
+  // Bounded and non-fatal: the daemon starts either way.
+  await publishCompanyCredential(userId, tokenFromRenderer, {
+    refresh: options.refreshCompanyCredential === true,
+  });
 
   return { active, userChanged };
 }
@@ -862,7 +1021,9 @@ async function reauthenticate(
   try {
     await clearToken();
     // syncToken mints a fresh PAT because clearToken just removed any cache.
-    await syncToken(token, userId);
+    // Re-authentication is also the moment to re-ask for the company gateway key:
+    // the stored one may be exactly what was rejected.
+    await syncToken(token, userId, { refreshCompanyCredential: true });
   } catch (err) {
     if (isAuthStatusError(err)) return { ok: false, reason: "session_invalid" };
     return { ok: false, reason: "transient", message: errorMessage(err) };

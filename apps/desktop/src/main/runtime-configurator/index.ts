@@ -451,6 +451,7 @@ export function createRuntimeConfigurator(
     if (!verify.ok) {
       logger.warn("runtime-configurator: verify failed, rolling back", {
         failures: verify.failures.length,
+        detail: verify.failures.map((f) => ({ code: f.code, path: f.path })),
       });
       return rollback(backupRecord, {
         applyId,

@@ -227,6 +227,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [E2E 运行记录](tasks/E2E-RUN.md) | Playwright 套件在本机的实际运行结论与阻塞点 | lead | current | 2026-11-11 |
 | [Evose 知识库 API — 导入 / 分块 / 召回 实测记录](tasks/EVOSE-KB-API.md) | Evose 知识库 API — 导入 / 分块 / 召回 实测记录 | b02-client | current | 2026-11-10 |
 | [首启运行时指引：两种状态、可读提示、可复制命令（W2-AG5）](tasks/FIRST-RUN-GUIDANCE.md) | 首启运行时状态的可读指引：把 daemon 的 dsh_profile reason 变成两种可读提示 + 可复制命令，八语言同步 | task-owners | current | 2026-11-11 |
+| [网关凭据链路（Desktop → Server → 网关 Key）](tasks/GATEWAY-CREDENTIAL-LINK.md) | 桌面 → 服务端 → DSH 的公司网关凭据链路（实现状态与手工验证步骤） | lead | draft | 2026-11-12 |
 | [GET guard isolated retest — 2026-11-09](tasks/GET-GUARD-LOCAL-RETEST.md) | GET guard isolated retest — 2026-11-09 | task-owners | current | 2026-11-10 |
 | [Windows 安装包交付与 DSH profile bundle 语义对齐（W1-AG1）](tasks/INSTALLER.md) | Windows 安装包交付（--win --dir 可用产物）与 multica 官方 DSH profile bundle 语义对齐结论 | task-owners | current | 2026-11-11 |
 | [KNOWLEDGE-BENCH：10 万 chunk 知识检索压测](tasks/KNOWLEDGE-BENCH.md) | 知识检索 10 万 chunk 压测：造数、查询集、四项指标与瓶颈归因 | task-owners | current | 2026-11-11 |

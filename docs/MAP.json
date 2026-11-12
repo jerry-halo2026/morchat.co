@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 184,
-  "fingerprint": "de15324d86a1bf01968aa00883bb158f05a3696da8b8e372cf8686085183193f",
+  "count": 185,
+  "fingerprint": "5a54d245edd2cf4846d6bb15784a1189e98302b274033904c96919613712e2d4",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -1548,6 +1548,17 @@
         "docs/tasks/DSH-PROFILE-BUNDLE.md",
         "docs/tasks/LOCAL-DSH-ACCOUNT-CONNECTION.md"
       ],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/GATEWAY-CREDENTIAL-LINK.md",
+      "title": "网关凭据链路（Desktop → Server → 网关 Key）",
+      "purpose": "桌面 → 服务端 → DSH 的公司网关凭据链路（实现状态与手工验证步骤）",
+      "owner": "lead",
+      "status": "draft",
+      "updated": "2026-11-12",
+      "related": [],
+      "links_out": [],
       "links_in": []
     },
     {
