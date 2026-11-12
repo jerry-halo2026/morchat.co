@@ -84,7 +84,7 @@ import { ActorAvatar as ActorAvatarBase } from "@morechat/ui/components/common/a
 import { copyText } from "@morechat/ui/lib/clipboard";
 import { cn } from "@morechat/ui/lib/utils";
 import { ActorAvatar } from "../../common/actor-avatar";
-import { AvatarUploadControl } from "../../common/avatar-upload-control";
+import { AoraAvatarPicker } from "../../agents/components/aora-avatar-picker";
 import { ContentEditor } from "../../editor/content-editor";
 import { ReadonlyContent } from "../../editor/readonly-content";
 import { StatusIcon } from "../../issues/components/status-icon";
@@ -367,12 +367,13 @@ export function SquadDetailPage() {
         <ObjectIdentity
           media={
             canManage ? (
-              <AvatarUploadControl
-                variant="squad"
+              <AoraAvatarPicker
                 value={squad.avatar_url ?? null}
+                onChange={(spec) => updateSquadMut.mutateAsync({ avatar_url: spec })}
+                entityId={squad.id}
                 name={squad.name}
                 size={48}
-                onUploaded={(url) => updateSquadMut.mutateAsync({ avatar_url: url })}
+                deriveOnMount={false}
               />
             ) : (
               <SquadAvatar squad={squad} size="identity" />

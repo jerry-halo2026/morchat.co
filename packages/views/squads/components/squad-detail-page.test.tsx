@@ -66,8 +66,8 @@ vi.mock("../../issues/utils/status-label", () => ({
 }));
 vi.mock("../../issues/components/status-icon", () => ({ StatusIcon: () => null }));
 vi.mock("../../common/actor-avatar", () => ({ ActorAvatar: () => null }));
-vi.mock("../../common/avatar-upload-control", () => ({
-  AvatarUploadControl: () => <span data-testid="avatar-upload" />,
+vi.mock("../../agents/components/aora-avatar-picker", () => ({
+  AoraAvatarPicker: () => <span data-testid="avatar-picker" />,
 }));
 vi.mock("../../editor/readonly-content", () => ({
   ReadonlyContent: ({ content }: { content: string }) => <div>{content}</div>,
@@ -303,7 +303,7 @@ describe("SquadDetailPage", () => {
     expect(screen.getByRole("button", { name: "Assign work" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Add member" })).toBeNull();
     expect(within(section("Instructions")).queryByRole("button", { name: "Edit" })).toBeNull();
-    expect(screen.queryByTestId("avatar-upload")).toBeNull();
+    expect(screen.queryByTestId("avatar-picker")).toBeNull();
 
     await user.click(screen.getByRole("button", { name: "More actions" }));
     expect(await screen.findByRole("menuitem", { name: "Copy link" })).toBeInTheDocument();

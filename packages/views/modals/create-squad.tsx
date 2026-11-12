@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, UserPlus, X } from "@morechat/ui/icons";
 import { api } from "@morechat/core/api";
@@ -34,7 +34,7 @@ import { toast } from "sonner";
 
 import { useNavigation } from "../navigation";
 import { ActorAvatar } from "../common/actor-avatar";
-import { AvatarUploadControl } from "../common/avatar-upload-control";
+import { AoraAvatarPicker } from "../agents/components/aora-avatar-picker";
 import { CharCounter } from "../agents/components/char-counter";
 import {
   PickerEmpty,
@@ -61,6 +61,9 @@ export function CreateSquadModal({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
   const currentUser = useAuthStore((s) => s.user);
   const currentUserId = currentUser?.id ?? null;
+  // The squad has no id until it is created, so the modal's own id seeds the
+  // derived face.
+  const draftId = useId();
 
   const { data: agents = [] } = useQuery(agentListOptions(wsId));
   const { data: wsMembers = [] } = useQuery(memberListOptions(wsId));
@@ -154,13 +157,12 @@ export function CreateSquadModal({ onClose }: { onClose: () => void }) {
             {/* Identity row mirrors CreateAgentDialog so the two creates read
                 as siblings — avatar (left) + name/description stack (right). */}
             <div className="flex items-start gap-4">
-              <AvatarUploadControl
-                variant="squad"
+              <AoraAvatarPicker
                 value={avatarUrl}
+                onChange={setAvatarUrl}
+                entityId={draftId}
                 name={name}
                 size={64}
-                onUploaded={setAvatarUrl}
-                onClear={() => setAvatarUrl(null)}
               />
               <div className="flex-1 min-w-0 space-y-3">
                 <div>

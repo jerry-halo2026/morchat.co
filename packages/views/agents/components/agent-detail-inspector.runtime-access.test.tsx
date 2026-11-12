@@ -22,9 +22,6 @@ vi.mock("@morechat/core/api", () => ({
   },
 }));
 
-vi.mock("../../common/avatar-upload-control", () => ({
-  AvatarUploadControl: () => <div data-testid="avatar-upload" />,
-}));
 
 vi.mock("./inspector/runtime-picker", () => ({
   RuntimePicker: () => <div data-testid="runtime-picker" />,

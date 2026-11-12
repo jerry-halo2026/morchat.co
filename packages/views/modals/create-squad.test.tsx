@@ -86,19 +86,19 @@ vi.mock("../common/actor-avatar", () => ({
   ),
 }));
 
-vi.mock("../common/avatar-upload-control", () => ({
-  AvatarUploadControl: ({
+vi.mock("../agents/components/aora-avatar-picker", () => ({
+  AoraAvatarPicker: ({
     value,
-    onUploaded,
+    onChange,
   }: {
     value: string | null;
-    onUploaded: (v: string) => void;
+    onChange: (spec: string) => void;
   }) => (
     <button
       type="button"
       data-testid="avatar-picker"
       data-value={value ?? ""}
-      onClick={() => onUploaded("https://example.com/avatar.png")}
+      onClick={() => onChange("aora:mochi:blob:blue:capsule:vector:1a2b")}
     >
       avatar
     </button>

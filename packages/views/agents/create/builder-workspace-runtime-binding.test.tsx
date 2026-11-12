@@ -42,7 +42,7 @@ vi.mock("../../chat/components/use-chat-draft-restore", () => ({
 vi.mock("./builder-conversation", () => ({ BuilderConversation: () => null }));
 vi.mock("./create-agent-footer", () => ({ CreateAgentFooter: () => null }));
 vi.mock("../../common/actor-avatar", () => ({ ActorAvatar: () => null }));
-vi.mock("../../common/avatar-upload-control", () => ({ AvatarUploadControl: () => null }));
+vi.mock("../components/aora-avatar-picker", () => ({ AoraAvatarPicker: () => null }));
 vi.mock("../../runtimes/components/provider-logo", () => ({ ProviderLogo: () => null }));
 vi.mock("../components/model-dropdown", () => ({ ModelDropdown: () => null }));
 vi.mock("../components/skill-multi-select", () => ({ SkillMultiSelect: () => null }));

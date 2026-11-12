@@ -16,9 +16,6 @@ vi.mock("../../labels/resource-label-picker", () => ({
   ResourceLabelPicker: () => <div data-testid="resource-label-picker" />,
 }));
 
-vi.mock("../../common/avatar-upload-control", () => ({
-  AvatarUploadControl: () => <div data-testid="avatar-upload" />,
-}));
 
 vi.mock("./inspector/model-picker", () => ({
   ModelPicker: () => <div data-testid="model-picker" />,

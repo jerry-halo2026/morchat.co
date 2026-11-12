@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Globe, Lock, Users } from "@morechat/ui/icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { ModelDropdown } from "./model-dropdown";
@@ -8,7 +8,6 @@ import { RuntimePicker } from "./runtime-picker";
 import { isRuntimeUsableForUser } from "@morechat/core/runtimes";
 import { InstructionsEditor } from "./instructions-editor";
 import { SkillMultiSelect } from "./skill-multi-select";
-import { AvatarUploadControl } from "../../common/avatar-upload-control";
 import { api } from "@morechat/core/api";
 import { useWorkspaceId } from "@morechat/core/hooks";
 import { useFeatureEnabled } from "@morechat/core/config";
@@ -43,6 +42,7 @@ import {
   VISIBILITY_LABEL,
 } from "@morechat/core/agents";
 import { ActorAvatar } from "../../common/actor-avatar";
+import { AoraAvatarPicker } from "./aora-avatar-picker";
 import { CharCounter } from "./char-counter";
 import { useT } from "../../i18n";
 
@@ -83,6 +83,9 @@ export function CreateAgentDialog({
 }) {
   const { t } = useT("agents");
   const isDuplicate = !!template;
+  // Nothing exists yet, so the draft itself is the entity the face derives
+  // from: a stable id per dialog, mixed with the name by the picker.
+  const draftId = useId();
   const queryClient = useQueryClient();
   const wsId = useWorkspaceId();
   // MUL-4010: rolls out the private / public_to access model in the create
@@ -315,14 +318,12 @@ export function CreateAgentDialog({
                 same shape as detail-page header so the affordance is
                 instantly familiar. */}
             <div className="flex items-start gap-4">
-              <AvatarUploadControl
-                variant="agent"
+              <AoraAvatarPicker
                 value={avatarUrl}
+                onChange={setAvatarUrl}
+                entityId={draftId}
                 name={name}
                 size={64}
-                onUploaded={setAvatarUrl}
-                onEmojiSelected={setAvatarUrl}
-                onClear={() => setAvatarUrl(null)}
               />
               <div className="flex-1 min-w-0 space-y-3">
                 <div>

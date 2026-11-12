@@ -17,9 +17,6 @@ vi.mock("@morechat/core/api", () => ({
     getListModelsResult: vi.fn(),
   },
 }));
-vi.mock("../../common/avatar-upload-control", () => ({
-  AvatarUploadControl: () => <div data-testid="avatar-upload" />,
-}));
 vi.mock("./inspector/runtime-picker", () => ({
   RuntimePicker: (props: { runtimes: AgentRuntime[]; canEdit?: boolean }) => {
     picker.props = props;

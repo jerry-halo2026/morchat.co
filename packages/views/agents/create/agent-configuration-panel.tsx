@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import {useQuery} from "@tanstack/react-query";
 import {runtimeModelsOptions} from "@morechat/core/runtimes";
 import {findModelCapabilityEntry,thinkingLevelRequiredForProvider} from "../components/inspector/model-capability";
@@ -18,7 +18,7 @@ import { Input } from "@morechat/ui/components/ui/input";
 import { Textarea } from "@morechat/ui/components/ui/textarea";
 import { cn } from "@morechat/ui/lib/utils";
 import { ActorAvatar } from "../../common/actor-avatar";
-import { AvatarUploadControl } from "../../common/avatar-upload-control";
+import { AoraAvatarPicker } from "../components/aora-avatar-picker";
 import { useT } from "../../i18n";
 import {
   SettingsCard,
@@ -79,6 +79,9 @@ export function AgentConfigurationPanel({
   runtimeSummary?: ReactNode;
 }) {
   const { t } = useT("agents");
+  // The draft has no id until it is created; the panel's own id is the stable
+  // half of the derived face's seed.
+  const draftId = useId();
   const conversationStartersSupported = useConfigStore(
     (state) => state.agentConversationStartersSupported,
   );
@@ -116,14 +119,13 @@ export function AgentConfigurationPanel({
             label={t(($) => $.create_dialog.avatar.change_aria)}
           >
             <div className={cn(!compact && "sm:flex sm:justify-end")}>
-              <AvatarUploadControl
-                variant="agent"
+              <AoraAvatarPicker
                 value={draft.avatarUrl}
+                onChange={(value) => set("avatarUrl", value)}
+                entityId={draftId}
                 name={draft.name}
                 size={compact ? 52 : 56}
-                onUploaded={(url) => set("avatarUrl", url)}
-                onEmojiSelected={(value) => set("avatarUrl", value)}
-                onClear={() => set("avatarUrl", null)}
+                label={t(($) => $.create_dialog.avatar.change_aria)}
               />
             </div>
           </DraftFieldRow>

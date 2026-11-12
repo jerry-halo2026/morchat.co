@@ -12,9 +12,6 @@ vi.mock("@tanstack/react-query", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@tanstack/react-query")>()),
   useQuery: () => ({ data: undefined, isSuccess: false }),
 }));
-vi.mock("../../common/avatar-upload-control", () => ({
-  AvatarUploadControl: () => <div data-testid="avatar-upload" />,
-}));
 vi.mock("./inspector/model-picker", () => ({
   ModelPicker: () => <div data-testid="model-picker" />,
 }));

@@ -11,13 +11,6 @@ vi.mock("@tanstack/react-query", async (importOriginal) => ({
   useQuery: () => ({ data: undefined, isSuccess: false }),
 }));
 
-// The upload/emoji control is deliberately not part of this form any more; the
-// mock exists so the assertion fails on a re-added row instead of on a control
-// that silently renders nothing.
-vi.mock("../../common/avatar-upload-control", () => ({
-  AvatarUploadControl: () => <div data-testid="avatar-upload" />,
-}));
-
 vi.mock("./inspector/model-picker", () => ({
   ModelPicker: () => <div data-testid="model-picker" />,
 }));
@@ -64,17 +57,18 @@ describe("AgentDetailInspector avatar", () => {
     cleanup();
   });
 
-  // The page used to offer two avatar surfaces side by side — the upload/emoji
-  // control and the Aora editor — so people read the settings as "the same
+  // The page used to offer two avatar surfaces side by side — a hover-to-upload
+  // circle and the Aora editor — so people read the settings as "the same
   // avatar settings as before". The avatar itself is now the only entry point.
   it("offers the avatar itself as the single editor entry", () => {
     renderInspector();
 
     expect(screen.getByLabelText("Name")).toBeInTheDocument();
-    expect(screen.queryByTestId("avatar-upload")).toBeNull();
 
     const editor = document.querySelector('[data-aora-editor="agent-1"]');
     expect(editor).not.toBeNull();
+    // Nothing else in the form is an avatar affordance: one mark, one entry.
+    expect(document.querySelectorAll(".aora-mark")).toHaveLength(1);
     // Upstream's Studio button is the entry: pressing the face edits the face.
     expect(screen.getAllByRole("button", { name: "Edit avatar" })).toHaveLength(1);
   });
