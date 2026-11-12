@@ -192,6 +192,13 @@ export interface PresetsPageProps {
   /** Locale drives the bilingual copy picked from index.json. */
   locale: string;
   importingPackageId?: string | null;
+  /**
+   * Whether an awake runtime exists. A preset creates an agent or a team, and both
+   * need one, so the page says so up front instead of letting the click fail.
+   */
+  runtimeReady?: boolean;
+  /** Where to send someone who has no runtime yet. */
+  runtimesHref?: string;
   /** Reports the effective selection so the container can load its detail. */
   onSelect: (pkg: PresetPackage) => void;
   onImport: (pkg: PresetPackage) => void;
@@ -213,6 +220,8 @@ export default function PresetsPage({
   pluginError,
   locale,
   importingPackageId = null,
+  runtimeReady = true,
+  runtimesHref,
   onSelect,
   onImport,
 }: PresetsPageProps) {
@@ -239,6 +248,20 @@ export default function PresetsPage({
   return (
     <div className="flex flex-1 min-h-0">
       <div className="flex min-w-0 flex-1 flex-col">
+        {!runtimeReady && (
+          // A preset creates an agent or a team, and both run on a runtime. Saying so
+          // here is the difference between "the button does nothing" and knowing the
+          // next step.
+          <div className="flex flex-wrap items-center gap-2 border-b bg-muted/40 px-6 py-2 text-caption text-muted-foreground">
+            <AlertCircle className="size-3.5 shrink-0" />
+            <span>{t(($) => $.import.runtime_required)}</span>
+            {runtimesHref && (
+              <a className="font-medium underline underline-offset-2" href={runtimesHref}>
+                {t(($) => $.import.runtime_link)}
+              </a>
+            )}
+          </div>
+        )}
         <header className="flex flex-col gap-3 border-b px-6 py-4">
           <div className="flex items-baseline justify-between gap-3">
             <div className="flex items-center gap-2">

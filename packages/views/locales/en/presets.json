@@ -33,9 +33,11 @@
     "starters": "Conversation starters"
   },
   "import": {
+    "runtime_required": "Connect a runtime before importing a preset: agents run on one.",
     "start": "Import preset",
     "running": "Importing…",
-    "runtime_required": "Connect a runtime before importing a preset: agents need a runtime to run on.",
+    
+    "runtime_link": "Connect a runtime",
     "done": "Imported {{skills}} skills and {{agents}} agents ({{updated}} skills updated).",
     "failed": "The import failed.",
     "step": {

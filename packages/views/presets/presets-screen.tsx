@@ -11,10 +11,11 @@ import {
 } from "@morechat/core/presets";
 import type { PresetPackage } from "@morechat/core/presets/types";
 import { runtimeListOptions } from "@morechat/core/runtimes/queries";
-import { useCurrentWorkspace } from "@morechat/core/paths";
+import { useCurrentWorkspace, useWorkspacePaths } from "@morechat/core/paths";
 import { useLocale, useT } from "../i18n";
 import { PresetsPage } from "./components";
 import { createPresetApiRuntime, type PresetApiClient } from "./lib/api-runtime";
+import { pickPresetRuntime } from "./lib/runtime-choice";
 import { runPresetImport } from "./lib/import-runtime";
 
 export const DEFAULT_PRESETS_BASE_URL = DEFAULT_PRESET_BASE_URL;
@@ -48,6 +49,7 @@ export function PresetsScreen({
   const locale = useLocale();
   const queryClient = useQueryClient();
   const wsId = useCurrentWorkspace()?.id ?? "";
+  const p = useWorkspacePaths();
   const source = getPresetSource();
 
   const catalogQuery = usePresetCatalog(source);
@@ -59,10 +61,11 @@ export function PresetsScreen({
     ...runtimeListOptions(wsId),
     enabled: !!wsId && runtimeIdProp === undefined,
   });
+  // Ranked rather than "the first row": a workspace can hold several machines and
+  // most are asleep. A preset installs onto one, so this prefers the harness this app
+  // ships, then the CLIs people commonly have, then anything else that is awake.
   const runtimeId =
-    runtimeIdProp !== undefined
-      ? runtimeIdProp
-      : (runtimes[0]?.id ?? null);
+    runtimeIdProp !== undefined ? runtimeIdProp : pickPresetRuntime(runtimes);
 
   const pluginQuery = useQuery({
     queryKey: ["presets", "plugin", source.baseUrl, selected?.id ?? ""],
@@ -146,6 +149,10 @@ export function PresetsScreen({
           : null
       }
       locale={locale}
+      // A preset installs onto a runtime; without one the page says so instead of
+      // failing silently on click.
+      runtimeReady={runtimeId !== null}
+      runtimesHref={p.runtimes()}
       importingPackageId={importingId}
       onSelect={handleSelect}
       onImport={(pkg) => {

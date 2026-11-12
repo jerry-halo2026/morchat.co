@@ -36,6 +36,7 @@
     "start": "Importar preeset",
     "running": "Importando…",
     "runtime_required": "Conecta un runtime antes de importar un preeset: un agente necesita un runtime para ejecutarse.",
+    "runtime_link": "Conectar un runtime",
     "done": "Se importaron {{skills}} habilidades y {{agents}} agentes ({{updated}} habilidades actualizadas).",
     "failed": "La importación falló.",
     "step": {

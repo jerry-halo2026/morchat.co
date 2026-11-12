@@ -36,6 +36,7 @@
     "start": "Importer le préréglage",
     "running": "Import en cours…",
     "runtime_required": "Connectez un runtime avant d'importer un préréglage : un agent a besoin d'un runtime pour s'exécuter.",
+    "runtime_link": "Connecter un runtime",
     "done": "{{skills}} compétences et {{agents}} agents importés ({{updated}} compétences mises à jour).",
     "failed": "L'import a échoué.",
     "step": {

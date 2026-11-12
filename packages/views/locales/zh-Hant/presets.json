@@ -36,6 +36,7 @@
     "start": "匯入預設",
     "running": "匯入中…",
     "runtime_required": "匯入預設前請先連接執行環境：智慧體需要執行環境才能運作。",
+    "runtime_link": "去連接執行環境",
     "done": "已匯入 {{skills}} 個技能、{{agents}} 個智慧體（其中 {{updated}} 個技能為更新）。",
     "failed": "匯入失敗。",
     "step": {

@@ -33,9 +33,11 @@
     "starters": "开场白"
   },
   "import": {
+    "runtime_required": "导入预设前请先连接运行时：智能体需要运行时才能工作。",
     "start": "导入预设",
     "running": "导入中…",
-    "runtime_required": "导入预设前请先连接运行时：智能体需要运行时才能工作。",
+    
+    "runtime_link": "去连接运行时",
     "done": "已导入 {{skills}} 个技能、{{agents}} 个智能体（其中 {{updated}} 个技能为更新）。",
     "failed": "导入失败。",
     "step": {
