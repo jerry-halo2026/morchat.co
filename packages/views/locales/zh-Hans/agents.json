@@ -461,7 +461,9 @@
     "line_weight": "线宽",
     "cast_default": "跟随形状",
     "variant_default": "风格默认",
-    "eye_default": "主题墨色"
+    "eye_default": "主题墨色",
+    "random": "随机",
+    "random_apply": "用这个"
   },
   "create_dialog": {
     "title_create": "创建智能体",

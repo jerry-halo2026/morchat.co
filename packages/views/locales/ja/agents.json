@@ -303,7 +303,9 @@
     "line_weight": "線の太さ",
     "cast_default": "形に合わせる",
     "variant_default": "スタイルの既定",
-    "eye_default": "テーマのインク"
+    "eye_default": "テーマのインク",
+    "random": "ランダム",
+    "random_apply": "これにする"
   },
   "create_dialog": {
     "title_create": "エージェントを作成",

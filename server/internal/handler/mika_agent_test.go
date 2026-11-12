@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jerry-halo2026/morchat.co/server/internal/avatar"
 	"github.com/jerry-halo2026/morchat.co/server/internal/service"
 	agentpkg "github.com/jerry-halo2026/morchat.co/server/pkg/agent"
 	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
@@ -119,6 +120,40 @@ func TestCreateMikaAgent_RejectsUnsupportedLanguage(t *testing.T) {
 		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
 	}
 }
+
+// TestCreateMikaAgent_AvatarIsAnAoraSpec pins the created row's face: an Aora
+// spec the static route can render, and one that does not move when the same
+// provisioning call runs again.
+func TestCreateMikaAgent_AvatarIsAnAoraSpec(t *testing.T) {
+	cleanupMika(t)
+	runtimeID := handlerTestRuntimeID(t)
+
+	first := createMika(t, map[string]any{"runtime_id": runtimeID, "language": "en"})
+	if first.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d: %s", first.Code, first.Body.String())
+	}
+	created := decodeAgent(t, first)
+	if created.AvatarURL == nil {
+		t.Fatal("CreateMikaAgent: avatar_url is nil")
+	}
+	if !strings.HasPrefix(*created.AvatarURL, avatar.SpecPrefix) {
+		t.Fatalf("avatar_url = %q, want an aora spec", *created.AvatarURL)
+	}
+	if _, ok := avatar.ParseSpec(*created.AvatarURL); !ok {
+		t.Fatalf("avatar_url = %q, which the shared decoder rejects", *created.AvatarURL)
+	}
+
+	// The second call returns the same agent; its face must be the same face.
+	second := createMika(t, map[string]any{"runtime_id": runtimeID, "language": "zh"})
+	if second.Code != http.StatusOK {
+		t.Fatalf("second call: expected 200, got %d: %s", second.Code, second.Body.String())
+	}
+	reused := decodeAgent(t, second)
+	if reused.AvatarURL == nil || *reused.AvatarURL != *created.AvatarURL {
+		t.Fatalf("avatar_url moved between calls: %v then %v", created.AvatarURL, reused.AvatarURL)
+	}
+}
+
 
 // TestComposeMikaInstructions covers the layering contract: the product half
 // always leads, workspace notes are labelled with their provenance, and an

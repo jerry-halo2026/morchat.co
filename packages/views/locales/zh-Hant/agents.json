@@ -461,7 +461,9 @@
     "line_weight": "線寬",
     "cast_default": "跟隨形狀",
     "variant_default": "風格預設",
-    "eye_default": "主題墨色"
+    "eye_default": "主題墨色",
+    "random": "隨機",
+    "random_apply": "用這個"
   },
   "create_dialog": {
     "title_create": "建立 AI 代理",

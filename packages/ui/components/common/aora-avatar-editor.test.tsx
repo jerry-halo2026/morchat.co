@@ -139,4 +139,123 @@ describe("AoraAvatarEditor", () => {
     expect(validate).toHaveBeenCalledWith("aora:mochi:cat:red:cute:vector:1a2b");
     expect(onChange).toHaveBeenCalledTimes(1);
   });
+
+  it("draws nothing but the avatar as a button in the avatar layout", () => {
+    const onChange = vi.fn();
+    render(
+      <AoraAvatarEditor
+        spec={SPEC}
+        entityId="agent-0001"
+        layout="avatar"
+        onChange={onChange}
+      />,
+    );
+
+    // The avatar itself is the entry point, and the settings-form surfaces
+    // (preview slot, pickers, the second button) are gone.
+    expect(screen.getByTestId("studio")).toBeInTheDocument();
+    expect(screen.queryByTestId("preview-mark")).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Edit avatar" })).toBeInTheDocument();
+  });
+
+  it("commits a pick made through the avatar itself", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <AoraAvatarEditor
+        spec={SPEC}
+        entityId="agent-0001"
+        layout="avatar"
+        onChange={onChange}
+      />,
+    );
+
+    await user.click(screen.getByTestId("studio"));
+
+    expect(onChange).toHaveBeenCalledWith("aora:mochi:cat:red:cute:vector:1a2b");
+  });
+});
+
+describe("AoraAvatarEditor random", () => {
+  const ROLLED = "aora::drop:pink:capsule:vector:00ff";
+  const ROLLED_AGAIN = "aora::hex:green:capsule:vector:0a0b";
+
+  it("previews a rolled face and writes it only on confirmation", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const randomSpec = vi.fn(() => ROLLED);
+    render(
+      <AoraAvatarEditor
+        spec={SPEC}
+        entityId="agent-0001"
+        onChange={onChange}
+        randomSpec={randomSpec}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Randomize" }));
+
+    // Rolled, shown, not saved.
+    expect(randomSpec).toHaveBeenCalledTimes(1);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByTestId("preview-mark")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Use this one" }));
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(ROLLED);
+    // The confirm is spent once the face is written.
+    expect(screen.queryByRole("button", { name: "Use this one" })).not.toBeInTheDocument();
+  });
+
+  it("re-rolls without writing, and writes only the last face", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const randomSpec = vi
+      .fn()
+      .mockReturnValueOnce(ROLLED)
+      .mockReturnValueOnce(ROLLED_AGAIN);
+    render(
+      <AoraAvatarEditor
+        spec={SPEC}
+        entityId="agent-0001"
+        onChange={onChange}
+        randomSpec={randomSpec}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Randomize" }));
+    await user.click(screen.getByRole("button", { name: "Randomize" }));
+    expect(onChange).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Use this one" }));
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(ROLLED_AGAIN);
+  });
+
+  it("does not offer a roll a decoder rejects", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <AoraAvatarEditor
+        spec={SPEC}
+        entityId="agent-0001"
+        onChange={onChange}
+        randomSpec={() => "aora:broken"}
+        validate={(value) => value === SPEC}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Randomize" }));
+
+    expect(screen.queryByRole("button", { name: "Use this one" })).not.toBeInTheDocument();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("hides the action when the host supplies no generator", () => {
+    render(<AoraAvatarEditor spec={SPEC} entityId="agent-0001" onChange={vi.fn()} />);
+
+    expect(screen.queryByRole("button", { name: "Randomize" })).not.toBeInTheDocument();
+  });
 });

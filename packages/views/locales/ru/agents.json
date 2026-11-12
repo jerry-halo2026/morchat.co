@@ -506,7 +506,9 @@
     "line_weight": "Толщина линии",
     "cast_default": "Как у формы",
     "variant_default": "По умолчанию в стиле",
-    "eye_default": "Чернила темы"
+    "eye_default": "Чернила темы",
+    "random": "Случайно",
+    "random_apply": "Выбрать это"
   },
   "create_dialog": {
     "title_create": "Создать агента",

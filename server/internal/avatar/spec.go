@@ -118,6 +118,20 @@ func IsDerived(value string) bool {
 	return !ok
 }
 
+// DefaultAvatar is the avatar_url a newly created entity is stored with: the
+// caller's own choice when the request carried one, otherwise the face derived
+// from the entity's id.
+//
+// It runs after the insert rather than before it, because the derivation is
+// keyed on the id the database mints. Callers inside the same transaction can
+// still store the result without a window where the row has no face.
+func DefaultAvatar(explicit, entityID string) string {
+	if trimmed := strings.TrimSpace(explicit); trimmed != "" {
+		return trimmed
+	}
+	return DeriveSpec(entityID).Encode()
+}
+
 func containsString(values []string, want string) bool {
 	for _, value := range values {
 		if value == want {

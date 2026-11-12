@@ -1722,6 +1722,13 @@ func (h *Handler) CreateAgent(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "failed to create agent")
 		return
 	}
+	// Nobody picked a face: give the new agent the one derived from its own id,
+	// inside the same transaction so the row never exists without an avatar.
+	if created, err = applyDerivedAgentAvatar(r.Context(), qtx, created); err != nil {
+		slog.Warn("create agent: assign default avatar failed", append(logger.RequestAttrs(r), "error", err, "agent_id", uuidToString(created.ID))...)
+		writeError(w, http.StatusInternalServerError, "failed to assign agent avatar")
+		return
+	}
 	if err := replaceInvocationTargetsWithQueries(r.Context(), qtx, created.ID, parseUUID(ownerID), perm.targets); err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to save agent access")
 		return

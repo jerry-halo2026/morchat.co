@@ -57,7 +57,9 @@ import { readAoraFields } from "./aora-character";
  *
  * Saving is immediate, like the rest of settings: every pick commits. The one
  * invariant is that a spec only leaves this component when a decoder accepts
- * it; a rejected value reverts the draft instead of being written.
+ * it; a rejected value reverts the draft instead of being written. A rolled
+ * face is the exception — it previews first and is written on confirmation, so
+ * nobody publishes a random character by accident.
  */
 
 /** What the editor can change. `variant`/`eyeColor`/`lineWeight` are preview-only. */
@@ -67,6 +69,7 @@ interface Draft {
   color: string;
   face: string;
   style: string;
+  seed: string;
   variant: string;
   eyeColor: string;
   lineWeight: number;
@@ -125,6 +128,7 @@ export function draftFromAoraSpec(spec: string | null | undefined): Draft {
     color: fields.color,
     face: FACES.has(fields.face) ? fields.face : "capsule",
     style: STYLES.has(fields.style) ? fields.style : "vector",
+    seed: fields.seed,
     variant: "",
     eyeColor: "",
     lineWeight: LINE_WEIGHT_RANGE[0]!,
@@ -152,6 +156,10 @@ export interface AoraAvatarEditorLabels {
   variantDefault: string;
   /** "Theme ink" — the empty eye-colour option. */
   eyeDefault: string;
+  /** Rolls a face nobody picked yet. Preview only until {@link AoraAvatarEditorLabels.randomApply}. */
+  random: string;
+  /** Commits the face {@link AoraAvatarEditorLabels.random} just rolled. */
+  randomApply: string;
 }
 
 export const DEFAULT_AORA_EDITOR_LABELS: AoraAvatarEditorLabels = {
@@ -169,7 +177,16 @@ export const DEFAULT_AORA_EDITOR_LABELS: AoraAvatarEditorLabels = {
   castDefault: "Shape default",
   variantDefault: "Style default",
   eyeDefault: "Theme ink",
+  random: "Randomize",
+  randomApply: "Use this one",
 };
+
+/** Where the editor puts its controls. */
+export type AoraAvatarEditorLayout =
+  /** The avatar is the button: it opens the Studio, and nothing else is drawn. */
+  | "avatar"
+  /** Preview plus every field, for a settings form. */
+  | "form";
 
 export interface AoraAvatarEditorProps {
   /** Persisted `avatar_url`. Empty, legacy or malformed values start at the fallback. */
@@ -178,6 +195,8 @@ export interface AoraAvatarEditorProps {
   entityId: string;
   /** Slot diameter of the preview, in px. Defaults to the 56px hero rung. */
   sizePx?: number;
+  /** `avatar` draws nothing but the avatar-as-button; `form` draws the full editor. */
+  layout?: AoraAvatarEditorLayout;
   disabled?: boolean;
   /** Called with a complete spec after a pick. The host persists it. */
   onChange: (spec: string) => void | Promise<unknown>;
@@ -186,6 +205,13 @@ export interface AoraAvatarEditorProps {
    * frozen decoder, not a regex, is what gates a write.
    */
   validate?: (spec: string) => boolean;
+  /**
+   * Produces a complete spec nobody picked — the host supplies the derived
+   * generator (`deriveAoraSpec`) because the pools and the hash live in
+   * `@morechat/core`, which this package does not import. Without it the
+   * Randomize action is not offered.
+   */
+  randomSpec?: () => string;
   labels?: AoraAvatarEditorLabels;
   className?: string;
 }
@@ -194,16 +220,23 @@ export function AoraAvatarEditor({
   spec,
   entityId,
   sizePx = 56,
+  layout = "form",
   disabled = false,
   onChange,
   validate,
+  randomSpec,
   labels = DEFAULT_AORA_EDITOR_LABELS,
   className,
 }: AoraAvatarEditorProps) {
-  const seed = readAoraFields(spec)?.seed ?? "0000";
   const [initial] = useState(() => draftFromAoraSpec(spec));
   const [draft, setDraft] = useState<Draft>(initial);
   const [committed, setCommitted] = useState<Draft>(initial);
+  /**
+   * A rolled face is a proposal, not a choice: it moves the preview and waits.
+   * Every other pick commits on the spot, but a roll is cheap to regret, so it
+   * only reaches the host once someone says so.
+   */
+  const [rolled, setRolled] = useState(false);
 
   const accepts = (candidate: string) => (validate ?? isAoraSpec)(candidate);
 
@@ -217,15 +250,42 @@ export function AoraAvatarEditor({
    */
   const commit = (patch: Partial<Draft>) => {
     const next = { ...draft, ...patch };
-    const candidate = composeAoraSpec({ ...next, seed });
+    const candidate = composeAoraSpec(next);
     if (!accepts(candidate)) {
       setDraft(committed);
       return;
     }
     setDraft(next);
     setCommitted(next);
+    setRolled(false);
     void onChange(candidate);
   };
+
+  /** Roll a face into the preview. Nothing is written until {@link applyRolled}. */
+  const randomize = () => {
+    if (!randomSpec || disabled) return;
+    const candidate = randomSpec();
+    if (!accepts(candidate)) return;
+    setDraft(draftFromAoraSpec(candidate));
+    setRolled(true);
+  };
+
+  /**
+   * The confirmation for {@link randomize}: the rolled draft, as it stands on
+   * screen, becomes the stored face.
+   */
+  const applyRolled = () => {
+    const candidate = composeAoraSpec(draft);
+    if (!accepts(candidate)) {
+      setDraft(committed);
+      setRolled(false);
+      return;
+    }
+    setCommitted(draft);
+    setRolled(false);
+    void onChange(candidate);
+  };
+
 
   const variants = useMemo(
     () => getStyle(draft.style as StyleId)?.variants ?? [],
@@ -285,6 +345,58 @@ export function AoraAvatarEditor({
     face: draft.face as FaceStyle,
   };
 
+  const studioPick = (next: { shape: string; color: string; face?: string }) =>
+    commit({
+      shape: next.shape,
+      color: next.color,
+      face: next.face ?? draft.face,
+    });
+
+  /**
+   * The Randomize action, and the confirm that turns a roll into a stored face.
+   * Rendered next to the avatar in both layouts so a roll is one click away
+   * from the face it changes.
+   */
+  const randomControls = randomSpec ? (
+    <div className="flex shrink-0 items-center gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={disabled}
+        aria-label={labels.random}
+        onClick={randomize}
+      >
+        {labels.random}
+      </Button>
+      {rolled ? (
+        <Button type="button" variant="default" size="sm" onClick={applyRolled}>
+          {labels.randomApply}
+        </Button>
+      ) : null}
+    </div>
+  ) : null;
+
+  // The avatar is the whole editor: it is the Studio's own button, so pressing
+  // the face opens the picker and the face on screen is what gets edited.
+  if (layout === "avatar") {
+    return (
+      <div
+        data-aora-editor={entityId}
+        className={cn(
+          "flex flex-wrap items-center gap-2",
+          disabled && "pointer-events-none opacity-50",
+          className,
+        )}
+      >
+        <span aria-label={labels.studio} role="group">
+          <AvatarButton value={studioValue} sizePx={sizePx} onCommit={studioPick} />
+        </span>
+        {randomControls}
+      </div>
+    );
+  }
+
   return (
     <div
       data-aora-editor={entityId}
@@ -305,7 +417,7 @@ export function AoraAvatarEditor({
           variant={draft.variant || undefined}
           eyeColor={draft.eyeColor ? getSwatchHex(draft.eyeColor as ColorId) : undefined}
           lineWeight={draft.lineWeight}
-          seed={seed}
+          seed={draft.seed}
           sizePx={sizePx}
           autoPause
         />
@@ -389,6 +501,7 @@ export function AoraAvatarEditor({
       <div
         className={cn("flex shrink-0 items-center gap-2", disabled && "pointer-events-none opacity-50")}
       >
+        {randomControls}
         <Popover>
           <PopoverTrigger
             render={
@@ -414,17 +527,7 @@ export function AoraAvatarEditor({
           </PopoverContent>
         </Popover>
         <div aria-label={labels.studio} role="group">
-          <AvatarButton
-            value={studioValue}
-            sizePx={sizePx}
-            onCommit={(next) =>
-              commit({
-                shape: next.shape,
-                color: next.color,
-                face: next.face ?? draft.face,
-              })
-            }
-          />
+          <AvatarButton value={studioValue} sizePx={sizePx} onCommit={studioPick} />
         </div>
       </div>
     </div>

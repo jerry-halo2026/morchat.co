@@ -10,6 +10,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/jerry-halo2026/morchat.co/server/internal/avatar"
 )
 
 // TestListWorkspaceAgentTaskSnapshot covers the agent presence snapshot endpoint:
@@ -815,10 +817,12 @@ func TestCreateAgent_AssignsAvatarDefault(t *testing.T) {
 		name       string
 		avatarURL  *string
 		wantAvatar string
-		wantEmoji  bool
+		// wantDerived is the Aora spec hashed from the created agent's own id:
+		// the default nobody-chose-anything face.
+		wantDerived bool
 	}{
-		{name: "omitted", wantEmoji: true},
-		{name: "empty", avatarURL: ptr(""), wantEmoji: true},
+		{name: "omitted", wantDerived: true},
+		{name: "empty", avatarURL: ptr(""), wantDerived: true},
 		{
 			name:       "explicit",
 			avatarURL:  ptr("https://cdn.example.com/avatars/agent.png"),
@@ -857,9 +861,23 @@ func TestCreateAgent_AssignsAvatarDefault(t *testing.T) {
 			if response.AvatarURL == nil {
 				t.Fatal("CreateAgent: avatar_url is nil")
 			}
-			if tt.wantEmoji {
-				if !strings.HasPrefix(*response.AvatarURL, "emoji:") {
-					t.Fatalf("CreateAgent: avatar_url = %q, want emoji avatar", *response.AvatarURL)
+			if tt.wantDerived {
+				if !strings.HasPrefix(*response.AvatarURL, avatar.SpecPrefix) {
+					t.Fatalf("CreateAgent: avatar_url = %q, want an aora spec", *response.AvatarURL)
+				}
+				want := avatar.DeriveSpec(response.ID).Encode()
+				if *response.AvatarURL != want {
+					t.Fatalf("CreateAgent: avatar_url = %q, want the spec derived from the agent id %q", *response.AvatarURL, want)
+				}
+				// Reading the same agent again must not move the face: the
+				// derivation is keyed on the id, so it is stable across reads.
+				var stored string
+				if err := testPool.QueryRow(context.Background(),
+					`SELECT avatar_url FROM agent WHERE id = $1`, response.ID).Scan(&stored); err != nil {
+					t.Fatalf("load stored avatar_url: %v", err)
+				}
+				if stored != *response.AvatarURL {
+					t.Fatalf("stored avatar_url = %q, want the response value %q", stored, *response.AvatarURL)
 				}
 				return
 			}

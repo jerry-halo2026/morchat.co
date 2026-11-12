@@ -476,7 +476,9 @@
     "line_weight": "Line weight",
     "cast_default": "Shape default",
     "variant_default": "Style default",
-    "eye_default": "Theme ink"
+    "eye_default": "Theme ink",
+    "random": "Randomize",
+    "random_apply": "Use this one"
   },
   "create_dialog": {
     "title_create": "Create Agent",

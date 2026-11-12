@@ -216,6 +216,15 @@ func (h *Handler) resolveMikaAgent(w http.ResponseWriter, r *http.Request, works
 		writeError(w, http.StatusInternalServerError, "failed to create the workspace agent")
 		return db.Agent{}, false, false
 	}
+	// Mika has a fixed product face (mikaAgentAvatarURL), so this is a no-op for
+	// it today; it is the same default every other creation path applies, and it
+	// keeps an agent from ever being stored without a face if that constant is
+	// ever emptied. Inside the transaction, like the insert.
+	if created, err = applyDerivedAgentAvatar(r.Context(), qtx, created); err != nil {
+		slog.Warn("create mika agent: assign default avatar failed", append(logger.RequestAttrs(r), "error", err, "agent_id", uuidToString(created.ID))...)
+		writeError(w, http.StatusInternalServerError, "failed to assign the workspace agent avatar")
+		return db.Agent{}, false, false
+	}
 	// Workspace-invocable: every member may chat with Mika and assign it work.
 	if err := replaceInvocationTargetsWithQueries(r.Context(), qtx, created.ID, parseUUID(userID), []targetSpec{
 		{targetType: invocationTargetWorkspace, targetID: wsUUID},

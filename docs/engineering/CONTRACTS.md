@@ -104,3 +104,26 @@ renderer 的会话 JWT
 
 **不变量**：明文 key 只出现在那一份响应里；日志、备份、状态推送只允许出现 `***后缀`；
 登出只删除 `refs.MULTICA_RELAY_KEY`，其余 refs 与账号 grant 不得变动。
+
+## 头像归属（谁用 Aora，谁用上传）
+
+| 主体 | 存储 | 编辑方式 |
+|---|---|---|
+| **智能体**（agent / Sika / 小队成员） | `aora:<character>:<shape>:<color>:<face>:<style>:<seed>` | Aora 官方选择器（`AvatarButton` → Studio + `AgentCharacterSelector`），另有"随机"一键生成；**新建未指定时服务端写入 `deriveAoraSpec(agentID)`**，库里永远是真实值 |
+| **人类用户**（`user.avatar_url`） | 上传文件 URL | 上传 / 移除，**不生成 Aora** |
+
+- 用户头像只出现在评论、侧栏等"人"的位置；给它套 Aora 是错位，已从偏好设置移除。
+- agent 头像入口只有一个：**点击头像本身**打开选择器，不再并排一个上传控件。
+- 列表（<32px）走 `GET /avatar/<spec>.svg`，单实例（≥32px）走 live 组件，尺寸 20/24/40/56 不变。
+
+## 预设安装的运行时选择
+
+预设（`agent` / `team` 两类模板包）安装时必须落在某个运行时上。选择顺序：
+
+```
+dsh（本项目内置，桌面端恒可用） > codex > claude_code > 任意 status=online 的运行时
+```
+
+- 只挑 `online` 的；挑不到就**给出可操作的提示**（跳到运行时页面安装/启动），不允许静默禁用按钮；
+- 用户可在页面上手动改写选择；
+- 同一工作区重复安装同一预设走幂等路径（不产生第二份 agent）。

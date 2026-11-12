@@ -476,7 +476,9 @@
     "line_weight": "Épaisseur du trait",
     "cast_default": "Selon la forme",
     "variant_default": "Par défaut du style",
-    "eye_default": "Encre du thème"
+    "eye_default": "Encre du thème",
+    "random": "Aléatoire",
+    "random_apply": "Utiliser celui-ci"
   },
   "create_dialog": {
     "title_create": "Créer un agent",

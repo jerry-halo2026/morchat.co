@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -92,6 +93,32 @@ func TestParseSpecRejectsGarbage(t *testing.T) {
 		}
 		if !IsDerived(value) {
 			t.Errorf("IsDerived(%q) = false, want true", value)
+		}
+	}
+}
+
+func TestDefaultAvatarKeepsAnExplicitChoice(t *testing.T) {
+	chosen := "aora:mochi:blob:blue:capsule:vector:1a2b"
+	for _, explicit := range []string{chosen, "  https://cdn.example.com/avatars/agent.png  "} {
+		want := strings.TrimSpace(explicit)
+		if got := DefaultAvatar(explicit, "agent-0001"); got != want {
+			t.Errorf("DefaultAvatar(%q) = %q, want %q", explicit, got, want)
+		}
+	}
+}
+
+func TestDefaultAvatarDerivesFromTheEntityID(t *testing.T) {
+	for _, entityID := range []string{"agent-0001", "0192f0aa-6f2e-7000-8000-000000000001"} {
+		got := DefaultAvatar("", entityID)
+		if want := DeriveSpec(entityID).Encode(); got != want {
+			t.Errorf("DefaultAvatar(%q) = %q, want %q", entityID, got, want)
+		}
+		if spec, ok := ParseSpec(got); !ok || spec.Style != DerivedStyle {
+			t.Errorf("DefaultAvatar(%q) = %q, which does not round-trip as a derived spec", entityID, got)
+		}
+		// Stability is the contract: a re-read of the same entity never moves.
+		if again := DefaultAvatar("   ", entityID); again != got {
+			t.Errorf("DefaultAvatar(%q) is not stable: %q then %q", entityID, got, again)
 		}
 	}
 }

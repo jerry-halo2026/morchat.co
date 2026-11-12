@@ -18,8 +18,11 @@ import { Input } from "@morechat/ui/components/ui/input";
 import { Textarea } from "@morechat/ui/components/ui/textarea";
 import { AoraAvatarEditor } from "@morechat/ui/components/common/aora-avatar-editor";
 import { cn } from "@morechat/ui/lib/utils";
-import { decodeAoraSpec } from "@morechat/core/avatar/aora-spec";
-import { AvatarUploadControl } from "../../common/avatar-upload-control";
+import {
+  decodeAoraSpec,
+  deriveAoraSpec,
+  encodeAoraSpec,
+} from "@morechat/core/avatar/aora-spec";
 import {
   SettingsCard,
   SettingsRow,
@@ -64,6 +67,15 @@ function startersEqual(
   right: AgentConversationStarter[],
 ) {
   return JSON.stringify(left) === JSON.stringify(right);
+}
+
+/**
+ * A face nobody picked: the same derivation every agent gets on creation,
+ * hashed from a random uuid so each press is a different character. The id is
+ * only a seed source — it is never persisted as an entity.
+ */
+function randomAoraSpec(): string {
+  return encodeAoraSpec(deriveAoraSpec(crypto.randomUUID()));
 }
 
 function combinedSaveStatus(
@@ -193,42 +205,26 @@ export function AgentDetailInspector({
             }
           >
             <SettingsCard>
+              {/* One entry point for the face. The avatar is the button: pressing
+                  it opens Aora's Studio, and a confirmed pick writes the single
+                  `avatar_url` field through the page's update, which patches
+                  optimistically and rolls the row back if the PATCH fails. */}
               <SettingsRow
                 label={t(($) => $.inspector.avatar_label)}
                 size="none"
               >
                 <div className="flex justify-start sm:justify-end">
-                  <AvatarUploadControl
-                    variant="agent"
-                    value={agent.avatar_url ?? null}
-                    name={agent.name}
-                    size={56}
-                    disabled={!canEdit}
-                    onUploaded={(url) => update({ avatar_url: url })}
-                    onEmojiSelected={(value) => update({ avatar_url: value })}
-                  />
-                </div>
-              </SettingsRow>
-
-              {/* The face itself: cast, shape, colour, face, draw style. Writes
-                  the same single field the upload control does — `avatar_url` —
-                  through the page's update, which patches optimistically and
-                  rolls the row back if the PATCH fails. */}
-              <SettingsRow
-                label={t(($) => $.avatar_editor.character)}
-                size="none"
-                align="start"
-              >
-                <div className="flex justify-start sm:justify-end">
                   <AoraAvatarEditor
+                    layout="avatar"
                     spec={agent.avatar_url ?? null}
                     entityId={agent.id}
                     sizePx={56}
                     disabled={!canEdit}
                     labels={avatarLabels}
                     validate={(spec) => decodeAoraSpec(spec) !== null}
+                    randomSpec={randomAoraSpec}
                     onChange={(spec) => update({ avatar_url: spec })}
-                    className="w-full justify-start sm:justify-end"
+                    className="justify-start sm:justify-end"
                   />
                 </div>
               </SettingsRow>

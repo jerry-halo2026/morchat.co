@@ -311,7 +311,9 @@
     "line_weight": "선 두께",
     "cast_default": "모양 기본값",
     "variant_default": "스타일 기본값",
-    "eye_default": "테마 잉크"
+    "eye_default": "테마 잉크",
+    "random": "무작위",
+    "random_apply": "이걸로 하기"
   },
   "create_dialog": {
     "title_create": "에이전트 만들기",

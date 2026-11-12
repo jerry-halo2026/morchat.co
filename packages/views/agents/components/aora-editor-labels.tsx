@@ -30,6 +30,8 @@ export function useAoraEditorLabels(): AoraAvatarEditorLabels {
       castDefault: t(($) => $.avatar_editor.cast_default),
       variantDefault: t(($) => $.avatar_editor.variant_default),
       eyeDefault: t(($) => $.avatar_editor.eye_default),
+      random: t(($) => $.avatar_editor.random),
+      randomApply: t(($) => $.avatar_editor.random_apply),
     }),
     [t],
   );

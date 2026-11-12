@@ -458,7 +458,9 @@
     "line_weight": "Grosor de línea",
     "cast_default": "Según la forma",
     "variant_default": "Predeterminado del estilo",
-    "eye_default": "Tinta del tema"
+    "eye_default": "Tinta del tema",
+    "random": "Aleatorio",
+    "random_apply": "Usar este"
   },
   "create_dialog": {
     "title_create": "Crear agente",
