@@ -75,3 +75,32 @@ GET  /api/config → { auth: { password_enabled, code_login_enabled } }
 - `user.password_hash IS NULL` 表示"还没设密码"，这些账号继续用邮箱验证码登录。
 - `must_change_password=true` 的账号登录后必须先改密。
 - 迁移：`643_user_password`；**新增列必须可空或有默认值**，保证外部系统直插 `user` 行时不会因缺列报错。
+
+## 网关凭据链路（桌面 → 服务端 → DSH）
+
+```
+renderer 的会话 JWT
+  └─ main: POST {api}/api/runtime/credentials  { device_id, workspace_id? }
+       → { base_url, api_key, key_suffix, models, source, token_name }
+       ├─ keychain: 存公司 key（owner-only）
+       ├─ ~/.dsh/cordis.patch.yml: provider 条目 baseURL + apiKeyEnv=MULTICA_RELAY_KEY
+       └─ ~/.dsh/.credentials.yaml: refs.MULTICA_RELAY_KEY = <api_key>
+            └─ daemon spawn env: MULTICA_RELAY_KEY / DEEPSEEK_BASE_URL
+                 └─ agent 进程用该 key 调网关
+```
+
+**device_id**：`<userData>/device-id`，首次生成 `mcdev-<uuid>`，0600，≤128 字符；语义是"同一安装"，
+不是硬件指纹。丢失只会导致下一次铸新 token。
+
+**失败码**（主进程回给 UI，文案在 views 侧八语言）：
+
+| code | 含义 | UI 行为 |
+|---|---|---|
+| `gateway_not_configured` | 服务端未配置 new-api | 显示"公司额度未开通"，引导个人 key |
+| `unauthorized` | 会话过期 | 提示重新登录 |
+| `network` | 网关/服务端不可达 | 可重试 |
+| `no_models` | 铸到 key 但白名单为空 | 提示管理员检查 `NEWAPI_DEFAULT_MODELS` |
+| `keychain_unavailable` | 系统密钥库不可用 | 仍可运行，但每次启动重新铸 key |
+
+**不变量**：明文 key 只出现在那一份响应里；日志、备份、状态推送只允许出现 `***后缀`；
+登出只删除 `refs.MULTICA_RELAY_KEY`，其余 refs 与账号 grant 不得变动。
