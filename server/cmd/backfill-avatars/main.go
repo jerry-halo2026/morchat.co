@@ -1,6 +1,6 @@
 // Command backfill-avatars gives every agent without a face an Aora one.
 //
-// Agents created before avatars were derived carry an `emoji:` value or nothing at
+// Agents created before avatars were derived carry an `emoji:`, a legacy `cap:` or nothing at
 // all, which is why a workspace full of agents still looks like the old product. The
 // derived face is keyed on the agent id, so running this twice changes nothing the
 // second time.
@@ -46,7 +46,7 @@ func run() error {
 		`SELECT id::text, coalesce(name, ''), coalesce(avatar_url, '')
 		   FROM agent
 		  WHERE archived_at IS NULL
-		    AND (avatar_url IS NULL OR avatar_url = '' OR avatar_url LIKE 'emoji:%')
+		    AND (avatar_url IS NULL OR avatar_url = '' OR avatar_url LIKE 'emoji:%' OR avatar_url LIKE 'cap:%')
 		  ORDER BY created_at`)
 	if err != nil {
 		return fmt.Errorf("select agents: %w", err)
@@ -81,7 +81,7 @@ func run() error {
 		tag, err := pool.Exec(ctx,
 			`UPDATE agent SET avatar_url = $2, updated_at = now()
 			  WHERE id = $1::uuid
-			    AND (avatar_url IS NULL OR avatar_url = '' OR avatar_url LIKE 'emoji:%')`,
+			    AND (avatar_url IS NULL OR avatar_url = '' OR avatar_url LIKE 'emoji:%' OR avatar_url LIKE 'cap:%')`,
 			p.id, spec)
 		if err != nil {
 			return fmt.Errorf("update %s: %w", p.id, err)
