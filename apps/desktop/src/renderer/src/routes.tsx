@@ -36,6 +36,7 @@ import { AgentCreatedPage } from "./pages/agent-created-page";
 import { SquadsPage, SquadDetailPage as SquadDetailPageView } from "@morechat/views/squads/components";
 import { AllViewsPage } from "@morechat/views/issue-views";
 import { InboxPage } from "@morechat/views/inbox";
+import { PresetsScreen } from "@morechat/views/presets";
 import { ChatPage } from "@morechat/views/chat";
 import { SettingsPage } from "@morechat/views/settings";
 import { useT } from "@morechat/views/i18n";
@@ -262,6 +263,13 @@ export const appRoutes: RouteObject[] = [
           },
           { path: "squads", element: <SquadsPage />, handle: { title: "Squads" } },
           { path: "views", element: <AllViewsPage />, handle: { title: "Views" } },
+          // The Team panel links to the preset gallery, and desktop had no route
+          // for it: the click landed on an address the router did not know.
+          {
+            path: "presets",
+            element: <PresetsScreen />,
+            handle: { title: "Presets" },
+          },
           // Knowledge resolved to nothing on desktop before these routes existed:
           // the sidebar entry opened an address the router did not know, which
           // showed as a spinner under the wrong tab title.
