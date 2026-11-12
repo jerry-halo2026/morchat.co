@@ -560,10 +560,11 @@ export function installRuntimeConfigurator(
           // credential-store entry is written for it.
           relay = {
             [relayEnvName(profile.provider.apiKeyRef)]: stored,
-            // Which credential pays for a run, for the usage report. The daemon
-            // cannot infer it - both kinds of key arrive as an environment value -
-            // and guessing would bill a personal key to the company.
-            MULTICA_CREDENTIAL_SOURCE: outcome.credentialSource ?? "company",
+            // No credential-source stamp here. It would say "company" for every run
+            // on this machine, including the harness runs that use the account the
+            // user signed into themselves - and a wrong stamp bills personal spend to
+            // the company. An empty value is recorded as unknown, which is the honest
+            // answer until a runner can tell the two apart per run.
           };
         }
         return await publishWithCredentials({
