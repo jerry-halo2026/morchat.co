@@ -783,7 +783,7 @@
   },
   "account": {
     "section_profile": "Personal information",
-    "avatar_label": "Avatar",
+    "avatar_label": "Your avatar (shown in comments and the sidebar)",
     "click_avatar_hint": "Click to upload avatar",
     "name_label": "Name",
     "profile_description_label": "About you",

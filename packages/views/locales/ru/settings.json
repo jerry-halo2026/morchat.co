@@ -792,8 +792,8 @@
   },
   "account": {
     "section_profile": "Личная информация",
-    "avatar_label": "Аватар",
-    "click_avatar_hint": "Нажмите, чтобы загрузить аватар",
+    "avatar_label": "Ваш аватар (отображается в комментариях и на боковой панели)",
+    "click_avatar_hint": "Нажмите, чтобы загрузить изображение",
     "name_label": "Имя",
     "profile_description_label": "О вас",
     "profile_description_hint": "Учитывается в каждом запуске, выполняемом от вашего имени.",

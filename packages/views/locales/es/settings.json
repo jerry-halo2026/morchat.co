@@ -765,8 +765,8 @@
   },
   "account": {
     "section_profile": "Información personal",
-    "avatar_label": "Avatar",
-    "click_avatar_hint": "Haz clic para subir el avatar",
+    "avatar_label": "Tu avatar (aparece en los comentarios y en la barra lateral)",
+    "click_avatar_hint": "Haz clic para subir una imagen",
     "name_label": "Nombre",
     "profile_description_label": "Sobre ti",
     "profile_description_hint": "Se incluye en cada ejecución realizada en tu nombre.",

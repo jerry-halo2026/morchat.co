@@ -778,8 +778,8 @@
   },
   "account": {
     "section_profile": "個人資訊",
-    "avatar_label": "頭像",
-    "click_avatar_hint": "點選上傳頭像",
+    "avatar_label": "你的頭像（出現在評論與側欄）",
+    "click_avatar_hint": "點選上傳圖片",
     "name_label": "姓名",
     "profile_description_label": "關於你",
     "profile_description_hint": "每次執行都會提供給為你工作的 AI 代理。",

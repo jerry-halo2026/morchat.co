@@ -778,8 +778,8 @@
   },
   "account": {
     "section_profile": "个人信息",
-    "avatar_label": "头像",
-    "click_avatar_hint": "点击上传头像",
+    "avatar_label": "你的头像（出现在评论与侧栏）",
+    "click_avatar_hint": "点击上传图片",
     "name_label": "姓名",
     "profile_description_label": "关于你",
     "profile_description_hint": "每次运行都会提供给为你工作的智能体。",

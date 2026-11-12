@@ -43,14 +43,10 @@ import {
   type QuickCreateField,
 } from "@morechat/core/issues/stores/issue-create-settings-store";
 import { api } from "@morechat/core/api";
-import { decodeAoraSpec } from "@morechat/core/avatar/aora-spec";
-import { AoraAvatarEditor } from "@morechat/ui/components/common/aora-avatar-editor";
-import type { AoraAvatarEditorLabels } from "@morechat/ui/components/common/aora-avatar-editor";
 import { browserTimezone, timezoneOptions } from "../../common/timezone-select";
 import { useLanguageSwitch } from "../../common/use-language-switch";
 import { SegmentedToggle } from "../../common/segmented-toggle";
 import { useT } from "../../i18n";
-import { useAoraEditorLabels } from "../../agents/components/aora-editor-labels";
 import {
   SettingsCard,
   SettingsRow,
@@ -68,19 +64,8 @@ import {
  */
 export function PreferencesTab() {
   const { t } = useT("settings");
-  const avatarLabels = useAoraEditorLabels();
   return (
     <SettingsTab title={t(($) => $.page.tabs.preferences)}>
-      <SettingsSection
-        title={avatarLabels.character}
-        scope="account"
-        anchor="avatar-character"
-      >
-        <SettingsCard>
-          <AvatarCharacterRow labels={avatarLabels} />
-        </SettingsCard>
-      </SettingsSection>
-
       <SettingsSection
         title={t(($) => $.preferences.region_title)}
         scope="account"
@@ -124,63 +109,6 @@ export function PreferencesTab() {
       </SettingsSection>
 
     </SettingsTab>
-  );
-}
-
-/**
- * The account's own Aora face.
- *
- * Users had no character of their own before this: `avatar_url` held an upload
- * or an emoji marker and members rendered initials otherwise. The value written
- * here is an `aora:<...>` spec — the same encoding agents use — and
- * `ActorAvatar` renders it as a face anywhere the person appears.
- *
- * Optimistic on purpose: the editor's preview is already showing the pick, so
- * the store flips first and rolls back to the previous value if the PATCH
- * fails. The server accepts a non-storage string here unchanged (it only
- * authorizes values it minted), so nothing about avatars is being bypassed.
- */
-function AvatarCharacterRow({ labels }: { labels: AoraAvatarEditorLabels }) {
-  const { t } = useT("settings");
-  const user = useAuthStore((s) => s.user);
-  const setUser = useAuthStore((s) => s.setUser);
-  const [saving, setSaving] = useState(false);
-  if (!user) return null;
-
-  const save = async (spec: string) => {
-    const previous = user;
-    setUser({ ...user, avatar_url: spec });
-    setSaving(true);
-    try {
-      setUser(await api.updateMe({ avatar_url: spec }));
-    } catch (error) {
-      setUser(previous);
-      toast.error(
-        error instanceof Error ? error.message : t(($) => $.account.toast_avatar_failed),
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <SettingsRow
-      anchor="avatar-character"
-      label={labels.character}
-      size="none"
-      align="start"
-    >
-      <AoraAvatarEditor
-        spec={user.avatar_url}
-        entityId={user.id}
-        sizePx={40}
-        disabled={saving}
-        labels={labels}
-        validate={(spec) => decodeAoraSpec(spec) !== null}
-        onChange={save}
-        className="justify-start"
-      />
-    </SettingsRow>
   );
 }
 

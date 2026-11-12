@@ -778,8 +778,8 @@
   },
   "account": {
     "section_profile": "개인 정보",
-    "avatar_label": "아바타",
-    "click_avatar_hint": "클릭해서 아바타 업로드",
+    "avatar_label": "내 아바타 (댓글과 사이드바에 표시)",
+    "click_avatar_hint": "클릭해서 이미지 업로드",
     "name_label": "이름",
     "profile_description_label": "내 소개",
     "profile_description_hint": "나를 위해 실행하는 에이전트에게 매번 전달됩니다.",

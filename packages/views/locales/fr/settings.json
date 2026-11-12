@@ -783,8 +783,8 @@
   },
   "account": {
     "section_profile": "Informations personnelles",
-    "avatar_label": "Avatar",
-    "click_avatar_hint": "Cliquez pour envoyer un avatar",
+    "avatar_label": "Votre avatar (visible dans les commentaires et la barre latérale)",
+    "click_avatar_hint": "Cliquez pour envoyer une image",
     "name_label": "Nom",
     "profile_description_label": "À propos de vous",
     "profile_description_hint": "Inclus dans chaque exécution effectuée en votre nom.",
