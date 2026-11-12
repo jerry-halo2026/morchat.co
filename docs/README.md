@@ -219,6 +219,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [Desktop dev actual run — 2026-11-09](tasks/DESKTOP-DEV-RUN.md) | Desktop dev actual run — 2026-11-09 | task-owners | current | 2026-11-10 |
 | [DSH 审批 / 提问协议实测（W6 只读侦查）](tasks/DSH-ASK-SPIKE.md) | DSH 审批 / 提问协议实测（W6 只读侦查） | task-owners | current | 2026-11-10 |
 | [DSH 桥接内置：S0 结论](tasks/DSH-BUNDLE-SPIKE.md) | 让安装包自带 DSH 桥接（S0 spike）的结论与两处裁剪修复 | lead | current | 2026-11-11 |
+| [DSH 走公司网关](tasks/DSH-GATEWAY-KEY.md) | 让 DSH 用公司网关的 key（用户无需登录 DeepSeek）——已验证的原生配置方式与待改代码 | lead | current | 2026-11-12 |
 | [DSH live usage callback — LOCAL-DSH-LIVE-USAGE-r1](tasks/DSH-LIVE-USAGE-SLICE.md) | DSH live usage callback — LOCAL-DSH-LIVE-USAGE-r1 | task-owners | current | 2026-11-09 |
 | [DSH profile bundle：把「可见」改成官方安装路径（AG-5）](tasks/DSH-PROFILE-BUNDLE.md) | 把打包内置的 DSH 从「守护进程能看见 dsh」改成对齐官方 profile bundle 安装路径：零 CLI 例外、本地 bundle 安装、装后 probe 复检 | task-owners | current | 2026-11-11 |
 | [DSH 真实 run（已跑通）](tasks/DSH-REAL-RUN.md) | 用本仓库后端 + 本机 DSH 完成一次真实 run 的证据与复现步骤 | lead | current | 2026-11-11 |

@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 183,
-  "fingerprint": "d074b234551d8542795b0e3ca376b6d0e90a8a074841f24c5fb194216b5de47b",
+  "count": 184,
+  "fingerprint": "de15324d86a1bf01968aa00883bb158f05a3696da8b8e372cf8686085183193f",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -1433,6 +1433,17 @@
       "owner": "lead",
       "status": "current",
       "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/DSH-GATEWAY-KEY.md",
+      "title": "DSH 走公司网关",
+      "purpose": "让 DSH 用公司网关的 key（用户无需登录 DeepSeek）——已验证的原生配置方式与待改代码",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-12",
       "related": [],
       "links_out": [],
       "links_in": []
