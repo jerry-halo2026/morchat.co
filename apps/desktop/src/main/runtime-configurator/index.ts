@@ -448,6 +448,21 @@ export function createRuntimeConfigurator(
         error: describe(err),
       });
     }
+    // A value we could not land in a file we do not own is not a reason to throw
+    // away the work that did land: an existing Codex (or Claude) configuration
+    // keeps its own model settings, and taking the whole profile down because one
+    // field stayed foreign would leave the user with nothing configured at all.
+    // Structural problems (a missing region, an unparsable document) still fail.
+    if (!verify.ok) {
+      const foreign = verify.failures.filter((failure) => failure.code === "field-mismatch");
+      const blocking = verify.failures.filter((failure) => failure.code !== "field-mismatch");
+      if (blocking.length === 0 && foreign.length > 0) {
+        logger.warn("runtime-configurator: kept foreign values in a shared file", {
+          fields: foreign.map((failure) => ({ path: failure.path, field: failure.field })),
+        });
+        verify = { ok: true };
+      }
+    }
     if (!verify.ok) {
       logger.warn("runtime-configurator: verify failed, rolling back", {
         failures: verify.failures.length,
