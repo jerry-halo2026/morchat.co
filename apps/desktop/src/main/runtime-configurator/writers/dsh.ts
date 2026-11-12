@@ -28,7 +28,7 @@ import type {
   VerifyFailure,
   VerifyResult,
 } from "../types";
-import { isYamlRecord, parseYaml } from "../yaml-lite";
+import { isYamlRecord, parseYaml, readYamlPath } from "../yaml-lite";
 import {
   YAML_REGION,
   assertNoSecretLiteral,
@@ -57,22 +57,27 @@ export function renderDshRegion(input: WriterInput): string {
   // carries `api` / `baseURL` / `apiKeyEnv` / `models`. `apiKeyEnv` is only a
   // credential *reference*, so this file never holds a key. The older guess of
   // a top-level `llm-<provider>:` mapping does not exist in the harness.
-  // The shape the harness actually loads. Verified with
-  // `dsh --profile multica --dump-config`, which shows `llm-deepseek` carrying
-  // `baseURL` and `apiKeyEnv`; the api-key plugin registers the same provider id as
-  // the account plugin, so model ids stay `deepseek-official/<model>`.
+  // A *declared* provider, not an override of the built-in one. `dsh-llm-pi-ai`
+  // takes a `providers` map whose keys become model-id prefixes, so `morechat/x`
+  // routes here while `deepseek-official/x` keeps using whatever the machine is
+  // signed into. Rewriting `llm-deepseek` instead would take the account route away
+  // from every other harness session on this machine.
   const body = [
-    "# Provider entry for the morechat relay. The key is an env credential-ref:",
-    "# its value lives in the harness credential store, never in this file.",
-    "- id: llm-deepseek",
+    "# A declared provider beside the account route, not a replacement for it:",
+    "# the built-in one keeps working for anyone signed into DeepSeek, and agents",
+    "# pointed at `morechat/<model>` use the company gateway instead.",
+    "- id: llm-pi-ai",
     "  config:",
-    `    baseURL: ${yamlScalar(provider.baseUrl)}`,
-    `    apiKeyEnv: ${yamlScalar(envKey)}`,
-    "    models:",
-    `      - id: ${yamlScalar(provider.defaultModel)}`,
-    `        name: ${yamlScalar(provider.defaultModel)}`,
-    "        contextWindow: 131072",
-    "        maxTokens: 8192",
+    "    providers:",
+    `      ${DSH_PROVIDER_ID}:`,
+    "        api: openai-completions",
+    `        baseURL: ${yamlScalar(provider.baseUrl)}`,
+    `        apiKeyEnv: ${yamlScalar(envKey)}`,
+    "        models:",
+    `          - id: ${yamlScalar(provider.defaultModel)}`,
+    `            name: ${yamlScalar(provider.defaultModel)}`,
+    "            contextWindow: 131072",
+    "            maxTokens: 8192",
   ].join("\n");
   const rendered = wrapRegion(body);
   assertNoSecretLiteral(rendered);
@@ -86,7 +91,7 @@ function yamlScalar(value: string): string {
 }
 
 function pluginId(): string {
-  return "llm-deepseek";
+  return "llm-pi-ai";
 }
 
 /** Our plugin entry inside the patch sequence, if it is still there. */
@@ -104,7 +109,10 @@ function findProviderEntry(document: unknown): Record<string, unknown> | null {
  */
 function readPlannedDshValues(content: string): Map<string, unknown> {
   const entry = findProviderEntry(parseYaml(content));
-  const provider = isYamlRecord(entry?.config) ? entry.config : undefined;
+  // `config.providers.<id>`: the route this writer declares, keyed by provider id.
+  const provider = isYamlRecord(entry?.config)
+    ? readYamlPath(entry.config, ["providers", DSH_PROVIDER_ID])
+    : undefined;
   const models = isYamlRecord(provider) ? provider["models"] : undefined;
   const firstModel = Array.isArray(models) ? models[0] : undefined;
   return new Map<string, unknown>([
@@ -185,12 +193,14 @@ export const dshWriter: RuntimeTargetWriter = {
       // The provider's own config object: `llm-deepseek` takes baseURL/apiKeyEnv
       // directly, which is the shape the harness documents and what
       // `--dump-config` shows for a working profile.
-      const provider = isYamlRecord(entry.config) ? entry.config : undefined;
+      const provider = isYamlRecord(entry.config)
+        ? readYamlPath(entry.config, ["providers", DSH_PROVIDER_ID])
+        : undefined;
       if (!isYamlRecord(provider)) {
         failures.push({
           code: "field-mismatch",
           path: plannedFile.path,
-          field: "config",
+          field: `config.providers.${DSH_PROVIDER_ID}`,
         });
         continue;
       }

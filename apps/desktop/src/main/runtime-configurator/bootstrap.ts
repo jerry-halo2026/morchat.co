@@ -592,7 +592,9 @@ export function installRuntimeConfigurator(
         // downgraded by a harness that is slow, missing, or mid-upgrade.
         void verifyProfileModels(
           {
-            binary: env.DSH_BIN?.trim() || "dsh",
+            // Prefer the harness the desktop shipped: in a packaged app nothing named
+      // `dsh` is on PATH, so a bare name would fail with ENOENT on every apply.
+      binary: env.DSH_BIN?.trim() || process.env["MULTICA_DSH_PATH"]?.trim() || "dsh",
             profileName: DSH_PROFILE_NAME,
             models: profile.provider.models,
             env,
