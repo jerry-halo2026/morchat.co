@@ -2418,9 +2418,12 @@ func (h *Handler) finishSkillImport(w http.ResponseWriter, r *http.Request, work
 
 	// Persist provenance into skill.config.origin so list/detail UI can show
 	// "Imported from GitHub / ClawHub / Skills.sh" and link back to the source.
+	// The origin also carries the bundle's content fingerprint (sha256) and
+	// fetch time, which is what makes a later diff against the same source
+	// possible at all.
 	config := map[string]any{}
 	if imported.origin != nil {
-		config["origin"] = imported.origin
+		config["origin"] = imported.originWithDigest(time.Now())
 	}
 	name := sanitizeNullBytes(imported.name)
 

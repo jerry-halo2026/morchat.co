@@ -154,7 +154,6 @@ func TestCreateMikaAgent_AvatarIsAnAoraSpec(t *testing.T) {
 	}
 }
 
-
 // TestComposeMikaInstructions covers the layering contract: the product half
 // always leads, workspace notes are labelled with their provenance, and an
 // empty second layer adds nothing — including the section heading that

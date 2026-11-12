@@ -2,10 +2,13 @@ package handler
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -22,14 +25,33 @@ import (
 // copies, or a hand-edited origin whose source_url no longer matches its type.
 var errSkillNotRefreshable = errors.New("this skill was not imported from a refreshable source (GitHub, skills.sh, or ClawHub)")
 
+// Keys written into skill.config.origin (a JSONB object) beside the
+// source-specific fields. The skill table has no version or digest column, so
+// these are the only record of which upstream bytes a skill was built from.
+const (
+	skillOriginSHA256Key    = "sha256"
+	skillOriginFetchedAtKey = "fetched_at"
+)
+
+// skillContentPath is the relative path of a skill's main document inside its
+// bundle. The content repository's catalog generator hashes it as an ordinary
+// file entry, so the local digest must too.
+const skillContentPath = "SKILL.md"
+
 // skillOriginRef is the minimal provenance needed to re-run an import.
 type skillOriginRef struct {
 	Type      string
 	SourceURL string
+	// SHA256 is the content fingerprint recorded at the last import/refresh.
+	// Empty for skills imported before fingerprints were recorded.
+	SHA256 string
+	// FetchedAt is when that fingerprint was recorded, RFC 3339 in UTC.
+	FetchedAt string
 }
 
-// parseSkillOrigin extracts config.origin.{type,source_url} from a skill's
-// JSONB config blob. ok is false when config has no decodable origin object.
+// parseSkillOrigin extracts config.origin.{type,source_url,sha256,fetched_at}
+// from a skill's JSONB config blob. ok is false when config has no decodable
+// origin object.
 func parseSkillOrigin(config []byte) (skillOriginRef, bool) {
 	if len(config) == 0 {
 		return skillOriginRef{}, false
@@ -38,6 +60,8 @@ func parseSkillOrigin(config []byte) (skillOriginRef, bool) {
 		Origin struct {
 			Type      string `json:"type"`
 			SourceURL string `json:"source_url"`
+			SHA256    string `json:"sha256"`
+			FetchedAt string `json:"fetched_at"`
 		} `json:"origin"`
 	}
 	if err := json.Unmarshal(config, &decoded); err != nil {
@@ -49,7 +73,55 @@ func parseSkillOrigin(config []byte) (skillOriginRef, bool) {
 	return skillOriginRef{
 		Type:      decoded.Origin.Type,
 		SourceURL: strings.TrimSpace(decoded.Origin.SourceURL),
+		SHA256:    strings.ToLower(strings.TrimSpace(decoded.Origin.SHA256)),
+		FetchedAt: strings.TrimSpace(decoded.Origin.FetchedAt),
 	}, true
+}
+
+// skillBundleDigest hashes a skill bundle the way the preset content
+// repository's catalog generator does (index.json `hashAlgorithm`): every file
+// fed as relPath NUL content NUL, in relative-path order. SKILL.md is the entry
+// at "SKILL.md", so a locally imported bundle and a catalog entry describe the
+// same bytes with the same digest.
+func skillBundleDigest(files map[string]string) string {
+	paths := make([]string, 0, len(files))
+	for path := range files {
+		paths = append(paths, path)
+	}
+	sort.Strings(paths)
+
+	h := sha256.New()
+	for _, path := range paths {
+		h.Write([]byte(path))
+		h.Write([]byte{0})
+		h.Write([]byte(files[path]))
+		h.Write([]byte{0})
+	}
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+// skillBundleFiles flattens an imported bundle into the path -> content map the
+// digest and the source diff both work on.
+func (s *importedSkill) skillBundleFiles() map[string]string {
+	files := make(map[string]string, len(s.files)+1)
+	files[skillContentPath] = s.content
+	for _, f := range s.files {
+		files[f.path] = f.content
+	}
+	return files
+}
+
+// originWithDigest returns the imported bundle's provenance stamped with the
+// content fingerprint and the fetch time. Copied rather than mutated so the
+// caller's imported.origin keeps describing the source instead of the write.
+func (s *importedSkill) originWithDigest(fetchedAt time.Time) map[string]any {
+	origin := make(map[string]any, len(s.origin)+2)
+	for key, value := range s.origin {
+		origin[key] = value
+	}
+	origin[skillOriginSHA256Key] = skillBundleDigest(s.skillBundleFiles())
+	origin[skillOriginFetchedAtKey] = fetchedAt.UTC().Format(time.RFC3339)
+	return origin
 }
 
 // refreshableOriginSource maps a stored origin type onto the importSource its
@@ -94,10 +166,11 @@ func fetchImportedSkillFromOrigin(ctx context.Context, httpClient *http.Client, 
 }
 
 // mergeSkillConfigOrigin rewrites only the origin key of a skill's config,
-// preserving any other keys a user may have set via the API or CLI. This is
-// deliberately narrower than the import-overwrite path, which replaces config
-// wholesale: refresh touches provenance, not user configuration.
-func mergeSkillConfigOrigin(existingConfig []byte, origin map[string]any) map[string]any {
+// preserving any other keys a user may have set via the API or CLI, and stamps
+// the refreshed bundle's content fingerprint and fetch time into that origin.
+// This is deliberately narrower than the import-overwrite path, which replaces
+// config wholesale: refresh touches provenance, not user configuration.
+func mergeSkillConfigOrigin(existingConfig []byte, imported *importedSkill) map[string]any {
 	config := map[string]any{}
 	if len(existingConfig) > 0 {
 		var decoded map[string]any
@@ -105,8 +178,8 @@ func mergeSkillConfigOrigin(existingConfig []byte, origin map[string]any) map[st
 			config = decoded
 		}
 	}
-	if origin != nil {
-		config["origin"] = origin
+	if imported != nil && imported.origin != nil {
+		config["origin"] = imported.originWithDigest(time.Now())
 	}
 	return config
 }
@@ -181,7 +254,7 @@ func (h *Handler) RefreshSkill(w http.ResponseWriter, r *http.Request) {
 		},
 		Description: imported.description,
 		Content:     imported.content,
-		Config:      mergeSkillConfigOrigin(skill.Config, imported.origin),
+		Config:      mergeSkillConfigOrigin(skill.Config, imported),
 		Files:       importedSkillFileRequests(imported),
 	})
 	if err != nil {

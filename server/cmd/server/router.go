@@ -2539,6 +2539,11 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 					r.Put("/", h.UpdateSkill)
 					r.Delete("/", h.DeleteSkill)
 					r.Post("/refresh", h.RefreshSkill)
+					// Read-only upgrade review: re-fetches the origin and
+					// reports the per-file delta without writing. RefreshSkill
+					// keeps its unconditional overwrite; this is the step a
+					// caller puts in front of it.
+					r.Get("/diff-from-source", h.DiffSkillFromSource)
 					r.Get("/labels", h.ListLabelsForSkill)
 					r.Post("/labels", h.AttachLabelToSkill)
 					r.Delete("/labels/{labelId}", h.DetachLabelFromSkill)

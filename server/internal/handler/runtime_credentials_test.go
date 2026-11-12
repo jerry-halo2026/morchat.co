@@ -53,12 +53,12 @@ type credentialFakeGateway struct {
 func newCredentialFakeGateway(t *testing.T) (*credentialFakeGateway, *httptest.Server) {
 	t.Helper()
 	fake := &credentialFakeGateway{
-		usernames: map[string]int64{},
+		usernames:      map[string]int64{},
 		passwords:      map[int64]string{},
 		creditByUserID: map[int64]int64{},
-		tokens:    map[int64]string{},
-		live:      map[int64]string{},
-		nextID:    500,
+		tokens:         map[int64]string{},
+		live:           map[int64]string{},
+		nextID:         500,
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/user/", func(w http.ResponseWriter, r *http.Request) {

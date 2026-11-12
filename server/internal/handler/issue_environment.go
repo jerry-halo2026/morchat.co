@@ -21,7 +21,7 @@ const (
 	// that has not been seen for a few minutes is on a machine that went away.
 	issueEnvironmentUnreachableAfter = 3 * time.Minute
 	// Ended environments stay listed this long so the sidebar can show what ran.
-	issueEnvironmentHistoryWindow = 7 * 24 * time.Hour
+	issueEnvironmentHistoryWindow   = 7 * 24 * time.Hour
 	maxIssueEnvironmentsPerSnapshot = 50
 )
 

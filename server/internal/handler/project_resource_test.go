@@ -224,12 +224,12 @@ func TestIsValidGitRepoURL(t *testing.T) {
 		"",
 		"not-a-url",
 		"github.com/jerry-halo2026/morchat.co", // no scheme, no scp-style colon
-		"https://",                      // empty host
-		"git@github.com",                // missing :path
-		"git@:foo/bar",                  // missing host
-		"git@github.com:",               // missing path
-		"ftp://example.com/repo",        // unsupported scheme
-		"file:///tmp/repo",              // unsupported scheme
+		"https://",                             // empty host
+		"git@github.com",                       // missing :path
+		"git@:foo/bar",                         // missing host
+		"git@github.com:",                      // missing path
+		"ftp://example.com/repo",               // unsupported scheme
+		"file:///tmp/repo",                     // unsupported scheme
 		"some random text with spaces",
 		"github.com:org/repo@branch", // '@' after ':' belongs to the path, not user
 		"foo:bar@baz",                // '@' after ':' with no scheme

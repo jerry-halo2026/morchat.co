@@ -457,7 +457,7 @@ func (a *RuntimeCredentialAPI) configuredReason() string {
 // writeNotConfigured is the documented 503. It runs before any database access
 // so an unconfigured deployment writes nothing.
 func (a *RuntimeCredentialAPI) writeNotConfigured(w http.ResponseWriter) {
-		slog.Warn("runtime credentials: not configured", "reason", a.configuredReason())
+	slog.Warn("runtime credentials: not configured", "reason", a.configuredReason())
 	writeErrorCode(w, http.StatusServiceUnavailable, "gateway_not_configured",
 		"company model gateway is not configured on this deployment")
 }
