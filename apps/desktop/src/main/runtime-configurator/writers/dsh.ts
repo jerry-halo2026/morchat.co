@@ -57,19 +57,22 @@ export function renderDshRegion(input: WriterInput): string {
   // carries `api` / `baseURL` / `apiKeyEnv` / `models`. `apiKeyEnv` is only a
   // credential *reference*, so this file never holds a key. The older guess of
   // a top-level `llm-<provider>:` mapping does not exist in the harness.
+  // The shape the harness actually loads. Verified with
+  // `dsh --profile multica --dump-config`, which shows `llm-deepseek` carrying
+  // `baseURL` and `apiKeyEnv`; the api-key plugin registers the same provider id as
+  // the account plugin, so model ids stay `deepseek-official/<model>`.
   const body = [
-    "# Provider entry for the morechat relay, mounted through dsh-llm-pi-ai.",
-    "# The key itself is an env credential-ref, never a literal here.",
-    `- id: llm-pi-ai-${DSH_PROVIDER_ID}`,
-    "  name: '@deepseek-ai/dsh-llm-pi-ai'",
+    "# Provider entry for the morechat relay. The key is an env credential-ref:",
+    "# its value lives in the harness credential store, never in this file.",
+    "- id: llm-deepseek",
     "  config:",
-    "    providers:",
-    `      ${DSH_PROVIDER_ID}:`,
-    "        api: openai-completions",
-    `        baseURL: ${yamlScalar(provider.baseUrl)}`,
-    `        apiKeyEnv: ${yamlScalar(envKey)}`,
-    "        models:",
-    `          - id: ${yamlScalar(provider.defaultModel)}`,
+    `    baseURL: ${yamlScalar(provider.baseUrl)}`,
+    `    apiKeyEnv: ${yamlScalar(envKey)}`,
+    "    models:",
+    `      - id: ${yamlScalar(provider.defaultModel)}`,
+    `        name: ${yamlScalar(provider.defaultModel)}`,
+    "        contextWindow: 131072",
+    "        maxTokens: 8192",
   ].join("\n");
   const rendered = wrapRegion(body);
   assertNoSecretLiteral(rendered);
@@ -83,7 +86,7 @@ function yamlScalar(value: string): string {
 }
 
 function pluginId(): string {
-  return `llm-pi-ai-${DSH_PROVIDER_ID}`;
+  return "llm-deepseek";
 }
 
 /** Our plugin entry inside the patch sequence, if it is still there. */
@@ -101,9 +104,7 @@ function findProviderEntry(document: unknown): Record<string, unknown> | null {
  */
 function readPlannedDshValues(content: string): Map<string, unknown> {
   const entry = findProviderEntry(parseYaml(content));
-  const provider = isYamlRecord(entry?.config)
-    ? readYamlPath(entry.config, ["providers", DSH_PROVIDER_ID])
-    : undefined;
+  const provider = isYamlRecord(entry?.config) ? entry.config : undefined;
   const models = isYamlRecord(provider) ? provider["models"] : undefined;
   const firstModel = Array.isArray(models) ? models[0] : undefined;
   return new Map<string, unknown>([
@@ -161,6 +162,7 @@ export const dshWriter: RuntimeTargetWriter = {
       try {
         document = parseYaml(landed.content);
       } catch (err) {
+
         failures.push({
           code: "unparsable",
           path: plannedFile.path,
@@ -180,14 +182,15 @@ export const dshWriter: RuntimeTargetWriter = {
       }
 
       const plannedValues = readPlannedDshValues(plannedFile.content);
-      const provider = isYamlRecord(entry.config)
-        ? readYamlPath(entry.config, ["providers", DSH_PROVIDER_ID])
-        : undefined;
+      // The provider's own config object: `llm-deepseek` takes baseURL/apiKeyEnv
+      // directly, which is the shape the harness documents and what
+      // `--dump-config` shows for a working profile.
+      const provider = isYamlRecord(entry.config) ? entry.config : undefined;
       if (!isYamlRecord(provider)) {
         failures.push({
           code: "field-mismatch",
           path: plannedFile.path,
-          field: `config.providers.${DSH_PROVIDER_ID}`,
+          field: "config",
         });
         continue;
       }
