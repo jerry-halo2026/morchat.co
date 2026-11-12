@@ -362,11 +362,45 @@ func (c *Client) MintToken(ctx context.Context, userID, deviceID string, models 
 	if looked.ID == 0 {
 		return Token{}, fmt.Errorf("%w: mint token: token %q not readable after create", ErrGatewayRejected, name)
 	}
-	if looked.Key == "" {
-		return Token{}, fmt.Errorf("%w: mint token: gateway returned no key for %q", ErrGatewayRejected, name)
+	// Every read path masks the key ("1oAg**********L2Pk"), so the value from the
+	// search above is not usable as a credential. new-api keeps the plaintext
+	// behind POST /api/token/{id}/key, which is what its own panel copies from.
+	revealed, revealErr := c.revealTokenKey(ctx, looked.ID)
+	if revealErr != nil {
+		return Token{}, revealErr
 	}
+	looked.Key = revealed
 	looked.Name = name
 	return looked, nil
+}
+
+// revealTokenKey asks the gateway for one token's plaintext key.
+//
+// This is the only call that returns a usable credential on current new-api
+// builds: list and search answer with the key masked, and the create response
+// carries no key at all. The value is returned to the caller and never logged.
+func (c *Client) revealTokenKey(ctx context.Context, tokenID int64) (string, error) {
+	status, body, err := c.do(ctx, http.MethodPost, fmt.Sprintf("/api/token/%d/key", tokenID), nil)
+	if err != nil {
+		return "", err
+	}
+	if status < 200 || status >= 300 {
+		return "", classify("reveal token key", status)
+	}
+	var envelope struct {
+		Success bool `json:"success"`
+		Data    struct {
+			Key string `json:"key"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(body, &envelope); err != nil || !envelope.Success {
+		return "", fmt.Errorf("%w: reveal token key: unreadable answer", ErrGatewayRejected)
+	}
+	key := strings.TrimSpace(envelope.Data.Key)
+	if key == "" || strings.Contains(key, "*") {
+		return "", fmt.Errorf("%w: reveal token key: gateway answered a masked value", ErrGatewayRejected)
+	}
+	return key, nil
 }
 
 // findToken resolves a token by exact name. Used only when a create response
