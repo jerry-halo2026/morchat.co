@@ -208,10 +208,18 @@ func (c *Client) DefaultQuota() int64 {
 }
 
 // Username is the gateway login name for one Multica user. Stable across
-// devices so every device's token hangs off a single gateway account, which is
+// devices so every device's token hangs on a single gateway account, which is
 // what makes "disable the user" a viable kill switch (plan §3.4).
+//
+// new-api validates this field with a maximum length that a full UUID does not
+// fit, and rejects the whole account with "Field validation for 'Username'
+// failed on the 'max' tag" at HTTP 200 - an error a create-then-search retry
+// cannot recover from. Twelve hex characters of the id keep the name well under
+// the cap while staying stable, collision-resistant and traceable back to the
+// user it belongs to.
 func Username(userID string) string {
-	return "morechat:" + strings.ToLower(strings.TrimSpace(userID))
+	sum := sha256.Sum256([]byte(strings.ToLower(strings.TrimSpace(userID))))
+	return "mc" + hex.EncodeToString(sum[:])[:12]
 }
 
 // TokenName is the gateway token name for one (user, device) pair:
@@ -240,10 +248,10 @@ func (c *Client) EnsureUser(ctx context.Context, userID string) (User, error) {
 	if !c.Configured() {
 		return User{}, ErrNotConfigured
 	}
-	username := Username(userID)
-	if username == "morechat:" {
+	if strings.TrimSpace(userID) == "" {
 		return User{}, fmt.Errorf("%w: empty user id", ErrGatewayRejected)
 	}
+	username := Username(userID)
 	password, err := randomPassword()
 	if err != nil {
 		return User{}, fmt.Errorf("%w: generate password: %v", ErrGatewayUnavailable, err)
@@ -605,8 +613,15 @@ func parseMintedToken(body []byte) Token {
 	return Token{}
 }
 
+// randomPassword is the throwaway credential behind a gateway login. Nobody signs
+// in with it; it exists because new-api requires one when creating an account.
+//
+// Sixteen hex characters, not more: new-api validates the field with a maximum
+// length and answers a longer value with
+// "Field validation for 'Password' failed on the 'max' tag" at HTTP 200, which is
+// indistinguishable from success to a caller that only reads the status code.
 func randomPassword() (string, error) {
-	buf := make([]byte, 24)
+	buf := make([]byte, 8)
 	if _, err := rand.Read(buf); err != nil {
 		return "", err
 	}

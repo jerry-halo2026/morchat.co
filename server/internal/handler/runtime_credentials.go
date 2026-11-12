@@ -423,12 +423,41 @@ func (a *RuntimeCredentialAPI) Delete(w http.ResponseWriter, r *http.Request) {
 // ---- helpers ------------------------------------------------------------
 
 func (a *RuntimeCredentialAPI) configured() bool {
-	return a != nil && a.h != nil && a.gw != nil && a.gw.Configured()
+	ok := a != nil && a.h != nil && a.gw != nil && a.gw.Configured()
+	if !ok {
+		slog.Warn("runtime credentials: configured() false",
+			"api", a != nil,
+			"handler", a != nil && a.h != nil,
+			"gw", a != nil && a.gw != nil,
+			"base", a != nil && a.gw != nil && a.gw.BaseURL() != "",
+			"reason", a.configuredReason())
+	}
+	return ok
+}
+
+// configuredReason names the half that is missing when configured() is false, so a
+// 503 in the log does not send the next reader back into the environment.
+func (a *RuntimeCredentialAPI) configuredReason() string {
+	switch {
+	case a == nil:
+		return "api nil"
+	case a.h == nil:
+		return "handler nil"
+	case a.gw == nil:
+		return "gateway client nil"
+	case a.gw.BaseURL() == "":
+		return "gateway base url missing"
+	case !a.gw.Configured():
+		return "gateway admin token missing"
+	default:
+		return "configured"
+	}
 }
 
 // writeNotConfigured is the documented 503. It runs before any database access
 // so an unconfigured deployment writes nothing.
 func (a *RuntimeCredentialAPI) writeNotConfigured(w http.ResponseWriter) {
+		slog.Warn("runtime credentials: not configured", "reason", a.configuredReason())
 	writeErrorCode(w, http.StatusServiceUnavailable, "gateway_not_configured",
 		"company model gateway is not configured on this deployment")
 }
@@ -440,6 +469,9 @@ func (a *RuntimeCredentialAPI) writeNotConfigured(w http.ResponseWriter) {
 func (a *RuntimeCredentialAPI) writeGatewayFailure(ctx context.Context, w http.ResponseWriter, op, userID string, err error) {
 	detail := err.Error()
 	if errors.Is(err, gateway.ErrNotConfigured) {
+		slog.WarnContext(ctx, "runtime credential gateway not configured",
+			"op", op, "user_id", userID, "err", redact.Text(detail),
+			"client_configured", a.gw != nil && a.gw.Configured())
 		a.writeNotConfigured(w)
 		return
 	}

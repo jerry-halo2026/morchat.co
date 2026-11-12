@@ -94,7 +94,7 @@ func (f *fakeGateway) handleUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"success":false,"message":"bad json"}`, http.StatusBadRequest)
 		return
 	}
-	if !strings.HasPrefix(body.Username, "morechat:") || len(body.Password) == 0 {
+	if !strings.HasPrefix(body.Username, "mc") || len(body.Username) > 20 || len(body.Password) == 0 {
 		http.Error(w, `{"success":false,"message":"bad username"}`, http.StatusBadRequest)
 		return
 	}
@@ -337,7 +337,7 @@ func TestEnsureUserIsIdempotentAcrossDuplicateAnswers(t *testing.T) {
 	if first.ID == 0 || first.ID != second.ID {
 		t.Fatalf("EnsureUser ids = %d/%d, want the same positive id (create answers success=false on duplicate)", first.ID, second.ID)
 	}
-	if want := "morechat:" + testUserUUID; first.Username != want {
+	if want := Username(testUserUUID); first.Username != want {
 		t.Fatalf("username = %q, want %q", first.Username, want)
 	}
 	if got := len(fake.usernames); got != 1 {
