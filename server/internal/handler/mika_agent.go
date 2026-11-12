@@ -204,7 +204,7 @@ func (h *Handler) resolveMikaAgent(w http.ResponseWriter, r *http.Request, works
 		AvatarUrl:          pgtype.Text{String: mikaAgentAvatarURL, Valid: true},
 		RuntimeMode:        runtime.RuntimeMode,
 		RuntimeID:          runtime.ID,
-		Model:              pgtype.Text{String: strings.TrimSpace(req.Model), Valid: strings.TrimSpace(req.Model) != ""},
+		Model:              newAgentModel(runtime.Provider, req.Model),
 		Visibility:         mikaAgentVisibility,
 		PermissionMode:     mikaAgentPermissionMode,
 		MaxConcurrentTasks: mikaAgentMaxConcurrency,

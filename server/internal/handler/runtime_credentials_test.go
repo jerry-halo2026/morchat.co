@@ -24,6 +24,8 @@ import (
 // anything", and "did the key reach a log line" — none of which a mocked
 // repository layer can answer honestly.
 
+const credentialTestServerSecret = "credential-test-server-secret"
+
 const credentialTestAdmin = "gateway-admin-token"
 
 // credentialFakeGateway is a stand-in new-api admin API. It records what the
@@ -32,6 +34,7 @@ const credentialTestAdmin = "gateway-admin-token"
 type credentialFakeGateway struct {
 	mu        sync.Mutex
 	usernames map[string]int64
+	passwords map[int64]string
 	tokens    map[int64]string
 	live      map[int64]string
 	revoked   []int64
@@ -49,6 +52,7 @@ func newCredentialFakeGateway(t *testing.T) (*credentialFakeGateway, *httptest.S
 	t.Helper()
 	fake := &credentialFakeGateway{
 		usernames: map[string]int64{},
+		passwords: map[int64]string{},
 		tokens:    map[int64]string{},
 		live:      map[int64]string{},
 		nextID:    500,
@@ -56,10 +60,22 @@ func newCredentialFakeGateway(t *testing.T) (*credentialFakeGateway, *httptest.S
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/user/", func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
+			ID       int64  `json:"id"`
 			Username string `json:"username"`
+			Password string `json:"password"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			http.Error(w, `{"success":false}`, http.StatusBadRequest)
+			return
+		}
+		// The client re-derives each gateway login's password and resets it through
+		// this route, so the fake has to accept a PUT and remember the value.
+		if r.Method == http.MethodPut {
+			fake.mu.Lock()
+			fake.passwords[body.ID] = body.Password
+			fake.mu.Unlock()
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprint(w, `{"success":true}`)
 			return
 		}
 		fake.mu.Lock()
@@ -72,8 +88,31 @@ func newCredentialFakeGateway(t *testing.T) (*credentialFakeGateway, *httptest.S
 		}
 		fake.nextID++
 		fake.usernames[body.Username] = fake.nextID
+		fake.passwords[fake.nextID] = body.Password
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, `{"success":true,"data":{"id":%d,"username":%q}}`, fake.nextID, body.Username)
+	})
+	mux.HandleFunc("/api/user/login", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, `{"success":false}`, http.StatusBadRequest)
+			return
+		}
+		fake.mu.Lock()
+		id, ok := fake.usernames[body.Username]
+		stored := fake.passwords[id]
+		fake.mu.Unlock()
+		if !ok || (stored != "" && stored != body.Password) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			fmt.Fprint(w, `{"success":false,"message":"invalid password"}`)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, `{"success":true,"data":{"id":%d,"access_token":"utok-%d"}}`, id, id)
 	})
 	mux.HandleFunc("/api/user/search", func(w http.ResponseWriter, r *http.Request) {
 		keyword := r.URL.Query().Get("keyword")
@@ -176,6 +215,9 @@ func credentialTestAPI(t *testing.T, srv *httptest.Server, configure bool) *Runt
 		cfg.AdminToken = credentialTestAdmin
 		cfg.DefaultModels = []string{"claude-sonnet-4-5"}
 		cfg.DefaultQuota = 4242
+		// Required since gateway logins are derived from it; without one every
+		// credential call answers gateway_not_configured.
+		cfg.ServerSecret = credentialTestServerSecret
 	}
 	return NewRuntimeCredentialAPI(testHandler, gateway.New(cfg))
 }

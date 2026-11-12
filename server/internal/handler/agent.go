@@ -1704,7 +1704,7 @@ func (h *Handler) CreateAgent(w http.ResponseWriter, r *http.Request) {
 		CustomEnv:                ce,
 		CustomArgs:               ca,
 		McpConfig:                mc,
-		Model:                    pgtype.Text{String: req.Model, Valid: req.Model != ""},
+		Model:                    newAgentModel(runtime.Provider, req.Model),
 		ThinkingLevel:            pgtype.Text{String: req.ThinkingLevel, Valid: req.ThinkingLevel != ""},
 		ServiceTier:              pgtype.Text{String: req.ServiceTier, Valid: req.ServiceTier != ""},
 		ConversationStarters:     sp,

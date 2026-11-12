@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jerry-halo2026/morchat.co/server/internal/service"
+	agentpkg "github.com/jerry-halo2026/morchat.co/server/pkg/agent"
 	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
@@ -223,5 +224,51 @@ func TestSystemInstructionsFor_OnlySystemAgents(t *testing.T) {
 		if got := systemInstructionsFor(ordinary); got != "" {
 			t.Fatalf("non-Mika agent must expose no system instructions, got %q", got)
 		}
+	}
+}
+
+// TestCreateMikaAgent_StoresTheDSHGatewayModel is the end-to-end half of
+// newAgentModel: onboarding on a DSH runtime must persist a model the `multica`
+// profile can actually run. Leaving agent.model empty made the daemon resolve
+// the profile's account route instead, and `deepseek-account/*` has no adapter
+// there, so Mika failed at launch with "no adapter registered for provider".
+func TestCreateMikaAgent_StoresTheDSHGatewayModel(t *testing.T) {
+	cleanupMika(t)
+	t.Setenv(agentpkg.DshDefaultModelEnv, "")
+
+	var runtimeID string
+	if err := testPool.QueryRow(context.Background(), `
+		INSERT INTO agent_runtime (
+			workspace_id, daemon_id, name, runtime_mode, provider, status, device_info, metadata, owner_id, last_seen_at
+		)
+		VALUES ($1, NULL, $2, 'cloud', $3, 'online', 'dsh test runtime', '{}'::jsonb, $4, now())
+		RETURNING id
+	`, testWorkspaceID, "DSH Test Runtime", agentpkg.DshProviderID, testUserID).Scan(&runtimeID); err != nil {
+		t.Fatalf("seed dsh runtime: %v", err)
+	}
+	t.Cleanup(func() {
+		testPool.Exec(context.Background(), `DELETE FROM agent_runtime WHERE id = $1`, runtimeID)
+	})
+
+	w := createMika(t, map[string]any{"runtime_id": runtimeID, "language": "en"})
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d: %s", w.Code, w.Body.String())
+	}
+	resp := decodeAgent(t, w)
+	if resp.Model != agentpkg.DshDefaultModelID {
+		t.Fatalf("response model = %q, want %q", resp.Model, agentpkg.DshDefaultModelID)
+	}
+	if !strings.HasPrefix(resp.Model, "morechat/") {
+		t.Fatalf("Mika must default to the company gateway route, got %q", resp.Model)
+	}
+
+	// The row is what the daemon reads at launch, so assert on the column too.
+	var stored string
+	if err := testPool.QueryRow(context.Background(),
+		`SELECT model FROM agent WHERE id = $1`, resp.ID).Scan(&stored); err != nil {
+		t.Fatalf("load agent model: %v", err)
+	}
+	if stored != agentpkg.DshDefaultModelID {
+		t.Fatalf("stored model = %q, want %q", stored, agentpkg.DshDefaultModelID)
 	}
 }

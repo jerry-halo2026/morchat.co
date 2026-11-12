@@ -2,26 +2,33 @@
 // (new-api). It is the ONLY place in the server that holds the gateway admin
 // token and the only place that ever sees a freshly minted token key.
 //
-// Two rules shape this file:
+// Three rules shape this file:
 //
 //  1. The upstream provider key (T0) is invisible here. We speak to the
-//     gateway's *admin* API — create a login, mint a per-person token, revoke
-//     it — and nothing else. See docs/plans/RUNTIME-CONFIGURATOR.md §1.2.
+//     gateway's *admin* API — create a login, reset its password, revoke a
+//     token — and nothing else. See docs/plans/RUNTIME-CONFIGURATOR.md §1.2.
 //  2. A minted key is returned to the caller in memory and never logged,
 //     retried into a body dump, or wrapped into an error string. Callers store
 //     it encrypted and forget it. Redaction is the caller's job, but nothing
 //     here gives it a reason to be needed.
+//  3. Minting happens under the *user's own* gateway session, not the admin's.
+//     new-api hangs a token on whoever the Authorization header names, so an
+//     admin-minted token would belong to the admin and every employee's key
+//     would pile up on one account. EnsureUser therefore derives a deterministic
+//     password (GatewayPassword), resets the login to it, and every token call
+//     signs in as the user first. See docs/tasks/GATEWAY-CREDENTIAL-LINK.md.
 //
-// Configuration is two env vars — NEWAPI_BASE_URL and NEWAPI_ADMIN_TOKEN.
-// Missing either means the feature is simply not deployed: Configured()
-// reports false and every endpoint degrades to "gateway_not_configured"
-// instead of dialing a hard-coded host.
+// Configuration is four env vars — NEWAPI_BASE_URL, NEWAPI_ADMIN_TOKEN,
+// NEWAPI_ADMIN_USER_ID and MULTICA_VCS_SECRET_KEY. Missing the first two means
+// the feature is simply not deployed: Configured() reports false and every
+// endpoint degrades to "gateway_not_configured" instead of dialing a hard-coded
+// host. Missing the secret means no login password can be derived, which fails
+// the same way rather than minting under the admin by accident.
 package gateway
 
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -33,6 +40,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -55,7 +63,22 @@ const (
 	// EnvDefaultQuota is the per-token quota handed to the gateway. new-api
 	// quota units; 0 means unlimited.
 	EnvDefaultQuota = "NEWAPI_DEFAULT_QUOTA"
+	// EnvServerSecret is the deployment secret the gateway login password is
+	// derived from. It is the same key the server already holds for VCS and
+	// credential-at-rest, so a deployment that can store a credential can also
+	// sign in as the account that owns it. Never logged, never sent anywhere.
+	EnvServerSecret = "MULTICA_VCS_SECRET_KEY"
 )
+
+// sessionTTL is how long a signed-in user session is reused. A login costs two
+// round trips (ensure user + login) and every mint or revoke would otherwise pay
+// for it. Short on purpose: a password reset elsewhere or a revoked session must
+// not stand in for authentication for long.
+const sessionTTL = 30 * time.Minute
+
+// gatewayPasswordDomain separates this derivation from anything else the
+// deployment secret might be used for.
+const gatewayPasswordDomain = ":gateway-password:"
 
 // DefaultQuota is applied when NEWAPI_DEFAULT_QUOTA is unset. 500_000 quota
 // units is the new-api default for a subscription user and is deliberately
@@ -91,6 +114,10 @@ type Config struct {
 	AdminToken string
 	// AdminUserID, when non-empty, is sent as the New-Api-User header.
 	AdminUserID string
+	// ServerSecret is the deployment secret gateway login passwords are derived
+	// from (EnvServerSecret). Required for any operation that has to act as a
+	// user; never logged.
+	ServerSecret string
 	// Timeout bounds one call; zero selects DefaultTimeout.
 	Timeout time.Duration
 	// DefaultModels is used when MintToken receives no allowlist.
@@ -107,9 +134,25 @@ type Client struct {
 	baseURL      string
 	adminToken   string
 	adminUserID  string
+	serverSecret string
 	defaultModel []string
 	defaultQuota int64
 	httpClient   *http.Client
+
+	// mu guards the two pieces of per-process memory: the signed-in session of
+	// each user, and which user this process minted a token for (so revocation
+	// can delete it under its owner rather than under the admin).
+	mu       sync.Mutex
+	sessions map[string]session
+	owners   map[int64]string
+}
+
+// session is a signed-in gateway user: its own access token and the account id
+// that token authenticates as. The token is a credential: in memory only.
+type session struct {
+	token  string
+	userID int64
+	expiry time.Time
 }
 
 // User is the gateway-side login a user's tokens are minted under.
@@ -140,6 +183,7 @@ func FromEnv() *Client {
 		BaseURL:       os.Getenv(EnvBaseURL),
 		AdminToken:    os.Getenv(EnvAdminToken),
 		AdminUserID:   os.Getenv(EnvAdminUserID),
+		ServerSecret:  os.Getenv(EnvServerSecret),
 		DefaultModels: splitList(os.Getenv(EnvDefaultModels)),
 		DefaultQuota:  quota,
 	})
@@ -162,9 +206,12 @@ func New(cfg Config) *Client {
 		baseURL:      strings.TrimRight(strings.TrimSpace(cfg.BaseURL), "/"),
 		adminToken:   strings.TrimSpace(cfg.AdminToken),
 		adminUserID:  strings.TrimSpace(cfg.AdminUserID),
+		serverSecret: strings.TrimSpace(cfg.ServerSecret),
 		defaultModel: normalizeModels(cfg.DefaultModels),
 		defaultQuota: cfg.DefaultQuota,
 		httpClient:   client,
+		sessions:     map[string]session{},
+		owners:       map[int64]string{},
 	}
 }
 
@@ -207,6 +254,13 @@ func (c *Client) DefaultQuota() int64 {
 	return c.defaultQuota
 }
 
+// normalizeUserID is the canonical form of a Multica user id for every gateway
+// name and password derivation: trimmed and lowercased, so the same account is
+// addressed whether an id arrives from a header, a UUID column or a client.
+func normalizeUserID(userID string) string {
+	return strings.ToLower(strings.TrimSpace(userID))
+}
+
 // Username is the gateway login name for one Multica user. Stable across
 // devices so every device's token hangs on a single gateway account, which is
 // what makes "disable the user" a viable kill switch (plan §3.4).
@@ -218,32 +272,49 @@ func (c *Client) DefaultQuota() int64 {
 // the cap while staying stable, collision-resistant and traceable back to the
 // user it belongs to.
 func Username(userID string) string {
-	sum := sha256.Sum256([]byte(strings.ToLower(strings.TrimSpace(userID))))
+	sum := sha256.Sum256([]byte(normalizeUserID(userID)))
 	return "mc" + hex.EncodeToString(sum[:])[:12]
 }
 
-// TokenName is the gateway token name for one (user, device) pair:
-// mul:<uid8>:<dev8>. uid8 is the first 8 hex characters of the user UUID, so a
-// log line can be traced back to a person; dev8 is the first 8 hex characters
-// of sha256(device_id), because the raw device id is client-supplied and may
-// contain characters the gateway's name field (or a log line) should not carry.
-func TokenName(userID, deviceID string) string {
-	uid := strings.ToLower(strings.TrimSpace(userID))
-	uid = strings.ReplaceAll(uid, "-", "")
-	if len(uid) > 8 {
-		uid = uid[:8]
-	}
-	sum := sha256.Sum256([]byte(strings.TrimSpace(deviceID)))
-	dev := hex.EncodeToString(sum[:])[:8]
-	return "mul:" + uid + ":" + dev
+// GatewayPassword is the login password of one user's gateway account.
+//
+// Deterministic, because the server has to sign in as the account without
+// storing a per-user secret: the same (secret, userID) always derives the same
+// value, so EnsureUser can reset an existing account to it and
+// userAccessToken can replay it. The derivation is one-way, and rotating
+// serverSecret rotates every password on the next EnsureUser.
+//
+// Nineteen characters ("mc-" + 16 hex) because new-api validates this field with
+// a 'max' tag at 20 and answers a longer value with HTTP 200 carrying
+// success=false — a failure indistinguishable from success to a caller that
+// only reads the status code.
+func GatewayPassword(serverSecret, userID string) string {
+	sum := sha256.Sum256([]byte(serverSecret + gatewayPasswordDomain + normalizeUserID(userID)))
+	return "mc-" + hex.EncodeToString(sum[:])[:16]
 }
 
-// EnsureUser creates the gateway login for userID, or returns the existing one.
+// gatewayPassword derives this user's password with the deployment secret, and
+// refuses when there is none: a missing secret must not fall back to anything
+// (a random password nobody records, or the admin's identity) because both end
+// with a credential that does not belong to the user.
+func (c *Client) gatewayPassword(userID string) (string, error) {
+	if c.serverSecret == "" {
+		return "", fmt.Errorf("%w: %s is unset, cannot derive a gateway login password", ErrNotConfigured, EnvServerSecret)
+	}
+	return GatewayPassword(c.serverSecret, userID), nil
+}
+
+// EnsureUser creates the gateway login for userID, or returns the existing one,
+// with its password reset to the derived value either way.
 //
 // Idempotent by construction: create, and if that fails for any reason (409,
 // 400, or new-api's habit of answering 200 with success=false) fall back to an
 // exact-match search by username. A create that races another writer therefore
 // converges on the same account instead of doubling it (plan §3.3).
+//
+// The reset on the existing-account path is not cosmetic: the login that follows
+// is the only way to act as this user, and a token minted under the admin's
+// identity would belong to the admin (see the package comment).
 func (c *Client) EnsureUser(ctx context.Context, userID string) (User, error) {
 	if !c.Configured() {
 		return User{}, ErrNotConfigured
@@ -251,11 +322,11 @@ func (c *Client) EnsureUser(ctx context.Context, userID string) (User, error) {
 	if strings.TrimSpace(userID) == "" {
 		return User{}, fmt.Errorf("%w: empty user id", ErrGatewayRejected)
 	}
-	username := Username(userID)
-	password, err := randomPassword()
+	password, err := c.gatewayPassword(userID)
 	if err != nil {
-		return User{}, fmt.Errorf("%w: generate password: %v", ErrGatewayUnavailable, err)
+		return User{}, err
 	}
+	username := Username(userID)
 
 	status, body, err := c.do(ctx, http.MethodPost, "/api/user/", map[string]any{
 		"username":     username,
@@ -286,9 +357,55 @@ func (c *Client) EnsureUser(ctx context.Context, userID string) (User, error) {
 		return User{}, searchErr
 	}
 	if found.ID > 0 {
+		if err := c.resetPassword(ctx, found, password); err != nil {
+			return User{}, err
+		}
 		return found, nil
 	}
 	return User{}, fmt.Errorf("%w: create user %q: HTTP %d", ErrGatewayRejected, username, status)
+}
+
+// resetPassword sets an existing account's password to the derived value, so the
+// login that follows is possible and repeatable. Admin-scoped on purpose: the
+// account cannot change its own password without already being signed in.
+func (c *Client) resetPassword(ctx context.Context, user User, password string) error {
+	status, body, err := c.do(ctx, http.MethodPut, "/api/user/", map[string]any{
+		"id":           user.ID,
+		"username":     user.Username,
+		"password":     password,
+		"display_name": user.Username,
+		"role":         1,
+	})
+	if err != nil {
+		return err
+	}
+	if status < 200 || status >= 300 {
+		return classify("reset user password", status)
+	}
+	// new-api reports field-validation failures at HTTP 200 with success=false
+	// (a password over 20 characters, for instance). Swallowing that here would
+	// only resurface as a login failure on the next call, with no hint why.
+	if env, ok := decodeEnvelope(body); !ok || !env.Success {
+		return fmt.Errorf("%w: reset user password: gateway refused the update: %s",
+			ErrGatewayRejected, strings.TrimSpace(env.Message))
+	}
+	return nil
+}
+
+// TokenName is the gateway token name for one (user, device) pair:
+// mul:<uid8>:<dev8>. uid8 is the first 8 hex characters of the user UUID, so a
+// log line can be traced back to a person; dev8 is the first 8 hex characters
+// of sha256(device_id), because the raw device id is client-supplied and may
+// contain characters the gateway's name field (or a log line) should not carry.
+func TokenName(userID, deviceID string) string {
+	uid := strings.ToLower(strings.TrimSpace(userID))
+	uid = strings.ReplaceAll(uid, "-", "")
+	if len(uid) > 8 {
+		uid = uid[:8]
+	}
+	sum := sha256.Sum256([]byte(strings.TrimSpace(deviceID)))
+	dev := hex.EncodeToString(sum[:])[:8]
+	return "mul:" + uid + ":" + dev
 }
 
 // findUser resolves an existing login by exact username match. new-api's search
@@ -317,6 +434,10 @@ func (c *Client) findUser(ctx context.Context, username string) (User, error) {
 // plaintext key. The key is in memory only: the caller seals it immediately and
 // the response to the client is the one and only place it is ever emitted.
 //
+// The call is made under the user's own session, so the token belongs to that
+// user's gateway account; minting as the admin would put every employee's key on
+// the admin (see the package comment).
+//
 // expired_time is -1 (never expires) on purpose. The credential is a person's
 // long-lived LLM key, decoupled from the session (plan §1.2); its only exits are
 // rotation and revocation.
@@ -340,7 +461,7 @@ func (c *Client) MintToken(ctx context.Context, userID, deviceID string, models 
 		"model_limits_enabled": len(allow) > 0,
 		"model_limits":         strings.Join(allow, ","),
 	}
-	status, body, err := c.do(ctx, http.MethodPost, "/api/token/", payload)
+	status, body, err := c.asUser(ctx, userID, http.MethodPost, "/api/token/", payload)
 	if err != nil {
 		return Token{}, err
 	}
@@ -350,12 +471,13 @@ func (c *Client) MintToken(ctx context.Context, userID, deviceID string, models 
 	minted := parseMintedToken(body)
 	if minted.Key != "" && minted.ID > 0 {
 		minted.Name = name
+		c.rememberTokenOwner(minted.ID, userID)
 		return minted, nil
 	}
 	// Older new-api builds answer {"success":true} and nothing else. The token
 	// exists now, so look it up by the exact name we just used rather than
 	// reporting a failure the client cannot act on.
-	looked, lookupErr := c.findToken(ctx, name)
+	looked, lookupErr := c.findToken(ctx, userID, name)
 	if lookupErr != nil {
 		return Token{}, lookupErr
 	}
@@ -365,12 +487,13 @@ func (c *Client) MintToken(ctx context.Context, userID, deviceID string, models 
 	// Every read path masks the key ("1oAg**********L2Pk"), so the value from the
 	// search above is not usable as a credential. new-api keeps the plaintext
 	// behind POST /api/token/{id}/key, which is what its own panel copies from.
-	revealed, revealErr := c.revealTokenKey(ctx, looked.ID)
+	revealed, revealErr := c.revealTokenKey(ctx, userID, looked.ID)
 	if revealErr != nil {
 		return Token{}, revealErr
 	}
 	looked.Key = revealed
 	looked.Name = name
+	c.rememberTokenOwner(looked.ID, userID)
 	return looked, nil
 }
 
@@ -379,8 +502,11 @@ func (c *Client) MintToken(ctx context.Context, userID, deviceID string, models 
 // This is the only call that returns a usable credential on current new-api
 // builds: list and search answer with the key masked, and the create response
 // carries no key at all. The value is returned to the caller and never logged.
-func (c *Client) revealTokenKey(ctx context.Context, tokenID int64) (string, error) {
-	status, body, err := c.do(ctx, http.MethodPost, fmt.Sprintf("/api/token/%d/key", tokenID), nil)
+//
+// It runs under the owner's session because the gateway only reveals a token to
+// the account that owns it.
+func (c *Client) revealTokenKey(ctx context.Context, userID string, tokenID int64) (string, error) {
+	status, body, err := c.asUser(ctx, userID, http.MethodPost, fmt.Sprintf("/api/token/%d/key", tokenID), nil)
 	if err != nil {
 		return "", err
 	}
@@ -403,10 +529,12 @@ func (c *Client) revealTokenKey(ctx context.Context, tokenID int64) (string, err
 	return key, nil
 }
 
-// findToken resolves a token by exact name. Used only when a create response
+// findToken resolves a token by exact name, under the owner's session: a token
+// search is scoped to the account asking, so the admin's session would answer
+// "no such token" for everyone else's key. Used only when a create response
 // carries no key/id.
-func (c *Client) findToken(ctx context.Context, name string) (Token, error) {
-	status, body, err := c.do(ctx, http.MethodGet, "/api/token/search?keyword="+url.QueryEscape(name), nil)
+func (c *Client) findToken(ctx context.Context, userID, name string) (Token, error) {
+	status, body, err := c.asUser(ctx, userID, http.MethodGet, "/api/token/search?keyword="+url.QueryEscape(name), nil)
 	if err != nil {
 		return Token{}, err
 	}
@@ -430,9 +558,18 @@ func (c *Client) findToken(ctx context.Context, name string) (Token, error) {
 }
 
 // RevokeToken deletes a token on the gateway. Idempotent: a token that is
-// already gone (404) is a success, because the post-condition the caller wants —
-// "this key no longer works" — already holds.
-func (c *Client) RevokeToken(ctx context.Context, tokenID string) error {
+// already gone (404, or new-api's HTTP 200 with "record not found") is a success,
+// because the post-condition the caller wants — "this key no longer works" —
+// already holds.
+//
+// The owner matters. new-api deletes a token only under the session of the
+// account that owns it; asked as the admin, someone else's token answers "record
+// not found" and stays live. So a revoke runs as the Multica user, taken from
+// userID when the caller knows it (it is stored next to the token it is
+// rotating) and otherwise from what this process minted. A token id this process
+// never saw falls back to the admin identity, which is the only identity
+// available for it.
+func (c *Client) RevokeToken(ctx context.Context, tokenID string, userID ...string) error {
 	if !c.Configured() {
 		return ErrNotConfigured
 	}
@@ -441,7 +578,25 @@ func (c *Client) RevokeToken(ctx context.Context, tokenID string) error {
 		// Nothing was ever minted far enough to have an id; nothing to revoke.
 		return nil
 	}
-	status, _, err := c.do(ctx, http.MethodDelete, "/api/token/"+url.PathEscape(id), nil)
+	owner := ""
+	if len(userID) > 0 {
+		owner = normalizeUserID(userID[0])
+	}
+	numeric, parseErr := strconv.ParseInt(id, 10, 64)
+	if owner == "" && parseErr == nil {
+		owner = c.tokenOwner(numeric)
+	}
+
+	var (
+		status int
+		err    error
+	)
+	path := "/api/token/" + url.PathEscape(id)
+	if owner != "" {
+		status, _, err = c.asUser(ctx, owner, http.MethodDelete, path, nil)
+	} else {
+		status, _, err = c.do(ctx, http.MethodDelete, path, nil)
+	}
 	if err != nil {
 		return err
 	}
@@ -454,10 +609,145 @@ func (c *Client) RevokeToken(ctx context.Context, tokenID string) error {
 	return nil
 }
 
+// asUser performs one call authorized as the Multica user, signing in first if
+// needed. A 401 means the cached session died (password reset elsewhere, session
+// revoked, gateway restarted): drop it, sign in once more and repeat the call.
+// A second 401 is a genuine rejection and is returned as such.
+func (c *Client) asUser(ctx context.Context, userID, method, path string, payload any) (int, []byte, error) {
+	token, gatewayUserID, err := c.userAccessToken(ctx, userID)
+	if err != nil {
+		return 0, nil, err
+	}
+	status, body, err := c.request(ctx, method, path, payload, credentials{token: token, userID: gatewayUserID})
+	if err != nil || status != http.StatusUnauthorized {
+		return status, body, err
+	}
+	c.forgetSession(userID)
+	token, gatewayUserID, err = c.userAccessToken(ctx, userID)
+	if err != nil {
+		return 0, nil, err
+	}
+	return c.request(ctx, method, path, payload, credentials{token: token, userID: gatewayUserID})
+}
+
+// userAccessToken returns a session token for the Multica user's own gateway
+// account, plus the gateway account id it authenticates as.
+//
+// This is what makes a minted token belong to the user: the gateway hangs a
+// token on whoever the Authorization header names, and an admin-minted token
+// would belong to the admin. Signing in is possible without storing a password
+// per user because GatewayPassword is derived from the deployment secret.
+//
+// Sessions are cached per user (sessionTTL). The token is a credential: it is
+// returned to this file's callers and never logged, never wrapped into an error,
+// and never written to a response.
+func (c *Client) userAccessToken(ctx context.Context, userID string) (string, int64, error) {
+	if !c.Configured() {
+		return "", 0, ErrNotConfigured
+	}
+	key := normalizeUserID(userID)
+	if key == "" {
+		return "", 0, fmt.Errorf("%w: empty user id", ErrGatewayRejected)
+	}
+	if cached, ok := c.cachedSession(key); ok {
+		return cached.token, cached.userID, nil
+	}
+
+	account, err := c.EnsureUser(ctx, userID)
+	if err != nil {
+		return "", 0, err
+	}
+	password, err := c.gatewayPassword(userID)
+	if err != nil {
+		return "", 0, err
+	}
+	status, body, err := c.do(ctx, http.MethodPost, "/api/user/login", map[string]any{
+		"username": account.Username,
+		"password": password,
+	})
+	if err != nil {
+		return "", 0, err
+	}
+	if status < 200 || status >= 300 {
+		return "", 0, classify("login", status)
+	}
+	token, gatewayUserID := parseSession(body)
+	if token == "" || gatewayUserID <= 0 {
+		// new-api reports a refused login at HTTP 200 with success=false, so an
+		// unreadable answer here is the same event as a rejection.
+		return "", 0, fmt.Errorf("%w: login: gateway answered without a usable session", ErrGatewayRejected)
+	}
+	c.storeSession(key, session{token: token, userID: gatewayUserID, expiry: time.Now().Add(sessionTTL)})
+	return token, gatewayUserID, nil
+}
+
+// cachedSession returns an unexpired session for userID.
+func (c *Client) cachedSession(key string) (session, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	cached, ok := c.sessions[key]
+	if !ok {
+		return session{}, false
+	}
+	if !cached.expiry.After(time.Now()) {
+		delete(c.sessions, key)
+		return session{}, false
+	}
+	return cached, true
+}
+
+func (c *Client) storeSession(key string, value session) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.sessions[key] = value
+}
+
+func (c *Client) forgetSession(userID string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	delete(c.sessions, normalizeUserID(userID))
+}
+
+// rememberTokenOwner records which user a token was minted for, so a later
+// revoke in this process can delete it under its owner instead of the admin.
+func (c *Client) rememberTokenOwner(tokenID int64, userID string) {
+	if tokenID <= 0 {
+		return
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.owners[tokenID] = normalizeUserID(userID)
+}
+
+func (c *Client) tokenOwner(tokenID int64) string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.owners[tokenID]
+}
+
+// credentials is one identity to authorize a gateway call with. userID travels
+// as New-Api-User: new-api reads it to decide whose data the call may touch, and
+// rejects a mismatched pair.
+type credentials struct {
+	token  string
+	userID int64
+}
+
 // do performs one admin API call. It returns the status and body for every
 // answer the server actually gave; err is non-nil only for transport failures,
 // timeouts and 5xx — the cases where no body is worth inspecting.
 func (c *Client) do(ctx context.Context, method, path string, payload any) (int, []byte, error) {
+	var identity credentials
+	identity.token = c.adminToken
+	if c.adminUserID != "" {
+		if parsed, err := strconv.ParseInt(c.adminUserID, 10, 64); err == nil {
+			identity.userID = parsed
+		}
+	}
+	return c.request(ctx, method, path, payload, identity)
+}
+
+func (c *Client) request(ctx context.Context, method, path string, payload any, who credentials) (int, []byte, error) {
 	var reader io.Reader
 	if payload != nil {
 		encoded, err := json.Marshal(payload)
@@ -470,13 +760,13 @@ func (c *Client) do(ctx context.Context, method, path string, payload any) (int,
 	if err != nil {
 		return 0, nil, fmt.Errorf("%w: build request: %v", ErrGatewayRejected, err)
 	}
-	req.Header.Set("Authorization", "Bearer "+c.adminToken)
+	req.Header.Set("Authorization", "Bearer "+who.token)
 	req.Header.Set("Accept", "application/json")
 	if payload != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
-	if c.adminUserID != "" {
-		req.Header.Set("New-Api-User", c.adminUserID)
+	if who.userID > 0 {
+		req.Header.Set("New-Api-User", strconv.FormatInt(who.userID, 10))
 	}
 
 	res, err := c.httpClient.Do(req)
@@ -647,19 +937,35 @@ func parseMintedToken(body []byte) Token {
 	return Token{}
 }
 
-// randomPassword is the throwaway credential behind a gateway login. Nobody signs
-// in with it; it exists because new-api requires one when creating an account.
-//
-// Sixteen hex characters, not more: new-api validates the field with a maximum
-// length and answers a longer value with
-// "Field validation for 'Password' failed on the 'max' tag" at HTTP 200, which is
-// indistinguishable from success to a caller that only reads the status code.
-func randomPassword() (string, error) {
-	buf := make([]byte, 8)
-	if _, err := rand.Read(buf); err != nil {
-		return "", err
+// parseSession reads the login answer: the access token and the account id it
+// belongs to. new-api nests the account under data.user on current builds and
+// has also answered a flat data.id, so both are accepted; an empty token means
+// the login was refused and is reported by the caller.
+func parseSession(body []byte) (string, int64) {
+	env, ok := decodeEnvelope(body)
+	if !ok || !env.Success {
+		return "", 0
 	}
-	return "mc-" + hex.EncodeToString(buf), nil
+	var payload struct {
+		AccessToken string `json:"access_token"`
+		ID          flexID `json:"id"`
+		UserID      flexID `json:"user_id"`
+		User        struct {
+			ID flexID `json:"id"`
+		} `json:"user"`
+	}
+	if err := json.Unmarshal(env.Data, &payload); err != nil {
+		return "", 0
+	}
+	token := strings.TrimSpace(payload.AccessToken)
+	switch {
+	case int64(payload.User.ID) > 0:
+		return token, int64(payload.User.ID)
+	case int64(payload.ID) > 0:
+		return token, int64(payload.ID)
+	default:
+		return token, int64(payload.UserID)
+	}
 }
 
 // normalizeModels trims, drops empties, de-duplicates and caps an allowlist.

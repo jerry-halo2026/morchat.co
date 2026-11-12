@@ -25,6 +25,65 @@ func TestParseDshModelID(t *testing.T) {
 	}
 }
 
+// TestParseDshModelIDAcceptsEveryAdvertisedRoute pins the parser to the three
+// provider prefixes `dsh --profile multica --list-models` advertises on this
+// machine. Parsing is format-only: whether a route can actually run is decided
+// by the profile's registered adapters, so `deepseek-account/*` must keep
+// parsing even though it is not the default new agents get.
+func TestParseDshModelIDAcceptsEveryAdvertisedRoute(t *testing.T) {
+	cases := []struct{ raw, provider, id string }{
+		{"deepseek-official/deepseek-v4-pro", "deepseek-official", "deepseek-v4-pro"},
+		{"deepseek-official/deepseek-flash", "deepseek-official", "deepseek-flash"},
+		{"deepseek-account/deepseek-v4-pro", "deepseek-account", "deepseek-v4-pro"},
+		{"deepseek-account/deepseek-flash", "deepseek-account", "deepseek-flash"},
+		{"morechat/deepseek-v4-pro", "morechat", "deepseek-v4-pro"},
+		{"morechat/deepseek-v4-flash", "morechat", "deepseek-v4-flash"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.raw, func(t *testing.T) {
+			got, err := parseDshModelID(tc.raw)
+			if err != nil {
+				t.Fatalf("parseDshModelID(%q): %v", tc.raw, err)
+			}
+			if got.Provider != tc.provider || got.ID != tc.id {
+				t.Fatalf("parseDshModelID(%q) = %#v, want %s/%s", tc.raw, got, tc.provider, tc.id)
+			}
+		})
+	}
+}
+
+// TestDefaultDshModel covers the two halves of the default: the company gateway
+// route when nothing is configured, and the deployment override when it is.
+func TestDefaultDshModel(t *testing.T) {
+	t.Setenv(DshDefaultModelEnv, "")
+	defaultModel := DshDefaultModelID
+	if got := DefaultDshModel(); got != defaultModel {
+		t.Fatalf("DefaultDshModel() = %q, want %q", got, defaultModel)
+	}
+	if !strings.HasPrefix(defaultModel, "morechat/") {
+		t.Fatalf("the default must be the company gateway route, got %q", DshDefaultModelID)
+	}
+	for _, accountRoute := range []string{"deepseek-official/", "deepseek-account/"} {
+		if strings.HasPrefix(defaultModel, accountRoute) {
+			t.Fatalf("the default must not be the %s route", strings.TrimSuffix(accountRoute, "/"))
+		}
+	}
+	if _, err := parseDshModelID(DshDefaultModelID); err != nil {
+		t.Fatalf("the default must be a parseable provider/model id: %v", err)
+	}
+
+	// Blank overrides fall back instead of shipping an empty model id.
+	t.Setenv(DshDefaultModelEnv, "   ")
+	if got := DefaultDshModel(); got != DshDefaultModelID {
+		t.Fatalf("blank override = %q, want %q", got, DshDefaultModelID)
+	}
+
+	t.Setenv(DshDefaultModelEnv, " morechat/deepseek-v4-pro ")
+	if got := DefaultDshModel(); got != "morechat/deepseek-v4-pro" {
+		t.Fatalf("override = %q, want the trimmed env value", got)
+	}
+}
+
 func TestBuildDshMCPServers(t *testing.T) {
 	raw := json.RawMessage(`{"mcpServers":{"files":{"command":"node","args":["server.js"],"env":{"TOKEN":"value"}},"remote":{"type":"streamable-http","url":"https://mcp.example/rpc","headers":{"Authorization":"Bearer test"}}}}`)
 	got, err := buildDshMCPServers(raw, slog.Default())

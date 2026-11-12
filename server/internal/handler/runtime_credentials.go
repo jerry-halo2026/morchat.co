@@ -191,7 +191,7 @@ func (a *RuntimeCredentialAPI) Create(w http.ResponseWriter, r *http.Request) {
 	// situation rotation exists to end. A gateway *outage* here fails closed and
 	// leaves the old row active, so the employee keeps a working key.
 	if rotated && previousTokenID != "" {
-		if err := a.gw.RevokeToken(ctx, previousTokenID); err != nil {
+		if err := a.gw.RevokeToken(ctx, previousTokenID, userID); err != nil {
 			a.writeGatewayFailure(ctx, w, "revoke_token", userID, err)
 			return
 		}
@@ -392,7 +392,7 @@ func (a *RuntimeCredentialAPI) Delete(w http.ResponseWriter, r *http.Request) {
 	// Upstream first, row second: a row marked revoked while the gateway token
 	// still works would be a lie the UI shows as "revoked".
 	for _, credential := range live {
-		if err := a.gw.RevokeToken(ctx, credential.tokenID); err != nil {
+		if err := a.gw.RevokeToken(ctx, credential.tokenID, userID); err != nil {
 			a.writeGatewayFailure(ctx, w, "revoke_token", userID, err)
 			return
 		}

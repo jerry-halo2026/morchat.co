@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -24,6 +25,47 @@ const (
 	dshCancelGrace     = 3 * time.Second
 	dshTerminateGrace  = 2 * time.Second
 )
+
+// DshProviderID is the provider key the daemon registers the DSH runtime under.
+// It is also the value stored in agent_runtime.provider, which is what decides
+// whether an agent row is describing a DSH run.
+const DshProviderID = "dsh"
+
+const (
+	// DshDefaultModelID is the model a new DSH agent runs on when the caller
+	// leaves agent.model empty. It is the company gateway route
+	// (`morechat/<model>`) that the desktop runtime-configurator declares in the
+	// `multica` profile, so it runs on the key we mint for the account.
+	//
+	// Neither DeepSeek route is a safe default: `deepseek-official/*` needs a
+	// DeepSeek login on that machine, and the profile registers no adapter for
+	// `deepseek-account/*`, so an agent defaulting to either one dies at launch
+	// with "no adapter registered for provider ...". Both prefixes stay
+	// parseable (parseDshModelID) and usable when a user picks one explicitly --
+	// this constant only decides where a *new* agent starts.
+	DshDefaultModelID = "morechat/deepseek-v4-flash"
+
+	// DshDefaultModelEnv replaces DshDefaultModelID for deployments that point
+	// agents at another route or model (another gateway, another model family).
+	// Read per call, not cached: the daemon passes its environment through to
+	// the server-side callers that create agents.
+	DshDefaultModelEnv = "MULTICA_DEFAULT_DSH_MODEL"
+)
+
+// DefaultDshModel returns the model id a new DSH agent should be created with:
+// DshDefaultModelEnv when it is set and non-blank, DshDefaultModelID otherwise.
+//
+// A value from the environment is returned verbatim (only trimmed) rather than
+// validated against the catalog: the operator naming it is also the operator
+// who knows which routes the installed profile declares, and silently swapping
+// a mistyped override back to the built-in id would hide the mistake instead of
+// surfacing it as the launch error that names it.
+func DefaultDshModel() string {
+	if override := strings.TrimSpace(os.Getenv(DshDefaultModelEnv)); override != "" {
+		return override
+	}
+	return DshDefaultModelID
+}
 
 // dshBackend drives the Multica DSH bundle over its versioned JSONL
 // stdio protocol. The adapter is intentionally independent of ACP: DSH owns
