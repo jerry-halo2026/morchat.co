@@ -1346,6 +1346,19 @@
     "url_label": "URL del repositorio"
   },
   "desktop": {
+    "toolchain": {
+      "title": "Herramientas",
+      "checking": "Comprobando…",
+      "ready_bundled": "Listo · {{version}} (incluido)",
+      "ready_system": "Listo · {{version}} (sistema)",
+      "missing": "Falta",
+      "install": "Instalar",
+      "installing": "Instalando…",
+      "install_failed": "Error al instalar: {{error}}",
+      "python_label": "Python",
+      "git_label": "Git",
+      "multica_label": "multica CLI"
+    },
     "tabs": {
       "updates": "Actualizaciones"
     },

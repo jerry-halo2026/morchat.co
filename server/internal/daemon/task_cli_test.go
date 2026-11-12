@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -47,6 +48,69 @@ func TestConfigureTaskCLIEnvironment(t *testing.T) {
 	}
 }
 
+// TestConfigureTaskCLIEnvironmentPrependsBundledTools covers the toolchain the
+// desktop ships: a python or git directory it unpacked goes in front of PATH so a
+// skill running `python x.py` finds the bundled interpreter, and the variable
+// travels with the task so a skill can name it explicitly.
+func TestConfigureTaskCLIEnvironmentPrependsBundledTools(t *testing.T) {
+	cliPath := filepath.Join(t.TempDir(), "Desktop App", "multica")
+	stubTaskCLI(t, cliPath)
+
+	pythonHome := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(pythonHome, "Scripts"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	gitHome := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(gitHome, "cmd"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	inheritedPath := filepath.Join(t.TempDir(), "system")
+	t.Setenv("PATH", inheritedPath)
+	t.Setenv(pythonHomeEnv, pythonHome)
+	t.Setenv(gitHomeEnv, gitHome)
+
+	env := map[string]string{}
+	if err := configureTaskCLIEnvironment(env); err != nil {
+		t.Fatal(err)
+	}
+
+	if env[pythonHomeEnv] != pythonHome || env[gitHomeEnv] != gitHome {
+		t.Fatalf("tool homes not carried into the task: %#v", env)
+	}
+	want := []string{
+		filepath.Dir(cliPath),
+		pythonHome,
+		gitHome,
+		filepath.Join(gitHome, "cmd"),
+		inheritedPath,
+	}
+	if got := env["PATH"]; got != strings.Join(want, string(os.PathListSeparator)) {
+		t.Fatalf("PATH = %q, want %q", got, strings.Join(want, string(os.PathListSeparator)))
+	}
+}
+
+// TestConfigureTaskCLIEnvironmentSkipsMissingTools keeps a stale pointer from
+// emptying PATH: an unset or nonexistent directory contributes nothing.
+func TestConfigureTaskCLIEnvironmentSkipsMissingTools(t *testing.T) {
+	cliPath := filepath.Join(t.TempDir(), "multica")
+	stubTaskCLI(t, cliPath)
+	inheritedPath := filepath.Join(t.TempDir(), "system")
+	t.Setenv("PATH", inheritedPath)
+	t.Setenv(pythonHomeEnv, filepath.Join(t.TempDir(), "gone"))
+	t.Setenv(gitHomeEnv, "")
+
+	env := map[string]string{}
+	if err := configureTaskCLIEnvironment(env); err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Dir(cliPath) + string(os.PathListSeparator) + inheritedPath
+	if got := env["PATH"]; got != want {
+		t.Fatalf("PATH = %q, want %q", got, want)
+	}
+	if _, ok := env[pythonHomeEnv]; ok {
+		t.Fatal("a missing tool directory was injected into the task")
+	}
+}
 func TestConfigureTaskCLIEnvironmentResolutionFailure(t *testing.T) {
 	original := resolveSelfExecutable
 	t.Cleanup(func() { resolveSelfExecutable = original })

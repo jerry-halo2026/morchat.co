@@ -41,6 +41,14 @@ import {
   type WorkspacePathOptions,
   type WorkspacePathRequest,
 } from "../shared/workspace-window";
+import {
+  RUNTIME_PROBE_GET_CHANNEL,
+  RUNTIME_PROBE_STATUS_CHANNEL,
+  RUNTIME_TOOL_INSTALL_CHANNEL,
+  type RuntimeProbeReport,
+  type RuntimeTool,
+  type RuntimeToolInstallResult,
+} from "../shared/runtime-tools";
 import { createRuntimeConfiguratorAPI } from "./runtime-credentials";
 
 // Synchronously fetch app metadata from main at preload time so the renderer
@@ -368,6 +376,20 @@ const daemonAPI = {
 // writes that change them. Values travel in only — nothing here returns a key.
 const runtimeConfiguratorAPI = createRuntimeConfiguratorAPI();
 
+// 「运行时」→ 工具链: probe state for python / git / multica and the one click
+// that downloads a missing tool into `<userData>/tools/<tool>/`.
+const runtimeToolsAPI = {
+  get: (): Promise<RuntimeProbeReport | null> =>
+    ipcRenderer.invoke(RUNTIME_PROBE_GET_CHANNEL),
+  install: (tool: RuntimeTool): Promise<RuntimeToolInstallResult> =>
+    ipcRenderer.invoke(RUNTIME_TOOL_INSTALL_CHANNEL, tool),
+  onStatus: (callback: (report: RuntimeProbeReport) => void) => {
+    const handler = (_: unknown, report: RuntimeProbeReport) => callback(report);
+    ipcRenderer.on(RUNTIME_PROBE_STATUS_CHANNEL, handler);
+    return () => ipcRenderer.removeListener(RUNTIME_PROBE_STATUS_CHANNEL, handler);
+  },
+};
+
 const updaterAPI = {
   onUpdateAvailable: (callback: (info: { version: string; releaseNotes?: string }) => void) => {
     const handler = (_: unknown, info: { version: string; releaseNotes?: string }) => callback(info);
@@ -403,6 +425,7 @@ if (process.contextIsolated) {
   contextBridge.exposeInMainWorld("daemonAPI", daemonAPI);
   contextBridge.exposeInMainWorld("updater", updaterAPI);
   contextBridge.exposeInMainWorld("runtimeConfigurator", runtimeConfiguratorAPI);
+  contextBridge.exposeInMainWorld("runtimeTools", runtimeToolsAPI);
 } else {
   // @ts-expect-error - fallback for non-isolated context
   window.electron = electronAPI;
@@ -414,4 +437,6 @@ if (process.contextIsolated) {
   window.updater = updaterAPI;
   // @ts-expect-error - fallback for non-isolated context
   window.runtimeConfigurator = runtimeConfiguratorAPI;
+  // @ts-expect-error - fallback for non-isolated context
+  window.runtimeTools = runtimeToolsAPI;
 }

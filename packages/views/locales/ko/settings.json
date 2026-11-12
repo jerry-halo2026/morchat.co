@@ -1101,6 +1101,19 @@
     "actions_aria": "{{url}} 작업"
   },
   "desktop": {
+    "toolchain": {
+      "title": "도구 모음",
+      "checking": "확인 중…",
+      "ready_bundled": "준비됨 · {{version}}(번들)",
+      "ready_system": "준비됨 · {{version}}(시스템)",
+      "missing": "없음",
+      "install": "설치",
+      "installing": "설치 중…",
+      "install_failed": "설치 실패: {{error}}",
+      "python_label": "Python",
+      "git_label": "Git",
+      "multica_label": "multica CLI"
+    },
     "tabs": {
       "updates": "업데이트"
     },

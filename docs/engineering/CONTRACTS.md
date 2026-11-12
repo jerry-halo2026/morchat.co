@@ -127,3 +127,19 @@ dsh（本项目内置，桌面端恒可用） > codex > claude_code > 任意 sta
 - 只挑 `online` 的；挑不到就**给出可操作的提示**（跳到运行时页面安装/启动），不允许静默禁用按钮；
 - 用户可在页面上手动改写选择；
 - 同一工作区重复安装同一预设走幂等路径（不产生第二份 agent）。
+
+## 运行时自带的工具链（node / git / python）
+
+开箱即用的定义不是"装好了 morechat.co"，而是**用户机器上没有这些也能跑智能体**。桌面端把工具链随包发布，daemon 只把它注入任务的运行环境。
+
+| 工具 | 位置 | 注入变量 | 探针 |
+|---|---|---|---|
+| Node | `resources/node/node.exe` | 目录前插 `PATH` | `node --version` |
+| Git | `resources/git/`（MinGit，便携） | `MULTICA_GIT_HOME` + 目录前插 `PATH` | `git --version` |
+| Python | `resources/python/`（嵌入式，含 pip） | `MULTICA_PYTHON_HOME` + 目录前插 `PATH` | `python --version` |
+| multica CLI | `resources/bin/multica.exe` | `MULTICA_CLI_PATH` + 目录前插 `PATH` | `multica version` |
+
+- **只注入 run 的环境**：前插 `PATH` 与设置 `MULTICA_*_HOME` 都发生在 daemon 起 agent 子进程时；不改系统 `PATH`、不写注册表、不碰用户 `~/.dsh`、`~/.codex`、`~/.claude`。
+- **探针**：桌面启动时各跑一次，结果进日志（`[runtime-probe] python=3.12.x source=bundled`）。系统里已经有可用版本时，探针报 `source=system` 并**不覆盖**用户的 `PATH` 顺序。
+- **一键安装**：探针报缺失时，「运行时」页给一行状态 + 安装按钮；安装 = 下载对应压缩包到 `<userData>/tools/<tool>/`，解包后重新探测。已存在的安装不覆盖，除非用户显式重装。
+- **市场包的依赖声明**：技能依赖 `python`/`binary` 时，写进 `preset.json.requires` 的 `{kind, value}`（`python` / `binary` / `mcp` / `config`）。运行时自带 python/git，因此 `kind=python` 与 `kind=binary(git)` 的包视为可直接使用；其它 `kind` 在市场卡片上提示"需自备"。

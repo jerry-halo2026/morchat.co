@@ -1364,6 +1364,19 @@
     "actions_aria": "Actions for {{url}}"
   },
   "desktop": {
+    "toolchain": {
+      "title": "Toolchain",
+      "checking": "Checking…",
+      "ready_bundled": "Ready · {{version}} (bundled)",
+      "ready_system": "Ready · {{version}} (system)",
+      "missing": "Missing",
+      "install": "Install",
+      "installing": "Installing…",
+      "install_failed": "Install failed: {{error}}",
+      "python_label": "Python",
+      "git_label": "Git",
+      "multica_label": "multica CLI"
+    },
     "tabs": {
       "updates": "Updates"
     },

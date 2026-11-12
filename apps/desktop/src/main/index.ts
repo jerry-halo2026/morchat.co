@@ -20,6 +20,7 @@ import {
   resumeDaemonAfterAbortedUpdateInstall,
   setCompanyCredentialObserver,
   setRelayEnvProvider,
+  setRuntimeToolchainEnv,
   setupDaemonManager,
 } from "./daemon-manager";
 import { setupLocalDirectory } from "./local-directory";
@@ -92,6 +93,21 @@ import {
   installDshBootstrap,
   type DshBootstrapHandle,
 } from "./dsh-bootstrap";
+import {
+  ensureRuntimeTool,
+  probeRuntimeTools,
+  runtimeProbeLogLines,
+  runtimeToolchainEnv,
+  type RuntimeProbeOptions,
+} from "./runtime-probe";
+import {
+  RUNTIME_PROBE_GET_CHANNEL,
+  RUNTIME_PROBE_STATUS_CHANNEL,
+  RUNTIME_TOOL_INSTALL_CHANNEL,
+  isRuntimeTool,
+  type RuntimeProbeReport,
+  type RuntimeToolInstallResult,
+} from "../shared/runtime-tools";
 import {
   installRuntimeConfigurator,
   RUNTIME_CONFIGURATOR_STATUS_CHANNEL,
@@ -204,6 +220,11 @@ let runtimeConfigurator: RuntimeConfiguratorHandle | null = null;
  * CLI discovery already reads (see src/main/dsh-bootstrap.ts).
  */
 let dshBootstrap: DshBootstrapHandle | null = null;
+/**
+ * Last `python` / `git` / `multica` probe. `null` until the boot probe answers,
+ * which the settings row renders as "检测中…".
+ */
+let runtimeProbeReport: RuntimeProbeReport | null = null;
 const rendererRouteContexts = new WeakMap<
   Electron.WebContents,
   RendererRouteContext
@@ -795,6 +816,47 @@ if (!gotTheLock) {
   delete process.env.MULTICA_DEV_AUTH_TOKEN;
   if (devAuthToken) dispatchToMainRenderer("auth:token", devAuthToken);
 
+  // --- Toolchain probe (python / git / multica) --------------------------
+
+  /**
+   * Roots that can hold the bundled toolchain: the packaged `resources/` tree
+   * and, in dev, `apps/desktop/resources` — the same pair (and the same
+   * `app.asar` rewrite) that `resolveBundledDshPaths` searches.
+   */
+  function bundledResourcesDirs(): string[] {
+    const unpacked = app.getAppPath().replace("app.asar", "app.asar.unpacked");
+    return [process.resourcesPath ?? "", join(unpacked, "resources")].filter(
+      (dir) => dir.length > 0,
+    );
+  }
+
+  function runtimeProbeOptions(): RuntimeProbeOptions {
+    return {
+      resourcesDirs: bundledResourcesDirs(),
+      toolsDir: join(app.getPath("userData"), "tools"),
+    };
+  }
+
+  function broadcastRuntimeProbe(report: RuntimeProbeReport): void {
+    for (const window of mainWindows.all()) {
+      if (!window.isDestroyed()) {
+        window.webContents.send(RUNTIME_PROBE_STATUS_CHANNEL, report);
+      }
+    }
+  }
+
+  /** Probes, logs one contract line per tool, and hands the report to the UI. */
+  async function runRuntimeProbe(): Promise<RuntimeProbeReport> {
+    const report = await probeRuntimeTools(runtimeProbeOptions());
+    runtimeProbeReport = report;
+    for (const line of runtimeProbeLogLines(report)) console.log(line);
+    // The daemon needs these before it starts: it puts them in front of a task's
+    // PATH, which is what makes `python x.py` work on a machine without python.
+    setRuntimeToolchainEnv(runtimeToolchainEnv(report));
+    broadcastRuntimeProbe(report);
+    return report;
+  }
+
   app.whenReady().then(async () => {
     const viteEnv = import.meta.env as ImportMetaEnv & {
       readonly VITE_API_URL?: string;
@@ -1108,6 +1170,32 @@ if (!gotTheLock) {
       },
     });
     void dshBootstrap.start();
+
+    // The toolchain probe is fire-and-forget as well: it can only inform the
+    // 「运行时」settings block, so a slow `git --version` must never delay the
+    // first window. Renderers pull the last report on mount and receive every
+    // later one on RUNTIME_PROBE_STATUS_CHANNEL.
+    ipcMain.handle(RUNTIME_PROBE_GET_CHANNEL, () => runtimeProbeReport);
+    ipcMain.handle(
+      RUNTIME_TOOL_INSTALL_CHANNEL,
+      async (_event, value: unknown): Promise<RuntimeToolInstallResult> => {
+        // The renderer only ever sends a known tool name; anything else is a
+        // bug, and the rejected promise surfaces it in the row's error state.
+        if (!isRuntimeTool(value)) throw new Error("未知的工具名称");
+        const result = await ensureRuntimeTool({
+          ...runtimeProbeOptions(),
+          tool: value,
+          userDataDir: app.getPath("userData"),
+        });
+        // Re-probe so the renderer sees the installed source/path, not just
+        // "the download finished".
+        await runRuntimeProbe().catch(() => undefined);
+        return result;
+      },
+    );
+    void runRuntimeProbe().catch((err: unknown) => {
+      console.warn("[runtime-probe] probe failed", err);
+    });
 
     // Local CLI configuration for the signed-in account. Installed before the
     // first window is created so a fast renderer login cannot outrun it. A

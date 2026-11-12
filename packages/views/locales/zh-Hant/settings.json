@@ -1358,6 +1358,19 @@
     "actions_aria": "{{url}} 的操作"
   },
   "desktop": {
+    "toolchain": {
+      "title": "工具鏈",
+      "checking": "檢查中…",
+      "ready_bundled": "已就緒 · {{version}}（隨應用提供）",
+      "ready_system": "已就緒 · {{version}}（系統安裝）",
+      "missing": "缺少",
+      "install": "安裝",
+      "installing": "安裝中…",
+      "install_failed": "安裝失敗：{{error}}",
+      "python_label": "Python",
+      "git_label": "Git",
+      "multica_label": "multica CLI"
+    },
     "tabs": {
       "updates": "更新"
     },

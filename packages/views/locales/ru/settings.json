@@ -1375,6 +1375,19 @@
     "actions_aria": "Действия для {{url}}"
   },
   "desktop": {
+    "toolchain": {
+      "title": "Инструменты",
+      "checking": "Проверка…",
+      "ready_bundled": "Готово · {{version}} (встроено)",
+      "ready_system": "Готово · {{version}} (система)",
+      "missing": "Отсутствует",
+      "install": "Установить",
+      "installing": "Установка…",
+      "install_failed": "Не удалось установить: {{error}}",
+      "python_label": "Python",
+      "git_label": "Git",
+      "multica_label": "multica CLI"
+    },
     "tabs": {
       "updates": "Обновления"
     },

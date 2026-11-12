@@ -30,6 +30,12 @@ files:
   # `asarUnpack: resources/**` already extracts them.
   - "!resources/dsh/**"
   - "!resources/node/**"
+  # Same reasoning for the portable toolchain (embedded python + MinGit): both
+  # are executable trees beside the app, copied by scripts/after-pack.cjs. Inside
+  # the asar they would be duplicated and, more importantly, not executable at
+  # all (`python.exe` cannot be spawned from a packed archive).
+  - "!resources/python/**"
+  - "!resources/git/**"
 protocols:
   - name: morechat.co
     schemes:

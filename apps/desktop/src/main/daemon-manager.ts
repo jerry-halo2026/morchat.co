@@ -1150,10 +1150,34 @@ function runtimeConfiguratorRelayEnv(): Readonly<Record<string, string>> {
   }
 }
 
+/**
+ * Directories of the toolchain this app ships, resolved by the runtime probe at
+ * startup. The daemon reads them and puts them in front of a task's PATH, which is
+ * how an agent on a machine without python or git can still run `python x.py`.
+ *
+ * Empty until the first probe finishes: a missing value only means "use PATH",
+ * never "point at a directory that is not there".
+ */
+let toolchainEnv: NodeJS.ProcessEnv = {};
+
+export function setRuntimeToolchainEnv(env: NodeJS.ProcessEnv): void {
+  toolchainEnv = { ...env };
+}
+
 function desktopSpawnEnv(): NodeJS.ProcessEnv {
   // The model credential the configurator captured travels to the daemon here, and
-  // from the daemon to every agent task it spawns.
-  return daemonSpawnEnv(process.env, runtimeConfiguratorRelayEnv());
+  // from the daemon to every agent task it spawns. The bundled toolchain rides
+  // along for the same reason.
+  const extra: Record<string, string> = {};
+  for (const [key, value] of Object.entries({
+    ...runtimeConfiguratorRelayEnv(),
+    ...toolchainEnv,
+  })) {
+    // `Record<string, string|undefined>` cannot reach the spawn helper, and an
+    // empty value would only shadow a real one.
+    if (typeof value === "string" && value !== "") extra[key] = value;
+  }
+  return daemonSpawnEnv(process.env, extra);
 }
 
 function scheduleStatusRefresh(): void {

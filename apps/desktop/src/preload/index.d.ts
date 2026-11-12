@@ -17,6 +17,11 @@ import type {
   LocalRuntimeProbe,
 } from "../shared/daemon-types";
 import type { TabSelectionShortcutKey } from "../shared/main-renderer-messages";
+import type {
+  RuntimeProbeReport,
+  RuntimeTool,
+  RuntimeToolInstallResult,
+} from "../shared/runtime-tools";
 import type { RuntimeConfiguratorAPI } from "./runtime-credentials";
 
 interface DesktopAPI {
@@ -176,8 +181,7 @@ interface DaemonAPI {
 }
 
 interface UpdaterAPI {
-  onUpdateAvailable: (callback: (info: { version: string; releaseNotes?: string }) => void) => () => void;
-  onDownloadProgress: (callback: (progress: { percent: number }) => void) => () => void;
+  onUpdateAvailable: (callback: (info: { version: string; releaseNotes?: string }) => void) => () => void;  onDownloadProgress: (callback: (progress: { percent: number }) => void) => () => void;
   onUpdateDownloaded: (
     callback: (info: { version: string; releaseNotes?: string }) => void,
   ) => () => void;
@@ -188,6 +192,15 @@ interface UpdaterAPI {
   checkForUpdates: () => Promise<ManualUpdateCheckResult>;
 }
 
+interface RuntimeToolsAPI {
+  /** Last probe result, or null while the boot probe is still running. */
+  get: () => Promise<RuntimeProbeReport | null>;
+  /** Download + unpack one tool, then re-probe. Resolves with a readable error. */
+  install: (tool: RuntimeTool) => Promise<RuntimeToolInstallResult>;
+  /** Every later probe/install report. Returns an unsubscribe function. */
+  onStatus: (callback: (report: RuntimeProbeReport) => void) => () => void;
+}
+
 declare global {
   interface Window {
     electron: ElectronAPI;
@@ -196,6 +209,8 @@ declare global {
     updater: UpdaterAPI;
     /** 模型凭据 settings section: credential state + the two writes. */
     runtimeConfigurator?: RuntimeConfiguratorAPI;
+    /** 「运行时」→ 工具链: python / git / multica probe + one-click install. */
+    runtimeTools?: RuntimeToolsAPI;
   }
 }
 

@@ -19,6 +19,7 @@ import {
   formatUptime,
 } from "../../../shared/daemon-types";
 import { daemonStateLabel } from "./daemon-i18n";
+import { ToolchainSettingsSection } from "./toolchain-settings-section";
 
 // One row inside the diagnostics block. Values that are likely to be
 // long IDs / URLs render as monospaced + truncated with a tooltip.
@@ -186,6 +187,11 @@ export function DaemonSettingsTab() {
           {cliInstalled !== false && <span />}
         </SettingsRow>
       </SettingsCard>
+
+      {/* What the desktop promises to provide for agent runs on this machine:
+          python, git and the multica CLI. Sits next to the daemon's own CLI
+          status because both answer "can this device run an agent". */}
+      <ToolchainSettingsSection />
 
       {/* Diagnostics — moved out of the logs panel so the panel can focus
           on logs. These fields matter for support tickets and bug reports,
