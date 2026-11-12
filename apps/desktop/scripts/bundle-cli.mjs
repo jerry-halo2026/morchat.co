@@ -84,12 +84,29 @@ function git(...args) {
   }
 }
 
-function hasGo() {
+// The `go` binary to build with. A frontend-only contributor has none, so the
+// script degrades to "use whatever is in resources/bin" - but a checkout that
+// pins a toolchain (MULTICA_GO_BIN, or the repo's own tools directory) should be
+// built with that one instead of silently skipping the build.
+function resolveGo() {
+  const candidates = [
+    process.env.MULTICA_GO_BIN,
+    process.env.GO_BIN,
+    join(repoRoot, "tools", "go127", "go", "bin", process.platform === "win32" ? "go.exe" : "go"),
+  ].filter(Boolean);
+  for (const candidate of candidates) {
+    try {
+      execSync(`"${candidate}" version`, { stdio: "pipe" });
+      return candidate;
+    } catch {
+      // Not this one.
+    }
+  }
   try {
     execSync("go version", { stdio: "pipe" });
-    return true;
+    return "go";
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -102,7 +119,8 @@ async function exists(p) {
   }
 }
 
-if (hasGo()) {
+const goBin = resolveGo();
+if (goBin) {
   const version = deriveVersion() || "dev";
   const commit = git("rev-parse", "--short", "HEAD") || "unknown";
   const buildCommit = git("rev-parse", "HEAD") || "unknown";
@@ -114,7 +132,7 @@ if (hasGo()) {
   );
   await mkdir(join(serverDir, "bin", `${goos}-${goarch}`), { recursive: true });
   execFileSync(
-    "go",
+    goBin,
     [
       "build",
       "-ldflags",
