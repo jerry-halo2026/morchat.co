@@ -45,6 +45,12 @@ import (
 )
 
 // Env vars read by FromEnv.
+// gatewayUserGroup is the new-api user group an ordinary account belongs to.
+// Tokens inherit it, and it is what routes a request to a channel; an account
+// created without one mints keys the gateway refuses with "no available channel".
+const gatewayUserGroup = "default"
+
+// Env vars read by FromEnv.
 const (
 	// EnvBaseURL is the gateway root, e.g. https://relay.example.com — no
 	// trailing /v1. The OpenAI-compatible root handed to clients is derived
@@ -159,6 +165,10 @@ type session struct {
 type User struct {
 	ID       int64
 	Username string
+	// Quota is the account's remaining credit in new-api units. A freshly created
+	// account starts at zero, and a token that inherits it cannot call any model
+	// ("insufficient_user_quota"), so the client tops the account up before use.
+	Quota int64
 }
 
 // Token is a minted gateway token. Key is plaintext and must not be logged,
@@ -335,6 +345,10 @@ func (c *Client) EnsureUser(ctx context.Context, userID string) (User, error) {
 		// role 1 = common user. The token's quota/models are set per token, so
 		// the account itself needs no privileges.
 		"role": 1,
+		// Without a group the account's tokens resolve to no channel at all: the
+		// gateway answers "No available channel for model … under group ()". The
+		// deployment's own group is the one an ordinary user belongs to.
+		"group": gatewayUserGroup,
 	})
 	if err == nil && status >= 200 && status < 300 {
 		if resp, ok := decodeEnvelope(body); ok && resp.Success {
@@ -368,6 +382,34 @@ func (c *Client) EnsureUser(ctx context.Context, userID string) (User, error) {
 // resetPassword sets an existing account's password to the derived value, so the
 // login that follows is possible and repeatable. Admin-scoped on purpose: the
 // account cannot change its own password without already being signed in.
+// topUpQuota credits an account that cannot pay for a single call.
+//
+// A new-api account starts at zero credit, and a token inherits that ceiling:
+// the gateway answers a model call with `insufficient_user_quota` until the
+// account itself holds something. Only accounts below the floor are topped up, so
+// repeated credential requests do not keep adding credit.
+func (c *Client) topUpQuota(ctx context.Context, user User, floor int64) error {
+	if floor <= 0 || user.Quota >= floor {
+		return nil
+	}
+	status, body, err := c.do(ctx, http.MethodPost, "/api/user/manage", map[string]any{
+		"id":     user.ID,
+		"action": "add_quota",
+		"mode":   "add",
+		"value":  floor - user.Quota,
+	})
+	if err != nil {
+		return err
+	}
+	if status < 200 || status >= 300 {
+		return classify("top up quota", status)
+	}
+	if env, ok := decodeEnvelope(body); ok && !env.Success {
+		return fmt.Errorf("%w: top up quota: gateway refused", ErrGatewayRejected)
+	}
+	return nil
+}
+
 func (c *Client) resetPassword(ctx context.Context, user User, password string) error {
 	status, body, err := c.do(ctx, http.MethodPut, "/api/user/", map[string]any{
 		"id":           user.ID,
@@ -375,6 +417,9 @@ func (c *Client) resetPassword(ctx context.Context, user User, password string) 
 		"password":     password,
 		"display_name": user.Username,
 		"role":         1,
+		// Re-pinned on every repair, so an account created before the group was
+		// set is healed by the next credential request instead of staying broken.
+		"group": gatewayUserGroup,
 	})
 	if err != nil {
 		return err
@@ -657,6 +702,12 @@ func (c *Client) userAccessToken(ctx context.Context, userID string) (string, in
 	if err != nil {
 		return "", 0, err
 	}
+	// Before anyone tries to spend through this account: a zero-balance login
+	// cannot pay for a single call, which reads to the user as "the company key is
+	// broken". Idempotent - only an account under the floor is credited.
+	if err := c.topUpQuota(ctx, account, c.defaultQuota); err != nil {
+		return "", 0, err
+	}
 	password, err := c.gatewayPassword(userID)
 	if err != nil {
 		return "", 0, err
@@ -866,11 +917,12 @@ func parseItems(body []byte) []User {
 		var item struct {
 			ID       flexID `json:"id"`
 			Username string `json:"username"`
+			Quota    flexID `json:"quota"`
 		}
 		if json.Unmarshal(raw, &item) != nil {
 			continue
 		}
-		users = append(users, User{ID: int64(item.ID), Username: item.Username})
+		users = append(users, User{ID: int64(item.ID), Username: item.Username, Quota: int64(item.Quota)})
 	}
 	return users
 }

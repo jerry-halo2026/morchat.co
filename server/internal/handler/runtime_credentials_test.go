@@ -46,13 +46,16 @@ type credentialFakeGateway struct {
 	mintError string
 	// failMint makes POST /api/token/ answer 500 (gateway unavailable).
 	failMint bool
+	// creditByUserID records quota top-ups, keyed by gateway account id.
+	creditByUserID map[int64]int64
 }
 
 func newCredentialFakeGateway(t *testing.T) (*credentialFakeGateway, *httptest.Server) {
 	t.Helper()
 	fake := &credentialFakeGateway{
 		usernames: map[string]int64{},
-		passwords: map[int64]string{},
+		passwords:      map[int64]string{},
+		creditByUserID: map[int64]int64{},
 		tokens:    map[int64]string{},
 		live:      map[int64]string{},
 		nextID:    500,
@@ -91,6 +94,23 @@ func newCredentialFakeGateway(t *testing.T) (*credentialFakeGateway, *httptest.S
 		fake.passwords[fake.nextID] = body.Password
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, `{"success":true,"data":{"id":%d,"username":%q}}`, fake.nextID, body.Username)
+	})
+	mux.HandleFunc("/api/user/manage", func(w http.ResponseWriter, r *http.Request) {
+		// The client credits a zero-balance login before minting, because a real
+		// gateway refuses calls from an account with no quota.
+		var body struct {
+			ID    int64 `json:"id"`
+			Value int64 `json:"value"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, `{"success":false}`, http.StatusBadRequest)
+			return
+		}
+		fake.mu.Lock()
+		fake.creditByUserID[body.ID] += body.Value
+		fake.mu.Unlock()
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"success":true}`)
 	})
 	mux.HandleFunc("/api/user/login", func(w http.ResponseWriter, r *http.Request) {
 		var body struct {

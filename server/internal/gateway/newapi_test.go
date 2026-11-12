@@ -56,6 +56,9 @@ type fakeUser struct {
 	ID       int64
 	Username string
 	Password string
+	// Quota is the account balance the admin quota route credits; a zero balance
+	// is what makes a real gateway refuse a call with insufficient_user_quota.
+	Quota int64
 }
 
 type fakeSession struct {
@@ -92,7 +95,8 @@ func newFakeGateway(t *testing.T, admin string) (*fakeGateway, *httptest.Server)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/user/", f.handleUser)
 	mux.HandleFunc("/api/user/search", f.handleUserSearch)
-	mux.HandleFunc("/api/user/login", f.handleUserLogin)
+	mux.HandleFunc("/api/user/login", f.handleUserLogin)
+	mux.HandleFunc("/api/user/manage", f.handleUserManage)
 	mux.HandleFunc("/api/token/search", f.handleTokenSearch)
 	mux.HandleFunc("/api/token/", f.handleToken)
 	srv := httptest.NewServer(mux)
@@ -996,4 +1000,27 @@ func (h *spyHandler) records() []string {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	return append([]string(nil), h.seen...)
+}
+
+// handleUserManage mirrors new-api's admin quota route: it credits an account and
+// answers success, which is what lets a zero-balance login pay for a call.
+func (f *fakeGateway) handleUserManage(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		ID    int64 `json:"id"`
+		Value int64 `json:"value"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, `{"success":false}`, http.StatusBadRequest)
+		return
+	}
+	f.mu.Lock()
+	for name, user := range f.users {
+		if user.ID == body.ID {
+			user.Quota += body.Value
+			f.users[name] = user
+		}
+	}
+	f.mu.Unlock()
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprint(w, `{"success":true}`)
 }
