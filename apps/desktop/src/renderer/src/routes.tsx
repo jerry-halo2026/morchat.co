@@ -9,6 +9,12 @@ import { AgentDetailPage } from "./pages/agent-detail-page";
 import { AiBuilderSessionPage } from "./pages/ai-builder-session-page";
 import { MemberDetailPage } from "./pages/member-detail-page";
 import {
+  KnowledgeDocumentRoute,
+  KnowledgeHomePage,
+  KnowledgeItemsPage,
+  KnowledgePageRoute,
+} from "./pages/knowledge-routes";
+import {
   RuntimeDetailPage,
   RuntimeSettingsPage,
 } from "./pages/runtime-detail-page";
@@ -256,6 +262,29 @@ export const appRoutes: RouteObject[] = [
           },
           { path: "squads", element: <SquadsPage />, handle: { title: "Squads" } },
           { path: "views", element: <AllViewsPage />, handle: { title: "Views" } },
+          // Knowledge resolved to nothing on desktop before these routes existed:
+          // the sidebar entry opened an address the router did not know, which
+          // showed as a spinner under the wrong tab title.
+          {
+            path: "knowledge",
+            element: <KnowledgeHomePage />,
+            handle: { title: "Knowledge" },
+          },
+          {
+            path: "knowledge/items",
+            element: <KnowledgeItemsPage />,
+            handle: { title: "Knowledge" },
+          },
+          {
+            path: "knowledge/:space",
+            element: <KnowledgePageRoute />,
+            handle: { title: "Knowledge" },
+          },
+          {
+            path: "knowledge/:space/*",
+            element: <KnowledgeDocumentRoute />,
+            handle: { title: "Knowledge" },
+          },
           {
             path: "squads/:id",
             element: <SquadDetailPageView />,
