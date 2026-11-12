@@ -2,9 +2,8 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { AORA_CAST_CHARACTERS } from "./aora-cast";
 import {
-  ASSIGNABLE_COLOR_IDS,
-  AUTO_SHAPE_POOL,
   DERIVED_FACE,
   DERIVED_STYLE,
   decodeAoraSpec,
@@ -37,13 +36,30 @@ describe("aora spec", () => {
     }
   });
 
-  it("keeps derived avatars flat with capsule eyes", () => {
+  it("keeps derived avatars flat with capsule eyes on a cast character", () => {
     const spec = deriveAoraSpec("anything");
     expect(spec.style).toBe(DERIVED_STYLE);
     expect(spec.face).toBe(DERIVED_FACE);
-    expect(spec.character).toBe("");
-    expect(AUTO_SHAPE_POOL).toContain(spec.shape);
-    expect(ASSIGNABLE_COLOR_IDS).toContain(spec.color);
+    expect(spec.character).not.toBe("");
+    expect(AORA_CAST_CHARACTERS.map((character) => character.id)).toContain(spec.character);
+  });
+
+  it("takes the shape and colour from the character it picked", () => {
+    const byId = new Map(AORA_CAST_CHARACTERS.map((character) => [character.id, character]));
+    for (const vector of vectors().vectors) {
+      const spec = deriveAoraSpec(vector.id);
+      const character = byId.get(spec.character);
+      expect(character).toBeDefined();
+      expect(spec.shape).toBe(character!.shape);
+      expect(spec.color).toBe(character!.color);
+    }
+  });
+
+  it("spreads ids across many characters instead of one body", () => {
+    const picked = new Set(
+      Array.from({ length: 400 }, (_, index) => deriveAoraSpec(`agent-${index}`).character),
+    );
+    expect(picked.size).toBeGreaterThan(30);
   });
 
   it("hashes stably across calls and differs between ids", () => {
@@ -56,6 +72,17 @@ describe("aora spec", () => {
     const encoded = encodeAoraSpec(spec);
     expect(decodeAoraSpec(encoded)).toEqual(spec);
     expect(isDerivedAvatar(encoded)).toBe(false);
+  });
+
+  it("still decodes specs written before derivation named a character", () => {
+    expect(decodeAoraSpec("aora::blob:cyan:capsule:vector:f3b0")).toEqual({
+      character: "",
+      shape: "blob",
+      color: "cyan",
+      face: "capsule",
+      style: "vector",
+      seed: "f3b0",
+    });
   });
 
   it("treats legacy and malformed values as derived", () => {

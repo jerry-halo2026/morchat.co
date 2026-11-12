@@ -206,9 +206,11 @@ export function AgentDetailInspector({
           >
             <SettingsCard>
               {/* One entry point for the face. The avatar is the button: pressing
-                  it opens Aora's Studio, and a confirmed pick writes the single
-                  `avatar_url` field through the page's update, which patches
-                  optimistically and rolls the row back if the PATCH fails. */}
+                  it opens Aora's character cards in a popover, and a card writes
+                  the single `avatar_url` field through the page's update, which
+                  patches optimistically and rolls the row back if the PATCH
+                  fails. Randomize previews until confirmed; the Studio entry in
+                  the row and in the sheet opens the full editor. */}
               <SettingsRow
                 label={t(($) => $.inspector.avatar_label)}
                 size="none"

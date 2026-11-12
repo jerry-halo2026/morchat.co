@@ -2,6 +2,7 @@ package avatar
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -58,9 +59,60 @@ func TestDerivedSpecIsFlatAndCapsule(t *testing.T) {
 	if spec.Face != "capsule" {
 		t.Errorf("derived face = %q, want capsule (capsule eyes)", spec.Face)
 	}
-	if spec.Character != "" {
-		t.Errorf("derived character = %q, want empty so the cast picks the name", spec.Character)
+	if spec.Character == "" {
+		t.Error("derived character is empty: a derived avatar has to name a cast member")
 	}
+	if _, ok := castCharacter(spec.Character); !ok {
+		t.Errorf("derived character = %q, which is not in CastCharacters", spec.Character)
+	}
+}
+
+func TestDerivedSpecTakesShapeAndColorFromTheCharacter(t *testing.T) {
+	for _, vector := range loadVectors(t).Vectors {
+		spec := DeriveSpec(vector.ID)
+		character, ok := castCharacter(spec.Character)
+		if !ok {
+			t.Fatalf("derive(%q) picked %q, which is not in CastCharacters", vector.ID, spec.Character)
+		}
+		if spec.Shape != character.Shape || spec.Color != character.Color {
+			t.Errorf(
+				"derive(%q) = shape %q colour %q, want %q and %q from character %q",
+				vector.ID, spec.Shape, spec.Color, character.Shape, character.Color, character.ID,
+			)
+		}
+	}
+}
+
+// A roster of plain bodies is the bug this table exists to fix: the ids have to
+// land on many characters, not on one shape recycled with a new colour.
+func TestDerivedSpecSpreadsAcrossCharacters(t *testing.T) {
+	picked := map[string]struct{}{}
+	for i := 0; i < 400; i++ {
+		picked[DeriveSpec(fmt.Sprintf("agent-%d", i)).Character] = struct{}{}
+	}
+	if len(picked) < 30 {
+		t.Errorf("400 ids landed on %d characters, want at least 30", len(picked))
+	}
+}
+
+func TestParseSpecKeepsAnEmptyCharacter(t *testing.T) {
+	// Specs written before derivation named a cast member still have to parse.
+	spec, ok := ParseSpec("aora::blob:cyan:capsule:vector:f3b0")
+	if !ok {
+		t.Fatal("ParseSpec rejected a spec with an empty character")
+	}
+	if spec.Character != "" || spec.Shape != "blob" || spec.Color != "cyan" {
+		t.Fatalf("ParseSpec = %+v, want an empty character with blob/cyan", spec)
+	}
+}
+
+func castCharacter(id string) (CastCharacter, bool) {
+	for _, character := range CastCharacters {
+		if character.ID == id {
+			return character, true
+		}
+	}
+	return CastCharacter{}, false
 }
 
 func TestParseSpecRoundTrip(t *testing.T) {

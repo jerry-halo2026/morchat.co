@@ -93,10 +93,10 @@ describe("StepRuntimeConnect", () => {
     vi.useRealTimers();
   });
 
-  it("does not render a permanently-disabled Mika action while scanning", () => {
+  it("does not render a permanently-disabled Sika action while scanning", () => {
     renderStep();
     expect(
-      screen.queryByRole("button", { name: /start with mika/i }),
+      screen.queryByRole("button", { name: /start with sika/i }),
     ).not.toBeInTheDocument();
   });
 
@@ -145,9 +145,9 @@ describe("StepRuntimeConnect", () => {
     expect(
       screen.queryByText(/no agent runtime found/i),
     ).not.toBeInTheDocument();
-    // Starting with Mika is actionable in the found phase.
+    // Starting with Sika is actionable in the found phase.
     expect(
-      screen.getByRole("button", { name: /start with mika/i }),
+      screen.getByRole("button", { name: /start with sika/i }),
     ).toBeInTheDocument();
   });
 

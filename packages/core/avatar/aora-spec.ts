@@ -3,42 +3,17 @@
  *
  *   aora:<character>:<shape>:<color>:<face>:<style>:<seed>
  *
- * `character` is the cast name ("mochi", "byte", …). `shape` and `color` are the
- * two things that differ per agent by default; `face` and `style` are pinned for
- * derived avatars so the roster reads as one family, and become free choices once
- * someone edits their own avatar.
+ * `character` is the cast name ("mochi", "byte", …). In the cast a member *is* a
+ * shape plus a colour, so a derived avatar picks one character and takes both
+ * from it; `face` and `style` are pinned so the roster reads as one family, and
+ * become free choices once someone edits their own avatar.
  *
  * The encoders here and in server/internal/avatar/spec.go must agree byte for
  * byte: an avatar written by the server has to render identically in the web app
  * and the desktop app. testdata/aora-vectors.json pins that agreement.
  */
 
-/** The eight shapes Aora's own deterministic assignment picks from: legible at 16px. */
-export const AUTO_SHAPE_POOL = [
-  "blob",
-  "pebble",
-  "mochi",
-  "tofu",
-  "onigiri",
-  "hex",
-  "cloud",
-  "drop",
-] as const;
-
-/** Aora's assignable palette; `black` is reserved for defaults and left out. */
-export const ASSIGNABLE_COLOR_IDS = [
-  "brown",
-  "red",
-  "orange",
-  "yellow",
-  "green",
-  "cyan",
-  "blue",
-  "violet",
-  "magenta",
-  "pink",
-  "gray",
-] as const;
+import { AORA_CAST_CHARACTERS } from "./aora-cast";
 
 /** Every style the free editor may choose; derived avatars only ever use the first. */
 export const STYLE_IDS = ["vector", "pixel", "kaomoji"] as const;
@@ -49,7 +24,7 @@ export const DERIVED_FACE = "capsule";
 export const DERIVED_STYLE: StyleId = "vector";
 
 export interface AoraSpec {
-  /** Cast name, e.g. "mochi"; empty means "let the shape's default cast name show". */
+  /** Cast name, e.g. "mochi". Empty only in specs written before derivation named one. */
   character: string;
   shape: string;
   color: string;
@@ -71,13 +46,14 @@ export function stableHash(id: string): number {
   return hash >>> 0;
 }
 
-/** The avatar an entity gets when nobody chose one: fixed style and face, hashed look. */
+/** The avatar an entity gets when nobody chose one: fixed style and face, hashed character. */
 export function deriveAoraSpec(entityId: string): AoraSpec {
   const hash = stableHash(entityId);
+  const character = AORA_CAST_CHARACTERS[hash % AORA_CAST_CHARACTERS.length]!;
   return {
-    character: "",
-    shape: AUTO_SHAPE_POOL[hash % AUTO_SHAPE_POOL.length]!,
-    color: ASSIGNABLE_COLOR_IDS[(hash >>> 8) % ASSIGNABLE_COLOR_IDS.length]!,
+    character: character.id,
+    shape: character.shape,
+    color: character.color,
     face: DERIVED_FACE,
     style: DERIVED_STYLE,
     seed: (hash >>> 16).toString(16).padStart(4, "0"),
@@ -102,6 +78,8 @@ export function decodeAoraSpec(value: string | null | undefined): AoraSpec | nul
   const parts = value.slice(PREFIX.length).split(":");
   if (parts.length !== FIELDS) return null;
   const [character, shape, color, face, style, seed] = parts;
+  // `character` stays optional: specs written before derivation named one carry ""
+  // and still have to parse.
   if (!shape || !color || !face || !style || !seed) return null;
   if (!(STYLE_IDS as readonly string[]).includes(style)) return null;
   return { character: character!, shape, color, face, style, seed };

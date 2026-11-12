@@ -24,15 +24,31 @@ vi.mock("@aora-bot/react", async (importOriginal) => {
         onClick={() => onCommit?.({ shape: "cat", color: "red", face: "cute" })}
       />
     ),
+    AvatarStudio: ({
+      onCommit,
+      onClose,
+    }: {
+      onCommit?: (next: { shape: string; color: string; face?: string }) => void;
+      onClose?: (reason: string) => void;
+    }) => (
+      <div data-testid="avatar-studio">
+        <button
+          type="button"
+          data-testid="avatar-studio-pick"
+          onClick={() => onCommit?.({ shape: "cat", color: "red", face: "cute" })}
+        />
+        <button type="button" data-testid="avatar-studio-close" onClick={() => onClose?.("cancel")} />
+      </div>
+    ),
     AgentCharacterSelector: ({
       onCommit,
     }: {
-      onCommit?: (next: { shape: string; color: string }) => void;
+      onCommit?: (next: { shape: string; color: string; face?: string }) => void;
     }) => (
       <button
         type="button"
         data-testid="grid"
-        onClick={() => onCommit?.({ shape: "mochi", color: "green" })}
+        onClick={() => onCommit?.({ shape: "hex", color: "green" })}
       />
     ),
   };
@@ -140,7 +156,8 @@ describe("AoraAvatarEditor", () => {
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 
-  it("draws nothing but the avatar as a button in the avatar layout", () => {
+  it("keeps the settings form out of the avatar layout and puts the cards behind the avatar", async () => {
+    const user = userEvent.setup();
     const onChange = vi.fn();
     render(
       <AoraAvatarEditor
@@ -152,10 +169,16 @@ describe("AoraAvatarEditor", () => {
     );
 
     // The avatar itself is the entry point, and the settings-form surfaces
-    // (preview slot, pickers, the second button) are gone.
-    expect(screen.getByTestId("studio")).toBeInTheDocument();
-    expect(screen.queryByTestId("preview-mark")).not.toBeInTheDocument();
-    expect(screen.queryByRole("group", { name: "Edit avatar" })).toBeInTheDocument();
+    // (the preview slot's label, the pickers, the shapes button) are gone.
+    expect(screen.queryByRole("img", { name: "Avatar preview" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox", { name: "Shape" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Shape and colour" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("grid")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Character" }));
+
+    // Pressing the face is what draws the character cards, not a taller row.
+    expect(screen.getByTestId("grid")).toBeInTheDocument();
   });
 
   it("commits a pick made through the avatar itself", async () => {
@@ -170,9 +193,64 @@ describe("AoraAvatarEditor", () => {
       />,
     );
 
-    await user.click(screen.getByTestId("studio"));
+    await user.click(screen.getByRole("button", { name: "Character" }));
+    await user.click(screen.getByTestId("grid"));
 
+    // Shape and colour move; the cast, face, style and seed in the stored spec
+    // survive a card the picker commits without a face.
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith("aora:mochi:hex:green:capsule:vector:1a2b");
+  });
+
+  it("opens the full Studio from the avatar layout and commits its pick", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <AoraAvatarEditor
+        spec={SPEC}
+        entityId="agent-0001"
+        layout="avatar"
+        onChange={onChange}
+      />,
+    );
+
+    expect(screen.queryByTestId("avatar-studio")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Edit avatar" }));
+
+    await user.click(screen.getByTestId("avatar-studio-pick"));
+    expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith("aora:mochi:cat:red:cute:vector:1a2b");
+
+    await user.click(screen.getByTestId("avatar-studio-close"));
+    expect(screen.queryByTestId("avatar-studio")).not.toBeInTheDocument();
+  });
+});
+
+describe("AoraAvatarEditor avatar layout random", () => {
+  const ROLLED = "aora::drop:pink:capsule:vector:00ff";
+
+  it("previews a rolled face on the avatar and writes it only on confirmation", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <AoraAvatarEditor
+        spec={SPEC}
+        entityId="agent-0001"
+        layout="avatar"
+        onChange={onChange}
+        randomSpec={() => ROLLED}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Randomize" }));
+
+    // Rolled, shown on the avatar, not saved — and the confirm is offered.
+    expect(onChange).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Use this one" }));
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(ROLLED);
   });
 });
 

@@ -21,6 +21,7 @@ import type {
 import {
   AgentCharacterSelector,
   AvatarButton,
+  AvatarStudio,
   CAST_IDS,
   CharacterMark,
   type CharacterChoice,
@@ -183,7 +184,10 @@ export const DEFAULT_AORA_EDITOR_LABELS: AoraAvatarEditorLabels = {
 
 /** Where the editor puts its controls. */
 export type AoraAvatarEditorLayout =
-  /** The avatar is the button: it opens the Studio, and nothing else is drawn. */
+  /**
+   * The avatar is the button: it opens the character cards in a popover, so the
+   * row keeps its height. Randomize and the full Studio sit beside it.
+   */
   | "avatar"
   /** Preview plus every field, for a settings form. */
   | "form";
@@ -237,6 +241,8 @@ export function AoraAvatarEditor({
    * only reaches the host once someone says so.
    */
   const [rolled, setRolled] = useState(false);
+  /** Upstream's full Studio, drawn as an overlay so the settings row keeps its height. */
+  const [studioOpen, setStudioOpen] = useState(false);
 
   const accepts = (candidate: string) => (validate ?? isAoraSpec)(candidate);
 
@@ -353,6 +359,54 @@ export function AoraAvatarEditor({
     });
 
   /**
+   * The face on screen, in whichever slot the layout draws it: the settings
+   * form's preview, or the avatar that is itself a button.
+   */
+  const characterMark = (autoPause: boolean) => (
+    <CharacterMark
+      shape={draft.shape as ShapeId}
+      color={draft.color as ColorId}
+      face={FACES.has(draft.face) ? (draft.face as FaceStyle) : undefined}
+      styleId={STYLES.has(draft.style) ? (draft.style as StyleId) : undefined}
+      preset={CASTS.has(draft.character) ? (draft.character as CastId) : undefined}
+      variant={draft.variant || undefined}
+      eyeColor={draft.eyeColor ? getSwatchHex(draft.eyeColor as ColorId) : undefined}
+      lineWeight={draft.lineWeight}
+      seed={draft.seed}
+      sizePx={sizePx}
+      autoPause={autoPause}
+    />
+  );
+
+  /**
+   * The cards upstream's picker already draws. `immediate` means a click is the
+   * decision, and `actions={false}` hides upstream's own confirm pair because
+   * there is nothing left to confirm.
+   */
+  const characterCards = (
+    <AgentCharacterSelector
+      value={studioValue}
+      shapes={SHAPE_IDS}
+      actions={false}
+      immediate
+      onCommit={studioPick}
+    />
+  );
+
+  /** The entry to the whole Studio: every field, plus upload and live preview. */
+  const studioEntry = (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={disabled}
+      onClick={() => setStudioOpen(true)}
+    >
+      {labels.studio}
+    </Button>
+  );
+
+  /**
    * The Randomize action, and the confirm that turns a roll into a stored face.
    * Rendered next to the avatar in both layouts so a roll is one click away
    * from the face it changes.
@@ -377,8 +431,9 @@ export function AoraAvatarEditor({
     </div>
   ) : null;
 
-  // The avatar is the whole editor: it is the Studio's own button, so pressing
-  // the face opens the picker and the face on screen is what gets edited.
+  // The avatar is the entry point: pressing the face opens the character cards
+  // in a popover, so nothing above the fold grows. The sheet repeats Randomize
+  // and the Studio entry so a pick and a roll are one click from the cards.
   if (layout === "avatar") {
     return (
       <div
@@ -389,10 +444,45 @@ export function AoraAvatarEditor({
           className,
         )}
       >
-        <span aria-label={labels.studio} role="group">
-          <AvatarButton value={studioValue} sizePx={sizePx} onCommit={studioPick} />
-        </span>
+        <div className="relative flex shrink-0 items-center">
+          <Popover>
+            <PopoverTrigger
+              render={
+                <button
+                  type="button"
+                  aria-label={labels.character}
+                  disabled={disabled}
+                  style={{ width: sizePx, height: sizePx }}
+                  className={cn(
+                    "flex items-center justify-center bg-transparent p-0 outline-none",
+                    "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                    // eslint-disable-next-line no-restricted-syntax -- avatar: the control is the avatar itself
+                    "rounded-full",
+                  )}
+                >
+                  {characterMark(false)}
+                </button>
+              }
+            />
+            <PopoverContent align="end" className="w-auto p-2">
+              {characterCards}
+              <div className="flex items-center gap-2 border-t border-border pt-2">
+                {randomControls}
+                {studioEntry}
+              </div>
+            </PopoverContent>
+          </Popover>
+          {studioOpen ? (
+            <AvatarStudio
+              value={studioValue}
+              onCommit={studioPick}
+              onClose={() => setStudioOpen(false)}
+              className="aora-avatar-button__editor"
+            />
+          ) : null}
+        </div>
         {randomControls}
+        {studioEntry}
       </div>
     );
   }
@@ -408,19 +498,7 @@ export function AoraAvatarEditor({
         aria-label={labels.preview}
         style={{ width: sizePx, height: sizePx }}
       >
-        <CharacterMark
-          shape={draft.shape as ShapeId}
-          color={draft.color as ColorId}
-          face={FACES.has(draft.face) ? (draft.face as FaceStyle) : undefined}
-          styleId={STYLES.has(draft.style) ? (draft.style as StyleId) : undefined}
-          preset={CASTS.has(draft.character) ? (draft.character as CastId) : undefined}
-          variant={draft.variant || undefined}
-          eyeColor={draft.eyeColor ? getSwatchHex(draft.eyeColor as ColorId) : undefined}
-          lineWeight={draft.lineWeight}
-          seed={draft.seed}
-          sizePx={sizePx}
-          autoPause
-        />
+        {characterMark(true)}
       </div>
 
       <div className="grid min-w-0 flex-1 basis-64 grid-cols-2 gap-x-3 gap-y-2">
@@ -511,19 +589,7 @@ export function AoraAvatarEditor({
             }
           />
           <PopoverContent align="end" className="w-auto p-2">
-            <AgentCharacterSelector
-              value={studioValue}
-              shapes={SHAPE_IDS}
-              actions={false}
-              immediate
-              onCommit={(choice) =>
-                commit({
-                  shape: choice.shape,
-                  color: choice.color,
-                  face: choice.face ?? draft.face,
-                })
-              }
-            />
+            {characterCards}
           </PopoverContent>
         </Popover>
         <div aria-label={labels.studio} role="group">

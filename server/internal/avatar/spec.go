@@ -16,19 +16,8 @@ import (
 // sides test against it.
 //
 // Derived avatars - the ones nobody chose - pin the style to vector (flat) and the
-// face to capsule eyes so the roster reads as one family, and vary only the shape
-// and the colour.
-
-// AutoShapePool mirrors Aora's AUTO_SHAPE_POOL: the eight shapes that stay legible
-// at avatar sizes.
-var AutoShapePool = []string{"blob", "pebble", "mochi", "tofu", "onigiri", "hex", "cloud", "drop"}
-
-// AssignableColorIDs mirrors Aora's assignable palette; "black" is reserved for
-// defaults and deliberately absent.
-var AssignableColorIDs = []string{
-	"brown", "red", "orange", "yellow", "green", "cyan",
-	"blue", "violet", "magenta", "pink", "gray",
-}
+// face to capsule eyes so the roster reads as one family, and pick one cast
+// character, which carries the shape and the colour together.
 
 // StyleIDs is what the free editor may pick. Derived avatars only ever use the first.
 var StyleIDs = []string{"vector", "pixel", "kaomoji"}
@@ -55,6 +44,9 @@ type Spec struct {
 
 // ParseSpec returns ok=false for anything that is not a well-formed spec, so a
 // caller can fall back to the derived avatar instead of storing garbage.
+//
+// Character stays optional: specs written before derivation named a cast member
+// carry an empty one and still have to parse.
 func ParseSpec(value string) (Spec, bool) {
 	value = strings.TrimSpace(value)
 	if !strings.HasPrefix(value, SpecPrefix) {
@@ -99,13 +91,15 @@ func StableHash(id string) uint32 {
 	return h.Sum32()
 }
 
-// DeriveSpec builds the avatar an entity gets when nobody chose one.
+// DeriveSpec builds the avatar an entity gets when nobody chose one: one cast
+// character picked by the id's hash, with the shape and colour that character is.
 func DeriveSpec(entityID string) Spec {
 	hash := StableHash(entityID)
+	character := CastCharacters[int(hash)%len(CastCharacters)]
 	return Spec{
-		Character: "",
-		Shape:     AutoShapePool[int(hash)%len(AutoShapePool)],
-		Color:     AssignableColorIDs[int(hash>>8)%len(AssignableColorIDs)],
+		Character: character.ID,
+		Shape:     character.Shape,
+		Color:     character.Color,
 		Face:      DerivedFace,
 		Style:     DerivedStyle,
 		Seed:      fmt.Sprintf("%04x", hash>>16),

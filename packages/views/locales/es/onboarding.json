@@ -9,7 +9,7 @@
       "label": "Espacio de trabajo"
     },
     "runtime": {
-      "label": "Conoce a Mika"
+      "label": "Conoce a Sika"
     }
   },
   "welcome": {
@@ -171,7 +171,7 @@
     "scanning_headline": "Conectando este ordenador…",
     "scanning_lede_prefix": "Tu agente trabaja a través de una herramienta de programación con IA que ya tienes, como ",
     "scanning_lede_suffix": ", y otras. Estamos comprobando cuáles tienes instaladas en este ordenador.",
-    "found_headline": "¿Dónde debe ejecutarse Mika?",
+    "found_headline": "¿Dónde debe ejecutarse Sika?",
     "runtime_count_one": "{{count}} runtime de agente",
     "runtime_count_other": "{{count}} runtimes de agente",
     "status_all_online": "todos en línea",
@@ -190,13 +190,13 @@
     "refresh": "Actualizar",
     "refreshing": "Actualizando…",
     "hint_selected": "Seleccionado: {{name}}",
-    "hint_pick": "Elige un runtime de agente de arriba para empezar con Mika.",
+    "hint_pick": "Elige un runtime de agente de arriba para empezar con Sika.",
     "hint_waiting": "Esperando el primer resultado…",
-    "continue": "Empezar con Mika"
+    "continue": "Empezar con Sika"
   },
   "step_platform": {
     "headline": "Conecta un ordenador para ejecutar tu agente.",
-    "lede": "Conecta un ordenador para que Mika pueda empezar a trabajar.",
+    "lede": "Conecta un ordenador para que Sika pueda empezar a trabajar.",
     "hint_default": "Puedes conectarlo más tarde.",
     "download_title": "Usar este ordenador",
     "download_subtitle": "Instala morechat.co Desktop para conectar este ordenador.",
@@ -224,13 +224,13 @@
   },
   "errors": {
     "skip_failed": "No se ha podido terminar la incorporación",
-    "mika_setup_failed": "No se ha podido iniciar tu espacio de trabajo de Mika",
+    "mika_setup_failed": "No se ha podido iniciar tu espacio de trabajo de Sika",
     "guide_failed": "No se ha podido crear la guía del runtime. Inténtalo de nuevo."
   },
   "mika_intro": {
-    "headline": "Conoce a Mika, tu primer compañero agente.",
-    "name": "Mika",
+    "headline": "Conoce a Sika, tu primer compañero agente.",
+    "name": "Sika",
     "role": "Tu brazo derecho",
-    "blurb": "Dile a Mika qué quieres hacer. Se convierte en una tarea, con el agente adecuado encargado."
+    "blurb": "Dile a Sika qué quieres hacer. Se convierte en una tarea, con el agente adecuado encargado."
   }
 }
