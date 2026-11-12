@@ -3,6 +3,8 @@ package handler
 import (
 	"strings"
 	"testing"
+
+	"github.com/jerry-halo2026/morchat.co/server/internal/service"
 )
 
 // Every language the endpoint accepts must have an opening. A missing entry
@@ -46,7 +48,7 @@ func TestMikaOnboardingOpeningUsesTheCurrentDisplayName(t *testing.T) {
 // the default rather than emit "I'm , your Chief of Staff".
 func TestMikaOnboardingOpeningFallsBackToTheDefaultName(t *testing.T) {
 	opening := buildMikaOnboardingOpening("en", "   ", "Venus")
-	if !strings.Contains(opening, "I'm Mika,") {
+	if !strings.Contains(opening, "I'm "+service.MikaDefaultName+",") {
 		t.Fatalf("blank name did not fall back to the product default:\n%s", opening)
 	}
 }

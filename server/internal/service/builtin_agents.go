@@ -17,8 +17,9 @@ const MikaSystemKey = "mika"
 
 // MikaDefaultName is the name the agent is created with. Owners may rename it;
 // nothing server-side keys off the name, and the prompt is templated on
-// whatever the current name is.
-const MikaDefaultName = "Mika"
+// whatever the current name is. It carries the product's own name so a new
+// workspace starts with a familiar face rather than an upstream placeholder.
+const MikaDefaultName = "李陌茶"
 
 // mikaNamePlaceholder is substituted in the embedded prompt with the agent's
 // current display name.
