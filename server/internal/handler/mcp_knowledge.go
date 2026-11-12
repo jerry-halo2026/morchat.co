@@ -315,7 +315,14 @@ func mcpKnowledgeError(err error) *mcpError {
 		return &mcpError{Code: mcpErrInvalidParams, Message: err.Error()}
 	case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
 		return &mcpError{Code: mcpErrInternal, Message: "knowledge tool call was cancelled"}
+	case errors.Is(err, knowledge.ErrWriteFailed), errors.Is(err, knowledge.ErrWriteTimeout):
+		// The caller can act on both: one carries the pipeline's own reason, the
+		// other says the item may still land later. Swallowing them into "tool call
+		// failed" leaves a model with nothing to report.
+		return &mcpError{Code: mcpErrInternal, Message: err.Error()}
 	default:
-		return &mcpError{Code: mcpErrInternal, Message: "knowledge tool call failed"}
+		// Say what happened. A model reading "tool call failed" tries the same call
+		// again; reading the cause, it can change the call.
+		return &mcpError{Code: mcpErrInternal, Message: "knowledge tool call failed: " + err.Error()}
 	}
 }

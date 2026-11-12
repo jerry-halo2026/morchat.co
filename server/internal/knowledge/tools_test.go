@@ -16,8 +16,8 @@ import (
 func TestToolSchemasAreValidJSON(t *testing.T) {
 	service := testService()
 	tools := service.Tools()
-	if len(tools) != 2 {
-		t.Fatalf("declared %d tools, want 2", len(tools))
+	if len(tools) != 3 {
+		t.Fatalf("declared %d tools, want 3", len(tools))
 	}
 	names := map[string]bool{}
 	for _, tool := range tools {

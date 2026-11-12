@@ -33,6 +33,7 @@ type Tool struct {
 const (
 	ToolKnowledgeSearch = "knowledge.search"
 	ToolKnowledgeGet    = "knowledge.get"
+	ToolKnowledgeWrite  = "knowledge.write"
 )
 
 var knowledgeSearchSchema = json.RawMessage(`{
@@ -61,6 +62,20 @@ var knowledgeGetSchema = json.RawMessage(`{
   "additionalProperties": false
 }`)
 
+
+var knowledgeWriteSchema = json.RawMessage(`{
+  "type": "object",
+  "properties": {
+    "title":      {"type": "string", "description": "Document title. Becomes the item title."},
+    "content":    {"type": "string", "description": "Markdown body to store."},
+    "space_id":   {"type": "string", "description": "Target space. Omit to use the workspace's General space, created on first use."},
+    "source_ref": {"type": "string", "description": "Where this came from, e.g. an issue URL. Shown as the item's source."}
+  },
+  "required": ["title", "content"],
+  "additionalProperties": false
+}`)
+
+
 // Tools returns the declared tool surface with this database's capabilities
 // folded in: when no embedder is wired, the hybrid/vector modes still exist as
 // declared values but the call degrades to keyword, which the description says.
@@ -73,6 +88,14 @@ func (s *Service) Tools() []Tool {
 				"keyword and vector channels; when no embedding model is configured it degrades to keyword " +
 				"and reports vector_degraded=true.",
 			InputSchema: knowledgeSearchSchema,
+		},
+		{
+			Name: ToolKnowledgeWrite,
+			Description: "Store a document in the workspace knowledge base and return its item and document id. " +
+				"Use this when a task produced something worth keeping: a conclusion, a runbook, a decision with " +
+				"its reasons. The body goes through the same pipeline as an upload, so it is chunked and " +
+				"searchable immediately. The note is owned by the caller.",
+			InputSchema: knowledgeWriteSchema,
 		},
 		{
 			Name: ToolKnowledgeGet,
@@ -107,6 +130,8 @@ func (s *Service) InvokeTool(ctx context.Context, inv ToolInvocation) (any, erro
 		return s.invokeSearch(ctx, inv)
 	case ToolKnowledgeGet:
 		return s.invokeGet(ctx, inv)
+	case ToolKnowledgeWrite:
+		return s.invokeWrite(ctx, inv)
 	}
 	return nil, fmt.Errorf("%w: %s", ErrUnknownTool, inv.Name)
 }
@@ -135,6 +160,34 @@ func (s *Service) invokeSearch(ctx context.Context, inv ToolInvocation) (Retriev
 		TopK:           args.TopK,
 		ScoreThreshold: args.ScoreThreshold,
 		Rerank:         args.Rerank,
+	})
+}
+
+// invokeWrite stores one document and answers with what it became.
+//
+// The owner is the caller, so the note is theirs in the same sense a comment is:
+// the ACL rules that decide who can read it need no special case for agent-authored
+// content.
+func (s *Service) invokeWrite(ctx context.Context, inv ToolInvocation) (WriteResult, error) {
+	var args struct {
+		Title     string `json:"title"`
+		Content   string `json:"content"`
+		SpaceID   string `json:"space_id"`
+		SourceRef string `json:"source_ref"`
+	}
+	if err := decodeToolArgs(inv.Args, &args); err != nil {
+		return WriteResult{}, err
+	}
+	if strings.TrimSpace(args.Title) == "" {
+		return WriteResult{}, fmt.Errorf("%w: title is required", ErrInvalidField)
+	}
+	return s.WriteDocument(ctx, WriteRequest{
+		WorkspaceID: inv.WorkspaceID,
+		OwnerID:     inv.ViewerID,
+		SpaceID:     args.SpaceID,
+		Title:       args.Title,
+		Content:     args.Content,
+		SourceRef:   args.SourceRef,
 	})
 }
 

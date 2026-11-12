@@ -187,8 +187,8 @@ func TestKnowledgeMCPToolsList(t *testing.T) {
 	if err := json.Unmarshal(frame.Result, &result); err != nil {
 		t.Fatalf("decode tools/list result %s: %v", frame.Result, err)
 	}
-	if len(result.Tools) != 2 {
-		t.Fatalf("tools = %d, want 2: %s", len(result.Tools), frame.Result)
+	if len(result.Tools) != 3 {
+		t.Fatalf("tools = %d, want 3: %s", len(result.Tools), frame.Result)
 	}
 
 	byName := map[string]struct {
