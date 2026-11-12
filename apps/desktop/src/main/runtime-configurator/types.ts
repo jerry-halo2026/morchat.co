@@ -12,9 +12,9 @@
  */
 
 /** A local CLI whose provider configuration we own. */
-export type TargetId = "claude-code" | "codex" | "dsh";
+export type TargetId = "claude-code" | "codex";
 
-export const TARGET_IDS: readonly TargetId[] = ["claude-code", "codex", "dsh"];
+export const TARGET_IDS: readonly TargetId[] = ["claude-code", "codex"];
 
 /**
  * How the target reaches a model.
@@ -73,12 +73,7 @@ export interface TargetPaths {
     /** `~/.codex/auth.json` — referenced for backup/verify only; never rewritten. */
     readonly authPath: string;
   };
-  readonly dsh: {
-    /** `$DSH_HOME`, default `~/.dsh`. */
-    readonly home: string;
-    /** Profile name the daemon launches: `multica`. */
-    readonly profileName: string;
-  };
+
 }
 
 export type TargetSelection = {

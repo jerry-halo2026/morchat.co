@@ -173,10 +173,6 @@ export function createTestProfile(overrides: {
           authPath: `${root}/.codex/auth.json`,
         },
       },
-      {
-        id: "dsh",
-        paths: { home: `${root}/.dsh`, profileName: "multica" },
-      },
     ],
   };
 }
@@ -185,13 +181,11 @@ export function createTestProfile(overrides: {
 export function testPaths(): {
   readonly claude: string;
   readonly codex: string;
-  readonly dsh: string;
 } {
   const root = "/home/u1";
   return {
     claude: `${root}/.claude/settings.json`,
     codex: `${root}/.codex/config.toml`,
-    dsh: `${root}/.dsh/cordis.patch.yml`,
   };
 }
 

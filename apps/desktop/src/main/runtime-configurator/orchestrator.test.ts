@@ -72,7 +72,7 @@ describe("apply pipeline", () => {
     if (!outcome.ok) return;
     const paths = testPaths();
     expect([...outcome.changed].sort()).toEqual(
-      [paths.claude, paths.codex, paths.dsh].sort(),
+      [paths.claude, paths.codex].sort(),
     );
 
     const ops = h.fs.ops;
@@ -120,7 +120,6 @@ describe("apply pipeline", () => {
     // A half-configured profile is worse than the old one.
     expect(h.fs.entries.get(paths.claude)?.content).toBe(claudeBefore);
     expect(h.fs.entries.get(paths.codex)?.content).toBe(codexBefore);
-    expect(h.fs.entries.has(paths.dsh)).toBe(false);
     expect(h.fs.ops).toContain("backup:restore");
   });
 
@@ -290,7 +289,9 @@ describe("credential source and degrade retry", () => {
       "personal",
     ]);
     // …and the config still landed, so the employee can keep working.
-    expect(h.fs.entries.size).toBe(3);
+    // and the config still landed (one file per remaining target), so the employee
+    // can keep working: DSH is no longer a configuration target.
+    expect(h.fs.entries.size).toBe(2);
   });
 
   it("throws a readable error and writes nothing when both credentials fail", async () => {

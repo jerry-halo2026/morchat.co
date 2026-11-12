@@ -40,7 +40,6 @@ import {
   type CredentialStatusSummary,
   type PersonalKeyRejection,
 } from "./credential";
-import { upsertCredentialRef, removeCredentialRef } from "./dsh-credentials";
 import { createBackupStore, createNodeConfiguratorFs } from "./fs";
 import { createRuntimeConfigurator } from "./index";
 import { createSafeStorageKeychain, type Keychain, type SecretCipher } from "./keychain";
@@ -58,11 +57,7 @@ import type {
 /** Default ref name for the relay key when the provider config does not name one. */
 const ENV_REF_NAME = "MULTICA_RELAY_KEY";
 
-/** Harness profile this module writes, and the one `--list-models` reads back. */
-const DSH_PROFILE_NAME = "multica";
 
-/** How long the post-apply model list check may take before it is abandoned. */
-const MODEL_CHECK_TIMEOUT_MS = 3_000;
 
 /**
  * The gateway a signed-in account was issued, as the server's credential
@@ -255,7 +250,6 @@ export function buildRelayProfile(input: {
     defaultModel,
   };
 
-  const dshHome = input.env.DSH_HOME?.trim() || join(input.homedir, ".dsh");
   const targets: readonly TargetSelection[] = [
     {
       id: "claude-code",
@@ -270,10 +264,6 @@ export function buildRelayProfile(input: {
         configPath: join(input.homedir, ".codex", "config.toml"),
         authPath: join(input.homedir, ".codex", "auth.json"),
       },
-    },
-    {
-      id: "dsh",
-      paths: { home: dshHome, profileName: DSH_PROFILE_NAME },
     },
   ];
 
@@ -335,7 +325,7 @@ export function verifyProfileModels(
         check.binary,
         ["--profile", check.profileName, "--list-models"],
         {
-          timeout: check.timeoutMs ?? MODEL_CHECK_TIMEOUT_MS,
+          timeout: check.timeoutMs ?? 3_000,
           windowsHide: true,
           maxBuffer: 1024 * 1024,
           // The shipped harness is a `.cmd` on Windows, which execFile cannot run
@@ -445,33 +435,6 @@ export function installRuntimeConfigurator(
    * has a key" and "an agent run can call a model". Cleared on logout.
    */
   let relay: Record<string, string> | null = null;
-
-  /**
-   * Writes the relay key into `$DSH_HOME/.credentials.yaml` under the name the
-   * provider configuration references. Written through a temp file and renamed so a
-   * crash cannot leave the harness with a truncated credential store.
-   */
-  async function writeHarnessRef(name: string, value: string): Promise<void> {
-    const dshHome = env.DSH_HOME?.trim() || join(home, ".dsh");
-    const path = join(dshHome, ".credentials.yaml");
-    const current = (await fs.read(path).catch(() => null)) ?? "";
-    const next = upsertCredentialRef(current, name, value);
-    if (next === current) return;
-    await fs.mkdirp(dshHome);
-    await fs.writeFileAtomic(path, next, 0o600);
-  }
-
-  /** Removes our ref on logout; other refs and every grant stay. */
-  async function clearHarnessRef(): Promise<void> {
-    const dshHome = env.DSH_HOME?.trim() || join(home, ".dsh");
-    const path = join(dshHome, ".credentials.yaml");
-    const current = await fs.read(path).catch(() => null);
-    if (!current) return;
-    const name = ENV_REF_NAME;
-    const next = removeCredentialRef(current, name);
-    if (next === current) return;
-    await fs.writeFileAtomic(path, next, 0o600);
-  }
 
   function publish(next: RuntimeConfiguratorStatus): RuntimeConfiguratorStatus {
     status = next;
@@ -592,36 +555,17 @@ export function installRuntimeConfigurator(
           await resolveCredential(profile, { keychain, userId, logger }),
         ).catch(() => null);
         if (stored) {
-          // The harness resolves a provider's `apiKeyEnv` against its own credential
-          // store, so the key has to live there as well as in the child environment;
-          // an env var alone changes nothing for model calls.
-          await writeHarnessRef(relayEnvName(profile.provider.apiKeyRef), stored).catch((err: unknown) => {
-            logger.warn("runtime-configurator: harness credential store write failed", {
-              error: err instanceof Error ? err.message : String(err),
-            });
-          });
+          // The key travels to the daemon as an environment value; the harness's own
+          // configuration stays out of this app's hands, so no provider route and no
+          // credential-store entry is written for it.
           relay = {
             [relayEnvName(profile.provider.apiKeyRef)]: stored,
-            DEEPSEEK_BASE_URL: profile.provider.baseUrl,
             // Which credential pays for a run, for the usage report. The daemon
             // cannot infer it - both kinds of key arrive as an environment value -
             // and guessing would bill a personal key to the company.
             MULTICA_CREDENTIAL_SOURCE: outcome.credentialSource ?? "company",
           };
         }
-        // Fire-and-forget readback: an apply that already succeeded must not be
-        // downgraded by a harness that is slow, missing, or mid-upgrade.
-        void verifyProfileModels(
-          {
-            // Prefer the harness the desktop shipped: in a packaged app nothing named
-      // `dsh` is on PATH, so a bare name would fail with ENOENT on every apply.
-      binary: env.DSH_BIN?.trim() || process.env["MULTICA_DSH_PATH"]?.trim() || "dsh",
-            profileName: DSH_PROFILE_NAME,
-            models: profile.provider.models,
-            env,
-          },
-          logger,
-        );
         return await publishWithCredentials({
           state: "configured",
           detail:
@@ -761,7 +705,6 @@ export function installRuntimeConfigurator(
       currentUserId = null;
       lastRecord = null;
       attemptedKey = null;
-      if (relay) void clearHarnessRef();
       relay = null;
       publish({ state: "idle", detail: "已退出登录" });
     },

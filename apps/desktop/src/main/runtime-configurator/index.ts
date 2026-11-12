@@ -56,7 +56,6 @@ import type { Keychain } from "./keychain";
 import { isDegradable, type CredentialProbe } from "./probe";
 import { claudeCodeWriter } from "./writers/claude-code";
 import { codexWriter } from "./writers/codex";
-import { dshWriter } from "./writers/dsh";
 import type { RuntimeTargetWriter } from "./writers/writer";
 
 export type { BackupStore, ConfiguratorFs, ConfiguratorLogger } from "./ports";
@@ -68,7 +67,6 @@ export {
 export const WRITERS: readonly RuntimeTargetWriter[] = [
   claudeCodeWriter,
   codexWriter,
-  dshWriter,
 ];
 
 export interface ConfiguratorDeps {
