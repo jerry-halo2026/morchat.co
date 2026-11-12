@@ -603,6 +603,10 @@ export function installRuntimeConfigurator(
           relay = {
             [relayEnvName(profile.provider.apiKeyRef)]: stored,
             DEEPSEEK_BASE_URL: profile.provider.baseUrl,
+            // Which credential pays for a run, for the usage report. The daemon
+            // cannot infer it - both kinds of key arrive as an environment value -
+            // and guessing would bill a personal key to the company.
+            MULTICA_CREDENTIAL_SOURCE: outcome.credentialSource ?? "company",
           };
         }
         // Fire-and-forget readback: an apply that already succeeded must not be

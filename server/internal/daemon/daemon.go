@@ -9746,7 +9746,26 @@ func withPriorTaskUsage(opts agent.ExecOptions, prior map[string]agent.TokenUsag
 // server upserts. A model whose buckets are all zero is skipped rather than
 // written as 0: an unreported run keeps its cost NULL server-side, which is what
 // makes the board render it as unknown instead of $0.
+// credentialSourceEnv names the credential a run is paid by, set by the desktop
+// that spawned this daemon. The daemon cannot infer it: both a company key and an
+// employee's own key reach the agent the same way, as an environment value.
+const credentialSourceEnv = "MULTICA_CREDENTIAL_SOURCE"
+
+// credentialSourceFromEnv maps the desktop's declaration onto the closed
+// vocabulary the server stores. Anything else means "this runner cannot say", which
+// the server records as unknown rather than guessing - a wrong guess bills an
+// employee's own spend to the company.
+func credentialSourceFromEnv() string {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv(credentialSourceEnv))) {
+	case "company", "personal":
+		return strings.ToLower(strings.TrimSpace(os.Getenv(credentialSourceEnv)))
+	default:
+		return ""
+	}
+}
+
 func taskUsageEntries(provider string, usage map[string]agent.TokenUsage) []TaskUsageEntry {
+	source := credentialSourceFromEnv()
 	var entries []TaskUsageEntry
 	for model, u := range usage {
 		if u.InputTokens == 0 && u.OutputTokens == 0 && u.CacheReadTokens == 0 && u.CacheWriteTokens == 0 && u.CostUSDTicks <= 0 {
@@ -9760,6 +9779,7 @@ func taskUsageEntries(provider string, usage map[string]agent.TokenUsage) []Task
 			CacheReadTokens:  u.CacheReadTokens,
 			CacheWriteTokens: u.CacheWriteTokens,
 			CostUSDTicks:     u.CostUSDTicks,
+			CredentialSource: source,
 		})
 	}
 	// Stable ordering lets the flush compare snapshots across map iterations.
