@@ -33,17 +33,17 @@ const DshProviderID = "dsh"
 
 const (
 	// DshDefaultModelID is the model a new DSH agent runs on when the caller
-	// leaves agent.model empty. It is the company gateway route
-	// (`morechat/<model>`) that the desktop runtime-configurator declares in the
-	// `multica` profile, so it runs on the key we mint for the account.
+	// leaves agent.model empty. It is the route the harness already serves from
+	// the account the user signed into: this app no longer declares a provider
+	// inside the harness, because that file is the harness's own configuration and
+	// a wrong entry breaks the user's sessions.
 	//
-	// Neither DeepSeek route is a safe default: `deepseek-official/*` needs a
-	// DeepSeek login on that machine, and the profile registers no adapter for
-	// `deepseek-account/*`, so an agent defaulting to either one dies at launch
-	// with "no adapter registered for provider ...". Both prefixes stay
-	// parseable (parseDshModelID) and usable when a user picks one explicitly --
-	// this constant only decides where a *new* agent starts.
-	DshDefaultModelID = "morechat/deepseek-v4-flash"
+	// `deepseek-account/*` is deliberately not the default: the profile registers
+	// no adapter for it, so an agent created with that prefix dies at launch with
+	// "no adapter registered for provider ...". It stays parseable and usable when
+	// a user picks it explicitly - this constant only decides where a *new* agent
+	// starts.
+	DshDefaultModelID = "deepseek-official/deepseek-v4-flash"
 
 	// DshDefaultModelEnv replaces DshDefaultModelID for deployments that point
 	// agents at another route or model (another gateway, another model family).

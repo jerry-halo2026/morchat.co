@@ -258,8 +258,10 @@ func TestCreateMikaAgent_StoresTheDSHGatewayModel(t *testing.T) {
 	if resp.Model != agentpkg.DshDefaultModelID {
 		t.Fatalf("response model = %q, want %q", resp.Model, agentpkg.DshDefaultModelID)
 	}
-	if !strings.HasPrefix(resp.Model, "morechat/") {
-		t.Fatalf("Mika must default to the company gateway route, got %q", resp.Model)
+	// The default is the route the harness already serves from the user's own
+	// sign-in; this app writes no provider into the harness configuration.
+	if !strings.HasPrefix(resp.Model, "deepseek-official/") {
+		t.Fatalf("Mika must default to the account route, got %q", resp.Model)
 	}
 
 	// The row is what the daemon reads at launch, so assert on the column too.

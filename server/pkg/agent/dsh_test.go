@@ -52,21 +52,23 @@ func TestParseDshModelIDAcceptsEveryAdvertisedRoute(t *testing.T) {
 	}
 }
 
-// TestDefaultDshModel covers the two halves of the default: the company gateway
-// route when nothing is configured, and the deployment override when it is.
+// TestDefaultDshModel covers the two halves of the default: the route the harness
+// already serves when nothing is configured, and the deployment override when it is.
 func TestDefaultDshModel(t *testing.T) {
 	t.Setenv(DshDefaultModelEnv, "")
 	defaultModel := DshDefaultModelID
 	if got := DefaultDshModel(); got != defaultModel {
 		t.Fatalf("DefaultDshModel() = %q, want %q", got, defaultModel)
 	}
-	if !strings.HasPrefix(defaultModel, "morechat/") {
-		t.Fatalf("the default must be the company gateway route, got %q", DshDefaultModelID)
+	// The account route: the harness serves it from the user's own sign-in, and it
+	// is the only prefix that needs no configuration written into the harness. The
+	// `deepseek-account/` prefix stays out because the profile registers no adapter
+	// for it, so an agent created with it dies at launch.
+	if !strings.HasPrefix(defaultModel, "deepseek-official/") {
+		t.Fatalf("the default must be the account route, got %q", DshDefaultModelID)
 	}
-	for _, accountRoute := range []string{"deepseek-official/", "deepseek-account/"} {
-		if strings.HasPrefix(defaultModel, accountRoute) {
-			t.Fatalf("the default must not be the %s route", strings.TrimSuffix(accountRoute, "/"))
-		}
+	if strings.HasPrefix(defaultModel, "deepseek-account/") {
+		t.Fatal("the default must not be the route with no registered adapter")
 	}
 	if _, err := parseDshModelID(DshDefaultModelID); err != nil {
 		t.Fatalf("the default must be a parseable provider/model id: %v", err)
