@@ -113,6 +113,8 @@ export interface RuntimeConfiguratorHandle {
   readonly applyForUser: (
     userId: string,
     gateway?: RelayGateway,
+  
+    options?: { readonly force?: boolean },
   ) => Promise<RuntimeConfiguratorStatus>;
   /** Forgets the account (logout / account switch). */
   readonly reset: () => void;
@@ -474,8 +476,9 @@ export function installRuntimeConfigurator(
   async function applyForUser(
     userId: string,
     gateway?: RelayGateway,
+    options: { readonly force?: boolean } = {},
   ): Promise<RuntimeConfiguratorStatus> {
-    return runApply(userId, false, gateway);
+    return runApply(userId, options.force === true, gateway);
   }
 
   /**

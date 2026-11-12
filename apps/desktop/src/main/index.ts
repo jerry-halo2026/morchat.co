@@ -1133,10 +1133,22 @@ if (!gotTheLock) {
     // Applying again with that address is what writes the harness provider entry and
     // the credential-store ref; without it the key is stored and never referenced.
     setCompanyCredentialObserver(({ userId, credential }) => {
-      void runtimeConfigurator?.applyForUser(userId, {
-        baseUrl: credential.baseUrl,
-        models: credential.models,
+      console.log("[runtime-configurator] applying after mint", {
+        has_configurator: runtimeConfigurator !== null,
+        models: credential.models.length,
       });
+      void runtimeConfigurator?.applyForUser(
+        userId,
+        { baseUrl: credential.baseUrl, models: credential.models },
+        // A first apply may already have run before the key existed; this one
+        // must not be deduped away by that attempt.
+        { force: true },
+      ).then(
+        (status) => console.log("[runtime-configurator] post-mint apply", { state: status.state }),
+        (err) => console.warn("[runtime-configurator] post-mint apply failed", {
+          reason: err instanceof Error ? err.name : String(err),
+        }),
+      );
     });
 
     desktopInitialized = true;
