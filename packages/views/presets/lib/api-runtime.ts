@@ -178,10 +178,12 @@ export function createPresetApiRuntime(options: {
     loadPlugin: (pkg) => options.source.loadPlugin(pkg),
     squadInstructionsFor: (pkg) => presetSquadInstructions(pkg, options.locale),
     async loadSkill(skill) {
-      // The static repository exposes SKILL.md per skill; supporting files are
-      // not enumerable from a raw checkout, so the body is the bundle.
+      // SKILL.md plus everything the catalog listed for it. The reference files are
+      // the half of a skill that is not instructions - without them an agent reads a
+      // brief that points at documents it will never find.
       const content = await options.source.loadSkillContent(skill);
-      return { skill, content, files: [] };
+      const files = await options.source.loadSkillFiles(skill);
+      return { skill, content, files };
     },
     loadAgentDoc: (pkg) => options.source.loadAgentDoc(pkg),
     loadMemberDoc: (pkg, memberId) =>

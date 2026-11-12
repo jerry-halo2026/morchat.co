@@ -65,6 +65,13 @@ export interface PresetSource {
   loadPlugin(pkg: PresetPackage): Promise<PresetPluginSummary | null>;
   /** The SKILL.md body of a skill shipped by a package. */
   loadSkillContent(skill: PresetSkill): Promise<string>;
+  /**
+   * Everything else the skill ships, as `{path, content}` pairs.
+   *
+   * Paths come from the catalog's `fileList`; an empty list means the skill is
+   * just SKILL.md, or the catalog predates the field.
+   */
+  loadSkillFiles(skill: PresetSkill): Promise<{ path: string; content: string }[]>;
   /** The lead agent's markdown persona. */
   loadAgentDoc(pkg: PresetPackage): Promise<string | null>;
   /** A team member's markdown persona. */
@@ -292,7 +299,21 @@ export function createPresetSource(
       }
       return content;
     },
-    async loadAgentDoc(pkg) {
+    async loadSkillFiles(skill) {
+    const base = presetSkillDocPath(skill); // .../<skill>/SKILL.md
+    const dir = base.slice(0, base.lastIndexOf("/"));
+    const listings = skill.fileList ?? [];
+    const out = [];
+    for (const rel of listings) {
+      // Sequential on purpose: an unauthenticated GitHub read is rate-limited, and
+      // a burst of parallel fetches is what turns "slow" into "403 for an hour".
+      const content = await loadDoc(`${dir}/${rel}`);
+      if (content === null) continue;
+      out.push({ path: rel, content });
+    }
+    return out;
+  },
+  async loadAgentDoc(pkg) {
       const detail = await loadPackageDetail(pkg);
       if (detail && detail.personaPath !== "") {
         const persona = await loadDoc(detail.personaPath);

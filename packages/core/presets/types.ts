@@ -42,6 +42,16 @@ export interface PresetSkill {
   files: number;
   bytes: number;
   sha256?: string;
+  /**
+   * Package-relative paths of everything this skill ships besides SKILL.md, e.g.
+   * `references/stage-map.md`.
+   *
+   * The catalog could always say "7 files" without saying which; a static checkout
+   * cannot be listed, so the names have to travel with the catalog. Without them an
+   * installer can only write SKILL.md and every reference the skill points at is
+   * missing at run time.
+   */
+  fileList?: string[];
 }
 
 export interface PresetMember {
