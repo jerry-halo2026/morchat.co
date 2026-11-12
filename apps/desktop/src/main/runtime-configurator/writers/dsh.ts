@@ -28,7 +28,7 @@ import type {
   VerifyFailure,
   VerifyResult,
 } from "../types";
-import { isYamlRecord, parseYaml, readYamlPath } from "../yaml-lite";
+import { isYamlRecord, parseYaml } from "../yaml-lite";
 import {
   YAML_REGION,
   assertNoSecretLiteral,
