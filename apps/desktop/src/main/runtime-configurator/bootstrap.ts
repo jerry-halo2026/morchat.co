@@ -31,6 +31,7 @@ import {
   clearPersonalCredential,
   describeCredentials,
   readCredentialValue,
+  resolveCredential,
   storePersonalCredential,
   validatePersonalKey,
   CredentialUnavailableError,
@@ -38,6 +39,7 @@ import {
   type CredentialStatusSummary,
   type PersonalKeyRejection,
 } from "./credential";
+import { upsertCredentialRef, removeCredentialRef } from "./dsh-credentials";
 import { createBackupStore, createNodeConfiguratorFs } from "./fs";
 import { createRuntimeConfigurator } from "./index";
 import { createSafeStorageKeychain, type Keychain, type SecretCipher } from "./keychain";
@@ -51,6 +53,9 @@ import type {
   RuntimeProfile,
   TargetSelection,
 } from "./types";
+
+/** Default ref name for the relay key when the provider config does not name one. */
+const ENV_REF_NAME = "MULTICA_RELAY_KEY";
 
 export const RUNTIME_CONFIGURATOR_STATUS_CHANNEL = "runtime-configurator:status";
 export const RUNTIME_CONFIGURATOR_GET_STATUS_CHANNEL = "runtime-configurator:get-status";
@@ -87,6 +92,12 @@ export interface RuntimeConfiguratorHandle {
   /** Forgets the account (logout / account switch). */
   readonly reset: () => void;
   readonly status: () => RuntimeConfiguratorStatus;
+  /**
+   * Environment entries a spawned daemon needs: the relay key under the name the
+   * provider configuration references, and the gateway address. Empty until a
+   * credential is configured, and empty again after logout.
+   */
+  readonly relayEnv: () => Readonly<Record<string, string>>;
   /**
    * Status plus a *fresh* credential readback, for a settings page opening
    * long after the last state change. Read-only: it neither re-runs the apply
@@ -274,6 +285,33 @@ export function installRuntimeConfigurator(
    */
   let relay: Record<string, string> | null = null;
 
+  /**
+   * Writes the relay key into `$DSH_HOME/.credentials.yaml` under the name the
+   * provider configuration references. Written through a temp file and renamed so a
+   * crash cannot leave the harness with a truncated credential store.
+   */
+  async function writeHarnessRef(name: string, value: string): Promise<void> {
+    const dshHome = env.DSH_HOME?.trim() || join(home, ".dsh");
+    const path = join(dshHome, ".credentials.yaml");
+    const current = (await fs.read(path).catch(() => null)) ?? "";
+    const next = upsertCredentialRef(current, name, value);
+    if (next === current) return;
+    await fs.mkdirp(dshHome);
+    await fs.writeFileAtomic(path, next, 0o600);
+  }
+
+  /** Removes our ref on logout; other refs and every grant stay. */
+  async function clearHarnessRef(): Promise<void> {
+    const dshHome = env.DSH_HOME?.trim() || join(home, ".dsh");
+    const path = join(dshHome, ".credentials.yaml");
+    const current = await fs.read(path).catch(() => null);
+    if (!current) return;
+    const name = ENV_REF_NAME;
+    const next = removeCredentialRef(current, name);
+    if (next === current) return;
+    await fs.writeFileAtomic(path, next, 0o600);
+  }
+
   function publish(next: RuntimeConfiguratorStatus): RuntimeConfiguratorStatus {
     status = next;
     try {
@@ -284,6 +322,11 @@ export function installRuntimeConfigurator(
       });
     }
     return status;
+  }
+
+  /** The env-var name a writer rendered for this provider, or "" when it is not env-based. */
+  function relayEnvName(ref: { kind: string; name?: string }): string {
+    return ref.kind === "env" ? (ref.name ?? "") : "";
   }
 
   async function applyForUser(userId: string): Promise<RuntimeConfiguratorStatus> {
@@ -368,14 +411,24 @@ export function installRuntimeConfigurator(
         // The apply proved the key works, so hand the daemon what it needs to use
         // it: the provider route plus the two variables the harness reads. A read
         // failure leaves the previous env in place instead of clearing it.
-        const stored = await readCredentialValue(keychain, outcome.credential).catch(() => null);
-        relay = stored
-          ? {
-              [profile.provider.apiKeyRef.name]: stored,
-              DEEPSEEK_API_KEY: stored,
-              DEEPSEEK_BASE_URL: profile.provider.baseUrl,
-            }
-          : relay;
+        const stored = await readCredentialValue(
+          keychain,
+          await resolveCredential(profile, { keychain, userId, logger }),
+        ).catch(() => null);
+        if (stored) {
+          // The harness resolves a provider's `apiKeyEnv` against its own credential
+          // store, so the key has to live there as well as in the child environment;
+          // an env var alone changes nothing for model calls.
+          await writeHarnessRef(relayEnvName(profile.provider.apiKeyRef), stored).catch((err: unknown) => {
+            logger.warn("runtime-configurator: harness credential store write failed", {
+              error: err instanceof Error ? err.message : String(err),
+            });
+          });
+          relay = {
+            [relayEnvName(profile.provider.apiKeyRef)]: stored,
+            DEEPSEEK_BASE_URL: profile.provider.baseUrl,
+          };
+        }
         return await publishWithCredentials({
           state: "configured",
           detail:
@@ -513,6 +566,7 @@ export function installRuntimeConfigurator(
       currentUserId = null;
       lastRecord = null;
       attemptedUserId = null;
+      if (relay) void clearHarnessRef();
       relay = null;
       publish({ state: "idle", detail: "已退出登录" });
     },
