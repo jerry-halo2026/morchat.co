@@ -74,10 +74,15 @@ export function renderDshRegion(input: WriterInput): string {
     `        baseURL: ${yamlScalar(provider.baseUrl)}`,
     `        apiKeyEnv: ${yamlScalar(envKey)}`,
     "        models:",
-    `          - id: ${yamlScalar(provider.defaultModel)}`,
-    `            name: ${yamlScalar(provider.defaultModel)}`,
-    "            contextWindow: 131072",
-    "            maxTokens: 8192",
+    // Every model the server allowed for this account, not just the default: the
+    // harness only serves what is declared here, so a one-entry list would hide
+    // the rest of the plan from the picker.
+    ...provider.models.flatMap((model) => [
+      `          - id: ${yamlScalar(model)}`,
+      `            name: ${yamlScalar(model)}`,
+      "            contextWindow: 131072",
+      "            maxTokens: 8192",
+    ]),
   ].join("\n");
   const rendered = wrapRegion(body);
   assertNoSecretLiteral(rendered);

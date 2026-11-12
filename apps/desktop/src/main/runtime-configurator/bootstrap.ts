@@ -338,6 +338,9 @@ export function verifyProfileModels(
           timeout: check.timeoutMs ?? MODEL_CHECK_TIMEOUT_MS,
           windowsHide: true,
           maxBuffer: 1024 * 1024,
+          // The shipped harness is a `.cmd` on Windows, which execFile cannot run
+          // without a shell; the quoted argument list is still handled by Node.
+          shell: process.platform === "win32",
           ...(check.env ? { env: check.env } : {}),
         },
         (error, stdout) => {
@@ -350,13 +353,27 @@ export function verifyProfileModels(
             settle({ ok: false, listed: 0 });
             return;
           }
-          const listed = new Set(
-            String(stdout ?? "")
-              .split(/\r?\n/)
-              .map((line) => line.trim())
-              .filter((line) => line.length > 0),
-          );
-          const found = expected.filter((model) => listed.has(model)).length;
+          // `--list-models` prints one JSON document (`{"v":1,"type":"models",…}`)
+          // beside its log lines, so the ids have to be read out of that document
+          // rather than out of every line of output.
+          const listed = new Set<string>();
+          for (const line of String(stdout ?? "").split(/\r?\n/)) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith('{"v":1')) continue;
+            try {
+              const parsed = JSON.parse(trimmed) as { models?: { id?: unknown }[] };
+              for (const model of parsed.models ?? []) {
+                if (typeof model.id === "string") listed.add(model.id);
+              }
+            } catch {
+              // A truncated or foreign line is not our document.
+            }
+          }
+          // The harness qualifies every id with its provider route (`morechat/x`),
+          // while the plan lists bare model names.
+          const found = expected.filter((model) =>
+            [...listed].some((id) => id === model || id.endsWith(`/${model}`)),
+          ).length;
           logger.info("runtime-configurator: model list check", {
             ok: found > 0,
             models_expected: expected.length,
