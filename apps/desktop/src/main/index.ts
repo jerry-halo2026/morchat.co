@@ -17,6 +17,7 @@ import { createElectronBusyInstallPrompt, setupAutoUpdater } from "./updater";
 import {
   prepareDaemonForUpdateInstall,
   resumeDaemonAfterAbortedUpdateInstall,
+  setRelayEnvProvider,
   setupDaemonManager,
 } from "./daemon-manager";
 import { setupLocalDirectory } from "./local-directory";
@@ -1112,6 +1113,11 @@ if (!gotTheLock) {
         }
       },
     });
+
+    // The daemon's environment carries the model credential the configurator just
+    // proved, so agent runs reach the gateway without anyone signing into the
+    // harness on this machine.
+    setRelayEnvProvider(() => runtimeConfigurator?.relayEnv() ?? {});
 
     desktopInitialized = true;
     for (const saved of loadWindowSession(windowStateFile())) {

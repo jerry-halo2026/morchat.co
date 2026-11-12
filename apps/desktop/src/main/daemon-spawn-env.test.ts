@@ -80,3 +80,34 @@ describe("daemonSpawnEnv", () => {
     expect(source).toEqual({ ...LAUNCHER_ENV, PATH: DEV_PATH });
   });
 });
+
+describe("daemonSpawnEnv credential variables", () => {
+  it("adds the relay variables to the daemon environment", () => {
+    const env = daemonSpawnEnv({ PATH: "/usr/bin" }, {
+      MULTICA_RELAY_KEY: "key-from-keychain",
+      DEEPSEEK_API_KEY: "key-from-keychain",
+      DEEPSEEK_BASE_URL: "https://api.example.test/v1",
+    });
+
+    expect(env["MULTICA_RELAY_KEY"]).toBe("key-from-keychain");
+    expect(env["DEEPSEEK_API_KEY"]).toBe("key-from-keychain");
+    expect(env["DEEPSEEK_BASE_URL"]).toBe("https://api.example.test/v1");
+    expect(env["MULTICA_LAUNCHED_BY"]).toBe("desktop");
+  });
+
+  it("wins over a stale value inherited from the shell", () => {
+    const env = daemonSpawnEnv(
+      { DEEPSEEK_API_KEY: "stale" },
+      { DEEPSEEK_API_KEY: "fresh" },
+    );
+
+    expect(env["DEEPSEEK_API_KEY"]).toBe("fresh");
+  });
+
+  it("leaves the environment untouched when no credential is configured", () => {
+    const env = daemonSpawnEnv({ PATH: "/usr/bin" });
+
+    expect(env["DEEPSEEK_API_KEY"]).toBeUndefined();
+    expect(env["DEEPSEEK_BASE_URL"]).toBeUndefined();
+  });
+});

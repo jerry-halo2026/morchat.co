@@ -970,8 +970,29 @@ async function probeLocalRuntimes(): Promise<LocalRuntimeProbe> {
 // hide CLI self-update UI. Computed lazily so it picks up the PATH fix
 // applied by fix-path in main/index.ts — as a top-level const it would
 // snapshot process.env at import time, before that block runs.
+/**
+ * Relay env for the daemon, supplied by the entry point once the configurator is
+ * installed. A module-level hook rather than an import keeps this file free of a
+ * cycle: index.ts imports the daemon manager, not the other way round.
+ */
+let relayEnvProvider: () => Readonly<Record<string, string>> = () => ({});
+
+export function setRelayEnvProvider(provider: () => Readonly<Record<string, string>>): void {
+  relayEnvProvider = provider;
+}
+
+function runtimeConfiguratorRelayEnv(): Readonly<Record<string, string>> {
+  try {
+    return relayEnvProvider();
+  } catch {
+    return {};
+  }
+}
+
 function desktopSpawnEnv(): NodeJS.ProcessEnv {
-  return daemonSpawnEnv(process.env);
+  // The model credential the configurator captured travels to the daemon here, and
+  // from the daemon to every agent task it spawns.
+  return daemonSpawnEnv(process.env, runtimeConfiguratorRelayEnv());
 }
 
 function scheduleStatusRefresh(): void {

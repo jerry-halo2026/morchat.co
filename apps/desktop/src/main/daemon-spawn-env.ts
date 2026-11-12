@@ -41,8 +41,17 @@ const LAUNCHER_ENV_NAMES = new Set([
  * env is dropped only when it is present. A packaged app is not launched this
  * way, so its env reaches the daemon untouched.
  */
-export function daemonSpawnEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
-  const spawnEnv: NodeJS.ProcessEnv = { ...env, MULTICA_LAUNCHED_BY: "desktop" };
+export function daemonSpawnEnv(
+  env: NodeJS.ProcessEnv,
+  extra?: Readonly<Record<string, string>>,
+): NodeJS.ProcessEnv {
+  // `extra` carries the model credential, because the harness reads its key from an
+  // environment variable. Applied before the launcher cleanup and after the
+  // inherited env, so a stale value in the user shell cannot shadow it.
+  const spawnEnv: NodeJS.ProcessEnv = {
+    ...(extra ? { ...env, ...extra } : env),
+    MULTICA_LAUNCHED_BY: "desktop",
+  };
   if (spawnEnv.NODE_ENV_ELECTRON_VITE === undefined) return spawnEnv;
 
   const scriptDir = spawnEnv.PNPM_SCRIPT_SRC_DIR;

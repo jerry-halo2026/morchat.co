@@ -30,6 +30,7 @@ import { ipcMain, safeStorage } from "electron";
 import {
   clearPersonalCredential,
   describeCredentials,
+  readCredentialValue,
   storePersonalCredential,
   validatePersonalKey,
   CredentialUnavailableError,
@@ -266,6 +267,12 @@ export function installRuntimeConfigurator(
    * report. Re-armed by `reset()`, `setPersonalKey()` and `clearPersonalKey()`.
    */
   let attemptedUserId: string | null = null;
+  /**
+   * Env handed to the daemon once a credential is configured: the harness provider
+   * reads the key from an env var, so this is the last link between "the account
+   * has a key" and "an agent run can call a model". Cleared on logout.
+   */
+  let relay: Record<string, string> | null = null;
 
   function publish(next: RuntimeConfiguratorStatus): RuntimeConfiguratorStatus {
     status = next;
@@ -358,6 +365,17 @@ export function installRuntimeConfigurator(
       const outcome = await configurator.apply(profile);
       const updatedAt = now().toISOString();
       if (outcome.ok) {
+        // The apply proved the key works, so hand the daemon what it needs to use
+        // it: the provider route plus the two variables the harness reads. A read
+        // failure leaves the previous env in place instead of clearing it.
+        const stored = await readCredentialValue(keychain, outcome.credential).catch(() => null);
+        relay = stored
+          ? {
+              [profile.provider.apiKeyRef.name]: stored,
+              DEEPSEEK_API_KEY: stored,
+              DEEPSEEK_BASE_URL: profile.provider.baseUrl,
+            }
+          : relay;
         return await publishWithCredentials({
           state: "configured",
           detail:
@@ -495,11 +513,22 @@ export function installRuntimeConfigurator(
       currentUserId = null;
       lastRecord = null;
       attemptedUserId = null;
+      relay = null;
       publish({ state: "idle", detail: "已退出登录" });
     },
     status: () => status,
     getStatus,
     setPersonalKey,
     clearPersonalKey,
+    /**
+     * Environment a spawned daemon needs so the harness can reach the gateway
+     * without anyone signing into DeepSeek on this machine.
+     *
+     * Returns names and values, never files: the key lives in the keychain and
+     * crosses into a child process's environment, so it is not written to disk and
+     * disappears with the process. Empty when no credential is configured, which
+     * leaves the harness on whatever it had before.
+     */
+    relayEnv: () => (relay ? { ...relay } : {}),
   };
 }
