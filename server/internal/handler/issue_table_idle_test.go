@@ -5,7 +5,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 func idleTableRowsRequest(projectID string, extra map[string]any) *http.Request {
