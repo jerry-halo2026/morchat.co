@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/jerry-halo2026/morchat.co/server/internal/dispatch"
 	"log/slog"
 	"strings"
 	"time"
@@ -629,6 +630,20 @@ func (s *IssueWakeupService) dispatchSystem(ctx context.Context, prev db.IssueWa
 	attr, err := s.childDoneRunAs(ctx, issue, agent)
 	if err != nil {
 		return err
+	}
+	// Recorded without a run, like an assignee whose agent cannot run.
+	if err = s.Tasks.guardRunProjectAccess(ctx, issue, agent, attr.UserID, attr.AccountableUserID); err != nil {
+		if !errors.Is(err, ErrProjectAccessDenied) {
+			return err
+		}
+		facts["outcome"], facts["reason"] = "none", string(dispatch.ReasonProjectAccessBlocked)
+		if err = q.ConsumeWakeupReceipts(ctx, db.ConsumeWakeupReceiptsParams{Ids: ids}); err != nil {
+			return err
+		}
+		if err = note(wakeupActivityTriggered, facts); err != nil {
+			return err
+		}
+		return commit()
 	}
 	waiting, err := hasWaitingRun(ctx, q, issue.ID, agent.ID, attr.UserID)
 	if err != nil {
