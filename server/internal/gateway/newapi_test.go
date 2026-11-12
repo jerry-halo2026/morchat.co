@@ -33,6 +33,9 @@ type fakeGateway struct {
 	// omitMintBody makes POST /api/token/ answer {"success":true} with no data,
 	// which is what older new-api builds do.
 	omitMintBody bool
+	// maskKeyReveal makes the reveal route answer the masked key, as a build
+	// without a plaintext route would.
+	maskKeyReveal bool
 }
 
 type fakeToken struct {
@@ -53,8 +56,9 @@ func newFakeGateway(t *testing.T, admin string) (*fakeGateway, *httptest.Server)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/user/", f.handleUser)
 	mux.HandleFunc("/api/user/search", f.handleUserSearch)
-	mux.HandleFunc("/api/token/", f.handleToken)
 	mux.HandleFunc("/api/token/search", f.handleTokenSearch)
+	mux.HandleFunc("/api/token/", f.handleToken)
+	mux.HandleFunc("/api/token/{id}/key", f.handleTokenKey)
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
 	return f, srv
@@ -63,6 +67,10 @@ func newFakeGateway(t *testing.T, admin string) (*fakeGateway, *httptest.Server)
 // handleToken dispatches the two methods that share /api/token/{id}: create is
 // POST on the collection, revoke is DELETE on a member.
 func (f *fakeGateway) handleToken(w http.ResponseWriter, r *http.Request) {
+	if strings.HasSuffix(r.URL.Path, "/key") {
+		f.handleTokenKey(w, r)
+		return
+	}
 	switch r.Method {
 	case http.MethodPost:
 		f.handleTokenCreate(w, r)
@@ -192,6 +200,36 @@ func (f *fakeGateway) handleTokenCreate(w http.ResponseWriter, r *http.Request) 
 		"success": true,
 		"data":    map[string]any{"id": token.ID, "name": token.Name, "key": token.Key},
 	})
+	_, _ = w.Write(payload)
+}
+
+// handleTokenKey mirrors new-api's POST /api/token/{id}/key, the one call that
+// answers with the plaintext key. maskKey makes it answer the masked form instead,
+// which is how a build without that route behaves.
+func (f *fakeGateway) handleTokenKey(w http.ResponseWriter, r *http.Request) {
+	if !f.authorized(r) {
+		http.Error(w, `{"success":false}`, http.StatusUnauthorized)
+		return
+	}
+	id := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, "/api/token/"), "/key")
+	f.mu.Lock()
+	key := ""
+	for _, token := range f.tokens {
+		if strconv.FormatInt(token.ID, 10) == id {
+			key = token.Key
+			break
+		}
+	}
+	f.mu.Unlock()
+	if key == "" {
+		http.Error(w, `{"success":false,"message":"token not found"}`, http.StatusNotFound)
+		return
+	}
+	if f.maskKeyReveal {
+		key = key[:4] + "**********" + key[len(key)-4:]
+	}
+	payload, _ := json.Marshal(map[string]any{"success": true, "data": map[string]any{"key": key}})
+	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(payload)
 }
 
@@ -385,6 +423,23 @@ func TestMintTokenFallsBackToLookupWhenCreateReturnsNoBody(t *testing.T) {
 	}
 	if minted.ID == 0 || minted.Key == "" {
 		t.Fatalf("MintToken = %+v, want id and key recovered by exact-name lookup", minted)
+	}
+}
+
+// A build whose reveal route answers the masked key must fail the mint instead of
+// storing a credential that authenticates as nothing.
+func TestMintTokenRejectsMaskedKey(t *testing.T) {
+	fake, srv := newFakeGateway(t, testAdminToken)
+	fake.omitMintBody = true
+	fake.maskKeyReveal = true
+	client := testClient(t, srv.URL)
+
+	minted, err := client.MintToken(context.Background(), testUserUUID, "device-abc", nil, 0)
+	if err == nil {
+		t.Fatalf("MintToken = %+v, want an error instead of a masked key", minted)
+	}
+	if !errors.Is(err, ErrGatewayRejected) {
+		t.Fatalf("MintToken error = %v, want ErrGatewayRejected", err)
 	}
 }
 
