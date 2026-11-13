@@ -88,6 +88,12 @@ export interface PresetTeamPlan {
   /** What the squad counts as a finished deliverable. */
   doneWhen?: string;
   routeHints?: { match: string; member: string }[];
+  /**
+   * The project board the squad works on, as a workflow the installer creates
+   * (MUL-7420). Absent is normal: the import then writes the same agents and
+   * squad it always did and leaves the workspace's own board alone.
+   */
+  workflowDefinition?: PresetWorkflowDefinition;
 }
 
 /** The workflow vocabulary the content repository uses for `team.workflow`. */
@@ -97,6 +103,48 @@ export const PRESET_TEAM_WORKFLOWS = [
   "collaborative",
   "on-demand",
 ] as const;
+
+/**
+ * Who a workflow column hands the issue to. The product knows more handler
+ * types (a squad, the issue's creator); a preset only gets these, so a package
+ * cannot hand work to something the installer did not create.
+ */
+export const PRESET_WORKFLOW_HANDLERS = [
+  "none",
+  "agent",
+  "member",
+  "project_lead",
+] as const;
+
+export type PresetWorkflowHandler = (typeof PRESET_WORKFLOW_HANDLERS)[number];
+
+/** One column of a preset's board: the status and who it wakes. */
+export interface PresetWorkflowColumn {
+  /**
+   * The column's status name, e.g. "资源盘点". The installer creates the status
+   * when the workspace does not have one by that name yet, so a package never
+   * depends on the keys a particular workspace happens to use.
+   */
+  status: string;
+  handler: PresetWorkflowHandler;
+  /** The preset member the column wakes; agent and member handlers only. */
+  memberId?: string;
+  instructions?: string;
+  /**
+   * Status the handler moves the issue to when the work is done, and the one it
+   * sends the issue back to when the work needs changes. Both are optional: a
+   * column without `onDone` moves to the next column, which is what a pipeline
+   * wants.
+   */
+  onDone?: string;
+  onReject?: string;
+}
+
+/** A whole preset board: its name plus every column in board order. */
+export interface PresetWorkflowDefinition {
+  name: string;
+  columns: PresetWorkflowColumn[];
+}
 
 export interface PresetPackage {
   id: string;
@@ -168,7 +216,16 @@ export interface PresetPackageDetail {
   /** Skill namespaces, e.g. "ai-engineer--deep-research". */
   skills: string[];
   conversationStarters: string[];
-  team: { leadAgent: string; members: string[] };
+  team: {
+    leadAgent: string;
+    members: string[];
+    /**
+     * preset.json can carry the same board the catalog's team plan does, so an
+     * installer that only loaded the detail can still create it. Absent for a
+     * package that ships no workflow.
+     */
+    workflowDefinition?: PresetWorkflowDefinition;
+  };
   requires: string[];
   sourcePackage: string;
   packageVersion: string;
@@ -253,6 +310,60 @@ function parseMember(value: unknown): PresetMember | null {
 }
 
 /**
+ * Parses one `team.workflowDefinition.columns[]` entry. A column needs a status
+ * name and a handler this build understands; anything else is dropped, because a
+ * column that wakes nobody is not the board the package meant to ship.
+ */
+function parseWorkflowColumn(value: unknown): PresetWorkflowColumn | null {
+  const record = asRecord(value);
+  if (!record) return null;
+  const status = asString(record.status).trim();
+  const handler = asString(record.handler).trim();
+  if (status === "") return null;
+  if (!(PRESET_WORKFLOW_HANDLERS as readonly string[]).includes(handler)) {
+    return null;
+  }
+  const column: PresetWorkflowColumn = {
+    status,
+    handler: handler as PresetWorkflowHandler,
+  };
+  // Only the concrete handlers address someone; a stale id on "none" or
+  // "project_lead" would be stored by the server and read back as a lie.
+  const memberId = asString(record.memberId).trim();
+  if (memberId !== "" && (handler === "agent" || handler === "member")) {
+    column.memberId = memberId;
+  }
+  const instructions = asString(record.instructions).trim();
+  if (instructions !== "") column.instructions = instructions;
+  const onDone = asString(record.onDone).trim();
+  if (onDone !== "") column.onDone = onDone;
+  const onReject = asString(record.onReject).trim();
+  if (onReject !== "") column.onReject = onReject;
+  return column;
+}
+
+/**
+ * Parses `team.workflowDefinition`. A definition without a name or without a
+ * single usable column is dropped rather than repaired: an unnamed board cannot
+ * be found again on re-import, and an empty one is not what the package meant.
+ */
+function parseWorkflowDefinition(
+  value: unknown,
+): PresetWorkflowDefinition | undefined {
+  const record = asRecord(value);
+  if (!record) return undefined;
+  const name = asString(record.name).trim();
+  if (name === "") return undefined;
+  const columns = Array.isArray(record.columns)
+    ? record.columns
+        .map(parseWorkflowColumn)
+        .filter((column): column is PresetWorkflowColumn => column !== null)
+    : [];
+  if (columns.length === 0) return undefined;
+  return { name, columns };
+}
+
+/**
  * Parses `record.team`. Every field is optional and anything malformed is
  * dropped rather than repaired: a leader told to run "顺序接力" on a workflow the
  * product does not know would invent a pipeline, which is worse than writing no
@@ -284,6 +395,8 @@ function parseTeam(value: unknown): PresetTeamPlan | undefined {
       .filter((hint): hint is { match: string; member: string } => hint !== null);
     if (routeHints.length > 0) plan.routeHints = routeHints;
   }
+  const workflowDefinition = parseWorkflowDefinition(record.workflowDefinition);
+  if (workflowDefinition) plan.workflowDefinition = workflowDefinition;
   return Object.keys(plan).length === 0 ? undefined : plan;
 }
 
@@ -395,6 +508,7 @@ export function parsePresetPackageDetail(
   if (id === "" || (kind !== "agent" && kind !== "team")) return null;
   if (expectedId !== undefined && id !== expectedId) return null;
   const team = asRecord(record.team) ?? {};
+  const workflowDefinition = parseWorkflowDefinition(team.workflowDefinition);
   return {
     schemaVersion: asNumber(record.schemaVersion, 1),
     id,
@@ -407,6 +521,9 @@ export function parsePresetPackageDetail(
     team: {
       leadAgent: asString(team.leadAgent),
       members: asStringArray(team.members),
+      // Only present when the document really carries one, so a package
+      // without a board keeps exactly the shape it always had.
+      ...(workflowDefinition ? { workflowDefinition } : {}),
     },
     requires: asStringArray(record.requires),
     sourcePackage: asString(record.sourcePackage),
