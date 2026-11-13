@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { subIssueCreateDefaults } from "@morechat/core/issues";
 import {
@@ -74,7 +74,7 @@ import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, Command
 import { AvatarGroup, AvatarGroupCount } from "@morechat/ui/components/ui/avatar";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { MemberProfileCard } from "../../members/member-profile-card";
-import { HoverCard, HoverCardTrigger, HoverCardContent } from "@multica/ui/components/ui/hover-card";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@morechat/ui/components/ui/hover-card";
 import { ActionShortcutKeycaps } from "../../common/shortcut-keycaps";
 import { PropRow } from "../../common/prop-row";
 import { TimelineHandoff } from "../../workflows/timeline-handoff";

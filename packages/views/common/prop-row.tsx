@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cn } from "@multica/ui/lib/utils";
+import { cn } from "@morechat/ui/lib/utils";
 
 /**
  * Two-column property row used in detail-page sidebars: a muted label on the
