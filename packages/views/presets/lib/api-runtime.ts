@@ -12,6 +12,10 @@
 import { api } from "@morechat/core/api";
 import type { PresetSource } from "@morechat/core/presets/source";
 import type { PresetPackage } from "@morechat/core/presets/types";
+import type {
+  IssueWorkflowStepInput,
+  IssueWorkflowWriteRequest,
+} from "@morechat/core/types";
 import { isNameConflictError } from "../../skills/lib/utils";
 import { presetSquadInstructions } from "./import-runtime";
 import type {
@@ -20,6 +24,9 @@ import type {
   PresetSkillBundle,
   PresetSkillImportResult,
   PresetSquadInput,
+  PresetWorkflowColumnInput,
+  PresetWorkflowInput,
+  PresetWorkflowImportResult,
 } from "./import-runtime";
 
 /** The slice of the API client the import needs; injectable for tests. */
@@ -51,6 +58,9 @@ export interface PresetApiClient {
   updateAgent?(id: string, input: Record<string, unknown>): Promise<{ id: string }>;
   setAgentSkills?(id: string, input: { skill_ids: string[] }): Promise<unknown>;
   listSquads?(): Promise<{ id: string; name: string }[]>;
+  /** The workspace's project boards; the preset import reuses one by name. */
+  listIssueWorkflows?(): Promise<{ workflows: { id: string; name: string }[] }>;
+  createIssueWorkflow?(input: IssueWorkflowWriteRequest): Promise<{ id: string }>;
 }
 
 async function importSkillIdempotently(
@@ -94,6 +104,32 @@ function isStartersUnsupported(error: unknown): boolean {
 function isAlreadyMember(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
   return /already (a )?member|already in (this|the) squad/i.test(message);
+}
+
+/**
+ * One preset column, as the workflow write expects it.
+ *
+ * The package names a column by its status label, not by a workspace key: a
+ * preset cannot know which keys a workspace uses. Sending `new_status` makes the
+ * write create the status when the workspace has none by that name and reuse the
+ * existing one otherwise, so re-importing a squashed name converges instead of
+ * piling up near-duplicate columns.
+ */
+export function presetWorkflowStep(
+  column: PresetWorkflowColumnInput,
+): IssueWorkflowStepInput {
+  const step: IssueWorkflowStepInput = {
+    new_status: { name: column.status },
+    handler:
+      column.memberId &&
+      (column.handler === "agent" || column.handler === "member")
+        ? { type: column.handler, id: column.memberId }
+        : { type: column.handler },
+  };
+  if (column.instructions) step.instructions = column.instructions;
+  if (column.onDone) step.next_status_key = column.onDone;
+  if (column.onReject) step.back_status_key = column.onReject;
+  return step;
 }
 
 export function createPresetApiRuntime(options: {
@@ -174,6 +210,45 @@ export function createPresetApiRuntime(options: {
     }
   };
 
+  /**
+   * Writes the package's project board, or adopts the one a previous import of
+   * the same preset left behind.
+   *
+   * Workflows have unique names per workspace, and re-importing a preset is a
+   * normal action, so the existing board wins: creating a second board would
+   * either collide or leave the operator with two half-configured copies.
+   */
+  const createOrAdoptWorkflow = async (
+    input: PresetWorkflowInput,
+  ): Promise<PresetWorkflowImportResult> => {
+    if (!client.createIssueWorkflow) {
+      throw new Error("this server has no project workflows");
+    }
+    if (client.listIssueWorkflows) {
+      const existing = (await client.listIssueWorkflows()).workflows.find(
+        (workflow) => workflow.name === input.name,
+      );
+      if (existing) return { id: existing.id, created: false };
+    }
+    try {
+      const created = await client.createIssueWorkflow({
+        name: input.name,
+        steps: input.columns.map(presetWorkflowStep),
+      });
+      return { id: created.id, created: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      // A board created between the listing and this write is a race, not a
+      // failure: adopt it exactly as an earlier import would have.
+      if (!isNameConflictError(message) || !client.listIssueWorkflows) throw error;
+      const existing = (await client.listIssueWorkflows()).workflows.find(
+        (workflow) => workflow.name === input.name,
+      );
+      if (!existing) throw error;
+      return { id: existing.id, created: false };
+    }
+  };
+
   return {
     loadPlugin: (pkg) => options.source.loadPlugin(pkg),
     squadInstructionsFor: (pkg) => presetSquadInstructions(pkg, options.locale),
@@ -205,5 +280,6 @@ export function createPresetApiRuntime(options: {
         if (!isAlreadyMember(error)) throw error;
       }
     },
+    createWorkflow: createOrAdoptWorkflow,
   };
 }

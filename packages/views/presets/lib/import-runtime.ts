@@ -14,7 +14,12 @@
 // avatar rules are testable without a server.
 
 import { deriveAoraSpec, encodeAoraSpec } from "@morechat/core/avatar/aora-spec";
-import type { PresetPackageDetail } from "@morechat/core/presets/types";
+import type {
+  PresetPackageDetail,
+  PresetWorkflowColumn,
+  PresetWorkflowDefinition,
+  PresetWorkflowHandler,
+} from "@morechat/core/presets/types";
 import {
   pickPresetText,
   presetDescription,
@@ -71,6 +76,35 @@ export interface PresetSquadInput {
   avatar_url: string;
 }
 
+/**
+ * One column of the board the import writes, with its handler already resolved
+ * to a workspace-agent id.
+ *
+ * The preset names its members by preset id; only the import knows which agent
+ * each of them became, so resolution happens before the runtime is called and
+ * the runtime never has to guess.
+ */
+export interface PresetWorkflowColumnInput {
+  status: string;
+  handler: PresetWorkflowHandler;
+  /** Workspace agent id; agent and member handlers only. */
+  memberId?: string;
+  instructions?: string;
+  onDone?: string;
+  onReject?: string;
+}
+
+export interface PresetWorkflowInput {
+  name: string;
+  columns: PresetWorkflowColumnInput[];
+}
+
+export interface PresetWorkflowImportResult {
+  id: string;
+  /** False when a workflow of that name already existed and was reused. */
+  created: boolean;
+}
+
 export interface PresetImportRuntime {
   loadSkill(skill: PresetSkill): Promise<PresetSkillBundle>;
   loadAgentDoc?(pkg: PresetPackage): Promise<string | null>;
@@ -84,6 +118,13 @@ export interface PresetImportRuntime {
     agentId: string,
     role: "lead" | "member",
   ): Promise<void>;
+  /**
+   * Writes the package's project board (`team.workflowDefinition`) and returns
+   * it, reusing a same-name workflow instead of failing. Optional so an import
+   * without the workflow API still runs; a package that ships no board never
+   * calls it.
+   */
+  createWorkflow?(input: PresetWorkflowInput): Promise<PresetWorkflowImportResult>;
 }
 
 /**
@@ -181,6 +222,22 @@ export interface PresetImportOutcome {
     preferred?: string;
     degraded: boolean;
   }[];
+  /**
+   * The project board the import wrote, or null when the package ships none.
+   * A workflow that could not be written is reported here, not thrown: the
+   * squad already exists by then and losing it would be the larger failure.
+   */
+  workflow: PresetWorkflowOutcome | null;
+}
+
+export interface PresetWorkflowOutcome {
+  /** Null only when the write failed. */
+  id: string | null;
+  name: string;
+  /** True when this import created the workflow rather than reusing one. */
+  created: boolean;
+  /** Why the board is missing, when the import carried on without it. */
+  error?: string;
 }
 
 /**
@@ -261,6 +318,62 @@ function squadMemberName(
   const member = pkg.members?.find((candidate) => candidate.id === memberRef);
   if (!member) return memberRef;
   return pickPresetText(member.name, locale, memberRef);
+}
+
+/**
+ * The project board a package ships, taken from whichever document carries it.
+ *
+ * A catalog package carries it under `team.workflowDefinition`; a preset.json
+ * carries the same object for an installer that only loaded the detail. Both are
+ * optional, so an older package simply has no board.
+ */
+export function presetWorkflowDefinition(
+  pkg: PresetPackage,
+  detail?: PresetPackageDetail | null,
+): PresetWorkflowDefinition | null {
+  return (
+    pkg.team?.workflowDefinition ??
+    detail?.team?.workflowDefinition ??
+    null
+  );
+}
+
+/** Whether the column hands the issue to somebody the import must resolve. */
+function columnHandsOff(column: PresetWorkflowColumn): boolean {
+  return column.handler === "agent" || column.handler === "member";
+}
+
+/**
+ * Turns the package's board into the import's payload, resolving every column's
+ * preset member id to the agent this import created.
+ *
+ * A column whose member is not on the roster this import wrote falls back to
+ * handler "none": the column and its instructions still land, and one stale
+ * member id cannot cost the operator the whole board.
+ */
+export function presetWorkflowInput(
+  definition: PresetWorkflowDefinition,
+  agentIdByMember: ReadonlyMap<string, string>,
+): PresetWorkflowInput {
+  const columns: PresetWorkflowColumnInput[] = [];
+  for (const column of definition.columns) {
+    const handsOff = columnHandsOff(column);
+    const resolved = handsOff
+      ? agentIdByMember.get(column.memberId ?? "")
+      : undefined;
+    const handler: PresetWorkflowHandler = handsOff
+      ? resolved
+        ? column.handler
+        : "none"
+      : column.handler;
+    const input: PresetWorkflowColumnInput = { status: column.status, handler };
+    if (handsOff && resolved) input.memberId = resolved;
+    if (column.instructions) input.instructions = column.instructions;
+    if (column.onDone) input.onDone = column.onDone;
+    if (column.onReject) input.onReject = column.onReject;
+    columns.push(input);
+  }
+  return { name: definition.name, columns };
 }
 
 /**
@@ -438,6 +551,10 @@ export async function runPresetImport(
   const agents: PresetImportOutcome["agents"] = [
     { id: lead.id, name: presetDisplayName(pkg, options.locale), role: "lead" },
   ];
+  // Preset member id → the agent this import wrote for it. The package's board
+  // names its handlers by preset member, so the mapping is what makes the
+  // workflow point at real agents.
+  const agentIdByMember = new Map<string, string>([[leadAgentId, lead.id]]);
 
   const memberPresets = (pkg.members ?? []).filter(
     (member) => member.id !== leadAgentId && member.role !== "lead",
@@ -474,6 +591,7 @@ export async function runPresetImport(
         }),
       );
       agents.push({ id: created.id, name: memberName, role: "member" });
+      agentIdByMember.set(member.id, created.id);
       runtimes.push({
         agentId: created.id,
         agentName: memberName,
@@ -519,6 +637,32 @@ export async function runPresetImport(
     done("save_instructions");
   }
 
+  // 4. Project board — the workflow the package's team works on. Written last
+  // because its columns hand off to agents this run created, and non-fatal
+  // because the squad is already usable without it: a failed write is recorded
+  // in the outcome and the import still reports success.
+  let workflow: PresetWorkflowOutcome | null = null;
+  const definition =
+    pkg.kind === "team"
+      ? presetWorkflowDefinition(pkg, options.detail)
+      : null;
+  if (definition && runtime.createWorkflow) {
+    const input = presetWorkflowInput(definition, agentIdByMember);
+    if (input.columns.length > 0) {
+      try {
+        const created = await runtime.createWorkflow(input);
+        workflow = { id: created.id, name: definition.name, created: created.created };
+      } catch (error) {
+        workflow = {
+          id: null,
+          name: definition.name,
+          created: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    }
+  }
+
   return {
     packageId: pkg.id,
     skills,
@@ -528,5 +672,6 @@ export async function runPresetImport(
     updatedSkillCount: skills.filter((skill) => skill.updated).length,
     steps,
     runtimes,
+    workflow,
   };
 }
