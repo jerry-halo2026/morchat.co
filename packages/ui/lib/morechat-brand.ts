@@ -194,3 +194,33 @@ export const WORDMARK = buildWordmark();
  */
 export const MONOGRAM_PATH = ICON_M_PATH;
 export const MONOGRAM_TRANSFORM = iconMTransform("square");
+
+// ---------- bars: the m's three legs, straightened ----------
+/**
+ * The icon's three bars, on the 100x100 grid.
+ *
+ * The m is already three verticals joined by two arches. Straightened, the same three
+ * move as a single wave, which reads as activity at a size where a drawing line does
+ * not. Width, gap and cap match the arch stroke so the mark keeps its proportions.
+ */
+/**
+ * The app icon's three bars, mapped onto the 100 grid.
+ *
+ * Read off `apps/web/app/icon.svg`: it places a unit-space mark at
+ * translate(18.2095 22.1076) scale(50.7135) and draws bars of width 0.3 whose tops sit
+ * at 0.48 / 0.24 / 0, heights 0.62 / 0.86 / 1.1, opacity 0.45 / 0.7 / 1. Using those
+ * numbers here keeps the thinking mark and the app icon the same shape.
+ */
+export const ICON_BARS = [
+  { x: 18.2, y: 46.45, width: 15.21, height: 31.44, rx: 4.56, opacity: 0.45 },
+  { x: 41.54, y: 34.28, width: 15.21, height: 43.61, rx: 4.56, opacity: 0.7 },
+  { x: 64.87, y: 22.11, width: 15.21, height: 55.78, rx: 4.56, opacity: 1 },
+] as const;
+
+/** The bars as rounded-rect attribute sets, in drawing order. */
+export function iconBarRects(): { bar: (typeof ICON_BARS)[number]; attrs: Record<string, number> }[] {
+  return ICON_BARS.map((bar) => ({
+    bar,
+    attrs: { x: bar.x, y: bar.y, width: bar.width, height: bar.height, rx: bar.rx },
+  }));
+}

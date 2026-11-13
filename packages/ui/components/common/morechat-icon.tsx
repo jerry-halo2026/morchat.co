@@ -1,9 +1,8 @@
 import { useId, type CSSProperties } from "react";
 import { cn } from "../../lib/utils";
 import {
-  ICON_M_CENTRE_LINE,
+  ICON_BARS,
   ICON_M_PATH,
-  ICON_STROKE,
   ICON_TILE_RADIUS,
   iconEdge,
   iconMTransform,
@@ -12,7 +11,7 @@ import {
 export type MorechatIconMode =
   /** The mark at rest. */
   | "static"
-  /** A highlight runs along the m: an agent at work, loading, waiting. */
+  /** Three bars stepping in sequence: an agent at work, loading, waiting. */
   | "think"
   /** Tile pops in and the m rises from below — app launch, sign-in. */
   | "intro"
@@ -38,6 +37,12 @@ const LAUNCH_THINK_AT = "1.5s";
 /**
  * The morechat.co icon (F1): the wordmark's m, too big for its tile and
  * cropped by it. Black tile with a white m in light mode, inverted in dark.
+ *
+ * `think` swaps the m for the app icon's three bars, animated as one wave. A single
+ * line drawing itself along the m is invisible at the sizes this mark is used at;
+ * three bars stepping is legible at 16px and reads as "working" rather than a redraw.
+ * The bars use `currentColor` so they follow the tile inversion instead of being a
+ * fixed paper white.
  */
 export function MorechatIcon({
   mode = "static",
@@ -53,21 +58,26 @@ export function MorechatIcon({
   const intro = mode === "intro" || mode === "launch";
   const tileClass = "fill-morechat-ink dark:fill-morechat-paper";
   const mFill = "fill-morechat-paper dark:fill-morechat-ink";
-  const mStroke = "stroke-morechat-paper dark:stroke-morechat-ink";
 
   const filled = <path d={ICON_M_PATH} className={mFill} />;
+
   const thinking = (
-    <>
-      <path d={ICON_M_CENTRE_LINE} fill="none" strokeWidth={ICON_STROKE} opacity={0.22} className={mStroke} />
-      <path
-        d={ICON_M_CENTRE_LINE}
-        fill="none"
-        strokeWidth={ICON_STROKE}
-        pathLength={1}
-        className={cn("multica-think", mStroke)}
-      />
-    </>
+    <g className={mFill}>
+      {ICON_BARS.map((bar, index) => (
+        <rect
+          key={bar.x}
+          x={bar.x}
+          y={bar.y}
+          width={bar.width}
+          height={bar.height}
+          rx={bar.rx}
+          opacity={bar.opacity}
+          className={cn("multica-bar", `multica-bar-${index}`)}
+        />
+      ))}
+    </g>
   );
+
   const delay = (s: string): CSSProperties => ({ animationDelay: s });
 
   return (
@@ -101,18 +111,23 @@ export function MorechatIcon({
         <rect width={100} height={100} rx={ICON_TILE_RADIUS} className={tileClass} />
       )}
       <g clipPath={`url(#${clipId})`}>
-        <g className={intro ? "multica-rise" : undefined} style={intro ? delay("0.35s") : undefined}>
-          <g transform={iconMTransform(shape)}>
-            {mode === "think" ? thinking : null}
-            {mode === "static" || mode === "intro" ? filled : null}
+        {intro ? (
+          <g className="multica-rise" style={delay("0.35s")}>
             {mode === "launch" ? (
               <>
                 <g className="multica-fade-out" style={delay(LAUNCH_THINK_AT)}>{filled}</g>
                 <g className="multica-fade-in" style={delay(LAUNCH_THINK_AT)}>{thinking}</g>
               </>
-            ) : null}
+            ) : (
+              filled
+            )}
           </g>
-        </g>
+        ) : mode === "think" ? (
+          // The bars sit where the app icon puts them; the m transform does not apply.
+          thinking
+        ) : (
+          <g transform={iconMTransform(shape)}>{filled}</g>
+        )}
       </g>
     </svg>
   );

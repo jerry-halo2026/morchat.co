@@ -79,6 +79,19 @@
  * overshoot (pop); nothing else does. Delays are set inline by the components
  * so a sequence stays readable in one place. */
 @keyframes multica-pop { from { transform: scale(0.4); opacity: 0; } }
+@keyframes multica-bar {
+  0%, 100% { transform: scaleY(0.42); }
+  50% { transform: scaleY(1); }
+}
+@keyframes multica-rise {
+  from { transform: translateY(26%); opacity: 0; }
+}
+@keyframes multica-fade-out {
+  to { opacity: 0; }
+}
+@keyframes multica-fade-in {
+  from { opacity: 0; }
+}
 @keyframes multica-write { from { stroke-dashoffset: 1; } }
 @keyframes multica-settle { from { transform: rotate(-45deg); } }
 @keyframes multica-arm-grow { from { transform: scaleX(0); } }
@@ -513,4 +526,35 @@ html[data-sidebar-resizing="true"] {
 ::highlight(multica-find-active) {
   background-color: var(--find-match-active);
   color: var(--find-match-foreground);
+}
+
+/* The three bars: one wave, each bar a step behind the one before it. */
+.multica-bar {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: multica-bar 1.05s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+.multica-bar-0 { animation-delay: 0s; }
+.multica-bar-1 { animation-delay: 0.16s; }
+.multica-bar-2 { animation-delay: 0.32s; }
+/* The m drawing itself, for the older mark. */
+.multica-think {
+  stroke-dasharray: 1 1;
+  animation: multica-write 0.9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.multica-rise {
+  transform-box: fill-box;
+  animation: multica-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.multica-fade-out {
+  animation: multica-fade-out 0.35s ease-in both;
+}
+.multica-fade-in {
+  animation: multica-fade-in 0.35s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .multica-bar,
+  .multica-think {
+    animation: none;
+  }
 }
