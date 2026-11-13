@@ -111,10 +111,23 @@
    e2e `e2e/knowledge-review.spec.ts` 实测通过（1.4s）。
    同段还完成：部门 UI（成员页部门列/筛选/改部门、邀请选部门、项目部门标签、8 语言文案）、
    预设技能导入改「先查后写」、桌面端补拍（rail 跟随指针与会话行动态确认，任务栏呈现与眼睛跟随仍未确认）。
-1. **知识 ACL 强制切换**（唯一需要你拍板的破坏性动作）：先看 `knowledge_project_acl`
-   打开后的 `would_hide` / `affected_members`；切换步骤写在
+1. **知识 ACL 强制切换**（唯一需要你拍板的破坏性动作）：先看 `knowledge_project_acl`   打开后的 `would_hide` / `affected_members`；切换步骤写在
    `server/internal/knowledge/visibility.go` 的注释里（两行 SQL + 三个 `canViewItem`
    调用点 + 填 `ProjectVisibility`）。当前 dev 库数据层面 `would_hide=0`。
+0x. **上游 0.9.0 同步进行中**：调研四份 + 采纳矩阵在 `docs/upstream/research/0.9.0/`
+   （`SUMMARY.md` 是入口）。
+   - **A0 已合并**（`9806aa256`）：`9abc71ae9` daemon-token、`31f27f16a` session 续期、
+     `f20ad33dd` DB 不可用即失败。
+   - **A1 已合并**（`37736eb03`）：`61f84be54`/`e692d03e2`/`984c2145a` 三条私有项目补漏；
+     7 处冲突全是 import 块，保留本仓模块路径并补回 `projectaccess`；合并后重跑 sqlc。
+     验证：go build/vet、handler `Private|Scope|Knowledge|Department`、projectaccess、
+     两条 e2e（1.2m）全绿。
+   - 三个待裁决按**上游做法**定：autopilot 用 **skip + `project_access_blocked`**；
+     工作流/状态管理仍 **admin-only**（项目 lead 只能选现有工作流，不能造列）；
+     "我的 agent 的活"用服务端 **`GET /api/squads/involved`** 单一语义。
+   - **待做**：A2（`c3a9d8fd1` + `018107609`，最危险，含 sqlc）、A3（`6ccbdd178`）、
+     B daemon 六组、C Go 1.27.4、D 前端九项。迁移号从 **653** 起（上游 637–656 全部撞号）。
+
 1b. **素材库 P0 已完成、P1 搁置**（按你的指示先做知识库）：`contracts/library/` 的元契约 +
    video/legal 两个领域 manifest + `scripts/check-library-contracts.mjs` 已冻结；P1 的
    `library` schema、只读 API 与两个 MCP 工具未开始，设计见 `docs/engineering/LIBRARY.md`。
