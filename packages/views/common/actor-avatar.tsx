@@ -71,6 +71,8 @@ interface ActorAvatarProps {
    * frame loops.
    */
   live?: boolean;
+  /** Track the pointer with the eyes. Needs `live`. */
+  followPointer?: boolean;
   /**
    * Render the avatar as its own editor (preview + shape/colour/style fields).
    * Requires {@link ActorAvatarProps.onAvatarChange}; without a writer the
@@ -143,6 +145,7 @@ export function ActorAvatar({
   hoverCardVariant = "profile",
   profileLink,
   live,
+  followPointer = false,
   editable,
   onAvatarChange,
 }: ActorAvatarProps) {
@@ -188,6 +191,7 @@ export function ActorAvatar({
         entityId={actorId}
         sizePx={slotPx}
         live={live}
+      followPointer={followPointer}
         spec={resolvedAvatarUrl}
         name={resolvedName}
         className={className}

@@ -162,10 +162,8 @@ export function AoraCharacter({
       role="img"
       aria-label={alt ?? name ?? ""}
       className={cn(
-        "inline-flex shrink-0 items-center justify-center overflow-hidden",
+        "inline-flex shrink-0 items-center justify-center",
         className,
-        // Rounded last: the circle is a hard invariant, never a per-site choice.
-        "rounded-full",
       )}
       style={{
         width: `var(--avatar-slot-size, ${px}px)`,
