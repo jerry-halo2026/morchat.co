@@ -217,6 +217,7 @@ function parseSkill(value: unknown): PresetSkill | null {
   const name = asString(record.name);
   const path = asString(record.path);
   if (name === "" || path === "") return null;
+  const fileList = asStringArray(record.fileList).filter((entry) => entry !== "");
   return {
     name,
     ns: asString(record.ns, name),
@@ -224,6 +225,9 @@ function parseSkill(value: unknown): PresetSkill | null {
     files: asNumber(record.files),
     bytes: asNumber(record.bytes),
     sha256: typeof record.sha256 === "string" ? record.sha256 : undefined,
+    // The catalog's own list of the files beside SKILL.md. `loadSkillFiles` reads
+    // this, so dropping it here means every import writes SKILL.md and nothing else.
+    ...(fileList.length > 0 ? { fileList } : {}),
   };
 }
 

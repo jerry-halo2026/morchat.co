@@ -178,6 +178,42 @@ describe("createPresetSource", () => {
     );
   });
 
+  it("keeps the file list a skill ships, and fetches every entry", async () => {
+    const withFiles = {
+      ...MINIMAL_INDEX,
+      packages: [
+        {
+          ...MINIMAL_INDEX.packages[0]!,
+          skills: [
+            {
+              ...MINIMAL_INDEX.packages[0]!.skills[0]!,
+              fileList: ["references/guide.md", "scripts/run.py"],
+            },
+          ],
+        },
+      ],
+    };
+    const catalog = parsePresetCatalog(withFiles);
+    const skill = catalog.packages[0]!.skills[0]!;
+    // Dropping this field is silent: SKILL.md still imports, the references never do.
+    expect(skill.fileList).toEqual(["references/guide.md", "scripts/run.py"]);
+
+    const source = createPresetSource({
+      baseUrl: BASE,
+      proxyUrl: "",
+      fetcher: async (input) => {
+        const url = String(input);
+        if (url.endsWith("/references/guide.md")) return textResponse("guide");
+        if (url.endsWith("/scripts/run.py")) return textResponse("print(1)");
+        return textResponse("missing", { status: 404 });
+      },
+    });
+    await expect(source.loadSkillFiles(skill)).resolves.toEqual([
+      { path: "references/guide.md", content: "guide" },
+      { path: "scripts/run.py", content: "print(1)" },
+    ]);
+  });
+
   it("loads a package's preset.json and its persona document", async () => {
     const source = createPresetSource({
       baseUrl: BASE,
