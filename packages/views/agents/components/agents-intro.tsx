@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { Bot, ChevronRight, GitPullRequest, Laptop, Plus, Search } from "@morechat/ui/icons";
 import { Button } from "@morechat/ui/components/ui/button";
 import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
-import { formatAvatarEmoji } from "@morechat/ui/lib/avatar-emoji";
+import { introAvatar } from "../../common/intro-avatar";
 import { cn } from "@morechat/ui/lib/utils";
 import {
   FeatureIntro,
@@ -16,8 +16,8 @@ import { StatusIcon } from "../../issues/components/status-icon";
 import { ProviderLogo } from "../../runtimes/components/provider-logo";
 import { useT } from "../../i18n";
 
-const TURING = { name: "Turing", initials: "T", avatarUrl: formatAvatarEmoji("🧩"), isAgent: true };
-const KEPLER = { name: "Kepler", initials: "K", avatarUrl: formatAvatarEmoji("🔭"), isAgent: true };
+const TURING = { name: "Turing", initials: "T", avatarUrl: introAvatar("turing"), isAgent: true };
+const KEPLER = { name: "Kepler", initials: "K", avatarUrl: introAvatar("kepler"), isAgent: true };
 const MIA = { name: "Mia", initials: "M" };
 const MACHINE = "studio-mbp";
 const HARNESS = "Claude Code";

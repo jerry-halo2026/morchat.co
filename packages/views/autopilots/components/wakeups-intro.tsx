@@ -11,7 +11,7 @@ import {
 } from "@morechat/ui/icons";
 import { Button } from "@morechat/ui/components/ui/button";
 import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
-import { formatAvatarEmoji } from "@morechat/ui/lib/avatar-emoji";
+import { introAvatar } from "../../common/intro-avatar";
 import { cn } from "@morechat/ui/lib/utils";
 import {
   FeatureIntro,
@@ -25,7 +25,7 @@ import { useLocale, useT } from "../../i18n";
 import { parseCron } from "./schedule-editor/cron-mapping";
 import { useDescribeSchedule } from "./schedule-editor/describe";
 
-const TURING = { name: "Turing", initials: "T", avatarUrl: formatAvatarEmoji("🧩"), isAgent: true };
+const TURING = { name: "Turing", initials: "T", avatarUrl: introAvatar("turing"), isAgent: true };
 const ISSUE_ID = "MUL-219";
 const PR_NUMBER = "#284";
 const WAKE_AT = new Date(2026, 10, 5, 14, 0);

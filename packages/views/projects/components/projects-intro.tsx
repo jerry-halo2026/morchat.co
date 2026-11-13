@@ -11,7 +11,7 @@ import {
 } from "@morechat/ui/icons";
 import { Button } from "@morechat/ui/components/ui/button";
 import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
-import { formatAvatarEmoji } from "@morechat/ui/lib/avatar-emoji";
+import { introAvatar } from "../../common/intro-avatar";
 import { cn } from "@morechat/ui/lib/utils";
 import { PROJECT_STATUS_CONFIG } from "@morechat/core/projects/config";
 import {
@@ -29,7 +29,7 @@ import { useProjectPriorityLabels, useProjectStatusLabels } from "./labels";
 const TARGET_DATE = new Date(2026, 10, 20);
 const PROGRESS = { done: 13, total: 21 };
 const LEAD = { name: "Mia", initials: "M" };
-const AGENT = { name: "Turing", initials: "T", avatarUrl: formatAvatarEmoji("🧩"), isAgent: true };
+const AGENT = { name: "Turing", initials: "T", avatarUrl: introAvatar("turing"), isAgent: true };
 const REPOS = ["acme/website", "acme/brand"];
 
 export function ProjectsIntro({ onCreate }: { onCreate: () => void }) {

@@ -3,7 +3,7 @@
 import { Laptop, Lock, Plus, Users } from "@morechat/ui/icons";
 import { Button } from "@morechat/ui/components/ui/button";
 import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
-import { formatAvatarEmoji } from "@morechat/ui/lib/avatar-emoji";
+import { introAvatar } from "../../common/intro-avatar";
 import { cn } from "@morechat/ui/lib/utils";
 import {
   FeatureIntro,
@@ -18,10 +18,10 @@ import type { CreateSkillMethod } from "./create-skill-dialog";
 import { SKILL_CREATE_METHODS, SkillCreateMenu } from "./skill-list-controls";
 
 const AGENTS = [
-  { name: "Kepler", initials: "K", avatarUrl: formatAvatarEmoji("🔭"), isAgent: true },
-  { name: "Turing", initials: "T", avatarUrl: formatAvatarEmoji("🧩"), isAgent: true },
-  { name: "Ada", initials: "A", avatarUrl: formatAvatarEmoji("🌸"), isAgent: true },
-  { name: "Nova", initials: "N", avatarUrl: formatAvatarEmoji("✨"), isAgent: true },
+  { name: "Kepler", initials: "K", avatarUrl: introAvatar("kepler"), isAgent: true },
+  { name: "Turing", initials: "T", avatarUrl: introAvatar("turing"), isAgent: true },
+  { name: "Ada", initials: "A", avatarUrl: introAvatar("ada"), isAgent: true },
+  { name: "Nova", initials: "N", avatarUrl: introAvatar("nova"), isAgent: true },
 ];
 
 const SHARED_SKILL = "pr-review";

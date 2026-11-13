@@ -3,7 +3,7 @@
 import { Crown, Plus, Users } from "@morechat/ui/icons";
 import { Button } from "@morechat/ui/components/ui/button";
 import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
-import { formatAvatarEmoji } from "@morechat/ui/lib/avatar-emoji";
+import { introAvatar } from "../../common/intro-avatar";
 import { cn } from "@morechat/ui/lib/utils";
 import {
   FeatureIntro,
@@ -16,9 +16,9 @@ import {
 import { StatusIcon } from "../../issues/components/status-icon";
 import { useT } from "../../i18n";
 
-const ADA = { name: "Ada", initials: "A", avatarUrl: formatAvatarEmoji("🌸"), isAgent: true };
-const TURING = { name: "Turing", initials: "T", avatarUrl: formatAvatarEmoji("🧩"), isAgent: true };
-const KEPLER = { name: "Kepler", initials: "K", avatarUrl: formatAvatarEmoji("🔭"), isAgent: true };
+const ADA = { name: "Ada", initials: "A", avatarUrl: introAvatar("ada"), isAgent: true };
+const TURING = { name: "Turing", initials: "T", avatarUrl: introAvatar("turing"), isAgent: true };
+const KEPLER = { name: "Kepler", initials: "K", avatarUrl: introAvatar("kepler"), isAgent: true };
 const MIA = { name: "Mia", initials: "M" };
 const ISSUE_ID = "MUL-128";
 
