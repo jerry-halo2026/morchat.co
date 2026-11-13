@@ -25,6 +25,8 @@ related: [docs/upstream/DRIFT-BASELINE.md, docs/engineering/CONTRACTS.md]
 
 - `server/internal/knowledge/`
 - `server/internal/handler/knowledge`
+- `contracts/library/`（素材库领域契约：元契约 + 各领域 manifest，上游没有对应物）
+- `docs/engineering/LIBRARY.md`
 - `server/internal/handler/runtime_credentials`
 - `server/internal/handler/presets`
 - `server/internal/handler/mcp_knowledge`

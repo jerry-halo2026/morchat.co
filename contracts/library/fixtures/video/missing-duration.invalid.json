@@ -1,0 +1,15 @@
+{
+  "schema_version": "shotlist.v1",
+  "title": "缺时长的清单",
+  "aspect_ratio": "9:16",
+  "shots": [
+    {
+      "index": 0,
+      "start_ms": 0,
+      "end_ms": 3000,
+      "shot_size": "close-up",
+      "scene": "indoor",
+      "rhythm": "steady"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": "clause-set.v1",
+  "contract_type": "枚举写错的协议",
+  "clauses": [
+    {
+      "id": "X-01",
+      "category": "penalty",
+      "risk_level": "high",
+      "text": "违约金按合同总额的 20% 计算。",
+      "mandatory": true
+    }
+  ]
+}

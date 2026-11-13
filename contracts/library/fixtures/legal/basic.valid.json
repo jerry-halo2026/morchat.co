@@ -1,0 +1,20 @@
+{
+  "schema_version": "clause-set.v1",
+  "contract_type": "SaaS 服务协议",
+  "clauses": [
+    {
+      "id": "L-01",
+      "category": "liability",
+      "risk_level": "high",
+      "text": "乙方对间接损失不承担责任，累计赔偿以年度服务费为上限。",
+      "mandatory": true
+    },
+    {
+      "id": "P-01",
+      "category": "payment",
+      "risk_level": "medium",
+      "text": "按年预付，逾期 30 日可暂停服务。",
+      "mandatory": true
+    }
+  ]
+}

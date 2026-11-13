@@ -1,0 +1,63 @@
+{
+  "schema_key": "clause-set",
+  "version": 1,
+  "status": "draft",
+  "title": "法务：合同条款清单",
+  "summary_path": "/contract_type",
+  "searchable_paths": ["/contract_type", "/clauses/*/text"],
+  "tag_sets": [
+    {
+      "key": "clause_category",
+      "name": "条款类别",
+      "cardinality": "single",
+      "values": [
+        { "value": "liability", "label_zh": "责任", "label_en": "Liability", "sort": 1 },
+        { "value": "payment", "label_zh": "付款", "label_en": "Payment", "sort": 2 },
+        { "value": "termination", "label_zh": "解除", "label_en": "Termination", "sort": 3 },
+        { "value": "confidentiality", "label_zh": "保密", "label_en": "Confidentiality", "sort": 4 },
+        { "value": "ip", "label_zh": "知识产权", "label_en": "IP", "sort": 5 }
+      ]
+    },
+    {
+      "key": "risk_level",
+      "name": "风险等级",
+      "cardinality": "single",
+      "values": [
+        { "value": "low", "label_zh": "低", "label_en": "Low", "sort": 1 },
+        { "value": "medium", "label_zh": "中", "label_en": "Medium", "sort": 2 },
+        { "value": "high", "label_zh": "高", "label_en": "High", "sort": 3 }
+      ]
+    }
+  ],
+  "enum_bindings": [
+    { "path": "/properties/clauses/items/properties/category/enum", "tag_set": "clause_category" },
+    { "path": "/properties/clauses/items/properties/risk_level/enum", "tag_set": "risk_level" }
+  ],
+  "json_schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["schema_version", "contract_type", "clauses"],
+    "properties": {
+      "schema_version": { "const": "clause-set.v1" },
+      "contract_type": { "type": "string", "minLength": 1, "maxLength": 80 },
+      "clauses": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 500,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "category", "risk_level", "text", "mandatory"],
+          "properties": {
+            "id": { "type": "string", "pattern": "^[A-Za-z0-9._-]{1,40}$" },
+            "category": { "enum": ["liability", "payment", "termination", "confidentiality", "ip"] },
+            "risk_level": { "enum": ["low", "medium", "high"] },
+            "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+            "mandatory": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -38,7 +38,8 @@
     "ui:add": "cd packages/ui && npx shadcn@latest add",
     "generate:brand": "node scripts/brand/generate.mjs",
     "generate:attachment-text-preview": "node scripts/generate-attachment-text-preview.mjs",
-    "generate:reserved-slugs": "node scripts/generate-reserved-slugs.mjs"
+    "generate:reserved-slugs": "node scripts/generate-reserved-slugs.mjs",
+    "check:library-contracts": "node scripts/check-library-contracts.mjs"
   },
   "engines": {
     "node": ">=22"

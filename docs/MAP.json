@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 187,
-  "fingerprint": "8074a5457140d568de633a65740484e82e976718577fda2ba667b28cf6de000e",
+  "count": 188,
+  "fingerprint": "32ad2ee13e95f95ae6b91d72af79d6865e398f5fd0079e1df9621780e2db8f52",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -927,6 +927,17 @@
       "owner": "lead",
       "status": "current",
       "updated": "2026-11-11",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/engineering/LIBRARY.md",
+      "title": "素材库与知识沉淀",
+      "purpose": "素材库（事实层）/ 痕迹层 / 沉淀层的边界、契约与落地顺序",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-13",
       "related": [],
       "links_out": [],
       "links_in": []
