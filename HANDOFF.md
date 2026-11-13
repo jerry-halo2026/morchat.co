@@ -105,17 +105,20 @@
 
 ## 三、后续优先级
 
-0. **素材库 P0 已完成，P1 未开始**：`contracts/library/`（元契约 + video/legal 两个领域
-   manifest + fixtures）与 `node scripts/check-library-contracts.mjs` 已冻结并通过
-   （2 manifest / 5 fixture）。设计见 `docs/engineering/LIBRARY.md`；下一步 P1 =
-   `library` schema 迁移（注册表 + 资产 + facets + usage + 并发索引 + 只读 role）、
-   只读 API、两个 MCP 工具（`library.search`/`library.get`，总数封顶 5）。
+0. **知识库入库闸门已完成（第三段）**：迁移 651/652、`knowledge_review.go`、
+   `knowledge.propose`（`knowledge.write` 已移除）、`POST /api/knowledge/items/{id}/approve`、
+   `GET /api/knowledge/review-audit`、`multica knowledge audit`；
+   e2e `e2e/knowledge-review.spec.ts` 实测通过（1.4s）。
+   同段还完成：部门 UI（成员页部门列/筛选/改部门、邀请选部门、项目部门标签、8 语言文案）、
+   预设技能导入改「先查后写」、桌面端补拍（rail 跟随指针与会话行动态确认，任务栏呈现与眼睛跟随仍未确认）。
 1. **知识 ACL 强制切换**（唯一需要你拍板的破坏性动作）：先看 `knowledge_project_acl`
    打开后的 `would_hide` / `affected_members`；切换步骤写在
    `server/internal/knowledge/visibility.go` 的注释里（两行 SQL + 三个 `canViewItem`
    调用点 + 填 `ProjectVisibility`）。当前 dev 库数据层面 `would_hide=0`。
-2. **部门 UI**：成员页的部门列/筛选、邀请选部门、成员行动作「改部门」。后端已就绪；
-   需要 Lead 统一加 i18n key：`settings.members.changeDepartment`、
+1b. **素材库 P0 已完成、P1 搁置**（按你的指示先做知识库）：`contracts/library/` 的元契约 +
+   video/legal 两个领域 manifest + `scripts/check-library-contracts.mjs` 已冻结；P1 的
+   `library` schema、只读 API 与两个 MCP 工具未开始，设计见 `docs/engineering/LIBRARY.md`。
+2. **部门 UI**：成员页的部门列/筛选、邀请选部门、成员行动作「改部门」。后端已就绪；   需要 Lead 统一加 i18n key：`settings.members.changeDepartment`、
    `changeDepartmentTitle`、`changeDepartmentNone`、`changeDepartmentDone`
    （占位 `{added}`/`{removed}`），可选 `projects.departmentScopeHint`。
 3. **部门收件箱标题是写库的中文数据**（`"<部门名> 收件箱"`）；要八语言就得加语言字段，
@@ -191,6 +194,14 @@ go test ./internal/knowledge ./cmd/migrate ./internal/migrations -count=1
     但会干扰其他 agent 的工作树判断）。
 11. **两个 agent 同时改 `server/internal/featureflags/keys.go`**：共享文件，
     谁 add 谁带上对方的内容；合并后要逐行确认两家的 key 都在。
+12. **新路由要重启 API 才生效**：8080 上跑的是旧进程时，e2e 对新端点只会拿到 404；
+    改后端后先停旧进程再 `node scripts/dev.mjs server`。
+13. **MCP 工具改名会打断写死旧名的 agent**：`knowledge_write` → `knowledge_propose`，
+    工具在运行时发现，但 agent 配置/脚本里的硬编码要一起改。
+14. **`project-date-pickers.test.tsx` 在并行全量跑时偶发超时**（单独跑 6/6 绿），
+    不是本轮引入；全量失败先单跑确认。
+15. **两个 agent 同时改 `packages/core/api/client.ts`**：各自提交整文件会覆盖对方新增；
+    合并后要 grep 两边的符号都在（本轮 `updateMemberDepartment` 与知识审阅字段）。
 
 ---
 

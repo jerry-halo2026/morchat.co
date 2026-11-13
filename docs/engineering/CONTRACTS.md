@@ -149,6 +149,25 @@ dsh（本项目内置，桌面端恒可用） > codex > claude_code > 任意 sta
 部门不是权限表：它是成员归属 + 默认范围（默认私有项目、知识空间）。给部门加读取
 ACL 属于红线，理由见 ORG-MODEL §6。
 
+## 知识入库闸门
+
+知识条目的 `draft → active` 不是普通字段更新，而是一次**人工批准**：
+
+- **谁能批**：该空间 `owner_id`、空间所属部门的 `lead_user_id`、工作区 owner/admin。
+  agent（task token / cloud PAT）一律 `403 knowledge_review_forbidden`。
+- **批之前必须成立**：条目有 `owner_id`、`source_ref` 非空、`review_issue_id` 指向
+  同工作区且处于 **done 分类**（含自定义状态）的 issue；否则
+  `400 knowledge_review_required` / `knowledge_review_issue_invalid`。
+- **批准后**写入 `reviewed_by`、`reviewed_at`、`stale_after = now() + 180 天`。
+- **agent 的写入口只剩 `knowledge.propose`**：生成一条 draft 条目 + 一条审阅 issue
+  （标题 `[知识入库] <title>`，assignee=空间 owner→部门负责人→管理员），返回
+  `{item_id, issue_id}`。`knowledge.write` 已移除；MCP 工具总数仍为 3。
+- **审计**：`GET /api/knowledge/review-audit` 与 `multica knowledge audit` 输出
+  「未审 active / 过期 / 孤儿」三类，只读，不自动处理。
+- **历史数据**：不批量回填 `reviewed_at`；旧的 active 会出现在「未审 active」，由人补审。
+- REST：`POST /api/knowledge/items/{id}/approve`（body `{review_issue_id}`）；
+  `POST/PATCH` 里直接设 `status=active` 也走同一闸门（POST 需同时带 `review_issue_id`）。
+
 ## 运行时自带的工具链（node / git / python）
 
 开箱即用的定义不是"装好了 morechat.co"，而是**用户机器上没有这些也能跑智能体**。桌面端把工具链随包发布，daemon 只把它注入任务的运行环境。

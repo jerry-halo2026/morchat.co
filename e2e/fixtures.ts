@@ -469,6 +469,65 @@ export class TestApiClient {
     return (await res.json()) as { id: string; name: string }[];
   }
 
+  /** Knowledge spaces are workspace-scoped; a fresh workspace has none. */
+  async createKnowledgeSpace(name: string): Promise<{ id: string; name: string }> {
+    const res = await this.authedFetch("/api/knowledge/spaces", {
+      method: "POST",
+      body: JSON.stringify({ name, description: "" }),
+    });
+    if (!res.ok) throw new Error(`create knowledge space failed: ${res.status} ${await res.text()}`);
+    return (await res.json()) as { id: string; name: string };
+  }
+
+  async createKnowledgeItem(input: {
+    space_id: string;
+    title: string;
+    status?: "draft" | "active";
+    source_ref?: string;
+    content?: string;
+    review_issue_id?: string;
+  }): Promise<{ id: string; status: string }> {
+    const res = await this.authedFetch("/api/knowledge/items", {
+      method: "POST",
+      body: JSON.stringify({
+        kind: "note",
+        source_type: "upload",
+        ...input,
+      }),
+    });
+    if (!res.ok) throw new Error(`create knowledge item failed: ${res.status} ${await res.text()}`);
+    return (await res.json()) as { id: string; status: string };
+  }
+
+  async getKnowledgeItem(id: string): Promise<{
+    id: string;
+    status: string;
+    review?: { review_issue_id?: string | null; reviewed_at?: string | null; stale_after?: string | null };
+  }> {
+    const res = await this.authedFetch(`/api/knowledge/items/${id}`);
+    if (!res.ok) throw new Error(`get knowledge item failed: ${res.status} ${await res.text()}`);
+    return (await res.json()) as {
+      id: string;
+      status: string;
+      review?: { review_issue_id?: string | null; reviewed_at?: string | null; stale_after?: string | null };
+    };
+  }
+
+  /** Returns the raw status and body: the negative cases assert the error code. */
+  async approveKnowledgeItem(id: string, reviewIssueId: string): Promise<{ status: number; body: unknown }> {
+    const res = await this.authedFetch(`/api/knowledge/items/${id}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ review_issue_id: reviewIssueId }),
+    });
+    return { status: res.status, body: await res.json().catch(() => null) };
+  }
+
+  async knowledgeReviewAudit(): Promise<{ unreviewed_active: unknown[]; stale: unknown[]; orphaned: unknown[] }> {
+    const res = await this.authedFetch("/api/knowledge/review-audit");
+    if (!res.ok) throw new Error(`knowledge audit failed: ${res.status} ${await res.text()}`);
+    return (await res.json()) as { unreviewed_active: unknown[]; stale: unknown[]; orphaned: unknown[] };
+  }
+
   /** Adds an existing user to this client's workspace and returns the member id. */
   async addMemberByEmail(email: string, role: "admin" | "member" = "member"): Promise<string> {
     if (!this.workspaceId) throw new Error("Cannot add a member before a workspace is selected");

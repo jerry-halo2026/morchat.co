@@ -88,6 +88,7 @@ Paperclip 的四条结构决定值得沿用：部门用 `scope` 数据表达而�
 | 4 | 无项目 issue 全公司可见 | `issue.project_id` 可空；新建落部门收件箱已实现（开关 `department_default_scope`，默认关；带父 issue 的子任务不落，仍随父） | 新建时落部门默认项目；历史不动 |
 | 5 | 调岗不会同步项目成员 | 已实现：`PATCH /api/workspaces/{id}/members/{memberId}/department` 在同一事务改部门、增删该部门私有项目成员、写 `activity_log` | 改 `member.department_id` 时批量增删部门项目成员并留审计 |
 | 6 | 部门负责人无管理入口 | — | 部门默认项目的 lead 复用 `canManageProjectAccess` |
+| 7 | 知识入库无闸门（agent 可直写 active） | 已实现：`draft → active` 需空间 owner / 部门负责人 / admin 批准，且须有 owner、来源与已完成的审阅 issue；agent 只能 `knowledge.propose`（见 CONTRACTS「知识入库闸门」） | 历史 active 不回填，靠 `review-audit` 补齐 |
 
 ## 6. 红线
 
