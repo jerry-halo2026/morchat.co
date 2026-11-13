@@ -125,8 +125,15 @@
    - 三个待裁决按**上游做法**定：autopilot 用 **skip + `project_access_blocked`**；
      工作流/状态管理仍 **admin-only**（项目 lead 只能选现有工作流，不能造列）；
      "我的 agent 的活"用服务端 **`GET /api/squads/involved`** 单一语义。
-   - **待做**：A2（`c3a9d8fd1` + `018107609`，最危险，含 sqlc）、A3（`6ccbdd178`）、
-     B daemon 六组、C Go 1.27.4、D 前端九项。迁移号从 **653** 起（上游 637–656 全部撞号）。
+   - **A2+A3 已合并**（`70954be79`）：`018107609`（运行解析到项目，新增
+     `projectaccess/task.go`）、`c3a9d8fd1`（后台运行/工作区读留在项目内）、
+     `6ccbdd178`（autopilot 归属私有项目，看不见就 skip + `project_access_blocked`）。
+     冲突：`private_project_realtime.go` 三处保留我们较新的 `linkedIssueIDs` 版本，
+     其余为 import 块；11 个移植测试文件改回本仓模块路径；重跑 sqlc。
+     验证：build/vet、handler `Private|Scope|Autopilot` 18.9s、service 6.4s、
+     cmd/server 3.2s、两条 e2e 40.8s 全绿。
+   - **待做**：B daemon 六组、C Go 1.27.4、D 前端九项。
+     迁移号从 **653** 起（上游 637–656 全部撞号）。
 
 1b. **素材库 P0 已完成、P1 搁置**（按你的指示先做知识库）：`contracts/library/` 的元契约 +
    video/legal 两个领域 manifest + `scripts/check-library-contracts.mjs` 已冻结；P1 的
