@@ -37,6 +37,7 @@ vi.mock("@morechat/core/auth", () => ({
 vi.mock("@morechat/core/workspace/queries", () => ({
   memberListOptions: () => ({ queryKey: ["members"], queryFn: async () => [] }),
   agentListOptions: () => ({ queryKey: ["agents"], queryFn: async () => [] }),
+  departmentListOptions: () => ({ queryKey: ["departments"], queryFn: async () => [] }),
 }));
 vi.mock("@morechat/core/workspace/hooks", () => ({
   useActorName: () => ({

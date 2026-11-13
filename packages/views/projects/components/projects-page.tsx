@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import {
+  Building2,
   ExternalLink,
   FolderKanban,
   LayoutGrid,
@@ -35,6 +36,7 @@ import { useAuthStore } from "@morechat/core/auth";
 import { useActorName } from "@morechat/core/workspace/hooks";
 import {
   agentListOptions,
+  departmentListOptions,
   memberListOptions,
 } from "@morechat/core/workspace/queries";
 import { canDeleteProject } from "@morechat/core/projects/deletion-permissions";
@@ -43,6 +45,7 @@ import { AppLink, useIntentNavigate } from "../../navigation";
 import { ActorAvatar } from "../../common/actor-avatar";
 import { FILTER_ITEM_CLASS, HoverCheck } from "../../common/hover-check";
 import { Skeleton } from "@morechat/ui/components/ui/skeleton";
+import { Badge } from "@morechat/ui/components/ui/badge";
 import { Button } from "@morechat/ui/components/ui/button";
 import { Spinner } from "@morechat/ui/components/ui/spinner";
 import {
@@ -96,6 +99,7 @@ import { useT } from "../../i18n";
 import { useFormatRelativeDate } from "./labels";
 import { ProjectStatusBadge, ProjectPriorityBadge } from "./project-badge";
 import { ProjectLeadPicker } from "./project-lead-picker";
+import { departmentName, projectDepartmentId } from "../../departments/lib";
 import { PAGE_GUTTER } from "../../layout/page-header";
 import { cn } from "@morechat/ui/lib/utils";
 
@@ -329,10 +333,13 @@ function ProjectCard({
   project,
   pinned,
   canDelete,
+  departmentLabel,
 }: {
   project: Project;
   pinned: boolean;
   canDelete: boolean;
+  /** The project's department, or null when it is filed under none. */
+  departmentLabel: string | null;
 }) {
   const { t } = useT("projects");
   const wsPaths = useWorkspacePaths();
@@ -361,6 +368,18 @@ function ProjectCard({
           <ProjectRowActions project={project} pinned={pinned} canDelete={canDelete} />
           <ProjectStatusBadge project={project} handleUpdate={handleUpdate} triggerClassName="shrink-0" />
         </div>
+
+        {departmentLabel ? (
+          <div className="flex min-w-0 pt-1.5">
+            <Badge
+              variant="secondary"
+              className="max-w-full gap-1 text-micro font-normal text-muted-foreground"
+            >
+              <Building2 className="size-3 shrink-0" aria-hidden="true" />
+              <span className="truncate">{departmentLabel}</span>
+            </Badge>
+          </div>
+        ) : null}
 
         {project.issue_count > 0 ? (
           <div className="flex items-center justify-end gap-1.5 pt-2">
@@ -543,6 +562,9 @@ export function ProjectsPage() {
   const { data: projects = [], isLoading } = useQuery(projectListOptions(wsId));
   const { data: members = [] } = useQuery(memberListOptions(wsId));
   const { data: agents = [] } = useQuery(agentListOptions(wsId));
+  // Only needed to name the tag: a project without `department_id` shows none,
+  // and the list stays empty until the field is served.
+  const { data: departments = [] } = useQuery(departmentListOptions(wsId));
   const { data: pins = [] } = useQuery({
     ...pinListOptions(wsId, currentUser?.id ?? ""),
     enabled: !!wsId && !!currentUser?.id,
@@ -933,6 +955,10 @@ export function ProjectsPage() {
                     project={project}
                     pinned={pinnedProjectIds.has(project.id)}
                     canDelete={mayDelete(project)}
+                    departmentLabel={departmentName(
+                      departments,
+                      projectDepartmentId(project),
+                    )}
                   />
                 ))}
               </div>

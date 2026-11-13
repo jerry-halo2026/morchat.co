@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   members: [] as Array<{ user_id: string; name: string; role: string }>,
   agents: [] as Array<{ id: string; name: string; archived_at: string | null; owner_id?: string }>,
   pins: [] as Array<{ item_type: string; item_id: string }>,
+  departments: [] as Array<{ id: string; name: string }>,
   updateProject: vi.fn(),
   deleteProject: vi.fn(),
   createPin: vi.fn(),
@@ -47,6 +48,9 @@ vi.mock("@tanstack/react-query", () => ({
     }
     if (key === "pins") {
       return { data: mocks.pins, isLoading: false };
+    }
+    if (key === "departments") {
+      return { data: mocks.departments, isLoading: false };
     }
     return { data: [], isLoading: false };
   },
@@ -86,6 +90,7 @@ vi.mock("@morechat/core/auth", () => ({
 vi.mock("@morechat/core/workspace/queries", () => ({
   memberListOptions: () => ({ queryKey: ["members"] }),
   agentListOptions: () => ({ queryKey: ["agents"] }),
+  departmentListOptions: () => ({ queryKey: ["departments"] }),
 }));
 
 vi.mock("@morechat/core/workspace/hooks", () => ({
@@ -275,6 +280,7 @@ beforeEach(() => {
   ];
   mocks.agents = [];
   mocks.pins = [];
+  mocks.departments = [];
   mocks.updateProject.mockClear();
   mocks.deleteProject.mockClear();
   mocks.createPin.mockClear();
@@ -287,6 +293,30 @@ beforeEach(() => {
   mocks.projectViewState.sortDirection = "asc";
   mocks.projectViewState.hiddenColumns = [];
   mocks.projectViewState.filters = { statuses: [], priorities: [], leads: [] };
+});
+
+describe("ProjectsPage department tag", () => {
+  // The field is optional on the payload; a project filed under a department
+  // shows its unit, and an unfiled one shows nothing rather than a placeholder.
+  it("tags a filed project and leaves unfiled projects untagged", () => {
+    mocks.projectViewState.viewMode = "comfortable";
+    mocks.projects = [
+      { ...PROJECT, department_id: "dept-1" } as Project,
+      { ...PROJECT, id: "other", title: "Other project" } as Project,
+    ];
+    mocks.departments = [{ id: "dept-1", name: "Platform" }];
+    renderProjects();
+
+    expect(screen.getAllByText("Platform")).toHaveLength(1);
+  });
+
+  it("shows no tag when every project is unfiled", () => {
+    mocks.projectViewState.viewMode = "comfortable";
+    mocks.departments = [{ id: "dept-1", name: "Platform" }];
+    renderProjects();
+
+    expect(screen.queryByText("Platform")).toBeNull();
+  });
 });
 
 describe("ProjectsPage deletion permissions", () => {
