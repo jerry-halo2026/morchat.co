@@ -73,6 +73,31 @@ export interface PresetMember {
   harness?: string;
 }
 
+/**
+ * How a squad is supposed to operate: the order it dispatches work in, who hands
+ * what to whom, what "done" means, and which topic wakes which member.
+ *
+ * The leader agent receives the squad instructions, not this object, so anything
+ * it must know about the pipeline has to be spelled out in those instructions.
+ */
+export interface PresetTeamPlan {
+  /** One of `PRESET_TEAM_WORKFLOWS`; anything else is dropped on parse. */
+  workflow?: string;
+  /** Member ids in delivery order, first to last. */
+  handoffs?: string[];
+  /** What the squad counts as a finished deliverable. */
+  doneWhen?: string;
+  routeHints?: { match: string; member: string }[];
+}
+
+/** The workflow vocabulary the content repository uses for `team.workflow`. */
+export const PRESET_TEAM_WORKFLOWS = [
+  "pipeline",
+  "hub-and-spoke",
+  "collaborative",
+  "on-demand",
+] as const;
+
 export interface PresetPackage {
   id: string;
   kind: PresetKind;
@@ -91,6 +116,12 @@ export interface PresetPackage {
   categoryId: string;
   leadAgent?: string;
   members?: PresetMember[];
+  /**
+   * The squad's operating plan. Absent for a single agent, and absent for a team
+   * whose catalog entry predates it — the installer then writes the plain
+   * profile-and-roster instructions instead of inventing a pipeline.
+   */
+  team?: PresetTeamPlan;
 }
 
 export interface PresetCatalogStats {
@@ -217,6 +248,41 @@ function parseMember(value: unknown): PresetMember | null {
   };
 }
 
+/**
+ * Parses `record.team`. Every field is optional and anything malformed is
+ * dropped rather than repaired: a leader told to run "顺序接力" on a workflow the
+ * product does not know would invent a pipeline, which is worse than writing no
+ * pipeline line at all.
+ */
+function parseTeam(value: unknown): PresetTeamPlan | undefined {
+  const record = asRecord(value);
+  if (!record) return undefined;
+  const plan: PresetTeamPlan = {};
+  const workflow = asString(record.workflow);
+  if ((PRESET_TEAM_WORKFLOWS as readonly string[]).includes(workflow)) {
+    plan.workflow = workflow;
+  }
+  const handoffs = asStringArray(record.handoffs)
+    .map((member) => member.trim())
+    .filter((member) => member !== "");
+  if (handoffs.length > 0) plan.handoffs = handoffs;
+  const doneWhen = asString(record.doneWhen).trim();
+  if (doneWhen !== "") plan.doneWhen = doneWhen;
+  if (Array.isArray(record.routeHints)) {
+    const routeHints = record.routeHints
+      .map((hint) => {
+        const entry = asRecord(hint);
+        if (!entry) return null;
+        const match = asString(entry.match).trim();
+        const member = asString(entry.member).trim();
+        return match === "" || member === "" ? null : { match, member };
+      })
+      .filter((hint): hint is { match: string; member: string } => hint !== null);
+    if (routeHints.length > 0) plan.routeHints = routeHints;
+  }
+  return Object.keys(plan).length === 0 ? undefined : plan;
+}
+
 function parsePackage(value: unknown): PresetPackage | null {
   const record = asRecord(value);
   if (!record) return null;
@@ -261,6 +327,7 @@ function parsePackage(value: unknown): PresetPackage | null {
           .map(parseMember)
           .filter((member): member is PresetMember => member !== null)
       : undefined,
+    team: parseTeam(record.team),
   };
 }
 

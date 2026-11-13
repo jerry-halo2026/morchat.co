@@ -16,6 +16,7 @@
 import { deriveAoraSpec, encodeAoraSpec } from "@morechat/core/avatar/aora-spec";
 import type { PresetPackageDetail } from "@morechat/core/presets/types";
 import {
+  pickPresetText,
   presetDescription,
   presetDisplayName,
   presetProfession,
@@ -130,6 +131,22 @@ export function resolveRuntime(
   return options.runtimeId;
 }
 
+/**
+ * Whether the member had to settle for the install-wide runtime.
+ *
+ * A preference that resolved elsewhere is honoured; one that produced the
+ * fallback runtime is a degradation, and the install report says so instead of
+ * silently claiming the preset's harness was used.
+ */
+export function runtimeWasDegraded(
+  preferred: string | undefined,
+  runtimeId: string,
+  runtimeByProvider?: ReadonlyMap<string, string>,
+): boolean {
+  if (!preferred) return false;
+  return runtimeId !== runtimeByProvider?.get(preferred);
+}
+
 export interface PresetImportStep {
   /** i18n key suffix under presets.import.step.* */
   step:
@@ -151,26 +168,99 @@ export interface PresetImportOutcome {
   squadInstructions: string | null;
   updatedSkillCount: number;
   steps: PresetImportStep[];
+  /**
+   * One row per created agent: where it landed, and whether the harness the
+   * package asked for was actually there. `degraded` is the installer's honest
+   * answer to "did this member get the runtime the preset wanted?", which the
+   * gallery can surface instead of pretending a preference was honoured.
+   */
+  runtimes?: {
+    agentId: string;
+    agentName: string;
+    runtimeId: string;
+    preferred?: string;
+    degraded: boolean;
+  }[];
 }
 
-/** Team instructions written by the PUT stage; deterministic, so tests pin it. */
+/**
+ * What each workflow value means for the leader, in the instructions' language.
+ *
+ * The catalog names a shape ("pipeline", "hub-and-spoke", …) and the leader is
+ * never told which shape exists in the product; without the note the word alone
+ * does not say who waits for whom.
+ */
+const SQUAD_WORKFLOW_NOTES: Record<string, string> = {
+  pipeline: "顺序接力",
+  "hub-and-spoke": "各自独立回报",
+  collaborative: "平级协作",
+  "on-demand": "按需召唤",
+};
+
+/**
+ * Team instructions written by the PUT stage; deterministic, so tests pin it.
+ *
+ * The squad receives three things from the server: a hard-coded operating
+ * protocol, the roster, and these instructions. So everything the leader must
+ * know about dispatch order, delivery order, completion and routing has to be
+ * here — a pipeline the instructions do not state is a pipeline nobody runs.
+ *
+ * Sections, each one blank-line separated and omitted when empty: profession,
+ * description, workflow, delivery order, done-when, routing hints, roster.
+ * A package without a `team` plan keeps the plain profile-and-roster text.
+ */
 export function presetSquadInstructions(
   pkg: PresetPackage,
   locale: string,
 ): string {
-  const lines = [
-    presetProfession(pkg, locale) || presetDisplayName(pkg, locale),
-    presetDescription(pkg, locale),
-  ].filter((line) => line !== "");
+  const sections: string[] = [];
+  const profession = presetProfession(pkg, locale) || presetDisplayName(pkg, locale);
+  if (profession !== "") sections.push(profession);
+  const description = presetDescription(pkg, locale);
+  if (description !== "") sections.push(description);
+
+  const team = pkg.team;
+  const workflow = team?.workflow?.trim() ?? "";
+  if (workflow !== "") {
+    const note = SQUAD_WORKFLOW_NOTES[workflow];
+    sections.push(note ? `工作流：${workflow}（${note}）` : `工作流：${workflow}`);
+  }
+  const handoffs = (team?.handoffs ?? []).filter((member) => member !== "");
+  if (handoffs.length > 0) {
+    sections.push(`交付顺序：${handoffs.join(" → ")}`);
+  }
+  const doneWhen = team?.doneWhen?.trim() ?? "";
+  if (doneWhen !== "") sections.push(`完成标准：${doneWhen}`);
+  const routeHints = (team?.routeHints ?? []).filter(
+    (hint) => hint.match !== "" && hint.member !== "",
+  );
+  if (routeHints.length > 0) {
+    const lines = routeHints.map(
+      (hint) => `${hint.match} → ${squadMemberName(pkg, hint.member, locale)}`,
+    );
+    sections.push(`路由提示：${lines.join("\n")}`);
+  }
+
   const members = pkg.members ?? [];
   if (members.length > 0) {
-    lines.push(
-      members
+    sections.push(
+      `成员：${members
         .map((member) => `${member.id} (${member.role})`)
-        .join(", "),
+        .join("、")}`,
     );
   }
-  return lines.join("\n\n");
+  return sections.join("\n\n");
+}
+
+/** A route hint names a member by id; the leader reads the name it can mention. */
+function squadMemberName(
+  pkg: PresetPackage,
+  memberRef: string,
+  locale: string,
+): string {
+  const member = pkg.members?.find((candidate) => candidate.id === memberRef);
+  if (!member) return memberRef;
+  return pickPresetText(member.name, locale, memberRef);
 }
 
 /**
@@ -308,10 +398,15 @@ export async function runPresetImport(
 
   // 2. Agents. The lead agent is the package itself; team members become
   // additional agents wired into the squad.
+  const runtimes: NonNullable<PresetImportOutcome["runtimes"]> = [];
   const leadAgentId = pkg.leadAgent ?? pkg.id;
   const agentInstructions =
     (await runtime.loadAgentDoc?.(pkg)) ?? presetDescription(pkg, options.locale);
   const avatar = presetAvatar(leadAgentId);
+  const leadPreferred = pkg.members?.find(
+    (member) => member.id === leadAgentId,
+  )?.harness;
+  const leadRuntimeId = resolveRuntime(pkg, leadAgentId, options);
 
   const lead = await attempt("create_agent", () =>
     runtime.createAgent({
@@ -319,7 +414,7 @@ export async function runPresetImport(
       description: presetDescription(pkg, options.locale),
       instructions: agentInstructions,
       avatar_url: avatar,
-      runtime_id: resolveRuntime(pkg, leadAgentId, options),
+      runtime_id: leadRuntimeId,
       skill_ids: memberSkillIds(pkg, leadAgentId, skillIdByNs, skills),
       template: `preset:${pkg.id}`,
       // A squad can only dispatch to an agent its leader is allowed to run.
@@ -328,6 +423,17 @@ export async function runPresetImport(
     }),
   );
   done("create_agent");
+  runtimes.push({
+    agentId: lead.id,
+    agentName: presetDisplayName(pkg, options.locale),
+    runtimeId: leadRuntimeId,
+    ...(leadPreferred ? { preferred: leadPreferred } : {}),
+    degraded: runtimeWasDegraded(
+      leadPreferred,
+      leadRuntimeId,
+      options.runtimeByProvider,
+    ),
+  });
 
   const agents: PresetImportOutcome["agents"] = [
     { id: lead.id, name: presetDisplayName(pkg, options.locale), role: "lead" },
@@ -346,6 +452,7 @@ export async function runPresetImport(
       // line is what the summary shows, not what the agent runs on.
       const memberDoc =
         (await runtime.loadMemberDoc?.(pkg, member.id)) ?? null;
+      const memberRuntimeId = resolveRuntime(pkg, member.id, options);
       const created = await attempt("create_members", () =>
         runtime.createAgent({
           name: memberName,
@@ -359,7 +466,7 @@ export async function runPresetImport(
               .filter((line) => Boolean(line && line.trim()))
               .join("\n\n"),
           avatar_url: presetAvatar(member.id),
-          runtime_id: resolveRuntime(pkg, member.id, options),
+          runtime_id: memberRuntimeId,
           skill_ids: memberSkillIds(pkg, member.id, skillIdByNs, skills),
           template: `preset:${pkg.id}:${member.id}`,
           // A squad can only dispatch to an agent its leader is allowed to run.
@@ -367,6 +474,17 @@ export async function runPresetImport(
         }),
       );
       agents.push({ id: created.id, name: memberName, role: "member" });
+      runtimes.push({
+        agentId: created.id,
+        agentName: memberName,
+        runtimeId: memberRuntimeId,
+        ...(member.harness ? { preferred: member.harness } : {}),
+        degraded: runtimeWasDegraded(
+          member.harness,
+          memberRuntimeId,
+          options.runtimeByProvider,
+        ),
+      });
     }
     done("create_members");
   }
@@ -409,5 +527,6 @@ export async function runPresetImport(
     squadInstructions,
     updatedSkillCount: skills.filter((skill) => skill.updated).length,
     steps,
+    runtimes,
   };
 }
