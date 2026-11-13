@@ -59,6 +59,18 @@ export interface PresetMember {
   name: PresetLocalizedText;
   profession: PresetLocalizedText;
   role: "lead" | "member" | string;
+  /**
+   * Skill namespaces this member needs, e.g. `opc-team--opc-resource-audit`.
+   * Absent means "the package's skills" - the installer falls back to that rather
+   * than leaving a member with none.
+   */
+  skills?: string[];
+  /**
+   * Preferred runtime provider for this member (`dsh`, `codex`, `claude_code`).
+   * A preference, not a requirement: an offline or missing harness falls back to
+   * the install-wide runtime.
+   */
+  harness?: string;
 }
 
 export interface PresetPackage {
@@ -193,6 +205,14 @@ function parseMember(value: unknown): PresetMember | null {
     id,
     name: asLocalizedText(record.name),
     profession: asLocalizedText(record.profession),
+    // Optional per-member routing: which skills it needs, and which harness it
+    // would rather run on. Absent is normal - the installer falls back.
+    ...(Array.isArray(record.skills)
+      ? { skills: record.skills.filter((v): v is string => typeof v === "string" && v !== "") }
+      : {}),
+    ...(typeof record.harness === "string" && record.harness !== ""
+      ? { harness: record.harness }
+      : {}),
     role: asString(record.role, "member"),
   };
 }

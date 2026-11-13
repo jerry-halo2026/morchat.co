@@ -98,6 +98,13 @@ export function PresetsScreen({
         const outcome = await runPresetImport(pkg, runtime, {
           locale,
           runtimeId,
+          // A member may prefer a specific harness; only an online runtime of that
+          // provider can honour it, so the map is built from what is awake now.
+          runtimeByProvider: new Map(
+            runtimes
+              .filter((entry) => entry.status === "online")
+              .map((entry) => [entry.provider, entry.id] as const),
+          ),
           detail: pkgDetail,
           onStep: (step) => {
             toast.loading(t(($) => $.import.step[step]), { id: toastId });

@@ -53,6 +53,12 @@ export interface PresetAgentInput {
   runtime_id: string;
   skill_ids: string[];
   template: string;
+  /**
+   * Who may run this agent. Defaults to the server's "only me", which would make a
+   * squad unusable: the leader dispatches by mentioning a member, and a member the
+   * leader cannot run is never woken.
+   */
+  visibility?: "workspace" | "private";
   /** Quick prompts the agent's empty state offers (preset.json's starters). */
   conversation_starters?: { label: string; prompt: string }[];
 }
@@ -77,6 +83,51 @@ export interface PresetImportRuntime {
     agentId: string,
     role: "lead" | "member",
   ): Promise<void>;
+}
+
+/**
+ * Which skills a member gets.
+ *
+ * A package ships one shared skill or a handful; the catalog names them by
+ * namespace and each persona says which ones it needs. When the package declares
+ * `team.members[].skills`, that wins; when it does not, every member receives the
+ * package's skills, because a member with none is an agent whose instructions point
+ * at documents it cannot open.
+ */
+export function memberSkillIds(
+  pkg: PresetPackage,
+  memberId: string,
+  skillIdByNs: ReadonlyMap<string, string>,
+  imported: readonly PresetSkillImportResult[],
+): string[] {
+  const declared = pkg.members?.find((member) => member.id === memberId)?.skills;
+  if (declared && declared.length > 0) {
+    return declared
+      .map((ns) => skillIdByNs.get(ns))
+      .filter((id): id is string => Boolean(id));
+  }
+  return imported.map((skill) => skill.id);
+}
+
+/**
+ * Which runtime a member runs on.
+ *
+ * A package may name a preferred provider per member (a reviewer on Codex, a writer
+ * on whatever is awake). Nothing is guaranteed: the machine may not have that
+ * harness, or it may be asleep, so the order is preference then the install-wide
+ * choice - a member never ends up without one.
+ */
+export function resolveRuntime(
+  pkg: PresetPackage,
+  memberId: string,
+  options: { runtimeId: string; runtimeByProvider?: ReadonlyMap<string, string> },
+): string {
+  const preferred = pkg.members?.find((member) => member.id === memberId)?.harness;
+  if (preferred) {
+    const match = options.runtimeByProvider?.get(preferred);
+    if (match) return match;
+  }
+  return options.runtimeId;
 }
 
 export interface PresetImportStep {
@@ -143,6 +194,12 @@ export function planPresetImport(
 export interface RunPresetImportOptions {
   locale: string;
   runtimeId: string;
+  /**
+   * Online runtime per provider, so a member that names a preferred harness can be
+   * placed on it. Missing entry = that harness is not awake here; the member falls
+   * back to `runtimeId` rather than failing the install.
+   */
+  runtimeByProvider?: ReadonlyMap<string, string>;
   /**
    * The package's preset.json. Carries the conversation starters; without it
    * the lead agent is created exactly as before, just with no quick prompts.
@@ -240,6 +297,15 @@ export async function runPresetImport(
   }
   done("import_skills");
 
+  // ns -> the id the workspace gave that skill. Members are bound by namespace
+  // because that is the only name the catalog and the personas agree on.
+  const skillIdByNs = new Map(
+    skills.map((skill, index) => [
+      pkg.skills[index]?.ns || pkg.skills[index]?.name || skill.name,
+      skill.id,
+    ]),
+  );
+
   // 2. Agents. The lead agent is the package itself; team members become
   // additional agents wired into the squad.
   const leadAgentId = pkg.leadAgent ?? pkg.id;
@@ -253,9 +319,11 @@ export async function runPresetImport(
       description: presetDescription(pkg, options.locale),
       instructions: agentInstructions,
       avatar_url: avatar,
-      runtime_id: options.runtimeId,
-      skill_ids: skills.map((skill) => skill.id),
+      runtime_id: resolveRuntime(pkg, leadAgentId, options),
+      skill_ids: memberSkillIds(pkg, leadAgentId, skillIdByNs, skills),
       template: `preset:${pkg.id}`,
+      // A squad can only dispatch to an agent its leader is allowed to run.
+      visibility: "workspace" as const,
       conversation_starters: presetConversationStarters(options.detail),
     }),
   );
@@ -291,9 +359,11 @@ export async function runPresetImport(
               .filter((line) => Boolean(line && line.trim()))
               .join("\n\n"),
           avatar_url: presetAvatar(member.id),
-          runtime_id: options.runtimeId,
-          skill_ids: [],
+          runtime_id: resolveRuntime(pkg, member.id, options),
+          skill_ids: memberSkillIds(pkg, member.id, skillIdByNs, skills),
           template: `preset:${pkg.id}:${member.id}`,
+          // A squad can only dispatch to an agent its leader is allowed to run.
+          visibility: "workspace" as const,
         }),
       );
       agents.push({ id: created.id, name: memberName, role: "member" });
