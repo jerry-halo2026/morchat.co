@@ -118,9 +118,12 @@
 1b. **素材库 P0 已完成、P1 搁置**（按你的指示先做知识库）：`contracts/library/` 的元契约 +
    video/legal 两个领域 manifest + `scripts/check-library-contracts.mjs` 已冻结；P1 的
    `library` schema、只读 API 与两个 MCP 工具未开始，设计见 `docs/engineering/LIBRARY.md`。
-2. **部门 UI**：成员页的部门列/筛选、邀请选部门、成员行动作「改部门」。后端已就绪；   需要 Lead 统一加 i18n key：`settings.members.changeDepartment`、
-   `changeDepartmentTitle`、`changeDepartmentNone`、`changeDepartmentDone`
-   （占位 `{added}`/`{removed}`），可选 `projects.departmentScopeHint`。
+2. **部门 UI**：已完成（成员页部门列/筛选/改部门、邀请选部门、项目部门标签、
+   8 语言文案）。剩余：部门收件箱标题仍是写库中文（见第 3 条）。
+2b. **知识空间部门级读取过滤**：已完成（`knowledge_space_scope` 强制 /
+   `knowledge_space_scope_shadow` 观测，默认都关；管理员与共用空间不受限；
+   按 id 读写页面也已补校验）。切换强制只需开 `FF_KNOWLEDGE_SPACE_SCOPE=on`，
+   不用改代码；先开 shadow 观察 `would_hide` 与 `affected_members`。
 3. **部门收件箱标题是写库的中文数据**（`"<部门名> 收件箱"`）；要八语言就得加语言字段，
    或者改成渲染时拼。
 4. `skill` 唯一约束与 squad 名字策略二选一，写进 CONTRACTS。
@@ -184,10 +187,12 @@ go test ./internal/knowledge ./cmd/migrate ./internal/migrations -count=1
    的显式四分之一圆（`ring()`），方向写在代码里。
 7. PowerShell 的 `>` 重定向写出 UTF-16，取二进制用 `cmd /c "git show ... > file"`；
    改文本一律用编辑工具或 `.mjs`，别用 `Get-Content/Set-Content`。
-8. **共享 dev 库的 role 密码会被外部改动**：本轮 16:40 起主机连 15433 报
-   `password authentication failed for user "multica_dev"`，容器内 `local trust` 仍可进、
-   数据完好。恢复：`docker exec morchat-dev-pg psql -U multica_dev -d postgres -c
-   "ALTER ROLE multica_dev PASSWORD '<文档值>'"`。跑测试前先验一次连通性。
+8. **共享 dev 库的 role 密码会被外部改动**：本轮 16:40、17:59 以及 18:0x 各发生一次，
+   主机连 15433 报 `password authentication failed for user "multica_dev"`，容器内
+   `local trust` 仍可进、数据完好。仓库里没有 `ALTER ROLE`（已 grep server/ 与 scripts/），
+   来源在本机别处；每次跑 DB 测试前先验连通性，失败用：
+   `docker exec morchat-dev-pg psql -U multica_dev -d postgres -c
+   "ALTER ROLE multica_dev PASSWORD '<文档值>'"`。
 9. **`go test ./internal/handler` 必须带 `DATABASE_URL`**，否则 fixture 报
    `relation "workspace" does not exist`，看起来像代码坏了。
 10. **不要对整个包目录跑 `gofmt`**（会把 CRLF 换成 LF，虽然 git 内容归一后 diff 为空，
