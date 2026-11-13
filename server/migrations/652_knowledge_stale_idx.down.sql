@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_knowledge_items_workspace_stale;
