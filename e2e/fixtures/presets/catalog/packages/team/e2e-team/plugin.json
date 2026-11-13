@@ -1,0 +1,8 @@
+{
+  "name": "e2e-team",
+  "version": "9.9.9",
+  "description": "Team fixture for the preset import end-to-end test.",
+  "expertType": "team",
+  "skills": ["./skills/e2e-team--playbook", "./skills/e2e-team--brief"],
+  "agents": ["./agents/e2e-lead.md", "./agents/e2e-writer.md"]
+}

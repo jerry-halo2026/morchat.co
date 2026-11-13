@@ -378,6 +378,97 @@ export class TestApiClient {
     }
   }
 
+  /** Remove a runtime this test seeded. */
+  async deleteRuntime(id: string) {
+    const res = await this.authedFetch(`/api/runtimes/${id}`, { method: "DELETE" });
+    if (!res.ok && res.status !== 404) {
+      throw new Error(`delete runtime failed: ${res.status} ${await res.text()}`);
+    }
+  }
+
+  async listSkills(): Promise<{ id: string; name: string }[]> {
+    const res = await this.authedFetch("/api/skills");
+    if (!res.ok) throw new Error(`list skills failed: ${res.status} ${await res.text()}`);
+    return (await res.json()) as { id: string; name: string }[];
+  }
+
+  async getSkillFiles(id: string): Promise<{ id: string; path: string }[]> {
+    const res = await this.authedFetch(`/api/skills/${id}/files`);
+    if (!res.ok) throw new Error(`list skill files failed: ${res.status} ${await res.text()}`);
+    return (await res.json()) as { id: string; path: string }[];
+  }
+
+  async deleteSkill(id: string) {
+    const res = await this.authedFetch(`/api/skills/${id}`, { method: "DELETE" });
+    if (!res.ok && res.status !== 404) {
+      throw new Error(`delete skill failed: ${res.status} ${await res.text()}`);
+    }
+  }
+
+  async listAgents(): Promise<{ id: string; name: string; visibility?: string }[]> {
+    const res = await this.authedFetch("/api/agents");
+    if (!res.ok) throw new Error(`list agents failed: ${res.status} ${await res.text()}`);
+    return (await res.json()) as { id: string; name: string; visibility?: string }[];
+  }
+
+  async getAgentSkills(id: string): Promise<{ id: string; name: string }[]> {
+    const res = await this.authedFetch(`/api/agents/${id}/skills`);
+    if (!res.ok) throw new Error(`list agent skills failed: ${res.status} ${await res.text()}`);
+    return (await res.json()) as { id: string; name: string }[];
+  }
+
+  /** Archive rather than delete: archived agents keep their history. */
+  async archiveAgent(id: string) {
+    const res = await this.authedFetch(`/api/agents/${id}/archive`, { method: "POST" });
+    if (!res.ok && res.status !== 404) {
+      throw new Error(`archive agent failed: ${res.status} ${await res.text()}`);
+    }
+  }
+
+  async listSquads(): Promise<{ id: string; name: string }[]> {
+    const res = await this.authedFetch("/api/squads");
+    if (!res.ok) throw new Error(`list squads failed: ${res.status} ${await res.text()}`);
+    return (await res.json()) as { id: string; name: string }[];
+  }
+
+  async getSquad(id: string): Promise<{
+    id: string;
+    name: string;
+    instructions: string;
+    leader_id: string;
+    member_preview: { member_type: string; member_id: string; role: string }[];
+  }> {
+    const res = await this.authedFetch(`/api/squads/${id}`);
+    if (!res.ok) throw new Error(`get squad failed: ${res.status} ${await res.text()}`);
+    return (await res.json()) as {
+      id: string;
+      name: string;
+      instructions: string;
+      leader_id: string;
+      member_preview: { member_type: string; member_id: string; role: string }[];
+    };
+  }
+
+  async deleteSquad(id: string) {
+    const res = await this.authedFetch(`/api/squads/${id}`, { method: "DELETE" });
+    if (!res.ok && res.status !== 404) {
+      throw new Error(`delete squad failed: ${res.status} ${await res.text()}`);
+    }
+  }
+
+  async listProjects(): Promise<{ id: string; title: string; visibility?: string }[]> {
+    const res = await this.authedFetch("/api/projects");
+    if (!res.ok) throw new Error(`list projects failed: ${res.status} ${await res.text()}`);
+    const body = (await res.json()) as { projects: { id: string; title: string; visibility?: string }[] };
+    return body.projects;
+  }
+
+  async listRuntimes(): Promise<{ id: string; name: string }[]> {
+    const res = await this.authedFetch("/api/runtimes");
+    if (!res.ok) throw new Error(`list runtimes failed: ${res.status} ${await res.text()}`);
+    return (await res.json()) as { id: string; name: string }[];
+  }
+
   /** Adds an existing user to this client's workspace and returns the member id. */
   async addMemberByEmail(email: string, role: "admin" | "member" = "member"): Promise<string> {
     if (!this.workspaceId) throw new Error("Cannot add a member before a workspace is selected");

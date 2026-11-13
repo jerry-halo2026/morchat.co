@@ -1,0 +1,8 @@
+{
+  "name": "e2e-agent",
+  "version": "9.9.9",
+  "description": "Single-agent fixture for the preset import end-to-end test.",
+  "expertType": "agent",
+  "skills": ["./skills/e2e-agent--focus"],
+  "agents": ["./agents/e2e-agent.md"]
+}

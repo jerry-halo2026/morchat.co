@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "stats": { "packages": 2, "agents": 1, "teams": 1, "skills": 3 },
+  "packages": [
+    {
+      "id": "e2e-team",
+      "kind": "team",
+      "name": { "en": "E2E Team", "zh": "E2E Team" },
+      "profession": { "en": "E2E squad", "zh": "E2E squad" },
+      "description": "Team fixture for the preset import end-to-end test.",
+      "descriptionZh": "预设导入端到端测试的小队夹具。",
+      "version": "9.9.9",
+      "path": "packages/team/e2e-team",
+      "files": 6,
+      "bytes": 4096,
+      "skills": [
+        {
+          "name": "playbook",
+          "ns": "e2e-team--playbook",
+          "path": "skills/e2e-team--playbook",
+          "fileList": ["references/checklist.md"],
+          "files": 2,
+          "bytes": 2048
+        },
+        {
+          "name": "brief",
+          "ns": "e2e-team--brief",
+          "path": "skills/e2e-team--brief",
+          "files": 1,
+          "bytes": 1024
+        }
+      ],
+      "requires": [],
+      "tags": [],
+      "categoryId": "e2e",
+      "leadAgent": "e2e-lead",
+      "members": [
+        {
+          "id": "e2e-lead",
+          "name": { "en": "E2E Lead", "zh": "E2E Lead" },
+          "profession": { "en": "Lead", "zh": "Lead" },
+          "role": "lead",
+          "skills": ["e2e-team--brief"]
+        },
+        {
+          "id": "e2e-writer",
+          "name": { "en": "E2E Writer", "zh": "E2E Writer" },
+          "profession": { "en": "Writer", "zh": "Writer" },
+          "role": "member",
+          "skills": ["e2e-team--playbook"]
+        }
+      ],
+      "team": {
+        "workflow": "pipeline",
+        "handoffs": ["e2e-lead", "e2e-writer"],
+        "doneWhen": "checklist is green",
+        "routeHints": [{ "match": "draft", "member": "e2e-writer" }]
+      }
+    },
+    {
+      "id": "e2e-agent",
+      "kind": "agent",
+      "name": { "en": "E2E Agent", "zh": "E2E Agent" },
+      "profession": { "en": "Solo agent", "zh": "Solo agent" },
+      "description": "Single-agent fixture for the preset import end-to-end test.",
+      "descriptionZh": "预设导入端到端测试的单智能体夹具。",
+      "version": "9.9.9",
+      "path": "packages/agent/e2e-agent",
+      "files": 3,
+      "bytes": 2048,
+      "skills": [
+        {
+          "name": "focus",
+          "ns": "e2e-agent--focus",
+          "path": "skills/e2e-agent--focus",
+          "files": 1,
+          "bytes": 1024
+        }
+      ],
+      "requires": [],
+      "tags": [],
+      "categoryId": "e2e",
+      "leadAgent": "e2e-agent"
+    }
+  ]
+}

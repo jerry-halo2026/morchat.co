@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "e2e-team",
+  "kind": "team",
+  "name": { "en": "E2E Team", "zh": "E2E Team" },
+  "description": "Team fixture for the preset import end-to-end test.",
+  "personaPath": "catalog/packages/team/e2e-team/agents/e2e-lead.md",
+  "skills": ["e2e-team--playbook", "e2e-team--brief"],
+  "conversationStarters": ["Check the checklist"],
+  "team": { "leadAgent": "e2e-lead", "members": ["e2e-lead", "e2e-writer"] },
+  "requires": [],
+  "sourcePackage": "catalog/packages/team/e2e-team",
+  "packageVersion": "9.9.9",
+  "contentSha256": "e2e"
+}

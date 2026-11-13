@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "e2e-agent",
+  "kind": "agent",
+  "name": { "en": "E2E Agent", "zh": "E2E Agent" },
+  "description": "Single-agent fixture for the preset import end-to-end test.",
+  "personaPath": "catalog/packages/agent/e2e-agent/agents/e2e-agent.md",
+  "skills": ["e2e-agent--focus"],
+  "conversationStarters": ["Focus on the queue"],
+  "team": { "leadAgent": "e2e-agent", "members": [] },
+  "requires": [],
+  "sourcePackage": "catalog/packages/agent/e2e-agent",
+  "packageVersion": "9.9.9",
+  "contentSha256": "e2e"
+}

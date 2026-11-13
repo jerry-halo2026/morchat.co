@@ -12,6 +12,10 @@ export default defineConfig({
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? process.env.FRONTEND_ORIGIN ?? "http://localhost:3000",
     headless: true,
+    // A machine that has the full Chrome for Testing build but not the matching
+    // headless shell (Windows dev boxes, restricted networks) can point the suite
+    // at the full build with PLAYWRIGHT_CHANNEL=chromium.
+    ...(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {}),
   },
   projects: [
     {
