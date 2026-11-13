@@ -1,4 +1,5 @@
 import { cn } from "../../lib/utils";
+import { ICON_BAR_FILL, ICON_BAR_SKEW_DEG } from "../../lib/morechat-brand";
 
 /**
  * The brand mark: three ascending bars in one orange, stepped by alpha.
@@ -8,7 +9,7 @@ import { cn } from "../../lib/utils";
  * second, darker colour. On a light surface that looks like a soft gradient;
  * that translucency is the point, not a shading effect.
  */
-export const MARK_ORANGE = "#ED7B2D";
+export const MARK_ORANGE = ICON_BAR_FILL;
 export const MARK_BAR_OPACITIES = [0.45, 0.7, 1] as const;
 
 const BAR_GEOMETRY = [
@@ -43,7 +44,7 @@ export function MorechatMark({ title = "李陌茶", className }: MorechatMarkPro
             opacity,
             // The reference mark leans right; a small skew keeps the bars
             // parallel without rotating the layout box.
-            transform: "skewX(-8deg)",
+            transform: `skewX(${ICON_BAR_SKEW_DEG}deg)`,
           }}
         />
       ))}

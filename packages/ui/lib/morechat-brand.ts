@@ -87,10 +87,51 @@ function buildWordmark() {
   const r = (W - t) / 2;
   const a = t / 2;
   const cy1 = a + r;
-  const cy2 = X - a - r;
+  // The round glyphs share one ring: its top sits on the arch's top (cy1) and its
+  // bottom on the baseline, so `o` is exactly as tall as `m`. Deriving it from the
+  // ring instead of subtracting from the baseline keeps the two in step.
+  const CY = cy1 + r;
+  const cy2 = CY + r;
   const c45 = Math.SQRT1_2;
   const A = (x1: number, y1: number) => `A${r3(r)} ${r3(r)} 0 0 1 ${r3(x1)} ${r3(y1)}`;
-  const Ar = (x1: number, y1: number) => `A${r3(r)} ${r3(r)} 0 0 0 ${r3(x1)} ${r3(y1)}`;
+
+  // Round glyphs are built from cubic quarter-circle segments rather than one
+  // `A` command: an arc's sweep direction depends on the coordinate system, which
+  // is how `e` and `c` turned into blobs. A quarter circle with these control
+  // points is exact to within a rounding error, and the direction is explicit.
+  const K = 0.5522847498;
+  const P = (cx: number, cy: number, deg: number) => {
+    const rad = (deg * Math.PI) / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  };
+  /** Point coordinates as an `M`/`L` pair. */
+  const at = (cx: number, cy: number, deg: number) => {
+    const p = P(cx, cy, deg);
+    return `${r3(p.x)} ${r3(p.y)}`;
+  };
+  /** Ring segment from `fromDeg` sweeping `deltaDeg`; positive is clockwise on screen. */
+  const ring = (cx: number, cy: number, fromDeg: number, deltaDeg: number) => {
+    const steps = Math.max(1, Math.ceil(Math.abs(deltaDeg) / 90));
+    const step = deltaDeg / steps;
+    const k = (K * r * Math.abs(step)) / 90;
+    const sign = Math.sign(step);
+    let out = "";
+    let start = fromDeg;
+    for (let i = 0; i < steps; i++) {
+      const end = start + step;
+      const from = P(cx, cy, start);
+      const to = P(cx, cy, end);
+      const tangent = (deg: number) => {
+        const rad = (deg * Math.PI) / 180;
+        return { x: -Math.sin(rad), y: Math.cos(rad) };
+      };
+      const t0 = tangent(start);
+      const t1 = tangent(end);
+      out += `C${r3(from.x + sign * t0.x * k)} ${r3(from.y + sign * t0.y * k)} ${r3(to.x - sign * t1.x * k)} ${r3(to.y - sign * t1.y * k)} ${r3(to.x)} ${r3(to.y)}`;
+      start = end;
+    }
+    return out;
+  };
 
   // Every glyph is made of the same three parts: a vertical stem, a quarter
   // arc of radius r (a true circle), and a horizontal bar. Nothing is eyeballed.
@@ -104,12 +145,12 @@ function buildWordmark() {
       (x) =>
         `M${r3(x + a)} ${X}V${r3(cy1)}${A(x + a + 2 * r, cy1)}V${X}M${r3(x + a + 2 * r)} ${r3(cy1)}${A(x + a + 4 * r, cy1)}V${X}`,
     ],
-    // closed ring: top arc, right side, bottom arc, left side
+    // closed ring: one full turn from the top
     o: [
       2 * r + t,
       (x) => {
-        const s = `M${r3(x + a)} ${r3(cy1)}${A(x + a + 2 * r, cy1)}V${r3(cy2)}${A(x + a, cy2)}`;
-        return `${s}V${r3(cy1)}`;
+        const cx = x + a + r;
+        return `M${at(cx, CY, 270)}${ring(cx, CY, 270, 360)}`;
       },
     ],
     // stem with a quarter-circle arm: the arm leaves the stem at x-height and
@@ -119,17 +160,21 @@ function buildWordmark() {
       (x) =>
         `M${r3(x + a)} ${X}V${r3(cy1)}A${r3(r)} ${r3(r)} 0 0 1 ${r3(x + a + r)} ${r3(cy1 - r)}V${r3(cy1 - r + 12)}`,
     ],
-    // bowl with the bar reaching the right side and an aperture at the lower
-    // right, where the bottom arc stops before the right side comes down.
+    // bowl with the bar at mid-height and an aperture at the lower right, where
+    // the bottom arc stops before the right side comes down.
     e: [
       2 * r + t,
       (x) => {
         const cx = x + a + r;
-        const barEnd = x + a + 2 * r;
+        // The right side rises to the bar, the bowl goes over the top and down the
+        // left, and the bottom stops 45° short of the right: that gap is the
+        // aperture, and the bar closes the letter at mid-height.
         return (
-          `M${r3(barEnd)} ${r3(cy2)}V${r3(cy1)}${Ar(x + a, cy1)}V${r3(cy2)}` +
-          `A${r3(r)} ${r3(r)} 0 0 1 ${r3(cx + r * c45)} ${r3(cy2 + r * c45)}` +
-          `M${r3(x + a)} ${r3(cy2)}H${r3(barEnd)}`
+          `M${at(cx, CY, 0)}` +
+          ring(cx, CY, 0, -180) +
+          `V${r3(cy2)}` +
+          ring(cx, CY, 90, -45) +
+          `M${at(cx, CY, 180)}H${r3(cx + r)}`
         );
       },
     ],
@@ -143,13 +188,26 @@ function buildWordmark() {
       (W / 2) * (1 + c45),
       (x) => {
         const cx = x + W / 2;
-        return `M${r3(cx + r * c45)} ${r3(cy1 - r * c45)}${Ar(cx - r, cy1)}V${r3(cy2)}${Ar(cx + r * c45, cy2 + r * c45)}`;
+        // From 45° below the top-right, over the top and down the left, then
+        // around the bottom to 45° above the bottom-right: the right side is open.
+        return (
+          `M${at(cx, CY, -45)}` +
+          ring(cx, CY, -45, -135) +
+          `V${r3(cy2)}` +
+          ring(cx, CY, 90, -45)
+        );
       },
     ],
     // bowl plus right stem
     a: [
       W,
-      (x) => `M${r3(x + a)} ${r3(cy1)}${A(x + a + 2 * r, cy1)}V${r3(cy2)}${A(x + a, cy2)}ZM${r3(x + a + 2 * r)} 0V${X}`,
+      (x) => {
+        const cx = x + a + r;
+        return (
+          `M${at(cx, CY, 270)}${ring(cx, CY, 270, 360)}` +
+          `M${r3(cx + r)} ${r3(cy1)}V${X}`
+        );
+      },
     ],
     t: [2.5 * t, (x) => `M${r3(x + 0.75 * t + a)} ${r3(-asc * 0.66)}V${X}M${r3(x)} ${r3(a)}H${r3(x + 2.5 * t)}`],
     l: [t, (x) => `M${r3(x + a)} ${-asc}V${X}`],
@@ -216,6 +274,36 @@ export const ICON_BARS = [
   { x: 41.54, y: 34.28, width: 15.21, height: 43.61, rx: 4.56, opacity: 0.7 },
   { x: 64.87, y: 22.11, width: 15.21, height: 55.78, rx: 4.56, opacity: 1 },
 ] as const;
+
+/**
+ * The tile the bars sit in: the app icon's own background and ink.
+ *
+ * `apps/web/app/icon.svg` used to be the only place these lived, which is why the
+ * generator could not rebuild the tile from this module. They belong here for the
+ * same reason the geometry does: one source, every asset.
+ */
+export const ICON_TILE_FILL = "#F7F7F8";
+export const ICON_BAR_FILL = "#ED7B2D";
+
+/** The bars lean right by this much, the way the reference mark does. */
+export const ICON_BAR_SKEW_DEG = -8;
+
+/**
+ * The lean, applied about a bar's own centre so the group keeps its footprint.
+ *
+ * Skewing the group instead would slide the outer bars sideways and break the
+ * gaps; a per-bar transform keeps the spacing the geometry above defines.
+ */
+export function iconBarTransform(bar: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}): string {
+  const cx = r3(bar.x + bar.width / 2);
+  const cy = r3(bar.y + bar.height / 2);
+  return `translate(${cx} ${cy}) skewX(${ICON_BAR_SKEW_DEG}) translate(${-cx} ${-cy})`;
+}
 
 /** The bars as rounded-rect attribute sets, in drawing order. */
 export function iconBarRects(): { bar: (typeof ICON_BARS)[number]; attrs: Record<string, number> }[] {

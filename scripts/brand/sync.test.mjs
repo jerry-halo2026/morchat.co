@@ -33,8 +33,25 @@ for (const { name, from, to, drift, stay } of [
     name: "the tile radius",
     from: "export const ICON_TILE_RADIUS = 22.5;",
     to: "export const ICON_TILE_RADIUS = 30;",
-    drift: ["apps/web/public/favicon.svg", "apps/docs/app/icon.svg"],
+    drift: ["apps/web/public/favicon.svg", "apps/web/app/icon.svg", "apps/docs/app/icon.svg"],
     stay: ["apps/web/public/icons/icon.svg", "server/cmd/multica/cmd_auth.go"],
+  },
+  {
+    // The icon's bars reach the tile assets only; the wordmark has its own module.
+    name: "a bar position",
+    from: '{ x: 18.2, y: 46.45, width: 15.21, height: 31.44, rx: 4.56, opacity: 0.45 },',
+    to: '{ x: 19.2, y: 46.45, width: 15.21, height: 31.44, rx: 4.56, opacity: 0.45 },',
+    drift: [
+      "apps/web/public/favicon.svg",
+      "apps/web/app/icon.svg",
+      "apps/docs/app/icon.svg",
+      "apps/web/public/icons/icon.svg",
+    ],
+    stay: [
+      "apps/mobile/components/brand/multica-logo.tsx",
+      "docs/assets/logo-light.svg",
+      "server/cmd/multica/cmd_auth.go",
+    ],
   },
 ]) {
   test(`changing ${name} without regenerating fails the check, and regenerating fixes it`, async (t) => {
