@@ -105,6 +105,11 @@
 
 ## 三、后续优先级
 
+0. **素材库 P0 已完成，P1 未开始**：`contracts/library/`（元契约 + video/legal 两个领域
+   manifest + fixtures）与 `node scripts/check-library-contracts.mjs` 已冻结并通过
+   （2 manifest / 5 fixture）。设计见 `docs/engineering/LIBRARY.md`；下一步 P1 =
+   `library` schema 迁移（注册表 + 资产 + facets + usage + 并发索引 + 只读 role）、
+   只读 API、两个 MCP 工具（`library.search`/`library.get`，总数封顶 5）。
 1. **知识 ACL 强制切换**（唯一需要你拍板的破坏性动作）：先看 `knowledge_project_acl`
    打开后的 `would_hide` / `affected_members`；切换步骤写在
    `server/internal/knowledge/visibility.go` 的注释里（两行 SQL + 三个 `canViewItem`
