@@ -196,6 +196,11 @@ type Cache struct {
 // transport deadline expires.
 var ErrRepoBusy = errors.New("repository is busy")
 
+// ErrCheckoutPathTaken means the checkout's target path already holds a
+// Multica checkout of a different repository with the same directory name.
+// CreateWorktree reports it before touching that checkout.
+var ErrCheckoutPathTaken = errors.New("checkout path holds another repository")
+
 // Activity is the path-free repository coordination state exposed through the
 // daemon health endpoint. It is diagnostic only.
 type Activity struct {
@@ -910,6 +915,14 @@ func (c *Cache) CreateWorktreeContext(ctx context.Context, params WorktreeParams
 		)
 	}
 
+	// Two repositories with the same basename map to the same path. Every
+	// branch below rewrites what it finds there — origin, reset, clean — so
+	// another repository's checkout must be refused before any of them runs.
+	if other := otherRepoCheckout(ctx, barePath, worktreePath); other != "" {
+		return nil, fmt.Errorf("%w: %s already holds %s, not %s; run the checkout from a different directory",
+			ErrCheckoutPathTaken, worktreePath, other, redact.Text(params.RepoURL))
+	}
+
 	// Once a workdir has moved to isolated metadata, keep using that safer
 	// shape even if a later task comes from an older CLI or a different runtime
 	// that omits the mode hint. This also makes provider transitions on a reused
@@ -1130,18 +1143,95 @@ func (c *Cache) createOrUpdateIsolatedCheckoutContext(ctx context.Context, bareP
 	return &WorktreeResult{Path: checkoutPath, BranchName: actualBranch}, nil
 }
 
+// CheckoutBelongsTo reports whether path holds a Multica checkout of the
+// repository cached at barePath: a linked worktree of that cache, or an
+// isolated checkout whose origin is cached there.
+func CheckoutBelongsTo(ctx context.Context, barePath, path string) bool {
+	if isGitWorktree(path) {
+		commonDir, err := linkedWorktreeCommonDirContext(ctx, path)
+		return err == nil && sameResolvedPath(commonDir, barePath)
+	}
+	if isIsolatedCheckoutContext(ctx, path) {
+		origin, err := isolatedCheckoutOriginContext(ctx, path)
+		return err == nil && isolatedOriginCachedAt(ctx, origin, barePath)
+	}
+	return false
+}
+
+// otherRepoCheckout describes the repository a Multica checkout at path
+// belongs to when that is not the one cached at barePath. It returns "" when
+// the checkout is this repository's, when path holds no Multica checkout, or
+// when its owner cannot be read — the update path then fails on its own.
+func otherRepoCheckout(ctx context.Context, barePath, path string) string {
+	if isGitWorktree(path) {
+		commonDir, err := linkedWorktreeCommonDirContext(ctx, path)
+		if err == nil && !sameResolvedPath(commonDir, barePath) {
+			return "a worktree of the cache at " + commonDir
+		}
+		return ""
+	}
+	if isIsolatedCheckoutContext(ctx, path) {
+		origin, err := isolatedCheckoutOriginContext(ctx, path)
+		if err == nil && !isolatedOriginCachedAt(ctx, origin, barePath) {
+			return "a checkout of " + redact.Text(origin)
+		}
+	}
+	return ""
+}
+
+func isolatedCheckoutOriginContext(ctx context.Context, path string) (string, error) {
+	out, err := runGitOutputContext(ctx, "-C", path, "config", "--get", "remote.origin.url")
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+// isolatedOriginCachedAt reports whether origin is a URL whose bare cache is
+// barePath. Caches are keyed by bareDirName, so URL spellings that share a
+// cache count as the same repository.
+func isolatedOriginCachedAt(ctx context.Context, origin, barePath string) bool {
+	if origin == "" {
+		return false
+	}
+	if bareDirName(origin) == filepath.Base(barePath) {
+		return true
+	}
+	if sameResolvedPath(origin, barePath) {
+		return true
+	}
+	// A checkout cloned from a local path or from the cache itself records that
+	// path as its origin, which no directory-name comparison covers. The cache
+	// knows the repository it holds, so compare against that.
+	cached, err := runGitOutputContext(ctx, "-C", barePath, "config", "--get", "remote.origin.url")
+	if err != nil {
+		return false
+	}
+	recorded := strings.TrimSpace(string(cached))
+	return recorded != "" &&
+		(recorded == origin || sameResolvedPath(recorded, origin) || bareDirName(recorded) == bareDirName(origin))
+}
+
 func removeLinkedWorktree(barePath, checkoutPath string) error {
 	return removeLinkedWorktreeContext(context.Background(), barePath, checkoutPath)
 }
 
-func removeLinkedWorktreeContext(ctx context.Context, barePath, checkoutPath string) error {
+func linkedWorktreeCommonDirContext(ctx context.Context, checkoutPath string) (string, error) {
 	out, err := runGitOutputContext(ctx, "-C", checkoutPath, "rev-parse", "--git-common-dir")
 	if err != nil {
-		return fmt.Errorf("resolve linked worktree common dir: %w", err)
+		return "", err
 	}
 	commonDir := strings.TrimSpace(string(out))
 	if !filepath.IsAbs(commonDir) {
 		commonDir = filepath.Join(checkoutPath, commonDir)
+	}
+	return commonDir, nil
+}
+
+func removeLinkedWorktreeContext(ctx context.Context, barePath, checkoutPath string) error {
+	commonDir, err := linkedWorktreeCommonDirContext(ctx, checkoutPath)
+	if err != nil {
+		return fmt.Errorf("resolve linked worktree common dir: %w", err)
 	}
 	if !sameResolvedPath(commonDir, barePath) {
 		return fmt.Errorf("linked worktree common dir %s does not match cache %s", commonDir, barePath)
@@ -1158,17 +1248,35 @@ func removeLinkedWorktreeContext(ctx context.Context, barePath, checkoutPath str
 // linked worktree's git-common-dir really points at this cache bare repo
 // before removing the worktree.
 func sameResolvedPath(a, b string) bool {
-	clean := func(path string) string {
-		abs, err := filepath.Abs(path)
-		if err == nil {
-			path = abs
+	abs := func(path string) string {
+		if resolved, err := filepath.Abs(path); err == nil {
+			return resolved
 		}
+		return path
+	}
+	clean := func(path string) string {
+		path = abs(path)
 		if resolved, err := filepath.EvalSymlinks(path); err == nil {
 			path = resolved
 		}
 		return filepath.Clean(path)
 	}
-	return clean(a) == clean(b)
+	// Windows path case is not significant, and git writes the same directory
+	// with whatever case the caller used; compare case-insensitively there.
+	equal := func(x, y string) bool {
+		if runtime.GOOS == "windows" {
+			return strings.EqualFold(x, y)
+		}
+		return x == y
+	}
+	if equal(clean(a), clean(b)) {
+		return true
+	}
+	// EvalSymlinks resolves 8.3 names only when the path exists. A checkout that
+	// has been removed, or a cache path that does not exist yet, falls back to
+	// its short form and then differs from the resolved side — compare the
+	// unresolved absolute forms too, which is what git recorded.
+	return equal(filepath.Clean(abs(a)), filepath.Clean(abs(b)))
 }
 
 // localCloneArgs builds the `git clone --local` invocation that seeds a fresh
