@@ -41,6 +41,8 @@ export interface Project {
   issue_count: number;
   done_count: number;
   resource_count: number;
+  /** Org unit the project belongs to; older backends omit it. */
+  department_id?: string | null;
   /**
    * The workflow this project uses; null for the workspace Default workflow.
    * Optional because older servers do not send it. (MUL-7420)

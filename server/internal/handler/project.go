@@ -54,6 +54,9 @@ type ProjectResponse struct {
 	// Visibility is "workspace" (every member) or "private" (project members
 	// plus workspace owners/admins). (MUL-8472)
 	Visibility string `json:"visibility"`
+	// DepartmentID is the org unit the project belongs to (docs/engineering/ORG-MODEL.md).
+	// Nullable: every project created before departments existed has none.
+	DepartmentID *string `json:"department_id"`
 }
 
 func projectToResponse(p db.Project) ProjectResponse {
@@ -75,6 +78,8 @@ func projectToResponse(p db.Project) ProjectResponse {
 		UpdatedAt:   timestampToString(p.UpdatedAt),
 		WorkflowID:  uuidToPtr(p.WorkflowID),
 		Visibility:  projectVisibilityOrDefault(p.Visibility),
+
+		DepartmentID: uuidToPtr(p.DepartmentID),
 	}
 }
 
