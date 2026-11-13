@@ -132,8 +132,15 @@
      其余为 import 块；11 个移植测试文件改回本仓模块路径；重跑 sqlc。
      验证：build/vet、handler `Private|Scope|Autopilot` 18.9s、service 6.4s、
      cmd/server 3.2s、两条 e2e 40.8s 全绿。
-   - **待做**：B daemon 六组、C Go 1.27.4、D 前端九项。
-     迁移号从 **653** 起（上游 637–656 全部撞号）。
+   - **B 已合并**（`c3029de83`）：`1a9ddcf8f`/`c575443bb`/`eef8f937e`/`90d5d6da6`/
+     `d13fd90a3`/`ee7416bbf`/`606ed4b4e`+`cfcc4d055`（TTL 14d 与 Codex 缓存回收必须一起）。
+     另修：移植文件模块路径、`sameResolvedPath` 的 Windows 大小写/8.3 短名回退、
+     `isolatedOriginCachedAt` 改与缓存自身 `remote.origin.url` 比对。
+   - **已知 Windows 既有失败**（main 上复现，与本轮采纳无关）：`internal/daemon` 里
+     `TestLoadConfig_*Codex*`、`TestDshPluginPathDirs_*`、`TestRefreshAgentVersions_*`、
+     `repocache.TestRepeatedCheckoutOnTaskBranchIsNoop/linked`（8.3 短名 worktree 注册）。
+   - **待做**：C（Go 1.27.4、`2cf852e`、`3da2cf8`、`603156f` 的 codex.go 六行）、
+     D 前端九项。迁移号从 **653** 起（上游 637–656 全部撞号）。
 
 1b. **素材库 P0 已完成、P1 搁置**（按你的指示先做知识库）：`contracts/library/` 的元契约 +
    video/legal 两个领域 manifest + `scripts/check-library-contracts.mjs` 已冻结；P1 的
