@@ -3,8 +3,8 @@ package service
 import (
 	"testing"
 
-	"github.com/multica-ai/multica/server/internal/projectaccess"
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/projectaccess"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 // An autopilot bound to a private project (MUL-8472) must not run for a human
