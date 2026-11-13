@@ -85,8 +85,8 @@ Paperclip 的四条结构决定值得沿用：部门用 `scope` 数据表达而�
 | 1 | 知识条目 `acl_mode=project` 等同 `workspace` | 声明了但未生效 | 按 `project_member` 真过滤；先 log-only 观测再强制 |
 | 2 | 知识空间没有部门归属 | `team_key` 零引用 | 增加 `department_id`，列表/读取按部门过滤 |
 | 3 | owner/admin 读不到别人 `acl_mode=private` 的知识 | `canViewItem` 只认 owner | 给管理角色补旁路 |
-| 4 | 无项目 issue 全公司可见 | `issue.project_id` 可空 | 新建时落部门默认项目；历史不动 |
-| 5 | 调岗不会同步项目成员 | 无事务 | 改 `member.department_id` 时批量增删部门项目成员并留审计 |
+| 4 | 无项目 issue 全公司可见 | `issue.project_id` 可空；新建落部门收件箱已实现（开关 `department_default_scope`，默认关；带父 issue 的子任务不落，仍随父） | 新建时落部门默认项目；历史不动 |
+| 5 | 调岗不会同步项目成员 | 已实现：`PATCH /api/workspaces/{id}/members/{memberId}/department` 在同一事务改部门、增删该部门私有项目成员、写 `activity_log` | 改 `member.department_id` 时批量增删部门项目成员并留审计 |
 | 6 | 部门负责人无管理入口 | — | 部门默认项目的 lead 复用 `canManageProjectAccess` |
 
 ## 6. 红线

@@ -1919,6 +1919,10 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 					r.Post("/members", h.CreateInvitation)
 					r.Route("/members/{memberId}", func(r chi.Router) {
 						r.Patch("/", h.UpdateMember)
+						// Moving a member between departments also moves their
+						// private-project memberships (ORG-MODEL §5 gap 5), so it
+						// is its own path rather than a field on the role PATCH.
+						r.Patch("/department", h.UpdateMemberDepartment)
 						r.Delete("/", h.DeleteMember)
 					})
 					r.Delete("/invitations/{invitationId}", h.RevokeInvitation)

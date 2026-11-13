@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jerry-halo2026/morchat.co/server/internal/featureflags"
 	"github.com/jerry-halo2026/morchat.co/server/internal/issuestatus"
 	"github.com/jerry-halo2026/morchat.co/server/internal/logger"
 	"github.com/jerry-halo2026/morchat.co/server/internal/projectaccess"
@@ -465,20 +466,54 @@ func (h *Handler) CreateProject(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+
+	// W2-D: a project created by a member who belongs to a department defaults
+	// to that department's scope — private, every department member on it, the
+	// department head as lead (docs/engineering/ORG-MODEL.md §3.2). Every
+	// escape hatch keeps today's behavior exactly: the switch off, an explicit
+	// visibility (the caller already decided), an agent actor (private projects
+	// are a human decision, MUL-8472), or a creator with no department.
+	var departmentID pgtype.UUID
+	if !private && req.Visibility == nil && actorType == "member" &&
+		featureflags.DepartmentDefaultScopeEnabled(r.Context(), h.FeatureFlags) {
+		scope, scoped, err := h.departmentScopeForUser(r.Context(), wsUUID, parseUUIDOrInvalid(userID))
+		if err != nil {
+			slog.Error("create project: resolve department scope failed", append(logger.RequestAttrs(r), "error", err)...)
+			writeError(w, http.StatusInternalServerError, "failed to resolve department scope")
+			return
+		}
+		if scoped {
+			departmentID = scope.department.ID
+			// An explicit lead is the caller's choice and stays untouched;
+			// otherwise the department head leads, falling back to the creator.
+			if !leadType.Valid && !leadID.Valid {
+				leadType = pgtype.Text{String: "member", Valid: true}
+				leadID = scope.leadID
+			}
+			memberIDs := scope.memberIDs
+			if leadType.Valid && leadType.String == "member" && leadID.Valid {
+				memberIDs = append(memberIDs, leadID)
+			}
+			private = true
+			privateMemberIDs = uniqueUUIDs(memberIDs, []pgtype.UUID{creatorID})
+		}
+	}
+
 	createParams := db.CreateProjectParams{
-		CreatorType: pgtype.Text{String: actorType, Valid: true},
-		CreatorID:   creatorID,
-		WorkspaceID: wsUUID,
-		Title:       req.Title,
-		Description: ptrToText(req.Description),
-		Icon:        ptrToText(req.Icon),
-		Status:      status,
-		LeadType:    leadType,
-		LeadID:      leadID,
-		Priority:    priority,
-		StartDate:   startDate,
-		DueDate:     dueDate,
-		WorkflowID:  workflowID,
+		CreatorType:  pgtype.Text{String: actorType, Valid: true},
+		CreatorID:    creatorID,
+		WorkspaceID:  wsUUID,
+		Title:        req.Title,
+		Description:  ptrToText(req.Description),
+		Icon:         ptrToText(req.Icon),
+		Status:       status,
+		LeadType:     leadType,
+		LeadID:       leadID,
+		Priority:     priority,
+		StartDate:    startDate,
+		DueDate:      dueDate,
+		WorkflowID:   workflowID,
+		DepartmentID: departmentID,
 	}
 
 	// Without resources, keep the simple non-tx path.

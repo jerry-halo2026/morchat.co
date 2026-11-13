@@ -3394,6 +3394,22 @@ func (h *Handler) CreateIssue(w http.ResponseWriter, r *http.Request) {
 		}
 		projectID = id
 	}
+	// W2-D: an issue created without a project lands in the creator's department
+	// inbox instead of being visible to the whole workspace
+	// (docs/engineering/ORG-MODEL.md §5 gap 4). Off by default — with the switch
+	// off this block writes nothing and project_id stays empty. A sub-issue is
+	// left alone: it follows its parent, not the creator's department.
+	if !projectID.Valid && !parentIssueID.Valid {
+		inbox, ok, err := h.departmentInboxForIssue(r.Context(), wsUUID, parseUUIDOrInvalid(creatorID))
+		if err != nil {
+			slog.Error("create issue: resolve department inbox failed", append(logger.RequestAttrs(r), "error", err)...)
+			writeError(w, http.StatusInternalServerError, "failed to resolve department inbox")
+			return
+		}
+		if ok {
+			projectID = inbox.ID
+		}
+	}
 	// MUL-8472: an issue can only be filed into, or under a parent in, a
 	// project the caller can see.
 	if !h.requireProjectVisible(w, r, workspaceID, projectID, http.StatusBadRequest, "project not found in this workspace") {
