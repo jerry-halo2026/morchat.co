@@ -48,7 +48,7 @@
 |---|---|
 | 新增 `docs/engineering/ORG-MODEL.md`（三层、可见性矩阵、缺口、红线） | 完成 |
 | `CONTRACTS.md`：新增「授权模型」节；修头像渲染、迁移号 642→644、预设幂等与页面改写选择 | 完成 |
-| `SEAMS.md`：登记私有项目为 fork 差异化能力 + 回归用例 | 完成 |
+| `SEAMS.md`：登记私有项目为 fork 差异化能力 + 回归用例 | 完成（**2026-11-13 更正**：私有项目是上游 MUL-8472，v0.8.2 已含；已改为"来自上游，不是接缝"） |
 | `DECISIONS.md`：追记三条杠标识与 `cap:` → `aora:` | 完成 |
 | `scripts/brand/README.md` 重写（阶段表、Windows、ICNS、oxipng） | 完成 |
 | `docs/theming.md` 用 `UPDATE_THEME_DOCS=1` 重生成 | 完成（单测绿） |

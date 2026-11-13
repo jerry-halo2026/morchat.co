@@ -37,18 +37,21 @@ related: [docs/upstream/DRIFT-BASELINE.md, docs/engineering/CONTRACTS.md]
 - `packages/core/presets/`
 - `packages/qianchuan-sync/`
 
-## 私有项目（部门隔离的唯一支点）
+## 私有项目（部门隔离的支点，**来自上游**）
 
-上游 0.8.2 与 2026-11-13 的 master 都没有项目可见性。本项目的
-`project.visibility=private` + `project_member`（MUL-8472）是自研能力，部门模型完全
-依赖它（见 docs/engineering/ORG-MODEL.md）。同步上游时必须回归：
+更正（2026-11-13）：`project.visibility=private` + `project_member` 是上游
+MUL-8472（`9adeb9822`），**v0.8.2 就已包含**（迁移 630/631/632、`projectaccess/`）。
+它不是本仓的差异化能力，因此**不是接缝**；0.9.0 的 MUL-8992 六条是对它的补漏，
+应当直接吸收（见 `docs/upstream/research/0.9.0/SUMMARY.md` 批次 A）。
+
+同步时仍要回归这三组，因为它们承载部门模型：
 
 - `server/internal/projectaccess/`
 - `server/internal/handler/project_access.go`
 - `server/internal/handler/project_member.go`
-- `server/migrations/630_project_visibility*`
 
-回归用例：`e2e/presets.spec.ts` 的「私有项目对另一个成员不可见」断言。
+回归用例：`e2e/presets.spec.ts` 的「私有项目对另一个成员不可见」断言；部门侧
+`go test ./internal/handler -run 'Department|Scope'`。
 
 ## 头像与设计系统
 

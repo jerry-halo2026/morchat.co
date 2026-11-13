@@ -71,7 +71,7 @@ related: [docs/engineering/CONTRACTS.md, docs/upstream/SEAMS.md, docs/ARCHITECTU
 | 顶层边界 | workspace，完全隔离 | company + instance admin | 部署=公司，单工作区 |
 | 权限粒度 | 3 角色，只管设置与成员 | 4 角色 + 21 权限键 + 作用域授权 + 资源授权表 | 3 角色 + 私有项目 + agent Access + runtime 借用 |
 | 部门 | 不存在 | 不存在（用 grant 的 scope 表达） | 本文件 §3 |
-| 资源授权 | 无 | `project_access_members`、`issue_access_grants(source)` | `project_member`（MUL-8472） |
+| 资源授权 | 私有项目 + 项目成员（MUL-8472，v0.8.2 起） | `project_access_members`、`issue_access_grants(source)` | 同上游（`project_member`），并加部门归属 |
 | 导航 vs 授权 | — | 明确分开（`project_memberships` 只是侧栏） | 只有一张 `project_member`，它是**授权** |
 
 Paperclip 的四条结构决定值得沿用：部门用 `scope` 数据表达而不是建 ACL；
