@@ -139,8 +139,21 @@
    - **已知 Windows 既有失败**（main 上复现，与本轮采纳无关）：`internal/daemon` 里
      `TestLoadConfig_*Codex*`、`TestDshPluginPathDirs_*`、`TestRefreshAgentVersions_*`、
      `repocache.TestRepeatedCheckoutOnTaskBranchIsNoop/linked`（8.3 短名 worktree 注册）。
-   - **待做**：C（Go 1.27.4、`2cf852e`、`3da2cf8`、`603156f` 的 codex.go 六行）、
-     D 前端九项。迁移号从 **653** 起（上游 637–656 全部撞号）。
+   - **C 已合并**（`ac8647590`）：`2cf852e`、`3da2cf8`（scripts 测试统一入口）、
+     `603156f` 的 codex.go 六行、`b7d216927`（Go 工具链地板 1.27.4）。
+     跳过上游 `ci.yml` 接线（本仓不运行该文件）与 knip gating（保留 advisory）。
+   - **D-1 已合并**（`7561276f9` 之前的合并提交）：`bd96495d7` Agent Idle 筛选、
+     `4dc251a47` inbox 确认删除（新端点；`router.go` 只加 1 行 DELETE 路由）。
+   - **D-2 已合并**：`a0371ab2c` + `e6c3ef3d8` requester，迁移重编号为
+     **653_issue_requester**（加列）、**654_issue_requester_index**、
+     **655_issue_member_creator_index**（两个并发索引各自单文件，已在 `cmd/migrate` 登记）。
+   - **已知边界**：`trigger_evidence_kind='comment'` 触发的 agent 代建**不写 requester**
+     （上游语义），因此不会出现在"我创建的"里；chat 归因的代建会写。
+     测试：`TestIssueRequesterLeavesCommentDrivenCreateUnattributed`、
+     `TestIssueRequesterDepartmentInboxDelegate`。
+   - **剩余**：D 批还有 `7cae26303` flow panel（需先定"部门负责人能否建状态"）、
+     `940d9ed` 删死代码、`d1217a1` chat controller、`08fafbb`/`848d71a`/`cc32b86`
+     主题客户端部分；`aa11299` 底栏已判忽略。
 
 1b. **素材库 P0 已完成、P1 搁置**（按你的指示先做知识库）：`contracts/library/` 的元契约 +
    video/legal 两个领域 manifest + `scripts/check-library-contracts.mjs` 已冻结；P1 的
