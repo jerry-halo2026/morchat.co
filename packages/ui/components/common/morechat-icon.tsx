@@ -11,7 +11,7 @@ import {
 export type MorechatIconMode =
   /** The mark at rest. */
   | "static"
-  /** Three bars stepping in sequence: an agent at work, loading, waiting. */
+  /** A light sweeps up the three bars: an agent at work, loading, waiting. */
   | "think"
   /** Tile pops in and the m rises from below — app launch, sign-in. */
   | "intro"
@@ -38,11 +38,11 @@ const LAUNCH_THINK_AT = "1.5s";
  * The morechat.co icon (F1): the wordmark's m, too big for its tile and
  * cropped by it. Black tile with a white m in light mode, inverted in dark.
  *
- * `think` swaps the m for the app icon's three bars, animated as one wave. A single
- * line drawing itself along the m is invisible at the sizes this mark is used at;
- * three bars stepping is legible at 16px and reads as "working" rather than a redraw.
- * The bars use `currentColor` so they follow the tile inversion instead of being a
- * fixed paper white.
+ * `think` keeps the mark still and sweeps a light across it, which is what the
+ * original animation did: the shape never changes, a highlight travels over it. The
+ * mark here is the app icon's three bars rather than the m, so the light climbs them.
+ * Bars that pulse their own opacity read as blinking; a band crossing a still shape
+ * reads as work.
  */
 export function MorechatIcon({
   mode = "static",
@@ -53,7 +53,9 @@ export function MorechatIcon({
   style,
   ...props
 }: MorechatIconProps) {
-  const clipId = `morechat-icon-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const clipId = `morechat-icon-${uid}`;
+  const sweepId = `morechat-sweep-${uid}`;
   const edge = iconEdge(size ?? 24);
   const intro = mode === "intro" || mode === "launch";
   const tileClass = "fill-morechat-ink dark:fill-morechat-paper";
@@ -61,9 +63,9 @@ export function MorechatIcon({
 
   const filled = <path d={ICON_M_PATH} className={mFill} />;
 
-  const thinking = (
+  const bars = (
     <g className={mFill}>
-      {ICON_BARS.map((bar, index) => (
+      {ICON_BARS.map((bar) => (
         <rect
           key={bar.x}
           x={bar.x}
@@ -71,9 +73,21 @@ export function MorechatIcon({
           width={bar.width}
           height={bar.height}
           rx={bar.rx}
-          className={cn("multica-bar", `multica-bar-${index}`)}
         />
       ))}
+    </g>
+  );
+
+  /**
+   * The mark, with a band of light travelling up it.
+   *
+   * Two copies of the same bars: one dimmed as the rest state, one clipped to a moving
+   * band and drawn at full strength. The band is what moves; the bars never do.
+   */
+  const thinking = (
+    <g>
+      <g opacity={0.3}>{bars}</g>
+      <g clipPath={`url(#${sweepId})`}>{bars}</g>
     </g>
   );
 
@@ -103,6 +117,9 @@ export function MorechatIcon({
             />
           )}
         </clipPath>
+        <clipPath id={sweepId}>
+          <rect className="multica-sweep" x={0} y={0} width={100} height={26} />
+        </clipPath>
       </defs>
       {shape === "circle" ? (
         <circle cx={50} cy={50} r={50} className={tileClass} />
@@ -122,7 +139,6 @@ export function MorechatIcon({
             )}
           </g>
         ) : mode === "think" ? (
-          // The bars sit where the app icon puts them; the m transform does not apply.
           thinking
         ) : (
           <g transform={iconMTransform(shape)}>{filled}</g>
