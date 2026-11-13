@@ -724,13 +724,13 @@ func (h *Handler) CreateKnowledgePage(w http.ResponseWriter, r *http.Request) {
 
 // GetKnowledgePage answers GET /api/knowledge/pages/{pageId}.
 func (h *Handler) GetKnowledgePage(w http.ResponseWriter, r *http.Request) {
-	workspaceID, _, ok := knowledgeRequestScope(r)
+	workspaceID, viewerID, ok := knowledgeRequestScope(r)
 	if !ok {
 		writeErrorCode(w, http.StatusBadRequest, "invalid_request", "workspace context is required")
 		return
 	}
-	page, err := h.knowledgeService().Store().GetPage(
-		r.Context(), workspaceID, chi.URLParam(r, "pageId"))
+	page, err := h.knowledgeService().GetPage(
+		r.Context(), workspaceID, viewerID, chi.URLParam(r, "pageId"))
 	if err != nil {
 		writeKnowledgeCRUDError(w, "page", err)
 		return
@@ -742,7 +742,7 @@ func (h *Handler) GetKnowledgePage(w http.ResponseWriter, r *http.Request) {
 // next revision and returns it, so the caller can display "saved as v4" without
 // a second read. An optional base_revision is the client's staleness claim.
 func (h *Handler) UpdateKnowledgePage(w http.ResponseWriter, r *http.Request) {
-	workspaceID, _, ok := h.knowledgeWriteScope(w, r)
+	workspaceID, viewerID, ok := h.knowledgeWriteScope(w, r)
 	if !ok {
 		return
 	}
@@ -756,8 +756,8 @@ func (h *Handler) UpdateKnowledgePage(w http.ResponseWriter, r *http.Request) {
 		writeErrorCode(w, http.StatusBadRequest, "invalid_request", "invalid JSON body")
 		return
 	}
-	page, err := h.knowledgeService().Store().PutPage(
-		r.Context(), workspaceID, chi.URLParam(r, "pageId"),
+	page, err := h.knowledgeService().PutPage(
+		r.Context(), workspaceID, viewerID, chi.URLParam(r, "pageId"),
 		body.Content, body.Title, body.Summary, body.BaseRevision)
 	if err != nil {
 		writeKnowledgeCRUDError(w, "update page", err)

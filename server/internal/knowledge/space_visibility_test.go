@@ -430,6 +430,37 @@ func TestSpaceScopePagesFollowTheSpace(t *testing.T) {
 	}
 }
 
+// TestSpaceScopeGatesPageById closes the hole the listing filter does not cover:
+// a page is addressed by its own id, so both the read and the write must re-check
+// the space, otherwise a member who learns an id reads another department's page.
+func TestSpaceScopeGatesPageById(t *testing.T) {
+	requireDB(t)
+	engSpace, otherSpace, _, engMember, _ := seedSpaceScopeOrg(t)
+	ctx := context.Background()
+	svc := spaceScopeService(t, &bytes.Buffer{}, true, false)
+
+	own, err := svc.Store().CreatePage(ctx, testWorkspaceID, engSpace,
+		"scope/own-"+uuid.NewString()[:8], "", "", "")
+	if err != nil {
+		t.Fatalf("create page in own space: %v", err)
+	}
+	hidden, err := svc.Store().CreatePage(ctx, testWorkspaceID, otherSpace,
+		"scope/hidden-"+uuid.NewString()[:8], "", "", "")
+	if err != nil {
+		t.Fatalf("create page in the other department's space: %v", err)
+	}
+
+	if _, err := svc.GetPage(ctx, testWorkspaceID, engMember, hidden.ID); !isSpaceNotFound(err) {
+		t.Fatalf("GetPage(hidden) error = %v, want ErrSpaceNotFound", err)
+	}
+	if _, err := svc.PutPage(ctx, testWorkspaceID, engMember, hidden.ID, "changed", nil, nil, nil); !isSpaceNotFound(err) {
+		t.Fatalf("PutPage(hidden) error = %v, want ErrSpaceNotFound", err)
+	}
+	if _, err := svc.GetPage(ctx, testWorkspaceID, engMember, own.ID); err != nil {
+		t.Fatalf("GetPage(own): %v", err)
+	}
+}
+
 // isSpaceNotFound keeps the assertions readable without repeating errors.Is.
 func isSpaceNotFound(err error) bool {
 	return errors.Is(err, ErrSpaceNotFound)
