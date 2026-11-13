@@ -120,6 +120,16 @@ func TestItemVisibleToModesMatrix(t *testing.T) {
 		})
 	})
 
+	t.Run(ACLModeProject+"-under-a-workspace-project", func(t *testing.T) {
+		item := base
+		item.ACLMode = ACLModeProject
+		item.ProjectVisibility = "workspace"
+		// The item follows its project: the project is visible to the whole
+		// workspace, so the knowledge in it is too — under every switch
+		// combination and regardless of project_member.
+		assertMatrix(t, item, func(string, bool, VisibilityFlags) bool { return true })
+	})
+
 	t.Run(ACLModePrivate+"-owned-by-other", func(t *testing.T) {
 		item := base
 		item.ACLMode = ACLModePrivate
@@ -199,6 +209,36 @@ func TestItemVisibleToGuards(t *testing.T) {
 			flags:  VisibilityFlags{ProjectACL: true},
 			want:   true,
 		},
+		{
+			name: "workspace project keeps the item visible to a non-member",
+			item: ViewableItem{
+				WorkspaceID: visWS, Status: StatusActive, ACLMode: ACLModeProject,
+				ProjectID: visProject, ProjectVisibility: "workspace",
+			},
+			viewer: member,
+			flags:  VisibilityFlags{ProjectACL: true},
+			want:   true,
+		},
+		{
+			name: "private project hides the item from a non-member",
+			item: ViewableItem{
+				WorkspaceID: visWS, Status: StatusActive, ACLMode: ACLModeProject,
+				ProjectID: visProject, ProjectVisibility: "private",
+			},
+			viewer: member,
+			flags:  VisibilityFlags{ProjectACL: true},
+			want:   false,
+		},
+		{
+			name: "unknown project visibility is read fail-closed",
+			item: ViewableItem{
+				WorkspaceID: visWS, Status: StatusActive, ACLMode: ACLModeProject,
+				ProjectID: visProject,
+			},
+			viewer: member,
+			flags:  VisibilityFlags{ProjectACL: true},
+			want:   false,
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -253,7 +293,15 @@ func TestACLPredicatesAreReservedAndUnwired(t *testing.T) {
 		"visCondProjectACL":       visCondProjectACL,
 		"visCondProjectACLAliasI": visCondProjectACLAliasI,
 	} {
-		for _, needed := range []string{"project_member", "acl_mode = 'workspace'", "acl_mode = 'private'", "$2"} {
+		for _, needed := range []string{
+			"project_member",
+			"acl_mode = 'workspace'",
+			"acl_mode = 'private'",
+			// The project-visibility branch: a workspace project keeps its items
+			// visible to everyone.
+			"p.visibility = 'workspace'",
+			"$2",
+		} {
 			if !strings.Contains(predicate, needed) {
 				t.Errorf("%s does not mention %q", name, needed)
 			}
@@ -366,6 +414,40 @@ func TestProjectACLShadowCountsWhatWouldHide(t *testing.T) {
 	}
 	if shadow.ViewerRole != "member" {
 		t.Fatalf("viewer_role = %q, want member", shadow.ViewerRole)
+	}
+}
+
+// TestProjectACLShadowFollowsProjectVisibility is the second judgement call as a
+// test: once the item's project is workspace-visible, the item follows it and is
+// no longer something the flip would hide.
+func TestProjectACLShadowFollowsProjectVisibility(t *testing.T) {
+	requireDB(t)
+	spaceID, memberID, _ := seedShadowOrg(t)
+	svc := shadowService(t, &bytes.Buffer{}, true, false)
+	ctx := context.Background()
+
+	shadow, err := svc.ProjectACLShadow(ctx, testWorkspaceID, memberID, spaceID)
+	if err != nil {
+		t.Fatalf("ProjectACLShadow(private project): %v", err)
+	}
+	if shadow.HiddenCount != 1 {
+		t.Fatalf("would_hide with a private project = %d, want 1", shadow.HiddenCount)
+	}
+
+	var projectID string
+	dbfx.QueryRow(t, `SELECT id::text FROM project WHERE workspace_id = $1 AND title = $2`,
+		testWorkspaceID, "Department Project").Scan(&projectID)
+	dbfx.Exec(t, `UPDATE project SET visibility = 'workspace' WHERE id = $1`, projectID)
+
+	shadow, err = svc.ProjectACLShadow(ctx, testWorkspaceID, memberID, spaceID)
+	if err != nil {
+		t.Fatalf("ProjectACLShadow(workspace project): %v", err)
+	}
+	if shadow.HiddenCount != 0 {
+		t.Fatalf("would_hide with a workspace-visible project = %d, want 0", shadow.HiddenCount)
+	}
+	if shadow.AffectedMembers != 0 {
+		t.Fatalf("affected_members with a workspace-visible project = %d, want 0", shadow.AffectedMembers)
 	}
 }
 

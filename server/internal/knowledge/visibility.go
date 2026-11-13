@@ -91,7 +91,17 @@ type ViewableItem struct {
 	// item with no project names no member set, so it stays workspace-visible;
 	// the shadow counts those separately instead of hiding them by accident.
 	ProjectID string
-	Status    string
+	// ProjectVisibility is the item's project visibility — project.visibility,
+	// `workspace` or `private` — and "" when the caller does not know it.
+	//
+	// A project-scoped item follows its project: under a workspace-visible
+	// project it is visible to the whole workspace, because hiding it from
+	// non-members would mean "the project is everyone's, the knowledge is not".
+	// Empty is the not-known case and is read as NOT workspace-visible, i.e.
+	// fail-closed; that is why the enforcement paths must fill it from the
+	// project row before they start enforcing (see the reserved predicates).
+	ProjectVisibility string
+	Status            string
 }
 
 // ItemVisibleTo is the single "may this viewer see this item" rule.
@@ -102,7 +112,9 @@ type ViewableItem struct {
 //     refused here as well — retrieval must not surface it by another route;
 //   - `workspace` items are visible to every member;
 //   - `project` items are visible to every member while ProjectACL is off (the
-//     pre-switch behaviour), and to the item's project members once it is on;
+//     pre-switch behaviour), and once it is on they follow their project: a
+//     workspace-visible project keeps them visible to everyone, a private one
+//     narrows them to project members;
 //   - `private` items are visible to their owner only;
 //   - with AdminVisibility on, a workspace owner/admin sees all of it. The
 //     bypass is applied after the lifecycle check on purpose: it widens the ACL
@@ -122,6 +134,9 @@ func ItemVisibleTo(item ViewableItem, viewer Viewer, flags VisibilityFlags) bool
 		return true
 	case ACLModeProject:
 		if !flags.ProjectACL || item.ProjectID == "" {
+			return true
+		}
+		if item.ProjectVisibility == projectaccess.VisibilityWorkspace {
 			return true
 		}
 		return viewer.InProject(item.ProjectID)
@@ -277,8 +292,9 @@ func (s *Service) ProjectACLShadow(ctx context.Context, workspaceID, viewerID, s
 	rows, err := s.db.Query(ctx, fmt.Sprintf(`
 		SELECT i.id::text, i.workspace_id::text, i.space_id::text, i.title, i.kind,
 		       i.acl_mode, coalesce(i.owner_id::text, ''), coalesce(i.project_id::text, ''),
-		       i.status
+		       coalesce(p.visibility, ''), i.status
 		FROM knowledge_items i
+		LEFT JOIN project p ON p.workspace_id = i.workspace_id AND p.id = i.project_id
 		WHERE %s
 		ORDER BY i.updated_at DESC, i.id DESC
 		LIMIT $%d`, where, len(args)), args...)
@@ -299,7 +315,8 @@ func (s *Service) ProjectACLShadow(ctx context.Context, workspaceID, viewerID, s
 	for rows.Next() {
 		var item ViewableItem
 		if err := rows.Scan(&item.ID, &item.WorkspaceID, &item.SpaceID, &item.Title,
-			&item.Kind, &item.ACLMode, &item.OwnerID, &item.ProjectID, &item.Status); err != nil {
+			&item.Kind, &item.ACLMode, &item.OwnerID, &item.ProjectID,
+			&item.ProjectVisibility, &item.Status); err != nil {
 			return shadow, fmt.Errorf("scan item for acl shadow: %w", err)
 		}
 		read++
@@ -494,12 +511,24 @@ func (s *Service) observeProjectACL(ctx context.Context, op, workspaceID, viewer
 // to both. The two spellings differ only in the table qualifier: the retrieval
 // queries name knowledge_items without an alias, while ListItems aliases it `i`.
 //
+// Both spellings carry the project-visibility branch: a `project` item under a
+// workspace-visible project stays visible to the whole workspace, exactly as
+// ItemVisibleTo says, so "the project is everyone's, the knowledge is not" cannot
+// happen.
+//
 // The SQL is only half of the flip. canViewItem in this file is the result-layer
-// recheck and still answers with the switches off, so enforcement also means
-// passing the service's VisibilityFlags into it at its three call sites:
-// recheckItems and GetItemForViewer in search.go, ReadItem in keys.go. Without
-// that, knowledge.get would keep serving an item the index layer has started
-// hiding — a narrower but real inconsistency.
+// recheck and still answers with the switches off, so enforcement also means:
+//
+//  1. passing the service's VisibilityFlags into canViewItem at its three call
+//     sites — recheckItems and GetItemForViewer in search.go, ReadItem in
+//     keys.go. Without that, knowledge.get would keep serving an item the index
+//     layer has started hiding;
+//  2. filling ViewableItem.ProjectVisibility there from the project row (a
+//     `LEFT JOIN project p ON p.workspace_id = i.workspace_id AND p.id = i.project_id`
+//     is enough; the shadow already reads it that way). Leaving it empty is
+//     read as "not workspace-visible", so an item under a workspace project
+//     would be hidden by the recheck while the SQL above keeps it — the safe
+//     direction, but the wrong answer.
 //
 // A `project` item with no project_id stays visible in this predicate as well,
 // exactly like ItemVisibleTo: there is no member set to intersect, and hiding it
@@ -507,6 +536,11 @@ func (s *Service) observeProjectACL(ctx context.Context, op, workspaceID, viewer
 const visCondProjectACL = `(acl_mode = 'workspace'
   OR (acl_mode = 'project' AND (
         knowledge_items.project_id IS NULL
+        OR EXISTS (
+          SELECT 1 FROM project p
+          WHERE p.workspace_id = knowledge_items.workspace_id
+            AND p.id = knowledge_items.project_id
+            AND p.visibility = 'workspace')
         OR EXISTS (
           SELECT 1 FROM project_member pm
           WHERE pm.workspace_id = knowledge_items.workspace_id
@@ -519,6 +553,11 @@ const visCondProjectACL = `(acl_mode = 'workspace'
 const visCondProjectACLAliasI = `(i.acl_mode = 'workspace'
   OR (i.acl_mode = 'project' AND (
         i.project_id IS NULL
+        OR EXISTS (
+          SELECT 1 FROM project p
+          WHERE p.workspace_id = i.workspace_id
+            AND p.id = i.project_id
+            AND p.visibility = 'workspace')
         OR EXISTS (
           SELECT 1 FROM project_member pm
           WHERE pm.workspace_id = i.workspace_id
