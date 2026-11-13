@@ -332,5 +332,10 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [接缝白名单](upstream/SEAMS.md) | 与上游允许存在差异的路径白名单（接缝），供 check-upstream-drift 使用 | lead | current | 2026-11-11 |
 | [主线 8 提交移植到 `sync/0.8.2`（U6 执行）](upstream/SYNC-0.8.2-PORT.md) | U6 移植记录：把主线 8 个提交搬到 sync/0.8.2，逐提交冲突处理、641/642 迁移改号、丢弃的 hunk 与门禁输出 | u6-sync | current | 2026-11-11 |
 | [v0.8.2 同步结果（U2 执行）](upstream/SYNC-0.8.2-RESULT.md) | multica v0.8.2 同步的执行记录：提交序列、迁移重编号、冲突决定、未合并项与验证输出 | u2-sync | current | 2026-11-10 |
+| [0.9.0 采纳矩阵](upstream/research/0.9.0/SUMMARY.md) | 上游 v0.9.0 采纳清单：四份调研的合并判决、批次、冲突与需裁决项 | lead | current | 2026-11-13 |
+| [上游 0.9.0 调研 R1：权限与安全](upstream/research/0.9.0/r1-permissions.md) | 上游 v0.9.0（v0.8.2..v0.9.0）权限与安全类提交的逐项调研与取舍判决：MUL-8992 六条、daemon-token 身份、session 续期、私有项目 agent 说明 | lead | reference | 2026-11-13 |
+| [上游 0.9.0 调研 R2：任务与工作流](upstream/research/0.9.0/r2-workflows.md) | 上游 v0.9.0（v0.8.2..v0.9.0）任务与工作流提交的逐项调研与取舍判决 | lead | reference | 2026-11-13 |
+| [上游 0.9.0 调研 R3：daemon 与运行时](upstream/research/0.9.0/r3-runtime.md) | 上游 v0.9.0（v0.8.2..v0.9.0）daemon / 运行时 / harness / Environments 提交的逐项调研与取舍判决 | lead | reference | 2026-11-13 |
+| [上游 0.9.0 调研 R4：前端与基础设施](upstream/research/0.9.0/r4-frontend-infra.md) | 上游 v0.9.0 前端可选吸收项与基础设施必吸项的逐提交评估（只读调研，不含代码改动） | lead | reference | 2026-11-13 |
 
 <!-- docs-map:index:end -->

@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 188,
-  "fingerprint": "32ad2ee13e95f95ae6b91d72af79d6865e398f5fd0079e1df9621780e2db8f52",
+  "count": 193,
+  "fingerprint": "b3fc9a00359246cdda07ff151458d70be35d1a69a9eb51be42184876da274dd0",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -2793,7 +2793,9 @@
       "updated": "2026-11-11",
       "related": [],
       "links_out": [],
-      "links_in": []
+      "links_in": [
+        "docs/upstream/research/0.9.0/SUMMARY.md"
+      ]
     },
     {
       "path": "docs/upstream/SYNC-0.8.2-PORT.md",
@@ -2827,6 +2829,81 @@
       ],
       "links_in": [
         "docs/upstream/SYNC-0.8.2-PORT.md"
+      ]
+    },
+    {
+      "path": "docs/upstream/research/0.9.0/SUMMARY.md",
+      "title": "0.9.0 采纳矩阵",
+      "purpose": "上游 v0.9.0 采纳清单：四份调研的合并判决、批次、冲突与需裁决项",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-13",
+      "related": [
+        "docs/upstream/research/0.9.0/r1-permissions.md",
+        "docs/upstream/research/0.9.0/r2-workflows.md",
+        "docs/upstream/research/0.9.0/r3-runtime.md",
+        "docs/upstream/research/0.9.0/r4-frontend-infra.md",
+        "docs/upstream/SEAMS.md"
+      ],
+      "links_out": [
+        "docs/upstream/SEAMS.md",
+        "docs/upstream/research/0.9.0/r1-permissions.md",
+        "docs/upstream/research/0.9.0/r2-workflows.md",
+        "docs/upstream/research/0.9.0/r3-runtime.md",
+        "docs/upstream/research/0.9.0/r4-frontend-infra.md"
+      ],
+      "links_in": []
+    },
+    {
+      "path": "docs/upstream/research/0.9.0/r1-permissions.md",
+      "title": "上游 0.9.0 调研 R1：权限与安全",
+      "purpose": "上游 v0.9.0（v0.8.2..v0.9.0）权限与安全类提交的逐项调研与取舍判决：MUL-8992 六条、daemon-token 身份、session 续期、私有项目 agent 说明",
+      "owner": "lead",
+      "status": "reference",
+      "updated": "2026-11-13",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/upstream/research/0.9.0/SUMMARY.md"
+      ]
+    },
+    {
+      "path": "docs/upstream/research/0.9.0/r2-workflows.md",
+      "title": "上游 0.9.0 调研 R2：任务与工作流",
+      "purpose": "上游 v0.9.0（v0.8.2..v0.9.0）任务与工作流提交的逐项调研与取舍判决",
+      "owner": "lead",
+      "status": "reference",
+      "updated": "2026-11-13",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/upstream/research/0.9.0/SUMMARY.md"
+      ]
+    },
+    {
+      "path": "docs/upstream/research/0.9.0/r3-runtime.md",
+      "title": "上游 0.9.0 调研 R3：daemon 与运行时",
+      "purpose": "上游 v0.9.0（v0.8.2..v0.9.0）daemon / 运行时 / harness / Environments 提交的逐项调研与取舍判决",
+      "owner": "lead",
+      "status": "reference",
+      "updated": "2026-11-13",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/upstream/research/0.9.0/SUMMARY.md"
+      ]
+    },
+    {
+      "path": "docs/upstream/research/0.9.0/r4-frontend-infra.md",
+      "title": "上游 0.9.0 调研 R4：前端与基础设施",
+      "purpose": "上游 v0.9.0 前端可选吸收项与基础设施必吸项的逐提交评估（只读调研，不含代码改动）",
+      "owner": "lead",
+      "status": "reference",
+      "updated": "2026-11-13",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/upstream/research/0.9.0/SUMMARY.md"
       ]
     }
   ],
