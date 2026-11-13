@@ -44,7 +44,7 @@ import {
 } from "@morechat/core/paths";
 import { setCurrentWorkspace } from "@morechat/core/platform";
 import type { Workspace } from "@morechat/core/types";
-import { AvatarUploadControl } from "../../common/avatar-upload-control";
+import { AoraAvatarPicker } from "../../agents/components/aora-avatar-picker";
 import { useNavigation } from "../../navigation";
 import { DeleteWorkspaceDialog } from "./delete-workspace-dialog";
 import { useT } from "../../i18n";
@@ -329,14 +329,15 @@ export function WorkspaceTab() {
             size="none"
           >
             <div className="flex justify-start sm:justify-end">
-              <AvatarUploadControl
-                variant="workspace"
+              <AoraAvatarPicker
                 value={workspace.avatar_url ?? null}
+                entityId={workspace.id}
+                deriveOnMount={false}
                 name={workspace.name}
                 size={64}
                 disabled={!canManageWorkspace}
-                ariaLabel={t(($) => $.workspace.change_logo_aria)}
-                onUploaded={async (url) => {
+                label={t(($) => $.workspace.change_logo_aria)}
+                onChange={async (url) => {
                   try {
                     const updated = await api.updateWorkspace(workspace.id, {
                       avatar_url: url,

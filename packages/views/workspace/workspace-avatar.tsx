@@ -4,16 +4,15 @@ import { AoraCharacter } from "@morechat/ui/components/common/aora-character";
 import { cn } from "@morechat/ui/lib/utils";
 
 /**
- * Workspace identity: an Aora face, an uploaded picture, or nothing.
+ * Workspace identity: an Aora face, an uploaded picture, or a derived face.
  *
- * A workspace used to fall back to its first letter in a circle. That reads as
- * "unset" and looks like every other initial chip; a character carries the same
+ * A workspace with no logo used to fall back to its first letter in a circle, which
+ * reads as "unset" and looks like every other initial chip. A character carries the
  * identity the agents beside it do, and it is derived from the workspace id, so two
  * workspaces never look alike and the face is stable across sessions.
  *
- * No ring or circle: Aora silhouettes are not round - a rice ball, a croissant, a
- * cloud - and a circular clip cuts their corners off. The slot is a plain square that
- * lets the shape breathe.
+ * No ring and no circle: Aora silhouettes are not round - a rice ball, a croissant,
+ * a cloud - and a circular clip cuts their corners off.
  */
 
 const sizeMap = {
@@ -26,7 +25,10 @@ const sizeMap = {
 const LIVE_MIN_PX = 32;
 
 interface WorkspaceAvatarProps {
-  /** Stable identity for the derived face. Falling back to the name keeps legacy callers working. */
+  /**
+   * Stable identity for the derived face. Without one the name seeds it, which keeps
+   * older call sites working but makes the face change when a workspace is renamed.
+   */
   id?: string;
   name: string;
   avatarUrl?: string | null;
@@ -44,27 +46,31 @@ function WorkspaceAvatar({
   live = false,
   className,
 }: WorkspaceAvatarProps) {
-  const resolvedUrl = resolvePublicFileUrl(avatarUrl);
   const rung = sizeMap[size];
 
-  if (resolvedUrl) {
-    return (
-      <img
-        src={resolvedUrl}
-        alt={name}
-        className={cn("inline-block shrink-0 object-cover", rung.class, className)}
-      />
-    );
+  // Order matters. `resolvePublicFileUrl` passes anything that is not a site path
+  // through unchanged, so an `aora:` spec would reach an <img> and render broken.
+  // A character wins before a picture is even considered.
+  const spec = isAoraSpec(avatarUrl) ? avatarUrl : null;
+
+  if (!spec) {
+    const resolvedUrl = resolvePublicFileUrl(avatarUrl);
+    if (resolvedUrl) {
+      return (
+        <img
+          src={resolvedUrl}
+          alt={name}
+          className={cn("inline-block shrink-0 object-cover", rung.class, className)}
+        />
+      );
+    }
   }
 
-  // A stored spec wins; otherwise the id derives one, which is what keeps a
-  // workspace recognisable before anyone has chosen a face for it.
-  const spec = isAoraSpec(avatarUrl) ? avatarUrl : null;
-  const entityId = id ?? name;
-
+  // No picture: either a chosen spec, or one derived from the id - which is what
+  // makes a workspace recognisable before anyone has picked a face for it.
   return (
     <AoraCharacter
-      entityId={entityId}
+      entityId={id ?? name}
       spec={spec}
       sizePx={rung.px}
       live={live && rung.px >= LIVE_MIN_PX}
