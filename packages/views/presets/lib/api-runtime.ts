@@ -1,10 +1,12 @@
 // Product-API side of the preset import.
 //
-// Skills are written with POST /api/skills (content + files, the path that
-// always worked) and, when the name already exists, updated in place through
-// PUT /api/skills/:id so a repeated import converges instead of failing with
-// 409. Squads are created first and their instructions written with a second
-// PUT — the same two-call sequence the server-side fix keeps working.
+// Skills are looked up by name first (GET /api/skills) and then either updated
+// in place through PUT /api/skills/:id or created with POST /api/skills. The
+// skills table has no unique (workspace, name) index, so a repeat import would
+// otherwise leave a same-name copy instead of colliding — the lookup, not a
+// constraint, is what makes the import converge. Squads are created first and
+// their instructions written with a second PUT — the same two-call sequence the
+// server-side fix keeps working.
 //
 // Content comes from the shared `@morechat/core/presets` source, so an import
 // reuses whatever the gallery already fetched (1-hour cache).
@@ -63,6 +65,15 @@ export interface PresetApiClient {
   createIssueWorkflow?(input: IssueWorkflowWriteRequest): Promise<{ id: string }>;
 }
 
+/**
+ * Writes one preset skill, converging on the workspace's same-name skill.
+ *
+ * Look first, then write: the listing is what decides between update and create,
+ * because no unique index on `(workspace_id, name)` exists to report the
+ * collision. A listing that fails is not fatal — the write still goes through
+ * and the create's own conflict (the narrow race, or a server that does enforce
+ * uniqueness) is handled by listing once more.
+ */
 async function importSkillIdempotently(
   client: PresetApiClient,
   bundle: PresetSkillBundle,
@@ -74,23 +85,39 @@ async function importSkillIdempotently(
     content: bundle.content,
     files: bundle.files,
   };
+  const write = {
+    description: bundle.skill.name,
+    content: bundle.content,
+    files: bundle.files,
+  };
+  const findExisting = async () => {
+    const skills = await client.listSkills();
+    return skills.find((skill) => skill.name === name);
+  };
+  const updateExisting = async (id: string) => {
+    const updated = await client.updateSkill(id, write);
+    return { id: updated.id, name: updated.name || name, updated: true };
+  };
+
+  let listed: { id: string; name: string } | undefined;
+  try {
+    listed = await findExisting();
+  } catch {
+    // Best-effort: an unreadable list must not stop an import that could write.
+    listed = undefined;
+  }
+  if (listed) return updateExisting(listed.id);
+
   try {
     const created = await client.createSkill(payload);
     return { id: created.id, name: created.name || name, updated: false };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (!isNameConflictError(message)) throw error;
-    // Same-name import: update the existing skill instead of failing.
-    const existing = (await client.listSkills()).find(
-      (skill) => skill.name === name,
-    );
+    // Same-name skill appeared between the listing and this write: adopt it.
+    const existing = await findExisting();
     if (!existing) throw error;
-    const updated = await client.updateSkill(existing.id, {
-      description: bundle.skill.name,
-      content: bundle.content,
-      files: bundle.files,
-    });
-    return { id: updated.id, name: updated.name || name, updated: true };
+    return updateExisting(existing.id);
   }
 }
 
