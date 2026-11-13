@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 186,
-  "fingerprint": "30f9b00fbc0136ea782c51b9bf56ed98a02fc911caaf2a41c75e46b1fa0912c7",
+  "count": 187,
+  "fingerprint": "8074a5457140d568de633a65740484e82e976718577fda2ba667b28cf6de000e",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -1424,6 +1424,17 @@
       "owner": "task-owners",
       "status": "current",
       "updated": "2026-11-10",
+      "related": [],
+      "links_out": [],
+      "links_in": []
+    },
+    {
+      "path": "docs/tasks/DESKTOP-VISUAL-CHECK.md",
+      "title": "W1-C 桌面端画面目视复核",
+      "purpose": "桌面端 dock 图标、rail 与会话行头像的目视复核记录（含未能确认项）",
+      "owner": "design",
+      "status": "reference",
+      "updated": "2026-11-13",
       "related": [],
       "links_out": [],
       "links_in": []

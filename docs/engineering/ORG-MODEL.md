@@ -82,9 +82,9 @@ Paperclip 的四条结构决定值得沿用：部门用 `scope` 数据表达而�
 
 | # | 缺口 | 现状 | 处理 |
 | --- | --- | --- | --- |
-| 1 | 知识条目 `acl_mode=project` 等同 `workspace` | 声明了但未生效 | 按 `project_member` 真过滤；先 log-only 观测再强制 |
-| 2 | 知识空间没有部门归属 | `team_key` 零引用 | 增加 `department_id`，列表/读取按部门过滤 |
-| 3 | owner/admin 读不到别人 `acl_mode=private` 的知识 | `canViewItem` 只认 owner | 给管理角色补旁路 |
+| 1 | 知识条目 `acl_mode=project` 等同 `workspace` | 纯函数 + log-only 观测已就绪（`knowledge/visibility.go`，开关 `knowledge_project_acl` 默认关）；**强制未切换** | 观测一段时间的 `would_hide` / `affected_members` 后，按 `visibility.go` 注释改两行 SQL + 三个 recheck 调用点 |
+| 2 | 知识空间没有部门归属 | `department_id` 已加；空间切换器可按部门分组（开关 `knowledge_department_scope`，默认关，关时与旧界面一致） | 若要"部门之间看不到对方空间"，还需空间级读取过滤（未做） |
+| 3 | owner/admin 读不到别人 `acl_mode=private` 的知识 | 旁路已写在纯函数里（开关 `knowledge_admin_visibility`，默认关） | 与 #1 一起切换；两处 SQL 谓词同时旁路 |
 | 4 | 无项目 issue 全公司可见 | `issue.project_id` 可空；新建落部门收件箱已实现（开关 `department_default_scope`，默认关；带父 issue 的子任务不落，仍随父） | 新建时落部门默认项目；历史不动 |
 | 5 | 调岗不会同步项目成员 | 已实现：`PATCH /api/workspaces/{id}/members/{memberId}/department` 在同一事务改部门、增删该部门私有项目成员、写 `activity_log` | 改 `member.department_id` 时批量增删部门项目成员并留审计 |
 | 6 | 部门负责人无管理入口 | — | 部门默认项目的 lead 复用 `canManageProjectAccess` |

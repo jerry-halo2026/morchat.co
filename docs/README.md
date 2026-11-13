@@ -218,6 +218,7 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [COLLABORATION-NEXT — 先验证真人任务协作闭环](tasks/COLLABORATION-NEXT.md) | COLLABORATION-NEXT — 先验证真人任务协作闭环 | task-owners | current | 2026-11-10 |
 | [当前确认目标（Ethan，2026-11-09）](tasks/CURRENT-GOAL.md) | 当前确认目标（Ethan，2026-11-09） | task-owners | current | 2026-11-09 |
 | [Desktop dev actual run — 2026-11-09](tasks/DESKTOP-DEV-RUN.md) | Desktop dev actual run — 2026-11-09 | task-owners | current | 2026-11-10 |
+| [W1-C 桌面端画面目视复核](tasks/DESKTOP-VISUAL-CHECK.md) | 桌面端 dock 图标、rail 与会话行头像的目视复核记录（含未能确认项） | design | reference | 2026-11-13 |
 | [DSH 审批 / 提问协议实测（W6 只读侦查）](tasks/DSH-ASK-SPIKE.md) | DSH 审批 / 提问协议实测（W6 只读侦查） | task-owners | current | 2026-11-10 |
 | [DSH 桥接内置：S0 结论](tasks/DSH-BUNDLE-SPIKE.md) | 让安装包自带 DSH 桥接（S0 spike）的结论与两处裁剪修复 | lead | current | 2026-11-11 |
 | [DSH 走公司网关](tasks/DSH-GATEWAY-KEY.md) | 让 DSH 用公司网关的 key（用户无需登录 DeepSeek）——已验证的原生配置方式与待改代码 | lead | current | 2026-11-12 |

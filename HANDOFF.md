@@ -57,52 +57,68 @@
 
 ---
 
-## 二、没做的（明确欠账）
+## 二、第二段（W1/W2）做完的
 
-### A. 组织模型只到文档，没有建表
+### 组织地基（O1，零行为变更）
 
-`ORG-MODEL.md` 描述的 `department` / `member.department_id` / `project.department_id` /
-`knowledge_spaces.department_id` **一行 DDL 都没写**。原因：先把权限语义定死，
-避免半成品迁移。下一步按 ORG-MODEL §5 的顺序做，第一阶段只加表与可空列（不改读路径）。
+| 项 | 状态 | 验证 |
+|---|---|---|
+| 迁移 645–650：`department` 表、`member/project/knowledge_spaces/workspace_invitation` 的可空列、4 个并发索引 | 完成 | `go test ./cmd/migrate ./internal/migrations` 绿 |
+| `GET/POST/PATCH/DELETE /api/departments`；删除返回 `{detached_projects, detached_members}` | 完成 | handler 测试（200/201/403/404） |
+| core 客户端与 zod schema（字段可选） | 完成 | core typecheck + 583 个 api 用例 |
+| 开发库已跑到 650 | 完成 | `cmd/migrate up`（未重启 8080） |
 
-### B. 知识 `acl_mode=project` 仍是假开关
+### 部门默认范围与调岗（O2/O4，开关默认关）
 
-`search.go` 的 `visCond` 与 `canViewItem` 把 `project` 当 `workspace`。改成真过滤会
-**缩小可见范围**，必须先 log-only 观测，再逐空间切换。
+| 项 | 状态 | 验证 |
+|---|---|---|
+| `department_default_scope`：新建项目落私有 + 部门成员 + 部门负责人 lead | 完成 | 11 个 Go 用例（开关关回归 / 开关开） |
+| 无项目 issue 落部门 `department-inbox`（惰性创建、advisory lock、复用） | 完成 | 同上 |
+| `PATCH /api/workspaces/{id}/members/{memberId}/department`：同事务改部门、增删部门私有项目成员、写审计 | 完成 | 同上（含跨库 400、非成员 404、非 admin 403） |
+| 回滚 | `FF_DEPARTMENT_DEFAULT_SCOPE=off`；调岗端点只能 revert 提交 | — |
 
-### C. 存量数据未动
+### 预设包产出项目 workflow（原 E 项）
 
-`b1-knowledge` 等项目仍全部 `workspace` 可见；新规则只应对新建生效。
+| 项 | 状态 | 验证 |
+|---|---|---|
+| `team.workflowDefinition` 解析（fail-open）+ 导入时创建/复用 workflow | 完成 | views presets 83 用例 |
+| 内容仓 5 个团队包产出 workflowDefinition，`--check` 与 portability 通过 | 完成 | 内容仓 `169b051`（未 push） |
+| 导入失败不影响整体（outcome 记 `error`） | 完成 | 单测覆盖 |
 
-### D. `skill` 同名可重复 / squad 名字唯一
+### 知识按部门（O3 前半段，三个开关默认关）
 
-- `skill` 表无 `(workspace_id, name)` 唯一约束，重装留同名副本（预设导入受影响）。
-- 我们 `squad` 有 `UNIQUE(workspace_id, name)`，但 multica 官方文档说名字不必唯一；
-  预设导入的同名认领正依赖这个约束。要决定保留约束还是改用 `template` 标记认领。
+| 项 | 状态 | 验证 |
+|---|---|---|
+| `ItemVisibleTo` 纯函数 + 表驱动矩阵（3 种 acl_mode × 角色 × 成员/非成员） | 完成 | knowledge 包 8 用例 |
+| `acl_mode=project` 跟随项目可见性（workspace 项目对全员可见；NULL project_id 保持可见） | 完成 | 真实库用例 |
+| log-only 观测：会隐藏多少条、影响谁；**返回结果不变** | 完成 | 真实 dev 库：55 workspace / 2 条目，`would_hide=0` |
+| 空间按部门分组（`knowledge_department_scope`） | 完成 | views knowledge 51 用例 |
+| owner/admin 知识旁路（`knowledge_admin_visibility`） | 完成（未接强制） | 纯函数矩阵 |
+| **强制切换** | **未做**，按红线待观测后另行决定 | — |
 
-### E. 预设团队包没有绑定项目 workflow
+### 桌面端目视（原 F 项）
 
-`/api/issue-workflows` 已存在（MUL-7420/8120），缺的是导入器多一步把包里的流程写成
-workflow 并绑到项目；HANDOFF 旧文里"要建表"的说法已过期。
-
-### F. 桌面端画面仍未目视
-
-dock 图标、rail 44px 动态脸、会话行 40px 动态脸，只有代码与单测。
+`docs/tasks/DESKTOP-VISUAL-CHECK.md`：图标源、rail 44px、会话行 40px 已确认；
+任务栏呈现、跟随鼠标、会话行动画**未确认**（窗口捕获受限 + HMR 重载清空列表），已如实记录。
 
 ---
 
 ## 三、后续优先级
 
-1. **O1 部门地基**（只加表/列/接口，不改读路径）：`department`、`member.department_id`、
-   `project.department_id`、`project.system_key`、`knowledge_spaces.department_id`；
-   遵守仓库规则（无外键、`CREATE INDEX CONCURRENTLY` 单独成文件、`cmd/migrate` 注册 cleanup）。
-2. **O2 默认范围**（开关 `department_default_scope`）：新建项目默认私有 + 部门成员；
-   新建 issue 未选项目时落部门 `department-inbox`。
-3. **O3 知识按部门**：先 `department_id` 分组展示 → `acl_mode=project` log-only → 逐空间强制 →
-   owner/admin 旁路。
-4. **O4 调岗事务**：改部门时批量增删部门项目成员 + 审计 + 受影响清单。
-5. `skill` 唯一约束与 squad 名字策略二选一，写进 CONTRACTS。
-6. 预设团队包产出 workflow。
+1. **知识 ACL 强制切换**（唯一需要你拍板的破坏性动作）：先看 `knowledge_project_acl`
+   打开后的 `would_hide` / `affected_members`；切换步骤写在
+   `server/internal/knowledge/visibility.go` 的注释里（两行 SQL + 三个 `canViewItem`
+   调用点 + 填 `ProjectVisibility`）。当前 dev 库数据层面 `would_hide=0`。
+2. **部门 UI**：成员页的部门列/筛选、邀请选部门、成员行动作「改部门」。后端已就绪；
+   需要 Lead 统一加 i18n key：`settings.members.changeDepartment`、
+   `changeDepartmentTitle`、`changeDepartmentNone`、`changeDepartmentDone`
+   （占位 `{added}`/`{removed}`），可选 `projects.departmentScopeHint`。
+3. **部门收件箱标题是写库的中文数据**（`"<部门名> 收件箱"`）；要八语言就得加语言字段，
+   或者改成渲染时拼。
+4. `skill` 唯一约束与 squad 名字策略二选一，写进 CONTRACTS。
+5. 预设团队包产出的 workflow 还没有绑定项目的入口（导入不建项目），需要产品决定。
+6. `packages/views/knowledge/data/` 被 `.gitignore` 的 `data/` 规则挡住，
+   新增文件加不进去；要么放宽规则，要么别往那个目录加。
 
 ---
 
@@ -112,7 +128,7 @@ dock 图标、rail 44px 动态脸、会话行 40px 动态脸，只有代码与�
 go    E:\CodexData\morchat-r1-local\tools\go127\go\bin\go.exe
 node  E:\CodexData\morchat-r1-local\tools\node22\node-v22.23.4-win-x64\node.exe
 pnpm  同目录 corepack.cmd
-DB    postgres://multica_dev:...@127.0.0.1:15433/multica_dev?sslmode=disable
+DB    postgres://multica_dev:659zaelmydqzdnoghjsj2tixsio92z32@127.0.0.1:15433/multica_dev?sslmode=disable
 token %TEMP%\dev-token.txt
 测试工作区 34ed0ee3-cc00-4cbc-a287-cfd2277851fb（slug b1-knowledge）
 Sika  a1304862-f4f4-461e-931c-3271e0e32cc4
@@ -120,6 +136,9 @@ Sika  a1304862-f4f4-461e-931c-3271e0e32cc4
 
 起服务：`node scripts/dev.mjs server`（8080）；`cd apps/web; $env:FRONTEND_PORT=13513; node scripts/dev-server.mjs`；
 `cd apps/desktop; node scripts/dev.mjs`。
+
+**重要**：跑 Go handler/knowledge 测试前必须导出 `DATABASE_URL`（同上），否则 fixture 建库失败，
+报 `relation "workspace" does not exist`。
 
 **新增**：`PLAYWRIGHT_CHANNEL` 可把 e2e 与品牌生成器指向本机已装的浏览器（本机用 `msedge`）。
 
@@ -129,11 +148,15 @@ Sika  a1304862-f4f4-461e-931c-3271e0e32cc4
 node scripts/brand/sync.mjs --check
 node --test scripts/brand/sync.test.mjs scripts/brand/icns.test.mjs
 node scripts/check-brand-strings.mjs
+node scripts/check-contracts.mjs
 node scripts/docs-map.mjs --check
 pnpm --filter @morechat/{core,ui,views,web} typecheck
-pnpm --filter @morechat/{core,views} exec vitest run presets common/theme-variables
+pnpm --filter @morechat/{core,views} exec vitest run presets knowledge common/theme-variables
 PLAYWRIGHT_CHANNEL=msedge pnpm exec playwright test e2e/presets.spec.ts --workers=1
 cd server; go build ./...
+$env:DATABASE_URL="postgres://multica_dev:...@127.0.0.1:15433/multica_dev?sslmode=disable"
+go test ./internal/handler -run 'Department|Project|Issue|Member|Knowledge' -count=1
+go test ./internal/knowledge ./cmd/migrate ./internal/migrations -count=1
 ```
 
 ---
@@ -153,6 +176,16 @@ cd server; go build ./...
    的显式四分之一圆（`ring()`），方向写在代码里。
 7. PowerShell 的 `>` 重定向写出 UTF-16，取二进制用 `cmd /c "git show ... > file"`；
    改文本一律用编辑工具或 `.mjs`，别用 `Get-Content/Set-Content`。
+8. **共享 dev 库的 role 密码会被外部改动**：本轮 16:40 起主机连 15433 报
+   `password authentication failed for user "multica_dev"`，容器内 `local trust` 仍可进、
+   数据完好。恢复：`docker exec morchat-dev-pg psql -U multica_dev -d postgres -c
+   "ALTER ROLE multica_dev PASSWORD '<文档值>'"`。跑测试前先验一次连通性。
+9. **`go test ./internal/handler` 必须带 `DATABASE_URL`**，否则 fixture 报
+   `relation "workspace" does not exist`，看起来像代码坏了。
+10. **不要对整个包目录跑 `gofmt`**（会把 CRLF 换成 LF，虽然 git 内容归一后 diff 为空，
+    但会干扰其他 agent 的工作树判断）。
+11. **两个 agent 同时改 `server/internal/featureflags/keys.go`**：共享文件，
+    谁 add 谁带上对方的内容；合并后要逐行确认两家的 key 都在。
 
 ---
 

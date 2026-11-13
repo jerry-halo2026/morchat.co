@@ -1,3 +1,11 @@
+---
+purpose: 桌面端 dock 图标、rail 与会话行头像的目视复核记录（含未能确认项）
+owner: design
+status: reference
+updated: 2026-11-13
+related: [HANDOFF.md, docs/brand/DECISIONS.md]
+---
+
 # W1-C 桌面端画面目视复核
 
 日期：2026-11-13　分支：`main`　范围：只写验证记录，未改 `apps/**`、`packages/**`、`server/**`。
