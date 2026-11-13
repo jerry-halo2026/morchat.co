@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/lark"
 	"github.com/jerry-halo2026/morchat.co/server/internal/projectaccess"
 	"log/slog"
 	"net/http"

@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/multica-ai/multica/server/internal/projectaccess"
-	"github.com/multica-ai/multica/server/internal/testutil"
+	"github.com/jerry-halo2026/morchat.co/server/internal/projectaccess"
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
 // A chat bound to a private project (MUL-8472) hands the project's title,
