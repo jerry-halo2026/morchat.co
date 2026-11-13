@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { ArrowUpRight, Check, Clock, LoaderCircle } from "@morechat/ui/icons";
+import { AoraAvatar } from "@morechat/ui/components/common/aora-avatar";
+import { SIKA_AVATAR_URL } from "@morechat/core/avatar/product-faces";
 import { cn } from "@morechat/ui/lib/utils";
 import {
   Tooltip,
@@ -169,8 +171,8 @@ function BoardVignette() {
         <MiniCard className="border-brand/45">
           <Bar className="w-3/4" />
           <div className="flex items-center gap-1">
-            <span className="flex size-3.5 items-center justify-center rounded-full bg-muted text-micro leading-none">
-              🦄
+            <span aria-hidden="true" className="flex size-3.5 items-center justify-center">
+              <AoraAvatar entityId="sika" avatarUrl={SIKA_AVATAR_URL} size={14} mirrored />
             </span>
             <Bar className="w-6 bg-brand/55" />
           </div>
@@ -194,8 +196,8 @@ function DelegateVignette() {
   return (
     <div aria-hidden="true" className="flex w-45 flex-col gap-1.5">
       <MiniCard className="flex-row items-center gap-1.5 px-2 py-1.5">
-        <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-muted text-micro leading-none">
-          🦄
+        <span aria-hidden="true" className="flex size-4.5 shrink-0 items-center justify-center">
+          <AoraAvatar entityId="sika" avatarUrl={SIKA_AVATAR_URL} size={18} mirrored />
         </span>
         <div className="flex flex-1 flex-col gap-1">
           <Bar className="w-5/6" />

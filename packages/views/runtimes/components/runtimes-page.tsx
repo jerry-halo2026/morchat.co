@@ -26,7 +26,8 @@ import {
   memberNeedsMikaSetup,
   useBootstrapMika,
 } from "@morechat/core/onboarding";
-import { MIKA_PLACEHOLDER_EMOJI } from "../../onboarding/components/mika-intro";
+import { AoraAvatar } from "@morechat/ui/components/common/aora-avatar";
+import { SIKA_AVATAR_URL } from "@morechat/core/avatar/product-faces";
 import {
   useRequiredWorkspaceSlug,
   useWorkspacePaths,
@@ -968,13 +969,13 @@ function MikaSetupCard({
   return (
     <>
       <div className="flex flex-col gap-4 rounded-xl border bg-card p-5 sm:flex-row sm:items-center">
-        <span
-          role="img"
-          aria-label={t(($) => $.mika_setup.title)}
-          className="flex size-10 shrink-0 select-none items-center justify-center rounded-full bg-muted text-title-lg leading-none"
-        >
-          {MIKA_PLACEHOLDER_EMOJI}
-        </span>
+        <AoraAvatar
+          entityId="sika"
+          avatarUrl={SIKA_AVATAR_URL}
+          alt={t(($) => $.mika_setup.title)}
+          size={40}
+          mirrored
+        />
         <div className="min-w-0 flex-1">
           <h2 className="text-body font-semibold">
             {t(($) => $.mika_setup.title)}
