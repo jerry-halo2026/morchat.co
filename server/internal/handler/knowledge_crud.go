@@ -191,7 +191,7 @@ func (h *Handler) ListKnowledgeItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	query := r.URL.Query()
-	list, err := h.knowledgeService().Store().ListItems(r.Context(), knowledge.ListItemsInput{
+	list, err := h.knowledgeService().ListItems(r.Context(), knowledge.ListItemsInput{
 		WorkspaceID: workspaceID,
 		ViewerID:    viewerID,
 		SpaceID:     query.Get("space_id"),

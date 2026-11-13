@@ -17,6 +17,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+
+	"github.com/jerry-halo2026/morchat.co/server/pkg/featureflag"
 )
 
 // The import pipeline: upload-url -> import task -> parse -> chunk -> store.
@@ -137,6 +139,9 @@ type Service struct {
 	// off so POST /import answers before parsing starts.
 	synchronous bool
 	logger      *slog.Logger
+	// flags is the deployment feature-flag service. Nil is legal and reads the
+	// default of every switch, which is false — i.e. today's behaviour.
+	flags *featureflag.Service
 
 	capabilitiesOnce sync.Once
 	capabilities     chunkCapabilities
@@ -190,6 +195,14 @@ func WithLogger(l *slog.Logger) Option {
 			s.logger = l
 		}
 	}
+}
+
+// WithFeatureFlags wires the deployment's flag service, which is how the
+// knowledge switches (knowledge_project_acl, knowledge_admin_visibility) reach
+// this package. A nil service is legal: every switch then reads false, so the
+// pre-switch behaviour is the default rather than something a caller must set up.
+func WithFeatureFlags(flags *featureflag.Service) Option {
+	return func(s *Service) { s.flags = flags }
 }
 
 // NewService builds a Service over db.

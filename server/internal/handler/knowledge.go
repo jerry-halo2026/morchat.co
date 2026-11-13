@@ -44,7 +44,7 @@ import (
 // the knowledge wiring out of handler.go — one fewer field for the rest of the
 // package to keep consistent.
 func (h *Handler) knowledgeService() *knowledge.Service {
-	opts := []knowledge.Option{}
+	opts := []knowledge.Option{knowledge.WithFeatureFlags(h.FeatureFlags)}
 	if h.Storage != nil {
 		var store storage.Storage = h.Storage
 		if src, ok := store.(knowledge.ObjectSource); ok {

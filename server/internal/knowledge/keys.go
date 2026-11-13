@@ -118,18 +118,25 @@ func itemStatus(input string) (status string, archived bool, err error) {
 // Space is one knowledge space (a collection of items) as the API returns it.
 // The DDL calls the name column display_name and keeps free-form settings; the
 // wire shape is the plan's `name` / `description` pair on top of those.
+//
+// DepartmentID is the org unit the space is filed under (migration 646,
+// docs/engineering/ORG-MODEL.md §3). It is attribution, not an access rule:
+// nothing filters a read by it, and a NULL means "not filed under a department".
+// Clients that predate the column read it as absent.
 type Space struct {
-	ID          string    `json:"id"`
-	WorkspaceID string    `json:"workspace_id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	ItemCount   int       `json:"item_count"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID           string    `json:"id"`
+	WorkspaceID  string    `json:"workspace_id"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	DepartmentID *string   `json:"department_id"`
+	ItemCount    int       `json:"item_count"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 const spaceColumns = `sp.id::text, sp.workspace_id::text, sp.display_name,
 	coalesce(sp.settings->>'description', ''),
+	sp.department_id::text,
 	(SELECT count(*) FROM knowledge_items i
 	  WHERE i.workspace_id = sp.workspace_id AND i.space_id = sp.id),
 	sp.created_at, sp.updated_at`
@@ -137,7 +144,7 @@ const spaceColumns = `sp.id::text, sp.workspace_id::text, sp.display_name,
 func scanSpace(row pgx.Row) (Space, error) {
 	var sp Space
 	err := row.Scan(&sp.ID, &sp.WorkspaceID, &sp.Name, &sp.Description,
-		&sp.ItemCount, &sp.CreatedAt, &sp.UpdatedAt)
+		&sp.DepartmentID, &sp.ItemCount, &sp.CreatedAt, &sp.UpdatedAt)
 	return sp, err
 }
 
@@ -368,6 +375,18 @@ func (s *Store) ListItems(ctx context.Context, in ListItemsInput) (ItemList, err
 	return out, nil
 }
 
+// ListItems is the service-level item listing: Store.ListItems plus the
+// log-only project-ACL observation. The observation is computed after the page
+// is read and cannot change it — a failed observation is one warning, never an
+// error from this call.
+func (s *Service) ListItems(ctx context.Context, in ListItemsInput) (ItemList, error) {
+	list, err := s.store.ListItems(ctx, in)
+	if err == nil {
+		s.observeProjectACL(ctx, "list_items", in.WorkspaceID, in.ViewerID, in.SpaceID)
+	}
+	return list, err
+}
+
 // encodeItemCursor / decodeItemCursor keep the keyset position opaque to callers
 // while staying readable in a log: updated_at and id, base64url encoded. The pair
 // is what the ORDER BY sorts on, so a page boundary can never skip or repeat a row
@@ -497,7 +516,7 @@ func (s *Service) ReadItem(ctx context.Context, workspaceID, viewerID, itemID st
 	if err != nil {
 		return Item{}, err
 	}
-	view := viewableItem{
+	view := ViewableItem{
 		ID:          item.ID,
 		WorkspaceID: item.WorkspaceID,
 		SpaceID:     item.SpaceID,
@@ -508,6 +527,9 @@ func (s *Service) ReadItem(ctx context.Context, workspaceID, viewerID, itemID st
 	}
 	if item.OwnerID != nil {
 		view.OwnerID = *item.OwnerID
+	}
+	if item.ProjectID != nil {
+		view.ProjectID = *item.ProjectID
 	}
 	if !canViewItem(view, workspaceID, viewerID) {
 		return Item{}, fmt.Errorf("%w: item %s", ErrKnowledgeForbidden, itemID)

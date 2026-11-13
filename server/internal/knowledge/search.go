@@ -311,6 +311,11 @@ func (s *Service) Retrieve(ctx context.Context, in RetrieveInput) (RetrieveResul
 	if err != nil {
 		return RetrieveResult{}, err
 	}
+	// Log-only: record what enforcing knowledge_project_acl would hide from this
+	// viewer. Runs before the response exists and changes nothing it returns —
+	// see observeProjectACL. The switch is off by default, in which case this is
+	// one flag read.
+	s.observeProjectACL(ctx, "retrieve", in.WorkspaceID, in.ViewerID, in.SpaceID)
 
 	result := RetrieveResult{
 		Hits: []Hit{},
@@ -607,32 +612,20 @@ func (s *Service) vectorChannel(ctx context.Context, in RetrieveInput, layer vis
 	return out, nil
 }
 
-// viewableItem is the subset of an item the visibility rule needs.
-type viewableItem struct {
-	ID          string
-	WorkspaceID string
-	SpaceID     string
-	Title       string
-	Kind        string
-	ACLMode     string
-	OwnerID     string
-	Status      string
-}
-
 // recheckItems reads every named item and applies canViewItem.
 //
 // An item that is missing from the answer (deleted between the index read and
 // this one, or living in another workspace) is *not* silently skipped: the
 // caller turns the absent map entry into ErrKnowledgeForbidden.
 func (s *Service) recheckItems(ctx context.Context, workspaceID, viewerID string,
-	itemIDs []string) (map[string]viewableItem, error) {
-	out := map[string]viewableItem{}
+	itemIDs []string) (map[string]ViewableItem, error) {
+	out := map[string]ViewableItem{}
 	if len(itemIDs) == 0 {
 		return out, nil
 	}
 	rows, err := s.db.Query(ctx, `
 		SELECT id::text, workspace_id::text, space_id::text, title, kind, acl_mode,
-		       coalesce(owner_id::text, ''), status
+		       coalesce(owner_id::text, ''), coalesce(project_id::text, ''), status
 		FROM knowledge_items
 		WHERE workspace_id = $1 AND id::text = ANY($2::text[])`,
 		workspaceID, itemIDs)
@@ -641,9 +634,9 @@ func (s *Service) recheckItems(ctx context.Context, workspaceID, viewerID string
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var item viewableItem
+		var item ViewableItem
 		if err := rows.Scan(&item.ID, &item.WorkspaceID, &item.SpaceID, &item.Title,
-			&item.Kind, &item.ACLMode, &item.OwnerID, &item.Status); err != nil {
+			&item.Kind, &item.ACLMode, &item.OwnerID, &item.ProjectID, &item.Status); err != nil {
 			return nil, fmt.Errorf("scan knowledge item: %w", err)
 		}
 		if canViewItem(item, workspaceID, viewerID) {
@@ -657,34 +650,11 @@ func (s *Service) recheckItems(ctx context.Context, workspaceID, viewerID string
 }
 
 // CanViewItem is the single visibility rule for a knowledge item, shared by the
-// result-layer recheck, knowledge.get, and the preview path.
-//
-//   - the item must live in the caller's workspace: a workspace is the tenancy
-//     boundary, so crossing it is not "not found", it is forbidden;
-//   - a deprecated item is readable directly but not retrievable, so it is
-//     refused here as well — retrieval must not surface it by another route;
-//   - `workspace` and `project` items are visible to every member of the
-//     workspace (project-level membership is not modelled yet, and defaulting to
-//     "visible" matches the DDL default; tightening it later is one clause);
-//   - `private` items are visible to their owner only.
-func CanViewItem(item viewableItem, workspaceID, viewerID string) bool {
+// result-layer recheck, knowledge.get, and the preview path. The rule itself is
+// ItemVisibleTo in visibility.go; this is the switches-off reading of it, which
+// is what every path uses until knowledge_project_acl is enforced.
+func CanViewItem(item ViewableItem, workspaceID, viewerID string) bool {
 	return canViewItem(item, workspaceID, viewerID)
-}
-
-func canViewItem(item viewableItem, workspaceID, viewerID string) bool {
-	if item.WorkspaceID != workspaceID {
-		return false
-	}
-	if item.Status == StatusDeprecated {
-		return false
-	}
-	switch item.ACLMode {
-	case ACLModeWorkspace, ACLModeProject:
-		return true
-	case ACLModePrivate:
-		return item.OwnerID != "" && item.OwnerID == viewerID
-	}
-	return false
 }
 
 // attachParents fills Hit.ParentContent for parent_child hits.
@@ -909,7 +879,7 @@ func (s *Service) GetItemForViewer(ctx context.Context, workspaceID, viewerID, i
 		}
 		return Item{}, err
 	}
-	view := viewableItem{
+	view := ViewableItem{
 		ID:          item.ID,
 		WorkspaceID: item.WorkspaceID,
 		SpaceID:     item.SpaceID,
@@ -920,6 +890,9 @@ func (s *Service) GetItemForViewer(ctx context.Context, workspaceID, viewerID, i
 	}
 	if item.OwnerID != nil {
 		view.OwnerID = *item.OwnerID
+	}
+	if item.ProjectID != nil {
+		view.ProjectID = *item.ProjectID
 	}
 	if !canViewItem(view, workspaceID, viewerID) {
 		return Item{}, fmt.Errorf("%w: item %s", ErrKnowledgeForbidden, itemID)

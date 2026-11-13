@@ -35,6 +35,24 @@ const (
 	// makes those endpoints answer 404, so clients stop syncing and search
 	// through the server again without a client release.
 	LocalSearchIndex = "local_search_index"
+	// KnowledgeProjectACL enforces knowledge_items.acl_mode=project against
+	// project_member (docs/engineering/ORG-MODEL.md §5 gap 1). Off by default and
+	// deliberately so: enforcing it SHRINKS what people can see, so the switch
+	// first runs as an observation — retrieve/list log what it would hide and
+	// from whom, and nothing changes — and only then flips. FF_KNOWLEDGE_PROJECT_ACL=on
+	// turns the observation on; the enforcement step is a code change described in
+	// server/internal/knowledge/visibility.go.
+	KnowledgeProjectACL = "knowledge_project_acl"
+	// KnowledgeAdminVisibility gives workspace owner/admin the read bypass
+	// ORG-MODEL §2 promises for acl_mode=private items (§5 gap 3). Independent of
+	// KnowledgeProjectACL: it only widens visibility, so it can be observed and
+	// rolled back on its own.
+	KnowledgeAdminVisibility = "knowledge_admin_visibility"
+	// KnowledgeDepartmentScope groups the knowledge space switcher by the
+	// department each space is filed under (ORG-MODEL §3). Groups and sorts only:
+	// no space is hidden and, while it is off, the switcher renders exactly as
+	// before. It is a frontend decision, published through /api/config.
+	KnowledgeDepartmentScope = "knowledge_department_scope"
 	// agentBuilderCompat is no longer a release flag. Keep publishing the key
 	// as enabled so installed desktop clients that still gate the AI creation
 	// entry on this config decision receive the permanently enabled behavior.
@@ -53,12 +71,21 @@ const (
 	// projectWorkflowsCompat keeps workflow UI available in installed desktop
 	// clients that still gate it on this config decision and default to false.
 	projectWorkflowsCompat = "project_workflows_v1"
+	// DepartmentDefaultScope gates the department default scope
+	// (docs/engineering/ORG-MODEL.md §3): a project created by a member with a
+	// department starts private to that department, and an issue created
+	// without a project lands in the department inbox instead of being visible
+	// to the whole workspace. Off by default, and it only ever adds rows at
+	// creation time — no read path consults department_id, so turning it off
+	// leaves every existing object exactly as visible as it is today.
+	DepartmentDefaultScope = "department_default_scope"
 )
 
 var frontendPublicFlags = []string{
 	BillingWorkspaceSubscriptions,
 	ComposioMCPApps,
 	PluginsV1,
+	KnowledgeDepartmentScope,
 }
 
 func BillingWorkspaceSubscriptionsEnabled(ctx context.Context, flags *featureflag.Service) bool {
@@ -79,6 +106,27 @@ func TriageV1Enabled(ctx context.Context, flags *featureflag.Service) bool {
 
 func LocalSearchIndexEnabled(ctx context.Context, flags *featureflag.Service) bool {
 	return flags.IsEnabled(ctx, LocalSearchIndex, true)
+}
+
+// KnowledgeProjectACLEnabled reports whether the project-ACL observation runs.
+// Enforcement is not wired to this switch yet: see knowledge.VisibilityFlags.
+func KnowledgeProjectACLEnabled(ctx context.Context, flags *featureflag.Service) bool {
+	return flags.IsEnabled(ctx, KnowledgeProjectACL, false)
+}
+
+// KnowledgeAdminVisibilityEnabled reports the owner/admin read bypass.
+func KnowledgeAdminVisibilityEnabled(ctx context.Context, flags *featureflag.Service) bool {
+	return flags.IsEnabled(ctx, KnowledgeAdminVisibility, false)
+}
+
+// KnowledgeDepartmentScopeEnabled reports whether the knowledge space switcher
+// groups by department. Off by default: the switcher then renders as before.
+func KnowledgeDepartmentScopeEnabled(ctx context.Context, flags *featureflag.Service) bool {
+	return flags.IsEnabled(ctx, KnowledgeDepartmentScope, false)
+}
+
+func DepartmentDefaultScopeEnabled(ctx context.Context, flags *featureflag.Service) bool {
+	return flags.IsEnabled(ctx, DepartmentDefaultScope, false)
 }
 
 func EvaluateFrontendPublicFlags(ctx context.Context, flags *featureflag.Service) map[string]bool {
