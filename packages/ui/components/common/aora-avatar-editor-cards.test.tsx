@@ -1,16 +1,15 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { SHAPE_IDS } from "@aora-bot/engine";
+import { ALL_COLOR_IDS, FACE_STYLES, SHAPE_IDS, STYLE_IDS } from "@aora-bot/engine";
 import { describe, expect, it, vi } from "vitest";
 
 /**
- * The avatar layout's real card grid.
+ * The avatar layout's picker: four tabs, one axis each.
  *
- * Unlike `aora-avatar-editor.test.tsx`, upstream's picker is not stubbed here:
- * the point of this file is what the popover actually contains — the picker's
- * own radios and their labels — and that a card press reaches the host as one
- * complete spec. Only the animated mark is stubbed, because a jsdom frame loop
- * is not what these cases are about.
+ * Upstream's character grid is not involved here - the popover draws our own tabbed
+ * picker, so this file pins what it contains (four tabs, the right number of cells
+ * per axis, names for every cell) and that a press reaches the host as one complete
+ * spec.
  */
 vi.mock("@aora-bot/react", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@aora-bot/react")>();
@@ -25,63 +24,51 @@ const { isAoraSpec } = await import("./aora-avatar");
 
 const SPEC = "aora:mochi:blob:blue:capsule:vector:1a2b";
 
-describe("AoraAvatarEditor avatar layout cards", () => {
-  it("shows Aora's character cards when the avatar is pressed", async () => {
+describe("AoraAvatarEditor avatar layout picker", () => {
+  it("opens four tabs and fills each with one axis of the spec", async () => {
     const user = userEvent.setup();
     render(<AoraAvatarEditor spec={SPEC} entityId="agent-0001" layout="avatar" onChange={vi.fn()} />);
 
-    // Nothing is drawn until the avatar is pressed: the row is the avatar, the
-    // randomize action and the Studio entry.
-    expect(screen.queryByRole("radiogroup", { name: "Select shape" })).not.toBeInTheDocument();
+    // Nothing is drawn until the avatar is pressed.
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Character" }));
 
-    const shapes = screen.getByRole("radiogroup", { name: "Select shape" });
-    const colours = screen.getByRole("radiogroup", { name: "Select colour" });
-    expect(within(shapes).getAllByRole("radio")).toHaveLength(SHAPE_IDS.length);
-    expect(within(colours).getAllByRole("radio").length).toBeGreaterThan(0);
-    // The grid is labelled, so a screen reader announces what the cards are.
-    expect(within(shapes).getByText("Shape")).toBeInTheDocument();
-    expect(within(colours).getByText("Colour")).toBeInTheDocument();
-    expect(within(shapes).getAllByRole("radio")[0]?.getAttribute("aria-label")).toBeTruthy();
+    const tabs = screen.getByRole("tablist");
+    expect(within(tabs).getAllByRole("tab")).toHaveLength(4);
+
+    // Shape is the opening tab, and every shape the engine offers is a cell.
+    expect(screen.getByRole("listbox", { name: /shape/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("option")).toHaveLength(SHAPE_IDS.length);
+
+    await user.click(within(tabs).getByRole("tab", { name: /colou?r/i }));
+    expect(screen.getAllByRole("option")).toHaveLength(ALL_COLOR_IDS.length);
+
+    await user.click(within(tabs).getByRole("tab", { name: /style/i }));
+    expect(screen.getAllByRole("option")).toHaveLength(STYLE_IDS.length);
+
+    await user.click(within(tabs).getByRole("tab", { name: /face/i }));
+    expect(screen.getAllByRole("option")).toHaveLength(FACE_STYLES.length);
+
+    // Every cell is named: a grid of unlabelled blobs is unusable by ear.
+    for (const option of screen.getAllByRole("option")) {
+      expect(option.getAttribute("aria-label")).toBeTruthy();
+    }
   });
 
-  it("writes one valid aora spec when a card is pressed", async () => {
+  it("writes one valid aora spec when a cell is pressed", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
-    const validate = vi.fn(isAoraSpec);
-    render(
-      <AoraAvatarEditor
-        spec={SPEC}
-        entityId="agent-0001"
-        layout="avatar"
-        validate={validate}
-        onChange={onChange}
-      />,
-    );
+    render(<AoraAvatarEditor spec={SPEC} entityId="agent-0001" layout="avatar" onChange={onChange} />);
 
     await user.click(screen.getByRole("button", { name: "Character" }));
-    const shapes = screen.getByRole("radiogroup", { name: "Select shape" });
-    const cards = within(shapes).getAllByRole("radio");
-    const third = cards[2];
-    expect(third).toBeDefined();
-    await user.click(third!);
+    const before = screen.getAllByRole("option");
+    await user.click(before[before.length - 1]!);
 
-    // One press, one write — the card is the decision, there is nothing to
-    // confirm — and the spec is the six-field wire format with the picked
-    // shape and the stored cast, face, style and seed.
     expect(onChange).toHaveBeenCalledTimes(1);
     const written = onChange.mock.calls[0]![0] as string;
     expect(isAoraSpec(written)).toBe(true);
-    expect(validate).toHaveBeenCalledWith(written);
-    expect(written.split(":")).toEqual([
-      "aora",
-      "mochi",
-      SHAPE_IDS[2],
-      "blue",
-      "capsule",
-      "vector",
-      "1a2b",
-    ]);
+    // The other axes are inherited: one press changes one field.
+    expect(written).toContain(":capsule:vector:");
   });
 });

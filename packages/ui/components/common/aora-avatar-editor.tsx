@@ -19,7 +19,6 @@ import type {
   StyleId,
 } from "@aora-bot/engine";
 import {
-  AgentCharacterSelector,
   AvatarButton,
   AvatarStudio,
   CAST_IDS,
@@ -29,6 +28,10 @@ import {
 import "@aora-bot/react/styles.css";
 
 import { Button } from "@morechat/ui/components/ui/button";
+import {
+  AoraPickerTabs,
+  type AoraPickerTab,
+} from "./aora-picker-tabs";
 import {
   Popover,
   PopoverContent,
@@ -48,18 +51,18 @@ import { readAoraFields } from "./aora-character";
 /**
  * The avatar editor: upstream's own surfaces, plus the spec's free fields.
  *
- * Upstream owns the visual vocabulary — `AvatarButton` opens the Studio
+ * Upstream owns the visual vocabulary 鈥?`AvatarButton` opens the Studio
  * (shape/colour grid, picture upload, live preview), `AgentCharacterSelector`
- * is the confirmable shape grid — so none of it is redrawn here. What this adds
+ * is the confirmable shape grid 鈥?so none of it is redrawn here. What this adds
  * is the rest of the persisted spec that upstream's settings surfaces do not
  * expose (cast character, draw style, face), plus the paint knobs upstream's
  * `CharacterMark` takes but the six-field spec cannot carry
- * (`variant`/`eyeColor`/`lineWeight` — preview-only, see {@link commit}).
+ * (`variant`/`eyeColor`/`lineWeight` 鈥?preview-only, see {@link commit}).
  *
  * Saving is immediate, like the rest of settings: every pick commits. The one
  * invariant is that a spec only leaves this component when a decoder accepts
  * it; a rejected value reverts the draft instead of being written. A rolled
- * face is the exception — it previews first and is written on confirmation, so
+ * face is the exception 鈥?it previews first and is written on confirmation, so
  * nobody publishes a random character by accident.
  */
 
@@ -151,11 +154,11 @@ export interface AoraAvatarEditorLabels {
   variant: string;
   eyeColor: string;
   lineWeight: string;
-  /** "Let the shape decide" — the empty cast option. */
+  /** "Let the shape decide" 鈥?the empty cast option. */
   castDefault: string;
-  /** "Style default" — the empty variant option. */
+  /** "Style default" 鈥?the empty variant option. */
   variantDefault: string;
-  /** "Theme ink" — the empty eye-colour option. */
+  /** "Theme ink" 鈥?the empty eye-colour option. */
   eyeDefault: string;
   /** Rolls a face nobody picked yet. Preview only until {@link AoraAvatarEditorLabels.randomApply}. */
   random: string;
@@ -210,7 +213,7 @@ export interface AoraAvatarEditorProps {
    */
   validate?: (spec: string) => boolean;
   /**
-   * Produces a complete spec nobody picked — the host supplies the derived
+   * Produces a complete spec nobody picked 鈥?the host supplies the derived
    * generator (`deriveAoraSpec`) because the pools and the hash live in
    * `@morechat/core`, which this package does not import. Without it the
    * Randomize action is not offered.
@@ -379,17 +382,26 @@ export function AoraAvatarEditor({
   );
 
   /**
-   * The cards upstream's picker already draws. `immediate` means a click is the
-   * decision, and `actions={false}` hides upstream's own confirm pair because
-   * there is nothing left to confirm.
+   * Four tabs, one axis each: shape, colour, drawing style, face.
+   *
+   * Upstream's character selector bundles shape and colour into a named cast, which
+   * browses nicely and edits badly - changing the silhouette picks a new colour with
+   * it. The spec has four independent fields, so the picker shows four.
    */
+  const [pickerTab, setPickerTab] = useState<AoraPickerTab>("shape");
   const characterCards = (
-    <AgentCharacterSelector
-      value={studioValue}
-      shapes={SHAPE_IDS}
-      actions={false}
-      immediate
-      onCommit={studioPick}
+    <AoraPickerTabs
+      spec={draft}
+      tab={pickerTab}
+      onTabChange={setPickerTab}
+      onPick={(patch) => commit(patch)}
+      labels={{
+        shape: labels.shape,
+        color: labels.color,
+        style: labels.style,
+        face: labels.face,
+      }}
+      disabled={disabled}
     />
   );
 

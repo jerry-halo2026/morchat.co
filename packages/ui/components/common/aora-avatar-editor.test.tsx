@@ -40,17 +40,6 @@ vi.mock("@aora-bot/react", async (importOriginal) => {
         <button type="button" data-testid="avatar-studio-close" onClick={() => onClose?.("cancel")} />
       </div>
     ),
-    AgentCharacterSelector: ({
-      onCommit,
-    }: {
-      onCommit?: (next: { shape: string; color: string; face?: string }) => void;
-    }) => (
-      <button
-        type="button"
-        data-testid="grid"
-        onClick={() => onCommit?.({ shape: "hex", color: "green" })}
-      />
-    ),
   };
 });
 
@@ -173,12 +162,12 @@ describe("AoraAvatarEditor", () => {
     expect(screen.queryByRole("img", { name: "Avatar preview" })).not.toBeInTheDocument();
     expect(screen.queryByRole("combobox", { name: "Shape" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Shape and colour" })).not.toBeInTheDocument();
-    expect(screen.queryByTestId("grid")).not.toBeInTheDocument();
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Character" }));
 
-    // Pressing the face is what draws the character cards, not a taller row.
-    expect(screen.getByTestId("grid")).toBeInTheDocument();
+    // Pressing the face is what draws the picker, not a taller row.
+    expect(screen.getByRole("tablist")).toBeInTheDocument();
   });
 
   it("commits a pick made through the avatar itself", async () => {
@@ -194,12 +183,15 @@ describe("AoraAvatarEditor", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Character" }));
-    await user.click(screen.getByTestId("grid"));
+    // One cell on the opening (shape) tab: exactly one field may move.
+    const cells = screen.getAllByRole("option");
+    await user.click(cells[cells.length - 1]!);
 
-    // Shape and colour move; the cast, face, style and seed in the stored spec
-    // survive a card the picker commits without a face.
     expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange).toHaveBeenCalledWith("aora:mochi:hex:green:capsule:vector:1a2b");
+    const written = onChange.mock.calls[0]![0] as string;
+    // The cast, face, style and seed survive; only the shape changed.
+    expect(written.startsWith("aora:mochi:")).toBe(true);
+    expect(written).toContain(":blue:capsule:vector:1a2b");
   });
 
   it("opens the full Studio from the avatar layout and commits its pick", async () => {

@@ -168,7 +168,12 @@ export function PresetPreviewPanel({
         </p>
       )}
 
-      <Button type="button" onClick={onImport} disabled={importing || loading}>
+      <Button
+        type="button"
+        data-testid="preset-import"
+        onClick={onImport}
+        disabled={importing || loading}
+      >
         {importing ? t(($) => $.import.running) : importLabel}
       </Button>
     </aside>
@@ -391,6 +396,9 @@ export default function PresetsPage({
                 <li key={pkg.id}>
                   <button
                     type="button"
+                    data-testid="preset-card"
+                    data-package-id={pkg.id}
+                    data-package-kind={pkg.kind}
                     onClick={() => setSelectedId(pkg.id)}
                     aria-current={isSelected ? "true" : undefined}
                     className={cn(
