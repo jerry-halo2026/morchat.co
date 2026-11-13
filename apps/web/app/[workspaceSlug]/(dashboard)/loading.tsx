@@ -1,13 +1,15 @@
+"use client";
+
+import { useParams } from "next/navigation";
+
 import { WorkspaceFaceLoader } from "@morechat/views/common/workspace-face-loader";
 
-// Route transitions inside a workspace show the workspace's own face rather than a
-// blank frame. The slug is enough to pick it: the same id derives the same character
-// everywhere else in the app.
-export default async function WorkspaceLoading({
-  params,
-}: {
-  params: Promise<{ workspaceSlug: string }>;
-}) {
-  const { workspaceSlug } = await params;
-  return <WorkspaceFaceLoader workspaceId={workspaceSlug} />;
+// A `loading.tsx` renders as a fallback while the segment resolves, so its `params`
+// is not guaranteed - reading it server-side threw
+// "Cannot destructure property 'workspaceSlug' of undefined" on every navigation.
+// The slug comes from the router instead, which is also where the rest of the shell
+// reads it.
+export default function WorkspaceLoading() {
+  const params = useParams<{ workspaceSlug?: string }>();
+  return <WorkspaceFaceLoader workspaceId={params?.workspaceSlug} />;
 }

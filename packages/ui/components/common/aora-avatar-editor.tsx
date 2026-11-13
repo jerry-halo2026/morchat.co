@@ -394,7 +394,7 @@ export function AoraAvatarEditor({
       spec={draft}
       tab={pickerTab}
       onTabChange={setPickerTab}
-      onPick={(patch) => commit(patch)}
+      onChange={(patch) => commit(patch)}
       labels={{
         shape: labels.shape,
         color: labels.color,
@@ -476,7 +476,7 @@ export function AoraAvatarEditor({
                 </button>
               }
             />
-            <PopoverContent align="end" className="w-auto p-2">
+            <PopoverContent align="end" className="w-[340px] p-2">
               {characterCards}
               <div className="flex items-center gap-2 border-t border-border pt-2">
                 {randomControls}
