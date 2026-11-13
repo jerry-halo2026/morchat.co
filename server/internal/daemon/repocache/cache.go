@@ -1198,7 +1198,7 @@ func removeLinkedWorktree(barePath, checkoutPath string) error {
 	return removeLinkedWorktreeContext(context.Background(), barePath, checkoutPath)
 }
 
-func removeLinkedWorktreeContext(ctx context.Context, barePath, checkoutPath string) error {
+func linkedWorktreeCommonDirContext(ctx context.Context, checkoutPath string) (string, error) {
 	out, err := runGitOutputContext(ctx, "-C", checkoutPath, "rev-parse", "--git-common-dir")
 	if err != nil {
 		return "", err
