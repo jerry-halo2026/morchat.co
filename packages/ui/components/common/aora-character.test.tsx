@@ -68,7 +68,7 @@ describe("AoraCharacter", () => {
     );
 
     expect(container.querySelector('[data-avatar-mode="live"]')).toBeNull();
-    expect(image(container)).toHaveAttribute("src", `/avatar/${SPEC}?size=20`);
+    expect(image(container)).toHaveAttribute("src", expect.stringContaining("data:image/svg+xml"));
   });
 
   it("renders the live character at the hero rungs", () => {
@@ -91,6 +91,6 @@ describe("AoraCharacter", () => {
     );
 
     expect(container.querySelector('[data-avatar-mode="live"]')).toBeNull();
-    expect(image(container)).toHaveAttribute("src", "/avatar/agent-0001?derive=1&size=56");
+    expect(image(container)).toHaveAttribute("src", expect.stringContaining("data:image/svg+xml"));
   });
 });

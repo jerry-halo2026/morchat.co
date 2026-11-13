@@ -34,7 +34,7 @@ import {
 import { cn } from "@morechat/ui/lib/utils";
 import { encodeAoraSpec, type AoraSpec } from "@morechat/core/avatar/aora-spec";
 
-import { aoraAvatarUrl } from "./aora-avatar";
+import { aoraAvatarDataUri } from "./aora-avatar";
 
 /** Which axis a tab edits. */
 export type AoraPickerTab = "shape" | "color" | "style" | "face";
@@ -305,7 +305,7 @@ export function AoraPickerTabs({
       <div
         role="listbox"
         aria-label={tabs.find((entry) => entry.id === tab)?.label}
-        className="grid max-h-64 grid-cols-7 gap-1 overflow-y-auto p-0.5"
+        className="grid max-h-[264px] grid-cols-7 gap-1 overflow-y-auto p-0.5"
       >
         {cells.map((cell) => {
           // Each cell is the current face with one field swapped, so the grid shows
@@ -333,7 +333,7 @@ export function AoraPickerTabs({
                     style={{ width: cellPx + 8, height: cellPx + 8 }}
                   >
                     <img
-                      src={aoraAvatarUrl({
+                      src={aoraAvatarDataUri({
                         entityId: cell.id,
                         avatarUrl: encodeAoraSpec(candidate),
                         sizePx: cellPx,

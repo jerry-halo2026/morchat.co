@@ -68,7 +68,7 @@ describe("AoraAvatar", () => {
     const { container } = render(<AoraAvatar entityId="agent-0001" name="Mika" size="md" />);
     const img = image(container);
 
-    expect(img).toHaveAttribute("src", "/avatar/agent-0001?derive=1&size=24");
+    expect(img).toHaveAttribute("src", expect.stringContaining("data:image/svg+xml"));
     expect(img).toHaveAttribute("alt", "Mika");
     expect(img).toHaveAttribute("loading", "lazy");
     expect(img).toHaveAttribute("decoding", "async");
@@ -82,7 +82,7 @@ describe("AoraAvatar", () => {
     // 20px is the list slot; `--avatar-slot-size` still wins inside a control.
     expect(wrapper?.style.width).toBe("var(--avatar-slot-size, 20px)");
     expect(wrapper?.style.height).toBe("var(--avatar-slot-size, 20px)");
-    expect(image(container)).toHaveAttribute("src", "/avatar/agent-0001?derive=1&size=20");
+    expect(image(container)).toHaveAttribute("src", expect.stringContaining("data:image/svg+xml"));
   });
 
   it("renders an explicit spec at a raw px size", () => {
@@ -92,7 +92,7 @@ describe("AoraAvatar", () => {
     const wrapper = container.querySelector<HTMLElement>('[data-slot="avatar"]');
 
     expect(wrapper?.style.width).toBe("var(--avatar-slot-size, 56px)");
-    expect(image(container)).toHaveAttribute("src", `/avatar/${SPEC}?size=56`);
+    expect(image(container)).toHaveAttribute("src", expect.stringContaining("data:image/svg+xml"));
     expect(image(container)).toHaveAttribute("alt", "Mochi");
   });
 

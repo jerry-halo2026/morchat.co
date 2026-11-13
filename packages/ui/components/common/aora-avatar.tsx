@@ -5,6 +5,14 @@ import {
   DEFAULT_AVATAR_SIZE,
   type AvatarSize,
 } from "@morechat/ui/lib/avatar-size";
+import { decodeAoraSpec, deriveAoraSpec } from "@morechat/core/avatar/aora-spec";
+import {
+  renderStaticSvg,
+  type ColorId,
+  type FaceStyle,
+  type ShapeId,
+  type StyleId,
+} from "@aora-bot/engine";
 import { cn } from "@morechat/ui/lib/utils";
 
 /**
@@ -68,6 +76,38 @@ export function aoraAvatarUrl({
   return `/avatar/${segment}?derive=1${size ? `&${size}` : ""}`;
 }
 
+/**
+ * The same face as an inline data URI.
+ *
+ * One image per avatar with no request and no route: the engine draws the SVG here,
+ * so a workspace face, an agent face and a picker cell all work on a page that has no
+ * `/avatar` handler at all - which is every Electron window.
+ */
+export function aoraAvatarDataUri({
+  entityId,
+  avatarUrl,
+  sizePx,
+}: AoraAvatarUrlInput): string {
+  const decoded = decodeAoraSpec(avatarUrl);
+  const spec = decoded ?? deriveAoraSpec(entityId || avatarUrl || "avatar");
+  const px = sizePx && sizePx > 0 ? Math.round(sizePx) : 40;
+  try {
+    const svg = renderStaticSvg({
+      shape: spec.shape as ShapeId,
+      color: spec.color as ColorId,
+      face: spec.face as FaceStyle,
+      style: spec.style as StyleId,
+      sizePx: px,
+      // Matches the route: a flat fill ships fewer bytes and needs no dark mode pass.
+      flat: true,
+    });
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  } catch {
+    // A spec only uses ids the engine ships, so this is the floor rather than a hole.
+    return "";
+  }
+}
+
 export interface AoraAvatarProps {
   /** Actor id; the derived spec is hashed from it. */
   entityId: string;
@@ -114,7 +154,7 @@ export function AoraAvatar({
       style={{ width: diameter, height: diameter }}
     >
       <img
-        src={aoraAvatarUrl({ entityId, avatarUrl, sizePx: px })}
+        src={aoraAvatarDataUri({ entityId, avatarUrl, sizePx: px })}
         alt={alt ?? name ?? ""}
         width={px}
         height={px}
