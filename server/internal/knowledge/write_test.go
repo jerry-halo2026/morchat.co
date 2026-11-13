@@ -2,6 +2,7 @@ package knowledge
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 )
@@ -35,24 +36,47 @@ func TestEnsureDefaultSpaceRequiresWorkspace(t *testing.T) {
 	}
 }
 
-// The tool surface must declare the write tool; a model can only call what is
-// declared, and the whole point is that the write exists.
-func TestToolsDeclareWrite(t *testing.T) {
+// The tool surface must declare the proposal tool, and must NOT declare a write
+// tool: an agent can only propose, and a model can only call what is declared.
+func TestToolsDeclarePropose(t *testing.T) {
 	s := &Service{}
 	var found bool
 	for _, tool := range s.Tools() {
-		if tool.Name != ToolKnowledgeWrite {
+		if tool.Name == "knowledge.write" {
+			t.Fatalf("%s is still declared; an agent must not write knowledge directly", tool.Name)
+		}
+		if tool.Name != ToolKnowledgePropose {
 			continue
 		}
 		found = true
 		for _, required := range []string{`"title"`, `"content"`} {
 			if !strings.Contains(string(tool.InputSchema), required) {
-				t.Fatalf("write schema is missing %s", required)
+				t.Fatalf("propose schema is missing %s", required)
+			}
+		}
+		for _, wording := range []string{"DRAFT", "approve"} {
+			if !strings.Contains(tool.Description, wording) {
+				t.Fatalf("propose description does not say %q: %s", wording, tool.Description)
 			}
 		}
 	}
 	if !found {
-		t.Fatalf("%s is not declared", ToolKnowledgeWrite)
+		t.Fatalf("%s is not declared", ToolKnowledgePropose)
+	}
+}
+
+// A deployment with no issue-creation wired cannot accept a proposal: answering
+// "stored" would strand a draft nobody is asked to review.
+func TestProposeWithoutIssueCreatorFails(t *testing.T) {
+	s := &Service{}
+	_, err := s.Propose(context.Background(), ProposeRequest{
+		WorkspaceID: "11111111-1111-1111-1111-111111111111",
+		OwnerID:     "22222222-2222-2222-2222-222222222222",
+		Title:       "A conclusion",
+		Content:     "something worth keeping",
+	})
+	if !errors.Is(err, ErrProposeUnavailable) {
+		t.Fatalf("error = %v, want ErrProposeUnavailable", err)
 	}
 }
 

@@ -142,6 +142,10 @@ type Service struct {
 	// flags is the deployment feature-flag service. Nil is legal and reads the
 	// default of every switch, which is false — i.e. today's behaviour.
 	flags *featureflag.Service
+	// reviewIssues creates the review issue of a proposal. Nil means this
+	// deployment has no issue creation wired, and knowledge.propose answers
+	// ErrProposeUnavailable rather than stranding an unapprovable draft.
+	reviewIssues ReviewIssueCreator
 
 	capabilitiesOnce sync.Once
 	capabilities     chunkCapabilities
@@ -337,6 +341,10 @@ type ImportRequest struct {
 	Chunk   ChunkConfig
 	ACLMode string
 	OwnerID string
+	// Status is the lifecycle the created item starts in. Empty means active:
+	// a human upload is indexed immediately. An agent write passes draft, so
+	// what a run leaves behind waits for a reviewer (W1-A, knowledge.propose).
+	Status string
 }
 
 // StartImport records a task and 鈥?unless the Service is synchronous 鈥?starts the
@@ -359,6 +367,14 @@ func (s *Service) StartImport(ctx context.Context, in ImportRequest) (ImportTask
 	if strings.TrimSpace(in.SourceRef) == "" && len(in.Content) == 0 {
 		return ImportTask{}, fmt.Errorf("%w: source_ref or content is required", ErrInvalidField)
 	}
+	status := strings.TrimSpace(in.Status)
+	if status == "" {
+		status = StatusActive
+	} else if !Status.Has(status) {
+		return ImportTask{}, fmt.Errorf("%w: status=%q not in %v",
+			ErrInvalidField, in.Status, Status.Values)
+	}
+	in.Status = status
 	aclMode := in.ACLMode
 	if aclMode == "" {
 		aclMode = ACLMode.Default
@@ -508,7 +524,7 @@ func (s *Service) runImport(ctx context.Context, task ImportTask, in ImportReque
 		Kind:        KindDoc,
 		SourceType:  in.SourceType,
 		SourceRef:   in.SourceRef,
-		Status:      StatusActive,
+		Status:      in.Status,
 		ACLMode:     in.ACLMode,
 		OwnerID:     optionalString(in.OwnerID),
 	})

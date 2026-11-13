@@ -37,7 +37,9 @@ type WriteRequest struct {
 	Wait time.Duration
 }
 
-// WriteResult names what the write produced.
+// WriteResult names what the write produced. Status is the import task's state;
+// ItemStatus is the lifecycle the item was created in, which for a run's write
+// is always draft — the item becomes active only through review.
 type WriteResult struct {
 	TaskID     string `json:"task_id"`
 	SpaceID    string `json:"space_id"`
@@ -45,6 +47,7 @@ type WriteResult struct {
 	DocumentID string `json:"document_id,omitempty"`
 	Chunks     int    `json:"chunk_count"`
 	Status     string `json:"status"`
+	ItemStatus string `json:"item_status"`
 }
 
 // writeWaitDefault is generous: chunking a few pages with an embedder configured is
@@ -107,6 +110,11 @@ func (s *Service) WriteDocument(ctx context.Context, in WriteRequest) (WriteResu
 		MIME:        "text/markdown",
 		Content:     []byte(in.Content),
 		OwnerID:     in.OwnerID,
+		// A write from a run lands as a draft: it is a claim, and a claim
+		// becomes knowledge only when a person approves it. The import
+		// pipeline still chunks and stores it, so an approved item needs no
+		// second ingest.
+		Status: StatusDraft,
 	})
 	if err != nil {
 		return WriteResult{}, err
@@ -124,10 +132,11 @@ func (s *Service) WriteDocument(ctx context.Context, in WriteRequest) (WriteResu
 		}
 		if current.Terminal() {
 			result := WriteResult{
-				TaskID:  current.ID,
-				SpaceID: spaceID,
-				Chunks:  current.ChunkCount,
-				Status:  current.Status,
+				TaskID:     current.ID,
+				SpaceID:    spaceID,
+				Chunks:     current.ChunkCount,
+				Status:     current.Status,
+				ItemStatus: StatusDraft,
 			}
 			if current.ItemID != nil {
 				result.ItemID = *current.ItemID

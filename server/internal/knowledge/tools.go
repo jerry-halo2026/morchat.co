@@ -31,9 +31,9 @@ type Tool struct {
 
 // The registered tool names.
 const (
-	ToolKnowledgeSearch = "knowledge.search"
-	ToolKnowledgeGet    = "knowledge.get"
-	ToolKnowledgeWrite  = "knowledge.write"
+	ToolKnowledgeSearch  = "knowledge.search"
+	ToolKnowledgeGet     = "knowledge.get"
+	ToolKnowledgePropose = "knowledge.propose"
 )
 
 var knowledgeSearchSchema = json.RawMessage(`{
@@ -63,13 +63,13 @@ var knowledgeGetSchema = json.RawMessage(`{
 }`)
 
 
-var knowledgeWriteSchema = json.RawMessage(`{
+var knowledgeProposeSchema = json.RawMessage(`{
   "type": "object",
   "properties": {
-    "title":      {"type": "string", "description": "Document title. Becomes the item title."},
+    "title":      {"type": "string", "description": "Proposed document title. Becomes the item title and the review issue title."},
     "content":    {"type": "string", "description": "Markdown body to store."},
     "space_id":   {"type": "string", "description": "Target space. Omit to use the workspace's General space, created on first use."},
-    "source_ref": {"type": "string", "description": "Where this came from, e.g. an issue URL. Shown as the item's source."}
+    "source_ref": {"type": "string", "description": "Where this came from, e.g. an issue URL or a file path. Shown as the item's source and quoted in the review issue."}
   },
   "required": ["title", "content"],
   "additionalProperties": false
@@ -90,17 +90,21 @@ func (s *Service) Tools() []Tool {
 			InputSchema: knowledgeSearchSchema,
 		},
 		{
-			Name: ToolKnowledgeWrite,
-			Description: "Store a document in the workspace knowledge base and return its item and document id. " +
-				"Use this when a task produced something worth keeping: a conclusion, a runbook, a decision with " +
-				"its reasons. The body goes through the same pipeline as an upload, so it is chunked and " +
-				"searchable immediately. The note is owned by the caller.",
-			InputSchema: knowledgeWriteSchema,
+			Name: ToolKnowledgePropose,
+			Description: "Propose a document for the workspace knowledge base. Stores the body as a DRAFT item " +
+				"and opens one review issue (label knowledge-review) assigned to the space's owner, its " +
+				"department lead, or a workspace admin; it answers {item_id, issue_id}. Use this when a task " +
+				"produced something worth keeping: a conclusion, a runbook, a decision with its reasons. " +
+				"An agent can only propose — the item becomes active, and trustworthy, when a person approves " +
+				"the review issue (agent 只能提案，入库需人批准). Never report a proposal as stored knowledge.",
+			InputSchema: knowledgeProposeSchema,
 		},
 		{
 			Name: ToolKnowledgeGet,
 			Description: "Read one knowledge item (and by default its document's chunks) by id. " +
 				"Use the item_id from a knowledge.search hit to read the surrounding document. " +
+				"The answer carries the item's review record: reviewed_at, stale_after and review_issue_id. " +
+				"An empty reviewed_at means the item is still an unapproved draft — treat it as untrusted. " +
 				"An item outside the caller's workspace answers knowledge_forbidden.",
 			InputSchema: knowledgeGetSchema,
 		},
@@ -115,9 +119,12 @@ type ToolInvocation struct {
 	Args        json.RawMessage
 }
 
-// KnowledgeGetResult is knowledge.get's answer.
+// KnowledgeGetResult is knowledge.get's answer. Review is the item's trust
+// record: who approved it, when, which issue carried the review, and when the
+// approval expires. A draft answers a review with every field empty.
 type KnowledgeGetResult struct {
 	Item   Item    `json:"item"`
+	Review *Review `json:"review,omitempty"`
 	Chunks []Chunk `json:"chunks,omitempty"`
 }
 
@@ -130,8 +137,8 @@ func (s *Service) InvokeTool(ctx context.Context, inv ToolInvocation) (any, erro
 		return s.invokeSearch(ctx, inv)
 	case ToolKnowledgeGet:
 		return s.invokeGet(ctx, inv)
-	case ToolKnowledgeWrite:
-		return s.invokeWrite(ctx, inv)
+	case ToolKnowledgePropose:
+		return s.invokePropose(ctx, inv)
 	}
 	return nil, fmt.Errorf("%w: %s", ErrUnknownTool, inv.Name)
 }
@@ -163,12 +170,13 @@ func (s *Service) invokeSearch(ctx context.Context, inv ToolInvocation) (Retriev
 	})
 }
 
-// invokeWrite stores one document and answers with what it became.
+// invokePropose is knowledge.propose: a draft item plus its review issue.
 //
-// The owner is the caller, so the note is theirs in the same sense a comment is:
-// the ACL rules that decide who can read it need no special case for agent-authored
-// content.
-func (s *Service) invokeWrite(ctx context.Context, inv ToolInvocation) (WriteResult, error) {
+// The owner is the human the run acts for (the token's user), so the draft is
+// theirs in the same sense a comment is, and the permission rules that decide who
+// can read it need no special case for agent-authored content. What makes it
+// trustworthy is the review, not the author.
+func (s *Service) invokePropose(ctx context.Context, inv ToolInvocation) (ProposeResult, error) {
 	var args struct {
 		Title     string `json:"title"`
 		Content   string `json:"content"`
@@ -176,12 +184,12 @@ func (s *Service) invokeWrite(ctx context.Context, inv ToolInvocation) (WriteRes
 		SourceRef string `json:"source_ref"`
 	}
 	if err := decodeToolArgs(inv.Args, &args); err != nil {
-		return WriteResult{}, err
+		return ProposeResult{}, err
 	}
 	if strings.TrimSpace(args.Title) == "" {
-		return WriteResult{}, fmt.Errorf("%w: title is required", ErrInvalidField)
+		return ProposeResult{}, fmt.Errorf("%w: title is required", ErrInvalidField)
 	}
-	return s.WriteDocument(ctx, WriteRequest{
+	return s.Propose(ctx, ProposeRequest{
 		WorkspaceID: inv.WorkspaceID,
 		OwnerID:     inv.ViewerID,
 		SpaceID:     args.SpaceID,
@@ -209,6 +217,14 @@ func (s *Service) invokeGet(ctx context.Context, inv ToolInvocation) (KnowledgeG
 		return KnowledgeGetResult{}, err
 	}
 	result := KnowledgeGetResult{Item: item}
+	// The review record is what lets a reader decide whether to trust the
+	// passage: "read this" and "read this, approved by X on Y" are different
+	// answers, and a draft has to be visible as a draft.
+	review, err := s.store.GetReview(ctx, inv.WorkspaceID, item.ID)
+	if err != nil {
+		return KnowledgeGetResult{}, err
+	}
+	result.Review = &review
 	includeChunks := args.IncludeChunks == nil || *args.IncludeChunks
 	if !includeChunks {
 		return result, nil
