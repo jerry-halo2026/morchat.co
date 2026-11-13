@@ -2373,6 +2373,18 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 				})
 			})
 
+			// Departments (docs/engineering/ORG-MODEL.md). Any member may read
+			// the list; writes are gated to owner/admin inside the handlers.
+			// A department is not an ACL: no read path filters by it.
+			r.Route("/api/departments", func(r chi.Router) {
+				r.Get("/", h.ListDepartments)
+				r.Post("/", h.CreateDepartment)
+				r.Route("/{id}", func(r chi.Router) {
+					r.Patch("/", h.UpdateDepartment)
+					r.Delete("/", h.DeleteDepartment)
+				})
+			})
+
 			// Squads
 			r.Route("/api/squads", func(r chi.Router) {
 				r.Get("/", h.ListSquads)

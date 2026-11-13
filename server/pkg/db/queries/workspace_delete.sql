@@ -754,6 +754,12 @@ detached_client_usage AS (
 deleted_share_links AS (
     DELETE FROM workspace_share_link
     WHERE workspace_share_link.workspace_id = $1
+),
+-- Departments are workspace-owned and carry no foreign key (repository rule),
+-- so teardown removes them here rather than relying on a cascade.
+deleted_departments AS (
+    DELETE FROM department
+    WHERE department.workspace_id = $1
 )
 DELETE FROM workspace_invitation
 WHERE workspace_invitation.workspace_id = $1;

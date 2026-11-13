@@ -39,9 +39,15 @@ RETURNING *;
 DELETE FROM member WHERE id = $1;
 
 -- name: ListMembersWithUser :many
-SELECT m.id, m.workspace_id, m.user_id, m.role, m.created_at,
+SELECT m.id, m.workspace_id, m.user_id, m.role, m.created_at, m.department_id,
        u.name as user_name, u.email as user_email, u.avatar_url as user_avatar_url
 FROM member m
 JOIN "user" u ON u.id = m.user_id
 WHERE m.workspace_id = $1
 ORDER BY m.created_at ASC;
+
+-- name: UpdateMemberDepartment :exec
+-- Used when an invitation that named a department is accepted. An empty
+-- department clears the attribution; it never touches role or membership.
+UPDATE member SET department_id = sqlc.narg('department_id')::uuid
+WHERE id = sqlc.arg('id');

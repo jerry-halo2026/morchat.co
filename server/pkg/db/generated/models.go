@@ -754,6 +754,16 @@ type DaemonToken struct {
 	OwnerID     pgtype.UUID        `json:"owner_id"`
 }
 
+type Department struct {
+	ID          pgtype.UUID        `json:"id"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	Name        string             `json:"name"`
+	LeadUserID  pgtype.UUID        `json:"lead_user_id"`
+	SystemKey   pgtype.Text        `json:"system_key"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
 type DingtalkBotIdentity struct {
 	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
 	InstallationID   pgtype.UUID        `json:"installation_id"`
@@ -1464,6 +1474,7 @@ type KnowledgeSpace struct {
 	Status             string             `json:"status"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+	DepartmentID       pgtype.UUID        `json:"department_id"`
 }
 
 type LarkBindingToken struct {
@@ -1569,12 +1580,13 @@ type MaintenanceJob struct {
 }
 
 type Member struct {
-	ID          pgtype.UUID        `json:"id"`
-	WorkspaceID pgtype.UUID        `json:"workspace_id"`
-	UserID      pgtype.UUID        `json:"user_id"`
-	Role        string             `json:"role"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
-	PinnedAt    pgtype.Timestamptz `json:"pinned_at"`
+	ID           pgtype.UUID        `json:"id"`
+	WorkspaceID  pgtype.UUID        `json:"workspace_id"`
+	UserID       pgtype.UUID        `json:"user_id"`
+	Role         string             `json:"role"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	PinnedAt     pgtype.Timestamptz `json:"pinned_at"`
+	DepartmentID pgtype.UUID        `json:"department_id"`
 }
 
 type MemberDelegationDay struct {
@@ -1714,23 +1726,25 @@ type PluginStorage struct {
 }
 
 type Project struct {
-	ID          pgtype.UUID        `json:"id"`
-	WorkspaceID pgtype.UUID        `json:"workspace_id"`
-	Title       string             `json:"title"`
-	Description pgtype.Text        `json:"description"`
-	Icon        pgtype.Text        `json:"icon"`
-	Status      string             `json:"status"`
-	LeadType    pgtype.Text        `json:"lead_type"`
-	LeadID      pgtype.UUID        `json:"lead_id"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
-	Priority    string             `json:"priority"`
-	StartDate   pgtype.Date        `json:"start_date"`
-	DueDate     pgtype.Date        `json:"due_date"`
-	WorkflowID  pgtype.UUID        `json:"workflow_id"`
-	CreatorType pgtype.Text        `json:"creator_type"`
-	CreatorID   pgtype.UUID        `json:"creator_id"`
-	Visibility  string             `json:"visibility"`
+	ID           pgtype.UUID        `json:"id"`
+	WorkspaceID  pgtype.UUID        `json:"workspace_id"`
+	Title        string             `json:"title"`
+	Description  pgtype.Text        `json:"description"`
+	Icon         pgtype.Text        `json:"icon"`
+	Status       string             `json:"status"`
+	LeadType     pgtype.Text        `json:"lead_type"`
+	LeadID       pgtype.UUID        `json:"lead_id"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	Priority     string             `json:"priority"`
+	StartDate    pgtype.Date        `json:"start_date"`
+	DueDate      pgtype.Date        `json:"due_date"`
+	WorkflowID   pgtype.UUID        `json:"workflow_id"`
+	CreatorType  pgtype.Text        `json:"creator_type"`
+	CreatorID    pgtype.UUID        `json:"creator_id"`
+	Visibility   string             `json:"visibility"`
+	DepartmentID pgtype.UUID        `json:"department_id"`
+	SystemKey    pgtype.Text        `json:"system_key"`
 }
 
 type ProjectMember struct {
@@ -2228,6 +2242,7 @@ type WorkspaceInvitation struct {
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 	ExpiresAt     pgtype.Timestamptz `json:"expires_at"`
+	DepartmentID  pgtype.UUID        `json:"department_id"`
 }
 
 type WorkspaceMcpServer struct {

@@ -32,6 +32,9 @@ type InvitationResponse struct {
 	CreatedAt     string  `json:"created_at"`
 	UpdatedAt     string  `json:"updated_at"`
 	ExpiresAt     string  `json:"expires_at"`
+	// DepartmentID is the department the invitee will join, or null. Optional:
+	// clients that predate departments never set it and read it as absent.
+	DepartmentID *string `json:"department_id"`
 	// Enriched fields (present in list responses).
 	InviterName   string `json:"inviter_name,omitempty"`
 	InviterEmail  string `json:"inviter_email,omitempty"`
@@ -50,6 +53,7 @@ func invitationToResponse(inv db.WorkspaceInvitation) InvitationResponse {
 		CreatedAt:     timestampToString(inv.CreatedAt),
 		UpdatedAt:     timestampToString(inv.UpdatedAt),
 		ExpiresAt:     timestampToString(inv.ExpiresAt),
+		DepartmentID:  uuidToPtr(inv.DepartmentID),
 	}
 }
 
@@ -83,6 +87,25 @@ func (h *Handler) CreateInvitation(w http.ResponseWriter, r *http.Request) {
 	if role == "owner" {
 		writeError(w, http.StatusBadRequest, "cannot invite as owner")
 		return
+	}
+
+	// Optional department: an absent or empty value keeps the pre-department
+	// behaviour (join with no department). A value must name a department in
+	// this workspace; otherwise the invite would silently land nowhere.
+	var departmentID pgtype.UUID
+	if strings.TrimSpace(req.DepartmentID) != "" {
+		dept, ok := parseUUIDOrBadRequest(w, req.DepartmentID, "department_id")
+		if !ok {
+			return
+		}
+		if _, err := h.Queries.GetDepartment(r.Context(), db.GetDepartmentParams{
+			ID:          dept,
+			WorkspaceID: requester.WorkspaceID,
+		}); err != nil {
+			writeError(w, http.StatusBadRequest, "department not found in this workspace")
+			return
+		}
+		departmentID = dept
 	}
 
 	// Check if the user is already a member.
@@ -168,7 +191,8 @@ func (h *Handler) CreateInvitation(w http.ResponseWriter, r *http.Request) {
 	createParams := db.CreateInvitationParams{
 		ID: uuidToPG(invitationID), WorkspaceID: requester.WorkspaceID, InviterID: requester.UserID,
 		InviteeEmail: email, InviteeUserID: inviteeUserID, Role: role,
-		ExpiresAt: pgtype.Timestamptz{Time: expiresAt, Valid: true},
+		ExpiresAt:    pgtype.Timestamptz{Time: expiresAt, Valid: true},
+		DepartmentID: departmentID,
 	}
 	var inv db.WorkspaceInvitation
 	if h.seatCapacityEnabled() {
@@ -277,6 +301,7 @@ func (h *Handler) ListWorkspaceInvitations(w http.ResponseWriter, r *http.Reques
 			ExpiresAt:     timestampToString(row.ExpiresAt),
 			InviterName:   row.InviterName,
 			InviterEmail:  row.InviterEmail,
+			DepartmentID:  uuidToPtr(row.DepartmentID),
 		}
 	}
 
@@ -431,6 +456,7 @@ func (h *Handler) ListMyInvitations(w http.ResponseWriter, r *http.Request) {
 			WorkspaceName: row.WorkspaceName,
 			InviterName:   row.InviterName,
 			InviterEmail:  row.InviterEmail,
+			DepartmentID:  uuidToPtr(row.DepartmentID),
 		}
 	}
 
@@ -540,6 +566,23 @@ func (h *Handler) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 		}
 		writeError(w, http.StatusInternalServerError, "failed to create membership")
 		return
+	}
+
+	// An invitation that named a department files the new member under it, in
+	// the same transaction as the membership. A missing department is not an
+	// error here: the invitation row is authoritative, and the department may
+	// have been deleted between invite and accept (deletion clears the
+	// reference on the invitation's members, not on pending invitations).
+	if accepted.DepartmentID.Valid {
+		if err := qtx.UpdateMemberDepartment(r.Context(), db.UpdateMemberDepartmentParams{
+			ID:           member.ID,
+			DepartmentID: accepted.DepartmentID,
+		}); err != nil {
+			slog.Warn("accept invitation: attach department failed", append(logger.RequestAttrs(r), "error", err, "workspace_id", uuidToString(accepted.WorkspaceID))...)
+			writeError(w, http.StatusInternalServerError, "failed to attach department")
+			return
+		}
+		member.DepartmentID = accepted.DepartmentID
 	}
 
 	// Accepting an invite marks the invitee as onboarded. The web /

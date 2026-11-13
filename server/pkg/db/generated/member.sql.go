@@ -14,7 +14,7 @@ import (
 const createMember = `-- name: CreateMember :one
 INSERT INTO member (workspace_id, user_id, role)
 VALUES ($1, $2, $3)
-RETURNING id, workspace_id, user_id, role, created_at, pinned_at
+RETURNING id, workspace_id, user_id, role, created_at, pinned_at, department_id
 `
 
 type CreateMemberParams struct {
@@ -33,6 +33,7 @@ func (q *Queries) CreateMember(ctx context.Context, arg CreateMemberParams) (Mem
 		&i.Role,
 		&i.CreatedAt,
 		&i.PinnedAt,
+		&i.DepartmentID,
 	)
 	return i, err
 }
@@ -47,7 +48,7 @@ func (q *Queries) DeleteMember(ctx context.Context, id pgtype.UUID) error {
 }
 
 const getMember = `-- name: GetMember :one
-SELECT id, workspace_id, user_id, role, created_at, pinned_at FROM member
+SELECT id, workspace_id, user_id, role, created_at, pinned_at, department_id FROM member
 WHERE id = $1
 `
 
@@ -61,12 +62,13 @@ func (q *Queries) GetMember(ctx context.Context, id pgtype.UUID) (Member, error)
 		&i.Role,
 		&i.CreatedAt,
 		&i.PinnedAt,
+		&i.DepartmentID,
 	)
 	return i, err
 }
 
 const getMemberByUserAndWorkspace = `-- name: GetMemberByUserAndWorkspace :one
-SELECT id, workspace_id, user_id, role, created_at, pinned_at FROM member
+SELECT id, workspace_id, user_id, role, created_at, pinned_at, department_id FROM member
 WHERE user_id = $1 AND workspace_id = $2
 `
 
@@ -85,6 +87,7 @@ func (q *Queries) GetMemberByUserAndWorkspace(ctx context.Context, arg GetMember
 		&i.Role,
 		&i.CreatedAt,
 		&i.PinnedAt,
+		&i.DepartmentID,
 	)
 	return i, err
 }
@@ -130,7 +133,7 @@ func (q *Queries) GetRealtimeMemberships(ctx context.Context, arg GetRealtimeMem
 }
 
 const listMembers = `-- name: ListMembers :many
-SELECT id, workspace_id, user_id, role, created_at, pinned_at FROM member
+SELECT id, workspace_id, user_id, role, created_at, pinned_at, department_id FROM member
 WHERE workspace_id = $1
 ORDER BY created_at ASC
 `
@@ -151,6 +154,7 @@ func (q *Queries) ListMembers(ctx context.Context, workspaceID pgtype.UUID) ([]M
 			&i.Role,
 			&i.CreatedAt,
 			&i.PinnedAt,
+			&i.DepartmentID,
 		); err != nil {
 			return nil, err
 		}
@@ -163,7 +167,7 @@ func (q *Queries) ListMembers(ctx context.Context, workspaceID pgtype.UUID) ([]M
 }
 
 const listMembersWithUser = `-- name: ListMembersWithUser :many
-SELECT m.id, m.workspace_id, m.user_id, m.role, m.created_at,
+SELECT m.id, m.workspace_id, m.user_id, m.role, m.created_at, m.department_id,
        u.name as user_name, u.email as user_email, u.avatar_url as user_avatar_url
 FROM member m
 JOIN "user" u ON u.id = m.user_id
@@ -177,6 +181,7 @@ type ListMembersWithUserRow struct {
 	UserID        pgtype.UUID        `json:"user_id"`
 	Role          string             `json:"role"`
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	DepartmentID  pgtype.UUID        `json:"department_id"`
 	UserName      string             `json:"user_name"`
 	UserEmail     string             `json:"user_email"`
 	UserAvatarUrl pgtype.Text        `json:"user_avatar_url"`
@@ -197,6 +202,7 @@ func (q *Queries) ListMembersWithUser(ctx context.Context, workspaceID pgtype.UU
 			&i.UserID,
 			&i.Role,
 			&i.CreatedAt,
+			&i.DepartmentID,
 			&i.UserName,
 			&i.UserEmail,
 			&i.UserAvatarUrl,
@@ -237,10 +243,27 @@ func (q *Queries) ListWorkspaceManagerUserIDs(ctx context.Context, workspaceID p
 	return items, nil
 }
 
+const updateMemberDepartment = `-- name: UpdateMemberDepartment :exec
+UPDATE member SET department_id = $1::uuid
+WHERE id = $2
+`
+
+type UpdateMemberDepartmentParams struct {
+	DepartmentID pgtype.UUID `json:"department_id"`
+	ID           pgtype.UUID `json:"id"`
+}
+
+// Used when an invitation that named a department is accepted. An empty
+// department clears the attribution; it never touches role or membership.
+func (q *Queries) UpdateMemberDepartment(ctx context.Context, arg UpdateMemberDepartmentParams) error {
+	_, err := q.db.Exec(ctx, updateMemberDepartment, arg.DepartmentID, arg.ID)
+	return err
+}
+
 const updateMemberRole = `-- name: UpdateMemberRole :one
 UPDATE member SET role = $2
 WHERE id = $1
-RETURNING id, workspace_id, user_id, role, created_at, pinned_at
+RETURNING id, workspace_id, user_id, role, created_at, pinned_at, department_id
 `
 
 type UpdateMemberRoleParams struct {
@@ -258,6 +281,7 @@ func (q *Queries) UpdateMemberRole(ctx context.Context, arg UpdateMemberRolePara
 		&i.Role,
 		&i.CreatedAt,
 		&i.PinnedAt,
+		&i.DepartmentID,
 	)
 	return i, err
 }

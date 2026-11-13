@@ -146,15 +146,19 @@ type MemberResponse struct {
 	UserID      string `json:"user_id"`
 	Role        string `json:"role"`
 	CreatedAt   string `json:"created_at"`
+	// DepartmentID is attribution only; null means the member is not filed
+	// under a department (docs/engineering/ORG-MODEL.md).
+	DepartmentID *string `json:"department_id"`
 }
 
 func memberToResponse(m db.Member) MemberResponse {
 	return MemberResponse{
-		ID:          uuidToString(m.ID),
-		WorkspaceID: uuidToString(m.WorkspaceID),
-		UserID:      uuidToString(m.UserID),
-		Role:        m.Role,
-		CreatedAt:   timestampToString(m.CreatedAt),
+		ID:           uuidToString(m.ID),
+		WorkspaceID:  uuidToString(m.WorkspaceID),
+		UserID:       uuidToString(m.UserID),
+		Role:         m.Role,
+		CreatedAt:    timestampToString(m.CreatedAt),
+		DepartmentID: uuidToPtr(m.DepartmentID),
 	}
 }
 
@@ -574,6 +578,8 @@ type MemberWithUserResponse struct {
 	Name        string  `json:"name"`
 	Email       string  `json:"email"`
 	AvatarURL   *string `json:"avatar_url"`
+	// DepartmentID is the member's department, or null when unassigned.
+	DepartmentID *string `json:"department_id"`
 }
 
 func (h *Handler) ListMembersWithUser(w http.ResponseWriter, r *http.Request) {
@@ -592,14 +598,15 @@ func (h *Handler) ListMembersWithUser(w http.ResponseWriter, r *http.Request) {
 	resp := make([]MemberWithUserResponse, len(members))
 	for i, m := range members {
 		resp[i] = MemberWithUserResponse{
-			ID:          uuidToString(m.ID),
-			WorkspaceID: uuidToString(m.WorkspaceID),
-			UserID:      uuidToString(m.UserID),
-			Role:        m.Role,
-			CreatedAt:   timestampToString(m.CreatedAt),
-			Name:        m.UserName,
-			Email:       m.UserEmail,
-			AvatarURL:   h.resolveAvatarURLPtr(textToPtr(m.UserAvatarUrl)),
+			ID:           uuidToString(m.ID),
+			WorkspaceID:  uuidToString(m.WorkspaceID),
+			UserID:       uuidToString(m.UserID),
+			Role:         m.Role,
+			CreatedAt:    timestampToString(m.CreatedAt),
+			Name:         m.UserName,
+			Email:        m.UserEmail,
+			AvatarURL:    h.resolveAvatarURLPtr(textToPtr(m.UserAvatarUrl)),
+			DepartmentID: uuidToPtr(m.DepartmentID),
 		}
 	}
 
@@ -609,18 +616,23 @@ func (h *Handler) ListMembersWithUser(w http.ResponseWriter, r *http.Request) {
 type CreateMemberRequest struct {
 	Email string `json:"email"`
 	Role  string `json:"role"`
+	// DepartmentID is optional. Absent keeps today's behaviour: the invitee
+	// joins with no department. When present it must name a department in this
+	// workspace, and accepting the invitation files the new member under it.
+	DepartmentID string `json:"department_id"`
 }
 
 func (h *Handler) memberWithUserResponse(member db.Member, user db.User) MemberWithUserResponse {
 	return MemberWithUserResponse{
-		ID:          uuidToString(member.ID),
-		WorkspaceID: uuidToString(member.WorkspaceID),
-		UserID:      uuidToString(member.UserID),
-		Role:        member.Role,
-		CreatedAt:   timestampToString(member.CreatedAt),
-		Name:        user.Name,
-		Email:       user.Email,
-		AvatarURL:   h.resolveAvatarURLPtr(textToPtr(user.AvatarUrl)),
+		ID:           uuidToString(member.ID),
+		WorkspaceID:  uuidToString(member.WorkspaceID),
+		UserID:       uuidToString(member.UserID),
+		Role:         member.Role,
+		CreatedAt:    timestampToString(member.CreatedAt),
+		Name:         user.Name,
+		Email:        user.Email,
+		AvatarURL:    h.resolveAvatarURLPtr(textToPtr(user.AvatarUrl)),
+		DepartmentID: uuidToPtr(member.DepartmentID),
 	}
 }
 
