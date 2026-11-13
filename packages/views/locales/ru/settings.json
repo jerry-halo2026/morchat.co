@@ -1578,7 +1578,14 @@
     "invitation_meta": "Отправлено {{sent}} · Истекает {{expires}}",
     "revoke_invitation_aria": "Отозвать приглашение для {{email}}",
     "seats_used": "Использовано мест: {{used}} из {{purchased}}",
-    "manage_seats": "Управление местами"
+    "manage_seats": "Управление местами",
+    "department_label": "Отдел",
+    "department_none": "Без отдела",
+    "department_all": "Все отделы",
+    "department_filter": "Фильтр по отделу",
+    "change_department": "Изменить отдел",
+    "toast_department_updated": "Отдел обновлён · добавлено проектов: {{added}}, удалено: {{removed}}",
+    "toast_department_failed": "Не удалось изменить отдел"
   },
   "integrations": {
     "status_connected": "Подключено",

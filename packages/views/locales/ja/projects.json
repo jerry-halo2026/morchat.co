@@ -227,5 +227,8 @@
     "publish_description": "すべてのワークスペースメンバーがこのプロジェクトとタスク、コメント、添付ファイルを閲覧できるようになります。",
     "done": "完了",
     "retry": "再試行"
+  },
+  "department": {
+    "department_label": "部署"
   }
 }

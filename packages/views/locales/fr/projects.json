@@ -227,5 +227,8 @@
     "publish_description": "Tous les membres pourront voir ce projet, ses tâches, commentaires et pièces jointes.",
     "done": "Terminé",
     "retry": "Réessayer"
+  },
+  "department": {
+    "department_label": "Département"
   }
 }

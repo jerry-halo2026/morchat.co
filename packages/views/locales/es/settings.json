@@ -1541,7 +1541,14 @@
     "seats_used": "{{used}} de {{purchased}} puestos usados",
     "share_links_description": "Cualquiera con el enlace puede unirse con el rol elegido hasta que caduque o lo revoques.",
     "share_links_label": "Enlaces de invitación",
-    "you": "Tú"
+    "you": "Tú",
+    "department_label": "Departamento",
+    "department_none": "Sin departamento",
+    "department_all": "Todos los departamentos",
+    "department_filter": "Filtrar por departamento",
+    "change_department": "Cambiar departamento",
+    "toast_department_updated": "Departamento actualizado · {{added}} proyectos añadidos, {{removed}} eliminados",
+    "toast_department_failed": "No se pudo cambiar el departamento"
   },
   "integrations": {
     "status_connected": "Conectado",

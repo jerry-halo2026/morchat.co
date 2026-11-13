@@ -1559,7 +1559,14 @@
     "invitation_meta": "Sent {{sent}} · Expires {{expires}}",
     "revoke_invitation_aria": "Revoke invitation for {{email}}",
     "seats_used": "{{used}} of {{purchased}} seats used",
-    "manage_seats": "Manage seats"
+    "manage_seats": "Manage seats",
+    "department_label": "Department",
+    "department_none": "No department",
+    "department_all": "All departments",
+    "department_filter": "Filter by department",
+    "change_department": "Change department",
+    "toast_department_updated": "Department updated · {{added}} projects added, {{removed}} removed",
+    "toast_department_failed": "Failed to change department"
   },
   "integrations": {
     "status_connected": "Connected",

@@ -1549,7 +1549,14 @@
     "invitation_meta": "{{sent}} に送信 · {{expires}} に期限切れ",
     "revoke_invitation_aria": "{{email}} への招待を取り消す",
     "seats_used": "{{purchased}} 席中 {{used}} 席を使用",
-    "manage_seats": "席を管理"
+    "manage_seats": "席を管理",
+    "department_label": "部署",
+    "department_none": "所属なし",
+    "department_all": "すべての部署",
+    "department_filter": "部署で絞り込む",
+    "change_department": "部署を変更",
+    "toast_department_updated": "部署を変更しました · プロジェクト追加 {{added}} 件、削除 {{removed}} 件",
+    "toast_department_failed": "部署の変更に失敗しました"
   },
   "integrations": {
     "status_connected": "接続済み",

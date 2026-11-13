@@ -227,5 +227,8 @@
     "publish_description": "All workspace members will be able to see this project and its issues, comments, and attachments.",
     "done": "Done",
     "retry": "Retry"
+  },
+  "department": {
+    "department_label": "Department"
   }
 }

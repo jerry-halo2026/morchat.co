@@ -1559,7 +1559,14 @@
     "invitation_meta": "Envoyée le {{sent}} · Expire le {{expires}}",
     "revoke_invitation_aria": "Révoquer l'invitation de {{email}}",
     "seats_used": "{{used}} sièges utilisés sur {{purchased}}",
-    "manage_seats": "Gérer les sièges"
+    "manage_seats": "Gérer les sièges",
+    "department_label": "Département",
+    "department_none": "Aucun département",
+    "department_all": "Tous les départements",
+    "department_filter": "Filtrer par département",
+    "change_department": "Changer de département",
+    "toast_department_updated": "Département mis à jour · {{added}} projets ajoutés, {{removed}} retirés",
+    "toast_department_failed": "Échec du changement de département"
   },
   "integrations": {
     "status_connected": "Connecté",

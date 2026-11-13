@@ -1549,7 +1549,14 @@
     "invitation_meta": "{{sent}} 发送 · {{expires}} 过期",
     "revoke_invitation_aria": "撤销发给 {{email}} 的邀请",
     "seats_used": "已用 {{used}} / {{purchased}} 个席位",
-    "manage_seats": "管理席位"
+    "manage_seats": "管理席位",
+    "department_label": "部门",
+    "department_none": "不归属任何部门",
+    "department_all": "全部部门",
+    "department_filter": "按部门筛选",
+    "change_department": "改部门",
+    "toast_department_updated": "已改部门 · 新增 {{added}} 个项目，移除 {{removed}} 个项目",
+    "toast_department_failed": "改部门失败"
   },
   "integrations": {
     "status_connected": "已连接",

@@ -1549,7 +1549,14 @@
     "invitation_meta": "{{sent}} 傳送 · {{expires}} 過期",
     "revoke_invitation_aria": "撤銷發給 {{email}} 的邀請",
     "seats_used": "已用 {{used}} / {{purchased}} 個席位",
-    "manage_seats": "管理席位"
+    "manage_seats": "管理席位",
+    "department_label": "部門",
+    "department_none": "不歸屬任何部門",
+    "department_all": "全部部門",
+    "department_filter": "依部門篩選",
+    "change_department": "改部門",
+    "toast_department_updated": "已改部門 · 新增 {{added}} 個專案，移除 {{removed}} 個專案",
+    "toast_department_failed": "改部門失敗"
   },
   "integrations": {
     "status_connected": "已連線",

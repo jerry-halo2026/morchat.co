@@ -227,5 +227,8 @@
     "publish_description": "工作区所有成员都将能查看这个项目及其中的任务、评论和附件。",
     "done": "完成",
     "retry": "重试"
+  },
+  "department": {
+    "department_label": "部门"
   }
 }
