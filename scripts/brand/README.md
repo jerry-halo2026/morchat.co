@@ -4,66 +4,66 @@ Every logo file in the repo is generated from `packages/ui/lib/morechat-brand.ts
 After editing that file, regenerate and commit what changed:
 
 ```sh
-pnpm generate:brand
+node scripts/brand/sync.mjs          # text copies only (no dependencies)
+node scripts/brand/generate.mjs      # everything
 ```
 
-On an unchanged `multica-brand.ts` the command normally leaves the working
-tree clean, byte for byte. GPU rasterisation occasionally moves a single pixel
-by one step in one channel. A bitmap showing up as modified when the geometry
-didn't change is that noise. Discard it with `git checkout -- <file>`.
+`sync.mjs --check` is the CI gate: it compares every text copy with the module and
+exits non-zero on drift. It needs no `node_modules`, so CI runs it directly.
 
 ## Prerequisites
 
-Run it on macOS. The committed bitmaps were rendered there. Other platforms
-are untested, and they skip `icon.icns` because `iconutil` is macOS-only.
+- **Node 22.18 or later** (`.ts` type stripping) and `pnpm install` for the
+  bitmap stages, which use Playwright's Chromium.
+- **Chromium**: `pnpm exec playwright install chromium`. The generator uses the
+  full Chrome for Testing build (`channel: "chromium"`), which rasterises on the
+  GPU. The default headless shell, or `--disable-gpu`, rasterises in software and
+  changes every bitmap.
+- **Python 3 with Pillow** for `icon.ico` and the GIFs. On Windows the generator
+  uses the runtime's own `apps/desktop/resources/python/python.exe`; set `PYTHON`
+  to override. `python3` is only used when neither is available.
+- **`oxipng`** (optional). Without it the `optimize` stage warns and leaves the
+  bitmaps as Chromium wrote them — visually identical, roughly twice the bytes.
 
-- Node 22.18 or later, for `.ts` type stripping, with `pnpm install` done.
-- Playwright's Chromium: `pnpm exec playwright install chromium`. The script
-  uses the full Chrome for Testing build (`channel: "chromium"`), which
-  rasterises on the GPU. The default headless shell, or `--disable-gpu`,
-  rasterises in software and changes every bitmap.
-- Python 3 with Pillow (`pip install pillow`), for `icon.ico` and the GIFs.
-- `oxipng` (`brew install oxipng`).
-- `iconutil` for `icon.icns`, which ships with macOS.
+`icon.icns` no longer needs macOS: `scripts/brand/icns.mjs` packs the iconset into
+the ICNS container itself, so the app icon can be rebuilt on any platform.
 
-## What it writes
+## Stages
 
-`sync.mjs` writes the text copies. It needs no dependencies, so CI runs it
-with `--check` and fails when a copy drifts from `multica-brand.ts`.
+`generate.mjs --only=<stages>` runs a subset (comma separated); without it every
+stage runs. `icns` implies `mac`, because it reads that iconset.
 
-- `apps/web/public/favicon.svg`, `apps/docs/app/icon.svg`: favicon, with a dark-mode variant
+| Stage | Writes |
+| --- | --- |
+| `text` | everything `sync.mjs` writes (see below) |
+| `tiles` | `apps/desktop/build/icons/*.png`, `build/icon.png`, `apps/web/public/icons/icon-*.png`, `apple-touch-icon.png`, `icon-maskable-512.png`, `apps/mobile/assets/icon.png` |
+| `mac` | `apps/desktop/resources/icon.png` and the 10-render iconset |
+| `icns` | `apps/desktop/build/icon.icns` and `resources/icon.icns` |
+| `og` | `apps/web/app/opengraph-image.png` (1200×630, Inter from `@fontsource-variable/inter`) |
+| `gifs` | the 720×256 write-on frames |
+| `pack` | `apps/desktop/build/icon.ico` and `docs/assets/logo-{light,dark}.gif`, via Pillow |
+| `optimize` | `oxipng -o max --strip safe` over everything rendered |
+
+Running `--only=icns` or `--only=og,gifs,pack` is how to refresh part of the set
+without re-rasterising the desktop icons.
+
+## What `sync.mjs` writes
+
+- `apps/web/public/favicon.svg`, `apps/web/app/icon.svg`, `apps/docs/app/icon.svg`:
+  the tile, with the icon's three bars
 - `apps/web/public/icons/icon.svg`: full-bleed source for the home-screen icons
 - `docs/assets/logo-{light,dark}.svg`: the README wordmark
-- `apps/mobile/components/brand/multica-logo.tsx`: the block between the `GENERATED` markers. Mobile does not depend on `@morechat/ui`.
+- `apps/mobile/components/brand/multica-logo.tsx`: the block between the `GENERATED`
+  markers (mobile does not depend on `@morechat/ui`)
 - `server/cmd/multica/cmd_auth.go`: the `.brand` SVG on the `multica login` callback page
 
-`generate.mjs` runs `sync.mjs`, then renders the bitmaps in Chromium:
+## Notes
 
-| File | Size | Shape |
-| --- | --- | --- |
-| `apps/desktop/build/icons/*.png`, `build/icon.png` | 16–1024 | tile with transparent margin |
-| `apps/desktop/build/icon.ico` | 16–256 | same tiles, packed by Pillow |
-| `apps/desktop/resources/icon.png`, `build/icon.icns` | 16–1024 | Apple's 1024 grid (body 100–924) with a soft shadow |
-| `apps/web/public/icons/icon-{192,512}.png` | 192, 512 | PWA tile with transparent margin |
-| `apps/web/public/icons/apple-touch-icon.png`, `icon-maskable-512.png` | 180, 512 | full-bleed, opaque |
-| `apps/mobile/assets/icon.png` | 1024 | full-bleed, opaque |
-| `apps/web/app/opengraph-image.png` | 1200×630 | OG card, Inter from `@fontsource-variable/inter` |
-| `docs/assets/logo-{light,dark}.gif` | 720×256 | README write-on, 30 fps, 64 colours |
-
-At 24px and below, the star grows and thickens (`iconStar`). The margins in
-`FLAT` follow the existing desktop sizes. Every PNG then goes through
-`oxipng -o max --strip safe`.
-
-## Recording the GIF
-
-The write-on timings mirror `MorechatWordmark` (`multica-wordmark.tsx`) and its
-keyframes in `packages/ui/styles/base.css`. Change all three together.
-
-Frames are captured by pausing every animation and seeking it to each frame's
-time. Do not use CDP virtual time instead: transform animations, like the star
-spinning in, do not advance under it, so the star never appears.
-
-After each seek, wait two animation frames before taking the screenshot. The
-star's transform reaches the compositor late. Captured sooner, a few frames of
-the spin keep pixels from the previous frame, and the GIF differs from run to
-run.
+- At every size the tile keeps its 22.5 corner radius and the bars keep their
+  proportions; small sizes are rendered by the browser rather than downscaled.
+- On a repo where nothing changed, a full run normally leaves the working tree
+  clean. GPU rasterisation occasionally moves one pixel by one step in one
+  channel; a bitmap showing as modified without a geometry change is that noise.
+- `docs/assets/logo-*.gif` mirrors the write-on timings in `generate.mjs`. Frames
+  are captured by pausing every animation and seeking it per frame; do not switch
+  to CDP virtual time, which does not advance transform animations.
