@@ -471,6 +471,7 @@ import {
   EMPTY_ISSUE_UNREAD_PAGE,
   SubscribedIssueIdsSchema,
   IssueInboxReadSchema,
+  InboxDeleteSchema,
   InboxItemListSchema,
   ArchivedInboxPageSchema,
   ArchivedInboxFacetsSchema,
@@ -3173,6 +3174,13 @@ export class ApiClient {
 
   async archiveInbox(id: string): Promise<InboxItem> {
     return this.fetch(`/api/inbox/${id}/archive`, { method: "POST" });
+  }
+
+  async deleteInbox(id: string): Promise<{ count: number | null }> {
+    const raw = await this.fetch<unknown>(`/api/inbox/${id}`, { method: "DELETE" });
+    return parseWithFallback<{ count: number | null }>(raw, InboxDeleteSchema, { count: null }, {
+      endpoint: "DELETE /api/inbox/{id}",
+    });
   }
 
   // Archived notifications, backing the inbox's "Archived" sub-view. Capped
