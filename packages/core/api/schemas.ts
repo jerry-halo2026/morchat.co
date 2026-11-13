@@ -80,6 +80,9 @@ import type {
   ListGitHubRepositoriesResponse,
   ListLabelsResponse,
   ListWebhookDeliveriesResponse,
+  DeleteDepartmentResponse,
+  Department,
+  ListDepartmentsResponse,
   IssueStatusEntry,
   ListIssueStatusesResponse,
   NotificationPreferenceResponse,
@@ -1664,6 +1667,49 @@ export const ListProjectMembersResponseSchema = z.object({
   members: z.array(ProjectMemberSchema),
   total: z.number(),
 }).loose();
+
+// Departments (docs/engineering/ORG-MODEL.md). Every field is defaulted so a
+// backend that predates the feature parses to an empty-but-usable department
+// list instead of throwing away the page.
+export const DepartmentSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  name: z.string(),
+  lead_user_id: z.string().nullable().default(null),
+  system_key: z.string().nullable().default(null),
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+}).loose();
+
+export const EMPTY_DEPARTMENT: Department = {
+  id: "",
+  workspace_id: "",
+  name: "",
+  lead_user_id: null,
+  system_key: null,
+  created_at: "",
+  updated_at: "",
+};
+
+export const ListDepartmentsResponseSchema = z.object({
+  departments: z.array(DepartmentSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_LIST_DEPARTMENTS_RESPONSE: ListDepartmentsResponse = {
+  departments: [],
+  total: 0,
+};
+
+export const DeleteDepartmentResponseSchema = z.object({
+  detached_projects: z.number().default(0),
+  detached_members: z.number().default(0),
+}).loose();
+
+export const EMPTY_DELETE_DEPARTMENT_RESPONSE: DeleteDepartmentResponse = {
+  detached_projects: 0,
+  detached_members: 0,
+};
 
 const SearchProjectResultSchema = ProjectSchema.extend({
   match_source: z.string(),

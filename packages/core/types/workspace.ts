@@ -104,6 +104,12 @@ export interface MemberWithUser {
   name: string;
   email: string;
   avatar_url: string | null;
+  /**
+   * Department the member is filed under, or null. Optional because a backend
+   * that predates departments omits the field entirely; both mean "unassigned".
+   * Attribution only — never an access check.
+   */
+  department_id?: string | null;
 }
 
 export interface Invitation {
@@ -120,6 +126,8 @@ export interface Invitation {
   inviter_name?: string;
   inviter_email?: string;
   workspace_name?: string;
+  /** Department the invitee joins on accept; absent on pre-department backends. */
+  department_id?: string | null;
 }
 
 export interface ShareLink {

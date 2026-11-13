@@ -153,6 +153,11 @@ import type {
   PinnedItemType,
   ReorderPinsRequest,
   Invitation,
+  Department,
+  ListDepartmentsResponse,
+  CreateDepartmentRequest,
+  UpdateDepartmentRequest,
+  DeleteDepartmentResponse,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -371,6 +376,12 @@ import {
   ListProjectsResponseSchema,
   EMPTY_PROJECT,
   EMPTY_LIST_PROJECTS_RESPONSE,
+  DepartmentSchema,
+  EMPTY_DEPARTMENT,
+  ListDepartmentsResponseSchema,
+  EMPTY_LIST_DEPARTMENTS_RESPONSE,
+  DeleteDepartmentResponseSchema,
+  EMPTY_DELETE_DEPARTMENT_RESPONSE,
   SearchProjectsResponseSchema,
   SearchIndexManifestSchema,
   SearchIndexSnapshotPageSchema,
@@ -3730,6 +3741,46 @@ export class ApiClient {
   async declineInvitation(invitationId: string): Promise<void> {
     await this.fetch(`/api/invitations/${invitationId}/decline`, {
       method: "POST",
+    });
+  }
+
+  // Departments. Reads are open to any workspace member; writes need
+  // owner/admin. A department is attribution, not an ACL.
+  async listDepartments(workspace?: WorkspaceScope): Promise<ListDepartmentsResponse> {
+    const raw = await this.fetch<unknown>("/api/departments", { headers: workspaceHeader(workspace) });
+    return parseWithFallback(raw, ListDepartmentsResponseSchema, EMPTY_LIST_DEPARTMENTS_RESPONSE, {
+      endpoint: "GET /api/departments",
+    });
+  }
+
+  async createDepartment(data: CreateDepartmentRequest): Promise<Department> {
+    const raw = await this.fetch<unknown>("/api/departments", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, DepartmentSchema, EMPTY_DEPARTMENT, {
+      endpoint: "POST /api/departments",
+    });
+  }
+
+  async updateDepartment(id: string, data: UpdateDepartmentRequest): Promise<Department> {
+    const raw = await this.fetch<unknown>(`/api/departments/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, DepartmentSchema, EMPTY_DEPARTMENT, {
+      endpoint: "PATCH /api/departments/:id",
+    });
+  }
+
+  /**
+   * Deletes a department. The delete detaches its projects and members, so the
+   * response reports how many rows it touched rather than being empty.
+   */
+  async deleteDepartment(id: string): Promise<DeleteDepartmentResponse> {
+    const raw = await this.fetch<unknown>(`/api/departments/${id}`, { method: "DELETE" });
+    return parseWithFallback(raw, DeleteDepartmentResponseSchema, EMPTY_DELETE_DEPARTMENT_RESPONSE, {
+      endpoint: "DELETE /api/departments/:id",
     });
   }
 

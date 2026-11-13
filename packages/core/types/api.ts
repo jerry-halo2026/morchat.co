@@ -673,6 +673,8 @@ export interface UpdateMeRequest {
 export interface CreateMemberRequest {
   email: string;
   role?: MemberRole;
+  /** Optional department the invitee joins; omitted keeps "no department". */
+  department_id?: string | null;
 }
 
 export interface UpdateMemberRequest {
