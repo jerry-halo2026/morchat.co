@@ -23,6 +23,8 @@ related: [HANDOFF.md, docs/brand/DECISIONS.md]
 | 会话行头像「动态 / 眼睛跟随」 | **未能确认**：重载后会话列表为空，无法在同一行上连拍比对；同规格 40px 动态脸只在智能体列表里抓到静态一帧 | [09-agents-row-40px-live.png] |
 | `apps/web/app/icon.svg` 浏览器标签 | 未做（可选，时间盒用尽） | — |
 
+> 上表是首轮结论，保持原样。其中三项欠账（任务栏图标呈现、rail 跟随鼠标、会话行动态/眼睛跟随）的补拍结论见下文《2026-11-13 补拍》。
+
 ## 复核方法（可复现）
 
 1. **启动**：`scripts/dev.mjs` 在本机不可用——
@@ -67,6 +69,46 @@ related: [HANDOFF.md, docs/brand/DECISIONS.md]
 
 `.local/` 里另有可复现材料：`cdp.mjs`（CDP 客户端）、`desktop-dev3.log`（启动与 HMR 日志）、`shots/seq1-6.png`（六帧连拍原件）。
 
+## 2026-11-13 补拍
+
+同一套路径（electron-vite + CDP 9333）重跑，补上一轮三项欠账。启动日志见 `.local/desktop-dev4.log`、`.local/desktop-dev5.log`。
+
+### 1. 任务栏里的实际图标呈现：**未能确认**
+
+试过的事：
+
+- `Shell_TrayWnd` 的 `PrintWindow`（PW_RENDERFULLCONTENT）能拿到真实任务栏（2560×48，见 [11-taskbar-printwindow.png]）——里面 19 个图标逐个放大看过，**没有**白底三条杠那一枚。
+- 屏幕 `CopyFromScreen` 抓底部 48px 拿到的是上层窗口内容，不是任务栏：这个会话里任务栏不画在屏幕合成层。
+- 把开发窗口切前台失败：`SetForegroundWindow` 与 `SwitchToThisWindow` 之后前台仍是「微信」，任务栏上对应按钮无法靠高亮定位；`Win` 键 / 光标停底边也都换不出可见任务栏。
+- 结果：**这台机器的交互会话里开发窗口没有出现在任务栏上**（按钮不存在，或窗口在另一虚拟桌面），所以没有「图标呈现」可截。图标源本身已在上一节确认（[10-app-icon-source.png]）；`apps/desktop/src/main/index.ts` 给 `BrowserWindow` 传 `icon: BUNDLED_ICON_PATH`，但那是代码事实，不当目视结论。
+
+### 2. rail 头像跟随鼠标：**可区分，确认存在系统性差异**
+
+- 指针停在 rail **左侧** (5,400) 连拍两帧 L1/L2，再停 **右侧** (800,300) 连拍 R1/R2；同侧间隔 900ms（> 500ms 要求）。
+- 像素对比（`.local/analyze-eyes.py`，Pillow 差分；数值为平均绝对差 / 变化像素占比）：
+
+  | 对比 | 值 | 说明 |
+  |---|---|---|
+  | L1–L2（同侧） | 1.02 / 1.39% | 闲时动画本身的幅度 |
+  | R1–R2（同侧） | 0.54 / 0.92% | 同上 |
+  | L1–R1（异侧） | 3.32 / 3.54% | 指针位置带来的差 |
+  | L2–R2（异侧） | 2.78 / 3.04% | 同上 |
+
+  同侧两帧分属不同闲时相位却依然互相接近，异侧则稳定拉开到 3 倍左右——**这个差可以跟闲时动画分开**。
+- 形态：眼睛白色区域质心只移动约 1px（8× 放大图上 321.1→322.1），所以不是眼珠平移，而是脸形/眼形的细微变形。可直接看 [12-rail-pointer-left.png] 与 [13-rail-pointer-right.png] 对比（本轮工作区头像换了 orange `cottage` 角色，仍是 44px、`data-avatar-mode="live"`）。
+
+### 3. 会话行动态 / 眼睛跟随：**动态目视确认；眼睛跟随未能确认**
+
+- 先让页面停稳（重启 app、等首屏 API 打完），进入 `聊天` 后会话行出现；该行头像实测 40×40（`x=72,y=100`），绿色 `boba` 角色。
+- 同一行间隔 900ms 连拍两帧：`row1` / `row2`，差分 1.35 / 2.4%，肉眼可见眼睛与底部珍珠位置有细微位移——**动态确认**，见 [14-session-row-frame-a.png]、[15-session-row-frame-b.png]。
+- 接下来的两帧成了空白画布：`packages/views/presets/*` 的并发 HMR 又一次重载渲染器、清空会话列表（差分 19.35 就是因为整块变白）。所以「指针绕到行左/行右再拍」没做成，**眼睛跟随仍未确认**，不拿代码或单测顶替。
+- 会话列表与两帧的上下文见 [16-chat-list-full.png]。
+
+### 补拍的坑
+
+- 中途 DevTools 被意外 dock 到窗口右侧，视口从 1266 掉到 711，rail 直接收起（`getBoundingClientRect` 全 0）。Ctrl+Shift+I 没关掉，最后是杀掉 electron 重启才恢复。
+- `cdp.mjs` 的 target 选择要带 `localhost:5173`：DevTools dock 时它自己也是一个 `page` target，`*` 会选中 DevTools 页而不是应用页。
+
 [01-inbox-full.png]: ../brand/reference/desktop/01-inbox-full.png
 [03-rail-44px-crop.png]: ../brand/reference/desktop/03-rail-44px-crop.png
 [04-session-row-40px-crop.png]: ../brand/reference/desktop/04-session-row-40px-crop.png
@@ -76,3 +118,9 @@ related: [HANDOFF.md, docs/brand/DECISIONS.md]
 [08-rail-pointer-left.png]: ../brand/reference/desktop/08-rail-pointer-left.png
 [09-agents-row-40px-live.png]: ../brand/reference/desktop/09-agents-row-40px-live.png
 [10-app-icon-source.png]: ../brand/reference/desktop/10-app-icon-source.png
+[11-taskbar-printwindow.png]: ../brand/reference/desktop/11-taskbar-printwindow.png
+[12-rail-pointer-left.png]: ../brand/reference/desktop/12-rail-pointer-left.png
+[13-rail-pointer-right.png]: ../brand/reference/desktop/13-rail-pointer-right.png
+[14-session-row-frame-a.png]: ../brand/reference/desktop/14-session-row-frame-a.png
+[15-session-row-frame-b.png]: ../brand/reference/desktop/15-session-row-frame-b.png
+[16-chat-list-full.png]: ../brand/reference/desktop/16-chat-list-full.png
