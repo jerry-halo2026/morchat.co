@@ -19,7 +19,14 @@ import { useWorkspacePaths } from "@morechat/core/paths";
 import { AppLink } from "../../navigation";
 import { useT, useTimeAgo } from "../../i18n";
 import { isKnowledgeForbidden, isKnowledgeUnavailable } from "../data/knowledge-api";
-import type { KnowledgeAccess, KnowledgeItemStatus, KnowledgePageSummary, KnowledgeSpace } from "../data/types";
+import { groupSpacesByDepartment } from "../lib/space-groups";
+import type {
+  KnowledgeAccess,
+  KnowledgeDepartment,
+  KnowledgeItemStatus,
+  KnowledgePageSummary,
+  KnowledgeSpace,
+} from "../data/types";
 import { buildKnowledgeTree, knowledgePageKey, type KnowledgeTreeNode } from "../hooks/use-knowledge";
 
 // States
@@ -160,11 +167,20 @@ export function KnowledgeSpaceSwitcher({
   activeSpace,
   onSelect,
   trailing,
+  departments,
+  groupByDepartment = false,
 }: {
   spaces: readonly KnowledgeSpace[];
   activeSpace: string;
   onSelect?: (space: string) => void;
   trailing?: ReactNode;
+  /**
+   * Departments to group by. Read only when `groupByDepartment` is on, and only
+   * as labels: grouping never removes a space (see lib/space-groups.ts).
+   */
+  departments?: readonly KnowledgeDepartment[];
+  /** `knowledge_department_scope`. Off by default, and off renders the flat list. */
+  groupByDepartment?: boolean;
 }) {
   const { t } = useT("knowledge");
   const p = useWorkspacePaths();
@@ -180,6 +196,19 @@ export function KnowledgeSpaceSwitcher({
     );
   }
 
+  const option = (space: KnowledgeSpace) => (
+    <option key={space.id} value={space.id}>
+      {space.name}
+    </option>
+  );
+  // Grouping is a rendering choice only: every space stays selectable, and the
+  // ungrouped bucket renders as plain options at the top because a group with no
+  // name has no label to show.
+  const groups =
+    groupByDepartment && departments && departments.length > 0
+      ? groupSpacesByDepartment(spaces, departments)
+      : null;
+
   return (
     <div className="flex h-12 items-center gap-1 pr-2 pl-5">
       <div className="min-w-0 flex-1">
@@ -190,11 +219,17 @@ export function KnowledgeSpaceSwitcher({
             onChange={(event) => onSelect(event.target.value)}
             className="max-w-full truncate rounded-md bg-transparent py-1 text-title-sm font-semibold outline-none focus-visible:outline-2 focus-visible:outline-ring"
           >
-            {spaces.map((space) => (
-              <option key={space.id} value={space.id}>
-                {space.name}
-              </option>
-            ))}
+            {groups
+              ? groups.map((group) =>
+                  group.label === null ? (
+                    group.spaces.map(option)
+                  ) : (
+                    <optgroup key={group.departmentId ?? group.label} label={group.label}>
+                      {group.spaces.map(option)}
+                    </optgroup>
+                  ),
+                )
+              : spaces.map(option)}
           </select>
         ) : (
           <AppLink

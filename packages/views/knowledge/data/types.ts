@@ -22,7 +22,18 @@ export interface KnowledgeSpace {
   id: string;
   name: string;
   description?: string | null;
+  /**
+   * Department the space is filed under, or null when unassigned. Attribution,
+   * not an access rule: the switcher may group by it, nothing filters by it.
+   */
+  department_id?: string | null;
   item_count?: number;
+}
+
+/** The half of a department the space switcher needs to label a group. */
+export interface KnowledgeDepartment {
+  id: string;
+  name: string;
 }
 
 export interface KnowledgePageSummary {

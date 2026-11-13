@@ -13,12 +13,15 @@
 import { useMemo } from "react";
 import { ArrowUpRight, Clock, ListChecks, Plus, Search, Star, Upload } from "@morechat/ui/icons";
 import { IconButton } from "@morechat/ui/components/common/icon-button";
+import { useFeatureEnabled } from "@morechat/core/config";
+import { KNOWLEDGE_DEPARTMENT_SCOPE_FLAG } from "@morechat/core/feature-flags";
 import { useWorkspacePaths } from "@morechat/core/paths";
 import { AppLink } from "../../navigation";
 import { useT } from "../../i18n";
 import { isKnowledgeUnavailable } from "../data/knowledge-api";
 import {
   knowledgePageKey,
+  useKnowledgeDepartments,
   useKnowledgeFavorites,
   useKnowledgeRecent,
   useKnowledgePages,
@@ -57,6 +60,11 @@ export function KnowledgeRail({
   const { t } = useT("knowledge");
   const p = useWorkspacePaths();
   const spacesQuery = useKnowledgeSpaces(wsId);
+  // `knowledge_department_scope`: grouping and ordering only, no space hidden.
+  // When it is off the switcher renders the flat list and the department
+  // listing is never requested.
+  const groupByDepartment = useFeatureEnabled(KNOWLEDGE_DEPARTMENT_SCOPE_FLAG, false);
+  const departmentsQuery = useKnowledgeDepartments(wsId, groupByDepartment);
   const pagesQuery = useKnowledgePages(wsId, {});
   const pages = useMemo(() => pagesQuery.data ?? [], [pagesQuery.data]);
   const { favorites } = useKnowledgeFavorites(wsId);
@@ -72,6 +80,8 @@ export function KnowledgeRail({
         spaces={spacesQuery.data ?? []}
         activeSpace={space}
         onSelect={onSpaceChange}
+        groupByDepartment={groupByDepartment}
+        departments={groupByDepartment ? departmentsQuery.data : undefined}
         trailing={
           <>
             {onSearch ? (

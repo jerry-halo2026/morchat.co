@@ -485,14 +485,21 @@ func (s *Service) observeProjectACL(ctx context.Context, op, workspaceID, viewer
 // replacement rather than a rewrite, and NOT referenced by any query: a grep for
 // visCondProjectACL matches this file and its test only.
 //
-// Switching knowledge_project_acl to enforcement means editing exactly two lines:
+// Switching knowledge_project_acl to enforcement is a two-line change in SQL:
 //
-//	search.go:204   const visCond = ...            -> the body of visCondProjectACL
-//	keys.go:284     where := []string{..., visCond} -> ..., visCondProjectACLAliasI
+//	search.go:204   const visCond = ...             -> the body of visCondProjectACL
+//	keys.go:291     where := []string{..., visCond}  -> ..., visCondProjectACLAliasI
 //
 // plus, when knowledge_admin_visibility is also on, appending visCondManagerBypass
 // to both. The two spellings differ only in the table qualifier: the retrieval
 // queries name knowledge_items without an alias, while ListItems aliases it `i`.
+//
+// The SQL is only half of the flip. canViewItem in this file is the result-layer
+// recheck and still answers with the switches off, so enforcement also means
+// passing the service's VisibilityFlags into it at its three call sites:
+// recheckItems and GetItemForViewer in search.go, ReadItem in keys.go. Without
+// that, knowledge.get would keep serving an item the index layer has started
+// hiding — a narrower but real inconsistency.
 //
 // A `project` item with no project_id stays visible in this predicate as well,
 // exactly like ItemVisibleTo: there is no member set to intersect, and hiding it

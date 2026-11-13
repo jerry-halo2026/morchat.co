@@ -29,6 +29,7 @@
 
 import { getApi } from "@morechat/core/api";
 import type {
+  KnowledgeDepartment,
   KnowledgeImportJob,
   KnowledgeImportSourceKind,
   KnowledgeItem,
@@ -197,6 +198,7 @@ interface WireSpace {
   id?: unknown;
   name?: unknown;
   description?: unknown;
+  department_id?: unknown;
   item_count?: unknown;
 }
 
@@ -255,6 +257,7 @@ function toSpace(raw: WireSpace): KnowledgeSpace | null {
     id,
     name: asString(raw.name) || id,
     description: asNullableString(raw.description),
+    department_id: asNullableString(raw.department_id),
     item_count: typeof raw.item_count === "number" ? raw.item_count : undefined,
   };
 }
@@ -424,6 +427,28 @@ export const knowledgeApi = {
       return [];
     }
     return list.map(toSpace).filter((space): space is KnowledgeSpace => space !== null);
+  },
+
+  /**
+   * The workspace's departments, for the space switcher's grouping.
+   *
+   * They come from `/api/departments` (the core client, not this module's own
+   * BASE), because a space's `department_id` is only a UUID: the label belongs
+   * to the department listing. An older server, or a client with no API instance
+   * (unit tests, SSR), yields an empty list, which the switcher renders as "no
+   * groups" rather than as an error.
+   */
+  listDepartments: async (wsId: string): Promise<KnowledgeDepartment[]> => {
+    try {
+      const listed = await getApi().listDepartments(wsId);
+      return listed.departments.map((department) => ({
+        id: department.id,
+        name: department.name,
+      }));
+    } catch (error) {
+      warnContract("department listing unavailable; the space switcher stays flat", error);
+      return [];
+    }
   },
 
   /**

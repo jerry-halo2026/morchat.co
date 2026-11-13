@@ -35,6 +35,7 @@ export function useKnowledgeWorkspaceId(): string {
 export const knowledgeKeys = {
   all: (wsId: string) => ["knowledge", wsId] as const,
   spaces: (wsId: string) => ["knowledge", wsId, "spaces"] as const,
+  departments: (wsId: string) => ["knowledge", wsId, "departments"] as const,
   pages: (wsId: string, params: Record<string, unknown>) =>
     ["knowledge", wsId, "pages", params] as const,
   page: (wsId: string, space: string, path: string) =>
@@ -51,6 +52,21 @@ export function useKnowledgeSpaces(wsId: string) {
     queryKey: knowledgeKeys.spaces(wsId),
     queryFn: () => knowledgeApi.listSpaces(wsId),
     enabled: !!wsId,
+    staleTime: 60_000,
+    ...NO_RETRY,
+  });
+}
+
+/**
+ * The departments a space can be filed under, for the switcher's grouping
+ * (`knowledge_department_scope`). Disabled unless the caller passes `enabled`,
+ * so a workspace with the switch off never asks for a listing it cannot use.
+ */
+export function useKnowledgeDepartments(wsId: string, enabled = true) {
+  return useQuery({
+    queryKey: knowledgeKeys.departments(wsId),
+    queryFn: () => knowledgeApi.listDepartments(wsId),
+    enabled: !!wsId && enabled,
     staleTime: 60_000,
     ...NO_RETRY,
   });

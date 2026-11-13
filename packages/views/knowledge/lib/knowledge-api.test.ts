@@ -25,6 +25,7 @@ import {
 const WS = "ws-1";
 const SPACE = "0b2f2c6e-1111-4aaa-8bbb-9ccccccccccc";
 const PAGE = "7f6d5c4b-2222-4ccc-9ddd-0eeeeeeeeeee";
+const DEPARTMENT = "3a4b5c6d-3333-4eee-8fff-0aaaaaaaaaaa";
 
 interface Call {
   url: string;
@@ -104,6 +105,7 @@ describe("knowledgeApi.listSpaces", () => {
             workspace_id: WS,
             name: "Handbook",
             description: "How we work",
+            department_id: DEPARTMENT,
             item_count: 2,
             created_at: "2026-11-10T09:00:00Z",
             updated_at: "2026-11-10T09:00:00Z",
@@ -115,9 +117,26 @@ describe("knowledgeApi.listSpaces", () => {
     const spaces = await knowledgeApi.listSpaces(WS);
 
     expect(spaces).toEqual([
-      { id: SPACE, name: "Handbook", description: "How we work", item_count: 2 },
+      {
+        id: SPACE,
+        name: "Handbook",
+        description: "How we work",
+        department_id: DEPARTMENT,
+        item_count: 2,
+      },
     ]);
     expect(spaces[0]).not.toHaveProperty("slug");
+  });
+
+  it("reads an absent department as null rather than as a missing field", async () => {
+    // A server from before migration 646 omits the column entirely.
+    mockFetch(() =>
+      jsonResponse({ spaces: [{ id: SPACE, workspace_id: WS, name: "Handbook" }] }),
+    );
+
+    const spaces = await knowledgeApi.listSpaces(WS);
+
+    expect(spaces[0]?.department_id).toBeNull();
   });
 });
 
