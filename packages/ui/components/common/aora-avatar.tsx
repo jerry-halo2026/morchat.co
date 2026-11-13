@@ -104,7 +104,9 @@ export function aoraAvatarDataUri({
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
   } catch {
     // A spec only uses ids the engine ships, so this is the floor rather than a hole.
-    return "";
+    // An empty src makes React warn and the browser fetch the page again; a blank SVG
+    // keeps the slot and stays quiet.
+    return "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
   }
 }
 

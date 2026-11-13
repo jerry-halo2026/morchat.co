@@ -236,14 +236,16 @@ export function RailWorkspaces() {
       <TooltipHint label={current.name} side="right">
         <DropdownMenuTrigger
           aria-label={label}
-          className="relative inline-flex size-[34px] shrink-0 cursor-pointer items-center justify-center rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="relative inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <WorkspaceAvatar
             id={current.id}
             name={current.name}
             avatarUrl={current.avatar_url}
+            size="rail"
             live
-            className="h-[34px] w-[34px]"
+            followPointer
+            mirrored
           />
           {(otherUnread || invitations.length > 0) && (
             <UnreadDot className="absolute -top-0.5 -right-0.5 ring-2 ring-app-shell" />

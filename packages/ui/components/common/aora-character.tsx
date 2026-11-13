@@ -2,7 +2,12 @@
 
 import { ALL_COLOR_IDS, FACE_STYLES, SHAPE_IDS, STYLE_IDS } from "@aora-bot/engine";
 import type { CastId, ColorId, FaceStyle, ShapeId, StyleId } from "@aora-bot/engine";
-import { CharacterMark, isCastId, useReducedMotion } from "@aora-bot/react";
+import {
+  CharacterMark,
+  isCastId,
+  useReducedMotion,
+  useThemesReady,
+} from "@aora-bot/react";
 import "@aora-bot/react/styles.css";
 
 import { AVATAR_SIZE_PX, DEFAULT_AVATAR_SIZE } from "@morechat/ui/lib/avatar-size";
@@ -87,6 +92,16 @@ export interface AoraCharacterProps {
   name?: string;
   /** Explicit accessible label, for surfaces whose label is not the name. */
   alt?: string;
+  /** Track the pointer with its eyes. Only meaningful for a live face. */
+  followPointer?: boolean;
+  /**
+   * Mirror the character horizontally.
+   *
+   * The shell puts content on the right, so a character drawn facing left looks like
+   * it is staring at the edge of the window. Mirroring is a transform on the drawing,
+   * not a different spec: the stored avatar stays what it is.
+   */
+  mirrored?: boolean;
   className?: string;
 }
 
@@ -105,6 +120,8 @@ export function AoraCharacter({
   live,
   name,
   alt,
+  followPointer = false,
+  mirrored = false,
   className,
 }: AoraCharacterProps) {
   // Subscribed rather than read at mount: a mid-session change to the OS
@@ -113,7 +130,17 @@ export function AoraCharacter({
   const fields = readAoraFields(spec);
   const px = sizePx > 0 ? Math.round(sizePx) : AVATAR_SIZE_PX[DEFAULT_AVATAR_SIZE];
 
-  if (!aoraRendersLive(live, px) || !fields) {
+  // Hooks run unconditionally; the answer is ignored when the slot is static.
+  const themesReady = useThemesReady({
+    shape: fields?.shape ?? null,
+    color: fields?.color ?? null,
+    preset: fields?.character ?? null,
+    style: fields?.style ?? null,
+  });
+
+  // A theme that is still loading is not a reason to draw nothing: the static image is
+  // the same face and it is already correct.
+  if (!aoraRendersLive(live, px) || !fields || !themesReady) {
     return (
       <AoraAvatar
         entityId={entityId}
@@ -157,6 +184,10 @@ export function AoraCharacter({
         // the engine knows: scrolled out of view, and a hidden tab.
         paused={reduced}
         autoPause
+        followPointer={followPointer}
+        // A mirrored build flips the gaze too, which is the point: the face keeps
+        // looking where the pointer is while the body faces the content.
+        style={mirrored ? { transform: "scaleX(-1)" } : undefined}
       />
     </div>
   );

@@ -21,6 +21,8 @@ const sizeMap = {
   sm: { px: 20, class: "h-5 w-5" },
   md: { px: 28, class: "h-7 w-7" },
   lg: { px: 36, class: "h-9 w-9" },
+  /** The rail slot: the workspace's identity, and the one live face in the shell. */
+  rail: { px: 44, class: "h-11 w-11" },
 } as const;
 
 /** Below this an animated face is a couple of pixels of motion nobody can read. */
@@ -37,6 +39,10 @@ interface WorkspaceAvatarProps {
   size?: keyof typeof sizeMap;
   /** Ask for the animated renderer where the size allows it. */
   live?: boolean;
+  /** Track the pointer with the eyes. Needs `live`. */
+  followPointer?: boolean;
+  /** Face into the content instead of out of the window. */
+  mirrored?: boolean;
   className?: string;
 }
 
@@ -46,6 +52,8 @@ function WorkspaceAvatar({
   avatarUrl,
   size = "sm",
   live = false,
+  followPointer = false,
+  mirrored = false,
   className,
 }: WorkspaceAvatarProps) {
   const rung = sizeMap[size];
@@ -76,6 +84,8 @@ function WorkspaceAvatar({
       spec={spec}
       sizePx={rung.px}
       live={live && rung.px >= LIVE_MIN_PX}
+      followPointer={followPointer}
+      mirrored={mirrored}
       name={name}
       className={cn("inline-block shrink-0", rung.class, className)}
     />
