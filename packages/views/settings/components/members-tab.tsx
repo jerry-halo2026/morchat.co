@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Building2,
   Check,
   Copy,
   Crown,
@@ -21,6 +22,7 @@ import {
 import { ActorAvatar } from "../../common/actor-avatar";
 import { AppLink, useOptionalNavigation } from "../../navigation";
 import type {
+  Department,
   Invitation,
   MemberRole,
   MemberWithUser,
@@ -82,11 +84,22 @@ import { useFeatureEnabled } from "@morechat/core/config";
 import { BILLING_WORKSPACE_SUBSCRIPTIONS_FLAG } from "@morechat/core/feature-flags";
 import { useCurrentWorkspace } from "@morechat/core/paths";
 import {
+  departmentListOptions,
   invitationListOptions,
   memberListOptions,
   shareLinkListOptions,
   workspaceKeys,
 } from "@morechat/core/workspace/queries";
+import { DepartmentSelect } from "../../departments/department-select";
+import {
+  ALL_DEPARTMENTS,
+  NO_DEPARTMENT,
+  departmentMoveCounts,
+  departmentName,
+  departmentOptions,
+  memberDepartmentId,
+  memberMatchesDepartment,
+} from "../../departments/lib";
 import { api, errorCode } from "@morechat/core/api";
 import { useLocale, useT } from "../../i18n";
 import { ObjectSectionEmpty } from "../../layout/object-page";
@@ -115,6 +128,9 @@ type InviteSeatPurchase = {
   workspaceId: string;
   email: string;
   role: MemberRole;
+  /** Carried through the purchase retry so the invitee still lands in the
+   *  department the operator picked before the seat detour. */
+  departmentId: string | null;
   preview: WorkspaceSeatPurchasePreview;
   idempotencyKey: string;
   phase: "review" | "purchasing" | "waiting" | "inviting" | "error";
@@ -173,15 +189,18 @@ function useRoleLabels() {
 
 function MemberRow({
   member,
+  departments,
   canManage,
   canManageOwners,
   ownerCount,
   isSelf,
   busy,
   onRoleChange,
+  onDepartmentChange,
   onRemove,
 }: {
   member: MemberWithUser;
+  departments: Department[];
   canManage: boolean;
   canManageOwners: boolean;
   /** Total number of owners in this workspace — needed to gate demoting the
@@ -190,6 +209,7 @@ function MemberRow({
   isSelf: boolean;
   busy: boolean;
   onRoleChange: (role: MemberRole) => void;
+  onDepartmentChange: (departmentId: string | null) => void;
   onRemove: () => void;
 }) {
   const { t } = useT("settings");
@@ -200,7 +220,12 @@ function MemberRow({
   const canEditRole = canManage && !isSelf && (member.role !== "owner" || canManageOwners);
   const canRemove = canManage && !isSelf && (member.role !== "owner" || canManageOwners);
   const isLastOwner = member.role === "owner" && ownerCount <= 1;
-  const showMenu = canEditRole || canRemove;
+  // Filing a member under a department is an owner/admin action like the rest of
+  // this menu; the list keeps "nobody manages their own membership" for self.
+  const canChangeDepartment = canManage && !isSelf;
+  const showMenu = canEditRole || canRemove || canChangeDepartment;
+  const departmentId = memberDepartmentId(member);
+  const departmentLabel = departmentName(departments, departmentId);
 
   return (
     <div className="flex items-center gap-3 px-4 py-3">
@@ -216,6 +241,9 @@ function MemberRow({
         </div>
         <div className="truncate text-caption text-muted-foreground">{member.email}</div>
       </div>
+      <span className="hidden w-32 shrink-0 truncate text-caption text-muted-foreground lg:block">
+        {departmentLabel}
+      </span>
       <span className="hidden w-32 shrink-0 text-caption tabular-nums text-muted-foreground md:block">
         {t(($) => $.members.joined, {
           date: new Date(member.created_at).toLocaleDateString(locale),
@@ -286,7 +314,41 @@ function MemberRow({
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
             )}
-            {canEditRole && canRemove && <DropdownMenuSeparator />}
+            {canChangeDepartment && (
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <Building2 className="h-3.5 w-3.5" />
+                  {t(($) => $.members.change_department)}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="max-h-72 w-auto min-w-44 overflow-y-auto">
+                  <DropdownMenuItem
+                    onClick={() => onDepartmentChange(null)}
+                    disabled={departmentId === null}
+                  >
+                    <span className="min-w-0 truncate">
+                      {t(($) => $.members.department_none)}
+                    </span>
+                    {departmentId === null && (
+                      <Check className="ml-auto size-3.5 text-muted-foreground" />
+                    )}
+                  </DropdownMenuItem>
+                  {departments.length > 0 && <DropdownMenuSeparator />}
+                  {departments.map((department) => (
+                    <DropdownMenuItem
+                      key={department.id}
+                      onClick={() => onDepartmentChange(department.id)}
+                      disabled={department.id === departmentId}
+                    >
+                      <span className="min-w-0 truncate">{department.name}</span>
+                      {department.id === departmentId && (
+                        <Check className="ml-auto size-3.5 text-muted-foreground" />
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            )}
+            {canChangeDepartment && canRemove && <DropdownMenuSeparator />}
             {canRemove && (
               <DropdownMenuItem variant="destructive" onClick={onRemove}>
                 <UserMinus className="h-3.5 w-3.5" />
@@ -421,6 +483,7 @@ export function MembersTab() {
   const navigation = useOptionalNavigation();
   const { data: members = [] } = useQuery(memberListOptions(wsId));
   const { data: invitations = [] } = useQuery(invitationListOptions(wsId));
+  const { data: departments = [] } = useQuery(departmentListOptions(wsId));
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [shareLinkOpen, setShareLinkOpen] = useState(false);
@@ -447,8 +510,10 @@ export function MembersTab() {
     );
   };
   const [memberQuery, setMemberQuery] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState(ALL_DEPARTMENTS);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<MemberRole>("member");
+  const [inviteDepartment, setInviteDepartment] = useState(NO_DEPARTMENT);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteSeatPurchase, setInviteSeatPurchase] =
     useState<InviteSeatPurchase | null>(null);
@@ -502,20 +567,32 @@ export function MembersTab() {
     enabled: billingEnabled && canManageWorkspace,
   }).data?.seatCapacity;
   const needle = memberQuery.trim().toLocaleLowerCase();
+  const inDepartment =
+    departmentFilter === ALL_DEPARTMENTS
+      ? members
+      : members.filter((m) => memberMatchesDepartment(m, departmentFilter));
   const visibleMembers = needle
-    ? members.filter(
+    ? inDepartment.filter(
         (m) =>
           m.name.toLocaleLowerCase().includes(needle) ||
           m.email.toLocaleLowerCase().includes(needle),
       )
-    : members;
+    : inDepartment;
+  const narrowed = !!needle || departmentFilter !== ALL_DEPARTMENTS;
 
   const sendInvitation = useCallback(
-    async (email: string, role: MemberRole) => {
+    async (email: string, role: MemberRole, departmentId: string | null) => {
       if (!workspace) return;
-      await api.createMember(workspace.id, { email, role });
+      // An unset department is sent as an absent field: the invitee joins no
+      // department, which is also what a backend that predates the field does.
+      await api.createMember(workspace.id, {
+        email,
+        role,
+        ...(departmentId ? { department_id: departmentId } : {}),
+      });
       setInviteEmail("");
       setInviteRole("member");
+      setInviteDepartment(NO_DEPARTMENT);
       await qc.invalidateQueries({
         queryKey: workspaceKeys.invitations(wsId),
       });
@@ -528,9 +605,11 @@ export function MembersTab() {
     if (!workspace) return;
     const email = inviteEmail.trim();
     const role = inviteRole;
+    const departmentId =
+      inviteDepartment === NO_DEPARTMENT ? null : inviteDepartment;
     setInviteLoading(true);
     try {
-      await sendInvitation(email, role);
+      await sendInvitation(email, role, departmentId);
       setInviteOpen(false);
     } catch (e) {
       const code = errorCode(e);
@@ -587,6 +666,7 @@ export function MembersTab() {
             workspaceId: workspace.id,
             email,
             role,
+            departmentId,
             preview,
             idempotencyKey: createSeatPurchaseKey(workspace.id),
             phase: "review",
@@ -714,7 +794,7 @@ export function MembersTab() {
 
     dispatchedInvitePurchaseKey.current = purchase.idempotencyKey;
     setInviteSeatPurchase({ ...purchase, phase: "inviting" });
-    void sendInvitation(purchase.email, purchase.role)
+    void sendInvitation(purchase.email, purchase.role, purchase.departmentId)
       .then(() => setInviteSeatPurchase(null))
       .catch((error) => {
         const code = errorCode(error);
@@ -805,6 +885,30 @@ export function MembersTab() {
       toast.success(t(($) => $.members.toast_role_updated));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t(($) => $.members.toast_role_failed));
+    } finally {
+      setMemberActionId(null);
+    }
+  };
+
+  const handleDepartmentChange = async (
+    member: MemberWithUser,
+    departmentId: string | null,
+  ) => {
+    if (!workspace) return;
+    setMemberActionId(member.id);
+    try {
+      const change = await api.updateMemberDepartment(workspace.id, member.id, {
+        department_id: departmentId,
+      });
+      const { added, removed } = departmentMoveCounts(change);
+      qc.invalidateQueries({ queryKey: workspaceKeys.members(wsId) });
+      toast.success(
+        t(($) => $.members.toast_department_updated, { added, removed }),
+      );
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : t(($) => $.members.toast_department_failed),
+      );
     } finally {
       setMemberActionId(null);
     }
@@ -950,20 +1054,42 @@ export function MembersTab() {
               </span>
             ) : null}
             {activeView === "members" ? (
-              <div className="relative w-full sm:w-56">
-                <Search
-                  aria-hidden="true"
-                  className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-                />
-                <Input
-                  type="search"
-                  value={memberQuery}
-                  onChange={(event) => setMemberQuery(event.target.value)}
-                  placeholder={t(($) => $.members.search_placeholder)}
-                  aria-label={t(($) => $.members.search_placeholder)}
-                  className="pl-8"
-                />
-              </div>
+              <>
+                {departments.length > 0 ? (
+                  <div className="w-full sm:w-40">
+                    <DepartmentSelect
+                      ariaLabel={t(($) => $.members.department_filter)}
+                      value={departmentFilter}
+                      options={[
+                        {
+                          value: ALL_DEPARTMENTS,
+                          label: t(($) => $.members.department_all),
+                        },
+                        {
+                          value: NO_DEPARTMENT,
+                          label: t(($) => $.members.department_none),
+                        },
+                        ...departmentOptions(departments),
+                      ]}
+                      onValueChange={setDepartmentFilter}
+                    />
+                  </div>
+                ) : null}
+                <div className="relative w-full sm:w-56">
+                  <Search
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <Input
+                    type="search"
+                    value={memberQuery}
+                    onChange={(event) => setMemberQuery(event.target.value)}
+                    placeholder={t(($) => $.members.search_placeholder)}
+                    aria-label={t(($) => $.members.search_placeholder)}
+                    className="pl-8"
+                  />
+                </div>
+              </>
             ) : activeView === "links" ? (
               <Button variant="outline" size="sm" onClick={() => setShareLinkOpen(true)}>
                 <Plus />
@@ -980,12 +1106,16 @@ export function MembersTab() {
                 <div key={m.id}>
                   <MemberRow
                     member={m}
+                    departments={departments}
                     canManage={canManageWorkspace}
                     canManageOwners={isOwner}
                     ownerCount={ownerCount}
                     isSelf={m.user_id === user?.id}
                     busy={memberActionId === m.id}
                     onRoleChange={(role) => handleRoleChange(m.id, role)}
+                    onDepartmentChange={(departmentId) =>
+                      void handleDepartmentChange(m, departmentId)
+                    }
                     onRemove={() => handleRemoveMember(m)}
                   />
                 </div>
@@ -993,8 +1123,12 @@ export function MembersTab() {
             </SettingsCard>
           ) : (
             <ObjectSectionEmpty
-              icon={needle ? Search : Users}
-              description={needle ? t(($) => $.members.no_results) : t(($) => $.members.no_members)}
+              icon={narrowed ? Search : Users}
+              description={
+                narrowed
+                  ? t(($) => $.members.no_results)
+                  : t(($) => $.members.no_members)
+              }
             />
           )
         ) : activeView === "invitations" ? (
@@ -1087,6 +1221,26 @@ export function MembersTab() {
                 </SelectContent>
               </Select>
             </div>
+            {departments.length > 0 ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="invite-department">
+                  {t(($) => $.members.department_label)}
+                </Label>
+                <DepartmentSelect
+                  id="invite-department"
+                  value={inviteDepartment}
+                  options={[
+                    {
+                      value: NO_DEPARTMENT,
+                      label: t(($) => $.members.department_none),
+                    },
+                    ...departmentOptions(departments),
+                  ]}
+                  onValueChange={setInviteDepartment}
+                  disabled={inviteLoading}
+                />
+              </div>
+            ) : null}
             <DialogFooter>
               <Button
                 type="button"

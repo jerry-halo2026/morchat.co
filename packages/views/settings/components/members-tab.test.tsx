@@ -7,6 +7,7 @@ import { BILLING_WORKSPACE_SUBSCRIPTIONS_FLAG } from "@morechat/core/feature-fla
 import { renderWithI18n } from "../../test/i18n";
 
 const mockCreateMember = vi.hoisted(() => vi.fn());
+const mockUpdateMemberDepartment = vi.hoisted(() => vi.fn());
 // The URL the settings router holds; `setSearch` stands in for navigation.
 const url = vi.hoisted(() => {
   const listeners = new Set<() => void>();
@@ -27,6 +28,7 @@ const data = vi.hoisted(() => ({
   members: [] as Array<Record<string, unknown>>,
   invitations: [] as Array<Record<string, unknown>>,
   shareLinks: [] as Array<Record<string, unknown>>,
+  departments: [] as Array<Record<string, unknown>>,
   summary: null as Record<string, unknown> | null,
 }));
 
@@ -34,6 +36,7 @@ vi.mock("@tanstack/react-query", () => ({
   queryOptions: <T,>(opts: T) => opts,
   useQuery: (opts: { queryKey: unknown[] }) => {
     const key = JSON.stringify(opts.queryKey);
+    if (key.includes("departments")) return { data: data.departments };
     if (key.includes("invitations")) return { data: data.invitations };
     if (key.includes("share-links")) return { data: data.shareLinks };
     if (key.includes("members")) return { data: data.members };
@@ -57,7 +60,10 @@ vi.mock("@morechat/core/paths", () => ({
 }));
 vi.mock("@morechat/core/api", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@morechat/core/api")>()),
-  api: { createMember: mockCreateMember },
+  api: {
+    createMember: mockCreateMember,
+    updateMemberDepartment: mockUpdateMemberDepartment,
+  },
 }));
 vi.mock("@morechat/core/auth", () => {
   const state = { user: { id: "user-1" } };
@@ -88,6 +94,20 @@ vi.mock("../../navigation", () => ({
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 import { MembersTab } from "./members-tab";
+import { toast } from "sonner";
+
+const PLATFORM = "dept-platform";
+const SALES = "dept-sales";
+
+const departmentRow = (id: string, name: string) => ({
+  id,
+  workspace_id: "ws-1",
+  name,
+  lead_user_id: null,
+  system_key: null,
+  created_at: "2025-01-01T00:00:00Z",
+  updated_at: "2025-01-01T00:00:00Z",
+});
 
 const member = (id: string, name: string, role: string) => ({
   id: `m-${id}`,
@@ -123,6 +143,7 @@ beforeEach(() => {
     },
   ];
   data.shareLinks = [];
+  data.departments = [];
   data.summary = null;
   configStore.getState().setFeatureFlags({});
 });
@@ -152,6 +173,122 @@ describe("MembersTab", () => {
 
     fireEvent.change(search, { target: { value: "nobody" } });
     expect(screen.getByText("No members match this search.")).toBeInTheDocument();
+  });
+
+  it("shows which department each member is filed under", () => {
+    data.departments = [departmentRow(PLATFORM, "Platform")];
+    data.members = [
+      { ...member("user-1", "Ada Lovelace", "owner"), department_id: PLATFORM },
+      member("user-2", "Grace Hopper", "admin"),
+    ];
+    renderWithI18n(<MembersTab />);
+
+    expect(screen.getAllByText("Platform").length).toBeGreaterThan(0);
+    // Grace has no department: the column stays blank rather than guessing one.
+    expect(screen.queryByText("No department")).toBeNull();
+  });
+
+  it("filters the member list by department", async () => {
+    data.departments = [
+      departmentRow(PLATFORM, "Platform"),
+      departmentRow(SALES, "Sales"),
+    ];
+    data.members = [
+      { ...member("user-1", "Ada Lovelace", "owner"), department_id: PLATFORM },
+      { ...member("user-2", "Grace Hopper", "admin"), department_id: SALES },
+      member("user-3", "Alan Turing", "member"),
+    ];
+    const user = userEvent.setup();
+    renderWithI18n(<MembersTab />);
+
+    await user.click(screen.getByRole("combobox", { name: "Filter by department" }));
+    await user.click(await screen.findByRole("option", { name: "Sales" }));
+
+    expect(screen.getByText("Grace Hopper")).toBeInTheDocument();
+    expect(screen.queryByText("Ada Lovelace")).toBeNull();
+    expect(screen.queryByText("Alan Turing")).toBeNull();
+  });
+
+  it("moves a member to another department and reports the projects it touched", async () => {
+    const success = vi.mocked(toast.success);
+    success.mockClear();
+    data.departments = [departmentRow(PLATFORM, "Platform")];
+    data.members = [
+      member("user-1", "Ada Lovelace", "owner"),
+      member("user-2", "Grace Hopper", "admin"),
+    ];
+    mockUpdateMemberDepartment.mockResolvedValue({
+      department_id: PLATFORM,
+      added_projects: ["p1", "p2"],
+      removed_projects: ["p3"],
+    });
+    const user = userEvent.setup();
+    renderWithI18n(<MembersTab />);
+
+    await user.click(screen.getByRole("button", { name: "Actions for Grace Hopper" }));
+    const submenu = await screen.findByRole("menuitem", { name: "Change department" });
+    // The submenu opens on the keyboard/click path but keeps its content
+    // pointer-inert in jsdom, so drive the items with fireEvent.
+    fireEvent.click(submenu);
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Platform" }));
+
+    await waitFor(() =>
+      expect(mockUpdateMemberDepartment).toHaveBeenCalledWith("ws-1", "m-user-2", {
+        department_id: PLATFORM,
+      }),
+    );
+    await waitFor(() =>
+      expect(success).toHaveBeenCalledWith(
+        "Department updated · 2 projects added, 1 removed",
+      ),
+    );
+  });
+
+  it("clears a member's department when no department is chosen", async () => {
+    data.departments = [departmentRow(PLATFORM, "Platform")];
+    data.members = [
+      member("user-1", "Ada Lovelace", "owner"),
+      { ...member("user-2", "Grace Hopper", "admin"), department_id: PLATFORM },
+    ];
+    mockUpdateMemberDepartment.mockResolvedValue({
+      department_id: null,
+      added_projects: [],
+      removed_projects: ["p1"],
+    });
+    const user = userEvent.setup();
+    renderWithI18n(<MembersTab />);
+
+    await user.click(screen.getByRole("button", { name: "Actions for Grace Hopper" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Change department" }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: "No department" }));
+
+    await waitFor(() =>
+      expect(mockUpdateMemberDepartment).toHaveBeenCalledWith("ws-1", "m-user-2", {
+        department_id: null,
+      }),
+    );
+  });
+
+  it("sends the invitation into the chosen department", async () => {
+    data.departments = [departmentRow(PLATFORM, "Platform")];
+    mockCreateMember.mockResolvedValue({});
+    const user = userEvent.setup();
+    renderWithI18n(<MembersTab />);
+
+    await user.click(screen.getByRole("button", { name: "Invite member" }));
+    const dialog = await screen.findByRole("dialog", { name: "Invite member" });
+    await user.type(within(dialog).getByRole("textbox", { name: "Email" }), "new@acme.dev");
+    await user.click(within(dialog).getByRole("combobox", { name: "Department" }));
+    await user.click(await screen.findByRole("option", { name: "Platform" }));
+    await user.click(within(dialog).getByRole("button", { name: "Invite" }));
+
+    await waitFor(() =>
+      expect(mockCreateMember).toHaveBeenCalledWith("ws-1", {
+        email: "new@acme.dev",
+        role: "member",
+        department_id: PLATFORM,
+      }),
+    );
   });
 
   it("shows when each pending invitation was sent and expires", async () => {

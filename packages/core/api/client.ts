@@ -158,6 +158,8 @@ import type {
   CreateDepartmentRequest,
   UpdateDepartmentRequest,
   DeleteDepartmentResponse,
+  UpdateMemberDepartmentRequest,
+  UpdateMemberDepartmentResponse,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -3704,6 +3706,23 @@ export class ApiClient {
   async deleteMember(workspaceId: string, memberId: string): Promise<void> {
     await this.fetch(`/api/workspaces/${workspaceId}/members/${memberId}`, {
       method: "DELETE",
+    });
+  }
+
+  /**
+   * Files a member under a department, or clears the attribution with
+   * `department_id: null`. Server-side this also adds/removes that member on
+   * the department's private projects, so the response reports which project
+   * ids the move touched.
+   */
+  async updateMemberDepartment(
+    workspaceId: string,
+    memberId: string,
+    data: UpdateMemberDepartmentRequest,
+  ): Promise<UpdateMemberDepartmentResponse> {
+    return this.fetch(`/api/workspaces/${workspaceId}/members/${memberId}/department`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
     });
   }
 

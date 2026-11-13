@@ -8,6 +8,7 @@ export const workspaceKeys = {
   members: (wsId: string) => ["workspaces", wsId, "members"] as const,
   invitations: (wsId: string) => ["workspaces", wsId, "invitations"] as const,
   shareLinks: (wsId: string) => ["workspaces", wsId, "share-links"] as const,
+  departments: (wsId: string) => ["workspaces", wsId, "departments"] as const,
   myInvitations: () => ["invitations", "mine"] as const,
   agents: (wsId: string) => ["workspaces", wsId, "agents"] as const,
   agent: (wsId: string, agentId: string) =>
@@ -42,6 +43,20 @@ export function memberListOptions(wsId: string) {
   return queryOptions({
     queryKey: workspaceKeys.members(wsId),
     queryFn: () => api.listMembers(wsId),
+  });
+}
+
+/**
+ * Departments are attribution, not an access rule, so every member may read the
+ * list; only owners/admins create or change them. The workspace is passed
+ * explicitly because the invite dialog and the member list both read it for a
+ * workspace the route may not be scoped to yet.
+ */
+export function departmentListOptions(wsId: string) {
+  return queryOptions({
+    queryKey: workspaceKeys.departments(wsId),
+    queryFn: () => api.listDepartments({ workspaceId: wsId }).then((res) => res.departments),
+    enabled: !!wsId,
   });
 }
 

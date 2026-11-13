@@ -43,3 +43,22 @@ export interface DeleteDepartmentResponse {
   detached_projects: number;
   detached_members: number;
 }
+
+/**
+ * `department_id: null` clears the attribution: the member leaves the private
+ * projects of the old department and joins none of the new one's.
+ */
+export interface UpdateMemberDepartmentRequest {
+  department_id: string | null;
+}
+
+/**
+ * The move also rewrites the member's project memberships, so the response
+ * names the projects it added and dropped — counts would not tell an operator
+ * which projects changed.
+ */
+export interface UpdateMemberDepartmentResponse {
+  department_id: string | null;
+  added_projects: string[];
+  removed_projects: string[];
+}
