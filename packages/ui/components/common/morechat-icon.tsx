@@ -71,7 +71,6 @@ export function MorechatIcon({
           width={bar.width}
           height={bar.height}
           rx={bar.rx}
-          opacity={bar.opacity}
           className={cn("multica-bar", `multica-bar-${index}`)}
         />
       ))}

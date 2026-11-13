@@ -80,8 +80,8 @@
  * so a sequence stays readable in one place. */
 @keyframes multica-pop { from { transform: scale(0.4); opacity: 0; } }
 @keyframes multica-bar {
-  0%, 100% { transform: scaleY(0.42); }
-  50% { transform: scaleY(1); }
+  0%, 100% { opacity: 0.28; }
+  35%, 55% { opacity: 1; }
 }
 @keyframes multica-rise {
   from { transform: translateY(26%); opacity: 0; }
@@ -530,13 +530,11 @@ html[data-sidebar-resizing="true"] {
 
 /* The three bars: one wave, each bar a step behind the one before it. */
 .multica-bar {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: multica-bar 1.05s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation: multica-bar 1.2s cubic-bezier(0.4, 0, 0.4, 1) infinite;
 }
 .multica-bar-0 { animation-delay: 0s; }
-.multica-bar-1 { animation-delay: 0.16s; }
-.multica-bar-2 { animation-delay: 0.32s; }
+.multica-bar-1 { animation-delay: 0.2s; }
+.multica-bar-2 { animation-delay: 0.4s; }
 /* The m drawing itself, for the older mark. */
 .multica-think {
   stroke-dasharray: 1 1;
