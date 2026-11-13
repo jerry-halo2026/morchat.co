@@ -130,6 +130,29 @@ func (h *Handler) requireIssueIDVisible(w http.ResponseWriter, r *http.Request, 
 	return true
 }
 
+// requireTaskVisible is requireIssueIDVisible for a run. A run without an
+// issue (a run-only autopilot, a quick-create) still reads a project, so its
+// visibility comes from projectaccess.TaskProjects rather than its issue id.
+func (h *Handler) requireTaskVisible(w http.ResponseWriter, r *http.Request, workspaceID string, task db.AgentTaskQueue, status int, notFoundMsg string) bool {
+	hidden, ok := h.requestHiddenProjects(w, r, workspaceID)
+	if !ok {
+		return false
+	}
+	if hidden.Empty() {
+		return true
+	}
+	projects, err := projectaccess.TaskProjects(r.Context(), h.Queries, task)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to resolve project access")
+		return false
+	}
+	if !hidden.CanSeeProjects(projects) {
+		writeError(w, status, notFoundMsg)
+		return false
+	}
+	return true
+}
+
 // commentInHiddenProject reports whether a comment sits on an issue in a
 // private project the request cannot see. A missing comment is not hidden;
 // the caller's own lookup answers for it.
@@ -318,6 +341,25 @@ func (h *Handler) requireChatProjectVisible(w http.ResponseWriter, r *http.Reque
 		return false
 	}
 	return true
+}
+
+// chatRunProjectID is the chat session project whose context a claimed chat
+// run may carry: none once the session's creator, the run's human or the
+// agent's owner can no longer see it. The session keeps its project_id, so
+// the context comes back if access does.
+func (h *Handler) chatRunProjectID(ctx context.Context, cs db.ChatSession, task db.AgentTaskQueue, agentOwnerID pgtype.UUID) (pgtype.UUID, error) {
+	if !cs.ProjectID.Valid {
+		return cs.ProjectID, nil
+	}
+	principals := append(projectaccess.RunPrincipals(task, agentOwnerID), cs.CreatorID)
+	hidden, err := projectaccess.ForPrincipals(ctx, h.Queries, cs.WorkspaceID, principals...)
+	if err != nil {
+		return pgtype.UUID{}, err
+	}
+	if !hidden.CanSeeProject(cs.ProjectID) {
+		return pgtype.UUID{}, nil
+	}
+	return cs.ProjectID, nil
 }
 
 // hiddenProjectPredicate is the dynamic-SQL twin of the sqlc
