@@ -29,6 +29,7 @@
     "build": "turbo build --filter=!@morechat/mobile",
     "typecheck": "turbo typecheck --filter=!@morechat/mobile",
     "test": "turbo test --filter=!@morechat/mobile",
+    "test:scripts": "node --test \"scripts/**/*.test.mjs\"",
     "lint": "turbo lint --filter=!@morechat/mobile",
     "knip": "knip",
     "check:ui-exports": "node scripts/check-ui-wildcard-exports.mjs",
