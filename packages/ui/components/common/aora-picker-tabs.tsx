@@ -26,6 +26,11 @@ import {
   type ShapeId,
   type StyleId,
 } from "@aora-bot/engine";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@morechat/ui/components/ui/tooltip";
 import { cn } from "@morechat/ui/lib/utils";
 import { encodeAoraSpec, type AoraSpec } from "@morechat/core/avatar/aora-spec";
 
@@ -216,42 +221,47 @@ export function AoraPickerTabs({
           const candidate = { ...spec, ...cell.patch } as AoraSpec;
           const chip = tab === "color" ? swatchValue(cell.id) : null;
           return (
-            <button
-              key={cell.id}
-              type="button"
-              role="option"
-              aria-selected={cell.selected}
-              aria-label={cell.label}
-              title={cell.label}
-              disabled={disabled}
-              onClick={() => onPick(cell.patch)}
-              data-aora-cell={cell.id}
-              className={cn(
-                "relative grid place-items-center rounded-md border p-0.5 transition-colors",
-                cell.selected ? "border-primary" : "border-transparent hover:border-border",
-              )}
-              style={{ width: cellPx + 8, height: cellPx + 8 }}
-            >
-              <img
-                src={aoraAvatarUrl({
-                  entityId: cell.id,
-                  avatarUrl: encodeAoraSpec(candidate),
-                  sizePx: cellPx,
-                })}
-                alt=""
-                width={cellPx}
-                height={cellPx}
-                loading="lazy"
-                className="rounded-full"
+            <Tooltip key={cell.id}>
+              <TooltipTrigger
+                render={
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={cell.selected}
+                    aria-label={cell.label}
+                    disabled={disabled}
+                    onClick={() => onPick(cell.patch)}
+                    data-aora-cell={cell.id}
+                    className={cn(
+                      "relative grid place-items-center rounded-md border p-0.5 transition-colors",
+                      cell.selected ? "border-primary" : "border-transparent hover:border-border",
+                    )}
+                    style={{ width: cellPx + 8, height: cellPx + 8 }}
+                  >
+                    <img
+                      src={aoraAvatarUrl({
+                        entityId: cell.id,
+                        avatarUrl: encodeAoraSpec(candidate),
+                        sizePx: cellPx,
+                      })}
+                      alt=""
+                      width={cellPx}
+                      height={cellPx}
+                      loading="lazy"
+                      className="rounded-full"
+                    />
+                    {chip && (
+                      <span
+                        aria-hidden
+                        className="absolute bottom-0.5 right-0.5 size-1.5 rounded-full ring-1 ring-background"
+                        style={{ backgroundColor: chip }}
+                      />
+                    )}
+                  </button>
+                }
               />
-              {chip && (
-                <span
-                  aria-hidden
-                  className="absolute bottom-0.5 right-0.5 size-1.5 rounded-full ring-1 ring-background"
-                  style={{ backgroundColor: chip }}
-                />
-              )}
-            </button>
+              <TooltipContent side="bottom">{cell.label}</TooltipContent>
+            </Tooltip>
           );
         })}
       </div>
