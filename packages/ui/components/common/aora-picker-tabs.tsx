@@ -9,9 +9,10 @@
  * colour with it. These tabs expose the same four fields the spec stores, one axis
  * at a time, so every choice is a single visible move.
  *
- * Each cell is a static `<img>` at `GET /avatar/<spec>`. Seventy-one live
- * `CharacterMark` instances would be seventy-one frame loops behind a popover nobody
- * is reading; the selected face stays live because the caller renders that one.
+ * Every cell is the engine's own mark, paused: the same renderer that draws the
+ * finished avatar, so a cell cannot disagree with what picking it produces. Paused
+ * because seventy-one frame loops behind a popover is motion nobody is reading; the
+ * selected face above the grid stays live.
  */
 
 import { useMemo } from "react";
@@ -25,15 +26,14 @@ import {
   type ShapeId,
   type StyleId,
 } from "@aora-bot/engine";
+import { CharacterMark } from "@aora-bot/react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@morechat/ui/components/ui/tooltip";
 import { cn } from "@morechat/ui/lib/utils";
-import { encodeAoraSpec, type AoraSpec } from "@morechat/core/avatar/aora-spec";
-
-import { aoraAvatarDataUri } from "./aora-avatar";
+import type { AoraSpec } from "@morechat/core/avatar/aora-spec";
 
 /** Which axis a tab edits. */
 export type AoraPickerTab = "shape" | "color" | "style" | "face";
@@ -167,24 +167,6 @@ const COLOR_LABELS: Record<string, string> = {
   lilac: "丁香",
   butter: "奶油黄",
   meadow: "草甸",
-  peach: "蜜桃",
-  pine: "松绿",
-  crimson: "绯红",
-  snow: "雪白",
-  indigo: "靛蓝",
-  crust: "焦糖壳",
-  jade: "翡翠",
-  peel: "果皮",
-  mint: "薄荷",
-  carrot: "胡萝卜",
-  caramel: "焦糖",
-  lagoon: "潟湖",
-  lemon: "柠檬",
-  aqua: "水蓝",
-  sand: "沙",
-  grass: "草绿",
-  wine: "酒红",
-  plum: "梅子",
 };
 
 const STYLE_LABELS: Record<string, string> = {
@@ -333,17 +315,17 @@ export function AoraPickerTabs({
                     )}
                     style={{ width: cellPx + 8, height: cellPx + 8 }}
                   >
-                    <img
-                      src={aoraAvatarDataUri({
-                        entityId: cell.id,
-                        avatarUrl: encodeAoraSpec(candidate),
-                        sizePx: cellPx,
-                      })}
-                      alt=""
-                      width={cellPx}
-                      height={cellPx}
-                      loading="lazy"
-                      className="rounded-full"
+                    {/* The engine's own mark, not a rendered image: one renderer for
+                        the grid and for the finished avatar, and it follows the theme. */}
+                    <CharacterMark
+                      shape={candidate.shape as ShapeId}
+                      color={candidate.color as ColorId}
+                      face={candidate.face as FaceStyle}
+                      styleId={candidate.style as StyleId}
+                      seed={candidate.seed}
+                      sizePx={cellPx}
+                      paused
+                      style={{ transform: "scaleX(-1)" }}
                     />
                     {chip && (
                       <span
