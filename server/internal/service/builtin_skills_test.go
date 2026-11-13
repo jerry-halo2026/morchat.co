@@ -361,6 +361,11 @@ func TestPlatformSkillDescriptionNamesEveryDomain(t *testing.T) {
 		"references/projects.md":     "project",
 		"references/runtimes.md":     "runtime",
 		"references/skill-import.md": "skill import",
+		// The three every agent needs and none of them used to be told about:
+		// what to keep, how work is handed off, and how far self-editing goes.
+		"references/knowledge.md":    "knowledge base",
+		"references/dispatch.md":     "dispatch",
+		"references/self-improve.md": "self-improvement",
 	}
 
 	skill, ok := findSkill(t, PlatformSkillName)

@@ -1,6 +1,6 @@
 ---
 name: multica-platform
-description: "Use for Multica platform actions the runtime brief does not fully cover: issue and PR contracts, sub-issues, charts and files in comments, mentions, agents, squads, autopilots, projects, runtimes, skill import. Not for the product code you are working on."
+description: "Use for Multica platform actions the runtime brief does not fully cover: issue and PR contracts, sub-issues, comments, mentions, agents, squads, autopilots, projects, runtimes, skill import, knowledge base, dispatch paths, self-improvement. Not for the product code you are working on."
 user-invocable: false
 allowed-tools: Bash(multica *), Bash(git *), Bash(gh *)
 ---
@@ -28,13 +28,16 @@ Read the invariants below, then open the reference(s) your task actually needs
 | `references/projects.md` | Projects and their durable resources (`github_repo`, `local_directory`, worktree mode); project workflows — status columns, handoffs, a `[Project workflow]` block in your prompt, reading or changing a workflow (`multica workflow`, `multica project workflow`) |
 | `references/runtimes.md` | Runtimes, daemons, `repo checkout`, and the task CLI boundary |
 | `references/skill-import.md` | Importing a skill into this workspace from a URL or a local archive |
+| `references/knowledge.md` | 知识库：检索、读取、把结论写回（三个 MCP 工具、写什么不写什么） |
+| `references/dispatch.md` | 派活与协作：四种小队形态、三条派活路径、两个重复触发陷阱 |
+| `references/self-improve.md` | 改自己：什么能自改、什么只能提议、提案与生效要跨 run |
 
 Open what the task needs. A single-domain task usually needs one; a task that
 crosses domains needs each domain it touches — creating a squad, assigning it an
 issue, then writing a mention needs `squads.md`, `issues.md` and `mentions.md`,
 and skipping one of those means acting on a contract you have not read.
 
-What is never right is reading all nine because you are not sure. Each
+What is never right is reading all twelve because you are not sure. Each
 reference states its own contracts in full and none depends on another, so
 pick by domain and skip the rest.
 
