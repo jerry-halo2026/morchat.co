@@ -53,6 +53,18 @@ const (
 	// no space is hidden and, while it is off, the switcher renders exactly as
 	// before. It is a frontend decision, published through /api/config.
 	KnowledgeDepartmentScope = "knowledge_department_scope"
+	// KnowledgeSpaceScope enforces department scope on the knowledge space reads
+	// (ORG-MODEL §2/§5 gap 2): a space filed under a department is visible to
+	// that department, space with no department stays visible to the whole
+	// workspace, and owner/admin see everything. Off by default because it
+	// SHRINKS what people can see; flip it only after
+	// KnowledgeSpaceScopeShadow has shown the numbers.
+	KnowledgeSpaceScope = "knowledge_space_scope"
+	// KnowledgeSpaceScopeShadow is the observation half of the switch above: it
+	// logs what the scope would hide and from whom, and changes no response.
+	// Independent of KnowledgeSpaceScope, so "observe", "enforce", and "back
+	// out" are three separate flag operations.
+	KnowledgeSpaceScopeShadow = "knowledge_space_scope_shadow"
 	// agentBuilderCompat is no longer a release flag. Keep publishing the key
 	// as enabled so installed desktop clients that still gate the AI creation
 	// entry on this config decision receive the permanently enabled behavior.
@@ -123,6 +135,17 @@ func KnowledgeAdminVisibilityEnabled(ctx context.Context, flags *featureflag.Ser
 // groups by department. Off by default: the switcher then renders as before.
 func KnowledgeDepartmentScopeEnabled(ctx context.Context, flags *featureflag.Service) bool {
 	return flags.IsEnabled(ctx, KnowledgeDepartmentScope, false)
+}
+
+// KnowledgeSpaceScopeEnabled reports whether department scope is enforced on the
+// knowledge space reads.
+func KnowledgeSpaceScopeEnabled(ctx context.Context, flags *featureflag.Service) bool {
+	return flags.IsEnabled(ctx, KnowledgeSpaceScope, false)
+}
+
+// KnowledgeSpaceScopeShadowEnabled reports whether the space scope only observes.
+func KnowledgeSpaceScopeShadowEnabled(ctx context.Context, flags *featureflag.Service) bool {
+	return flags.IsEnabled(ctx, KnowledgeSpaceScopeShadow, false)
 }
 
 func DepartmentDefaultScopeEnabled(ctx context.Context, flags *featureflag.Service) bool {

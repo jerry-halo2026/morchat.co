@@ -114,13 +114,17 @@ func knowledgeLimit(r *http.Request, name string, fallback, max int) int {
 // ---------------------------------------------------------------------------
 
 // ListKnowledgeSpaces answers GET /api/knowledge/spaces.
+//
+// The service, not the store: knowledge_space_scope narrows this listing to the
+// viewer's department (plus the shared, department-less spaces), and the service
+// is where that rule and its log-only observation live.
 func (h *Handler) ListKnowledgeSpaces(w http.ResponseWriter, r *http.Request) {
-	workspaceID, _, ok := knowledgeRequestScope(r)
+	workspaceID, viewerID, ok := knowledgeRequestScope(r)
 	if !ok {
 		writeErrorCode(w, http.StatusBadRequest, "invalid_request", "workspace context is required")
 		return
 	}
-	spaces, err := h.knowledgeService().Store().ListSpaces(r.Context(), workspaceID)
+	spaces, err := h.knowledgeService().ListSpaces(r.Context(), workspaceID, viewerID)
 	if err != nil {
 		writeKnowledgeCRUDError(w, "spaces", err)
 		return
@@ -152,15 +156,17 @@ func (h *Handler) CreateKnowledgeSpace(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, space)
 }
 
-// GetKnowledgeSpace answers GET /api/knowledge/spaces/{spaceId}.
+// GetKnowledgeSpace answers GET /api/knowledge/spaces/{spaceId}. A space outside
+// the viewer's department scope answers 404 knowledge_space_not_found, the same
+// answer a space of another workspace gets.
 func (h *Handler) GetKnowledgeSpace(w http.ResponseWriter, r *http.Request) {
-	workspaceID, _, ok := knowledgeRequestScope(r)
+	workspaceID, viewerID, ok := knowledgeRequestScope(r)
 	if !ok {
 		writeErrorCode(w, http.StatusBadRequest, "invalid_request", "workspace context is required")
 		return
 	}
-	space, err := h.knowledgeService().Store().GetSpace(
-		r.Context(), workspaceID, chi.URLParam(r, "spaceId"))
+	space, err := h.knowledgeService().GetSpace(
+		r.Context(), workspaceID, viewerID, chi.URLParam(r, "spaceId"))
 	if err != nil {
 		writeKnowledgeCRUDError(w, "space", err)
 		return
@@ -665,14 +671,16 @@ func (h *Handler) SearchKnowledge(w http.ResponseWriter, r *http.Request) {
 //
 // Both shapes are returned because both callers exist: `pages` is the flat,
 // path-ordered list a table renders, `tree` is the nested one the sidebar needs.
+// A space_id outside the viewer's department scope answers 404, and a listing
+// across spaces keeps only the visible ones — both inside the service.
 func (h *Handler) ListKnowledgePages(w http.ResponseWriter, r *http.Request) {
-	workspaceID, _, ok := knowledgeRequestScope(r)
+	workspaceID, viewerID, ok := knowledgeRequestScope(r)
 	if !ok {
 		writeErrorCode(w, http.StatusBadRequest, "invalid_request", "workspace context is required")
 		return
 	}
-	pages, tree, err := h.knowledgeService().Store().ListPages(
-		r.Context(), workspaceID, r.URL.Query().Get("space_id"), r.URL.Query().Get("q"))
+	pages, tree, err := h.knowledgeService().ListPages(
+		r.Context(), workspaceID, viewerID, r.URL.Query().Get("space_id"), r.URL.Query().Get("q"))
 	if err != nil {
 		writeKnowledgeCRUDError(w, "pages", err)
 		return

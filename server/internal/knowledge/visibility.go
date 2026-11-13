@@ -35,9 +35,10 @@ import (
 	"github.com/jerry-halo2026/morchat.co/server/internal/projectaccess"
 )
 
-// VisibilityFlags is the pair of switches the item rule reads. The zero value is
-// today's behaviour: `project` items are workspace-visible and only their owner
-// reads a `private` item.
+// VisibilityFlags is the pair of switches the item rule reads, plus the space
+// switch the space rule reads. The zero value is today's behaviour: `project`
+// items are workspace-visible, only their owner reads a `private` item, and every
+// member of the workspace sees every space.
 type VisibilityFlags struct {
 	// ProjectACL makes acl_mode=project ask project_member instead of answering
 	// yes for everyone in the workspace.
@@ -45,6 +46,10 @@ type VisibilityFlags struct {
 	// AdminVisibility lets a workspace owner/admin read every item, which is the
 	// ORG-MODEL §2 row for 知识条目 that `canViewItem` never implemented.
 	AdminVisibility bool
+	// SpaceScope narrows a knowledge space to its department: a space filed
+	// under a department is visible to that department (and to owner/admin),
+	// while a space with no department stays visible to the whole workspace.
+	SpaceScope bool
 }
 
 // Viewer is the observer a visibility decision is made for.
@@ -59,6 +64,10 @@ type Viewer struct {
 	// ProjectIDs is the viewer's project_member set. Only ACLModeProject reads
 	// it; a nil set means "member of no project".
 	ProjectIDs map[string]struct{}
+	// DepartmentID is the viewer's member.department_id, "" when unassigned.
+	// Only the space rule reads it: a member with no department sees the shared
+	// (department-less) spaces and nothing else.
+	DepartmentID string
 }
 
 // InProject reports whether the viewer is a member of projectID.
@@ -168,6 +177,17 @@ func (s *Service) adminVisibilityEnabled(ctx context.Context) bool {
 	return featureflags.KnowledgeAdminVisibilityEnabled(ctx, s.flags)
 }
 
+// spaceScopeEnabled reports knowledge_space_scope: the space rule enforces.
+func (s *Service) spaceScopeEnabled(ctx context.Context) bool {
+	return featureflags.KnowledgeSpaceScopeEnabled(ctx, s.flags)
+}
+
+// spaceScopeShadowEnabled reports knowledge_space_scope_shadow: the space rule
+// only observes.
+func (s *Service) spaceScopeShadowEnabled(ctx context.Context) bool {
+	return featureflags.KnowledgeSpaceScopeShadowEnabled(ctx, s.flags)
+}
+
 // ---------------------------------------------------------------------------
 // Log-only observation
 // ---------------------------------------------------------------------------
@@ -214,21 +234,21 @@ type ProjectACLShadow struct {
 	Truncated      bool
 }
 
-// viewerRole reads member.role for the viewer. A missing membership is not an
-// error here: the observation reports an empty role and the bypass simply does
-// not apply.
-func (s *Service) viewerRole(ctx context.Context, workspaceID, viewerID string) (string, error) {
-	var role string
-	err := s.db.QueryRow(ctx, `
-		SELECT role FROM member
-		WHERE workspace_id = $1 AND user_id::text = $2`, workspaceID, viewerID).Scan(&role)
+// viewerIdentity reads member.role and member.department_id for the viewer. A
+// missing membership is not an error here: the observation reports an empty role
+// and department, and neither the manager bypass nor the department match
+// applies.
+func (s *Service) viewerIdentity(ctx context.Context, workspaceID, viewerID string) (role, departmentID string, err error) {
+	err = s.db.QueryRow(ctx, `
+		SELECT role, coalesce(department_id::text, '') FROM member
+		WHERE workspace_id = $1 AND user_id::text = $2`, workspaceID, viewerID).Scan(&role, &departmentID)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return "", nil
+		return "", "", nil
 	}
 	if err != nil {
-		return "", fmt.Errorf("read viewer role: %w", err)
+		return "", "", fmt.Errorf("read viewer identity: %w", err)
 	}
-	return role, nil
+	return role, departmentID, nil
 }
 
 // viewerProjects reads the viewer's project_member set for this workspace.
@@ -267,7 +287,7 @@ func (s *Service) ProjectACLShadow(ctx context.Context, workspaceID, viewerID, s
 		return shadow, fmt.Errorf("%w: workspace_id and viewer_id are required", ErrInvalidField)
 	}
 
-	role, err := s.viewerRole(ctx, workspaceID, viewerID)
+	role, _, err := s.viewerIdentity(ctx, workspaceID, viewerID)
 	if err != nil {
 		return shadow, err
 	}
@@ -369,10 +389,12 @@ func (s *Service) ProjectACLShadow(ctx context.Context, workspaceID, viewerID, s
 type shadowAudience struct {
 	total     int
 	users     []string
-	byProject map[string]projectAudience
+	byProject map[string]shadowPeople
 }
 
-type projectAudience struct {
+// shadowPeople is one group's audience: a count and the sampled ids behind it.
+// Both observations (project ACL, space scope) report in this shape.
+type shadowPeople struct {
 	count int
 	users []string
 }
@@ -383,7 +405,7 @@ type projectAudience struct {
 // full member count while the row set stays small: this observation runs inside
 // a read path and must not turn into "list every member of the workspace".
 func (s *Service) shadowAudience(ctx context.Context, workspaceID string, projectIDs []string) (shadowAudience, error) {
-	out := shadowAudience{byProject: map[string]projectAudience{}}
+	out := shadowAudience{byProject: map[string]shadowPeople{}}
 	if len(projectIDs) == 0 {
 		return out, nil
 	}
