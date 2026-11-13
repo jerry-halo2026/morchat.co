@@ -41,7 +41,28 @@ import {
 } from "./types";
 
 /** Upstream checkout every preset URL is built from. */
+/**
+ * Where the gallery reads package content from.
+ *
+ * A deployment that mirrors the content repository - internal network, a fork, a
+ * local checkout for testing - sets `MULTICA_PRESET_BASE_URL` and both the catalog
+ * proxy and the direct reads follow it. Reading the host's environment here is fine:
+ * this module also runs in the desktop main process and in tests, and a browser
+ * simply sees undefined.
+ */
+function readPresetBaseFromEnv(): string | null {
+  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process
+    ?.env;
+  // The web build inlines NEXT_PUBLIC_* into the browser bundle, which is the only
+  // way a browser can see this at all.
+  const configured =
+    env?.["MULTICA_PRESET_BASE_URL"]?.trim() ??
+    env?.["NEXT_PUBLIC_MULTICA_PRESET_BASE_URL"]?.trim();
+  return configured ? configured.replace(/\/+$/, "") : null;
+}
+
 export const DEFAULT_PRESET_BASE_URL =
+  readPresetBaseFromEnv() ??
   "https://raw.githubusercontent.com/jerry-halo2026/morechat.co-Assistant/main";
 
 /** Server-side proxy that mirrors index.json (see server/internal/handler/presets.go). */

@@ -2,8 +2,10 @@ package handler
 
 import (
 	"io"
+	"os"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -20,7 +22,12 @@ import (
 // the full document anyway.
 
 const (
-	presetIndexURL     = "https://raw.githubusercontent.com/jerry-halo2026/morechat.co-Assistant/main/index.json"
+	// presetIndexURL is the default catalog location. A deployment that mirrors the
+	// content repository - an internal network, a fork, a staging copy - overrides it
+	// with MULTICA_PRESET_BASE_URL and the gallery follows, because the client asks
+	// this server rather than talking to GitHub itself.
+	presetIndexURL = "https://raw.githubusercontent.com/jerry-halo2026/morechat.co-Assistant/main/index.json"
+	presetBaseEnv  = "MULTICA_PRESET_BASE_URL"
 	presetCacheTTL     = 5 * time.Minute
 	presetIndexMaxSize = 8 << 20 // index.json is ~100 KB; 8 MB is a runaway guard.
 )
@@ -114,7 +121,7 @@ func fetchPresetIndex(
 	cachedBody []byte,
 	cachedETag string,
 ) ([]byte, string, error) {
-	req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, presetIndexURL, nil)
+	req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, presetIndexEndpoint(), nil)
 	if err != nil {
 		return nil, "", err
 	}
@@ -146,4 +153,15 @@ func fetchPresetIndex(
 		return nil, "", err
 	}
 	return body, resp.Header.Get("ETag"), nil
+}
+
+// presetIndexEndpoint resolves the catalog URL for this process.
+//
+// An explicit MULTICA_PRESET_BASE_URL wins and is expected to be the repository
+// root, so the index is appended to it; the default constant already names the file.
+func presetIndexEndpoint() string {
+	if base := strings.TrimSpace(os.Getenv(presetBaseEnv)); base != "" {
+		return strings.TrimRight(base, "/") + "/index.json"
+	}
+	return presetIndexURL
 }
