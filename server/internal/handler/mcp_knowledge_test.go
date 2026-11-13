@@ -235,6 +235,123 @@ func TestKnowledgeMCPToolsList(t *testing.T) {
 	if len(get.required) != 1 || get.required[0] != "item_id" {
 		t.Fatalf("knowledge_get required = %v, want [item_id]", get.required)
 	}
+
+	// The write tool is gone: an agent proposes, a person approves (W1-A).
+	if _, ok := byName["knowledge_write"]; ok {
+		t.Fatalf("knowledge_write is still declared: %v", byName)
+	}
+	propose, ok := byName["knowledge_propose"]
+	if !ok {
+		t.Fatalf("knowledge_propose missing from %v", byName)
+	}
+	for _, property := range []string{"title", "content", "space_id", "source_ref"} {
+		if _, ok := propose.props[property]; !ok {
+			t.Fatalf("knowledge_propose schema lacks %q: %v", property, propose.props)
+		}
+	}
+	if len(propose.required) != 2 {
+		t.Fatalf("knowledge_propose required = %v, want [title content]", propose.required)
+	}
+}
+
+// TestKnowledgeMCPToolsCallPropose is the W1-A contract: an agent's tool call
+// produces a DRAFT item plus one review issue, and never active knowledge.
+func TestKnowledgeMCPToolsCallPropose(t *testing.T) {
+	if testPool == nil {
+		t.Skip("handler tests require a reachable DATABASE_URL")
+	}
+
+	spaceID := knowledgeCreateSpace(t, "MCP propose", "", "")
+	status, frame := mcpToolCall(t, "knowledge_propose", map[string]any{
+		"title":      "Runbook from a run",
+		"content":    "# Deploy\n\nThe staging deploy needs the cache flushed first.\n",
+		"space_id":   spaceID,
+		"source_ref": "https://example.test/issue/42",
+	})
+	if status != http.StatusOK {
+		t.Fatalf("tools/call: status = %d, want 200", status)
+	}
+
+	var result struct {
+		ItemID  string `json:"item_id"`
+		IssueID string `json:"issue_id"`
+		SpaceID string `json:"space_id"`
+		Status  string `json:"status"`
+	}
+	if err := json.Unmarshal([]byte(mcpText(t, frame)), &result); err != nil {
+		t.Fatalf("decode knowledge_propose text: %v", err)
+	}
+	if result.ItemID == "" || result.IssueID == "" {
+		t.Fatalf("propose answer is incomplete: %+v", result)
+	}
+	if result.Status != "draft" {
+		t.Fatalf("propose answered status = %q, want draft", result.Status)
+	}
+	if result.SpaceID != spaceID {
+		t.Fatalf("propose answered space_id = %q, want %q", result.SpaceID, spaceID)
+	}
+
+	// The stored item is a draft, and it already points at its review issue.
+	var itemStatus, reviewIssueID, ownerID, sourceRef string
+	dbfx.QueryRow(t, `SELECT status, coalesce(review_issue_id::text, ''),
+		coalesce(owner_id::text, ''), source_ref
+		FROM knowledge_items WHERE id = $1 AND workspace_id = $2`, result.ItemID, testWorkspaceID).
+		Scan(&itemStatus, &reviewIssueID, &ownerID, &sourceRef)
+	if itemStatus != "draft" {
+		t.Fatalf("stored item status = %q, want draft", itemStatus)
+	}
+	if reviewIssueID != result.IssueID {
+		t.Fatalf("stored review_issue_id = %q, want %q", reviewIssueID, result.IssueID)
+	}
+	if ownerID != testUserID {
+		t.Fatalf("stored owner_id = %q, want the proposing run's human", ownerID)
+	}
+	if sourceRef != "https://example.test/issue/42" {
+		t.Fatalf("stored source_ref = %q: the proposal must keep its source", sourceRef)
+	}
+
+	// The review issue exists in this workspace, carries the documented title,
+	// is assigned to the space owner (the suite's user), and is labelled.
+	var title, issueStatus, assigneeID string
+	dbfx.QueryRow(t, `SELECT title, status, coalesce(assignee_id::text, '')
+		FROM issue WHERE id = $1 AND workspace_id = $2`, result.IssueID, testWorkspaceID).
+		Scan(&title, &issueStatus, &assigneeID)
+	if !strings.HasPrefix(title, "[知识入库] ") {
+		t.Fatalf("review issue title = %q, want the [知识入库] prefix", title)
+	}
+	if issueStatus != "todo" {
+		t.Fatalf("review issue status = %q, want todo", issueStatus)
+	}
+	if assigneeID != testUserID {
+		t.Fatalf("review issue assignee = %q, want the space owner", assigneeID)
+	}
+	var labelName string
+	dbfx.QueryRow(t, `SELECT l.name FROM issue_to_label x
+		JOIN issue_label l ON l.id = x.label_id
+		WHERE x.issue_id = $1 AND l.name = $2`, result.IssueID, "knowledge-review").Scan(&labelName)
+	if labelName != "knowledge-review" {
+		t.Fatalf("review issue label = %q, want knowledge-review", labelName)
+	}
+
+	// knowledge.get reports the review record, so a reader sees the draft state.
+	_, getFrame := mcpToolCall(t, "knowledge_get", map[string]any{
+		"item_id": result.ItemID, "include_chunks": false,
+	})
+	var got struct {
+		Item struct {
+			Status string `json:"status"`
+		} `json:"item"`
+		Review struct {
+			ReviewIssueID string `json:"review_issue_id"`
+			ReviewedAt    string `json:"reviewed_at"`
+		} `json:"review"`
+	}
+	if err := json.Unmarshal([]byte(mcpText(t, getFrame)), &got); err != nil {
+		t.Fatalf("decode knowledge_get text: %v", err)
+	}
+	if got.Item.Status != "draft" || got.Review.ReviewIssueID != result.IssueID || got.Review.ReviewedAt != "" {
+		t.Fatalf("knowledge_get review summary = %+v, want a pending draft review", got)
+	}
 }
 
 // TestKnowledgeMCPToolsCallGet runs the read path end to end: a real item, read

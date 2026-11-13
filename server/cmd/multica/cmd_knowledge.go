@@ -120,6 +120,20 @@ with the item's id, kind, status and source_ref.`,
 		Args: exactArgs(1),
 		RunE: runKnowledgeExport,
 	}
+
+	knowledgeAuditCmd = &cobra.Command{
+		Use:   "audit",
+		Short: "Report knowledge that is unreviewed, stale, or orphaned (read-only)",
+		Long: `Report the three classes of questionable knowledge in the workspace.
+
+  unreviewed_active  active items with no recorded approval
+  stale              items whose approval expired (stale_after < now)
+  orphaned           items with no owner, or an owner outside the workspace
+
+It reads GET /api/knowledge/review-audit and changes nothing: use --json for the
+stable shape. An empty section means "nothing to fix", not "not implemented".`,
+		RunE: runKnowledgeAudit,
+	}
 )
 
 const (
@@ -155,6 +169,7 @@ func init() {
 	knowledgeCmd.AddCommand(knowledgeRetrieveTestCmd)
 	knowledgeCmd.AddCommand(knowledgeLinksCmd)
 	knowledgeCmd.AddCommand(knowledgeExportCmd)
+	knowledgeCmd.AddCommand(knowledgeAuditCmd)
 
 	knowledgeSpacesCmd.AddCommand(knowledgeSpacesListCmd)
 	knowledgeSpacesCmd.AddCommand(knowledgeSpacesCreateCmd)
@@ -250,6 +265,10 @@ func init() {
 	registerKnowledgeOutputFlags(knowledgeExportCmd)
 	knowledgeExportCmd.Flags().String("out", "", "Output directory for the markdown export (required)")
 	knowledgeExportCmd.Flags().Int("limit", 200, "Page size used while walking the space")
+
+	// audit
+	registerKnowledgeOutputFlags(knowledgeAuditCmd)
+	registerKnowledgeWorkspaceFlag(knowledgeAuditCmd)
 }
 
 // registerKnowledgeOutputFlags installs the two output switches every

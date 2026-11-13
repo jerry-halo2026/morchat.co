@@ -106,10 +106,10 @@ func TestKnowledgeCRUDLifecycle(t *testing.T) {
 	}
 
 	spaceID := knowledgeCreateSpace(t, "CRUD lifecycle", "", "")
-	itemID := knowledgeCreateItem(t, spaceID, "Retrieval notes", "", "", map[string]any{
-		"status":     "active",
-		"source_ref": "https://example.test/retrieval",
-		"content":    "# Retrieval\n\nThe keyword channel and the vector channel are fused with RRF.\n",
+	// Active knowledge is reviewed knowledge (W1-A): the helper creates the
+	// draft, opens a done review issue and approves it.
+	itemID := knowledgeCreateActiveItem(t, spaceID, "Retrieval notes", "", "", map[string]any{
+		"content": "# Retrieval\n\nThe keyword channel and the vector channel are fused with RRF.\n",
 	})
 
 	// Space detail carries the item count the list column renders.
@@ -203,7 +203,7 @@ func TestKnowledgeArchiveDropsFromDefaultList(t *testing.T) {
 	}
 
 	spaceID := knowledgeCreateSpace(t, "Archive listing", "", "")
-	itemID := knowledgeCreateItem(t, spaceID, "Ephemeral note", "", "", map[string]any{"status": "active"})
+	itemID := knowledgeCreateActiveItem(t, spaceID, "Ephemeral note", "", "", nil)
 
 	status, body := knowledgeDo(t, testHandler.ListKnowledgeItems,
 		testutil.JSONRequest(http.MethodGet, "/api/knowledge/items?space_id="+spaceID, nil), "", "")
@@ -326,8 +326,7 @@ func TestKnowledgeSearchHitCarriesIdentity(t *testing.T) {
 	}
 
 	spaceID := knowledgeCreateSpace(t, "Search hits", "", "")
-	itemID := knowledgeCreateItem(t, spaceID, "Fusion notes", "", "", map[string]any{
-		"status": "active",
+	itemID := knowledgeCreateActiveItem(t, spaceID, "Fusion notes", "", "", map[string]any{
 		"content": "# Fusion\n\nReciprocal rank fusion combines the keyword ranking and the " +
 			"vector ranking by rank, never by raw score.\n",
 	})

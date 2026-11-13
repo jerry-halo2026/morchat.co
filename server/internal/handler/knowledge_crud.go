@@ -175,12 +175,17 @@ func (h *Handler) GetKnowledgeSpace(w http.ResponseWriter, r *http.Request) {
 // knowledgeItemResponse is an item plus the fields a detail read adds. The item
 // is embedded without a JSON tag on purpose: the wire object stays flat, so a
 // client reads `title` at the top level whether or not it asked for the body.
+//
+// Review is the trust record (W1-A): who approved the item, when, which issue
+// carried the review, and when it expires. It is nil only when the item was
+// created through a path that did not read it back.
 type knowledgeItemResponse struct {
 	knowledge.Item
 	Content    string              `json:"content,omitempty"`
 	ChunkCount int                 `json:"chunk_count"`
 	Archived   bool                `json:"archived"`
 	Document   *knowledge.Document `json:"document,omitempty"`
+	Review     *knowledge.Review   `json:"review,omitempty"`
 }
 
 // ListKnowledgeItems answers GET /api/knowledge/items.
@@ -211,26 +216,70 @@ func (h *Handler) ListKnowledgeItems(w http.ResponseWriter, r *http.Request) {
 
 // CreateKnowledgeItem answers POST /api/knowledge/items with 201. An optional
 // `content` string is stored through the same parser and chunker as an import.
+//
+// Asking for `status: "active"` runs the review gate (knowledge_review.go): the
+// body must name a review_issue_id, the caller must be an approving role, and an
+// agent is refused outright. The row is created as a draft and only then flipped,
+// so a failure between the two writes leaves a draft rather than unreviewed
+// active knowledge.
 func (h *Handler) CreateKnowledgeItem(w http.ResponseWriter, r *http.Request) {
 	workspaceID, viewerID, ok := h.knowledgeWriteScope(w, r)
 	if !ok {
 		return
 	}
 	var body struct {
-		SpaceID    string `json:"space_id"`
-		Title      string `json:"title"`
-		Kind       string `json:"kind"`
-		SourceType string `json:"source_type"`
-		SourceRef  string `json:"source_ref"`
-		Status     string `json:"status"`
-		ACLMode    string `json:"acl_mode"`
-		ProjectID  string `json:"project_id"`
-		Content    string `json:"content"`
-		MIME       string `json:"mime"`
+		SpaceID       string `json:"space_id"`
+		Title         string `json:"title"`
+		Kind          string `json:"kind"`
+		SourceType    string `json:"source_type"`
+		SourceRef     string `json:"source_ref"`
+		Status        string `json:"status"`
+		ACLMode       string `json:"acl_mode"`
+		ProjectID     string `json:"project_id"`
+		Content       string `json:"content"`
+		MIME          string `json:"mime"`
+		ReviewIssueID string `json:"review_issue_id"`
 	}
 	if err := decodeKnowledgeBody(r, &body, false); err != nil {
 		writeErrorCode(w, http.StatusBadRequest, "invalid_request", "invalid JSON body")
 		return
+	}
+	wantsActive := strings.EqualFold(strings.TrimSpace(body.Status), knowledge.StatusActive)
+	reviewIssueID := strings.TrimSpace(body.ReviewIssueID)
+	// A request with no space_id is rejected by the create below with its own
+	// message; running the gate first would answer "space not found" instead.
+	if wantsActive && strings.TrimSpace(body.SpaceID) != "" {
+		// The item does not exist yet, so the gate reads the values the row
+		// will have: its owner is the caller, its source and space are the
+		// ones in the body.
+		ownerID := viewerID
+		prospective := knowledge.Item{
+			WorkspaceID: workspaceID,
+			SpaceID:     body.SpaceID,
+			Title:       body.Title,
+			SourceRef:   body.SourceRef,
+			Status:      knowledge.StatusDraft,
+			OwnerID:     &ownerID,
+		}
+		member, err := h.getWorkspaceMember(r.Context(), viewerID, workspaceID)
+		if err != nil {
+			writeErrorCode(w, http.StatusForbidden, "knowledge_review_forbidden",
+				"this caller is not a member of the workspace")
+			return
+		}
+		resolved, ok := h.requireKnowledgeReview(w, r, knowledgeReviewGate{
+			WorkspaceID:   workspaceID,
+			ViewerID:      viewerID,
+			Member:        member,
+			Item:          prospective,
+			ReviewIssueID: reviewIssueID,
+		})
+		if !ok {
+			return
+		}
+		reviewIssueID = resolved
+		// Create as draft; the approval below is what makes it active.
+		body.Status = knowledge.StatusDraft
 	}
 	in := knowledge.NewItem{
 		WorkspaceID: workspaceID,
@@ -246,12 +295,33 @@ func (h *Handler) CreateKnowledgeItem(w http.ResponseWriter, r *http.Request) {
 	if projectID := strings.TrimSpace(body.ProjectID); projectID != "" {
 		in.ProjectID = &projectID
 	}
-	item, chunks, err := h.knowledgeService().CreateItem(r.Context(), in, body.Content, body.MIME)
+	service := h.knowledgeService()
+	item, chunks, err := service.CreateItem(r.Context(), in, body.Content, body.MIME)
 	if err != nil {
 		writeKnowledgeCRUDError(w, "create item", err)
 		return
 	}
-	writeJSON(w, http.StatusCreated, knowledgeItemResponse{Item: item, ChunkCount: chunks})
+	response := knowledgeItemResponse{Item: item, ChunkCount: chunks}
+	if wantsActive {
+		review, err := service.Store().ApproveItem(r.Context(), knowledge.ApproveInput{
+			WorkspaceID:   workspaceID,
+			ItemID:        item.ID,
+			ReviewIssueID: reviewIssueID,
+			ReviewedBy:    viewerID,
+		})
+		if err != nil {
+			writeKnowledgeCRUDError(w, "approve item", err)
+			return
+		}
+		detail, err := service.GetItemDetail(r.Context(), workspaceID, viewerID, item.ID, false)
+		if err != nil {
+			writeKnowledgeCRUDError(w, "create item", err)
+			return
+		}
+		response.Item = detail.Item
+		response.Review = &review
+	}
+	writeJSON(w, http.StatusCreated, response)
 }
 
 // GetKnowledgeItem answers GET /api/knowledge/items/{itemId}. `?include=content`
@@ -263,8 +333,16 @@ func (h *Handler) GetKnowledgeItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	withContent := strings.EqualFold(strings.TrimSpace(r.URL.Query().Get("include")), "content")
-	detail, err := h.knowledgeService().GetItemDetail(
+	service := h.knowledgeService()
+	detail, err := service.GetItemDetail(
 		r.Context(), workspaceID, viewerID, chi.URLParam(r, "itemId"), withContent)
+	if err != nil {
+		writeKnowledgeCRUDError(w, "item", err)
+		return
+	}
+	// The review record travels with the item: a reader has to be able to tell
+	// "approved, valid until March" from "a run proposed this and nobody looked".
+	review, err := service.Store().GetReview(r.Context(), workspaceID, detail.Item.ID)
 	if err != nil {
 		writeKnowledgeCRUDError(w, "item", err)
 		return
@@ -275,6 +353,7 @@ func (h *Handler) GetKnowledgeItem(w http.ResponseWriter, r *http.Request) {
 		ChunkCount: len(detail.Chunks),
 		Archived:   detail.Archived,
 		Document:   detail.Document,
+		Review:     &review,
 	})
 }
 
@@ -283,18 +362,24 @@ func (h *Handler) GetKnowledgeItem(w http.ResponseWriter, r *http.Request) {
 // `{"status":"archived"}` is the archive operation the CLI and the UI use: it is
 // a soft delete, so the row survives (readable by id) but leaves the default
 // listing and the retrieval index.
+//
+// `{"status":"active"}` goes through the same review gate as the approve route:
+// the PATCH may carry review_issue_id, otherwise the issue already recorded on
+// the item is used, and the approval itself is written by ApproveItem so the
+// lifecycle and the review record can never disagree.
 func (h *Handler) UpdateKnowledgeItem(w http.ResponseWriter, r *http.Request) {
 	workspaceID, viewerID, ok := h.knowledgeWriteScope(w, r)
 	if !ok {
 		return
 	}
 	var body struct {
-		Title     *string `json:"title"`
-		Status    *string `json:"status"`
-		ACLMode   *string `json:"acl_mode"`
-		SourceRef *string `json:"source_ref"`
-		ProjectID *string `json:"project_id"`
-		Content   *string `json:"content"`
+		Title         *string `json:"title"`
+		Status        *string `json:"status"`
+		ACLMode       *string `json:"acl_mode"`
+		SourceRef     *string `json:"source_ref"`
+		ProjectID     *string `json:"project_id"`
+		Content       *string `json:"content"`
+		ReviewIssueID string  `json:"review_issue_id"`
 	}
 	if err := decodeKnowledgeBody(r, &body, false); err != nil {
 		writeErrorCode(w, http.StatusBadRequest, "invalid_request", "invalid JSON body")
@@ -302,10 +387,44 @@ func (h *Handler) UpdateKnowledgeItem(w http.ResponseWriter, r *http.Request) {
 	}
 	itemID := chi.URLParam(r, "itemId")
 	service := h.knowledgeService()
-	if _, err := service.ReadItem(r.Context(), workspaceID, viewerID, itemID); err != nil {
+	current, err := service.ReadItem(r.Context(), workspaceID, viewerID, itemID)
+	if err != nil {
 		writeKnowledgeCRUDError(w, "item", err)
 		return
 	}
+
+	wantsActive := body.Status != nil && strings.EqualFold(strings.TrimSpace(*body.Status), knowledge.StatusActive)
+	reviewIssueID := strings.TrimSpace(body.ReviewIssueID)
+	if wantsActive {
+		if reviewIssueID == "" {
+			existing, err := service.Store().GetReview(r.Context(), workspaceID, current.ID)
+			if err != nil {
+				writeKnowledgeCRUDError(w, "update item", err)
+				return
+			}
+			if existing.ReviewIssueID != nil {
+				reviewIssueID = *existing.ReviewIssueID
+			}
+		}
+		member, err := h.getWorkspaceMember(r.Context(), viewerID, workspaceID)
+		if err != nil {
+			writeErrorCode(w, http.StatusForbidden, "knowledge_review_forbidden",
+				"this caller is not a member of the workspace")
+			return
+		}
+		resolved, ok := h.requireKnowledgeReview(w, r, knowledgeReviewGate{
+			WorkspaceID:   workspaceID,
+			ViewerID:      viewerID,
+			Member:        member,
+			Item:          current,
+			ReviewIssueID: reviewIssueID,
+		})
+		if !ok {
+			return
+		}
+		reviewIssueID = resolved
+	}
+
 	in := knowledge.UpdateItemInput{
 		WorkspaceID: workspaceID,
 		ItemID:      itemID,
@@ -314,13 +433,37 @@ func (h *Handler) UpdateKnowledgeItem(w http.ResponseWriter, r *http.Request) {
 		ACLMode:     body.ACLMode,
 		SourceRef:   body.SourceRef,
 	}
+	if wantsActive {
+		// ApproveItem writes the status, so this update must not race it.
+		in.Status = nil
+	}
 	if body.ProjectID != nil {
 		in.ProjectID = &body.ProjectID
 	}
-	item, err := service.Store().UpdateItem(r.Context(), in)
-	if err != nil {
-		writeKnowledgeCRUDError(w, "update item", err)
-		return
+	var item knowledge.Item
+	updated := body.Title != nil || body.ACLMode != nil || body.SourceRef != nil ||
+		body.ProjectID != nil || (body.Status != nil && !wantsActive)
+	if updated {
+		if item, err = service.Store().UpdateItem(r.Context(), in); err != nil {
+			writeKnowledgeCRUDError(w, "update item", err)
+			return
+		}
+	} else {
+		item = current
+	}
+	var review *knowledge.Review
+	if wantsActive {
+		approved, err := service.Store().ApproveItem(r.Context(), knowledge.ApproveInput{
+			WorkspaceID:   workspaceID,
+			ItemID:        item.ID,
+			ReviewIssueID: reviewIssueID,
+			ReviewedBy:    viewerID,
+		})
+		if err != nil {
+			writeKnowledgeCRUDError(w, "approve item", err)
+			return
+		}
+		review = &approved
 	}
 	if body.Content != nil && strings.TrimSpace(*body.Content) != "" {
 		if _, _, err := service.IngestInline(r.Context(), workspaceID, item, *body.Content, "text/markdown"); err != nil {
@@ -333,11 +476,20 @@ func (h *Handler) UpdateKnowledgeItem(w http.ResponseWriter, r *http.Request) {
 		writeKnowledgeCRUDError(w, "update item", err)
 		return
 	}
+	if review == nil {
+		existing, err := service.Store().GetReview(r.Context(), workspaceID, item.ID)
+		if err != nil {
+			writeKnowledgeCRUDError(w, "update item", err)
+			return
+		}
+		review = &existing
+	}
 	writeJSON(w, http.StatusOK, knowledgeItemResponse{
 		Item:       detail.Item,
 		ChunkCount: len(detail.Chunks),
 		Archived:   detail.Archived,
 		Document:   detail.Document,
+		Review:     review,
 	})
 }
 

@@ -44,7 +44,13 @@ import (
 // the knowledge wiring out of handler.go — one fewer field for the rest of the
 // package to keep consistent.
 func (h *Handler) knowledgeService() *knowledge.Service {
-	opts := []knowledge.Option{knowledge.WithFeatureFlags(h.FeatureFlags)}
+	opts := []knowledge.Option{
+		knowledge.WithFeatureFlags(h.FeatureFlags),
+		// knowledge.propose opens its review issue through the handler's issue
+		// service, so the proposal path reuses numbering, labels, broadcasts
+		// and analytics instead of inserting a second kind of issue.
+		knowledge.WithReviewIssueCreator(h.knowledgeIssueCreator()),
+	}
 	if h.Storage != nil {
 		var store storage.Storage = h.Storage
 		if src, ok := store.(knowledge.ObjectSource); ok {
@@ -170,6 +176,14 @@ func (h *Handler) StartKnowledgeImport(w http.ResponseWriter, r *http.Request) {
 		writeErrorCode(w, http.StatusBadRequest, "knowledge_invalid_request", "invalid JSON body")
 		return
 	}
+	// An import is the bulk door into the same table. A human upload is indexed
+	// immediately; a machine credential (a run's task token, a cloud node) can
+	// only land drafts, because the review gate must not be reachable around the
+	// side (W1-A). The agent-side equivalent of this route is knowledge.propose.
+	status := ""
+	if isMachineCredentialActor(r) {
+		status = knowledge.StatusDraft
+	}
 	task, err := h.knowledgeService().StartImport(r.Context(), knowledge.ImportRequest{
 		WorkspaceID: workspaceID,
 		SpaceID:     body.SpaceID,
@@ -181,6 +195,7 @@ func (h *Handler) StartKnowledgeImport(w http.ResponseWriter, r *http.Request) {
 		Chunk:       body.ChunkConfig.toConfig(),
 		ACLMode:     body.ACLMode,
 		OwnerID:     viewerID,
+		Status:      status,
 	})
 	if err != nil {
 		writeKnowledgeError(w, "import", err)

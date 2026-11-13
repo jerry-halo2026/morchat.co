@@ -1831,6 +1831,13 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 			r.Get("/items/{itemId}", h.GetKnowledgeItem)
 			r.Patch("/items/{itemId}", h.UpdateKnowledgeItem)
 			r.Delete("/items/{itemId}", h.DeleteKnowledgeItem)
+			// The review gate (W1-A): draft → active is a human decision,
+			// recorded against a done issue of this workspace. The explicit
+			// verb exists so a client does not have to express approval as a
+			// status PATCH, and the audit is the read-only view of what is
+			// unreviewed, stale, or orphaned.
+			r.Post("/items/{itemId}/approve", h.ApproveKnowledgeItem)
+			r.Get("/review-audit", h.AuditKnowledgeReview)
 			// Persisted chunks of the active generation (the preview twin is below).
 			r.Get("/items/{itemId}/chunks", h.ListKnowledgeItemChunks)
 			r.Get("/items/{itemId}/links", h.ListKnowledgeItemLinks)
