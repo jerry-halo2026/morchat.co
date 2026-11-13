@@ -18,12 +18,15 @@ SELECT parent_issue_id,
 FROM issue
 WHERE workspace_id = $1
   AND parent_issue_id IS NOT NULL
+  -- MUL-8472: private projects the caller cannot see.
+  AND ($3::uuid[] IS NULL OR project_id IS NULL OR NOT (project_id = ANY($3::uuid[])))
 GROUP BY parent_issue_id
 `
 
 type ChildIssueProgressParams struct {
-	WorkspaceID        pgtype.UUID `json:"workspace_id"`
-	TerminalStatusKeys []string    `json:"terminal_status_keys"`
+	WorkspaceID        pgtype.UUID   `json:"workspace_id"`
+	TerminalStatusKeys []string      `json:"terminal_status_keys"`
+	HiddenProjectIds   []pgtype.UUID `json:"hidden_project_ids"`
 }
 
 type ChildIssueProgressRow struct {
@@ -33,7 +36,7 @@ type ChildIssueProgressRow struct {
 }
 
 func (q *Queries) ChildIssueProgress(ctx context.Context, arg ChildIssueProgressParams) ([]ChildIssueProgressRow, error) {
-	rows, err := q.db.Query(ctx, childIssueProgress, arg.WorkspaceID, arg.TerminalStatusKeys)
+	rows, err := q.db.Query(ctx, childIssueProgress, arg.WorkspaceID, arg.TerminalStatusKeys, arg.HiddenProjectIds)
 	if err != nil {
 		return nil, err
 	}
@@ -1344,7 +1347,7 @@ func (q *Queries) ListIssueGCStatuses(ctx context.Context, arg ListIssueGCStatus
 }
 
 const listIssueRefsInWorkspace = `-- name: ListIssueRefsInWorkspace :many
-SELECT id, number, title, status FROM issue
+SELECT id, number, title, status, project_id FROM issue
 WHERE workspace_id = $1
   AND id = ANY($2::uuid[])
 `
@@ -1355,10 +1358,11 @@ type ListIssueRefsInWorkspaceParams struct {
 }
 
 type ListIssueRefsInWorkspaceRow struct {
-	ID     pgtype.UUID `json:"id"`
-	Number int32       `json:"number"`
-	Title  string      `json:"title"`
-	Status string      `json:"status"`
+	ID        pgtype.UUID `json:"id"`
+	Number    int32       `json:"number"`
+	Title     string      `json:"title"`
+	Status    string      `json:"status"`
+	ProjectID pgtype.UUID `json:"project_id"`
 }
 
 // GetIssueRefInWorkspace for a page: every original the page's duplicates
@@ -1377,6 +1381,7 @@ func (q *Queries) ListIssueRefsInWorkspace(ctx context.Context, arg ListIssueRef
 			&i.Number,
 			&i.Title,
 			&i.Status,
+			&i.ProjectID,
 		); err != nil {
 			return nil, err
 		}

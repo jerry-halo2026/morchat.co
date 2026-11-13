@@ -389,7 +389,7 @@ WHERE id = $1 AND workspace_id = $2;
 -- name: ListIssueRefsInWorkspace :many
 -- GetIssueRefInWorkspace for a page: every original the page's duplicates
 -- point at, in one read.
-SELECT id, number, title, status FROM issue
+SELECT id, number, title, status, project_id FROM issue
 WHERE workspace_id = sqlc.arg('workspace_id')
   AND id = ANY(sqlc.arg('ids')::uuid[]);
 
@@ -726,6 +726,8 @@ SELECT parent_issue_id,
 FROM issue
 WHERE workspace_id = $1
   AND parent_issue_id IS NOT NULL
+  -- MUL-8472: private projects the caller cannot see.
+  AND (sqlc.narg('hidden_project_ids')::uuid[] IS NULL OR project_id IS NULL OR NOT (project_id = ANY(sqlc.narg('hidden_project_ids')::uuid[])))
 GROUP BY parent_issue_id;
 
 -- SearchIssues: moved to handler (dynamic SQL for multi-word search support).

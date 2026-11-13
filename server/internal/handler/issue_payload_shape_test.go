@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"github.com/jerry-halo2026/morchat.co/server/internal/projectaccess"
 	"reflect"
 	"sort"
 	"testing"
@@ -202,7 +203,7 @@ func TestResolvedBroadcastDuplicateOfMatchesResponse(t *testing.T) {
 	prefix := testHandler.getIssuePrefix(ctx, row.WorkspaceID)
 
 	resp := issueToResponse(row, prefix)
-	testHandler.fillStatusCategory(ctx, row.WorkspaceID, &resp)
+	testHandler.fillStatusCategory(ctx, row.WorkspaceID, projectaccess.Hidden{}, &resp)
 	if resp.DuplicateOf == nil {
 		t.Fatal("HTTP rendering lost the mark")
 	}

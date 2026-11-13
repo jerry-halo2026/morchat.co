@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/jerry-halo2026/morchat.co/server/internal/projectaccess"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -307,7 +308,7 @@ func (h *Handler) maybeAutoCompleteIssue(ctx context.Context, workspaceID, issue
 
 	prefix := h.getIssuePrefix(ctx, issue.WorkspaceID)
 	resp := issueToResponse(updated, prefix)
-	h.fillStatusCategory(ctx, updated.WorkspaceID, &resp)
+	h.fillStatusCategory(ctx, updated.WorkspaceID, projectaccess.Hidden{}, &resp)
 	h.publish(protocol.EventIssueUpdated, uuidToString(workspaceID), "system", "", map[string]any{
 		"issue":          resp,
 		"status_changed": true,

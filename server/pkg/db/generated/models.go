@@ -1398,7 +1398,11 @@ type KnowledgeItem struct {
 	// Space the item belongs to; (workspace_id, space_id) must reference knowledge_spaces, so a cross-workspace space is unrepresentable.
 	SpaceID pgtype.UUID `json:"space_id"`
 	// Optional link to the wiki page this item was distilled from (knowledge_pages); NULL for items with no page.
-	PageID pgtype.UUID `json:"page_id"`
+	PageID        pgtype.UUID        `json:"page_id"`
+	ReviewIssueID pgtype.UUID        `json:"review_issue_id"`
+	ReviewedBy    pgtype.UUID        `json:"reviewed_by"`
+	ReviewedAt    pgtype.Timestamptz `json:"reviewed_at"`
+	StaleAfter    pgtype.Timestamptz `json:"stale_after"`
 }
 
 type KnowledgePage struct {
