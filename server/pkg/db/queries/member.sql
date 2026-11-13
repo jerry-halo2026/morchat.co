@@ -46,6 +46,15 @@ JOIN "user" u ON u.id = m.user_id
 WHERE m.workspace_id = $1
 ORDER BY m.created_at ASC;
 
+-- name: ListDepartmentMemberUserIDs :many
+-- The roster of one department, used to seed a department default project's
+-- members (docs/engineering/ORG-MODEL.md §3.2). Plain attribution: this grants
+-- nothing outside the project the caller is creating.
+SELECT user_id FROM member
+WHERE workspace_id = sqlc.arg('workspace_id')
+  AND department_id = sqlc.arg('department_id')
+ORDER BY created_at ASC;
+
 -- name: UpdateMemberDepartment :exec
 -- Used when an invitation that named a department is accepted. An empty
 -- department clears the attribution; it never touches role or membership.

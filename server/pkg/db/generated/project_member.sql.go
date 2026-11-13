@@ -11,6 +11,53 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addDepartmentProjectMembers = `-- name: AddDepartmentProjectMembers :many
+INSERT INTO project_member (workspace_id, project_id, user_id, added_by)
+SELECT p.workspace_id, p.id, $1::uuid, $2::uuid
+FROM project p
+WHERE p.workspace_id = $3
+  AND p.department_id = $4
+  AND p.visibility = 'private'
+ON CONFLICT (project_id, user_id) DO NOTHING
+RETURNING project_id
+`
+
+type AddDepartmentProjectMembersParams struct {
+	UserID       pgtype.UUID `json:"user_id"`
+	AddedBy      pgtype.UUID `json:"added_by"`
+	WorkspaceID  pgtype.UUID `json:"workspace_id"`
+	DepartmentID pgtype.UUID `json:"department_id"`
+}
+
+// A member joining a department joins that department's private projects
+// (docs/engineering/ORG-MODEL.md §5 gap 5). Only private projects are touched:
+// a workspace-visible one already covers every member. Existing rows are left
+// alone, so a re-run adds nothing twice.
+func (q *Queries) AddDepartmentProjectMembers(ctx context.Context, arg AddDepartmentProjectMembersParams) ([]pgtype.UUID, error) {
+	rows, err := q.db.Query(ctx, addDepartmentProjectMembers,
+		arg.UserID,
+		arg.AddedBy,
+		arg.WorkspaceID,
+		arg.DepartmentID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []pgtype.UUID{}
+	for rows.Next() {
+		var project_id pgtype.UUID
+		if err := rows.Scan(&project_id); err != nil {
+			return nil, err
+		}
+		items = append(items, project_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const addProjectMembers = `-- name: AddProjectMembers :many
 INSERT INTO project_member (workspace_id, project_id, user_id, added_by)
 SELECT m.workspace_id, $1::uuid, m.user_id, $2::uuid
@@ -344,6 +391,47 @@ func (q *Queries) ListProjectMembers(ctx context.Context, arg ListProjectMembers
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const removeDepartmentProjectMember = `-- name: RemoveDepartmentProjectMember :many
+DELETE FROM project_member pm
+USING project p
+WHERE pm.project_id = p.id
+  AND pm.workspace_id = $1
+  AND pm.user_id = $2
+  AND p.workspace_id = $1
+  AND p.department_id = $3
+  AND p.visibility = 'private'
+RETURNING pm.project_id
+`
+
+type RemoveDepartmentProjectMemberParams struct {
+	WorkspaceID  pgtype.UUID `json:"workspace_id"`
+	UserID       pgtype.UUID `json:"user_id"`
+	DepartmentID pgtype.UUID `json:"department_id"`
+}
+
+// The mirror of AddDepartmentProjectMembers: leaving a department leaves its
+// private projects. Projects belonging to any other department — or to none —
+// are untouched, and the member keeps every other membership they hold.
+func (q *Queries) RemoveDepartmentProjectMember(ctx context.Context, arg RemoveDepartmentProjectMemberParams) ([]pgtype.UUID, error) {
+	rows, err := q.db.Query(ctx, removeDepartmentProjectMember, arg.WorkspaceID, arg.UserID, arg.DepartmentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []pgtype.UUID{}
+	for rows.Next() {
+		var project_id pgtype.UUID
+		if err := rows.Scan(&project_id); err != nil {
+			return nil, err
+		}
+		items = append(items, project_id)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

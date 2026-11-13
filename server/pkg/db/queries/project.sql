@@ -24,13 +24,25 @@ WHERE id = $1 AND workspace_id = $2
 FOR UPDATE;
 
 -- name: CreateProject :one
+-- department_id / system_key are the org scope (docs/engineering/ORG-MODEL.md
+-- §3): which department the project is filed under, and the stable key for the
+-- projects the server manages per department. Both stay NULL for an ordinary
+-- project, so this does not change what an existing caller creates.
 INSERT INTO project (
     workspace_id, title, description, icon, status,
     lead_type, lead_id, priority, start_date, due_date, workflow_id,
-    creator_type, creator_id
+    creator_type, creator_id, department_id, system_key
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
 ) RETURNING *;
+
+-- name: GetProjectBySystemKey :one
+-- The server-managed project of one department (its inbox). No row means this
+-- department has none yet.
+SELECT * FROM project
+WHERE workspace_id = sqlc.arg('workspace_id')
+  AND department_id = sqlc.arg('department_id')
+  AND system_key = sqlc.arg('system_key');
 
 -- name: UpdateProject :one
 UPDATE project SET

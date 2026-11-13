@@ -132,6 +132,41 @@ func (q *Queries) GetRealtimeMemberships(ctx context.Context, arg GetRealtimeMem
 	return items, nil
 }
 
+const listDepartmentMemberUserIDs = `-- name: ListDepartmentMemberUserIDs :many
+SELECT user_id FROM member
+WHERE workspace_id = $1
+  AND department_id = $2
+ORDER BY created_at ASC
+`
+
+type ListDepartmentMemberUserIDsParams struct {
+	WorkspaceID  pgtype.UUID `json:"workspace_id"`
+	DepartmentID pgtype.UUID `json:"department_id"`
+}
+
+// The roster of one department, used to seed a department default project's
+// members (docs/engineering/ORG-MODEL.md §3.2). Plain attribution: this grants
+// nothing outside the project the caller is creating.
+func (q *Queries) ListDepartmentMemberUserIDs(ctx context.Context, arg ListDepartmentMemberUserIDsParams) ([]pgtype.UUID, error) {
+	rows, err := q.db.Query(ctx, listDepartmentMemberUserIDs, arg.WorkspaceID, arg.DepartmentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []pgtype.UUID{}
+	for rows.Next() {
+		var user_id pgtype.UUID
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMembers = `-- name: ListMembers :many
 SELECT id, workspace_id, user_id, role, created_at, pinned_at, department_id FROM member
 WHERE workspace_id = $1

@@ -27,28 +27,34 @@ const createProject = `-- name: CreateProject :one
 INSERT INTO project (
     workspace_id, title, description, icon, status,
     lead_type, lead_id, priority, start_date, due_date, workflow_id,
-    creator_type, creator_id
+    creator_type, creator_id, department_id, system_key
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
 ) RETURNING id, workspace_id, title, description, icon, status, lead_type, lead_id, created_at, updated_at, priority, start_date, due_date, workflow_id, creator_type, creator_id, visibility, department_id, system_key
 `
 
 type CreateProjectParams struct {
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	Title       string      `json:"title"`
-	Description pgtype.Text `json:"description"`
-	Icon        pgtype.Text `json:"icon"`
-	Status      string      `json:"status"`
-	LeadType    pgtype.Text `json:"lead_type"`
-	LeadID      pgtype.UUID `json:"lead_id"`
-	Priority    string      `json:"priority"`
-	StartDate   pgtype.Date `json:"start_date"`
-	DueDate     pgtype.Date `json:"due_date"`
-	WorkflowID  pgtype.UUID `json:"workflow_id"`
-	CreatorType pgtype.Text `json:"creator_type"`
-	CreatorID   pgtype.UUID `json:"creator_id"`
+	WorkspaceID  pgtype.UUID `json:"workspace_id"`
+	Title        string      `json:"title"`
+	Description  pgtype.Text `json:"description"`
+	Icon         pgtype.Text `json:"icon"`
+	Status       string      `json:"status"`
+	LeadType     pgtype.Text `json:"lead_type"`
+	LeadID       pgtype.UUID `json:"lead_id"`
+	Priority     string      `json:"priority"`
+	StartDate    pgtype.Date `json:"start_date"`
+	DueDate      pgtype.Date `json:"due_date"`
+	WorkflowID   pgtype.UUID `json:"workflow_id"`
+	CreatorType  pgtype.Text `json:"creator_type"`
+	CreatorID    pgtype.UUID `json:"creator_id"`
+	DepartmentID pgtype.UUID `json:"department_id"`
+	SystemKey    pgtype.Text `json:"system_key"`
 }
 
+// department_id / system_key are the org scope (docs/engineering/ORG-MODEL.md
+// §3): which department the project is filed under, and the stable key for the
+// projects the server manages per department. Both stay NULL for an ordinary
+// project, so this does not change what an existing caller creates.
 func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error) {
 	row := q.db.QueryRow(ctx, createProject,
 		arg.WorkspaceID,
@@ -64,6 +70,8 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 		arg.WorkflowID,
 		arg.CreatorType,
 		arg.CreatorID,
+		arg.DepartmentID,
+		arg.SystemKey,
 	)
 	var i Project
 	err := row.Scan(
@@ -103,6 +111,48 @@ type DeleteProjectParams struct {
 func (q *Queries) DeleteProject(ctx context.Context, arg DeleteProjectParams) error {
 	_, err := q.db.Exec(ctx, deleteProject, arg.ID, arg.WorkspaceID)
 	return err
+}
+
+const getProjectBySystemKey = `-- name: GetProjectBySystemKey :one
+SELECT id, workspace_id, title, description, icon, status, lead_type, lead_id, created_at, updated_at, priority, start_date, due_date, workflow_id, creator_type, creator_id, visibility, department_id, system_key FROM project
+WHERE workspace_id = $1
+  AND department_id = $2
+  AND system_key = $3
+`
+
+type GetProjectBySystemKeyParams struct {
+	WorkspaceID  pgtype.UUID `json:"workspace_id"`
+	DepartmentID pgtype.UUID `json:"department_id"`
+	SystemKey    pgtype.Text `json:"system_key"`
+}
+
+// The server-managed project of one department (its inbox). No row means this
+// department has none yet.
+func (q *Queries) GetProjectBySystemKey(ctx context.Context, arg GetProjectBySystemKeyParams) (Project, error) {
+	row := q.db.QueryRow(ctx, getProjectBySystemKey, arg.WorkspaceID, arg.DepartmentID, arg.SystemKey)
+	var i Project
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.Title,
+		&i.Description,
+		&i.Icon,
+		&i.Status,
+		&i.LeadType,
+		&i.LeadID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Priority,
+		&i.StartDate,
+		&i.DueDate,
+		&i.WorkflowID,
+		&i.CreatorType,
+		&i.CreatorID,
+		&i.Visibility,
+		&i.DepartmentID,
+		&i.SystemKey,
+	)
+	return i, err
 }
 
 const getProjectInWorkspace = `-- name: GetProjectInWorkspace :one

@@ -61,6 +61,34 @@ WHERE project_id = sqlc.arg('project_id') AND workspace_id = sqlc.arg('workspace
 DELETE FROM project_member
 WHERE workspace_id = sqlc.arg('workspace_id') AND user_id = sqlc.arg('user_id');
 
+-- name: AddDepartmentProjectMembers :many
+-- A member joining a department joins that department's private projects
+-- (docs/engineering/ORG-MODEL.md §5 gap 5). Only private projects are touched:
+-- a workspace-visible one already covers every member. Existing rows are left
+-- alone, so a re-run adds nothing twice.
+INSERT INTO project_member (workspace_id, project_id, user_id, added_by)
+SELECT p.workspace_id, p.id, sqlc.arg('user_id')::uuid, sqlc.narg('added_by')::uuid
+FROM project p
+WHERE p.workspace_id = sqlc.arg('workspace_id')
+  AND p.department_id = sqlc.arg('department_id')
+  AND p.visibility = 'private'
+ON CONFLICT (project_id, user_id) DO NOTHING
+RETURNING project_id;
+
+-- name: RemoveDepartmentProjectMember :many
+-- The mirror of AddDepartmentProjectMembers: leaving a department leaves its
+-- private projects. Projects belonging to any other department — or to none —
+-- are untouched, and the member keeps every other membership they hold.
+DELETE FROM project_member pm
+USING project p
+WHERE pm.project_id = p.id
+  AND pm.workspace_id = sqlc.arg('workspace_id')
+  AND pm.user_id = sqlc.arg('user_id')
+  AND p.workspace_id = sqlc.arg('workspace_id')
+  AND p.department_id = sqlc.arg('department_id')
+  AND p.visibility = 'private'
+RETURNING pm.project_id;
+
 -- name: UpdateProjectVisibility :one
 UPDATE project SET visibility = sqlc.arg('visibility'), updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')
