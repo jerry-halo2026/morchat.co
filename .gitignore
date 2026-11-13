@@ -71,6 +71,10 @@ _features/
 *.app
 server/server
 data/
+# The knowledge screens keep their data layer under `data/`; the rule above is for
+# captured runtime output, not for source. Re-include that one directory.
+!packages/views/knowledge/data/
+!packages/views/knowledge/data/**
 .kilo
 .idea
 .gstack/
