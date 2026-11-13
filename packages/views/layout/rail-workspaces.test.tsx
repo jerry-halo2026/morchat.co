@@ -114,7 +114,7 @@ describe("RailWorkspaces", () => {
 
     const menu = await openMenu();
     const items = within(menu).getAllByRole("menuitem").filter((el) => el.getAttribute("href") !== "/workspaces/new");
-    expect(items.map((el) => el.textContent?.slice(1))).toEqual(["WS 2", "WS 3", "WS 4", "WS 5", "WS 6", "Active WS"]);
+    expect(items.map((el) => el.textContent)).toEqual(["WS 2", "WS 3", "WS 4", "WS 5", "WS 6", "Active WS"]);
     expect(within(menu).getByRole("menuitem", { name: /Active WS$/ })).toHaveAttribute("aria-current", "page");
     expect(within(menu).getByRole("menuitem", { name: /WS 3$/ })).toHaveAttribute("href", "/ws3/issues");
   });

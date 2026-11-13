@@ -76,7 +76,8 @@
     "./attachments": "./attachments/index.ts",
     "./locales": "./locales/index.ts",
     "./locales/*": "./locales/*",
-    "./knowledge": "./knowledge/index.ts"
+    "./knowledge": "./knowledge/index.ts",
+    "./common/workspace-face-loader": "./common/workspace-face-loader.tsx"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",

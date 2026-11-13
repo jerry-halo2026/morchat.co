@@ -81,10 +81,12 @@ describe("AoraAvatarPicker", () => {
     renderWithI18n(<Harness initialValue={SPEC} onChange={onChange} />);
 
     await user.click(screen.getByRole("button", { name: "Avatar" }));
-    const shapes = await screen.findByRole("radiogroup", { name: "Select shape" });
-    const cards = within(shapes).getAllByRole("radio");
-    expect(cards[2]).toBeDefined();
-    await user.click(cards[2]!);
+    // The picker is four tabs over one axis each; shape is the opening tab.
+    const tabs = await screen.findByRole("tablist");
+    expect(within(tabs).getAllByRole("tab")).toHaveLength(4);
+    const cells = screen.getAllByRole("option");
+    expect(cells[2]).toBeDefined();
+    await user.click(cells[2]!);
 
     // A stored spec means nothing was derived: the card is the only write.
     expect(onChange).toHaveBeenCalledTimes(1);

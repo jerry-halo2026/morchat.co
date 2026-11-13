@@ -239,9 +239,11 @@ export function RailWorkspaces() {
           className="relative inline-flex size-[34px] shrink-0 cursor-pointer items-center justify-center rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <WorkspaceAvatar
+            id={current.id}
             name={current.name}
             avatarUrl={current.avatar_url}
-            className="h-[34px] w-[34px] rounded-lg border-surface-border bg-surface-raised text-body text-foreground shadow-[var(--surface-shadow)]"
+            live
+            className="h-[34px] w-[34px]"
           />
           {(otherUnread || invitations.length > 0) && (
             <UnreadDot className="absolute -top-0.5 -right-0.5 ring-2 ring-app-shell" />
@@ -278,7 +280,7 @@ export function RailWorkspaces() {
                 }
                 render={<AppLink href={paths.workspace(ws.slug).issues()} />}
               >
-                <WorkspaceAvatar name={ws.name} avatarUrl={ws.avatar_url} size="sm" />
+                <WorkspaceAvatar id={ws.id} name={ws.name} avatarUrl={ws.avatar_url} size="sm" />
                 <span className="min-w-0 flex-1 truncate">{ws.name}</span>
                 {isCurrent && <Check />}
                 <span className="relative flex size-5 shrink-0 items-center justify-center">
