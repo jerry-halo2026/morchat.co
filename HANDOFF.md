@@ -1,215 +1,163 @@
-# 交接：本轮收尾与后续
+# 交接：品牌生成器、icon.icns、预设导入 e2e 与组织模型
 
-> 写给下一个会话。所有条目都标注了**验证到什么程度**——实测过的、只跑过单测的、只写了代码没验证的，分开写。
->
-> 分支 `main`，工作树干净。环境与命令见文末。
-
----
-
-## 一、本次会话做完的
-
-### 1. Aora 头像体系
-
-| 项 | 状态 | 验证方式 |
-|---|---|---|
-| 头像选择器改成四标签（造型 / 颜色 / 画风 / 脸型） | 完成 | 浏览器实测：71 个矢量 `aora-mark`，0 张图 |
-| 格子文字改为 hover 才出现 | 完成 | 单测断言 `allInnerTexts()` 过滤后为空 |
-| 格子用引擎直绘（`CharacterMark paused`），不是图片 | 完成 | 同上 |
-| 颜色轴只列 `COLOR_SWATCHES`（25 个），不是 `ALL_COLOR_IDS`（43 个） | 完成 | 后 18 个是主题色，未装主题画成别的东西 |
-| 去掉 `rounded-full` 圆框（全站） | 完成 | 浏览器 class 里无 `rounded-full` / `ring-1` |
-| 镜像（脸朝内容，`scaleX(-1)`）默认开启 | 完成 | 同上 |
-| 会话行头像 40px + 动态 + 眼睛跟随（`followPointer`） | 完成 | `data-avatar-mode="live"` + `.aora-mark` |
-| 主题色动态头像不再崩（`useThemesReady` 守门） | 完成 | desktop 日志里 `ThemeNotInstalledError` 消失 |
-| 头像就地绘制（`data:` URI），不再请求 `/avatar/` 路由 | 完成 | 浏览器：13 个内联头像、0 破图、0 请求 |
-
-**两个根因值得记住**：
-- `/avatar/<spec>` 是 **Next 路由**，Electron 的 Vite renderer 和 `file://` 都没有它 → 桌面端全是 404 破图
-- 动态渲染器按主题解析颜色，静态的不解析 → 主题色在 rail 能崩整个 React Router 树
-
-### 2. 工作区身份
-
-| 项 | 状态 | 验证 |
-|---|---|---|
-| 工作区头像由 id 派生 Aora 角色（不再是首字母） | 完成 | 22 个工作区头像全 `aora:` |
-| rail 44px、动态、跟随鼠标、镜像 | 完成 | 代码 + 单测，**桌面端画面未目视确认** |
-| 工作区 logo 编辑器换成四标签选择器（保留上传） | 完成 | 浏览器截图确认四标签渲染 |
-| `deriveOnMount={false}`（打开设置不写库） | 完成 | 测试抓到过一次误写，已修 |
-| 路由 loading 用工作区 Aora | 完成 | 修过一次 `params` 解构崩溃 |
-
-### 3. 品牌图标
-
-| 项 | 状态 | 验证 |
-|---|---|---|
-| 思考状态 = 应用图标的三条杠 | 完成 | 几何从 `icon.svg` 换算，不是另画 |
-| 跑马灯：一道光自下而上扫过（104 → -26，1.25s） | 完成 | 浏览器采样 `ty 104 → 96` |
-| 补上 4 个从未定义过的动效类 | 完成 | `multica-think` / `rise` / `fade-out` / `fade-in` 之前 `定义=0` |
-| 应用图标：白底圆角三条杠 | 完成 | 1024 PNG + 7 尺寸 ICO，已目视 |
-
-### 4. 预设市场 / 小队
-
-| 项 | 状态 | 验证 |
-|---|---|---|
-| 技能现在带 `files`（catalog 列出路径清单） | 完成 | `preset-market` 5 文件、`qianchuan` 3 文件落库 |
-| 成员按 `team.members[].skills` 绑技能（原为恒空） | 完成 | DB：lead 9、成员各 1 |
-| 成员 Access = workspace（否则队长 @ 不动） | 完成 | DB `visibility=workspace` |
-| 成员 harness 偏好 + 降级报告 | 完成 | 单测覆盖降级路径 |
-| 小队指令七段（工作流/顺序/完成标准/路由提示/成员） | 完成 | 装出来的 squad instructions 可查 |
-| 五个团队包补 `team` 段 + mvp 知识库收成技能 | 完成 | 内容仓库 `6e74b89` |
-| 五个团队包删死工具（`SendMessage`/`spawn`/`deliver_attachments`…） | 完成 | 残留 0 |
-| ai-content 的自锁条款（"未全绿禁止回复"） | 完成 | 残留 0 |
-| `preset-market` / `qianchuan` 改 `import --url`（带 origin + sha256） | 完成 | id 未变、绑定未丢 |
-| 平台技能补 `knowledge` / `dispatch` / `self-improve` 三篇 | 完成 | `go test ./internal/service` 绿 |
-
-### 5. 运行时
-
-| 项 | 状态 | 验证 |
-|---|---|---|
-| 自带 python 3.12 + git 2.56 + node + CLI | 完成（上一轮） | `[runtime-probe] python=3.12.10 source=bundled` |
+> 写给下一个会话。每条都标注**验证到什么程度**：浏览器实测 / 只跑单测 / 只有代码。
+> 分支 `main`，origin/main = `d50aaba07`（本轮未 push）。
 
 ---
 
-## 二、没做完的（明确的欠账）
+## 一、本轮做完的
 
-### A. `scripts/brand/generate.mjs` 与 `sync.mjs` 是**死的**
+### 1. 品牌生成器恢复（交接文档里的 P0-A）
 
-它们从 `morechat-brand.ts` 取 `starPath`、`iconStar`、`iconStarTransform`——**这三个符号已经不存在**（brand 现在是 m + 三条杠）。跑起来在写第一个文件前就抛错。
-
-后果：wordmark 相关资产（favicon 内联、PWA 图标、mobile wordmark、CLI 回调页 SVG）**无法再生成**。
-
-绕过方式：我另写了 `.local/build-icons.mjs`（未提交，见第三节）。
-
-### B. `icon.icns` 没重生成
-
-macOS 打包用。Windows 上没有 ICNS 打包器。可以用纯 JS 写（ICNS 是带类型标签的 PNG 容器），约 60 行。
-
-### C. 桌面端画面没目视确认
-
-我试了三次屏幕截图，窗口在 2560×1440 上位置不固定，每次都截到旁边的 DSH 窗口。所以 dock 图标、rail 的 44px 动态脸、会话行 40px 动态脸，**只有代码和单测，没有肉眼确认**。
-
-### D. 预设页"点按钮装团队"没跑通 e2e
-
-- 页面渲染正常（`34 agents · 5 teams · 114 skills`）
-- `data-testid` 已加（`preset-card` / `preset-import`）
-- Playwright 仍定位不到可见卡片；页面快照显示选择器抓到了 rail 里的同名文案
-
-**不是产品问题**，是选择器/时序问题。下一步：用 `[data-testid="preset-card"][data-package-id="opc-team"]` 重写。
-
-### E. 若干 Windows 环境下的既有失败测试
-
-| 测试 | 现象 | 判断 |
+| 项 | 状态 | 验证 |
 |---|---|---|
-| `daemon.TestLoadConfig_UsesCodexDesktopAppBundleFallback` 等 4 个 | `no agent CLI found: install claude, … codex …` | 本机没装这些 CLI，既有 |
-| `views/common/theme-variables.test.ts` | `docs/theming.md` 未同步 | 既有漂移 |
-| `cmd/multica` 若干 | Windows 环境 | 既有 |
+| `sync.mjs` 不再引用 `starPath/iconStar/iconStarTransform` | 完成 | `sync --check` 清洁；`node --test scripts/brand/sync.test.mjs` 4/4 |
+| 图标统一从 `ICON_BARS` 生成（favicon / PWA / Next app icon / docs icon） | 完成 | 浏览器渲染目视：三条杠 + 22.5 圆角 + 中心倾斜 |
+| 词标用 `l.dot` 画分隔符圆点（不再有星） | 完成 | `docs/assets/logo-*.svg`、`cmd_auth.go`、mobile 块已重生成 |
+| **顺手修好绘制版词标**：`o/e/c/a` 的圆弧方向算错，`e` 渲染成色块 | 完成 | 目视：`morechat.co` 可读；`o` 是正圆，`e` 有右下开口 |
+| `generate.mjs` 阶段化（`--only=text,tiles,mac,icns,og,gifs,pack,optimize`） | 完成 | `--only=icns`、`--only=og,gifs,pack` 实跑 |
+| python 解析（Windows Store 存根 → 随包 `resources/python/python.exe`） | 完成 | GIF 打包成功（Pillow 13） |
+| oxipng 缺失只警告 | 完成 | 本机无 oxipng，位图未压缩（体积约 2×，视觉一致） |
 
-### F. skill 同名可重复
+### 2. `icon.icns`（P0-B）
 
-`skill` 表**允许同名**。重装会留空壳副本（`opc-team--opc-orchestrator` 有两行，一旧一新）。不是本轮引入，但会污染技能列表。
+事实修正：**仓库里的 `icon.icns` 早就是三条杠**（解包 `ic10` 与 `resources/icon.png` 逐字节相同），
+但旧文件的小尺寸条目是从扁平图标缩出来的，不是 Apple 网格渲染。本轮改为：
 
----
+| 项 | 状态 | 验证 |
+|---|---|---|
+| `scripts/brand/icns.mjs` 纯 JS 打包（`ic07…ic14`，顺序照 iconutil） | 完成 | `node --test scripts/brand/icns.test.mjs` 5/5 |
+| `generate.mjs` 全平台写 `build/icon.icns` + `resources/icon.icns` | 完成 | `--only=icns` 在 Windows 实跑，8 条目 |
+| 新图标是 Apple 1024 网格（体 100–924 + 阴影） | 完成 | 解包 `ic10`/`ic11` 目视 |
+| 体积 53 KB → 107 KB | 已知 | 无 oxipng；装 oxipng 后重跑会缩回去 |
 
-## 三、后续推进（按价值排序）
+### 3. 预设导入 e2e（P0-C）
 
-### P0：修 `generate.mjs` / `sync.mjs`
+| 项 | 状态 | 验证 |
+|---|---|---|
+| `parseSkill` 补 `fileList`（此前解析丢字段，参考文件永不落库） | 完成 | `pnpm --filter @morechat/core exec vitest run presets` 9/9 |
+| `e2e/presets.spec.ts`：内容 fixture + `page.route` 按路径后缀拦截 | 完成 | **浏览器实测 18.5s 通过** |
+| 覆盖「点按钮 → 技能（含 `references/`）→ 智能体（可见性/技能绑定）→ 小队（leader/成员/指令七段）」 | 完成 | 读回真实 API |
+| 覆盖 agent 包：只建 1 个智能体、不建小队 | 完成 | 同上 |
+| 负向：私有项目、私有 runtime 对另一成员不可见 | 完成 | 同上 |
+| `e2e/fixtures.ts` 增 helper（skills/agents/squads/projects/runtimes 读写与清理） | 完成 | 同上 |
 
-不是"顺手清理"——它是**唯一**能生成 wordmark 资产的入口，现在完全不能用。
+### 4. 文档与契约
 
-做法：`sync.mjs` 的 `svgs()` 改用 `ICON_BARS` / `ICON_M_PATH`，`star()` 换成 `bars()`；`generate.mjs` 里引用的 `STAR_GRAPHIC_STROKE` 同理。
-
-### P0：`icon.icns`
-
-纯 JS 打包器，或引入 `png2icons` 这类依赖。mac 打包前必须有。
-
-### P0：预设页 e2e
-
-用 `data-testid` 重写选择器，然后断言"装出一个小队 + 成员可见性 + 技能数"。这是唯一覆盖"按钮 → 一条链写入"的测试。
-
-### P1：`preset-market` 变成内置技能
-
-现在是工作区里 `import --url` 装的，每个工作区都要装一次。应该走 `builtinSkillSystemKey`，随 Sika 一起出现。同时删掉 `skills/preset-market` 的重复副本。
-
-### P1：技能重装留空壳
-
-给 `skill` 加唯一约束（`workspace_id + name`），或 import 时按 name 覆盖而不是新建。
-
-### P1：小队工作流（`workflow` 状态列）
-
-我们只做了 `squad.instructions` 里的文本描述。multica 真正的"流程编排"是**项目的 workflow**（状态列 + 每列交给谁）。pipeline 类包应该额外产出一个 workflow 并绑到项目。
-
-需要：`squad.workflow` 或项目级 workflow 的建表 + 导入器支持。
-
-### P2：契约文档补齐
-
-- `multica-platform` 的 `knowledge.md` 已补，但**平台层的"沉淀"指引**（什么该写进团队知识库、什么该写进 issue）还没有
-- `dispatch.md` 里"四种小队形态"与 `team.workflow` 的取值应该对齐（现在是两套词表）
-
-### P2：Windows 测试基线
-
-`daemon` 那几个失败会一直污染 `make test`。要么给测试加平台门槛，要么在 CI 记录为已知失败。
+| 项 | 状态 |
+|---|---|
+| 新增 `docs/engineering/ORG-MODEL.md`（三层、可见性矩阵、缺口、红线） | 完成 |
+| `CONTRACTS.md`：新增「授权模型」节；修头像渲染、迁移号 642→644、预设幂等与页面改写选择 | 完成 |
+| `SEAMS.md`：登记私有项目为 fork 差异化能力 + 回归用例 | 完成 |
+| `DECISIONS.md`：追记三条杠标识与 `cap:` → `aora:` | 完成 |
+| `scripts/brand/README.md` 重写（阶段表、Windows、ICNS、oxipng） | 完成 |
+| `docs/theming.md` 用 `UPDATE_THEME_DOCS=1` 重生成 | 完成（单测绿） |
+| `check-brand-strings.mjs` 白名单 `runtime-probe.test.ts` | 完成（门禁 0 命中） |
+| `docs-map --build` 收录新文档 | 完成（186 文档 OK） |
 
 ---
 
-## 四、关键上下文（下个会话需要）
+## 二、没做的（明确欠账）
 
-### 环境
+### A. 组织模型只到文档，没有建表
+
+`ORG-MODEL.md` 描述的 `department` / `member.department_id` / `project.department_id` /
+`knowledge_spaces.department_id` **一行 DDL 都没写**。原因：先把权限语义定死，
+避免半成品迁移。下一步按 ORG-MODEL §5 的顺序做，第一阶段只加表与可空列（不改读路径）。
+
+### B. 知识 `acl_mode=project` 仍是假开关
+
+`search.go` 的 `visCond` 与 `canViewItem` 把 `project` 当 `workspace`。改成真过滤会
+**缩小可见范围**，必须先 log-only 观测，再逐空间切换。
+
+### C. 存量数据未动
+
+`b1-knowledge` 等项目仍全部 `workspace` 可见；新规则只应对新建生效。
+
+### D. `skill` 同名可重复 / squad 名字唯一
+
+- `skill` 表无 `(workspace_id, name)` 唯一约束，重装留同名副本（预设导入受影响）。
+- 我们 `squad` 有 `UNIQUE(workspace_id, name)`，但 multica 官方文档说名字不必唯一；
+  预设导入的同名认领正依赖这个约束。要决定保留约束还是改用 `template` 标记认领。
+
+### E. 预设团队包没有绑定项目 workflow
+
+`/api/issue-workflows` 已存在（MUL-7420/8120），缺的是导入器多一步把包里的流程写成
+workflow 并绑到项目；HANDOFF 旧文里"要建表"的说法已过期。
+
+### F. 桌面端画面仍未目视
+
+dock 图标、rail 44px 动态脸、会话行 40px 动态脸，只有代码与单测。
+
+---
+
+## 三、后续优先级
+
+1. **O1 部门地基**（只加表/列/接口，不改读路径）：`department`、`member.department_id`、
+   `project.department_id`、`project.system_key`、`knowledge_spaces.department_id`；
+   遵守仓库规则（无外键、`CREATE INDEX CONCURRENTLY` 单独成文件、`cmd/migrate` 注册 cleanup）。
+2. **O2 默认范围**（开关 `department_default_scope`）：新建项目默认私有 + 部门成员；
+   新建 issue 未选项目时落部门 `department-inbox`。
+3. **O3 知识按部门**：先 `department_id` 分组展示 → `acl_mode=project` log-only → 逐空间强制 →
+   owner/admin 旁路。
+4. **O4 调岗事务**：改部门时批量增删部门项目成员 + 审计 + 受影响清单。
+5. `skill` 唯一约束与 squad 名字策略二选一，写进 CONTRACTS。
+6. 预设团队包产出 workflow。
+
+---
+
+## 四、环境
 
 ```
 go    E:\CodexData\morchat-r1-local\tools\go127\go\bin\go.exe
 node  E:\CodexData\morchat-r1-local\tools\node22\node-v22.23.4-win-x64\node.exe
-pnpm  同上目录 corepack.cmd
-dev DB  postgres://multica_dev:659zaelmydqzdnoghjsj2tixsio92z32@127.0.0.1:15433/multica_dev?sslmode=disable
-token   %TEMP%\dev-token.txt
-测试工作区 34ed0ee3-cc00-4cbc-a287-cfd2277851fb (slug b1-knowledge)
-Sika    a1304862-f4f4-461e-931c-3271e0e32cc4
+pnpm  同目录 corepack.cmd
+DB    postgres://multica_dev:...@127.0.0.1:15433/multica_dev?sslmode=disable
+token %TEMP%\dev-token.txt
+测试工作区 34ed0ee3-cc00-4cbc-a287-cfd2277851fb（slug b1-knowledge）
+Sika  a1304862-f4f4-461e-931c-3271e0e32cc4
 ```
 
-### 起服务
+起服务：`node scripts/dev.mjs server`（8080）；`cd apps/web; $env:FRONTEND_PORT=13513; node scripts/dev-server.mjs`；
+`cd apps/desktop; node scripts/dev.mjs`。
 
-```powershell
-node scripts/dev.mjs server                      # API 8080
-cd apps/web; $env:FRONTEND_PORT=13513; node scripts/dev-server.mjs   # web
-cd apps/desktop; node scripts/dev.mjs            # desktop
-```
-
-**web 必须起在 13513**，因为 `.env` 的 `FRONTEND_ORIGIN` 是它；起在 3000 会被 CORS 拦住，页面一片空白。
+**新增**：`PLAYWRIGHT_CHANNEL` 可把 e2e 与品牌生成器指向本机已装的浏览器（本机用 `msedge`）。
 
 ### 门禁
 
 ```powershell
-pnpm --filter @morechat/{core,ui,views,web} typecheck
+node scripts/brand/sync.mjs --check
+node --test scripts/brand/sync.test.mjs scripts/brand/icns.test.mjs
 node scripts/check-brand-strings.mjs
 node scripts/docs-map.mjs --check
+pnpm --filter @morechat/{core,ui,views,web} typecheck
+pnpm --filter @morechat/{core,views} exec vitest run presets common/theme-variables
+PLAYWRIGHT_CHANNEL=msedge pnpm exec playwright test e2e/presets.spec.ts --workers=1
 cd server; go build ./...
-# 内容仓库
-node scripts/build-catalog.mjs && node scripts/build-presets.mjs --check && node scripts/check-portability.mjs
 ```
-
-### 踩过的坑（会再踩）
-
-1. **PowerShell 的 `Get-Content`/`WriteAllLines` 会破坏 UTF-8 中文**。改文件一律用 `.mjs` 脚本 + `readFileSync/writeFileSync`。我用 PowerShell 改过一次 `—`，直接变成 `鈥?` 且 typecheck 报错。
-2. **`git filter-branch` 的 `--msg-filter` 在 Git Bash 下要正斜杠路径**，反斜杠会被吃掉。
-3. **`Set-Content` 带 BOM**，会让 commit subject 首字符污染。用 `[IO.File]::WriteAllText($f, $t, (New-Object Text.UTF8Encoding($false)))`。
-4. **`playwright install` 卡住先查 `__dirlock`**，别急着怪网络。清锁后实测 11.7 MB/s。
-5. **`/avatar/<spec>` 只存在于 Next**。任何在 Electron 里渲染静态头像的代码都必须走 `data:` URI。
-6. **`AoraCharacter` 是 client 组件**。包它的模块必须有 `"use client"`，否则 SSR 出坏图。
-7. **`loading.tsx` 没有 `params`**，要从 `useParams()` 读 slug。
-
-### 内容仓库
-
-`D:\dev\morechat-assistant` → GitHub `jerry-halo2026/morechat.co-Assistant`。
-`catalog/**`、`presets/**` 是 `scripts/build-catalog.mjs` / `build-presets.mjs` 的**产物**，手改会被下次重建冲掉。改动一律落在生成器脚本里。
 
 ---
 
-## 五、未提交的临时脚本
+## 五、本轮踩到的坑（会再踩）
 
-`.local/` 目录（已在 `.gitignore`）：
+1. **Playwright 的 chromium 构建被安装中断损坏**：`chromium-1208` 只剩 45 KB，`chrome.exe` 不存在。
+   `pnpm exec playwright install chromium` 在本机两次卡在 `__dirlock` 并把旧构建清掉。
+   恢复：清 `%LOCALAPPDATA%\ms-playwright\__dirlock` 后重装；在恢复前用 `PLAYWRIGHT_CHANNEL=msedge`。
+2. **`sync.mjs` 必须容忍 CRLF**：Windows 检出是 CRLF，旧脚本用 `\n` 拼标记串，直接匹配失败；
+   比较也要归一化行尾，否则 `--check` 永远红。
+3. **`GET /api/projects` 返回 `{projects,total}`**，不是数组；`/api/agents`、`/api/skills`、`/api/squads` 是数组。
+4. **预设导入是异步链**：先技能、再智能体、最后小队。只等技能数会误判，要轮询整条链。
+5. **队长智能体的名字是包名**（`presetDisplayName(pkg)`），不是 `members[lead].name`；
+   断言按成员名找会找不到。
+6. **绘制版词标的圆弧方向**：`A` 命令的 sweep 依赖坐标系，`o/e/c` 会画成色块。改用三次贝塞尔
+   的显式四分之一圆（`ring()`），方向写在代码里。
+7. PowerShell 的 `>` 重定向写出 UTF-16，取二进制用 `cmd /c "git show ... > file"`；
+   改文本一律用编辑工具或 `.mjs`，别用 `Get-Content/Set-Content`。
 
-| 文件 | 用途 |
-|---|---|
-| `build-icons.mjs` | 从 `icon.svg` 生成 PNG + ICO。**这个值得搬进 `scripts/brand/`** |
-| `rewrite-msg.mjs` | 本轮 commit 中文摘要的映射表 |
-| `install-team-e2e.cjs` | 用 API 复刻一次团队安装（验证过 1 squad + 9 agent） |
-| `serve-content.mjs` | 本地静态服务器，配合 `MULTICA_PRESET_BASE_URL` 做离线市场测试 |
+---
 
-`MULTICA_PRESET_BASE_URL`（服务端）和 `NEXT_PUBLIC_MULTICA_PRESET_BASE_URL`（客户端）是**产品能力**，已提交；用它可以指向自建镜像或本地 checkout。
+## 六、内容仓库
+
+`D:\dev\morechat-assistant` → `jerry-halo2026/morechat.co-Assistant`。
+`catalog/**`、`presets/**` 是 `scripts/build-catalog.mjs` / `build-presets.mjs` 的产物，
+改动一律落在生成器脚本里。`index.json` 的技能条目带 `fileList`（本轮修复的正是解析这一层）。

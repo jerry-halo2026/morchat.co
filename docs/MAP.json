@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 185,
-  "fingerprint": "5a54d245edd2cf4846d6bb15784a1189e98302b274033904c96919613712e2d4",
+  "count": 186,
+  "fingerprint": "30f9b00fbc0136ea782c51b9bf56ed98a02fc911caaf2a41c75e46b1fa0912c7",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -912,7 +912,9 @@
       "status": "current",
       "updated": "2026-11-11",
       "related": [],
-      "links_out": [],
+      "links_out": [
+        "docs/engineering/ORG-MODEL.md"
+      ],
       "links_in": [
         "docs/tasks/PASSWORD-AUTH.md",
         "docs/tasks/UI-VERIFICATION.md"
@@ -928,6 +930,19 @@
       "related": [],
       "links_out": [],
       "links_in": []
+    },
+    {
+      "path": "docs/engineering/ORG-MODEL.md",
+      "title": "组织模型",
+      "purpose": "公司/工作区/部门三层组织模型，以及\"谁能看见什么\"的落地边界",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-13",
+      "related": [],
+      "links_out": [],
+      "links_in": [
+        "docs/engineering/CONTRACTS.md"
+      ]
     },
     {
       "path": "docs/engineering/RELEASES.md",

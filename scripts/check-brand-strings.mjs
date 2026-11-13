@@ -100,6 +100,9 @@ const ALLOWLIST = [
   "packages/ui/components/common/multica-icon.tsx",
   "packages/ui/components/common/multica-wordmark.tsx",
   "packages/ui/components/common/multica-graphics.tsx",
+  // The runtime probe test spells the frozen CLI name (`multica.exe`) and the
+  // bundled path to it; those identifiers are deliberately not renamed.
+  "apps/desktop/src/main/runtime-probe.test.ts",
 ];
 
 const PATTERN = /Multica|multica\.ai/g;

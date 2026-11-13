@@ -1,4 +1,4 @@
-﻿---
+---
 purpose: "品牌、头像与内容库决定（2026-11-10，Ethan 口头批准后固化）"
 owner: design
 status: reference
@@ -45,6 +45,16 @@ related:
 | 硬门禁 | 转换版中 WorkBuddy/CodeBuddy 相关 token 命中数必须为 0 |
 | 资产 | `.ttf`(54, canvas 字体) / `.py`(90, 技能执行脚本) / `.csv`(15, 模板与示例) / `.jsonl`(6, 合成示例) / `.template`(8) / `.mjs`(6) 全部保留，并在 index 标 `requires`（`python`/`node`/`canvas`） |
 | 头像 | 不入仓 |
+
+## 4.1 单字标与图标（2026-11-13 追加）
+
+| 项 | 决定 |
+|---|---|
+| 单字标 | 三条杠：同一橙色 `#ED7B2D`，按 45% / 70% / 100% 递进，22.5 圆角的白底 `#F7F7F8` 方牌 |
+| 倾斜 | 每条杠绕自身中心 `skewX(-8°)`，不是整块斜切 |
+| 几何来源 | `packages/ui/lib/morechat-brand.ts` 的 `ICON_BARS` / `ICON_BAR_FILL` / `ICON_TILE_FILL` / `iconBarTransform`；favicon、PWA 图标、桌面图标、OG 卡都从它生成 |
+| 词标 | 产品界面用排版文字（`MorechatWordmark`）；README/CLI/mobile 用同一模块的绘制版，由 `scripts/brand/sync.mjs` 生成 |
+| 头像身份 | 以 `aora:` 为准（见 CONTRACTS.md）；本文件第 2 节的 `cap:` 方案已被取代 |
 
 ## 4. 审批与预设（依据 DSH 官方文档）
 

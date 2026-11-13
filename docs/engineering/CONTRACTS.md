@@ -15,7 +15,7 @@ related: [docs/engineering/TOOLCHAIN.md, docs/upstream/SEAMS.md]
    - 运行：只经 `multica daemon …`，不自建执行器。
 2. **实现只有一份**：所有面都落到 `server/internal/knowledge` 的同一函数；权限校验只在该层实现一次。
 3. **鉴权只有一种语义**：运行期用 `mat_` 临时令牌（绑定 user+workspace+agent+run，≤24h），人用 `mul_` PAT；MCP 与 REST 都从令牌解析身份，不额外发明 header 作为唯一凭据。
-4. **命名只有一套**：REST `/api/<domain>/<resource>`；MCP server `morechat-<domain>`；MCP 工具 `<domain>_<verb>`（`knowledge_search`、`knowledge_get`）；迁移 `<N>_<snake>.up|down.sql` 连续编号（当前到 642，新增从 643 起）。
+4. **命名只有一套**：REST `/api/<domain>/<resource>`；MCP server `morechat-<domain>`；MCP 工具 `<domain>_<verb>`（`knowledge_search`、`knowledge_get`）；迁移 `<N>_<snake>.up|down.sql` 连续编号（当前到 644，新增从 645 起）。
 5. **入口只有一个**：`pnpm dev`、`dev:api`、`dev:web`、`dev:daemon`、`dev:desktop`、`dev:status`、`dev:stop`、`db:migrate`；`make` 目标为一行封装，不得另开进程管理。
 
 ## 接口表
@@ -58,8 +58,9 @@ avatar_url = aora:<character>:<shape>:<color>:<face>:<style>:<seed>
 - **派生规则**（没人选过头像时）：只随机 `shape`（Aora 的 8 个 16px 可读形状）与 `color`（11 个可分配色）；
   `style` 固定 `vector`（扁平）、`face` 固定 `capsule`（胶囊眼）、`character` 留空由 cast 决定、`seed` 由 id 哈希得出。
 - 空值与历史 `cap:` 值一律视为"派生"，不需要数据迁移；显式 `aora:` 值优先。
-- 渲染：列表（<32px）走 `GET /avatar/<spec>.svg`（服务端 `renderStaticSvg`，`Cache-Control: immutable`）；
-  单实例（≥32px）走 `@aora-bot/react` 的 `CharacterMark`，尊重 `prefers-reduced-motion`。
+- 渲染：**就地绘制为 `data:image/svg+xml`**（`packages/ui/components/common/aora-avatar.tsx`）。
+  `GET /avatar/<spec>.svg` 只存在于 Next，Electron 的 Vite renderer 与 `file://` 没有它，
+  因此列表与单实例都不再请求该路由；桌面端曾因它整片 404 破图。
 - 尺寸沿用上游槽位 20/24/40/56，不因头像改动布局。
 
 ## 登录契约（邮箱 + 密码）
@@ -114,7 +115,8 @@ renderer 的会话 JWT
 
 - 用户头像只出现在评论、侧栏等"人"的位置；给它套 Aora 是错位，已从偏好设置移除。
 - agent 头像入口只有一个：**点击头像本身**打开选择器，不再并排一个上传控件。
-- 列表（<32px）走 `GET /avatar/<spec>.svg`，单实例（≥32px）走 live 组件，尺寸 20/24/40/56 不变。
+- 列表与单实例都就地绘制 `data:` URI；`GET /avatar/<spec>.svg` 不再是客户端路径。
+  尺寸 20/24/40/56 不变。
 
 ## 预设安装的运行时选择
 
@@ -125,8 +127,27 @@ dsh（本项目内置，桌面端恒可用） > codex > claude_code > 任意 sta
 ```
 
 - 只挑 `online` 的；挑不到就**给出可操作的提示**（跳到运行时页面安装/启动），不允许静默禁用按钮；
-- 用户可在页面上手动改写选择；
-- 同一工作区重复安装同一预设走幂等路径（不产生第二份 agent）。
+- 页面上**没有**手动改写运行时的入口（`PresetsScreen` 只接受 `runtimeId` prop）；这是已知缺口，不是已实现能力；
+- 同一工作区重复安装同一预设：agent 与 squad 走"同名认领"路径（409 → 按名字 adopt），
+  **skill 没有唯一约束**，重装会留同名副本（见 HANDOFF 欠账）。不要把它当作完整幂等。
+
+## 授权模型（谁能看见什么、谁能运行什么）
+
+详细矩阵见 [ORG-MODEL.md](ORG-MODEL.md)。这里只固化不可再议的四条：
+
+1. **项目是资源边界**：`project.visibility ∈ workspace|private`，私有项目的读者是
+   `project_member` 加上工作区 owner/admin；issue、评论、附件、置顶、搜索索引都继承
+   所属项目的可见性（`server/internal/projectaccess/`）。隐藏对象按"不存在"回答，不回 403。
+2. **`project_member` 是授权，不是导航**。将来若要"我参与的项目/收藏"，必须另建
+   导航表；复用这张表会让"退出项目以清理侧栏"变成撤权。
+3. **agent 的可见性与调用权分开**：`visibility` 决定能否在列表/选择器出现，
+   `permission_mode + agent_invocation_target` 决定能否运行；owner/admin 能管理但不能
+   绕过 Access 代跑。agent 的写入以它的**负责真人**为上限，人没有的权限 agent 也不会有。
+4. **runtime 属于借出机器的人**：默认私有，只有 owner 能改成 public 或 `shared_with`；
+   admin 可以改名/删除，但不能替人共享。
+
+部门不是权限表：它是成员归属 + 默认范围（默认私有项目、知识空间）。给部门加读取
+ACL 属于红线，理由见 ORG-MODEL §6。
 
 ## 运行时自带的工具链（node / git / python）
 

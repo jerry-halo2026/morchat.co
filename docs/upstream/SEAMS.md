@@ -35,6 +35,19 @@ related: [docs/upstream/DRIFT-BASELINE.md, docs/engineering/CONTRACTS.md]
 - `packages/core/presets/`
 - `packages/qianchuan-sync/`
 
+## 私有项目（部门隔离的唯一支点）
+
+上游 0.8.2 与 2026-11-13 的 master 都没有项目可见性。本项目的
+`project.visibility=private` + `project_member`（MUL-8472）是自研能力，部门模型完全
+依赖它（见 docs/engineering/ORG-MODEL.md）。同步上游时必须回归：
+
+- `server/internal/projectaccess/`
+- `server/internal/handler/project_access.go`
+- `server/internal/handler/project_member.go`
+- `server/migrations/630_project_visibility*`
+
+回归用例：`e2e/presets.spec.ts` 的「私有项目对另一个成员不可见」断言。
+
 ## 头像与设计系统
 
 - `packages/ui/lib/agent-bot/`
