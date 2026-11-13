@@ -16,7 +16,6 @@
 
 import { useMemo } from "react";
 import {
-  ALL_COLOR_IDS,
   COLOR_SWATCHES,
   FACE_STYLES,
   SHAPE_IDS,
@@ -256,7 +255,9 @@ export function AoraPickerTabs({
       }));
     }
     if (tab === "color") {
-      return (ALL_COLOR_IDS as readonly string[]).map((id) => ({
+      // COLOR_SWATCHES, not ALL_COLOR_IDS: the latter also lists colours that belong to
+      // a theme, and those draw as something else until that theme is installed.
+      return COLOR_SWATCHES.map((swatch) => swatch.id as string).map((id) => ({
         id,
         label: labelOf(COLOR_LABELS, id),
         patch: { color: id as ColorId },

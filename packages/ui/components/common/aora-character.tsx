@@ -121,7 +121,7 @@ export function AoraCharacter({
   name,
   alt,
   followPointer = false,
-  mirrored = false,
+  mirrored = true,
   className,
 }: AoraCharacterProps) {
   // Subscribed rather than read at mount: a mid-session change to the OS
@@ -148,6 +148,7 @@ export function AoraCharacter({
         name={name}
         alt={alt}
         size={px}
+        mirrored={mirrored}
         className={className}
       />
     );

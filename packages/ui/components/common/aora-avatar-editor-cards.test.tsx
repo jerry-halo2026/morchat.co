@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ALL_COLOR_IDS, FACE_STYLES, SHAPE_IDS, STYLE_IDS } from "@aora-bot/engine";
+import { COLOR_SWATCHES, FACE_STYLES, SHAPE_IDS, STYLE_IDS } from "@aora-bot/engine";
 import { describe, expect, it, vi } from "vitest";
 
 /**
@@ -42,7 +42,9 @@ describe("AoraAvatarEditor avatar layout picker", () => {
     expect(screen.getAllByRole("option")).toHaveLength(SHAPE_IDS.length);
 
     await user.click(within(tabs).getByRole("tab", { name: /colou?r/i }));
-    expect(screen.getAllByRole("option")).toHaveLength(ALL_COLOR_IDS.length);
+    // The picker lists colours that have a swatch: the engine also names themed
+    // colours, and those draw as something else until their theme is installed.
+    expect(screen.getAllByRole("option")).toHaveLength(COLOR_SWATCHES.length);
 
     await user.click(within(tabs).getByRole("tab", { name: /style/i }));
     expect(screen.getAllByRole("option")).toHaveLength(STYLE_IDS.length);

@@ -121,6 +121,14 @@ export interface AoraAvatarProps {
   alt?: string;
   /** Upstream slot tier or a raw px diameter. Defaults to the 20px list slot. */
   size?: AvatarSize | number;
+  /**
+   * Mirror the drawing horizontally.
+   *
+   * Content sits to the right of the avatar in this shell, so an unmirrored face looks
+   * like it is staring at the window edge. The flip is a CSS transform on the image:
+   * the stored spec is unchanged.
+   */
+  mirrored?: boolean;
   className?: string;
 }
 
@@ -135,6 +143,7 @@ export function AoraAvatar({
   name,
   alt,
   size = DEFAULT_AVATAR_SIZE,
+  mirrored = false,
   className,
 }: AoraAvatarProps) {
   const px = diameterPx(size);
@@ -160,6 +169,7 @@ export function AoraAvatar({
         alt={alt ?? name ?? ""}
         width={px}
         height={px}
+        style={mirrored ? { transform: "scaleX(-1)" } : undefined}
         loading="lazy"
         decoding="async"
         draggable={false}
