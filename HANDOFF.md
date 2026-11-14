@@ -151,9 +151,20 @@
      （上游语义），因此不会出现在"我创建的"里；chat 归因的代建会写。
      测试：`TestIssueRequesterLeavesCommentDrivenCreateUnattributed`、
      `TestIssueRequesterDepartmentInboxDelegate`。
-   - **剩余**：D 批还有 `7cae26303` flow panel（需先定"部门负责人能否建状态"）、
-     `940d9ed` 删死代码、`d1217a1` chat controller、`08fafbb`/`848d71a`/`cc32b86`
-     主题客户端部分；`aa11299` 底栏已判忽略。
+   - **D-3 已合并**：`d1217a1` chat controller（3 文件 +205/−718）、`940d9ed` 删死代码
+     （40 文件 +6/−2827，16 个整删）；knip 保持 advisory、`ci-scope.test.mjs` 未动。
+   - **D-4 已合并**：`7cae26303` workflow flow panel（14 文件 +281/−262，
+     `project-workflow-menu.tsx` → `project-workflow-sheet.tsx`）。**权限零新增**：
+     部门负责人能读能切工作流，**仍不能新建状态/工作流**（`isWorkspaceAdmin` 未动）。
+   - **D-5 已合并**：`08fafbb`/`848d71a`/`cc32b86` 只取客户端；服务端 registry 不采纳
+     （无 `/api/theme-store`、无 `646_theme_store_download`、`MULTICA_THEME_STORE` 保持 off）；
+     desktop 主题文件夹（`main/theme-folder.ts` + preload + `main/index.ts`）整块留待
+     接管桌面主进程的批次。
+   - **顺手修**：`docs/theming.md` 钉 `eol=lf`——`theme-variables.test.ts` 逐字符比对该文件，
+     Windows 的 CRLF 会让它假红（已 renormalize）。
+   - **剩余（0.9.0）**：`aa11299` 底栏已判忽略；desktop 主题文件夹 + 其它动
+     `main/index.ts` 的上游提交需要单独一次桌面批次；`4e457b406`「我的 agent 的活」
+     要先设计再吸；`eea447533` 项目订阅与迁移号仍冲突（未做）。
 
 1b. **素材库 P0 已完成、P1 搁置**（按你的指示先做知识库）：`contracts/library/` 的元契约 +
    video/legal 两个领域 manifest + `scripts/check-library-contracts.mjs` 已冻结；P1 的
