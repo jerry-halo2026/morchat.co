@@ -1,4 +1,4 @@
-import { cleanup, screen } from "@testing-library/react";
+import { cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { IssueWorkflow, Project } from "@morechat/core/types";
 import { renderWithI18n } from "../test/i18n";
@@ -20,7 +20,6 @@ const releaseWorkflow = {
 vi.mock("@tanstack/react-query", () => ({ useQuery: () => ({ data: [] }) }));
 vi.mock("@morechat/core/api", () => ({ api: {}, clientErrorMessage: () => null }));
 vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
-vi.mock("@morechat/core/paths", () => ({ useWorkspacePaths: () => ({ settings: () => "/settings" }) }));
 vi.mock("@morechat/core/projects/queries", () => ({ projectListOptions: () => ({}) }));
 vi.mock("@morechat/core/issue-workflows", () => ({
   useIssueWorkflows: () => ({ workflows: [releaseWorkflow] }),
@@ -28,8 +27,6 @@ vi.mock("@morechat/core/issue-workflows", () => ({
   handoffStepCount: () => 3,
   useSetProjectWorkflow: () => ({ isPending: false, mutateAsync: vi.fn() }),
 }));
-vi.mock("../navigation", () => ({ useNavigation: () => ({ push: vi.fn() }) }));
-vi.mock("./permissions", () => ({ useWorkflowPermissions: () => ({ canManageProject: true }) }));
 vi.mock("./workflow-mapping-dialog", () => ({ WorkflowMappingDialog: () => null }));
 
 afterEach(cleanup);
@@ -40,10 +37,20 @@ describe("ProjectWorkflowControl", () => {
   // MUL-8119: in the narrow project sidebar the handoff count used to keep its
   // width and squeeze the workflow name down to a single glyph.
   it("gives the whole row to the workflow name and moves the handoff count to the title", () => {
-    renderWithI18n(<ProjectWorkflowControl project={project} />);
+    renderWithI18n(<ProjectWorkflowControl project={project} onOpen={vi.fn()} />);
 
     const trigger = screen.getByRole("button", { name: /版本发布/ });
     expect(trigger.getAttribute("title")).toBe("版本发布 · 3 handoff steps");
     expect(trigger.textContent).toBe("版本发布");
+  });
+
+  // MUL-8941: the row opens the flow panel instead of a second switch list.
+  it("opens the flow panel when clicked", () => {
+    const onOpen = vi.fn();
+    renderWithI18n(<ProjectWorkflowControl project={project} onOpen={onOpen} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /版本发布/ }));
+
+    expect(onOpen).toHaveBeenCalledOnce();
   });
 });
