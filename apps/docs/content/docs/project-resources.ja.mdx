@@ -201,37 +201,37 @@ morechat.co が実行環境をクリーンアップするとき、紐づけた�
 
 ```bash
 # プロジェクト作成時にリポジトリを紐づける
-multica project create \
+morechat project create \
   --title "Agent UX" \
   --repo https://github.com/jerry-halo2026/morchat.co
 
 # リソースの一覧表示と追加
-multica project resource list <project-id>
-multica project resource add <project-id> \
+morechat project resource list <project-id>
+morechat project resource add <project-id> \
   --type github_repo \
   --url https://github.com/jerry-halo2026/morchat.co \
   --ref main
 
 # 特定のデーモン上のローカルディレクトリを紐づける
-multica project resource add <project-id> \
+morechat project resource add <project-id> \
   --type local_directory \
   --local-path /absolute/path/to/repo \
   --daemon-id <daemon-id>
 
 # ローカル git リポジトリを紐づけ、実行を各自のワークツリーで並行処理する
-multica project resource add <project-id> \
+morechat project resource add <project-id> \
   --type local_directory \
   --local-path /absolute/path/to/repo \
   --daemon-id <daemon-id> \
   --execution-mode worktree
 
 # 既存のローカルディレクトリのモードを切り替える
-multica project resource update <project-id> <resource-id> --execution-mode worktree
-multica project resource update <project-id> <resource-id> --execution-mode in_place
+morechat project resource update <project-id> <resource-id> --execution-mode worktree
+morechat project resource update <project-id> <resource-id> --execution-mode in_place
 
 
 # リソースを削除する
-multica project resource remove <project-id> <resource-id>
+morechat project resource remove <project-id> <resource-id>
 ```
 
 リソースの変更は、その後に作成される実行に反映されます。すでに終了した実行の記録が書き換えられることはありません。

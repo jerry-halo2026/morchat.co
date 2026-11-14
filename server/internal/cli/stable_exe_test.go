@@ -14,13 +14,13 @@ import (
 func TestStableExecutablePath(t *testing.T) {
 	t.Parallel()
 
-	keg := "/home/linuxbrew/.linuxbrew/Cellar/multica/0.4.33/bin/multica"
+	keg := "/home/linuxbrew/.linuxbrew/Cellar/morechat/0.4.33/bin/morechat"
 
 	t.Run("brew install maps to the stable prefix path", func(t *testing.T) {
 		got := StableExecutablePath(keg, "/home/linuxbrew/.linuxbrew", true)
 		// filepath.Join semantics: identical strings on unix (where brew
 		// exists), OS-native separators wherever the test runs.
-		if want := filepath.Join("/home/linuxbrew/.linuxbrew", "bin", "multica"); got != want {
+		if want := filepath.Join("/home/linuxbrew/.linuxbrew", "bin", "morechat"); got != want {
 			t.Errorf("StableExecutablePath = %q, want %q", got, want)
 		}
 	})
@@ -68,12 +68,12 @@ func TestStableSelfExecutableResolvesBrewKegPaths(t *testing.T) {
 		keg    string
 		prefix string
 	}{
-		{"/opt/homebrew/Cellar/multica/0.4.33/bin/multica", "/opt/homebrew"},
-		{"/home/linuxbrew/.linuxbrew/Cellar/multica/0.4.33/bin/multica", "/home/linuxbrew/.linuxbrew"},
-		{"/usr/local/Cellar/multica/0.4.33/bin/multica", "/usr/local"},
+		{"/opt/homebrew/Cellar/morechat/0.4.33/bin/morechat", "/opt/homebrew"},
+		{"/home/linuxbrew/.linuxbrew/Cellar/morechat/0.4.33/bin/morechat", "/home/linuxbrew/.linuxbrew"},
+		{"/usr/local/Cellar/morechat/0.4.33/bin/morechat", "/usr/local"},
 	}
 	for _, c := range cases {
-		want := filepath.Join(c.prefix, "bin", "multica")
+		want := filepath.Join(c.prefix, "bin", "morechat")
 		if got := StableSelfExecutable(c.keg); got != want {
 			t.Errorf("StableSelfExecutable(%q) = %q, want %q", c.keg, got, want)
 		}

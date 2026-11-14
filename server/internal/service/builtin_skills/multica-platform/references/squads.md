@@ -19,11 +19,11 @@ it does not run work by itself.
 Inspect first:
 
 ```bash
-multica issue get <issue-id> --output json
-multica squad get <squad-id> --output json
-multica squad member list <squad-id> --output json
-multica issue comment list <issue-id> --roots-only --summary --compact --output json
-multica issue comment list <issue-id> --thread <thread-id> --tail 30 --compact --output json
+morechat issue get <issue-id> --output json
+morechat squad get <squad-id> --output json
+morechat squad member list <squad-id> --output json
+morechat issue comment list <issue-id> --roots-only --summary --compact --output json
+morechat issue comment list <issue-id> --thread <thread-id> --tail 30 --compact --output json
 ```
 
 The two comment reads are a sequence: scan the roots first, then open the
@@ -45,26 +45,26 @@ Squad-routed work runs through the squad's `leader_id` agent. Consequences:
 Squad commands:
 
 ```bash
-multica squad list --output json
-multica squad get <squad-id> --output json
-multica squad create --name <name> --leader <agent-name-or-id> --output json
-multica squad update <squad-id> --instructions "<leader coordination policy>" --output json
-multica squad delete <squad-id>
+morechat squad list --output json
+morechat squad get <squad-id> --output json
+morechat squad create --name <name> --leader <agent-name-or-id> --output json
+morechat squad update <squad-id> --instructions "<leader coordination policy>" --output json
+morechat squad delete <squad-id>
 ```
 
 Member commands:
 
 ```bash
-multica squad member list <squad-id> --output json
-multica squad member add <squad-id> --member-id <id> --type agent|member --role <role> --output json
-multica squad member remove <squad-id> --member-id <id> --type agent|member
-multica squad member set-role <squad-id> --member-id <id> --member-type agent|member --role <role> --output json
+morechat squad member list <squad-id> --output json
+morechat squad member add <squad-id> --member-id <id> --type agent|member --role <role> --output json
+morechat squad member remove <squad-id> --member-id <id> --type agent|member
+morechat squad member set-role <squad-id> --member-id <id> --member-type agent|member --role <role> --output json
 ```
 
 Squad leader evaluation command:
 
 ```bash
-multica squad activity <issue-id> action|no_action|failed --reason "<why>" --output json
+morechat squad activity <issue-id> action|no_action|failed --reason "<why>" --output json
 ```
 
 `activity` is a write: it records the leader's evaluation decision on an issue.
@@ -87,10 +87,10 @@ outcome instead, and only when this turn has not already commented: on the
 Issue/comment commands often needed with squads:
 
 ```bash
-multica issue get <issue-id> --output json
-multica issue update <issue-id> --help
-multica issue comment list <issue-id> --roots-only --summary --compact --output json
-multica issue comment add <issue-id> --help
+morechat issue get <issue-id> --output json
+morechat issue update <issue-id> --help
+morechat issue comment list <issue-id> --roots-only --summary --compact --output json
+morechat issue comment add <issue-id> --help
 ```
 
 Comment reads stay bounded — the scan-then-expand sequence above, never one
@@ -239,7 +239,7 @@ These actions can trigger agent work or mutate durable state:
 - commenting on a squad-assigned issue;
 - mentioning a squad;
 - creating or triggering squad-assigned autopilots;
-- recording squad activity with `multica squad activity`;
+- recording squad activity with `morechat squad activity`;
 - deleting/archiving a squad.
 
 ## Common wrong assumptions
@@ -260,4 +260,4 @@ These actions can trigger agent work or mutate durable state:
   wakes the leader with an explicit ask (including `in_review` when wrapping up).
 - Getting the leader briefing does NOT imply status authority. A squad
   `@`-mentioned into an issue assigned to someone else is a guest: roster and
-  delegation rules yes, `multica issue status` no.
+  delegation rules yes, `morechat issue status` no.

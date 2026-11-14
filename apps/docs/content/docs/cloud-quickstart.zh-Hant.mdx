@@ -33,7 +33,7 @@ AI 代理在你連線的電腦上執行工作。開啟側邊欄 **AI 團隊** �
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.sh | bash
-multica setup
+morechat setup
 ```
 
 </Tab>
@@ -41,13 +41,13 @@ multica setup
 
 ```powershell
 irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex
-multica setup
+morechat setup
 ```
 
 </Tab>
 </Tabs>
 
-`multica setup` 會開啟瀏覽器完成登入，然後讓守護程序在後臺執行。守護程序上線後，彈窗通常在一分鐘內檢測到這臺電腦。
+`morechat setup` 會開啟瀏覽器完成登入，然後讓守護程序在後臺執行。守護程序上線後，彈窗通常在一分鐘內檢測到這臺電腦。
 
 **成功標誌**：執行時列表裡出現一臺線上的電腦。
 
@@ -99,8 +99,8 @@ multica setup
 
 | 現象 | 先檢查什麼 |
 |---|---|
-| 沒有找到執行時 | 確認 AI 程式設計工具已經安裝並能在終端中執行。Desktop 點"重新整理"；CLI 方式重新執行 `multica setup`。 |
-| 執行時顯示離線 | Desktop 保持開啟；CLI 方式執行 `multica daemon status`，未啟動時執行 `multica daemon start`。 |
+| 沒有找到執行時 | 確認 AI 程式設計工具已經安裝並能在終端中執行。Desktop 點"重新整理"；CLI 方式重新執行 `morechat setup`。 |
+| 執行時顯示離線 | Desktop 保持開啟；CLI 方式執行 `morechat daemon status`，未啟動時執行 `morechat daemon start`。 |
 | 任務一直排隊 | 確認 AI 代理使用的執行時線上。執行時達到併發上限時，新執行會繼續排隊。 |
 
 更多情況見[故障排查](/troubleshooting)。

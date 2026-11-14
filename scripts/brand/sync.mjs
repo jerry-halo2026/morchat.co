@@ -102,7 +102,7 @@ export async function targets(root) {
   const s = svgs(brand);
   const read = (rel) => readFileSync(join(root, rel), "utf8");
   const mobile = "apps/mobile/components/brand/multica-logo.tsx";
-  const cli = "server/cmd/multica/cmd_auth.go";
+  const cli = "server/cmd/morechat/cmd_auth.go";
   const between = new RegExp(
     `(${escapeRe(MOBILE_BEGIN)}\\r?\\n)[^]*?(\\r?\\n${escapeRe(MOBILE_END)})`,
   );

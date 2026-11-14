@@ -137,7 +137,7 @@ morechat.co はそれらを呼び出して動かしますが、CLI 自体は同�
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.sh | bash -s -- --with-server
-multica setup self-host
+morechat setup self-host
 ```
 
 Windows では、`$env:MULTICA_MODE="with-server"` を設定してから、PowerShell インストーラーを実行してください。

@@ -146,13 +146,13 @@ import { RunLifecycleDemo } from "@/components/demos/run-lifecycle-demo";
 通过 CLI 找到原运行，再重试：
 
 ```bash
-multica issue runs <issue-id> --full-id
-multica issue rerun-task <run-id>
+morechat issue runs <issue-id> --full-id
+morechat issue rerun-task <run-id>
 ```
 
 使用完整运行 UUID 时可以省略 `--issue`；短 ID 前缀必须用 `--issue` 指定任务。命令会沿用原智能体和触发上下文，会话与目录的复用规则和重试按钮相同。添加 `--fresh` 可从新的会话和工作目录开始。
 
-旧命令 `multica issue rerun <issue-id>` 已弃用，并从帮助列表中隐藏。现有脚本仍可使用它，行为保持为让当前负责人从新会话和工作目录开始。
+旧命令 `morechat issue rerun <issue-id>` 已弃用，并从帮助列表中隐藏。现有脚本仍可使用它，行为保持为让当前负责人从新会话和工作目录开始。
 
 ## 运行完成与任务完成
 

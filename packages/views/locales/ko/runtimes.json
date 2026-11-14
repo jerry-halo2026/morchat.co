@@ -678,7 +678,7 @@
       },
       "remote": {
         "title": "다른 머신은 명령 두 개로",
-        "description": "서버나 다른 컴퓨터에 CLI를 설치하고 multica setup을 실행하면 연결됩니다."
+        "description": "서버나 다른 컴퓨터에 CLI를 설치하고 morechat setup을 실행하면 연결됩니다."
       },
       "cloud": {
         "title": "클라우드 노드도 가능",

@@ -873,7 +873,7 @@
   },
   "tokens": {
     "title": "API トークン",
-    "description": "個人アクセストークンを使うと、CLI や外部連携があなたのアカウントで認証できます。multica login --token で使用するか、API 呼び出し時に Bearer トークンとして送信します。",
+    "description": "個人アクセストークンを使うと、CLI や外部連携があなたのアカウントで認証できます。morechat login --token で使用するか、API 呼び出し時に Bearer トークンとして送信します。",
     "security_note": "トークンはアカウントへのフルアクセスを付与します。パスワードと同じように厳重に管理してください。",
     "empty": "API トークンはありません。",
     "load_failed": "API トークンを読み込めませんでした。ページを再読み込みしてもう一度お試しください。",
@@ -1407,7 +1407,7 @@
       "install_failed": "インストールに失敗しました: {{error}}",
       "python_label": "Python",
       "git_label": "Git",
-      "multica_label": "multica CLI"
+      "multica_label": "morechat CLI"
     },
     "tabs": {
       "updates": "アップデート"
@@ -1449,8 +1449,8 @@
       "auto_stop_description": "デスクトップ版を閉じるとデーモンを停止します。",
       "cli_status": "CLI の状態",
       "cli_checking": "確認中…",
-      "cli_installed": "multica CLI はインストール済みで PATH から利用できます。",
-      "cli_missing": "multica CLI が見つかりません。デーモンを管理するにはインストールしてください。",
+      "cli_installed": "morechat CLI はインストール済みで PATH から利用できます。",
+      "cli_missing": "morechat CLI が見つかりません。デーモンを管理するにはインストールしてください。",
       "installation_guide": "インストールガイド",
       "diagnostics_title": "診断情報",
       "state": "状態",

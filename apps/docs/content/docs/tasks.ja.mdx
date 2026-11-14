@@ -146,13 +146,13 @@ import { RunLifecycleDemo } from "@/components/demos/run-lifecycle-demo";
 CLI で元の実行を確認し、再試行できます。
 
 ```bash
-multica issue runs <issue-id> --full-id
-multica issue rerun-task <run-id>
+morechat issue runs <issue-id> --full-id
+morechat issue rerun-task <run-id>
 ```
 
 完全な実行 UUID を指定する場合、`--issue` は省略できます。短い ID プレフィックスには `--issue` が必要です。元のエージェントとトリガーのコンテキストを使い、再試行ボタンと同じルールでセッションとディレクトリを引き継ぎます。新しいセッションと作業ディレクトリで始めるには `--fresh` を追加します。
 
-旧コマンド `multica issue rerun <issue-id>` は非推奨となり、ヘルプ一覧から非表示になりました。既存のスクリプトでは引き続き利用でき、現在の担当者が新しいセッションと作業ディレクトリで開始する動作を維持します。
+旧コマンド `morechat issue rerun <issue-id>` は非推奨となり、ヘルプ一覧から非表示になりました。既存のスクリプトでは引き続き利用でき、現在の担当者が新しいセッションと作業ディレクトリで開始する動作を維持します。
 
 ## 実行の完了とタスクの完了
 

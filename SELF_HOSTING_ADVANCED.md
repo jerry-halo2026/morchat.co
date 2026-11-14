@@ -339,7 +339,7 @@ Browser login callbacks accept only `localhost`, `127.0.0.1`, and RFC 1918
 IPv4 addresses. If route detection selects an unsupported virtual-adapter
 address (for example `198.18.0.1`), login stops before opening the browser.
 When the browser and CLI run on the same machine, retry with
-`multica login --callback-host 127.0.0.1`. For a browser on another LAN machine,
+`morechat login --callback-host 127.0.0.1`. For a browser on another LAN machine,
 use `--callback-host <CLI-machine-LAN-IPv4>`; SSH-only machines can use token
 login or the printed SSH tunnel instructions. The login page reports invalid
 callback links instead of treating them as ordinary web sign-ins.

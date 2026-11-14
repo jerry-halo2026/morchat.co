@@ -39,7 +39,7 @@ morechat.co Desktop 会自动启动守护进程，不需要额外运行命令。
 使用 Web、远程电脑或无界面环境时，先[安装 morechat.co CLI](/cli)，再运行：
 
 ```bash
-multica daemon start
+morechat daemon start
 ```
 
 </Tab>
@@ -49,13 +49,13 @@ multica daemon start
 
 | 命令 | 作用 |
 | --- | --- |
-| `multica daemon status` | 查看守护进程和连接状态 |
-| `multica daemon logs -f` | 持续查看日志 |
-| `multica daemon restart` | 重启守护进程并重新检测本机工具 |
-| `multica daemon stop` | 停止守护进程 |
-| `multica daemon start --foreground` | 在当前终端中运行，便于调试 |
+| `morechat daemon status` | 查看守护进程和连接状态 |
+| `morechat daemon logs -f` | 持续查看日志 |
+| `morechat daemon restart` | 重启守护进程并重新检测本机工具 |
+| `morechat daemon stop` | 停止守护进程 |
+| `morechat daemon start --foreground` | 在当前终端中运行，便于调试 |
 
-如需把执行工作目录放到其他磁盘，可用 `multica config set workspaces_root <path>` 为当前 profile 持久化根目录，也可在 `daemon start` 或 `daemon restart` 中传入 `--workspaces-root <path>`。flag 的优先级高于 `MULTICA_WORKSPACES_ROOT`，环境变量又高于 profile 配置。修改根目录不会迁移已有的执行目录。
+如需把执行工作目录放到其他磁盘，可用 `morechat config set workspaces_root <path>` 为当前 profile 持久化根目录，也可在 `daemon start` 或 `daemon restart` 中传入 `--workspaces-root <path>`。flag 的优先级高于 `MULTICA_WORKSPACES_ROOT`，环境变量又高于 profile 配置。修改根目录不会迁移已有的执行目录。
 
 启动时，守护进程检测 `PATH` 中受支持的 AI 编程工具，为你有权连接的工作区注册运行时。工具刚安装或刚登录时，重启守护进程就会重新检测。
 
@@ -66,17 +66,17 @@ multica daemon start
 用 CLI 启动的守护进程默认不会随电脑重启自动恢复。需要的话，为当前 profile 登记开机自启：
 
 ```bash
-multica daemon autostart enable
-multica daemon autostart status
-multica daemon autostart disable
+morechat daemon autostart enable
+morechat daemon autostart status
+morechat daemon autostart disable
 ```
 
-登记的命令是这个 profile 的 `multica daemon start --foreground`，由系统在登录时拉起：Windows 写入当前用户的 Run 注册表项，macOS 写入 `~/Library/LaunchAgents` 下的 LaunchAgent，Linux 写入 systemd 用户单元，没有 systemd 用户会话时改用 XDG autostart 条目。使用命名 profile 时加 `--profile <name>`，每个 profile 单独登记。
+登记的命令是这个 profile 的 `morechat daemon start --foreground`，由系统在登录时拉起：Windows 写入当前用户的 Run 注册表项，macOS 写入 `~/Library/LaunchAgents` 下的 LaunchAgent，Linux 写入 systemd 用户单元，没有 systemd 用户会话时改用 XDG autostart 条目。使用命名 profile 时加 `--profile <name>`，每个 profile 单独登记。
 
-- 只有 `enable` 会创建登记。`multica daemon start` 不会自己登记，只在没有登记时提示一行；已有 morechat.co 创建的登记时，它会顺手更新其中的可执行文件路径，升级或挪动 CLI 后不必重新 `enable`。
-- 在 macOS 和 Linux 上，登录会话只带上 `enable` 时 shell 里的 `PATH`，shell 导出的其他变量（API key、`HTTPS_PROXY` 等）都不会带过去。守护进程配置用 `multica config set` 持久化，其他变量放进用户级环境。
+- 只有 `enable` 会创建登记。`morechat daemon start` 不会自己登记，只在没有登记时提示一行；已有 morechat.co 创建的登记时，它会顺手更新其中的可执行文件路径，升级或挪动 CLI 后不必重新 `enable`。
+- 在 macOS 和 Linux 上，登录会话只带上 `enable` 时 shell 里的 `PATH`，shell 导出的其他变量（API key、`HTTPS_PROXY` 等）都不会带过去。守护进程配置用 `morechat config set` 持久化，其他变量放进用户级环境。
 - Linux 的 systemd 用户单元在登录时启动。要在开机后不登录也启动，按 `enable` 输出的提示运行 `loginctl enable-linger <用户名>`。
-- `multica daemon stop` 只停止当前进程，不删除登记。
+- `morechat daemon stop` 只停止当前进程，不删除登记。
 - 同一位置已有不是 morechat.co 创建的文件（例如你自己写的 systemd 单元）时，`enable` 和 `disable` 都会拒绝修改它。
 - Desktop 拉起的守护进程由 Desktop 管理，`daemon start` 不会为它提示或更新登记。
 
@@ -106,7 +106,7 @@ multica daemon autostart disable
 
 达到上限后，新运行继续排队。单个智能体的并发数在智能体设置中调整，整台电脑的上限用 `MULTICA_DAEMON_MAX_CONCURRENT_TASKS` 调整。并行执行会同时占用机器性能、工具账号额度和同一工作目录。
 
-运行消耗的 token、费用和失败情况在[统计](/analytics)页按工作区汇总；单条运行时的 token 用量也可以用 `multica runtime usage <runtime-id>` 查看。
+运行消耗的 token、费用和失败情况在[统计](/analytics)页按工作区汇总；单条运行时的 token 用量也可以用 `morechat runtime usage <runtime-id>` 查看。
 
 ## 本机 MCP 配置 [#local-mcp]
 
@@ -133,7 +133,7 @@ CodeBuddy、Kimi CLI 和 Pi 启动时会自己加载用户级配置，并与 mor
 
 ## 清理与保留 [#cleanup]
 
-守护进程启动约 30 秒后清理一次，之后每 2 小时一次。正在执行的运行用到的目录不会被清理。`multica daemon disk-usage` 可以按工作区或按运行查看占用。下文的时长都是默认值，对应的 `MULTICA_GC_*` 变量见[环境变量](/environment-variables#gc)。
+守护进程启动约 30 秒后清理一次，之后每 2 小时一次。正在执行的运行用到的目录不会被清理。`morechat daemon disk-usage` 可以按工作区或按运行查看占用。下文的时长都是默认值，对应的 `MULTICA_GC_*` 变量见[环境变量](/environment-variables#gc)。
 
 ### 运行目录
 
@@ -211,9 +211,9 @@ Codex 原生子智能体同样默认关闭：父线程结束时，morechat.co �
 | `MULTICA_TASK_CONFIG_ROOT` | 私有的 task 本地 morechat.co CLI 配置根目录 | 仅供参考 |
 | `MULTICA_TASK_WORKSPACES_ROOT` | 守护进程管理的 task 工作区根目录 | 仅供参考 |
 | `MULTICA_AGENT_NAME` | 被指派智能体的显示名称 | 仅供参考 |
-| `MULTICA_DAEMON_PORT` | 本地守护进程的健康检查/API 端口，供 `multica repo checkout` 等仅限 task 的命令使用 | 仅供参考 |
+| `MULTICA_DAEMON_PORT` | 本地守护进程的健康检查/API 端口，供 `morechat repo checkout` 等仅限 task 的命令使用 | 仅供参考 |
 | `MULTICA_TASK_SLOT` | 守护进程全局并发池中的槽位，可用于 GPU 等按槽位编号的资源 | 仅供参考 |
-| `MULTICA_REPO_CHECKOUT_MODE` | 只在 Linux 和 Windows 的 Codex 运行中设为 `isolated`，让 `multica repo checkout` 生成 `.git` 在工作目录内的独立克隆；其他运行不设置 | 仅供参考 |
+| `MULTICA_REPO_CHECKOUT_MODE` | 只在 Linux 和 Windows 的 Codex 运行中设为 `isolated`，让 `morechat repo checkout` 生成 `.git` 在工作目录内的独立克隆；其他运行不设置 | 仅供参考 |
 | `TMPDIR` | 当前 task 的私有临时目录；也会以 `TMP` 和 `TEMP` 提供，但在 Windows 上 task 会继承用户临时路径以维持 Git Bash 的共享 `/tmp`；Windows 上的 Claude Code 会将 `CLAUDE_CODE_TMPDIR` 默认设为 task 临时目录 | 仅供参考 |
 
 使用 `MULTICA_TOKEN` 发起请求时，作者身份由服务端决定；任务评论等写入操作会归属到被指派的智能体和当前 task。令牌的完整绑定关系、权限、归属方式、最长 24 小时的有效期和清理规则见[智能体执行的临时令牌](/auth-tokens#智能体执行的临时令牌)。
@@ -257,13 +257,13 @@ Codex 原生子智能体同样默认关闭：父线程结束时，morechat.co �
 如果 Desktop 启动的守护进程找不到终端里能够执行的命令，可以为当前电脑设置绝对路径：
 
 ```bash
-multica runtime profile set-path <profile-id> --path /absolute/path/to/command
+morechat runtime profile set-path <profile-id> --path /absolute/path/to/command
 ```
 
 移除路径覆盖：
 
 ```bash
-multica runtime profile unset-path <profile-id>
+morechat runtime profile unset-path <profile-id>
 ```
 
 修改配置只影响之后领取的运行。删除配置前，需要先处理仍绑定在对应运行时上的活动智能体。只删除某台电脑上的运行时实例不会删除配置，运行中的守护进程还会重新注册它。
@@ -307,11 +307,11 @@ Qoder Cloud Agents 通过远端会话执行分配的任务。morechat.co 服务�
 
 按以下顺序检查：
 
-1. 运行 `multica daemon status`，确认守护进程已经启动。
-2. 运行 `multica daemon logs -f`，查看登录、网络或工具检测错误。
+1. 运行 `morechat daemon status`，确认守护进程已经启动。
+2. 运行 `morechat daemon logs -f`，查看登录、网络或工具检测错误。
 3. 在同一运行环境中执行 `command -v <工具命令>`，确认守护进程能够找到它。
 4. 打开 morechat.co 的**运行时**页面，检查目标电脑和对应的 AI 编程工具是否显示在线。
-5. 工具刚安装、路径刚修改或配置刚更新时，运行 `multica daemon restart`。
+5. 工具刚安装、路径刚修改或配置刚更新时，运行 `morechat daemon restart`。
 
 仍未解决时，参见[故障排查](/troubleshooting)。
 

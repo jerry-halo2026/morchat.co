@@ -1,5 +1,5 @@
 /**
- * Runtime toolchain probe: `python`, `git` and the `multica` CLI.
+ * Runtime toolchain probe: `python`, `git` and the `morechat` CLI.
  *
  * The desktop already ships a Node runtime and a DSH runtime; agents also need
  * these three to do anything (see `docs/engineering/CONTRACTS.md`,
@@ -13,7 +13,7 @@
  *   1. the `MULTICA_*` override the daemon injects into agent processes
  *      (`MULTICA_PYTHON_HOME`, `MULTICA_GIT_HOME`, `MULTICA_CLI_PATH`);
  *   2. bundled copies: `<resources>/python/python.exe`,
- *      `<resources>/git/cmd/git.exe`, `<resources>/bin/multica.exe`;
+ *      `<resources>/git/cmd/git.exe`, `<resources>/bin/morechat.exe`;
  *   3. an app-managed install under `<userData>/tools/<tool>/`;
  *   4. PATH.
  *
@@ -58,7 +58,7 @@ export const RUNTIME_TOOL_DOWNLOADS: Record<RuntimeTool, string> = {
   python: "https://www.python.org/ftp/python/3.12.10/python-3.12.10-embed-amd64.zip",
   git: "https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.1/MinGit-2.47.1-64-bit.zip",
   multica:
-    "https://github.com/jerry-halo2026/morchat.co/releases/latest/download/multica_windows_amd64.zip",
+    "https://github.com/jerry-halo2026/morchat.co/releases/latest/download/morechat_windows_amd64.zip",
 };
 
 interface ToolSpec {
@@ -98,11 +98,11 @@ function toolSpecs(platform: NodeJS.Platform): Record<RuntimeTool, ToolSpec> {
       envPath: "MULTICA_GIT_PATH",
     },
     multica: {
-      bundledRel: [`bin/multica${exe}`],
-      installedRel: `multica${exe}`,
-      command: "multica",
+      bundledRel: [`bin/morechat${exe}`],
+      installedRel: `morechat${exe}`,
+      command: "morechat",
       versionArgs: ["version"],
-      // `multica version` prints `1.27.3, commit …`; stop at the punctuation
+      // `morechat version` prints `1.27.3, commit …`; stop at the punctuation
       // instead of swallowing the whole tail into the version.
       versionPattern: /(\d+\.\d+\.\d+(?:[.-][0-9A-Za-z]+)*)/,
       envPath: "MULTICA_CLI_PATH",

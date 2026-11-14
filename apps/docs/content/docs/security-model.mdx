@@ -51,7 +51,7 @@ On Linux, Codex runs previously ran under the `workspace-write` sandbox with a r
 The daemon logs the effective sandbox mode at warn level when a run starts unsandboxed:
 
 ```bash
-multica daemon logs --lines 200 | grep "codex sandbox"
+morechat daemon logs --lines 200 | grep "codex sandbox"
 ```
 
 To confirm the effective Codex configuration, read the managed block in the run's `config.toml` under the run's `CODEX_HOME` — the section between the `# BEGIN multica-managed` and `# END multica-managed` markers is written by the daemon on every run.

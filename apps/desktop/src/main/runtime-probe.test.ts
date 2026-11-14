@@ -14,7 +14,7 @@ import {
 const resources = "C:\\app\\resources";
 const bundledPython = join(resources, "python", "python.exe");
 const bundledGit = join(resources, "git", "cmd", "git.exe");
-const bundledMultica = join(resources, "bin", "multica.exe");
+const bundledMultica = join(resources, "bin", "morechat.exe");
 
 const outputFor: Record<string, string> = {
   [bundledPython]: "Python 3.12.4\r\n",
@@ -22,7 +22,7 @@ const outputFor: Record<string, string> = {
   [bundledMultica]: "1.27.3, commit 4f2a1c0\r\n",
   python: "Python 3.11.9\r\n",
   git: "git version 2.40.0\r\n",
-  multica: "multica 0.7.0\r\n",
+  morechat: "morechat 0.7.0\r\n",
 };
 
 function fakeRun(
@@ -94,7 +94,7 @@ describe("probeRuntimeTools — bundled copy present", () => {
 
 describe("probeRuntimeTools — bundled copy absent, PATH usable", () => {
   it("falls back to PATH and reports source=system", async () => {
-    const { run, calls } = fakeRun(["python", "git", "multica"]);
+    const { run, calls } = fakeRun(["python", "git", "morechat"]);
     const report = await probeRuntimeTools({
       resourcesDirs: [resources],
       platform: "win32",
@@ -106,11 +106,11 @@ describe("probeRuntimeTools — bundled copy absent, PATH usable", () => {
     expect(report.tools.map((tool) => [tool.tool, tool.version, tool.source, tool.path])).toEqual([
       ["python", "3.11.9", "system", "python"],
       ["git", "2.40.0", "system", "git"],
-      ["multica", "0.7.0", "system", "multica"],
+      ["multica", "0.7.0", "system", "morechat"],
     ]);
     // The bundled paths are probed first, so their absence shows up as a stat,
     // not a failed spawn: nothing was executed before the PATH lookup.
-    expect(calls).toEqual(["python", "git", "multica"]);
+    expect(calls).toEqual(["python", "git", "morechat"]);
   });
 });
 

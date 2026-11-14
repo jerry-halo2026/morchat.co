@@ -118,28 +118,28 @@ import { WakeupDemo } from "@/components/demos/wakeup-demo";
 
 ## 讓 AI 代理自己安排喚醒 [#cli]
 
-AI 代理在執行中用 `multica issue wakeup` 給這條任務安排下一次執行，然後結束當前執行。不寫 `--agent-id` 時，喚醒的就是執行命令的 AI 代理自己。你也可以在自己的終端裡用同一組命令，這時要用 `--agent-id` 指定 AI 代理。
+AI 代理在執行中用 `morechat issue wakeup` 給這條任務安排下一次執行，然後結束當前執行。不寫 `--agent-id` 時，喚醒的就是執行命令的 AI 代理自己。你也可以在自己的終端裡用同一組命令，這時要用 `--agent-id` 指定 AI 代理。
 
 ```bash
 # 明天上午 9 點（北京時間）再看一次
-multica issue wakeup create OPS-56 --kind at --at 2026-10-21T09:00:00+08:00 \
+morechat issue wakeup create OPS-56 --kind at --at 2026-10-21T09:00:00+08:00 \
   --instruction "看供應商是否都回了報價，回齊了就整理成對比表"
 
 # 工作日每天 9 點檢查，一週後結束
-multica issue wakeup create OPS-56 --kind cron --cron "0 9 * * 1-5" --timezone Asia/Shanghai \
+morechat issue wakeup create OPS-56 --kind cron --cron "0 9 * * 1-5" --timezone Asia/Shanghai \
   --expires-in 168h --instruction "檢視詢價郵件，有新報價就更新對比表"
 
 # 等李雷回覆，最多等 3 天，超時也喚醒一次
-multica issue wakeup create OPS-56 --event comment.created \
+morechat issue wakeup create OPS-56 --event comment.created \
   --filter-actor-type member --filter-actor-id <李雷的使用者 ID> \
   --expires-in 72h --on-timeout wake --instruction "按李雷的答覆繼續"
 
 # 等任務進入審查中
-multica issue wakeup create OPS-56 --until-status in_review --instruction "檢查交付物並彙總"
+morechat issue wakeup create OPS-56 --until-status in_review --instruction "檢查交付物並彙總"
 ```
 
 - **時間**：`--kind at` 配 `--after 10m` 或 `--at <RFC3339 時間>`；`--kind every --every 1h` 按固定間隔，最短 1 分鐘；`--kind cron --cron "<5 段表示式>"` 配 `--timezone`，時區預設 UTC。
-- **事件**：`--event` 後面寫事件名，多個用逗號分隔，`multica issue wakeup events` 列出全部事件和過濾引數。`--mode continuous` 改成重複喚醒。
+- **事件**：`--event` 後面寫事件名，多個用逗號分隔，`morechat issue wakeup events` 列出全部事件和過濾引數。`--mode continuous` 改成重複喚醒。
 - **條件**：`--until-status`、`--until-assignee`、`--until-label`、`--until-property`、`--until-children-done [--stage N]`、`--until-pr checks|merged|conflicts`、`--until-issue <任務> --until-issue-state done|ended|in_review|blocked`。一條喚醒只能用一個 `--until-*`，不能和 `--event` 同時用。
 - **結束方式**：CLI 不會自動給等待加期限，用 `--expires-in 72h` 或 `--expires-at <RFC3339 時間>` 設結束時間；`--on-timeout wake` 讓事件規則在超時時再喚醒一次。`--max-fires N`（1–1000）限制重複規則最多執行幾次。
 - **結果放在哪**：`--parent <評論 ID>` 讓喚醒後的回覆留在原來的評論串裡。
@@ -148,14 +148,14 @@ multica issue wakeup create OPS-56 --until-status in_review --instruction "檢�
 
 | 命令 | 作用 |
 |---|---|
-| `multica issue wakeup list <任務>` | 列出任務上的喚醒 |
-| `multica issue wakeup get <任務> <喚醒 ID>` | 檢視一條喚醒的完整配置 |
-| `multica issue wakeup runs <任務> <喚醒 ID>` | 最近的執行、觸發原因、靜默檢查說明，以及是否發了評論 |
-| `multica issue wakeup update <任務> <喚醒 ID>` | 用和 `create` 相同的引數替換整份配置，並重新開啟 |
-| `multica issue wakeup disable <任務> <喚醒 ID>` | 關閉，撤回還沒開始的執行 |
-| `multica issue wakeup trigger <任務> <喚醒 ID>` | 立即喚醒一次 |
-| `multica issue wakeup delete <任務> <喚醒 ID>` | 刪除規則，撤回還沒開始的執行 |
-| `multica issue wakeup checkin <任務> <喚醒 ID> --note "..."` | 定期檢查沒發現需要回復的事時靜默結束，只能由這條規則開始的執行呼叫 |
+| `morechat issue wakeup list <任務>` | 列出任務上的喚醒 |
+| `morechat issue wakeup get <任務> <喚醒 ID>` | 檢視一條喚醒的完整配置 |
+| `morechat issue wakeup runs <任務> <喚醒 ID>` | 最近的執行、觸發原因、靜默檢查說明，以及是否發了評論 |
+| `morechat issue wakeup update <任務> <喚醒 ID>` | 用和 `create` 相同的引數替換整份配置，並重新開啟 |
+| `morechat issue wakeup disable <任務> <喚醒 ID>` | 關閉，撤回還沒開始的執行 |
+| `morechat issue wakeup trigger <任務> <喚醒 ID>` | 立即喚醒一次 |
+| `morechat issue wakeup delete <任務> <喚醒 ID>` | 刪除規則，撤回還沒開始的執行 |
+| `morechat issue wakeup checkin <任務> <喚醒 ID> --note "..."` | 定期檢查沒發現需要回復的事時靜默結束，只能由這條規則開始的執行呼叫 |
 
 `list`、`get` 和 `runs` 加 `--output table` 輸出表格。其他命令見[使用 CLI](/cli)。
 

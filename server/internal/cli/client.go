@@ -17,7 +17,7 @@ import (
 )
 
 // ClientVersion is the CLI version sent on every request as X-Client-Version.
-// Set by the multica binary at init() so the package doesn't depend on the
+// Set by the morechat binary at init() so the package doesn't depend on the
 // concrete cmd package. Defaults to "dev" when running unset (e.g. tests).
 var ClientVersion = "dev"
 
@@ -213,7 +213,7 @@ func NewAPIClient(baseURL, workspaceID, token string) *APIClient {
 // stable_attachment_urls asks bulk responses to return the stable
 // /api/attachments/{id}/download path instead of a ~800-char CloudFront
 // signature that is re-minted on every request (MUL-5372 / GitHub #5999). The
-// CLI never hands an attachment URL to a native loader — `multica attachment
+// CLI never hands an attachment URL to a native loader — `morechat attachment
 // download <id>` fetches a fresh signature from the single-attachment endpoint,
 // which keeps signing regardless of this capability — so the signature in list
 // payloads was pure cost: raw bytes, a per-attachment RSA sign, and bytes that

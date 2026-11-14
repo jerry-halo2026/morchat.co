@@ -28,11 +28,11 @@ export function daemonCommands(config: DaemonSetupConfig): DaemonCommands {
     if (!normalizedServerUrl || !normalizedAppUrl) return { status: "incomplete" };
     return {
       status: "ready",
-      setupCmd: `multica setup self-host --server-url ${normalizedServerUrl} --app-url ${normalizedAppUrl}`,
-      tokenCmd: `multica config set server_url ${normalizedServerUrl}
-multica config set app_url ${normalizedAppUrl}
-multica login --token <YOUR_TOKEN>
-multica daemon start`,
+      setupCmd: `morechat setup self-host --server-url ${normalizedServerUrl} --app-url ${normalizedAppUrl}`,
+      tokenCmd: `morechat config set server_url ${normalizedServerUrl}
+morechat config set app_url ${normalizedAppUrl}
+morechat login --token <YOUR_TOKEN>
+morechat daemon start`,
     };
   }
 
@@ -40,10 +40,10 @@ multica daemon start`,
   if (config.target !== "cloud") return { status: "unknown" };
   return {
     status: "ready",
-    setupCmd: "multica setup",
-    tokenCmd: `multica config set server_url ${CLOUD_SERVER_URL}
-multica config set app_url ${CLOUD_APP_URL}
-multica login --token <YOUR_TOKEN>
-multica daemon start`,
+    setupCmd: "morechat setup",
+    tokenCmd: `morechat config set server_url ${CLOUD_SERVER_URL}
+morechat config set app_url ${CLOUD_APP_URL}
+morechat login --token <YOUR_TOKEN>
+morechat daemon start`,
   };
 }

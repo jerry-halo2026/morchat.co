@@ -115,8 +115,8 @@ token 由 AI 编程工具上报。工具没有上报时，这次运行仍计入�
 ## 用 CLI 查看
 
 ```bash
-multica issue usage <issue-id>
-multica runtime usage <runtime-id> --days 30
+morechat issue usage <issue-id>
+morechat runtime usage <runtime-id> --days 30
 ```
 
 `issue usage` 输出一条任务的 token 合计（输入、输出、缓存读取、缓存写入）和运行次数。`RUNS` 是已结束的运行数，`METERED_RUNS` 是上报了用量的运行数，`UNREPORTED` 是没有上报的；有运行没上报时，token 数前面带 `>=`，表示实际只会更多。

@@ -26,15 +26,15 @@ Execution modes:
 ## CLI
 
 ```bash
-multica autopilot list --output json
-multica autopilot get <autopilot-id> --output json
-multica autopilot create --title "<title>" --description "<task prompt>" --agent <agent-name-or-id> --mode create_issue|run_only --output json
-multica autopilot update <autopilot-id> --status active|paused --output json
-multica autopilot runs <autopilot-id> --output json
-multica autopilot trigger-add <autopilot-id> --kind schedule --cron "0 9 * * *" --timezone Asia/Shanghai --output json
-multica autopilot trigger-add <autopilot-id> --kind webhook --label "ci" --output json
-multica autopilot trigger <autopilot-id> --output json
-multica autopilot trigger-rotate-url <autopilot-id> <trigger-id> --yes --output json
+morechat autopilot list --output json
+morechat autopilot get <autopilot-id> --output json
+morechat autopilot create --title "<title>" --description "<task prompt>" --agent <agent-name-or-id> --mode create_issue|run_only --output json
+morechat autopilot update <autopilot-id> --status active|paused --output json
+morechat autopilot runs <autopilot-id> --output json
+morechat autopilot trigger-add <autopilot-id> --kind schedule --cron "0 9 * * *" --timezone Asia/Shanghai --output json
+morechat autopilot trigger-add <autopilot-id> --kind webhook --label "ci" --output json
+morechat autopilot trigger <autopilot-id> --output json
+morechat autopilot trigger-rotate-url <autopilot-id> <trigger-id> --yes --output json
 ```
 
 Do not run `trigger`, `delete`, `trigger-delete`, or `trigger-rotate-url` to
@@ -48,9 +48,9 @@ offline, quota exhausted, a duplicate already in flight — dispatched nothing, 
 its `failure_reason` says which. Do not report a manual run as done without
 seeing one of those two statuses.
 
-The default `multica autopilot list` table includes `LAST_STATUS`. Treat a
+The default `morechat autopilot list` table includes `LAST_STATUS`. Treat a
 healthy-looking `STATUS=active` row with `LAST_STATUS=failed` as a failing
-autopilot; inspect `multica autopilot runs <id> --output json` for the failure
+autopilot; inspect `morechat autopilot runs <id> --output json` for the failure
 reason.
 
 A schedule trigger without `--timezone` runs in **UTC**. Name the zone whenever
@@ -65,10 +65,10 @@ material into comments, logs, docs, or PRs.
 
 ## Debugging "why didn't it run"
 
-1. `multica autopilot get <id> --output json` — status, mode, assignee, triggers.
-2. `multica autopilot runs <id> --output json` — run status and failure reason.
-3. If assigned to a squad, inspect the squad: `multica squad get <squad-id> --output json`; execution goes to the leader.
-4. Inspect the target agent/runtime: `multica agent get <agent-id> --output json` and `multica runtime list --output json`.
+1. `morechat autopilot get <id> --output json` — status, mode, assignee, triggers.
+2. `morechat autopilot runs <id> --output json` — run status and failure reason.
+3. If assigned to a squad, inspect the squad: `morechat squad get <squad-id> --output json`; execution goes to the leader.
+4. Inspect the target agent/runtime: `morechat agent get <agent-id> --output json` and `morechat runtime list --output json`.
 5. For webhooks, inspect delivery status: `queued` means the worker has not completed dispatch; `failed` carries the worker error. A provider retry with the same `X-GitHub-Delivery` / `Idempotency-Key` reuses the original delivery.
 6. For `create_issue`, inspect the created issue if the run records one.
 

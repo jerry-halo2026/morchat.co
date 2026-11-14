@@ -4909,7 +4909,7 @@ func TestHermesClientEmitsToolUseWhenStartFrameCarriesCommand(t *testing.T) {
 		onMessage:                  func(msg Message) { got = append(got, msg) },
 	}
 
-	c.handleLine(`{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"ses_1","update":{"content":[{"content":{"text":"$ multica issue get 7473e16c --output json","type":"text"},"type":"content"}],"kind":"execute","locations":[],"title":"terminal: multica issue get 7473e16c --output json","toolCallId":"tc-305462f5d67d","sessionUpdate":"tool_call"}}}`)
+	c.handleLine(`{"jsonrpc":"2.0","method":"session/update","params":{"sessionId":"ses_1","update":{"content":[{"content":{"text":"$ morechat issue get 7473e16c --output json","type":"text"},"type":"content"}],"kind":"execute","locations":[],"title":"terminal: morechat issue get 7473e16c --output json","toolCallId":"tc-305462f5d67d","sessionUpdate":"tool_call"}}}`)
 
 	if len(got) != 1 {
 		t.Fatalf("expected MessageToolUse on the start frame, got %d: %+v", len(got), got)
@@ -4923,7 +4923,7 @@ func TestHermesClientEmitsToolUseWhenStartFrameCarriesCommand(t *testing.T) {
 	if got[0].CallID != "tc-305462f5d67d" {
 		t.Errorf("callID: got %q", got[0].CallID)
 	}
-	if text, _ := got[0].Input["text"].(string); text != "$ multica issue get 7473e16c --output json" {
+	if text, _ := got[0].Input["text"].(string); text != "$ morechat issue get 7473e16c --output json" {
 		t.Errorf("input.text: got %v", got[0].Input["text"])
 	}
 

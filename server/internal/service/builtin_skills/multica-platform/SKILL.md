@@ -25,7 +25,7 @@ Read the invariants below, then open the reference(s) your task actually needs
 | `references/agents.md` | Creating, copying or debugging an agent definition: fields, secrets, MCP config, skill binding |
 | `references/squads.md` | Squads: leader routing, roster, recording leader activity, why a squad did or did not run |
 | `references/autopilots.md` | Autopilots: schedule / webhook / manual triggers, `create_issue` vs `run_only`, why one did not fire |
-| `references/projects.md` | Projects and their durable resources (`github_repo`, `local_directory`, worktree mode); project workflows — status columns, handoffs, a `[Project workflow]` block in your prompt, reading or changing a workflow (`multica workflow`, `multica project workflow`) |
+| `references/projects.md` | Projects and their durable resources (`github_repo`, `local_directory`, worktree mode); project workflows — status columns, handoffs, a `[Project workflow]` block in your prompt, reading or changing a workflow (`multica workflow`, `morechat project workflow`) |
 | `references/runtimes.md` | Runtimes, daemons, `repo checkout`, and the task CLI boundary |
 | `references/skill-import.md` | Importing a skill into this workspace from a URL or a local archive |
 | `references/knowledge.md` | 知识库：检索、读取、把结论写回（三个 MCP 工具、写什么不写什么） |
@@ -48,7 +48,7 @@ These hold across every reference and are not repeated there.
 **Read before you write.** Start with the read-only commands the reference you
 opened names — most domains have a `list` and a `get` that take `--output json`
 and have no side effects. Run those before any mutation. When a command's shape
-is unclear, `multica <command> --help` beats guessing at flags.
+is unclear, `morechat <command> --help` beats guessing at flags.
 
 **A name is not an id.** Mention links, assignment, and every `--*-id` flag take
 a real UUID from the matching `list --output json`. Never type a display name

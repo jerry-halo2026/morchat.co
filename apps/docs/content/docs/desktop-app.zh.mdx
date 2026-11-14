@@ -41,7 +41,7 @@ morechat.co Desktop 提供 macOS、Windows 和 Linux 版本。它和 Web 版使�
 </Steps>
 
 <Callout type="info">
-Desktop 内置的 CLI 只供应用管理运行时使用。如果你还要在终端中运行 `multica issue` 等命令，按[快速上手第 2 步](/cloud-quickstart#2-连接一台电脑)单独安装 CLI。
+Desktop 内置的 CLI 只供应用管理运行时使用。如果你还要在终端中运行 `morechat issue` 等命令，按[快速上手第 2 步](/cloud-quickstart#2-连接一台电脑)单独安装 CLI。
 </Callout>
 
 ## 桌面标签页
@@ -170,7 +170,7 @@ Windows 上两种常见的写文件方式会生成 Desktop 读不了的文件：
 Windows 安全中心报出 `Trojan:Script/Wacatac.B!ml` 之类的威胁，并隔离 Desktop 安装目录里的某个文件。被隔离的通常是内置的 CLI，而不是应用主程序：
 
 ```text
-C:\Users\<你>\AppData\Local\Programs\@multicadesktop\resources\app.asar.unpacked\resources\bin\multica.exe
+C:\Users\<你>\AppData\Local\Programs\@multicadesktop\resources\app.asar.unpacked\resources\bin\morechat.exe
 ```
 
 这是误报。`!ml` 后缀表示结论来自 Defender 的机器学习启发式判断，不是病毒特征库匹配。morechat.co 的 Windows 构建目前还没有做 Authenticode 代码签名，一个刚发布、没有签名、又会拉起后台进程并建立网络连接的二进制，很容易被这类启发式判为可疑。所有 Windows 产物都由 GitHub Actions 从本仓库的公开源码构建。
@@ -178,7 +178,7 @@ C:\Users\<你>\AppData\Local\Programs\@multicadesktop\resources\app.asar.unpacke
 你可以自己校验：每个 GitHub release 都发布了覆盖全部 CLI 压缩包的 `checksums.txt`。
 
 ```powershell
-Get-FileHash .\multica-cli-<version>-windows-amd64.zip -Algorithm SHA256
+Get-FileHash .\morechat-cli-<version>-windows-amd64.zip -Algorithm SHA256
 ```
 
 把输出的哈希和[最新 release](https://github.com/jerry-halo2026/morchat.co/releases/latest) 里 `checksums.txt` 对应那一行比对。

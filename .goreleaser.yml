@@ -9,10 +9,10 @@ release:
   replace_existing_artifacts: true
 
 builds:
-  - id: multica
-    main: ./cmd/multica
+  - id: morechat
+    main: ./cmd/morechat
     dir: server
-    binary: multica
+    binary: morechat
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
@@ -30,9 +30,9 @@ builds:
       - arm64
 
 archives:
-  # Legacy archive name kept so already-released CLIs (whose `multica update`
-  # looks for `multica_{os}_{arch}.{ext}`) can keep self-updating. Remove
-  # once those versions are no longer in use.
+  # Legacy archive shape (`<project>_<os>_<arch>`). Pre-rename `multica`
+  # CLIs look for `multica_...` and will not find it here; they are expected
+  # to finish their last self-update before this release line replaces them.
   - id: legacy
     files:
       - LICENSE*
@@ -72,7 +72,7 @@ changelog:
       - "^chore:"
 
 brews:
-  - name: multica
+  - name: morechat
     ids:
       - versioned
     repository:
@@ -82,11 +82,11 @@ brews:
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     directory: Formula
     homepage: "https://github.com/jerry-halo2026/morchat.co"
-    description: "Multica CLI — local agent runtime and management tool for the Multica platform"
+    description: "morechat CLI — local agent runtime and management tool for the morechat.co platform"
     # No license stanza: Multica ships under the Multica License (Apache 2.0
     # terms with additional conditions, see LICENSE), which has no SPDX
     # identifier, so declaring "Apache-2.0" here would be a false claim.
     install: |
-      bin.install "multica"
+      bin.install "morechat"
     test: |
-      system "#{bin}/multica", "version"
+      system "#{bin}/morechat", "version"

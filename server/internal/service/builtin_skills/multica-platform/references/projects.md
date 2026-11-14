@@ -20,9 +20,9 @@ Projects are durable context containers. Resources attached to a project can
 affect future agent tasks.
 
 ```bash
-multica project list --output json
-multica project get <project-id> --output json
-multica project resource list <project-id> --output json
+morechat project list --output json
+morechat project get <project-id> --output json
+morechat project resource list <project-id> --output json
 ```
 
 Project resources are mutated through project resource commands/endpoints. Issue
@@ -45,23 +45,23 @@ Common resource types:
 ## CLI
 
 ```bash
-multica project list --output json
-multica project get <project-id> --output json
-multica project create --title "<title>" --repo <github-url> --output json
-multica project create --title "<title>" --start-date 2026-03-01 --due-date 2026-03-31 --output json
-multica project update <project-id> --title "<title>" --output json
-multica project update <project-id> --due-date 2026-04-15 --output json
-multica project update <project-id> --start-date "" --output json   # clear the start date
-multica project status <project-id> in_progress --output json
-multica project resource list <project-id> --output json
-multica project resource add <project-id> --type github_repo --url <github-url> --output json
-multica project resource add <project-id> --type github_repo --url <github-url> --ref <branch-or-sha> --output json
-multica project resource add <project-id> --type local_directory --local-path <abs-path> --daemon-id <daemon-id> --output json
-multica project resource add <project-id> --type local_directory --local-path <abs-path> --daemon-id <daemon-id> --execution-mode worktree --output json
-multica project resource update <project-id> <resource-id> --execution-mode in_place --output json
-multica project resource update <project-id> <resource-id> --url <new-github-url> --output json
-multica project resource update <project-id> <resource-id> --ref <branch-or-sha> --output json
-multica project resource remove <project-id> <resource-id> --output json
+morechat project list --output json
+morechat project get <project-id> --output json
+morechat project create --title "<title>" --repo <github-url> --output json
+morechat project create --title "<title>" --start-date 2026-03-01 --due-date 2026-03-31 --output json
+morechat project update <project-id> --title "<title>" --output json
+morechat project update <project-id> --due-date 2026-04-15 --output json
+morechat project update <project-id> --start-date "" --output json   # clear the start date
+morechat project status <project-id> in_progress --output json
+morechat project resource list <project-id> --output json
+morechat project resource add <project-id> --type github_repo --url <github-url> --output json
+morechat project resource add <project-id> --type github_repo --url <github-url> --ref <branch-or-sha> --output json
+morechat project resource add <project-id> --type local_directory --local-path <abs-path> --daemon-id <daemon-id> --output json
+morechat project resource add <project-id> --type local_directory --local-path <abs-path> --daemon-id <daemon-id> --execution-mode worktree --output json
+morechat project resource update <project-id> <resource-id> --execution-mode in_place --output json
+morechat project resource update <project-id> <resource-id> --url <new-github-url> --output json
+morechat project resource update <project-id> <resource-id> --ref <branch-or-sha> --output json
+morechat project resource remove <project-id> <resource-id> --output json
 ```
 
 For `github_repo`, non-JSON `--ref` sets `resource_ref.ref`, the default
@@ -115,7 +115,7 @@ retrying. Pass an empty value to clear it back to the default.
 A project has no `MUL-123`-style identifier, so writing its title as prose
 produces dead text — there is nothing for the reader's client to autolink. Use
 the mention-link form instead, with the project UUID from
-`multica project list --output json`:
+`morechat project list --output json`:
 
     [Roadmap](mention://project/<project-id>)
 
@@ -136,13 +136,13 @@ Add/update a project resource when the user asks for durable project context:
 "把这个 GitHub repo 绑到项目上", "以后都用这个 repo", "agent 总是拿不到这个项目的
 仓库", or "这个项目要在我的本地目录里跑".
 
-Project resources are durable and affect future tasks. `multica repo checkout`
+Project resources are durable and affect future tasks. `morechat repo checkout`
 is task-local checkout state.
 
 ## Debugging wrong context
 
-1. `multica project get <project-id> --output json`.
-2. `multica project resource list <project-id> --output json`.
+1. `morechat project get <project-id> --output json`.
+2. `morechat project resource list <project-id> --output json`.
 3. Check `github_repo.resource_ref.url`, optional `ref`, `default_branch_hint`,
    and `local_directory.resource_ref.daemon_id`.
 4. Updating resources is a durable mutation. After an update, listing the
@@ -210,7 +210,7 @@ issue inside a workflow needs none of them.
 
 - Read first: `multica workflow list`, `multica workflow get <workflow>`
   (an ID, ID prefix, exact name, or `default`), and
-  `multica project workflow get <project-id>`, which returns the effective
+  `morechat project workflow get <project-id>`, which returns the effective
   workflow with `uses_default: true` when the project has none set.
 - One step: `multica workflow handoff set <workflow> <status-key>` with
   `--handler` (`none`, `project_lead`, `creator`, or a member/agent/squad),
@@ -227,11 +227,11 @@ issue inside a workflow needs none of them.
   author declared. The field applies only when the status is created — a
   status that already exists by name is reused unchanged. Repair an existing
   catalog row, including on a workspace that synced before the field was
-  declared, with `multica issue-status update <key-or-name> --icon <value>`
-  (`--icon ""` resets it), and read the catalog with `multica issue-status
+  declared, with `morechat issue-status update <key-or-name> --icon <value>`
+  (`--icon ""` resets it), and read the catalog with `morechat issue-status
   list`. These commands edit the workspace catalog, not a workflow, and need
   workspace owner/admin.
-- Switching: `multica project workflow set <project-id> <workflow|default>`.
+- Switching: `morechat project workflow set <project-id> <workflow|default>`.
   Run it with `--dry-run` first. Issues on statuses the target lacks need
   `--map old=new`; a missing mapping fails with
   `workflow_status_mapping_required` and the plan. Pick each target from the

@@ -20,7 +20,7 @@ curl -fsSL https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scri
 Homebrew がインストールされていれば、次のコマンドでもインストールできます:
 
 ```bash
-brew install multica-ai/tap/multica
+brew install multica-ai/tap/morechat
 ```
 
 </Tab>
@@ -38,7 +38,7 @@ irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/ins
 インストールを確認します:
 
 ```bash
-multica version
+morechat version
 ```
 
 ## 初回接続
@@ -49,14 +49,14 @@ multica version
 <Tab value="morechat.co Cloud">
 
 ```bash
-multica setup
+morechat setup
 ```
 
 </Tab>
 <Tab value="セルフホストインスタンス">
 
 ```bash
-multica setup self-host \
+morechat setup self-host \
   --server-url https://api.example.com \
   --app-url https://app.example.com
 ```
@@ -67,14 +67,14 @@ multica setup self-host \
 `setup` はサーバーアドレスを保存し、ブラウザを開いてサインインを完了し、デーモンを起動します。完了したら確認します:
 
 ```bash
-multica auth status
-multica daemon status
+morechat auth status
+morechat daemon status
 ```
 
-他の設定を上書きせずにサインインだけやり直したい場合は、`multica login` を実行します。ブラウザのない環境では、先に Web の設定で個人アクセストークンを作成しておき、次のコマンドで入力します:
+他の設定を上書きせずにサインインだけやり直したい場合は、`morechat login` を実行します。ブラウザのない環境では、先に Web の設定で個人アクセストークンを作成しておき、次のコマンドで入力します:
 
 ```bash
-multica login --token
+morechat login --token
 ```
 
 このコマンドはターミナル上でトークンの貼り付けを促すため、完全な値が shell history に残りません。
@@ -84,8 +84,8 @@ multica login --token
 ワークスペースを一覧し、デフォルトを切り替えます:
 
 ```bash
-multica workspace list
-multica workspace switch <slug>
+morechat workspace list
+morechat workspace switch <slug>
 ```
 
 以降のコマンドはこのワークスペースを使います。単発のコマンドでは `--workspace-id` で一時的に上書きでき、`MULTICA_WORKSPACE_ID` を設定することもできます。
@@ -93,55 +93,55 @@ multica workspace switch <slug>
 メンバーを招待する:
 
 ```bash
-multica workspace member invite teammate@example.com
-multica workspace member invite admin@example.com --role admin
+morechat workspace member invite teammate@example.com
+morechat workspace member invite admin@example.com --role admin
 ```
 
 ## よく使うタスク操作
 
 ```bash
 # 表示と検索
-multica issue list
-multica issue get MUL-123
-multica issue search "ログイン失敗"
+morechat issue list
+morechat issue get MUL-123
+morechat issue search "ログイン失敗"
 
 # 作成と更新
-multica issue create --title "ログイン失敗を修正"
-multica issue status MUL-123 in_progress
-multica issue assign MUL-123 --to "Backend Agent"
+morechat issue create --title "ログイン失敗を修正"
+morechat issue status MUL-123 in_progress
+morechat issue assign MUL-123 --to "Backend Agent"
 
 # コメントと実行履歴
-multica issue comment list MUL-123
-multica issue comment add MUL-123 --content "まず回帰テストを確認してください"
-multica issue comment update <comment-id> --expected-revision 2 --content "回帰テストとリリースノートを確認してください"
-multica issue runs MUL-123
+morechat issue comment list MUL-123
+morechat issue comment add MUL-123 --content "まず回帰テストを確認してください"
+morechat issue comment update <comment-id> --expected-revision 2 --content "回帰テストとリリースノートを確認してください"
+morechat issue runs MUL-123
 ```
 
 長い説明やコメントは stdin から読み込むと、改行や引用符の扱いに悩まずに済みます:
 
 ```bash
-multica issue create --title "アップグレードメモ" --description-stdin < notes.md
-multica issue comment add MUL-123 --content-stdin < review.md
-multica issue comment update <comment-id> --expected-revision 2 --content-file revised-review.md
+morechat issue create --title "アップグレードメモ" --description-stdin < notes.md
+morechat issue comment add MUL-123 --content-stdin < review.md
+morechat issue comment update <comment-id> --expected-revision 2 --content-file revised-review.md
 ```
 
 1 回の実行のメッセージを表示、実行を停止、または再試行する:
 
 ```bash
-multica issue run-messages <task-id> --issue MUL-123
-multica issue cancel-task <task-id> --issue MUL-123
-multica issue rerun-task <run-id> --issue MUL-123
-multica issue rerun-task <run-id> --issue MUL-123 --fresh
+morechat issue run-messages <task-id> --issue MUL-123
+morechat issue cancel-task <task-id> --issue MUL-123
+morechat issue rerun-task <run-id> --issue MUL-123
+morechat issue rerun-task <run-id> --issue MUL-123 --fresh
 ```
 
 後続の実行をキューに入れる代わりに、進行中の実行にコメントを追加する（追加メッセージを受け付ける実行のみ。コメントで起動できるエージェントに限る）:
 
 ```bash
-multica issue comment add MUL-123 --content-file note.md --steer <task-id>
-multica issue comment add MUL-123 --content-file note.md --steer-active
+morechat issue comment add MUL-123 --content-file note.md --steer <task-id>
+morechat issue comment add MUL-123 --content-file note.md --steer-active
 ```
 
-同じプロジェクト・同じ親タスクの下に、タイトルが同じ（大文字小文字と余分な空白は区別しない）未完了のタスクがすでにあると、`issue create` は作成を拒否してそのタスクを示します。それでも作る場合は `--allow-duplicate` を付けます。あるタスクを別のタスクの重複にするには `multica issue status MUL-124 cancelled --duplicate-of MUL-123` を使います。
+同じプロジェクト・同じ親タスクの下に、タイトルが同じ（大文字小文字と余分な空白は区別しない）未完了のタスクがすでにあると、`issue create` は作成を拒否してそのタスクを示します。それでも作る場合は `--allow-duplicate` を付けます。あるタスクを別のタスクの重複にするには `morechat issue status MUL-124 cancelled --duplicate-of MUL-123` を使います。
 
 複数の PR を順番に作成するタスクでは、`issue create --title "..." --pr-auto-complete off` または `issue update <id> --pr-auto-complete off` で、マージ時も状態を維持できます。`--pr-auto-complete on` はワークスペースのルールを復元し、次の PR イベントから有効になります。`issue pull-requests <id>` は、PR が未関連付けでもタスクとワークスペースの設定、移行先の状態、判定結果を表示します。対応サーバーは作成トランザクション内で設定を保存し、旧サーバーには追加の PUT を送ります。失敗時は作成済み ID と再試行用の update コマンドが表示されるため、create を繰り返さないでください。
 
@@ -150,9 +150,9 @@ multica issue comment add MUL-123 --content-file note.md --steer-active
 `issue get` はタスクの現在の状態を返します。`issue timeline` はステータス、優先度、担当者、タイトル、日付の変更と実行結果を時系列に並べ、コメントも混ぜて表示します。「いつ in_review に移ったか」「今のステータスにどれだけ留まっているか」を調べるときに使います。
 
 ```bash
-multica issue timeline MUL-123 --action status_changed
-multica issue timeline MUL-123 --activity-only --output json
-multica issue timeline MUL-123 --since 2026-08-19T00:00:00Z
+morechat issue timeline MUL-123 --action status_changed
+morechat issue timeline MUL-123 --activity-only --output json
+morechat issue timeline MUL-123 --since 2026-08-19T00:00:00Z
 ```
 
 `--activity-only` はコメントを除き、すべてのアクティビティ記録を残します。`--action` は指定したアクションだけを返し、繰り返し指定でき、`--activity-only` を含意します。サーバーが読み込む履歴には上限があり、切り詰められた場合は stderr に警告が出ます。その結果から滞在時間を推定しないでください。
@@ -162,8 +162,8 @@ multica issue timeline MUL-123 --since 2026-08-19T00:00:00Z
 コメントの多いタスクを 1 件ずつ読むと、エージェントは多くのトークンを使います。まずスレッドをざっと見て、必要なものだけを開きます。
 
 ```bash
-multica issue comment list MUL-123 --roots-only --summary --output json --compact
-multica issue comment list MUL-123 --thread <comment-id> --tail 5 --output json --compact
+morechat issue comment list MUL-123 --roots-only --summary --output json --compact
+morechat issue comment list MUL-123 --thread <comment-id> --tail 5 --output json --compact
 ```
 
 - `--roots-only` はトップレベルのコメントだけを返し、それぞれに返信数と最終アクティビティ時刻が付きます。
@@ -172,12 +172,12 @@ multica issue comment list MUL-123 --thread <comment-id> --tail 5 --output json 
 - `--recent N` は最近動きのあった N 件のスレッドを、すべての返信付きで返します。返信が多いと出力は長くなります。
 - 解決済みのスレッドは既定で最初のコメントと結論に折りたたまれます。全文が必要なら `--full` を付けます。
 
-一覧も必要なフィールドだけに絞れます：`multica issue list --output json --fields id,identifier,title,status`。絞り込みは CLI 側で行われるので、減るのは出力とコンテキストで、リクエストの量は変わりません。
+一覧も必要なフィールドだけに絞れます：`morechat issue list --output json --fields id,identifier,title,status`。絞り込みは CLI 側で行われるので、減るのは出力とコンテキストで、リクエストの量は変わりません。
 
 最終更新日時でタスクを絞り込むには、RFC3339 形式の `--updated-since` と `--updated-until` を両方指定します。サーバーは、現在の `updated_at` が `since` 以上、`until` 未満のタスクを返します：`[since, until)`。既存のフィルター、並べ替え、ページネーションと組み合わせて使えます。ページ間で同じ期間を指定してください。ページネーションはスナップショットを提供しないため、同時に更新が行われると結果が変わる場合があります。
 
 ```bash
-multica issue list --updated-since 2026-11-05T10:00:00Z \
+morechat issue list --updated-since 2026-11-05T10:00:00Z \
   --updated-until 2026-11-05T10:01:00Z \
   --sort created_at --direction asc --limit 100 --offset 0 \
   --output json --fields id,workspace_id,project_id,title
@@ -188,15 +188,15 @@ multica issue list --updated-since 2026-11-05T10:00:00Z \
 ウェイクアップは、イベントが起きたとき、条件が成り立ったとき、または指定の時刻に、エージェントの通常の実行を始めます。詳しいルールは[タスクのウェイクアップ](/issue-wakeups)を参照してください。
 
 ```bash
-multica issue wakeup events
-multica issue wakeup create MUL-123 --agent-id <agent-id> \
+morechat issue wakeup events
+morechat issue wakeup create MUL-123 --agent-id <agent-id> \
   --event comment.created --filter-actor-type member --filter-actor-id <user-id> \
   --instruction "返信が来たら、その内容で見積書を更新する"
-multica issue wakeup create MUL-123 --agent-id <agent-id> \
+morechat issue wakeup create MUL-123 --agent-id <agent-id> \
   --kind every --every 1h --expires-in 72h \
   --instruction "仕入れ先から返信が来ているか確認する"
-multica issue wakeup list MUL-123
-multica issue wakeup runs MUL-123 <wakeup-id>
+morechat issue wakeup list MUL-123
+morechat issue wakeup runs MUL-123 <wakeup-id>
 ```
 
 ターミナルからメンバーとして作成するときは `--agent-id` が必要です。エージェントが自分の実行の中で作成した場合は、既定でそのエージェント自身を起こします。
@@ -204,23 +204,23 @@ multica issue wakeup runs MUL-123 <wakeup-id>
 ## エージェントとスキル
 
 ```bash
-multica agent list
-multica agent get <agent-id>
-multica agent create --help
-multica agent update <agent-id> --help
+morechat agent list
+morechat agent get <agent-id>
+morechat agent create --help
+morechat agent update <agent-id> --help
 
-multica skill list
-multica skill get <skill-id>
-multica skill import --url <skill-url>
-multica agent skills add <agent-id> --skill-ids <skill-id>
+morechat skill list
+morechat skill get <skill-id>
+morechat skill import --url <skill-url>
+morechat agent skills add <agent-id> --skill-ids <skill-id>
 ```
 
 インポートで同名のスキルに当たった場合、デフォルトでは既存の内容を変更せずに停止します。意図に応じて選択してください:
 
 ```bash
-multica skill import --url <skill-url> --on-conflict overwrite
-multica skill import --url <skill-url> --on-conflict rename
-multica skill import --url <skill-url> --on-conflict skip
+morechat skill import --url <skill-url> --on-conflict overwrite
+morechat skill import --url <skill-url> --on-conflict rename
+morechat skill import --url <skill-url> --on-conflict skip
 ```
 
 `overwrite` はスキルの作成者だけが使え、元の ID とエージェントの紐付けを維持します。
@@ -228,13 +228,13 @@ multica skill import --url <skill-url> --on-conflict skip
 環境変数や MCP 設定にはトークンが含まれることがよくあります。コマンドラインに値を直接書くとシェルの履歴や `ps` の出力に残るので、`-file` または `-stdin` の形で渡してください。
 
 ```bash
-multica agent create --name "運用アシスタント" --runtime-id <runtime-id> \
+morechat agent create --name "運用アシスタント" --runtime-id <runtime-id> \
   --custom-env-file ./agent-env.json \
   --mcp-config-file ./mcp.json \
   --custom-args '["--max-turns", "40"]'
 
-multica agent env set <agent-id> --custom-env-stdin < agent-env.json
-multica agent update <agent-id> --mcp-config-file ./mcp.json
+morechat agent env set <agent-id> --custom-env-stdin < agent-env.json
+morechat agent update <agent-id> --mcp-config-file ./mcp.json
 ```
 
 - `--custom-env` 系のフラグは `agent create` にしかありません。後から変えるときは `agent env set` を使います。これは全体を置き換え、値を `****` にしたキーは元の値を保ちます。
@@ -245,46 +245,46 @@ multica agent update <agent-id> --mcp-config-file ./mcp.json
 ## デーモンとランタイム
 
 ```bash
-multica daemon start
-multica daemon stop
-multica daemon restart
-multica daemon status --output json
-multica daemon logs --follow
+morechat daemon start
+morechat daemon stop
+morechat daemon restart
+morechat daemon status --output json
+morechat daemon logs --follow
 
-multica runtime list
-multica runtime rename <runtime-id> "Office Mac"
-multica runtime usage <runtime-id>
-multica runtime activity <runtime-id>
+morechat runtime list
+morechat runtime rename <runtime-id> "Office Mac"
+morechat runtime usage <runtime-id>
+morechat runtime activity <runtime-id>
 ```
 
 ```bash
-multica daemon autostart enable
-multica runtime usage <runtime-id> --days 30
-multica runtime update <runtime-id> --target-version <version> --wait
-multica runtime profile create --display-name "社内 Claude ラッパー" \
+morechat daemon autostart enable
+morechat runtime usage <runtime-id> --days 30
+morechat runtime update <runtime-id> --target-version <version> --wait
+morechat runtime profile create --display-name "社内 Claude ラッパー" \
   --command-name ccms --runtime-type claude
 ```
 
 `daemon autostart` は現在のプロファイルをログイン時に起動するよう登録します。プラットフォームごとの違いは[ログイン時の自動起動](/daemon-runtimes#autostart)を参照してください。`runtime usage` は既定で 90 日分を集計し、`--days` は最大 365 です。`runtime update` はそのコンピューターのデーモンに CLI を指定のバージョンへ更新させ、`--wait` を付けると更新が終わるまで待ちます。`runtime profile create` は互換ツールを `--runtime-type` で指定します（古い `--protocol-family` も使えます）。固定引数は今のところ Web アプリでしか設定できません。
 
-アクティブなエージェントがまだ紐付いているランタイムの削除は、デフォルトで拒否されます。`multica runtime delete <id> --cascade` は、それらのエージェントをランタイムから解除して設定と履歴を保持し、アクティブな実行をキャンセルします。
+アクティブなエージェントがまだ紐付いているランタイムの削除は、デフォルトで拒否されます。`morechat runtime delete <id> --cascade` は、それらのエージェントをランタイムから解除して設定と履歴を保持し、アクティブな実行をキャンセルします。
 
 仕組みとカスタムプロファイルについては[デーモンとランタイム](/daemon-runtimes)を参照してください。
 
 ## プロジェクト、ワークスペース、オートパイロット
 
 ```bash
-multica project create --title "夏のキャンペーン" --lead "李雷" \
+morechat project create --title "夏のキャンペーン" --lead "李雷" \
   --repo https://github.com/acme/campaign-site
-multica project resource add <project-id> --type github_repo \
+morechat project resource add <project-id> --type github_repo \
   --url https://github.com/acme/brand-assets --default-branch-hint main
 
-multica workspace create --name "運用チーム" --slug ops --issue-prefix OPS
-multica workspace update --context-stdin < team-context.md
+morechat workspace create --name "運用チーム" --slug ops --issue-prefix OPS
+morechat workspace update --context-stdin < team-context.md
 
-multica autopilot create --title "週次の売上レポート" --agent "運用アシスタント" \
+morechat autopilot create --title "週次の売上レポート" --agent "運用アシスタント" \
   --mode create_issue --issue-title-template "売上レポート {{date}}"
-multica autopilot trigger-add <autopilot-id> --cron "0 9 * * 1" --timezone Asia/Tokyo
+morechat autopilot trigger-add <autopilot-id> --cron "0 9 * * 1" --timezone Asia/Tokyo
 ```
 
 - `--lead` にはメンバーまたはエージェントの名前を指定します。`--default-branch-hint` はリポジトリの既定ブランチをエージェントに伝えるだけで、ブランチは切り替えません。
@@ -310,7 +310,7 @@ multica autopilot trigger-add <autopilot-id> --cron "0 9 * * 1" --timezone Asia/
 | `config` | 現在の CLI プロファイルのローカル設定を表示・編集 |
 | `update`、`version` | CLI の更新とバージョンの表示 |
 
-`multica chat` が読み取るのは、**エージェントが現在処理している外部チャットセッション**です。主にチャット統合の中のエージェントが使うもので、任意のワークスペースの会話を閲覧するための汎用コマンドではありません。
+`morechat chat` が読み取るのは、**エージェントが現在処理している外部チャットセッション**です。主にチャット統合の中のエージェントが使うもので、任意のワークスペースの会話を閲覧するための汎用コマンドではありません。
 
 ## ID と出力形式
 
@@ -321,29 +321,29 @@ multica autopilot trigger-add <autopilot-id> --cron "0 9 * * 1" --timezone Asia/
 多くのコマンドが構造化出力をサポートします:
 
 ```bash
-multica issue list --output json
-multica agent list --output json
+morechat issue list --output json
+morechat agent list --output json
 ```
 
-スクリプトでは、ターミナル向けの表を解析せず JSON 出力を使ってください。各コマンドがサポートする出力形式とページネーションのフラグは `multica <command> --help` が正です。
+スクリプトでは、ターミナル向けの表を解析せず JSON 出力を使ってください。各コマンドがサポートする出力形式とページネーションのフラグは `morechat <command> --help` が正です。
 
 ## プロファイルと設定
 
 デフォルトの設定は `~/.multica/config.json` に保存されます。`--profile <name>` を使うと、サーバーアドレス、トークン、デフォルトワークスペース、デーモン状態を別のセットとして分離できます:
 
 ```bash
-multica setup self-host --profile staging \
+morechat setup self-host --profile staging \
   --server-url https://api.staging.example.com \
   --app-url https://app.staging.example.com
 
-multica issue list --profile staging
+morechat issue list --profile staging
 ```
 
 名前付きプロファイルは `~/.multica/profiles/<name>/config.json` に保存されます。現在の値を確認する:
 
 ```bash
-multica config show
-multica config show --profile staging
+morechat config show
+morechat config show --profile staging
 ```
 
 <Callout type="warning">
@@ -352,7 +352,7 @@ CLI の設定ファイルには、あなたとして morechat.co にアクセス
 
 ## コマンドリファレンス
 
-以下の表は、現在のすべてのトップレベルコマンドを CLI 自身のグループ分けに沿って掲載しています。すべてのコマンドがグローバルフラグ `--server-url`、`--workspace-id`、`--profile`、`--debug` を受け付けます。`--output` はコマンドごとに登録されるフラグで、デフォルトの形式はコマンドによって異なります: `list` 系は表、`get` や `create` 系は多くが JSON です。完全なフラグは `multica <command> --help` が正です。
+以下の表は、現在のすべてのトップレベルコマンドを CLI 自身のグループ分けに沿って掲載しています。すべてのコマンドがグローバルフラグ `--server-url`、`--workspace-id`、`--profile`、`--debug` を受け付けます。`--output` はコマンドごとに登録されるフラグで、デフォルトの形式はコマンドによって異なります: `list` 系は表、`get` や `create` 系は多くが JSON です。完全なフラグは `morechat <command> --help` が正です。
 
 ### Core
 
@@ -398,7 +398,7 @@ CLI の設定ファイルには、あなたとして morechat.co にアクセス
 | | `runs <id>` | 実行履歴を表示 | |
 | | `trigger-add/trigger-update/trigger-delete/trigger-rotate-url` | スケジュールと webhook のトリガーを管理 | `trigger-add`: `--kind`（`schedule` または `webhook`）、`--cron`、`--timezone`（既定は UTC）、`--label` |
 | `workspace` | `list/get/create/update/switch` | ワークスペースを管理。`switch` は現在のプロファイルのデフォルトワークスペースを設定 | `create`: `--name`、`--slug`（いずれも必須）、`--issue-prefix`、`--description`、`--context` / `--context-stdin`；`update` は slug 以外の同じ項目を変更 |
-| | `mcp list/add/update/remove` | ワークスペースの MCP サーバーライブラリを管理 | 書き込みは owner/admin のみ。ここに追加したサーバーはどのエージェントにも割り当てられません — `multica agent mcp add` で割り当てます。`list` は名前と transport のみを表示し、保存されたエントリは書き込み専用でどのロールにも返りません。`--server-config-file` / `--server-config-stdin` はトークンをシェル履歴から守ります |
+| | `mcp list/add/update/remove` | ワークスペースの MCP サーバーライブラリを管理 | 書き込みは owner/admin のみ。ここに追加したサーバーはどのエージェントにも割り当てられません — `morechat agent mcp add` で割り当てます。`list` は名前と transport のみを表示し、保存されたエントリは書き込み専用でどのロールにも返りません。`--server-config-file` / `--server-config-stdin` はトークンをシェル履歴から守ります |
 | | `member list/invite <email>` | メンバーの表示と招待 | `invite`: `--role`（member または admin。デフォルトは member） |
 | `repo` | `list/add/remove/checkout` | ワークスペースのリポジトリを管理し、ローカルにチェックアウト | `--url`（繰り返し可）；`checkout`: `--ref` |
 | `skill` | `list/get/create/update/delete` | スキルを管理 | |

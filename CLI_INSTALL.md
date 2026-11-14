@@ -17,7 +17,7 @@ Fetch https://github.com/jerry-halo2026/morchat.co/blob/main/CLI_INSTALL.md and 
 Run:
 
 ```bash
-multica version
+morechat version
 ```
 
 - **If it prints a version string** (e.g. `multica v0.x.x`): skip to **Step 3**.
@@ -40,13 +40,13 @@ which brew
 If `brew` is found, install via Homebrew:
 
 ```bash
-brew install multica-ai/tap/multica
+brew install multica-ai/tap/morechat
 ```
 
 Then verify:
 
 ```bash
-multica version
+morechat version
 ```
 
 If the version prints successfully, skip to **Step 3**.
@@ -54,7 +54,7 @@ If the version prints successfully, skip to **Step 3**.
 To upgrade later, run:
 
 ```bash
-brew upgrade multica-ai/tap/multica
+brew upgrade multica-ai/tap/morechat
 ```
 
 ### Option B: Download from GitHub Releases (macOS/Linux, no Homebrew)
@@ -77,22 +77,22 @@ LATEST=$(curl -sI https://github.com/jerry-halo2026/morchat.co/releases/latest |
 
 # Download and extract
 VERSION="${LATEST#v}"
-curl -sL "https://github.com/jerry-halo2026/morchat.co/releases/download/${LATEST}/multica-cli-${VERSION}-${OS}-${ARCH}.tar.gz" -o /tmp/multica.tar.gz
-tar -xzf /tmp/multica.tar.gz -C /tmp multica
-sudo mv /tmp/multica /usr/local/bin/multica
-rm /tmp/multica.tar.gz
+curl -sL "https://github.com/jerry-halo2026/morchat.co/releases/download/${LATEST}/morechat-cli-${VERSION}-${OS}-${ARCH}.tar.gz" -o /tmp/morechat.tar.gz
+tar -xzf /tmp/morechat.tar.gz -C /tmp morechat
+sudo mv /tmp/morechat /usr/local/bin/morechat
+rm /tmp/morechat.tar.gz
 ```
 
 Verify:
 
 ```bash
-multica version
+morechat version
 ```
 
 **If this fails:**
 - Check that `/usr/local/bin` is in `$PATH`.
-- On Linux, you may need `chmod +x /usr/local/bin/multica`.
-- If `sudo` is not available, install to a user-writable directory: `mv /tmp/multica ~/.local/bin/multica` and ensure `~/.local/bin` is in `$PATH`.
+- On Linux, you may need `chmod +x /usr/local/bin/morechat`.
+- If `sudo` is not available, install to a user-writable directory: `mv /tmp/morechat ~/.local/bin/morechat` and ensure `~/.local/bin` is in `$PATH`.
 
 ### Option C: Windows (PowerShell)
 
@@ -107,7 +107,7 @@ This downloads the latest Windows binary from GitHub Releases, installs it to `%
 Verify:
 
 ```powershell
-multica version
+morechat version
 ```
 
 **If this fails:**
@@ -122,7 +122,7 @@ multica version
 Run:
 
 ```bash
-multica login
+morechat login
 ```
 
 **Important:** This command opens a browser window for OAuth authentication. Tell the user:
@@ -134,14 +134,14 @@ Wait for the command to complete. It will automatically discover and watch all w
 Verify:
 
 ```bash
-multica auth status
+morechat auth status
 ```
 
 Expected output should show the authenticated user and server URL.
 
 **If login fails:**
-- If no browser is available (headless environment), the user can generate a Personal Access Token at `https://morechat.co/settings?tab=tokens` and run: `multica login --token <mul_...>` (use `--token=` with an empty value to be prompted interactively).
-- If the server URL needs to be customized: `multica config set server_url <url>` before logging in.
+- If no browser is available (headless environment), the user can generate a Personal Access Token at `https://morechat.co/settings?tab=tokens` and run: `morechat login --token <mul_...>` (use `--token=` with an empty value to be prompted interactively).
+- If the server URL needs to be customized: `morechat config set server_url <url>` before logging in.
 
 ---
 
@@ -150,26 +150,26 @@ Expected output should show the authenticated user and server URL.
 First, check if the daemon is already running:
 
 ```bash
-multica daemon status
+morechat daemon status
 ```
 
 - **If status is "running"**: skip to **Step 5**.
 - **If status is "stopped"**: start it:
 
 ```bash
-multica daemon start
+morechat daemon start
 ```
 
 Wait 3 seconds, then verify:
 
 ```bash
-multica daemon status
+morechat daemon status
 ```
 
 Expected output should show `running` status with detected agents (e.g. `claude`, `codex`, `copilot`, `opencode`, `openclaw`, `hermes`, `pi`, `cursor-agent`, `grok`).
 
 **If daemon fails to start:**
-- Check logs: `multica daemon logs`
+- Check logs: `morechat daemon logs`
 - If a port conflict occurs, the daemon may already be running under a different profile.
 - If no agents are detected, ensure at least one AI CLI (`claude`, `codex`, `copilot`, `opencode`, `openclaw`, `hermes`, `pi`, `cursor-agent`, or `grok`) is installed and on the `$PATH`.
 
@@ -180,7 +180,7 @@ Expected output should show `running` status with detected agents (e.g. `claude`
 Run:
 
 ```bash
-multica daemon status
+morechat daemon status
 ```
 
 Confirm:
@@ -190,7 +190,7 @@ Confirm:
 
 If the agents list is empty, tell the user:
 
-> "The morechat.co daemon is running but no AI agent CLIs were detected. Please install at least one supported CLI (`claude`, `codex`, `copilot`, `opencode`, `openclaw`, `hermes`, `pi`, `cursor-agent`, or `grok`), then restart the daemon with `multica daemon stop && multica daemon start`."
+> "The morechat.co daemon is running but no AI agent CLIs were detected. Please install at least one supported CLI (`claude`, `codex`, `copilot`, `opencode`, `openclaw`, `hermes`, `pi`, `cursor-agent`, or `grok`), then restart the daemon with `morechat daemon stop && morechat daemon start`."
 
 ---
 
@@ -198,4 +198,4 @@ If the agents list is empty, tell the user:
 
 When all steps are complete, inform the user:
 
-> "morechat.co CLI is installed and the daemon is running. Agents in your workspaces can now execute tasks on this machine. You can manage workspaces with `multica workspace list` and view daemon logs with `multica daemon logs -f`."
+> "morechat.co CLI is installed and the daemon is running. Agents in your workspaces can now execute tasks on this machine. You can manage workspaces with `morechat workspace list` and view daemon logs with `morechat daemon logs -f`."

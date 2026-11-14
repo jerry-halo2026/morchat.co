@@ -17,7 +17,7 @@ import (
 // On macOS, Codex's Seatbelt sandbox in the `workspace-write` mode silently
 // ignores `[sandbox_workspace_write] network_access = true`. DNS resolution is
 // blocked at the syscall layer, so processes inside the sandbox see
-// `no such host` errors when calling out (for example, `multica issue get`
+// `no such host` errors when calling out (for example, `morechat issue get`
 // hitting the Multica API). See upstream issue openai/codex#10390.
 //
 // Until a fixed Codex release ships, the per-task Codex config on macOS needs
@@ -83,7 +83,7 @@ func resolveGOOS(goos string) string {
 //     known reliability limitations, so the daemon does not enable it by
 //     default. When no native windows.sandbox is configured, Codex cannot
 //     enforce workspace-write on Windows (it downgrades to read-only) and then
-//     rejects non-safe mutation commands "by policy" — e.g. `multica issue
+//     rejects non-safe mutation commands "by policy" — e.g. `morechat issue
 //     create` fails — because under approval_policy = "never" the request never
 //     reaches the daemon's auto-approver. danger-full-access sidesteps that.
 //     Enabling the native sandbox is tracked as separate follow-up work. See

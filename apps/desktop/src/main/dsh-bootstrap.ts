@@ -164,7 +164,7 @@ function shimName(): string {
  *
  * - Dev (`electron-vite dev`): `app.getAppPath()` is `apps/desktop`, and
  *   `scripts/bundle-dsh.mjs` populated `resources/` before Electron started —
- *   same convention as `bundledCliPath()` for `resources/bin/multica`.
+ *   same convention as `bundledCliPath()` for `resources/bin/morechat`.
  * - Packaged: `extraResources` copies both trees to `<resources>/dsh` and
  *   `<resources>/node`, which is `process.resourcesPath`. The `app.asar`
  *   rewrite is kept for the case where someone re-adds them to `files/`

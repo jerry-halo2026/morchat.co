@@ -23,7 +23,7 @@ describe("daemonCommands", () => {
     if (result.status !== "ready") {
       throw new Error("expected confirmed Cloud commands");
     }
-    expect(result.setupCmd).toBe("multica setup");
+    expect(result.setupCmd).toBe("morechat setup");
     expect(result.tokenCmd).toContain("server_url https://api.morechat.co");
     expect(result.tokenCmd).toContain("app_url https://morechat.co");
   });
@@ -40,13 +40,13 @@ describe("daemonCommands", () => {
       throw new Error("expected self-host commands");
     }
     expect(result.setupCmd).toBe(
-      "multica setup self-host --server-url https://api.example.com --app-url https://app.example.com",
+      "morechat setup self-host --server-url https://api.example.com --app-url https://app.example.com",
     );
     expect(result.tokenCmd).toContain(
-      "multica config set server_url https://api.example.com",
+      "morechat config set server_url https://api.example.com",
     );
     expect(result.tokenCmd).toContain(
-      "multica config set app_url https://app.example.com",
+      "morechat config set app_url https://app.example.com",
     );
     expect(result.tokenCmd).not.toContain("morechat.co");
   });

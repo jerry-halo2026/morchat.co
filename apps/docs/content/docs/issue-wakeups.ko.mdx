@@ -118,28 +118,28 @@ import { WakeupDemo } from "@/components/demos/wakeup-demo";
 
 ## 에이전트가 직접 예약하게 하기 [#cli]
 
-에이전트는 실행 중에 `multica issue wakeup`으로 이 태스크의 다음 실행을 예약하고 지금 실행을 마칩니다. `--agent-id`를 빼면 명령을 실행한 에이전트 자신을 깨웁니다. 내 터미널에서도 같은 명령을 쓸 수 있으며, 이때는 `--agent-id`로 에이전트를 지정합니다.
+에이전트는 실행 중에 `morechat issue wakeup`으로 이 태스크의 다음 실행을 예약하고 지금 실행을 마칩니다. `--agent-id`를 빼면 명령을 실행한 에이전트 자신을 깨웁니다. 내 터미널에서도 같은 명령을 쓸 수 있으며, 이때는 `--agent-id`로 에이전트를 지정합니다.
 
 ```bash
 # 내일 09:00(상하이 시간)에 다시 보기
-multica issue wakeup create OPS-56 --kind at --at 2026-10-21T09:00:00+08:00 \
+morechat issue wakeup create OPS-56 --kind at --at 2026-10-21T09:00:00+08:00 \
   --instruction "공급업체 견적이 다 왔는지 확인하고, 다 왔으면 비교표로 정리"
 
 # 평일 매일 09:00에 확인하고, 일주일 뒤 끝내기
-multica issue wakeup create OPS-56 --kind cron --cron "0 9 * * 1-5" --timezone Asia/Shanghai \
+morechat issue wakeup create OPS-56 --kind cron --cron "0 9 * * 1-5" --timezone Asia/Shanghai \
   --expires-in 168h --instruction "견적 메일을 확인하고 새 견적이 있으면 비교표 업데이트"
 
 # 리레이의 답글을 최대 3일 기다리고, 시간이 지나도 한 번 깨우기
-multica issue wakeup create OPS-56 --event comment.created \
+morechat issue wakeup create OPS-56 --event comment.created \
   --filter-actor-type member --filter-actor-id <리레이의 사용자 ID> \
   --expires-in 72h --on-timeout wake --instruction "리레이의 답변에 따라 이어서 진행"
 
 # 태스크가 검토 중이 될 때까지 기다리기
-multica issue wakeup create OPS-56 --until-status in_review --instruction "결과물을 확인하고 정리"
+morechat issue wakeup create OPS-56 --until-status in_review --instruction "결과물을 확인하고 정리"
 ```
 
 - **시간**: `--kind at`에 `--after 10m` 또는 `--at <RFC3339 시간>`. `--kind every --every 1h`는 고정 간격(최소 1분). `--kind cron --cron "<5개 필드 표현식>"`에는 `--timezone`을 붙입니다(기본 UTC).
-- **이벤트**: `--event` 뒤에 이벤트 이름을 쉼표로 구분해 씁니다. `multica issue wakeup events`가 모든 이벤트와 필터를 보여 줍니다. `--mode continuous`는 반복 깨우기로 만듭니다.
+- **이벤트**: `--event` 뒤에 이벤트 이름을 쉼표로 구분해 씁니다. `morechat issue wakeup events`가 모든 이벤트와 필터를 보여 줍니다. `--mode continuous`는 반복 깨우기로 만듭니다.
 - **조건**: `--until-status`, `--until-assignee`, `--until-label`, `--until-property`, `--until-children-done [--stage N]`, `--until-pr checks|merged|conflicts`, `--until-issue <태스크> --until-issue-state done|ended|in_review|blocked`. 깨우기 하나에 `--until-*`는 하나만 쓸 수 있고 `--event`와 함께 쓸 수 없습니다.
 - **끝내는 방법**: CLI는 대기 기한을 자동으로 붙이지 않습니다. `--expires-in 72h`나 `--expires-at <RFC3339 시간>`으로 끝을 정하세요. `--on-timeout wake`를 붙이면 이벤트 규칙이 기한이 되었을 때 한 번 더 깨웁니다. `--max-fires N`(1–1000)은 반복 규칙의 실행 횟수에 상한을 둡니다.
 - **답이 남는 곳**: `--parent <댓글 ID>`를 붙이면 깨운 뒤의 답글이 원래 스레드에 남습니다.
@@ -148,14 +148,14 @@ multica issue wakeup create OPS-56 --until-status in_review --instruction "결�
 
 | 명령 | 하는 일 |
 |---|---|
-| `multica issue wakeup list <태스크>` | 태스크의 깨우기 목록 |
-| `multica issue wakeup get <태스크> <깨우기 ID>` | 깨우기 하나의 전체 설정 보기 |
-| `multica issue wakeup runs <태스크> <깨우기 ID>` | 최근 실행, 트리거 이유, 조용한 확인 메모, 댓글 여부 |
-| `multica issue wakeup update <태스크> <깨우기 ID>` | `create`와 같은 플래그로 전체 설정을 바꾸고 다시 켜기 |
-| `multica issue wakeup disable <태스크> <깨우기 ID>` | 끄고 아직 시작하지 않은 실행 거둬들이기 |
-| `multica issue wakeup trigger <태스크> <깨우기 ID>` | 지금 한 번 깨우기 |
-| `multica issue wakeup delete <태스크> <깨우기 ID>` | 규칙을 삭제하고 아직 시작하지 않은 실행 거둬들이기 |
-| `multica issue wakeup checkin <태스크> <깨우기 ID> --note "..."` | 답할 일이 없는 정기 확인을 조용히 끝내기. 이 규칙이 시작한 실행에서만 호출 가능 |
+| `morechat issue wakeup list <태스크>` | 태스크의 깨우기 목록 |
+| `morechat issue wakeup get <태스크> <깨우기 ID>` | 깨우기 하나의 전체 설정 보기 |
+| `morechat issue wakeup runs <태스크> <깨우기 ID>` | 최근 실행, 트리거 이유, 조용한 확인 메모, 댓글 여부 |
+| `morechat issue wakeup update <태스크> <깨우기 ID>` | `create`와 같은 플래그로 전체 설정을 바꾸고 다시 켜기 |
+| `morechat issue wakeup disable <태스크> <깨우기 ID>` | 끄고 아직 시작하지 않은 실행 거둬들이기 |
+| `morechat issue wakeup trigger <태스크> <깨우기 ID>` | 지금 한 번 깨우기 |
+| `morechat issue wakeup delete <태스크> <깨우기 ID>` | 규칙을 삭제하고 아직 시작하지 않은 실행 거둬들이기 |
+| `morechat issue wakeup checkin <태스크> <깨우기 ID> --note "..."` | 답할 일이 없는 정기 확인을 조용히 끝내기. 이 규칙이 시작한 실행에서만 호출 가능 |
 
 `list`, `get`, `runs`에 `--output table`을 붙이면 표로 출력합니다. 다른 명령은 [CLI 사용](/cli)을 참고하세요.
 

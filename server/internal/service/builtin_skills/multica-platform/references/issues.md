@@ -11,7 +11,7 @@ Product contracts the runtime brief does not fully encode.
 - [Charts and files in a comment](#charts-and-files-in-a-comment)
 - [Incorrect to correct](#incorrect-to-correct)
 
-To attach a local file to an existing issue description, use `multica issue update <id> --attachment <local-path>`. The CLI appends the file's Markdown reference to the end of the description; to replace an image, also use `--description-file` to remove the old reference. Do not put local filesystem paths in the description.
+To attach a local file to an existing issue description, use `morechat issue update <id> --attachment <local-path>`. The CLI appends the file's Markdown reference to the end of the description; to replace an image, also use `--description-file` to remove the old reference. Do not put local filesystem paths in the description.
 
 ## PR linking
 
@@ -71,7 +71,7 @@ from branch names, GitHub search, memory, or stale values left on the issue by
 an earlier run.
 
 ```bash
-multica issue pull-requests <issue-id> --output json
+morechat issue pull-requests <issue-id> --output json
 ```
 
 Returns `{"pull_requests": [...], ...}`. Each element of `pull_requests` exposes:
@@ -159,15 +159,15 @@ values are validated against the definition (select options, date format,
 http(s) URL, member reference, free-form text/URL lists), visible in the
 issue sidebar, and addressed by name.
 
-- Read what exists before writing: `multica property list` shows the catalog;
-  `multica issue property list <issue-id>` shows values set on the issue.
+- Read what exists before writing: `morechat property list` shows the catalog;
+  `morechat issue property list <issue-id>` shows values set on the issue.
 - Set values by property name and option name — the CLI translates to ids:
 
 ```bash
-multica issue property set <issue-id> --name Environment --value staging
-multica issue property set <issue-id> --name Platforms --value "iOS,Android"
-multica issue property set <issue-id> --name Reviewer --value Bohan
-multica issue property unset <issue-id> --name Environment
+morechat issue property set <issue-id> --name Environment --value staging
+morechat issue property set <issue-id> --name Platforms --value "iOS,Android"
+morechat issue property set <issue-id> --name Reviewer --value Bohan
+morechat issue property unset <issue-id> --name Environment
 ```
 
 - A validation error lists the legal options — fix the value and retry.
@@ -193,10 +193,10 @@ multica issue property unset <issue-id> --name Environment
 - `issue list` filters and sorts by property with the same name addressing:
 
 ```bash
-multica issue list --property "Impact=High" --property "Impact=Medium" --output json
-multica issue list --property "QA Status=__none__" --status in_review --output json
-multica issue list --property "Effort>=3" --property "Due<2026-10-01" --output json
-multica issue list --sort property:Impact --direction desc --output json
+morechat issue list --property "Impact=High" --property "Impact=Medium" --output json
+morechat issue list --property "QA Status=__none__" --status in_review --output json
+morechat issue list --property "Effort>=3" --property "Due<2026-10-01" --output json
+morechat issue list --sort property:Impact --direction desc --output json
 ```
 
 - `--property` takes one `Name=Value` per flag. Repeating the same property
@@ -227,8 +227,8 @@ multica issue list --sort property:Impact --direction desc --output json
   no `property list` call is needed:
 
 ```bash
-multica issue list --status in_progress --output json --resolve-properties
-multica issue get <issue-id> --resolve-properties
+morechat issue list --status in_progress --output json --resolve-properties
+morechat issue get <issue-id> --resolve-properties
 ```
 
   Read `display` for a single value and `display_values` for a multi-value
@@ -290,7 +290,7 @@ archived statuses remain readable via an explicit status filter.
   task itself.
   A cancelled issue may also be marked as a **duplicate** of another issue.
   When you cancel an issue because the work already exists elsewhere, mark it
-  with `multica issue status <id> cancelled --duplicate-of <original>` rather
+  with `morechat issue status <id> cancelled --duplicate-of <original>` rather
   than cancelling and explaining in a comment: only the mark links the two.
   The original must not itself be a duplicate, and an issue that others are
   marked as duplicates of cannot be marked; the command reports both refusals.
@@ -300,7 +300,7 @@ archived statuses remain readable via an explicit status filter.
   status other than `cancelled` removes the mark, so reopen a duplicate only
   when it is really separate work. Marking logs `duplicate_marked` on the
   duplicate and `duplicate_added` on the original; removing the mark logs
-  `duplicate_unmarked` / `duplicate_removed` (`multica issue timeline --action`).
+  `duplicate_unmarked` / `duplicate_removed` (`morechat issue timeline --action`).
 - **Failed issue-triggered tasks** may roll an issue from `in_progress` back to
   `todo` when no active task / retry remains — that is the main server-owned
   status write on the agent-run path.
@@ -326,8 +326,8 @@ while a turn is running, and most turns never need it. Ask the server on the
 turns that do — before opening a PR against code a sibling issue also touches:
 
 ```bash
-multica issue runs <issue-id> --active --output json     # in-flight runs on this issue
-multica issue runs <issue-id> --siblings --output json   # ...and across the sub-issue family
+morechat issue runs <issue-id> --active --output json     # in-flight runs on this issue
+morechat issue runs <issue-id> --siblings --output json   # ...and across the sub-issue family
 ```
 
 `--active` drops the execution history and returns only `queued` / `dispatched`
@@ -339,7 +339,7 @@ open a second PR against the same code.
 
 The family read returns a compact row — task, issue, agent, status, started —
 not the full execution-log record. If you need a run's detail, follow the task
-id with `multica issue run-messages`.
+id with `morechat issue run-messages`.
 
 Rows come back running-first, newest-first within a status, and the family read
 is capped at 20. When the cap truncates the answer the CLI prints a warning on
@@ -402,7 +402,7 @@ MUL-123: fix login redirect        # correct — links the PR
 
 ## Issue wakeups
 
-Use `multica issue wakeup` to arrange a future ordinary run, then finish the
+Use `morechat issue wakeup` to arrange a future ordinary run, then finish the
 current run. A wakeup persists on the issue; it is not a sleeping process.
 
 - `wakeup events` lists supported business facts. These work with plugins disabled.
@@ -411,20 +411,20 @@ current run. A wakeup persists on the issue; it is not a sleeping process.
 - A condition lets the platform check a stored fact itself and wake the target only when it holds. Pass exactly one `--until-*` flag and no `--event`, `--task-id` or actor/agent filter; the rule stays `kind=event`. The platform checks about every 30 seconds, so a condition that already holds fires on the next check, except `--until-pr checks`, which ignores results that finished before registration. A condition wakes once by default. With `--mode continuous` it fires again only after the predicate turns false or the facts behind it change (a new check result or PR head, another linked PR merging, a resolved conflict coming back, the number of sub-issues changing).
 
 ```bash
-multica issue wakeup create <issue> --until-status in_review --instruction-file ./instruction.md
-multica issue wakeup create <issue> --until-pr checks --expires-in 2h --on-timeout wake --instruction-file ./instruction.md
-multica issue wakeup create <issue> --until-pr merged --instruction-file ./instruction.md
-multica issue wakeup create <issue> --until-pr conflicts --mode continuous --instruction-file ./instruction.md
-multica issue wakeup create <issue> --until-children-done --instruction-file ./instruction.md
-multica issue wakeup create <issue> --until-children-done --stage 2 --instruction-file ./instruction.md
-multica issue wakeup create <issue> --until-issue <other-issue-id> --until-issue-state done --instruction-file ./instruction.md
+morechat issue wakeup create <issue> --until-status in_review --instruction-file ./instruction.md
+morechat issue wakeup create <issue> --until-pr checks --expires-in 2h --on-timeout wake --instruction-file ./instruction.md
+morechat issue wakeup create <issue> --until-pr merged --instruction-file ./instruction.md
+morechat issue wakeup create <issue> --until-pr conflicts --mode continuous --instruction-file ./instruction.md
+morechat issue wakeup create <issue> --until-children-done --instruction-file ./instruction.md
+morechat issue wakeup create <issue> --until-children-done --stage 2 --instruction-file ./instruction.md
+morechat issue wakeup create <issue> --until-issue <other-issue-id> --until-issue-state done --instruction-file ./instruction.md
 ```
 
 - `--until-status KEY` — this issue's status is that key (built-in or one of the workspace's statuses).
 - `--until-pr checks` — a linked pull request's checks finished, passing or failing, on its current head. `--until-pr merged` — a linked pull request merged. `--until-pr conflicts` — an open linked GitHub pull request has merge conflicts on its current head, for example after another PR merged into its base; with `--mode continuous` it fires again each time a resolved conflict comes back or a new head is still conflicting. With several linked pull requests, any one satisfies it. These conditions inspect only PRs linked directly to this issue; they do not inherit a parent issue's PRs. Checks and conflicts also require server-side GitHub snapshots; conflicts are not detected on Forgejo, Gitea or GitLab pull requests. A missing link or snapshot is recorded in the rule's `last_error` and retried automatically rather than rejecting the rule.
 - `--until-children-done` — every sub-issue, staged or not, is closed (`done` or `cancelled`). With `--stage N` it waits only for staged sub-issues up to stage N, and stage N must have at least one. A parent with no sub-issues never fires. The parent's assignee already gets the sub-issue wakeup described under Stages in `references/sub-issues.md`; do not add this condition for the same wake.
 - `--until-issue ISSUE` — another issue in this workspace (identifier or UUID) reaches `--until-issue-state`: `done` (default), `ended` (done or cancelled), `in_review`, or `blocked`.
-- The same form also accepts `--until-assignee member|agent|squad:ID`, `--until-label LABEL_ID`, and `--until-property PROPERTY_ID=VALUE` (VALUE may be JSON). `multica issue wakeup create --help` lists them.
+- The same form also accepts `--until-assignee member|agent|squad:ID`, `--until-label LABEL_ID`, and `--until-property PROPERTY_ID=VALUE` (VALUE may be JSON). `morechat issue wakeup create --help` lists them.
 - `wakeup create <issue> --kind at --after 10m --instruction-file ./instruction.md` schedules one run. Alternatively use `--at <RFC3339>`.
 - `wakeup create <issue> --kind every --every 1h --instruction-file ./instruction.md` schedules a repeating check. Or use `--kind cron --cron '0 * * * *' --timezone Asia/Shanghai`.
 - `--max-fires N` (1–1000) caps how many runs a repeating rule starts: every, cron, or `--mode continuous`. A once rule rejects it. Continuous event rules, conditions included, default to 20. The run that reaches the cap is still created, then the rule pauses with `paused_reason=max_fires`. Turning the rule back on clears the pause and restarts the count.

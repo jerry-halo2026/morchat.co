@@ -902,7 +902,7 @@ func TestBuildPromptContainsIssueID(t *testing.T) {
 	// Prompt should contain the issue ID and CLI hint.
 	for _, want := range []string{
 		issueID,
-		"multica issue get",
+		"morechat issue get",
 	} {
 		if !strings.Contains(prompt, want) {
 			t.Fatalf("prompt missing %q", want)
@@ -948,23 +948,23 @@ func TestSessionContinuityNoticeMatchesSurface(t *testing.T) {
 			name:         "slack rebuilds from the channel",
 			task:         Task{ChatSessionID: "chat-1", ChatChannelType: execenv.ChannelTypeSlack},
 			tellUser:     false,
-			wantMentions: "multica chat history",
+			wantMentions: "morechat chat history",
 		},
 		{
-			// Web chat history is persisted in chat_message, which `multica chat
+			// Web chat history is persisted in chat_message, which `morechat chat
 			// history` reads back — recoverable, just from Multica's store.
 			name:         "web chat rebuilds from the stored transcript",
 			task:         Task{ChatSessionID: "chat-1"},
 			tellUser:     false,
-			wantMentions: "multica chat history",
+			wantMentions: "morechat chat history",
 		},
 		{
 			// Feishu's conversation is persisted to chat_message too, and the
-			// handler's non-Slack fallback reads it back via `multica chat history`.
+			// handler's non-Slack fallback reads it back via `morechat chat history`.
 			name:         "feishu rebuilds from the stored transcript",
 			task:         Task{ChatSessionID: "chat-1", ChatChannelType: execenv.ChannelTypeFeishu},
 			tellUser:     false,
-			wantMentions: "multica chat history",
+			wantMentions: "morechat chat history",
 		},
 		{
 			// WeCom is fully wired on main (persists chat_message, stamps
@@ -973,7 +973,7 @@ func TestSessionContinuityNoticeMatchesSurface(t *testing.T) {
 			name:         "wecom rebuilds from the stored transcript",
 			task:         Task{ChatSessionID: "chat-1", ChatChannelType: execenv.ChannelTypeWecom},
 			tellUser:     false,
-			wantMentions: "multica chat history",
+			wantMentions: "morechat chat history",
 		},
 		{
 			// DingTalk persists to chat_message through the same AppendUserMessage
@@ -981,7 +981,7 @@ func TestSessionContinuityNoticeMatchesSurface(t *testing.T) {
 			name:         "dingtalk rebuilds from the stored transcript",
 			task:         Task{ChatSessionID: "chat-1", ChatChannelType: execenv.ChannelTypeDingtalk},
 			tellUser:     false,
-			wantMentions: "multica chat history",
+			wantMentions: "morechat chat history",
 		},
 	}
 
@@ -1194,7 +1194,7 @@ func TestBuildPromptAutopilotRunOnly(t *testing.T) {
 		"Trigger source: manual",
 		`{"action":"opened","number":7}`,
 		"Check dependencies and report outdated packages.",
-		"multica autopilot get autopilot-1 --output json",
+		"morechat autopilot get autopilot-1 --output json",
 	} {
 		if !strings.Contains(prompt, want) {
 			t.Fatalf("autopilot prompt missing %q\n---\n%s", want, prompt)
@@ -1205,7 +1205,7 @@ func TestBuildPromptAutopilotRunOnly(t *testing.T) {
 	// workflow section (execenv.AutopilotIssueCommandsGuard). MUL-5696 found
 	// that a second hand-maintained per-turn copy drifts, so the per-turn
 	// prompt must not restate it in any form.
-	if strings.Contains(prompt, "Do not run `multica issue get`") {
+	if strings.Contains(prompt, "Do not run `morechat issue get`") {
 		t.Fatalf("autopilot prompt restates the issue-command boundary the brief owns (MUL-5696)\n---\n%s", prompt)
 	}
 	if strings.Contains(prompt, "Your assigned issue ID is:") {
@@ -1236,7 +1236,7 @@ func TestBuildPromptCommentTriggered(t *testing.T) {
 		commentContent,
 		"Focus on THIS comment",
 		commentID,
-		"multica issue comment add " + issueID + " --parent " + commentID,
+		"morechat issue comment add " + issueID + " --parent " + commentID,
 		"do NOT reuse --parent values from previous turns",
 		// MUL-5442 (2026-08-06): with the generic no-reply rule retired,
 		// the reply command is framed as a plain imperative again — the
@@ -1249,7 +1249,7 @@ func TestBuildPromptCommentTriggered(t *testing.T) {
 	}
 
 	// Should still contain CLI hint for fetching issue context.
-	if !strings.Contains(prompt, "multica issue get") {
+	if !strings.Contains(prompt, "morechat issue get") {
 		t.Fatal("prompt missing CLI hint for issue context")
 	}
 }
@@ -1340,7 +1340,7 @@ func TestBuildPromptCommentTriggeredNoContent(t *testing.T) {
 		Agent:            &AgentData{Name: "Test"},
 	}, "claude")
 
-	if !strings.Contains(prompt, "multica issue get") {
+	if !strings.Contains(prompt, "morechat issue get") {
 		t.Fatal("prompt missing CLI hint")
 	}
 }
@@ -5017,7 +5017,7 @@ func TestEnsureRepoReadyRefreshesOnMiss(t *testing.T) {
 }
 
 // A project github_repo URL that the workspace itself does not bind must still
-// be allowed for `multica repo checkout` after registerTaskRepos runs. Without
+// be allowed for `morechat repo checkout` after registerTaskRepos runs. Without
 // this, the new project-repos-override-workspace-repos behavior would surface
 // repos in the meta-skill that the agent then can't actually clone.
 func TestRegisterTaskReposAllowsProjectOnlyURL(t *testing.T) {

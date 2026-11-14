@@ -150,14 +150,14 @@ func countArg(args []string, want string) int {
 
 func TestBuildPiArgsIgnoresSystemPrompt(t *testing.T) {
 	args := buildPiArgs("/tmp/s.jsonl", ExecOptions{
-		SystemPrompt: "the entire multica runtime brief",
+		SystemPrompt: "the entire morechat runtime brief",
 	}, slog.Default())
 
 	for _, a := range args {
 		if a == "--append-system-prompt" {
 			t.Fatalf("unexpected --append-system-prompt in args: %v", args)
 		}
-		if a == "the entire multica runtime brief" {
+		if a == "the entire morechat runtime brief" {
 			t.Fatalf("SystemPrompt leaked into args: %v", args)
 		}
 	}
@@ -1004,7 +1004,7 @@ func TestStripPiToolCallMarkup(t *testing.T) {
 	tests := map[string]string{
 		`before call:bash{command:<|"|>cd repo/path && ls -F<|"|>}<tool_call|> after`:                           "before  after",
 		`before call:read{path:<|"|>repo/path/roles/example/verify.yml<|"|>} after`:                             "before  after",
-		`before response:bash{command:<|"|>multica issue comment list issue-id --all --output json<|"|>} after`: "before  after",
+		`before response:bash{command:<|"|>morechat issue comment list issue-id --all --output json<|"|>} after`: "before  after",
 		`before call:bash{command:<|"|>printf '{"key":"value"}'<|"|>} after`:                                    "before  after",
 		`before <|turn>model after`: "before  after",
 	}

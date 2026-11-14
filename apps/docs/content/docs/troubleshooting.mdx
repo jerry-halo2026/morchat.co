@@ -13,10 +13,10 @@ First work out which layer the problem lives in: the morechat.co service, the da
 <Tab value="Any install">
 
 ```bash
-multica version
-multica auth status
-multica daemon status --output json
-multica daemon logs --lines 100
+morechat version
+morechat auth status
+morechat daemon status --output json
+morechat daemon logs --lines 100
 ```
 
 </Tab>
@@ -40,9 +40,9 @@ curl -i https://api.example.com/readyz
 Run these first:
 
 ```bash
-multica auth status
-multica daemon status --output json
-multica daemon logs --lines 100
+morechat auth status
+morechat daemon status --output json
+morechat daemon logs --lines 100
 ```
 
 Common causes include:
@@ -56,18 +56,18 @@ Common causes include:
 Sign in again and restart the daemon:
 
 ```bash
-multica login
-multica daemon restart
+morechat login
+morechat daemon restart
 ```
 
-Self-hosted deployments should also request the API's `/health` from the **executing computer** — testing on the server itself cannot expose DNS, TLS, or firewall problems on the executing computer's side. To change the address, rerun `multica setup self-host`, or check the current profile's `server_url`:
+Self-hosted deployments should also request the API's `/health` from the **executing computer** — testing on the server itself cannot expose DNS, TLS, or firewall problems on the executing computer's side. To change the address, rerun `morechat setup self-host`, or check the current profile's `server_url`:
 
 ```bash
-multica config show
+morechat config show
 ```
 
 </Accordion>
-<Accordion title={<><code>multica setup</code> reports the server is not reachable</>} id="multica-setup-reports-the-server-is-not-reachable" value="multica-setup-reports-the-server-is-not-reachable">
+<Accordion title={<><code>morechat setup</code> reports the server is not reachable</>} id="multica-setup-reports-the-server-is-not-reachable" value="multica-setup-reports-the-server-is-not-reachable">
 
 The CLI reachability probe GETs `<server-url>/health` and needs a 200. The backend serves this path. Current web releases forward `/health` to the backend, but older ones do not — a reverse proxy that forwards everything to such an older frontend returns 404, and the CLI concludes the server is down while the stack is healthy.
 
@@ -78,9 +78,9 @@ curl -fsS <server-url>/health
 ```
 
 </Accordion>
-<Accordion title={<><code>multica login</code> fails with a TLS handshake timeout</>} id="multica-login-fails-with-a-tls-handshake-timeout" value="multica-login-fails-with-a-tls-handshake-timeout">
+<Accordion title={<><code>morechat login</code> fails with a TLS handshake timeout</>} id="multica-login-fails-with-a-tls-handshake-timeout" value="multica-login-fails-with-a-tls-handshake-timeout">
 
-`multica login` opens the browser and the web sign-in completes, but the CLI still fails with "Sign-in did not complete" or "TLS handshake timed out". `multica --debug login` shows `net/http: TLS handshake timeout` on `POST /api/tokens`, while `curl.exe -I https://api.morechat.co` or a browser on the same machine connects fine.
+`morechat login` opens the browser and the web sign-in completes, but the CLI still fails with "Sign-in did not complete" or "TLS handshake timed out". `multica --debug login` shows `net/http: TLS handshake timeout` on `POST /api/tokens`, while `curl.exe -I https://api.morechat.co` or a browser on the same machine connects fine.
 
 The TCP connection opens, but the TLS handshake never completes. Go clients, including the morechat.co CLI and daemon, send a post-quantum key share in the TLS ClientHello by default, which makes it about 1.5 KB and splits it across two packets. Some security software, VPNs, routers, and firewalls drop such handshakes; curl sends a much smaller ClientHello and gets through.
 
@@ -129,12 +129,12 @@ Open the issue's **execution log** and check the run's current status and what i
 An agent executes at most 6 runs concurrently by default; a single daemon executes at most 20. At the limit, new runs stay in the queue until an active one finishes. Runs also keep queueing while the runtime is offline; they only fail once that runtime has stopped heartbeating for longer than the reconnect grace and the run has itself waited that long, so a long queue behind a busy runtime is never expired for waiting, and assigning work to a machine that is already offline still leaves a full grace to bring it back.
 
 ```bash
-multica daemon status --output json
-multica agent get <agent-id>
-multica issue runs <issue-id>
+morechat daemon status --output json
+morechat agent get <agent-id>
+morechat issue runs <issue-id>
 ```
 
-If the runtime list is missing an expected tool, first confirm the tool runs and is signed in under the same system account and `PATH`, then run `multica daemon restart`.
+If the runtime list is missing an expected tool, first confirm the tool runs and is signed in under the same system account and `PATH`, then run `morechat daemon restart`.
 
 </Tab>
 <Tab value="waiting_local_directory">
@@ -143,7 +143,7 @@ This means another in-flight run is using the same local directory. morechat.co 
 
 This wait only exists in the directory's `in_place` ("Direct") mode. If the directory is a git repository, switching the resource to `worktree` ("Parallel") removes the queue altogether: each run gets its own worktree and hands its work back as a branch, so nothing waits on anything. See [Project resources](/project-resources#how-runs-share-the-directory).
 
-Otherwise you just wait for the earlier run to finish. If it is stuck, stop it from its execution log, or pick a different local directory for the current agent. This directory mutex lives in the daemon's memory — no lock file is written to disk. If you suspect stale lock state, `multica daemon restart` releases it; there is nothing to delete manually.
+Otherwise you just wait for the earlier run to finish. If it is stuck, stop it from its execution log, or pick a different local directory for the current agent. This directory mutex lives in the daemon's memory — no lock file is written to disk. If you suspect stale lock state, `morechat daemon restart` releases it; there is nothing to delete manually.
 
 </Tab>
 </Tabs>
@@ -164,15 +164,15 @@ Run the same tool directly in a terminal on the executing computer first. If the
 </Accordion>
 <Accordion title="Runs hang on macOS after a CLI upgrade" id="runs-hang-on-macos-after-a-cli-upgrade" value="runs-hang-on-macos-after-a-cli-upgrade">
 
-After the Homebrew `multica` CLI is upgraded, by `brew upgrade`, `multica update`, **Update** on the Runtimes page, or the daemon's auto-update, a run that reads `~/Desktop`, `~/Documents`, `~/Downloads`, iCloud Drive, or another protected folder can stop making progress: the agent's process uses no CPU, and the run neither finishes nor fails.
+After the Homebrew `multica` CLI is upgraded, by `brew upgrade`, `morechat update`, **Update** on the Runtimes page, or the daemon's auto-update, a run that reads `~/Desktop`, `~/Documents`, `~/Downloads`, iCloud Drive, or another protected folder can stop making progress: the agent's process uses no CPU, and the run neither finishes nor fails.
 
-This happens when macOS attributes privacy permissions (TCC) to the daemon itself, as it does for a daemon started by launchd (for example a LaunchAgent): the pending dialog names `multica`, and every tool an agent starts uses the daemon's grants. The Homebrew CLI binary is not signed with a stable identity, so macOS ties those grants to that exact build at its resolved path, such as `/opt/homebrew/Cellar/multica/<version>/bin/multica`. After an upgrade, macOS treats the new binary as a different app and asks again. The file access blocks until someone answers the prompt, and the daemon cannot tell that a prompt is pending.
+This happens when macOS attributes privacy permissions (TCC) to the daemon itself, as it does for a daemon started by launchd (for example a LaunchAgent): the pending dialog names `morechat`, and every tool an agent starts uses the daemon's grants. The Homebrew CLI binary is not signed with a stable identity, so macOS ties those grants to that exact build at its resolved path, such as `/opt/homebrew/Cellar/morechat/<version>/bin/multica`. After an upgrade, macOS treats the new binary as a different app and asks again. The file access blocks until someone answers the prompt, and the daemon cannot tell that a prompt is pending.
 
 To restore access:
 
 1. On that Mac, answer the pending "would like to access" dialog with **Allow**. The stuck run continues.
 2. For a Mac that runs unattended, grant Full Disk Access to the new binary. Print its path with `realpath "$(command -v multica)"`, then under **System Settings → Privacy & Security → Full Disk Access** remove the stale `multica` entry and add that path (press ⌘⇧G in the file picker to paste it).
-3. Restart the daemon the same way you started it: `multica daemon restart`, or `launchctl kickstart -k gui/$(id -u)/<label>` for a LaunchAgent.
+3. Restart the daemon the same way you started it: `morechat daemon restart`, or `launchctl kickstart -k gui/$(id -u)/<label>` for a LaunchAgent.
 
 Repeat this after every CLI upgrade. Auto-update is on by default only for daemons connected to morechat.co Cloud; start the daemon with `--no-auto-update` so upgrades happen only when you run them. The CLI bundled with [morechat.co Desktop](/desktop-app) is signed with a Developer ID, so its grants survive upgrades.
 
@@ -317,21 +317,21 @@ If it is another morechat.co checkout, run `make stop` in that directory first. 
 
 | Component | How to view |
 | --- | --- |
-| Background daemon | `multica daemon logs --lines 100` |
-| Follow daemon logs live | `multica daemon logs --follow` |
+| Background daemon | `morechat daemon logs --lines 100` |
+| Follow daemon logs live | `morechat daemon logs --follow` |
 | Default profile's log file | `~/.multica/daemon.log` |
 | Default profile's startup or crash log | `~/.multica/daemon.err.log` |
 | Named profiles | the matching logs under `~/.multica/profiles/<name>/` |
 | Docker backend | `docker compose -f docker-compose.selfhost.yml logs -f backend` |
 | Browser | Console and Network in the developer tools |
 
-Which of those files is the live one depends on the profile the daemon was started with, and a stale log from an earlier daemon still reads perfectly — the easiest way to debug the wrong file. Don't open one by guess: `multica daemon logs` prints the absolute path it resolved before streaming it. Add `--profile <name>` to read a named profile's log.
+Which of those files is the live one depends on the profile the daemon was started with, and a stale log from an earlier daemon still reads perfectly — the easiest way to debug the wrong file. Don't open one by guess: `morechat daemon logs` prints the absolute path it resolved before streaming it. Add `--profile <name>` to read a named profile's log.
 
 To observe the daemon's startup directly, run it in the foreground instead:
 
 ```bash
-multica daemon stop
-multica daemon start --foreground
+morechat daemon stop
+morechat daemon start --foreground
 ```
 
 If you still cannot pin it down, search existing issues or file a new one on [GitHub Issues](https://github.com/jerry-halo2026/morchat.co/issues).

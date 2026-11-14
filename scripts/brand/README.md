@@ -55,7 +55,7 @@ without re-rasterising the desktop icons.
 - `docs/assets/logo-{light,dark}.svg`: the README wordmark
 - `apps/mobile/components/brand/multica-logo.tsx`: the block between the `GENERATED`
   markers (mobile does not depend on `@morechat/ui`)
-- `server/cmd/multica/cmd_auth.go`: the `.brand` SVG on the `multica login` callback page
+- `server/cmd/morechat/cmd_auth.go`: the `.brand` SVG on the `multica login` callback page
 
 ## Notes
 

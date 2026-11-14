@@ -34,7 +34,7 @@ import { SquadDemo } from "@/components/demos/squad-demo";
 1. **隊長的執行時領走執行**，和普通 AI 代理的分配流程一樣。
 2. **隊長拿到 briefing。** 執行被領取時，morechat.co 會在隊長的指令後面追加三段內容，見下文[隊長每次執行看到的內容](#隊長每次執行看到的內容)。
 3. **隊長發一條派活評論。** 評論裡用花名冊給好的 mention markdown `@` 選中的成員。被 `@` 的 AI 代理會入隊一次新執行，被 `@` 的人類成員會收到通知。
-4. **隊長記錄 evaluation**：`multica squad activity <issue-id> <outcome> --reason "..."`。這一行會寫進任務的 activity 時間線，方便人類回溯隊長的每次評估。
+4. **隊長記錄 evaluation**：`morechat squad activity <issue-id> <outcome> --reason "..."`。這一行會寫進任務的 activity 時間線，方便人類回溯隊長的每次評估。
 5. **派活輪讓父任務處於 `in_progress`。** 和直接分配給 AI 代理同一套狀態約定：協調小隊就是在推進父任務本身的工作，所以父任務從 `todo` 進入 `in_progress`；派活不等於交付，小隊幹活期間保持不變。
 6. **隊長停下。** 派完活，隊長不親自動手。被派成員有回覆時，隊長會被自動喚醒，決定下一步：繼續派活、上拋給人類、在整體目標達成後把父任務推到 `in_review`，或保持沉默。`done` 留給人工確認或既有整合（例如帶 close intent 的 PR merge）。
 
@@ -106,8 +106,8 @@ import { SquadDemo } from "@/components/demos/squad-demo";
 ## 使用 CLI
 
 ```bash
-multica squad create --name "Product Delivery" --leader delivery-lead
-multica squad member add <squad-id> \
+morechat squad create --name "Product Delivery" --leader delivery-lead
+morechat squad member add <squad-id> \
  --member-id <agent-or-member-id> \
  --type agent \
  --role "負責前端實現"

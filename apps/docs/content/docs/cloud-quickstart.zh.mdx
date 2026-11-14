@@ -33,7 +33,7 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.sh | bash
-multica setup
+morechat setup
 ```
 
 </Tab>
@@ -41,13 +41,13 @@ multica setup
 
 ```powershell
 irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex
-multica setup
+morechat setup
 ```
 
 </Tab>
 </Tabs>
 
-`multica setup` 会打开浏览器完成登录，然后让守护进程在后台运行。守护进程上线后，弹窗通常在一分钟内检测到这台电脑。
+`morechat setup` 会打开浏览器完成登录，然后让守护进程在后台运行。守护进程上线后，弹窗通常在一分钟内检测到这台电脑。
 
 **成功标志**：运行时列表里出现一台在线的电脑。
 
@@ -99,8 +99,8 @@ multica setup
 
 | 现象 | 先检查什么 |
 |---|---|
-| 没有找到运行时 | 确认 AI 编程工具已经安装并能在终端中运行。Desktop 点"刷新"；CLI 方式重新运行 `multica setup`。 |
-| 运行时显示离线 | Desktop 保持打开；CLI 方式运行 `multica daemon status`，未启动时运行 `multica daemon start`。 |
+| 没有找到运行时 | 确认 AI 编程工具已经安装并能在终端中运行。Desktop 点"刷新"；CLI 方式重新运行 `morechat setup`。 |
+| 运行时显示离线 | Desktop 保持打开；CLI 方式运行 `morechat daemon status`，未启动时运行 `morechat daemon start`。 |
 | 任务一直排队 | 确认智能体使用的运行时在线。运行时达到并发上限时，新运行会继续排队。 |
 
 更多情况见[故障排查](/troubleshooting)。

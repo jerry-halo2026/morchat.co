@@ -199,36 +199,36 @@ morechat.co ne supprime jamais un répertoire local rattaché lors du nettoyage 
 
 ```bash
 # Rattacher un dépôt lors de la création d'un projet
-multica project create \
+morechat project create \
   --title "Agent UX" \
   --repo https://github.com/jerry-halo2026/morchat.co
 
 # Lister et ajouter des ressources
-multica project resource list <project-id>
-multica project resource add <project-id> \
+morechat project resource list <project-id>
+morechat project resource add <project-id> \
   --type github_repo \
   --url https://github.com/jerry-halo2026/morchat.co \
   --ref main
 
 # Rattacher un répertoire local sur un daemon précis
-multica project resource add <project-id> \
+morechat project resource add <project-id> \
   --type local_directory \
   --local-path /absolute/path/to/repo \
   --daemon-id <daemon-id>
 
 # Rattacher un dépôt git local et laisser les exécutions tourner simultanément, chacune dans son propre worktree
-multica project resource add <project-id> \
+morechat project resource add <project-id> \
   --type local_directory \
   --local-path /absolute/path/to/repo \
   --daemon-id <daemon-id> \
   --execution-mode worktree
 
 # Faire passer un répertoire local existant d'un mode à l'autre
-multica project resource update <project-id> <resource-id> --execution-mode worktree
-multica project resource update <project-id> <resource-id> --execution-mode in_place
+morechat project resource update <project-id> <resource-id> --execution-mode worktree
+morechat project resource update <project-id> <resource-id> --execution-mode in_place
 
 # Retirer une ressource
-multica project resource remove <project-id> <resource-id>
+morechat project resource remove <project-id> <resource-id>
 ```
 
 Les modifications de ressources s'appliquent aux exécutions créées ensuite ; elles ne réécrivent pas les enregistrements des exécutions déjà terminées.

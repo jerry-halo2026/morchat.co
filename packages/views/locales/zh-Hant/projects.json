@@ -150,7 +150,7 @@
     "toast_ref_updated": "分支已更新",
     "toast_ref_cleared": "已恢復為預設分支",
     "toast_ref_update_failed": "無法更新分支",
-    "ref_error_commit": "這是一個 commit，不是分支。任務會交付回它起始的分支 —— 只需要某次修訂，請用 multica repo checkout --ref。",
+    "ref_error_commit": "這是一個 commit，不是分支。任務會交付回它起始的分支 —— 只需要某次修訂，請用 morechat repo checkout --ref。",
     "ref_default_label": "預設分支",
     "ref_default_tooltip": "未設定分支 —— 任務使用倉庫當時的預設分支。"
   },

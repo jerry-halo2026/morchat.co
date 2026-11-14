@@ -46,7 +46,7 @@ func (d deliveryFixture) runningTask(t *testing.T, over testutil.Cols) pgtype.UU
 }
 
 // reportOnTarget posts the agent's explicit report on the target issue, as
-// `multica issue comment add <target>` does during the run.
+// `morechat issue comment add <target>` does during the run.
 func (d deliveryFixture) reportOnTarget(t *testing.T) {
 	t.Helper()
 	d.f.Comment(t, d.target, "Report for the target issue.", testutil.Cols{"author_type": "agent", "author_id": d.agentID})

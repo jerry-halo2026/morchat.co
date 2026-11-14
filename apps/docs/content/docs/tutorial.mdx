@@ -110,7 +110,7 @@ Open **Agents → Engineer** to check the result: the model is Opus, and the ins
 
 The site's code lives in a GitHub repository. Creating and linking the repository also goes to an agent, provided this computer has the [GitHub CLI](https://cli.github.com) installed and signed in.
 
-In **Chat**, select Engineer and tell it to create an empty repository named `personal-website` under your GitHub account (the GitHub CLI is on this computer), then register it in this workspace with `multica repo add`. Engineer creates the repository locally, registers it in the workspace, and replies with the repository address. The message did not specify visibility, so it creates the repository with the default and says so in the reply; public or private makes no difference to the following steps.
+In **Chat**, select Engineer and tell it to create an empty repository named `personal-website` under your GitHub account (the GitHub CLI is on this computer), then register it in this workspace with `morechat repo add`. Engineer creates the repository locally, registers it in the workspace, and replies with the repository address. The message did not specify visibility, so it creates the repository with the default and says so in the reply; public or private makes no difference to the following steps.
 
 ![Chat: Engineer replies that the repository is created and registered](/images/docs/tutorial-chat-create-repo.webp)
 
@@ -237,11 +237,11 @@ Back on the issue, a PR card now appears in the **Pull requests** area on the ri
 
 This round of review exposed two of Engineer's working habits: it checks its own work with repeated screenshots after finishing, which takes up a lot of run time; and it opens PRs without the issue identifier, so they don't link. Both are things it will repeat every time, so what needs changing is its instructions; this issue itself can stay as it is.
 
-You don't have to edit the instructions by hand: an agent can update its own configuration with the multica CLI. In the same conversation, give Engineer two rules: no screenshot self-checks after finishing, since review happens in a browser; and the branch name or title of a PR must carry the issue identifier. Then have it write them into its own instructions:
+You don't have to edit the instructions by hand: an agent can update its own configuration with the morechat CLI. In the same conversation, give Engineer two rules: no screenshot self-checks after finishing, since review happens in a browser; and the branch name or title of a PR must carry the issue identifier. Then have it write them into its own instructions:
 
 ![Asking Engineer to write the rules into its own instructions](/images/docs/tutorial-chat-update-instructions.webp)
 
-Engineer applies the update with `multica agent update`, adding a working-rules section to its instructions, and points out the cost of the first rule: with no screenshot self-checks, visual problems on the page are now yours to catch in the browser.
+Engineer applies the update with `morechat agent update`, adding a working-rules section to its instructions, and points out the cost of the first rule: with no screenshot self-checks, visual problems on the page are now yours to catch in the browser.
 
 Open **Agents → Engineer**, and both rules are in the instructions:
 

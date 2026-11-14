@@ -32,7 +32,7 @@ because two members happen to have overlapping skills.
 The steer path is the cheap one when the agent is mid-task: no new run, no
 second workdir, the correction lands in the turn it applies to. It works only
 when that run accepts supplements — `can_supplement: true` in
-`multica issue runs <issue-id> --active --output json`. Otherwise wait for the
+`morechat issue runs <issue-id> --active --output json`. Otherwise wait for the
 run to end and comment normally.
 
 ## Two ways the same work runs twice

@@ -107,7 +107,7 @@
 
 0. **知识库入库闸门已完成（第三段）**：迁移 651/652、`knowledge_review.go`、
    `knowledge.propose`（`knowledge.write` 已移除）、`POST /api/knowledge/items/{id}/approve`、
-   `GET /api/knowledge/review-audit`、`multica knowledge audit`；
+   `GET /api/knowledge/review-audit`、`morechat knowledge audit`；
    e2e `e2e/knowledge-review.spec.ts` 实测通过（1.4s）。
    同段还完成：部门 UI（成员页部门列/筛选/改部门、邀请选部门、项目部门标签、8 语言文案）、
    预设技能导入改「先查后写」、桌面端补拍（rail 跟随指针与会话行动态确认，任务栏呈现与眼睛跟随仍未确认）。

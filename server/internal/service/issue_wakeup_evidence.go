@@ -140,7 +140,7 @@ func canonicalWakeupPayload(raw json.RawMessage) json.RawMessage {
 func wakeupNoteHeader(w db.IssueWakeup) string {
 	header := "Wakeup " + util.UUIDToString(w.ID) + " triggered. Instruction:\n" + w.Instruction + "\n"
 	if w.Kind == "every" || w.Kind == "cron" {
-		header += "This is a scheduled check. If it finds nothing that needs a reply, end with `multica issue wakeup checkin " + util.UUIDToString(w.IssueID) + " " + util.UUIDToString(w.ID) + " --note \"<what you checked and found>\"` instead of posting a comment; the note is shown on the rule. Post a comment when something changed, needs attention, or the check is done.\n"
+		header += "This is a scheduled check. If it finds nothing that needs a reply, end with `morechat issue wakeup checkin " + util.UUIDToString(w.IssueID) + " " + util.UUIDToString(w.ID) + " --note \"<what you checked and found>\"` instead of posting a comment; the note is shown on the rule. Post a comment when something changed, needs attention, or the check is done.\n"
 	}
 	return header + "Trigger facts (read current state before deciding what to do):\n"
 }

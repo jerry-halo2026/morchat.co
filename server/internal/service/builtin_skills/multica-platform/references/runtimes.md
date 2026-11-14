@@ -20,19 +20,19 @@ The chain is:
 5. the server returns task context, repos, project resources, prior
    session/workdir hints, and a task token;
 6. the daemon prepares a workdir and launches the provider CLI;
-7. `multica repo checkout` talks to the local daemon, not directly to GitHub.
+7. `morechat repo checkout` talks to the local daemon, not directly to GitHub.
 
 ## CLI
 
 ```bash
-multica runtime list --output json
-multica runtime usage <runtime-id> --output json
-multica runtime activity <runtime-id> --output json
-multica runtime update <runtime-id> --target-version <version> --output json
-multica runtime delete <runtime-id>
-multica repo checkout <url>
-multica repo checkout <url> --ref <branch-or-sha>
-multica repo checkout <url> --fresh
+morechat runtime list --output json
+morechat runtime usage <runtime-id> --output json
+morechat runtime activity <runtime-id> --output json
+morechat runtime update <runtime-id> --target-version <version> --output json
+morechat runtime delete <runtime-id>
+morechat repo checkout <url>
+morechat repo checkout <url> --ref <branch-or-sha>
+morechat repo checkout <url> --fresh
 ```
 
 Runtime and repo commands affect active agent execution. Do not restart daemons,
@@ -58,7 +58,7 @@ those agents and cancels their queued/running tasks before deleting the runtime.
 Unbinding keeps the agents and everything they own — instructions, skills,
 chats, labels, channel installations, autopilots and task history — and only
 clears the agent's runtime binding; an unbound agent cannot run until it is
-bound again (`multica agent update <id> --runtime-id <runtime-id>`), and every
+bound again (`morechat agent update <id> --runtime-id <runtime-id>`), and every
 trigger path refuses it with `agent_runtime_required`.
 
 `repo checkout` creates a dedicated branch in the task working directory. Most
@@ -150,7 +150,7 @@ Check in this order:
 1. Was a task supposed to be created? Inspect issue/comment/autopilot context.
 2. Is the assignee an agent or squad? A squad routes to its leader.
 3. Is the agent archived or bound to a runtime the actor cannot use?
-4. Is the runtime online? `multica runtime list --output json`.
+4. Is the runtime online? `morechat runtime list --output json`.
 5. Did the daemon heartbeat recently? Runtime `last_seen_at` is the visible clue.
 6. Did the task get claimed or is it stuck pending/running/waiting for local directory?
 7. If repo checkout failed, classify it after checking whether repo context was

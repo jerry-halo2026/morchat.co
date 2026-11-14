@@ -81,10 +81,10 @@ const ALLOWLIST = [
   // The Aora-era runtime bridge is vendored upstream code: its own descriptions
   // name Multica, and we do not rewrite third-party payloads.
   "apps/desktop/resources/dsh-profile/",
-  // Runtime identifiers deliberately frozen this round: DB user/db names, CLI
-  // verb, MULTICA_* env names and code comments. The user-visible copy inside
-  // server/ (CLI help, auth page, onboarding text, integration titles) is swept
-  // separately and is not exempt in spirit.
+  // Runtime identifiers deliberately frozen this round: DB user/db names,
+  // MULTICA_* env names, the ~/.multica config dir and the DSH `multica`
+  // profile. The CLI binary/command itself is now `morechat`; anywhere the old
+  // command spelling reappears outside this allowlist the gate reports it.
   "server/",
   // Infra/release/example identifiers (chart name, compose service names,
   // workflow names, example plugin manifests). Renaming these changes deployed
@@ -100,7 +100,7 @@ const ALLOWLIST = [
   "packages/ui/components/common/multica-icon.tsx",
   "packages/ui/components/common/multica-wordmark.tsx",
   "packages/ui/components/common/multica-graphics.tsx",
-  // The runtime probe test spells the frozen CLI name (`multica.exe`) and the
+  // The runtime probe test spells the frozen CLI name (`morechat.exe`) and the
   // bundled path to it; those identifiers are deliberately not renamed.
   "apps/desktop/src/main/runtime-probe.test.ts",
 ];
@@ -116,7 +116,7 @@ const PATTERN = /Multica|multica\.ai/g;
  * Exempted per token so the rest of the line is still checked.
  */
 const CONTRACT_TOKENS =
-  /X-Multica-Plugin-Installation|multica\.plugin\.json|multica (?:setup|daemon|auth|issue|knowledge)\b|multica:\/\/\S*/g;
+  /X-Multica-Plugin-Installation|multica\.plugin\.json|multica:\/\/\S*/g;
 
 const toPosix = (p) => p.split(sep).join("/");
 const allowed = (rel) => ALLOWLIST.some((entry) => rel === entry || rel.startsWith(entry));

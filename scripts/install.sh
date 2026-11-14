@@ -7,7 +7,7 @@
 # Install CLI + provision self-host server:
 #   curl -fsSL https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.sh | bash -s -- --with-server
 #
-# After installation, run `multica setup` to configure your environment.
+# After installation, run `morechat setup` to configure your environment.
 #
 set -euo pipefail
 
@@ -17,7 +17,7 @@ set -euo pipefail
 REPO_URL="https://github.com/jerry-halo2026/morchat.co.git"
 REPO_WEB_URL="https://github.com/jerry-halo2026/morchat.co"  # without .git, for GitHub web APIs
 INSTALL_DIR="${MULTICA_INSTALL_DIR:-$HOME/.multica/server}"
-BREW_PACKAGE="multica-ai/tap/multica"
+BREW_PACKAGE="multica-ai/tap/morechat"
 
 # Host ports Compose reported after `up -d`; set by setup_server and reused by
 # the summary so the health check and the printed URLs cannot diverge.
@@ -60,8 +60,8 @@ print_remote_server_token_hint() {
   printf "     1. On your local computer, open ${CYAN}https://morechat.co/settings?tab=tokens${RESET}\n"
   printf "        and create a token under ${BOLD}Settings > API Tokens${RESET}.\n"
   printf "     2. On this server, run:\n"
-  printf "        ${CYAN}multica login --token <YOUR_TOKEN>${RESET}\n"
-  printf "        ${CYAN}multica daemon start${RESET}\n"
+  printf "        ${CYAN}morechat login --token <YOUR_TOKEN>${RESET}\n"
+  printf "        ${CYAN}morechat daemon start${RESET}\n"
   printf "\n"
 }
 
@@ -133,7 +133,7 @@ install_cli_brew() {
       rm -f "$brew_log"
       ok "morechat.co CLI already installed via Homebrew"
     else
-      warn "Failed to install multica via Homebrew. Falling back to GitHub Releases binary install."
+      warn "Failed to install morechat via Homebrew. Falling back to GitHub Releases binary install."
       _dump_brew_log "$brew_log"
       rm -f "$brew_log"
       return 1
@@ -155,30 +155,30 @@ install_cli_binary() {
   fi
 
   local version="${latest#v}"
-  local url="https://github.com/jerry-halo2026/morchat.co/releases/download/${latest}/multica-cli-${version}-${OS}-${ARCH}.tar.gz"
+  local url="https://github.com/jerry-halo2026/morchat.co/releases/download/${latest}/morechat-cli-${version}-${OS}-${ARCH}.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
 
   info "Downloading $url ..."
-  if ! curl -fsSL "$url" -o "$tmp_dir/multica.tar.gz"; then
+  if ! curl -fsSL "$url" -o "$tmp_dir/morechat.tar.gz"; then
     rm -rf "$tmp_dir"
     fail "Failed to download CLI binary."
   fi
 
-  tar -xzf "$tmp_dir/multica.tar.gz" -C "$tmp_dir" multica
+  tar -xzf "$tmp_dir/morechat.tar.gz" -C "$tmp_dir" morechat
 
   # Try /usr/local/bin first, fall back to ~/.local/bin. Tests and scripted
   # installs can override the first choice with MULTICA_BIN_DIR.
   local bin_dir="${MULTICA_BIN_DIR:-/usr/local/bin}"
   if [ -w "$bin_dir" ]; then
-    mv "$tmp_dir/multica" "$bin_dir/multica"
+    mv "$tmp_dir/morechat" "$bin_dir/morechat"
   elif command_exists sudo; then
-    sudo mv "$tmp_dir/multica" "$bin_dir/multica"
+    sudo mv "$tmp_dir/morechat" "$bin_dir/morechat"
   else
     bin_dir="$HOME/.local/bin"
     mkdir -p "$bin_dir"
-    mv "$tmp_dir/multica" "$bin_dir/multica"
-    chmod +x "$bin_dir/multica"
+    mv "$tmp_dir/morechat" "$bin_dir/morechat"
+    chmod +x "$bin_dir/morechat"
     # Add to PATH if not already there
     if ! echo "$PATH" | tr ':' '\n' | grep -q "^$bin_dir$"; then
       export PATH="$bin_dir:$PATH"
@@ -187,7 +187,7 @@ install_cli_binary() {
   fi
 
   rm -rf "$tmp_dir"
-  ok "morechat.co CLI installed to $bin_dir/multica"
+  ok "morechat.co CLI installed to $bin_dir/morechat"
 }
 
 add_to_path() {
@@ -266,10 +266,10 @@ upgrade_cli_brew() {
 }
 
 install_cli() {
-  if command_exists multica; then
+  if command_exists morechat; then
     local current_ver
-    # `multica version` outputs "multica 0.3.23 (commit: f46b929eb, built: 2026-06-16T10:11:56Z)" — extract just the version
-    current_ver=$(multica version 2>/dev/null | awk 'NR==1{print $2}' || echo "unknown")
+    # `morechat version` outputs "morechat 0.3.23 (commit: f46b929eb, built: 2026-06-16T10:11:56Z)" — extract just the version
+    current_ver=$(morechat version 2>/dev/null | awk 'NR==1{print $2}' || echo "unknown")
 
     local latest_ver
     latest_ver=$(get_latest_version)
@@ -291,7 +291,7 @@ install_cli() {
     fi
 
     local new_ver
-    new_ver=$(multica version 2>/dev/null | awk 'NR==1{print $2}' || echo "unknown")
+    new_ver=$(morechat version 2>/dev/null | awk 'NR==1{print $2}' || echo "unknown")
     ok "morechat.co CLI upgraded ($current_ver → $new_ver)"
     return 0
   fi
@@ -303,8 +303,8 @@ install_cli() {
   fi
 
   # Verify
-  if ! command_exists multica; then
-    fail "CLI installed but 'multica' not found on PATH. You may need to restart your shell."
+  if ! command_exists morechat; then
+    fail "CLI installed but 'morechat' not found on PATH. You may need to restart your shell."
   fi
 }
 
@@ -438,8 +438,8 @@ run_default() {
   printf "\n"
   printf "  ${BOLD}Next: configure your environment${RESET}\n"
   printf "\n"
-  printf "     ${CYAN}multica setup${RESET}                # Connect to morechat.co Cloud (morechat.co)\n"
-  printf "     ${CYAN}multica setup self-host${RESET}       # Connect to a self-hosted server\n"
+  printf "     ${CYAN}morechat setup${RESET}                # Connect to morechat.co Cloud (morechat.co)\n"
+  printf "     ${CYAN}morechat setup self-host${RESET}       # Connect to a self-hosted server\n"
   printf "\n"
   print_remote_server_token_hint
   printf "  ${BOLD}Self-hosting?${RESET} Install the server first:\n"
@@ -472,7 +472,7 @@ run_with_server() {
   printf "\n"
   printf "  ${BOLD}Next: configure your CLI to connect${RESET}\n"
   printf "\n"
-  printf "     ${CYAN}multica setup self-host${RESET}   # Configure + authenticate + start daemon\n"
+  printf "     ${CYAN}morechat setup self-host${RESET}   # Configure + authenticate + start daemon\n"
   printf "\n"
   printf "  ${BOLD}Login:${RESET} configure ${CYAN}RESEND_API_KEY${RESET} in .env for email codes,\n"
   printf "  or read the generated code from backend logs when Resend is unset.\n"
@@ -501,8 +501,8 @@ run_stop() {
     warn "No morechat.co installation found at $INSTALL_DIR"
   fi
 
-  if command_exists multica; then
-    multica daemon stop 2>/dev/null && ok "Daemon stopped" || true
+  if command_exists morechat; then
+    morechat daemon stop 2>/dev/null && ok "Daemon stopped" || true
   fi
 
   printf "\n"
@@ -535,7 +535,7 @@ main() {
         echo "  MULTICA_SELFHOST_REF  Git ref to check out for self-host assets"
         echo "                        (default: latest release tag, falling back to main)"
         echo ""
-        echo "After installation, run 'multica setup' to configure your environment."
+        echo "After installation, run 'morechat setup' to configure your environment."
         exit 0
         ;;
       *) warn "Unknown option: $1" ;;

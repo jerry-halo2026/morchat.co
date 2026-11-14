@@ -118,28 +118,28 @@ import { WakeupDemo } from "@/components/demos/wakeup-demo";
 
 ## エージェントに自分で予約させる [#cli]
 
-エージェントは実行中に `multica issue wakeup` でこのタスクの次の実行を予約し、今の実行を終えます。`--agent-id` を省くと、コマンドを実行しているエージェント自身を起こします。自分のターミナルから同じコマンドを使うこともでき、その場合は `--agent-id` でエージェントを指定します。
+エージェントは実行中に `morechat issue wakeup` でこのタスクの次の実行を予約し、今の実行を終えます。`--agent-id` を省くと、コマンドを実行しているエージェント自身を起こします。自分のターミナルから同じコマンドを使うこともでき、その場合は `--agent-id` でエージェントを指定します。
 
 ```bash
 # 明日の 09:00（上海時間）にもう一度見る
-multica issue wakeup create OPS-56 --kind at --at 2026-10-21T09:00:00+08:00 \
+morechat issue wakeup create OPS-56 --kind at --at 2026-10-21T09:00:00+08:00 \
   --instruction "仕入れ先から見積もりがそろったか確認し、そろっていれば比較表にまとめる"
 
 # 平日の毎朝 09:00 に確認し、1 週間で終える
-multica issue wakeup create OPS-56 --kind cron --cron "0 9 * * 1-5" --timezone Asia/Shanghai \
+morechat issue wakeup create OPS-56 --kind cron --cron "0 9 * * 1-5" --timezone Asia/Shanghai \
   --expires-in 168h --instruction "見積もりメールを確認し、新しい見積もりがあれば比較表を更新する"
 
 # 李雷の返信を最大 3 日待ち、期限になっても一度起こす
-multica issue wakeup create OPS-56 --event comment.created \
+morechat issue wakeup create OPS-56 --event comment.created \
   --filter-actor-type member --filter-actor-id <李雷のユーザー ID> \
   --expires-in 72h --on-timeout wake --instruction "李雷の回答に沿って進める"
 
 # タスクがレビュー中になるまで待つ
-multica issue wakeup create OPS-56 --until-status in_review --instruction "成果物を確認してまとめる"
+morechat issue wakeup create OPS-56 --until-status in_review --instruction "成果物を確認してまとめる"
 ```
 
 - **時間**：`--kind at` に `--after 10m` または `--at <RFC3339 の時刻>`。`--kind every --every 1h` で一定間隔（最短 1 分）。`--kind cron --cron "<5 フィールドの式>"` には `--timezone` を付けます（既定は UTC）。
-- **イベント**：`--event` のあとにイベント名をカンマ区切りで書きます。`multica issue wakeup events` ですべてのイベントとフィルターを一覧できます。`--mode continuous` で繰り返し起動になります。
+- **イベント**：`--event` のあとにイベント名をカンマ区切りで書きます。`morechat issue wakeup events` ですべてのイベントとフィルターを一覧できます。`--mode continuous` で繰り返し起動になります。
 - **条件**：`--until-status`、`--until-assignee`、`--until-label`、`--until-property`、`--until-children-done [--stage N]`、`--until-pr checks|merged|conflicts`、`--until-issue <タスク> --until-issue-state done|ended|in_review|blocked`。1 つのウェイクアップに使える `--until-*` は 1 つだけで、`--event` とは併用できません。
 - **終わり方**：CLI は待つ期限を自動では付けません。`--expires-in 72h` か `--expires-at <RFC3339 の時刻>` で終わりを決めます。`--on-timeout wake` を付けると、イベントのルールは期限が来たときにもう一度起こします。`--max-fires N`（1〜1000）で繰り返すルールの実行回数に上限を付けます。
 - **返信先**：`--parent <コメント ID>` を付けると、起動後の返信が元のスレッドに入ります。
@@ -148,14 +148,14 @@ multica issue wakeup create OPS-56 --until-status in_review --instruction "成�
 
 | コマンド | 内容 |
 |---|---|
-| `multica issue wakeup list <タスク>` | タスクのウェイクアップを一覧する |
-| `multica issue wakeup get <タスク> <ウェイクアップ ID>` | 1 件の設定をすべて表示する |
-| `multica issue wakeup runs <タスク> <ウェイクアップ ID>` | 最近の実行、起動理由、サイレントチェックのメモ、コメントしたかどうか |
-| `multica issue wakeup update <タスク> <ウェイクアップ ID>` | `create` と同じフラグで設定全体を置き換え、オンに戻す |
-| `multica issue wakeup disable <タスク> <ウェイクアップ ID>` | オフにして、まだ始まっていない実行を取り下げる |
-| `multica issue wakeup trigger <タスク> <ウェイクアップ ID>` | 今すぐ 1 回起こす |
-| `multica issue wakeup delete <タスク> <ウェイクアップ ID>` | ルールを削除し、まだ始まっていない実行を取り下げる |
-| `multica issue wakeup checkin <タスク> <ウェイクアップ ID> --note "..."` | 返信が必要なことがない定期チェックを静かに終える。このルールが始めた実行からだけ呼べる |
+| `morechat issue wakeup list <タスク>` | タスクのウェイクアップを一覧する |
+| `morechat issue wakeup get <タスク> <ウェイクアップ ID>` | 1 件の設定をすべて表示する |
+| `morechat issue wakeup runs <タスク> <ウェイクアップ ID>` | 最近の実行、起動理由、サイレントチェックのメモ、コメントしたかどうか |
+| `morechat issue wakeup update <タスク> <ウェイクアップ ID>` | `create` と同じフラグで設定全体を置き換え、オンに戻す |
+| `morechat issue wakeup disable <タスク> <ウェイクアップ ID>` | オフにして、まだ始まっていない実行を取り下げる |
+| `morechat issue wakeup trigger <タスク> <ウェイクアップ ID>` | 今すぐ 1 回起こす |
+| `morechat issue wakeup delete <タスク> <ウェイクアップ ID>` | ルールを削除し、まだ始まっていない実行を取り下げる |
+| `morechat issue wakeup checkin <タスク> <ウェイクアップ ID> --note "..."` | 返信が必要なことがない定期チェックを静かに終える。このルールが始めた実行からだけ呼べる |
 
 `list`、`get`、`runs` は `--output table` で表形式になります。ほかのコマンドは [CLI を使う](/cli)を参照してください。
 

@@ -59,7 +59,7 @@ Les limites de connexions du primaire et du réplica sont indépendantes. Dimens
 | `FRONTEND_ORIGIN` | vide | Origine du frontend visitée par les utilisateurs ; utilisée pour CORS, les cookies et les liens d'invitation |
 | `MULTICA_APP_URL` | se rabat sur `FRONTEND_ORIGIN` | URL web accessible aux utilisateurs ; utilisée par les URL de connexion du CLI et de liaison de compte |
 | `MULTICA_PUBLIC_URL` | vide | URL publique de l'API ; utilisée pour les URL de webhook et les instructions de connexion des runtimes |
-| `MULTICA_DAEMON_SERVER_URL` | se rabat sur `MULTICA_PUBLIC_URL`, puis sur `MULTICA_APP_URL` / `FRONTEND_ORIGIN` | URL du serveur que le processus API insère dans `multica setup self-host` ; définissez-la lorsque les daemons joignent l'API via une URL différente de l'URL publique des webhooks |
+| `MULTICA_DAEMON_SERVER_URL` | se rabat sur `MULTICA_PUBLIC_URL`, puis sur `MULTICA_APP_URL` / `FRONTEND_ORIGIN` | URL du serveur que le processus API insère dans `morechat setup self-host` ; définissez-la lorsque les daemons joignent l'API via une URL différente de l'URL publique des webhooks |
 | `CORS_ALLOWED_ORIGINS` | vide | Origines HTTP supplémentaires autorisées, séparées par des virgules |
 | `ALLOWED_ORIGINS` | se rabat sur les origines CORS / frontend | Liste des origines WebSocket autorisées, séparées par des virgules |
 | `COOKIE_DOMAIN` | vide | Obligatoire lorsque le frontend et l'API utilisent des hôtes différents et que le navigateur communique directement avec le domaine de l'API ; laissez vide pour les déploiements sur un seul domaine |
@@ -363,8 +363,8 @@ Les processus d'arrière-plan de Cursor qui appartiennent à l'exécution sont a
 Les paramètres courants côté daemon peuvent aussi être écrits dans `~/.multica/config.json` au lieu de dépendre des variables d'environnement du shell ; les profils nommés conservent les leurs dans `~/.multica/profiles/<name>/config.json` :
 
 ```bash
-multica config set poll_interval 10s
-multica config show
+morechat config set poll_interval 10s
+morechat config show
 ```
 
 Clés prises en charge :
@@ -393,7 +393,7 @@ Clés prises en charge :
 Quelques règles concernant les valeurs :
 
 - Les clés de durée acceptent des durées Go positives (comme `10s`, `2h`) ; les valeurs négatives sont toujours refusées. Seules `agent_timeout`, `agent_idle_watchdog` et `agent_tool_watchdog` acceptent aussi `0s` : pour `agent_timeout`, cela désactive explicitement la limite de durée des exécutions ; pour les deux clés de watchdog, le tableau indique ce que `0s` désactive.
-- Passer une chaîne vide efface une valeur persistée et revient à la variable d'environnement ou à la valeur par défaut intégrée, par exemple `multica config set poll_interval ""`.
+- Passer une chaîne vide efface une valeur persistée et revient à la variable d'environnement ou à la valeur par défaut intégrée, par exemple `morechat config set poll_interval ""`.
 - `max_concurrent_tasks` exige un entier positif ou nul.
 - Les valeurs relatives de `workspaces_root` sont converties en chemins absolus lors de l'enregistrement.
 

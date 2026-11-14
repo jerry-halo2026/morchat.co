@@ -1457,7 +1457,7 @@ func TestOpencodeBackendNeverEmitsPromptFlag(t *testing.T) {
 	defer cancel()
 
 	// SystemPrompt is set deliberately; the backend must NOT forward it.
-	const brief = "the entire multica runtime brief"
+	const brief = "the entire morechat runtime brief"
 	session, err := backend.Execute(ctx, "do the thing", ExecOptions{
 		Cwd:          workDir,
 		SystemPrompt: brief,

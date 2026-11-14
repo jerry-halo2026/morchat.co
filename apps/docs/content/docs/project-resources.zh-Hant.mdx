@@ -200,36 +200,36 @@ morechat.co 清理執行環境時不會刪除關聯的本地目錄。AI 代理�
 
 ```bash
 # 建立專案時關聯倉庫
-multica project create \
+morechat project create \
  --title "Agent UX" \
  --repo https://github.com/jerry-halo2026/morchat.co
 
 # 檢視和新增資源
-multica project resource list <project-id>
-multica project resource add <project-id> \
+morechat project resource list <project-id>
+morechat project resource add <project-id> \
  --type github_repo \
  --url https://github.com/jerry-halo2026/morchat.co \
  --ref main
 
 # 關聯指定守護程序上的本地目錄
-multica project resource add <project-id> \
+morechat project resource add <project-id> \
  --type local_directory \
  --local-path /absolute/path/to/repo \
  --daemon-id <daemon-id>
 
 # 關聯一個本地 git 倉庫，並讓每次執行在各自的 worktree 中併發執行
-multica project resource add <project-id> \
+morechat project resource add <project-id> \
  --type local_directory \
  --local-path /absolute/path/to/repo \
  --daemon-id <daemon-id> \
  --execution-mode worktree
 
 # 為已有的本地目錄切換模式
-multica project resource update <project-id> <resource-id> --execution-mode worktree
-multica project resource update <project-id> <resource-id> --execution-mode in_place
+morechat project resource update <project-id> <resource-id> --execution-mode worktree
+morechat project resource update <project-id> <resource-id> --execution-mode in_place
 
 # 移除資源
-multica project resource remove <project-id> <resource-id>
+morechat project resource remove <project-id> <resource-id>
 ```
 
 資源變更會影響之後建立的執行，不會改寫已經結束的執行記錄。

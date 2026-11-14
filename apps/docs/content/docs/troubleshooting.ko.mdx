@@ -13,10 +13,10 @@ import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
 <Tab value="모든 설치 방식">
 
 ```bash
-multica version
-multica auth status
-multica daemon status --output json
-multica daemon logs --lines 100
+morechat version
+morechat auth status
+morechat daemon status --output json
+morechat daemon logs --lines 100
 ```
 
 </Tab>
@@ -40,9 +40,9 @@ curl -i https://api.example.com/readyz
 먼저 다음을 실행합니다.
 
 ```bash
-multica auth status
-multica daemon status --output json
-multica daemon logs --lines 100
+morechat auth status
+morechat daemon status --output json
+morechat daemon logs --lines 100
 ```
 
 일반적인 원인은 다음과 같습니다.
@@ -56,18 +56,18 @@ multica daemon logs --lines 100
 다시 로그인하고 데몬을 다시 시작합니다.
 
 ```bash
-multica login
-multica daemon restart
+morechat login
+morechat daemon restart
 ```
 
-자체 호스팅 환경에서는 **실행 컴퓨터**에서 API의 `/health`도 요청해야 합니다. 서버 컴퓨터에서의 테스트만으로는 실행 컴퓨터 측 DNS, TLS, 방화벽 문제를 찾을 수 없습니다. 주소를 바꿔야 하면 `multica setup self-host`를 다시 실행하거나 현재 profile의 `server_url`을 확인하세요.
+자체 호스팅 환경에서는 **실행 컴퓨터**에서 API의 `/health`도 요청해야 합니다. 서버 컴퓨터에서의 테스트만으로는 실행 컴퓨터 측 DNS, TLS, 방화벽 문제를 찾을 수 없습니다. 주소를 바꿔야 하면 `morechat setup self-host`를 다시 실행하거나 현재 profile의 `server_url`을 확인하세요.
 
 ```bash
-multica config show
+morechat config show
 ```
 
 </Accordion>
-<Accordion title={<><code>multica setup</code>이 서버에 도달할 수 없다고 보고함</>} id="multica-setup-reports-the-server-is-not-reachable" value="multica-setup-reports-the-server-is-not-reachable">
+<Accordion title={<><code>morechat setup</code>이 서버에 도달할 수 없다고 보고함</>} id="multica-setup-reports-the-server-is-not-reachable" value="multica-setup-reports-the-server-is-not-reachable">
 
 CLI 도달 확인은 `<server-url>/health`에 GET을 보내 200을 기대합니다. backend는 이 경로를 제공합니다. 최신 web 릴리스는 `/health`를 backend로 전달하지만 구버전은 그렇지 않습니다. 모든 트래픽을 구버전 frontend로 전달하는 reverse proxy에서는 404가 반환되고, CLI는 정상 동작 중인 서버를 도달 불가로 판단합니다.
 
@@ -78,9 +78,9 @@ curl -fsS <server-url>/health
 ```
 
 </Accordion>
-<Accordion title={<><code>multica login</code>이 TLS 핸드셰이크 시간 초과로 실패함</>} id="multica-login-fails-with-a-tls-handshake-timeout" value="multica-login-fails-with-a-tls-handshake-timeout">
+<Accordion title={<><code>morechat login</code>이 TLS 핸드셰이크 시간 초과로 실패함</>} id="multica-login-fails-with-a-tls-handshake-timeout" value="multica-login-fails-with-a-tls-handshake-timeout">
 
-`multica login`이 브라우저를 열고 웹 로그인은 완료되지만 CLI는 "Sign-in did not complete" 또는 "TLS handshake timed out"으로 실패합니다. `multica --debug login`은 `POST /api/tokens`에서 `net/http: TLS handshake timeout`을 표시하며, 같은 컴퓨터의 `curl.exe -I https://api.morechat.co`나 브라우저는 정상적으로 연결됩니다.
+`morechat login`이 브라우저를 열고 웹 로그인은 완료되지만 CLI는 "Sign-in did not complete" 또는 "TLS handshake timed out"으로 실패합니다. `multica --debug login`은 `POST /api/tokens`에서 `net/http: TLS handshake timeout`을 표시하며, 같은 컴퓨터의 `curl.exe -I https://api.morechat.co`나 브라우저는 정상적으로 연결됩니다.
 
 TCP 연결은 열리지만 TLS 핸드셰이크가 끝나지 않습니다. morechat.co CLI와 데몬을 포함한 Go 클라이언트는 기본적으로 TLS ClientHello에 양자내성 키 교환을 포함하므로 ClientHello가 약 1.5 KB가 되어 두 패킷으로 나뉩니다. 일부 보안 소프트웨어, VPN, 라우터, 방화벽은 이런 핸드셰이크를 버립니다. curl의 ClientHello는 훨씬 작아서 통과합니다.
 
@@ -129,12 +129,12 @@ multica --debug login
 에이전트 한 명은 기본적으로 실행을 최대 6개까지 동시에 처리하고 데몬 하나는 최대 20개까지 처리합니다. 상한에 도달하면 새 실행은 큐에 남아 기존 실행이 끝난 뒤 시작됩니다. 런타임이 오프라인이어도 실행은 계속 대기하며, 해당 런타임이 재연결 유예를 넘겨 하트비트를 멈추고 실행 자체도 그만큼 기다린 뒤에만 실패합니다. 바쁜 런타임 뒤의 긴 대기열이 기다렸다는 이유로 만료되지 않으며, 이미 오프라인인 기기에 배정한 경우에도 깨울 수 있는 유예가 온전히 한 번 남습니다.
 
 ```bash
-multica daemon status --output json
-multica agent get <agent-id>
-multica issue runs <issue-id>
+morechat daemon status --output json
+morechat agent get <agent-id>
+morechat issue runs <issue-id>
 ```
 
-런타임 목록에 예상한 도구가 없다면 같은 시스템 계정과 `PATH`에서 도구가 실행되고 로그인되어 있는지 확인한 뒤 `multica daemon restart`를 실행합니다.
+런타임 목록에 예상한 도구가 없다면 같은 시스템 계정과 `PATH`에서 도구가 실행되고 로그인되어 있는지 확인한 뒤 `morechat daemon restart`를 실행합니다.
 
 </Tab>
 <Tab value="waiting_local_directory">
@@ -143,7 +143,7 @@ multica issue runs <issue-id>
 
 이 대기는 디렉터리의 `in_place`("직접") 모드에서만 발생합니다. 디렉터리가 git 저장소라면 리소스를 `worktree`("병렬")로 전환하면 대기열 자체가 사라집니다. 각 실행이 자기 워크트리를 받고 결과를 브랜치로 돌려주므로 어느 실행도 기다리지 않습니다. [프로젝트 리소스](/project-resources#실행이-디렉터리를-공유하는-방식)를 참고하세요.
 
-그렇지 않으면 일반적으로 앞선 실행이 끝날 때까지 기다리면 됩니다. 앞선 실행이 멈췄다면 해당 실행 로그에서 중지할 수 있고, 현재 에이전트에 다른 로컬 디렉터리를 선택할 수도 있습니다. 이 디렉터리 상호 배제는 데몬이 메모리에서 관리하며 디스크에 lock 파일을 쓰지 않습니다. 잠금 상태가 비정상이라고 의심되면 `multica daemon restart`를 실행해 해제하세요. 직접 삭제해야 할 파일은 없습니다.
+그렇지 않으면 일반적으로 앞선 실행이 끝날 때까지 기다리면 됩니다. 앞선 실행이 멈췄다면 해당 실행 로그에서 중지할 수 있고, 현재 에이전트에 다른 로컬 디렉터리를 선택할 수도 있습니다. 이 디렉터리 상호 배제는 데몬이 메모리에서 관리하며 디스크에 lock 파일을 쓰지 않습니다. 잠금 상태가 비정상이라고 의심되면 `morechat daemon restart`를 실행해 해제하세요. 직접 삭제해야 할 파일은 없습니다.
 
 </Tab>
 </Tabs>
@@ -164,15 +164,15 @@ multica issue runs <issue-id>
 </Accordion>
 <Accordion title="CLI 업그레이드 후 macOS에서 실행이 멈춤" id="runs-hang-on-macos-after-a-cli-upgrade" value="runs-hang-on-macos-after-a-cli-upgrade">
 
-Homebrew로 설치한 `multica` CLI가 `brew upgrade`, `multica update`, **런타임** 페이지의 **업데이트** 또는 데몬 자동 업데이트로 업그레이드된 뒤, `~/Desktop`, `~/Documents`, `~/Downloads`, iCloud Drive 등 보호된 폴더를 읽는 실행이 더 이상 진행되지 않을 수 있습니다. 에이전트 프로세스는 CPU를 사용하지 않고, 실행은 완료되지도 실패하지도 않습니다.
+Homebrew로 설치한 `multica` CLI가 `brew upgrade`, `morechat update`, **런타임** 페이지의 **업데이트** 또는 데몬 자동 업데이트로 업그레이드된 뒤, `~/Desktop`, `~/Documents`, `~/Downloads`, iCloud Drive 등 보호된 폴더를 읽는 실행이 더 이상 진행되지 않을 수 있습니다. 에이전트 프로세스는 CPU를 사용하지 않고, 실행은 완료되지도 실패하지도 않습니다.
 
-이 문제는 macOS가 개인정보 보호 권한(TCC)을 데몬 자체에 귀속시킬 때 발생합니다. launchd로 시작한 데몬(예: LaunchAgent)이 여기에 해당하며, 대기 중인 대화상자에는 `multica`가 표시되고 에이전트가 시작하는 모든 도구는 데몬의 권한을 사용합니다. Homebrew CLI 바이너리는 고정된 ID로 서명되어 있지 않아 macOS는 권한을 해당 빌드와 해석된 경로(예: `/opt/homebrew/Cellar/multica/<version>/bin/multica`)에 묶습니다. 업그레이드 후 macOS는 새 바이너리를 다른 앱으로 보고 다시 권한을 요청합니다. 누군가 응답할 때까지 파일 접근이 차단되며, 데몬은 권한 요청이 대기 중이라는 사실을 알 수 없습니다.
+이 문제는 macOS가 개인정보 보호 권한(TCC)을 데몬 자체에 귀속시킬 때 발생합니다. launchd로 시작한 데몬(예: LaunchAgent)이 여기에 해당하며, 대기 중인 대화상자에는 `morechat`가 표시되고 에이전트가 시작하는 모든 도구는 데몬의 권한을 사용합니다. Homebrew CLI 바이너리는 고정된 ID로 서명되어 있지 않아 macOS는 권한을 해당 빌드와 해석된 경로(예: `/opt/homebrew/Cellar/morechat/<version>/bin/multica`)에 묶습니다. 업그레이드 후 macOS는 새 바이너리를 다른 앱으로 보고 다시 권한을 요청합니다. 누군가 응답할 때까지 파일 접근이 차단되며, 데몬은 권한 요청이 대기 중이라는 사실을 알 수 없습니다.
 
 접근을 복구하려면:
 
 1. 해당 Mac에서 대기 중인 "접근하려고 합니다" 대화상자에 **허용**으로 응답합니다. 멈춰 있던 실행이 계속됩니다.
 2. 무인으로 운영하는 Mac에서는 새 바이너리에 전체 디스크 접근 권한을 부여합니다. `realpath "$(command -v multica)"`로 경로를 출력한 뒤 **시스템 설정 → 개인정보 보호 및 보안 → 전체 디스크 접근 권한**에서 이전 `multica` 항목을 제거하고 해당 경로를 추가합니다(파일 선택 창에서 ⌘⇧G를 눌러 경로를 붙여넣을 수 있습니다).
-3. 데몬을 시작했던 방식 그대로 재시작합니다. 일반적으로는 `multica daemon restart`, LaunchAgent라면 `launchctl kickstart -k gui/$(id -u)/<label>`을 사용합니다.
+3. 데몬을 시작했던 방식 그대로 재시작합니다. 일반적으로는 `morechat daemon restart`, LaunchAgent라면 `launchctl kickstart -k gui/$(id -u)/<label>`을 사용합니다.
 
 CLI를 업그레이드할 때마다 이 과정을 반복하세요. 자동 업데이트는 morechat.co Cloud에 연결된 데몬에서만 기본으로 켜져 있습니다. `--no-auto-update`로 데몬을 시작하면 직접 실행할 때만 업그레이드됩니다. [morechat.co Desktop](/desktop-app)에 번들된 CLI는 Developer ID로 서명되어 있어 업그레이드 후에도 권한이 유지됩니다.
 
@@ -306,21 +306,21 @@ netstat -ano | findstr :8080
 
 | 컴포넌트 | 확인 방법 |
 | --- | --- |
-| 백그라운드 데몬 | `multica daemon logs --lines 100` |
-| 데몬 로그 실시간 확인 | `multica daemon logs --follow` |
+| 백그라운드 데몬 | `morechat daemon logs --lines 100` |
+| 데몬 로그 실시간 확인 | `morechat daemon logs --follow` |
 | 기본 profile 로그 파일 | `~/.multica/daemon.log` |
 | 기본 profile 시작 또는 crash 로그 | `~/.multica/daemon.err.log` |
 | 이름 있는 profile | `~/.multica/profiles/<name>/` 아래의 해당 로그 |
 | Docker backend | `docker compose -f docker-compose.selfhost.yml logs -f backend` |
 | 브라우저 | 개발자 도구의 Console과 Network |
 
-어떤 파일이 현재 사용 중인 로그인지는 데몬을 시작한 profile에 따라 달라집니다. 이전 데몬이 남긴 오래된 로그도 문제없이 읽히기 때문에 엉뚱한 파일을 보게 되기 쉽습니다. 추측으로 파일을 열지 말고 `multica daemon logs`를 사용하세요. 내용을 출력하기 전에 해석한 절대 경로를 먼저 표시합니다. 이름 있는 profile의 로그는 `--profile <name>`을 붙여서 확인합니다.
+어떤 파일이 현재 사용 중인 로그인지는 데몬을 시작한 profile에 따라 달라집니다. 이전 데몬이 남긴 오래된 로그도 문제없이 읽히기 때문에 엉뚱한 파일을 보게 되기 쉽습니다. 추측으로 파일을 열지 말고 `morechat daemon logs`를 사용하세요. 내용을 출력하기 전에 해석한 절대 경로를 먼저 표시합니다. 이름 있는 profile의 로그는 `--profile <name>`을 붙여서 확인합니다.
 
 데몬 시작 과정을 직접 확인해야 한다면 foreground에서 실행합니다.
 
 ```bash
-multica daemon stop
-multica daemon start --foreground
+morechat daemon stop
+morechat daemon start --foreground
 ```
 
 그래도 원인을 찾지 못하면 [GitHub Issues](https://github.com/jerry-halo2026/morchat.co/issues)에서 기존 문제를 검색하거나 새 issue를 제출하세요.

@@ -152,10 +152,10 @@ morechat.co 定期检查近期运行是否持续失败：过去 7 天内已完�
 ## 使用 CLI
 
 ```bash
-multica autopilot get <autopilot-id> --output json
-multica autopilot trigger <autopilot-id>
-multica autopilot runs <autopilot-id>
-multica autopilot trigger-rotate-url <autopilot-id> <trigger-id>
+morechat autopilot get <autopilot-id> --output json
+morechat autopilot trigger <autopilot-id>
+morechat autopilot runs <autopilot-id>
+morechat autopilot trigger-rotate-url <autopilot-id> <trigger-id>
 ```
 
 `autopilot get` 默认把 `webhook_token`、`webhook_path` 和 `webhook_url` 设为 `null`，并返回 `has_webhook_token` 与 `webhook_token_hint`。确实需要拿到当前有效凭证时才加 `--show-secrets`；CLI 把警告输出到 stderr，管道中的 JSON 不受影响。

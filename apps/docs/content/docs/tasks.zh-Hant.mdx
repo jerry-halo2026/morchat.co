@@ -146,13 +146,13 @@ AI 代理自身返回的錯誤通常不會自動重試。鑑權失效、額度�
 透過 CLI 找到原執行，再重試：
 
 ```bash
-multica issue runs <issue-id> --full-id
-multica issue rerun-task <run-id>
+morechat issue runs <issue-id> --full-id
+morechat issue rerun-task <run-id>
 ```
 
 使用完整執行 UUID 時可以省略 `--issue`；短 ID 字首必須用 `--issue` 指定任務。命令會沿用原 AI 代理和觸發上下文，會話與目錄的重複使用規則和重試按鈕相同。新增 `--fresh` 可從新的會話和工作目錄開始。
 
-舊命令 `multica issue rerun <issue-id>` 已棄用，並從幫助列表中隱藏。現有指令碼仍可使用它，行為保持為讓當前負責人從新會話和工作目錄開始。
+舊命令 `morechat issue rerun <issue-id>` 已棄用，並從幫助列表中隱藏。現有指令碼仍可使用它，行為保持為讓當前負責人從新會話和工作目錄開始。
 
 ## 執行完成與任務完成
 

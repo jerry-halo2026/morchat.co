@@ -41,7 +41,7 @@ Après l'installation, connectez-vous avec la même adresse e-mail que sur le we
 </Steps>
 
 <Callout type="info">
-Le CLI intégré à Desktop sert uniquement au runtime géré par l'application. Si vous voulez aussi exécuter des commandes comme `multica issue` dans un terminal, installez le CLI séparément en suivant l'[étape 2 du démarrage rapide](/cloud-quickstart#2-connectez-un-ordinateur).
+Le CLI intégré à Desktop sert uniquement au runtime géré par l'application. Si vous voulez aussi exécuter des commandes comme `morechat issue` dans un terminal, installez le CLI séparément en suivant l'[étape 2 du démarrage rapide](/cloud-quickstart#2-connectez-un-ordinateur).
 </Callout>
 
 ## Onglets de Desktop
@@ -170,7 +170,7 @@ La commande PowerShell de l'onglet Windows ci-dessus évite ces deux problèmes.
 Sécurité Windows signale une menace telle que `Trojan:Script/Wacatac.B!ml` et met en quarantaine un fichier de l'installation de Desktop. L'élément concerné est normalement le CLI intégré, et non l'exécutable de l'application :
 
 ```text
-C:\Users\<you>\AppData\Local\Programs\@multicadesktop\resources\app.asar.unpacked\resources\bin\multica.exe
+C:\Users\<you>\AppData\Local\Programs\@multicadesktop\resources\app.asar.unpacked\resources\bin\morechat.exe
 ```
 
 Il s'agit d'un faux positif. Le suffixe `!ml` signifie que le verdict provient des heuristiques d'apprentissage automatique de Defender, et non d'une signature de logiciel malveillant. Les builds Windows de morechat.co ne sont pas encore signées avec Authenticode, et un binaire non signé tout juste publié, qui lance des processus en arrière-plan et ouvre des connexions réseau, est facilement jugé suspect par ces heuristiques. Chaque artefact Windows est construit par GitHub Actions à partir du code source public de ce dépôt.
@@ -178,7 +178,7 @@ Il s'agit d'un faux positif. Le suffixe `!ml` signifie que le verdict provient d
 Vous pouvez le vérifier vous-même : chaque release GitHub publie un fichier `checksums.txt` couvrant toutes les archives du CLI.
 
 ```powershell
-Get-FileHash .\multica-cli-<version>-windows-amd64.zip -Algorithm SHA256
+Get-FileHash .\morechat-cli-<version>-windows-amd64.zip -Algorithm SHA256
 ```
 
 Comparez l'empreinte obtenue avec la ligne correspondante de `checksums.txt` dans la [dernière release](https://github.com/jerry-halo2026/morchat.co/releases/latest).

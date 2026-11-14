@@ -51,7 +51,7 @@ Linux에서 Codex 실행은 이전에 `workspace-write` 샌드박스와 실행�
 실행이 샌드박스 없이 시작되면 데몬이 warn 레벨 로그를 남깁니다:
 
 ```bash
-multica daemon logs --lines 200 | grep "codex sandbox"
+morechat daemon logs --lines 200 | grep "codex sandbox"
 ```
 
 Codex의 실제 적용 설정을 확인하려면 해당 실행의 `CODEX_HOME` 아래 `config.toml`에 있는 관리 블록을 보세요. `# BEGIN multica-managed`와 `# END multica-managed` 사이의 내용은 실행할 때마다 데몬이 작성합니다.

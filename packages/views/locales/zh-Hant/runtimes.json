@@ -678,7 +678,7 @@
       },
       "remote": {
         "title": "其他機器，兩條命令",
-        "description": "在伺服器或另一臺電腦上裝好 CLI，執行 multica setup 就連上了。"
+        "description": "在伺服器或另一臺電腦上裝好 CLI，執行 morechat setup 就連上了。"
       },
       "cloud": {
         "title": "或者用雲端節點",

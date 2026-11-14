@@ -880,7 +880,7 @@
   },
   "tokens": {
     "title": "Jetons d'API",
-    "description": "Les jetons d'accès personnels permettent au CLI et aux intégrations externes de s'authentifier avec votre compte. Utilisez-en un via multica login --token, ou comme jeton Bearer lors des appels à l'API.",
+    "description": "Les jetons d'accès personnels permettent au CLI et aux intégrations externes de s'authentifier avec votre compte. Utilisez-en un via morechat login --token, ou comme jeton Bearer lors des appels à l'API.",
     "security_note": "Un jeton donne un accès complet à votre compte — traitez-le comme un mot de passe.",
     "empty": "Aucun token API pour l’instant.",
     "load_failed": "Impossible de charger vos jetons d'API. Rechargez la page pour réessayer.",
@@ -1415,7 +1415,7 @@
       "install_failed": "Échec de l’installation : {{error}}",
       "python_label": "Python",
       "git_label": "Git",
-      "multica_label": "multica CLI"
+      "multica_label": "morechat CLI"
     },
     "tabs": {
       "updates": "Mises à jour"

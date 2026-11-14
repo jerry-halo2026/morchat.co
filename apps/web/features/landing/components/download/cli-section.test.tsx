@@ -37,6 +37,6 @@ describe("CliSection", () => {
     await user.click(screen.getByRole("tab", { name: "Windows" }));
 
     expect(screen.getByText(WINDOWS_SCRIPT)).toBeInTheDocument();
-    expect(screen.getByText("multica setup")).toBeInTheDocument();
+    expect(screen.getByText("morechat setup")).toBeInTheDocument();
   });
 });

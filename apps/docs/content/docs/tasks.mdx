@@ -146,13 +146,13 @@ A retry keeps the files the previous run already wrote to the local directory wh
 Find the source run and retry it from the CLI:
 
 ```bash
-multica issue runs <issue-id> --full-id
-multica issue rerun-task <run-id>
+morechat issue runs <issue-id> --full-id
+morechat issue rerun-task <run-id>
 ```
 
 A full run UUID works without `--issue`; short prefixes require `--issue` to select the issue. This repeats the original agent and trigger context with the same continuity rules as the retry button. Add `--fresh` to start a new session and working directory.
 
-The old `multica issue rerun <issue-id>` command is deprecated and hidden from help. It remains available for existing scripts and still starts the current assignee with a fresh session and working directory.
+The old `morechat issue rerun <issue-id>` command is deprecated and hidden from help. It remains available for existing scripts and still starts the current assignee with a fresh session and working directory.
 
 ## Run completion and issue completion
 

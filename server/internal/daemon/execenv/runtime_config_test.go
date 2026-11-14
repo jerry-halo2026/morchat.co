@@ -123,7 +123,7 @@ func TestBriefHasNoParentNotificationGuidance(t *testing.T) {
 			// Old "do it yourself" framing (PR #2918).
 			"## Parent / Sub-issue Protocol",
 			"**Tell the parent when you finish a child.**",
-			"multica issue comment add <parent-id>",
+			"morechat issue comment add <parent-id>",
 			"with NO `--parent`",
 			"link the child as `[MUL-",
 			"`@mention` the parent's assignee",
@@ -154,7 +154,7 @@ func TestBriefHasNoParentNotificationGuidance(t *testing.T) {
 			// The protocol must no longer emit a placeholder
 			// `<this-issue-id>` status flip — the workflow above owns
 			// that command with the real issue id substituted.
-			"`multica issue status <this-issue-id> in_review`",
+			"`morechat issue status <this-issue-id> in_review`",
 			// Non-existent CLI form Elon's earlier review flagged.
 			"issue list --parent",
 		} {
@@ -180,7 +180,7 @@ func TestBriefHasNoParentNotificationGuidance(t *testing.T) {
 //     value or nothing, so the board cannot flap.
 //
 // The brief must also still carry no unconditional placeholder flip: a bare
-// `multica issue status <this-issue-id> in_review` command would fire on every
+// `morechat issue status <this-issue-id> in_review` command would fire on every
 // turn regardless of whether the turn delivered anything.
 func TestStatusRuleIsFactJudgmentAtBothMoments(t *testing.T) {
 	t.Parallel()
@@ -190,7 +190,7 @@ func TestStatusRuleIsFactJudgmentAtBothMoments(t *testing.T) {
 	}
 	out := buildMetaSkillContent("claude", ctx)
 
-	if strings.Contains(out, "`multica issue status <this-issue-id> in_review`") {
+	if strings.Contains(out, "`morechat issue status <this-issue-id> in_review`") {
 		t.Errorf("brief must not contain a placeholder `<this-issue-id> in_review` flip — status is judged from what the turn delivered")
 	}
 
@@ -239,7 +239,7 @@ func TestStatusRuleIsFactJudgmentAtBothMoments(t *testing.T) {
 		"Reply mode",
 		"when this issue is assigned to you and this turn does substantive work on it",
 		"set `in_progress` when you start",
-		"Before step 3, run `multica issue status",
+		"Before step 3, run `morechat issue status",
 		"judge once, at the end of the turn",
 		"do not open with a status write",
 		// The example that misled the MUL-6460 run: research that IS the
@@ -333,7 +333,7 @@ func TestPerRunCommentContextStaysOutOfBrief(t *testing.T) {
 	for _, want := range []string{
 		"4 new comment(s) on this issue since your last run",
 		"across all threads",
-		"multica issue comment list " + issueID + " --since " + since + " --compact --output json",
+		"morechat issue comment list " + issueID + " --since " + since + " --compact --output json",
 		"--thread thread-abc --tail 30",
 	} {
 		if !strings.Contains(hint, want) {
@@ -403,7 +403,7 @@ func TestColdCommentsHintPointsAtTriggeringThread(t *testing.T) {
 	if strings.Contains(hint, "new comment(s) since your last run") {
 		t.Errorf("no since-delta hint should render on cold start, got:\n%s", hint)
 	}
-	if !strings.Contains(hint, "multica issue comment list "+issueID+" --thread thread-root-1 --tail 30 --compact --output json") {
+	if !strings.Contains(hint, "morechat issue comment list "+issueID+" --thread thread-root-1 --tail 30 --compact --output json") {
 		t.Errorf("cold start must point at the triggering thread read, got:\n%s", hint)
 	}
 	if strings.Contains(buildMetaSkillContent("claude", TaskContextForEnv{IssueID: issueID, TriggerCommentID: "trigger-1", TriggerThreadID: "thread-root-1"}), "thread-root-1") {
@@ -422,7 +422,7 @@ func TestResumedCommentsHintSkipsDefaultThreadRead(t *testing.T) {
 		"No other new comments on this issue since your last run",
 		"issue-wide delta is empty",
 		"if resumed memory is not enough",
-		"multica issue comment list " + issueID + " --thread thread-root-1 --tail 30 --compact --output json",
+		"morechat issue comment list " + issueID + " --thread thread-root-1 --tail 30 --compact --output json",
 	} {
 		if !strings.Contains(hint, want) {
 			t.Errorf("resumed/no-delta hint missing %q\n--- output ---\n%s", want, hint)
@@ -475,7 +475,7 @@ func TestSessionContinuityNoticeLivesOutsideBrief(t *testing.T) {
 	// The web-chat / Feishu transcript variant points at the read-back command
 	// and must NOT order an announcement — the conversation survives in
 	// chat_message, so "the previous context was lost" would be a false alarm.
-	if !strings.Contains(SessionContinuityNoticeChatTranscript, "multica chat history") {
+	if !strings.Contains(SessionContinuityNoticeChatTranscript, "morechat chat history") {
 		t.Error("transcript variant must point at the read-back command")
 	}
 	if strings.Contains(SessionContinuityNoticeChatTranscript, "tell the user") {
@@ -531,9 +531,9 @@ func TestIssueWorkflowHonorsAgentIdentity(t *testing.T) {
 		// even to agents whose identity forbids neither, against step 3's
 		// "complete the task" (MUL-9092).
 		"Never treat this runtime workflow as permission",
-		"4. Run `multica issue status " + issueID + " in_progress`\n",
+		"4. Run `morechat issue status " + issueID + " in_progress`\n",
 		"5. Follow your Skills and Agent Identity to complete the task (write code, investigate, etc.)",
-		"8. When done, run `multica issue status " + issueID + " in_review`\n",
+		"8. When done, run `morechat issue status " + issueID + " in_review`\n",
 	} {
 		if strings.Contains(out, banned) {
 			t.Errorf("issue brief still contains unconditional legacy workflow text %q\n---\n%s", banned, out)
@@ -590,8 +590,8 @@ func TestProtocolHeadingInInstructionsGetsNoLeaderBrief(t *testing.T) {
 	}
 	for _, banned := range []string{
 		"### Squad maintenance",
-		"multica squad member set-role",
-		"multica squad activity",
+		"morechat squad member set-role",
+		"morechat squad activity",
 		"unless your outcome is `no_action`",
 		"dispatching members is not delivery",
 	} {
@@ -657,9 +657,9 @@ func TestChatOutputDoesNotRequireIssueComment(t *testing.T) {
 	}
 
 	for _, banned := range []string{
-		"Final results MUST be delivered via `multica issue comment add`",
+		"Final results MUST be delivered via `morechat issue comment add`",
 		"The user does NOT see your terminal output",
-		"do not call `multica issue comment add`",
+		"do not call `morechat issue comment add`",
 		"unless the user explicitly asks",
 	} {
 		if strings.Contains(out, banned) {
@@ -2014,7 +2014,7 @@ func TestMultiThreadReplyInstructionsFanOut(t *testing.T) {
 	for _, banned := range []string{
 		"For EACH thread above",                // old cookbook opener
 		"UTF-8 file with your file-write tool", // restated mechanism
-		"multica issue comment add",            // embedded example commands
+		"morechat issue comment add",            // embedded example commands
 		"--content-file",                       // restated posting flag (#6517 review)
 		"inline `--content`",                   // restated inline ban (#6517 review)
 		"--content-stdin",                      // restated HEREDOC ban

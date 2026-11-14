@@ -19,7 +19,7 @@ import {
 
 /*
  * Mockups for the morechat.co CLI page: a terminal connecting a computer with
- * `multica setup`, the Runtimes list it lands in, and a coding agent driving
+ * `morechat setup`, the Runtimes list it lands in, and a coding agent driving
  * the CLI on someone's behalf. Command output follows the CLI's own strings;
  * data is fictional.
  */
@@ -65,7 +65,7 @@ function Cursor() {
 function SetupSession({ compact }: { compact?: boolean }) {
   return (
     <>
-      <Cmd>multica setup</Cmd>
+      <Cmd>morechat setup</Cmd>
       <p>Configured for morechat.co Cloud (https://morechat.co).</p>
       <p>{"  server_url: https://api.morechat.co"}</p>
       <p>{"  app_url:    https://morechat.co"}</p>
@@ -81,7 +81,7 @@ function SetupSession({ compact }: { compact?: boolean }) {
       <Gap />
       {compact ? null : (
         <>
-          <Cmd>multica daemon status</Cmd>
+          <Cmd>morechat daemon status</Cmd>
           <p>{"Daemon:      running (pid 48211, uptime 14s)"}</p>
           <p>{"Version:     v0.4.31"}</p>
           <p>{"Agents:      claude, codex, opencode"}</p>
@@ -133,7 +133,7 @@ function RuntimesPanel({ className, compact }: { className: string; compact?: bo
 const SCENE = { width: 1100, height: 600 } as const;
 const SCENE_NARROW = { width: 440, height: 440 } as const;
 
-/** Hero: `multica setup` connecting a Linux box, which then shows up on the Runtimes page. */
+/** Hero: `morechat setup` connecting a Linux box, which then shows up on the Runtimes page. */
 export function CliScene() {
   return (
     <>
@@ -174,8 +174,8 @@ export function AgentSessionVisual() {
         <span className="text-muted-foreground">&gt; </span>Pick up ACM-163 and post what you find
       </p>
       <Gap />
-      <ToolCall name="Bash">multica issue get ACM-163 --output json</ToolCall>
-      <ToolCall name="Bash">multica issue comment list ACM-163 \</ToolCall>
+      <ToolCall name="Bash">morechat issue get ACM-163 --output json</ToolCall>
+      <ToolCall name="Bash">morechat issue comment list ACM-163 \</ToolCall>
       <p>{"      --roots-only --summary --compact"}</p>
       <ToolCall name="Read">e2e/checkout.spec.ts</ToolCall>
       <Gap />
@@ -184,7 +184,7 @@ export function AgentSessionVisual() {
       </p>
       <Gap />
       <ToolCall name="Write">./reply.md</ToolCall>
-      <ToolCall name="Bash">multica issue comment add ACM-163 \</ToolCall>
+      <ToolCall name="Bash">morechat issue comment add ACM-163 \</ToolCall>
       <p>{"      --content-file ./reply.md"}</p>
       <p>{"  Comment added to issue ACM-163."}</p>
     </TerminalWindow>

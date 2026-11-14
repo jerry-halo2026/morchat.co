@@ -50,7 +50,7 @@ func TestValidateCustomArgs(t *testing.T) {
 		{"omp allowed flags", "omp", []string{"--tools", "read"}, ""},
 		{"blocked subcommand", "mcode", []string{"login"}, "login"},
 		{"wire permission mode", "muse", []string{"--yolo"}, "--yolo"},
-		{"allowed flags", "claude", []string{"--tools", "Bash", "--allowedTools", "Bash(multica issue *)"}, ""},
+		{"allowed flags", "claude", []string{"--tools", "Bash", "--allowedTools", "Bash(morechat issue *)"}, ""},
 		{"other provider", "codex", []string{"--permission-mode", "dontAsk"}, ""},
 		{"unknown provider", "custom", []string{"--permission-mode", "dontAsk"}, ""},
 		{"empty args", "claude", nil, ""},

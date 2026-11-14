@@ -880,7 +880,7 @@
   },
   "tokens": {
     "title": "API Tokens",
-    "description": "Personal access tokens allow the CLI and external integrations to authenticate with your account. Use one via multica login --token, or as a Bearer token when calling the API.",
+    "description": "Personal access tokens allow the CLI and external integrations to authenticate with your account. Use one via morechat login --token, or as a Bearer token when calling the API.",
     "security_note": "A token grants full access to your account — treat it like a password.",
     "empty": "No API tokens yet.",
     "load_failed": "Could not load your API tokens. Reload the page to try again.",
@@ -1415,7 +1415,7 @@
       "install_failed": "Install failed: {{error}}",
       "python_label": "Python",
       "git_label": "Git",
-      "multica_label": "multica CLI"
+      "multica_label": "morechat CLI"
     },
     "tabs": {
       "updates": "Updates"
@@ -1457,8 +1457,8 @@
       "auto_stop_description": "Stop the daemon when Desktop closes.",
       "cli_status": "CLI Status",
       "cli_checking": "Checking…",
-      "cli_installed": "multica CLI is installed and available in PATH.",
-      "cli_missing": "multica CLI not found. Install it to enable daemon management.",
+      "cli_installed": "morechat CLI is installed and available in PATH.",
+      "cli_missing": "morechat CLI not found. Install it to enable daemon management.",
       "installation_guide": "Installation Guide",
       "diagnostics_title": "Diagnostics",
       "state": "State",
