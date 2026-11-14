@@ -17,21 +17,21 @@ import { useT } from "../../i18n";
 import { parseKnowledgeMentionRef } from "../hooks/use-knowledge";
 
 export function KnowledgeMentionCard({
-  ref: refId,
+  reference,
   fallbackLabel,
 }: {
   /** `space/path#v<revision>`, as written into the mention node's id. */
-  ref: string;
+  reference: string;
   fallbackLabel?: string;
 }) {
   const { t } = useT("knowledge");
   const p = useWorkspacePaths();
-  const parsed = parseKnowledgeMentionRef(refId);
-  const label = fallbackLabel ?? (parsed ? parsed.path.split("/").pop() ?? parsed.path : refId);
+  const parsed = parseKnowledgeMentionRef(reference);
+  const label = fallbackLabel ?? (parsed ? parsed.path.split("/").pop() ?? parsed.path : reference);
   // The pinned revision is part of the chip's meaning even when the ref has no
   // page address (a retrieval hit cites an item, not a path), so it is read off
   // the `#vN` suffix in both branches.
-  const pinned = parsed ? parsed.revision : Number.parseInt(refId.split("#v")[1] ?? "", 10) || 0;
+  const pinned = parsed ? parsed.revision : Number.parseInt(reference.split("#v")[1] ?? "", 10) || 0;
   const versionBadge =
     pinned > 0 ? (
       <Badge variant="outline" className="h-4 px-1 text-micro">

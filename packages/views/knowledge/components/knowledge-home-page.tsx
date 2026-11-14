@@ -110,7 +110,7 @@ export function KnowledgeHomePage({ wsId }: { wsId?: string }) {
                   autoFocus
                   value={draftTitle}
                   onChange={(event) => setDraftTitle(event.target.value)}
-                  placeholder="notes/launch-plan"
+                  placeholder={t(($) => $.home.new_page_example)}
                   className="mt-1"
                 />
               </label>

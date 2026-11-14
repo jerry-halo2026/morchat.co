@@ -36,7 +36,7 @@ export function MentionView({ node }: NodeViewProps) {
         className="inline"
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
-        <KnowledgeMentionCard ref={id} fallbackLabel={label} />
+        <KnowledgeMentionCard reference={id} fallbackLabel={label} />
       </NodeViewWrapper>
     );
   }

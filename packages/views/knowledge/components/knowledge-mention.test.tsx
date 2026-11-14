@@ -100,10 +100,7 @@ describe("mention picker knowledge group", () => {
 
 describe("KnowledgeMentionCard", () => {
   it("renders a hit chip as a labelled chip, since a hit has no page to open", () => {
-    // `ref` here is the chip's citation ref, not a React ref, so the
-    // string-ref rule does not apply.
-    // eslint-disable-next-line react/no-string-refs
-    renderKnowledge(<KnowledgeMentionCard ref="item-9#v4" fallbackLabel="Retrieval design" />);
+    renderKnowledge(<KnowledgeMentionCard reference="item-9#v4" fallbackLabel="Retrieval design" />);
 
     expect(screen.getByText("Retrieval design")).toBeInTheDocument();
     expect(screen.getByText("v4")).toBeInTheDocument();
@@ -113,7 +110,7 @@ describe("KnowledgeMentionCard", () => {
   it("renders the page name, the pinned revision, and the page link", () => {
     renderKnowledge(
       <>
-        <KnowledgeMentionCard ref="team/decisions/retrieval#v3" fallbackLabel="Retrieval design" />
+        <KnowledgeMentionCard reference="team/decisions/retrieval#v3" fallbackLabel="Retrieval design" />
       </>,
     );
 
@@ -127,7 +124,7 @@ describe("KnowledgeMentionCard", () => {
   it("still renders a label for an unparsable ref", () => {
     renderKnowledge(
       <>
-        <KnowledgeMentionCard ref="broken" fallbackLabel="Broken page" />
+        <KnowledgeMentionCard reference="broken" fallbackLabel="Broken page" />
       </>,
     );
 
