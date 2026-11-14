@@ -8,7 +8,7 @@ import { cn } from "@morechat/ui/lib/utils";
 import { useLocale } from "../../i18n";
 import { Container, Eyebrow, focusRing } from "../../site/primitives";
 
-const SETUP_CMD = "multica setup";
+const SETUP_CMD = "morechat setup";
 
 /**
  * The landing palette bypasses the product tokens, so the shared platform

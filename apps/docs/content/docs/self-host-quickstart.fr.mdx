@@ -109,7 +109,7 @@ Le conteneur backend exécute les migrations de base de données à chaque déma
 <Tabs items={["Accès local", "Accès distant"]}>
 <Tab value="Accès local">
 
-Ouvrez directement [http://localhost:3000](http://localhost:3000). Vous n'aurez pas non plus besoin de fournir d'URL lorsque vous lancerez `multica setup self-host` plus tard.
+Ouvrez directement [http://localhost:3000](http://localhost:3000). Vous n'aurez pas non plus besoin de fournir d'URL lorsque vous lancerez `morechat setup self-host` plus tard.
 
 </Tab>
 <Tab value="Accès distant" id="remote-access">
@@ -164,7 +164,7 @@ api.example.com {
 
 ```text
 multica.example.com {
-    # Sonde d'accessibilité du CLI : `multica setup` envoie un GET à <server-url>/health et
+    # Sonde d'accessibilité du CLI : `morechat setup` envoie un GET à <server-url>/health et
     # attend un 200 ; les anciennes versions web ne le relaient pas, il faut donc le router directement
     handle /health {
         reverse_proxy 127.0.0.1:8080
@@ -196,7 +196,7 @@ multica.example.com {
 </Tab>
 </Tabs>
 
-L'**origine unique** (un seul domaine, ou un seul hôte avec un seul port, courant sur les petits serveurs) route explicitement vers le backend les chemins indispensables au daemon et laisse le frontend gérer le reste. Faites alors pointer les deux URL vers elle : `FRONTEND_ORIGIN` et `MULTICA_APP_URL` dans `.env`, puis `--server-url` et `--app-url` dans `multica setup self-host`.
+L'**origine unique** (un seul domaine, ou un seul hôte avec un seul port, courant sur les petits serveurs) route explicitement vers le backend les chemins indispensables au daemon et laisse le frontend gérer le reste. Faites alors pointer les deux URL vers elle : `FRONTEND_ORIGIN` et `MULTICA_APP_URL` dans `.env`, puis `--server-url` et `--app-url` dans `morechat setup self-host`.
 
 Après avoir modifié `.env`, recréez les conteneurs avec `up -d` pour que la nouvelle configuration soit prise en compte :
 
@@ -285,14 +285,14 @@ Reliez ensuite le CLI à votre service. Choisissez l'endroit où tourne le servi
 <Tab value="Sur cet ordinateur">
 
 ```bash
-multica setup self-host
+morechat setup self-host
 ```
 
 </Tab>
 <Tab value="Sur une autre machine">
 
 ```bash
-multica setup self-host \
+morechat setup self-host \
   --server-url https://api.example.com \
   --app-url https://app.example.com
 ```
@@ -305,7 +305,7 @@ Si le service tourne sur une autre machine, passez les deux URL configurées pr�
 Vérifiez la connexion :
 
 ```bash
-multica daemon status
+morechat daemon status
 ```
 
 La sortie doit afficher :
@@ -467,8 +467,8 @@ Helm a son propre chemin de mise à niveau : définissez `images.backend.tag` / 
 | `/readyz` ne renvoie pas `ok` | Exécutez `docker compose -f docker-compose.selfhost.yml logs backend postgres`. |
 | Aucun code de vérification n'arrive | Demandez un code, puis cherchez `Verification code` dans les journaux du backend. |
 | `setup self-host` signale que le serveur est injoignable | Depuis l'ordinateur, envoyez une requête à `https://api.example.com/health` pour confirmer que le DNS, le TLS et le proxy inverse sont tous joignables. Un 404 signifie que le proxy envoie `/health` à une ancienne version web qui ne le relaie pas : routez-le vers le backend ([Dépannage](/troubleshooting#multica-setup-reports-the-server-is-not-reachable)). |
-| Le daemon n'affiche rien sous `Agents` | Vérifiez que les outils de codage IA sont dans le `PATH` et connectés, puis exécutez `multica daemon restart`. |
-| Les tâches restent en file d'attente | Exécutez `multica daemon status` pour confirmer que le daemon tourne et qu'il est connecté à l'espace de travail. |
+| Le daemon n'affiche rien sous `Agents` | Vérifiez que les outils de codage IA sont dans le `PATH` et connectés, puis exécutez `morechat daemon restart`. |
+| Les tâches restent en file d'attente | Exécutez `morechat daemon status` pour confirmer que le daemon tourne et qu'il est connecté à l'espace de travail. |
 
 Pour d'autres scénarios, consultez [Dépannage](/troubleshooting).
 

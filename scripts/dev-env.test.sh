@@ -496,7 +496,7 @@ stop_mode="$tmp_dir/daemon-stop-mode"
 mkdir -p "$fake_checkout/server/bin"
 # The fake CLI stops the daemon only in "kill" mode. "lies" exits 0 with the
 # daemon still alive, like a plain `daemon stop` that is still finishing a run.
-cat > "$fake_checkout/server/bin/multica" <<EOF
+cat > "$fake_checkout/server/bin/morechat" <<EOF
 #!/usr/bin/env bash
 [ "\$*" = "daemon stop --force --profile desktop-localhost-18080" ] || exit 0
 case "\$(cat "$stop_mode")" in
@@ -508,14 +508,14 @@ case "\$(cat "$stop_mode")" in
   *) exit 1 ;;
 esac
 EOF
-chmod +x "$fake_checkout/server/bin/multica"
+chmod +x "$fake_checkout/server/bin/morechat"
 
 printf 'lies' > "$stop_mode"
 status=0
 (
   # shellcheck disable=SC1090
   source "$root_dir/scripts/dev-env.sh"
-  BACKEND_PORT=18080 MULTICA_BIN="$fake_checkout/server/bin/multica" DIR="$fake_checkout"
+  BACKEND_PORT=18080 MULTICA_BIN="$fake_checkout/server/bin/morechat" DIR="$fake_checkout"
   stop_desktop_daemon
 ) > "$out" 2>&1 || status=$?
 [ "$status" -ne 0 ] || fail "stop_desktop_daemon trusted a stop that left the daemon running"

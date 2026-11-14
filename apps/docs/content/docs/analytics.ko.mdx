@@ -115,8 +115,8 @@ import { UsageDemo } from "@/components/demos/usage-demo";
 ## CLI로 확인하기
 
 ```bash
-multica issue usage <issue-id>
-multica runtime usage <runtime-id> --days 30
+morechat issue usage <issue-id>
+morechat runtime usage <runtime-id> --days 30
 ```
 
 `issue usage`는 태스크의 토큰 합계(입력, 출력, 캐시 읽기, 캐시 쓰기)와 실행 수를 출력합니다. `RUNS`는 끝난 실행 수, `METERED_RUNS`는 사용량을 보고한 실행 수, `UNREPORTED`는 보고하지 않은 실행 수입니다. 보고하지 않은 실행이 있으면 토큰 합계 앞에 `>=`가 붙습니다. 실제 값은 그보다 크다는 뜻입니다.

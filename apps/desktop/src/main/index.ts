@@ -160,7 +160,7 @@ const BUNDLED_ICON_PATH = join(__dirname, "../../resources/icon.png").replace(
 // macOS/Linux GUI launches inherit a minimal PATH from launchd that omits
 // the user's shell config (~/.zshrc, Homebrew, nvm, ~/.local/bin, etc.).
 // Run the user's login shell once to recover the real PATH so the bundled
-// multica CLI can find agent binaries like claude/codex/opencode. Must run
+// morechat CLI can find agent binaries like claude/codex/opencode. Must run
 // before any child_process.spawn / execFile call in the main process —
 // ES module imports are hoisted, so this block executes before createMainWindow
 // or any daemon-manager spawn.
@@ -1247,7 +1247,7 @@ if (!gotTheLock) {
     // Register first so the update quit gate can block daemon autoStop.
     setupAutoUpdater(() => mainWindows.all(), {
       // Windows only (the updater ignores it elsewhere): stop the bundled
-      // daemon before the installer runs so multica.exe is replaced. #8823
+      // daemon before the installer runs so morechat.exe is replaced. #8823
       daemonGate: {
         prepare: prepareDaemonForUpdateInstall,
         resumeAfterAbortedInstall: resumeDaemonAfterAbortedUpdateInstall,

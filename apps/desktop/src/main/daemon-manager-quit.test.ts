@@ -42,7 +42,7 @@ vi.mock("fs/promises", async (original) => ({
   }),
   writeFile: vi.fn(), mkdir: vi.fn(),
 }));
-vi.mock("./cli-bootstrap", () => ({ ensureManagedCli: context.install, managedCliPath: () => "/test/managed/multica" }));
+vi.mock("./cli-bootstrap", () => ({ ensureManagedCli: context.install, managedCliPath: () => "/test/managed/morechat" }));
 vi.mock("./daemon-port", () => ({ probeProfileHealth: context.health, readDaemonPortRecord: context.readPort }));
 
 async function setup() {

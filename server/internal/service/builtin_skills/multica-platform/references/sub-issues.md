@@ -45,14 +45,14 @@ time; `backlog` sets the assignee without triggering.
 Parallel children — all start now:
 
 ```bash
-multica issue create --title "..." --parent <issue-id> --assignee <agent> --status todo
+morechat issue create --title "..." --parent <issue-id> --assignee <agent> --status todo
 ```
 
 Strictly serial children — park later steps, promote one at a time:
 
 ```bash
-multica issue create --title "Step 2: ..." --parent <issue-id> --assignee <agent> --status backlog
-multica issue status <child-id> todo   # promote when the previous step is truly done
+morechat issue create --title "Step 2: ..." --parent <issue-id> --assignee <agent> --status backlog
+morechat issue status <child-id> todo   # promote when the previous step is truly done
 ```
 
 Creating every serial step as `todo` enqueues the whole chain at once.
@@ -74,10 +74,10 @@ wakes the parent assignee, who then decides whether to promote the next stage's
 
 ```bash
 # Stage 1 runs now; later stages parked until promoted
-multica issue create --title "Research A" --parent <id> --assignee <agent> --stage 1 --status todo
-multica issue create --title "Research B" --parent <id> --assignee <agent> --stage 1 --status todo
-multica issue create --title "Build"      --parent <id> --assignee <agent> --stage 2 --status backlog
-multica issue create --title "Ship"       --parent <id> --assignee <agent> --stage 3 --status backlog
+morechat issue create --title "Research A" --parent <id> --assignee <agent> --stage 1 --status todo
+morechat issue create --title "Research B" --parent <id> --assignee <agent> --stage 1 --status todo
+morechat issue create --title "Build"      --parent <id> --assignee <agent> --stage 2 --status backlog
+morechat issue create --title "Ship"       --parent <id> --assignee <agent> --stage 3 --status backlog
 ```
 
 When both Stage 1 sub-issues finish you (the parent assignee) are woken by the
@@ -85,8 +85,8 @@ sub-issue wakeup; its `[WAKEUP]` block lists every stage and names the next one.
 Inspect the layout, then promote the next stage:
 
 ```bash
-multica issue children <parent-id>             # sub-issues grouped by stage
-multica issue status <stage-2-child-id> todo   # promote when its deps are met
+morechat issue children <parent-id>             # sub-issues grouped by stage
+morechat issue status <stage-2-child-id> todo   # promote when its deps are met
 ```
 
 `issue children --output json` reports per-stage `done` counts, including custom
@@ -119,12 +119,12 @@ Serial / phased sub-issues (don't start the whole chain at once):
 
 ```bash
 # incorrect — all fire immediately, no ordering
-multica issue create --title "Step 2" --parent <issue-id> --assignee <agent> --status todo
-multica issue create --title "Step 3" --parent <issue-id> --assignee <agent> --status todo
+morechat issue create --title "Step 2" --parent <issue-id> --assignee <agent> --status todo
+morechat issue create --title "Step 3" --parent <issue-id> --assignee <agent> --status todo
 
 # correct — stage them; Stage 1 runs, later stages park and are promoted as
 # each stage's barrier closes
-multica issue create --title "Step 1" --parent <issue-id> --assignee <agent> --stage 1 --status todo
-multica issue create --title "Step 2" --parent <issue-id> --assignee <agent> --stage 2 --status backlog
-multica issue create --title "Step 3" --parent <issue-id> --assignee <agent> --stage 3 --status backlog
+morechat issue create --title "Step 1" --parent <issue-id> --assignee <agent> --stage 1 --status todo
+morechat issue create --title "Step 2" --parent <issue-id> --assignee <agent> --stage 2 --status backlog
+morechat issue create --title "Step 3" --parent <issue-id> --assignee <agent> --stage 3 --status backlog
 ```

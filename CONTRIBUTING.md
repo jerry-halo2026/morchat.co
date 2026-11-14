@@ -412,7 +412,7 @@ make check-worktree   # verify
 
 ### Git Identity in Managed Task Checkouts
 
-`multica repo checkout` uses the user's system/global Git identity, including
+`morechat repo checkout` uses the user's system/global Git identity, including
 conditional includes evaluated in the checkout. Agent names determine branch
 names, not commit authors. The optional `Co-authored-by` trailer is independent
 of author and committer identity.
@@ -588,7 +588,7 @@ Run the local daemon:
 make daemon
 ```
 
-The daemon authenticates using the CLI's stored token (`multica login`).
+The daemon authenticates using the CLI's stored token (`morechat login`).
 It registers runtimes for all watched workspaces from the CLI config.
 
 ## Full-Stack Isolated Testing
@@ -602,7 +602,7 @@ make up C=api,web,daemon
 
 It creates the environment if needed, sets the fixed local verification code
 before the first launch, logs in as `dev@localhost`, mints a personal access
-token, creates a workspace, writes the CLI profile, builds `server/bin/multica`
+token, creates a workspace, writes the CLI profile, builds `server/bin/morechat`
 and starts the daemon from that binary. It then prints the URL, the login, the
 commit, and the stop command.
 

@@ -175,10 +175,10 @@ func releaseAssetCandidates(targetVersion, goos, goarch string) []string {
 	version := strings.TrimPrefix(tag, "v")
 	ext := releaseArchiveExtension(goos)
 	// Prefer the versioned name (current scheme); fall back to the legacy
-	// `multica_{os}_{arch}` name for releases that still ship it.
+	// `<project>_{os}_{arch}` name, which goreleaser still publishes.
 	return []string{
-		fmt.Sprintf("multica-cli-%s-%s-%s.%s", version, goos, goarch, ext),
-		fmt.Sprintf("multica_%s_%s.%s", goos, goarch, ext),
+		fmt.Sprintf("morechat-cli-%s-%s-%s.%s", version, goos, goarch, ext),
+		fmt.Sprintf("morechat_%s_%s.%s", goos, goarch, ext),
 	}
 }
 
@@ -277,7 +277,7 @@ func fetchReleaseByTag(tag string) (*GitHubRelease, error) {
 	return &release, nil
 }
 
-// FetchLatestRelease fetches the latest release tag from the multica GitHub repo.
+// FetchLatestRelease fetches the latest release tag from the morechat GitHub repo.
 func FetchLatestRelease() (*GitHubRelease, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 	req, err := http.NewRequest(http.MethodGet, releaseAPIBaseURL()+"/repos/jerry-halo2026/morchat.co/releases/latest", nil)
@@ -320,7 +320,7 @@ func MatchKnownBrewPrefix(path string) string {
 	return ""
 }
 
-// IsBrewInstall checks whether the running multica binary was installed via Homebrew.
+// IsBrewInstall checks whether the running morechat binary was installed via Homebrew.
 // The check itself lives in brewInstallForPath (stable_exe.go) so it stays
 // one implementation with the stable-path resolver that depends on it.
 func IsBrewInstall() bool {
@@ -346,10 +346,10 @@ func GetBrewPrefix() string {
 	return strings.TrimSpace(string(out))
 }
 
-// UpdateViaBrew runs `brew upgrade multica-ai/tap/multica`.
+// UpdateViaBrew runs `brew upgrade multica-ai/tap/morechat`.
 // Returns the combined output and any error.
 func UpdateViaBrew() (string, error) {
-	cmd := exec.Command("brew", "upgrade", "multica-ai/tap/multica")
+	cmd := exec.Command("brew", "upgrade", "multica-ai/tap/morechat")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return string(out), fmt.Errorf("brew upgrade failed: %w", err)
@@ -449,9 +449,9 @@ func UpdateViaDownloadWithTimeout(targetVersion string, downloadTimeout time.Dur
 	}
 
 	// Extract the binary from the archive.
-	binaryName := "multica"
+	binaryName := "morechat"
 	if runtime.GOOS == "windows" {
-		binaryName = "multica.exe"
+		binaryName = "morechat.exe"
 	}
 	var binaryData []byte
 	if runtime.GOOS == "windows" {
@@ -465,7 +465,7 @@ func UpdateViaDownloadWithTimeout(targetVersion string, downloadTimeout time.Dur
 
 	// Atomic replace: write to temp file, then rename over the original.
 	dir := filepath.Dir(exePath)
-	tmpFile, err := os.CreateTemp(dir, "multica-update-*")
+	tmpFile, err := os.CreateTemp(dir, "morechat-update-*")
 	if err != nil {
 		return "", fmt.Errorf("create temp file: %w", err)
 	}

@@ -33,7 +33,7 @@ Les agents exécutent le travail sur les ordinateurs que vous connectez. Ouvrez 
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.sh | bash
-multica setup
+morechat setup
 ```
 
 </Tab>
@@ -41,13 +41,13 @@ multica setup
 
 ```powershell
 irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex
-multica setup
+morechat setup
 ```
 
 </Tab>
 </Tabs>
 
-`multica setup` ouvre un navigateur pour finaliser la connexion, puis laisse le daemon tourner en arrière-plan. Une fois le daemon en ligne, la boîte de dialogue détecte généralement l'ordinateur en moins d'une minute.
+`morechat setup` ouvre un navigateur pour finaliser la connexion, puis laisse le daemon tourner en arrière-plan. Une fois le daemon en ligne, la boîte de dialogue détecte généralement l'ordinateur en moins d'une minute.
 
 **Vérification** : un ordinateur en ligne apparaît dans la liste des runtimes.
 
@@ -99,8 +99,8 @@ Après validation, ouvrez la tâche : le journal d'exécution affiche le statut 
 
 | Symptôme | À vérifier en premier |
 |---|---|
-| Aucun runtime trouvé | Vérifiez que l'outil de codage IA est installé et fonctionne dans un terminal. Sur Desktop, cliquez sur **Actualiser** ; avec le CLI, relancez `multica setup`. |
-| Le runtime apparaît hors ligne | Gardez Desktop ouvert ; avec le CLI, exécutez `multica daemon status`, puis `multica daemon start` s'il n'est pas lancé. |
+| Aucun runtime trouvé | Vérifiez que l'outil de codage IA est installé et fonctionne dans un terminal. Sur Desktop, cliquez sur **Actualiser** ; avec le CLI, relancez `morechat setup`. |
+| Le runtime apparaît hors ligne | Gardez Desktop ouvert ; avec le CLI, exécutez `morechat daemon status`, puis `morechat daemon start` s'il n'est pas lancé. |
 | La tâche reste en file d'attente | Vérifiez que le runtime utilisé par l'agent est en ligne. Lorsqu'un runtime atteint sa limite de parallélisme, les nouvelles exécutions restent en file d'attente. |
 
 Pour d'autres cas, consultez [Dépannage](/troubleshooting).

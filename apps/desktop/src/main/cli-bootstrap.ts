@@ -10,7 +10,7 @@ import { Readable } from "stream";
 
 import { selectPlatformReleaseAssetName } from "./cli-release-asset";
 
-// Desktop prefers the bundled `multica` CLI shipped inside the app for
+// Desktop prefers the bundled `morechat` CLI shipped inside the app for
 // same-repo builds, but it can also repair or bootstrap a managed copy in
 // userData on first launch when the bundled binary is missing or unusable.
 
@@ -18,6 +18,11 @@ const GITHUB_LATEST_BASE =
   "https://github.com/jerry-halo2026/morchat.co/releases/latest/download";
 
 function binaryName(): string {
+  return process.platform === "win32" ? "morechat.exe" : "morechat";
+}
+
+/** Releases published before the rename still carry this name inside the archive. */
+function legacyBinaryName(): string {
   return process.platform === "win32" ? "multica.exe" : "multica";
 }
 
@@ -102,7 +107,7 @@ async function installFresh(): Promise<string> {
   }
   const url = `${GITHUB_LATEST_BASE}/${assetName}`;
 
-  const workDir = join(tmpdir(), `multica-cli-${Date.now()}`);
+  const workDir = join(tmpdir(), `morechat-cli-${Date.now()}`);
   await mkdir(workDir, { recursive: true });
 
   try {
@@ -116,8 +121,10 @@ async function installFresh(): Promise<string> {
     console.log(`[cli-bootstrap] extracting ${assetName}`);
     await extractArchive(archivePath, workDir);
 
-    const extractedBin = join(workDir, binaryName());
-    if (!existsSync(extractedBin)) {
+    const extractedBin = [binaryName(), legacyBinaryName()]
+      .map((name) => join(workDir, name))
+      .find((candidate) => existsSync(candidate));
+    if (!extractedBin) {
       throw new Error(
         `archive ${assetName} did not contain ${binaryName()} at its root`,
       );
@@ -144,7 +151,7 @@ async function installFresh(): Promise<string> {
 }
 
 /**
- * Returns the path to a usable `multica` binary. If one is already present at
+ * Returns the path to a usable `morechat` binary. If one is already present at
  * the managed userData location, returns it immediately. Otherwise downloads
  * the latest release asset for the current platform and installs it.
  */

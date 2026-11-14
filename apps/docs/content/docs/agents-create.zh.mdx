@@ -189,9 +189,9 @@ MCP 配置可能包含 token，保存与展示规则和环境变量相同。只�
 用 CLI 也能完成同样的操作。配置里通常有 token，用文件或 stdin 传入，不要直接写在命令行参数里：
 
 ```bash
-multica workspace mcp add linear --server-config-file ./linear.json
-multica workspace mcp list
-multica agent mcp add <agent-id> <server-id>
+morechat workspace mcp add linear --server-config-file ./linear.json
+morechat workspace mcp list
+morechat agent mcp add <agent-id> <server-id>
 ```
 
 ## 复制智能体
@@ -203,7 +203,7 @@ multica agent mcp add <agent-id> <server-id>
 ## 使用 CLI 创建
 
 ```bash
-multica agent create \
+morechat agent create \
  --name "Frontend Reviewer" \
  --runtime-id <runtime-id> \
  --description "审查前端 Pull Request" \
@@ -216,7 +216,7 @@ multica agent create \
 已有配置相近的智能体时，可以直接复制：
 
 ```bash
-multica agent copy <agent-id>
+morechat agent copy <agent-id>
 ```
 
 默认复制到同一运行时；加 `--runtime-id` 换到其他运行时，必须同时指定 `--model`。环境变量、MCP 配置和 `runtime_config` 永不复制；运行时绑定本身会保留。完整参数见[使用 CLI](/cli)。

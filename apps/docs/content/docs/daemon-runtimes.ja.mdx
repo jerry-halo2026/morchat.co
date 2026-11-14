@@ -39,7 +39,7 @@ morechat.co Desktop はデーモンを自動的に起動するため、追加の
 Web、リモートのコンピュータ、ヘッドレス環境では、先に [morechat.co CLI をインストール](/cli)してから実行します。
 
 ```bash
-multica daemon start
+morechat daemon start
 ```
 
 </Tab>
@@ -49,13 +49,13 @@ multica daemon start
 
 | コマンド | 役割 |
 | --- | --- |
-| `multica daemon status` | デーモンと接続の状態を表示する |
-| `multica daemon logs -f` | ログを追跡表示する |
-| `multica daemon restart` | デーモンを再起動し、ローカルツールを再検出する |
-| `multica daemon stop` | デーモンを停止する |
-| `multica daemon start --foreground` | デバッグ用に現在のターミナルで実行する |
+| `morechat daemon status` | デーモンと接続の状態を表示する |
+| `morechat daemon logs -f` | ログを追跡表示する |
+| `morechat daemon restart` | デーモンを再起動し、ローカルツールを再検出する |
+| `morechat daemon stop` | デーモンを停止する |
+| `morechat daemon start --foreground` | デバッグ用に現在のターミナルで実行する |
 
-実行用の作業ディレクトリを別のディスクに置くには、`multica config set workspaces_root <path>` で現在のプロファイルにルートを保存するか、`daemon start` または `daemon restart` に `--workspaces-root <path>` を渡します。フラグは `MULTICA_WORKSPACES_ROOT` より優先され、環境変数はプロファイル設定より優先されます。ルートを変更しても既存の実行ディレクトリは移動されません。
+実行用の作業ディレクトリを別のディスクに置くには、`morechat config set workspaces_root <path>` で現在のプロファイルにルートを保存するか、`daemon start` または `daemon restart` に `--workspaces-root <path>` を渡します。フラグは `MULTICA_WORKSPACES_ROOT` より優先され、環境変数はプロファイル設定より優先されます。ルートを変更しても既存の実行ディレクトリは移動されません。
 
 起動時、デーモンは `PATH` 上の対応する AI コーディングツールを検出し、あなたが接続を許可されているワークスペースにランタイムを登録します。ツールをインストールまたはログインした直後の場合は、デーモンを再起動すると再検出されます。
 
@@ -66,17 +66,17 @@ multica daemon start
 CLI で起動したデーモンは、コンピューターを再起動すると自動では戻りません。自動で起動させるには、現在のプロファイルを登録します。
 
 ```bash
-multica daemon autostart enable
-multica daemon autostart status
-multica daemon autostart disable
+morechat daemon autostart enable
+morechat daemon autostart status
+morechat daemon autostart disable
 ```
 
-登録されるのはそのプロファイルの `multica daemon start --foreground` で、ログイン時に OS が起動します。Windows では現在のユーザーの Run レジストリ値、macOS では `~/Library/LaunchAgents` の LaunchAgent、Linux では systemd のユーザーユニットを使い、systemd のユーザーセッションがない場合は XDG autostart のエントリを使います。名前付きプロファイルでは `--profile <name>` を付けます。プロファイルごとに個別に登録されます。
+登録されるのはそのプロファイルの `morechat daemon start --foreground` で、ログイン時に OS が起動します。Windows では現在のユーザーの Run レジストリ値、macOS では `~/Library/LaunchAgents` の LaunchAgent、Linux では systemd のユーザーユニットを使い、systemd のユーザーセッションがない場合は XDG autostart のエントリを使います。名前付きプロファイルでは `--profile <name>` を付けます。プロファイルごとに個別に登録されます。
 
-- 登録を作るのは `enable` だけです。`multica daemon start` が自分で登録することはなく、未登録のときに 1 行のヒントを出すだけです。morechat.co が作った登録がある場合は、その中の実行ファイルのパスを更新するので、CLI を更新・移動しても `enable` をやり直す必要はありません。
-- macOS と Linux では、ログインセッションに渡るのは `enable` 実行時のシェルの `PATH` だけです。シェルで export したほかの変数（API キー、`HTTPS_PROXY` など）は引き継がれません。デーモンの設定は `multica config set` で保存し、ほかの変数はユーザー環境に置いてください。
+- 登録を作るのは `enable` だけです。`morechat daemon start` が自分で登録することはなく、未登録のときに 1 行のヒントを出すだけです。morechat.co が作った登録がある場合は、その中の実行ファイルのパスを更新するので、CLI を更新・移動しても `enable` をやり直す必要はありません。
+- macOS と Linux では、ログインセッションに渡るのは `enable` 実行時のシェルの `PATH` だけです。シェルで export したほかの変数（API キー、`HTTPS_PROXY` など）は引き継がれません。デーモンの設定は `morechat config set` で保存し、ほかの変数はユーザー環境に置いてください。
 - systemd のユーザーユニットはログイン時に起動します。ログインせずに起動時から動かすには、`enable` の出力にあるとおり `loginctl enable-linger <ユーザー名>` を実行します。
-- `multica daemon stop` は動いているデーモンを止めるだけで、登録は残ります。
+- `morechat daemon stop` は動いているデーモンを止めるだけで、登録は残ります。
 - 同じ場所に morechat.co が作っていないファイル（自分で書いた systemd ユニットなど）がある場合、`enable` も `disable` もそのファイルを変更しません。
 - Desktop が起動したデーモンは Desktop が管理します。`daemon start` はそのデーモンについてヒントを出したり登録を更新したりしません。
 
@@ -105,7 +105,7 @@ multica daemon autostart disable
 
 上限に達すると、新しい実行はキューで待ち続けます。個々のエージェントの同時実行数はエージェント設定で、マシン全体の上限は `MULTICA_DAEMON_MAX_CONCURRENT_TASKS` で調整できます。並列実行は、マシンの性能、ツールアカウントのクォータ、同じ作業ディレクトリを同時に取り合います。
 
-実行で使われたトークン、費用、失敗はワークスペースごとに[分析](/analytics)ページにまとまっています。1 つのランタイムのトークン使用量は `multica runtime usage <runtime-id>` でも確認できます。
+実行で使われたトークン、費用、失敗はワークスペースごとに[分析](/analytics)ページにまとまっています。1 つのランタイムのトークン使用量は `morechat runtime usage <runtime-id>` でも確認できます。
 
 ## ローカルの MCP 設定 [#local-mcp]
 
@@ -132,7 +132,7 @@ CodeBuddy、Kimi CLI、Pi は起動時に自分でユーザーレベルの設定
 
 ## クリーンアップと保持 [#cleanup]
 
-デーモンは起動の約 30 秒後に最初のクリーンアップを行い、その後は 2 時間ごとに行います。実行中の実行が使っているディレクトリは削除されません。`multica daemon disk-usage` でワークスペースごと、実行ごとの使用量を確認できます。以下の期間はデフォルト値で、対応する `MULTICA_GC_*` 変数は[環境変数](/environment-variables#gc)にあります。
+デーモンは起動の約 30 秒後に最初のクリーンアップを行い、その後は 2 時間ごとに行います。実行中の実行が使っているディレクトリは削除されません。`morechat daemon disk-usage` でワークスペースごと、実行ごとの使用量を確認できます。以下の期間はデフォルト値で、対応する `MULTICA_GC_*` 変数は[環境変数](/environment-variables#gc)にあります。
 
 ### 実行ディレクトリ
 
@@ -210,9 +210,9 @@ Codex のネイティブサブエージェントも既定でオフです。morec
 | `MULTICA_TASK_CONFIG_ROOT` | 作業専用の morechat.co CLI 設定ルート | 参考情報 |
 | `MULTICA_TASK_WORKSPACES_ROOT` | デーモンが管理する作業用ワークスペースのルート | 参考情報 |
 | `MULTICA_AGENT_NAME` | 割り当てられたエージェントの表示名 | 参考情報 |
-| `MULTICA_DAEMON_PORT` | `multica repo checkout` など作業専用コマンドが使うローカルデーモンのヘルス/API ポート | 参考情報 |
+| `MULTICA_DAEMON_PORT` | `morechat repo checkout` など作業専用コマンドが使うローカルデーモンのヘルス/API ポート | 参考情報 |
 | `MULTICA_TASK_SLOT` | デーモン全体の同時実行プール内のスロット。GPU などスロット番号付きリソースに使用可能 | 参考情報 |
-| `MULTICA_REPO_CHECKOUT_MODE` | Linux と Windows の Codex 実行でだけ `isolated` になり、`multica repo checkout` が作業ディレクトリ内に `.git` を持つ独立したクローンを作る。ほかの実行では設定されない | 参考情報 |
+| `MULTICA_REPO_CHECKOUT_MODE` | Linux と Windows の Codex 実行でだけ `isolated` になり、`morechat repo checkout` が作業ディレクトリ内に `.git` を持つ独立したクローンを作る。ほかの実行では設定されない | 参考情報 |
 | `TMPDIR` | 実行中の作業専用の一時ディレクトリ。`TMP` と `TEMP` でも提供しますが、Windows では Git Bash の共有 `/tmp` のため作業はユーザーの一時パスを継承します。Windows の Claude Code は `CLAUDE_CODE_TMPDIR` の既定値を作業の一時ディレクトリに設定 | 参考情報 |
 
 `MULTICA_TOKEN` を使ったリクエストの作成者はサーバーが決定し、タスクへのコメントなどの書き込みは、割り当てられたエージェントと実行中の作業に帰属します。認証情報の完全な紐付け、権限、帰属、最長 24 時間の有効期間、クリーンアップについては、[エージェント実行用の一時トークン](/auth-tokens#エージェント実行用の一時トークン)を参照してください。
@@ -254,13 +254,13 @@ Codex のネイティブサブエージェントも既定でオフです。morec
 Desktop が起動したデーモンが、ターミナルでは実行できるコマンドを見つけられない場合は、現在のコンピュータに絶対パスを設定できます。
 
 ```bash
-multica runtime profile set-path <profile-id> --path /absolute/path/to/command
+morechat runtime profile set-path <profile-id> --path /absolute/path/to/command
 ```
 
 パスの上書きを解除するには:
 
 ```bash
-multica runtime profile unset-path <profile-id>
+morechat runtime profile unset-path <profile-id>
 ```
 
 プロファイルの変更は、それ以降に取得される実行にのみ影響します。プロファイルを削除する前に、対応するランタイムにまだ紐づいているアクティブなエージェントを先に処理してください。あるコンピュータ上のランタイムインスタンスだけを削除してもプロファイルは消えず、実行中のデーモンが再登録します。
@@ -302,11 +302,11 @@ Qoder Cloud Agents は割り当てられたタスクをリモートセッショ�
 
 次の順に確認します。
 
-1. `multica daemon status` を実行し、デーモンが起動していることを確認する。
-2. `multica daemon logs -f` を実行し、ログイン、ネットワーク、ツール検出のエラーを確認する。
+1. `morechat daemon status` を実行し、デーモンが起動していることを確認する。
+2. `morechat daemon logs -f` を実行し、ログイン、ネットワーク、ツール検出のエラーを確認する。
 3. 同じ実行環境で `command -v <ツールコマンド>` を実行し、デーモンがコマンドを見つけられることを確認する。
 4. morechat.co の**ランタイム**ページを開き、対象のコンピュータと対応する AI コーディングツールがオンラインと表示されているか確認する。
-5. ツールのインストール直後、パスの変更直後、プロファイルの更新直後は `multica daemon restart` を実行する。
+5. ツールのインストール直後、パスの変更直後、プロファイルの更新直後は `morechat daemon restart` を実行する。
 
 それでも解決しない場合は[トラブルシューティング](/troubleshooting)を参照してください。
 

@@ -509,10 +509,10 @@ func TestFormatErrorRejectedTaskTokenDoesNotSuggestAnotherCredential(t *testing.
 			[]string{"rejected", "no longer usable", "Stop here", "do not retry",
 				"do not fall back to a profile or member credential"},
 			// No sign-in advice, and no claim about a cause it cannot verify.
-			[]string{"multica login", "administrator", "cancelled", "finished", "terminal state"}},
+			[]string{"morechat login", "administrator", "cancelled", "finished", "terminal state"}},
 		{"zh_CN.UTF-8",
 			[]string{"已被拒绝", "不再可用", "不要重试", "不要改用 profile 或成员凭证"},
-			[]string{"multica login", "管理员", "已完成", "被取消", "终态"}},
+			[]string{"morechat login", "管理员", "已完成", "被取消", "终态"}},
 	} {
 		withLang(t, tc.lang)
 		got := FormatError(httpErr, false)
@@ -543,7 +543,7 @@ func TestFormatErrorRejectedTaskTokenDoesNotSuggestAnotherCredential(t *testing.
 	// A member 401 is unchanged: that really is an expired login.
 	withLang(t, "en_US.UTF-8")
 	member := FormatError(&HTTPError{Method: "GET", Path: "/api/me", StatusCode: 401}, false)
-	if !strings.Contains(member, "multica login") {
+	if !strings.Contains(member, "morechat login") {
 		t.Errorf("a member 401 should still point at sign-in, got %q", member)
 	}
 
@@ -562,7 +562,7 @@ func TestFormatErrorActionableHints(t *testing.T) {
 		enWant []string
 		zhWant []string
 	}{
-		{401, []string{"multica login", "self-hosted", "administrator"}, []string{"multica login", "自托管", "管理员"}},
+		{401, []string{"morechat login", "self-hosted", "administrator"}, []string{"morechat login", "自托管", "管理员"}},
 		{403, []string{"permission", "workspace"}, []string{"无权", "workspace"}},
 		{404, []string{"not found", "list"}, []string{"未找到", "list"}},
 		{409, []string{"conflict", "again"}, []string{"冲突", "重新获取"}},
@@ -597,10 +597,10 @@ func TestFormatErrorActionableHints(t *testing.T) {
 // custom message is shown by default (overriding the generic kind copy),
 // ExitCodeFor still classifies by the underlying typed error, and --debug
 // still exposes the full original chain. This is the mechanism that makes the
-// `multica login` failure guidance visible without losing classification.
+// `morechat login` failure guidance visible without losing classification.
 func TestUserMessageError(t *testing.T) {
 	withLang(t, "en_US.UTF-8")
-	const hint = "Could not sign in with that token — make sure it is valid and not expired, then run `multica login --token <token>` again."
+	const hint = "Could not sign in with that token — make sure it is valid and not expired, then run `morechat login --token <token>` again."
 
 	t.Run("wrapped HTTPError (invalid token -> 401)", func(t *testing.T) {
 		underlying := &HTTPError{Method: "GET", Path: "/api/me", StatusCode: 401, Body: `{"error":"unauthorized"}`}
@@ -635,7 +635,7 @@ func TestUserMessageError(t *testing.T) {
 
 	t.Run("wrapped NetworkError classifies as network", func(t *testing.T) {
 		underlying := &NetworkError{Kind: KindNetworkTimeout, Op: "GET /api/me", Err: errors.New("context deadline exceeded")}
-		err := WithUserMessage("Sign-in did not complete: the server did not accept the new credential. Run `multica login` again.", underlying)
+		err := WithUserMessage("Sign-in did not complete: the server did not accept the new credential. Run `morechat login` again.", underlying)
 
 		if code := ExitCodeFor(err); code != ExitNetwork {
 			t.Errorf("ExitCodeFor = %d, want ExitNetwork(%d)", code, ExitNetwork)
@@ -724,12 +724,12 @@ func TestFormatErrorTLSHandshakeTimeoutHint(t *testing.T) {
 	}
 }
 
-// TestWithUserMessageUnlessNetwork pins what `multica login` relies on: its
+// TestWithUserMessageUnlessNetwork pins what `morechat login` relies on: its
 // sign-in copy explains an HTTP refusal and must not paper over a transport
 // failure, whose kind copy is the only text that names the remedy.
 func TestWithUserMessageUnlessNetwork(t *testing.T) {
 	withLang(t, "en_US.UTF-8")
-	const hint = "Could not sign in with that token — make sure it is valid and not expired, then run `multica login --token <token>` again."
+	const hint = "Could not sign in with that token — make sure it is valid and not expired, then run `morechat login --token <token>` again."
 
 	t.Run("HTTP refusal keeps the command copy", func(t *testing.T) {
 		underlying := &HTTPError{Method: "GET", Path: "/api/me", StatusCode: 401, Body: `{"error":"unauthorized"}`}

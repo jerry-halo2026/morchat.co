@@ -39,7 +39,7 @@ func newSelfReloadTestDaemon(t *testing.T, runningVersion string) (*Daemon, *ato
 	return d, &restartCalls
 }
 
-// stubSelfVersion makes the `multica --version` probe report version (or fail).
+// stubSelfVersion makes the `morechat --version` probe report version (or fail).
 func stubSelfVersion(t *testing.T, version string, err error) *atomic.Int32 {
 	t.Helper()
 	orig := detectSelfVersion

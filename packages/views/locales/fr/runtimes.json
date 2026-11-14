@@ -698,7 +698,7 @@
       },
       "remote": {
         "title": "Une autre machine, deux commandes",
-        "description": "Installez la CLI sur un serveur ou un autre ordinateur, puis lancez multica setup pour le connecter."
+        "description": "Installez la CLI sur un serveur ou un autre ordinateur, puis lancez morechat setup pour le connecter."
       },
       "cloud": {
         "title": "Ou un nœud cloud",

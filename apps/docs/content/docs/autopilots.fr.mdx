@@ -152,10 +152,10 @@ La mise en pause manuelle arrête les planifications, les webhooks et **Exécute
 ## Utiliser le CLI
 
 ```bash
-multica autopilot get <autopilot-id> --output json
-multica autopilot trigger <autopilot-id>
-multica autopilot runs <autopilot-id>
-multica autopilot trigger-rotate-url <autopilot-id> <trigger-id>
+morechat autopilot get <autopilot-id> --output json
+morechat autopilot trigger <autopilot-id>
+morechat autopilot runs <autopilot-id>
+morechat autopilot trigger-rotate-url <autopilot-id> <trigger-id>
 ```
 
 `autopilot get` définit par défaut `webhook_token`, `webhook_path` et `webhook_url` à `null`, et renvoie à la place `has_webhook_token` et `webhook_token_hint`. N'ajoutez `--show-secrets` que lorsque vous avez délibérément besoin de l'identifiant réel ; le CLI affiche son avertissement sur stderr, ce qui laisse intact le JSON transmis par pipe.

@@ -152,10 +152,10 @@ Pausing manually stops schedules, webhooks, and **Run now**. Deletion is actuall
 ## Use the CLI
 
 ```bash
-multica autopilot get <autopilot-id> --output json
-multica autopilot trigger <autopilot-id>
-multica autopilot runs <autopilot-id>
-multica autopilot trigger-rotate-url <autopilot-id> <trigger-id>
+morechat autopilot get <autopilot-id> --output json
+morechat autopilot trigger <autopilot-id>
+morechat autopilot runs <autopilot-id>
+morechat autopilot trigger-rotate-url <autopilot-id> <trigger-id>
 ```
 
 `autopilot get` sets `webhook_token`, `webhook_path`, and `webhook_url` to `null` by default, and returns `has_webhook_token` plus `webhook_token_hint` instead. Add `--show-secrets` only when you intentionally need the live credential; the CLI prints its warning to stderr, so piped JSON is unaffected.

@@ -113,7 +113,7 @@
     "scripts/brand/**",
     "packages/ui/lib/morechat-brand.ts",
     "apps/mobile/components/brand/multica-logo.tsx",
-    "server/cmd/multica/cmd_auth.go",
+    "server/cmd/morechat/cmd_auth.go",
     "apps/web/public/favicon.svg",
     "apps/web/public/icons/icon.svg",
     "apps/docs/app/icon.svg",

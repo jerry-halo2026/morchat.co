@@ -134,28 +134,28 @@ Workspace owners and admins set the defaults in **Settings → Wakeups**: whethe
 
 ## Let agents schedule their own wakeups [#cli]
 
-During a run, an agent uses `multica issue wakeup` to arrange the next run on the issue, then finishes the current run. Without `--agent-id`, the wakeup targets the agent running the command. You can use the same commands from your own terminal; then pass `--agent-id` to choose the agent.
+During a run, an agent uses `morechat issue wakeup` to arrange the next run on the issue, then finishes the current run. Without `--agent-id`, the wakeup targets the agent running the command. You can use the same commands from your own terminal; then pass `--agent-id` to choose the agent.
 
 ```bash
 # Look again tomorrow at 09:00 (Shanghai time)
-multica issue wakeup create OPS-56 --kind at --at 2026-10-21T09:00:00+08:00 \
+morechat issue wakeup create OPS-56 --kind at --at 2026-10-21T09:00:00+08:00 \
   --instruction "Check whether every supplier has sent a quote; if so, build a comparison table"
 
 # Check every weekday at 09:00 for a week
-multica issue wakeup create OPS-56 --kind cron --cron "0 9 * * 1-5" --timezone Asia/Shanghai \
+morechat issue wakeup create OPS-56 --kind cron --cron "0 9 * * 1-5" --timezone Asia/Shanghai \
   --expires-in 168h --instruction "Check the quote emails and update the comparison table"
 
 # Wait up to 3 days for Lei Li to reply; wake once anyway on timeout
-multica issue wakeup create OPS-56 --event comment.created \
+morechat issue wakeup create OPS-56 --event comment.created \
   --filter-actor-type member --filter-actor-id <Lei-Li-user-id> \
   --expires-in 72h --on-timeout wake --instruction "Continue based on Lei Li's answer"
 
 # Wait until the issue is in review
-multica issue wakeup create OPS-56 --until-status in_review --instruction "Check the deliverables and summarize"
+morechat issue wakeup create OPS-56 --until-status in_review --instruction "Check the deliverables and summarize"
 ```
 
 - **Time**: `--kind at` with `--after 10m` or `--at <RFC3339 time>`; `--kind every --every 1h` for a fixed interval of at least 1 minute; `--kind cron --cron "<5-field expression>"` with `--timezone` (UTC by default).
-- **Events**: list event names after `--event`, separated by commas. `multica issue wakeup events` lists every event and filter. `--mode continuous` makes the rule repeat.
+- **Events**: list event names after `--event`, separated by commas. `morechat issue wakeup events` lists every event and filter. `--mode continuous` makes the rule repeat.
 - **Conditions**: `--until-status`, `--until-assignee`, `--until-label`, `--until-property`, `--until-children-done [--stage N]`, `--until-pr checks|merged|conflicts`, and `--until-issue <issue> --until-issue-state done|ended|in_review|blocked`. Use one `--until-*` per wakeup, and not together with `--event`.
 - **Endings**: the CLI does not add a deadline for you. Use `--expires-in 72h` or `--expires-at <RFC3339 time>`; `--on-timeout wake` makes an event rule wake the agent once more at the deadline. `--max-fires N` (1–1000) caps how many runs a repeating rule starts.
 - **Where results go**: `--parent <comment-id>` keeps the woken run's reply in the original thread.
@@ -164,14 +164,14 @@ To manage existing rules:
 
 | Command | What it does |
 |---|---|
-| `multica issue wakeup list <issue>` | List the issue's wakeups |
-| `multica issue wakeup get <issue> <wakeup-id>` | Show one wakeup's full configuration |
-| `multica issue wakeup runs <issue> <wakeup-id>` | Latest runs, what triggered them, silent-check notes, and whether each commented |
-| `multica issue wakeup update <issue> <wakeup-id>` | Replace the whole configuration with the same flags as `create`, and turn it back on |
-| `multica issue wakeup disable <issue> <wakeup-id>` | Turn it off and withdraw runs that have not started |
-| `multica issue wakeup trigger <issue> <wakeup-id>` | Wake the agent once now |
-| `multica issue wakeup delete <issue> <wakeup-id>` | Delete the rule and withdraw runs that have not started |
-| `multica issue wakeup checkin <issue> <wakeup-id> --note "..."` | End a regular check silently when it found nothing that needs a reply; only a run that this rule started can call it |
+| `morechat issue wakeup list <issue>` | List the issue's wakeups |
+| `morechat issue wakeup get <issue> <wakeup-id>` | Show one wakeup's full configuration |
+| `morechat issue wakeup runs <issue> <wakeup-id>` | Latest runs, what triggered them, silent-check notes, and whether each commented |
+| `morechat issue wakeup update <issue> <wakeup-id>` | Replace the whole configuration with the same flags as `create`, and turn it back on |
+| `morechat issue wakeup disable <issue> <wakeup-id>` | Turn it off and withdraw runs that have not started |
+| `morechat issue wakeup trigger <issue> <wakeup-id>` | Wake the agent once now |
+| `morechat issue wakeup delete <issue> <wakeup-id>` | Delete the rule and withdraw runs that have not started |
+| `morechat issue wakeup checkin <issue> <wakeup-id> --note "..."` | End a regular check silently when it found nothing that needs a reply; only a run that this rule started can call it |
 
 `list`, `get`, and `runs` print a table with `--output table`. For other commands, see [Using the CLI](/cli).
 

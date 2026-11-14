@@ -698,7 +698,7 @@
       },
       "remote": {
         "title": "Another machine, two commands",
-        "description": "Install the CLI on a server or another computer, then run multica setup to connect it."
+        "description": "Install the CLI on a server or another computer, then run morechat setup to connect it."
       },
       "cloud": {
         "title": "Or use a cloud node",

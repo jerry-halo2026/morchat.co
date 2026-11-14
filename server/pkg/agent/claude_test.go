@@ -356,7 +356,7 @@ func TestBuildClaudeArgsUsesStrictMCPForManagedConfig(t *testing.T) {
 func TestBuildClaudeArgsIgnoresSystemPrompt(t *testing.T) {
 	t.Parallel()
 
-	const brief = "the entire multica runtime brief"
+	const brief = "the entire morechat runtime brief"
 	args := buildClaudeArgs(ExecOptions{SystemPrompt: brief}, slog.Default())
 	if slices.Contains(args, "--append-system-prompt") {
 		t.Fatalf("unexpected --append-system-prompt in args: %v", args)

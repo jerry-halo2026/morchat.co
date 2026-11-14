@@ -137,7 +137,7 @@ friends. morechat.co drives them; it doesn't ship them.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.sh | bash -s -- --with-server
-multica setup self-host
+morechat setup self-host
 ```
 
 On Windows, set `$env:MULTICA_MODE="with-server"`, then run the PowerShell installer:

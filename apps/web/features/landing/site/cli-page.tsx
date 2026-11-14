@@ -15,7 +15,7 @@ export function CliPage() {
         <Install />
         <Commands />
         <AgentDriven />
-        <CtaBand title="Connect your first computer" lead="Install the CLI, run multica setup, and assign an issue to an agent on that machine." />
+        <CtaBand title="Connect your first computer" lead="Install the CLI, run morechat setup, and assign an issue to an agent on that machine." />
       </div>
     </SitePage>
   );
@@ -48,7 +48,7 @@ function Hero() {
         </>
       }
       frost="cli"
-      label="A terminal on build-01 runs multica setup: it signs Leo Park in, starts the daemon, and multica daemon status reports Claude Code, Codex, and OpenCode. Beside it, build-01 appears on the Runtimes page as a new machine."
+      label="A terminal on build-01 runs morechat setup: it signs Leo Park in, starts the daemon, and morechat daemon status reports Claude Code, Codex, and OpenCode. Beside it, build-01 appears on the Runtimes page as a new machine."
     >
       <CliScene />
     </SurfaceHero>
@@ -69,17 +69,17 @@ const INSTALL: { title: string; body: string; code: CodeVariant[] }[] = [
     title: "Connect the computer",
     body: "Setup saves the server, signs you in through the browser, and starts the daemon. Running your own morechat.co? Give it your server’s addresses.",
     code: [
-      { label: "morechat.co Cloud", code: "multica setup" },
+      { label: "morechat.co Cloud", code: "morechat setup" },
       {
         label: "Self-hosted",
-        code: "multica setup self-host \\\n  --server-url https://api.example.com \\\n  --app-url https://app.example.com",
+        code: "morechat setup self-host \\\n  --server-url https://api.example.com \\\n  --app-url https://app.example.com",
       },
     ],
   },
   {
     title: "Check it’s running",
     body: "See who you’re signed in as and which coding tools the daemon found. Your computer is now a runtime you can assign agents to.",
-    code: [{ label: "Terminal", code: "multica auth status\nmultica daemon status" }],
+    code: [{ label: "Terminal", code: "morechat auth status\nmultica daemon status" }],
   },
 ];
 

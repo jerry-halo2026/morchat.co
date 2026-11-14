@@ -30,7 +30,7 @@ func TestDevinPrepareDeliversAndCleansBriefAndSkills(t *testing.T) {
 		t.Fatal(err)
 	}
 	brief, err := os.ReadFile(briefPath)
-	if err != nil || !strings.Contains(string(brief), original) || !strings.Contains(string(brief), "multica issue comment add") {
+	if err != nil || !strings.Contains(string(brief), original) || !strings.Contains(string(brief), "morechat issue comment add") {
 		t.Fatalf("missing brief or repository rules: %q err=%v", brief, err)
 	}
 	skillPath := filepath.Join(workDir, ".devin", "skills", "review-helper", "SKILL.md")

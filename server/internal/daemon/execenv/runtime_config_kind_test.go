@@ -68,7 +68,7 @@ func TestBuildMetaSkillContentBriefContent(t *testing.T) {
 		AgentID:          "eve-1",
 	})
 
-	if !strings.Contains(out, "- `multica issue get <id> --output json` — full issue.\n") {
+	if !strings.Contains(out, "- `morechat issue get <id> --output json` — full issue.\n") {
 		t.Errorf("brief is missing the `issue get` one-liner\n---\n%s", out)
 	}
 	if strings.Contains(out, "Get full issue details.") {
@@ -234,7 +234,7 @@ func TestQuickCreateBriefOwnsRunAndOutputRules(t *testing.T) {
 		"Run exactly one `" + multicaCLICommand() + " issue create --output json` invocation",
 		"Do not retry for any reason",
 		// no issue to query, transition, or comment on
-		"Do NOT call `multica issue get`, `multica issue status`, or `multica issue comment add`",
+		"Do NOT call `morechat issue get`, `morechat issue status`, or `morechat issue comment add`",
 		// the success line, and the reason it must not be scraped or
 		// prefix-guessed: workspaces set their own issue prefix, so a
 		// successful create must not read as failed
@@ -262,7 +262,7 @@ func TestQuickCreateBriefOwnsRunAndOutputRules(t *testing.T) {
 	}
 	for _, banned := range []string{
 		"Created <identifier-or-id>: <title>",
-		"Do NOT call `multica issue comment add`",
+		"Do NOT call `morechat issue comment add`",
 	} {
 		if strings.Contains(outputSection, banned) {
 			t.Errorf("## Output restates workflow rule %q\n---\n%s", banned, outputSection)
@@ -282,8 +282,8 @@ func TestSlimQuickCreateAvailableCommands(t *testing.T) {
 
 	for _, want := range []string{
 		"## Available Commands",
-		"multica issue create --title",
-		"`multica --help`",
+		"morechat issue create --title",
+		"`morechat --help`",
 	} {
 		if !strings.Contains(out, want) {
 			t.Errorf("quick_create slim Available Commands missing %q", want)
@@ -291,15 +291,15 @@ func TestSlimQuickCreateAvailableCommands(t *testing.T) {
 	}
 
 	for _, banned := range []string{
-		"multica issue get <id>",
-		"multica issue comment list <issue-id>",
-		"multica issue update <id>",
-		"multica issue status <id> <status>",
-		"multica issue comment add <issue-id>",
-		"multica issue children <id>",
-		"multica repo checkout <url>",
+		"morechat issue get <id>",
+		"morechat issue comment list <issue-id>",
+		"morechat issue update <id>",
+		"morechat issue status <id> <status>",
+		"morechat issue comment add <issue-id>",
+		"morechat issue children <id>",
+		"morechat repo checkout <url>",
 		"### Squad maintenance",
-		"multica squad member set-role",
+		"morechat squad member set-role",
 	} {
 		if strings.Contains(out, banned) {
 			t.Errorf("quick_create slim Available Commands should NOT advertise %q (hard guardrails forbid the call)", banned)
@@ -353,9 +353,9 @@ func TestBackgroundTaskSafetySlimHardPins(t *testing.T) {
 		"verify readiness",
 		"URL, logs, and stop instructions",
 		"survival as best-effort, not guaranteed",
-		"Never terminate `multica` or `multica.exe` by executable name",
+		"Never terminate `multica` or `morechat.exe` by executable name",
 		"exact child PID you started",
-		"`multica daemon status --output json`",
+		"`morechat daemon status --output json`",
 		"never kill it if it is the reported daemon PID",
 	} {
 		if !strings.Contains(out, want) {

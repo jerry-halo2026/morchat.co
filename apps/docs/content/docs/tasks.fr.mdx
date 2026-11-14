@@ -146,13 +146,13 @@ Une relance conserve autant que possible les fichiers que l'exécution précéde
 Retrouvez l’exécution source, puis relancez-la depuis le CLI :
 
 ```bash
-multica issue runs <issue-id> --full-id
-multica issue rerun-task <run-id>
+morechat issue runs <issue-id> --full-id
+morechat issue rerun-task <run-id>
 ```
 
 Un UUID d’exécution complet permet d’omettre `--issue` ; un préfixe court exige `--issue`. La commande reprend l’agent et le contexte de déclenchement d’origine, avec les mêmes règles de continuité que le bouton de relance. Ajoutez `--fresh` pour démarrer une nouvelle session dans un nouveau répertoire de travail.
 
-L’ancienne commande `multica issue rerun <issue-id>` est obsolète et masquée dans l’aide. Elle reste disponible pour les scripts existants et lance toujours l’assigné actuel avec une nouvelle session et un nouveau répertoire de travail.
+L’ancienne commande `morechat issue rerun <issue-id>` est obsolète et masquée dans l’aide. Elle reste disponible pour les scripts existants et lance toujours l’assigné actuel avec une nouvelle session et un nouveau répertoire de travail.
 
 ## Fin d'exécution et fin de tâche
 

@@ -678,7 +678,7 @@
       },
       "remote": {
         "title": "ほかのマシンはコマンド 2 つ",
-        "description": "サーバーや別のコンピューターに CLI をインストールし、multica setup を実行すれば接続できます。"
+        "description": "サーバーや別のコンピューターに CLI をインストールし、morechat setup を実行すれば接続できます。"
       },
       "cloud": {
         "title": "クラウドノードも使える",

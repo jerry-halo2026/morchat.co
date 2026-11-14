@@ -11,8 +11,8 @@ related: [docs/engineering/TOOLCHAIN.md, docs/upstream/SEAMS.md]
 ## 5 条硬规则
 
 1. **一个能力一个入口**：同一能力只允许「一个 agent 面 + 一个 人/脚本面」。
-   - 知识：agent 面 = MCP（`POST /api/mcp/knowledge`）；人面 = REST `GET/POST /api/knowledge/*` 与 `multica knowledge` CLI。
-   - 运行：只经 `multica daemon …`，不自建执行器。
+   - 知识：agent 面 = MCP（`POST /api/mcp/knowledge`）；人面 = REST `GET/POST /api/knowledge/*` 与 `morechat knowledge` CLI。
+   - 运行：只经 `morechat daemon …`，不自建执行器。
 2. **实现只有一份**：所有面都落到 `server/internal/knowledge` 的同一函数；权限校验只在该层实现一次。
 3. **鉴权只有一种语义**：运行期用 `mat_` 临时令牌（绑定 user+workspace+agent+run，≤24h），人用 `mul_` PAT；MCP 与 REST 都从令牌解析身份，不额外发明 header 作为唯一凭据。
 4. **命名只有一套**：REST `/api/<domain>/<resource>`；MCP server `morechat-<domain>`；MCP 工具 `<domain>_<verb>`（`knowledge_search`、`knowledge_get`）；迁移 `<N>_<snake>.up|down.sql` 连续编号（当前到 644，新增从 645 起）。
@@ -22,11 +22,11 @@ related: [docs/engineering/TOOLCHAIN.md, docs/upstream/SEAMS.md]
 
 | 能力 | agent 面 | 人/脚本面 |
 |---|---|---|
-| 知识检索/读取 | MCP `knowledge_search` / `knowledge_get` | `GET /api/knowledge/search`、`multica knowledge search` |
-| 知识条目管理 | —（agent 只读） | `POST/PATCH /api/knowledge/items`、`multica knowledge items` |
-| 知识导入 | — | `POST /api/knowledge/upload-url` → `/import`、`multica knowledge import` |
-| MCP 注册/绑定 | — | `POST /api/workspaces/{id}/mcp-servers`、`multica agent mcp add/enable` |
-| 运行控制 | — | `multica daemon start/status/logs/restart/stop` |
+| 知识检索/读取 | MCP `knowledge_search` / `knowledge_get` | `GET /api/knowledge/search`、`morechat knowledge search` |
+| 知识条目管理 | —（agent 只读） | `POST/PATCH /api/knowledge/items`、`morechat knowledge items` |
+| 知识导入 | — | `POST /api/knowledge/upload-url` → `/import`、`morechat knowledge import` |
+| MCP 注册/绑定 | — | `POST /api/workspaces/{id}/mcp-servers`、`morechat agent mcp add/enable` |
+| 运行控制 | — | `morechat daemon start/status/logs/restart/stop` |
 
 ## MCP 契约（唯一 agent 面）
 
@@ -162,7 +162,7 @@ ACL 属于红线，理由见 ORG-MODEL §6。
 - **agent 的写入口只剩 `knowledge.propose`**：生成一条 draft 条目 + 一条审阅 issue
   （标题 `[知识入库] <title>`，assignee=空间 owner→部门负责人→管理员），返回
   `{item_id, issue_id}`。`knowledge.write` 已移除；MCP 工具总数仍为 3。
-- **审计**：`GET /api/knowledge/review-audit` 与 `multica knowledge audit` 输出
+- **审计**：`GET /api/knowledge/review-audit` 与 `morechat knowledge audit` 输出
   「未审 active / 过期 / 孤儿」三类，只读，不自动处理。
 - **历史数据**：不批量回填 `reviewed_at`；旧的 active 会出现在「未审 active」，由人补审。
 - REST：`POST /api/knowledge/items/{id}/approve`（body `{review_issue_id}`）；
@@ -177,7 +177,7 @@ ACL 属于红线，理由见 ORG-MODEL §6。
 | Node | `resources/node/node.exe` | 目录前插 `PATH` | `node --version` |
 | Git | `resources/git/`（MinGit，便携） | `MULTICA_GIT_HOME` + 目录前插 `PATH` | `git --version` |
 | Python | `resources/python/`（嵌入式，含 pip） | `MULTICA_PYTHON_HOME` + 目录前插 `PATH` | `python --version` |
-| multica CLI | `resources/bin/multica.exe` | `MULTICA_CLI_PATH` + 目录前插 `PATH` | `multica version` |
+| morechat CLI | `resources/bin/morechat.exe` | `MULTICA_CLI_PATH` + 目录前插 `PATH` | `morechat version` |
 
 - **只注入 run 的环境**：前插 `PATH` 与设置 `MULTICA_*_HOME` 都发生在 daemon 起 agent 子进程时；不改系统 `PATH`、不写注册表、不碰用户 `~/.dsh`、`~/.codex`、`~/.claude`。
 - **探针**：桌面启动时各跑一次，结果进日志（`[runtime-probe] python=3.12.x source=bundled`）。系统里已经有可用版本时，探针报 `source=system` 并**不覆盖**用户的 `PATH` 顺序。

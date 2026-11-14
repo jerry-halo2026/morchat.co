@@ -115,8 +115,8 @@ Le bas de la boîte de dialogue rappelle que le coût est estimé et nomme les m
 ## Depuis la CLI
 
 ```bash
-multica issue usage <issue-id>
-multica runtime usage <runtime-id> --days 30
+morechat issue usage <issue-id>
+morechat runtime usage <runtime-id> --days 30
 ```
 
 `issue usage` affiche les totaux de tokens d'une tâche (entrée, sortie, lecture de cache, écriture de cache) et les nombres d'exécutions. `RUNS` est le nombre d'exécutions terminées, `METERED_RUNS` celles qui ont transmis leur consommation, `UNREPORTED` celles qui ne l'ont pas fait ; dès qu'une exécution n'a rien transmis, les totaux de tokens sont précédés de `>=`, car le chiffre réel ne peut être que plus élevé.

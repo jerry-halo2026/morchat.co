@@ -862,7 +862,7 @@
   },
   "tokens": {
     "title": "Tokens de API",
-    "description": "Los tokens de acceso personal permiten que la CLI y las integraciones externas se autentiquen con tu cuenta. Usa uno con multica login --token o como token Bearer al llamar a la API.",
+    "description": "Los tokens de acceso personal permiten que la CLI y las integraciones externas se autentiquen con tu cuenta. Usa uno con morechat login --token o como token Bearer al llamar a la API.",
     "security_note": "Un token concede acceso completo a tu cuenta: trátalo como una contraseña.",
     "empty": "Aún no hay tokens de API.",
     "load_failed": "No se han podido cargar tus tokens de API. Recarga la página para reintentarlo.",
@@ -1397,7 +1397,7 @@
       "install_failed": "Error al instalar: {{error}}",
       "python_label": "Python",
       "git_label": "Git",
-      "multica_label": "multica CLI"
+      "multica_label": "morechat CLI"
     },
     "tabs": {
       "updates": "Actualizaciones"

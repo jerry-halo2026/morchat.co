@@ -39,4 +39,4 @@ related: [docs/engineering/CONTRACTS.md]
 3. 若要预置密码，`password_hash` 必须是 Argon2id（m=64MiB,t=3,p=1）的 PHC 字符串，否则视为"未设密码"；
 4. 新增列必须可空或有默认值（见 CONTRACTS.md），以保证外部插入语句不会因 schema 演进而报错。
 
-更省事的方式是 `multica user import --csv`：它按同一份契约成对写入并记审计。
+更省事的方式是 `morechat user import --csv`：它按同一份契约成对写入并记审计。

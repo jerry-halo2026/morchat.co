@@ -166,13 +166,13 @@ Si le terminal trouve l'outil mais que Desktop ou le daemon en arrière-plan ne 
 Démarrez le daemon :
 
 ```bash
-multica daemon start
+morechat daemon start
 ```
 
 Si le daemon tourne déjà, redémarrez-le après avoir installé un nouvel outil :
 
 ```bash
-multica daemon restart
+morechat daemon restart
 ```
 
 </Tab>
@@ -198,7 +198,7 @@ Vérifiez dans l'ordre :
 
 1. Exécutez l'outil lui-même dans un terminal pour confirmer que l'installation et la connexion sont terminées.
 2. Vérifiez le nom réel de la commande et son chemin avec `command -v` ou `Get-Command`.
-3. Exécutez `multica daemon logs -f` et recherchez des erreurs de version, de chemin ou d'authentification.
+3. Exécutez `morechat daemon logs -f` et recherchez des erreurs de version, de chemin ou d'authentification.
 4. Redémarrez le daemon pour qu'il relise l'environnement actuel.
 5. Revenez à la page **Runtimes** et vérifiez que l'ordinateur et l'outil sont en ligne.
 

@@ -51,7 +51,7 @@ Linux では以前、Codex 実行は `workspace-write` サンドボックスと�
 実行がサンドボックスなしで起動すると、デーモンは warn レベルでログを出します:
 
 ```bash
-multica daemon logs --lines 200 | grep "codex sandbox"
+morechat daemon logs --lines 200 | grep "codex sandbox"
 ```
 
 Codex の実効設定を確認するには、その実行の `CODEX_HOME` にある `config.toml` の管理ブロックを見てください。`# BEGIN multica-managed` と `# END multica-managed` に挟まれた部分は、実行のたびにデーモンが書き込みます。

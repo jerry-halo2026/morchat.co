@@ -232,7 +232,7 @@
     "attach": "新增",
     "attaching": "新增中...",
     "branch_hint": "執行會從這個分支開始，並針對它建立 Pull Request。留空則使用倉庫預設分支。",
-    "commit": "這是提交 ID，不是分支。執行會回傳到起始分支。如需一次性修訂，請給 multica repo checkout 傳入 --ref。",
+    "commit": "這是提交 ID，不是分支。執行會回傳到起始分支。如需一次性修訂，請給 morechat repo checkout 傳入 --ref。",
     "too_long": "最多使用 255 個字元。",
     "invalid_characters": "分支名不能包含空格或 ~ ^ : ? * [ \\",
     "invalid": "不是有效的分支名。",
@@ -291,5 +291,5 @@
   "picker.create_label": "建立 \"{{name}}\"",
   "comments.composer_pill": "新增評論，輸入 @ 提及...",
   "resources.branch_hint": "執行會從這個分支開始，並針對它建立 Pull Request。留空則使用倉庫預設分支。",
-  "resources.commit": "這是提交 ID，不是分支。執行會回傳到起始分支。如需一次性修訂，請給 multica repo checkout 傳入 --ref。"
+  "resources.commit": "這是提交 ID，不是分支。執行會回傳到起始分支。如需一次性修訂，請給 morechat repo checkout 傳入 --ref。"
 }

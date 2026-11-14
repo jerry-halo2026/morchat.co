@@ -13,10 +13,10 @@ import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
 <Tab value="所有安裝方式">
 
 ```bash
-multica version
-multica auth status
-multica daemon status --output json
-multica daemon logs --lines 100
+morechat version
+morechat auth status
+morechat daemon status --output json
+morechat daemon logs --lines 100
 ```
 
 </Tab>
@@ -40,9 +40,9 @@ curl -i https://api.example.com/readyz
 先執行：
 
 ```bash
-multica auth status
-multica daemon status --output json
-multica daemon logs --lines 100
+morechat auth status
+morechat daemon status --output json
+morechat daemon logs --lines 100
 ```
 
 常見原因包括：
@@ -56,18 +56,18 @@ multica daemon logs --lines 100
 重新登入並重啟守護程序：
 
 ```bash
-multica login
-multica daemon restart
+morechat login
+morechat daemon restart
 ```
 
-自託管部署還需要從**執行電腦**請求 API 的 `/health`。在伺服器本機測試，看不出執行電腦這一側的 DNS、TLS 或防火牆問題。需要修改地址時，重新執行 `multica setup self-host`，或檢查當前 profile 的 `server_url`：
+自託管部署還需要從**執行電腦**請求 API 的 `/health`。在伺服器本機測試，看不出執行電腦這一側的 DNS、TLS 或防火牆問題。需要修改地址時，重新執行 `morechat setup self-host`，或檢查當前 profile 的 `server_url`：
 
 ```bash
-multica config show
+morechat config show
 ```
 
 </Accordion>
-<Accordion title={<><code>multica setup</code> 報告伺服器不可達</>} id="multica-setup-reports-the-server-is-not-reachable" value="multica-setup-reports-the-server-is-not-reachable">
+<Accordion title={<><code>morechat setup</code> 報告伺服器不可達</>} id="multica-setup-reports-the-server-is-not-reachable" value="multica-setup-reports-the-server-is-not-reachable">
 
 CLI 的可達性探測會 GET `<server-url>/health` 並要求 200。backend 提供這個路徑。新版 web 前端會把 `/health` 轉發給 backend，舊版不會。反向代理如果把所有流量都轉給舊版 frontend，就會返回 404，CLI 因此判斷服務不可用，而服務其實是健康的。
 
@@ -78,9 +78,9 @@ curl -fsS <server-url>/health
 ```
 
 </Accordion>
-<Accordion title={<><code>multica login</code> 報告 TLS 握手超時</>} id="multica-login-fails-with-a-tls-handshake-timeout" value="multica-login-fails-with-a-tls-handshake-timeout">
+<Accordion title={<><code>morechat login</code> 報告 TLS 握手超時</>} id="multica-login-fails-with-a-tls-handshake-timeout" value="multica-login-fails-with-a-tls-handshake-timeout">
 
-`multica login` 能開啟瀏覽器、網頁登入也能完成，但 CLI 仍以 "Sign-in did not complete" 或 "TLS 握手超時" 失敗。`multica --debug login` 在 `POST /api/tokens` 上顯示 `net/http: TLS handshake timeout`，而同一臺機器上的 `curl.exe -I https://api.morechat.co` 或瀏覽器都能正常連線。
+`morechat login` 能開啟瀏覽器、網頁登入也能完成，但 CLI 仍以 "Sign-in did not complete" 或 "TLS 握手超時" 失敗。`multica --debug login` 在 `POST /api/tokens` 上顯示 `net/http: TLS handshake timeout`，而同一臺機器上的 `curl.exe -I https://api.morechat.co` 或瀏覽器都能正常連線。
 
 TCP 連線已建立，但 TLS 握手始終沒有完成。Go 客戶端（包括 morechat.co CLI 和守護程序）預設在 TLS ClientHello 中攜帶後量子金鑰交換，報文約 1.5 KB，會拆成兩個包傳送。部分安全軟體、VPN、路由器和防火牆會丟棄這種握手；curl 的 ClientHello 小得多，所以能透過。
 
@@ -129,12 +129,12 @@ multica --debug login
 AI 代理預設最多同時執行 6 次執行，單個守護程序預設最多同時執行 20 次。達到上限時，新執行會留在佇列中，等已有執行結束後再開始。執行時離線時，執行也會繼續排隊。只有該執行時心跳缺席超過重連寬限期、且該執行自己也已等滿這麼久，執行才會失敗。所以排在忙碌執行時後面的長佇列不會因為等得久而被判失敗，指派給已經離線的機器時，也還有完整的一個寬限期可以把它喚醒。
 
 ```bash
-multica daemon status --output json
-multica agent get <agent-id>
-multica issue runs <issue-id>
+morechat daemon status --output json
+morechat agent get <agent-id>
+morechat issue runs <issue-id>
 ```
 
-如果執行時列表缺少預期工具，先在同一個系統帳號和 `PATH` 中確認工具可以執行並且已經登入，再執行 `multica daemon restart`。
+如果執行時列表缺少預期工具，先在同一個系統帳號和 `PATH` 中確認工具可以執行並且已經登入，再執行 `morechat daemon restart`。
 
 </Tab>
 <Tab value="waiting_local_directory">
@@ -143,7 +143,7 @@ multica issue runs <issue-id>
 
 這種等待只存在於目錄的 `in_place`（"原地"）模式。如果這個目錄是 git 倉庫，把資源切到 `worktree`（"並行"）就沒有佇列了：每次執行拿到自己的 worktree，並以分支形式交回結果，誰都不用等誰。見[專案資源](/project-resources#執行如何共享這個目錄)。
 
-否則通常只需等前一次執行結束。若前一次已經卡住，可以從它的執行日誌中停止，也可以為當前 AI 代理選擇其他本地目錄。這個目錄互斥由守護程序在記憶體中維護，不寫磁碟鎖檔案。懷疑鎖狀態異常時，執行 `multica daemon restart` 即可釋放，沒有需要手動刪除的檔案。
+否則通常只需等前一次執行結束。若前一次已經卡住，可以從它的執行日誌中停止，也可以為當前 AI 代理選擇其他本地目錄。這個目錄互斥由守護程序在記憶體中維護，不寫磁碟鎖檔案。懷疑鎖狀態異常時，執行 `morechat daemon restart` 即可釋放，沒有需要手動刪除的檔案。
 
 </Tab>
 </Tabs>
@@ -164,15 +164,15 @@ multica issue runs <issue-id>
 </Accordion>
 <Accordion title="升級 CLI 後 macOS 上的執行卡住" id="runs-hang-on-macos-after-a-cli-upgrade" value="runs-hang-on-macos-after-a-cli-upgrade">
 
-透過 Homebrew 安裝的 `multica` CLI 升級後（無論是 `brew upgrade`、`multica update`、**執行時**頁面上的**更新**，還是守護程序自動更新），讀取 `~/Desktop`、`~/Documents`、`~/Downloads`、iCloud 雲盤或其他受保護資料夾的執行可能停滯：AI 代理程序不佔用 CPU，執行既不結束也不失敗。
+透過 Homebrew 安裝的 `multica` CLI 升級後（無論是 `brew upgrade`、`morechat update`、**執行時**頁面上的**更新**，還是守護程序自動更新），讀取 `~/Desktop`、`~/Documents`、`~/Downloads`、iCloud 雲盤或其他受保護資料夾的執行可能停滯：AI 代理程序不佔用 CPU，執行既不結束也不失敗。
 
-這種情況出現在 macOS 把隱私權限（TCC）記在守護程序本身名下時，由 launchd 啟動的守護程序（例如 LaunchAgent）就是如此：等待中的彈窗顯示的是 `multica`，AI 代理啟動的所有工具都沿用守護程序的授權。Homebrew 版 CLI 沒有使用固定身份簽名，macOS 只能把授權繫結到這一次構建及其解析後的路徑，例如 `/opt/homebrew/Cellar/multica/<version>/bin/multica`。升級後，macOS 把新二進位制當作另一個應用，重新請求授權。在有人處理之前，檔案訪問會一直阻塞，守護程序也無法感知有授權彈窗在等待。
+這種情況出現在 macOS 把隱私權限（TCC）記在守護程序本身名下時，由 launchd 啟動的守護程序（例如 LaunchAgent）就是如此：等待中的彈窗顯示的是 `morechat`，AI 代理啟動的所有工具都沿用守護程序的授權。Homebrew 版 CLI 沒有使用固定身份簽名，macOS 只能把授權繫結到這一次構建及其解析後的路徑，例如 `/opt/homebrew/Cellar/morechat/<version>/bin/multica`。升級後，macOS 把新二進位制當作另一個應用，重新請求授權。在有人處理之前，檔案訪問會一直阻塞，守護程序也無法感知有授權彈窗在等待。
 
 恢復訪問：
 
 1. 在這臺 Mac 上找到等待中的"想要訪問"彈窗，點選**允許**，卡住的執行會繼續。
 2. 無人值守的 Mac 請給新二進位制授予完全磁碟訪問權限。用 `realpath "$(command -v multica)"` 列印路徑，然後在**系統設定 → 隱私與安全性 → 完全磁碟訪問權限**中刪除舊的 `multica` 條目並新增該路徑（在檔案選擇器中按 ⌘⇧G 貼上路徑）。
-3. 按啟動守護程序時的方式重啟它：`multica daemon restart`；LaunchAgent 則用 `launchctl kickstart -k gui/$(id -u)/<label>`。
+3. 按啟動守護程序時的方式重啟它：`morechat daemon restart`；LaunchAgent 則用 `launchctl kickstart -k gui/$(id -u)/<label>`。
 
 每次升級 CLI 後都需要重複這些步驟。只有連線 morechat.co Cloud 的守護程序預設開啟自動更新；用 `--no-auto-update` 啟動守護程序後，只在你手動升級時更新。[桌面應用](/desktop-app)內建的 CLI 使用 Developer ID 簽名，授權在升級後依然有效。
 
@@ -317,21 +317,21 @@ netstat -ano | findstr :8080
 
 | 元件 | 檢視方式 |
 | --- | --- |
-| 後臺守護程序 | `multica daemon logs --lines 100` |
-| 實時跟隨守護程序日誌 | `multica daemon logs --follow` |
+| 後臺守護程序 | `morechat daemon logs --lines 100` |
+| 實時跟隨守護程序日誌 | `morechat daemon logs --follow` |
 | 預設 profile 的日誌檔案 | `~/.multica/daemon.log` |
 | 預設 profile 的啟動或崩潰日誌 | `~/.multica/daemon.err.log` |
 | 命名 profile | `~/.multica/profiles/<name>/` 下的對應日誌 |
 | Docker backend | `docker compose -f docker-compose.selfhost.yml logs -f backend` |
 | 瀏覽器 | 開發者工具中的 Console 和 Network |
 
-哪個檔案是當前活躍的日誌，取決於守護程序啟動時使用的 profile。早前守護程序留下的舊日誌也能正常開啟，很容易看錯檔案。所以不要憑猜測開啟檔案：`multica daemon logs` 會在輸出日誌內容前先列印它解析到的絕對路徑。讀命名 profile 的日誌時加上 `--profile <name>`。
+哪個檔案是當前活躍的日誌，取決於守護程序啟動時使用的 profile。早前守護程序留下的舊日誌也能正常開啟，很容易看錯檔案。所以不要憑猜測開啟檔案：`morechat daemon logs` 會在輸出日誌內容前先列印它解析到的絕對路徑。讀命名 profile 的日誌時加上 `--profile <name>`。
 
 需要直接觀察守護程序啟動過程時，可以改為前臺執行：
 
 ```bash
-multica daemon stop
-multica daemon start --foreground
+morechat daemon stop
+morechat daemon start --foreground
 ```
 
 仍然無法定位時，到 [GitHub Issues](https://github.com/jerry-halo2026/morchat.co/issues) 搜尋已有問題，或提交新的 issue。

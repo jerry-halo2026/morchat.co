@@ -110,7 +110,7 @@ Ouvrez **Agents → Engineer** pour vérifier le résultat : le modèle est Opus
 
 Le code du site se trouve dans un dépôt GitHub. La création et l'association du dépôt sont elles aussi confiées à un agent — à condition que le [GitHub CLI](https://cli.github.com) soit installé et connecté sur cet ordinateur.
 
-Dans **Discussion**, sélectionnez Engineer et demandez-lui de créer un dépôt vide nommé `personal-website` sous votre compte GitHub (le GitHub CLI est présent sur cet ordinateur), puis de l'enregistrer dans cet espace de travail avec `multica repo add`. Engineer crée le dépôt localement, l'enregistre dans l'espace de travail et répond avec l'adresse du dépôt. Le message ne précisait pas la visibilité : il crée donc le dépôt avec la valeur par défaut et le signale dans sa réponse ; public ou privé ne change rien aux étapes suivantes.
+Dans **Discussion**, sélectionnez Engineer et demandez-lui de créer un dépôt vide nommé `personal-website` sous votre compte GitHub (le GitHub CLI est présent sur cet ordinateur), puis de l'enregistrer dans cet espace de travail avec `morechat repo add`. Engineer crée le dépôt localement, l'enregistre dans l'espace de travail et répond avec l'adresse du dépôt. Le message ne précisait pas la visibilité : il crée donc le dépôt avec la valeur par défaut et le signale dans sa réponse ; public ou privé ne change rien aux étapes suivantes.
 
 ![Discussion : Engineer répond que le dépôt est créé et enregistré](/images/docs/tutorial-chat-create-repo.webp)
 
@@ -241,7 +241,7 @@ Inutile de modifier les instructions à la main : un agent peut mettre à jour s
 
 ![Demander à Engineer d'inscrire les règles dans ses propres instructions](/images/docs/tutorial-chat-update-instructions.webp)
 
-Engineer applique la mise à jour avec `multica agent update`, en ajoutant une section de règles de travail à ses instructions, et signale le coût de la première règle : sans autovérification par captures d'écran, c'est désormais à vous de repérer les problèmes visuels de la page dans le navigateur.
+Engineer applique la mise à jour avec `morechat agent update`, en ajoutant une section de règles de travail à ses instructions, et signale le coût de la première règle : sans autovérification par captures d'écran, c'est désormais à vous de repérer les problèmes visuels de la page dans le navigateur.
 
 Ouvrez **Agents → Engineer** : les deux règles figurent dans les instructions.
 

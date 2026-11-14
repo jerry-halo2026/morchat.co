@@ -189,9 +189,9 @@ AI 代理詳情頁的 **MCP** 分三組列出這名 AI 代理能用的 MCP serve
 用 CLI 也能完成同樣的操作。配置裡通常有 token，用檔案或 stdin 傳入，不要直接寫在命令列引數裡：
 
 ```bash
-multica workspace mcp add linear --server-config-file ./linear.json
-multica workspace mcp list
-multica agent mcp add <agent-id> <server-id>
+morechat workspace mcp add linear --server-config-file ./linear.json
+morechat workspace mcp list
+morechat agent mcp add <agent-id> <server-id>
 ```
 
 ## 複製 AI 代理
@@ -203,7 +203,7 @@ multica agent mcp add <agent-id> <server-id>
 ## 使用 CLI 建立
 
 ```bash
-multica agent create \
+morechat agent create \
  --name "Frontend Reviewer" \
  --runtime-id <runtime-id> \
  --description "審查前端 Pull Request" \
@@ -216,7 +216,7 @@ multica agent create \
 已有配置相近的 AI 代理時，可以直接複製：
 
 ```bash
-multica agent copy <agent-id>
+morechat agent copy <agent-id>
 ```
 
 預設複製到同一執行時；加 `--runtime-id` 換到其他執行時，必須同時指定 `--model`。環境變數、MCP 配置和 `runtime_config` 永不復制；執行時繫結本身會保留。完整引數見[使用 CLI](/cli)。

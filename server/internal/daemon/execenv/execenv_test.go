@@ -794,7 +794,7 @@ func TestPrepareWithRepoContext(t *testing.T) {
 	}
 	s := string(content)
 	for _, want := range []string{
-		"multica repo checkout",
+		"morechat repo checkout",
 		"https://github.com/org/backend",
 		"[--ref <branch-or-sha>]",
 		"https://github.com/org/frontend",
@@ -1283,8 +1283,8 @@ func TestInjectRuntimeConfigClaude(t *testing.T) {
 	s := string(content)
 	for _, want := range []string{
 		"Multica Agent Runtime",
-		"multica issue get",
-		"multica issue comment list",
+		"morechat issue get",
+		"morechat issue comment list",
 		// Skills are listed by on-disk slug: that is the directory
 		// writeSkillFiles creates and the only identifier the model can
 		// actually invoke (MUL-5529).
@@ -1367,9 +1367,9 @@ func TestInjectRuntimeConfigBackgroundTaskSafetyProviderAgnostic(t *testing.T) {
 				"verify readiness",
 				"URL, logs, and stop instructions",
 				"survival as best-effort, not guaranteed",
-				"Never terminate `multica` or `multica.exe` by executable name",
+				"Never terminate `multica` or `morechat.exe` by executable name",
 				"exact child PID you started",
-				"`multica daemon status --output json`",
+				"`morechat daemon status --output json`",
 				"never kill it if it is the reported daemon PID",
 			} {
 				if !strings.Contains(s, want) {
@@ -1414,18 +1414,18 @@ func TestInjectRuntimeConfigAvailableCommandsCoreOnly(t *testing.T) {
 	for _, want := range []string{
 		"## Available Commands",
 		"core agent loop and common issue create/update tasks",
-		"`multica <command> --help`",
-		"multica issue get <id> --output json",
-		"multica issue comment list <issue-id>",
-		"multica issue create --title",
-		"multica issue update <id>",
-		"multica issue assign <id>",
+		"`morechat <command> --help`",
+		"morechat issue get <id> --output json",
+		"morechat issue comment list <issue-id>",
+		"morechat issue create --title",
+		"morechat issue update <id>",
+		"morechat issue assign <id>",
 		"--description-file <path>",
 		"--parent \"\"",
-		"multica repo checkout <url>",
-		"multica issue status <id> <status>",
-		"multica issue comment add <issue-id>",
-		"multica issue comment add --help",
+		"morechat repo checkout <url>",
+		"morechat issue status <id> <status>",
+		"morechat issue comment add <issue-id>",
+		"morechat issue comment add --help",
 	} {
 		if !strings.Contains(s, want) {
 			t.Errorf("AGENTS.md missing core command/help text %q\n---\n%s", want, s)
@@ -1447,7 +1447,7 @@ func TestInjectRuntimeConfigAvailableCommandsCoreOnly(t *testing.T) {
 	}
 	for _, want := range []string{
 		"### Squad maintenance",
-		"multica squad member set-role <squad-id>",
+		"morechat squad member set-role <squad-id>",
 	} {
 		if !strings.Contains(string(leader), want) {
 			t.Errorf("squad-leader AGENTS.md missing %q\n---\n%s", want, leader)
@@ -1456,29 +1456,29 @@ func TestInjectRuntimeConfigAvailableCommandsCoreOnly(t *testing.T) {
 
 	for _, banned := range []string{
 		"--no-start",
-		"multica issue list [--status",
-		"multica issue label list",
-		"multica issue subscriber list",
-		"multica label list",
-		"multica workspace member list",
-		"multica agent list",
-		"multica squad list",
-		"multica issue runs",
-		"multica issue run-messages",
-		"multica attachment download",
-		"multica autopilot list",
-		"multica autopilot create",
-		"multica autopilot update",
-		"multica autopilot trigger",
-		"multica autopilot delete",
-		"multica project get",
-		"multica project resource list",
-		"multica issue label add",
-		"multica issue label remove",
-		"multica issue subscriber add",
-		"multica issue subscriber remove",
-		"multica issue comment delete",
-		"multica label create",
+		"morechat issue list [--status",
+		"morechat issue label list",
+		"morechat issue subscriber list",
+		"morechat label list",
+		"morechat workspace member list",
+		"morechat agent list",
+		"morechat squad list",
+		"morechat issue runs",
+		"morechat issue run-messages",
+		"morechat attachment download",
+		"morechat autopilot list",
+		"morechat autopilot create",
+		"morechat autopilot update",
+		"morechat autopilot trigger",
+		"morechat autopilot delete",
+		"morechat project get",
+		"morechat project resource list",
+		"morechat issue label add",
+		"morechat issue label remove",
+		"morechat issue subscriber add",
+		"morechat issue subscriber remove",
+		"morechat issue comment delete",
+		"morechat label create",
 	} {
 		if strings.Contains(s, banned) {
 			t.Errorf("AGENTS.md should not inject non-core command %q\n---\n%s", banned, s)
@@ -1530,8 +1530,8 @@ func TestInjectRuntimeConfigNoSkills(t *testing.T) {
 	}
 
 	s := string(content)
-	if !strings.Contains(s, "multica issue get") {
-		t.Error("should reference multica CLI even without skills")
+	if !strings.Contains(s, "morechat issue get") {
+		t.Error("should reference morechat CLI even without skills")
 	}
 	if strings.Contains(s, "## Skills") {
 		t.Error("should not have Skills section when there are no skills")
@@ -2257,7 +2257,7 @@ func TestPrepareWithRepoContextOpencode(t *testing.T) {
 	}
 	s := string(content)
 	for _, want := range []string{
-		"multica repo checkout",
+		"morechat repo checkout",
 		"https://github.com/org/backend",
 	} {
 		if !strings.Contains(s, want) {
@@ -2299,13 +2299,13 @@ func TestInjectRuntimeConfigRequiresExplicitCommentPost(t *testing.T) {
 			}
 			s := string(data)
 
-			// The workflow must contain an explicit `multica issue comment add`
+			// The workflow must contain an explicit `morechat issue comment add`
 			// invocation for this issue — not just a prose mention of posting.
 			mustContain := []string{
 				// MUL-5442 cross-channel dedup: the brief states the loop shape; the
 				// ready-to-run commands with real ids live in the per-turn message.
 				// Pin the command NAME and the flag mnemonics, not full templates.
-				"post it with `multica issue comment add` using",
+				"post it with `morechat issue comment add` using",
 				"mandatory",
 			}
 			for _, want := range mustContain {
@@ -2318,7 +2318,7 @@ func TestInjectRuntimeConfigRequiresExplicitCommentPost(t *testing.T) {
 			// output is not user-visible. This is the second line of defense
 			// in case the agent skips past the workflow steps.
 			for _, want := range []string{
-				"Final results MUST be delivered via `multica issue comment add`",
+				"Final results MUST be delivered via `morechat issue comment add`",
 				"does NOT see your terminal output",
 			} {
 				if !strings.Contains(s, want) {
@@ -2407,7 +2407,7 @@ func TestInjectRuntimeConfigCommentGuardrailIsProviderAgnostic(t *testing.T) {
 // `--content-stdin` rule was kept for years to defend against backtick / `$()`
 // substitution in the body (MUL-2904), but the heredoc/flag boundary turned out
 // to be its own structural bug: when a model wrapped extra flags around the
-// heredoc on `multica issue create`, the flags were silently swallowed into
+// heredoc on `morechat issue create`, the flags were silently swallowed into
 // stdin (OXY-78, OXY-76). The file path defeats both classes — the body never
 // reaches the shell, and all flags live on one shell-token line — and converges
 // the Linux/macOS template with the long-standing Windows file-only path.
@@ -2483,7 +2483,7 @@ func TestInjectRuntimeConfigLinuxCommentFormattingEmphasizesFile(t *testing.T) {
 // the Comment Formatting section directs the agent at `--content-file`
 // instead of `--content-stdin`. PowerShell 5.1 / cmd.exe re-encode piped
 // HEREDOC bytes through the active console codepage and silently drop
-// non-ASCII as `?` before reaching `multica.exe` (#2198 / #2236 / #2376).
+// non-ASCII as `?` before reaching `morechat.exe` (#2198 / #2236 / #2376).
 //
 // Not parallel: mutates the package-level runtimeGOOS.
 func TestInjectRuntimeConfigCodexWindowsUsesContentFile(t *testing.T) {
@@ -2586,8 +2586,8 @@ func TestInjectRuntimeConfigAutopilotRunOnlyNoIssueWorkflow(t *testing.T) {
 	}
 
 	for _, absent := range []string{
-		"Run `multica issue get",
-		"Final results MUST be delivered via `multica issue comment add`",
+		"Run `morechat issue get",
+		"Final results MUST be delivered via `morechat issue comment add`",
 		// Per-run VALUES belong to the per-turn message, which renders them
 		// once (daemon.buildAutopilotPrompt). This file is the prompt-cache
 		// prefix, and its own contract is that no per-run identifier reaches
@@ -3721,7 +3721,7 @@ func TestEnsureCodexSandboxConfigDarwinFallsBack(t *testing.T) {
 
 // TestEnsureCodexSandboxConfigWindowsFallsBack pins MUL-4957: when a Windows
 // user has not opted into a native Codex sandbox, Codex cannot enforce
-// workspace-write and rejects mutation commands (e.g. `multica issue create`)
+// workspace-write and rejects mutation commands (e.g. `morechat issue create`)
 // "by policy". The daemon therefore defaults Windows to danger-full-access and
 // emits no workspace-write keys.
 func TestEnsureCodexSandboxConfigWindowsFallsBack(t *testing.T) {
@@ -5918,7 +5918,7 @@ func TestInjectRuntimeConfigBriefOmitsResumedThreadAnchor(t *testing.T) {
 		"No other new comments on this issue since your last run",
 		"issue-wide delta is empty",
 		"if resumed memory is not enough",
-		"multica issue comment list " + issueID + " --thread thread-root-1 --tail 30 --compact --output json",
+		"morechat issue comment list " + issueID + " --thread thread-root-1 --tail 30 --compact --output json",
 	} {
 		if !strings.Contains(hint, want) {
 			t.Errorf("resumed hint missing %q\n---\n%s", want, hint)
@@ -5961,7 +5961,7 @@ func TestInjectRuntimeConfigAssignmentTriggerScansRootsFirst(t *testing.T) {
 	}
 	// Older context must remain reachable through pagination. The cursor
 	// labels and flags now live in the CLI's own --help (MUL-5442, pinned by
-	// TestIssueCommentListHelpCarriesReadContract in cmd/multica); the brief
+	// TestIssueCommentListHelpCarriesReadContract in cmd/morechat); the brief
 	// keeps a pointer in the flag reference.
 	for _, want := range []string{
 		"paging cursors, and full flag semantics: `--help`",
@@ -5971,7 +5971,7 @@ func TestInjectRuntimeConfigAssignmentTriggerScansRootsFirst(t *testing.T) {
 		}
 	}
 	for _, banned := range []string{
-		"multica issue comment list issue-1 --output json",
+		"morechat issue comment list issue-1 --output json",
 		"read the full comment history",
 		"read the full history page-by-page",
 		"`--recent` is a way to read the full history",
@@ -6024,7 +6024,7 @@ func TestInjectRuntimeConfigCatchUpScansRootsFirst(t *testing.T) {
 		// The headline saturation warning stays in the flag reference; the
 		// deep semantics (per-thread cap, root-thread saturation) moved to the
 		// CLI's own --help (MUL-5442) and are pinned there
-		// (TestIssueCommentListHelpCarriesReadContract in cmd/multica).
+		// (TestIssueCommentListHelpCarriesReadContract in cmd/morechat).
 		"caps THREADS, not comments",
 	} {
 		if !strings.Contains(s, want) {
@@ -6034,7 +6034,7 @@ func TestInjectRuntimeConfigCatchUpScansRootsFirst(t *testing.T) {
 
 	// The workflow steps must not hand the agent a ready-to-paste bulk read;
 	// that is what made the mandatory step pull whole histories.
-	if strings.Contains(s, "multica issue comment list issue-1 --recent") {
+	if strings.Contains(s, "morechat issue comment list issue-1 --recent") {
 		t.Errorf("workflow steps must not present an issue-scoped --recent command\n---\n%s", s)
 	}
 	// The saturation warning belongs to the flag reference, which introduces
@@ -6080,15 +6080,15 @@ func TestBriefCarriesNoMetadataGuidance(t *testing.T) {
 		"Hints, not truth",
 		"never secrets or long content",
 		"Full write discipline:",
-		"multica issue metadata list <issue-id>",
-		"multica issue metadata set <issue-id> --key <k> --value <v> [--type string|number|bool]",
-		"multica issue metadata delete <issue-id> --key <k>",
+		"morechat issue metadata list <issue-id>",
+		"morechat issue metadata set <issue-id> --key <k> --value <v> [--type string|number|bool]",
+		"morechat issue metadata delete <issue-id> --key <k>",
 		"its JSON already carries the issue's `metadata` bag",
 		"What to look for: `## Issue Metadata`",
 		"the bar in `## Issue Metadata`",
 		// The standalone read step retired by #7016 must not come back
 		// through the phase-1 rewrite either.
-		"Read the metadata bag (`multica issue metadata list`)",
+		"Read the metadata bag (`morechat issue metadata list`)",
 	}
 
 	cases := []struct {
@@ -6165,7 +6165,7 @@ func TestBriefCarriesNoMetadataGuidance(t *testing.T) {
 				return
 			}
 			for _, want := range []string{
-				"1. Read the issue (`multica issue get`) to understand the context.",
+				"1. Read the issue (`morechat issue get`) to understand the context.",
 				"5. Before exiting, confirm the status still matches where things actually stand.",
 			} {
 				if !strings.Contains(s, want) {

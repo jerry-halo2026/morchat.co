@@ -289,7 +289,7 @@ function InstructionsStep({ onClose }: { onClose: () => void }) {
         <div className="space-y-4">
           {/* Step 1 owns the platform switch: the install command differs by
               OS, so the user picks instead of us guessing. Step 2's
-              `multica setup` is platform-independent. */}
+              `morechat setup` is platform-independent. */}
           <CommandStep n={1} label={t(($) => $.connect.step1_label)}>
             <CliInstallCommand
               labels={{
@@ -379,7 +379,7 @@ function TroubleshootingDetails({ tokenCmd }: { tokenCmd: string }) {
                 CODE_LIGATURE_CLASS,
               )}
             >
-              {"multica daemon status"}
+              {"morechat daemon status"}
             </code>
           </li>
           <li className="flex items-center gap-1.5">
@@ -391,7 +391,7 @@ function TroubleshootingDetails({ tokenCmd }: { tokenCmd: string }) {
                 CODE_LIGATURE_CLASS,
               )}
             >
-              {"multica daemon logs -f"}
+              {"morechat daemon logs -f"}
             </code>
           </li>
         </ul>

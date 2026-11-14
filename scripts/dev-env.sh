@@ -845,7 +845,7 @@ ensure_fixture_issues() {
 # Under a daemon-task marker the CLI refuses daemon commands for every profile
 # except one this registry assigns to an environment, reached without the task's
 # identity and pointed at that environment's API — exactly how CLEAN_ENV and
-# the profile written above launch it (server/cmd/multica/dev_env_profile.go).
+# the profile written above launch it (server/cmd/morechat/dev_env_profile.go).
 start_daemon() {
   local status state build_commit
 
@@ -853,10 +853,10 @@ start_daemon() {
   # and re-execs it as the execution-environment helper for every task. Under
   # `go run` the toolchain deletes that binary when the launcher exits, so the
   # daemon registers, heartbeats, and then fails every task with
-  # "fork/exec .../go-build.../exe/multica: no such file or directory".
+  # "fork/exec .../go-build.../exe/morechat: no such file or directory".
   info "Building $MULTICA_BIN (a go run daemon would fail every task later)."
   build_commit="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || printf 'unknown')"
-  (cd "$REPO_ROOT/server" && go build -ldflags "-X main.buildCommit=$build_commit" -o bin/multica ./cmd/multica) || die "Failed to build the multica CLI."
+  (cd "$REPO_ROOT/server" && go build -ldflags "-X main.buildCommit=$build_commit" -o bin/morechat ./cmd/morechat) || die "Failed to build the morechat CLI."
 
   "${CLEAN_ENV[@]}" MULTICA_WORKSPACES_ROOT="$WORKSPACES_ROOT" \
     "$MULTICA_BIN" daemon start --profile "$PROFILE" 2>&1 | sed 's/^/    /' || true
@@ -1009,7 +1009,7 @@ stop_desktop_daemon() {
   pid="$(cat "$DEV_PROFILES_HOME/$profile/daemon.pid" 2>/dev/null || true)"
   [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null || return 0
   bin="$MULTICA_BIN"
-  [ -x "$bin" ] || bin="$DIR/apps/desktop/resources/bin/multica"
+  [ -x "$bin" ] || bin="$DIR/apps/desktop/resources/bin/morechat"
   if [ -x "$bin" ] && "${CLEAN_ENV[@]}" "$bin" daemon stop --force --profile "$profile" >/dev/null 2>&1 \
     && ! kill -0 "$pid" 2>/dev/null; then
     ok "stopped Desktop's daemon for profile $profile"
@@ -1041,7 +1041,7 @@ stop_component() {
       else
         pid="$(cat "$PROFILE_DIR/daemon.pid" 2>/dev/null || true)"
         if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
-          warn "cannot stop daemon pid $pid because no usable multica binary was found"
+          warn "cannot stop daemon pid $pid because no usable morechat binary was found"
           return 1
         fi
         info "daemon skipped (no usable binary and no live profile pid)"
@@ -1318,9 +1318,9 @@ bind_paths() {
   DESKTOP_ENV_FILE="${DESKTOP_ENV_FILE:-$DIR/apps/desktop/.env.development.local}"
   DESKTOP_CDP_PORT="${DESKTOP_CDP_PORT:-}"
   EXPIRES_AT="${EXPIRES_AT:-}"
-  MULTICA_BIN="$DIR/server/bin/multica"
-  if [ ! -x "$MULTICA_BIN" ] && [ -x "$REPO_ROOT/server/bin/multica" ]; then
-    MULTICA_BIN="$REPO_ROOT/server/bin/multica"
+  MULTICA_BIN="$DIR/server/bin/morechat"
+  if [ ! -x "$MULTICA_BIN" ] && [ -x "$REPO_ROOT/server/bin/morechat" ]; then
+    MULTICA_BIN="$REPO_ROOT/server/bin/morechat"
   fi
   mkdir -p "$LOG_DIR"
 }

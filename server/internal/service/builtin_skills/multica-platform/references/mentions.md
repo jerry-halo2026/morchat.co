@@ -57,9 +57,9 @@ at a project; everything else in this document is about the four types (plus
 
 A name is not a UUID. Look the UUID up first, from the matching list command:
 
-- a person → `multica workspace member list --output json` → use `user_id`
-- an agent → `multica agent list --output json` → use `id`
-- a squad  → `multica squad list --output json` → use `id`
+- a person → `morechat workspace member list --output json` → use `user_id`
+- an agent → `morechat agent list --output json` → use `id`
+- a squad  → `morechat squad list --output json` → use `id`
 
 For a person the mention id is the `user_id`, NOT the membership-row id — the
 backend's own roster formatter uses `user_id` for member mentions. Match by
@@ -147,7 +147,7 @@ not injected into an already running prompt. Different threads queue independent
   agent in another workspace and the reason must not confirm that it exists.
   **So when you see `invocation_not_allowed`, check the UUID against the live
   roster BEFORE you touch any visibility or invocation setting**;
-  `multica squad member list <squad-id> --output json` returns the `member_id`
+  `morechat squad member list <squad-id> --output json` returns the `member_id`
   to build the mention from. An id that matches the pattern but is NOT a valid
   UUID at all (`mention://agent/-`) is rejected by the id parser and blocked
   with `target_unavailable` instead — a non-UUID names no entity anywhere, so
@@ -239,13 +239,13 @@ A comment to an agent that is already running reaches it only after that run
 ends. You can put the comment into the run instead:
 
 ```bash
-multica issue comment add <issue-id> --parent <your trigger comment> \
+morechat issue comment add <issue-id> --parent <your trigger comment> \
   --content-file ./note.md --steer <run-id>
-multica issue comment add <issue-id> --parent <your trigger comment> \
+morechat issue comment add <issue-id> --parent <your trigger comment> \
   --content-file ./note.md --steer-active
 ```
 
-`--steer` takes a run id from `multica issue runs <issue-id> --active`
+`--steer` takes a run id from `morechat issue runs <issue-id> --active`
 (repeatable; short prefixes resolve on this issue). `--steer-active` steers
 every running run on the issue that reports `can_supplement: true` for you,
 plus any other recipient of the comment that is running when it is posted. The
@@ -263,7 +263,7 @@ Rules:
 - at most 3 of your messages per run, and 10 from all agents; past that the
   comment takes its normal trigger;
 - only runs that are running now and accept additional messages
-  (`can_supplement: true` in `multica issue runs <issue-id> --active --output json`);
+  (`can_supplement: true` in `morechat issue runs <issue-id> --active --output json`);
 - no attachments. The CLI refuses `--steer` with `--attachment`.
 - a CLI that answers `unknown flag: --steer` predates steering: post the
   comment without the flag.
@@ -288,7 +288,7 @@ Incorrect: `[@Alice](mention://member/Alice) please review`
   pattern does not match, the link is silently dead.
 
 Correct:
-  1. `multica workspace member list --output json`  → Alice's `user_id` = 7f3a…
+  1. `morechat workspace member list --output json`  → Alice's `user_id` = 7f3a…
   2. `[@Alice](mention://member/7f3a…) please review`
      → a real `user_id` parses; the link renders and resolves to Alice.
 

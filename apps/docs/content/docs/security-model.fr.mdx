@@ -51,7 +51,7 @@ Sous Linux, les exécutions Codex tournaient auparavant dans le sandbox `workspa
 Le daemon journalise le mode de sandbox effectif au niveau warn lorsqu'une exécution démarre sans sandbox :
 
 ```bash
-multica daemon logs --lines 200 | grep "codex sandbox"
+morechat daemon logs --lines 200 | grep "codex sandbox"
 ```
 
 Pour confirmer la configuration Codex effective, lisez le bloc géré dans le `config.toml` situé sous le `CODEX_HOME` de l'exécution — la section comprise entre les marqueurs `# BEGIN multica-managed` et `# END multica-managed` est écrite par le daemon à chaque exécution.

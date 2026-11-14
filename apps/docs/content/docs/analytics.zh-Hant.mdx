@@ -115,8 +115,8 @@ token 由 AI 程式設計工具上報。工具沒有上報時，這次執行仍�
 ## 用 CLI 檢視
 
 ```bash
-multica issue usage <issue-id>
-multica runtime usage <runtime-id> --days 30
+morechat issue usage <issue-id>
+morechat runtime usage <runtime-id> --days 30
 ```
 
 `issue usage` 輸出一條任務的 token 合計（輸入、輸出、快取讀取、快取寫入）和執行次數。`RUNS` 是已結束的執行數，`METERED_RUNS` 是上報了用量的執行數，`UNREPORTED` 是沒有上報的；有執行沒上報時，token 數前面帶 `>=`，表示實際只會更多。

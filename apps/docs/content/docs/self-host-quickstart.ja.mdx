@@ -109,7 +109,7 @@ backend コンテナは起動のたびにデータベースの migration を実�
 <Tabs items={["ローカルアクセス", "リモートアクセス"]}>
 <Tab value="ローカルアクセス">
 
-[http://localhost:3000](http://localhost:3000) をそのまま開きます。後で `multica setup self-host` を実行するときも、URL を渡す必要はありません。
+[http://localhost:3000](http://localhost:3000) をそのまま開きます。後で `morechat setup self-host` を実行するときも、URL を渡す必要はありません。
 
 </Tab>
 <Tab value="リモートアクセス" id="remote-access">
@@ -164,7 +164,7 @@ api.example.com {
 
 ```text
 multica.example.com {
-    # CLI の到達確認: `multica setup` は <server-url>/health に GET を送り 200 を要求する。
+    # CLI の到達確認: `morechat setup` は <server-url>/health に GET を送り 200 を要求する。
     # 古い frontend はこのパスを転送しないため、backend に直接ルーティングする
     handle /health {
         reverse_proxy 127.0.0.1:8080
@@ -195,7 +195,7 @@ multica.example.com {
 </Tab>
 </Tabs>
 
-**単一オリジン**（1 つのドメイン、または 1 台のホストに 1 つのポート。小規模サーバーで一般的な構成）では、デーモンが依存するパスを backend に明示的に転送し、残りを frontend に任せます。この場合は 2 つの URL をどちらもそこに向けます。`.env` の `FRONTEND_ORIGIN` と `MULTICA_APP_URL`、および `multica setup self-host` の `--server-url` と `--app-url` です。
+**単一オリジン**（1 つのドメイン、または 1 台のホストに 1 つのポート。小規模サーバーで一般的な構成）では、デーモンが依存するパスを backend に明示的に転送し、残りを frontend に任せます。この場合は 2 つの URL をどちらもそこに向けます。`.env` の `FRONTEND_ORIGIN` と `MULTICA_APP_URL`、および `morechat setup self-host` の `--server-url` と `--app-url` です。
 
 `.env` を変更したら、`up -d` でコンテナを作り直して新しい設定を反映します。
 
@@ -284,14 +284,14 @@ irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/ins
 <Tab value="このコンピュータ">
 
 ```bash
-multica setup self-host
+morechat setup self-host
 ```
 
 </Tab>
 <Tab value="別のマシン">
 
 ```bash
-multica setup self-host \
+morechat setup self-host \
   --server-url https://api.example.com \
   --app-url https://app.example.com
 ```
@@ -304,7 +304,7 @@ multica setup self-host \
 接続状態を確認します。
 
 ```bash
-multica daemon status
+morechat daemon status
 ```
 
 正常であれば、出力に次が表示されます。
@@ -466,8 +466,8 @@ Helm には独自のアップグレード経路があります。values ファ�
 | `/readyz` が `ok` を返さない | `docker compose -f docker-compose.selfhost.yml logs backend postgres` を実行する。 |
 | 認証コードが届かない | コードを一度リクエストし、backend のログで `Verification code` を探す。 |
 | `setup self-host` が server に到達できないと報告する | 実行用コンピュータから `https://api.example.com/health` をリクエストし、DNS、TLS、リバースプロキシがすべて到達可能か確認する。404 が返る場合、プロキシが `/health` をこのパスを転送しない古い web リリースに向けているため、backend へ直接ルーティングすること（[トラブルシューティング](/troubleshooting#multica-setup-reports-the-server-is-not-reachable)）。 |
-| デーモンが `Agents` を表示しない | AI コーディングツールが `PATH` にありログイン済みであることを確認し、`multica daemon restart` を実行する。 |
-| タスクがキューにとどまり続ける | `multica daemon status` を実行し、デーモンが起動していてワークスペースに接続していることを確認する。 |
+| デーモンが `Agents` を表示しない | AI コーディングツールが `PATH` にありログイン済みであることを確認し、`morechat daemon restart` を実行する。 |
+| タスクがキューにとどまり続ける | `morechat daemon status` を実行し、デーモンが起動していてワークスペースに接続していることを確認する。 |
 
 その他のケースは[トラブルシューティング](/troubleshooting)を参照してください。
 

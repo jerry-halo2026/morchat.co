@@ -33,19 +33,19 @@ import { Callout } from "fumadocs-ui/components/callout";
 
 ## CLI 與 PAT
 
-執行 `multica login` 時，CLI 會透過瀏覽器完成登入，再建立一個有效期為 90 天的 PAT，儲存到當前 profile 的配置檔案：
+執行 `morechat login` 時，CLI 會透過瀏覽器完成登入，再建立一個有效期為 90 天的 PAT，儲存到當前 profile 的配置檔案：
 
 ```text
 ~/.multica/config.json
 ~/.multica/profiles/<name>/config.json
 ```
 
-守護程序使用同一個 PAT 連線 morechat.co。帶過期時間的 `mul_` PAT 在剩餘有效期不足 7 天時自動續期，延長到當時起 90 天後。續期失敗不會改變令牌本身；令牌已經過期或被吊銷時，需要重新執行 `multica login`。
+守護程序使用同一個 PAT 連線 morechat.co。帶過期時間的 `mul_` PAT 在剩餘有效期不足 7 天時自動續期，延長到當時起 90 天後。續期失敗不會改變令牌本身；令牌已經過期或被吊銷時，需要重新執行 `morechat login`。
 
 無瀏覽器環境可以先在 Web 中建立 PAT，再讓 CLI 安全地提示輸入：
 
 ```bash
-multica login --token
+morechat login --token
 ```
 
 ## 在 API 請求中使用 PAT
@@ -71,7 +71,7 @@ curl https://api.morechat.co/api/issues \
 
 ## 退出登入與吊銷
 
-`multica auth logout` 只刪除當前 CLI profile 中儲存的 PAT；Web 退出登入只刪除當前瀏覽器的 cookie。它們不會弔銷伺服器上的個人訪問令牌。
+`morechat auth logout` 只刪除當前 CLI profile 中儲存的 PAT；Web 退出登入只刪除當前瀏覽器的 cookie。它們不會弔銷伺服器上的個人訪問令牌。
 
 如果令牌可能洩露，到 **設定 → API Token** 中立即吊銷。吊銷後，這個 PAT 無法再次使用，已經儲存它的其他電腦和指令碼也會失去訪問權限。
 

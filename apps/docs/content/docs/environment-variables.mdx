@@ -59,7 +59,7 @@ The primary and replica connection limits are independent. Budget their sum acro
 | `FRONTEND_ORIGIN` | empty | Frontend origin users visit; used for CORS, cookies, and invitation links |
 | `MULTICA_APP_URL` | falls back to `FRONTEND_ORIGIN` | User-reachable web URL; CLI sign-in and account-link URLs use it |
 | `MULTICA_PUBLIC_URL` | empty | Public API URL; used for webhook URLs and runtime connection instructions |
-| `MULTICA_DAEMON_SERVER_URL` | falls back to `MULTICA_PUBLIC_URL`, then `MULTICA_APP_URL` / `FRONTEND_ORIGIN` | Server URL the API process inserts into `multica setup self-host`; set it when daemons reach the API at a different URL than the public webhook URL |
+| `MULTICA_DAEMON_SERVER_URL` | falls back to `MULTICA_PUBLIC_URL`, then `MULTICA_APP_URL` / `FRONTEND_ORIGIN` | Server URL the API process inserts into `morechat setup self-host`; set it when daemons reach the API at a different URL than the public webhook URL |
 | `CORS_ALLOWED_ORIGINS` | empty | Extra allowed HTTP origins, comma-separated |
 | `ALLOWED_ORIGINS` | falls back to CORS / frontend origins | WebSocket origin allowlist, comma-separated |
 | `COOKIE_DOMAIN` | empty | Required when the frontend and API use different hosts and the browser talks to the API domain directly; keep empty for single-domain deployments |
@@ -372,8 +372,8 @@ Owned Cursor background processes are also stopped when the run completes normal
 Common daemon-side settings can also be written to `~/.multica/config.json` instead of relying on shell environment variables; named profiles keep theirs at `~/.multica/profiles/<name>/config.json`:
 
 ```bash
-multica config set poll_interval 10s
-multica config show
+morechat config set poll_interval 10s
+morechat config show
 ```
 
 Supported keys:
@@ -402,7 +402,7 @@ Supported keys:
 A few value rules:
 
 - Duration keys take a positive Go duration such as `10s` or `2h`; negative values are always rejected. Only `agent_timeout`, `agent_idle_watchdog`, and `agent_tool_watchdog` also accept `0s`: for `agent_timeout` it removes the run time limit, and for the two watchdog keys the table says what it turns off.
-- Passing an empty string clears a persisted value and falls back to the env var or built-in default, for example `multica config set poll_interval ""`.
+- Passing an empty string clears a persisted value and falls back to the env var or built-in default, for example `morechat config set poll_interval ""`.
 - `max_concurrent_tasks` requires a non-negative integer.
 - Relative `workspaces_root` values are converted to absolute paths when saved.
 

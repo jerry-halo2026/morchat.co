@@ -33,7 +33,7 @@ Web（[morechat.co](https://morechat.co)）または [morechat.co Desktop](https
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.sh | bash
-multica setup
+morechat setup
 ```
 
 </Tab>
@@ -41,13 +41,13 @@ multica setup
 
 ```powershell
 irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex
-multica setup
+morechat setup
 ```
 
 </Tab>
 </Tabs>
 
-`multica setup` はブラウザを開いてログインを完了し、その後デーモンをバックグラウンドで実行し続けます。デーモンがオンラインになると、通常 1 分以内にダイアログがこのコンピュータを検出します。
+`morechat setup` はブラウザを開いてログインを完了し、その後デーモンをバックグラウンドで実行し続けます。デーモンがオンラインになると、通常 1 分以内にダイアログがこのコンピュータを検出します。
 
 **成功の目安**：ランタイム一覧にオンラインのコンピュータが表示されます。
 
@@ -99,8 +99,8 @@ multica setup
 
 | 症状 | まず確認すること |
 |---|---|
-| ランタイムが見つからない | AI コーディングツールがインストール済みで、ターミナルから実行できることを確認します。Desktop では「更新」をクリックし、CLI の場合は `multica setup` を再実行します。 |
-| ランタイムがオフラインと表示される | Desktop を開いたままにします。CLI の場合は `multica daemon status` を実行し、起動していなければ `multica daemon start` を実行します。 |
+| ランタイムが見つからない | AI コーディングツールがインストール済みで、ターミナルから実行できることを確認します。Desktop では「更新」をクリックし、CLI の場合は `morechat setup` を再実行します。 |
+| ランタイムがオフラインと表示される | Desktop を開いたままにします。CLI の場合は `morechat daemon status` を実行し、起動していなければ `morechat daemon start` を実行します。 |
 | タスクがキューに入ったまま | エージェントが使うランタイムがオンラインであることを確認します。ランタイムが同時実行の上限に達している場合、新しい実行はキューで待機し続けます。 |
 
 その他のケースは[トラブルシューティング](/troubleshooting)を参照してください。

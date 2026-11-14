@@ -1,7 +1,7 @@
 import { homedir } from "os";
 import { join } from "path";
 
-// Keep the Go impl in sync: server/cmd/multica/cmd_daemon.go healthPortForProfile.
+// Keep the Go impl in sync: server/cmd/morechat/cmd_daemon.go healthPortForProfile.
 export const DEFAULT_HEALTH_PORT = 19514;
 
 /**

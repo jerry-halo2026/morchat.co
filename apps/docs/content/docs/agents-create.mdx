@@ -189,9 +189,9 @@ In the **Settings → MCP servers** list, each server shows "Used by N agents" o
 The CLI does the same. Configurations usually contain tokens, so pass them from a file or stdin rather than as a command-line argument:
 
 ```bash
-multica workspace mcp add linear --server-config-file ./linear.json
-multica workspace mcp list
-multica agent mcp add <agent-id> <server-id>
+morechat workspace mcp add linear --server-config-file ./linear.json
+morechat workspace mcp list
+morechat agent mcp add <agent-id> <server-id>
 ```
 
 ## Duplicating an agent
@@ -203,7 +203,7 @@ Environment variable values, MCP configuration, and workspace MCP server assignm
 ## Creating with the CLI
 
 ```bash
-multica agent create \
+morechat agent create \
   --name "Frontend Reviewer" \
   --runtime-id <runtime-id> \
   --description "Reviews frontend pull requests" \
@@ -216,7 +216,7 @@ Plaintext in command-line arguments ends up in shell history; stdin and permissi
 When a similarly configured agent already exists, copy it directly:
 
 ```bash
-multica agent copy <agent-id>
+morechat agent copy <agent-id>
 ```
 
 By default the copy stays on the same runtime; add `--runtime-id` to move it to another runtime, which also requires `--model`. Environment variables, MCP configuration, and `runtime_config` are never copied; the runtime binding itself is kept. Full flags in [Using the CLI](/cli).

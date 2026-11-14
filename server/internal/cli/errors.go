@@ -187,7 +187,7 @@ func WithUserMessage(msg string, err error) error {
 // kind-based copy, which is the only place that names the actual remedy
 // (DNS, proxy, TLS handshake).
 //
-// `multica login` needs this: with WithUserMessage, a TLS handshake that
+// `morechat login` needs this: with WithUserMessage, a TLS handshake that
 // never completed was reported as "the server could not issue an access
 // token" and "make sure the token is valid and not expired", and nothing in
 // the default output pointed at the network (GH #8654).
@@ -426,8 +426,8 @@ var kindMessages = map[ErrorKind][2]string{
 		"无法访问 Multica 服务器。请检查网络连接。",
 	},
 	KindAuthRequired: {
-		"Your session has expired or you are not signed in. Run `multica login` to sign in again. On a self-hosted or non-OAuth setup, ask your administrator for valid credentials.",
-		"登录已过期或尚未登录。请运行 `multica login` 重新登录。自托管或非 OAuth 场景请联系管理员获取有效凭证。",
+		"Your session has expired or you are not signed in. Run `morechat login` to sign in again. On a self-hosted or non-OAuth setup, ask your administrator for valid credentials.",
+		"登录已过期或尚未登录。请运行 `morechat login` 重新登录。自托管或非 OAuth 场景请联系管理员获取有效凭证。",
 	},
 	KindTaskTokenRejected: {
 		"This task token was rejected and is no longer usable. Stop here: do not retry, and do not fall back to a profile or member credential, because anything done with one would run as that person rather than as this task. Only the runtime that started this task can supply a valid task token.",

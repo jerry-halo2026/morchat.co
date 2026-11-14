@@ -33,19 +33,19 @@ Ne mettez pas de PAT dans des dépôts, des tâches, des commentaires, des captu
 
 ## Le CLI et les PAT
 
-Lorsque vous exécutez `multica login`, le CLI effectue la connexion via le navigateur, puis crée un PAT valable 90 jours et l'enregistre dans le fichier de configuration du profil courant :
+Lorsque vous exécutez `morechat login`, le CLI effectue la connexion via le navigateur, puis crée un PAT valable 90 jours et l'enregistre dans le fichier de configuration du profil courant :
 
 ```text
 ~/.multica/config.json
 ~/.multica/profiles/<name>/config.json
 ```
 
-Le daemon se connecte à morechat.co avec ce même PAT. Un PAT `mul_` doté d'une date d'expiration est renouvelé automatiquement lorsqu'il lui reste moins de 7 jours, ce qui le prolonge jusqu'à 90 jours à compter de ce moment. Un renouvellement en échec laisse le jeton inchangé ; une fois un jeton expiré ou révoqué, exécutez de nouveau `multica login`.
+Le daemon se connecte à morechat.co avec ce même PAT. Un PAT `mul_` doté d'une date d'expiration est renouvelé automatiquement lorsqu'il lui reste moins de 7 jours, ce qui le prolonge jusqu'à 90 jours à compter de ce moment. Un renouvellement en échec laisse le jeton inchangé ; une fois un jeton expiré ou révoqué, exécutez de nouveau `morechat login`.
 
 Sur une machine sans navigateur, créez d'abord un PAT sur le web, puis laissez le CLI vous le demander de manière sécurisée :
 
 ```bash
-multica login --token
+morechat login --token
 ```
 
 ## Utiliser un PAT dans les requêtes API
@@ -71,7 +71,7 @@ Dans les scripts, récupérez le jeton depuis un gestionnaire de secrets ou une 
 
 ## Déconnexion et révocation
 
-`multica auth logout` supprime uniquement le PAT enregistré dans le profil CLI courant ; la déconnexion sur le web supprime uniquement les cookies du navigateur courant. Aucune des deux ne révoque le jeton d'accès personnel côté serveur.
+`morechat auth logout` supprime uniquement le PAT enregistré dans le profil CLI courant ; la déconnexion sur le web supprime uniquement les cookies du navigateur courant. Aucune des deux ne révoque le jeton d'accès personnel côté serveur.
 
 Si un jeton a pu fuiter, révoquez-le immédiatement dans **Paramètres → Jetons d'API**. Une fois révoqué, le PAT ne peut plus jamais être utilisé, et les autres machines et scripts qui l'avaient enregistré perdent également l'accès.
 

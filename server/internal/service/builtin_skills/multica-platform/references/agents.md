@@ -19,9 +19,9 @@ parameter manual.
 These commands read state and have no side effects:
 
 ```bash
-multica agent get <agent-id> --output json      # full persisted agent record
-multica agent skills list <agent-id> --output json   # current skill bindings
-multica agent env get <agent-id> --output json  # plaintext env (agent owner or ws owner/admin; agents denied)
+morechat agent get <agent-id> --output json      # full persisted agent record
+morechat agent skills list <agent-id> --output json   # current skill bindings
+morechat agent env get <agent-id> --output json  # plaintext env (agent owner or ws owner/admin; agents denied)
 ```
 
 An agent can also be **unbound**: `runtime_id` is `NULL` (served as `""` with
@@ -38,7 +38,7 @@ binds it again. Unbound is orthogonal to archived.
 ## Core model
 
 An agent is a workspace-scoped record. Creation is a single `POST /api/agents`
-(`multica agent create`). At task claim time the daemon re-reads the agent and
+(`morechat agent create`). At task claim time the daemon re-reads the agent and
 assembles the runtime payload — so the persisted fields, not the create-time
 output, are what the agent runs on.
 
@@ -57,7 +57,7 @@ Two distinct text fields, often confused:
 Minimum create call (`--name` and `--runtime-id` are both required):
 
 ```bash
-multica agent create --name <name> --runtime-id <runtime-id> \
+morechat agent create --name <name> --runtime-id <runtime-id> \
   --description "<short catalog summary>" \
   --instructions "<runtime behavior contract>" \
   --output json
@@ -79,7 +79,7 @@ The HTTP body accepts: `name`, `description`, `instructions`,
 
 ## Copying an agent
 
-`multica agent copy <source-agent-id>` forks an existing agent's portable
+`morechat agent copy <source-agent-id>` forks an existing agent's portable
 configuration into a brand-new agent, leaving the source untouched. It is the
 CLI/headless equivalent of the web "Duplicate" action. No dedicated server API
 is involved: the CLI reads the source with `GET /api/agents/<id>`, then POSTs a
@@ -88,8 +88,8 @@ attach in the SAME create transaction (unlike `agent create`, which binds
 nothing). The mutation is therefore a single atomic create.
 
 ```bash
-multica agent copy <source-agent-id> --name "My Agent (copy)"   # same runtime
-multica agent copy <source-agent-id> --runtime-id <target> --model <model>  # cross-runtime fork
+morechat agent copy <source-agent-id> --name "My Agent (copy)"   # same runtime
+morechat agent copy <source-agent-id> --runtime-id <target> --model <model>  # cross-runtime fork
 ```
 
 - Copied by default without a dedicated override flag: `conversation_starters`.
@@ -241,8 +241,8 @@ using its stdin or 0600 file input where possible.
 secrets out of shell history and the process list:
 
 ```bash
-multica agent create --name <name> --runtime-id <runtime-id> --custom-env-stdin --output json
-multica agent create --name <name> --runtime-id <runtime-id> --custom-env-file <0600-json> --output json
+morechat agent create --name <name> --runtime-id <runtime-id> --custom-env-stdin --output json
+morechat agent create --name <name> --runtime-id <runtime-id> --custom-env-file <0600-json> --output json
 ```
 
 `--custom-env-stdin` reads the JSON object from stdin; `--custom-env-file`
@@ -256,14 +256,14 @@ Read-side facts (these are the wrong assumptions to avoid):
   list/get/create/update` and WS events return only `has_custom_env` (bool) and
   `custom_env_key_count` (int).
 - Reading plaintext values requires the dedicated `GET /api/agents/{id}/env`
-  endpoint (`multica agent env get`). It is gated to the **agent's own human
+  endpoint (`morechat agent env get`). It is gated to the **agent's own human
   owner** or a workspace **owner/admin**, and **agent actors are denied**
   regardless of the backing member's role — a running agent cannot read another
   agent's secrets, not even one its own human owns.
 - Writing values after creation does NOT go through `agent update`. The generic
   update path rejects any `custom_env` field with a 400 ("use PUT
   /api/agents/{id}/env"). Plaintext env writes are handled by
-  `PUT /api/agents/{id}/env` (`multica agent env set`), which carries the same
+  `PUT /api/agents/{id}/env` (`morechat agent env set`), which carries the same
   gate and writes an audit row.
 
 ### mcp_config
@@ -274,9 +274,9 @@ API tokens — and offers the same three input channels as `custom_env`, on BOTH
 `agent create` and `agent update`:
 
 ```bash
-multica agent create --name <name> --runtime-id <runtime-id> --mcp-config-file <0600-json> --output json
-multica agent update <agent-id> --mcp-config-stdin --output json
-multica agent update <agent-id> --mcp-config 'null'   # clears the config
+morechat agent create --name <name> --runtime-id <runtime-id> --mcp-config-file <0600-json> --output json
+morechat agent update <agent-id> --mcp-config-stdin --output json
+morechat agent update <agent-id> --mcp-config 'null'   # clears the config
 ```
 
 `--mcp-config-stdin` / `--mcp-config-file` keep the value out of shell history
@@ -300,15 +300,15 @@ Provider support is not uniform: Qwen Code accepts a managed `mcp_config` throug
 #### Workspace MCP servers
 
 A workspace keeps a LIBRARY of MCP servers (workspace Settings → MCP, or
-`multica workspace mcp list|add|update|remove`). Adding one there gives it to
+`morechat workspace mcp list|add|update|remove`). Adding one there gives it to
 NO agent — same shape as a workspace skill. It reaches an agent only when
 someone assigns it:
 
 ```bash
-multica workspace mcp list --output table        # find the server id
-multica agent mcp add <agent-id> <server-id>     # give it to one agent
-multica agent mcp disable <agent-id> <server-id> # stop sending it, keep the assignment
-multica agent mcp remove <agent-id> <server-id>  # take it away
+morechat workspace mcp list --output table        # find the server id
+morechat agent mcp add <agent-id> <server-id>     # give it to one agent
+morechat agent mcp disable <agent-id> <server-id> # stop sending it, keep the assignment
+morechat agent mcp remove <agent-id> <server-id>  # take it away
 ```
 
 At claim time the effective set is:
@@ -339,8 +339,8 @@ call after the agent exists. Two distinct verbs:
   the given ids (`PUT /api/agents/{id}/skills`); `--skill-ids ''` clears all.
 
 ```bash
-multica agent skills add <agent-id> --skill-ids <skill-id> --output json
-multica agent skills list <agent-id> --output json
+morechat agent skills add <agent-id> --skill-ids <skill-id> --output json
+morechat agent skills list <agent-id> --output json
 ```
 
 At claim time the daemon assembles the agent's skills as workspace-bound skills
@@ -355,12 +355,12 @@ Read-only (safe): `agent get`, `agent skills list`, `agent env get`.
 
 State-changing (require an explicit instruction — do not run speculatively):
 
-- `multica agent create` — creates a new agent.
-- `multica agent copy` — creates a new agent (a fork of an existing one); the
+- `morechat agent create` — creates a new agent.
+- `morechat agent copy` — creates a new agent (a fork of an existing one); the
   source is left untouched.
-- `multica agent skills add` / `set` — mutate bindings (`set` is destructive:
+- `morechat agent skills add` / `set` — mutate bindings (`set` is destructive:
   it drops bindings not in the new list).
-- `multica agent env set` — overwrites the full `custom_env` map and writes an
+- `morechat agent env set` — overwrites the full `custom_env` map and writes an
   audit row.
 
 ## Common wrong assumptions

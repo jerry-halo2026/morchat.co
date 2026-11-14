@@ -34,7 +34,7 @@ Skill 是工作區中可以重複使用的一組工作方法。它以 `SKILL.md`
 同一套壓縮包格式也可以用 CLI 匯入：
 
 ```bash
-multica skill import --file ./review-helper.skill
+morechat skill import --file ./review-helper.skill
 ```
 
 匯入時如果工作區已經存在同名 skill，可以停止匯入、覆蓋原內容、使用新名稱儲存，或跳過。透過匯入覆蓋僅限該 skill 的建立者本人；工作區 `admin` 即使可以在應用內編輯它，也不能用匯入的方式覆蓋。要為已在工作區裡的 skill 拉取新版本，請改用[更新已匯入的 skill](#更新已匯入的-skill)。
@@ -44,7 +44,7 @@ multica skill import --file ./review-helper.skill
 從 GitHub、ClawHub 或 Skills.sh 匯入的 skill 會記住它的來源。要拉取最新版本，在 skill 頁面點選**更新**（或在列表行選單裡選"從來源更新"），也可以用 CLI：
 
 ```bash
-multica skill refresh <skill-id>
+morechat skill refresh <skill-id>
 ```
 
 Skill 會從來源重新下載並就地替換：

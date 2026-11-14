@@ -123,7 +123,7 @@ const (
 var pendingWorkHintMinInterval = time.Second
 
 // repoCheckoutModeFor picks the Git metadata layout for a task's
-// `multica repo checkout`. Under Codex's workspace-write sandbox a linked
+// `morechat repo checkout`. Under Codex's workspace-write sandbox a linked
 // worktree's gitdir resolves into the shared cache and stays read-only even
 // when the task workdir is an explicit writable root, so `git add` /
 // `git commit` fail from inside the checkout — Linux hit this in
@@ -688,7 +688,7 @@ type Daemon struct {
 	runningTasks      atomic.Int64
 	resourceWaitTasks atomic.Int64
 	ready             atomic.Bool // false until preflight completes; gates /health status (starting -> running)
-	// reloadPendingReason explains why a confirmed multica version change hasn't
+	// reloadPendingReason explains why a confirmed morechat version change hasn't
 	// restarted the daemon yet (a task was running at the barrier check). Set
 	// and cleared by trySelfReload, read by /health. Diagnostic only.
 	reloadPendingReason atomic.Pointer[string]
@@ -2263,9 +2263,9 @@ func (d *Daemon) resolveAuth() error {
 		return fmt.Errorf("load CLI config: %w", err)
 	}
 	if cfg.Token == "" {
-		loginHint := "'multica login'"
+		loginHint := "'morechat login'"
 		if d.cfg.Profile != "" {
-			loginHint = fmt.Sprintf("'multica login --profile %s'", d.cfg.Profile)
+			loginHint = fmt.Sprintf("'morechat login --profile %s'", d.cfg.Profile)
 		}
 		d.logger.Warn("not authenticated — run " + loginHint + " to authenticate, then restart the daemon")
 		return fmt.Errorf("not authenticated: run %s first", loginHint)
@@ -3161,7 +3161,7 @@ func (d *Daemon) appendProfileRuntimes(ctx context.Context, workspaceID string, 
 			continue
 		}
 		// Resolve the executable to launch for this profile. A per-machine
-		// path override (MUL-3284, `multica runtime profile set-path`) wins
+		// path override (MUL-3284, `morechat runtime profile set-path`) wins
 		// over the PATH lookup when it is set AND points at a real
 		// executable — this is how an operator pins a profile to a binary
 		// that isn't on the daemon's PATH, or selects between multiple
@@ -3473,7 +3473,7 @@ func (d *Daemon) workspaceCoAuthoredByEnabled(workspaceID string) bool {
 //
 // It's safe to call with the workspace's own repos — duplicates are
 // idempotent. Called from runTask before the agent spawns so
-// `multica repo checkout` accepts project-only URLs without an extra round
+// `morechat repo checkout` accepts project-only URLs without an extra round
 // trip back to GetWorkspaceRepos (which doesn't carry project resources).
 func (d *Daemon) registerTaskRepos(workspaceID, taskID string, repos []RepoData) {
 	if len(repos) == 0 {
@@ -4139,7 +4139,7 @@ const DefaultTokenRenewalInterval = 3 * 24 * time.Hour
 // preflightAuth runs the two auth-sensitive startup steps in their
 // required order: a synchronous PAT renewal first, then the initial
 // workspace sync. The order matters — running tryRenewToken before any
-// other API call is what surfaces a user-actionable "run multica login"
+// other API call is what surfaces a user-actionable "run morechat login"
 // WARN when the PAT is already revoked or expired. If we let the
 // workspace sync go first, its 401 would short-circuit Run before the
 // renewal loop's first tick ever fires, and the operator would see only
@@ -4255,9 +4255,9 @@ func (d *Daemon) tryRenewToken(ctx context.Context) {
 	resp, err := d.client.RenewToken(reqCtx)
 	if err != nil {
 		if isUnauthorizedError(err) {
-			loginHint := "'multica login'"
+			loginHint := "'morechat login'"
 			if d.cfg.Profile != "" {
-				loginHint = fmt.Sprintf("'multica login --profile %s'", d.cfg.Profile)
+				loginHint = fmt.Sprintf("'morechat login --profile %s'", d.cfg.Profile)
 			}
 			d.logger.Warn("auth token rejected by server — run "+loginHint+" to re-authenticate, then restart the daemon", "error", err)
 			return
@@ -5433,7 +5433,7 @@ func (d *Daemon) triggerRestart() bool {
 // restartTargetBinary resolves the path a restart would re-exec.
 //
 // For brew installs it keeps the stable symlink path (e.g.
-// /opt/homebrew/bin/multica) so the restarted daemon picks up the new Cellar
+// /opt/homebrew/bin/morechat) so the restarted daemon picks up the new Cellar
 // version automatically: on Linux os.Executable() reads /proc/self/exe, which
 // the kernel resolves to the Cellar path, and brew cleanup deletes that path
 // after an upgrade. For non-brew installs it resolves to the absolute path of
@@ -6773,7 +6773,7 @@ func providerNeedsInlineSystemPrompt(provider string) bool {
 // path under ~/.multica/pi-sessions, and the backend passes that path directly
 // to --session. The transcript remains resumable when only the task workdir
 // changes, so binding it to workdir reuse discards healthy conversation history
-// and forces the model to reconstruct it through `multica chat history`.
+// and forces the model to reconstruct it through `morechat chat history`.
 //
 // Hermes is also independent of cwd: its transcript lives in HERMES_HOME's
 // state.db. sessionHomeReachable checks whether the conversation-scoped store
@@ -8042,7 +8042,7 @@ func (d *Daemon) runTask(ctx context.Context, task Task, provider string, slot i
 	// claimed task belongs to a project with github_repo resources the server
 	// has already narrowed it to project repos only. Make sure those URLs are
 	// in the per-workspace allowlist and the local cache, otherwise
-	// `multica repo checkout` would reject project-only URLs that aren't also
+	// `morechat repo checkout` would reject project-only URLs that aren't also
 	// bound at the workspace level.
 	d.registerTaskRepos(task.WorkspaceID, task.ID, task.Repos)
 	defer d.clearTaskRepoRefs(task.WorkspaceID, task.ID)
@@ -8111,7 +8111,7 @@ func (d *Daemon) runTask(ctx context.Context, task Task, provider string, slot i
 
 	// Prepare isolated execution environment.
 	// Repos are passed as metadata only — the agent checks them out on demand
-	// via `multica repo checkout <url>`.
+	// via `morechat repo checkout <url>`.
 	taskCtx := execenv.TaskContextForEnv{
 		IssueID:             task.IssueID,
 		TriggerCommentID:    task.TriggerCommentID,
@@ -8867,7 +8867,7 @@ func (d *Daemon) runTask(ctx context.Context, task Task, provider string, slot i
 	prompt := BuildPrompt(task, provider, promptOptions...)
 
 	// Pass task-scoped auth credentials and context so the spawned agent CLI
-	// can call the Multica API and the local daemon (e.g. `multica repo checkout`).
+	// can call the Multica API and the local daemon (e.g. `morechat repo checkout`).
 	// MULTICA_TASK_SLOT is allocated from the daemon-wide concurrency pool, not
 	// per-agent. When one daemon hosts multiple agents, slots index shared
 	// daemon-level resources such as GPUs.
@@ -8889,7 +8889,7 @@ func (d *Daemon) runTask(ctx context.Context, task Task, provider string, slot i
 	if task.AutopilotID != "" {
 		agentEnv["MULTICA_AUTOPILOT_ID"] = task.AutopilotID
 	}
-	// Quick-create marker — when set, the multica CLI's `issue create`
+	// Quick-create marker — when set, the morechat CLI's `issue create`
 	// command stamps the new issue with origin_type=quick_create +
 	// origin_id=<task_id> so the completion handler can find it
 	// deterministically (see GetIssueByOrigin).
@@ -9163,7 +9163,7 @@ func (d *Daemon) runTask(ctx context.Context, task Task, provider string, slot i
 	// identity/persona + skills + project context) so the backend prepends the
 	// same payload that file-based runtimes pick up from disk. Without this,
 	// these providers silently miss the workflow section and never call
-	// `multica issue status` / `multica issue comment add`, leaving issues
+	// `morechat issue status` / `morechat issue comment add`, leaving issues
 	// stuck in `todo`.
 	//
 	// Hermes and Kiro are intentionally excluded: their ACP sessions start in

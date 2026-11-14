@@ -216,7 +216,7 @@ function Get-WindowsCliArch {
 
 function Get-InstalledCliVersion {
     try {
-        $firstLine = multica version 2>$null | Select-Object -First 1
+        $firstLine = morechat version 2>$null | Select-Object -First 1
         if ("$firstLine" -match '\b(v?\d+(?:\.\d+)+)\b') {
             $version = $Matches[1]
             if ($version -notlike 'v*') {
@@ -247,15 +247,15 @@ function Install-CliBinary {
     }
 
     $version = $latest.TrimStart('v')
-    $url = "https://github.com/jerry-halo2026/morchat.co/releases/download/$latest/multica-cli-$version-windows-$arch.zip"
-    $tmpDir = Join-Path ([System.IO.Path]::GetTempPath()) "multica-install"
+    $url = "https://github.com/jerry-halo2026/morchat.co/releases/download/$latest/morechat-cli-$version-windows-$arch.zip"
+    $tmpDir = Join-Path ([System.IO.Path]::GetTempPath()) "morechat-install"
 
     if (Test-Path $tmpDir) { Remove-Item $tmpDir -Recurse -Force }
     New-Item -ItemType Directory -Path $tmpDir | Out-Null
 
     Write-Info "Downloading $url ..."
     try {
-        Invoke-WebRequest -Uri $url -OutFile (Join-Path $tmpDir "multica.zip") -UseBasicParsing
+        Invoke-WebRequest -Uri $url -OutFile (Join-Path $tmpDir "morechat.zip") -UseBasicParsing
     } catch {
         Remove-Item $tmpDir -Recurse -Force
         Write-Fail "Failed to download CLI binary: $_"
@@ -270,10 +270,10 @@ function Install-CliBinary {
         } else {
             [string]$checksums.Content
         }
-        $zipFile = Join-Path $tmpDir "multica.zip"
+        $zipFile = Join-Path $tmpDir "morechat.zip"
         $actualHash = (Get-FileHash -Path $zipFile -Algorithm SHA256).Hash.ToLower()
-        $releaseAsset = "multica-cli-$version-windows-$arch.zip"
-        $legacyAsset = "multica_windows_$arch.zip"
+        $releaseAsset = "morechat-cli-$version-windows-$arch.zip"
+        $legacyAsset = "morechat_windows_$arch.zip"
         $expectedLine = ($checksumContent -split "`r?`n") |
             Where-Object {
                 $_ -match [regex]::Escape($releaseAsset) -or
@@ -294,27 +294,27 @@ function Install-CliBinary {
         Write-Warn "Could not download checksums.txt - skipping verification."
     }
 
-    Expand-Archive -Path (Join-Path $tmpDir "multica.zip") -DestinationPath $tmpDir -Force
+    Expand-Archive -Path (Join-Path $tmpDir "morechat.zip") -DestinationPath $tmpDir -Force
 
     $binDir = Join-Path $env:USERPROFILE ".multica\bin"
     if (-not (Test-Path $binDir)) {
         New-Item -ItemType Directory -Path $binDir -Force | Out-Null
     }
 
-    $exeSrc = Join-Path $tmpDir "multica.exe"
+    $exeSrc = Join-Path $tmpDir "morechat.exe"
     if (-not (Test-Path $exeSrc)) {
-        $exeSrc = Get-ChildItem -Path $tmpDir -Filter "multica.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+        $exeSrc = Get-ChildItem -Path $tmpDir -Filter "morechat.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
     }
     if (-not $exeSrc -or -not (Test-Path $exeSrc)) {
         Remove-Item $tmpDir -Recurse -Force
-        Write-Fail "multica.exe not found in downloaded archive."
+        Write-Fail "morechat.exe not found in downloaded archive."
     }
 
-    Copy-Item $exeSrc (Join-Path $binDir "multica.exe") -Force
+    Copy-Item $exeSrc (Join-Path $binDir "morechat.exe") -Force
     Remove-Item $tmpDir -Recurse -Force
 
     Add-ToUserPath $binDir
-    Write-Ok "morechat.co CLI installed to $binDir\multica.exe"
+    Write-Ok "morechat.co CLI installed to $binDir\morechat.exe"
 }
 
 function Add-ToUserPath {
@@ -333,7 +333,7 @@ function Add-ToUserPath {
 }
 
 function Install-Cli {
-    if (Test-CommandExists "multica") {
+    if (Test-CommandExists "morechat") {
         $currentVer = Get-InstalledCliVersion
         $latestVer = Get-LatestVersion
 
@@ -364,8 +364,8 @@ function Install-Cli {
 
     Install-CliBinary
 
-    if (-not (Test-CommandExists "multica")) {
-        Write-Fail "CLI installed but 'multica' not found on PATH. Restart your terminal and try again."
+    if (-not (Test-CommandExists "morechat")) {
+        Write-Fail "CLI installed but 'morechat' not found on PATH. Restart your terminal and try again."
     }
 }
 
@@ -495,8 +495,8 @@ function Start-DefaultInstall {
     Write-Host ""
     Write-Host "  Next: configure your environment"
     Write-Host ""
-    Write-Host "     multica setup               " -NoNewline; Write-Host "# Connect to morechat.co Cloud (morechat.co)" -ForegroundColor DarkGray
-    Write-Host "     multica setup self-host      " -NoNewline; Write-Host "# Connect to a self-hosted server" -ForegroundColor DarkGray
+    Write-Host "     morechat setup              " -NoNewline; Write-Host "# Connect to morechat.co Cloud (morechat.co)" -ForegroundColor DarkGray
+    Write-Host "     morechat setup self-host     " -NoNewline; Write-Host "# Connect to a self-hosted server" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Self-hosting? Install the server first:"
     Write-Host '     $env:MULTICA_MODE="with-server"; irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.ps1 | iex'
@@ -527,7 +527,7 @@ function Start-LocalInstall {
     Write-Host ""
     Write-Host "  Next: configure your CLI to connect"
     Write-Host ""
-    Write-Host "     multica setup self-host  " -NoNewline; Write-Host "# Configure + authenticate + start daemon" -ForegroundColor DarkGray
+    Write-Host "     morechat setup self-host " -NoNewline; Write-Host "# Configure + authenticate + start daemon" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  Login: configure RESEND_API_KEY in .env for email codes,"
     Write-Host "  or read the generated code from backend logs when Resend is unset."
@@ -557,9 +557,9 @@ function Start-Stop {
         Write-Warn "No morechat.co installation found at $InstallDir"
     }
 
-    if (Test-CommandExists "multica") {
+    if (Test-CommandExists "morechat") {
         try {
-            multica daemon stop 2>$null
+            morechat daemon stop 2>$null
             Write-Ok "Daemon stopped"
         } catch {}
     }

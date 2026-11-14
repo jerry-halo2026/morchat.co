@@ -59,7 +59,7 @@ MULTICA_PUBLIC_URL=https://api.multica.example.com
 | `FRONTEND_ORIGIN` | 空 | 用户访问的前端 origin；用于 CORS、cookie 和邀请链接 |
 | `MULTICA_APP_URL` | 回退到 `FRONTEND_ORIGIN` | 用户可访问的 Web 地址；CLI 登录和账号绑定链接使用它 |
 | `MULTICA_PUBLIC_URL` | 空 | 公网 API 地址；用于 webhook URL 和运行时连接说明 |
-| `MULTICA_DAEMON_SERVER_URL` | 回退到 `MULTICA_PUBLIC_URL`，再回退到 `MULTICA_APP_URL` / `FRONTEND_ORIGIN` | API 进程写入 `multica setup self-host` 命令的服务端地址；守护进程访问 API 的地址与公网 webhook 地址不同时设置 |
+| `MULTICA_DAEMON_SERVER_URL` | 回退到 `MULTICA_PUBLIC_URL`，再回退到 `MULTICA_APP_URL` / `FRONTEND_ORIGIN` | API 进程写入 `morechat setup self-host` 命令的服务端地址；守护进程访问 API 的地址与公网 webhook 地址不同时设置 |
 | `CORS_ALLOWED_ORIGINS` | 空 | 额外允许的 HTTP origin，逗号分隔 |
 | `ALLOWED_ORIGINS` | 回退到 CORS / 前端地址 | WebSocket origin 白名单，逗号分隔 |
 | `COOKIE_DOMAIN` | 空 | 前后端不同 host 且浏览器直接访问 API 域时必须设置；单域部署保持为空 |
@@ -366,8 +366,8 @@ Cursor 已验证的后台清理需要 Linux 6.9 及以上（进程组 pidfd）�
 守护进程侧的常用配置也可以写入 `~/.multica/config.json`，不必依赖 shell 环境变量；命名 profile 的配置文件在 `~/.multica/profiles/<name>/config.json`：
 
 ```bash
-multica config set poll_interval 10s
-multica config show
+morechat config set poll_interval 10s
+morechat config show
 ```
 
 支持的键：
@@ -396,7 +396,7 @@ multica config show
 几条取值规则：
 
 - duration 类键接受正的 Go duration（如 `10s`、`2h`），负值一律拒绝。只有 `agent_timeout`、`agent_idle_watchdog`、`agent_tool_watchdog` 还接受 `0s`：`agent_timeout` 设为 `0s` 表示明确关闭执行时限，两个 watchdog 键设为 `0s` 关闭什么见上表。
-- 传空字符串清除已持久化的值，回到环境变量或内置默认，例如 `multica config set poll_interval ""`。
+- 传空字符串清除已持久化的值，回到环境变量或内置默认，例如 `morechat config set poll_interval ""`。
 - `max_concurrent_tasks` 要求非负整数。
 - 相对的 `workspaces_root` 值在保存时会转换为绝对路径。
 

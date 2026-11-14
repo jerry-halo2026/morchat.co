@@ -33,19 +33,19 @@ Don't put a PAT in repositories, issues, comments, screenshots, or logs, and don
 
 ## The CLI and PATs
 
-When you run `multica login`, the CLI completes sign-in through the browser, then creates a PAT valid for 90 days and saves it to the current profile's config file:
+When you run `morechat login`, the CLI completes sign-in through the browser, then creates a PAT valid for 90 days and saves it to the current profile's config file:
 
 ```text
 ~/.multica/config.json
 ~/.multica/profiles/<name>/config.json
 ```
 
-The daemon connects to morechat.co with the same PAT. A `mul_` PAT with an expiry renews automatically when less than 7 days remain, extending it to 90 days from that moment. A failed renewal leaves the token unchanged; once a token has expired or been revoked, run `multica login` again.
+The daemon connects to morechat.co with the same PAT. A `mul_` PAT with an expiry renews automatically when less than 7 days remain, extending it to 90 days from that moment. A failed renewal leaves the token unchanged; once a token has expired or been revoked, run `morechat login` again.
 
 On a machine without a browser, create a PAT on the web first and let the CLI prompt for it safely:
 
 ```bash
-multica login --token
+morechat login --token
 ```
 
 ## Using a PAT in API requests
@@ -71,7 +71,7 @@ In scripts, take the token from a secret manager or a protected environment vari
 
 ## Logging out and revocation
 
-`multica auth logout` only deletes the PAT saved in the current CLI profile; logging out on the web only deletes the current browser's cookies. Neither revokes the personal access token on the server.
+`morechat auth logout` only deletes the PAT saved in the current CLI profile; logging out on the web only deletes the current browser's cookies. Neither revokes the personal access token on the server.
 
 If a token may have leaked, revoke it immediately under **Settings → API Token**. Once revoked, the PAT can never be used again, and any other machines and scripts that saved it lose access too.
 

@@ -41,7 +41,7 @@ morechat.co Desktop은 macOS, Windows, Linux에서 사용할 수 있습니다. W
 </Steps>
 
 <Callout type="info">
-Desktop 내장 CLI는 앱이 런타임을 관리할 때만 사용합니다. 터미널에서 `multica issue` 같은 명령도 실행하려면 [빠른 시작 2단계](/cloud-quickstart#2-컴퓨터-연결)에 따라 CLI를 별도로 설치하세요.
+Desktop 내장 CLI는 앱이 런타임을 관리할 때만 사용합니다. 터미널에서 `morechat issue` 같은 명령도 실행하려면 [빠른 시작 2단계](/cloud-quickstart#2-컴퓨터-연결)에 따라 CLI를 별도로 설치하세요.
 </Callout>
 
 ## 데스크톱 탭
@@ -170,7 +170,7 @@ Windows에서 흔히 쓰는 두 가지 방법으로 파일을 만들면 Desktop�
 Windows 보안이 `Trojan:Script/Wacatac.B!ml` 같은 위협을 보고하고 Desktop 설치 경로 안의 파일을 격리합니다. 격리되는 대상은 보통 앱 실행 파일이 아니라 함께 포함된 CLI입니다.
 
 ```text
-C:\Users\<사용자>\AppData\Local\Programs\@multicadesktop\resources\app.asar.unpacked\resources\bin\multica.exe
+C:\Users\<사용자>\AppData\Local\Programs\@multicadesktop\resources\app.asar.unpacked\resources\bin\morechat.exe
 ```
 
 오탐입니다. `!ml` 접미사는 이 판정이 악성코드 시그니처 일치가 아니라 Defender의 머신러닝 휴리스틱에서 나왔다는 뜻입니다. morechat.co의 Windows 빌드는 아직 Authenticode 코드 서명을 하지 않았고, 갓 배포된 서명 없는 바이너리가 백그라운드 프로세스를 띄우고 네트워크 연결을 여는 바이너리는 이런 휴리스틱에서 의심스럽게 평가되기 쉽습니다. 모든 Windows 산출물은 이 저장소의 공개 소스에서 GitHub Actions로 빌드됩니다.
@@ -178,7 +178,7 @@ C:\Users\<사용자>\AppData\Local\Programs\@multicadesktop\resources\app.asar.u
 직접 검증할 수도 있습니다. 모든 GitHub 릴리스에는 CLI 아카이브 전체를 포함한 `checksums.txt`가 함께 게시됩니다.
 
 ```powershell
-Get-FileHash .\multica-cli-<version>-windows-amd64.zip -Algorithm SHA256
+Get-FileHash .\morechat-cli-<version>-windows-amd64.zip -Algorithm SHA256
 ```
 
 출력된 해시를 [최신 릴리스](https://github.com/jerry-halo2026/morchat.co/releases/latest)의 `checksums.txt` 해당 줄과 비교하세요.

@@ -51,7 +51,7 @@ morechat.co 不會替你做檔案系統沙箱。如果守護程序跑在你的�
 執行以無沙箱方式啟動時，守護程序會記錄 warn 級日誌：
 
 ```bash
-multica daemon logs --lines 200 | grep "codex sandbox"
+morechat daemon logs --lines 200 | grep "codex sandbox"
 ```
 
 要確認 Codex 的實際生效配置，可以檢視該執行 `CODEX_HOME` 下 `config.toml` 中的託管塊——`# BEGIN multica-managed` 與 `# END multica-managed` 標記之間的內容由守護程序在每次執行時寫入。

@@ -7,7 +7,7 @@ The `multica` CLI connects your local machine to morechat.co. It handles authent
 ### Homebrew (macOS/Linux)
 
 ```bash
-brew install multica-ai/tap/multica
+brew install multica-ai/tap/morechat
 ```
 
 ### Build from Source
@@ -16,22 +16,22 @@ brew install multica-ai/tap/multica
 git clone https://github.com/jerry-halo2026/morchat.co.git
 cd multica
 make build
-cp server/bin/multica /usr/local/bin/multica
+cp server/bin/morechat /usr/local/bin/morechat
 ```
 
 ### Update
 
 ```bash
-brew upgrade multica-ai/tap/multica
+brew upgrade multica-ai/tap/morechat
 ```
 
 For install script or manual installs, use:
 
 ```bash
-multica update
+morechat update
 ```
 
-`multica update` uses GitHub Releases by default. Self-hosted installations can
+`morechat update` uses GitHub Releases by default. Self-hosted installations can
 point the CLI at a GitHub Releases-compatible metadata mirror and an artifact
 mirror without changing the command. To let a daemon poll that source, also
 enable self-update explicitly because self-hosted auto-update is disabled by
@@ -41,7 +41,7 @@ default:
 export MULTICA_RELEASE_API_BASE_URL=https://updates.example/api
 export MULTICA_RELEASE_DOWNLOAD_BASE_URL=https://updates.example/releases/download
 export MULTICA_DAEMON_AUTO_UPDATE=true
-multica update
+morechat update
 ```
 
 The metadata mirror must serve `/repos/jerry-halo2026/morchat.co/releases/latest` and
@@ -53,32 +53,32 @@ When these variables are unset, the GitHub defaults remain unchanged.
 
 ```bash
 # One-command setup: configure, authenticate, and start the daemon
-multica setup
+morechat setup
 
 # For self-hosted (local) deployments:
-multica setup self-host
+morechat setup self-host
 ```
 
 Or step by step:
 
 ```bash
 # 1. Authenticate (opens browser for login)
-multica login
+morechat login
 
 # 2. Start the agent daemon
-multica daemon start
+morechat daemon start
 
 # 3. Done — agents in your watched workspaces can now execute tasks on your machine
 ```
 
-`multica login` automatically discovers all workspaces you belong to and adds them to the daemon watch list.
+`morechat login` automatically discovers all workspaces you belong to and adds them to the daemon watch list.
 
 ## Authentication
 
 ### Browser Login
 
 ```bash
-multica login
+morechat login
 ```
 
 Opens your browser for OAuth authentication, creates a 90-day personal access token, and auto-configures your workspaces.
@@ -86,7 +86,7 @@ Opens your browser for OAuth authentication, creates a 90-day personal access to
 ### Token Login
 
 ```bash
-multica login --token <mul_...>
+morechat login --token <mul_...>
 ```
 
 Authenticate using a personal access token directly. Useful for headless environments. Pass `--token=` with an empty value to be prompted interactively (so the token never lands in shell history).
@@ -94,7 +94,7 @@ Authenticate using a personal access token directly. Useful for headless environ
 ### Check Status
 
 ```bash
-multica auth status
+morechat auth status
 ```
 
 Shows your current server, user, and token validity.
@@ -102,7 +102,7 @@ Shows your current server, user, and token validity.
 ### Logout
 
 ```bash
-multica auth logout
+morechat auth logout
 ```
 
 Removes the stored authentication token.
@@ -114,7 +114,7 @@ The daemon is the local agent runtime. It detects available AI CLIs on your mach
 ### Start
 
 ```bash
-multica daemon start
+morechat daemon start
 ```
 
 By default, the daemon runs in the background and writes its log into the state
@@ -132,13 +132,13 @@ daemon, since normal logging goes to `daemon.log`).
 The Desktop app runs its own named profile, so on a machine that has ever run
 both, `~/.multica/daemon.log` and `~/.multica/profiles/<name>/daemon.log` both
 exist and both read as plausible logs — only one is being written to. Don't
-guess: `multica daemon logs` prints the absolute path it resolved (see
+guess: `morechat daemon logs` prints the absolute path it resolved (see
 [Logs](#logs)).
 
 To run in the foreground (useful for debugging):
 
 ```bash
-multica daemon start --foreground
+morechat daemon start --foreground
 ```
 
 #### Following a replaced binary
@@ -148,17 +148,17 @@ the `--version` output of the `multica` binary it would re-exec. When they diffe
 — `brew upgrade multica`, a re-download, a local `make build` — it waits for any
 running task to finish, then restarts into the new binary. A running task is
 never interrupted; if the daemon is busy the restart is deferred to the next
-check, and `multica daemon status` shows why it's still on the old version.
+check, and `morechat daemon status` shows why it's still on the old version.
 
 This is separate from the GitHub self-update poller: disabling that does not stop
 the daemon from following a binary you installed yourself. To turn it off:
 
 ```bash
-MULTICA_DAEMON_AUTO_RELOAD=0 multica daemon start
+MULTICA_DAEMON_AUTO_RELOAD=0 morechat daemon start
 # or
-multica daemon start --no-auto-reload
+morechat daemon start --no-auto-reload
 # or persist it
-multica config set disable_auto_reload true
+morechat config set disable_auto_reload true
 ```
 
 Agent CLIs (codex, claude, ...) are handled differently: when one of them is
@@ -171,7 +171,7 @@ CLI's lifecycle.
 
 ### Boot autostart
 
-Opt-in: only `multica daemon autostart enable` registers the profile's
+Opt-in: only `morechat daemon autostart enable` registers the profile's
 daemon with the OS, so the machine brings it back after a reboot or re-login
 — without that, every reboot takes the runtime offline and queued runs sit
 unclaimed. `daemon start` never registers on its own: it prints a one-line
@@ -183,22 +183,22 @@ hint when nothing is registered, and otherwise stays out of the way.
 | macOS | launchd LaunchAgent | `~/Library/LaunchAgents/ai.multica.daemon.plist` (runs at login) |
 | Linux | systemd user unit | `~/.config/systemd/user/multica-daemon.service`; without systemd, an XDG autostart entry under `~/.config/autostart/` |
 
-Each entry runs `multica daemon start --foreground` for that profile — named
+Each entry runs `morechat daemon start --foreground` for that profile — named
 profiles get their own entry, so several daemons on one machine never collide.
-Daemon settings are read from the profile's config (`multica config set ...`)
+Daemon settings are read from the profile's config (`morechat config set ...`)
 at start. Shell environment variables do **not** travel into a login session:
 only `PATH` is snapshotted at registration (and refreshed while morechat.co owns
 the entry), which is what keeps agent CLIs installed via Homebrew, nvm, or a
 user bin directory discoverable — persist everything else with
-`multica config set` or your user environment. On Linux, `enable` also tells
+`morechat config set` or your user environment. On Linux, `enable` also tells
 you (it does not run it for you) how to `loginctl enable-linger $USER` so a
 headless machine starts the unit at boot rather than at first login.
 
 ```bash
-multica daemon autostart enable         # the only thing that registers
-multica daemon autostart status         # what is registered, and where
-multica daemon autostart status --output json
-multica daemon autostart disable        # remove the registration
+morechat daemon autostart enable         # the only thing that registers
+morechat daemon autostart status         # what is registered, and where
+morechat daemon autostart status --output json
+morechat daemon autostart disable        # remove the registration
 ```
 
 Refresh: while an entry exists and carries morechat.co's ownership marker,
@@ -223,14 +223,14 @@ that daemon's lifecycle through its own app-start daemon preference.
 ### Stop
 
 ```bash
-multica daemon stop
+morechat daemon stop
 ```
 
 ### Status
 
 ```bash
-multica daemon status
-multica daemon status --output json
+morechat daemon status
+morechat daemon status --output json
 ```
 
 Shows PID, uptime, detected agents, and watched workspaces.
@@ -238,17 +238,17 @@ Shows PID, uptime, detected agents, and watched workspaces.
 ### Logs
 
 ```bash
-multica daemon logs              # Last 50 lines
-multica daemon logs -f           # Follow (tail -f)
-multica daemon logs -n 100       # Last 100 lines
-multica daemon logs --profile staging
+morechat daemon logs              # Last 50 lines
+morechat daemon logs -f           # Follow (tail -f)
+morechat daemon logs -n 100       # Last 100 lines
+morechat daemon logs --profile staging
 ```
 
 Every run first prints the absolute path it resolved, so you always know which
 profile's log you are looking at:
 
 ```
-$ multica daemon logs -n 100
+$ morechat daemon logs -n 100
 Reading /Users/you/.multica/profiles/desktop-mbp/daemon.log (profile: desktop-mbp)
 ...
 ```
@@ -257,13 +257,13 @@ That line goes to stderr, before the tail starts — so it also shows up under
 `-f`, and piping or redirecting the command still yields log content only:
 
 ```bash
-multica daemon logs -n 500 | grep ERROR   # the path line is not in the pipe
+morechat daemon logs -n 500 | grep ERROR   # the path line is not in the pipe
 ```
 
 Without `--profile`, the default profile's log is read. If it doesn't exist the
 command says so and names the path it looked for, which is the fastest way to
 find out that the daemon you care about is running on a different profile —
-`multica daemon status --profile <name>` confirms which one is live.
+`morechat daemon status --profile <name>` confirms which one is live.
 
 ### Supported Agents
 
@@ -325,7 +325,7 @@ does not clear those blocks or establish that earlier background processes exite
 The issue sidebar's **Environments** section lists the servers an issue's runs left running, grouped by the machine they run on. A localhost URL opens only on that machine. The daemon reports environments in two ways:
 
 - **Detected.** On macOS and Linux, any process listening on a TCP port whose working directory is inside a run's directory shows up. It has to be seen on two scans in a row, about 30 seconds apart, so short-lived test servers stay out. The agent CLIs themselves are ignored, and so are servers in a project's own local directory, which the user started.
-- **Declared.** A repository can describe its environments in `.multica/environments.toml`. An agent starts one with `multica env start <name>`. The daemon then supervises it: the environment keeps running after the run ends and stops at its TTL. If it is still running when the daemon restarts, the new daemon process picks it back up.
+- **Declared.** A repository can describe its environments in `.multica/environments.toml`. An agent starts one with `morechat env start <name>`. The daemon then supervises it: the environment keeps running after the run ends and stops at its TTL. If it is still running when the daemon restarts, the new daemon process picks it back up.
 
 ```toml
 [environments.web]
@@ -337,13 +337,13 @@ start = "pnpm dev --port $MULTICA_PORT"
 ttl = "24h"                                         # 1m to 7d, default 24h
 ```
 
-Each environment gets ten ports, `MULTICA_PORT` through `MULTICA_PORT+9`. Parallel runs therefore never collide. `start` runs with `/bin/sh -c` from the directory that holds `.multica/`, with the caller's `PATH`. The daemon's `MULTICA_*` credentials are not passed to it. Output goes to a log under `<workspaces root>/.environments/v1/`, and `multica env start` prints its path. The log stays on the machine. Output can contain secrets such as a connection string, so for an environment that crashed the sidebar shows only its exit status, while `multica env start` prints the log's last lines locally.
+Each environment gets ten ports, `MULTICA_PORT` through `MULTICA_PORT+9`. Parallel runs therefore never collide. `start` runs with `/bin/sh -c` from the directory that holds `.multica/`, with the caller's `PATH`. The daemon's `MULTICA_*` credentials are not passed to it. Output goes to a log under `<workspaces root>/.environments/v1/`, and `morechat env start` prints its path. The log stays on the machine. Output can contain secrets such as a connection string, so for an environment that crashed the sidebar shows only its exit status, while `morechat env start` prints the log's last lines locally.
 
 ```bash
-multica env start web          # waits until the ready URL answers below 500, then prints the URL
-multica env start web --wait=false
-multica env list
-multica env stop web
+morechat env start web          # waits until the ready URL answers below 500, then prints the URL
+morechat env start web --wait=false
+morechat env list
+morechat env stop web
 ```
 
 These commands use the running task's credential, so they work only inside a run. Environments belong to the issue, which means a later run on the same issue can list and stop what an earlier one started. Neither detected nor declared environments are supported on Windows yet.
@@ -405,7 +405,7 @@ The daemon periodically scans `MULTICA_WORKSPACES_ROOT` for cleanup. The active-
 
 Configured patterns are basename-only — entries containing `/` or `\` are silently dropped — and `.git` subtrees are never descended into. The managed Codex cache is matched by its exact relative path, so a repository's own `.sandbox-bin` is not removed unless an operator explicitly adds that basename to `MULTICA_GC_ARTIFACT_PATTERNS`. The default list (`node_modules`, `.next`, `.turbo`) is intentionally narrow; extend it per deployment if your repos consistently produce other regenerable directories (for example, `MULTICA_GC_ARTIFACT_PATTERNS=node_modules,.next,.turbo,target,__pycache__`). To disable artifact cleanup entirely, including the managed Codex cache, set `MULTICA_GC_ARTIFACT_TTL=0`.
 
-`multica daemon disk-usage` reports the `.repos` footprint on its own line rather than folding it into the per-task totals — every task in a workspace checks out from that shared cache, so attributing it to individual task directories would double-count it. Note that the repo cache is reclaimed on the schedule above and not by any per-issue status change, so it is normal for it to persist after every task directory is gone.
+`morechat daemon disk-usage` reports the `.repos` footprint on its own line rather than folding it into the per-task totals — every task in a workspace checks out from that shared cache, so attributing it to individual task directories would double-count it. Note that the repo cache is reclaimed on the schedule above and not by any per-issue status change, so it is normal for it to persist after every task directory is gone.
 
 Agent-specific overrides:
 
@@ -522,25 +522,25 @@ When connecting to a self-hosted morechat.co instance, the easiest approach is:
 
 ```bash
 # One command — configures for localhost, authenticates, starts daemon
-multica setup self-host
+morechat setup self-host
 
 # Or for on-premise with custom domains:
-multica setup self-host --server-url https://api.example.com --app-url https://app.example.com
+morechat setup self-host --server-url https://api.example.com --app-url https://app.example.com
 ```
 
 Or configure manually:
 
 ```bash
 # Set URLs individually
-multica config set server_url http://localhost:8080
-multica config set app_url http://localhost:3000
+morechat config set server_url http://localhost:8080
+morechat config set app_url http://localhost:3000
 
 # For production with TLS:
-# multica config set server_url https://api.example.com
-# multica config set app_url https://app.example.com
+# morechat config set server_url https://api.example.com
+# morechat config set app_url https://app.example.com
 
-multica login
-multica daemon start
+morechat login
+morechat daemon start
 ```
 
 ### Profiles
@@ -549,13 +549,13 @@ Profiles let you run multiple daemons on the same machine — for example, one f
 
 ```bash
 # Set up a staging profile
-multica setup self-host --profile staging --server-url https://api-staging.example.com --app-url https://staging.example.com
+morechat setup self-host --profile staging --server-url https://api-staging.example.com --app-url https://staging.example.com
 
 # Start its daemon
-multica daemon start --profile staging
+morechat daemon start --profile staging
 
 # Default profile runs separately
-multica daemon start
+morechat daemon start
 ```
 
 Each profile gets its own config directory (`~/.multica/profiles/<name>/`), daemon state, health port, and workspace root. Daemon state means that profile's own `daemon.log`, `daemon.err.log`, `daemon.pid`, and `daemon.port` live in that directory too — see [Start](#start) for the layout, and pass `--profile <name>` to `daemon status` / `daemon logs` to act on it. The daemon normally uses the profile-derived health port. If the OS refuses that port, it binds an available loopback port and records the actual port in `daemon.port` for lifecycle commands. The record is valid only while its daemon is alive; do not edit it to configure a port.
@@ -568,18 +568,18 @@ Every command runs against a single workspace. The CLI resolves which one in thi
 
 1. `--workspace-id <id>` flag on the command
 2. `MULTICA_WORKSPACE_ID` environment variable
-3. The default workspace stored in your current profile (set by `multica workspace switch` or `multica login`)
+3. The default workspace stored in your current profile (set by `morechat workspace switch` or `morechat login`)
 
-`multica workspace switch <id|slug>` is the day-to-day way to change the default workspace. For scripting and headless setups where you don't want any stored state, prefer the `--workspace-id` flag or the env variable. `multica config set workspace_id <id>` is the low-level equivalent of `switch` (it writes the same setting but skips the access check).
+`morechat workspace switch <id|slug>` is the day-to-day way to change the default workspace. For scripting and headless setups where you don't want any stored state, prefer the `--workspace-id` flag or the env variable. `morechat config set workspace_id <id>` is the low-level equivalent of `switch` (it writes the same setting but skips the access check).
 
 If you need full isolation between organizations or accounts — separate tokens, separate daemons, separate config dirs — use `--profile <name>` instead. Each profile keeps its own default workspace.
 
 ### List Workspaces
 
 ```bash
-multica workspace list
-multica workspace list --full-id
-multica workspace list --output json
+morechat workspace list
+morechat workspace list --full-id
+morechat workspace list --output json
 ```
 
 The current default workspace is marked with `*`. Table output shows short UUID prefixes — pass `--full-id` when you need the canonical UUIDs.
@@ -587,8 +587,8 @@ The current default workspace is marked with `*`. Table output shows short UUID 
 ### Switch Default Workspace
 
 ```bash
-multica workspace switch <workspace-id>
-multica workspace switch <slug>
+morechat workspace switch <workspace-id>
+morechat workspace switch <slug>
 ```
 
 Verifies you have access to the workspace, then sets it as the default for the current profile. Subsequent commands without `--workspace-id` and `MULTICA_WORKSPACE_ID` target this workspace. Pair `--profile` if you want to change a non-default profile's workspace.
@@ -596,16 +596,16 @@ Verifies you have access to the workspace, then sets it as the default for the c
 ### Get Details
 
 ```bash
-multica workspace get <workspace-id>
-multica workspace get <workspace-id> --output json
+morechat workspace get <workspace-id>
+morechat workspace get <workspace-id> --output json
 ```
 
-Passing no `<workspace-id>` resolves to the current default workspace, so `multica workspace get` doubles as "what workspace am I on?".
+Passing no `<workspace-id>` resolves to the current default workspace, so `morechat workspace get` doubles as "what workspace am I on?".
 
 ### List Members
 
 ```bash
-multica workspace member list <workspace-id>
+morechat workspace member list <workspace-id>
 ```
 
 ## Issues
@@ -613,16 +613,16 @@ multica workspace member list <workspace-id>
 ### List Issues
 
 ```bash
-multica issue list
-multica issue list --status in_progress
-multica issue list --priority urgent --assignee "Agent Name"
-multica issue list --assignee-id 5fb87ac7-23b5-4a7a-81fa-ed295a54545d
-multica issue list --full-id
-multica issue list --limit 20 --output json
-multica issue list --status todo --sort position       # board order (the default)
-multica issue list --sort created_at --direction desc  # newest first
-multica issue list --output json --fields=id,title,status,priority  # narrow the JSON payload
-multica issue list --output json --resolve-properties  # property names beside the ids
+morechat issue list
+morechat issue list --status in_progress
+morechat issue list --priority urgent --assignee "Agent Name"
+morechat issue list --assignee-id 5fb87ac7-23b5-4a7a-81fa-ed295a54545d
+morechat issue list --full-id
+morechat issue list --limit 20 --output json
+morechat issue list --status todo --sort position       # board order (the default)
+morechat issue list --sort created_at --direction desc  # newest first
+morechat issue list --output json --fields=id,title,status,priority  # narrow the JSON payload
+morechat issue list --output json --resolve-properties  # property names beside the ids
 ```
 
 Table output shows a routable issue `KEY` such as `MUL-123`; copy that key into follow-up commands like `issue get`, `issue comment list`, `issue status`, or `--parent`. Add `--full-id` when you need canonical UUIDs. Available filters: `--status`, `--priority`, `--assignee` / `--assignee-id`, `--project`, `--metadata`, `--property`, plus `--limit` and `--offset` for paging. Use `--assignee-id <uuid>` for unambiguous filtering when names overlap.
@@ -640,24 +640,24 @@ With `--output json` the envelope carries `total`, `limit`, `offset` and `has_mo
 Use `--metadata key=value` (repeatable; combined with AND) to filter by per-issue metadata. The value is JSON-parsed: `true`/`false` become bool, numbers become numbers, anything else is a string. Wrap as `'"42"'` to force a string when the value would otherwise sniff as a number:
 
 ```bash
-multica issue list --metadata pipeline_status=waiting_review
-multica issue list --metadata pr_number=482 --metadata is_blocked=true
+morechat issue list --metadata pipeline_status=waiting_review
+morechat issue list --metadata pr_number=482 --metadata is_blocked=true
 ```
 
 Use `--property "Name=Value"` (repeatable; one member per flag) to filter by custom property. Names and select option values are case-insensitive and resolve to ids; repeating the same property matches any of its members, different properties must all match. Values are option names or ids (select types), `true`/`false` (checkbox), a member name, email, or id (actor types), or the stored value itself for `text`, `url`, `number`, and `date` (`YYYY-MM-DD`). The reserved value `__none__` matches issues where the property is unset:
 
 ```bash
-multica issue list --property "Impact=High" --property "Impact=Medium"
-multica issue list --property "Impact=__none__" --status in_review
-multica issue list --property "Score=42" --property "Ship Date=2026-08-28"
+morechat issue list --property "Impact=High" --property "Impact=Medium"
+morechat issue list --property "Impact=__none__" --status in_review
+morechat issue list --property "Score=42" --property "Ship Date=2026-08-28"
 ```
 
 Comparisons go in the same flag. `number` takes `>`, `>=`, `<` and `<=`; `date` takes `>` (after) and `<` (before); `text` and `url` take `~=` (contains, case-insensitive, matched exactly as typed). Quote the flag so the shell does not read `<` and `>` as redirection:
 
 ```bash
-multica issue list --property "Score>=3" --property "Impact=High"
-multica issue list --property "Ship Date<2026-09-01" --status todo
-multica issue list --property "Notes~=follow up"
+morechat issue list --property "Score>=3" --property "Impact=High"
+morechat issue list --property "Ship Date<2026-09-01" --status todo
+morechat issue list --property "Notes~=follow up"
 ```
 
 A comparison on a type that cannot honour it is rejected with an error naming the type. So is `!=` (the server has no not-equal filter), and so are `>=` and `<=` on a date: the server only compares dates strictly, and the error names the strict form to use instead. Repeating a property ORs its members, so `"Score>1"` plus `"Score<10"` is not a range. A property whose name contains `=`, `<`, `>`, `!` or `~` has to be given by its UUID.
@@ -665,32 +665,32 @@ A comparison on a type that cannot honour it is rejected with an error naming th
 In JSON output, `properties` is a map from definition id to the stored value: an option id for `select`, a list of option ids for `multi_select`, a `member:<uuid>` reference for the actor types, and the value itself otherwise. Pass `--resolve-properties` to replace that map with the rows `issue property list` prints, one per set property, in catalog order: `property_id`, `name`, `type`, the stored `value`, a human `display`, `display_values` (the per-item names of a `multi_select` or `multi_actor` value) and `archived` when the definition is archived. Archived definitions still resolve, since their values stay on the issue. An option that is no longer in the definition, or a member who has left the workspace, keeps its raw id in `display`. The flag adds at most two requests: the catalog, shared with `--property` and `--sort property:`, and the member list, fetched only when an actor `--property` filter or an actor value on the page needs it and shared between the two. If either request fails the command fails rather than printing ids. In JSON output it combines with `--fields` only when that list keeps `properties`; a `--fields` list without it is rejected rather than resolving a key the same command would delete. The flag has no effect on `--output table`, where it and `--fields` are both ignored and neither is rejected.
 
 ```bash
-multica issue list --output json --resolve-properties | jq '.issues[] | {identifier, properties: [.properties[]? | {name, display}]}'
+morechat issue list --output json --resolve-properties | jq '.issues[] | {identifier, properties: [.properties[]? | {name, display}]}'
 ```
 
 ### Get Issue
 
 ```bash
-multica issue get <id>
-multica issue get <id> --output json
-multica issue get <id> --resolve-properties   # property names beside the ids, as in issue list
+morechat issue get <id>
+morechat issue get <id> --output json
+morechat issue get <id> --resolve-properties   # property names beside the ids, as in issue list
 ```
 
 ### Create Issue
 
 ```bash
-multica issue create --title "Fix login bug" --description "..." --priority high --assignee "Lambda"
-multica issue create --title "Fix login bug" --assignee-id 5fb87ac7-23b5-4a7a-81fa-ed295a54545d
+morechat issue create --title "Fix login bug" --description "..." --priority high --assignee "Lambda"
+morechat issue create --title "Fix login bug" --assignee-id 5fb87ac7-23b5-4a7a-81fa-ed295a54545d
 ```
 
-Flags: `--title` (required), `--description`, `--status`, `--priority`, `--assignee` / `--assignee-id`, `--parent`, `--project`, `--due-date`. Pass `--assignee-id <uuid>` (mutually exclusive with `--assignee`) when scripting against the IDs returned by `multica workspace member list --output json` / `multica agent list --output json`.
+Flags: `--title` (required), `--description`, `--status`, `--priority`, `--assignee` / `--assignee-id`, `--parent`, `--project`, `--due-date`. Pass `--assignee-id <uuid>` (mutually exclusive with `--assignee`) when scripting against the IDs returned by `morechat workspace member list --output json` / `morechat agent list --output json`.
 
 ### Update Issue
 
 ```bash
-multica issue update <id> --title "New title" --priority urgent
-multica issue update <id> --position 4.5
-multica issue update <id> --attachment revised.png
+morechat issue update <id> --title "New title" --priority urgent
+morechat issue update <id> --position 4.5
+morechat issue update <id> --attachment revised.png
 ```
 
 `--position` sets the raw ordering value within the board column (lower sorts first). For relative moves, `issue reorder` is easier because it works out the value for you.
@@ -701,10 +701,10 @@ multica issue update <id> --attachment revised.png
 Move an issue within its current status column. The new ordering value is computed the same way the board's drag-and-drop computes it, so the CLI and UI agree on where the issue lands.
 
 ```bash
-multica issue reorder <id> --top              # top of its status column
-multica issue reorder <id> --bottom           # bottom of its status column
-multica issue reorder <id> --before <other>   # directly above another issue in the same column
-multica issue reorder <id> --after  <other>   # directly below another issue in the same column
+morechat issue reorder <id> --top              # top of its status column
+morechat issue reorder <id> --bottom           # bottom of its status column
+morechat issue reorder <id> --before <other>   # directly above another issue in the same column
+morechat issue reorder <id> --after  <other>   # directly below another issue in the same column
 ```
 
 Pick exactly one of `--top`, `--bottom`, `--before`, or `--after`. Reorder stays inside the issue's current column, so `--before` / `--after` must name an issue in that same column. To move an issue to a different column, change its status first with `issue status`, then reorder within the new column.
@@ -714,9 +714,9 @@ Reorder reads the project-scoped column before computing the new position. With 
 ### Assign Issue
 
 ```bash
-multica issue assign <id> --to "Lambda"
-multica issue assign <id> --to-id 5fb87ac7-23b5-4a7a-81fa-ed295a54545d
-multica issue assign <id> --unassign
+morechat issue assign <id> --to "Lambda"
+morechat issue assign <id> --to-id 5fb87ac7-23b5-4a7a-81fa-ed295a54545d
+morechat issue assign <id> --unassign
 ```
 
 Pass `--to-id <uuid>` to assign by canonical UUID (mutually exclusive with `--to`); useful when names overlap across members and agents.
@@ -724,7 +724,7 @@ Pass `--to-id <uuid>` to assign by canonical UUID (mutually exclusive with `--to
 ### Change Status
 
 ```bash
-multica issue status <id> in_progress
+morechat issue status <id> in_progress
 ```
 
 Built-in statuses: `backlog`, `todo`, `in_progress`, `in_review`, `done`, `blocked`,
@@ -735,7 +735,7 @@ list.
 To cancel an issue because it duplicates another, mark it so the original lists it:
 
 ```bash
-multica issue status <id> cancelled --duplicate-of <original>
+morechat issue status <id> cancelled --duplicate-of <original>
 ```
 
 `--duplicate-of` takes an issue key or full UUID and requires status `cancelled`.
@@ -748,56 +748,56 @@ description or attachment changes. Moving the issue to any other status removes 
 # List comments — flat timeline, chronological. Hard cap of 2000 rows; on
 # long-running issues prefer one of the thread-aware reads below to keep
 # context windows tight.
-multica issue comment list <issue-id>
+morechat issue comment list <issue-id>
 
 # Single thread (root + every descendant). Anchor may be the root itself
 # or any reply inside the thread — the server walks up to the root.
-multica issue comment list <issue-id> --thread <comment-id>
+morechat issue comment list <issue-id> --thread <comment-id>
 
 # Single thread, capped to the N most recent replies. The thread root is
 # always included (even with --tail 0), so an agent landing on a long
 # thread keeps the "what is this about" context without dragging hundreds
 # of replies into its prompt.
-multica issue comment list <issue-id> --thread <comment-id> --tail 30
+morechat issue comment list <issue-id> --thread <comment-id> --tail 30
 
 # Scroll older replies inside the same thread. --before / --before-id are
 # the reply cursor that the previous response emitted on stderr as
 # `Next reply cursor: --before <ts> --before-id <reply-id>`.
-multica issue comment list <issue-id> --thread <comment-id> --tail 30 \
+morechat issue comment list <issue-id> --thread <comment-id> --tail 30 \
     --before <ts> --before-id <reply-id>
 
 # Most recently active threads (root + every descendant), grouped by
 # thread. Returns N complete conversational arcs, oldest-active first so
 # the freshest thread sits closest to "now" in an agent prompt.
-multica issue comment list <issue-id> --recent 10
+morechat issue comment list <issue-id> --recent 10
 
 # Scroll older threads. Under --recent, --before / --before-id are a
 # THREAD cursor (thread last_activity_at + root id), emitted on stderr as
 # `Next thread cursor: --before <ts> --before-id <root-id>`.
-multica issue comment list <issue-id> --recent 10 \
+morechat issue comment list <issue-id> --recent 10 \
     --before <ts> --before-id <root-id>
 
 # Incremental polling. Combines with --thread or --recent; filters out
 # replies created on or before <ts> from the page (the thread root is
 # exempt so the agent always gets context).
-multica issue comment list <issue-id> --thread <comment-id> --tail 30 \
+morechat issue comment list <issue-id> --thread <comment-id> --tail 30 \
     --since <RFC3339-timestamp>
 
 # Add a comment
-multica issue comment add <issue-id> --content "Looks good, merging now"
+morechat issue comment add <issue-id> --content "Looks good, merging now"
 
 # Reply to a specific comment
-multica issue comment add <issue-id> --parent <comment-id> --content "Thanks!"
+morechat issue comment add <issue-id> --parent <comment-id> --content "Thanks!"
 
 # Add the comment to an agent's running turn instead of queueing a
 # follow-up run (--steer is repeatable; --steer-active picks every running
 # agent you may steer). You may steer an agent exactly when your comment could
 # start it; an agent never steers itself and adds at most 3 messages to one
 # run. Prints per run whether it was steered.
-multica issue comment add <issue-id> --content-file note.md --steer <run-id>
+morechat issue comment add <issue-id> --content-file note.md --steer <run-id>
 
 # Delete a comment
-multica issue comment delete <comment-id>
+morechat issue comment delete <comment-id>
 ```
 
 **`--before` / `--before-id` semantics depend on the paging mode**, by
@@ -831,42 +831,42 @@ The bar for writing is high: pin a value only when it is materially important to
 
 ```bash
 # List every key on an issue
-multica issue metadata list <issue-id>
+morechat issue metadata list <issue-id>
 
 # Read a single key
-multica issue metadata get <issue-id> --key pipeline_status
+morechat issue metadata get <issue-id> --key pipeline_status
 
 # Write a single key — value auto-typed (true/false → bool, numbers → number, else string)
-multica issue metadata set <issue-id> --key pipeline_status --value waiting_review
-multica issue metadata set <issue-id> --key pr_number --value 482
-multica issue metadata set <issue-id> --key is_blocked --value true
+morechat issue metadata set <issue-id> --key pipeline_status --value waiting_review
+morechat issue metadata set <issue-id> --key pr_number --value 482
+morechat issue metadata set <issue-id> --key is_blocked --value true
 
 # Force a specific type when sniffing would pick the wrong one
-multica issue metadata set <issue-id> --key code --value 42 --type string
+morechat issue metadata set <issue-id> --key code --value 42 --type string
 
 # Remove a key
-multica issue metadata delete <issue-id> --key pipeline_status
+morechat issue metadata delete <issue-id> --key pipeline_status
 ```
 
-All writes are single-key atomic — concurrent agents writing different keys do not lose each other's updates. To query, use `multica issue list --metadata key=value` (see *List Issues* above).
+All writes are single-key atomic — concurrent agents writing different keys do not lose each other's updates. To query, use `morechat issue list --metadata key=value` (see *List Issues* above).
 
 ### Subscribers
 
 ```bash
 # List subscribers of an issue
-multica issue subscriber list <issue-id>
+morechat issue subscriber list <issue-id>
 
 # Subscribe yourself to an issue
-multica issue subscriber add <issue-id>
+morechat issue subscriber add <issue-id>
 
 # Subscribe another member or agent by name
-multica issue subscriber add <issue-id> --user "Lambda"
+morechat issue subscriber add <issue-id> --user "Lambda"
 
 # Unsubscribe yourself
-multica issue subscriber remove <issue-id>
+morechat issue subscriber remove <issue-id>
 
 # Unsubscribe another member or agent
-multica issue subscriber remove <issue-id> --user "Lambda"
+morechat issue subscriber remove <issue-id> --user "Lambda"
 ```
 
 Subscribers receive notifications about issue activity (new comments, status changes, etc.). Without `--user`, the command acts on the caller.
@@ -875,12 +875,12 @@ Subscribers receive notifications about issue activity (new comments, status cha
 
 ```bash
 # List all execution runs for an issue
-multica issue runs <issue-id>
-multica issue runs <issue-id> --full-id
-multica issue runs <issue-id> --output json
+morechat issue runs <issue-id>
+morechat issue runs <issue-id> --full-id
+morechat issue runs <issue-id> --output json
 
 # Only work in flight (queued / dispatched / running / waiting_local_directory)
-multica issue runs <issue-id> --active --output json
+morechat issue runs <issue-id> --active --output json
 
 # ...and across the sub-issue family: the issue's parent (or itself, when it has
 # no parent) plus every child of that parent, each row labelled with its issue.
@@ -894,19 +894,19 @@ multica issue runs <issue-id> --active --output json
 # Ordered running-first, newest-first within a status, capped at 20 rows. When
 # the cap truncates the answer the server sets X-Active-Runs-Truncated and the
 # CLI warns on stderr, so a short list is never mistaken for a complete one.
-multica issue runs <issue-id> --siblings --output json
+morechat issue runs <issue-id> --siblings --output json
 
 # View messages for a specific execution run
-multica issue run-messages <task-id>
-multica issue run-messages <short-task-id> --issue <issue-id>
-multica issue run-messages <task-id> --output json
+morechat issue run-messages <task-id>
+morechat issue run-messages <short-task-id> --issue <issue-id>
+morechat issue run-messages <task-id> --output json
 
 # Incremental fetch (only messages after a given sequence number)
-multica issue run-messages <task-id> --since 42 --output json
+morechat issue run-messages <task-id> --since 42 --output json
 
 # Aggregated token usage for an issue (sum across all its task runs)
-multica issue usage <issue-id>
-multica issue usage <issue-id> --output json
+morechat issue usage <issue-id>
+morechat issue usage <issue-id> --output json
 ```
 
 The `usage` command returns the aggregated token usage for an issue, summed across all of its task runs: input tokens, output tokens, cache read/write tokens, and the run count (`task_count`). It wraps `GET /api/issues/<id>/usage` — the same figures the issue detail view shows. Use `--output json` to feed billing/cost tooling.
@@ -921,9 +921,9 @@ belongs to a workspace and can optionally have a lead (member or agent).
 ### List Projects
 
 ```bash
-multica project list
-multica project list --status in_progress
-multica project list --output json
+morechat project list
+morechat project list --status in_progress
+morechat project list --output json
 ```
 
 Available filters: `--status`.
@@ -931,14 +931,14 @@ Available filters: `--status`.
 ### Get Project
 
 ```bash
-multica project get <id>
-multica project get <id> --output json
+morechat project get <id>
+morechat project get <id> --output json
 ```
 
 ### Create Project
 
 ```bash
-multica project create --title "2026 Week 16 Sprint" --icon "🏃" --lead "Lambda"
+morechat project create --title "2026 Week 16 Sprint" --icon "🏃" --lead "Lambda"
 ```
 
 Flags: `--title` (required), `--description`, `--status`, `--icon`, `--lead`, `--start-date`, `--due-date`. Dates are calendar days (`YYYY-MM-DD`).
@@ -946,9 +946,9 @@ Flags: `--title` (required), `--description`, `--status`, `--icon`, `--lead`, `-
 ### Update Project
 
 ```bash
-multica project update <id> --title "New title" --status in_progress
-multica project update <id> --lead "Lambda"
-multica project update <id> --due-date 2026-04-15
+morechat project update <id> --title "New title" --status in_progress
+morechat project update <id> --lead "Lambda"
+morechat project update <id> --due-date 2026-04-15
 ```
 
 Flags: `--title`, `--description`, `--status`, `--icon`, `--lead`, `--start-date`, `--due-date`. For the date flags, pass an empty string (e.g. `--start-date ""`) to clear the date.
@@ -956,7 +956,7 @@ Flags: `--title`, `--description`, `--status`, `--icon`, `--lead`, `--start-date
 ### Change Status
 
 ```bash
-multica project status <id> in_progress
+morechat project status <id> in_progress
 ```
 
 Valid statuses: `planned`, `in_progress`, `paused`, `completed`, `cancelled`.
@@ -964,7 +964,7 @@ Valid statuses: `planned`, `in_progress`, `paused`, `completed`, `cancelled`.
 ### Delete Project
 
 ```bash
-multica project delete <id>
+morechat project delete <id>
 ```
 
 ### Associating Issues with Projects
@@ -973,36 +973,36 @@ Use the `--project` flag on `issue create` / `issue update` to attach an issue t
 project, or on `issue list` / `issue search` to filter issues by project:
 
 ```bash
-multica issue create --title "Login bug" --project <project-id>
-multica issue update <issue-id> --project <project-id>
-multica issue list --project <project-id>
-multica issue search "Login" --project <project-id>
+morechat issue create --title "Login bug" --project <project-id>
+morechat issue update <issue-id> --project <project-id>
+morechat issue list --project <project-id>
+morechat issue search "Login" --project <project-id>
 ```
 
 ## Setup
 
 ```bash
 # One-command setup for morechat.co Cloud: configure, authenticate, and start the daemon
-multica setup
+morechat setup
 
 # For local self-hosted deployments
-multica setup self-host
+morechat setup self-host
 
 # Custom ports
-multica setup self-host --port 9090 --frontend-port 4000
+morechat setup self-host --port 9090 --frontend-port 4000
 
 # On-premise with custom domains
-multica setup self-host --server-url https://api.example.com --app-url https://app.example.com
+morechat setup self-host --server-url https://api.example.com --app-url https://app.example.com
 ```
 
-`multica setup` configures the CLI, opens your browser for authentication, and starts the daemon — all in one step. Use `multica setup self-host` to connect to a self-hosted server instead of morechat.co Cloud.
+`morechat setup` configures the CLI, opens your browser for authentication, and starts the daemon — all in one step. Use `morechat setup self-host` to connect to a self-hosted server instead of morechat.co Cloud.
 
 ## Configuration
 
 ### View Config
 
 ```bash
-multica config show
+morechat config show
 ```
 
 Shows config file path, server URL, app URL, and default workspace.
@@ -1010,12 +1010,12 @@ Shows config file path, server URL, app URL, and default workspace.
 ### Set Values
 
 ```bash
-multica config set server_url https://api.example.com
-multica config set app_url https://app.example.com
-multica config set workspace_id <workspace-id>
+morechat config set server_url https://api.example.com
+morechat config set app_url https://app.example.com
+morechat config set workspace_id <workspace-id>
 ```
 
-`config set workspace_id <id>` is the low-level interface — it writes the value verbatim without checking that the workspace exists or that you have access. Prefer `multica workspace switch <id|slug>` for day-to-day workspace changes; it does both checks before saving.
+`config set workspace_id <id>` is the low-level interface — it writes the value verbatim without checking that the workspace exists or that you have access. Prefer `morechat workspace switch <id|slug>` for day-to-day workspace changes; it does both checks before saving.
 
 ## Autopilot Commands
 
@@ -1024,9 +1024,9 @@ Autopilots are scheduled/triggered automations that dispatch agent tasks (either
 ### List Autopilots
 
 ```bash
-multica autopilot list
-multica autopilot list --full-id
-multica autopilot list --status active --output json
+morechat autopilot list
+morechat autopilot list --full-id
+morechat autopilot list --status active --output json
 ```
 
 Autopilot table IDs are short UUID prefixes; follow-up autopilot commands accept copied prefixes when they are unique in the current workspace. Use `--full-id` to print canonical UUIDs.
@@ -1034,8 +1034,8 @@ Autopilot table IDs are short UUID prefixes; follow-up autopilot commands accept
 ### Get Autopilot Details
 
 ```bash
-multica autopilot get <id>
-multica autopilot get <id> --output json   # includes triggers
+morechat autopilot get <id>
+morechat autopilot get <id> --output json   # includes triggers
 ```
 
 In JSON output `triggers` is a **top-level key alongside `autopilot`**, not nested
@@ -1046,18 +1046,18 @@ The table output shows only the autopilot's own fields, not its triggers.
 ### Create / Update / Delete
 
 ```bash
-multica autopilot create \
+morechat autopilot create \
   --title "Nightly bug triage" \
   --description "Scan todo issues and prioritize." \
   --agent "Lambda" \
   --mode create_issue \
   --subscriber "Alice"
 
-multica autopilot update <id> --status paused
-multica autopilot update <id> --description "New prompt"
-multica autopilot update <id> --subscriber "Alice" --subscriber "Bob"
-multica autopilot update <id> --clear-subscribers
-multica autopilot delete <id>
+morechat autopilot update <id> --status paused
+morechat autopilot update <id> --description "New prompt"
+morechat autopilot update <id> --subscriber "Alice" --subscriber "Bob"
+morechat autopilot update <id> --clear-subscribers
+morechat autopilot delete <id>
 ```
 
 `--mode` accepts `create_issue` (creates a new issue on each run and assigns it to the agent) or `run_only` (enqueues a direct agent task without creating an issue). `--agent` accepts either a name or UUID.
@@ -1066,7 +1066,7 @@ multica autopilot delete <id>
 ### Manual Trigger
 
 ```bash
-multica autopilot trigger <id>            # Fires the autopilot once, returns the run
+morechat autopilot trigger <id>            # Fires the autopilot once, returns the run
 ```
 
 The command exits non-zero unless the run actually started (`issue_created` or
@@ -1085,18 +1085,18 @@ trigger at all, and says so rather than failing generically.
 ### Run History
 
 ```bash
-multica autopilot runs <id>
-multica autopilot runs <id> --limit 50 --output json
+morechat autopilot runs <id>
+morechat autopilot runs <id> --limit 50 --output json
 ```
 
 ### Schedule Triggers
 
 ```bash
-multica autopilot trigger-list <autopilot-id>              # ids, kind, schedule, next run
-multica autopilot trigger-list <autopilot-id> --full-id    # canonical UUIDs
-multica autopilot trigger-add <autopilot-id> --cron "0 9 * * 1-5" --timezone "America/New_York"
-multica autopilot trigger-update <autopilot-id> <trigger-id> --enabled=false
-multica autopilot trigger-delete <autopilot-id> <trigger-id>
+morechat autopilot trigger-list <autopilot-id>              # ids, kind, schedule, next run
+morechat autopilot trigger-list <autopilot-id> --full-id    # canonical UUIDs
+morechat autopilot trigger-add <autopilot-id> --cron "0 9 * * 1-5" --timezone "America/New_York"
+morechat autopilot trigger-update <autopilot-id> <trigger-id> --enabled=false
+morechat autopilot trigger-delete <autopilot-id> <trigger-id>
 ```
 
 `trigger-list` is the way to obtain the `<trigger-id>` that `trigger-update`,
@@ -1112,9 +1112,9 @@ also defines an `api` kind, which is not surfaced here.
 ## Other Commands
 
 ```bash
-multica version              # Show CLI version and commit hash
-multica update               # Update to latest version
-multica agent list           # List agents in the current workspace
+morechat version              # Show CLI version and commit hash
+morechat update               # Update to latest version
+morechat agent list           # List agents in the current workspace
 ```
 
 ## Output Formats
@@ -1125,8 +1125,8 @@ Most commands support `--output` with two formats:
 - `json` — structured JSON (useful for scripting and automation)
 
 ```bash
-multica issue list --output json
-multica daemon status --output json
+morechat issue list --output json
+morechat daemon status --output json
 ```
 
 ## Error Messages
@@ -1145,7 +1145,7 @@ layer.) The underlying detail is still available on demand (see `--debug`).
   connection refused, TLS) and HTTP status failures (401/403/404/409/400·422/
   429/5xx) are each rendered as one clear sentence with a next step — for
   example a timeout suggests checking the network or raising
-  `MULTICA_HTTP_TIMEOUT`, and a 401 tells you to run `multica login`.
+  `MULTICA_HTTP_TIMEOUT`, and a 401 tells you to run `morechat login`.
 - **Server-provided validation messages are preserved.** For a 400/422 that
   carries a message from the server, that message is shown verbatim
   (`Invalid request: <server message>`); only when there is none do you get the
@@ -1161,7 +1161,7 @@ precedence order), messages switch to **Chinese**. No flag is needed; set the
 locale as usual:
 
 ```bash
-LANG=zh_CN.UTF-8 multica issue get MUL-9999   # 错误信息显示为中文
+LANG=zh_CN.UTF-8 morechat issue get MUL-9999   # 错误信息显示为中文
 ```
 
 ### Exit codes
@@ -1178,7 +1178,7 @@ The process exit code is tiered so scripts can branch on the failure class:
 | `5` | validation (HTTP 400, 422) |
 
 ```bash
-multica issue get MUL-9999
+morechat issue get MUL-9999
 if [ $? -eq 4 ]; then echo "no such issue"; fi
 ```
 
@@ -1190,8 +1190,8 @@ and the raw server body — underneath the friendly message. Use it when you nee
 to file a bug or understand exactly what the server returned:
 
 ```bash
-multica issue list --debug
-MULTICA_DEBUG=1 multica issue update MUL-1234 --title "x"
+morechat issue list --debug
+MULTICA_DEBUG=1 morechat issue update MUL-1234 --title "x"
 ```
 
 ### Request timeout
@@ -1202,7 +1202,7 @@ API requests use a default timeout of 30 seconds. Override it with
 always at least this value, so raising it takes effect across all commands.
 
 ```bash
-MULTICA_HTTP_TIMEOUT=60s multica issue list
+MULTICA_HTTP_TIMEOUT=60s morechat issue list
 ```
 
 ### Stall detection (skill commands)
@@ -1223,7 +1223,7 @@ this path too, as the no-progress budget — it keeps meaning "the longest I wil
 wait for this server", not "the longest this download may take".
 
 ```bash
-MULTICA_HTTP_STALL_TIMEOUT=45s multica skill get <id>
+MULTICA_HTTP_STALL_TIMEOUT=45s morechat skill get <id>
 ```
 
 Every other command still uses the total-elapsed timeout above. Stall detection
@@ -1232,7 +1232,7 @@ mechanism itself is not skill-specific.
 
 ### Skill payload size
 
-`multica skill get` and `multica skill files list` return **metadata only** by
+`morechat skill get` and `morechat skill files list` return **metadata only** by
 default — path, byte size and content hash for each file, plus the size and
 hash of the SKILL.md body. Sizes are what tell you which file makes a skill
 large, and they stay available no matter how large it gets.
@@ -1240,8 +1240,8 @@ large, and they stay available no matter how large it gets.
 Pass `--with-content` when you actually need the bodies:
 
 ```bash
-multica skill files list <id>                  # paths and sizes
-multica skill files list <id> --with-content   # bodies inlined
+morechat skill files list <id>                  # paths and sizes
+morechat skill files list <id> --with-content   # bodies inlined
 ```
 
 On the API, both endpoints accept `?include=content` and `?include=metadata`.
@@ -1251,7 +1251,7 @@ CLI that asks for the smaller shape.
 
 ### Custom runtime compatibility targets
 
-Create custom Oh-My-Pi profiles with `multica runtime profile create --runtime-type omp --command-name omp --display-name "Custom Oh-My-Pi"`.
+Create custom Oh-My-Pi profiles with `morechat runtime profile create --runtime-type omp --command-name omp --display-name "Custom Oh-My-Pi"`.
 The immutable `runtime_type` selects model discovery, skills paths, and launch behavior;
 the server derives `protocol_family` (`pi` for `omp`). Custom command/path overrides and
 fixed arguments still apply, and the runtime retains its custom-profile provenance.

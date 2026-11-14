@@ -873,7 +873,7 @@
   },
   "tokens": {
     "title": "API Token",
-    "description": "個人訪問 token 讓 CLI 和外部整合可以代表你的帳號進行身份驗證。可透過 multica login --token 使用，或在呼叫 API 時作為 Bearer token 傳送。",
+    "description": "個人訪問 token 讓 CLI 和外部整合可以代表你的帳號進行身份驗證。可透過 morechat login --token 使用，或在呼叫 API 時作為 Bearer token 傳送。",
     "security_note": "Token 擁有你帳號的完整訪問權限，請像密碼一樣妥善保管。",
     "empty": "暫無 API token。",
     "load_failed": "無法載入 API token，請重新整理頁面重試。",
@@ -1407,7 +1407,7 @@
       "install_failed": "安裝失敗：{{error}}",
       "python_label": "Python",
       "git_label": "Git",
-      "multica_label": "multica CLI"
+      "multica_label": "morechat CLI"
     },
     "tabs": {
       "updates": "更新"
@@ -1449,8 +1449,8 @@
       "auto_stop_description": "關閉桌面端時停止守護程序。",
       "cli_status": "CLI 狀態",
       "cli_checking": "檢查中...",
-      "cli_installed": "multica CLI 已安裝，並可透過 PATH 呼叫。",
-      "cli_missing": "未找到 multica CLI。安裝後才能管理守護程序。",
+      "cli_installed": "morechat CLI 已安裝，並可透過 PATH 呼叫。",
+      "cli_missing": "未找到 morechat CLI。安裝後才能管理守護程序。",
       "installation_guide": "安裝指南",
       "diagnostics_title": "診斷資訊",
       "state": "狀態",

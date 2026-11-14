@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 		os.Unsetenv(key)
 	}
 
-	scratchHome, err := testutil.IsolateUserHome("multica-cli-config-tests-home-")
+	scratchHome, err := testutil.IsolateUserHome("morechat-cli-config-tests-home-")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "isolate internal/cli test home: %v\n", err)
 		os.Exit(1)

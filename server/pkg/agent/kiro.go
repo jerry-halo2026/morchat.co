@@ -211,7 +211,7 @@ func (b *kiroBackend) Execute(ctx context.Context, prompt string, opts ExecOptio
 	//
 	// The only positive proof available at this layer is a terminal
 	// ToolResult with status=="completed" for a finishing tool
-	// (goal_complete or `multica issue comment add`). We record the status
+	// (goal_complete or `morechat issue comment add`). We record the status
 	// of the MOST RECENT such result (ordered, keyed per CallID) so a later
 	// failed delivery correctly overrides an earlier success — e.g.
 	// "progress comment completed → final comment failed → -32603" must stay
@@ -249,7 +249,7 @@ func (b *kiroBackend) Execute(ctx context.Context, prompt string, opts ExecOptio
 				if msg.Tool == "goal_complete" && msg.CallID != "" {
 					goalCompleteCallIDs.Store(msg.CallID, struct{}{})
 				}
-				// Recognize `multica issue comment add` by its command
+				// Recognize `morechat issue comment add` by its command
 				// payload regardless of how the adapter titled the tool.
 				// GPT-5.6 Sol may label the shell tool something other than
 				// the aliases kiroToolNameFromTitle folds into "terminal"
@@ -709,7 +709,7 @@ func isKiroOversizedHistoryImage(err error) bool {
 }
 
 // isKiroIssueCommentAddTool reports whether a tool-use message is a
-// `multica issue comment add` invocation. It keys purely off the command
+// `morechat issue comment add` invocation. It keys purely off the command
 // payload, not the normalized tool name: GPT-5.6 Sol adapters may title the
 // shell tool with a name that doesn't fold into "terminal" (the earlier
 // msg.Tool=="terminal" gate silently dropped those and left completed tasks
@@ -723,7 +723,7 @@ func isKiroIssueCommentAddTool(msg Message) bool {
 func isKiroIssueCommentAddCommand(command string) bool {
 	parts := kiroCommandWords(command)
 	// Some runtimes route terminal calls through a shell wrapper such as
-	// `sh -c "multica issue comment add ..."`; unwrap a single such layer so
+	// `sh -c "morechat issue comment add ..."`; unwrap a single such layer so
 	// the real invocation is still recognized.
 	if len(parts) >= 3 && isPOSIXShellName(parts[0]) && parts[1] == "-c" {
 		parts = kiroCommandWords(parts[2])
@@ -734,9 +734,13 @@ func isKiroIssueCommentAddCommand(command string) bool {
 	executable := strings.ReplaceAll(strings.TrimPrefix(parts[0], "./"), `\`, "/")
 	switch executable {
 	case "$MULTICA_CLI_PATH", "${MULTICA_CLI_PATH}", "$env:MULTICA_CLI_PATH", "${env:MULTICA_CLI_PATH}":
-	case "multica", "multica.exe":
+	// The pre-rename `multica` names stay: tasks started before the rename
+	// still report them, and a paid check that drops them would stop
+	// recognizing their comment calls.
+	case "morechat", "morechat.exe", "multica", "multica.exe":
 	default:
-		if !strings.HasSuffix(executable, "/multica") && !strings.HasSuffix(executable, "/multica.exe") {
+		if !strings.HasSuffix(executable, "/morechat") && !strings.HasSuffix(executable, "/morechat.exe") &&
+			!strings.HasSuffix(executable, "/multica") && !strings.HasSuffix(executable, "/multica.exe") {
 			return false
 		}
 	}
@@ -761,7 +765,7 @@ func kiroCommandWords(command string) []string {
 }
 
 // trimLeadingEnvAssignments drops leading `KEY=VALUE` tokens so an invocation
-// like `MULTICA_TOKEN=x multica issue comment add ...` is still recognized.
+// like `MULTICA_TOKEN=x morechat issue comment add ...` is still recognized.
 func trimLeadingEnvAssignments(parts []string) []string {
 	for len(parts) > 0 && isEnvAssignment(parts[0]) {
 		parts = parts[1:]

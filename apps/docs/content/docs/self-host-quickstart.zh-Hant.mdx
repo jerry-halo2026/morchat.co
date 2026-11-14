@@ -109,7 +109,7 @@ Backend 容器每次啟動時都會先執行資料庫 migration，再啟動服�
 <Tabs items={["本機訪問", "遠端訪問"]}>
 <Tab value="本機訪問">
 
-直接開啟 [http://localhost:3000](http://localhost:3000)。後面執行 `multica setup self-host` 時也不需要傳 URL。
+直接開啟 [http://localhost:3000](http://localhost:3000)。後面執行 `morechat setup self-host` 時也不需要傳 URL。
 
 </Tab>
 <Tab value="遠端訪問" id="remote-access">
@@ -164,7 +164,7 @@ api.example.com {
 
 ```text
 multica.example.com {
-    # CLI 可達性探測：`multica setup` 會 GET <server-url>/health 並要求 200，
+    # CLI 可達性探測：`morechat setup` 會 GET <server-url>/health 並要求 200，
     # 舊版 frontend 不轉發這個路徑，直接路由到 backend
     handle /health {
         reverse_proxy 127.0.0.1:8080
@@ -195,7 +195,7 @@ multica.example.com {
 </Tab>
 </Tabs>
 
-**單一 origin**（一個網域，或一臺主機一個埠，小伺服器上常見）把守護程序依賴的路徑顯式轉給 backend，其餘交給 frontend。這種模式下兩個 URL 都指向它：`.env` 裡的 `FRONTEND_ORIGIN` 和 `MULTICA_APP_URL`，以及 `multica setup self-host` 的 `--server-url` 和 `--app-url`。
+**單一 origin**（一個網域，或一臺主機一個埠，小伺服器上常見）把守護程序依賴的路徑顯式轉給 backend，其餘交給 frontend。這種模式下兩個 URL 都指向它：`.env` 裡的 `FRONTEND_ORIGIN` 和 `MULTICA_APP_URL`，以及 `morechat setup self-host` 的 `--server-url` 和 `--app-url`。
 
 修改 `.env` 後，用 `up -d` 重新建立容器，讓新配置生效：
 
@@ -284,14 +284,14 @@ irm https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/ins
 <Tab value="服務在這臺電腦上">
 
 ```bash
-multica setup self-host
+morechat setup self-host
 ```
 
 </Tab>
 <Tab value="服務在另一臺機器上">
 
 ```bash
-multica setup self-host \
+morechat setup self-host \
   --server-url https://api.example.com \
   --app-url https://app.example.com
 ```
@@ -304,7 +304,7 @@ multica setup self-host \
 確認連線狀態：
 
 ```bash
-multica daemon status
+morechat daemon status
 ```
 
 正常情況下，輸出中會顯示：
@@ -466,8 +466,8 @@ Helm 有自己的升級路徑：在 values 檔案裡把 `images.backend.tag` / `
 | `/readyz` 沒有返回 `ok` | 執行 `docker compose -f docker-compose.selfhost.yml logs backend postgres`。 |
 | 收不到驗證碼 | 請求一次驗證碼，再從 backend 日誌中查詢 `Verification code`。 |
 | `setup self-host` 提示 server 不可達 | 在執行電腦上請求 `https://api.example.com/health`，確認 DNS、TLS 和反向代理都可達。返回 404 說明代理把 `/health` 轉給了不轉發該路徑的舊版 frontend，改為直通 backend（見[故障排查](/troubleshooting#multica-setup-reports-the-server-is-not-reachable)）。 |
-| 守護程序沒有列出 `Agents` | 確認 AI 程式設計工具在 `PATH` 中並已登入，然後執行 `multica daemon restart`。 |
-| 任務一直排隊 | 執行 `multica daemon status`，確認守護程序正在執行並連線了工作區。 |
+| 守護程序沒有列出 `Agents` | 確認 AI 程式設計工具在 `PATH` 中並已登入，然後執行 `morechat daemon restart`。 |
+| 任務一直排隊 | 執行 `morechat daemon status`，確認守護程序正在執行並連線了工作區。 |
 
 更多情況見[故障排查](/troubleshooting)。
 

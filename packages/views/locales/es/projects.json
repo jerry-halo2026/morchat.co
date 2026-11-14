@@ -150,7 +150,7 @@
     "toast_ref_updated": "Rama actualizada",
     "toast_ref_cleared": "De vuelta a la rama por defecto",
     "toast_ref_update_failed": "No se ha podido actualizar la rama",
-    "ref_error_commit": "Eso es un commit, no una rama. Las ejecuciones fusionan sus cambios en la rama de la que parten; para una revisión puntual, pasa --ref a multica repo checkout.",
+    "ref_error_commit": "Eso es un commit, no una rama. Las ejecuciones fusionan sus cambios en la rama de la que parten; para una revisión puntual, pasa --ref a morechat repo checkout.",
     "ref_default_label": "Rama por defecto",
     "ref_default_tooltip": "Sin rama definida: las ejecuciones usan la rama por defecto que tenga el repositorio en ese momento."
   },

@@ -34,7 +34,7 @@ import { SkillDemo } from "@/components/demos/skill-demo";
 同じアーカイブ形式は CLI からも使えます。
 
 ```bash
-multica skill import --file ./review-helper.skill
+morechat skill import --file ./review-helper.skill
 ```
 
 インポート時にワークスペースへ同名のスキルがすでにある場合は、インポートの中止、既存内容の上書き、新しい名前での保存、スキップのいずれかを選べます。インポートによる上書きができるのは、そのスキルの作成者本人だけです。ワークスペースの `admin` は、アプリ内でスキルを編集できても、インポートで上書きすることはできません。すでにワークスペースにあるスキルへ新しいバージョンを取り込むには、代わりに[インポート済みスキルの更新](#インポート済みスキルの更新)を使ってください。
@@ -44,7 +44,7 @@ multica skill import --file ./review-helper.skill
 GitHub・ClawHub・Skills.sh からインポートしたスキルは、そのソースへの参照を保持しています。最新バージョンを取り込むには、スキルページの**更新**ボタン（または一覧の行メニューの「ソースから更新」）か、CLI を使います：
 
 ```bash
-multica skill refresh <skill-id>
+morechat skill refresh <skill-id>
 ```
 
 スキルはソースから再ダウンロードされ、その場で置き換えられます：

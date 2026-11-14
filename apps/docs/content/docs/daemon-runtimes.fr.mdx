@@ -39,7 +39,7 @@ morechat.co Desktop démarre le daemon automatiquement ; aucune commande supplé
 Sur le web, sur un ordinateur distant ou dans un environnement sans interface graphique, [installez d'abord le CLI morechat.co](/cli), puis exécutez :
 
 ```bash
-multica daemon start
+morechat daemon start
 ```
 
 </Tab>
@@ -49,13 +49,13 @@ Par défaut, le daemon s'exécute en arrière-plan. Commandes courantes :
 
 | Commande | Rôle |
 | --- | --- |
-| `multica daemon status` | Afficher l'état du daemon et de la connexion |
-| `multica daemon logs -f` | Suivre les journaux |
-| `multica daemon restart` | Redémarrer le daemon et détecter à nouveau les outils locaux |
-| `multica daemon stop` | Arrêter le daemon |
-| `multica daemon start --foreground` | Exécuter dans le terminal courant, pour le débogage |
+| `morechat daemon status` | Afficher l'état du daemon et de la connexion |
+| `morechat daemon logs -f` | Suivre les journaux |
+| `morechat daemon restart` | Redémarrer le daemon et détecter à nouveau les outils locaux |
+| `morechat daemon stop` | Arrêter le daemon |
+| `morechat daemon start --foreground` | Exécuter dans le terminal courant, pour le débogage |
 
-Pour placer les répertoires de travail des exécutions sur un autre disque, enregistrez une racine pour le profil courant avec `multica config set workspaces_root <path>`, ou passez `--workspaces-root <path>` à `daemon start` ou `daemon restart`. L'option prime sur `MULTICA_WORKSPACES_ROOT`, qui prime elle-même sur la configuration du profil. Les répertoires d'exécution existants ne sont pas déplacés lorsque la racine change.
+Pour placer les répertoires de travail des exécutions sur un autre disque, enregistrez une racine pour le profil courant avec `morechat config set workspaces_root <path>`, ou passez `--workspaces-root <path>` à `daemon start` ou `daemon restart`. L'option prime sur `MULTICA_WORKSPACES_ROOT`, qui prime elle-même sur la configuration du profil. Les répertoires d'exécution existants ne sont pas déplacés lorsque la racine change.
 
 Au démarrage, le daemon détecte les outils de codage IA pris en charge présents dans le `PATH` et enregistre des runtimes pour les espaces de travail auxquels vous êtes autorisé à vous connecter. Si vous venez d'installer un outil ou de vous y connecter, redémarrez le daemon pour qu'il le détecte.
 
@@ -66,17 +66,17 @@ Pour démarrer, le daemon a besoin de détecter au moins un outil de codage IA i
 Un daemon lancé depuis la CLI ne revient pas de lui-même après un redémarrage. Pour qu'il démarre automatiquement, enregistrez le profil courant :
 
 ```bash
-multica daemon autostart enable
-multica daemon autostart status
-multica daemon autostart disable
+morechat daemon autostart enable
+morechat daemon autostart status
+morechat daemon autostart disable
 ```
 
-La commande enregistrée est `multica daemon start --foreground` pour ce profil, lancée par le système à l'ouverture de session : une valeur de registre Run pour l'utilisateur courant sous Windows, un LaunchAgent dans `~/Library/LaunchAgents` sous macOS, et une unité utilisateur systemd sous Linux, ou une entrée XDG autostart quand aucune session utilisateur systemd n'est disponible. Pour un profil nommé, ajoutez `--profile <name>` ; chaque profil est enregistré séparément.
+La commande enregistrée est `morechat daemon start --foreground` pour ce profil, lancée par le système à l'ouverture de session : une valeur de registre Run pour l'utilisateur courant sous Windows, un LaunchAgent dans `~/Library/LaunchAgents` sous macOS, et une unité utilisateur systemd sous Linux, ou une entrée XDG autostart quand aucune session utilisateur systemd n'est disponible. Pour un profil nommé, ajoutez `--profile <name>` ; chaque profil est enregistré séparément.
 
-- Seul `enable` crée l'enregistrement. `multica daemon start` ne s'enregistre jamais de lui-même : il affiche une ligne d'indication quand rien n'est enregistré et, si un enregistrement créé par morechat.co existe, il y met à jour le chemin de l'exécutable. Mettre à jour ou déplacer la CLI ne demande donc pas de relancer `enable`.
-- Sous macOS et Linux, la session ne reçoit que le `PATH` capturé dans votre shell au moment de `enable`. Les autres variables exportées (clés d'API, `HTTPS_PROXY`, etc.) ne suivent pas. Enregistrez les réglages du daemon avec `multica config set` et placez les autres variables dans votre environnement utilisateur.
+- Seul `enable` crée l'enregistrement. `morechat daemon start` ne s'enregistre jamais de lui-même : il affiche une ligne d'indication quand rien n'est enregistré et, si un enregistrement créé par morechat.co existe, il y met à jour le chemin de l'exécutable. Mettre à jour ou déplacer la CLI ne demande donc pas de relancer `enable`.
+- Sous macOS et Linux, la session ne reçoit que le `PATH` capturé dans votre shell au moment de `enable`. Les autres variables exportées (clés d'API, `HTTPS_PROXY`, etc.) ne suivent pas. Enregistrez les réglages du daemon avec `morechat config set` et placez les autres variables dans votre environnement utilisateur.
 - Une unité utilisateur systemd démarre à l'ouverture de session. Pour démarrer au boot sans ouvrir de session, exécutez `loginctl enable-linger <utilisateur>` comme l'indique la sortie de `enable`.
-- `multica daemon stop` arrête le daemon en cours mais conserve l'enregistrement.
+- `morechat daemon stop` arrête le daemon en cours mais conserve l'enregistrement.
 - Si un fichier que morechat.co n'a pas créé occupe déjà cet emplacement (votre propre unité systemd, par exemple), `enable` et `disable` refusent de le modifier.
 - Un daemon lancé par Desktop est géré par Desktop ; `daemon start` n'affiche pas d'indication et ne met pas à jour d'enregistrement pour lui.
 
@@ -105,7 +105,7 @@ Par défaut, un daemon traite au maximum 20 exécutions simultanées, et chaque 
 
 Une fois une limite atteinte, les nouvelles exécutions restent en file d'attente. Le parallélisme d'un agent se règle dans ses paramètres, le plafond global de la machine avec `MULTICA_DAEMON_MAX_CONCURRENT_TASKS`. Les exécutions en parallèle se disputent en même temps la capacité de la machine, le quota du compte de l'outil et le même répertoire de travail.
 
-La consommation de tokens, les coûts et les échecs des exécutions sont regroupés par espace de travail sur la page [Statistiques](/analytics) ; `multica runtime usage <runtime-id>` affiche la consommation de tokens d'un seul runtime.
+La consommation de tokens, les coûts et les échecs des exécutions sont regroupés par espace de travail sur la page [Statistiques](/analytics) ; `morechat runtime usage <runtime-id>` affiche la consommation de tokens d'un seul runtime.
 
 ## Configuration MCP locale [#local-mcp]
 
@@ -132,7 +132,7 @@ La fusion a lieu sur la machine du runtime : les commandes, URL, en-têtes et va
 
 ## Nettoyage et conservation [#cleanup]
 
-Le daemon fait un premier nettoyage environ 30 secondes après son démarrage, puis toutes les 2 heures. Les répertoires utilisés par une exécution en cours ne sont jamais nettoyés. `multica daemon disk-usage` affiche l'occupation par espace de travail ou par exécution. Les durées ci-dessous sont les valeurs par défaut ; les variables `MULTICA_GC_*` correspondantes figurent dans [Variables d'environnement](/environment-variables#gc).
+Le daemon fait un premier nettoyage environ 30 secondes après son démarrage, puis toutes les 2 heures. Les répertoires utilisés par une exécution en cours ne sont jamais nettoyés. `morechat daemon disk-usage` affiche l'occupation par espace de travail ou par exécution. Les durées ci-dessous sont les valeurs par défaut ; les variables `MULTICA_GC_*` correspondantes figurent dans [Variables d'environnement](/environment-variables#gc).
 
 ### Répertoires des exécutions
 
@@ -210,9 +210,9 @@ Le tableau liste les variables que les runtimes personnalisés peuvent utiliser 
 | `MULTICA_TASK_CONFIG_ROOT` | Racine privée de configuration du CLI morechat.co, propre à l'exécution | Indicatif |
 | `MULTICA_TASK_WORKSPACES_ROOT` | Racine des répertoires de travail des exécutions gérés par le daemon | Indicatif |
 | `MULTICA_AGENT_NAME` | Nom affiché de l'agent assigné | Indicatif |
-| `MULTICA_DAEMON_PORT` | Port local de santé/API du daemon utilisé par les commandes réservées aux exécutions, comme `multica repo checkout` | Indicatif |
+| `MULTICA_DAEMON_PORT` | Port local de santé/API du daemon utilisé par les commandes réservées aux exécutions, comme `morechat repo checkout` | Indicatif |
 | `MULTICA_TASK_SLOT` | Emplacement dans le pool de parallélisme global du daemon ; utile pour les ressources indexées par emplacement, comme les GPU | Indicatif |
-| `MULTICA_REPO_CHECKOUT_MODE` | Vaut `isolated` uniquement dans les exécutions Codex sous Linux et Windows, pour que `multica repo checkout` crée un clone autonome avec `.git` dans le répertoire de travail ; absente des autres exécutions | Indicatif |
+| `MULTICA_REPO_CHECKOUT_MODE` | Vaut `isolated` uniquement dans les exécutions Codex sous Linux et Windows, pour que `morechat repo checkout` crée un clone autonome avec `.git` dans le répertoire de travail ; absente des autres exécutions | Indicatif |
 | `TMPDIR` | Répertoire temporaire privé de l'exécution ; également fourni sous `TMP` et `TEMP`, sauf sous Windows, où les tâches héritent des chemins temporaires utilisateur pour le `/tmp` partagé de Git Bash ; Claude Code sous Windows utilise par défaut le répertoire temporaire de la tâche pour `CLAUDE_CODE_TMPDIR` | Indicatif |
 
 Le serveur détermine l'auteur des requêtes effectuées avec `MULTICA_TOKEN` ; les écritures telles que les commentaires de tâche sont attribuées à l'agent assigné et à l'exécution en cours. Pour tout savoir sur le rattachement du jeton, ses permissions, l'attribution, sa durée de vie maximale de 24 heures et son nettoyage, consultez [Jetons temporaires pour les exécutions d'agents](/auth-tokens#jetons-temporaires-pour-les-exécutions-dagents).
@@ -254,13 +254,13 @@ Auparavant, vos arguments étaient ajoutés en dernier. La plupart des commandes
 Si un daemon lancé par Desktop ne trouve pas une commande que votre terminal peut exécuter, définissez un chemin absolu pour l'ordinateur courant :
 
 ```bash
-multica runtime profile set-path <profile-id> --path /absolute/path/to/command
+morechat runtime profile set-path <profile-id> --path /absolute/path/to/command
 ```
 
 Supprimer le remplacement de chemin :
 
 ```bash
-multica runtime profile unset-path <profile-id>
+morechat runtime profile unset-path <profile-id>
 ```
 
 Modifier un profil n'affecte que les exécutions prises en charge par la suite. Avant de supprimer un profil, occupez-vous des agents actifs encore liés à ses runtimes. Supprimer uniquement l'instance de runtime sur un ordinateur ne supprime pas le profil — un daemon en cours d'exécution le réenregistrera.
@@ -304,11 +304,11 @@ Pour le déploiement du pont autonome et ses limites opérationnelles, consultez
 
 Vérifiez dans cet ordre :
 
-1. Exécutez `multica daemon status` pour confirmer que le daemon tourne.
-2. Exécutez `multica daemon logs -f` pour rechercher des erreurs d'authentification, de réseau ou de détection d'outils.
+1. Exécutez `morechat daemon status` pour confirmer que le daemon tourne.
+2. Exécutez `morechat daemon logs -f` pour rechercher des erreurs d'authentification, de réseau ou de détection d'outils.
 3. Exécutez `command -v <tool-command>` dans le même environnement pour confirmer que le daemon peut trouver l'outil.
 4. Ouvrez la page **Runtimes** de morechat.co et vérifiez que l'ordinateur cible et l'outil de codage IA correspondant apparaissent en ligne.
-5. Après l'installation d'un outil, une modification du chemin ou la mise à jour d'un profil, exécutez `multica daemon restart`.
+5. Après l'installation d'un outil, une modification du chemin ou la mise à jour d'un profil, exécutez `morechat daemon restart`.
 
 Si le problème persiste, consultez [Dépannage](/troubleshooting).
 

@@ -26,7 +26,7 @@ func TestReleaseSourceOverridesGitHub(t *testing.T) {
 	if got := releaseAPIBaseURL(); got != "https://mirror.example/api" {
 		t.Fatalf("release API base URL = %q", got)
 	}
-	if got := releaseAssetDownloadURL("multica-cli-1.2.3-linux-amd64.tar.gz", "v1.2.3", "https://github.example/archive.tar.gz"); got != "https://mirror.example/releases/v1.2.3/multica-cli-1.2.3-linux-amd64.tar.gz" {
+	if got := releaseAssetDownloadURL("morechat-cli-1.2.3-linux-amd64.tar.gz", "v1.2.3", "https://github.example/archive.tar.gz"); got != "https://mirror.example/releases/v1.2.3/morechat-cli-1.2.3-linux-amd64.tar.gz" {
 		t.Fatalf("mirror download URL = %q", got)
 	}
 }

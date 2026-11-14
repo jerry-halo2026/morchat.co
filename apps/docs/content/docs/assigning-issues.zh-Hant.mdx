@@ -87,13 +87,13 @@ AI 代理會隨工作進展更新任務狀態。預設情況下，開始工作�
 ## 使用 CLI
 
 ```bash
-multica issue assign MUL-42 --to "Agent name"
-multica issue assign MUL-42 --to-id <agent-uuid> --no-start
-multica issue status MUL-42 in_progress --no-start
-multica issue assign MUL-42 --unassign
+morechat issue assign MUL-42 --to "Agent name"
+morechat issue assign MUL-42 --to-id <agent-uuid> --no-start
+morechat issue status MUL-42 in_progress --no-start
+morechat issue assign MUL-42 --unassign
 ```
 
-指令碼中用 `--to-id <uuid>` 可避免同名物件匹配錯誤。UUID 透過 `multica agent list --output json` 或 `multica workspace member list --output json` 檢視。
+指令碼中用 `--to-id <uuid>` 可避免同名物件匹配錯誤。UUID 透過 `morechat agent list --output json` 或 `morechat workspace member list --output json` 檢視。
 
 如果指派只用於記錄負責人、不應建立新執行（例如同一 AI 代理已在另一次執行中處理該任務），請使用 `--no-start`。`issue update` 和 `issue status` 同樣支援這個 flag。如果只記錄歸屬的流程同時修改負責人和狀態，兩條命令都要傳入該 flag；抑制指派不會自動抑制後續狀態變更觸發的執行。
 

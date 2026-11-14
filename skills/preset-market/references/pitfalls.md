@@ -4,7 +4,7 @@
 
 ## 1. 技能名是 `ns`，不是 frontmatter 的 `name`
 
-`multica skill import --url` 拿 SKILL.md frontmatter 的 `name` 当技能名；市场的命名空间是 `<包 id>--<技能目录>`。两者不一样就会挂错名字，agent 按 ns 找不到技能。
+`morechat skill import --url` 拿 SKILL.md frontmatter 的 `name` 当技能名；市场的命名空间是 `<包 id>--<技能目录>`。两者不一样就会挂错名字，agent 按 ns 找不到技能。
 
 → 要精确复刻，用 `skill create --name "<NS>" --content-file <SKILL.md>`。
 

@@ -168,13 +168,13 @@ describe("ConnectRemoteDialog", () => {
   it("uses cloud setup commands by default", () => {
     const { baseElement } = renderDialog();
 
-    expect(baseElement).toHaveTextContent("multica setup");
-    expect(baseElement).not.toHaveTextContent("multica setup self-host");
+    expect(baseElement).toHaveTextContent("morechat setup");
+    expect(baseElement).not.toHaveTextContent("morechat setup self-host");
     expect(baseElement).toHaveTextContent(
-      "multica config set server_url https://api.morechat.co",
+      "morechat config set server_url https://api.morechat.co",
     );
     expect(baseElement).toHaveTextContent(
-      "multica config set app_url https://morechat.co",
+      "morechat config set app_url https://morechat.co",
     );
   });
 
@@ -186,13 +186,13 @@ describe("ConnectRemoteDialog", () => {
     });
 
     expect(baseElement).toHaveTextContent(
-      "multica setup self-host --server-url https://api.example.com --app-url https://app.example.com",
+      "morechat setup self-host --server-url https://api.example.com --app-url https://app.example.com",
     );
     expect(baseElement).toHaveTextContent(
-      "multica config set server_url https://api.example.com",
+      "morechat config set server_url https://api.example.com",
     );
     expect(baseElement).toHaveTextContent(
-      "multica config set app_url https://app.example.com",
+      "morechat config set app_url https://app.example.com",
     );
   });
 
@@ -201,24 +201,24 @@ describe("ConnectRemoteDialog", () => {
     expect(screen.getByRole("status")).toHaveTextContent(
       "Loading connection settings",
     );
-    expect(baseElement).not.toHaveTextContent("multica setup");
-    expect(baseElement).not.toHaveTextContent("multica config set");
+    expect(baseElement).not.toHaveTextContent("morechat setup");
+    expect(baseElement).not.toHaveTextContent("morechat config set");
     act(() => configStore.getState().setDaemonConfigStatus("error"));
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Couldn't load connection settings",
     );
-    expect(baseElement).not.toHaveTextContent("multica setup");
-    expect(baseElement).not.toHaveTextContent("multica config set");
+    expect(baseElement).not.toHaveTextContent("morechat setup");
+    expect(baseElement).not.toHaveTextContent("morechat config set");
     act(() => configStore.getState().setDaemonConfig({
       daemonSetupTarget: "self_host",
       daemonServerUrl: "https://api.example.com",
       daemonAppUrl: "https://app.example.com",
     }));
     expect(baseElement).toHaveTextContent(
-      "multica setup self-host --server-url https://api.example.com --app-url https://app.example.com",
+      "morechat setup self-host --server-url https://api.example.com --app-url https://app.example.com",
     );
     expect(baseElement).toHaveTextContent(
-      "multica config set server_url https://api.example.com",
+      "morechat config set server_url https://api.example.com",
     );
   });
 
@@ -228,8 +228,8 @@ describe("ConnectRemoteDialog", () => {
   ])("withholds both command paths for unresolved config %j", (config) => {
     const { baseElement } = renderDialog(config);
     expect(screen.getByRole("alert")).toBeInTheDocument();
-    expect(baseElement).not.toHaveTextContent("multica setup");
-    expect(baseElement).not.toHaveTextContent("multica config set");
+    expect(baseElement).not.toHaveTextContent("morechat setup");
+    expect(baseElement).not.toHaveTextContent("morechat config set");
     expect(screen.getAllByRole("button", { name: "Copy" })).toHaveLength(1);
   });
 
@@ -254,7 +254,7 @@ describe("ConnectRemoteDialog", () => {
     const user = userEvent.setup();
     const { baseElement, qc } = await renderListeningDialog();
 
-    expect(baseElement).toHaveTextContent("multica setup");
+    expect(baseElement).toHaveTextContent("morechat setup");
     const runtime = makeRuntime();
     runtimeApi.listRuntimes.mockResolvedValue([runtime]);
     await refreshRuntimes(qc, { runtimes: [runtime] });
@@ -265,7 +265,7 @@ describe("ConnectRemoteDialog", () => {
         screen.getByRole("button", { name: "Create an agent" }),
       ).toBeInTheDocument();
     });
-    expect(baseElement).not.toHaveTextContent("multica setup");
+    expect(baseElement).not.toHaveTextContent("morechat setup");
     expect(runtimeApi.listRuntimes).toHaveBeenCalledWith({ workspace_id: WS_ID, owner: "me" }, "workspace-test");
     await user.click(screen.getByRole("button", { name: "View runtime" }));
     expect(navigationState.push).toHaveBeenCalledWith("/runtimes/rt-new");
@@ -284,7 +284,7 @@ describe("ConnectRemoteDialog", () => {
     const { qc } = await renderListeningDialog();
     await refreshRuntimes(qc, payload);
     expect(screen.queryByText("Machine connected")).not.toBeInTheDocument();
-    expect(screen.getByText("multica setup")).toBeInTheDocument();
+    expect(screen.getByText("morechat setup")).toBeInTheDocument();
   });
 
   it("does not report success from an offline notification alone", async () => {
@@ -474,7 +474,7 @@ describe("ConnectRemoteDialog", () => {
     await waitFor(() => expect(view.qc.getQueryData(runtimeKeys.listMine(nextWorkspace))).toEqual([]));
     await refreshRuntimes(view.qc, { runtime_profile_id: "existing-profile" });
     expect(screen.queryByText("Machine connected")).not.toBeInTheDocument();
-    expect(screen.getByText("multica setup")).toBeInTheDocument();
+    expect(screen.getByText("morechat setup")).toBeInTheDocument();
   });
 
 

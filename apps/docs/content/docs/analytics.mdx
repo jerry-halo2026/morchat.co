@@ -115,8 +115,8 @@ The bottom of the dialog notes that cost is estimated and names any models witho
 ## From the CLI
 
 ```bash
-multica issue usage <issue-id>
-multica runtime usage <runtime-id> --days 30
+morechat issue usage <issue-id>
+morechat runtime usage <runtime-id> --days 30
 ```
 
 `issue usage` prints an issue's token totals (input, output, cache read, cache write) and run counts. `RUNS` is the number of finished runs, `METERED_RUNS` how many reported usage, and `UNREPORTED` how many did not; when any run went unreported, token totals carry a `>=` prefix because the real figure can only be higher.

@@ -133,7 +133,7 @@ Claude Code、Codex、Cursor 都行。morechat.co 负责驱动它们，但不替
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jerry-halo2026/morchat.co/main/scripts/install.sh | bash -s -- --with-server
-multica setup self-host
+morechat setup self-host
 ```
 
 Windows 上先设 `$env:MULTICA_MODE="with-server"`，再跑 PowerShell 安装脚本：
