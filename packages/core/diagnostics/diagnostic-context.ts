@@ -81,6 +81,8 @@ const WORKSPACE_ROUTES: readonly RoutePattern[] = [
   ["runtimes", ":id", "runtime", ":runtimeId"],
   ["skills"],
   ["skills", ":id"],
+  ["knowledge"],
+  ["presets"],
   ["settings"],
   ["attachments", ":id", "preview"],
 ];
@@ -128,6 +130,10 @@ export function bucketDiagnosticPath(path: string): string {
 
   const scoped = matchRoute(rest, WORKSPACE_ROUTES);
   if (scoped) return `/:slug/${scoped.join("/")}`;
+
+  // A knowledge page address is a free-form depth (space + tree path), so it
+  // collapses to the space instead of falling back to the mask.
+  if (rest[0] === "knowledge" && rest.length >= 2) return "/:slug/knowledge/:space";
 
   const section = rest[0]!;
   return WORKSPACE_SECTIONS.has(section)
