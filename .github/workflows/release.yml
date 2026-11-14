@@ -84,10 +84,10 @@ jobs:
     needs: verify
     # Only run on the canonical upstream repo. Forks don't have the
     # HOMEBREW_TAP_GITHUB_TOKEN secret and should not be publishing to
-    # `multica-ai/homebrew-tap` anyway. Without this guard, every fork's
+    # `jerry-halo2026/homebrew-tap` anyway. Without this guard, every fork's
     # tag push fails this job (401 against the upstream tap), which makes
     # downstream CI go red without affecting the actual artifact pipeline.
-    if: github.repository_owner == 'multica-ai'
+    if: github.repository_owner == 'jerry-halo2026'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -144,7 +144,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/multica-backend
+          images: ghcr.io/${{ github.repository_owner }}/morechat-backend
           labels: |
             org.opencontainers.image.title=Multica Backend
             org.opencontainers.image.description=Multica self-hosted backend
@@ -173,7 +173,7 @@ jobs:
           build-args: |
             VERSION=${{ needs.verify.outputs.tag_name }}
             COMMIT=${{ github.sha }}
-          outputs: type=image,name=ghcr.io/${{ github.repository_owner }}/multica-backend,push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=ghcr.io/${{ github.repository_owner }}/morechat-backend,push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
         run: |
@@ -210,7 +210,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/multica-backend
+          images: ghcr.io/${{ github.repository_owner }}/morechat-backend
           flavor: |
             latest=false
           tags: |
@@ -230,12 +230,12 @@ jobs:
         run: |
           docker buildx imagetools create \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf 'ghcr.io/${{ github.repository_owner }}/multica-backend@sha256:%s ' *)
+            $(printf 'ghcr.io/${{ github.repository_owner }}/morechat-backend@sha256:%s ' *)
 
       - name: Inspect image
         run: |
           docker buildx imagetools inspect \
-            ghcr.io/${{ github.repository_owner }}/multica-backend:${{ steps.meta.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/morechat-backend:${{ steps.meta.outputs.version }}
 
   docker-web-build:
     needs: verify
@@ -261,7 +261,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/multica-web
+          images: ghcr.io/${{ github.repository_owner }}/morechat-web
           labels: |
             org.opencontainers.image.title=Multica Web
             org.opencontainers.image.description=Multica self-hosted web frontend
@@ -290,7 +290,7 @@ jobs:
           build-args: |
             REMOTE_API_URL=http://backend:8080
             NEXT_PUBLIC_APP_VERSION=${{ needs.verify.outputs.tag_name }}
-          outputs: type=image,name=ghcr.io/${{ github.repository_owner }}/multica-web,push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=ghcr.io/${{ github.repository_owner }}/morechat-web,push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
         run: |
@@ -327,7 +327,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/multica-web
+          images: ghcr.io/${{ github.repository_owner }}/morechat-web
           flavor: |
             latest=false
           tags: |
@@ -347,16 +347,16 @@ jobs:
         run: |
           docker buildx imagetools create \
             $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf 'ghcr.io/${{ github.repository_owner }}/multica-web@sha256:%s ' *)
+            $(printf 'ghcr.io/${{ github.repository_owner }}/morechat-web@sha256:%s ' *)
 
       - name: Inspect image
         run: |
           docker buildx imagetools inspect \
-            ghcr.io/${{ github.repository_owner }}/multica-web:${{ steps.meta.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/morechat-web:${{ steps.meta.outputs.version }}
 
   helm-chart:
     needs: [verify, docker-backend-merge, docker-web-merge]
-    if: github.repository_owner == 'multica-ai'
+    if: github.repository_owner == 'jerry-halo2026'
     runs-on: ubuntu-latest
     concurrency:
       group: release-helm-chart-${{ github.ref }}

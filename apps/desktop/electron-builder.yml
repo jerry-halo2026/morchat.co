@@ -1,4 +1,4 @@
-appId: ai.multica.desktop
+appId: co.morechat.desktop
 productName: morechat.co
 directories:
   buildResources: build
@@ -111,7 +111,7 @@ linux:
   # returned nothing rather than "wrong binary" (github.com/jerry-halo2026/morchat.co/issues/5481).
   # `StartupWMClass=morechat.co` (productName-derived) is unaffected by this
   # rename — it comes from `app.getName()`, not `executableName`.
-  executableName: multica-desktop
+  executableName: morechat-desktop
   # Pin StartupWMClass to the WM_CLASS Electron emits on X11. Electron
   # derives WM_CLASS from `app.getName()`, which reads the *packaged*
   # ASAR's `package.json` — `productName` if present, otherwise `name`.
@@ -156,8 +156,8 @@ win:
   artifactName: morechat-desktop-${version}-windows-${arch}.${ext}
 publish:
   provider: github
-  owner: multica-ai
-  repo: multica
+  owner: jerry-halo2026
+  repo: morchat.co
   # Align with our CLI release flow which pre-creates a *published* GitHub
   # Release via `gh release create`. The electron-builder default of
   # `releaseType: draft` conflicts with `existingType=release` and causes

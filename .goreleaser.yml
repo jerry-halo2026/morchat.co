@@ -1,6 +1,6 @@
 version: 2
 
-project_name: multica
+project_name: morechat
 
 release:
   # GitHub rejects duplicate asset names with 422. On a same-tag rerun,
@@ -76,7 +76,7 @@ brews:
     ids:
       - versioned
     repository:
-      owner: multica-ai
+      owner: jerry-halo2026
       name: homebrew-tap
       branch: main
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
