@@ -165,6 +165,10 @@
    - **剩余（0.9.0）**：`aa11299` 底栏已判忽略；desktop 主题文件夹 + 其它动
      `main/index.ts` 的上游提交需要单独一次桌面批次；`4e457b406`「我的 agent 的活」
      要先设计再吸；`eea447533` 项目订阅与迁移号仍冲突（未做）。
+   - **自家缺陷已修（2026-11-14）**：`knowledge/**` 的 4 个 eslint error
+     （`KnowledgeMentionCard` 的 `ref` 属性、`use-knowledge-href` 在普通函数里调 hook、
+     新建页 placeholder 硬编码）→ `df1e26a1c`；诊断路由不认 `presets`/`knowledge`
+     → `3cce9eb37`。现在 `eslint knowledge` 0 error、`diagnostic-context` 15/15。
 
 1b. **素材库 P0 已完成、P1 搁置**（按你的指示先做知识库）：`contracts/library/` 的元契约 +
    video/legal 两个领域 manifest + `scripts/check-library-contracts.mjs` 已冻结；P1 的
