@@ -235,6 +235,12 @@ go test ./internal/knowledge ./cmd/migrate ./internal/migrations -count=1
    "ALTER ROLE multica_dev PASSWORD '<文档值>'"`。
 9. **`go test ./internal/handler` 必须带 `DATABASE_URL`**，否则 fixture 报
    `relation "workspace" does not exist`，看起来像代码坏了。
+10. **多个 agent 不能共用同一个 git checkout**：2026-11-14 D-3/D-4 并行时，D-4 在共享
+    checkout 里 `switch + reset`，把 D-3 的 `CHERRY_PICK_HEAD` 清掉、还留下半成品改动，
+    typecheck 的报错看起来像 D-3 的锅。规矩：**每个 agent 一个 `git worktree`**，
+    主 checkout 只归 Lead 做合并；主 checkout 里只允许 Lead 的 `switch/merge/commit`。
+    恢复手法：把脏文件备份到仓库外 → 新 worktree `pnpm install` → 拷回 → 主 checkout
+    只按**具体路径** `git checkout --` / `git clean -f --`，绝不 `git clean -fdx`。
 10. **不要对整个包目录跑 `gofmt`**（会把 CRLF 换成 LF，虽然 git 内容归一后 diff 为空，
     但会干扰其他 agent 的工作树判断）。
 11. **两个 agent 同时改 `server/internal/featureflags/keys.go`**：共享文件，
