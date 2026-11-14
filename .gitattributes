@@ -5,3 +5,6 @@ docker/entrypoint.sh text eol=lf
 # Default behavior
 * text=auto
 packages/ui/lib/agent-bot/engine/* text eol=lf
+
+# theme-variables.test.ts compares this file character by character.
+docs/theming.md text eol=lf
