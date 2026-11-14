@@ -10,7 +10,7 @@ const apiRepoUrl = "https://github.com/multica-ai/api";
 const apiRepoDescription = "API and daemon runtime";
 const webRepoUrl = "https://github.com/multica-ai/web";
 
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: Object.assign(
     (selector: (state: { user: { id: string } }) => unknown) =>
       selector({ user: { id: "user-1" } }),

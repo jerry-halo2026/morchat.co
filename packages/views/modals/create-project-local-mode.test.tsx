@@ -20,7 +20,7 @@ let pickedIsGitRepo: boolean | undefined = true;
 
 const createProjectMock = vi.fn().mockResolvedValue({ id: "p1", slug: "p1" });
 
-vi.mock("@multica/core/auth", () => ({
+vi.mock("@morechat/core/auth", () => ({
   useAuthStore: Object.assign(
     (selector: (state: { user: { id: string } }) => unknown) =>
       selector({ user: { id: "user-1" } }),
