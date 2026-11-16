@@ -193,6 +193,12 @@
      限制：项目地址在 `server/internal/supabaseauth/verifier.go` 与
      `packages/core/api/supabase-password.ts` 里是固定值，换项目要改代码；
      `internal/supabaseauth` 有一条 fixture 用例（mock TxStarter）仍红，非生产路径。
+   - **身份冲突是 409，不是密码错（2026-11-16 实测）**：同一邮箱先在本地注册过
+     （邮箱验证码登录会建本地账号），再用 Supabase 登录会返回
+     `409 account identity conflict`，因为映射只按 `(project, subject)` 绑定、
+     **不按邮箱合并**。处理：删掉那条本地账号（无关联时安全）让它按 Supabase 重建，
+     或管理员手工写 `external_auth_identity`。登录页现在把 409 单独映射成
+     "该邮箱已有本地账号，请联系管理员"（7 语言），不再显示成"邮箱或密码错误"。
    - **开箱即用的两个真实缺口（2026-11-16 实测）**：
      1. `api.morechat.co` 与 `morechat.co` 在公共 DNS 是 **NXDOMAIN**（DoH status 3），
         本机解析到代理 fake-IP `198.18.1.245` 且 TLS 握手失败。打包客户端默认指向这两个
