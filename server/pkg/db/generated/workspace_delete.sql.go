@@ -670,6 +670,38 @@ func (q *Queries) DeleteWorkspaceSquadsAndSkills(ctx context.Context, workspaceI
 	return err
 }
 
+const deleteWorkspaceWorkbenchLedger = `-- name: DeleteWorkspaceWorkbenchLedger :exec
+WITH
+deleted_settlements AS (
+    DELETE FROM crm_settlement WHERE crm_settlement.workspace_id = $1
+),
+deleted_collabs AS (
+    DELETE FROM crm_collab WHERE crm_collab.workspace_id = $1
+),
+deleted_briefs AS (
+    DELETE FROM crm_brief WHERE crm_brief.workspace_id = $1
+),
+deleted_clients AS (
+    DELETE FROM crm_client WHERE crm_client.workspace_id = $1
+),
+deleted_metrics AS (
+    DELETE FROM creator_post_metric WHERE creator_post_metric.workspace_id = $1
+),
+deleted_posts AS (
+    DELETE FROM creator_post WHERE creator_post.workspace_id = $1
+)
+DELETE FROM creator WHERE creator.workspace_id = $1
+`
+
+// Creator commerce and CRM ledgers (docs/engineering/WORKBENCH-API.md). No
+// foreign key sits behind them (repository rule), so teardown removes every row
+// explicitly, in dependency order: a settlement names a collaboration, a post
+// belongs to a creator.
+func (q *Queries) DeleteWorkspaceWorkbenchLedger(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteWorkspaceWorkbenchLedger, workspaceID)
+	return err
+}
+
 const detachTaskBatchReferences = `-- name: DetachTaskBatchReferences :exec
 WITH detached_runs AS (
     UPDATE autopilot_run

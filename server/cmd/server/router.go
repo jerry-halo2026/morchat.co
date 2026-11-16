@@ -2398,6 +2398,74 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 				})
 			})
 
+			// Workbench ledgers (docs/engineering/WORKBENCH-API.md). Creator
+			// commerce is the first domain. Reads are member-wide; write scope is
+			// gated inside the handlers. `department_id` only filters aggregates —
+			// it is not an access boundary (docs/engineering/ORG-MODEL.md).
+			r.Route("/api/workbench", func(r chi.Router) {
+				r.Get("/overview", h.GetWorkbenchOverview)
+				r.Get("/counts", h.GetWorkbenchCounts)
+
+				r.Route("/creators", func(r chi.Router) {
+					r.Get("/", h.ListCreators)
+					r.Post("/", h.CreateCreator)
+					r.Route("/{creatorId}", func(r chi.Router) {
+						r.Get("/", h.GetCreator)
+						r.Patch("/", h.UpdateCreator)
+						r.Delete("/", h.DeleteCreator)
+					})
+				})
+
+				r.Route("/creator-posts", func(r chi.Router) {
+					r.Get("/", h.ListCreatorPosts)
+					r.Post("/", h.CreateCreatorPost)
+					r.Route("/{postId}", func(r chi.Router) {
+						r.Patch("/", h.UpdateCreatorPost)
+						r.Delete("/", h.DeleteCreatorPost)
+						r.Get("/metrics", h.ListCreatorPostMetrics)
+						r.Post("/metrics", h.UpsertCreatorPostMetric)
+					})
+				})
+
+				r.Route("/crm", func(r chi.Router) {
+					r.Route("/clients", func(r chi.Router) {
+						r.Get("/", h.ListCrmClients)
+						r.Post("/", h.CreateCrmClient)
+						r.Route("/{clientId}", func(r chi.Router) {
+							r.Get("/", h.GetCrmClient)
+							r.Patch("/", h.UpdateCrmClient)
+							r.Delete("/", h.DeleteCrmClient)
+						})
+					})
+					r.Route("/briefs", func(r chi.Router) {
+						r.Get("/", h.ListCrmBriefs)
+						r.Post("/", h.CreateCrmBrief)
+						r.Route("/{briefId}", func(r chi.Router) {
+							r.Get("/", h.GetCrmBrief)
+							r.Patch("/", h.UpdateCrmBrief)
+							r.Delete("/", h.DeleteCrmBrief)
+						})
+					})
+					r.Route("/collabs", func(r chi.Router) {
+						r.Get("/", h.ListCrmCollabs)
+						r.Post("/", h.CreateCrmCollab)
+						r.Route("/{collabId}", func(r chi.Router) {
+							r.Get("/", h.GetCrmCollab)
+							r.Patch("/", h.UpdateCrmCollab)
+							r.Delete("/", h.DeleteCrmCollab)
+						})
+					})
+					r.Route("/settlements", func(r chi.Router) {
+						r.Get("/", h.ListCrmSettlements)
+						r.Post("/", h.CreateCrmSettlement)
+						r.Route("/{settlementId}", func(r chi.Router) {
+							r.Patch("/", h.UpdateCrmSettlement)
+							r.Delete("/", h.DeleteCrmSettlement)
+						})
+					})
+				})
+			})
+
 			// Squads
 			r.Route("/api/squads", func(r chi.Router) {
 				r.Get("/", h.ListSquads)

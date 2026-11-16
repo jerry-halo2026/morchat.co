@@ -1,0 +1,28 @@
+export {
+  crmKeys,
+  workbenchKeys,
+  crmBriefDetailOptions,
+  crmBriefListOptions,
+  crmClientDetailOptions,
+  crmClientListOptions,
+  crmCollabDetailOptions,
+  crmCollabListOptions,
+  crmSettlementListOptions,
+  workbenchCountsOptions,
+  workbenchOverviewOptions,
+  type CrmResource,
+} from "./queries";
+export {
+  useCreateCrmBrief,
+  useCreateCrmClient,
+  useCreateCrmCollab,
+  useCreateCrmSettlement,
+  useDeleteCrmBrief,
+  useDeleteCrmClient,
+  useDeleteCrmCollab,
+  useDeleteCrmSettlement,
+  useUpdateCrmBrief,
+  useUpdateCrmClient,
+  useUpdateCrmCollab,
+  useUpdateCrmSettlement,
+} from "./mutations";

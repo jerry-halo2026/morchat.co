@@ -100,6 +100,14 @@ export type WSEventType =
   | "pull_request:linked"
   | "pull_request:updated"
   | "pull_request:unlinked"
+  // Workbench ledgers (docs/engineering/WORKBENCH-API.md §4).
+  | "creator:changed"
+  | "creator_post:changed"
+  | "crm_client:changed"
+  | "crm_brief:changed"
+  | "crm_collab:changed"
+  | "crm_collab:stage_changed"
+  | "crm_settlement:changed"
   | "environment:changed";
 
 export interface WSMessage<T = unknown> {
@@ -615,6 +623,47 @@ export interface ChatSessionCreatedPayload {
 }
 
 /**
+ * Workbench ledger events (docs/engineering/WORKBENCH-API.md §4).
+ *
+ * Every one of them means "re-read this ledger": the payload names the row so a
+ * handler can log it, but a ledger row carries too many fields for a field-level
+ * patch to stay cheaper than the refetch. `creator_post:changed` also carries
+ * `creator_id` because the per-creator post list is a separate cached query.
+ */
+export interface CreatorChangedPayload {
+  id: string;
+}
+
+export interface CreatorPostChangedPayload {
+  id: string;
+  creator_id: string;
+}
+
+export interface CrmClientChangedPayload {
+  id: string;
+}
+
+export interface CrmBriefChangedPayload {
+  id: string;
+}
+
+export interface CrmCollabChangedPayload {
+  id: string;
+}
+
+/** Stage moves get their own event so the fulfilment board can react to a card
+ *  changing column without inferring it from a generic changed event. */
+export interface CrmCollabStageChangedPayload {
+  id: string;
+  from: string;
+  to: string;
+}
+
+export interface CrmSettlementChangedPayload {
+  id: string;
+}
+
+/**
  * Maps every WSEventType to its payload interface. Events whose payload
  * shape isn't formally typed (server emits an object the client doesn't
  * meaningfully consume yet) fall back to `unknown` — callers must narrow
@@ -717,6 +766,13 @@ export interface WSEventPayloadMap {
   "pull_request:linked": unknown;
   "pull_request:updated": unknown;
   "pull_request:unlinked": unknown;
+  "creator:changed": CreatorChangedPayload;
+  "creator_post:changed": CreatorPostChangedPayload;
+  "crm_client:changed": CrmClientChangedPayload;
+  "crm_brief:changed": CrmBriefChangedPayload;
+  "crm_collab:changed": CrmCollabChangedPayload;
+  "crm_collab:stage_changed": CrmCollabStageChangedPayload;
+  "crm_settlement:changed": CrmSettlementChangedPayload;
   "environment:changed": { issue_id: string };
 }
 

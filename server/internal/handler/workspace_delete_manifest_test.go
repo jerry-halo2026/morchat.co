@@ -159,8 +159,18 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"workspace_app_setting":              workspaceDelete,
 	"app_tool_class_override":            workspaceDelete,
 	"workspace":                          workspaceDelete,
-	"workspace_invitation":               workspaceDelete,
-	"workspace_share_link":               workspaceDelete,
+	// Workbench ledgers (docs/engineering/WORKBENCH-API.md): workspace-owned
+	// business rows with no foreign key behind them, so teardown deletes them
+	// explicitly in DeleteWorkspaceWorkbenchLedger.
+	"creator":              workspaceDelete,
+	"creator_post":         workspaceDelete,
+	"creator_post_metric":  workspaceDelete,
+	"crm_client":           workspaceDelete,
+	"crm_brief":            workspaceDelete,
+	"crm_collab":           workspaceDelete,
+	"crm_settlement":       workspaceDelete,
+	"workspace_invitation": workspaceDelete,
+	"workspace_share_link": workspaceDelete,
 }
 
 func TestWorkspaceDeletionManifestCoversPublicSchema(t *testing.T) {

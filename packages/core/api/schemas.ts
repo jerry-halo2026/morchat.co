@@ -108,6 +108,21 @@ import type {
   User,
   WebhookDelivery,
   WorkspaceMcpServer,
+  Creator,
+  CreatorListResponse,
+  CreatorPost,
+  CreatorPostListResponse,
+  CreatorPostMetric,
+  CreatorPostMetricListResponse,
+  CrmClient,
+  CrmClientListResponse,
+  CrmBrief,
+  CrmBriefListResponse,
+  CrmCollab,
+  CrmCollabListResponse,
+  CrmSettlement,
+  CrmSettlementListResponse,
+  WorkbenchCountsResponse,
 } from "../types";
 import type { CloudRuntimeNode } from "../runtimes/cloud-runtime";
 import type { CreateFeedbackResponse } from "../feedback/types";
@@ -1640,6 +1655,10 @@ export const ProjectSchema = z.object({
   done_count: z.number().default(0),
   resource_count: z.number().default(0),
   workflow_id: z.string().nullable().default(null),
+  // Org unit the project belongs to (docs/engineering/ORG-MODEL.md). The server
+  // has sent it since departments shipped; defaulted so a backend that predates
+  // them parses to "unfiled" instead of failing the object.
+  department_id: z.string().nullable().default(null),
 }).loose();
 
 export const EMPTY_PROJECT: Project = {
@@ -1647,6 +1666,7 @@ export const EMPTY_PROJECT: Project = {
   status: "planned", priority: "none", lead_type: null, lead_id: null,
   creator_type: null, creator_id: null, start_date: null, due_date: null,
   created_at: "", updated_at: "", issue_count: 0, done_count: 0, resource_count: 0,
+  department_id: null,
 };
 
 export const ListProjectsResponseSchema = z.object({
@@ -4371,3 +4391,317 @@ export const WorkspaceListItemSchema = z.object({
 export const WorkspacePinnedSchema = z.object({
   pinned_at: z.iso.datetime({ offset: true }).nullable().catch(null),
 });
+
+// --- Workbench ledgers (docs/engineering/WORKBENCH-API.md §2/§3) -----------
+//
+// Seven ledger records. Two rules shape every schema below:
+//
+// 1. Enums stay `z.string()` (or a plain string with a default) so a server that
+//    adds a collab stage, a post source or a settlement kind still parses. The
+//    wire type in `types/workbench.ts` is the union the UI default-cases against;
+//    an unknown value must degrade one row's presentation, never the ledger.
+// 2. Nullable columns are `.nullable().default(null)` and counters default to 0,
+//    so a row written before a column existed parses instead of failing the page.
+//
+// Money arrives as a JSON number (the server converts NUMERIC(14,2)); `currency`
+// travels beside it, and the amount fields never default to 0 — null means
+// "not quoted yet", which the UI renders differently from a quoted zero.
+
+const workbenchNullableString = z.string().nullable().default(null);
+const workbenchNullableNumber = z.number().nullable().default(null);
+
+export const CreatorSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  kind: z.string().default("external"),
+  display_name: z.string().default(""),
+  platform: z.string().default(""),
+  handle: z.string().default(""),
+  url: workbenchNullableString,
+  fans: z.number().default(0),
+  fans_d7: z.number().default(0),
+  avg_play: z.number().default(0),
+  engagement_rate: workbenchNullableNumber,
+  category: workbenchNullableString,
+  audience_note: workbenchNullableString,
+  region: workbenchNullableString,
+  price_note: workbenchNullableString,
+  score: workbenchNullableNumber,
+  risk_flag: z.boolean().default(false),
+  blacklist_reason: workbenchNullableString,
+  owner_member_id: workbenchNullableString,
+  media_ip_project_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CREATOR: Creator = {
+  id: "", workspace_id: "", kind: "external", display_name: "", platform: "",
+  handle: "", url: null, fans: 0, fans_d7: 0, avg_play: 0, engagement_rate: null,
+  category: null, audience_note: null, region: null, price_note: null, score: null,
+  risk_flag: false, blacklist_reason: null, owner_member_id: null,
+  media_ip_project_id: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
+};
+
+export const CreatorListResponseSchema = z.object({
+  creators: z.array(CreatorSchema).default([]),
+  total: z.number().default(0),
+  // Cursor paging: absent/null means this is the last page.
+  next_cursor: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CREATOR_LIST_RESPONSE: CreatorListResponse = {
+  creators: [],
+  total: 0,
+  next_cursor: null,
+};
+
+export const CreatorPostSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  creator_id: z.string().default(""),
+  collab_id: workbenchNullableString,
+  content_issue_id: workbenchNullableString,
+  platform: z.string().default(""),
+  title: workbenchNullableString,
+  url: z.string().default(""),
+  published_at: z.string().default(""),
+  source: z.string().default("manual"),
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CREATOR_POST: CreatorPost = {
+  id: "", workspace_id: "", creator_id: "", collab_id: null,
+  content_issue_id: null, platform: "", title: null, url: "", published_at: "",
+  source: "manual", created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
+};
+
+export const CreatorPostListResponseSchema = z.object({
+  posts: z.array(CreatorPostSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_CREATOR_POST_LIST_RESPONSE: CreatorPostListResponse = {
+  posts: [],
+  total: 0,
+};
+
+// Every measure is nullable: a platform that reports only likes must not look
+// like it reported zero plays (docs/METRICS.md rule 3).
+export const CreatorPostMetricSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  post_id: z.string().default(""),
+  captured_on: z.string().default(""),
+  play: workbenchNullableNumber,
+  likes: workbenchNullableNumber,
+  comments: workbenchNullableNumber,
+  shares: workbenchNullableNumber,
+  clicks: workbenchNullableNumber,
+  converts: workbenchNullableNumber,
+  gmv_amount: workbenchNullableNumber,
+  currency: z.string().default("CNY"),
+  source: z.string().default("manual"),
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+}).loose();
+
+export const EMPTY_CREATOR_POST_METRIC: CreatorPostMetric = {
+  id: "", workspace_id: "", post_id: "", captured_on: "", play: null, likes: null,
+  comments: null, shares: null, clicks: null, converts: null, gmv_amount: null,
+  currency: "CNY", source: "manual", created_at: "", updated_at: "",
+};
+
+export const CreatorPostMetricListResponseSchema = z.object({
+  metrics: z.array(CreatorPostMetricSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_CREATOR_POST_METRIC_LIST_RESPONSE: CreatorPostMetricListResponse = {
+  metrics: [],
+  total: 0,
+};
+
+export const CrmClientSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  name: z.string().default(""),
+  brand: workbenchNullableString,
+  industry: workbenchNullableString,
+  contact_name: workbenchNullableString,
+  contact_channel: workbenchNullableString,
+  contract_entity: workbenchNullableString,
+  payment_terms: workbenchNullableString,
+  credit_note: workbenchNullableString,
+  owner_member_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CRM_CLIENT: CrmClient = {
+  id: "", workspace_id: "", name: "", brand: null, industry: null,
+  contact_name: null, contact_channel: null, contract_entity: null,
+  payment_terms: null, credit_note: null, owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const CrmClientListResponseSchema = z.object({
+  clients: z.array(CrmClientSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_CRM_CLIENT_LIST_RESPONSE: CrmClientListResponse = {
+  clients: [],
+  total: 0,
+};
+
+export const CrmBriefSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  client_id: z.string().default(""),
+  title: z.string().default(""),
+  category: workbenchNullableString,
+  budget_min_amount: workbenchNullableNumber,
+  budget_max_amount: workbenchNullableNumber,
+  target_audience: workbenchNullableString,
+  deliverable_type: workbenchNullableString,
+  // TEXT[] NOT NULL DEFAULT '{}': a brief with no platform filter is an empty
+  // list, never null.
+  platforms: z.array(z.string()).default([]),
+  schedule_from: workbenchNullableString,
+  schedule_to: workbenchNullableString,
+  kpi_play: workbenchNullableNumber,
+  kpi_gmv_amount: workbenchNullableNumber,
+  status: z.string().default("draft"),
+  owner_member_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CRM_BRIEF: CrmBrief = {
+  id: "", workspace_id: "", client_id: "", title: "", category: null,
+  budget_min_amount: null, budget_max_amount: null, target_audience: null,
+  deliverable_type: null, platforms: [], schedule_from: null, schedule_to: null,
+  kpi_play: null, kpi_gmv_amount: null, status: "draft", owner_member_id: null,
+  created_by: null, created_at: "", updated_at: "", archived_at: null,
+};
+
+export const CrmBriefListResponseSchema = z.object({
+  briefs: z.array(CrmBriefSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_CRM_BRIEF_LIST_RESPONSE: CrmBriefListResponse = {
+  briefs: [],
+  total: 0,
+};
+
+export const CrmCollabSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  brief_id: z.string().default(""),
+  creator_id: z.string().default(""),
+  stage: z.string().default("inquiry"),
+  quote_amount: workbenchNullableNumber,
+  final_amount: workbenchNullableNumber,
+  prob: workbenchNullableNumber,
+  creator_fee: workbenchNullableNumber,
+  sample_cost: workbenchNullableNumber,
+  platform_fee: workbenchNullableNumber,
+  currency: z.string().default("CNY"),
+  settlement_mode: workbenchNullableString,
+  commission_rate: workbenchNullableNumber,
+  sample_required: z.boolean().default(false),
+  script_required: z.boolean().default(false),
+  scheduled_at: workbenchNullableString,
+  confirmed_at: workbenchNullableString,
+  published_at: workbenchNullableString,
+  accepted_at: workbenchNullableString,
+  issue_id: workbenchNullableString,
+  owner_member_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CRM_COLLAB: CrmCollab = {
+  id: "", workspace_id: "", brief_id: "", creator_id: "", stage: "inquiry",
+  quote_amount: null, final_amount: null, prob: null, creator_fee: null,
+  sample_cost: null, platform_fee: null, currency: "CNY", settlement_mode: null,
+  commission_rate: null, sample_required: false, script_required: false,
+  scheduled_at: null, confirmed_at: null, published_at: null, accepted_at: null,
+  issue_id: null, owner_member_id: null, created_by: null, created_at: "",
+  updated_at: "", archived_at: null,
+};
+
+export const CrmCollabListResponseSchema = z.object({
+  collabs: z.array(CrmCollabSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_CRM_COLLAB_LIST_RESPONSE: CrmCollabListResponse = {
+  collabs: [],
+  total: 0,
+};
+
+export const CrmSettlementSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  collab_id: z.string().default(""),
+  kind: z.string().default("final"),
+  // The one non-nullable amount: a settlement row exists to move money.
+  amount: z.number().default(0),
+  currency: z.string().default("CNY"),
+  due_at: workbenchNullableString,
+  paid_at: workbenchNullableString,
+  invoice_no: workbenchNullableString,
+  note: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CRM_SETTLEMENT: CrmSettlement = {
+  id: "", workspace_id: "", collab_id: "", kind: "final", amount: 0,
+  currency: "CNY", due_at: null, paid_at: null, invoice_no: null, note: null,
+  created_by: null, created_at: "", updated_at: "", archived_at: null,
+};
+
+export const CrmSettlementListResponseSchema = z.object({
+  settlements: z.array(CrmSettlementSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_CRM_SETTLEMENT_LIST_RESPONSE: CrmSettlementListResponse = {
+  settlements: [],
+  total: 0,
+};
+
+export const WorkbenchCountsResponseSchema = z.object({
+  creators: z.number().default(0),
+  clients: z.number().default(0),
+  briefs: z.number().default(0),
+  collabs_open: z.number().default(0),
+  settlements_pending: z.number().default(0),
+}).loose();
+
+export const EMPTY_WORKBENCH_COUNTS_RESPONSE: WorkbenchCountsResponse = {
+  creators: 0,
+  clients: 0,
+  briefs: 0,
+  collabs_open: 0,
+  settlements_pending: 0,
+};

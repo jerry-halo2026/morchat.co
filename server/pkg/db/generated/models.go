@@ -734,6 +734,155 @@ type ContactSalesInquiry struct {
 	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 }
 
+type Creator struct {
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	Kind             string             `json:"kind"`
+	DisplayName      string             `json:"display_name"`
+	Platform         string             `json:"platform"`
+	Handle           string             `json:"handle"`
+	Url              pgtype.Text        `json:"url"`
+	Fans             int64              `json:"fans"`
+	FansD7           int64              `json:"fans_d7"`
+	AvgPlay          int64              `json:"avg_play"`
+	EngagementRate   pgtype.Numeric     `json:"engagement_rate"`
+	Category         pgtype.Text        `json:"category"`
+	AudienceNote     pgtype.Text        `json:"audience_note"`
+	Region           pgtype.Text        `json:"region"`
+	PriceNote        pgtype.Text        `json:"price_note"`
+	Score            pgtype.Int2        `json:"score"`
+	RiskFlag         bool               `json:"risk_flag"`
+	BlacklistReason  pgtype.Text        `json:"blacklist_reason"`
+	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
+	MediaIpProjectID pgtype.UUID        `json:"media_ip_project_id"`
+	CreatedBy        pgtype.UUID        `json:"created_by"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt       pgtype.Timestamptz `json:"archived_at"`
+}
+
+type CreatorPost struct {
+	ID             pgtype.UUID        `json:"id"`
+	WorkspaceID    pgtype.UUID        `json:"workspace_id"`
+	CreatorID      pgtype.UUID        `json:"creator_id"`
+	CollabID       pgtype.UUID        `json:"collab_id"`
+	ContentIssueID pgtype.UUID        `json:"content_issue_id"`
+	Platform       string             `json:"platform"`
+	Title          pgtype.Text        `json:"title"`
+	Url            string             `json:"url"`
+	PublishedAt    pgtype.Timestamptz `json:"published_at"`
+	Source         string             `json:"source"`
+	CreatedBy      pgtype.UUID        `json:"created_by"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt     pgtype.Timestamptz `json:"archived_at"`
+}
+
+type CreatorPostMetric struct {
+	ID          pgtype.UUID        `json:"id"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	PostID      pgtype.UUID        `json:"post_id"`
+	CapturedOn  pgtype.Date        `json:"captured_on"`
+	Play        pgtype.Int8        `json:"play"`
+	Likes       pgtype.Int8        `json:"likes"`
+	Comments    pgtype.Int8        `json:"comments"`
+	Shares      pgtype.Int8        `json:"shares"`
+	Clicks      pgtype.Int8        `json:"clicks"`
+	Converts    pgtype.Int8        `json:"converts"`
+	GmvAmount   pgtype.Numeric     `json:"gmv_amount"`
+	Currency    string             `json:"currency"`
+	Source      string             `json:"source"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type CrmBrief struct {
+	ID              pgtype.UUID        `json:"id"`
+	WorkspaceID     pgtype.UUID        `json:"workspace_id"`
+	ClientID        pgtype.UUID        `json:"client_id"`
+	Title           string             `json:"title"`
+	Category        pgtype.Text        `json:"category"`
+	BudgetMinAmount pgtype.Numeric     `json:"budget_min_amount"`
+	BudgetMaxAmount pgtype.Numeric     `json:"budget_max_amount"`
+	TargetAudience  pgtype.Text        `json:"target_audience"`
+	DeliverableType pgtype.Text        `json:"deliverable_type"`
+	Platforms       []string           `json:"platforms"`
+	ScheduleFrom    pgtype.Date        `json:"schedule_from"`
+	ScheduleTo      pgtype.Date        `json:"schedule_to"`
+	KpiPlay         pgtype.Int8        `json:"kpi_play"`
+	KpiGmvAmount    pgtype.Numeric     `json:"kpi_gmv_amount"`
+	Status          string             `json:"status"`
+	OwnerMemberID   pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy       pgtype.UUID        `json:"created_by"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt      pgtype.Timestamptz `json:"archived_at"`
+}
+
+type CrmClient struct {
+	ID             pgtype.UUID        `json:"id"`
+	WorkspaceID    pgtype.UUID        `json:"workspace_id"`
+	Name           string             `json:"name"`
+	Brand          pgtype.Text        `json:"brand"`
+	Industry       pgtype.Text        `json:"industry"`
+	ContactName    pgtype.Text        `json:"contact_name"`
+	ContactChannel pgtype.Text        `json:"contact_channel"`
+	ContractEntity pgtype.Text        `json:"contract_entity"`
+	PaymentTerms   pgtype.Text        `json:"payment_terms"`
+	CreditNote     pgtype.Text        `json:"credit_note"`
+	OwnerMemberID  pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy      pgtype.UUID        `json:"created_by"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt     pgtype.Timestamptz `json:"archived_at"`
+}
+
+type CrmCollab struct {
+	ID             pgtype.UUID        `json:"id"`
+	WorkspaceID    pgtype.UUID        `json:"workspace_id"`
+	BriefID        pgtype.UUID        `json:"brief_id"`
+	CreatorID      pgtype.UUID        `json:"creator_id"`
+	Stage          string             `json:"stage"`
+	QuoteAmount    pgtype.Numeric     `json:"quote_amount"`
+	FinalAmount    pgtype.Numeric     `json:"final_amount"`
+	Prob           pgtype.Numeric     `json:"prob"`
+	CreatorFee     pgtype.Numeric     `json:"creator_fee"`
+	SampleCost     pgtype.Numeric     `json:"sample_cost"`
+	PlatformFee    pgtype.Numeric     `json:"platform_fee"`
+	Currency       string             `json:"currency"`
+	SettlementMode pgtype.Text        `json:"settlement_mode"`
+	CommissionRate pgtype.Numeric     `json:"commission_rate"`
+	SampleRequired bool               `json:"sample_required"`
+	ScriptRequired bool               `json:"script_required"`
+	ScheduledAt    pgtype.Timestamptz `json:"scheduled_at"`
+	ConfirmedAt    pgtype.Timestamptz `json:"confirmed_at"`
+	PublishedAt    pgtype.Timestamptz `json:"published_at"`
+	AcceptedAt     pgtype.Timestamptz `json:"accepted_at"`
+	IssueID        pgtype.UUID        `json:"issue_id"`
+	OwnerMemberID  pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy      pgtype.UUID        `json:"created_by"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt     pgtype.Timestamptz `json:"archived_at"`
+}
+
+type CrmSettlement struct {
+	ID          pgtype.UUID        `json:"id"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	CollabID    pgtype.UUID        `json:"collab_id"`
+	Kind        string             `json:"kind"`
+	Amount      pgtype.Numeric     `json:"amount"`
+	Currency    string             `json:"currency"`
+	DueAt       pgtype.Date        `json:"due_at"`
+	PaidAt      pgtype.Date        `json:"paid_at"`
+	InvoiceNo   pgtype.Text        `json:"invoice_no"`
+	Note        pgtype.Text        `json:"note"`
+	CreatedBy   pgtype.UUID        `json:"created_by"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt  pgtype.Timestamptz `json:"archived_at"`
+}
+
 type DaemonConnection struct {
 	ID              pgtype.UUID        `json:"id"`
 	AgentID         pgtype.UUID        `json:"agent_id"`
@@ -989,6 +1138,7 @@ type Issue struct {
 	TriageState        pgtype.Text        `json:"triage_state"`
 	DuplicateOfIssueID pgtype.UUID        `json:"duplicate_of_issue_id"`
 	RequesterUserID    pgtype.UUID        `json:"requester_user_id"`
+	ClosedAt           pgtype.Timestamptz `json:"closed_at"`
 }
 
 type IssueChildEvent struct {

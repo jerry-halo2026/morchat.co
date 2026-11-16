@@ -1429,6 +1429,13 @@ func (h *Handler) DeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 			run:  func() error { return qtx.DeleteWorkspaceRuntimesAndProjects(ctx, requester.WorkspaceID) },
 		},
 		{
+			// The workbench ledgers are workspace-owned and carry no foreign key
+			// (repository rule), so teardown removes them explicitly. They go
+			// before `member`, which every row attributes its owner to.
+			name: "delete workbench ledgers",
+			run:  func() error { return qtx.DeleteWorkspaceWorkbenchLedger(ctx, requester.WorkspaceID) },
+		},
+		{
 			name: "delete administration data",
 			run:  func() error { return qtx.DeleteWorkspaceAdministration(ctx, requester.WorkspaceID) },
 		},

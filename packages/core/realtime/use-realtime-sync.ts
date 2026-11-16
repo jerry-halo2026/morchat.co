@@ -15,6 +15,8 @@ import { isSidebarTableRequest, type SidebarIssuesRequest } from "../issues/side
 import { refreshIssueUnread } from "../issues/unread";
 import { refreshSubscribedIssues, subscribedIssueKeys } from "../issues/subscribed";
 import { projectKeys } from "../projects/queries";
+import { creatorKeys } from "../creator/queries";
+import { crmKeys, workbenchKeys } from "../crm/queries";
 import { pinKeys } from "../pins/queries";
 import { autopilotKeys } from "../autopilots/queries";
 import { runtimeKeys } from "../runtimes/queries";
@@ -1122,6 +1124,12 @@ export function useRealtimeSync(
       // every message would flood the network. Specific chat handlers below
       // still receive it via ws.on() (a separate subscription channel).
       "task:message",
+      // Workbench ledgers have dedicated invalidating handlers below; the
+      // generic prefix path knows nothing about `["creator", wsId, …]` or
+      // `["crm", wsId, …]`, so it must not also run for them.
+      "creator:changed", "creator_post:changed",
+      "crm_client:changed", "crm_brief:changed", "crm_collab:changed",
+      "crm_collab:stage_changed", "crm_settlement:changed",
       // task:completed / task:failed deliberately NOT here. They reach both
       // onAny (task-prefix invalidation and bounded activity refresh) and the
       // chat-specific ws.on() handlers below through independent subscriptions.
@@ -1911,6 +1919,83 @@ export function useRealtimeSync(
       }
     });
 
+    // --- Workbench ledgers (docs/engineering/WORKBENCH-API.md §4) ---
+    //
+    // Every ledger event answers the same way: re-read the domain's lists and the
+    // two aggregates that summarize them. That is deliberately blunt. A ledger
+    // row is a wide row (money, stage, six nullable measures, four timestamps),
+    // so merging the event's `id` into cached rows would mean guessing which of
+    // them changed — and the contract explicitly rules field-level patching out.
+    //
+    // `workbenchKeys.all` covers overview *and* counts: a new creator or an
+    // unpaid settlement moves both, and neither has a cheaper update path.
+    //
+    // These events are workspace fanouts with ids only, so the payload never
+    // carries a row: a handler that filtered on visibility would have nothing to
+    // filter on. Refetching through the authorized list endpoints is what keeps
+    // the member-scoped read rules in one place.
+    const invalidateWorkbenchLedger = (queryKey: readonly unknown[]) => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      qc.invalidateQueries({ queryKey });
+    };
+
+    const unsubCreatorChanged = ws.on("creator:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateWorkbenchLedger(creatorKeys.all(wsId));
+      invalidateWorkbenchLedger(workbenchKeys.all(wsId));
+    });
+
+    // A post change also touches its creator's post list (a different query) and
+    // the metric-derived ROI numbers, so the domain prefix and the aggregates
+    // both refresh. The carrier `creator_id` is not needed for that: it would
+    // only narrow the invalidation further than the contract's shape allows.
+    const unsubCreatorPostChanged = ws.on("creator_post:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateWorkbenchLedger(creatorKeys.all(wsId));
+      invalidateWorkbenchLedger(workbenchKeys.all(wsId));
+    });
+
+    const unsubCrmClientChanged = ws.on("crm_client:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateWorkbenchLedger(crmKeys.all(wsId));
+      invalidateWorkbenchLedger(workbenchKeys.all(wsId));
+    });
+
+    const unsubCrmBriefChanged = ws.on("crm_brief:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateWorkbenchLedger(crmKeys.all(wsId));
+      invalidateWorkbenchLedger(workbenchKeys.all(wsId));
+    });
+
+    const unsubCrmCollabChanged = ws.on("crm_collab:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateWorkbenchLedger(crmKeys.all(wsId));
+      invalidateWorkbenchLedger(workbenchKeys.all(wsId));
+    });
+
+    // Stage moves arrive twice (changed + stage_changed) for a single write; both
+    // invalidate the same prefix, and React Query collapses the duplicate into
+    // one refetch.
+    const unsubCrmCollabStageChanged = ws.on("crm_collab:stage_changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateWorkbenchLedger(crmKeys.all(wsId));
+      invalidateWorkbenchLedger(workbenchKeys.all(wsId));
+    });
+
+    const unsubCrmSettlementChanged = ws.on("crm_settlement:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateWorkbenchLedger(crmKeys.all(wsId));
+      invalidateWorkbenchLedger(workbenchKeys.all(wsId));
+    });
+
     return () => {
       unsubAny();
       unsubIssueUpdated();
@@ -1959,6 +2044,13 @@ export function useRealtimeSync(
       unsubChatSessionCreated();
       unsubChatSessionDeleted();
       unsubChatSessionUpdated();
+      unsubCreatorChanged();
+      unsubCreatorPostChanged();
+      unsubCrmClientChanged();
+      unsubCrmBriefChanged();
+      unsubCrmCollabChanged();
+      unsubCrmCollabStageChanged();
+      unsubCrmSettlementChanged();
       if (taskMessageFlushTimer) clearTimeout(taskMessageFlushTimer);
       if (aggregateRefreshTimer) clearTimeout(aggregateRefreshTimer);
       timers.forEach(clearTimeout);

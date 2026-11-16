@@ -1,6 +1,11 @@
 import { signInWithSupabasePassword, type SupabasePasswordConfig } from "./supabase-password";
 import type { ZodType } from "zod";
 import { AgentRuntimeSchema, EMPTY_RUNTIME } from "../runtimes/schema";
+import {
+  EMPTY_WORKBENCH_OVERVIEW,
+  WorkbenchOverviewResponseSchema,
+  type WorkbenchOverviewResponse,
+} from "../metrics/response";
 import type { IssueWakeup, IssueWakeupInput, IssueWakeupSummaryRow, PausedWakeup, SystemWakeup, WakeupRun, WorkspaceSystemWakeup } from "../types/issue-wakeup";
 import type { WorkspaceWakeupPage, WorkspaceWakeupFilters } from "../types/issue-wakeup";
 import { WorkspaceWakeupPageSchema, IssueWakeupSchema, IssueWakeupSummaryRowSchema, PausedWakeupSchema, SystemWakeupSchema, WakeupRunSchema, WorkspaceSystemWakeupSchema } from "./schemas";
@@ -161,6 +166,40 @@ import type {
   DeleteDepartmentResponse,
   UpdateMemberDepartmentRequest,
   UpdateMemberDepartmentResponse,
+  Creator,
+  CreatorListFilters,
+  CreatorListResponse,
+  CreatorPost,
+  CreatorPostListFilters,
+  CreatorPostListResponse,
+  CreatorPostMetric,
+  CreatorPostMetricListResponse,
+  CreateCreatorRequest,
+  UpdateCreatorRequest,
+  CreateCreatorPostRequest,
+  UpdateCreatorPostRequest,
+  UpsertCreatorPostMetricRequest,
+  CrmClient,
+  CrmClientListFilters,
+  CrmClientListResponse,
+  CreateCrmClientRequest,
+  UpdateCrmClientRequest,
+  CrmBrief,
+  CrmBriefListFilters,
+  CrmBriefListResponse,
+  CreateCrmBriefRequest,
+  UpdateCrmBriefRequest,
+  CrmCollab,
+  CrmCollabListFilters,
+  CrmCollabListResponse,
+  CreateCrmCollabRequest,
+  UpdateCrmCollabRequest,
+  CrmSettlement,
+  CrmSettlementListFilters,
+  CrmSettlementListResponse,
+  CreateCrmSettlementRequest,
+  UpdateCrmSettlementRequest,
+  WorkbenchCountsResponse,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -565,6 +604,36 @@ import {
   EMPTY_JOIN_SHARE_LINK_RESPONSE,
   WorkspaceListItemSchema,
   WorkspacePinnedSchema,
+  CreatorSchema,
+  CreatorListResponseSchema,
+  EMPTY_CREATOR,
+  EMPTY_CREATOR_LIST_RESPONSE,
+  CreatorPostSchema,
+  CreatorPostListResponseSchema,
+  EMPTY_CREATOR_POST,
+  EMPTY_CREATOR_POST_LIST_RESPONSE,
+  CreatorPostMetricSchema,
+  CreatorPostMetricListResponseSchema,
+  EMPTY_CREATOR_POST_METRIC,
+  EMPTY_CREATOR_POST_METRIC_LIST_RESPONSE,
+  CrmClientSchema,
+  CrmClientListResponseSchema,
+  EMPTY_CRM_CLIENT,
+  EMPTY_CRM_CLIENT_LIST_RESPONSE,
+  CrmBriefSchema,
+  CrmBriefListResponseSchema,
+  EMPTY_CRM_BRIEF,
+  EMPTY_CRM_BRIEF_LIST_RESPONSE,
+  CrmCollabSchema,
+  CrmCollabListResponseSchema,
+  EMPTY_CRM_COLLAB,
+  EMPTY_CRM_COLLAB_LIST_RESPONSE,
+  CrmSettlementSchema,
+  CrmSettlementListResponseSchema,
+  EMPTY_CRM_SETTLEMENT,
+  EMPTY_CRM_SETTLEMENT_LIST_RESPONSE,
+  WorkbenchCountsResponseSchema,
+  EMPTY_WORKBENCH_COUNTS_RESPONSE,
   type IssueView,
   type IssueViewPreference,
   type CreateIssueViewRequest,
@@ -860,6 +929,25 @@ function workspaceHeader(
     return { "X-Workspace-Slug": "", "X-Workspace-ID": scope.workspaceId };
   }
   return scope ? { "X-Workspace-Slug": scope } : undefined;
+}
+
+/**
+ * Builds a workbench list query string.
+ *
+ * `null`, `undefined` and `""` are omitted — a filter key present but empty would
+ * otherwise narrow the result to nothing. Booleans and numbers are sent as-is:
+ * `paid=false` is a real filter ("still owed"), not an absent one.
+ */
+function workbenchSearch(
+  params: Record<string, string | number | boolean | null | undefined>,
+): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === "") continue;
+    search.set(key, String(value));
+  }
+  const encoded = search.toString();
+  return encoded ? `?${encoded}` : "";
 }
 
 function dingTalkGroupSearch(params: ListDingTalkGroupsParams): string {
@@ -3840,6 +3928,316 @@ export class ApiClient {
     return parseWithFallback(raw, DeleteDepartmentResponseSchema, EMPTY_DELETE_DEPARTMENT_RESPONSE, {
       endpoint: "DELETE /api/departments/:id",
     });
+  }
+
+  // Workbench ledgers (docs/engineering/WORKBENCH-API.md §3). The workspace comes
+  // from X-Workspace-Slug like every other workspace-scoped call; `department_id`
+  // only narrows the two aggregates and is never an access boundary. Reads are
+  // member-wide, writes are gated server-side (owners/admins, or the row owner),
+  // so the client parses every response instead of pre-judging permission.
+
+  async getWorkbenchOverview(params: { department_id?: string | null } = {}): Promise<WorkbenchOverviewResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/overview${workbenchSearch({ department_id: params.department_id })}`,
+    );
+    return parseWithFallback(raw, WorkbenchOverviewResponseSchema, EMPTY_WORKBENCH_OVERVIEW, {
+      endpoint: "GET /api/workbench/overview",
+    });
+  }
+
+  async getWorkbenchCounts(params: { department_id?: string | null } = {}): Promise<WorkbenchCountsResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/counts${workbenchSearch({ department_id: params.department_id })}`,
+    );
+    return parseWithFallback(raw, WorkbenchCountsResponseSchema, EMPTY_WORKBENCH_COUNTS_RESPONSE, {
+      endpoint: "GET /api/workbench/counts",
+    });
+  }
+
+  async listCreators(filters: CreatorListFilters = {}): Promise<CreatorListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/creators${workbenchSearch({
+        kind: filters.kind,
+        q: filters.q,
+        limit: filters.limit,
+        cursor: filters.cursor,
+        department_id: filters.department_id,
+      })}`,
+    );
+    return parseWithFallback(raw, CreatorListResponseSchema, EMPTY_CREATOR_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/creators",
+    });
+  }
+
+  async createCreator(data: CreateCreatorRequest): Promise<Creator> {
+    const raw = await this.fetch<unknown>("/api/workbench/creators", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CreatorSchema, EMPTY_CREATOR, {
+      endpoint: "POST /api/workbench/creators",
+    });
+  }
+
+  async getCreator(id: string): Promise<Creator> {
+    const raw = await this.fetch<unknown>(`/api/workbench/creators/${id}`);
+    return parseWithFallback(raw, CreatorSchema, EMPTY_CREATOR, {
+      endpoint: "GET /api/workbench/creators/:id",
+    });
+  }
+
+  async updateCreator(id: string, data: UpdateCreatorRequest): Promise<Creator> {
+    const raw = await this.fetch<unknown>(`/api/workbench/creators/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CreatorSchema, EMPTY_CREATOR, {
+      endpoint: "PATCH /api/workbench/creators/:id",
+    });
+  }
+
+  /** Soft delete: the server stamps `archived_at` and the row leaves the lists. */
+  async deleteCreator(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/creators/${id}`, { method: "DELETE" });
+  }
+
+  async listCreatorPosts(filters: CreatorPostListFilters = {}): Promise<CreatorPostListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/creator-posts${workbenchSearch({
+        creator_id: filters.creator_id,
+        from: filters.from,
+        to: filters.to,
+      })}`,
+    );
+    return parseWithFallback(raw, CreatorPostListResponseSchema, EMPTY_CREATOR_POST_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/creator-posts",
+    });
+  }
+
+  async createCreatorPost(data: CreateCreatorPostRequest): Promise<CreatorPost> {
+    const raw = await this.fetch<unknown>("/api/workbench/creator-posts", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CreatorPostSchema, EMPTY_CREATOR_POST, {
+      endpoint: "POST /api/workbench/creator-posts",
+    });
+  }
+
+  async updateCreatorPost(postId: string, data: UpdateCreatorPostRequest): Promise<CreatorPost> {
+    const raw = await this.fetch<unknown>(`/api/workbench/creator-posts/${postId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CreatorPostSchema, EMPTY_CREATOR_POST, {
+      endpoint: "PATCH /api/workbench/creator-posts/:postId",
+    });
+  }
+
+  async deleteCreatorPost(postId: string): Promise<void> {
+    await this.fetch(`/api/workbench/creator-posts/${postId}`, { method: "DELETE" });
+  }
+
+  async listCreatorPostMetrics(postId: string): Promise<CreatorPostMetricListResponse> {
+    const raw = await this.fetch<unknown>(`/api/workbench/creator-posts/${postId}/metrics`);
+    return parseWithFallback(
+      raw,
+      CreatorPostMetricListResponseSchema,
+      EMPTY_CREATOR_POST_METRIC_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/creator-posts/:postId/metrics" },
+    );
+  }
+
+  /**
+   * Upserts one day's snapshot for one post. `(post_id, captured_on)` is unique,
+   * so re-submitting the same day corrects that day instead of adding a row.
+   */
+  async upsertCreatorPostMetric(
+    postId: string,
+    data: UpsertCreatorPostMetricRequest,
+  ): Promise<CreatorPostMetric> {
+    const raw = await this.fetch<unknown>(`/api/workbench/creator-posts/${postId}/metrics`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CreatorPostMetricSchema, EMPTY_CREATOR_POST_METRIC, {
+      endpoint: "POST /api/workbench/creator-posts/:postId/metrics",
+    });
+  }
+
+  async listCrmClients(filters: CrmClientListFilters = {}): Promise<CrmClientListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/crm/clients${workbenchSearch({ q: filters.q })}`,
+    );
+    return parseWithFallback(raw, CrmClientListResponseSchema, EMPTY_CRM_CLIENT_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/crm/clients",
+    });
+  }
+
+  async createCrmClient(data: CreateCrmClientRequest): Promise<CrmClient> {
+    const raw = await this.fetch<unknown>("/api/workbench/crm/clients", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmClientSchema, EMPTY_CRM_CLIENT, {
+      endpoint: "POST /api/workbench/crm/clients",
+    });
+  }
+
+  async getCrmClient(id: string): Promise<CrmClient> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/clients/${id}`);
+    return parseWithFallback(raw, CrmClientSchema, EMPTY_CRM_CLIENT, {
+      endpoint: "GET /api/workbench/crm/clients/:clientId",
+    });
+  }
+
+  async updateCrmClient(id: string, data: UpdateCrmClientRequest): Promise<CrmClient> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/clients/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmClientSchema, EMPTY_CRM_CLIENT, {
+      endpoint: "PATCH /api/workbench/crm/clients/:clientId",
+    });
+  }
+
+  async deleteCrmClient(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/crm/clients/${id}`, { method: "DELETE" });
+  }
+
+  async listCrmBriefs(filters: CrmBriefListFilters = {}): Promise<CrmBriefListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/crm/briefs${workbenchSearch({
+        status: filters.status,
+        client_id: filters.client_id,
+      })}`,
+    );
+    return parseWithFallback(raw, CrmBriefListResponseSchema, EMPTY_CRM_BRIEF_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/crm/briefs",
+    });
+  }
+
+  async createCrmBrief(data: CreateCrmBriefRequest): Promise<CrmBrief> {
+    const raw = await this.fetch<unknown>("/api/workbench/crm/briefs", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmBriefSchema, EMPTY_CRM_BRIEF, {
+      endpoint: "POST /api/workbench/crm/briefs",
+    });
+  }
+
+  async getCrmBrief(id: string): Promise<CrmBrief> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/briefs/${id}`);
+    return parseWithFallback(raw, CrmBriefSchema, EMPTY_CRM_BRIEF, {
+      endpoint: "GET /api/workbench/crm/briefs/:briefId",
+    });
+  }
+
+  async updateCrmBrief(id: string, data: UpdateCrmBriefRequest): Promise<CrmBrief> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/briefs/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmBriefSchema, EMPTY_CRM_BRIEF, {
+      endpoint: "PATCH /api/workbench/crm/briefs/:briefId",
+    });
+  }
+
+  async deleteCrmBrief(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/crm/briefs/${id}`, { method: "DELETE" });
+  }
+
+  async listCrmCollabs(filters: CrmCollabListFilters = {}): Promise<CrmCollabListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/crm/collabs${workbenchSearch({
+        stage: filters.stage,
+        brief_id: filters.brief_id,
+        creator_id: filters.creator_id,
+      })}`,
+    );
+    return parseWithFallback(raw, CrmCollabListResponseSchema, EMPTY_CRM_COLLAB_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/crm/collabs",
+    });
+  }
+
+  async createCrmCollab(data: CreateCrmCollabRequest): Promise<CrmCollab> {
+    const raw = await this.fetch<unknown>("/api/workbench/crm/collabs", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmCollabSchema, EMPTY_CRM_COLLAB, {
+      endpoint: "POST /api/workbench/crm/collabs",
+    });
+  }
+
+  async getCrmCollab(id: string): Promise<CrmCollab> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/collabs/${id}`);
+    return parseWithFallback(raw, CrmCollabSchema, EMPTY_CRM_COLLAB, {
+      endpoint: "GET /api/workbench/crm/collabs/:collabId",
+    });
+  }
+
+  /** A `stage` change also writes `confirmed_at` / `published_at` / `accepted_at`
+   *  server-side; the response carries those, so callers read it back. */
+  async updateCrmCollab(id: string, data: UpdateCrmCollabRequest): Promise<CrmCollab> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/collabs/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmCollabSchema, EMPTY_CRM_COLLAB, {
+      endpoint: "PATCH /api/workbench/crm/collabs/:collabId",
+    });
+  }
+
+  async deleteCrmCollab(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/crm/collabs/${id}`, { method: "DELETE" });
+  }
+
+  async listCrmSettlements(
+    filters: CrmSettlementListFilters = {},
+  ): Promise<CrmSettlementListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/crm/settlements${workbenchSearch({
+        collab_id: filters.collab_id,
+        paid: filters.paid,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      CrmSettlementListResponseSchema,
+      EMPTY_CRM_SETTLEMENT_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/crm/settlements" },
+    );
+  }
+
+  async createCrmSettlement(data: CreateCrmSettlementRequest): Promise<CrmSettlement> {
+    const raw = await this.fetch<unknown>("/api/workbench/crm/settlements", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmSettlementSchema, EMPTY_CRM_SETTLEMENT, {
+      endpoint: "POST /api/workbench/crm/settlements",
+    });
+  }
+
+  // No GET for a single settlement (contract §3): the money ledger is read as a
+  // list scoped by `collab_id`, and a detail read would only duplicate it.
+  async updateCrmSettlement(
+    id: string,
+    data: UpdateCrmSettlementRequest,
+  ): Promise<CrmSettlement> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/settlements/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmSettlementSchema, EMPTY_CRM_SETTLEMENT, {
+      endpoint: "PATCH /api/workbench/crm/settlements/:settlementId",
+    });
+  }
+
+  async deleteCrmSettlement(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/crm/settlements/${id}`, { method: "DELETE" });
   }
 
   async createShareLink(workspaceId: string, data: { role?: string; expires_in?: number; max_uses?: number }): Promise<ShareLink> {
