@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import type { SkillListFilters } from "@morechat/core/skills/stores";
 import type { Agent, Label, SkillSummary } from "@morechat/core/types";
 import {
+  isNestedSkill,
   matchesSkillSearch,
   rowMatchesFilters,
+  skillMatchesLocale,
   type SkillRow,
 } from "./skill-list-filter";
 
@@ -131,5 +133,47 @@ describe("rowMatchesFilters — labels dimension", () => {
     };
     expect(rowMatchesFilters(used, filters)).toBe(true);
     expect(rowMatchesFilters(unused, filters)).toBe(false);
+  });
+});
+
+describe("skillMatchesLocale", () => {
+  it("shows a package's edition in the language the UI is read in", () => {
+    // The same skill ships twice: zh in its own namespace, en inside the parent.
+    expect(skillMatchesLocale("ai-engineer--research-deep", "zh-Hans")).toBe(true);
+    expect(
+      skillMatchesLocale("ai-engineer--deep-research-research-en-research-deep", "zh-Hans"),
+    ).toBe(false);
+    expect(
+      skillMatchesLocale("ai-engineer--deep-research-research-en-research-deep", "en"),
+    ).toBe(true);
+    expect(skillMatchesLocale("ai-engineer--research-deep", "en")).toBe(true);
+  });
+
+  it("leaves skills with no language segment alone", () => {
+    expect(skillMatchesLocale("review-helper", "zh-Hans")).toBe(true);
+    expect(skillMatchesLocale("mvp-dev-expert-team--references", "en")).toBe(true);
+  });
+});
+
+describe("isNestedSkill", () => {
+  it("hides a package's internal suite children", () => {
+    const siblings = [
+      "ai-engineer--deep-research",
+      "ai-engineer--deep-research-research-report",
+      "ai-engineer--deep-research-research-en-research-deep",
+      "ai-engineer--research-report",
+    ];
+    expect(isNestedSkill("ai-engineer--deep-research", siblings)).toBe(false);
+    expect(isNestedSkill("ai-engineer--deep-research-research-report", siblings)).toBe(true);
+    expect(isNestedSkill("ai-engineer--deep-research-research-en-research-deep", siblings)).toBe(true);
+    // The top-level edition is a skill in its own right.
+    expect(isNestedSkill("ai-engineer--research-report", siblings)).toBe(false);
+  });
+
+  it("ignores another package's skills and names without a namespace", () => {
+    expect(isNestedSkill("review-helper", ["review-helper-extra"])).toBe(false);
+    expect(
+      isNestedSkill("backend-architect--fullstack-dev", ["ai-engineer--backend-architect--fullstack-dev"]),
+    ).toBe(false);
   });
 });

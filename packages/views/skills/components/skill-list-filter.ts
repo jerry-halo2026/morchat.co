@@ -26,6 +26,42 @@ export function matchesSkillSearch(row: SkillRow, search: string): boolean {
 }
 
 /**
+ * Whether a skill is an internal child of another skill in the same package.
+ *
+ * Packages nest suites: `ai-engineer--deep-research` ships its own
+ * `ai-engineer--deep-research-research-report`, `…-research-en-research-deep` and
+ * so on. Those are the parent's implementation, not separate things a person
+ * assigns; listing them beside the top-level skills is what made the board look
+ * like it had duplicates with English names.
+ */
+export function isNestedSkill(name: string, siblings: readonly string[]): boolean {
+  const separator = name.indexOf("--");
+  if (separator <= 0) return false;
+  const pkg = name.slice(0, separator);
+  const rest = name.slice(separator + 2);
+  return siblings.some((other) => {
+    if (other === name || !other.startsWith(`${pkg}--`)) return false;
+    const candidate = other.slice(pkg.length + 2);
+    return rest.startsWith(`${candidate}-`);
+  });
+}
+
+/**
+ * Whether a skill belongs in a UI rendered in `locale`.
+ *
+ * A package can ship the same skill twice, once per language, and the copy is
+ * encoded in the namespace: `ai-engineer--research-deep` is the Chinese edition
+ * and `ai-engineer--deep-research-research-en-research-deep` is the English one.
+ * A reader only needs the edition they can read.
+ */
+export function skillMatchesLocale(name: string, locale: string): boolean {
+  const language = name.match(/-(en|zh)-/i)?.[1]?.toLowerCase();
+  if (!language) return true;
+  const reading = locale.toLowerCase();
+  return language === "zh" ? reading.startsWith("zh") : !reading.startsWith("zh");
+}
+
+/**
  * Pure row-filter predicate: returns true if the row matches all active
  * filter dimensions. Empty arrays are inactive. Label matching is
  * OR-within-labels, matching Issue list semantics.

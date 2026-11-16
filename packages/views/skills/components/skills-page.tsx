@@ -58,8 +58,10 @@ import { canEditSkill } from "../hooks/use-can-edit-skill";
 import { SkillsIntro } from "./skills-intro";
 import { originSourceUrl, readOrigin } from "../lib/origin";
 import {
+  isNestedSkill,
   matchesSkillSearch,
   rowMatchesFilters,
+  skillMatchesLocale,
   type SkillRow,
 } from "./skill-list-filter";
 import {
@@ -81,7 +83,7 @@ import {
   SkillRowActions,
   type SkillActionsContext,
 } from "./skill-list-actions";
-import { useT, useTimeAgo } from "../../i18n";
+import { useLocale, useT, useTimeAgo } from "../../i18n";
 
 // Sort/filter/column types and defaults live in the core view store
 // (@morechat/core/skills/stores/view-store) so the persisted state and the
@@ -312,6 +314,9 @@ export default function SkillsPage() {
   const { data: runtimes = [], error: runtimesError } = useQuery(
     runtimeListOptions(wsId),
   );
+  // Packages can ship both language editions of the same skill; the board shows
+  // the one this UI is read in.
+  const locale = useLocale();
 
   const [createMethod, setCreateMethod] = useState<CreateSkillMethod | null>(
     null,
@@ -394,10 +399,16 @@ export default function SkillsPage() {
   // from this.
   const scopeRows = scope === "mine" ? mineRows : allRows;
 
-  // Visible rows: search and filters, then sort.
+  // Visible rows: the reader's language edition, no internal suite children,
+  // search and filters, then sort.
   const rows = useMemo<SkillRow[]>(() => {
+    const names = scopeRows.map((row) => row.skill.name);
     const filtered = scopeRows.filter(
-      (row) => matchesSkillSearch(row, search) && rowMatchesFilters(row, filters),
+      (row) =>
+        !isNestedSkill(row.skill.name, names) &&
+        skillMatchesLocale(row.skill.name, locale) &&
+        matchesSkillSearch(row, search) &&
+        rowMatchesFilters(row, filters),
     );
 
     const dir = sortDirection === "asc" ? 1 : -1;
