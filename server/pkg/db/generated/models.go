@@ -1092,7 +1092,7 @@ type HrCandidate struct {
 	ScoreInterview     pgtype.Numeric     `json:"score_interview"`
 	ExpectedSalary     pgtype.Numeric     `json:"expected_salary"`
 	OfferSalary        pgtype.Numeric     `json:"offer_salary"`
-	Currency           pgtype.Text        `json:"currency"`
+	Currency           string             `json:"currency"`
 	OwnerMemberID      pgtype.UUID        `json:"owner_member_id"`
 	HiredAt            pgtype.Timestamptz `json:"hired_at"`
 	RejectedReason     pgtype.Text        `json:"rejected_reason"`
@@ -1146,10 +1146,10 @@ type HrJob struct {
 	DepartmentID  pgtype.UUID        `json:"department_id"`
 	Level         pgtype.Text        `json:"level"`
 	Headcount     int32              `json:"headcount"`
-	Status        pgtype.Text        `json:"status"`
+	Status        string             `json:"status"`
 	SalaryMin     pgtype.Numeric     `json:"salary_min"`
 	SalaryMax     pgtype.Numeric     `json:"salary_max"`
-	Currency      pgtype.Text        `json:"currency"`
+	Currency      string             `json:"currency"`
 	Requirements  pgtype.Text        `json:"requirements"`
 	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
 	CreatedBy     pgtype.UUID        `json:"created_by"`

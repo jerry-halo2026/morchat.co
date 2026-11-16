@@ -190,10 +190,10 @@ func hrJobToResponse(j db.HrJob) HrJobResponse {
 		DepartmentID:  uuidToPtr(j.DepartmentID),
 		Level:         textToPtr(j.Level),
 		Headcount:     j.Headcount,
-		Status:        textToPtr(j.Status),
+		Status:        stringPtr(j.Status),
 		SalaryMin:     numericToFloatPtr(j.SalaryMin),
 		SalaryMax:     numericToFloatPtr(j.SalaryMax),
-		Currency:      textToPtr(j.Currency),
+		Currency:      stringPtr(j.Currency),
 		Requirements:  textToPtr(j.Requirements),
 		OwnerMemberID: uuidToPtr(j.OwnerMemberID),
 		CreatedBy:     uuidToPtr(j.CreatedBy),
@@ -244,7 +244,7 @@ func hrCandidateToResponse(c db.HrCandidate) HrCandidateResponse {
 		ScoreInterview:     numericToFloatPtr(c.ScoreInterview),
 		ExpectedSalary:     numericToFloatPtr(c.ExpectedSalary),
 		OfferSalary:        numericToFloatPtr(c.OfferSalary),
-		Currency:           textToPtr(c.Currency),
+		Currency:           stringPtr(c.Currency),
 		OwnerMemberID:      uuidToPtr(c.OwnerMemberID),
 		HiredAt:            timestampToPtr(c.HiredAt),
 		RejectedReason:     textToPtr(c.RejectedReason),
@@ -838,7 +838,7 @@ func (h *Handler) UpdateHrJob(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusBadRequest, "status must be draft, open, paused or closed")
 			return
 		}
-		status = strToText(trimmed)
+		status = trimmed
 	}
 	currency := current.Currency
 	if req.Currency != nil {
@@ -846,7 +846,7 @@ func (h *Handler) UpdateHrJob(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			return
 		}
-		currency = strToText(parsed)
+		currency = parsed
 	}
 	departmentID := current.DepartmentID
 	if req.DepartmentID != nil {
@@ -872,10 +872,10 @@ func (h *Handler) UpdateHrJob(w http.ResponseWriter, r *http.Request) {
 		DepartmentID:  departmentID,
 		Level:         applyTextPatch(req.Level, current.Level),
 		Headcount:     applyInt32Value(req.Headcount, current.Headcount),
-		Status:        status,
+		Status:        strToText(status),
 		SalaryMin:     applyNumericPatch(req.SalaryMin, current.SalaryMin),
 		SalaryMax:     applyNumericPatch(req.SalaryMax, current.SalaryMax),
-		Currency:      currency,
+		Currency:      strToText(currency),
 		Requirements:  applyTextPatch(req.Requirements, current.Requirements),
 		OwnerMemberID: owner,
 	})
@@ -1118,7 +1118,7 @@ func (h *Handler) UpdateHrCandidate(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			return
 		}
-		currency = strToText(parsed)
+		currency = parsed
 	}
 	requestedOwner, ok := workbenchOptionalUUID(w, req.OwnerMemberID, "owner_member_id")
 	if !ok {
@@ -1157,7 +1157,7 @@ func (h *Handler) UpdateHrCandidate(w http.ResponseWriter, r *http.Request) {
 		ScoreInterview:     applyNumericPatch(req.ScoreInterview, current.ScoreInterview),
 		ExpectedSalary:     applyNumericPatch(req.ExpectedSalary, current.ExpectedSalary),
 		OfferSalary:        applyNumericPatch(req.OfferSalary, current.OfferSalary),
-		Currency:           currency,
+		Currency:           strToText(currency),
 		OwnerMemberID:      owner,
 		HiredAt:            hiredAt,
 		RejectedReason:     applyTextPatch(req.RejectedReason, current.RejectedReason),

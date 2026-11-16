@@ -46,6 +46,10 @@ type WorkbenchCountsResponse struct {
 	Briefs             int64 `json:"briefs"`
 	CollabsOpen        int64 `json:"collabs_open"`
 	SettlementsPending int64 `json:"settlements_pending"`
+	Jobs               int64 `json:"jobs"`
+	Candidates         int64 `json:"candidates"`
+	Interviews         int64 `json:"interviews"`
+	Employees          int64 `json:"employees"`
 }
 
 // workbenchMetricCatalog mirrors the metric ids and empty rules of
@@ -337,5 +341,9 @@ func (h *Handler) GetWorkbenchCounts(w http.ResponseWriter, r *http.Request) {
 		Briefs:             counts.Briefs,
 		CollabsOpen:        counts.CollabsOpen,
 		SettlementsPending: counts.SettlementsPending,
+		Jobs:               counts.Jobs,
+		Candidates:         counts.Candidates,
+		Interviews:         counts.Interviews,
+		Employees:          counts.Employees,
 	})
 }

@@ -625,7 +625,41 @@ SELECT
           AND st.archived_at IS NULL
           AND st.paid_at IS NULL
           AND ($2::uuid IS NULL
-               OR stm.department_id = $2::uuid))::bigint AS settlements_pending
+               OR stm.department_id = $2::uuid))::bigint AS settlements_pending,
+    -- Recruiting ledgers. Department attribution follows the same fallback the
+    -- hr metrics use: the row's own department, else the owner's.
+    (SELECT count(*) FROM hr_job hj
+        LEFT JOIN member hjm ON hjm.workspace_id = hj.workspace_id AND hjm.user_id = hj.owner_member_id
+        WHERE hj.workspace_id = $1
+          AND hj.archived_at IS NULL
+          AND ($2::uuid IS NULL
+               OR hj.department_id = $2::uuid
+               OR hjm.department_id = $2::uuid))::bigint AS jobs,
+    (SELECT count(*) FROM hr_candidate hc
+        JOIN hr_job hcj ON hcj.id = hc.job_id AND hcj.workspace_id = hc.workspace_id
+        LEFT JOIN member hcm ON hcm.workspace_id = hc.workspace_id AND hcm.user_id = hc.owner_member_id
+        WHERE hc.workspace_id = $1
+          AND hc.archived_at IS NULL
+          AND ($2::uuid IS NULL
+               OR hcj.department_id = $2::uuid
+               OR hcm.department_id = $2::uuid))::bigint AS candidates,
+    (SELECT count(*) FROM hr_interview hi
+        WHERE hi.workspace_id = $1
+          AND hi.archived_at IS NULL
+          AND ($2::uuid IS NULL
+               OR EXISTS (
+                   SELECT 1 FROM hr_candidate hic
+                   JOIN hr_job hij ON hij.id = hic.job_id AND hij.workspace_id = hic.workspace_id
+                   WHERE hic.id = hi.candidate_id
+                     AND hic.workspace_id = hi.workspace_id
+                     AND hij.department_id = $2::uuid)))::bigint AS interviews,
+    (SELECT count(*) FROM hr_employee_profile hep
+        LEFT JOIN member hepm ON hepm.workspace_id = hep.workspace_id AND hepm.user_id = hep.member_id
+        WHERE hep.workspace_id = $1
+          AND hep.archived_at IS NULL
+          AND ($2::uuid IS NULL
+               OR hep.department_id = $2::uuid
+               OR hepm.department_id = $2::uuid))::bigint AS employees
 `
 
 type WorkbenchCountsParams struct {
@@ -639,6 +673,10 @@ type WorkbenchCountsRow struct {
 	Briefs             int64 `json:"briefs"`
 	CollabsOpen        int64 `json:"collabs_open"`
 	SettlementsPending int64 `json:"settlements_pending"`
+	Jobs               int64 `json:"jobs"`
+	Candidates         int64 `json:"candidates"`
+	Interviews         int64 `json:"interviews"`
+	Employees          int64 `json:"employees"`
 }
 
 // Workbench aggregates (docs/METRICS.md §2, docs/engineering/WORKBENCH-API.md §3
@@ -669,6 +707,10 @@ func (q *Queries) WorkbenchCounts(ctx context.Context, arg WorkbenchCountsParams
 		&i.Briefs,
 		&i.CollabsOpen,
 		&i.SettlementsPending,
+		&i.Jobs,
+		&i.Candidates,
+		&i.Interviews,
+		&i.Employees,
 	)
 	return i, err
 }
