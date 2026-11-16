@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Briefcase,
   Building2,
@@ -19,6 +20,9 @@ import { Badge } from "@morechat/ui/components/ui/badge";
 import { Button } from "@morechat/ui/components/ui/button";
 import { IconButton } from "@morechat/ui/components/common/icon-button";
 import { CurrencyNumberFlow, CompactNumberFlow } from "@morechat/ui/components/ui/number-flow";
+import { Spinner } from "@morechat/ui/components/ui/spinner";
+import { useUpdateHrCandidate } from "@morechat/core/hr/mutations";
+import { hrJobListOptions } from "@morechat/core/hr/queries";
 import type {
   CrmBrief,
   CrmClient,
@@ -33,9 +37,11 @@ import type {
 import { useLocale, useT } from "../i18n";
 import { CollectionPageState } from "../layout/collection-page";
 import { CollectionList, type CollectionColumn } from "../layout/collection-list";
+import { AiDispatchButton } from "./ai-dispatch";
 import type { HrLedgerDomain, LedgerDomain } from "./data";
 import { ImportSheet } from "./import-sheet";
 import { HireDialog } from "./hire-dialog";
+import { scoreCandidate, type MatchReason, type MatchResult } from "./match-score";
 import { RecordForm } from "./record-form";
 import { RecordSheet } from "./record-sheet";
 import { ResumeUpload } from "./resume-upload";
@@ -128,7 +134,6 @@ export function LedgerTable(props: LedgerTableProps) {
   // candidate can never be handed to the job field list.
   const [jobDetail, setJobDetail] = useState<HrJob | null>(null);
   const [candidateDetail, setCandidateDetail] = useState<HrCandidate | null>(null);
-  const [hireOpen, setHireOpen] = useState(false);
   const [interviewDetail, setInterviewDetail] = useState<HrInterview | null>(null);
   const [employeeDetail, setEmployeeDetail] = useState<HrEmployeeProfile | null>(null);
 
@@ -523,7 +528,15 @@ export function LedgerTable(props: LedgerTableProps) {
       ];
       return (
         <>
-          <LedgerPeopleHeader wsId={wsId} importDomain="candidates" resume create="candidates" />
+          <LedgerPeopleHeader
+            wsId={wsId}
+            importDomain="candidates"
+            resume
+            create="candidates"
+            // The batch entry sits with the ledger's other entries rather than
+            // in the grid: `CollectionList` owns its header and offers no slot.
+            extra={wsId ? <CandidateScoreAll wsId={wsId} rows={props.rows} /> : undefined}
+          />
           <CollectionList
             label={label}
             columns={columns}
@@ -548,18 +561,14 @@ export function LedgerTable(props: LedgerTableProps) {
               }}
               actions={
                 wsId ? (
-                  <>
-                    <Button type="button" size="sm" onClick={() => setHireOpen(true)}>
-                      {t(($) => $.hire.title)}
-                    </Button>
-                    <HireDialog
-                      wsId={wsId}
-                      candidate={candidateDetail}
-                      open={hireOpen}
-                      onOpenChange={setHireOpen}
-                      onHired={() => setCandidateDetail(null)}
-                    />
-                  </>
+                  <CandidateSheetActions
+                    wsId={wsId}
+                    candidate={candidateDetail}
+                    onHired={() => setCandidateDetail(null)}
+                    onScored={(score) =>
+                      setCandidateDetail((prev) => (prev ? { ...prev, match_score: score } : prev))
+                    }
+                  />
                 ) : undefined
               }
             />
@@ -745,11 +754,17 @@ function LedgerPeopleHeader({
   create,
   importDomain,
   resume = false,
+  extra,
 }: {
   wsId?: string;
   create: HrLedgerDomain;
   importDomain?: ImportDomain;
   resume?: boolean;
+  /**
+   * A ledger-specific entry, drawn at the start of the row. The batch match
+   * score is the candidate ledger's; the other three have nothing to put here.
+   */
+  extra?: ReactNode;
 }) {
   const { t } = useT("blocks");
   const [createOpen, setCreateOpen] = useState(false);
@@ -758,6 +773,7 @@ function LedgerPeopleHeader({
   if (!wsId) return null;
   return (
     <div className="flex h-8 items-center justify-end gap-2">
+      {extra}
       {resume ? (
         <>
           {/* Mounted only while open: the dialog's data hooks would otherwise
@@ -799,6 +815,260 @@ function LedgerPeopleHeader({
       ) : null}
     </div>
   );
+}
+
+/**
+ * The candidate detail's next steps: brief an agent, score the match, hire.
+ *
+ * Three writes, each with its own loading state, all owned here so the sheet
+ * itself stays a read (it draws records, not decisions). The posting is resolved
+ * once for the two that need it — a candidate row carries only `job_id`.
+ */
+function CandidateSheetActions({
+  wsId,
+  candidate,
+  onHired,
+  onScored,
+}: {
+  wsId: string;
+  candidate: HrCandidate;
+  onHired: () => void;
+  /**
+   * The sheet draws the row snapshot it opened with, so a written score has to
+   * reach that snapshot — otherwise 匹配度 keeps saying "—" next to a number.
+   */
+  onScored: (score: number) => void;
+}) {
+  const { t } = useT("blocks");
+  const [hireOpen, setHireOpen] = useState(false);
+  const jobs = useQuery(hrJobListOptions(wsId));
+  const job = jobs.data?.jobs.find((row) => row.id === candidate.job_id) ?? null;
+
+  return (
+    <>
+      <AiDispatchButton candidate={candidate} job={job} wsId={wsId} />
+      <CandidateScoreOne candidate={candidate} job={job} onScored={onScored} />
+      <Button type="button" size="sm" onClick={() => setHireOpen(true)}>
+        {t(($) => $.hire.title)}
+      </Button>
+      <HireDialog
+        wsId={wsId}
+        candidate={candidate}
+        open={hireOpen}
+        onOpenChange={setHireOpen}
+        onHired={onHired}
+      />
+    </>
+  );
+}
+
+/**
+ * Score one candidate against its opening and write `match_score`.
+ *
+ * The score is a deterministic rule (`match-score`), not a model call: the same
+ * row and the same job always give the same number, which is what makes it safe
+ * to overwrite a column the rest of the workbench sorts and filters by.
+ *
+ * The reasons are shown where the number lands: the sheet's own row is the
+ * snapshot it was opened with, so the ledger behind it refreshes while this
+ * footer keeps saying what the write was based on.
+ */
+function CandidateScoreOne({
+  candidate,
+  job,
+  onScored,
+}: {
+  candidate: HrCandidate;
+  job: HrJob | null;
+  onScored: (score: number) => void;
+}) {
+  const { t } = useT("blocks");
+  const update = useUpdateHrCandidate();
+  const [saved, setSaved] = useState<MatchResult | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  // Every reason key has copy, so a dimension or a skip always reads as a
+  // sentence rather than as a raw code.
+  const reasonText = (reason: MatchReason): string => {
+    const detail = reason.detail ?? "";
+    switch (reason.key) {
+      case "keywords":
+        return t(($) => $.match.reason.keywords, { detail });
+      case "education":
+        return t(($) => $.match.reason.education, { detail });
+      case "experience":
+        return t(($) => $.match.reason.experience, { detail });
+      case "salary":
+        return t(($) => $.match.reason.salary, { detail });
+      case "no_job":
+        return t(($) => $.match.reason.no_job);
+      case "no_text":
+        return t(($) => $.match.reason.no_text);
+    }
+  };
+
+  const calculate = async () => {
+    const result = scoreCandidate(candidate, job);
+    // Nothing to score (no posting, or no signal in any dimension): the reasons
+    // say which, and the column keeps whatever it held.
+    if (result.score === null) {
+      setSaved(result);
+      setFailed(false);
+      return;
+    }
+    try {
+      await update.mutateAsync({ id: candidate.id, match_score: result.score });
+      onScored(result.score);
+      setSaved(result);
+      setFailed(false);
+    } catch {
+      setFailed(true);
+    }
+  };
+
+  return (
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={update.isPending}
+        aria-busy={update.isPending}
+        onClick={() => void calculate()}
+      >
+        {update.isPending ? <Spinner className="size-3.5" /> : null}
+        {t(($) => $.match.action.calculate)}
+      </Button>
+      {saved ? (
+        <span
+          className="text-caption text-muted-foreground"
+          title={saved.reasons.map(reasonText).join(" · ")}
+        >
+          {saved.score === null
+            ? saved.reasons.map(reasonText).join(" · ")
+            : t(($) => $.match.result, { score: saved.score })}
+        </span>
+      ) : null}
+      {failed ? (
+        <span role="alert" className="text-caption text-destructive">
+          {t(($) => $.match.failed)}
+        </span>
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * Score every row the ledger currently has loaded.
+ *
+ * The write is one PATCH per row, in order: the rows are few, and a batch that
+ * fired them all at once would be a burst of writes over one table for no gain.
+ * A row that cannot be scored or whose write fails is counted and the run
+ * continues — ten candidates with one missing posting should leave nine scores,
+ * not none.
+ *
+ * The run itself lives in `<CandidateScoreRun>`, mounted on the first click, for
+ * the reason `LedgerPeopleHeader`'s dialogs are: a ledger is renderable without a
+ * QueryClient (a preview, the overview suite), and a mutation hook here would
+ * demand one before anybody pressed anything.
+ */
+function CandidateScoreAll({ wsId, rows }: { wsId: string; rows: readonly HrCandidate[] }) {
+  const { t } = useT("blocks");
+  const [runId, setRunId] = useState(0);
+  const [pending, setPending] = useState(false);
+  const [counts, setCounts] = useState<{ ok: number; failed: number } | null>(null);
+
+  const start = () => {
+    if (pending) return;
+    setCounts(null);
+    setPending(true);
+    setRunId((current) => current + 1);
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={pending || rows.length === 0}
+        aria-busy={pending}
+        onClick={start}
+      >
+        {pending ? <Spinner className="size-3.5" /> : null}
+        {t(($) => $.match.action.batch)}
+      </Button>
+      {counts ? (
+        <span className="text-caption text-muted-foreground">
+          {t(($) => $.match.batch_done, { ok: counts.ok, failed: counts.failed })}
+        </span>
+      ) : null}
+      {pending ? (
+        <CandidateScoreRun
+          key={runId}
+          wsId={wsId}
+          rows={rows}
+          onDone={(next) => {
+            setCounts(next);
+            setPending(false);
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+/** One batch run. Mounted per click, so one mount is one pass over the rows. */
+function CandidateScoreRun({
+  wsId,
+  rows,
+  onDone,
+}: {
+  wsId: string;
+  rows: readonly HrCandidate[];
+  onDone: (counts: { ok: number; failed: number }) => void;
+}) {
+  const update = useUpdateHrCandidate();
+  const jobs = useQuery(hrJobListOptions(wsId));
+  // A candidate row carries only `job_id`, so scoring waits for the lookup: run
+  // early and every row would score against "no job" and count as a failure.
+  const ready = !jobs.isPending;
+
+  useEffect(() => {
+    if (!ready) return;
+    let cancelled = false;
+    const run = async () => {
+      const openings = jobs.data?.jobs ?? [];
+      let ok = 0;
+      let failed = 0;
+      for (const row of rows) {
+        // A second pass (React re-running the mount) must not double-write.
+        if (cancelled) return;
+        const job = openings.find((entry) => entry.id === row.job_id) ?? null;
+        const { score } = scoreCandidate(row, job);
+        if (score === null) {
+          failed += 1;
+          continue;
+        }
+        try {
+          await update.mutateAsync({ id: row.id, match_score: score });
+          ok += 1;
+        } catch {
+          failed += 1;
+        }
+      }
+      if (!cancelled) onDone({ ok, failed });
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+    // One pass per mount, over the rows as they were when the button was pressed:
+    // a mid-run ledger refresh removes a row's score from under the loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
+
+  return null;
 }
 
 function LedgerEmptyState({

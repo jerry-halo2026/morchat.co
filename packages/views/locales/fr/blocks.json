@@ -217,6 +217,9 @@
       "phone": "Téléphone",
       "email": "E-mail",
       "expected_salary": "Salaire souhaité",
+      "edu": "Niveau d’études",
+      "years_experience": "Années d’expérience",
+      "resume_text": "Texte du CV",
       "member": "Membre",
       "job_title": "Fonction",
       "grade": "Grade",
@@ -321,7 +324,7 @@
       "salary_max": "Salaire max",
       "currency": "Devise",
       "requirements": "Exigences",
-      "edu": "Niveau requis",
+      "edu": "Niveau d’études",
       "years": "Expérience",
       "city": "Lieu",
       "urgent": "Urgent",
@@ -340,6 +343,8 @@
       "score_test": "Score test",
       "score_interview": "Score entretien",
       "expected_salary": "Salaire souhaité",
+      "years_experience": "Années d’expérience",
+      "resume_text": "Texte du CV",
       "offer_salary": "Salaire proposé",
       "hired_at": "Embauché le",
       "rejected_reason": "Motif du refus",
@@ -372,5 +377,32 @@
       "required": "À renseigner : {{fields}}",
       "submit": "Le serveur a refusé cette ligne. Rien n’a été enregistré — corrigez-la et réessayez."
     }
+  },
+  "match": {
+    "action": {
+      "calculate": "Calculer la correspondance",
+      "batch": "Calculer les correspondances"
+    },
+    "result": "{{score}}/100",
+    "failed": "La correspondance n’a pas été enregistrée. Réessayez.",
+    "batch_done": "{{ok}} calculées · {{failed}} en échec",
+    "reason": {
+      "keywords": "Mots-clés {{detail}}/100",
+      "education": "Formation {{detail}}/100",
+      "experience": "Expérience {{detail}}/100",
+      "salary": "Salaire attendu {{detail}}/100",
+      "no_job": "Aucun poste auquel comparer",
+      "no_text": "Le candidat n’a ni texte de CV, ni formation, ni expérience : ce poids a été réparti sur le reste"
+    }
+  },
+  "ai": {
+    "action": {
+      "dispatch": "Confier à un agent"
+    },
+    "dispatched": "Assigné à {{agent}}",
+    "no_agents": "Aucun agent",
+    "failed": "Le ticket n’a pas été créé. Réessayez.",
+    "issue_title": "Préparer la candidature : {{name}}",
+    "issue_body": "Candidat : {{name}}\nPoste : {{job}}\nÉtape : {{stage}}\nSalaire attendu : {{salary}}\nMots-clés du poste : {{keywords}}\nFormation requise : {{edu}}\nExpérience requise : {{years}}\n\nRédigez une fiche de points clés pour ce candidat au regard du poste, puis les questions d’entretien qu’elle suggère."
   }
 }

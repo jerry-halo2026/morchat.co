@@ -73,6 +73,10 @@ const CANDIDATE: HrCandidate = {
   offer_salary: null,
   currency: "CNY",
   owner_member_id: null,
+  // Migration 705: the candidate-side match inputs (fixture data only).
+  edu: null,
+  years_experience: null,
+  resume_text: null,
   hired_at: null,
   rejected_reason: null,
   created_by: null,

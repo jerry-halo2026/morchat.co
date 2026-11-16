@@ -74,7 +74,13 @@ export type ImportField =
   | "contract_end"
   | "salary_min"
   | "salary_max"
-  | "owner";
+  | "owner"
+  // Migration 705: the candidate's half of the match score. A sheet that already
+  // carries 学历 / 经验年限 / 简历 is the cheapest way to fill them in bulk, and
+  // without them three of the four dimensions stay "no signal".
+  | "edu"
+  | "years_experience"
+  | "resume_text";
 
 /**
  * The fields each ledger asks for, in mapping order.
@@ -86,7 +92,18 @@ export type ImportField =
  */
 export const IMPORT_FIELDS: Record<ImportDomain, readonly ImportField[]> = {
   jobs: ["title", "department", "level", "headcount", "salary", "salary_min", "salary_max", "owner"],
-  candidates: ["name", "job", "stage", "phone", "email", "expected_salary", "owner"],
+  candidates: [
+    "name",
+    "job",
+    "stage",
+    "phone",
+    "email",
+    "expected_salary",
+    "edu",
+    "years_experience",
+    "resume_text",
+    "owner",
+  ],
   employees: [
     "member",
     "job_title",
@@ -129,6 +146,22 @@ const FIELD_ALIASES: Record<ImportField, readonly string[]> = {
   salary_min: ["salary_min", "min_salary", "薪资下限", "下限", "最低薪资"],
   salary_max: ["salary_max", "max_salary", "薪资上限", "上限", "最高薪资"],
   owner: ["owner", "manager", "用人经理", "负责人", "招聘负责人", "岗位负责人"],
+  // The three the match score reads on the candidate side (705). `edu` shares
+  // `hr_job.edu`'s free-text vocabulary, `years_experience` is a number of years
+  // and `resume_text` is the body itself.
+  edu: ["edu", "education", "degree", "学历", "最高学历", "教育背景"],
+  years_experience: [
+    "years_experience",
+    "experience_years",
+    "years",
+    "year",
+    "experience",
+    "经验年限",
+    "工作年限",
+    "年限",
+    "工作经验",
+  ],
+  resume_text: ["resume_text", "resume", "cv", "简历", "简历正文", "简历内容"],
 };
 
 /** A candidate's stage as a sheet spells it. The enum is the server's
@@ -419,6 +452,19 @@ function validateRow(
           values.expected_salary = String(salary);
         }
       }
+      if (values.years_experience) {
+        const years = parseImportYears(values.years_experience);
+        if (years === null) {
+          // The same "not one number" error a salary cell gets: a year cell HR
+          // cannot read is a cell to fix, never a silent "no experience".
+          errors.push(formatImportError("bad_amount", values.years_experience));
+        } else {
+          values.years_experience = String(years);
+        }
+      }
+      // `edu` and `resume_text` need no normalisation: both are free text that
+      // travels to the column as pasted, and a résumé body is the one cell whose
+      // exact wording matters.
       if (values.owner) {
         const owner = resolveMember(values.owner, ctx);
         if (owner.error) errors.push(owner.error);
@@ -577,6 +623,44 @@ function parseSingleAmount(part: string): number | null {
 }
 
 /**
+ * A years-of-experience cell as one number, or `null`.
+ *
+ * Understood: `3`, `3.5`, `3年`, `3 年经验`, `3-5年` (its midpoint, the same rule
+ * a pasted salary band follows), and an open form `5年以上` (its floor, because
+ * "at least five" is five as far as the row can record). A candidate sheet says
+ * a number in words far more often than a spreadsheet column says it as a
+ * number, and the experience dimension needs a number to compare against
+ * `hr_job.years`.
+ *
+ * Anything that is not one figure — `三年` written in Chinese numerals, a note,
+ * an inverted range — is `null` so the row asks to be fixed rather than storing
+ * a guess.
+ */
+export function parseImportYears(value: string): number | null {
+  const cleaned = value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/(?:years?|yrs?)/g, "")
+    .replace(/[年月]/g, "")
+    .replace(/(?:经验|工作|以上|以内|左右|多)/g, "")
+    .replace(/[+＋]/g, "")
+    .replace(/\s/g, "");
+  if (!cleaned) return null;
+
+  const parts = cleaned.split(/[-~–—到至]/).filter((part) => part !== "");
+  if (parts.length === 0 || parts.length > 2) return null;
+  if (!parts.every((part) => /^\d+(?:\.\d+)?$/.test(part))) return null;
+
+  const amounts = parts.map(Number);
+  const [first, second] = amounts as [number, number?];
+  if (second === undefined) return first;
+  if (first > second) return null;
+  // One decimal, because the column is NUMERIC(4,1): the midpoint of 3-5 is 4,
+  // and the midpoint of 3-4 is 3.5 rather than 3.4999…
+  return Math.round(((first + second) / 2) * 10) / 10;
+}
+
+/**
  * A calendar day as `YYYY-MM-DD`, or `null`.
  *
  * Accepted input is `YYYY-MM-DD`, `YYYY/M/D` and the dotted form Excel writes;
@@ -634,10 +718,10 @@ export const IMPORT_SAMPLE: Record<ImportDomain, string> = {
     "\t内容部\tP3\t1\t12-18K",
   ].join("\n"),
   candidates: [
-    "姓名\t应聘岗位\t阶段\t电话\t邮箱\t期望薪资",
-    "林伟\t短视频剪辑\t初筛\t13800000001\tlin@example.com\t20000",
-    "张三\t直播运营\t面试\t13800000002\tzhang@example.com\t18000",
-    "李娜\t\t笔试\t13800000003\tli@example.com\t15-20K",
+    "姓名\t应聘岗位\t阶段\t电话\t邮箱\t期望薪资\t学历\t经验年限\t简历",
+    "林伟\t短视频剪辑\t初筛\t13800000001\tlin@example.com\t20000\t本科\t3.5\t三年短视频剪辑经验，熟悉 Premiere 与达芬奇调色",
+    "张三\t直播运营\t面试\t13800000002\tzhang@example.com\t18000\t大专\t3-5年\t负责直播间运营与选品，单场 GMV 80 万",
+    "李娜\t\t笔试\t13800000003\tli@example.com\t15-20K\t本科\t\t",
   ].join("\n"),
   employees: [
     "成员\t职位\t职级\t入职日期\t转正日期\t合同到期\t部门",

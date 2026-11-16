@@ -217,6 +217,9 @@
       "phone": "Teléfono",
       "email": "Correo",
       "expected_salary": "Salario esperado",
+      "edu": "Formación",
+      "years_experience": "Años de experiencia",
+      "resume_text": "Texto del CV",
       "member": "Miembro",
       "job_title": "Cargo",
       "grade": "Grado",
@@ -340,6 +343,8 @@
       "score_test": "Puntuación de la prueba",
       "score_interview": "Puntuación de la entrevista",
       "expected_salary": "Salario esperado",
+      "years_experience": "Años de experiencia",
+      "resume_text": "Texto del CV",
       "offer_salary": "Salario ofrecido",
       "hired_at": "Contratado",
       "rejected_reason": "Motivo del descarte",
@@ -372,5 +377,32 @@
       "required": "Rellena: {{fields}}",
       "submit": "El servidor rechazó esta fila. No se guardó nada; corrígela y vuelve a intentarlo."
     }
+  },
+  "match": {
+    "action": {
+      "calculate": "Calcular afinidad",
+      "batch": "Calcular afinidades"
+    },
+    "result": "{{score}}/100",
+    "failed": "No se guardó la afinidad. Inténtalo de nuevo.",
+    "batch_done": "{{ok}} calculadas · {{failed}} con error",
+    "reason": {
+      "keywords": "Palabras clave {{detail}}/100",
+      "education": "Formación {{detail}}/100",
+      "experience": "Experiencia {{detail}}/100",
+      "salary": "Salario previsto {{detail}}/100",
+      "no_job": "No hay ninguna vacante con la que comparar",
+      "no_text": "La ficha del candidato no trae texto de currículum, formación ni experiencia, así que ese peso se repartió entre el resto"
+    }
+  },
+  "ai": {
+    "action": {
+      "dispatch": "Encargar a un agente"
+    },
+    "dispatched": "Asignado a {{agent}}",
+    "no_agents": "Sin agente",
+    "failed": "No se creó la incidencia. Inténtalo de nuevo.",
+    "issue_title": "Preparar candidatura: {{name}}",
+    "issue_body": "Candidato: {{name}}\nVacante: {{job}}\nEtapa: {{stage}}\nSalario previsto: {{salary}}\nPalabras clave de la vacante: {{keywords}}\nFormación requerida: {{edu}}\nExperiencia requerida: {{years}}\n\nRedacta una ficha de puntos clave de esta persona para la vacante y, después, las preguntas de entrevista que se derivan de la ficha."
   }
 }

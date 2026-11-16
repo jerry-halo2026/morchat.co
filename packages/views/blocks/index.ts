@@ -22,6 +22,16 @@ export { RecordForm } from "./record-form";
 export type { RecordFormProps } from "./record-form";
 export { ResumeUpload, matchResumeFile } from "./resume-upload";
 export type { ResumeCandidateRef, ResumeMatch, ResumeMatchState } from "./resume-upload";
+export { AiDispatchButton } from "./ai-dispatch";
+export type { AiDispatchButtonProps } from "./ai-dispatch";
+export { MATCH_WEIGHTS, matchSignals, scoreCandidate } from "./match-score";
+export type {
+  MatchDimension,
+  MatchReason,
+  MatchReasonKey,
+  MatchResult,
+  MatchSignals,
+} from "./match-score";
 export {
   IMPORT_FIELDS,
   IMPORT_SAMPLE,

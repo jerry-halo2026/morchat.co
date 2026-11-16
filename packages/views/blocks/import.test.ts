@@ -7,6 +7,7 @@ import {
   parseImportAmount,
   parseImportDay,
   parseImportError,
+  parseImportYears,
   parseTable,
   type ImportRowContext,
 } from "./import";
@@ -324,6 +325,59 @@ describe("buildImportRows · dates and amounts", () => {
       CTX,
     );
     expect(rows[0]?.errors).toEqual([formatImportError("bad_amount", "按能力")]);
+  });
+});
+
+describe("buildImportRows · the candidate profile columns", () => {
+  it("reads the three year spellings a sheet uses and keeps the résumé body verbatim", () => {
+    // 705: the match score reads degree, years and the résumé text. A sheet
+    // states years as a number, as a number with 年, and as a range.
+    expect(parseImportYears("3")).toBe(3);
+    expect(parseImportYears("3.5")).toBe(3.5);
+    expect(parseImportYears("3年")).toBe(3);
+    expect(parseImportYears("3-5年")).toBe(4);
+    expect(parseImportYears("3-4 年")).toBe(3.5);
+    // Open forms read their bound: "at least five" is five on the row.
+    expect(parseImportYears("5年以上")).toBe(5);
+    // Chinese numerals and notes are not a figure to guess at.
+    expect(parseImportYears("三年")).toBeNull();
+    expect(parseImportYears("5-3年")).toBeNull();
+
+    const parsed = parseTable(
+      "姓名,应聘岗位,学历,经验年限,简历\n" +
+        "林伟,运营,本科,3.5,三年短视频剪辑经验，熟悉 Premiere 调色\n" +
+        "张三,运营,大专,3-5年,负责直播间运营与选品\n" +
+        "李四,运营,硕士,5年以上,",
+    );
+    const rows = buildImportRows(
+      parsed,
+      guessColumnMap(parsed.headers, "candidates"),
+      "candidates",
+      CTX,
+    );
+    expect(rows[0]?.values.edu).toBe("本科");
+    expect(rows[0]?.values.years_experience).toBe("3.5");
+    // The résumé body is one cell, kept as typed — the keyword dimension reads
+    // its exact wording.
+    expect(rows[0]?.values.resume_text).toBe("三年短视频剪辑经验，熟悉 Premiere 调色");
+    expect(rows[0]?.errors).toEqual([]);
+
+    expect(rows[1]?.values.years_experience).toBe("4");
+    expect(rows[2]?.values.years_experience).toBe("5");
+    // An empty résumé cell is absent, not an empty string: the score has to be
+    // able to tell "no résumé" from "a résumé that says nothing".
+    expect(rows[2]?.values.resume_text).toBeUndefined();
+  });
+
+  it("flags a year cell that is not one number", () => {
+    const parsed = parseTable("姓名,应聘岗位,经验年限\n林伟,运营,三年");
+    const rows = buildImportRows(
+      parsed,
+      guessColumnMap(parsed.headers, "candidates"),
+      "candidates",
+      CTX,
+    );
+    expect(rows[0]?.errors).toEqual([formatImportError("bad_amount", "三年")]);
   });
 });
 

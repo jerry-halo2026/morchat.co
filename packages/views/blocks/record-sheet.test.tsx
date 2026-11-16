@@ -91,6 +91,9 @@ const CANDIDATE: HrCandidate = {
   offer_salary: null,
   currency: "CNY",
   owner_member_id: null,
+  edu: "本科",
+  years_experience: 4.5,
+  resume_text: "负责短视频剪辑与拍摄，熟悉 Premiere 调色",
   hired_at: null,
   rejected_reason: null,
   created_by: null,
@@ -185,6 +188,11 @@ describe("RecordSheet · one field list per entity", () => {
     expect(screen.getByText("Interview")).toBeInTheDocument();
     expect(screen.getByText("Referral")).toBeInTheDocument();
     expect(screen.getByText("lin@example.com")).toBeInTheDocument();
+    // Migration 705: the candidate's own degree, years and résumé body are on the
+    // sheet beside the scores they feed.
+    expect(screen.getByText("本科")).toBeInTheDocument();
+    expect(screen.getByText("4.5")).toBeInTheDocument();
+    expect(screen.getByText("负责短视频剪辑与拍摄，熟悉 Premiere 调色")).toBeInTheDocument();
     expect(screen.getByText("82")).toBeInTheDocument();
     expect(screen.getByText("88.5")).toBeInTheDocument();
     expect(screen.getByText(formatMoney(21000, CNY, "en")!)).toBeInTheDocument();

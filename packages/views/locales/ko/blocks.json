@@ -217,6 +217,9 @@
       "phone": "전화",
       "email": "이메일",
       "expected_salary": "희망 급여",
+      "edu": "학력",
+      "years_experience": "경력 연수",
+      "resume_text": "이력서 본문",
       "member": "멤버",
       "job_title": "직책",
       "grade": "직급",
@@ -321,7 +324,7 @@
       "salary_max": "급여 상한",
       "currency": "통화",
       "requirements": "자격 요건",
-      "edu": "학력 요건",
+      "edu": "학력",
       "years": "경력 요건",
       "city": "근무지",
       "urgent": "긴급 채용",
@@ -340,6 +343,8 @@
       "score_test": "시험 점수",
       "score_interview": "면접 점수",
       "expected_salary": "희망 연봉",
+      "years_experience": "경력 연수",
+      "resume_text": "이력서 본문",
       "offer_salary": "제시 연봉",
       "hired_at": "입사 일시",
       "rejected_reason": "불합격 사유",
@@ -372,5 +377,32 @@
       "required": "{{fields}}을(를) 입력하세요",
       "submit": "서버가 이 항목을 거부했습니다. 저장되지 않았습니다. 수정 후 다시 시도하세요."
     }
+  },
+  "match": {
+    "action": {
+      "calculate": "매치 점수 계산",
+      "batch": "매치 점수 일괄 계산"
+    },
+    "result": "{{score}}/100",
+    "failed": "매치 점수를 저장하지 못했습니다. 다시 시도해 주세요.",
+    "batch_done": "{{ok}}건 계산, {{failed}}건 실패",
+    "reason": {
+      "keywords": "키워드 {{detail}}/100",
+      "education": "학력 {{detail}}/100",
+      "experience": "경력 {{detail}}/100",
+      "salary": "희망 연봉 {{detail}}/100",
+      "no_job": "비교할 공고가 없습니다",
+      "no_text": "지원자에게 이력서 텍스트·학력·경력 항목이 없어 해당 가중치를 나머지 항목에 나눴습니다"
+    }
+  },
+  "ai": {
+    "action": {
+      "dispatch": "AI로 정리 배정"
+    },
+    "dispatched": "{{agent}}에게 배정했습니다",
+    "no_agents": "에이전트 없음",
+    "failed": "이슈를 만들지 못했습니다. 다시 시도해 주세요.",
+    "issue_title": "지원자 정리: {{name}}",
+    "issue_body": "지원자: {{name}}\n지원 공고: {{job}}\n현재 단계: {{stage}}\n희망 연봉: {{salary}}\n공고 키워드: {{keywords}}\n학력 요건: {{edu}}\n경력 요건: {{years}}\n\n이 공고에 맞춰 지원자의 요점 카드를 작성하고, 그 카드에서 나오는 면접 질문을 제시하세요."
   }
 }

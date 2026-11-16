@@ -217,6 +217,9 @@
       "phone": "電話",
       "email": "信箱",
       "expected_salary": "期望薪資",
+      "edu": "學歷",
+      "years_experience": "經驗年數",
+      "resume_text": "履歷正文",
       "member": "成員",
       "job_title": "職位",
       "grade": "職級",
@@ -321,7 +324,7 @@
       "salary_max": "薪資上限",
       "currency": "幣別",
       "requirements": "職位要求",
-      "edu": "學歷要求",
+      "edu": "學歷",
       "years": "經驗要求",
       "city": "工作地點",
       "urgent": "急招",
@@ -340,6 +343,8 @@
       "score_test": "筆試評分",
       "score_interview": "面試評分",
       "expected_salary": "期望薪資",
+      "years_experience": "經驗年數",
+      "resume_text": "履歷正文",
       "offer_salary": "錄用薪資",
       "hired_at": "到職時間",
       "rejected_reason": "淘汰原因",
@@ -372,5 +377,32 @@
       "required": "請填寫：{{fields}}",
       "submit": "伺服器拒絕了這筆記錄，未儲存，請修改後重試。"
     }
+  },
+  "match": {
+    "action": {
+      "calculate": "算匹配度",
+      "batch": "算匹配度"
+    },
+    "result": "{{score}}/100",
+    "failed": "匹配度沒能儲存，再試一次。",
+    "batch_done": "已算 {{ok}} 筆，失敗 {{failed}} 筆",
+    "reason": {
+      "keywords": "關鍵詞 {{detail}}/100",
+      "education": "學歷 {{detail}}/100",
+      "experience": "經驗 {{detail}}/100",
+      "salary": "薪資預期 {{detail}}/100",
+      "no_job": "沒有可對比的職缺",
+      "no_text": "候選人沒有履歷文本、學歷或經驗欄位，這些權重已分攤到其餘維度"
+    }
+  },
+  "ai": {
+    "action": {
+      "dispatch": "AI 梳理派單"
+    },
+    "dispatched": "已派給 {{agent}}",
+    "no_agents": "未設定智能體",
+    "failed": "issue 沒能建立，再試一次。",
+    "issue_title": "梳理候選人：{{name}}",
+    "issue_body": "候選人：{{name}}\n應聘職缺：{{job}}\n目前階段：{{stage}}\n期望薪資：{{salary}}\n職缺關鍵詞：{{keywords}}\n學歷要求：{{edu}}\n經驗要求：{{years}}\n\n請針對該職缺輸出這位候選人的要點卡，並給出要點卡引出的面試問題。"
   }
 }

@@ -61,6 +61,11 @@ export const RECORD_FIELDS = [
   "score_interview",
   "expected_salary",
   "offer_salary",
+  // Migration 705: the candidate's own degree, years and résumé body. `edu` is
+  // listed once above because the requisition and the candidate answer the same
+  // question in the same vocabulary — one key, one label, both sheets.
+  "years_experience",
+  "resume_text",
   "hired_at",
   "rejected_reason",
   // interviews
@@ -218,6 +223,12 @@ export function RecordSheet(props: RecordSheetProps) {
       push("source", candidate.source);
       push("phone", candidate.phone);
       push("email", candidate.email);
+      // Migration 705: the candidate's half of the match score. `edu` reads the
+      // same label as the requisition's requirement beside it, because the two
+      // are the same fact on either side of the comparison.
+      push("edu", candidate.edu);
+      push("years_experience", numberText(candidate.years_experience));
+      push("resume_text", candidate.resume_text);
       // Scores are numbers, not copy: a null is "never scored", which reads as
       // the same dash the ledger draws.
       push("match_score", candidate.match_score === null ? null : String(candidate.match_score));

@@ -217,6 +217,9 @@
       "phone": "電話",
       "email": "メール",
       "expected_salary": "希望給与",
+      "edu": "学歴",
+      "years_experience": "経験年数",
+      "resume_text": "職務経歴書",
       "member": "メンバー",
       "job_title": "役職",
       "grade": "等級",
@@ -321,7 +324,7 @@
       "salary_max": "給与上限",
       "currency": "通貨",
       "requirements": "応募要件",
-      "edu": "学歴要件",
+      "edu": "学歴",
       "years": "経験要件",
       "city": "勤務地",
       "urgent": "急募",
@@ -340,6 +343,8 @@
       "score_test": "筆記評価",
       "score_interview": "面接評価",
       "expected_salary": "希望給与",
+      "years_experience": "経験年数",
+      "resume_text": "職務経歴書",
       "offer_salary": "提示給与",
       "hired_at": "入社日時",
       "rejected_reason": "不採用理由",
@@ -372,5 +377,32 @@
       "required": "{{fields}} を入力してください",
       "submit": "サーバーがこの行を拒否しました。保存されていません。修正して再試行してください。"
     }
+  },
+  "match": {
+    "action": {
+      "calculate": "マッチ度を計算",
+      "batch": "マッチ度をまとめて計算"
+    },
+    "result": "{{score}}/100",
+    "failed": "マッチ度を保存できませんでした。もう一度お試しください。",
+    "batch_done": "{{ok}} 件計算、{{failed}} 件失敗",
+    "reason": {
+      "keywords": "キーワード {{detail}}/100",
+      "education": "学歴 {{detail}}/100",
+      "experience": "経験 {{detail}}/100",
+      "salary": "希望給与 {{detail}}/100",
+      "no_job": "比較する求人がありません",
+      "no_text": "応募者に履歴書テキスト・学歴・経験の項目がないため、その重みは残りの項目に配分しました"
+    }
+  },
+  "ai": {
+    "action": {
+      "dispatch": "AI で要点を整理"
+    },
+    "dispatched": "{{agent}} に割り当てました",
+    "no_agents": "エージェント未設定",
+    "failed": "課題を作成できませんでした。もう一度お試しください。",
+    "issue_title": "応募者の整理：{{name}}",
+    "issue_body": "応募者：{{name}}\n応募先：{{job}}\n現在の段階：{{stage}}\n希望給与：{{salary}}\n求人のキーワード：{{keywords}}\n学歴要件：{{edu}}\n経験要件：{{years}}\n\nこの求人に対して応募者の要点カードを作成し、そのカードから導かれる面接質問を挙げてください。"
   }
 }

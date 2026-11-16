@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@morechat/ui/components/ui/select";
 import { Spinner } from "@morechat/ui/components/ui/spinner";
+import { Textarea } from "@morechat/ui/components/ui/textarea";
 import {
   useCreateHrCandidate,
   useCreateHrEmployee,
@@ -80,6 +81,9 @@ const EMPTY_CANDIDATE: {
   phone: string;
   email: string;
   expected_salary: string;
+  edu: string;
+  years_experience: string;
+  resume_text: string;
 } = {
   name: "",
   job_id: "",
@@ -87,6 +91,9 @@ const EMPTY_CANDIDATE: {
   phone: "",
   email: "",
   expected_salary: "",
+  edu: "",
+  years_experience: "",
+  resume_text: "",
 };
 
 const EMPTY_INTERVIEW: {
@@ -273,6 +280,11 @@ export function RecordForm({ domain, wsId, open, onOpenChange }: RecordFormProps
           phone: candidate.phone.trim() || null,
           email: candidate.email.trim() || null,
           expected_salary: amount(candidate.expected_salary),
+          // Migration 705: what the match score reads. A blank field is null —
+          // the score skips that dimension rather than counting a zero.
+          edu: candidate.edu.trim() || null,
+          years_experience: amount(candidate.years_experience),
+          resume_text: candidate.resume_text.trim() || null,
         });
       case "interviews":
         return createInterview.mutateAsync({
@@ -456,6 +468,42 @@ export function RecordForm({ domain, wsId, open, onOpenChange }: RecordFormProps
                 value={candidate.expected_salary}
                 onChange={(event) =>
                   setCandidate({ ...candidate, expected_salary: event.target.value })
+                }
+              />,
+            )}
+            {field(
+              "edu",
+              <Input
+                id={`${id}-edu`}
+                value={candidate.edu}
+                onChange={(event) => setCandidate({ ...candidate, edu: event.target.value })}
+              />,
+            )}
+            {field(
+              "years_experience",
+              // One decimal, 0–60: the server answers 400 outside that, and the
+              // control says so before the request is sent.
+              <Input
+                id={`${id}-years_experience`}
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={60}
+                step={0.5}
+                value={candidate.years_experience}
+                onChange={(event) =>
+                  setCandidate({ ...candidate, years_experience: event.target.value })
+                }
+              />,
+            )}
+            {field(
+              "resume_text",
+              <Textarea
+                id={`${id}-resume_text`}
+                rows={6}
+                value={candidate.resume_text}
+                onChange={(event) =>
+                  setCandidate({ ...candidate, resume_text: event.target.value })
                 }
               />,
             )}

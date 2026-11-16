@@ -190,6 +190,11 @@ export function ImportSheet({
           phone: values.phone ?? null,
           email: values.email ?? null,
           expected_salary: values.expected_salary ? Number(values.expected_salary) : null,
+          // The profile fields the match score reads: without them the keyword,
+          // education and experience dimensions have nothing to measure.
+          edu: values.edu ?? null,
+          years_experience: values.years_experience ? Number(values.years_experience) : null,
+          resume_text: values.resume_text ?? null,
           owner_member_id: values.owner_member_id ?? null,
         });
       case "employees":

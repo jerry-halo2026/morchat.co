@@ -217,6 +217,9 @@
       "phone": "电话",
       "email": "邮箱",
       "expected_salary": "期望薪资",
+      "edu": "学历",
+      "years_experience": "经验年限",
+      "resume_text": "简历正文",
       "member": "成员",
       "job_title": "职位",
       "grade": "职级",
@@ -321,7 +324,7 @@
       "salary_max": "薪资上限",
       "currency": "币种",
       "requirements": "岗位要求",
-      "edu": "学历要求",
+      "edu": "学历",
       "years": "经验要求",
       "city": "工作地点",
       "urgent": "急招",
@@ -340,6 +343,8 @@
       "score_test": "笔试评分",
       "score_interview": "面试评分",
       "expected_salary": "期望薪资",
+      "years_experience": "经验年限",
+      "resume_text": "简历正文",
       "offer_salary": "录用薪资",
       "hired_at": "入职时间",
       "rejected_reason": "淘汰原因",
@@ -372,5 +377,32 @@
       "required": "请填写：{{fields}}",
       "submit": "服务端拒绝了这条记录，未保存，请修改后重试。"
     }
+  },
+  "match": {
+    "action": {
+      "calculate": "算匹配度",
+      "batch": "算匹配度"
+    },
+    "result": "{{score}}/100",
+    "failed": "匹配度没能保存，再试一次。",
+    "batch_done": "已算 {{ok}} 条，失败 {{failed}} 条",
+    "reason": {
+      "keywords": "关键词 {{detail}}/100",
+      "education": "学历 {{detail}}/100",
+      "experience": "经验 {{detail}}/100",
+      "salary": "薪资预期 {{detail}}/100",
+      "no_job": "没有可对比的岗位",
+      "no_text": "候选人没有简历文本、学历或经验字段，这些权重已分摊到其余维"
+    }
+  },
+  "ai": {
+    "action": {
+      "dispatch": "AI 梳理派单"
+    },
+    "dispatched": "已派给 {{agent}}",
+    "no_agents": "未配置智能体",
+    "failed": "issue 没能创建，再试一次。",
+    "issue_title": "梳理候选人：{{name}}",
+    "issue_body": "候选人：{{name}}\n应聘岗位：{{job}}\n当前阶段：{{stage}}\n期望薪资：{{salary}}\n岗位关键词：{{keywords}}\n学历要求：{{edu}}\n经验要求：{{years}}\n\n请针对该岗位输出这位候选人的要点卡，并给出要点卡引出的面试问题。"
   }
 }

@@ -217,6 +217,9 @@
       "phone": "Phone",
       "email": "Email",
       "expected_salary": "Expected salary",
+      "edu": "Education",
+      "years_experience": "Years of experience",
+      "resume_text": "Résumé text",
       "member": "Member",
       "job_title": "Position",
       "grade": "Grade",
@@ -340,6 +343,8 @@
       "score_test": "Test score",
       "score_interview": "Interview score",
       "expected_salary": "Expected salary",
+      "years_experience": "Years of experience",
+      "resume_text": "Résumé text",
       "offer_salary": "Offer salary",
       "hired_at": "Hired",
       "rejected_reason": "Reason rejected",
@@ -372,5 +377,32 @@
       "required": "Fill in: {{fields}}",
       "submit": "The server rejected this row. Nothing was saved — fix it and try again."
     }
+  },
+  "match": {
+    "action": {
+      "calculate": "Score match",
+      "batch": "Score matches"
+    },
+    "result": "{{score}}/100",
+    "failed": "The score wasn’t saved. Try again.",
+    "batch_done": "Scored {{ok}} · {{failed}} failed",
+    "reason": {
+      "keywords": "Keywords {{detail}}/100",
+      "education": "Education {{detail}}/100",
+      "experience": "Experience {{detail}}/100",
+      "salary": "Salary fit {{detail}}/100",
+      "no_job": "No job to match against",
+      "no_text": "The candidate row has no résumé text, education or experience, so that weight went to the rest"
+    }
+  },
+  "ai": {
+    "action": {
+      "dispatch": "Brief with an agent"
+    },
+    "dispatched": "Assigned to {{agent}}",
+    "no_agents": "No agent yet",
+    "failed": "The issue wasn’t created. Try again.",
+    "issue_title": "Brief candidate: {{name}}",
+    "issue_body": "Candidate: {{name}}\nRole: {{job}}\nStage: {{stage}}\nExpected salary: {{salary}}\nJob keywords: {{keywords}}\nEducation required: {{edu}}\nExperience required: {{years}}\n\nWrite a brief card for this candidate against the role, then the interview questions the card implies."
   }
 }

@@ -132,6 +132,22 @@ describe("ImportSheet · mapping and preview", () => {
     expect(screen.getByText("No job called “设计”")).toBeInTheDocument();
     expect(screen.getByText("Pasted 2 · importable 1 · with problems 1")).toBeInTheDocument();
   });
+
+  it("carries the candidate's profile columns into the request", async () => {
+    renderSheet("candidates");
+    paste("姓名,应聘岗位,学历,经验年限,简历正文\n林伟,运营,本科,3-5年,做过多场直播");
+    fireEvent.click(screen.getByRole("button", { name: "Import" }));
+
+    await waitFor(() => expect(api.createHrCandidate).toHaveBeenCalledTimes(1));
+    expect(api.createHrCandidate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "林伟",
+        edu: "本科",
+        years_experience: 4,
+        resume_text: "做过多场直播",
+      }),
+    );
+  });
 });
 
 describe("ImportSheet · writing rows", () => {
