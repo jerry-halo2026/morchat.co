@@ -115,19 +115,31 @@ function NameCell({ row }: { row: SkillRow }) {
   // the title and the slug moves to the muted column: a list of
   // "ai-engineer--research-deep" is unreadable next to a Chinese UI.
   const label = skill.description?.trim() || skill.name;
+  // A skill is the role skill of the agents that mark it primary; the badge says
+  // so once, instead of repeating it per agent in the used-by column.
+  const isPrimary = row.agents.some((agent) =>
+    agent.skills?.some((assigned) => assigned.id === skill.id && assigned.is_primary),
+  );
   return (
     <CollectionNameCell
       icon={<SkillIcon className="size-4 shrink-0 text-muted-foreground" />}
       title={label}
       badges={
-        !canEdit && (
-          <Tooltip>
-            <TooltipTrigger
-              render={<Lock className="h-3 w-3 shrink-0 text-faint-foreground" />}
-            />
-            <TooltipContent>{t(($) => $.table.lock_tooltip)}</TooltipContent>
-          </Tooltip>
-        )
+        <>
+          {isPrimary && (
+            <span className="shrink-0 rounded-sm bg-muted px-1 py-0.5 text-micro text-muted-foreground">
+              {t(($) => $.table.primary_badge)}
+            </span>
+          )}
+          {!canEdit && (
+            <Tooltip>
+              <TooltipTrigger
+                render={<Lock className="h-3 w-3 shrink-0 text-faint-foreground" />}
+              />
+              <TooltipContent>{t(($) => $.table.lock_tooltip)}</TooltipContent>
+            </Tooltip>
+          )}
+        </>
       }
       description={label === skill.name ? undefined : skill.name}
     />

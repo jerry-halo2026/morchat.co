@@ -4042,6 +4042,19 @@ export class ApiClient {
 		});
 	}
 
+	/**
+	 * Marks one assigned skill as the agent's role skill ("主技能").
+	 *
+	 * The server keeps it singular: marking one clears the previous one in the
+	 * same transaction. `false` clears it and leaves the agent with no role skill.
+	 */
+	async setAgentSkillPrimary(agentId: string, skillId: string, isPrimary: boolean): Promise<void> {
+		await this.fetch(`/api/agents/${agentId}/skills/${skillId}/primary`, {
+			method: "PUT",
+			body: JSON.stringify({ is_primary: isPrimary }),
+		});
+	}
+
   async setAgentRuntimeSkillEnabled(
     agentId: string,
     data: SetAgentRuntimeSkillEnabledRequest,

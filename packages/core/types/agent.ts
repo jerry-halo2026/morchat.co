@@ -677,6 +677,11 @@ export interface AgentSkillSummary {
   description: string;
 	/** Older servers omit this field; consumers must treat that as enabled. */
 	enabled?: boolean;
+  /**
+   * The agent's role skill ("主技能"), as opposed to a supporting skill. At most one
+   * per agent. Older servers omit the field; consumers treat that as "none marked".
+   */
+  is_primary?: boolean;
 }
 
 export interface CreateAgentRequest {

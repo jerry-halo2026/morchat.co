@@ -73,6 +73,9 @@ type SkillSummaryResponse struct {
 	// Enabled is only populated for agent-scoped skill responses. Workspace
 	// skill lists describe the skill itself, so they omit assignment state.
 	Enabled *bool `json:"enabled,omitempty"`
+	// IsPrimary is the agent-scoped counterpart of Enabled: the role skill of the
+	// agent this list was asked for. Omitted on workspace-level listings.
+	IsPrimary *bool `json:"is_primary,omitempty"`
 	// Labels are bulk-attached by ListSkills so the client can filter
 	// without an N+1 round-trip per row. Pointer + omitempty: ListSkills
 	// always sets a non-nil slice (empty when none). Other summary
@@ -90,6 +93,10 @@ type AgentSkillSummary struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Enabled     bool   `json:"enabled"`
+	// IsPrimary marks the agent's role skill: the one that describes what the
+	// agent is for, as opposed to the supporting skills it may load. At most one
+	// per agent; ordering in every agent-skill listing puts it first.
+	IsPrimary bool `json:"is_primary"`
 }
 
 type SkillFileResponse struct {
@@ -2719,8 +2726,72 @@ func (h *Handler) ListAgentSkills(w http.ResponseWriter, r *http.Request) {
 			s.CreatedBy, s.CreatedAt, s.UpdatedAt,
 		)
 		resp[i].Enabled = &s.Enabled
+		resp[i].IsPrimary = &s.IsPrimary
 	}
 	writeJSON(w, http.StatusOK, resp)
+}
+
+// SetAgentSkillPrimary marks one assigned skill as the agent's role skill.
+//
+// PUT /api/agents/{id}/skills/{skillId}/primary {"is_primary": true}
+//
+// "Primary" is singular: marking one clears the previous one in the same
+// transaction. Un-marking is allowed and leaves the agent with none, which the UI
+// renders as "no role skill" rather than inventing one.
+func (h *Handler) SetAgentSkillPrimary(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	agent, ok := h.loadAgentForUser(w, r, id)
+	if !ok {
+		return
+	}
+	if !h.canManageAgent(w, r, agent) {
+		return
+	}
+
+	skillID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "skillId"), "skill_id")
+	if !ok {
+		return
+	}
+	var req struct {
+		IsPrimary *bool `json:"is_primary"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.IsPrimary == nil {
+		writeError(w, http.StatusBadRequest, "is_primary is required")
+		return
+	}
+
+	tx, err := h.TxStarter.Begin(r.Context())
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to begin transaction")
+		return
+	}
+	defer func() { _ = tx.Rollback(r.Context()) }()
+	qtx := h.Queries.WithTx(tx)
+
+	if err := qtx.ClearAgentSkillPrimary(r.Context(), agent.ID); err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to update agent skill")
+		return
+	}
+	if *req.IsPrimary {
+		rows, err := qtx.MarkAgentSkillPrimary(r.Context(), db.MarkAgentSkillPrimaryParams{
+			AgentID: agent.ID,
+			SkillID: skillID,
+		})
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "failed to update agent skill")
+			return
+		}
+		if rows == 0 {
+			writeError(w, http.StatusNotFound, "agent skill not found")
+			return
+		}
+	}
+	if err := tx.Commit(r.Context()); err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to commit")
+		return
+	}
+
+	h.writeUpdatedAgentSkills(w, r, agent)
 }
 
 func (h *Handler) SetAgentSkills(w http.ResponseWriter, r *http.Request) {

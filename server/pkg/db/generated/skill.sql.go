@@ -12,18 +12,31 @@ import (
 )
 
 const addAgentSkill = `-- name: AddAgentSkill :exec
-INSERT INTO agent_skill (agent_id, skill_id)
-VALUES ($1, $2)
+INSERT INTO agent_skill (agent_id, skill_id, is_primary)
+VALUES ($1, $2, $3)
 ON CONFLICT DO NOTHING
 `
 
 type AddAgentSkillParams struct {
-	AgentID pgtype.UUID `json:"agent_id"`
-	SkillID pgtype.UUID `json:"skill_id"`
+	AgentID   pgtype.UUID `json:"agent_id"`
+	SkillID   pgtype.UUID `json:"skill_id"`
+	IsPrimary bool        `json:"is_primary"`
 }
 
 func (q *Queries) AddAgentSkill(ctx context.Context, arg AddAgentSkillParams) error {
-	_, err := q.db.Exec(ctx, addAgentSkill, arg.AgentID, arg.SkillID)
+	_, err := q.db.Exec(ctx, addAgentSkill, arg.AgentID, arg.SkillID, arg.IsPrimary)
+	return err
+}
+
+const clearAgentSkillPrimary = `-- name: ClearAgentSkillPrimary :exec
+UPDATE agent_skill
+SET is_primary = false
+WHERE agent_id = $1
+`
+
+// One role skill per agent: the caller clears, then marks, inside one transaction.
+func (q *Queries) ClearAgentSkillPrimary(ctx context.Context, agentID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, clearAgentSkillPrimary, agentID)
 	return err
 }
 
@@ -362,11 +375,11 @@ func (q *Queries) ListAgentSkillNamesByAgentIDs(ctx context.Context, agentIds []
 }
 
 const listAgentSkillSummaries = `-- name: ListAgentSkillSummaries :many
-SELECT s.id, s.workspace_id, s.name, s.description, s.config, s.created_by, s.created_at, s.updated_at, ask.enabled
+SELECT s.id, s.workspace_id, s.name, s.description, s.config, s.created_by, s.created_at, s.updated_at, ask.enabled, ask.is_primary
 FROM skill s
 JOIN agent_skill ask ON ask.skill_id = s.id
 WHERE ask.agent_id = $1
-ORDER BY s.name ASC
+ORDER BY ask.is_primary DESC, s.name ASC
 `
 
 type ListAgentSkillSummariesRow struct {
@@ -379,6 +392,7 @@ type ListAgentSkillSummariesRow struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 	Enabled     bool               `json:"enabled"`
+	IsPrimary   bool               `json:"is_primary"`
 }
 
 // Summary variant for the agent skills list endpoint — omits `content` for
@@ -402,6 +416,7 @@ func (q *Queries) ListAgentSkillSummaries(ctx context.Context, agentID pgtype.UU
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Enabled,
+			&i.IsPrimary,
 		); err != nil {
 			return nil, err
 		}
@@ -505,11 +520,11 @@ func (q *Queries) ListAgentSkillsByIDs(ctx context.Context, arg ListAgentSkillsB
 }
 
 const listAgentSkillsByWorkspace = `-- name: ListAgentSkillsByWorkspace :many
-SELECT ask.agent_id, s.id, s.name, s.description, ask.enabled
+SELECT ask.agent_id, s.id, s.name, s.description, ask.enabled, ask.is_primary
 FROM agent_skill ask
 JOIN skill s ON s.id = ask.skill_id
 WHERE s.workspace_id = $1
-ORDER BY s.name ASC
+ORDER BY ask.is_primary DESC, s.name ASC
 `
 
 type ListAgentSkillsByWorkspaceRow struct {
@@ -518,6 +533,7 @@ type ListAgentSkillsByWorkspaceRow struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
 	Enabled     bool        `json:"enabled"`
+	IsPrimary   bool        `json:"is_primary"`
 }
 
 func (q *Queries) ListAgentSkillsByWorkspace(ctx context.Context, workspaceID pgtype.UUID) ([]ListAgentSkillsByWorkspaceRow, error) {
@@ -535,6 +551,7 @@ func (q *Queries) ListAgentSkillsByWorkspace(ctx context.Context, workspaceID pg
 			&i.Name,
 			&i.Description,
 			&i.Enabled,
+			&i.IsPrimary,
 		); err != nil {
 			return nil, err
 		}
@@ -851,6 +868,25 @@ func (q *Queries) LockSkillForVersioning(ctx context.Context, id pgtype.UUID) (S
 		&i.PluginInstallationID,
 	)
 	return i, err
+}
+
+const markAgentSkillPrimary = `-- name: MarkAgentSkillPrimary :execrows
+UPDATE agent_skill
+SET is_primary = true
+WHERE agent_id = $1 AND skill_id = $2
+`
+
+type MarkAgentSkillPrimaryParams struct {
+	AgentID pgtype.UUID `json:"agent_id"`
+	SkillID pgtype.UUID `json:"skill_id"`
+}
+
+func (q *Queries) MarkAgentSkillPrimary(ctx context.Context, arg MarkAgentSkillPrimaryParams) (int64, error) {
+	result, err := q.db.Exec(ctx, markAgentSkillPrimary, arg.AgentID, arg.SkillID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const removeAgentSkill = `-- name: RemoveAgentSkill :exec

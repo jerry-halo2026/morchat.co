@@ -49,6 +49,7 @@ export interface PresetApiClient {
   ): Promise<{ id: string; name: string }>;
   listSkills(): Promise<{ id: string; name: string }[]>;
   createAgent(input: PresetAgentInput & Record<string, unknown>): Promise<{ id: string }>;
+  setAgentSkillPrimary?(agentId: string, skillId: string, isPrimary: boolean): Promise<void>;
   createSquad(input: PresetSquadInput): Promise<{ id: string }>;
   updateSquad(id: string, input: { instructions?: string }): Promise<unknown>;
   addSquadMember(
@@ -315,6 +316,15 @@ export function createPresetApiRuntime(options: {
       options.source.loadMemberDoc(pkg, memberId),
     importSkill: (bundle) => importSkillIdempotently(client, bundle),
     createAgent: createOrAdoptAgent,
+    setPrimarySkill: async (agentId, skillId) => {
+      // Best effort: a role-skill badge is presentation, and a server that predates
+      // the flag answers 404 here. The import must not fail over it.
+      try {
+        await client.setAgentSkillPrimary?.(agentId, skillId, true);
+      } catch {
+        // Ignore: the skills are assigned either way.
+      }
+    },
     createSquad: createOrAdoptSquad,
     updateSquadInstructions: async (squadId, instructions) => {
       await client.updateSquad(squadId, { instructions });

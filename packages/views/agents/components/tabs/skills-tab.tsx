@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import {
@@ -6,6 +6,7 @@ import {
   Plus,
   RefreshCw,
   Server,
+  Star,
   Trash2,
 } from "@morechat/ui/icons";
 import { SkillIcon } from "../../../skills/lib/skill-icon";
@@ -116,6 +117,24 @@ export function SkillsTab({
     }
   };
 
+  // One role skill per agent: marking one clears the previous, and pressing the
+  // star again clears the mark entirely.
+  const handlePrimary = async (skillId: string, isPrimary: boolean) => {
+    setBusyId(skillId);
+    try {
+      await api.setAgentSkillPrimary(agent.id, skillId, isPrimary);
+      await refreshAgent();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t(($) => $.tab_body.skills.primary_failed_toast),
+      );
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const handleRuntimeToggle = async (
     skill: RuntimeLocalSkillSummary,
     enabled: boolean,
@@ -192,11 +211,18 @@ export function SkillsTab({
                       <SkillIcon className="h-4 w-4" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className={cn("block text-body font-medium", !enabled && "text-muted-foreground")}>
-                        {skill.name}
+                      <span className="flex items-center gap-1.5">
+                        <span className={cn("block text-body font-medium", !enabled && "text-muted-foreground")}>
+                          {skill.description || skill.name}
+                        </span>
+                        {skill.is_primary && (
+                          <Badge variant="secondary" className="shrink-0">
+                            {t(($) => $.tab_body.skills.primary_badge)}
+                          </Badge>
+                        )}
                       </span>
                       <span className="block truncate text-caption text-muted-foreground">
-                        {skill.description || t(($) => $.tab_body.skills.no_description)}
+                        {skill.name}
                       </span>
                     </span>
                   </button>
@@ -205,13 +231,29 @@ export function SkillsTab({
                       {busy ? (
                         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground motion-reduce:animate-none" />
                       ) : (
-                        <Switch
-                          checked={enabled}
-                          onCheckedChange={(checked) => handleToggle(skill.id, checked)}
-                          aria-label={t(($) => $.tab_body.skills.toggle_aria, {
-                            name: skill.name,
-                          })}
-                        />
+                        <>
+                          <IconButton
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => handlePrimary(skill.id, !skill.is_primary)}
+                            label={t(($) => $.tab_body.skills.primary_aria, {
+                              name: skill.name,
+                            })}
+                            className={cn(
+                              "text-muted-foreground hover:text-foreground",
+                              skill.is_primary && "text-foreground",
+                            )}
+                          >
+                            <Star className={cn("h-3.5 w-3.5", skill.is_primary && "fill-current")} />
+                          </IconButton>
+                          <Switch
+                            checked={enabled}
+                            onCheckedChange={(checked) => handleToggle(skill.id, checked)}
+                            aria-label={t(($) => $.tab_body.skills.toggle_aria, {
+                              name: skill.name,
+                            })}
+                          />
+                        </>
                       )}
                       <IconButton
                         variant="ghost"

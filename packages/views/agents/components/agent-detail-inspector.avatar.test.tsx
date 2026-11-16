@@ -69,8 +69,10 @@ describe("AgentDetailInspector avatar", () => {
     expect(editor).not.toBeNull();
     // Nothing else in the form is an avatar affordance: one mark, one entry.
     expect(document.querySelectorAll(".aora-mark")).toHaveLength(1);
-    // Upstream's Studio button is the entry: pressing the face edits the face.
-    expect(screen.getAllByRole("button", { name: "Edit avatar" })).toHaveLength(1);
+    // The face is the only entry: pressing it opens the cards, and there is no
+    // second "Edit avatar" button beside it.
+    expect(screen.queryByRole("button", { name: "Edit avatar" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Character" })).toHaveLength(1);
   });
 
   it("writes the spec a rolled face is confirmed with", async () => {

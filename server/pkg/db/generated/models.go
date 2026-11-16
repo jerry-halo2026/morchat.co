@@ -119,6 +119,7 @@ type AgentSkill struct {
 	SkillID   pgtype.UUID        `json:"skill_id"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	Enabled   bool               `json:"enabled"`
+	IsPrimary bool               `json:"is_primary"`
 }
 
 type AgentTaskQueue struct {
@@ -797,6 +798,13 @@ type DingtalkGroupRoute struct {
 	Revision          int64              `json:"revision"`
 	DiscoveredAt      pgtype.Timestamptz `json:"discovered_at"`
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ExternalAuthIdentity struct {
+	Project   string             `json:"project"`
+	Subject   pgtype.UUID        `json:"subject"`
+	UserID    pgtype.UUID        `json:"user_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Feedback struct {

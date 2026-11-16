@@ -755,7 +755,10 @@
       "add_dialog_confirm_default": "添加",
       "add_dialog_confirm_other": "添加 {{count}} 个 skill",
       "add_dialog_cancel": "取消",
-      "add_failed_toast": "添加 skill 失败"
+      "add_failed_toast": "添加 skill 失败",
+      "primary_badge": "主技能",
+      "primary_aria": "把 {{name}} 设为主技能",
+      "primary_failed_toast": "主技能设置失败。"
     },
     "integrations": {
       "members_note": "只有工作区的所有者和管理员可以管理此连接。你可以在\"设置 → 集成\"中查看已连接的 Bot。"

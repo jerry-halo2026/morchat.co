@@ -605,7 +605,10 @@
       "add_dialog_confirm_default": "추가",
       "add_dialog_confirm_other": "스킬 {{count}}개 추가",
       "add_dialog_cancel": "취소",
-      "add_failed_toast": "스킬을 추가하지 못했습니다"
+      "add_failed_toast": "스킬을 추가하지 못했습니다",
+      "primary_badge": "주 스킬",
+      "primary_aria": "{{name}}을(를) 주 스킬로 지정",
+      "primary_failed_toast": "주 스킬을 변경하지 못했습니다."
     },
     "integrations": {
       "members_note": "이 연결을 관리할 수 있는 사람은 워크스페이스 소유자와 관리자뿐입니다. 연결된 봇은 설정 → 연동에서 확인할 수 있습니다."

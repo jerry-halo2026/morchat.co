@@ -756,7 +756,10 @@
       "add_dialog_confirm_one": "Añadir {{count}} skill",
       "add_dialog_confirm_other": "Añadir {{count}} skills",
       "add_dialog_cancel": "Cancelar",
-      "add_failed_toast": "No se ha podido añadir la skill"
+      "add_failed_toast": "No se ha podido añadir la skill",
+      "primary_badge": "Skill principal",
+      "primary_aria": "Convertir {{name}} en la skill principal",
+      "primary_failed_toast": "No se pudo cambiar la skill principal."
     },
     "integrations": {
       "members_note": "Solo los propietarios y administradores del espacio de trabajo pueden gestionar esta conexión. Puedes ver los bots conectados en Ajustes → Integraciones."

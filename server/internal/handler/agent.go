@@ -1233,6 +1233,7 @@ func (h *Handler) ListAgents(w http.ResponseWriter, r *http.Request) {
 			Name:        row.Name,
 			Description: row.Description,
 			Enabled:     row.Enabled,
+			IsPrimary:   row.IsPrimary,
 		})
 	}
 
@@ -2648,6 +2649,7 @@ func (h *Handler) attachAgentSkills(ctx context.Context, resp *AgentResponse, ag
 			Name:        s.Name,
 			Description: s.Description,
 			Enabled:     s.Enabled,
+			IsPrimary:   s.IsPrimary,
 		}
 	}
 	resp.Skills = out

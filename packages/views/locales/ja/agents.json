@@ -605,7 +605,10 @@
       "add_dialog_confirm_default": "追加",
       "add_dialog_confirm_other": "スキル {{count}} 件を追加",
       "add_dialog_cancel": "キャンセル",
-      "add_failed_toast": "スキルを追加できませんでした"
+      "add_failed_toast": "スキルを追加できませんでした",
+      "primary_badge": "主スキル",
+      "primary_aria": "{{name}} を主スキルにする",
+      "primary_failed_toast": "主スキルを変更できませんでした。"
     },
     "integrations": {
       "members_note": "この接続を管理できるのはワークスペースのオーナーと管理者のみです。接続済みの Bot は「設定 → 連携」で確認できます。"

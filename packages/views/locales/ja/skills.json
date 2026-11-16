@@ -52,7 +52,8 @@
     "source_clawhub": "ClawHub から",
     "source_skills_sh": "Skills.sh から",
     "source_github": "GitHub から",
-    "manual_group": "手動作成"
+    "manual_group": "手動作成",
+    "primary_badge": "主スキル"
   },
   "actions": {
     "row_menu": "操作",

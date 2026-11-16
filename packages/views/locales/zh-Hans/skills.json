@@ -52,7 +52,8 @@
     "source_clawhub": "来自 ClawHub",
     "source_skills_sh": "来自 Skills.sh",
     "source_github": "来自 GitHub",
-    "manual_group": "手动创建"
+    "manual_group": "手动创建",
+    "primary_badge": "主技能"
   },
   "actions": {
     "row_menu": "操作",

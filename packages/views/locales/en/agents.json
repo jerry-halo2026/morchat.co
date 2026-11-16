@@ -774,7 +774,10 @@
       "add_dialog_confirm_one": "Add {{count}} skill",
       "add_dialog_confirm_other": "Add {{count}} skills",
       "add_dialog_cancel": "Cancel",
-      "add_failed_toast": "Failed to add skill"
+      "add_failed_toast": "Failed to add skill",
+      "primary_badge": "Role skill",
+      "primary_aria": "Make {{name}} the role skill",
+      "primary_failed_toast": "Could not change the role skill."
     },
     "integrations": {
       "members_note": "Only workspace owners and admins can manage this connection. You can view connected bots in Settings → Integrations."

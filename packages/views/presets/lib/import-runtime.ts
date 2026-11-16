@@ -119,6 +119,11 @@ export interface PresetImportRuntime {
     role: "lead" | "member",
   ): Promise<void>;
   /**
+   * Marks one assigned skill as the agent's role skill. Optional: a server from
+   * before `agent_skill.is_primary` ignores it, and the import still stands.
+   */
+  setPrimarySkill?(agentId: string, skillId: string): Promise<void>;
+  /**
    * Writes the package's project board (`team.workflowDefinition`) and returns
    * it, reusing a same-name workflow instead of failing. Optional so an import
    * without the workflow API still runs; a package that ships no board never
@@ -521,6 +526,7 @@ export async function runPresetImport(
   )?.harness;
   const leadRuntimeId = resolveRuntime(pkg, leadAgentId, options);
 
+  const leadSkillIds = memberSkillIds(pkg, leadAgentId, skillIdByNs, skills);
   const lead = await attempt("create_agent", () =>
     runtime.createAgent({
       name: presetDisplayName(pkg, options.locale),
@@ -528,13 +534,20 @@ export async function runPresetImport(
       instructions: agentInstructions,
       avatar_url: avatar,
       runtime_id: leadRuntimeId,
-      skill_ids: memberSkillIds(pkg, leadAgentId, skillIdByNs, skills),
+      skill_ids: leadSkillIds,
       template: `preset:${pkg.id}`,
       // A squad can only dispatch to an agent its leader is allowed to run.
       visibility: "workspace" as const,
       conversation_starters: presetConversationStarters(options.detail),
     }),
   );
+  // The package lists its skills in authored order, with the role skill first;
+  // that order is the only signal a package gives about which one defines the
+  // agent. Everything else stays a supporting skill, and the host can change the
+  // pick later through the primary endpoint.
+  if (leadSkillIds[0]) {
+    await runtime.setPrimarySkill?.(lead.id, leadSkillIds[0]);
+  }
   done("create_agent");
   runtimes.push({
     agentId: lead.id,
@@ -570,6 +583,7 @@ export async function runPresetImport(
       const memberDoc =
         (await runtime.loadMemberDoc?.(pkg, member.id)) ?? null;
       const memberRuntimeId = resolveRuntime(pkg, member.id, options);
+      const memberSkills = memberSkillIds(pkg, member.id, skillIdByNs, skills);
       const created = await attempt("create_members", () =>
         runtime.createAgent({
           name: memberName,
@@ -584,7 +598,7 @@ export async function runPresetImport(
               .join("\n\n"),
           avatar_url: presetAvatar(member.id),
           runtime_id: memberRuntimeId,
-          skill_ids: memberSkillIds(pkg, member.id, skillIdByNs, skills),
+          skill_ids: memberSkills,
           template: `preset:${pkg.id}:${member.id}`,
           // A squad can only dispatch to an agent its leader is allowed to run.
           visibility: "workspace" as const,
@@ -592,6 +606,9 @@ export async function runPresetImport(
       );
       agents.push({ id: created.id, name: memberName, role: "member" });
       agentIdByMember.set(member.id, created.id);
+      if (memberSkills[0]) {
+        await runtime.setPrimarySkill?.(created.id, memberSkills[0]);
+      }
       runtimes.push({
         agentId: created.id,
         agentName: memberName,

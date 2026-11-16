@@ -52,7 +52,8 @@
     "source_clawhub": "De ClawHub",
     "source_skills_sh": "De Skills.sh",
     "source_github": "De GitHub",
-    "manual_group": "Creadas a mano"
+    "manual_group": "Creadas a mano",
+    "primary_badge": "Skill principal"
   },
   "actions": {
     "row_menu": "Acciones",
