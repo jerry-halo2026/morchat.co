@@ -30,6 +30,19 @@ make selfhost-build           # 构建并启动（会自动跑迁移）
 默认端口：后端 `8080`（容器内 8080）、前端 `3000`。改了 `PORT` / `FRONTEND_PORT`
 之后，`FRONTEND_ORIGIN` 和 `MULTICA_APP_URL` 要一起改成对应的前端地址。
 
+**端口冲突**：本机如果已经跑着开发环境（`make up` 会占 8080），自托管栈要换端口，
+例如 `PORT=8081`、`FRONTEND_PORT=3100`，并把 `FRONTEND_ORIGIN`、`MULTICA_APP_URL`
+同步改掉。
+
+**还没有发布过镜像时**：`make selfhost` 会去 GHCR 拉 `morechat-backend|web`，仓库里没有
+对应 tag 时会报 `denied`。此时只能用 `make selfhost-build`（本机构建）。
+
+**本地免邮件登录**：默认 `APP_ENV=production` 会忽略开发验证码。本机自测时在 `.env` 里设
+`APP_ENV=development` 与 `MULTICA_DEV_VERIFICATION_CODE=123456`，然后
+`POST /auth/verify-code {"email":"you@local.test","code":"123456"}` 即可拿到 token；
+发信接口在根路径（`/auth/send-code`），不带 `/api` 前缀。
+
+
 **数据库迁移由容器入口自动执行**（`docker/entrypoint.sh`：先 `migrate up`，再起 server），
 不需要手动跑迁移。
 
