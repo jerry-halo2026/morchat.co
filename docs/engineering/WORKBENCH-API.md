@@ -209,6 +209,84 @@ server 数据一律 Query；Zustand 只放当前部门、列宽、筛选草稿�
 | 9 | 时间格式 | 时间戳 RFC3339 字符串；日期 `YYYY-MM-DD`；DATE 比较按日粒度（`due_date` 是 DATE） |
 | 10 | metric upsert 状态码 | `201`（新建或覆盖同一 `(post_id, captured_on)`） |
 
+## 10. B1「人事」契约（第二批评审基线）
+
+与 B0 同一套规则（无外键、`workspace_id NOT NULL`、软删、金额 `NUMERIC(14,2)`+`currency`、每个二级索引单独 CONCURRENTLY 迁移并登记 `concurrentIndexCleanups`）。
+
+### 10.1 迁移号段
+
+| 号 | 文件 | 表 |
+| --- | --- | --- |
+| 680 | `680_hr_job` | 职位 |
+| 681 | `681_hr_candidate` | 候选人 |
+| 682 | `682_hr_interview` | 面试 |
+| 683 | `683_hr_scorecard` | 评分 |
+| 684 | `684_hr_employee_profile` | 员工档案 |
+| 685–699 | 单独索引文件 | 各表二级索引 |
+
+### 10.2 表
+
+```sql
+hr_job(id PK, workspace_id, title TEXT NOT NULL, department_id UUID, level TEXT,
+  headcount INT NOT NULL DEFAULT 1, status TEXT CHECK (status IN ('draft','open','paused','closed')),
+  salary_min NUMERIC(14,2), salary_max NUMERIC(14,2), currency CHAR(3) DEFAULT 'CNY',
+  requirements TEXT, owner_member_id UUID, created_by, created_at, updated_at, archived_at)
+
+hr_candidate(id PK, workspace_id, job_id UUID NOT NULL, name TEXT NOT NULL,
+  stage TEXT NOT NULL DEFAULT 'screening' CHECK (stage IN
+    ('screening','test','interview','scored','offer','hired','rejected','withdrawn')),
+  source TEXT, phone TEXT, email TEXT, resume_attachment_id UUID,
+  match_score SMALLINT CHECK (match_score BETWEEN 0 AND 100),
+  score_resume NUMERIC(5,2), score_test NUMERIC(5,2), score_interview NUMERIC(5,2),
+  expected_salary NUMERIC(14,2), offer_salary NUMERIC(14,2), currency CHAR(3) DEFAULT 'CNY',
+  owner_member_id UUID, hired_at TIMESTAMPTZ, rejected_reason TEXT,
+  created_by, created_at, updated_at, archived_at)
+-- 一人一岗：UNIQUE (workspace_id, job_id, lower(name), coalesce(phone,'')) 以内联表达式索引实现
+
+hr_interview(id PK, workspace_id, candidate_id UUID NOT NULL, round SMALLINT NOT NULL DEFAULT 1,
+  scheduled_at TIMESTAMPTZ NOT NULL, duration_minutes INT NOT NULL DEFAULT 45,
+  interviewer_member_id UUID, mode TEXT CHECK (mode IN ('onsite','video','phone')),
+  status TEXT NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled','done','cancelled','no_show')),
+  rescheduled_count INT NOT NULL DEFAULT 0, note TEXT,
+  created_by, created_at, updated_at, archived_at)
+-- 同一面试官同一时段排他：UNIQUE (workspace_id, interviewer_member_id, scheduled_at)
+
+hr_scorecard(id PK, workspace_id, interview_id UUID NOT NULL, reviewer_member_id UUID,
+  score_skill SMALLINT, score_experience SMALLINT, score_culture SMALLINT, score_potential SMALLINT,
+  weighted_score NUMERIC(5,2), verdict TEXT CHECK (verdict IN ('strong_yes','yes','no','strong_no')),
+  comment TEXT, created_by, created_at, updated_at, archived_at)
+-- UNIQUE (workspace_id, interview_id, reviewer_member_id)
+
+hr_employee_profile(id PK, workspace_id, member_id UUID NOT NULL, department_id UUID,
+  job_title TEXT, grade TEXT, hire_date DATE, regular_date DATE, contract_end DATE,
+  ability JSONB NOT NULL DEFAULT '{}',   -- 6 维 1–10
+  disc JSONB NOT NULL DEFAULT '{}',      -- d/i/s/c 0–10
+  owner_member_id UUID, created_by, created_at, updated_at, archived_at)
+-- UNIQUE (workspace_id, member_id)
+```
+
+`ability` / `disc` 用 JSONB 而非 12 个列：它们只被展示与 AI 上下文消费，从不参与排序或聚合。其余**任何要 SUM/排名/唯一约束的字段都是真实列**（B0 定下的判据）。
+
+### 10.3 REST（基址 `/api/workbench/hr`）
+
+`jobs` / `candidates` / `interviews` / `scorecards` / `employees` 各 5 条：`GET /`、`POST /`、`GET /{id}`、`PATCH /{id}`、`DELETE /{id}`（软删）。
+- `scorecards` 不注册独立 GET 单项，随面试详情返回（同 B0 的 `settlements`）。
+- 列表包裹同 B0 §3.1：`{ <resource>: T[], total }`，`total` = 本页条数。
+- 面试创建/改期校验排他：同一 `interviewer_member_id` 同一 `scheduled_at` → **409**；改期 `rescheduled_count += 1`。
+- `POST /candidates/{candidateId}/hire`：置 `stage=hired`、写 `hired_at`，同一事务里创建或更新 `hr_employee_profile`（`member_id` 由请求给出）。
+
+### 10.4 事件
+
+`hr_job:changed` · `hr_candidate:changed` · `hr_interview:changed` · `hr_scorecard:changed` · `hr_employee_profile:changed`，payload `{ id }`；候选人改阶段额外发 `hr_candidate:stage_changed` `{ id, from, to }`。
+
+### 10.5 指标
+
+`hr.candidates.active` · `hr.time_to_hire.median` · `hr.scorecard.backlog` · `hr.interview.on_time_rate` 已进契约，由 `/api/workbench/overview` 返回，口径见 `docs/METRICS.md`。
+
+### 10.6 Query key
+
+`["hr", wsId, resource, filters]`、`["hr", wsId, resource, { id }]`；`/overview` 与 `/counts` 沿用 `["workbench", wsId, …]`。
+
 ## 9. 完成定义（DoD）
 
 一个域算完成，当且仅当：迁移可 up/down 往返、`make sqlc` 无脏 diff、handler 有权限用例、事件发出、zod 覆盖响应、`useRealtimeSync` 有 patcher、`/overview` 里对应指标从 `insufficient_data` 变为有值、页面能读能写。

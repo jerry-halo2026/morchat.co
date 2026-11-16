@@ -24,6 +24,10 @@
     "samples": "统计 {{count}} 条"
   },
   "metric": {
+    "hr_candidates_active": "在办候选人",
+    "hr_time_to_hire_median": "招聘周期",
+    "hr_scorecard_backlog": "待评分面试",
+    "hr_interview_on_time_rate": "面试准时率",
     "work_throughput_week": "本周完成",
     "work_cycle_time_median": "交付周期中位数",
     "work_on_time_rate": "准时率",

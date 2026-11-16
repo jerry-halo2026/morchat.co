@@ -51,10 +51,14 @@ related: [docs/engineering/ORG-MODEL.md, packages/core/metrics/contracts.ts]
 | `crm.quote.margin_rate` | 合作毛利率 | percent | 自然月 | (合同额 − 达人费 − 样品费 − 平台费) / 合同额 | crm_collab | insufficient |
 | `crm.collab.roi` | 单条合作 ROI | ratio | 滚动 30 天 | 近 30 天归因成交 / (达人费 + 样品费 + 平台费) | crm_collab, creator_post_metric | insufficient |
 | `crm.creator.repeat_rate` | 达人复投率 | percent | 自然季 | 本季成交 ≥2 次的达人 / 本季成交 ≥1 次的达人 | crm_collab | insufficient |
+| `hr.candidates.active` | 在办候选人 | count | 今天 | 阶段不在 hired / rejected / withdrawn 的候选人 | hr_candidate | zero |
+| `hr.time_to_hire.median` | 招聘周期中位数 | days | 滚动 90 天 | 近 90 天入职候选人的 `hired_at − created_at` 中位数 | hr_candidate | insufficient |
+| `hr.scorecard.backlog` | 待评分积压 | count | 今天 | 面试时间已过但没有评分记录的场次 | hr_interview, hr_scorecard | zero |
+| `hr.interview.on_time_rate` | 面试准时率 | percent | 自然月 | 本月举行且无改期记录的面试占比 | hr_interview | insufficient |
 
 前 12 个是**零录入**指标：它们只读 morechat 已经在写的数据，所以工作台第一
-天就有真数字。后 6 个在达人商务的台账行存在之前一律是 `insufficient_data`，
-渲染成缺口卡。
+天就有真数字。`crm.*` 在达人商务的台账行存在之前、`hr.*` 在人事台账行存在
+之前，一律是 `insufficient_data`，渲染成缺口卡。
 
 ## 3. 口径裁决（四套来源产品的冲突 → 唯一口径）
 

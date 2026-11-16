@@ -67,8 +67,10 @@ export type MetricSource =
   | "crm_brief"
   | "crm_collab"
   | "crm_settlement"
+  | "hr_job"
   | "hr_candidate"
   | "hr_interview"
+  | "hr_scorecard"
   | "hr_employee_profile"
   | "ops_finance_month"
   | "ops_attendance"
@@ -132,6 +134,11 @@ export const METRIC_IDS = [
   "crm.quote.margin_rate",
   "crm.collab.roi",
   "crm.creator.repeat_rate",
+  // Recruiting — same rule: `insufficient_data` until the HR ledgers have rows.
+  "hr.candidates.active",
+  "hr.time_to_hire.median",
+  "hr.scorecard.backlog",
+  "hr.interview.on_time_rate",
 ] as const;
 
 export type MetricId = (typeof METRIC_IDS)[number];
@@ -273,6 +280,54 @@ export const WORKBENCH_METRICS: Record<MetricId, MetricContract> = {
     formula: "count(knowledge items created this calendar week)",
     source: ["knowledge"],
     emptyRule: "zero",
+    direction: "up",
+  },
+  "hr.candidates.active": {
+    id: "hr.candidates.active",
+    labelKey: "blocks.metric.hr_candidates_active",
+    scope: "department",
+    unit: "count",
+    window: { kind: "calendar", span: "today" },
+    formula: "count(candidates whose stage is not hired, rejected or withdrawn)",
+    source: ["hr_candidate"],
+    emptyRule: "zero",
+    direction: "neutral",
+  },
+  "hr.time_to_hire.median": {
+    id: "hr.time_to_hire.median",
+    labelKey: "blocks.metric.hr_time_to_hire_median",
+    scope: "department",
+    unit: "days",
+    window: { kind: "sliding", days: 90 },
+    formula:
+      "median(hired_at - created_at) over candidates hired in the last 90 days",
+    source: ["hr_candidate"],
+    emptyRule: "insufficient_data",
+    direction: "down",
+  },
+  "hr.scorecard.backlog": {
+    id: "hr.scorecard.backlog",
+    labelKey: "blocks.metric.hr_scorecard_backlog",
+    scope: "department",
+    unit: "count",
+    window: { kind: "calendar", span: "today" },
+    formula:
+      "count(interviews whose scheduled_at < now and that have no scorecard row)",
+    source: ["hr_interview", "hr_scorecard"],
+    emptyRule: "zero",
+    direction: "down",
+  },
+  "hr.interview.on_time_rate": {
+    id: "hr.interview.on_time_rate",
+    labelKey: "blocks.metric.hr_interview_on_time_rate",
+    scope: "department",
+    unit: "percent",
+    window: { kind: "calendar", span: "month" },
+    formula:
+      "count(interviews held this month with no reschedule event) / count(interviews held this month)",
+    source: ["hr_interview"],
+    emptyRule: "insufficient_data",
+    threshold: { value: 90, unit: "percent", labelKey: "blocks.threshold.on_time" },
     direction: "up",
   },
   "crm.pipeline.weighted_amount": {

@@ -24,6 +24,10 @@
     "samples": "sur {{count}} lignes"
   },
   "metric": {
+    "hr_candidates_active": "Candidats actifs",
+    "hr_time_to_hire_median": "Délai de recrutement",
+    "hr_scorecard_backlog": "Entretiens non évalués",
+    "hr_interview_on_time_rate": "Entretiens à l'heure",
     "work_throughput_week": "Terminé cette semaine",
     "work_cycle_time_median": "Délai médian",
     "work_on_time_rate": "Taux de respect des délais",

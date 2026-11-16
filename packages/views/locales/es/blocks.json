@@ -24,6 +24,10 @@
     "samples": "sobre {{count}} filas"
   },
   "metric": {
+    "hr_candidates_active": "Candidatos activos",
+    "hr_time_to_hire_median": "Tiempo de contratación",
+    "hr_scorecard_backlog": "Entrevistas sin evaluar",
+    "hr_interview_on_time_rate": "Entrevistas puntuales",
     "work_throughput_week": "Cerrado esta semana",
     "work_cycle_time_median": "Tiempo de ciclo medio",
     "work_on_time_rate": "Cumplimiento de plazo",

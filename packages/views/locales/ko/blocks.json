@@ -24,6 +24,10 @@
     "samples": "{{count}}건 기준"
   },
   "metric": {
+    "hr_candidates_active": "진행 중인 후보자",
+    "hr_time_to_hire_median": "채용 소요일",
+    "hr_scorecard_backlog": "미평가 면접",
+    "hr_interview_on_time_rate": "면접 정시율",
     "work_throughput_week": "이번 주 완료",
     "work_cycle_time_median": "납기 소요 중앙값",
     "work_on_time_rate": "정시 완료율",

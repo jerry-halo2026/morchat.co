@@ -24,6 +24,10 @@
     "samples": "по {{count}} строкам"
   },
   "metric": {
+    "hr_candidates_active": "Активные кандидаты",
+    "hr_time_to_hire_median": "Срок найма",
+    "hr_scorecard_backlog": "Неоценённые собеседования",
+    "hr_interview_on_time_rate": "Собеседования вовремя",
     "work_throughput_week": "Закрыто за неделю",
     "work_cycle_time_median": "Медианный срок",
     "work_on_time_rate": "Доля в срок",

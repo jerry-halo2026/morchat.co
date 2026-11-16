@@ -24,6 +24,10 @@
     "samples": "of {{count}} rows"
   },
   "metric": {
+    "hr_candidates_active": "Active candidates",
+    "hr_time_to_hire_median": "Time to hire",
+    "hr_scorecard_backlog": "Unscored interviews",
+    "hr_interview_on_time_rate": "On-time interviews",
     "work_throughput_week": "Closed this week",
     "work_cycle_time_median": "Median cycle time",
     "work_on_time_rate": "On-time rate",

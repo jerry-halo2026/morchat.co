@@ -24,6 +24,10 @@
     "samples": "{{count}} 件で集計"
   },
   "metric": {
+    "hr_candidates_active": "進行中の候補者",
+    "hr_time_to_hire_median": "採用日数",
+    "hr_scorecard_backlog": "未評価の面接",
+    "hr_interview_on_time_rate": "面接定刻率",
     "work_throughput_week": "今週の完了",
     "work_cycle_time_median": "納期の中央値",
     "work_on_time_rate": "納期遵守率",
