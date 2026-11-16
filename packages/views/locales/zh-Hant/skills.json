@@ -51,7 +51,8 @@
     "source_runtime_unknown": "來自某個執行時",
     "source_clawhub": "來自 ClawHub",
     "source_skills_sh": "來自 Skills.sh",
-    "source_github": "來自 GitHub"
+    "source_github": "來自 GitHub",
+    "manual_group": "手動建立"
   },
   "actions": {
     "row_menu": "操作",

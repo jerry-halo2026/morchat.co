@@ -51,6 +51,7 @@ import {
   CollectionList,
   CollectionNameCell,
   type CollectionColumn,
+  type CollectionGroup,
   type CollectionSort,
 } from "../../layout/collection-list";
 import { canEditSkill } from "../hooks/use-can-edit-skill";
@@ -89,6 +90,20 @@ export type SortField = SkillSortField;
 export { rowMatchesFilters, type SkillRow } from "./skill-list-filter";
 
 type SkillScope = "all" | "mine";
+
+const MANUAL_SKILLS = "__manual__";
+
+/**
+ * The package a skill came from.
+ *
+ * Package skills are namespaced `<package>--<directory>` at import
+ * (`ai-engineer--deep-research`); anything without that separator was created by
+ * hand and belongs in its own band.
+ */
+function skillPackageKey(name: string): string {
+  const separator = name.indexOf("--");
+  return separator > 0 ? name.slice(0, separator) : MANUAL_SKILLS;
+}
 
 // Cells
 
@@ -403,6 +418,55 @@ export default function SkillsPage() {
 
   const selectedRows = rows.filter((row) => selectedIds.has(row.skill.id));
 
+  /**
+   * Skills arrive in packages.
+   *
+   * An imported preset is one agent plus every skill it ships, and every shipped
+   * skill is named `<package>--<directory>`: `ai-engineer--deep-research`,
+   * `ai-engineer--research-report`, `ai-engineer--references`. A library view that
+   * lists them flat reads as eighteen unrelated skills that all happen to be used
+   * by the same agent, and the nesting (a research skill's own sub-skills) is
+   * invisible. Grouping by that prefix restores what is actually there: one band
+   * per package, parents before their sub-skills, libraries last.
+   */
+  const groups = useMemo<CollectionGroup<SkillRow>[]>(() => {
+    const byPackage = new Map<string, SkillRow[]>();
+    for (const row of rows) {
+      const key = skillPackageKey(row.skill.name);
+      const bucket = byPackage.get(key);
+      if (bucket) bucket.push(row);
+      else byPackage.set(key, [row]);
+    }
+    const names = new Set(rows.map((row) => row.skill.name));
+    const nested = (name: string) =>
+      [...names].some((other) => other !== name && name.startsWith(`${other}-`));
+    const isLibrary = (name: string) => name.endsWith("-references");
+
+    return [...byPackage.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, groupRows]) => {
+        const ordered = [...groupRows].sort((a, b) => {
+          const aLib = isLibrary(a.skill.name) ? 1 : 0;
+          const bLib = isLibrary(b.skill.name) ? 1 : 0;
+          if (aLib !== bLib) return aLib - bLib;
+          const aNested = nested(a.skill.name) ? 1 : 0;
+          const bNested = nested(b.skill.name) ? 1 : 0;
+          if (aNested !== bNested) return aNested - bNested;
+          return a.skill.name.localeCompare(b.skill.name);
+        });
+        // The band is named after the agent that owns the package, because that is
+        // how people refer to it ("深网网 的技能"), and falls back to the package key
+        // for skills that were never attached to anyone.
+        const owner = ordered.flatMap((row) => row.agents)[0];
+        return {
+          key,
+          label: owner ? owner.name : key === MANUAL_SKILLS ? t(($) => $.table.manual_group) : key,
+          count: ordered.length,
+          rows: ordered,
+        };
+      });
+  }, [rows, t]);
+
   const columns = useMemo<CollectionColumn<SkillRow>[]>(
     () => [
       {
@@ -594,7 +658,7 @@ export default function SkillsPage() {
           label={scopeLabels[scope]}
           columns={columns}
           hiddenColumns={hiddenColumns}
-          rows={rows}
+          groups={groups}
           loading={isLoading}
           getRowId={(row) => row.skill.id}
           getRowHref={(row) => paths.skillDetail(row.skill.id)}
