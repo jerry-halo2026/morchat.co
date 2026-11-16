@@ -10,6 +10,14 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// Session provenance records how a session was minted. External-provider
+// sessions (Supabase) carry it so renewal and CLI handoff can refuse to extend
+// credential lifetime beyond the provider's own proof.
+const (
+	SessionProvenanceClaim = "morchat_session_provenance"
+	SessionProvenanceV1    = "v1"
+)
+
 // Sliding session renewal (MUL-7436).
 //
 // A UI session token used to have its lifetime fixed at login: `exp` was
@@ -211,6 +219,9 @@ func SessionIDFromToken(tokenString string) string {
 // once per legacy session, on a safe-method request; clients retry a CSRF
 // rejection once (packages/core/api/client.ts).
 func RenewSessionToken(claims jwt.MapClaims) (string, time.Time, error) {
+	if IsExternalSession(claims) {
+		return "", time.Time{}, ErrNotSessionToken
+	}
 	sub, _ := claims["sub"].(string)
 	if sub == "" {
 		return "", time.Time{}, ErrNotSessionToken

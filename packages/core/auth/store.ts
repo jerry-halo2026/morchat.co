@@ -70,7 +70,17 @@ export function createAuthStore(options: AuthStoreOptions) {
     },
 
     loginWithPassword: async (email: string, password: string) => {
-      const { token, user } = await api.loginWithPassword(email, password);
+      // The password form means "the provider this deployment configured": a
+      // Supabase-backed deployment authenticates against the provider, a native
+      // one against /auth/password/login. Supabase config failure falls back to
+      // native so an older server still works.
+      const supabase =
+        typeof api.getSupabaseConfig === "function"
+          ? await api.getSupabaseConfig().catch(() => ({ enabled: false }))
+          : { enabled: false };
+      const { token, user } = supabase.enabled
+        ? await api.loginWithSupabasePassword(email, password)
+        : await api.loginWithPassword(email, password);
       if (!cookieAuth) {
         storage.setItem("multica_token", token);
         api.setToken(token);

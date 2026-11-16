@@ -252,6 +252,11 @@ func SetAuthCookies(w http.ResponseWriter, token string) error {
 	domain := cookieDomain()
 	ttl := AuthTokenTTL()
 	now := time.Now()
+	if claims, err := ParseSessionToken(token); err == nil && IsExternalSession(claims) {
+		if remaining := SessionExpiry(claims).Sub(now); remaining < ttl {
+			ttl = remaining
+		}
+	}
 
 	readable := func(name, value string) {
 		http.SetCookie(w, &http.Cookie{

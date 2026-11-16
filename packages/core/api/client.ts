@@ -1,3 +1,4 @@
+import { signInWithSupabasePassword, type SupabasePasswordConfig } from "./supabase-password";
 import type { ZodType } from "zod";
 import { AgentRuntimeSchema, EMPTY_RUNTIME } from "../runtimes/schema";
 import type { IssueWakeup, IssueWakeupInput, IssueWakeupSummaryRow, PausedWakeup, SystemWakeup, WakeupRun, WorkspaceSystemWakeup } from "../types/issue-wakeup";
@@ -1165,6 +1166,20 @@ export class ApiClient {
       }),
     });
   }
+  async getSupabaseConfig(): Promise<SupabasePasswordConfig> {
+    return this.fetch("/auth/supabase/config");
+  }
+
+  async loginWithSupabasePassword(email: string, password: string): Promise<LoginResponse> {
+    const config = await this.getSupabaseConfig();
+    const access_token = await signInWithSupabasePassword(config, email, password);
+    // Never forward password, client user ID/email, refresh tokens or metadata.
+    return this.fetch("/auth/supabase", {
+      method: "POST",
+      body: JSON.stringify({ access_token }),
+    });
+  }
+
   async sendCode(email: string): Promise<void> {
     await this.fetch("/auth/send-code", {
       method: "POST",

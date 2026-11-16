@@ -1,10 +1,3 @@
----
-purpose: "SUPABASE-LOGIN independent review"
-owner: task-owners
-status: current
-updated: 2026-11-09
-related: []
----
 # SUPABASE-LOGIN independent review
 
 - Reviewer: /root/supabase_auth_review; 2026-11-09.

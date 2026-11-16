@@ -1,4 +1,4 @@
-import { api } from "@morechat/core/api";
+﻿import { api } from "@morechat/core/api";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -140,13 +140,13 @@ describe("StepPlatformFork", () => {
     renderFork();
     fireEvent.click(screen.getByRole("button", { name: /show steps/i }));
     const dialog = screen.getByRole("dialog");
-    const command = "multica setup self-host --server-url https://api.example.com --app-url https://app.example.com";
+    const command = "morechat setup self-host --server-url https://api.example.com --app-url https://app.example.com";
     expect(within(dialog).getByText(command)).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(15_000));
     expect(within(dialog).getByText(command)).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(30_000));
     expect(within(dialog).getByText(command)).toBeInTheDocument();
-    expect(within(dialog).queryByText("multica setup")).not.toBeInTheDocument();
+    expect(within(dialog).queryByText("morechat setup")).not.toBeInTheDocument();
   });
 
   it("does not show Cloud waiting guidance while configuration is loading or failed", () => {
@@ -154,10 +154,10 @@ describe("StepPlatformFork", () => {
     renderFork();
     fireEvent.click(screen.getByRole("button", { name: /show steps/i }));
     const dialog = screen.getByRole("dialog");
-    expect(within(dialog).queryByText("multica setup")).not.toBeInTheDocument();
+    expect(within(dialog).queryByText("morechat setup")).not.toBeInTheDocument();
     expect(within(dialog).queryByText(/waiting for your computer/i)).not.toBeInTheDocument();
     act(() => configStore.getState().setDaemonConfigStatus("error"));
-    expect(within(dialog).queryByText("multica setup")).not.toBeInTheDocument();
+    expect(within(dialog).queryByText("morechat setup")).not.toBeInTheDocument();
   });
 
   it("renders the three fork options at rest", () => {
