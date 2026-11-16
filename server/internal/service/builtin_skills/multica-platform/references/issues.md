@@ -1,4 +1,4 @@
-﻿# Issues
+# Issues
 
 Product contracts the runtime brief does not fully encode.
 

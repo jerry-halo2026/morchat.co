@@ -92,7 +92,7 @@ func (tx *localTx) QueryRow(_ context.Context, sql string, args ...any) pgx.Row 
 			return nil
 		case strings.Contains(sql, `FROM "user"`):
 			u := tx.user
-			values := []any{u.ID, u.Name, u.Email, u.AvatarUrl, u.CreatedAt, u.UpdatedAt, u.OnboardedAt, u.OnboardingQuestionnaire, u.CloudWaitlistEmail, u.CloudWaitlistReason, u.StarterContentState, u.Language, u.ProfileDescription, u.Timezone, u.WhatsNewSeenVersion}
+			values := []any{u.ID, u.Name, u.Email, u.AvatarUrl, u.CreatedAt, u.UpdatedAt, u.OnboardedAt, u.OnboardingQuestionnaire, u.CloudWaitlistEmail, u.CloudWaitlistReason, u.StarterContentState, u.Language, u.ProfileDescription, u.Timezone, u.WhatsNewSeenVersion, u.StarPromptShownCount, u.StarPromptLastShownAt, u.StarPromptStarredAt, u.PasswordHash, u.PasswordUpdatedAt, u.MustChangePassword}
 			if len(values) != len(dest) {
 				return errors.New("native user scan shape changed")
 			}

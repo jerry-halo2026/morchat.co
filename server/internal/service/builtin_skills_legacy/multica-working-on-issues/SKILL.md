@@ -2,7 +2,7 @@
 name: multica-working-on-issues
 description: "Superseded by the multica-platform skill — load that instead. This file only records where the Multica issue contracts moved to."
 user-invocable: false
-allowed-tools: Bash(multica *)
+allowed-tools: Bash(morechat *)
 ---
 
 # Moved into `multica-platform`

@@ -1,4 +1,4 @@
-﻿# Projects and resources
+# Projects and resources
 
 A project groups work and carries durable resources. A resource is not just
 display metadata; it is context later injected into task briefs and

@@ -1,4 +1,4 @@
-﻿---
+---
 name: multica-platform
 description: "Use for Multica platform actions the runtime brief does not fully cover: issue and PR contracts, sub-issues, comments, mentions, agents, squads, autopilots, projects, runtimes, skill import, knowledge base, dispatch paths, self-improvement. Not for the product code you are working on."
 user-invocable: false

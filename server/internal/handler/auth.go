@@ -774,6 +774,17 @@ func (h *Handler) IssueCliToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// An external-provider session is bounded by the provider's proof, so the CLI
+	// exchange hands the same token back instead of minting one with a longer life.
+	// Without this, a password sign-in that expires in minutes would become a
+	// durable credential just by calling this endpoint.
+	if raw := bearerSessionToken(r); raw != "" {
+		if claims, claimsErr := auth.ParseSessionToken(raw); claimsErr == nil && auth.IsExternalSession(claims) {
+			writeJSON(w, http.StatusOK, map[string]string{"token": raw})
+			return
+		}
+	}
+
 	user, err := h.Queries.GetUser(r.Context(), parseUUID(userID))
 	if err != nil {
 		writeError(w, http.StatusNotFound, "user not found")
@@ -792,6 +803,18 @@ func (h *Handler) IssueCliToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"token": tokenString})
+}
+
+// bearerSessionToken returns the bearer token of the request, if any. Handlers
+// read it through this helper rather than reaching for the header themselves so
+// "which token is this request running as" has one spelling.
+func bearerSessionToken(r *http.Request) string {
+	header := strings.TrimSpace(r.Header.Get("Authorization"))
+	const prefix = "Bearer "
+	if !strings.HasPrefix(header, prefix) {
+		return ""
+	}
+	return strings.TrimSpace(strings.TrimPrefix(header, prefix))
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
