@@ -11,6 +11,28 @@ related:
 
 # 本地 Docker 部署与客户端接入
 
+## 0. 一条命令（推荐）
+
+```bash
+node scripts/selfhost-local.mjs up      # 或 make selfhost-local
+```
+
+它会：生成 `.env.selfhost`（随机密钥、开发模式、固定验证码 `123456`）→ 自动挑没被占用的
+端口（默认 `8081`/`3100`，开发环境占了 8080 也不会撞）→ 构建并启动 → 等 `/health` →
+把本机的 `~/.multica/desktop.json` 指向这套栈。
+
+```
+web        http://localhost:3100
+api        http://localhost:8081
+desktop    C:\Users\<you>\.multica\desktop.json
+login      任意邮箱 + 验证码 123456
+```
+
+`make selfhost-local-status` 看状态，`make selfhost-local-stop` 停止（保留数据）。
+数据库密码与 `.env.selfhost` 不一致时（旧卷沿用旧密码），脚本会自动 `ALTER ROLE` 修正。
+
+下面是手动方式，想自己控制每一步时用。
+
 两种起法，二选一：
 
 | 场景 | 命令 | 用的镜像 |

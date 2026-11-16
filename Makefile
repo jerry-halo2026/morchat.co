@@ -143,6 +143,15 @@ selfhost-stop: ## Stop the self-hosted Docker Compose stack
 	$(COMPOSE) -f docker-compose.selfhost.yml down
 	@echo "✓ All services stopped."
 
+selfhost-local: ## Local self-host: build, start, wait for health, point the desktop client at it
+	node scripts/selfhost-local.mjs up
+
+selfhost-local-status: ## Show the local self-host stack, URLs and login code
+	node scripts/selfhost-local.mjs status
+
+selfhost-local-stop: ## Stop the local self-host stack (data volumes kept)
+	node scripts/selfhost-local.mjs down
+
 # ---------- Environments ----------
 ##@ Environments
 
