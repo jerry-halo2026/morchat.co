@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ALL_COLOR_IDS, FACE_STYLES, SHAPE_IDS, STYLE_IDS } from "@aora-bot/engine";
 import type { CastId, ColorId, FaceStyle, ShapeId, StyleId } from "@aora-bot/engine";
@@ -58,7 +58,7 @@ export interface AoraCharacterFields {
  * Field *shape* only — which ids exist is asked of the engine id lists, and a
  * value none of them knows sends the slot back to the static renderer rather
  * than drawing a face the persisted spec does not describe. Encoding stays
- * owned by `packages/core/avatar/aora-spec.ts`; nothing here writes a spec.
+ * owned by `packages/ui/lib/aora-spec.ts`; nothing here writes a spec.
  */
 export function readAoraFields(spec: string | null | undefined): AoraCharacterFields | null {
   if (!isAoraSpec(spec)) return null;

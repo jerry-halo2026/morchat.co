@@ -1,4 +1,4 @@
-// Import orchestration for one preset package.
+﻿// Import orchestration for one preset package.
 //
 // The gallery's "one-click import" is a three-stage write against the product
 // API:
@@ -13,7 +13,7 @@
 // All I/O goes through PresetImportRuntime so the sequencing, idempotency and
 // avatar rules are testable without a server.
 
-import { deriveAoraSpec, encodeAoraSpec } from "@morechat/core/avatar/aora-spec";
+import { deriveAoraSpec, encodeAoraSpec } from "@morechat/ui/lib/aora-spec";
 import type {
   PresetPackageDetail,
   PresetWorkflowColumn,

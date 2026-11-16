@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
@@ -22,7 +22,7 @@ import {
   decodeAoraSpec,
   deriveAoraSpec,
   encodeAoraSpec,
-} from "@morechat/core/avatar/aora-spec";
+} from "@morechat/ui/lib/aora-spec";
 import {
   SettingsCard,
   SettingsRow,

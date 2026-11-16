@@ -1,4 +1,4 @@
-import {
+﻿import {
   ALL_COLOR_IDS,
   FACE_STYLES,
   SHAPE_IDS,
@@ -13,7 +13,7 @@ import {
   decodeAoraSpec,
   deriveAoraSpec,
   type AoraSpec,
-} from "@morechat/core/avatar/aora-spec";
+} from "@morechat/ui/lib/aora-spec";
 
 export const runtime = "nodejs";
 

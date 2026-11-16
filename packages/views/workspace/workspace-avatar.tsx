@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
-import { deriveAoraSpec, encodeAoraSpec } from "@morechat/core/avatar/aora-spec";
+import { deriveAoraSpec, encodeAoraSpec } from "@morechat/ui/lib/aora-spec";
 import { isAoraSpec } from "@morechat/ui/components/common/aora-avatar";
 import { AoraCharacter } from "@morechat/ui/components/common/aora-character";
 import { cn } from "@morechat/ui/lib/utils";

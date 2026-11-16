@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import {
@@ -95,7 +95,7 @@ const EYE_SWATCHES = COLOR_SWATCHES.map((swatch) => swatch.id);
  *
  * Every field's value comes from the engine's own id lists, and hosts decode
  * with `decodeAoraSpec` before persisting, so the single decoder in
- * `packages/core/avatar/aora-spec.ts` stays authoritative.
+ * `packages/ui/lib/aora-spec.ts` stays authoritative.
  */
 export function composeAoraSpec(fields: {
   character: string;

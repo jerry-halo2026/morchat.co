@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * The wait screen: this team's face, breathing.
@@ -13,7 +13,7 @@
 
 import { AoraCharacter } from "@morechat/ui/components/common/aora-character";
 import { isAoraSpec } from "@morechat/ui/components/common/aora-avatar";
-import { deriveAoraSpec, encodeAoraSpec } from "@morechat/core/avatar/aora-spec";
+import { deriveAoraSpec, encodeAoraSpec } from "@morechat/ui/lib/aora-spec";
 import { cn } from "@morechat/ui/lib/utils";
 
 /** Stable neutral identity: the same placeholder face on every cold start. */

@@ -1,6 +1,6 @@
-// @vitest-environment node
+﻿// @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { encodeAoraSpec, deriveAoraSpec } from "@morechat/core/avatar/aora-spec";
+import { encodeAoraSpec, deriveAoraSpec } from "@morechat/ui/lib/aora-spec";
 import { GET } from "./route";
 
 const ENTITY_ID = "66b31d32-da58-47a5-a2d5-cb09ebfb4783";

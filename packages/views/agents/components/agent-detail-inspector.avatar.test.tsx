@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+﻿import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Agent } from "@morechat/core/types";
-import { decodeAoraSpec } from "@morechat/core/avatar/aora-spec";
+import { decodeAoraSpec } from "@morechat/ui/lib/aora-spec";
 import { renderWithI18n } from "../../test/i18n";
 import { AgentDetailInspector } from "./agent-detail-inspector";
 

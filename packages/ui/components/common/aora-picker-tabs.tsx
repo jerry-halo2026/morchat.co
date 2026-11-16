@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * The avatar picker as four labelled tabs: shape, colour, drawing style, face.
@@ -33,7 +33,7 @@ import {
   TooltipTrigger,
 } from "@morechat/ui/components/ui/tooltip";
 import { cn } from "@morechat/ui/lib/utils";
-import type { AoraSpec } from "@morechat/core/avatar/aora-spec";
+import type { AoraSpec } from "@morechat/ui/lib/aora-spec";
 
 /** Which axis a tab edits. */
 export type AoraPickerTab = "shape" | "color" | "style" | "face";

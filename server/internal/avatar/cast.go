@@ -1,8 +1,8 @@
-package avatar
+﻿package avatar
 
 // Aora's core cast: the characters a derived avatar is picked from.
 //
-// This is the Go half of packages/core/avatar/aora-cast.ts and holds the same
+// This is the Go half of packages/ui/lib/aora-cast.ts and holds the same
 // rows in the same order. A cast member is a shape plus a colour, so the trio is
 // stored as one row and never chosen apart: that is what gives a derived avatar
 // a character instead of a bare body.

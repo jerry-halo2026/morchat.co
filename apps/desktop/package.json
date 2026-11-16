@@ -1,7 +1,7 @@
 {
   "name": "@morechat/desktop",
   "productName": "morechat.co",
-  "version": "0.8.2",
+  "version": "0.1.0",
   "private": true,
   "description": "morechat.co Desktop — native desktop client for the morechat.co platform.",
   "homepage": "https://morechat.co",

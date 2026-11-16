@@ -50,6 +50,7 @@ export default [
         devDependencies: [
           "**/*.test.{ts,tsx}",
           "**/*.spec.{ts,tsx}",
+          "**/__tests__/**",
           "**/test/**",
           "**/tests/**",
           "**/vitest.config.*",

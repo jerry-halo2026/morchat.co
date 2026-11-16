@@ -18,7 +18,7 @@
     "./attachments/image-sequence": "./attachments/image-sequence.ts",
     "./api": "./api/index.ts",
     "./appearance": "./appearance/index.ts",
-    "./avatar/aora-spec": "./avatar/aora-spec.ts",
+
     "./avatar/product-faces": "./avatar/product-faces.ts",
     "./api/client": "./api/client.ts",
     "./api/schema": "./api/schema.ts",

@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import {
   decodeAoraSpec,
   deriveAoraSpec,
   encodeAoraSpec,
-} from "@morechat/core/avatar/aora-spec";
+} from "@morechat/ui/lib/aora-spec";
 import { AoraAvatarEditor } from "@morechat/ui/components/common/aora-avatar-editor";
 import { useAoraEditorLabels } from "./aora-editor-labels";
 

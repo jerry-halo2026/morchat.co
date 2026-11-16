@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import {
   AVATAR_SIZE_PX,
   DEFAULT_AVATAR_SIZE,
   type AvatarSize,
 } from "@morechat/ui/lib/avatar-size";
-import { decodeAoraSpec, deriveAoraSpec } from "@morechat/core/avatar/aora-spec";
+import { decodeAoraSpec, deriveAoraSpec } from "@morechat/ui/lib/aora-spec";
 import {
   renderStaticSvg,
   type ColorId,
@@ -36,7 +36,7 @@ import { cn } from "@morechat/ui/lib/utils";
  *
  * The cast field may be empty: `aora::blob:blue:capsule:vector:1a2b` is what a
  * spec looks like when nobody named a character and the shape picks the cast —
- * the decoder in `packages/core/avatar/aora-spec.ts` accepts it, and the route
+ * the decoder in `packages/ui/lib/aora-spec.ts` accepts it, and the route
  * renders it as written, so recognizing it here keeps the client from deriving
  * a different face than the route would.
  */

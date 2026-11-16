@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { deriveAoraSpec, encodeAoraSpec } from "@morechat/core/avatar/aora-spec";
+﻿import { describe, expect, it } from "vitest";
+import { deriveAoraSpec, encodeAoraSpec } from "@morechat/ui/lib/aora-spec";
 import { parsePresetCatalog, type PresetPackage } from "./catalog";
 import {
   planPresetImport,

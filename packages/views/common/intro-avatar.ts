@@ -1,5 +1,5 @@
-import { aoraAvatarDataUri } from "@morechat/ui/components/common/aora-avatar";
-import { deriveAoraSpec, encodeAoraSpec } from "@morechat/core/avatar/aora-spec";
+﻿import { aoraAvatarDataUri } from "@morechat/ui/components/common/aora-avatar";
+import { deriveAoraSpec, encodeAoraSpec } from "@morechat/ui/lib/aora-spec";
 
 /**
  * A stable face for the fictional teammates drawn in empty-state art.

@@ -5,7 +5,7 @@ import { NO_ROUND_CONTROLS } from "@morechat/eslint-config/control-shape";
 
 export default [
   ...reactConfig,
-  { ignores: ["out/", "dist/"] },
+  { ignores: ["out/", "dist/", "resources/"] },
   {
     files: ["scripts/**/*.{mjs,js,cjs}"],
     languageOptions: {

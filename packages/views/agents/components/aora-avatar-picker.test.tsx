@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -6,7 +6,7 @@ import {
   decodeAoraSpec,
   deriveAoraSpec,
   encodeAoraSpec,
-} from "@morechat/core/avatar/aora-spec";
+} from "@morechat/ui/lib/aora-spec";
 import { renderWithI18n } from "../../test/i18n";
 import { AoraAvatarPicker } from "./aora-avatar-picker";
 
