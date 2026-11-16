@@ -1,4 +1,4 @@
-package daemon
+﻿package daemon
 
 import (
 	"context"
@@ -201,9 +201,9 @@ func (d *Daemon) activeRepoCheckoutTask(r *http.Request) (activeRepoCheckoutTask
 // the dead end.
 func repoCheckoutListBinariesCommand() string {
 	if runtime.GOOS == "windows" {
-		return "where.exe multica"
+		return "where.exe morechat"
 	}
-	return "which -a multica"
+	return "which -a morechat"
 }
 
 // repoCheckoutAuthErrorMessage builds the rejection body. It has to be
@@ -229,9 +229,9 @@ func (d *Daemon) repoCheckoutAuthErrorMessage(result repoCheckoutAuthResult) str
 
 	var b strings.Builder
 	b.WriteString("repo checkout requires an active task credential, and this request carried none. ")
-	b.WriteString("The multica CLI has sent that credential since ")
+	b.WriteString("The morechat CLI has sent that credential since ")
 	b.WriteString(repoCheckoutMinCLIVersion)
-	b.WriteString(", so this request came from an older `multica` binary")
+	b.WriteString(", so this request came from an older `morechat` binary")
 	if daemonVersion := strings.TrimSpace(d.cfg.CLIVersion); daemonVersion != "" {
 		b.WriteString(" (this daemon runs ")
 		b.WriteString(daemonVersion)
@@ -239,7 +239,7 @@ func (d *Daemon) repoCheckoutAuthErrorMessage(result repoCheckoutAuthResult) str
 	}
 	b.WriteString(" and will fail every time, not intermittently. List every copy on PATH with `")
 	b.WriteString(repoCheckoutListBinariesCommand())
-	b.WriteString("`, check each one's version, then upgrade the stale one with `multica update`")
+	b.WriteString("`, check each one's version, then upgrade the stale one with `morechat update`")
 	b.WriteString(" — it handles Homebrew and direct installs on every platform.")
 	// os.Executable() reports where this process was STARTED from, which is not
 	// a promise about the bytes on disk now: the daemon deliberately supports a

@@ -1,4 +1,4 @@
-package daemon
+﻿package daemon
 
 import (
 	"context"
@@ -77,7 +77,7 @@ func TestTriggerRestart_BrewLinuxCellarDeleted(t *testing.T) {
 	}
 	d.triggerRestart()
 
-	want := filepath.Join(prefix, "bin", "multica")
+	want := filepath.Join(prefix, "bin", "morechat")
 	if got := d.RestartBinary(); got != want {
 		t.Fatalf("restart binary = %q, want %q", got, want)
 	}
@@ -94,7 +94,7 @@ func TestTriggerRestart_UsesResolvedFallback(t *testing.T) {
 		isBrewInstall = originalIsBrewInstall
 	})
 
-	want := filepath.Join(t.TempDir(), "multica")
+	want := filepath.Join(t.TempDir(), "morechat")
 	if err := os.WriteFile(want, []byte("test executable"), 0o755); err != nil {
 		t.Fatalf("write executable fixture: %v", err)
 	}
@@ -700,7 +700,7 @@ func TestTriggerRestart_BrewPrefixUnavailable_FallsBackToKnownPrefix(t *testing.
 	}
 	d.triggerRestart()
 
-	want := filepath.Join(knownPrefix, "bin", "multica")
+	want := filepath.Join(knownPrefix, "bin", "morechat")
 	if got := d.RestartBinary(); got != want {
 		t.Fatalf("restart binary = %q, want %q", got, want)
 	}
