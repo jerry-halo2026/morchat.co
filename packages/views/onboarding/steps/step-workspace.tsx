@@ -502,7 +502,7 @@ function ExistingWorkspaceCard({
           : "hover:border-foreground/20 hover:bg-accent/30",
       )}
     >
-      <WorkspaceAvatar name={workspace.name} avatarUrl={workspace.avatar_url} size="lg" />
+      <WorkspaceAvatar id={workspace.id} name={workspace.name} avatarUrl={workspace.avatar_url} size="lg" />
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="truncate text-body font-medium text-foreground">
           {workspace.name}

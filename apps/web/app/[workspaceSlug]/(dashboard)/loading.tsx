@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 
+import { useCurrentWorkspace } from "@morechat/core/paths";
 import { WorkspaceFaceLoader } from "@morechat/views/common/workspace-face-loader";
 
 // A `loading.tsx` renders as a fallback while the segment resolves, so its `params`
@@ -9,7 +10,16 @@ import { WorkspaceFaceLoader } from "@morechat/views/common/workspace-face-loade
 // "Cannot destructure property 'workspaceSlug' of undefined" on every navigation.
 // The slug comes from the router instead, which is also where the rest of the shell
 // reads it.
+//
+// Once the workspace list resolves the loader switches to the same id (and chosen
+// face) the rail uses, so the wait screen and the shell show one identity.
 export default function WorkspaceLoading() {
   const params = useParams<{ workspaceSlug?: string }>();
-  return <WorkspaceFaceLoader workspaceId={params?.workspaceSlug} />;
+  const workspace = useCurrentWorkspace();
+  return (
+    <WorkspaceFaceLoader
+      workspaceId={workspace?.id ?? params?.workspaceSlug}
+      spec={workspace?.avatar_url}
+    />
+  );
 }

@@ -448,7 +448,6 @@
     }
   },
   "avatar_editor": {
-    "studio": "Edit avatar",
     "shapes": "Shape and colour",
     "preview": "Avatar preview",
     "character": "Character",

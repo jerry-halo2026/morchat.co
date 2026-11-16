@@ -1,6 +1,7 @@
 "use client";
 
 import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
+import { deriveAoraSpec, encodeAoraSpec } from "@morechat/core/avatar/aora-spec";
 import { isAoraSpec } from "@morechat/ui/components/common/aora-avatar";
 import { AoraCharacter } from "@morechat/ui/components/common/aora-character";
 import { cn } from "@morechat/ui/lib/utils";
@@ -58,12 +59,11 @@ function WorkspaceAvatar({
 }: WorkspaceAvatarProps) {
   const rung = sizeMap[size];
 
-  // Order matters. `resolvePublicFileUrl` passes anything that is not a site path
-  // through unchanged, so an `aora:` spec would reach an <img> and render broken.
-  // A character wins before a picture is even considered.
-  const spec = isAoraSpec(avatarUrl) ? avatarUrl : null;
-
-  if (!spec) {
+  // A stored spec is used as-is. A picture is next. Anything else derives a face
+  // from the id: a live character needs a spec to animate, because `AoraCharacter`
+  // falls back to the static image when it has none — which left the rail still.
+  const stored = isAoraSpec(avatarUrl) ? avatarUrl : null;
+  if (!stored) {
     const resolvedUrl = resolvePublicFileUrl(avatarUrl);
     if (resolvedUrl) {
       return (
@@ -75,6 +75,7 @@ function WorkspaceAvatar({
       );
     }
   }
+  const spec = stored ?? encodeAoraSpec(deriveAoraSpec(id ?? name));
 
   // No picture: either a chosen spec, or one derived from the id - which is what
   // makes a workspace recognisable before anyone has picked a face for it.

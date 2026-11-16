@@ -330,7 +330,7 @@ export function RootView({ model, rawQuery }: { model: RootModel; rawQuery: stri
               onSelect={() => palette.navigate(paths.workspace(ws.slug).issues())}
               className={ROW_CLASS}
             >
-              <WorkspaceAvatar name={ws.name} avatarUrl={ws.avatar_url} size="sm" />
+              <WorkspaceAvatar id={ws.id} name={ws.name} avatarUrl={ws.avatar_url} size="sm" />
               <span className="min-w-0 flex-1 truncate">
                 <HighlightText text={ws.name} query={query} />
               </span>

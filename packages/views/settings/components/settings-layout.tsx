@@ -10,7 +10,6 @@ import {
 import { createPortal } from "react-dom";
 import {
   AlertCircle,
-  Building2,
   Check,
   ChevronRight,
   Eye,
@@ -74,18 +73,18 @@ function WorkspaceScopeBadge({
   const { t } = useT("settings");
   const workspace = useCurrentWorkspace();
   const name = workspace?.name ?? t(($) => $.page.workspace_fallback);
-  // A letter avatar is illegible at chip size, so only a real logo is shown.
+  // The shell shows the same derived face the rail does, so the workspace has one
+  // identity: a logo, a chosen Aora face, or the face derived from its id.
   const mark =
     scope === "device-workspace" ? (
       <Laptop aria-hidden="true" className="size-3" />
-    ) : workspace?.avatar_url ? (
+    ) : (
       <WorkspaceAvatar
+        id={workspace?.id}
         name={name}
-        avatarUrl={workspace.avatar_url}
+        avatarUrl={workspace?.avatar_url}
         className="size-3 rounded-xs border-0"
       />
-    ) : (
-      <Building2 aria-hidden="true" className="size-3" />
     );
   const label =
     scope === "workspace"

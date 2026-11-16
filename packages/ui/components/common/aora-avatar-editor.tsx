@@ -19,11 +19,8 @@ import type {
   StyleId,
 } from "@aora-bot/engine";
 import {
-  AvatarButton,
-  AvatarStudio,
   CAST_IDS,
   CharacterMark,
-  type CharacterChoice,
 } from "@aora-bot/react";
 import "@aora-bot/react/styles.css";
 
@@ -140,8 +137,6 @@ export function draftFromAoraSpec(spec: string | null | undefined): Draft {
 }
 
 export interface AoraAvatarEditorLabels {
-  /** Opens upstream's Studio dialog. */
-  studio: string;
   /** Opens the inline shape grid. */
   shapes: string;
   /** Accessible name of the live preview. */
@@ -167,7 +162,6 @@ export interface AoraAvatarEditorLabels {
 }
 
 export const DEFAULT_AORA_EDITOR_LABELS: AoraAvatarEditorLabels = {
-  studio: "Edit avatar",
   shapes: "Shape and colour",
   preview: "Avatar preview",
   character: "Character",
@@ -244,8 +238,6 @@ export function AoraAvatarEditor({
    * only reaches the host once someone says so.
    */
   const [rolled, setRolled] = useState(false);
-  /** Upstream's full Studio, drawn as an overlay so the settings row keeps its height. */
-  const [studioOpen, setStudioOpen] = useState(false);
 
   const accepts = (candidate: string) => (validate ?? isAoraSpec)(candidate);
 
@@ -348,19 +340,6 @@ export function AoraAvatarEditor({
     return steps;
   }, []);
 
-  const studioValue: CharacterChoice = {
-    shape: draft.shape as ShapeId,
-    color: draft.color as ColorId,
-    face: draft.face as FaceStyle,
-  };
-
-  const studioPick = (next: { shape: string; color: string; face?: string }) =>
-    commit({
-      shape: next.shape,
-      color: next.color,
-      face: next.face ?? draft.face,
-    });
-
   /**
    * The face on screen, in whichever slot the layout draws it: the settings
    * form's preview, or the avatar that is itself a button.
@@ -403,19 +382,6 @@ export function AoraAvatarEditor({
       }}
       disabled={disabled}
     />
-  );
-
-  /** The entry to the whole Studio: every field, plus upload and live preview. */
-  const studioEntry = (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      disabled={disabled}
-      onClick={() => setStudioOpen(true)}
-    >
-      {labels.studio}
-    </Button>
   );
 
   /**
@@ -468,8 +434,6 @@ export function AoraAvatarEditor({
                   className={cn(
                     "flex items-center justify-center bg-transparent p-0 outline-none",
                     "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                    // eslint-disable-next-line no-restricted-syntax -- avatar: the control is the avatar itself
-                    "rounded-full",
                   )}
                 >
                   {characterMark(false)}
@@ -480,21 +444,11 @@ export function AoraAvatarEditor({
               {characterCards}
               <div className="flex items-center gap-2 border-t border-border pt-2">
                 {randomControls}
-                {studioEntry}
               </div>
             </PopoverContent>
           </Popover>
-          {studioOpen ? (
-            <AvatarStudio
-              value={studioValue}
-              onCommit={studioPick}
-              onClose={() => setStudioOpen(false)}
-              className="aora-avatar-button__editor"
-            />
-          ) : null}
         </div>
         {randomControls}
-        {studioEntry}
       </div>
     );
   }
@@ -505,7 +459,7 @@ export function AoraAvatarEditor({
       className={cn("flex flex-wrap items-start gap-4", className)}
     >
       <div
-        className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-full"
+        className="relative flex shrink-0 items-center justify-center"
         role="img"
         aria-label={labels.preview}
         style={{ width: sizePx, height: sizePx }}
@@ -604,9 +558,6 @@ export function AoraAvatarEditor({
             {characterCards}
           </PopoverContent>
         </Popover>
-        <div aria-label={labels.studio} role="group">
-          <AvatarButton value={studioValue} sizePx={sizePx} onCommit={studioPick} />
-        </div>
       </div>
     </div>
   );

@@ -16,7 +16,6 @@ export function useAoraEditorLabels(): AoraAvatarEditorLabels {
   const { t } = useT("agents");
   return useMemo(
     () => ({
-      studio: t(($) => $.avatar_editor.studio),
       shapes: t(($) => $.avatar_editor.shapes),
       preview: t(($) => $.avatar_editor.preview),
       character: t(($) => $.avatar_editor.character),

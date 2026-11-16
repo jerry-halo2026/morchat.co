@@ -12,6 +12,8 @@
  */
 
 import { AoraCharacter } from "@morechat/ui/components/common/aora-character";
+import { isAoraSpec } from "@morechat/ui/components/common/aora-avatar";
+import { deriveAoraSpec, encodeAoraSpec } from "@morechat/core/avatar/aora-spec";
 import { cn } from "@morechat/ui/lib/utils";
 
 /** Stable neutral identity: the same placeholder face on every cold start. */
@@ -35,17 +37,21 @@ export function WorkspaceFaceLoader({
   sizePx = 64,
   className,
 }: WorkspaceFaceLoaderProps) {
+  const identity = workspaceId ?? NEUTRAL_ID;
+  // A live face needs a spec; derive the same one the rail shows so the wait screen
+  // is the workspace, not a different placeholder.
+  const faceSpec = isAoraSpec(spec) ? spec : encodeAoraSpec(deriveAoraSpec(identity));
   return (
     <div
       role="status"
       aria-live="polite"
       aria-label={label}
-      className={cn("flex min-h-40 items-center justify-center", className)}
+      className={cn("grid h-full min-h-[60vh] place-items-center", className)}
       data-workspace-face-loader={workspaceId ?? "neutral"}
     >
       <AoraCharacter
-        entityId={workspaceId ?? NEUTRAL_ID}
-        spec={spec}
+        entityId={identity}
+        spec={faceSpec}
         sizePx={sizePx}
         live
         alt={label}
