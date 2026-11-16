@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { ApiClient } from "./client";
 import { createAuthStore } from "../auth/store";
 import type { ApiClient as Client } from "./client";
@@ -24,7 +24,7 @@ describe("provider password sign in",()=>{
 });
 
 describe("native password exchange boundary", () => {
-  it("sends only provider access proof to Multica, never password/refresh/user metadata", async () => {
+  it("sends only provider access proof to the backend, never password/refresh/user metadata", async () => {
     const fetcher = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({ enabled: true, url: "https://qcpgqehqjescuwqhnmie.supabase.co", publishable_key: "sb_publishable_test" })))
       .mockResolvedValueOnce(new Response(JSON.stringify({ access_token: "provider-proof", refresh_token: "provider-refresh", user: { id: "untrusted" } })))

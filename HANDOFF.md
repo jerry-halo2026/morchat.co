@@ -182,7 +182,7 @@
        `setup` 成功提示、邀请邮件兜底地址、公开 API 规格 server 全部 morechat.co。
      - 本地发布 tag：`v0.9.0-morechat.1`（**未 push**；上游同名 `v0.9.0` 仍在）。
      - **故意保留**：`MULTICA_*` 环境变量、`~/.multica`、数据库/角色/容器名、
-       DSH 的 `multica` profile、`multica://` 深链、`multica.ai` 历史文档。
+       DSH 的 `multica` profile、`multica://` 深链、上游域名出现在历史文档里。
    - **Supabase 登录已接上（2026-11-16，可选）**：从 `codex/round1-continuous` 的
      `dc8fe73a8` 移植（`39e3d7b94`）。启用只需 `SUPABASE_URL` +
      `SUPABASE_PUBLISHABLE_KEY`（已写入 `.env.selfhost` 并传入容器），
