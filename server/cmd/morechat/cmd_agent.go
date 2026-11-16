@@ -288,8 +288,8 @@ func newAPIClient(cmd *cobra.Command) (*cli.APIClient, error) {
 }
 
 const (
-	defaultCloudServerURL = "https://api.multica.ai"
-	defaultCloudAppURL    = "https://multica.ai"
+	defaultCloudServerURL = "https://api.morechat.co"
+	defaultCloudAppURL    = "https://morechat.co"
 )
 
 func tryResolveServerURL(cmd *cobra.Command) string {
