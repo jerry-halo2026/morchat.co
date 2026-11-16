@@ -35,9 +35,7 @@ archives:
   # to finish their last self-update before this release line replaces them.
   - id: legacy
     files:
-      - LICENSE*
       - README*
-      - NOTICE
     formats:
       - tar.gz
     format_overrides:
@@ -49,9 +47,7 @@ archives:
   # desktop bootstrap going forward.
   - id: versioned
     files:
-      - LICENSE*
       - README*
-      - NOTICE
     formats:
       - tar.gz
     format_overrides:
@@ -83,9 +79,9 @@ brews:
     directory: Formula
     homepage: "https://github.com/jerry-halo2026/morchat.co"
     description: "morechat CLI — local agent runtime and management tool for the morechat.co platform"
-    # No license stanza: Multica ships under the Multica License (Apache 2.0
-    # terms with additional conditions, see LICENSE), which has no SPDX
-    # identifier, so declaring "Apache-2.0" here would be a false claim.
+    # No license stanza: this fork carries no SPDX-identifiable license file, so
+    # declaring "Apache-2.0" (or any other identifier) here would be a claim the
+    # repository cannot back.
     install: |
       bin.install "morechat"
     test: |
