@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @vitest-environment jsdom
  */
 import { act, render, waitFor } from "@testing-library/react";
@@ -155,7 +155,7 @@ describe("AuthInitializer recovery", () => {
     });
     expect(commands).toMatchObject({
       status: "ready",
-      setupCmd: "multica setup self-host --server-url https://api.example.com --app-url https://app.example.com",
+      setupCmd: "morechat setup self-host --server-url https://api.example.com --app-url https://app.example.com",
     });
     if (commands.status !== "ready") throw new Error("expected self-host commands");
     expect(commands.tokenCmd).toContain("server_url https://api.example.com");

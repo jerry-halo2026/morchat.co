@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen } from "@testing-library/react";
+﻿import { act, cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@morechat/core/i18n/react";
@@ -48,7 +48,7 @@ describe("CliInstallInstructions", () => {
 
   it("does not offer a setup command before connection settings resolve", () => {
     renderInstructions();
-    expect(screen.queryByText("multica setup")).not.toBeInTheDocument();
+    expect(screen.queryByText("morechat setup")).not.toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Copy" })).toHaveLength(1);
     expect(screen.getByRole("status")).toHaveTextContent(
       "Loading connection settings",
@@ -62,7 +62,7 @@ describe("CliInstallInstructions", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Couldn't load connection settings",
     );
-    expect(screen.queryByText("multica setup")).not.toBeInTheDocument();
+    expect(screen.queryByText("morechat setup")).not.toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Copy" })).toHaveLength(1);
     act(() => configStore.getState().setDaemonConfig({
       daemonSetupTarget: "self_host",
@@ -72,7 +72,7 @@ describe("CliInstallInstructions", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     await user.click(screen.getAllByRole("button", { name: "Copy" })[1]!);
     expect(clipboard.copyText).toHaveBeenCalledExactlyOnceWith(
-      "multica setup self-host --server-url https://api.example.com --app-url https://app.example.com",
+      "morechat setup self-host --server-url https://api.example.com --app-url https://app.example.com",
     );
   });
 
@@ -90,7 +90,7 @@ describe("CliInstallInstructions", () => {
     await user.click(screen.getByRole("tab", { name: "Windows" }));
 
     expect(screen.getByText(WINDOWS_CMD)).toBeInTheDocument();
-    expect(screen.getByText("multica setup")).toBeInTheDocument();
+    expect(screen.getByText("morechat setup")).toBeInTheDocument();
   });
 
   it("renders self-host setup command when daemon URLs are configured", () => {
@@ -108,9 +108,9 @@ describe("CliInstallInstructions", () => {
 
     expect(
       screen.getByText(
-        "multica setup self-host --server-url https://api.example.com --app-url https://app.example.com",
+        "morechat setup self-host --server-url https://api.example.com --app-url https://app.example.com",
       ),
     ).toBeInTheDocument();
-    expect(screen.queryByText("multica setup")).not.toBeInTheDocument();
+    expect(screen.queryByText("morechat setup")).not.toBeInTheDocument();
   });
 });

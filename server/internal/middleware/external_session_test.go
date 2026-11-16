@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/multica-ai/multica/server/internal/auth"
+	"github.com/jerry-halo2026/morchat.co/server/internal/auth"
 	"net/http"
 	"net/http/httptest"
 	"testing"

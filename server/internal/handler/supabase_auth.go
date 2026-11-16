@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/multica-ai/multica/server/internal/auth"
-	"github.com/multica-ai/multica/server/internal/supabaseauth"
-	db "github.com/multica-ai/multica/server/pkg/db/generated"
+	"github.com/jerry-halo2026/morchat.co/server/internal/auth"
+	"github.com/jerry-halo2026/morchat.co/server/internal/supabaseauth"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 var errExternalIdentityCollision = errors.New("external identity conflicts with an existing account")

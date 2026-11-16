@@ -765,18 +765,6 @@ func (h *Handler) GoogleLogin(w http.ResponseWriter, r *http.Request) {
 // here as well as at the router (MUL-8154), so a route refactor cannot turn
 // a scoped agent credential into a long-lived session.
 func (h *Handler) IssueCliToken(w http.ResponseWriter, r *http.Request) {
-	// A provider-bound native session can be handed to the CLI, but not
-	// exchanged for a longer-lived credential without fresh provider proof.
-	raw, _ := sessionTokenFromRequest(r)
-	if claims, err := auth.ParseSessionToken(raw); err == nil && auth.IsExternalSession(claims) {
-		identity, ok := middleware.VerifiedIdentityFromContext(r.Context())
-		if !ok || identity.Kind != middleware.VerifiedCredentialSessionJWT || identity.SessionProvenance != middleware.VerifiedSessionProvenanceNativeV1 || claims["sub"] != identity.UserID || identity.UserID != r.Header.Get("X-User-ID") {
-			writeError(w, http.StatusForbidden, "this endpoint requires a verified native session")
-			return
-		}
-		writeJSON(w, http.StatusOK, map[string]string{"token": raw})
-		return
-	}
 	if isMachineCredentialActor(r) {
 		writeError(w, http.StatusForbidden, "this endpoint is only available to human actors")
 		return

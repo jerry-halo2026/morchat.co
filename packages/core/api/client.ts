@@ -1170,7 +1170,7 @@ export class ApiClient {
     return this.fetch("/auth/supabase/config");
   }
 
-  async loginWithPassword(email: string, password: string): Promise<LoginResponse> {
+  async loginWithSupabasePassword(email: string, password: string): Promise<LoginResponse> {
     const config = await this.getSupabaseConfig();
     const access_token = await signInWithSupabasePassword(config, email, password);
     // Never forward password, client user ID/email, refresh tokens or metadata.

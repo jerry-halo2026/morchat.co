@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+﻿import { describe, it, expect, vi, afterEach } from "vitest";
 import { ApiClient } from "./client";
 import { createAuthStore } from "../auth/store";
 import type { ApiClient as Client } from "./client";
@@ -31,7 +31,7 @@ describe("native password exchange boundary", () => {
       .mockResolvedValueOnce(new Response(JSON.stringify({ token: "native-token", user: { id: "native-user" } })));
     vi.stubGlobal("fetch", fetcher);
     const client = new ApiClient("http://localhost:8080");
-    await client.loginWithPassword("person@example.com", "test-password");
+    await client.loginWithSupabasePassword("person@example.com", "test-password");
     expect(fetcher.mock.calls[2]![0]).toBe("http://localhost:8080/auth/supabase");
     expect(JSON.parse(fetcher.mock.calls[2]![1].body)).toEqual({ access_token: "provider-proof" });
     expect(JSON.parse(fetcher.mock.calls[1]![1].body)).toEqual({ email: "person@example.com", password: "test-password" });
