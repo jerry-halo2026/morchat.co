@@ -46,6 +46,7 @@
       "create_members": "Création des membres de l'équipe",
       "create_squad": "Création de l'équipe",
       "save_instructions": "Enregistrement des consignes d'équipe"
-    }
+    },
+    "timeout": "L’importation a expiré pendant {{step}}. Vérifiez le réseau puis réessayez."
   }
 }

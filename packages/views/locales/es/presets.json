@@ -46,6 +46,7 @@
       "create_members": "Creando los miembros del equipo",
       "create_squad": "Creando el equipo",
       "save_instructions": "Guardando las instrucciones del equipo"
-    }
+    },
+    "timeout": "La importación agotó el tiempo durante {{step}}. Revisa la red e inténtalo de nuevo."
   }
 }

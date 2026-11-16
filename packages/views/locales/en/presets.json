@@ -36,7 +36,6 @@
     "runtime_required": "Connect a runtime before importing a preset: agents run on one.",
     "start": "Import preset",
     "running": "Importing…",
-    
     "runtime_link": "Connect a runtime",
     "done": "Imported {{skills}} skills and {{agents}} agents ({{updated}} skills updated).",
     "failed": "The import failed.",
@@ -47,6 +46,7 @@
       "create_members": "Creating team members",
       "create_squad": "Creating the squad",
       "save_instructions": "Saving squad instructions"
-    }
+    },
+    "timeout": "The import timed out while {{step}}. Check the network and try again."
   }
 }

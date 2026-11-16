@@ -46,6 +46,7 @@
       "create_members": "建立團隊成員",
       "create_squad": "建立小隊",
       "save_instructions": "儲存小隊指令"
-    }
+    },
+    "timeout": "匯入在「{{step}}」處逾時，請檢查網路後重試。"
   }
 }

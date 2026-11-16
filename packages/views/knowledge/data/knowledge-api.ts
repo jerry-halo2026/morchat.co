@@ -44,7 +44,22 @@ import type {
   RetrievalTestRequest,
 } from "./types";
 
-const BASE = "/api/knowledge";
+/**
+ * The knowledge surface lives on the API host, not on whatever origin the UI was
+ * served from: the desktop renderer runs on a dev server (or `file://`) where a
+ * relative `/api/knowledge` is a 404, which the screen reports as "backend not
+ * ready". The base therefore comes from the shared API client, which already
+ * knows where the server is (VITE_API_URL in dev, the runtime config in a build).
+ */
+function knowledgeBase(): string {
+  try {
+    const base = getApi().getBaseUrl().replace(/\/+$/, "");
+    if (base) return `${base}/api/knowledge`;
+  } catch {
+    // No API instance (tests, SSR): fall back to the same-origin path.
+  }
+  return "/api/knowledge";
+}
 
 /**
  * The server's own score floor when a request omits `score_threshold`
@@ -126,7 +141,7 @@ async function request<T>(
     params.set(key, String(value));
   }
   const suffix = params.size > 0 ? `?${params.toString()}` : "";
-  const response = await fetch(`${BASE}${path}${suffix}`, {
+  const response = await fetch(`${knowledgeBase()}${path}${suffix}`, {
     ...rest,
     credentials: "include",
     headers: {
@@ -647,7 +662,7 @@ export const knowledgeApi = {
   },
 
   importEventsUrl: (wsId: string, jobId: string) =>
-    `${BASE}/import/${encodeURIComponent(jobId)}/events?workspace_id=${encodeURIComponent(wsId)}`,
+    `${knowledgeBase()}/import/${encodeURIComponent(jobId)}/events?workspace_id=${encodeURIComponent(wsId)}`,
 
   retrievalTest: async (wsId: string, input: RetrievalTestRequest): Promise<RetrievalHit[]> => {
     const raw = await request<unknown>("/retrieval-test", {

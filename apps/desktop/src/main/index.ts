@@ -877,7 +877,7 @@ if (!gotTheLock) {
     });
 
     electronApp.setAppUserModelId(
-      is.dev ? "ai.multica.desktop.dev" : "ai.multica.desktop",
+      is.dev ? "co.morechat.desktop.dev" : "co.morechat.desktop",
     );
 
     // macOS: replace the default Electron dock icon with the bundled logo

@@ -46,6 +46,7 @@
       "create_members": "팀 멤버 만들기",
       "create_squad": "팀 만들기",
       "save_instructions": "팀 지침 저장"
-    }
+    },
+    "timeout": "{{step}} 단계에서 시간 초과되었습니다. 네트워크를 확인한 뒤 다시 시도하세요."
   }
 }

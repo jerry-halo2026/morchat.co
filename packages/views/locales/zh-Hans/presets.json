@@ -36,7 +36,6 @@
     "runtime_required": "导入预设前请先连接运行时：智能体需要运行时才能工作。",
     "start": "导入预设",
     "running": "导入中…",
-    
     "runtime_link": "去连接运行时",
     "done": "已导入 {{skills}} 个技能、{{agents}} 个智能体（其中 {{updated}} 个技能为更新）。",
     "failed": "导入失败。",
@@ -47,6 +46,7 @@
       "create_members": "创建团队成员",
       "create_squad": "创建小队",
       "save_instructions": "保存小队指令"
-    }
+    },
+    "timeout": "导入在「{{step}}」处超时，请检查网络后重试。"
   }
 }

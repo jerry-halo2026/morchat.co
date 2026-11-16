@@ -46,6 +46,7 @@
       "create_members": "チームメンバーを作成",
       "create_squad": "チームを作成",
       "save_instructions": "チーム指示を保存"
-    }
+    },
+    "timeout": "{{step}} の処理中にタイムアウトしました。ネットワークを確認して再試行してください。"
   }
 }

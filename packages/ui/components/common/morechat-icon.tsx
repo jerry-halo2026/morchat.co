@@ -2,8 +2,10 @@ import { useId, type CSSProperties } from "react";
 import { cn } from "../../lib/utils";
 import {
   ICON_BARS,
+  ICON_BAR_FILL,
   ICON_M_PATH,
   ICON_TILE_RADIUS,
+  iconBarTransform,
   iconEdge,
   iconMTransform,
 } from "../../lib/morechat-brand";
@@ -22,6 +24,13 @@ interface MorechatIconProps extends Omit<React.ComponentProps<"svg">, "mode"> {
   mode?: MorechatIconMode;
   /** `circle` is the avatar form; the m sits the same way inside it. */
   shape?: "square" | "circle";
+  /**
+   * Draw the three bars alone, with no tile behind them.
+   *
+   * The sign-in mark uses this: a tile at that size reads as a black square, and
+   * the bars are the part that carries the brand.
+   */
+  bare?: boolean;
   /**
    * Rendered size in px. Sets width/height and the edge thickness, which the
    * spec pins to at least 1px. Omit to size with `className` (1em default).
@@ -47,6 +56,7 @@ const LAUNCH_THINK_AT = "1.5s";
 export function MorechatIcon({
   mode = "static",
   shape = "square",
+  bare = false,
   size,
   title,
   className,
@@ -60,6 +70,40 @@ export function MorechatIcon({
   const intro = mode === "intro" || mode === "launch";
   const tileClass = "fill-morechat-ink dark:fill-morechat-paper";
   const mFill = "fill-morechat-paper dark:fill-morechat-ink";
+  const delay = (s: string): CSSProperties => ({ animationDelay: s });
+
+  if (bare) {
+    return (
+      <svg
+        viewBox="0 0 100 100"
+        role={title ? "img" : undefined}
+        aria-label={title}
+        aria-hidden={title ? undefined : true}
+        className={cn("inline-block shrink-0", size == null && "size-[1em]", intro && "multica-pop", className)}
+        style={{ ...(size != null && { width: size, height: size }), ...(intro && delay("0.1s")), ...style }}
+        {...props}
+      >
+        <g
+          fill={ICON_BAR_FILL}
+          className={intro ? "multica-rise" : undefined}
+          style={intro ? delay("0.35s") : undefined}
+        >
+          {ICON_BARS.map((bar) => (
+            <rect
+              key={bar.x}
+              x={bar.x}
+              y={bar.y}
+              width={bar.width}
+              height={bar.height}
+              rx={bar.rx}
+              opacity={bar.opacity}
+              transform={iconBarTransform(bar)}
+            />
+          ))}
+        </g>
+      </svg>
+    );
+  }
 
   const filled = <path d={ICON_M_PATH} className={mFill} />;
 
@@ -90,8 +134,6 @@ export function MorechatIcon({
       <g clipPath={`url(#${sweepId})`}>{bars}</g>
     </g>
   );
-
-  const delay = (s: string): CSSProperties => ({ animationDelay: s });
 
   return (
     <svg

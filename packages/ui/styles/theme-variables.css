@@ -9,6 +9,12 @@
  * block's ink). Keep this file in step with packages/core/appearance/theme-variables.ts. */
 
 @theme inline {
+    /* Brand marks. `MorechatIcon` paints its tile with ink and its glyph with
+       paper, so the app mark is a dark tile with a light glyph in light mode and
+       the inverse in dark mode; without these two the classes resolve to nothing
+       and the whole SVG falls back to black. */
+    --color-morechat-ink: #111111;
+    --color-morechat-paper: #ffffff;
     --radius-page: var(--page-radius, calc(var(--radius) * 1.5));
     --radius-card: var(--card-radius, calc(var(--radius) * 1.5));
     --radius-menu: var(--menu-radius, calc(var(--radius) * 1.5));

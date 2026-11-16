@@ -91,25 +91,51 @@ export function PresetsScreen({
       setImportingId(pkg.id);
       const toastId = toast.loading(t(($) => $.import.running));
       const runtime = createPresetApiRuntime({ source, client, locale });
+      // A preset's docs come from the preset repository; on a slow or filtered
+      // network a single stalled read would leave the button "Importing…" with no
+      // end in sight. Bound the whole import and name the step it stalled on.
+      type ImportStep =
+        | "load_skills"
+        | "import_skills"
+        | "create_agent"
+        | "create_members"
+        | "create_squad"
+        | "save_instructions";
+      let lastStep: ImportStep = "load_skills";
+      const timeoutMs = 90_000;
       try {
         // The starters live in preset.json; fetch it even if the preview query
         // has not settled, so the imported agent keeps its quick prompts.
         const pkgDetail = await source.loadPackageDetail(pkg);
-        const outcome = await runPresetImport(pkg, runtime, {
-          locale,
-          runtimeId,
-          // A member may prefer a specific harness; only an online runtime of that
-          // provider can honour it, so the map is built from what is awake now.
-          runtimeByProvider: new Map(
-            runtimes
-              .filter((entry) => entry.status === "online")
-              .map((entry) => [entry.provider, entry.id] as const),
+        const outcome = await Promise.race([
+          runPresetImport(pkg, runtime, {
+            locale,
+            runtimeId,
+            // A member may prefer a specific harness; only an online runtime of that
+            // provider can honour it, so the map is built from what is awake now.
+            runtimeByProvider: new Map(
+              runtimes
+                .filter((entry) => entry.status === "online")
+                .map((entry) => [entry.provider, entry.id] as const),
+            ),
+            detail: pkgDetail,
+            onStep: (step) => {
+              lastStep = step;
+              toast.loading(t(($) => $.import.step[step]), { id: toastId });
+            },
+          }),
+          new Promise<never>((_, reject) =>
+            setTimeout(
+              () =>
+                reject(
+                  new Error(
+                    t(($) => $.import.timeout, { step: t(($) => $.import.step[lastStep]) }),
+                  ),
+                ),
+              timeoutMs,
+            ),
           ),
-          detail: pkgDetail,
-          onStep: (step) => {
-            toast.loading(t(($) => $.import.step[step]), { id: toastId });
-          },
-        });
+        ]);
         toast.success(
           t(($) => $.import.done, {
             skills: outcome.skills.length,
