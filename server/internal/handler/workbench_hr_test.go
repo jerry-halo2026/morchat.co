@@ -47,12 +47,18 @@ func createHrCandidateFixture(t *testing.T, jobID, name, phone string) HrCandida
 
 func createHrInterviewFixture(t *testing.T, candidateID, interviewerUserID, scheduledAt string, want int) HrInterviewResponse {
 	t.Helper()
-	req := workbenchRequest(t, "POST", "/api/workbench/hr/interviews", map[string]any{
-		"candidate_id":          candidateID,
-		"scheduled_at":          scheduledAt,
-		"interviewer_member_id": interviewerUserID,
-		"mode":                  "video",
-	}, testUserID)
+	body := map[string]any{
+		"candidate_id": candidateID,
+		"scheduled_at": scheduledAt,
+		"mode":         "video",
+		// Migration 702: the interviewer is recorded by name, because that person
+		// is usually not a workspace member.
+		"interviewer_name": "外部专家 王工",
+	}
+	if interviewerUserID != "" {
+		body["interviewer_member_id"] = interviewerUserID
+	}
+	req := workbenchRequest(t, "POST", "/api/workbench/hr/interviews", body, testUserID)
 	created := testutil.Decode[HrInterviewResponse](t, testHandler.CreateHrInterview, req, want)
 	if want == http.StatusCreated {
 		t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM hr_interview WHERE id = $1`, created.ID) })
@@ -203,6 +209,7 @@ func TestHrInterviewSlotIsExclusive(t *testing.T) {
 		"candidate_id":          second.ID,
 		"scheduled_at":          slot,
 		"interviewer_member_id": interviewerUserID,
+		"interviewer_name":      "Workbench Member",
 	}, testUserID)
 	testutil.Call(t, testHandler.CreateHrInterview, req).Want(http.StatusConflict)
 
@@ -560,4 +567,225 @@ func TestHrInterviewStatusVocabulary(t *testing.T) {
 	req = workbenchRequest(t, "POST", "/api/workbench/hr/candidates/"+candidate.ID+"/hire", nil, testUserID)
 	req = withURLParam(req, "candidateId", candidate.ID)
 	testutil.Call(t, testHandler.HireHrCandidate, req).Want(http.StatusBadRequest)
+}
+
+// TestHrInterviewerNameRequired covers migration 702: the interviewer is usually
+// someone outside the workspace, so the round records their name. A create with
+// neither a name nor a member is a 400, the name comes back on reads, and a body
+// that carries only the member id has the name filled in from that member.
+func TestHrInterviewerNameRequired(t *testing.T) {
+	memberUserID := workbenchTestMember(t)
+	job := createHrJobFixture(t, testUserID, "Interviewer name job")
+	candidate := createHrCandidateFixture(t, job.ID, "Interviewer Name Candidate", "+8613800000010")
+
+	// Nothing says who runs the round: `interviewer_name` is NOT NULL, so this is
+	// the one field a scheduled interview cannot leave empty.
+	req := workbenchRequest(t, "POST", "/api/workbench/hr/interviews", map[string]any{
+		"candidate_id": candidate.ID,
+		"scheduled_at": "2027-06-01T09:00:00Z",
+	}, testUserID)
+	testutil.Call(t, testHandler.CreateHrInterview, req).Want(http.StatusBadRequest)
+
+	// An external interviewer, recorded by name.
+	req = workbenchRequest(t, "POST", "/api/workbench/hr/interviews", map[string]any{
+		"candidate_id":     candidate.ID,
+		"scheduled_at":     "2027-06-01T10:00:00Z",
+		"interviewer_name": "  外部专家 李工  ",
+	}, testUserID)
+	external := testutil.Decode[HrInterviewResponse](t, testHandler.CreateHrInterview, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM hr_interview WHERE id = $1`, external.ID) })
+	if external.InterviewerName != "外部专家 李工" {
+		t.Fatalf("interviewer_name = %q, want the trimmed external name", external.InterviewerName)
+	}
+	if external.InterviewerMemberID != nil {
+		t.Fatalf("interviewer_member_id = %v, want nil for an external interviewer", external.InterviewerMemberID)
+	}
+
+	// The list answers the same name, which is what the board renders.
+	req = workbenchRequest(t, "GET", "/api/workbench/hr/interviews?candidate_id="+candidate.ID, nil, testUserID)
+	var page struct {
+		Interviews []HrInterviewResponse `json:"interviews"`
+		Total      int                   `json:"total"`
+	}
+	testutil.Call(t, testHandler.ListHrInterviews, req).Want(http.StatusOK).JSON(&page)
+	found := false
+	for _, row := range page.Interviews {
+		if row.ID == external.ID {
+			found = true
+			if row.InterviewerName != "外部专家 李工" {
+				t.Fatalf("listed interviewer_name = %q, want 外部专家 李工", row.InterviewerName)
+			}
+		}
+	}
+	if !found {
+		t.Fatalf("interview %s missing from the candidate's list", external.ID)
+	}
+
+	// A body with only the member id: the name falls back to that member's name.
+	req = workbenchRequest(t, "POST", "/api/workbench/hr/interviews", map[string]any{
+		"candidate_id":          candidate.ID,
+		"scheduled_at":          "2027-06-02T10:00:00Z",
+		"interviewer_member_id": memberUserID,
+	}, testUserID)
+	internal := testutil.Decode[HrInterviewResponse](t, testHandler.CreateHrInterview, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM hr_interview WHERE id = $1`, internal.ID) })
+	if internal.InterviewerMemberID == nil || *internal.InterviewerMemberID != memberUserID {
+		t.Fatalf("interviewer_member_id = %v, want %s", internal.InterviewerMemberID, memberUserID)
+	}
+	if internal.InterviewerName != "Workbench Member" {
+		t.Fatalf("interviewer_name = %q, want the member's user name", internal.InterviewerName)
+	}
+
+	// A status-only PATCH keeps the recorded name instead of blanking it.
+	req = workbenchRequest(t, "PATCH", "/api/workbench/hr/interviews/"+external.ID, map[string]any{
+		"status": "done",
+	}, testUserID)
+	req = withURLParam(req, "interviewId", external.ID)
+	patched := testutil.Decode[HrInterviewResponse](t, testHandler.UpdateHrInterview, req, http.StatusOK)
+	if patched.InterviewerName != "外部专家 李工" {
+		t.Fatalf("interviewer_name = %q after a status-only patch, want the stored name",
+			patched.InterviewerName)
+	}
+}
+
+// TestHrScorecardDimensions covers migration 703: `dimensions` round-trips, the
+// server fills `weighted_score` with the dimension mean when the client sends
+// only the map, and a score outside the 0-5 scale is a 400.
+func TestHrScorecardDimensions(t *testing.T) {
+	reviewerUserID := workbenchTestMember(t)
+	job := createHrJobFixture(t, testUserID, "Dimensions job")
+	candidate := createHrCandidateFixture(t, job.ID, "Dimensions Candidate", "+8613800000011")
+	interview := createHrInterviewFixture(t, candidate.ID, reviewerUserID, "2027-07-01T09:00:00Z", http.StatusCreated)
+
+	req := workbenchRequest(t, "POST", "/api/workbench/hr/scorecards", map[string]any{
+		"interview_id":       interview.ID,
+		"reviewer_member_id": reviewerUserID,
+		"dimensions":         map[string]any{"system_design": 4, "communication": 5},
+		"verdict":            "yes",
+	}, testUserID)
+	created := testutil.Decode[HrScorecardResponse](t, testHandler.CreateHrScorecard, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM hr_scorecard WHERE id = $1`, created.ID) })
+
+	if len(created.Dimensions) != 2 ||
+		created.Dimensions["system_design"] != 4 ||
+		created.Dimensions["communication"] != 5 {
+		t.Fatalf("dimensions = %v, want the two scores the body sent", created.Dimensions)
+	}
+	// No total sent: the server fills the mean of 4 and 5.
+	if created.WeightedScore == nil || *created.WeightedScore != 4.5 {
+		t.Fatalf("weighted_score = %v, want the dimension mean 4.5", created.WeightedScore)
+	}
+	// The legacy columns stay empty: the map is the current shape.
+	if created.ScoreSkill != nil {
+		t.Fatalf("score_skill = %v, want nil when only dimensions were sent", created.ScoreSkill)
+	}
+
+	// A PATCH that replaces the map recomputes the mean, and an explicit total wins.
+	req = workbenchRequest(t, "PATCH", "/api/workbench/hr/scorecards/"+created.ID, map[string]any{
+		"dimensions": map[string]any{"system_design": 3, "communication": 3, "culture": 3},
+	}, testUserID)
+	req = withURLParam(req, "scorecardId", created.ID)
+	patched := testutil.Decode[HrScorecardResponse](t, testHandler.UpdateHrScorecard, req, http.StatusOK)
+	if len(patched.Dimensions) != 3 || patched.Dimensions["culture"] != 3 {
+		t.Fatalf("dimensions = %v after the patch, want the replaced map", patched.Dimensions)
+	}
+	if patched.WeightedScore == nil || *patched.WeightedScore != 3 {
+		t.Fatalf("weighted_score = %v, want the new mean 3", patched.WeightedScore)
+	}
+
+	// The 0-5 scale is the contract; a 7 would render off the end of the bar.
+	req = workbenchRequest(t, "PATCH", "/api/workbench/hr/scorecards/"+created.ID, map[string]any{
+		"dimensions": map[string]any{"system_design": 7},
+	}, testUserID)
+	req = withURLParam(req, "scorecardId", created.ID)
+	testutil.Call(t, testHandler.UpdateHrScorecard, req).Want(http.StatusBadRequest)
+
+	// An empty key cannot be labelled in the UI either.
+	req = workbenchRequest(t, "PATCH", "/api/workbench/hr/scorecards/"+created.ID, map[string]any{
+		"dimensions": map[string]any{"  ": 3},
+	}, testUserID)
+	req = withURLParam(req, "scorecardId", created.ID)
+	testutil.Call(t, testHandler.UpdateHrScorecard, req).Want(http.StatusBadRequest)
+}
+
+// TestHrJobScoringFields covers migration 704: the requisition keeps the
+// scoring inputs, the long description and the urgent flag, and a PATCH that
+// omits them keeps the stored values.
+func TestHrJobScoringFields(t *testing.T) {
+	req := workbenchRequest(t, "POST", "/api/workbench/hr/jobs", map[string]any{
+		"title":    "Scoring job",
+		"edu":      "本科",
+		"years":    "3-5 年",
+		"city":     "上海",
+		"jd":       "负责招聘链路的后端设计与交付",
+		"urgent":   true,
+		"keywords": []string{"Go", " 分布式 ", ""},
+	}, testUserID)
+	job := testutil.Decode[HrJobResponse](t, testHandler.CreateHrJob, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM hr_job WHERE id = $1`, job.ID) })
+
+	if job.Edu == nil || *job.Edu != "本科" {
+		t.Fatalf("edu = %v, want 本科", job.Edu)
+	}
+	if job.Years == nil || *job.Years != "3-5 年" {
+		t.Fatalf("years = %v, want 3-5 年", job.Years)
+	}
+	if job.City == nil || *job.City != "上海" {
+		t.Fatalf("city = %v, want 上海", job.City)
+	}
+	if job.Jd == nil || *job.Jd != "负责招聘链路的后端设计与交付" {
+		t.Fatalf("jd = %v, want the sent description", job.Jd)
+	}
+	if !job.Urgent {
+		t.Fatal("urgent = false, want true")
+	}
+	// Keywords are trimmed and blanks dropped: an empty tag would filter nothing.
+	if len(job.Keywords) != 2 || job.Keywords[0] != "Go" || job.Keywords[1] != "分布式" {
+		t.Fatalf("keywords = %v, want [Go 分布式]", job.Keywords)
+	}
+
+	// Omitting the new fields keeps them; an empty list is a deliberate clear.
+	req = workbenchRequest(t, "PATCH", "/api/workbench/hr/jobs/"+job.ID, map[string]any{
+		"status": "open",
+	}, testUserID)
+	req = withURLParam(req, "jobId", job.ID)
+	patched := testutil.Decode[HrJobResponse](t, testHandler.UpdateHrJob, req, http.StatusOK)
+	if patched.Urgent != true || patched.Edu == nil || *patched.Edu != "本科" {
+		t.Fatalf("patched job = %+v, want the stored edu and urgent", patched)
+	}
+	if len(patched.Keywords) != 2 {
+		t.Fatalf("keywords = %v after a status-only patch, want the stored list", patched.Keywords)
+	}
+
+	req = workbenchRequest(t, "PATCH", "/api/workbench/hr/jobs/"+job.ID, map[string]any{
+		"keywords": []string{},
+		"urgent":   false,
+	}, testUserID)
+	req = withURLParam(req, "jobId", job.ID)
+	cleared := testutil.Decode[HrJobResponse](t, testHandler.UpdateHrJob, req, http.StatusOK)
+	if len(cleared.Keywords) != 0 {
+		t.Fatalf("keywords = %v, want the cleared list", cleared.Keywords)
+	}
+	if cleared.Urgent {
+		t.Fatal("urgent = true, want the cleared false")
+	}
+	// The list endpoint returns the same fields, since the board renders them.
+	req = workbenchRequest(t, "GET", "/api/workbench/hr/jobs", nil, testUserID)
+	var page struct {
+		Jobs  []HrJobResponse `json:"jobs"`
+		Total int             `json:"total"`
+	}
+	testutil.Call(t, testHandler.ListHrJobs, req).Want(http.StatusOK).JSON(&page)
+	found := false
+	for _, row := range page.Jobs {
+		if row.ID == job.ID {
+			found = true
+			if row.Jd == nil || *row.Jd != "负责招聘链路的后端设计与交付" {
+				t.Fatalf("listed jd = %v, want the stored description", row.Jd)
+			}
+		}
+	}
+	if !found {
+		t.Fatalf("job %s missing from the list", job.ID)
+	}
 }

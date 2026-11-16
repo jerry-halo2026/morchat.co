@@ -10,9 +10,17 @@
 --
 -- Exclusivity rules live in the schema, not here: "one person, one job" is the
 -- unique expression index idx_hr_candidate_workspace_job_identity, and
--- "one interviewer, one slot" is the inline UNIQUE on hr_interview.
+-- "one interviewer, one slot" is idx_hr_interview_interviewer_slot (701).
 -- CountHrInterviewConflicts reads the same key so the handler can answer 409 with
 -- a message instead of a bare constraint violation.
+--
+-- Two columns are recorded rather than referenced, because the person they name
+-- is usually outside this system (702): `hr_interview.interviewer_name` is the
+-- typed-in name of whoever runs the round, and `interviewer_member_id` stays as
+-- an optional pointer for the internal member who sits in. Scorecard dimensions
+-- (703) are the JSONB map the generated template asks for; the four legacy
+-- score_* columns are read-only. Requisition `keywords` (704) is a JSONB string
+-- array the match score is computed from.
 
 -- name: ListHrJobs :many
 SELECT *
@@ -36,19 +44,24 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archiv
 -- name: CreateHrJob :one
 INSERT INTO hr_job (
     workspace_id, title, department_id, level, headcount, status, salary_min,
-    salary_max, currency, requirements, owner_member_id, created_by
+    salary_max, currency, requirements, edu, years, city, jd, urgent, keywords,
+    owner_member_id, created_by
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('title'), sqlc.narg('department_id')::uuid,
     sqlc.narg('level')::text, sqlc.arg('headcount'), sqlc.narg('status')::text,
     sqlc.narg('salary_min')::numeric, sqlc.narg('salary_max')::numeric,
     sqlc.narg('currency')::text, sqlc.narg('requirements')::text,
+    sqlc.narg('edu')::text, sqlc.narg('years')::text, sqlc.narg('city')::text,
+    sqlc.narg('jd')::text, sqlc.arg('urgent')::boolean, sqlc.arg('keywords')::jsonb,
     sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
 )
 RETURNING *;
 
 -- name: UpdateHrJob :one
 -- The handler loads the row, applies the PATCH fields and resends every column,
--- so an omitted field never silently clears the stored value.
+-- so an omitted field never silently clears the stored value. `keywords` is a
+-- whole-array replace: the requisition's keyword set is small and the client
+-- edits it as one list, so a per-element update would need its own route.
 UPDATE hr_job
 SET title = sqlc.arg('title'),
     department_id = sqlc.narg('department_id')::uuid,
@@ -59,6 +72,12 @@ SET title = sqlc.arg('title'),
     salary_max = sqlc.narg('salary_max')::numeric,
     currency = sqlc.narg('currency')::text,
     requirements = sqlc.narg('requirements')::text,
+    edu = sqlc.narg('edu')::text,
+    years = sqlc.narg('years')::text,
+    city = sqlc.narg('city')::text,
+    jd = sqlc.narg('jd')::text,
+    urgent = sqlc.arg('urgent')::boolean,
+    keywords = sqlc.arg('keywords')::jsonb,
     owner_member_id = sqlc.narg('owner_member_id')::uuid,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL
@@ -167,15 +186,20 @@ SELECT * FROM hr_interview
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
 
 -- name: CreateHrInterview :one
+-- `interviewer_name` is required (the handler rejects an empty one): the person
+-- who runs the round is usually not a workspace member, so the name is the only
+-- thing that says who was there. `interviewer_member_id` rides along when an
+-- internal member sits in, and stays nullable because most rows have none.
 INSERT INTO hr_interview (
     workspace_id, candidate_id, round, scheduled_at, duration_minutes,
-    interviewer_member_id, mode, status, rescheduled_count, note, created_by
+    interviewer_member_id, interviewer_name, mode, status, rescheduled_count,
+    note, created_by
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('candidate_id'), sqlc.arg('round'),
     sqlc.arg('scheduled_at'), sqlc.arg('duration_minutes'),
-    sqlc.narg('interviewer_member_id')::uuid, sqlc.narg('mode')::text,
-    sqlc.arg('status'), sqlc.arg('rescheduled_count'), sqlc.narg('note')::text,
-    sqlc.narg('created_by')::uuid
+    sqlc.narg('interviewer_member_id')::uuid, sqlc.arg('interviewer_name')::text,
+    sqlc.narg('mode')::text, sqlc.arg('status'), sqlc.arg('rescheduled_count'),
+    sqlc.narg('note')::text, sqlc.narg('created_by')::uuid
 )
 RETURNING *;
 
@@ -186,6 +210,7 @@ SET candidate_id = sqlc.arg('candidate_id'),
     scheduled_at = sqlc.arg('scheduled_at'),
     duration_minutes = sqlc.arg('duration_minutes'),
     interviewer_member_id = sqlc.narg('interviewer_member_id')::uuid,
+    interviewer_name = sqlc.arg('interviewer_name')::text,
     mode = sqlc.narg('mode')::text,
     status = sqlc.arg('status'),
     rescheduled_count = sqlc.arg('rescheduled_count'),
@@ -232,15 +257,20 @@ SELECT * FROM hr_scorecard
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
 
 -- name: CreateHrScorecard :one
+-- `dimensions` is the map the generated template asked for (703); the four
+-- legacy score_* columns are written too when a client still sends them, but
+-- nothing reads them once `dimensions` is non-empty.
 INSERT INTO hr_scorecard (
     workspace_id, interview_id, reviewer_member_id, score_skill, score_experience,
-    score_culture, score_potential, weighted_score, verdict, comment, created_by
+    score_culture, score_potential, weighted_score, dimensions, verdict, comment,
+    created_by
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('interview_id'), sqlc.narg('reviewer_member_id')::uuid,
     sqlc.narg('score_skill')::smallint, sqlc.narg('score_experience')::smallint,
     sqlc.narg('score_culture')::smallint, sqlc.narg('score_potential')::smallint,
-    sqlc.narg('weighted_score')::numeric, sqlc.narg('verdict')::text,
-    sqlc.narg('comment')::text, sqlc.narg('created_by')::uuid
+    sqlc.narg('weighted_score')::numeric, sqlc.arg('dimensions')::jsonb,
+    sqlc.narg('verdict')::text, sqlc.narg('comment')::text,
+    sqlc.narg('created_by')::uuid
 )
 RETURNING *;
 
@@ -253,6 +283,7 @@ SET interview_id = sqlc.arg('interview_id'),
     score_culture = sqlc.narg('score_culture')::smallint,
     score_potential = sqlc.narg('score_potential')::smallint,
     weighted_score = sqlc.narg('weighted_score')::numeric,
+    dimensions = sqlc.arg('dimensions')::jsonb,
     verdict = sqlc.narg('verdict')::text,
     comment = sqlc.narg('comment')::text,
     updated_at = now()

@@ -1,0 +1,14 @@
+-- Scorecard dimensions as JSONB, key -> score (0-5), because the dimension set
+-- is a product decision, not a schema one: the scorecard template the AI
+-- generates for a role names its own dimensions ("系统设计", "沟通", "岗位匹配"),
+-- and a fixed column list would need a migration every time a template changes.
+--
+-- The four SMALLINT columns (score_skill / score_experience / score_culture /
+-- score_potential) STAY for compatibility: rows and installed clients written
+-- before this column existed still read them. New code writes `dimensions` only
+-- and treats the four columns as read-only legacy — they are not kept in sync
+-- with `dimensions`, so a reader must not merge the two sets.
+--
+-- NOT NULL DEFAULT '{}': an unscored dimension is simply an absent key, which
+-- keeps "this reviewer did not rate it" distinguishable from a stored 0.
+ALTER TABLE hr_scorecard ADD COLUMN dimensions JSONB NOT NULL DEFAULT '{}'::jsonb;

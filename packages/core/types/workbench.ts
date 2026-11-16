@@ -533,10 +533,11 @@ export type UpdateCrmSettlementRequest = Partial<
 // `archived_at`. The chain is job → candidate → interview → scorecard, plus the
 // employee profile a hire creates.
 //
-// Two exceptions to "everything is a column": `ability` (6 dimensions) and
-// `disc` (four axes) are JSONB, because they are only displayed and fed to the
-// AI context — never sorted, summed or uniquely constrained (§10.2). Everything
-// a metric needs is a real column.
+// Exceptions to "everything is a column": `ability` (6 dimensions), `disc`
+// (four axes), the scorecard's `dimensions` and the requisition's `keywords`
+// are JSONB, because they are only displayed, fed to the AI context, or scored
+// against — never joined on or used as a constraint key (§10.2). Everything a
+// metric needs is a real column.
 
 export type HrJobStatus = "draft" | "open" | "paused" | "closed";
 
@@ -566,7 +567,22 @@ export type HrAbilityScores = Record<string, number>;
 
 export type HrDiscScores = Record<string, number>;
 
-/** An opening. `headcount` is a plan, not a count of hired candidates. */
+/**
+ * One scorecard's per-dimension scores: dimension name → 0–5. An open map
+ * because the dimension set comes from the template the AI generates for the
+ * role, not from a fixed column list (§10.2). A dimension the reviewer did not
+ * rate is simply absent — different from a stored 0.
+ */
+export type HrScorecardDimensions = Record<string, number>;
+
+/**
+ * An opening. `headcount` is a plan, not a count of hired candidates.
+ *
+ * `edu` / `years` / `city` / `keywords` are what `match_score` is computed
+ * against, and `jd` is the prompt the AI drafts the posting and interview
+ * questions from — both are free text on purpose: "3-5 年" and "本科以上" are
+ * what a recruiter typed, not a vocabulary the schema can constrain.
+ */
 export interface HrJob {
   id: string;
   workspace_id: string;
@@ -580,6 +596,17 @@ export interface HrJob {
   salary_max: number | null;
   currency: string;
   requirements: string | null;
+  /** Required education, free text ("本科", "硕士或同等经验"). */
+  edu: string | null;
+  /** Required experience, free text ("3-5 年"). */
+  years: string | null;
+  city: string | null;
+  /** Long-form description; the AI generation input. */
+  jd: string | null;
+  /** The 急招 flag the funnel pins. */
+  urgent: boolean;
+  /** JSONB string array; always present, possibly empty. */
+  keywords: string[];
   owner_member_id: string | null;
   created_by: string | null;
   created_at: string;
@@ -629,7 +656,15 @@ export interface HrInterview {
   round: number;
   scheduled_at: string;
   duration_minutes: number;
+  /** Optional pointer: set when an internal member sits in. */
   interviewer_member_id: string | null;
+  /**
+   * Who runs the round. Usually an outside person, so this is a recorded name
+   * rather than a reference; empty only for rows from before the column existed
+   * whose member could not be resolved. The server fills it from the member when
+   * the request carries only `interviewer_member_id`.
+   */
+  interviewer_name: string;
   /** Null while nobody has picked a channel; the column allows NULL. */
   mode: HrInterviewMode | null;
   status: HrInterviewStatus;
@@ -652,13 +687,18 @@ export interface HrScorecard {
   workspace_id: string;
   interview_id: string;
   reviewer_member_id: string | null;
-  /** SMALLINT 0–5 per dimension; null = that dimension was not rated. */
+  /** Legacy columns: 0–5 per dimension, read-only. New code writes `dimensions`. */
   score_skill: number | null;
   score_experience: number | null;
   score_culture: number | null;
   score_potential: number | null;
-  /** NUMERIC(5,2) 0–100, server-weighted from the four dimensions. */
+  /**
+   * NUMERIC(5,2) on the dimension scale (0–5). The server fills it with the mean
+   * of `dimensions` when the client sends the map without a total.
+   */
   weighted_score: number | null;
+  /** The current shape: dimension name → 0–5. Always an object, possibly empty. */
+  dimensions: HrScorecardDimensions;
   verdict: HrScorecardVerdict | null;
   comment: string | null;
   created_by: string | null;
@@ -762,6 +802,12 @@ export type CreateHrJobRequest = Pick<HrJob, "title"> &
       | "salary_max"
       | "currency"
       | "requirements"
+      | "edu"
+      | "years"
+      | "city"
+      | "jd"
+      | "urgent"
+      | "keywords"
       | "owner_member_id"
     >
   >;
@@ -778,6 +824,12 @@ export type UpdateHrJobRequest = Partial<
     | "salary_max"
     | "currency"
     | "requirements"
+    | "edu"
+    | "years"
+    | "city"
+    | "jd"
+    | "urgent"
+    | "keywords"
     | "owner_member_id"
   >
 >;
@@ -828,7 +880,10 @@ export type UpdateHrCandidateRequest = Partial<
 >;
 
 /** `rescheduled_count` is server-managed: a PATCH that moves `scheduled_at`
- *  increments it, and a client-supplied value would overwrite the audit count. */
+ *  increments it, and a client-supplied value would overwrite the audit count.
+ *  `interviewer_name` is optional on the wire — a body that carries only
+ *  `interviewer_member_id` has the name filled in from that member — but the
+ *  server answers 400 when neither is present. */
 export type CreateHrInterviewRequest = Pick<HrInterview, "candidate_id" | "scheduled_at"> &
   Partial<
     Pick<
@@ -836,6 +891,7 @@ export type CreateHrInterviewRequest = Pick<HrInterview, "candidate_id" | "sched
       | "round"
       | "duration_minutes"
       | "interviewer_member_id"
+      | "interviewer_name"
       | "mode"
       | "status"
       | "note"
@@ -850,6 +906,7 @@ export type UpdateHrInterviewRequest = Partial<
     | "scheduled_at"
     | "duration_minutes"
     | "interviewer_member_id"
+    | "interviewer_name"
     | "mode"
     | "status"
     | "note"
@@ -866,6 +923,7 @@ export type CreateHrScorecardRequest = Pick<HrScorecard, "interview_id"> &
       | "score_culture"
       | "score_potential"
       | "weighted_score"
+      | "dimensions"
       | "verdict"
       | "comment"
     >
@@ -881,6 +939,7 @@ export type UpdateHrScorecardRequest = Partial<
     | "score_culture"
     | "score_potential"
     | "weighted_score"
+    | "dimensions"
     | "verdict"
     | "comment"
   >

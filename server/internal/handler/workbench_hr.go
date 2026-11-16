@@ -10,6 +10,13 @@ package handler
 // a candidate — so the gate reads the candidate's owner instead of inventing a
 // second source of truth, exactly as a settlement reads its collaboration's.
 //
+// Three of these records are information rather than references (migrations
+// 702-704): an interview carries `interviewer_name` because the person running
+// the round is usually outside the workspace, a scorecard carries `dimensions`
+// because the generated template names its own dimensions, and a requisition
+// carries the `edu` / `years` / `city` / `keywords` the match score is computed
+// from plus the `jd` the AI drafts the posting and questions from.
+//
 // Two invariants the schema owns, turned into answers here:
 //
 //   - "one person, one job": a candidate that already exists in the requisition
@@ -71,16 +78,28 @@ func (h *Handler) publishHrChanged(eventType, workspaceID, id, actorID string) {
 // HrJobRequest is both the create body and the PATCH body: every field is
 // optional and create fills the required ones in from defaults it rejects when
 // missing.
+//
+// `edu` / `years` / `city` / `keywords` are the match-score inputs and `jd` is
+// the AI input (§10.2, migration 704), so they are passed through verbatim
+// rather than normalised: "3-5 年" and "本科以上" are what a recruiter typed and
+// what the scorer compares against.
 type HrJobRequest struct {
-	Title         *string  `json:"title"`
-	DepartmentID  *string  `json:"department_id"`
-	Level         *string  `json:"level"`
-	Headcount     *int32   `json:"headcount"`
-	Status        *string  `json:"status"`
-	SalaryMin     *float64 `json:"salary_min"`
-	SalaryMax     *float64 `json:"salary_max"`
-	Currency      *string  `json:"currency"`
-	Requirements  *string  `json:"requirements"`
+	Title        *string  `json:"title"`
+	DepartmentID *string  `json:"department_id"`
+	Level        *string  `json:"level"`
+	Headcount    *int32   `json:"headcount"`
+	Status       *string  `json:"status"`
+	SalaryMin    *float64 `json:"salary_min"`
+	SalaryMax    *float64 `json:"salary_max"`
+	Currency     *string  `json:"currency"`
+	Requirements *string  `json:"requirements"`
+	Edu          *string  `json:"edu"`
+	Years        *string  `json:"years"`
+	City         *string  `json:"city"`
+	Jd           *string  `json:"jd"`
+	Urgent       *bool    `json:"urgent"`
+	// A nil slice means "not sent"; an empty non-nil slice clears the list.
+	Keywords      []string `json:"keywords"`
 	OwnerMemberID *string  `json:"owner_member_id"`
 }
 
@@ -123,28 +142,39 @@ type HrHireRequest struct {
 
 // HrInterviewRequest is the create/PATCH body for one interview round.
 // `rescheduled_count` is derived, not sent: moving `scheduled_at` increments it.
+//
+// `interviewer_name` names the person who runs the round, because that person is
+// usually not a workspace member (§10.2, migration 702). `interviewer_member_id`
+// stays optional: an internal member who sits in leaves the pointer behind, and
+// the handler fills the name in from it when the body sends only the id.
 type HrInterviewRequest struct {
 	CandidateID         *string `json:"candidate_id"`
 	Round               *int16  `json:"round"`
 	ScheduledAt         *string `json:"scheduled_at"`
 	DurationMinutes     *int32  `json:"duration_minutes"`
 	InterviewerMemberID *string `json:"interviewer_member_id"`
+	InterviewerName     *string `json:"interviewer_name"`
 	Mode                *string `json:"mode"`
 	Status              *string `json:"status"`
 	Note                *string `json:"note"`
 }
 
 // HrScorecardRequest is the create/PATCH body for one reviewer's scorecard.
+// `dimensions` is the map the generated template asks for (migration 703): keys
+// are dimension names, values are 0-5. The four `score_*` integers are still
+// accepted for clients that predate the map; they are stored as-is and never
+// folded into `dimensions`.
 type HrScorecardRequest struct {
-	InterviewID      *string  `json:"interview_id"`
-	ReviewerMemberID *string  `json:"reviewer_member_id"`
-	ScoreSkill       *int16   `json:"score_skill"`
-	ScoreExperience  *int16   `json:"score_experience"`
-	ScoreCulture     *int16   `json:"score_culture"`
-	ScorePotential   *int16   `json:"score_potential"`
-	WeightedScore    *float64 `json:"weighted_score"`
-	Verdict          *string  `json:"verdict"`
-	Comment          *string  `json:"comment"`
+	InterviewID      *string            `json:"interview_id"`
+	ReviewerMemberID *string            `json:"reviewer_member_id"`
+	ScoreSkill       *int16             `json:"score_skill"`
+	ScoreExperience  *int16             `json:"score_experience"`
+	ScoreCulture     *int16             `json:"score_culture"`
+	ScorePotential   *int16             `json:"score_potential"`
+	WeightedScore    *float64           `json:"weighted_score"`
+	Dimensions       map[string]float64 `json:"dimensions"`
+	Verdict          *string            `json:"verdict"`
+	Comment          *string            `json:"comment"`
 }
 
 // HrEmployeeProfileRequest is the create/PATCH body for an employee profile.
@@ -165,17 +195,24 @@ type HrEmployeeProfileRequest struct {
 // ---- responses -------------------------------------------------------------
 
 type HrJobResponse struct {
-	ID            string   `json:"id"`
-	WorkspaceID   string   `json:"workspace_id"`
-	Title         string   `json:"title"`
-	DepartmentID  *string  `json:"department_id"`
-	Level         *string  `json:"level"`
-	Headcount     int32    `json:"headcount"`
-	Status        *string  `json:"status"`
-	SalaryMin     *float64 `json:"salary_min"`
-	SalaryMax     *float64 `json:"salary_max"`
-	Currency      *string  `json:"currency"`
-	Requirements  *string  `json:"requirements"`
+	ID           string   `json:"id"`
+	WorkspaceID  string   `json:"workspace_id"`
+	Title        string   `json:"title"`
+	DepartmentID *string  `json:"department_id"`
+	Level        *string  `json:"level"`
+	Headcount    int32    `json:"headcount"`
+	Status       *string  `json:"status"`
+	SalaryMin    *float64 `json:"salary_min"`
+	SalaryMax    *float64 `json:"salary_max"`
+	Currency     *string  `json:"currency"`
+	Requirements *string  `json:"requirements"`
+	Edu          *string  `json:"edu"`
+	Years        *string  `json:"years"`
+	City         *string  `json:"city"`
+	Jd           *string  `json:"jd"`
+	Urgent       bool     `json:"urgent"`
+	// Always an array, never null: the client maps over it directly.
+	Keywords      []string `json:"keywords"`
 	OwnerMemberID *string  `json:"owner_member_id"`
 	CreatedBy     *string  `json:"created_by"`
 	CreatedAt     string   `json:"created_at"`
@@ -195,6 +232,12 @@ func hrJobToResponse(j db.HrJob) HrJobResponse {
 		SalaryMax:     numericToFloatPtr(j.SalaryMax),
 		Currency:      stringPtr(j.Currency),
 		Requirements:  textToPtr(j.Requirements),
+		Edu:           textToPtr(j.Edu),
+		Years:         textToPtr(j.Years),
+		City:          textToPtr(j.City),
+		Jd:            textToPtr(j.Jd),
+		Urgent:        j.Urgent,
+		Keywords:      hrKeywordList(j.Keywords),
 		OwnerMemberID: uuidToPtr(j.OwnerMemberID),
 		CreatedBy:     uuidToPtr(j.CreatedBy),
 		CreatedAt:     timestampToString(j.CreatedAt),
@@ -262,13 +305,17 @@ type HrInterviewResponse struct {
 	ScheduledAt         string  `json:"scheduled_at"`
 	DurationMinutes     int32   `json:"duration_minutes"`
 	InterviewerMemberID *string `json:"interviewer_member_id"`
-	Mode                *string `json:"mode"`
-	Status              string  `json:"status"`
-	RescheduledCount    int32   `json:"rescheduled_count"`
-	Note                *string `json:"note"`
-	CreatedBy           *string `json:"created_by"`
-	CreatedAt           string  `json:"created_at"`
-	UpdatedAt           string  `json:"updated_at"`
+	// The display name of whoever runs the round, typed in by the recruiter or
+	// filled from `interviewer_member_id`. Empty only for rows recorded before
+	// migration 702 whose member could not be resolved.
+	InterviewerName  string  `json:"interviewer_name"`
+	Mode             *string `json:"mode"`
+	Status           string  `json:"status"`
+	RescheduledCount int32   `json:"rescheduled_count"`
+	Note             *string `json:"note"`
+	CreatedBy        *string `json:"created_by"`
+	CreatedAt        string  `json:"created_at"`
+	UpdatedAt        string  `json:"updated_at"`
 }
 
 func hrInterviewToResponse(i db.HrInterview) HrInterviewResponse {
@@ -280,6 +327,7 @@ func hrInterviewToResponse(i db.HrInterview) HrInterviewResponse {
 		ScheduledAt:         timestampToString(i.ScheduledAt),
 		DurationMinutes:     i.DurationMinutes,
 		InterviewerMemberID: uuidToPtr(i.InterviewerMemberID),
+		InterviewerName:     i.InterviewerName,
 		Mode:                textToPtr(i.Mode),
 		Status:              i.Status,
 		RescheduledCount:    i.RescheduledCount,
@@ -300,11 +348,13 @@ type HrScorecardResponse struct {
 	ScoreCulture     *int32   `json:"score_culture"`
 	ScorePotential   *int32   `json:"score_potential"`
 	WeightedScore    *float64 `json:"weighted_score"`
-	Verdict          *string  `json:"verdict"`
-	Comment          *string  `json:"comment"`
-	CreatedBy        *string  `json:"created_by"`
-	CreatedAt        string   `json:"created_at"`
-	UpdatedAt        string   `json:"updated_at"`
+	// Always an object, never null: an unscored card is `{}`.
+	Dimensions map[string]float64 `json:"dimensions"`
+	Verdict    *string            `json:"verdict"`
+	Comment    *string            `json:"comment"`
+	CreatedBy  *string            `json:"created_by"`
+	CreatedAt  string             `json:"created_at"`
+	UpdatedAt  string             `json:"updated_at"`
 }
 
 func hrScorecardToResponse(s db.HrScorecard) HrScorecardResponse {
@@ -318,6 +368,7 @@ func hrScorecardToResponse(s db.HrScorecard) HrScorecardResponse {
 		ScoreCulture:     int2ToPtr(s.ScoreCulture),
 		ScorePotential:   int2ToPtr(s.ScorePotential),
 		WeightedScore:    numericToFloatPtr(s.WeightedScore),
+		Dimensions:       hrDimensionMap(s.Dimensions),
 		Verdict:          textToPtr(s.Verdict),
 		Comment:          textToPtr(s.Comment),
 		CreatedBy:        uuidToPtr(s.CreatedBy),
@@ -435,6 +486,110 @@ func workbenchJSONObject(w http.ResponseWriter, raw *json.RawMessage, fieldName 
 	return []byte(trimmed), true
 }
 
+// ---- JSONB list and map columns (702-704) ----------------------------------
+
+// hrKeywordList renders `hr_job.keywords` (JSONB array of strings) for JSON. A
+// drifted value — an object, a scalar, malformed JSON — degrades to an empty
+// list, because the client maps over the result and a vanished requisition is a
+// worse failure than a lost tag.
+func hrKeywordList(raw []byte) []string {
+	keywords := []string{}
+	trimmed := strings.TrimSpace(string(raw))
+	if trimmed == "" || trimmed == "null" {
+		return keywords
+	}
+	if err := json.Unmarshal([]byte(trimmed), &keywords); err != nil || keywords == nil {
+		return []string{}
+	}
+	return keywords
+}
+
+// hrKeywordsColumn serializes a requested keyword list for the JSONB column.
+// nil means "the body did not carry the field", which the caller keeps as
+// stored; an empty non-nil list is a deliberate clear and serializes to `[]`.
+func hrKeywordsColumn(keywords []string) []byte {
+	if keywords == nil {
+		return nil
+	}
+	cleaned := make([]string, 0, len(keywords))
+	for _, keyword := range keywords {
+		if trimmed := strings.TrimSpace(keyword); trimmed != "" {
+			cleaned = append(cleaned, trimmed)
+		}
+	}
+	raw, err := json.Marshal(cleaned)
+	if err != nil {
+		return []byte("[]")
+	}
+	return raw
+}
+
+// hrDimensionMap renders `hr_scorecard.dimensions` (JSONB object) for JSON.
+// Same leniency as the employee profile's ability/disc maps: a drifted value
+// costs the panel, not the row.
+func hrDimensionMap(raw []byte) map[string]float64 {
+	dimensions := map[string]float64{}
+	trimmed := strings.TrimSpace(string(raw))
+	if trimmed == "" || trimmed == "null" {
+		return dimensions
+	}
+	if err := json.Unmarshal([]byte(trimmed), &dimensions); err != nil || dimensions == nil {
+		return map[string]float64{}
+	}
+	return dimensions
+}
+
+// hrDimensionColumn serializes a requested dimension map, trimming the keys so
+// "  沟通 " and "沟通" are one dimension. nil means "not sent".
+func hrDimensionColumn(dimensions map[string]float64) []byte {
+	if dimensions == nil {
+		return nil
+	}
+	cleaned := make(map[string]float64, len(dimensions))
+	for name, score := range dimensions {
+		cleaned[strings.TrimSpace(name)] = score
+	}
+	raw, err := json.Marshal(cleaned)
+	if err != nil {
+		return []byte("{}")
+	}
+	return raw
+}
+
+// hrValidateDimensions enforces the map's contract before it reaches the
+// column: every key names a dimension, every value sits on the 0-5 scale the
+// template draws. A score outside that range would render off the end of the
+// bar, and an empty key would be a dimension nobody can label.
+func hrValidateDimensions(w http.ResponseWriter, dimensions map[string]float64) bool {
+	for name, score := range dimensions {
+		if strings.TrimSpace(name) == "" {
+			writeError(w, http.StatusBadRequest, "dimensions keys must be non-empty")
+			return false
+		}
+		if score < 0 || score > 5 {
+			writeError(w, http.StatusBadRequest, "dimensions values must be between 0 and 5")
+			return false
+		}
+	}
+	return true
+}
+
+// hrDimensionMean is the server's fallback for `weighted_score`: the mean of the
+// dimension scores, left on the same 0-5 scale as the dimensions themselves so
+// the number stays comparable with a card that sent its own weighted score. An
+// empty map answers `false`, which keeps a card with no dimensions weighted-null
+// rather than 0.
+func hrDimensionMean(dimensions map[string]float64) (float64, bool) {
+	if len(dimensions) == 0 {
+		return 0, false
+	}
+	var sum float64
+	for _, score := range dimensions {
+		sum += score
+	}
+	return sum / float64(len(dimensions)), true
+}
+
 // ---- relationship helpers --------------------------------------------------
 
 // requireHrJobInWorkspace is the relationship check the missing foreign key would
@@ -514,7 +669,34 @@ func (h *Handler) requireHrMember(w http.ResponseWriter, r *http.Request, scope 
 	return memberID, true
 }
 
+// hrInterviewerName resolves the name an interview records. The typed-in name
+// wins; a body that carries only `interviewer_member_id` falls back to that
+// member's user name, which is the name the UI already shows for an internal
+// interviewer. An interview with neither is a 400: the column is NOT NULL and
+// "who runs this round" is the one thing a scheduled row must be able to answer.
+func (h *Handler) hrInterviewerName(ctx context.Context, w http.ResponseWriter, scope workbenchScope, interviewer pgtype.UUID, raw *string) (string, bool) {
+	if name := strings.TrimSpace(valueOrEmpty(raw)); name != "" {
+		return name, true
+	}
+	if interviewer.Valid {
+		member, err := h.Queries.GetMemberByUserAndWorkspace(ctx, db.GetMemberByUserAndWorkspaceParams{
+			UserID:      interviewer,
+			WorkspaceID: scope.WorkspaceUUID,
+		})
+		if err == nil {
+			if user, err := h.Queries.GetUser(ctx, member.UserID); err == nil {
+				if name := strings.TrimSpace(user.Name); name != "" {
+					return name, true
+				}
+			}
+		}
+	}
+	writeError(w, http.StatusBadRequest, "interviewer_name is required")
+	return "", false
+}
+
 // hrInterviewSlotFree answers the interviewer×slot exclusivity rule. An interview
+
 // without an interviewer reserves nothing, and `excludeID` lets a reschedule
 // ignore the row it is moving. The unique constraint behind it is the race-safe
 // backstop; this read exists so the common case answers 409 with a message
@@ -779,6 +961,12 @@ func (h *Handler) CreateHrJob(w http.ResponseWriter, r *http.Request) {
 		SalaryMax:     floatToNumeric(req.SalaryMax),
 		Currency:      strToText(currency),
 		Requirements:  optionalTrimmedText(req.Requirements),
+		Edu:           optionalTrimmedText(req.Edu),
+		Years:         optionalTrimmedText(req.Years),
+		City:          optionalTrimmedText(req.City),
+		Jd:            optionalTrimmedText(req.Jd),
+		Urgent:        boolValue(req.Urgent),
+		Keywords:      applyJSONPatch(hrKeywordsColumn(req.Keywords), []byte("[]")),
 		OwnerMemberID: owner,
 		CreatedBy:     scope.Member.UserID,
 	})
@@ -877,6 +1065,12 @@ func (h *Handler) UpdateHrJob(w http.ResponseWriter, r *http.Request) {
 		SalaryMax:     applyNumericPatch(req.SalaryMax, current.SalaryMax),
 		Currency:      strToText(currency),
 		Requirements:  applyTextPatch(req.Requirements, current.Requirements),
+		Edu:           applyTextPatch(req.Edu, current.Edu),
+		Years:         applyTextPatch(req.Years, current.Years),
+		City:          applyTextPatch(req.City, current.City),
+		Jd:            applyTextPatch(req.Jd, current.Jd),
+		Urgent:        applyBoolPatch(req.Urgent, current.Urgent),
+		Keywords:      applyJSONPatch(hrKeywordsColumn(req.Keywords), current.Keywords),
 		OwnerMemberID: owner,
 	})
 	if err != nil {
@@ -1460,6 +1654,10 @@ func (h *Handler) CreateHrInterview(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	interviewerName, ok := h.hrInterviewerName(r.Context(), w, scope, interviewerID, req.InterviewerName)
+	if !ok {
+		return
+	}
 	mode := strings.TrimSpace(valueOrEmpty(req.Mode))
 	if mode != "" && !hrInterviewModes[mode] {
 		writeError(w, http.StatusBadRequest, "mode must be onsite, video or phone")
@@ -1484,6 +1682,7 @@ func (h *Handler) CreateHrInterview(w http.ResponseWriter, r *http.Request) {
 		ScheduledAt:         scheduledAt,
 		DurationMinutes:     applyInt32Value(req.DurationMinutes, 45),
 		InterviewerMemberID: interviewerID,
+		InterviewerName:     interviewerName,
 		Mode:                optionalTrimmedText(req.Mode),
 		Status:              status,
 		RescheduledCount:    0,
@@ -1574,6 +1773,17 @@ func (h *Handler) UpdateHrInterview(w http.ResponseWriter, r *http.Request) {
 		}
 		interviewerID = parsed
 	}
+	// An omitted name keeps the stored one (a status-only PATCH must not blank
+	// who was in the room); a sent-but-empty name falls back to the member's
+	// name, and fails when there is nothing to fall back to.
+	interviewerName := current.InterviewerName
+	if req.InterviewerName != nil {
+		resolved, ok := h.hrInterviewerName(r.Context(), w, scope, interviewerID, req.InterviewerName)
+		if !ok {
+			return
+		}
+		interviewerName = resolved
+	}
 	status := current.Status
 	if req.Status != nil {
 		status = strings.TrimSpace(*req.Status)
@@ -1606,6 +1816,7 @@ func (h *Handler) UpdateHrInterview(w http.ResponseWriter, r *http.Request) {
 		ScheduledAt:         scheduledAt,
 		DurationMinutes:     applyInt32Value(req.DurationMinutes, current.DurationMinutes),
 		InterviewerMemberID: interviewerID,
+		InterviewerName:     interviewerName,
 		Mode:                applyTextPatch(req.Mode, current.Mode),
 		Status:              status,
 		RescheduledCount:    rescheduledCount,
@@ -1726,6 +1937,18 @@ func (h *Handler) CreateHrScorecard(w http.ResponseWriter, r *http.Request) {
 	if !hrScorecardVerdict(w, req.Verdict) {
 		return
 	}
+	if !hrValidateDimensions(w, req.Dimensions) {
+		return
+	}
+	// The dimension mean fills `weighted_score` when the client sent the map but
+	// no total: the template's total is a function of its dimensions, so a server
+	// that recomputes it keeps a map-only client's cards comparable.
+	weightedScore := req.WeightedScore
+	if weightedScore == nil {
+		if mean, ok := hrDimensionMean(req.Dimensions); ok {
+			weightedScore = &mean
+		}
+	}
 
 	scorecard, err := h.Queries.CreateHrScorecard(r.Context(), db.CreateHrScorecardParams{
 		WorkspaceID:      scope.WorkspaceUUID,
@@ -1735,7 +1958,8 @@ func (h *Handler) CreateHrScorecard(w http.ResponseWriter, r *http.Request) {
 		ScoreExperience:  applyInt2Patch(req.ScoreExperience, pgtype.Int2{}),
 		ScoreCulture:     applyInt2Patch(req.ScoreCulture, pgtype.Int2{}),
 		ScorePotential:   applyInt2Patch(req.ScorePotential, pgtype.Int2{}),
-		WeightedScore:    floatToNumeric(req.WeightedScore),
+		WeightedScore:    floatToNumeric(weightedScore),
+		Dimensions:       applyJSONPatch(hrDimensionColumn(req.Dimensions), hrEmptyJSONObject),
 		Verdict:          optionalTrimmedText(req.Verdict),
 		Comment:          optionalTrimmedText(req.Comment),
 		CreatedBy:        scope.Member.UserID,
@@ -1796,6 +2020,17 @@ func (h *Handler) UpdateHrScorecard(w http.ResponseWriter, r *http.Request) {
 	if !hrScorecardVerdict(w, req.Verdict) {
 		return
 	}
+	if !hrValidateDimensions(w, req.Dimensions) {
+		return
+	}
+	// An explicit total wins; otherwise a PATCH that replaces the dimensions
+	// recomputes their mean, and one that sends neither keeps the stored total.
+	weightedScore := current.WeightedScore
+	if req.WeightedScore != nil {
+		weightedScore = floatToNumeric(req.WeightedScore)
+	} else if mean, ok := hrDimensionMean(req.Dimensions); ok {
+		weightedScore = floatToNumeric(&mean)
+	}
 
 	updated, err := h.Queries.UpdateHrScorecard(r.Context(), db.UpdateHrScorecardParams{
 		ID:               current.ID,
@@ -1806,7 +2041,8 @@ func (h *Handler) UpdateHrScorecard(w http.ResponseWriter, r *http.Request) {
 		ScoreExperience:  applyInt2Patch(req.ScoreExperience, current.ScoreExperience),
 		ScoreCulture:     applyInt2Patch(req.ScoreCulture, current.ScoreCulture),
 		ScorePotential:   applyInt2Patch(req.ScorePotential, current.ScorePotential),
-		WeightedScore:    applyNumericPatch(req.WeightedScore, current.WeightedScore),
+		WeightedScore:    weightedScore,
+		Dimensions:       applyJSONPatch(hrDimensionColumn(req.Dimensions), current.Dimensions),
 		Verdict:          applyTextPatch(req.Verdict, current.Verdict),
 		Comment:          applyTextPatch(req.Comment, current.Comment),
 	})

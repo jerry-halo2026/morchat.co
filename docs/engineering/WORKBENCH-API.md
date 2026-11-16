@@ -223,6 +223,8 @@ server 数据一律 Query；Zustand 只放当前部门、列宽、筛选草稿�
 | 683 | `683_hr_scorecard` | 评分 |
 | 684 | `684_hr_employee_profile` | 员工档案 |
 | 685–699 | 单独索引文件 | 各表二级索引 |
+| 701 | `701_hr_interview_slot_unique` | 面试官×时段排他索引（CONCURRENTLY） |
+| 702–704 | 列补齐：面试官姓名 / 评分类维度 / 岗位算分字段 | 无新表、无新索引 |
 
 ### 10.2 表
 
@@ -230,7 +232,12 @@ server 数据一律 Query；Zustand 只放当前部门、列宽、筛选草稿�
 hr_job(id PK, workspace_id, title TEXT NOT NULL, department_id UUID, level TEXT,
   headcount INT NOT NULL DEFAULT 1, status TEXT CHECK (status IN ('draft','open','paused','closed')),
   salary_min NUMERIC(14,2), salary_max NUMERIC(14,2), currency CHAR(3) DEFAULT 'CNY',
-  requirements TEXT, owner_member_id UUID, created_by, created_at, updated_at, archived_at)
+  requirements TEXT,
+  edu TEXT, years TEXT, city TEXT,                       -- 704：匹配度算分输入（自由文本）
+  jd TEXT,                                               -- 704：AI 生成岗位文案与面试题的输入
+  urgent BOOLEAN NOT NULL DEFAULT false,                 -- 704：急招标记
+  keywords JSONB NOT NULL DEFAULT '[]',                  -- 704：字符串数组，匹配度算分输入
+  owner_member_id UUID, created_by, created_at, updated_at, archived_at)
 
 hr_candidate(id PK, workspace_id, job_id UUID NOT NULL, name TEXT NOT NULL,
   stage TEXT NOT NULL DEFAULT 'screening' CHECK (stage IN
@@ -245,17 +252,22 @@ hr_candidate(id PK, workspace_id, job_id UUID NOT NULL, name TEXT NOT NULL,
 
 hr_interview(id PK, workspace_id, candidate_id UUID NOT NULL, round SMALLINT NOT NULL DEFAULT 1,
   scheduled_at TIMESTAMPTZ NOT NULL, duration_minutes INT NOT NULL DEFAULT 45,
-  interviewer_member_id UUID, mode TEXT CHECK (mode IN ('onsite','video','phone')),
+  interviewer_member_id UUID,                            -- 可选：内部人客串时留痕
+  interviewer_name TEXT NOT NULL,                        -- 702：面试官姓名（外部人员，录入信息）
+  mode TEXT CHECK (mode IN ('onsite','video','phone')),
   status TEXT NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled','done','cancelled','no_show')),
   rescheduled_count INT NOT NULL DEFAULT 0, note TEXT,
   created_by, created_at, updated_at, archived_at)
 -- 同一面试官同一时段排他：UNIQUE (workspace_id, interviewer_member_id, scheduled_at)
+-- 该索引仍按 interviewer_member_id，NULL 不互斥：外部面试官（只有姓名）之间的时段冲突由人判断
 
 hr_scorecard(id PK, workspace_id, interview_id UUID NOT NULL, reviewer_member_id UUID,
   score_skill SMALLINT, score_experience SMALLINT, score_culture SMALLINT, score_potential SMALLINT,
   weighted_score NUMERIC(5,2), verdict TEXT CHECK (verdict IN ('strong_yes','yes','no','strong_no')),
+  dimensions JSONB NOT NULL DEFAULT '{}',                -- 703：维度名 → 0–5，新代码只写这里
   comment TEXT, created_by, created_at, updated_at, archived_at)
 -- UNIQUE (workspace_id, interview_id, reviewer_member_id)
+-- 四个 score_* 为兼容列：旧行与旧客户端仍读，新代码只读不写，且与 dimensions 不做同步
 
 hr_employee_profile(id PK, workspace_id, member_id UUID NOT NULL, department_id UUID,
   job_title TEXT, grade TEXT, hire_date DATE, regular_date DATE, contract_end DATE,
@@ -265,7 +277,7 @@ hr_employee_profile(id PK, workspace_id, member_id UUID NOT NULL, department_id 
 -- UNIQUE (workspace_id, member_id)
 ```
 
-`ability` / `disc` 用 JSONB 而非 12 个列：它们只被展示与 AI 上下文消费，从不参与排序或聚合。其余**任何要 SUM/排名/唯一约束的字段都是真实列**（B0 定下的判据）。
+`ability` / `disc` 用 JSONB 而非 12 个列：它们只被展示与 AI 上下文消费，从不参与排序或聚合。同理 `hr_scorecard.dimensions`（维度集由每个岗位生成的评分模板决定）与 `hr_job.keywords`（关键词列表长度按岗位而定）也是 JSONB 容器，但**它们是算分输入**：匹配度算分读 `keywords/edu/years`，所以只要参与 SUM/排名/唯一约束的字段仍是真实列，这两处容器就不违反 B0 判据。
 
 ### 10.3 REST（基址 `/api/workbench/hr`）
 
@@ -273,7 +285,12 @@ hr_employee_profile(id PK, workspace_id, member_id UUID NOT NULL, department_id 
 - 列表包裹同 B0 §3.1：`{ <resource>: T[], total }`，`total` = 本页条数。
 - 列表过滤参数（服务端**忽略不认识的键**）：`jobs{status, department_id}`、`candidates{job_id, stage}`、`interviews{candidate_id, status}`、`scorecards{interview_id}`、`employees{department_id}`。
 - 面试创建/改期校验排他：同一 `interviewer_member_id` 同一 `scheduled_at` → **409**；改期 `rescheduled_count += 1`。
-- `POST /candidates/{candidateId}/hire`：请求体 `CreateHrEmployeeProfileRequest`（`member_id` 必填）；同一事务内置 `stage=hired`、写 `hired_at`、创建或更新 `hr_employee_profile`；**响应 `{ candidate, employee }`**，客户端要同时失效 candidates 与 employees 两个域。
+  - `interviewer_name` 必填（去空白后）：面试官通常不在本系统内，姓名是这一行唯一能说明「谁在场」的信息；姓名与成员 id 都没有 → **400**。只给 `interviewer_member_id` 时服务端回填该成员的 `user.name`，两者都给则以请求里的姓名为准。
+  - PATCH 省略 `interviewer_name` 保留已存姓名（只改状态不会抹掉在场记录）；显式传空串则重新走成员回填，仍为空 → **400**。
+  - 排他索引仍按 `interviewer_member_id`（701），NULL 不互斥：纯外部面试官（只有姓名）不参与时段互斥，冲突由排期人判断。
+- 评分：请求接受 `dimensions`（键为维度名，值 0–5；键去空白后非空、值越界 → **400**）；客户端未给 `weighted_score` 时服务端按**维度均分**回填（与维度同为 0–5 尺度；空表不回填，保持 `null`）。PATCH 只换 `dimensions` 会重算均分，同时给 `weighted_score` 则以客户端为准。四个 `score_*` 仍接收，但不写进 `dimensions`。
+- 岗位：接受并返回 `edu` / `years` / `city` / `jd` / `urgent` / `keywords`；`keywords` 为字符串数组（去空白、丢空串），创建缺省 `[]`，PATCH 传 `[]` 即清空，省略则保留。
+- `POST /candidates/{candidateId}/hire`：请求体 `CreateHrEmployeeProfileRequest`（`member_id` 必填）；同一事务内置 `stage=hired`、写 `hired_at`、创建或更新 `hr_employee_profile`；**响应 `{ candidate, employee_profile }`**（字段名与表名一致，客户端类型见 `HireHrCandidateResponse`），客户端要同时失效 candidates 与 employees 两个域。
 
 ### 10.4 事件
 
@@ -289,7 +306,7 @@ hr_employee_profile(id PK, workspace_id, member_id UUID NOT NULL, department_id 
 
 `/counts` 增加 4 个字段：`jobs` / `candidates` / `interviews` / `employees`。在服务端补上之前它们在客户端是**可选**的（`packages/core/types/workbench.ts` 里 `?`），面板据此不画数字而不是画 0 —— 与 `emptyRule` 同一条原则。
 
-已知债务：面试官（`hr_interview.interviewer_member_id`）与员工（`hr_employee_profile.member_id`）目前只显示短 id，没有 join 到 member 姓名；补 join 时同步换成 `ActorAvatar`。
+已知债务：面试官（`hr_interview.interviewer_member_id`）与员工（`hr_employee_profile.member_id`）目前只显示短 id，没有 join 到 member 姓名；外部面试官已由 `interviewer_name` 覆盖，内部人的姓名 join 仍待补，补 join 时同步换成 `ActorAvatar`。
 
 ## 9. 完成定义（DoD）
 

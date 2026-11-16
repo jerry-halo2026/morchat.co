@@ -299,15 +299,16 @@ func (q *Queries) CreateHrEmployeeProfile(ctx context.Context, arg CreateHrEmplo
 const createHrInterview = `-- name: CreateHrInterview :one
 INSERT INTO hr_interview (
     workspace_id, candidate_id, round, scheduled_at, duration_minutes,
-    interviewer_member_id, mode, status, rescheduled_count, note, created_by
+    interviewer_member_id, interviewer_name, mode, status, rescheduled_count,
+    note, created_by
 ) VALUES (
     $1, $2, $3,
     $4, $5,
     $6::uuid, $7::text,
-    $8, $9, $10::text,
-    $11::uuid
+    $8::text, $9, $10,
+    $11::text, $12::uuid
 )
-RETURNING id, workspace_id, candidate_id, round, scheduled_at, duration_minutes, interviewer_member_id, mode, status, rescheduled_count, note, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, candidate_id, round, scheduled_at, duration_minutes, interviewer_member_id, mode, status, rescheduled_count, note, created_by, created_at, updated_at, archived_at, interviewer_name
 `
 
 type CreateHrInterviewParams struct {
@@ -317,6 +318,7 @@ type CreateHrInterviewParams struct {
 	ScheduledAt         pgtype.Timestamptz `json:"scheduled_at"`
 	DurationMinutes     int32              `json:"duration_minutes"`
 	InterviewerMemberID pgtype.UUID        `json:"interviewer_member_id"`
+	InterviewerName     string             `json:"interviewer_name"`
 	Mode                pgtype.Text        `json:"mode"`
 	Status              string             `json:"status"`
 	RescheduledCount    int32              `json:"rescheduled_count"`
@@ -324,6 +326,10 @@ type CreateHrInterviewParams struct {
 	CreatedBy           pgtype.UUID        `json:"created_by"`
 }
 
+// `interviewer_name` is required (the handler rejects an empty one): the person
+// who runs the round is usually not a workspace member, so the name is the only
+// thing that says who was there. `interviewer_member_id` rides along when an
+// internal member sits in, and stays nullable because most rows have none.
 func (q *Queries) CreateHrInterview(ctx context.Context, arg CreateHrInterviewParams) (HrInterview, error) {
 	row := q.db.QueryRow(ctx, createHrInterview,
 		arg.WorkspaceID,
@@ -332,6 +338,7 @@ func (q *Queries) CreateHrInterview(ctx context.Context, arg CreateHrInterviewPa
 		arg.ScheduledAt,
 		arg.DurationMinutes,
 		arg.InterviewerMemberID,
+		arg.InterviewerName,
 		arg.Mode,
 		arg.Status,
 		arg.RescheduledCount,
@@ -355,6 +362,7 @@ func (q *Queries) CreateHrInterview(ctx context.Context, arg CreateHrInterviewPa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.InterviewerName,
 	)
 	return i, err
 }
@@ -362,15 +370,18 @@ func (q *Queries) CreateHrInterview(ctx context.Context, arg CreateHrInterviewPa
 const createHrJob = `-- name: CreateHrJob :one
 INSERT INTO hr_job (
     workspace_id, title, department_id, level, headcount, status, salary_min,
-    salary_max, currency, requirements, owner_member_id, created_by
+    salary_max, currency, requirements, edu, years, city, jd, urgent, keywords,
+    owner_member_id, created_by
 ) VALUES (
     $1, $2, $3::uuid,
     $4::text, $5, $6::text,
     $7::numeric, $8::numeric,
     $9::text, $10::text,
-    $11::uuid, $12::uuid
+    $11::text, $12::text, $13::text,
+    $14::text, $15::boolean, $16::jsonb,
+    $17::uuid, $18::uuid
 )
-RETURNING id, workspace_id, title, department_id, level, headcount, status, salary_min, salary_max, currency, requirements, owner_member_id, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, title, department_id, level, headcount, status, salary_min, salary_max, currency, requirements, owner_member_id, created_by, created_at, updated_at, archived_at, edu, years, city, jd, urgent, keywords
 `
 
 type CreateHrJobParams struct {
@@ -384,6 +395,12 @@ type CreateHrJobParams struct {
 	SalaryMax     pgtype.Numeric `json:"salary_max"`
 	Currency      pgtype.Text    `json:"currency"`
 	Requirements  pgtype.Text    `json:"requirements"`
+	Edu           pgtype.Text    `json:"edu"`
+	Years         pgtype.Text    `json:"years"`
+	City          pgtype.Text    `json:"city"`
+	Jd            pgtype.Text    `json:"jd"`
+	Urgent        bool           `json:"urgent"`
+	Keywords      []byte         `json:"keywords"`
 	OwnerMemberID pgtype.UUID    `json:"owner_member_id"`
 	CreatedBy     pgtype.UUID    `json:"created_by"`
 }
@@ -400,6 +417,12 @@ func (q *Queries) CreateHrJob(ctx context.Context, arg CreateHrJobParams) (HrJob
 		arg.SalaryMax,
 		arg.Currency,
 		arg.Requirements,
+		arg.Edu,
+		arg.Years,
+		arg.City,
+		arg.Jd,
+		arg.Urgent,
+		arg.Keywords,
 		arg.OwnerMemberID,
 		arg.CreatedBy,
 	)
@@ -421,6 +444,12 @@ func (q *Queries) CreateHrJob(ctx context.Context, arg CreateHrJobParams) (HrJob
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Edu,
+		&i.Years,
+		&i.City,
+		&i.Jd,
+		&i.Urgent,
+		&i.Keywords,
 	)
 	return i, err
 }
@@ -428,15 +457,17 @@ func (q *Queries) CreateHrJob(ctx context.Context, arg CreateHrJobParams) (HrJob
 const createHrScorecard = `-- name: CreateHrScorecard :one
 INSERT INTO hr_scorecard (
     workspace_id, interview_id, reviewer_member_id, score_skill, score_experience,
-    score_culture, score_potential, weighted_score, verdict, comment, created_by
+    score_culture, score_potential, weighted_score, dimensions, verdict, comment,
+    created_by
 ) VALUES (
     $1, $2, $3::uuid,
     $4::smallint, $5::smallint,
     $6::smallint, $7::smallint,
-    $8::numeric, $9::text,
-    $10::text, $11::uuid
+    $8::numeric, $9::jsonb,
+    $10::text, $11::text,
+    $12::uuid
 )
-RETURNING id, workspace_id, interview_id, reviewer_member_id, score_skill, score_experience, score_culture, score_potential, weighted_score, verdict, comment, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, interview_id, reviewer_member_id, score_skill, score_experience, score_culture, score_potential, weighted_score, verdict, comment, created_by, created_at, updated_at, archived_at, dimensions
 `
 
 type CreateHrScorecardParams struct {
@@ -448,11 +479,15 @@ type CreateHrScorecardParams struct {
 	ScoreCulture     pgtype.Int2    `json:"score_culture"`
 	ScorePotential   pgtype.Int2    `json:"score_potential"`
 	WeightedScore    pgtype.Numeric `json:"weighted_score"`
+	Dimensions       []byte         `json:"dimensions"`
 	Verdict          pgtype.Text    `json:"verdict"`
 	Comment          pgtype.Text    `json:"comment"`
 	CreatedBy        pgtype.UUID    `json:"created_by"`
 }
 
+// `dimensions` is the map the generated template asked for (703); the four
+// legacy score_* columns are written too when a client still sends them, but
+// nothing reads them once `dimensions` is non-empty.
 func (q *Queries) CreateHrScorecard(ctx context.Context, arg CreateHrScorecardParams) (HrScorecard, error) {
 	row := q.db.QueryRow(ctx, createHrScorecard,
 		arg.WorkspaceID,
@@ -463,6 +498,7 @@ func (q *Queries) CreateHrScorecard(ctx context.Context, arg CreateHrScorecardPa
 		arg.ScoreCulture,
 		arg.ScorePotential,
 		arg.WeightedScore,
+		arg.Dimensions,
 		arg.Verdict,
 		arg.Comment,
 		arg.CreatedBy,
@@ -484,6 +520,7 @@ func (q *Queries) CreateHrScorecard(ctx context.Context, arg CreateHrScorecardPa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Dimensions,
 	)
 	return i, err
 }
@@ -602,7 +639,7 @@ func (q *Queries) GetHrEmployeeProfileByMember(ctx context.Context, arg GetHrEmp
 }
 
 const getHrInterview = `-- name: GetHrInterview :one
-SELECT id, workspace_id, candidate_id, round, scheduled_at, duration_minutes, interviewer_member_id, mode, status, rescheduled_count, note, created_by, created_at, updated_at, archived_at FROM hr_interview
+SELECT id, workspace_id, candidate_id, round, scheduled_at, duration_minutes, interviewer_member_id, mode, status, rescheduled_count, note, created_by, created_at, updated_at, archived_at, interviewer_name FROM hr_interview
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -630,12 +667,13 @@ func (q *Queries) GetHrInterview(ctx context.Context, arg GetHrInterviewParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.InterviewerName,
 	)
 	return i, err
 }
 
 const getHrJob = `-- name: GetHrJob :one
-SELECT id, workspace_id, title, department_id, level, headcount, status, salary_min, salary_max, currency, requirements, owner_member_id, created_by, created_at, updated_at, archived_at FROM hr_job
+SELECT id, workspace_id, title, department_id, level, headcount, status, salary_min, salary_max, currency, requirements, owner_member_id, created_by, created_at, updated_at, archived_at, edu, years, city, jd, urgent, keywords FROM hr_job
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -664,12 +702,18 @@ func (q *Queries) GetHrJob(ctx context.Context, arg GetHrJobParams) (HrJob, erro
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Edu,
+		&i.Years,
+		&i.City,
+		&i.Jd,
+		&i.Urgent,
+		&i.Keywords,
 	)
 	return i, err
 }
 
 const getHrScorecard = `-- name: GetHrScorecard :one
-SELECT id, workspace_id, interview_id, reviewer_member_id, score_skill, score_experience, score_culture, score_potential, weighted_score, verdict, comment, created_by, created_at, updated_at, archived_at FROM hr_scorecard
+SELECT id, workspace_id, interview_id, reviewer_member_id, score_skill, score_experience, score_culture, score_potential, weighted_score, verdict, comment, created_by, created_at, updated_at, archived_at, dimensions FROM hr_scorecard
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -697,6 +741,7 @@ func (q *Queries) GetHrScorecard(ctx context.Context, arg GetHrScorecardParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Dimensions,
 	)
 	return i, err
 }
@@ -894,7 +939,7 @@ func (q *Queries) ListHrEmployeeProfiles(ctx context.Context, arg ListHrEmployee
 }
 
 const listHrInterviews = `-- name: ListHrInterviews :many
-SELECT id, workspace_id, candidate_id, round, scheduled_at, duration_minutes, interviewer_member_id, mode, status, rescheduled_count, note, created_by, created_at, updated_at, archived_at
+SELECT id, workspace_id, candidate_id, round, scheduled_at, duration_minutes, interviewer_member_id, mode, status, rescheduled_count, note, created_by, created_at, updated_at, archived_at, interviewer_name
 FROM hr_interview
 WHERE workspace_id = $1
   AND archived_at IS NULL
@@ -958,6 +1003,7 @@ func (q *Queries) ListHrInterviews(ctx context.Context, arg ListHrInterviewsPara
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ArchivedAt,
+			&i.InterviewerName,
 		); err != nil {
 			return nil, err
 		}
@@ -971,7 +1017,7 @@ func (q *Queries) ListHrInterviews(ctx context.Context, arg ListHrInterviewsPara
 
 const listHrJobs = `-- name: ListHrJobs :many
 
-SELECT id, workspace_id, title, department_id, level, headcount, status, salary_min, salary_max, currency, requirements, owner_member_id, created_by, created_at, updated_at, archived_at
+SELECT id, workspace_id, title, department_id, level, headcount, status, salary_min, salary_max, currency, requirements, owner_member_id, created_by, created_at, updated_at, archived_at, edu, years, city, jd, urgent, keywords
 FROM hr_job
 WHERE workspace_id = $1
   AND archived_at IS NULL
@@ -1008,9 +1054,17 @@ type ListHrJobsParams struct {
 //
 // Exclusivity rules live in the schema, not here: "one person, one job" is the
 // unique expression index idx_hr_candidate_workspace_job_identity, and
-// "one interviewer, one slot" is the inline UNIQUE on hr_interview.
+// "one interviewer, one slot" is idx_hr_interview_interviewer_slot (701).
 // CountHrInterviewConflicts reads the same key so the handler can answer 409 with
 // a message instead of a bare constraint violation.
+//
+// Two columns are recorded rather than referenced, because the person they name
+// is usually outside this system (702): `hr_interview.interviewer_name` is the
+// typed-in name of whoever runs the round, and `interviewer_member_id` stays as
+// an optional pointer for the internal member who sits in. Scorecard dimensions
+// (703) are the JSONB map the generated template asks for; the four legacy
+// score_* columns are read-only. Requisition `keywords` (704) is a JSONB string
+// array the match score is computed from.
 func (q *Queries) ListHrJobs(ctx context.Context, arg ListHrJobsParams) ([]HrJob, error) {
 	rows, err := q.db.Query(ctx, listHrJobs,
 		arg.WorkspaceID,
@@ -1045,6 +1099,12 @@ func (q *Queries) ListHrJobs(ctx context.Context, arg ListHrJobsParams) ([]HrJob
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ArchivedAt,
+			&i.Edu,
+			&i.Years,
+			&i.City,
+			&i.Jd,
+			&i.Urgent,
+			&i.Keywords,
 		); err != nil {
 			return nil, err
 		}
@@ -1057,7 +1117,7 @@ func (q *Queries) ListHrJobs(ctx context.Context, arg ListHrJobsParams) ([]HrJob
 }
 
 const listHrScorecards = `-- name: ListHrScorecards :many
-SELECT id, workspace_id, interview_id, reviewer_member_id, score_skill, score_experience, score_culture, score_potential, weighted_score, verdict, comment, created_by, created_at, updated_at, archived_at
+SELECT id, workspace_id, interview_id, reviewer_member_id, score_skill, score_experience, score_culture, score_potential, weighted_score, verdict, comment, created_by, created_at, updated_at, archived_at, dimensions
 FROM hr_scorecard
 WHERE workspace_id = $1
   AND archived_at IS NULL
@@ -1113,6 +1173,7 @@ func (q *Queries) ListHrScorecards(ctx context.Context, arg ListHrScorecardsPara
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ArchivedAt,
+			&i.Dimensions,
 		); err != nil {
 			return nil, err
 		}
@@ -1294,13 +1355,14 @@ SET candidate_id = $1,
     scheduled_at = $3,
     duration_minutes = $4,
     interviewer_member_id = $5::uuid,
-    mode = $6::text,
-    status = $7,
-    rescheduled_count = $8,
-    note = $9::text,
+    interviewer_name = $6::text,
+    mode = $7::text,
+    status = $8,
+    rescheduled_count = $9,
+    note = $10::text,
     updated_at = now()
-WHERE id = $10 AND workspace_id = $11 AND archived_at IS NULL
-RETURNING id, workspace_id, candidate_id, round, scheduled_at, duration_minutes, interviewer_member_id, mode, status, rescheduled_count, note, created_by, created_at, updated_at, archived_at
+WHERE id = $11 AND workspace_id = $12 AND archived_at IS NULL
+RETURNING id, workspace_id, candidate_id, round, scheduled_at, duration_minutes, interviewer_member_id, mode, status, rescheduled_count, note, created_by, created_at, updated_at, archived_at, interviewer_name
 `
 
 type UpdateHrInterviewParams struct {
@@ -1309,6 +1371,7 @@ type UpdateHrInterviewParams struct {
 	ScheduledAt         pgtype.Timestamptz `json:"scheduled_at"`
 	DurationMinutes     int32              `json:"duration_minutes"`
 	InterviewerMemberID pgtype.UUID        `json:"interviewer_member_id"`
+	InterviewerName     string             `json:"interviewer_name"`
 	Mode                pgtype.Text        `json:"mode"`
 	Status              string             `json:"status"`
 	RescheduledCount    int32              `json:"rescheduled_count"`
@@ -1324,6 +1387,7 @@ func (q *Queries) UpdateHrInterview(ctx context.Context, arg UpdateHrInterviewPa
 		arg.ScheduledAt,
 		arg.DurationMinutes,
 		arg.InterviewerMemberID,
+		arg.InterviewerName,
 		arg.Mode,
 		arg.Status,
 		arg.RescheduledCount,
@@ -1348,6 +1412,7 @@ func (q *Queries) UpdateHrInterview(ctx context.Context, arg UpdateHrInterviewPa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.InterviewerName,
 	)
 	return i, err
 }
@@ -1363,10 +1428,16 @@ SET title = $1,
     salary_max = $7::numeric,
     currency = $8::text,
     requirements = $9::text,
-    owner_member_id = $10::uuid,
+    edu = $10::text,
+    years = $11::text,
+    city = $12::text,
+    jd = $13::text,
+    urgent = $14::boolean,
+    keywords = $15::jsonb,
+    owner_member_id = $16::uuid,
     updated_at = now()
-WHERE id = $11 AND workspace_id = $12 AND archived_at IS NULL
-RETURNING id, workspace_id, title, department_id, level, headcount, status, salary_min, salary_max, currency, requirements, owner_member_id, created_by, created_at, updated_at, archived_at
+WHERE id = $17 AND workspace_id = $18 AND archived_at IS NULL
+RETURNING id, workspace_id, title, department_id, level, headcount, status, salary_min, salary_max, currency, requirements, owner_member_id, created_by, created_at, updated_at, archived_at, edu, years, city, jd, urgent, keywords
 `
 
 type UpdateHrJobParams struct {
@@ -1379,13 +1450,21 @@ type UpdateHrJobParams struct {
 	SalaryMax     pgtype.Numeric `json:"salary_max"`
 	Currency      pgtype.Text    `json:"currency"`
 	Requirements  pgtype.Text    `json:"requirements"`
+	Edu           pgtype.Text    `json:"edu"`
+	Years         pgtype.Text    `json:"years"`
+	City          pgtype.Text    `json:"city"`
+	Jd            pgtype.Text    `json:"jd"`
+	Urgent        bool           `json:"urgent"`
+	Keywords      []byte         `json:"keywords"`
 	OwnerMemberID pgtype.UUID    `json:"owner_member_id"`
 	ID            pgtype.UUID    `json:"id"`
 	WorkspaceID   pgtype.UUID    `json:"workspace_id"`
 }
 
 // The handler loads the row, applies the PATCH fields and resends every column,
-// so an omitted field never silently clears the stored value.
+// so an omitted field never silently clears the stored value. `keywords` is a
+// whole-array replace: the requisition's keyword set is small and the client
+// edits it as one list, so a per-element update would need its own route.
 func (q *Queries) UpdateHrJob(ctx context.Context, arg UpdateHrJobParams) (HrJob, error) {
 	row := q.db.QueryRow(ctx, updateHrJob,
 		arg.Title,
@@ -1397,6 +1476,12 @@ func (q *Queries) UpdateHrJob(ctx context.Context, arg UpdateHrJobParams) (HrJob
 		arg.SalaryMax,
 		arg.Currency,
 		arg.Requirements,
+		arg.Edu,
+		arg.Years,
+		arg.City,
+		arg.Jd,
+		arg.Urgent,
+		arg.Keywords,
 		arg.OwnerMemberID,
 		arg.ID,
 		arg.WorkspaceID,
@@ -1419,6 +1504,12 @@ func (q *Queries) UpdateHrJob(ctx context.Context, arg UpdateHrJobParams) (HrJob
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Edu,
+		&i.Years,
+		&i.City,
+		&i.Jd,
+		&i.Urgent,
+		&i.Keywords,
 	)
 	return i, err
 }
@@ -1432,11 +1523,12 @@ SET interview_id = $1,
     score_culture = $5::smallint,
     score_potential = $6::smallint,
     weighted_score = $7::numeric,
-    verdict = $8::text,
-    comment = $9::text,
+    dimensions = $8::jsonb,
+    verdict = $9::text,
+    comment = $10::text,
     updated_at = now()
-WHERE id = $10 AND workspace_id = $11 AND archived_at IS NULL
-RETURNING id, workspace_id, interview_id, reviewer_member_id, score_skill, score_experience, score_culture, score_potential, weighted_score, verdict, comment, created_by, created_at, updated_at, archived_at
+WHERE id = $11 AND workspace_id = $12 AND archived_at IS NULL
+RETURNING id, workspace_id, interview_id, reviewer_member_id, score_skill, score_experience, score_culture, score_potential, weighted_score, verdict, comment, created_by, created_at, updated_at, archived_at, dimensions
 `
 
 type UpdateHrScorecardParams struct {
@@ -1447,6 +1539,7 @@ type UpdateHrScorecardParams struct {
 	ScoreCulture     pgtype.Int2    `json:"score_culture"`
 	ScorePotential   pgtype.Int2    `json:"score_potential"`
 	WeightedScore    pgtype.Numeric `json:"weighted_score"`
+	Dimensions       []byte         `json:"dimensions"`
 	Verdict          pgtype.Text    `json:"verdict"`
 	Comment          pgtype.Text    `json:"comment"`
 	ID               pgtype.UUID    `json:"id"`
@@ -1462,6 +1555,7 @@ func (q *Queries) UpdateHrScorecard(ctx context.Context, arg UpdateHrScorecardPa
 		arg.ScoreCulture,
 		arg.ScorePotential,
 		arg.WeightedScore,
+		arg.Dimensions,
 		arg.Verdict,
 		arg.Comment,
 		arg.ID,
@@ -1484,6 +1578,7 @@ func (q *Queries) UpdateHrScorecard(ctx context.Context, arg UpdateHrScorecardPa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Dimensions,
 	)
 	return i, err
 }

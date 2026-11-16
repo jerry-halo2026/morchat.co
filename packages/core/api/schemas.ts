@@ -4743,11 +4743,21 @@ export const EMPTY_WORKBENCH_COUNTS_RESPONSE: WorkbenchCountsResponse = {
 //    aggregated, so losing them costs a panel, not the row.
 // 4. `status` and `currency` carry a DEFAULT but no NOT NULL, so a NULL there is
 //    a presentation default, not a broken row (see `hrDefaultedText`).
+// 5. `dimensions` (703) and `keywords` (704) are JSONB containers like
+//    `ability`/`disc`: an open key set, never aggregated as a scalar here, so a
+//    drifted value degrades to `{}` / `[]` and the row survives.
 
 const hrNullableNumber = workbenchNullableNumber;
 
 /** JSONB score maps: an open key set, and a drifted value degrades to `{}`. */
 const hrScoreMap = z.record(z.string(), z.number()).default({}).catch({});
+
+/**
+ * A JSONB string array (requisition keywords, migration 704). Always an array:
+ * the client maps over it, so a drifted value degrades to an empty list instead
+ * of blanking the row.
+ */
+const hrKeywordArray = z.array(z.string()).default([]).catch([]);
 
 /**
  * A column that has a DEFAULT but no NOT NULL (§10.2 writes `status TEXT CHECK
@@ -4770,6 +4780,13 @@ export const HrJobSchema = z.object({
   salary_max: hrNullableNumber,
   currency: hrCurrency,
   requirements: workbenchNullableString,
+  // Migration 704: the match-score inputs, the AI input and the urgent flag.
+  edu: workbenchNullableString,
+  years: workbenchNullableString,
+  city: workbenchNullableString,
+  jd: workbenchNullableString,
+  urgent: z.boolean().default(false).catch(false),
+  keywords: hrKeywordArray,
   owner_member_id: workbenchNullableString,
   created_by: workbenchNullableString,
   created_at: z.string().default(""),
@@ -4780,7 +4797,8 @@ export const HrJobSchema = z.object({
 export const EMPTY_HR_JOB: HrJob = {
   id: "", workspace_id: "", title: "", department_id: null, level: null,
   headcount: 1, status: "draft", salary_min: null, salary_max: null,
-  currency: "CNY", requirements: null, owner_member_id: null, created_by: null,
+  currency: "CNY", requirements: null, edu: null, years: null, city: null,
+  jd: null, urgent: false, keywords: [], owner_member_id: null, created_by: null,
   created_at: "", updated_at: "", archived_at: null,
 };
 
@@ -4848,6 +4866,9 @@ export const HrInterviewSchema = z.object({
   scheduled_at: z.string().default(""),
   duration_minutes: z.number().default(45),
   interviewer_member_id: workbenchNullableString,
+  // Migration 702: the interviewer is usually an outside person, so the name is
+  // recorded text. A row from before the column, or a body without one, is "".
+  interviewer_name: z.string().default(""),
   // Nullable column: nobody has picked a channel yet.
   mode: workbenchNullableString,
   status: z.string().default("scheduled"),
@@ -4861,9 +4882,9 @@ export const HrInterviewSchema = z.object({
 
 export const EMPTY_HR_INTERVIEW: HrInterview = {
   id: "", workspace_id: "", candidate_id: "", round: 1, scheduled_at: "",
-  duration_minutes: 45, interviewer_member_id: null, mode: null,
-  status: "scheduled", rescheduled_count: 0, note: null, created_by: null,
-  created_at: "", updated_at: "", archived_at: null,
+  duration_minutes: 45, interviewer_member_id: null, interviewer_name: "",
+  mode: null, status: "scheduled", rescheduled_count: 0, note: null,
+  created_by: null, created_at: "", updated_at: "", archived_at: null,
 };
 
 export const HrInterviewListResponseSchema = z.object({
@@ -4886,6 +4907,10 @@ export const HrScorecardSchema = z.object({
   score_culture: hrNullableNumber,
   score_potential: hrNullableNumber,
   weighted_score: hrNullableNumber,
+  // Migration 703: the current shape, dimension name → 0–5. The four score_*
+  // numbers above are read-only legacy; a card that predates the map still
+  // parses, an unscored one is `{}`.
+  dimensions: hrScoreMap,
   // Nullable column: a saved draft scorecard has no verdict yet.
   verdict: workbenchNullableString,
   comment: workbenchNullableString,
@@ -4898,8 +4923,9 @@ export const HrScorecardSchema = z.object({
 export const EMPTY_HR_SCORECARD: HrScorecard = {
   id: "", workspace_id: "", interview_id: "", reviewer_member_id: null,
   score_skill: null, score_experience: null, score_culture: null,
-  score_potential: null, weighted_score: null, verdict: null, comment: null,
-  created_by: null, created_at: "", updated_at: "", archived_at: null,
+  score_potential: null, weighted_score: null, dimensions: {}, verdict: null,
+  comment: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
 };
 
 export const HrScorecardListResponseSchema = z.object({

@@ -1137,6 +1137,7 @@ type HrInterview struct {
 	CreatedAt           pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt          pgtype.Timestamptz `json:"archived_at"`
+	InterviewerName     string             `json:"interviewer_name"`
 }
 
 type HrJob struct {
@@ -1156,6 +1157,12 @@ type HrJob struct {
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+	Edu           pgtype.Text        `json:"edu"`
+	Years         pgtype.Text        `json:"years"`
+	City          pgtype.Text        `json:"city"`
+	Jd            pgtype.Text        `json:"jd"`
+	Urgent        bool               `json:"urgent"`
+	Keywords      []byte             `json:"keywords"`
 }
 
 type HrScorecard struct {
@@ -1174,6 +1181,7 @@ type HrScorecard struct {
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt       pgtype.Timestamptz `json:"archived_at"`
+	Dimensions       []byte             `json:"dimensions"`
 }
 
 type InboxItem struct {

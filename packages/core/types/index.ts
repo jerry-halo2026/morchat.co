@@ -467,6 +467,7 @@ export type {
   HrJobListResponse,
   HrJobStatus,
   HrScorecard,
+  HrScorecardDimensions,
   HrScorecardListFilters,
   HrScorecardListResponse,
   HrScorecardVerdict,

@@ -142,6 +142,52 @@ describe("HR schemas (contract §10.2/§10.3)", () => {
     });
   });
 
+  it("defaults a scorecard's dimension map to an empty object", () => {
+    // §10.2 / migration 703: the map is JSONB NOT NULL DEFAULT '{}'. A card that
+    // predates it (or a template with no dimensions) renders as an empty panel,
+    // which is different from a card carrying a 0 for every dimension.
+    expect(HrScorecardSchema.parse({ id: "s" }).dimensions).toEqual({});
+    expect(
+      HrScorecardSchema.parse({ id: "s", dimensions: { 系统设计: 4, 沟通: 3.5 } }).dimensions,
+    ).toEqual({ 系统设计: 4, 沟通: 3.5 });
+    // A drifted JSONB value costs the panel, not the row.
+    expect(HrScorecardSchema.parse({ id: "s", dimensions: "not-json" }).dimensions).toEqual({});
+  });
+
+  it("falls back to an empty interviewer_name when the body has no name and no member", () => {
+    // Migration 702: the interviewer is usually outside the system, so the name
+    // is recorded text. The server requires one on write, but a reader must not
+    // fail over a row recorded before the column existed.
+    const parsed = HrInterviewSchema.parse({ id: "i", scheduled_at: "2027-01-01T09:00:00Z" });
+    expect(parsed.interviewer_name).toBe("");
+    expect(parsed.interviewer_member_id).toBeNull();
+    expect(
+      HrInterviewSchema.parse({ id: "i", interviewer_name: "外部专家 王工" }).interviewer_name,
+    ).toBe("外部专家 王工");
+  });
+
+  it("defaults the requisition's scoring fields and keyword list", () => {
+    // Migration 704: edu/years/city/jd are nullable free text, urgent is NOT NULL
+    // DEFAULT false and keywords JSONB NOT NULL DEFAULT '[]'.
+    const parsed = HrJobSchema.parse({ id: "j" });
+    expect(parsed).toMatchObject({ edu: null, years: null, city: null, jd: null, urgent: false });
+    expect(parsed.keywords).toEqual([]);
+
+    const filled = HrJobSchema.parse({
+      id: "j",
+      edu: "本科",
+      years: "3-5 年",
+      city: "上海",
+      jd: "负责招聘链路",
+      urgent: true,
+      keywords: ["Go", "分布式"],
+    });
+    expect(filled).toMatchObject({ edu: "本科", years: "3-5 年", city: "上海", urgent: true });
+    expect(filled.keywords).toEqual(["Go", "分布式"]);
+    // A drifted JSONB array degrades to an empty list, never null.
+    expect(HrJobSchema.parse({ id: "j", keywords: "Go" }).keywords).toEqual([]);
+  });
+
   it("treats the JSONB score matrices as open maps that default to empty", () => {
     const parsed = HrEmployeeProfileListResponseSchema.parse({
       employees: [
