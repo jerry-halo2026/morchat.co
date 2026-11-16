@@ -140,6 +140,20 @@ var pgBigmOperatorClass = extensionOperatorClass{
 // they are still pending: a fresh self-hosted install, which is exactly where an
 // interrupted build would otherwise leave a permanently unusable index.
 var concurrentIndexCleanups = map[string]string{
+	"679_crm_settlement_collab_idx":                             "idx_crm_settlement_workspace_collab",
+	"678_crm_collab_brief_idx":                                  "idx_crm_collab_workspace_brief",
+	"677_crm_collab_creator_idx":                                "idx_crm_collab_workspace_creator",
+	"676_crm_collab_stage_idx":                                  "idx_crm_collab_workspace_stage",
+	"675_crm_brief_client_idx":                                  "idx_crm_brief_workspace_client",
+	"674_crm_brief_status_idx":                                  "idx_crm_brief_workspace_status",
+	"673_crm_client_owner_idx":                                  "idx_crm_client_workspace_owner",
+	"672_creator_post_metric_captured_idx":                      "idx_creator_post_metric_workspace_captured",
+	"671_creator_post_collab_idx":                               "idx_creator_post_workspace_collab",
+	"670_creator_post_published_idx":                            "idx_creator_post_workspace_published",
+	"669_creator_post_creator_published_idx":                    "idx_creator_post_workspace_creator_published",
+	"668_creator_owner_idx":                                     "idx_creator_workspace_owner",
+	"667_creator_kind_idx":                                      "idx_creator_workspace_kind",
+	"659_issue_closed_at_idx":                                   "idx_issue_closed_at",
 	"655_issue_member_creator_index":                            "idx_issue_workspace_member_creator",
 	"654_issue_requester_index":                                 "idx_issue_workspace_requester",
 	"652_knowledge_stale_idx":                                   "idx_knowledge_items_workspace_stale",
