@@ -279,5 +279,98 @@
     "load": "{{running}}/{{capacity}}",
     "empty_title": "No one here yet",
     "empty_description": "Invite members and create agents, then their work shows up here."
+  },
+  "hire": {
+    "title": "Hire candidate",
+    "description": "Marks {{name}} as hired and files the employee record in the same step.",
+    "member": "Member",
+    "member_placeholder": "Choose a member",
+    "no_members": "Nobody has joined this workspace yet. Invite a member first — a hire files the employee record against their account.",
+    "hire_date": "Hire date",
+    "job_title": "Position",
+    "grade": "Grade",
+    "submit": "Hire",
+    "cancel": "Cancel",
+    "save_failed": "The server refused this hire. Nothing was saved — try again."
+  },
+  "overview": {
+    "hr_metrics": "Hiring"
+  },
+  "record": {
+    "yes": "Yes",
+    "no": "No",
+    "title": {
+      "jobs": "Job details",
+      "candidates": "Candidate details",
+      "interviews": "Interview details",
+      "employees": "Employee details"
+    },
+    "create": {
+      "jobs": "New job",
+      "candidates": "New candidate",
+      "interviews": "New interview",
+      "employees": "New employee"
+    },
+    "field": {
+      "title": "Job title",
+      "department": "Department",
+      "level": "Level",
+      "headcount": "Headcount",
+      "status": "Status",
+      "salary_min": "Salary from",
+      "salary_max": "Salary to",
+      "currency": "Currency",
+      "requirements": "Requirements",
+      "edu": "Education",
+      "years": "Experience",
+      "city": "Work location",
+      "urgent": "Urgent hire",
+      "keywords": "Keywords",
+      "jd": "Job description",
+      "owner": "Owner",
+      "created_at": "Created",
+      "name": "Name",
+      "job": "Applied for",
+      "stage": "Stage",
+      "source": "Source",
+      "phone": "Phone",
+      "email": "Email",
+      "match_score": "Match",
+      "score_resume": "Résumé score",
+      "score_test": "Test score",
+      "score_interview": "Interview score",
+      "expected_salary": "Expected salary",
+      "offer_salary": "Offer salary",
+      "hired_at": "Hired",
+      "rejected_reason": "Reason rejected",
+      "candidate": "Candidate",
+      "round": "Round",
+      "scheduled_at": "Scheduled for",
+      "duration_minutes": "Duration",
+      "interviewer": "Interviewer",
+      "mode": "Mode",
+      "reschedule_count": "Rescheduled",
+      "note": "Note",
+      "member": "Member",
+      "job_title": "Position",
+      "grade": "Grade",
+      "hire_date": "Hire date",
+      "regular_date": "Regularized",
+      "contract_end": "Contract ends"
+    },
+    "action": {
+      "create": "New",
+      "save": "Save",
+      "close": "Close"
+    },
+    "option": {
+      "choose": "Choose",
+      "none": "None"
+    },
+    "empty": "—",
+    "error": {
+      "required": "Fill in: {{fields}}",
+      "submit": "The server rejected this row. Nothing was saved — fix it and try again."
+    }
   }
 }

@@ -9,6 +9,7 @@ import {
   Coins,
   FileText,
   Layers,
+  Plus,
   Upload,
   UserRound,
   Users,
@@ -32,8 +33,11 @@ import type {
 import { useLocale, useT } from "../i18n";
 import { CollectionPageState } from "../layout/collection-page";
 import { CollectionList, type CollectionColumn } from "../layout/collection-list";
-import type { LedgerDomain } from "./data";
+import type { HrLedgerDomain, LedgerDomain } from "./data";
 import { ImportSheet } from "./import-sheet";
+import { HireDialog } from "./hire-dialog";
+import { RecordForm } from "./record-form";
+import { RecordSheet } from "./record-sheet";
 import { ResumeUpload } from "./resume-upload";
 import type { ImportDomain } from "./import";
 
@@ -67,7 +71,9 @@ interface LedgerTableCommon {
    * has three jobs and the titles are already in the query cache. When the map
    * is absent (a preview, a test) the short id stays as the honest fallback.
    */
-  jobTitles?: Record<string, string>;
+  jobTitles?: Record<string, string>
+  /** Candidate names by id, for the interview ledger's candidate_id. */
+  candidateNames?: Record<string, string>;
   loading?: boolean;
   isError?: boolean;
   onRetry?: () => void;
@@ -82,6 +88,10 @@ interface LedgerTableCommon {
  * Cross-table names are not joined yet — a collab's creator, a candidate's job
  * and an interview's interviewer show the id's short form rather than
  * pretending to know a name.
+ *
+ * A people row is a record: activating it opens the detail sheet for that row
+ * (`onRowClick` overrides where activation goes, for a page that would rather
+ * navigate). The five commerce ledgers have no detail sheet yet and stay inert.
  */
 export type LedgerTableProps = LedgerTableCommon &
   (
@@ -90,16 +100,37 @@ export type LedgerTableProps = LedgerTableCommon &
     | { domain: "briefs"; rows: readonly CrmBrief[] }
     | { domain: "collabs"; rows: readonly CrmCollab[] }
     | { domain: "settlements"; rows: readonly CrmSettlement[] }
-    | { domain: "jobs"; rows: readonly HrJob[] }
-    | { domain: "candidates"; rows: readonly HrCandidate[] }
-    | { domain: "interviews"; rows: readonly HrInterview[] }
-    | { domain: "employees"; rows: readonly HrEmployeeProfile[] }
+    | { domain: "jobs"; rows: readonly HrJob[]; onRowClick?: (row: HrJob) => void }
+    | {
+        domain: "candidates";
+        rows: readonly HrCandidate[];
+        onRowClick?: (row: HrCandidate) => void;
+      }
+    | {
+        domain: "interviews";
+        rows: readonly HrInterview[];
+        onRowClick?: (row: HrInterview) => void;
+      }
+    | {
+        domain: "employees";
+        rows: readonly HrEmployeeProfile[];
+        onRowClick?: (row: HrEmployeeProfile) => void;
+      }
   );
 
 export function LedgerTable(props: LedgerTableProps) {
   const { t } = useT("blocks");
   const locales = useLocale();
   const { domain, wsId, loading = false, isError = false, onRetry } = props;
+
+  // The row whose detail sheet is open, one per people ledger. They are four
+  // states rather than one union so each sheet receives its own row type: a
+  // candidate can never be handed to the job field list.
+  const [jobDetail, setJobDetail] = useState<HrJob | null>(null);
+  const [candidateDetail, setCandidateDetail] = useState<HrCandidate | null>(null);
+  const [hireOpen, setHireOpen] = useState(false);
+  const [interviewDetail, setInterviewDetail] = useState<HrInterview | null>(null);
+  const [employeeDetail, setEmployeeDetail] = useState<HrEmployeeProfile | null>(null);
 
   /** The money glyph comes from the bundle (`unit.currency`); a currency the
    *  bundle does not carry falls back to its own code rather than a guess. */
@@ -411,7 +442,7 @@ export function LedgerTable(props: LedgerTableProps) {
       ];
       return (
         <>
-          <LedgerPeopleHeader wsId={wsId} domain="jobs" />
+          <LedgerPeopleHeader wsId={wsId} importDomain="jobs" create="jobs" />
           <CollectionList
             label={label}
             columns={columns}
@@ -420,7 +451,22 @@ export function LedgerTable(props: LedgerTableProps) {
             loading={loading}
             empty={empty}
             embedded
+            onRowOpen={(row) => {
+              if (props.onRowClick) props.onRowClick(row);
+              else setJobDetail(row);
+            }}
           />
+          {jobDetail ? (
+            <RecordSheet
+              domain="jobs"
+              record={jobDetail}
+              wsId={wsId}
+              open
+              onOpenChange={(next) => {
+                if (!next) setJobDetail(null);
+              }}
+            />
+          ) : null}
         </>
       );
     }
@@ -477,7 +523,7 @@ export function LedgerTable(props: LedgerTableProps) {
       ];
       return (
         <>
-          <LedgerPeopleHeader wsId={wsId} domain="candidates" resume />
+          <LedgerPeopleHeader wsId={wsId} importDomain="candidates" resume create="candidates" />
           <CollectionList
             label={label}
             columns={columns}
@@ -486,7 +532,38 @@ export function LedgerTable(props: LedgerTableProps) {
             loading={loading}
             empty={empty}
             embedded
+            onRowOpen={(row) => {
+              if (props.onRowClick) props.onRowClick(row);
+              else setCandidateDetail(row);
+            }}
           />
+          {candidateDetail ? (
+            <RecordSheet
+              domain="candidates"
+              record={candidateDetail}
+              wsId={wsId}
+              open
+              onOpenChange={(next) => {
+                if (!next) setCandidateDetail(null);
+              }}
+              actions={
+                wsId ? (
+                  <>
+                    <Button type="button" size="sm" onClick={() => setHireOpen(true)}>
+                      {t(($) => $.hire.title)}
+                    </Button>
+                    <HireDialog
+                      wsId={wsId}
+                      candidate={candidateDetail}
+                      open={hireOpen}
+                      onOpenChange={setHireOpen}
+                      onHired={() => setCandidateDetail(null)}
+                    />
+                  </>
+                ) : undefined
+              }
+            />
+          ) : null}
         </>
       );
     }
@@ -495,9 +572,14 @@ export function LedgerTable(props: LedgerTableProps) {
         {
           key: "candidate",
           header: t(($) => $.ledger.column.candidate),
-          cell: (row) => (
-            <span className="truncate font-mono text-caption">{shortId(row.candidate_id)}</span>
-          ),
+          cell: (row) => {
+            const name = props.candidateNames?.[row.candidate_id];
+            return name ? (
+              <span className="truncate">{name}</span>
+            ) : (
+              <span className="truncate font-mono text-caption">{shortId(row.candidate_id)}</span>
+            );
+          },
         },
         {
           key: "round",
@@ -517,7 +599,12 @@ export function LedgerTable(props: LedgerTableProps) {
           key: "interviewer",
           header: t(($) => $.ledger.column.interviewer),
           width: 130,
-          cell: (row) => <span className="font-mono text-caption">{shortId(row.interviewer_member_id ?? "")}</span>,
+          cell: (row) =>
+          row.interviewer_name ? (
+            <span className="truncate">{row.interviewer_name}</span>
+          ) : (
+            <span className="font-mono text-caption">{shortId(row.interviewer_member_id ?? "")}</span>
+          ),
         },
         {
           key: "mode",
@@ -536,15 +623,33 @@ export function LedgerTable(props: LedgerTableProps) {
         },
       ];
       return (
-        <CollectionList
-          label={label}
-          columns={columns}
-          rows={props.rows}
-          getRowId={(row) => row.id}
-          loading={loading}
-          empty={empty}
-          embedded
-        />
+        <>
+          <LedgerPeopleHeader wsId={wsId} create="interviews" />
+          <CollectionList
+            label={label}
+            columns={columns}
+            rows={props.rows}
+            getRowId={(row) => row.id}
+            loading={loading}
+            empty={empty}
+            embedded
+            onRowOpen={(row) => {
+              if (props.onRowClick) props.onRowClick(row);
+              else setInterviewDetail(row);
+            }}
+          />
+          {interviewDetail ? (
+            <RecordSheet
+              domain="interviews"
+              record={interviewDetail}
+              wsId={wsId}
+              open
+              onOpenChange={(next) => {
+                if (!next) setInterviewDetail(null);
+              }}
+            />
+          ) : null}
+        </>
       );
     }
     case "employees": {
@@ -590,7 +695,7 @@ export function LedgerTable(props: LedgerTableProps) {
       ];
       return (
         <>
-          <LedgerPeopleHeader wsId={wsId} domain="employees" />
+          <LedgerPeopleHeader wsId={wsId} importDomain="employees" create="employees" />
           <CollectionList
             label={label}
             columns={columns}
@@ -599,7 +704,22 @@ export function LedgerTable(props: LedgerTableProps) {
             loading={loading}
             empty={empty}
             embedded
+            onRowOpen={(row) => {
+              if (props.onRowClick) props.onRowClick(row);
+              else setEmployeeDetail(row);
+            }}
           />
+          {employeeDetail ? (
+            <RecordSheet
+              domain="employees"
+              record={employeeDetail}
+              wsId={wsId}
+              open
+              onOpenChange={(next) => {
+                if (!next) setEmployeeDetail(null);
+              }}
+            />
+          ) : null}
         </>
       );
     }
@@ -607,27 +727,32 @@ export function LedgerTable(props: LedgerTableProps) {
 }
 
 /**
- * The entry row of a people ledger: the import icon, plus the résumé upload for
- * the candidate ledger, and the dialogs they open.
+ * The entry row of a people ledger: the create icon, the import icon, plus the
+ * résumé upload for the candidate ledger, and the dialogs they open.
  *
  * `CollectionList` owns its header row and offers no slot in it, so the entries
  * sit on the line above — the same position a toolbar takes, kept small because
- * a ledger's columns are the content. A workspace id is required: importing
- * resolves against the ledger's own names and uploading fetches the candidate
- * list, and a ledger drawn without one (a preview, a test) has neither. The
- * dialogs stay mounted while closed so their exit animation runs; each empties
- * itself on the next open.
+ * a ledger's columns are the content. A workspace id is required: creating,
+ * importing and uploading all resolve against the ledger's own names, and a
+ * ledger drawn without one (a preview, a test) has none of them. Creation is
+ * every people ledger's; import is only the three that take pasted rows, since
+ * an interview references a candidate the sheet cannot invent. The dialogs stay
+ * mounted while closed so their exit animation runs; each empties itself on the
+ * next open.
  */
 function LedgerPeopleHeader({
   wsId,
-  domain,
+  create,
+  importDomain,
   resume = false,
 }: {
   wsId?: string;
-  domain: ImportDomain;
+  create: HrLedgerDomain;
+  importDomain?: ImportDomain;
   resume?: boolean;
 }) {
   const { t } = useT("blocks");
+  const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [resumeOpen, setResumeOpen] = useState(false);
   if (!wsId) return null;
@@ -651,12 +776,27 @@ function LedgerPeopleHeader({
           </Button>
         </>
       ) : null}
-      {importOpen ? (
-        <ImportSheet wsId={wsId} domain={domain} open onOpenChange={setImportOpen} />
+      {createOpen ? (
+        <RecordForm domain={create} wsId={wsId} open onOpenChange={setCreateOpen} />
       ) : null}
-      <IconButton label={t(($) => $.import.entry)} onClick={() => setImportOpen(true)}>
-        <Upload />
+      <IconButton label={t(($) => $.record.action.create)} onClick={() => setCreateOpen(true)}>
+        <Plus />
       </IconButton>
+      {importDomain ? (
+        <>
+          {importOpen ? (
+            <ImportSheet
+              wsId={wsId}
+              domain={importDomain}
+              open
+              onOpenChange={setImportOpen}
+            />
+          ) : null}
+          <IconButton label={t(($) => $.import.entry)} onClick={() => setImportOpen(true)}>
+            <Upload />
+          </IconButton>
+        </>
+      ) : null}
     </div>
   );
 }

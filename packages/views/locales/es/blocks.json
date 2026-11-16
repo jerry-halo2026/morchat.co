@@ -279,5 +279,98 @@
     "load": "{{running}}/{{capacity}}",
     "empty_title": "Aquí todavía no hay nadie",
     "empty_description": "Invita a miembros y crea agentes; su trabajo aparecerá aquí."
+  },
+  "hire": {
+    "title": "Contratar candidato",
+    "description": "Marca a {{name}} como contratado y crea la ficha del empleado en el mismo paso.",
+    "member": "Miembro",
+    "member_placeholder": "Elige un miembro",
+    "no_members": "Todavía no hay miembros en este espacio de trabajo. Invita a un miembro primero: la contratación crea la ficha del empleado en su cuenta.",
+    "hire_date": "Fecha de alta",
+    "job_title": "Puesto",
+    "grade": "Categoría",
+    "submit": "Contratar",
+    "cancel": "Cancelar",
+    "save_failed": "El servidor rechazó esta contratación. No se guardó nada; inténtalo de nuevo."
+  },
+  "overview": {
+    "hr_metrics": "Contratación"
+  },
+  "record": {
+    "yes": "Sí",
+    "no": "No",
+    "title": {
+      "jobs": "Detalles del puesto",
+      "candidates": "Detalles del candidato",
+      "interviews": "Detalles de la entrevista",
+      "employees": "Detalles del empleado"
+    },
+    "create": {
+      "jobs": "Nuevo puesto",
+      "candidates": "Nuevo candidato",
+      "interviews": "Nueva entrevista",
+      "employees": "Nuevo empleado"
+    },
+    "field": {
+      "title": "Puesto",
+      "department": "Departamento",
+      "level": "Nivel",
+      "headcount": "Vacantes",
+      "status": "Estado",
+      "salary_min": "Salario desde",
+      "salary_max": "Salario hasta",
+      "currency": "Moneda",
+      "requirements": "Requisitos",
+      "edu": "Formación",
+      "years": "Experiencia",
+      "city": "Ubicación",
+      "urgent": "Urgente",
+      "keywords": "Palabras clave",
+      "jd": "Descripción del puesto",
+      "owner": "Responsable",
+      "created_at": "Creado",
+      "name": "Nombre",
+      "job": "Puesto solicitado",
+      "stage": "Etapa",
+      "source": "Origen",
+      "phone": "Teléfono",
+      "email": "Correo",
+      "match_score": "Coincidencia",
+      "score_resume": "Puntuación del CV",
+      "score_test": "Puntuación de la prueba",
+      "score_interview": "Puntuación de la entrevista",
+      "expected_salary": "Salario esperado",
+      "offer_salary": "Salario ofrecido",
+      "hired_at": "Contratado",
+      "rejected_reason": "Motivo del descarte",
+      "candidate": "Candidato",
+      "round": "Ronda",
+      "scheduled_at": "Programada",
+      "duration_minutes": "Duración",
+      "interviewer": "Entrevistador",
+      "mode": "Modalidad",
+      "reschedule_count": "Reprogramaciones",
+      "note": "Nota",
+      "member": "Miembro",
+      "job_title": "Cargo",
+      "grade": "Grado",
+      "hire_date": "Fecha de alta",
+      "regular_date": "Fecha de confirmación",
+      "contract_end": "Fin del contrato"
+    },
+    "action": {
+      "create": "Nuevo",
+      "save": "Guardar",
+      "close": "Cerrar"
+    },
+    "option": {
+      "choose": "Elegir",
+      "none": "Ninguno"
+    },
+    "empty": "—",
+    "error": {
+      "required": "Rellena: {{fields}}",
+      "submit": "El servidor rechazó esta fila. No se guardó nada; corrígela y vuelve a intentarlo."
+    }
   }
 }

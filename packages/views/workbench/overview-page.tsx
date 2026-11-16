@@ -159,6 +159,24 @@ export function OverviewPage() {
             {wsId ? (
               <>
                 <MetricRow wsId={wsId} departmentId={departmentId} onFillGap={fillGap} />
+                {/* The four hiring numbers sit above the ledger rows as their
+                    own strip (§10.5), the same one the ledger tab leads its
+                    people group with: the row above answers "is the delivery
+                    work moving", this one answers "is the hiring moving", and a
+                    single row of ten cells would answer neither at a glance.
+                    The department filter reads through unchanged, so the two
+                    strips always describe the same scope. */}
+                <section aria-label={t(($) => $.overview.hr_metrics)} className="space-y-2">
+                  <div className="flex h-7 items-center gap-2">
+                    <h2 className="text-body font-medium">{t(($) => $.overview.hr_metrics)}</h2>
+                  </div>
+                  <MetricRow
+                    wsId={wsId}
+                    departmentId={departmentId}
+                    metricIds={HR_METRIC_IDS}
+                    onFillGap={fillGap}
+                  />
+                </section>
                 <LedgerSection
                   wsId={wsId}
                   departmentId={departmentId}
@@ -416,9 +434,20 @@ function InterviewsPane({ wsId }: { wsId: string }) {
     ...hrInterviewListOptions(wsId),
     select: (response) => response.interviews,
   });
+  // Candidate names come from the cache the candidates pane already fills, so
+  // the interview ledger shows who is being interviewed instead of a uuid.
+  const candidates = useQuery({
+    ...hrCandidateListOptions(wsId),
+    select: (response) => response.candidates,
+  });
+  const candidateNames = Object.fromEntries(
+    (candidates.data ?? []).map((candidate) => [candidate.id, candidate.name]),
+  );
   return (
     <LedgerTable
+      wsId={wsId}
       domain="interviews"
+      candidateNames={candidateNames}
       rows={query.data ?? []}
       loading={query.isPending}
       isError={query.isError}

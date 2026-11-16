@@ -14,6 +14,12 @@ export { LedgerSection } from "./ledger-section";
 export { LedgerTable } from "./ledger-table";
 export type { LedgerTableProps } from "./ledger-table";
 export { ImportSheet } from "./import-sheet";
+export { HireDialog } from "./hire-dialog";
+export type { HireDialogProps } from "./hire-dialog";
+export { RecordSheet } from "./record-sheet";
+export type { RecordField, RecordSheetProps, RecordTarget } from "./record-sheet";
+export { RecordForm } from "./record-form";
+export type { RecordFormProps } from "./record-form";
 export { ResumeUpload, matchResumeFile } from "./resume-upload";
 export type { ResumeCandidateRef, ResumeMatch, ResumeMatchState } from "./resume-upload";
 export {

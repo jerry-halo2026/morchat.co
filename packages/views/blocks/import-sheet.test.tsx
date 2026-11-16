@@ -43,6 +43,12 @@ const JOB: HrJob = {
   created_at: "2026-01-04T09:00:00Z",
   updated_at: "2026-01-04T09:00:00Z",
   archived_at: null,
+    edu: null,
+    years: null,
+    city: null,
+    jd: null,
+    urgent: false,
+    keywords: [],
 };
 
 const DEPARTMENT: Department = {

@@ -279,5 +279,98 @@
     "load": "{{running}}/{{capacity}}",
     "empty_title": "这里还没有人",
     "empty_description": "邀请成员、创建智能体后，他们的工作会出现在这里。"
+  },
+  "hire": {
+    "title": "办理入职",
+    "description": "把 {{name}} 标为已入职，并在同一步建好员工档案。",
+    "member": "成员",
+    "member_placeholder": "选择成员",
+    "no_members": "这个工作区还没有成员。先邀请成员——入职会把员工档案建在其账号下。",
+    "hire_date": "入职日期",
+    "job_title": "职位",
+    "grade": "职级",
+    "submit": "入职",
+    "cancel": "取消",
+    "save_failed": "服务端没有受理这次入职，什么都没写入——请重试。"
+  },
+  "overview": {
+    "hr_metrics": "招聘"
+  },
+  "record": {
+    "yes": "是",
+    "no": "否",
+    "title": {
+      "jobs": "岗位详情",
+      "candidates": "候选人详情",
+      "interviews": "面试详情",
+      "employees": "员工详情"
+    },
+    "create": {
+      "jobs": "新建岗位",
+      "candidates": "新建候选人",
+      "interviews": "新建面试",
+      "employees": "新建员工"
+    },
+    "field": {
+      "title": "岗位标题",
+      "department": "部门",
+      "level": "职级",
+      "headcount": "编制",
+      "status": "状态",
+      "salary_min": "薪资下限",
+      "salary_max": "薪资上限",
+      "currency": "币种",
+      "requirements": "岗位要求",
+      "edu": "学历要求",
+      "years": "经验要求",
+      "city": "工作地点",
+      "urgent": "急招",
+      "keywords": "技能关键词",
+      "jd": "职位描述",
+      "owner": "负责人",
+      "created_at": "创建时间",
+      "name": "姓名",
+      "job": "应聘岗位",
+      "stage": "阶段",
+      "source": "来源",
+      "phone": "电话",
+      "email": "邮箱",
+      "match_score": "匹配度",
+      "score_resume": "简历评分",
+      "score_test": "笔试评分",
+      "score_interview": "面试评分",
+      "expected_salary": "期望薪资",
+      "offer_salary": "录用薪资",
+      "hired_at": "入职时间",
+      "rejected_reason": "淘汰原因",
+      "candidate": "候选人",
+      "round": "轮次",
+      "scheduled_at": "面试时间",
+      "duration_minutes": "时长",
+      "interviewer": "面试官",
+      "mode": "形式",
+      "reschedule_count": "改期次数",
+      "note": "备注",
+      "member": "成员",
+      "job_title": "职位",
+      "grade": "等级",
+      "hire_date": "入职日期",
+      "regular_date": "转正日期",
+      "contract_end": "合同到期"
+    },
+    "action": {
+      "create": "新建",
+      "save": "保存",
+      "close": "关闭"
+    },
+    "option": {
+      "choose": "请选择",
+      "none": "无"
+    },
+    "empty": "—",
+    "error": {
+      "required": "请填写：{{fields}}",
+      "submit": "服务端拒绝了这条记录，未保存，请修改后重试。"
+    }
   }
 }

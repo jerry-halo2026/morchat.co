@@ -148,7 +148,10 @@ describe("OverviewPage", () => {
     expect(screen.getByText("Closed this week")).toBeInTheDocument();
     expect(container).toHaveTextContent("12");
     expect(screen.getByText("Overdue")).toBeInTheDocument();
-    expect(screen.getByText("None yet")).toBeInTheDocument();
+    // Two zero states now draw it — the delivery strip's overdue count and the
+    // hiring strip's scorecard backlog — so the copy is asserted on both cells
+    // rather than on whichever one the query happened to reach first.
+    expect(screen.getAllByText("None yet")).toHaveLength(2);
     expect(screen.getByText("Median cycle time")).toBeInTheDocument();
     expect(screen.getByText("Weighted pipeline")).toBeInTheDocument();
   });
@@ -208,7 +211,9 @@ describe("OverviewPage", () => {
 
   it("opens a ledger tab from a gap card", async () => {
     renderPage();
-    await userEvent.click(screen.getByRole("button", { name: "Fill it in the ledger" }));
+    // The delivery strip's gap card comes first in the page: it is the strip
+    // above the hiring one, and both offer the same entry point.
+    await userEvent.click(screen.getAllByRole("button", { name: "Fill it in the ledger" })[0]!);
     expect(replace).toHaveBeenCalledWith("/acme/overview?tab=ledger&domain=collabs");
   });
 
@@ -286,5 +291,42 @@ describe("OverviewPage", () => {
     expect(within(grid).getByText("Lin Wei")).toBeInTheDocument();
     expect(within(grid).getByText("Interview")).toBeInTheDocument();
     expect(within(grid).getByText("82")).toBeInTheDocument();
+  });
+
+  it("puts the four hiring numbers above the ledger rows on the overview tab", () => {
+    renderPage();
+    const hiring = screen.getByRole("region", { name: "Hiring" });
+    for (const label of [
+      "Active candidates",
+      "Time to hire",
+      "Unscored interviews",
+      "On-time interviews",
+    ]) {
+      // One strip, so one cell per number: the borrowing of the people group's
+      // four ids must not draw a second copy.
+      expect(screen.getAllByText(label)).toHaveLength(1);
+      expect(within(hiring).getByText(label)).toBeInTheDocument();
+    }
+    // Same states as the ledger tab's copy of the strip: time to hire has no
+    // hire date to read and says so, the backlog is a true zero.
+    expect(
+      within(hiring).getByText(
+        "Nobody has been hired through the ledger yet, so there is no hire date to measure against.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("does not draw the hiring numbers twice on the ledger tab", () => {
+    // The overview panel is unmounted while the ledger tab is up, so the people
+    // group's strip is the only one on screen — one group of four, not two.
+    renderPage("?tab=ledger&domain=candidates");
+    for (const label of [
+      "Active candidates",
+      "Time to hire",
+      "Unscored interviews",
+      "On-time interviews",
+    ]) {
+      expect(screen.getAllByText(label)).toHaveLength(1);
+    }
   });
 });

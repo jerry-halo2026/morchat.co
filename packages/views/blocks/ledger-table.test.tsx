@@ -31,6 +31,12 @@ const JOB: HrJob = {
   created_at: "2026-01-04T09:00:00Z",
   updated_at: "2026-01-04T09:00:00Z",
   archived_at: null,
+  edu: null,
+  years: null,
+  city: null,
+  jd: null,
+  urgent: false,
+  keywords: [],
 };
 
 const CANDIDATE: HrCandidate = {
@@ -66,6 +72,7 @@ const INTERVIEW: HrInterview = {
   round: 2,
   scheduled_at: "2026-02-10T06:30:00Z",
   duration_minutes: 45,
+  interviewer_name: "Lin Yi",
   interviewer_member_id: "memb-1-0000-0000-0000-000000000001",
   mode: "video",
   status: "scheduled",
@@ -159,7 +166,9 @@ describe("LedgerTable · B1 columns", () => {
     expect(within(grid).getByText("Video")).toBeInTheDocument();
     expect(within(grid).getByText("Scheduled")).toBeInTheDocument();
     expect(within(grid).getByText("cand-1-0")).toBeInTheDocument();
-    expect(within(grid).getByText("memb-1-0")).toBeInTheDocument();
+    // The interviewer is a recorded name, not an account: the ledger shows the
+    // name the row carries instead of a uuid prefix.
+    expect(within(grid).getByText("Lin Yi")).toBeInTheDocument();
   });
 
   it("draws an employee's profile dates as calendar days", () => {

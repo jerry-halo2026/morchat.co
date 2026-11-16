@@ -279,5 +279,98 @@
     "load": "{{running}}/{{capacity}}",
     "empty_title": "這裡還沒有人",
     "empty_description": "邀請成員、建立智能體後，他們的工作會出現在這裡。"
+  },
+  "hire": {
+    "title": "辦理入職",
+    "description": "把 {{name}} 標為已入職，並在同一步建立員工檔案。",
+    "member": "成員",
+    "member_placeholder": "選擇成員",
+    "no_members": "這個工作區還沒有成員。先邀請成員——入職會把員工檔案建在其帳號下。",
+    "hire_date": "入職日期",
+    "job_title": "職位",
+    "grade": "職級",
+    "submit": "入職",
+    "cancel": "取消",
+    "save_failed": "伺服器沒有受理這次入職，什麼都沒寫入——請重試。"
+  },
+  "overview": {
+    "hr_metrics": "招聘"
+  },
+  "record": {
+    "yes": "是",
+    "no": "否",
+    "title": {
+      "jobs": "職位詳情",
+      "candidates": "應徵者詳情",
+      "interviews": "面試詳情",
+      "employees": "員工詳情"
+    },
+    "create": {
+      "jobs": "新增職位",
+      "candidates": "新增應徵者",
+      "interviews": "新增面試",
+      "employees": "新增員工"
+    },
+    "field": {
+      "title": "職位名稱",
+      "department": "部門",
+      "level": "職級",
+      "headcount": "編制",
+      "status": "狀態",
+      "salary_min": "薪資下限",
+      "salary_max": "薪資上限",
+      "currency": "幣別",
+      "requirements": "職位要求",
+      "edu": "學歷要求",
+      "years": "經驗要求",
+      "city": "工作地點",
+      "urgent": "急招",
+      "keywords": "技能關鍵詞",
+      "jd": "職位描述",
+      "owner": "負責人",
+      "created_at": "建立時間",
+      "name": "姓名",
+      "job": "應徵職位",
+      "stage": "階段",
+      "source": "來源",
+      "phone": "電話",
+      "email": "電子郵件",
+      "match_score": "匹配度",
+      "score_resume": "履歷評分",
+      "score_test": "筆試評分",
+      "score_interview": "面試評分",
+      "expected_salary": "期望薪資",
+      "offer_salary": "錄用薪資",
+      "hired_at": "到職時間",
+      "rejected_reason": "淘汰原因",
+      "candidate": "應徵者",
+      "round": "輪次",
+      "scheduled_at": "面試時間",
+      "duration_minutes": "時長",
+      "interviewer": "面試官",
+      "mode": "形式",
+      "reschedule_count": "改期次數",
+      "note": "備註",
+      "member": "成員",
+      "job_title": "職稱",
+      "grade": "等級",
+      "hire_date": "到職日期",
+      "regular_date": "轉正日期",
+      "contract_end": "合約到期"
+    },
+    "action": {
+      "create": "新增",
+      "save": "儲存",
+      "close": "關閉"
+    },
+    "option": {
+      "choose": "請選擇",
+      "none": "無"
+    },
+    "empty": "—",
+    "error": {
+      "required": "請填寫：{{fields}}",
+      "submit": "伺服器拒絕了這筆記錄，未儲存，請修改後重試。"
+    }
   }
 }

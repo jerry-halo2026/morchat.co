@@ -279,5 +279,98 @@
     "load": "{{running}}/{{capacity}}",
     "empty_title": "Personne ici pour l'instant",
     "empty_description": "Invitez des membres et créez des agents : leur travail apparaîtra ici."
+  },
+  "hire": {
+    "title": "Embaucher le candidat",
+    "description": "Marque {{name}} comme recruté et crée la fiche salarié dans la même étape.",
+    "member": "Membre",
+    "member_placeholder": "Choisir un membre",
+    "no_members": "Aucun membre dans cet espace de travail pour l'instant. Invitez d'abord un membre : l'embauche crée la fiche salarié sur son compte.",
+    "hire_date": "Date d'embauche",
+    "job_title": "Poste",
+    "grade": "Classe",
+    "submit": "Embaucher",
+    "cancel": "Annuler",
+    "save_failed": "Le serveur a refusé cette embauche. Rien n'a été enregistré : réessayez."
+  },
+  "overview": {
+    "hr_metrics": "Recrutement"
+  },
+  "record": {
+    "yes": "Oui",
+    "no": "Non",
+    "title": {
+      "jobs": "Détails du poste",
+      "candidates": "Détails du candidat",
+      "interviews": "Détails de l’entretien",
+      "employees": "Détails du salarié"
+    },
+    "create": {
+      "jobs": "Nouveau poste",
+      "candidates": "Nouveau candidat",
+      "interviews": "Nouvel entretien",
+      "employees": "Nouveau salarié"
+    },
+    "field": {
+      "title": "Intitulé",
+      "department": "Service",
+      "level": "Niveau",
+      "headcount": "Effectif",
+      "status": "Statut",
+      "salary_min": "Salaire min",
+      "salary_max": "Salaire max",
+      "currency": "Devise",
+      "requirements": "Exigences",
+      "edu": "Niveau requis",
+      "years": "Expérience",
+      "city": "Lieu",
+      "urgent": "Urgent",
+      "keywords": "Mots-clés",
+      "jd": "Description du poste",
+      "owner": "Responsable",
+      "created_at": "Créé le",
+      "name": "Nom",
+      "job": "Poste visé",
+      "stage": "Étape",
+      "source": "Source",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "match_score": "Correspondance",
+      "score_resume": "Score CV",
+      "score_test": "Score test",
+      "score_interview": "Score entretien",
+      "expected_salary": "Salaire souhaité",
+      "offer_salary": "Salaire proposé",
+      "hired_at": "Embauché le",
+      "rejected_reason": "Motif du refus",
+      "candidate": "Candidat",
+      "round": "Tour",
+      "scheduled_at": "Planifié le",
+      "duration_minutes": "Durée",
+      "interviewer": "Recruteur",
+      "mode": "Modalité",
+      "reschedule_count": "Reprogrammations",
+      "note": "Note",
+      "member": "Membre",
+      "job_title": "Poste",
+      "grade": "Grade",
+      "hire_date": "Date d’embauche",
+      "regular_date": "Date de titularisation",
+      "contract_end": "Fin de contrat"
+    },
+    "action": {
+      "create": "Nouveau",
+      "save": "Enregistrer",
+      "close": "Fermer"
+    },
+    "option": {
+      "choose": "Choisir",
+      "none": "Aucun"
+    },
+    "empty": "—",
+    "error": {
+      "required": "À renseigner : {{fields}}",
+      "submit": "Le serveur a refusé cette ligne. Rien n’a été enregistré — corrigez-la et réessayez."
+    }
   }
 }

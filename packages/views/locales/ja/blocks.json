@@ -279,5 +279,98 @@
     "load": "{{running}}/{{capacity}}",
     "empty_title": "まだ誰もいません",
     "empty_description": "メンバーを招待しエージェントを作成すると、ここに表示されます。"
+  },
+  "hire": {
+    "title": "採用を確定",
+    "description": "{{name}} を採用済みにし、同じ処理で従業員レコードを作成します。",
+    "member": "メンバー",
+    "member_placeholder": "メンバーを選択",
+    "no_members": "このワークスペースにはまだメンバーがいません。先にメンバーを招待してください。採用はメンバーのアカウントに従業員レコードを作成します。",
+    "hire_date": "入社日",
+    "job_title": "職種",
+    "grade": "等級",
+    "submit": "採用する",
+    "cancel": "キャンセル",
+    "save_failed": "サーバーがこの採用を受け付けませんでした。何も保存されていません。もう一度お試しください。"
+  },
+  "overview": {
+    "hr_metrics": "採用"
+  },
+  "record": {
+    "yes": "あり",
+    "no": "なし",
+    "title": {
+      "jobs": "求人の詳細",
+      "candidates": "候補者の詳細",
+      "interviews": "面接の詳細",
+      "employees": "従業員の詳細"
+    },
+    "create": {
+      "jobs": "求人を作成",
+      "candidates": "候補者を作成",
+      "interviews": "面接を作成",
+      "employees": "従業員を作成"
+    },
+    "field": {
+      "title": "職種名",
+      "department": "部署",
+      "level": "等級",
+      "headcount": "募集人数",
+      "status": "ステータス",
+      "salary_min": "給与下限",
+      "salary_max": "給与上限",
+      "currency": "通貨",
+      "requirements": "応募要件",
+      "edu": "学歴要件",
+      "years": "経験要件",
+      "city": "勤務地",
+      "urgent": "急募",
+      "keywords": "キーワード",
+      "jd": "職務内容",
+      "owner": "担当者",
+      "created_at": "作成日時",
+      "name": "氏名",
+      "job": "応募職種",
+      "stage": "選考段階",
+      "source": "応募経路",
+      "phone": "電話番号",
+      "email": "メール",
+      "match_score": "マッチ度",
+      "score_resume": "書類評価",
+      "score_test": "筆記評価",
+      "score_interview": "面接評価",
+      "expected_salary": "希望給与",
+      "offer_salary": "提示給与",
+      "hired_at": "入社日時",
+      "rejected_reason": "不採用理由",
+      "candidate": "候補者",
+      "round": "回次",
+      "scheduled_at": "面接日時",
+      "duration_minutes": "所要時間",
+      "interviewer": "面接官",
+      "mode": "実施形式",
+      "reschedule_count": "再調整回数",
+      "note": "メモ",
+      "member": "メンバー",
+      "job_title": "役職",
+      "grade": "グレード",
+      "hire_date": "入社日",
+      "regular_date": "試用期間終了日",
+      "contract_end": "契約終了日"
+    },
+    "action": {
+      "create": "新規",
+      "save": "保存",
+      "close": "閉じる"
+    },
+    "option": {
+      "choose": "選択してください",
+      "none": "なし"
+    },
+    "empty": "—",
+    "error": {
+      "required": "{{fields}} を入力してください",
+      "submit": "サーバーがこの行を拒否しました。保存されていません。修正して再試行してください。"
+    }
   }
 }
