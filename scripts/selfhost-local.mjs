@@ -16,7 +16,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
-import { homedir } from "node:os";
+import { homedir, networkInterfaces } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -30,6 +30,37 @@ const composeFiles = [
 ];
 const DEV_CODE = "123456";
 const DEFAULTS = { api: 8081, web: 3100 };
+
+/**
+ * Address colleagues should use. `--localhost` keeps the stack private to this
+ * machine; otherwise the LAN address of the interface that carries the default
+ * route is used, and the ports are published on 0.0.0.0.
+ */
+function lanAddress() {
+  const explicit = process.argv.find((arg) => arg.startsWith("--lan-ip="));
+  if (explicit) return explicit.slice("--lan-ip=".length);
+  if (process.argv.includes("--localhost")) return "127.0.0.1";
+
+  if (process.platform === "win32") {
+    const route = spawnSync("route", ["print", "0.0.0.0"], { encoding: "utf8" });
+    for (const line of (route.stdout ?? "").split(/\r?\n/)) {
+      const cols = line.trim().split(/\s+/);
+      if (cols.length === 5 && cols[0] === "0.0.0.0" && cols[1] === "0.0.0.0") {
+        const local = cols[3];
+        if (/^\d+\.\d+\.\d+\.\d+$/.test(local) && !local.startsWith("127.")) return local;
+      }
+    }
+  }
+
+  for (const addresses of Object.values(networkInterfaces())) {
+    for (const address of addresses ?? []) {
+      if (address.family !== "IPv4" || address.internal) continue;
+      if (address.address.startsWith("169.254.") || address.address.startsWith("172.1")) continue;
+      return address.address;
+    }
+  }
+  return "127.0.0.1";
+}
 
 function run(command, args, options = {}) {
   return spawnSync(command, args, { cwd: repoRoot, encoding: "utf8", ...options });
@@ -80,22 +111,29 @@ function writeEnv(values) {
 
 async function ensureEnv({ rebuild }) {
   const existing = readEnv();
+  const host = lanAddress();
   const api = existing.PORT ? Number(existing.PORT) : await pickPort(DEFAULTS.api);
   const web = existing.FRONTEND_PORT ? Number(existing.FRONTEND_PORT) : await pickPort(DEFAULTS.web);
   const values = {
     ...existing,
     PORT: String(api),
     FRONTEND_PORT: String(web),
-    FRONTEND_ORIGIN: `http://localhost:${web}`,
-    MULTICA_APP_URL: `http://localhost:${web}`,
+    // Colleagues on the LAN reach this machine by its address, so the stack is
+    // published on 0.0.0.0 and every URL carries that host instead of localhost.
+    BIND_HOST: host === "127.0.0.1" ? "127.0.0.1" : "0.0.0.0",
+    FRONTEND_ORIGIN: `http://${host}:${web}`,
+    MULTICA_APP_URL: `http://${host}:${web}`,
+    MULTICA_PUBLIC_URL: `http://${host}:${api}`,
     APP_ENV: "development",
     MULTICA_DEV_VERIFICATION_CODE: DEV_CODE,
     JWT_SECRET: existing.JWT_SECRET || randomBytes(32).toString("hex"),
     POSTGRES_PASSWORD: existing.POSTGRES_PASSWORD || randomBytes(24).toString("hex"),
     MULTICA_VCS_SECRET_KEY: existing.MULTICA_VCS_SECRET_KEY || randomBytes(32).toString("base64"),
   };
-  if (rebuild || !existsSync(envFile)) writeEnv(values);
-  return { api, web, values };
+  // Always rewrite: ports, bind host and the LAN URLs can change between runs
+  // (a laptop that moves networks), while the secrets above are carried over.
+  writeEnv(values);
+  return { api, web, host, values };
 }
 
 function waitForHealth(port, timeoutMs = 240_000) {
@@ -140,7 +178,7 @@ function healDatabasePassword(password) {
   return true;
 }
 
-function writeDesktopConfig(api, web) {
+function writeDesktopConfig(host, api, web) {
   const dir = join(homedir(), ".multica");
   mkdirSync(dir, { recursive: true });
   const file = join(dir, "desktop.json");
@@ -150,9 +188,9 @@ function writeDesktopConfig(api, web) {
     `${JSON.stringify(
       {
         schemaVersion: 1,
-        apiUrl: `http://localhost:${api}`,
-        wsUrl: `ws://localhost:${api}/ws`,
-        appUrl: `http://localhost:${web}`,
+        apiUrl: `http://${host}:${api}`,
+        wsUrl: `ws://${host}:${api}/ws`,
+        appUrl: `http://${host}:${web}`,
       },
       null,
       2,
@@ -162,8 +200,8 @@ function writeDesktopConfig(api, web) {
 }
 
 async function up() {
-  const { api, web, values } = await ensureEnv({ rebuild: false });
-  console.log(`==> building and starting the local stack (api ${api}, web ${web})`);
+  const { api, web, host, values } = await ensureEnv({ rebuild: false });
+  console.log(`==> building and starting the local stack (api ${host}:${api}, web ${host}:${web})`);
   const build = compose(["up", "-d", "--build"], { stdio: "inherit" });
   if (build.status !== 0) {
     console.error("compose up failed");
@@ -185,16 +223,17 @@ async function up() {
   }
   console.log(healthy ? "\n==> backend healthy" : "\n==> backend did not become healthy; run with --logs to inspect");
 
-  const configPath = writeDesktopConfig(api, web);
+  const configPath = writeDesktopConfig(host, api, web);
   console.log(`
 local stack is up
 
-  web        http://localhost:${web}
-  api        http://localhost:${api}
-  health     http://localhost:${api}/health
+  web        http://${host}:${web}
+  api        http://${host}:${api}
+  health     http://${host}:${api}/health
   desktop    ${configPath} (restart the app to pick it up)
-  cli        morechat setup self-host --server-url http://localhost:${api} --app-url http://localhost:${web}
+  cli        morechat setup self-host --server-url http://${host}:${api} --app-url http://${host}:${web}
   login      any email + verification code ${DEV_CODE} (development mode, no SMTP)
+  shared     colleagues on the same network use the web URL above
 
 stop with: node scripts/selfhost-local.mjs down
 `);
@@ -210,10 +249,12 @@ function status() {
   const env = readEnv();
   const api = env.PORT || String(DEFAULTS.api);
   const web = env.FRONTEND_PORT || String(DEFAULTS.web);
+  const host = (env.FRONTEND_ORIGIN ?? "").replace(/^https?:\/\//, "").replace(/:\d+$/, "") || "localhost";
   console.log(`
-  web    http://localhost:${web}
-  api    http://localhost:${api}/health
+  web    http://${host}:${web}
+  api    http://${host}:${api}/health
   login  code ${env.MULTICA_DEV_VERIFICATION_CODE || DEV_CODE} (APP_ENV=${env.APP_ENV || "production"})
+  bind   ${env.BIND_HOST || "127.0.0.1"} (127.0.0.1 = this machine only, 0.0.0.0 = LAN)
 `);
 }
 

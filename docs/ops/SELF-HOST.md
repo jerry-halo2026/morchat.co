@@ -18,18 +18,27 @@ node scripts/selfhost-local.mjs up      # 或 make selfhost-local
 ```
 
 它会：生成 `.env.selfhost`（随机密钥、开发模式、固定验证码 `123456`）→ 自动挑没被占用的
-端口（默认 `8081`/`3100`，开发环境占了 8080 也不会撞）→ 构建并启动 → 等 `/health` →
-把本机的 `~/.multica/desktop.json` 指向这套栈。
+端口（默认 `8081`/`3100`，开发环境占了 8080 也不会撞）→ **按本机局域网地址**把服务发布到
+`0.0.0.0` → 构建并启动 → 等 `/health` → 把本机的 `~/.multica/desktop.json` 指向这套栈。
 
 ```
-web        http://localhost:3100
-api        http://localhost:8081
+web        http://192.168.x.x:3100     ← 同事直接开这个
+api        http://192.168.x.x:8081
 desktop    C:\Users\<you>\.multica\desktop.json
 login      任意邮箱 + 验证码 123456
 ```
 
-`make selfhost-local-status` 看状态，`make selfhost-local-stop` 停止（保留数据）。
-数据库密码与 `.env.selfhost` 不一致时（旧卷沿用旧密码），脚本会自动 `ALTER ROLE` 修正。
+- **只给自己用**：`node scripts/selfhost-local.mjs up --localhost`，端口只绑 `127.0.0.1`。
+- **指定地址**（多网卡时）：`node scripts/selfhost-local.mjs up --lan-ip=192.168.10.170`。
+- 换网络后重跑一次 `up` 即可：脚本会重算局域网地址并同步 `.env.selfhost` 与 `desktop.json`。
+
+`make selfhost-local-status` 看状态（会显示当前绑定与登录码），
+`make selfhost-local-stop` 停止（保留数据）。数据库密码与 `.env.selfhost` 不一致时
+（旧卷沿用旧密码），脚本会自动 `ALTER ROLE` 修正。
+
+**防火墙**：Windows 的「专用网络」配置文件关闭时局域网可直接访问；若开着而同事连不上，
+放行两个端口：`netsh advfirewall firewall add rule name="morechat" dir=in action=allow
+protocol=TCP localport=3100,8081`（需要管理员）。
 
 下面是手动方式，想自己控制每一步时用。
 
