@@ -185,3 +185,20 @@ describe("ImportSheet · writing rows", () => {
     expect(api.createHrJob).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("ImportSheet · example data", () => {
+  // A demo workspace has no sheet to paste, so the dialog can fill its own:
+  // same shape as a real paste, including the one row that cannot be imported.
+  it("fills the ledger's example and previews its rows", () => {
+    renderSheet("jobs");
+
+    fireEvent.click(screen.getByRole("button", { name: "Use an example" }));
+
+    expect(screen.getByLabelText<HTMLTextAreaElement>("Pasted rows").value).not.toBe("");
+    const preview = screen.getByRole("region", { name: "Preview" });
+    expect(within(preview).getByText("短视频剪辑")).toBeInTheDocument();
+    // `15-25K` travelled as one number, and the empty cell shows as an error.
+    expect(within(preview).getByText("20000")).toBeInTheDocument();
+    expect(within(preview).getByText("No job title")).toBeInTheDocument();
+  });
+});

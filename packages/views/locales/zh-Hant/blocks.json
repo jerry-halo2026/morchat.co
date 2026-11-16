@@ -198,6 +198,7 @@
     "done": "成功 {{count}} 列，失敗 {{failed}} 列",
     "failed_rows": "待修正的列",
     "unmapped": "不匯入",
+    "sample": "填入範例",
     "field": {
       "owner": "用人經理",
       "salary_min": "薪資下限",
@@ -232,6 +233,26 @@
       "bad_amount": "「{{value}}」不是一個數，區間請拆成兩欄",
       "bad_stage": "階段「{{value}}」不存在",
       "server_error": "伺服器拒絕了這一列"
+    }
+  },
+  "resume": {
+    "title": "上傳履歷",
+    "hint": "檔名含候選人姓名即自動比對；比對不到的檔案不會上傳，請先匯入候選人。",
+    "pick": "選擇檔案",
+    "upload": "上傳",
+    "uploading": "上傳中",
+    "matched": "已比對",
+    "unmatched": "未比對",
+    "ambiguous": "需選擇",
+    "failed": "上傳失敗",
+    "no_candidates": "還沒有候選人，請先匯入候選人。",
+    "summary": "共 {{count}} 個，可上傳 {{ok}} 個，{{unmatched}} 個未比對",
+    "done": "成功 {{count}}，失敗 {{failed}}",
+    "column": {
+      "file": "檔名",
+      "size": "大小",
+      "candidate": "候選人",
+      "status": "狀態"
     }
   },
   "team": {

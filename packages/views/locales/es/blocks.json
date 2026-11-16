@@ -198,6 +198,7 @@
     "done": "Importadas {{count}}, fallidas {{failed}}",
     "failed_rows": "Filas por corregir",
     "unmapped": "Sin asignar",
+    "sample": "Usar un ejemplo",
     "field": {
       "owner": "Responsable de contratación",
       "salary_min": "Salario mínimo",
@@ -232,6 +233,26 @@
       "bad_amount": "«{{value}}» no es un solo número; separa el rango en dos columnas",
       "bad_stage": "No hay ninguna etapa «{{value}}»",
       "server_error": "El servidor rechazó esta fila"
+    }
+  },
+  "resume": {
+    "title": "Subir currículums",
+    "hint": "El nombre del archivo se compara con el de cada candidato. Un archivo que no coincide con nadie no se sube: importa primero al candidato.",
+    "pick": "Elegir archivos",
+    "upload": "Subir",
+    "uploading": "Subiendo",
+    "matched": "Coincide",
+    "unmatched": "Sin coincidencia",
+    "ambiguous": "Elige uno",
+    "failed": "Error al subir",
+    "no_candidates": "Aún no hay candidatos: importa candidatos primero.",
+    "summary": "{{count}} archivos · {{ok}} listos · {{unmatched}} sin coincidencia",
+    "done": "Subidos {{count}}, {{failed}} con error",
+    "column": {
+      "file": "Archivo",
+      "size": "Tamaño",
+      "candidate": "Candidato",
+      "status": "Estado"
     }
   },
   "team": {

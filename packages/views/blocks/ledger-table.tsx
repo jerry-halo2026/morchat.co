@@ -34,6 +34,7 @@ import { CollectionPageState } from "../layout/collection-page";
 import { CollectionList, type CollectionColumn } from "../layout/collection-list";
 import type { LedgerDomain } from "./data";
 import { ImportSheet } from "./import-sheet";
+import { ResumeUpload } from "./resume-upload";
 import type { ImportDomain } from "./import";
 
 const DOMAIN_ICON: Record<LedgerDomain, IconComponent> = {
@@ -402,7 +403,7 @@ export function LedgerTable(props: LedgerTableProps) {
       ];
       return (
         <>
-          <LedgerImportHeader wsId={wsId} domain="jobs" />
+          <LedgerPeopleHeader wsId={wsId} domain="jobs" />
           <CollectionList
             label={label}
             columns={columns}
@@ -461,7 +462,7 @@ export function LedgerTable(props: LedgerTableProps) {
       ];
       return (
         <>
-          <LedgerImportHeader wsId={wsId} domain="candidates" />
+          <LedgerPeopleHeader wsId={wsId} domain="candidates" resume />
           <CollectionList
             label={label}
             columns={columns}
@@ -574,7 +575,7 @@ export function LedgerTable(props: LedgerTableProps) {
       ];
       return (
         <>
-          <LedgerImportHeader wsId={wsId} domain="employees" />
+          <LedgerPeopleHeader wsId={wsId} domain="employees" />
           <CollectionList
             label={label}
             columns={columns}
@@ -591,24 +592,54 @@ export function LedgerTable(props: LedgerTableProps) {
 }
 
 /**
- * The import entry of a people ledger: one icon in the row above the header,
- * plus the sheet it opens.
+ * The entry row of a people ledger: the import icon, plus the résumé upload for
+ * the candidate ledger, and the dialogs they open.
  *
- * `CollectionList` owns its header row and offers no slot in it, so the entry
- * sits on the line above — the same position a toolbar takes, kept to a single
- * icon because a ledger's columns are the content. A workspace id is required:
- * importing needs the ledger's own names to resolve against, and a ledger drawn
- * without one (a preview) has nothing to resolve. The sheet stays mounted while
- * closed so its exit animation runs; it empties itself on the next open.
+ * `CollectionList` owns its header row and offers no slot in it, so the entries
+ * sit on the line above — the same position a toolbar takes, kept small because
+ * a ledger's columns are the content. A workspace id is required: importing
+ * resolves against the ledger's own names and uploading fetches the candidate
+ * list, and a ledger drawn without one (a preview, a test) has neither. The
+ * dialogs stay mounted while closed so their exit animation runs; each empties
+ * itself on the next open.
  */
-function LedgerImportHeader({ wsId, domain }: { wsId?: string; domain: ImportDomain }) {
+function LedgerPeopleHeader({
+  wsId,
+  domain,
+  resume = false,
+}: {
+  wsId?: string;
+  domain: ImportDomain;
+  resume?: boolean;
+}) {
   const { t } = useT("blocks");
-  const [open, setOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [resumeOpen, setResumeOpen] = useState(false);
   if (!wsId) return null;
   return (
-    <div className="flex h-8 items-center justify-end">
-      <ImportSheet wsId={wsId} domain={domain} open={open} onOpenChange={setOpen} />
-      <IconButton label={t(($) => $.import.entry)} onClick={() => setOpen(true)}>
+    <div className="flex h-8 items-center justify-end gap-2">
+      {resume ? (
+        <>
+          {/* Mounted only while open: the dialog's data hooks would otherwise
+              run for every ledger render, including pages that never open it
+              (and test renders without a QueryClient). */}
+          {resumeOpen ? (
+            <ResumeUpload wsId={wsId} open onOpenChange={setResumeOpen} />
+          ) : null}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setResumeOpen(true)}
+          >
+            {t(($) => $.resume.title)}
+          </Button>
+        </>
+      ) : null}
+      {importOpen ? (
+        <ImportSheet wsId={wsId} domain={domain} open onOpenChange={setImportOpen} />
+      ) : null}
+      <IconButton label={t(($) => $.import.entry)} onClick={() => setImportOpen(true)}>
         <Upload />
       </IconButton>
     </div>

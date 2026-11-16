@@ -198,6 +198,7 @@
     "done": "Importées {{count}}, en échec {{failed}}",
     "failed_rows": "Lignes à corriger",
     "unmapped": "Non associée",
+    "sample": "Utiliser un exemple",
     "field": {
       "owner": "Responsable du recrutement",
       "salary_min": "Salaire min.",
@@ -232,6 +233,26 @@
       "bad_amount": "« {{value}} » n’est pas un seul nombre ; séparez la plage en deux colonnes",
       "bad_stage": "Aucune étape « {{value}} »",
       "server_error": "Le serveur a refusé cette ligne"
+    }
+  },
+  "resume": {
+    "title": "Importer des CV",
+    "hint": "Le nom du fichier est comparé à celui des candidats. Un fichier sans correspondance n’est pas envoyé : importez d’abord le candidat.",
+    "pick": "Choisir des fichiers",
+    "upload": "Envoyer",
+    "uploading": "Envoi en cours",
+    "matched": "Correspond",
+    "unmatched": "Sans correspondance",
+    "ambiguous": "À choisir",
+    "failed": "Échec de l’envoi",
+    "no_candidates": "Aucun candidat pour l’instant : importez d’abord des candidats.",
+    "summary": "{{count}} fichiers · {{ok}} prêts · {{unmatched}} sans correspondance",
+    "done": "{{count}} envoyés, {{failed}} en échec",
+    "column": {
+      "file": "Fichier",
+      "size": "Taille",
+      "candidate": "Candidat",
+      "status": "État"
     }
   },
   "team": {

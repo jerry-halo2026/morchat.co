@@ -198,6 +198,7 @@
     "done": "成功 {{count}} 行，失败 {{failed}} 行",
     "failed_rows": "待修正的行",
     "unmapped": "不导入",
+    "sample": "填入示例",
     "field": {
       "owner": "用人经理",
       "salary_min": "薪资下限",
@@ -232,6 +233,26 @@
       "bad_amount": "「{{value}}」不是一个数，区间请拆成两列",
       "bad_stage": "阶段「{{value}}」不存在",
       "server_error": "服务端拒绝了这一行"
+    }
+  },
+  "resume": {
+    "title": "上传简历",
+    "hint": "文件名里含候选人姓名即自动匹配；匹配不到的文件不会上传，请先导入候选人。",
+    "pick": "选择文件",
+    "upload": "上传",
+    "uploading": "上传中",
+    "matched": "已匹配",
+    "unmatched": "未匹配",
+    "ambiguous": "需选择",
+    "failed": "上传失败",
+    "no_candidates": "还没有候选人，请先导入候选人。",
+    "summary": "共 {{count}} 个，可上传 {{ok}} 个，{{unmatched}} 个未匹配",
+    "done": "成功 {{count}}，失败 {{failed}}",
+    "column": {
+      "file": "文件名",
+      "size": "大小",
+      "candidate": "候选人",
+      "status": "状态"
     }
   },
   "team": {

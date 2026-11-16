@@ -198,6 +198,7 @@
     "done": "{{count}} 行を取り込み、{{failed}} 行が失敗",
     "failed_rows": "修正が必要な行",
     "unmapped": "対応なし",
+    "sample": "例を入れる",
     "field": {
       "owner": "採用責任者",
       "salary_min": "給与下限",
@@ -232,6 +233,26 @@
       "bad_amount": "「{{value}}」を 1 つの数として読み取れません。範囲は 2 列に分けてください",
       "bad_stage": "段階「{{value}}」は存在しません",
       "server_error": "サーバーがこの行を拒否しました"
+    }
+  },
+  "resume": {
+    "title": "履歴書をアップロード",
+    "hint": "ファイル名に候補者名が含まれていれば自動で照合します。一致しないファイルはアップロードされません。先に候補者を取り込んでください。",
+    "pick": "ファイルを選択",
+    "upload": "アップロード",
+    "uploading": "アップロード中",
+    "matched": "一致",
+    "unmatched": "未一致",
+    "ambiguous": "選択が必要",
+    "failed": "アップロード失敗",
+    "no_candidates": "候補者がまだいません。先に候補者を取り込んでください。",
+    "summary": "全 {{count}} 件、アップロード可 {{ok}} 件、未一致 {{unmatched}} 件",
+    "done": "成功 {{count}}、失敗 {{failed}}",
+    "column": {
+      "file": "ファイル名",
+      "size": "サイズ",
+      "candidate": "候補者",
+      "status": "状態"
     }
   },
   "team": {

@@ -31,6 +31,7 @@ import type { HrCandidateStage } from "@morechat/core/types";
 import { useT } from "../i18n";
 import {
   IMPORT_FIELDS,
+  IMPORT_SAMPLE,
   buildImportRows,
   formatImportError,
   guessColumnMap,
@@ -260,6 +261,25 @@ export function ImportSheet({
             }}
             className="min-h-24 font-mono text-caption"
           />
+
+          {/* A demo workspace has no sheet to paste. One click fills the ledger's
+              own example, which is the same shape as a real paste — including a
+              row that fails, so the error copy is visible before the user has to
+              guess what went wrong with their own rows. */}
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              disabled={pending || result !== null}
+              onClick={() => {
+                setText(IMPORT_SAMPLE[domain]);
+                setPicked(null);
+              }}
+            >
+              {t(($) => $.import.sample)}
+            </Button>
+          </div>
 
           {parsed.headers.length > 0 ? (
             <section aria-label={t(($) => $.import.map_columns)} className="space-y-2">

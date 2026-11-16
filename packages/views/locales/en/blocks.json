@@ -198,6 +198,7 @@
     "done": "Imported {{count}}, {{failed}} failed",
     "failed_rows": "Rows still to fix",
     "unmapped": "Not mapped",
+    "sample": "Use an example",
     "field": {
       "owner": "Owner / hiring manager",
       "salary_min": "Salary from",
@@ -232,6 +233,26 @@
       "bad_amount": "Can’t read “{{value}}” as one number; split a range into two columns",
       "bad_stage": "No stage called “{{value}}”",
       "server_error": "The server rejected this row"
+    }
+  },
+  "resume": {
+    "title": "Upload résumés",
+    "hint": "A candidate's name in the file name is matched automatically. A file that matches nobody is not uploaded — import the candidate first.",
+    "pick": "Choose files",
+    "upload": "Upload",
+    "uploading": "Uploading",
+    "matched": "Matched",
+    "unmatched": "No match",
+    "ambiguous": "Choose one",
+    "failed": "Upload failed",
+    "no_candidates": "No candidates yet — import candidates first.",
+    "summary": "{{count}} files · {{ok}} ready · {{unmatched}} unmatched",
+    "done": "Uploaded {{count}}, {{failed}} failed",
+    "column": {
+      "file": "File",
+      "size": "Size",
+      "candidate": "Candidate",
+      "status": "Status"
     }
   },
   "team": {

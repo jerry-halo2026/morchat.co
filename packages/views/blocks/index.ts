@@ -14,11 +14,15 @@ export { LedgerSection } from "./ledger-section";
 export { LedgerTable } from "./ledger-table";
 export type { LedgerTableProps } from "./ledger-table";
 export { ImportSheet } from "./import-sheet";
+export { ResumeUpload, matchResumeFile } from "./resume-upload";
+export type { ResumeCandidateRef, ResumeMatch, ResumeMatchState } from "./resume-upload";
 export {
   IMPORT_FIELDS,
+  IMPORT_SAMPLE,
   buildImportRows,
   formatImportError,
   guessColumnMap,
+  normalizeLabel,
   parseImportAmount,
   parseImportDay,
   parseImportError,

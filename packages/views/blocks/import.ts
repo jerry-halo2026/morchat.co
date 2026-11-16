@@ -101,7 +101,7 @@ export const IMPORT_FIELDS: Record<ImportDomain, readonly ImportField[]> = {
 /**
  * Header aliases, English and Chinese.
  *
- * Both are compared after `normalize`, which drops case and separators, so
+ * Both are compared after `normalizeLabel`, which drops case and separators, so
  * `Job Title`, `job_title` and `JOB-TITLE` are one alias. The Chinese set is
  * what an HR sheet in this workspace actually says; the English set is what a
  * CSV export of the same sheet says.
@@ -296,11 +296,11 @@ export function guessColumnMap(
   headers: string[],
   domain: ImportDomain,
 ): Partial<Record<string, number>> {
-  const normalized = headers.map(normalize);
+  const normalized = headers.map(normalizeLabel);
   const taken = new Set<number>();
   const map: Partial<Record<string, number>> = {};
   for (const field of IMPORT_FIELDS[domain]) {
-    const aliases = FIELD_ALIASES[field].map(normalize);
+    const aliases = FIELD_ALIASES[field].map(normalizeLabel);
     const column = normalized.findIndex(
       (header, index) => !taken.has(index) && aliases.includes(header),
     );
@@ -465,9 +465,9 @@ function duplicateKey(domain: ImportDomain, values: Record<string, string>): str
     case "jobs":
       return null;
     case "candidates":
-      return `${normalize(values.name ?? "")}|${values.job_id ?? normalize(values.job ?? "")}`;
+      return `${normalizeLabel(values.name ?? "")}|${values.job_id ?? normalizeLabel(values.job ?? "")}`;
     case "employees":
-      return values.member_id ?? normalize(values.member ?? "");
+      return values.member_id ?? normalizeLabel(values.member ?? "");
   }
 }
 
@@ -478,11 +478,11 @@ function duplicateKey(domain: ImportDomain, values: Record<string, string>): str
  * the alternative is asking someone to disambiguate a cell they cannot see.
  */
 function jobId(title: string, jobs: ImportRowContext["jobs"]): string | undefined {
-  const needle = normalize(title);
+  const needle = normalizeLabel(title);
   if (!needle) return undefined;
-  const exact = jobs.find((job) => normalize(job.title) === needle);
+  const exact = jobs.find((job) => normalizeLabel(job.title) === needle);
   if (exact) return exact.id;
-  return jobs.find((job) => normalize(job.title).includes(needle))?.id;
+  return jobs.find((job) => normalizeLabel(job.title).includes(needle))?.id;
 }
 
 /** Exact name → id. Members and departments are matched exactly: two people
@@ -492,8 +492,8 @@ function exactId(
   name: string,
   entries: readonly { id: string; name: string }[],
 ): string | undefined {
-  const needle = normalize(name);
-  return entries.find((entry) => normalize(entry.name) === needle)?.id;
+  const needle = normalizeLabel(name);
+  return entries.find((entry) => normalizeLabel(entry.name) === needle)?.id;
 }
 
 /**
@@ -507,8 +507,8 @@ function resolveMember(
   name: string,
   ctx: ImportRowContext,
 ): { id?: string; error?: string } {
-  const needle = normalize(name);
-  const hits = ctx.members.filter((member) => normalize(member.name) === needle);
+  const needle = normalizeLabel(name);
+  const hits = ctx.members.filter((member) => normalizeLabel(member.name) === needle);
   const only = hits[0];
   if (!only) return { error: formatImportError("unknown_member", name) };
   // Duplicate display names resolve to the first hit: the create request only
@@ -518,12 +518,12 @@ function resolveMember(
 }
 
 function parseStage(value: string): HrCandidateStage | null {
-  const needle = normalize(value);
+  const needle = normalizeLabel(value);
   for (const [stage, aliases] of Object.entries(STAGE_ALIASES) as [
     HrCandidateStage,
     readonly string[],
   ][]) {
-    if (aliases.some((alias) => normalize(alias) === needle)) return stage;
+    if (aliases.some((alias) => normalizeLabel(alias) === needle)) return stage;
   }
   return null;
 }
@@ -600,11 +600,49 @@ export function parseImportDay(value: string): string | null {
   return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-/** Case, width and separators folded away, so `Job Title`, `job_title` and
- *  `job-title` are one comparison instead of three. */
-function normalize(value: string): string {
+/**
+ * Case, width and separators folded away, so `Job Title`, `job_title` and
+ * `job-title` are one comparison instead of three.
+ *
+ * Shared with the résumé uploader (`resume-upload.tsx`), which compares a file
+ * name against candidate names: `林伟-简历.pdf` and `林伟 简历.pdf` must match
+ * the same person, and both must survive full-width punctuation from an IME.
+ */
+export function normalizeLabel(value: string): string {
   return value
     .normalize("NFKC")
     .toLowerCase()
     .replace(/[\s\-_/\\.,:：()（）[\]【】]+/g, "");
 }
+
+/**
+ * One example sheet per ledger, for the import dialog's "use an example"
+ * button.
+ *
+ * They exist so a mock/demo workspace can be filled without an Excel file at
+ * hand. Each one is shaped like the sheets HR actually pastes: Chinese headers,
+ * one salary band written as a range (`15-25K`), and one row with an empty
+ * required cell, so the preview shows what an error row looks like before
+ * anyone pastes their own data. They are deliberately not resolvable against a
+ * specific workspace: names, departments and jobs are the examples'.
+ */
+export const IMPORT_SAMPLE: Record<ImportDomain, string> = {
+  jobs: [
+    "职位\t部门\t级别\t编制\t薪资",
+    "短视频剪辑\t内容部\tP5\t2\t15-25K",
+    "直播运营\t内容部\tP4\t1\t18-24K",
+    "\t内容部\tP3\t1\t12-18K",
+  ].join("\n"),
+  candidates: [
+    "姓名\t应聘岗位\t阶段\t电话\t邮箱\t期望薪资",
+    "林伟\t短视频剪辑\t初筛\t13800000001\tlin@example.com\t20000",
+    "张三\t直播运营\t面试\t13800000002\tzhang@example.com\t18000",
+    "李娜\t\t笔试\t13800000003\tli@example.com\t15-20K",
+  ].join("\n"),
+  employees: [
+    "成员\t职位\t职级\t入职日期\t转正日期\t合同到期\t部门",
+    "王强\t剪辑师\tP5\t2024-03-01\t2024-06-01\t2027-03-01\t内容部",
+    "陈静\t运营\tP4\t2023-07-15\t2024-01-15\t2026-07-15\t",
+    "\t摄影师\tP3\t2024-01-08\t2024-04-08\t2027-01-08\t内容部",
+  ].join("\n"),
+};

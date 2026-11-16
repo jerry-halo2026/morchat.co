@@ -198,6 +198,7 @@
     "done": "{{count}}개 가져옴, {{failed}}개 실패",
     "failed_rows": "고칠 행",
     "unmapped": "매핑 안 함",
+    "sample": "예시 채우기",
     "field": {
       "owner": "채용 담당자",
       "salary_min": "급여 하한",
@@ -232,6 +233,26 @@
       "bad_amount": "“{{value}}”을(를) 하나의 숫자로 읽을 수 없습니다. 범위는 두 열로 나눠 주세요",
       "bad_stage": "단계 “{{value}}”이(가) 없습니다",
       "server_error": "서버가 이 행을 거부했습니다"
+    }
+  },
+  "resume": {
+    "title": "이력서 업로드",
+    "hint": "파일 이름에 후보자 이름이 들어 있으면 자동으로 연결합니다. 아무와도 맞지 않는 파일은 업로드되지 않으니 후보자를 먼저 가져오세요.",
+    "pick": "파일 선택",
+    "upload": "업로드",
+    "uploading": "업로드 중",
+    "matched": "연결됨",
+    "unmatched": "일치 없음",
+    "ambiguous": "선택 필요",
+    "failed": "업로드 실패",
+    "no_candidates": "아직 후보자가 없습니다. 후보자를 먼저 가져오세요.",
+    "summary": "{{count}}개 중 업로드 가능 {{ok}}개, 일치 없음 {{unmatched}}개",
+    "done": "성공 {{count}}, 실패 {{failed}}",
+    "column": {
+      "file": "파일 이름",
+      "size": "크기",
+      "candidate": "후보자",
+      "status": "상태"
     }
   },
   "team": {
