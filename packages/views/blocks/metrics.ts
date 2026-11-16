@@ -36,6 +36,19 @@ export const OVERVIEW_METRIC_IDS: readonly MetricId[] = [
   "crm.pipeline.weighted_amount",
 ];
 
+/**
+ * The four numbers the hiring group shows (`docs/engineering/WORKBENCH-API.md`
+ * §10.5). They sit on the people group of the ledger tab rather than in the
+ * overview strip: recruiting is a second business, and mixing its four numbers
+ * into the delivery strip would make one row answer two questions.
+ */
+export const HR_METRIC_IDS: readonly MetricId[] = [
+  "hr.candidates.active",
+  "hr.time_to_hire.median",
+  "hr.scorecard.backlog",
+  "hr.interview.on_time_rate",
+];
+
 /** What a metric cell draws. */
 export type MetricRenderState =
   /** A stated number. */
@@ -152,6 +165,15 @@ const GAP_DOMAIN: Partial<Record<MetricId, LedgerDomain>> = {
   "crm.quote.margin_rate": "collabs",
   "crm.collab.roi": "collabs",
   "crm.creator.repeat_rate": "creators",
+  // B1 (§10.5). Each of the four names the one hr table its formula reads:
+  // candidates carry the stage and the hire date, interviews carry the scorecard
+  // backlog and the reschedule count. `hr_scorecard.backlog` points at
+  // `interviews` because a scorecard is opened from the interview that owes it
+  // (§10.3: scorecards have no standalone list).
+  "hr.candidates.active": "candidates",
+  "hr.time_to_hire.median": "candidates",
+  "hr.scorecard.backlog": "interviews",
+  "hr.interview.on_time_rate": "interviews",
 };
 
 export function gapDomain(id: MetricId): LedgerDomain | null {
@@ -173,6 +195,14 @@ export function gapNeedsKey(domain: LedgerDomain): GapNeedsKey {
       return "needs_collabs";
     case "settlements":
       return "needs_settlements";
+    case "jobs":
+      return "needs_jobs";
+    case "candidates":
+      return "needs_candidates";
+    case "interviews":
+      return "needs_interviews";
+    case "employees":
+      return "needs_employees";
   }
 }
 

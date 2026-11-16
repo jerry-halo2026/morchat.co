@@ -53,6 +53,10 @@
     "needs_briefs": "Aucun brief : rien à chiffrer ni à mettre en correspondance.",
     "needs_collabs": "Aucune collaboration : montants, étapes et probabilités viennent d'ici.",
     "needs_settlements": "Aucun règlement enregistré, donc rien ne compte comme encaissé.",
+    "needs_jobs": "Aucun poste ouvert : les candidats n'ont rien à quoi postuler.",
+    "needs_candidates": "Aucun candidat pour l'instant : ni l'étape ni la date d'embauche ne peuvent être mesurées.",
+    "needs_interviews": "Aucun entretien planifié : la ponctualité n'a rien à compter.",
+    "needs_employees": "Aucune fiche salarié : dates d'embauche, classes et fins de contrat viennent d'ici.",
     "needs_issues": "Les issues derrière ce chiffre ont un champ manquant.",
     "fill_ledger": "Le saisir dans le registre",
     "fill_issues": "Ouvrir les issues"
@@ -64,7 +68,15 @@
       "clients": "Clients",
       "briefs": "Briefs",
       "collabs": "Collaborations",
-      "settlements": "Règlements"
+      "settlements": "Règlements",
+      "jobs": "Postes",
+      "candidates": "Candidats",
+      "interviews": "Entretiens",
+      "employees": "Salariés"
+    },
+    "group": {
+      "commerce": "Commerce",
+      "people": "Personnel"
     },
     "column": {
       "creator": "Créateur",
@@ -87,7 +99,26 @@
       "settlement": "Règlement",
       "amount": "Montant",
       "due": "Échéance",
-      "paid": "Payé"
+      "paid": "Payé",
+      "job": "Poste",
+      "level": "Niveau",
+      "headcount": "Postes à pourvoir",
+      "status": "Statut",
+      "salary": "Fourchette",
+      "candidate": "Candidat",
+      "job_ref": "Poste visé",
+      "match_score": "Adéquation",
+      "expected_salary": "Salaire souhaité",
+      "round": "Tour",
+      "time": "Date",
+      "mode": "Format",
+      "interviewer": "Intervieweur",
+      "member": "Membre",
+      "job_title": "Intitulé",
+      "grade": "Classe",
+      "hire_date": "Embauche",
+      "regular_date": "Titularisation",
+      "contract_end": "Fin de contrat"
     },
     "deliverable": {
       "short_video": "Vidéo courte",
@@ -112,6 +143,39 @@
       "final": "Solde",
       "platform_fee": "Frais de plateforme",
       "tax": "Taxe"
+    },
+    "job_status": {
+      "draft": "Brouillon",
+      "open": "Ouvert",
+      "paused": "En pause",
+      "closed": "Clôturé"
+    },
+    "candidate_stage": {
+      "screening": "Présélection",
+      "test": "Test",
+      "interview": "Entretien",
+      "scored": "Évalué",
+      "offer": "Offre",
+      "hired": "Embauché",
+      "rejected": "Écarté",
+      "withdrawn": "Désisté"
+    },
+    "interview_status": {
+      "scheduled": "Planifié",
+      "done": "Terminé",
+      "cancelled": "Annulé",
+      "no_show": "Absent"
+    },
+    "interview_mode": {
+      "onsite": "Sur site",
+      "video": "Vidéo",
+      "phone": "Téléphone"
+    },
+    "verdict": {
+      "strong_yes": "Oui franc",
+      "yes": "Oui",
+      "no": "Non",
+      "strong_no": "Non franc"
     },
     "risk_flagged": "Signalé",
     "unpaid": "Non payé",

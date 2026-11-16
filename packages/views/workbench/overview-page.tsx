@@ -10,6 +10,12 @@ import {
   crmCollabListOptions,
   crmSettlementListOptions,
 } from "@morechat/core/crm/queries";
+import {
+  hrCandidateListOptions,
+  hrEmployeeListOptions,
+  hrInterviewListOptions,
+  hrJobListOptions,
+} from "@morechat/core/hr/queries";
 import { creatorListOptions } from "@morechat/core/creator/queries";
 import { useWorkspaceId } from "@morechat/core/hooks";
 import { departmentListOptions } from "@morechat/core/workspace/queries";
@@ -20,8 +26,14 @@ import { LedgerSection } from "../blocks/ledger-section";
 import { LedgerTable } from "../blocks/ledger-table";
 import { MetricRow } from "../blocks/metric-row";
 import { TeamStrip, type TeamStripEvent } from "../blocks/team-strip";
-import { LEDGER_DOMAINS, isLedgerDomain, type LedgerDomain } from "../blocks/data";
-import { gapDomain, type MetricId } from "../blocks/metrics";
+import {
+  LEDGER_GROUPS,
+  isLedgerDomain,
+  ledgerDomainsIn,
+  ledgerGroup,
+  type LedgerDomain,
+} from "../blocks/data";
+import { HR_METRIC_IDS, gapDomain, type MetricId } from "../blocks/metrics";
 import { useNavigation } from "../navigation";
 import { PageHeader } from "../layout/page-header";
 
@@ -159,7 +171,15 @@ export function OverviewPage() {
           </TabsContent>
 
           <TabsContent value={TAB_LEDGER} className="space-y-5">
-            {wsId ? <LedgerPanes wsId={wsId} domain={domain} onSelect={openLedger} /> : null}
+            {wsId ? (
+              <LedgerPanes
+                wsId={wsId}
+                departmentId={departmentId}
+                domain={domain}
+                onSelect={openLedger}
+                onFillGap={fillGap}
+              />
+            ) : null}
           </TabsContent>
 
           <TabsContent value={TAB_TEAM} className="space-y-5">
@@ -174,30 +194,64 @@ export function OverviewPage() {
 }
 
 /**
- * The five ledgers, one at a time. The switcher mirrors the overview tab's
- * `LedgerSection` rows so the same click lands on the same list from either
- * place.
+ * The nine ledgers, one at a time, in the two groups the workbench runs: the
+ * commercial five from B0 and the four hiring ledgers from B1
+ * (`docs/engineering/WORKBENCH-API.md` §10). Two tab rows rather than nine tabs
+ * in a row: the group is the first question ("is this about money or about
+ * people?") and `?domain=` alone already answers it.
+ *
+ * The switcher mirrors the overview tab's `LedgerSection` groups so the same
+ * click lands on the same list from either place. The people group leads with
+ * its four hiring numbers (§10.5): the rows below are what fill them, and the
+ * gap card's action switches this pane's domain rather than leaving the tab.
  */
 function LedgerPanes({
   wsId,
+  departmentId,
   domain,
   onSelect,
+  onFillGap,
 }: {
   wsId: string;
+  /** `?dept=` — the metric strip reads the same scope as the overview's. */
+  departmentId: string | null;
   domain: LedgerDomain;
   onSelect: (domain: LedgerDomain) => void;
+  onFillGap: (id: MetricId) => void;
 }) {
   const { t } = useT("blocks");
+  const group = ledgerGroup(domain);
   return (
     <Tabs value={domain} onValueChange={(next) => onSelect(next as LedgerDomain)}>
-      <TabsList variant="line" className="gap-0 p-0">
-        {LEDGER_DOMAINS.map((candidate) => (
-          <TabsTrigger key={candidate} value={candidate} className="rounded-none px-2.5">
-            {t(($) => $.ledger.domain[candidate])}
-          </TabsTrigger>
+      <div className="flex flex-col gap-1">
+        {LEDGER_GROUPS.map((candidate) => (
+          <div key={candidate} className="flex min-w-0 items-center gap-2">
+            <span className="shrink-0 text-caption text-muted-foreground">
+              {t(($) => $.ledger.group[candidate])}
+            </span>
+            <TabsList
+              variant="line"
+              aria-label={t(($) => $.ledger.group[candidate])}
+              className="gap-0 p-0"
+            >
+              {ledgerDomainsIn(candidate).map((ledger) => (
+                <TabsTrigger key={ledger} value={ledger} className="rounded-none px-2.5">
+                  {t(($) => $.ledger.domain[ledger])}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
         ))}
-      </TabsList>
-      <div className="pt-4">
+      </div>
+      <div className="space-y-5 pt-4">
+        {group === "people" ? (
+          <MetricRow
+            wsId={wsId}
+            departmentId={departmentId}
+            metricIds={HR_METRIC_IDS}
+            onFillGap={onFillGap}
+          />
+        ) : null}
         <LedgerPane wsId={wsId} domain={domain} />
       </div>
     </Tabs>
@@ -207,10 +261,10 @@ function LedgerPanes({
 /**
  * One query per ledger, picked by the active domain.
  *
- * The five are separate components rather than one generic table because each
- * row type is its own contract: `ledgerListOptions` is generic over the domain,
- * and keeping the narrowing here is what lets `LedgerTable` stay exhaustive over
- * its column sets.
+ * The nine are separate components rather than one generic table because each
+ * row type is its own contract: `hrJobListOptions` and its CRM siblings are
+ * typed per domain (`WORKBENCH-API.md` §5, §10.6), and keeping the narrowing
+ * here is what lets `LedgerTable` stay exhaustive over its column sets.
  */
 function LedgerPane({ wsId, domain }: { wsId: string; domain: LedgerDomain }) {
   switch (domain) {
@@ -224,6 +278,14 @@ function LedgerPane({ wsId, domain }: { wsId: string; domain: LedgerDomain }) {
       return <CollabsPane wsId={wsId} />;
     case "settlements":
       return <SettlementsPane wsId={wsId} />;
+    case "jobs":
+      return <JobsPane wsId={wsId} />;
+    case "candidates":
+      return <CandidatesPane wsId={wsId} />;
+    case "interviews":
+      return <InterviewsPane wsId={wsId} />;
+    case "employees":
+      return <EmployeesPane wsId={wsId} />;
   }
 }
 
@@ -299,6 +361,70 @@ function SettlementsPane({ wsId }: { wsId: string }) {
   return (
     <LedgerTable
       domain="settlements"
+      rows={query.data ?? []}
+      loading={query.isPending}
+      isError={query.isError}
+      onRetry={() => void query.refetch()}
+    />
+  );
+}
+
+function JobsPane({ wsId }: { wsId: string }) {
+  const query = useQuery({
+    ...hrJobListOptions(wsId),
+    select: (response) => response.jobs,
+  });
+  return (
+    <LedgerTable
+      domain="jobs"
+      rows={query.data ?? []}
+      loading={query.isPending}
+      isError={query.isError}
+      onRetry={() => void query.refetch()}
+    />
+  );
+}
+
+function CandidatesPane({ wsId }: { wsId: string }) {
+  const query = useQuery({
+    ...hrCandidateListOptions(wsId),
+    select: (response) => response.candidates,
+  });
+  return (
+    <LedgerTable
+      domain="candidates"
+      rows={query.data ?? []}
+      loading={query.isPending}
+      isError={query.isError}
+      onRetry={() => void query.refetch()}
+    />
+  );
+}
+
+function InterviewsPane({ wsId }: { wsId: string }) {
+  const query = useQuery({
+    ...hrInterviewListOptions(wsId),
+    select: (response) => response.interviews,
+  });
+  return (
+    <LedgerTable
+      domain="interviews"
+      rows={query.data ?? []}
+      loading={query.isPending}
+      isError={query.isError}
+      onRetry={() => void query.refetch()}
+    />
+  );
+}
+
+function EmployeesPane({ wsId }: { wsId: string }) {
+  const query = useQuery({
+    ...hrEmployeeListOptions(wsId),
+    select: (response) => response.employees,
+  });
+  return (
+    <LedgerTable
+      domain="employees"
       rows={query.data ?? []}
       loading={query.isPending}
       isError={query.isError}

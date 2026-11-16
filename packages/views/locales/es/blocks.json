@@ -53,6 +53,10 @@
     "needs_briefs": "Aún no hay briefs, así que no hay contra qué cotizar ni emparejar.",
     "needs_collabs": "Aún no hay colaboraciones: importes, fases y probabilidades salen de aquí.",
     "needs_settlements": "Aún no hay liquidaciones, así que nada cuenta como cobrado.",
+    "needs_jobs": "Aún no hay vacantes, así que los candidatos no tienen a qué postularse.",
+    "needs_candidates": "Aún no hay candidatos, así que no se puede medir ni la fase ni la fecha de contratación.",
+    "needs_interviews": "Aún no hay entrevistas programadas, así que no hay puntualidad que contar.",
+    "needs_employees": "Aún no hay fichas de empleado: las fechas de alta, las categorías y el fin de contrato salen de aquí.",
     "needs_issues": "A los issues detrás de esta cifra les falta un campo necesario.",
     "fill_ledger": "Rellenarlo en el registro",
     "fill_issues": "Abrir issues"
@@ -64,7 +68,15 @@
       "clients": "Clientes",
       "briefs": "Briefs",
       "collabs": "Colaboraciones",
-      "settlements": "Liquidaciones"
+      "settlements": "Liquidaciones",
+      "jobs": "Vacantes",
+      "candidates": "Candidatos",
+      "interviews": "Entrevistas",
+      "employees": "Empleados"
+    },
+    "group": {
+      "commerce": "Comercio",
+      "people": "Personas"
     },
     "column": {
       "creator": "Creador",
@@ -87,7 +99,26 @@
       "settlement": "Liquidación",
       "amount": "Importe",
       "due": "Vence",
-      "paid": "Pagado"
+      "paid": "Pagado",
+      "job": "Vacante",
+      "level": "Nivel",
+      "headcount": "Plazas",
+      "status": "Estado",
+      "salary": "Banda salarial",
+      "candidate": "Candidato",
+      "job_ref": "Vacante solicitada",
+      "match_score": "Encaje",
+      "expected_salary": "Salario esperado",
+      "round": "Ronda",
+      "time": "Fecha",
+      "mode": "Modalidad",
+      "interviewer": "Entrevistador",
+      "member": "Miembro",
+      "job_title": "Cargo",
+      "grade": "Categoría",
+      "hire_date": "Alta",
+      "regular_date": "Confirmación",
+      "contract_end": "Fin de contrato"
     },
     "deliverable": {
       "short_video": "Vídeo corto",
@@ -112,6 +143,39 @@
       "final": "Pago final",
       "platform_fee": "Comisión de plataforma",
       "tax": "Impuesto"
+    },
+    "job_status": {
+      "draft": "Borrador",
+      "open": "Abierta",
+      "paused": "En pausa",
+      "closed": "Cerrada"
+    },
+    "candidate_stage": {
+      "screening": "Cribado",
+      "test": "Prueba",
+      "interview": "Entrevista",
+      "scored": "Evaluado",
+      "offer": "Oferta",
+      "hired": "Contratado",
+      "rejected": "Descartado",
+      "withdrawn": "Retirado"
+    },
+    "interview_status": {
+      "scheduled": "Programada",
+      "done": "Realizada",
+      "cancelled": "Cancelada",
+      "no_show": "No presentado"
+    },
+    "interview_mode": {
+      "onsite": "Presencial",
+      "video": "Vídeo",
+      "phone": "Teléfono"
+    },
+    "verdict": {
+      "strong_yes": "Sí rotundo",
+      "yes": "Sí",
+      "no": "No",
+      "strong_no": "No rotundo"
     },
     "risk_flagged": "Marcado",
     "unpaid": "Sin pagar",

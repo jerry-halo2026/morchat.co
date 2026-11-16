@@ -53,6 +53,10 @@
     "needs_briefs": "還沒有需求單，無法報價與媒合。",
     "needs_collabs": "還沒有合作單——金額、階段與機率都來自這裡。",
     "needs_settlements": "還沒有結算流水，所以沒有可計的實付。",
+    "needs_jobs": "還沒有職位，候選人無處投遞。",
+    "needs_candidates": "還沒有候選人，階段與到職時間都無從統計。",
+    "needs_interviews": "還沒有安排面試，準時率沒有可統計的對象。",
+    "needs_employees": "還沒有員工檔案——到職、職級與合約到期都從這裡來。",
     "needs_issues": "支撐這個數字的 Issue 還缺一個欄位。",
     "fill_ledger": "去台帳補登",
     "fill_issues": "開啟 Issue"
@@ -64,7 +68,15 @@
       "clients": "客戶",
       "briefs": "需求單",
       "collabs": "合作單",
-      "settlements": "結算"
+      "settlements": "結算",
+      "jobs": "職位",
+      "candidates": "候選人",
+      "interviews": "面試",
+      "employees": "員工檔案"
+    },
+    "group": {
+      "commerce": "商務",
+      "people": "人事"
     },
     "column": {
       "creator": "達人",
@@ -87,7 +99,26 @@
       "settlement": "結算",
       "amount": "金額",
       "due": "到期",
-      "paid": "實付"
+      "paid": "實付",
+      "job": "職位",
+      "level": "級別",
+      "headcount": "編制",
+      "status": "狀態",
+      "salary": "薪資區間",
+      "candidate": "候選人",
+      "job_ref": "應聘職位",
+      "match_score": "匹配度",
+      "expected_salary": "期望薪資",
+      "round": "輪次",
+      "time": "時間",
+      "mode": "形式",
+      "interviewer": "面試官",
+      "member": "成員",
+      "job_title": "職位",
+      "grade": "職級",
+      "hire_date": "到職",
+      "regular_date": "轉正",
+      "contract_end": "合約到期"
     },
     "deliverable": {
       "short_video": "短影音",
@@ -112,6 +143,39 @@
       "final": "尾款",
       "platform_fee": "平台費",
       "tax": "稅費"
+    },
+    "job_status": {
+      "draft": "草稿",
+      "open": "開放",
+      "paused": "暫停",
+      "closed": "關閉"
+    },
+    "candidate_stage": {
+      "screening": "篩選",
+      "test": "筆試",
+      "interview": "面試",
+      "scored": "已評分",
+      "offer": "發放錄用",
+      "hired": "已到職",
+      "rejected": "未通過",
+      "withdrawn": "已放棄"
+    },
+    "interview_status": {
+      "scheduled": "已安排",
+      "done": "已完成",
+      "cancelled": "已取消",
+      "no_show": "未到場"
+    },
+    "interview_mode": {
+      "onsite": "現場",
+      "video": "視訊",
+      "phone": "電話"
+    },
+    "verdict": {
+      "strong_yes": "強烈推薦",
+      "yes": "推薦",
+      "no": "不推薦",
+      "strong_no": "強烈不推薦"
     },
     "risk_flagged": "有風險",
     "unpaid": "未付",

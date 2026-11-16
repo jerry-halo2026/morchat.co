@@ -53,6 +53,10 @@
     "needs_briefs": "No briefs yet, so there is nothing to match or quote against.",
     "needs_collabs": "No collaborations yet — amounts, stages and probabilities all come from here.",
     "needs_settlements": "No settlement records yet, so nothing counts as collected.",
+    "needs_jobs": "No job openings yet, so candidates have nothing to apply for.",
+    "needs_candidates": "No candidates yet, so no stage or hire date can be measured.",
+    "needs_interviews": "No interviews scheduled yet, so punctuality has nothing to count.",
+    "needs_employees": "No employee profiles yet — hire dates, grades and contract ends all live here.",
     "needs_issues": "The issues behind this number are missing a field it needs.",
     "fill_ledger": "Fill it in the ledger",
     "fill_issues": "Open issues"
@@ -64,7 +68,15 @@
       "clients": "Clients",
       "briefs": "Briefs",
       "collabs": "Collaborations",
-      "settlements": "Settlements"
+      "settlements": "Settlements",
+      "jobs": "Jobs",
+      "candidates": "Candidates",
+      "interviews": "Interviews",
+      "employees": "Employees"
+    },
+    "group": {
+      "commerce": "Commerce",
+      "people": "People"
     },
     "column": {
       "creator": "Creator",
@@ -87,7 +99,26 @@
       "settlement": "Settlement",
       "amount": "Amount",
       "due": "Due",
-      "paid": "Paid"
+      "paid": "Paid",
+      "job": "Job",
+      "level": "Level",
+      "headcount": "Headcount",
+      "status": "Status",
+      "salary": "Salary range",
+      "candidate": "Candidate",
+      "job_ref": "Applied for",
+      "match_score": "Match",
+      "expected_salary": "Expected salary",
+      "round": "Round",
+      "time": "Time",
+      "mode": "Mode",
+      "interviewer": "Interviewer",
+      "member": "Member",
+      "job_title": "Job title",
+      "grade": "Grade",
+      "hire_date": "Hired",
+      "regular_date": "Regularized",
+      "contract_end": "Contract ends"
     },
     "deliverable": {
       "short_video": "Short video",
@@ -112,6 +143,39 @@
       "final": "Final payment",
       "platform_fee": "Platform fee",
       "tax": "Tax"
+    },
+    "job_status": {
+      "draft": "Draft",
+      "open": "Open",
+      "paused": "Paused",
+      "closed": "Closed"
+    },
+    "candidate_stage": {
+      "screening": "Screening",
+      "test": "Test",
+      "interview": "Interview",
+      "scored": "Scored",
+      "offer": "Offer",
+      "hired": "Hired",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
+    },
+    "interview_status": {
+      "scheduled": "Scheduled",
+      "done": "Done",
+      "cancelled": "Cancelled",
+      "no_show": "No-show"
+    },
+    "interview_mode": {
+      "onsite": "Onsite",
+      "video": "Video",
+      "phone": "Phone"
+    },
+    "verdict": {
+      "strong_yes": "Strong yes",
+      "yes": "Yes",
+      "no": "No",
+      "strong_no": "Strong no"
     },
     "risk_flagged": "Flagged",
     "unpaid": "Unpaid",

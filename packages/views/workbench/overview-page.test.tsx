@@ -19,6 +19,12 @@ const overview = vi.hoisted(() => ({
         sample_count: 0,
         empty: "insufficient_data",
       },
+      // The B1 strip; one stated, one zero, two gaps, so the people group draws
+      // every state the contract allows.
+      "hr.candidates.active": { value: 3, sample_count: 3, empty: "zero" },
+      "hr.time_to_hire.median": { value: null, sample_count: 0, empty: "insufficient_data" },
+      "hr.scorecard.backlog": { value: 0, sample_count: 0, empty: "zero" },
+      "hr.interview.on_time_rate": { value: 0.87, sample_count: 9, empty: "zero" },
     },
   } as WorkbenchOverviewResponse,
 }));
@@ -27,6 +33,40 @@ const overview = vi.hoisted(() => ({
 // wire shape (`collabs_open`), not a view-layer rename.
 const counts = vi.hoisted(() => ({
   current: { creators: 7, clients: 3, briefs: 5, collabs_open: 2, settlements_pending: 1 },
+}));
+
+// Already narrowed by the pane's `select`, because a mocked `useQuery` returns
+// what the pane reads: this is the shape `@morechat/core/hr/queries` hands back.
+const hrRows = vi.hoisted(() => ({
+  current: {
+    candidates: [
+      {
+        id: "cand-1-0000-0000-0000-000000000001",
+        workspace_id: "ws-1",
+        job_id: "job-1-0000-0000-0000-000000000001",
+        name: "Lin Wei",
+        stage: "interview",
+        source: null,
+        phone: null,
+        email: null,
+        resume_attachment_id: null,
+        match_score: 82,
+        score_resume: null,
+        score_test: null,
+        score_interview: null,
+        expected_salary: 21000,
+        offer_salary: null,
+        currency: "CNY",
+        owner_member_id: null,
+        hired_at: null,
+        rejected_reason: null,
+        created_by: null,
+        created_at: "2026-01-05T09:00:00Z",
+        updated_at: "2026-01-05T09:00:00Z",
+        archived_at: null,
+      },
+    ],
+  } as Record<string, unknown[]>,
 }));
 
 vi.mock("@tanstack/react-query", async () => {
@@ -41,6 +81,9 @@ vi.mock("@tanstack/react-query", async () => {
       }
       if (key[0] === "workbench" && key[2] === "counts") {
         return { data: counts.current, isPending: false };
+      }
+      if (key[0] === "hr") {
+        return { data: hrRows.current[key[2] as string], isPending: false };
       }
       if (key[2] === "departments") {
         return {
@@ -110,9 +153,13 @@ describe("OverviewPage", () => {
     expect(screen.getByText("Weighted pipeline")).toBeInTheDocument();
   });
 
-  it("lists all five ledgers with their counts", () => {
+  it("lists all nine ledgers under their two groups, with the commerce counts", () => {
     renderPage();
     const section = screen.getByRole("region", { name: "Ledgers" });
+    // The overview draws the same split the ledger tab does (§10: commerce vs
+    // people), so the group is named once per band rather than per row.
+    expect(within(section).getByRole("heading", { name: "Commerce" })).toBeInTheDocument();
+    expect(within(section).getByRole("heading", { name: "People" })).toBeInTheDocument();
     for (const [label, count] of [
       ["Creators", "7"],
       ["Clients", "3"],
@@ -122,6 +169,14 @@ describe("OverviewPage", () => {
     ] as const) {
       const row = within(section).getByRole("link", { name: new RegExp(label) });
       expect(row).toHaveTextContent(count);
+    }
+    // The four B1 rows are destinations like the rest, whether or not `/counts`
+    // has a number for them yet.
+    for (const label of ["Jobs", "Candidates", "Interviews", "Employees"]) {
+      expect(within(section).getByRole("link", { name: new RegExp(label) })).toHaveAttribute(
+        "href",
+        expect.stringContaining(`domain=${label.toLowerCase()}`),
+      );
     }
   });
 
@@ -161,5 +216,71 @@ describe("OverviewPage", () => {
     renderPage("?tab=ledger&domain=settlements");
     expect(screen.getByRole("tab", { name: "Settlements" })).toBeInTheDocument();
     expect(screen.getByRole("grid", { name: "Settlements" })).toBeInTheDocument();
+  });
+
+  it("splits the ledger tab's switcher into the commerce and people groups", () => {
+    renderPage("?tab=ledger&domain=jobs");
+    const commerce = screen.getByRole("tablist", { name: "Commerce" });
+    const people = screen.getByRole("tablist", { name: "People" });
+    expect(within(commerce).getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "Creators",
+      "Clients",
+      "Briefs",
+      "Collaborations",
+      "Settlements",
+    ]);
+    expect(within(people).getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "Jobs",
+      "Candidates",
+      "Interviews",
+      "Employees",
+    ]);
+    expect(within(people).getByRole("tab", { name: "Jobs" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("grid", { name: "Jobs" })).toBeInTheDocument();
+  });
+
+  it("writes a people ledger back as ?tab=ledger&domain=", async () => {
+    renderPage("?tab=ledger&domain=jobs");
+    await userEvent.click(screen.getByRole("tab", { name: "Interviews" }));
+    expect(replace).toHaveBeenCalledWith("/acme/overview?tab=ledger&domain=interviews");
+  });
+
+  it("leads the people group with its four hiring numbers", () => {
+    renderPage("?tab=ledger&domain=candidates");
+    for (const label of [
+      "Active candidates",
+      "Time to hire",
+      "Unscored interviews",
+      "On-time interviews",
+    ]) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+    // A zero is still a zero, and the missing number names the ledger to fill.
+    expect(screen.getByText("None yet")).toBeInTheDocument();
+    expect(
+      screen.getByText("No candidates yet, so no stage or hire date can be measured."),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the hiring strip off the commerce ledgers", () => {
+    renderPage("?tab=ledger&domain=creators");
+    expect(screen.queryByText("Active candidates")).toBeNull();
+  });
+
+  it("sends a hiring gap card to the ledger that owns the rows", async () => {
+    renderPage("?tab=ledger&domain=jobs");
+    await userEvent.click(screen.getByRole("button", { name: "Fill it in the ledger" }));
+    expect(replace).toHaveBeenCalledWith("/acme/overview?tab=ledger&domain=candidates");
+  });
+
+  it("reads a people ledger from the hr client, not the crm one", () => {
+    renderPage("?tab=ledger&domain=candidates");
+    const grid = screen.getByRole("grid", { name: "Candidates" });
+    expect(within(grid).getByText("Lin Wei")).toBeInTheDocument();
+    expect(within(grid).getByText("Interview")).toBeInTheDocument();
+    expect(within(grid).getByText("82")).toBeInTheDocument();
   });
 });

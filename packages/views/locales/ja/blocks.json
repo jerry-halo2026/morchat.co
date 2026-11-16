@@ -53,6 +53,10 @@
     "needs_briefs": "案件依頼がまだなく、見積もりも照合もできません。",
     "needs_collabs": "案件がまだありません。金額・段階・確度はここから来ます。",
     "needs_settlements": "入出金の記録がまだなく、入金として数えられるものがありません。",
+    "needs_jobs": "求人がまだないため、候補者が応募できる先がありません。",
+    "needs_candidates": "候補者がまだいないため、段階も入社日も測れません。",
+    "needs_interviews": "面接がまだ予定されていないため、定刻実施を数えられません。",
+    "needs_employees": "従業員の情報がまだないため、入社日・グレード・契約終了日はここから入力します。",
     "needs_issues": "この数字の元になる Issue に必要な項目が入っていません。",
     "fill_ledger": "台帳で入力する",
     "fill_issues": "Issue を開く"
@@ -64,7 +68,15 @@
       "clients": "クライアント",
       "briefs": "案件依頼",
       "collabs": "案件",
-      "settlements": "精算"
+      "settlements": "精算",
+      "jobs": "求人",
+      "candidates": "候補者",
+      "interviews": "面接",
+      "employees": "従業員"
+    },
+    "group": {
+      "commerce": "商業",
+      "people": "人事"
     },
     "column": {
       "creator": "クリエイター",
@@ -87,7 +99,26 @@
       "settlement": "精算",
       "amount": "金額",
       "due": "支払期日",
-      "paid": "支払済"
+      "paid": "支払済",
+      "job": "求人",
+      "level": "レベル",
+      "headcount": "募集枠",
+      "status": "ステータス",
+      "salary": "給与レンジ",
+      "candidate": "候補者",
+      "job_ref": "応募先",
+      "match_score": "マッチ度",
+      "expected_salary": "希望給与",
+      "round": "回次",
+      "time": "日時",
+      "mode": "形式",
+      "interviewer": "面接官",
+      "member": "メンバー",
+      "job_title": "役職",
+      "grade": "グレード",
+      "hire_date": "入社日",
+      "regular_date": "正社員登用",
+      "contract_end": "契約終了日"
     },
     "deliverable": {
       "short_video": "ショート動画",
@@ -112,6 +143,39 @@
       "final": "残金",
       "platform_fee": "プラットフォーム手数料",
       "tax": "税"
+    },
+    "job_status": {
+      "draft": "下書き",
+      "open": "募集中",
+      "paused": "停止中",
+      "closed": "終了"
+    },
+    "candidate_stage": {
+      "screening": "書類選考",
+      "test": "試験",
+      "interview": "面接",
+      "scored": "評価済み",
+      "offer": "オファー",
+      "hired": "入社済み",
+      "rejected": "不採用",
+      "withdrawn": "辞退"
+    },
+    "interview_status": {
+      "scheduled": "予定",
+      "done": "実施済み",
+      "cancelled": "中止",
+      "no_show": "無断欠席"
+    },
+    "interview_mode": {
+      "onsite": "対面",
+      "video": "オンライン",
+      "phone": "電話"
+    },
+    "verdict": {
+      "strong_yes": "強く推薦",
+      "yes": "推薦",
+      "no": "不推薦",
+      "strong_no": "強く不推薦"
     },
     "risk_flagged": "要注意",
     "unpaid": "未払い",

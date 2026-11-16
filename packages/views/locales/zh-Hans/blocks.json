@@ -53,6 +53,10 @@
     "needs_briefs": "还没有需求单，无法报价与匹配。",
     "needs_collabs": "还没有合作单——金额、阶段和概率都来自这里。",
     "needs_settlements": "还没有结算流水，所以没有可计的实付。",
+    "needs_jobs": "还没有职位，候选人无处投递。",
+    "needs_candidates": "还没有候选人，阶段和入职时间都无从统计。",
+    "needs_interviews": "还没有安排面试，准时率没有可统计的对象。",
+    "needs_employees": "还没有员工档案——入职、职级和合同到期都从这里来。",
     "needs_issues": "支撑这个数字的 Issue 还缺一个字段。",
     "fill_ledger": "去台账补录",
     "fill_issues": "打开 Issue"
@@ -64,7 +68,15 @@
       "clients": "客户",
       "briefs": "需求单",
       "collabs": "合作单",
-      "settlements": "结算"
+      "settlements": "结算",
+      "jobs": "职位",
+      "candidates": "候选人",
+      "interviews": "面试",
+      "employees": "员工档案"
+    },
+    "group": {
+      "commerce": "商务",
+      "people": "人事"
     },
     "column": {
       "creator": "达人",
@@ -87,7 +99,26 @@
       "settlement": "结算",
       "amount": "金额",
       "due": "到期",
-      "paid": "实付"
+      "paid": "实付",
+      "job": "职位",
+      "level": "级别",
+      "headcount": "编制",
+      "status": "状态",
+      "salary": "薪资区间",
+      "candidate": "候选人",
+      "job_ref": "应聘职位",
+      "match_score": "匹配度",
+      "expected_salary": "期望薪资",
+      "round": "轮次",
+      "time": "时间",
+      "mode": "形式",
+      "interviewer": "面试官",
+      "member": "成员",
+      "job_title": "职位",
+      "grade": "职级",
+      "hire_date": "入职",
+      "regular_date": "转正",
+      "contract_end": "合同到期"
     },
     "deliverable": {
       "short_video": "短视频",
@@ -112,6 +143,39 @@
       "final": "尾款",
       "platform_fee": "平台费",
       "tax": "税费"
+    },
+    "job_status": {
+      "draft": "草稿",
+      "open": "开放",
+      "paused": "暂停",
+      "closed": "关闭"
+    },
+    "candidate_stage": {
+      "screening": "筛选",
+      "test": "笔试",
+      "interview": "面试",
+      "scored": "已评分",
+      "offer": "发放录用",
+      "hired": "已入职",
+      "rejected": "未通过",
+      "withdrawn": "已放弃"
+    },
+    "interview_status": {
+      "scheduled": "已安排",
+      "done": "已完成",
+      "cancelled": "已取消",
+      "no_show": "未到场"
+    },
+    "interview_mode": {
+      "onsite": "现场",
+      "video": "视频",
+      "phone": "电话"
+    },
+    "verdict": {
+      "strong_yes": "强烈推荐",
+      "yes": "推荐",
+      "no": "不推荐",
+      "strong_no": "强烈不推荐"
     },
     "risk_flagged": "有风险",
     "unpaid": "未付",

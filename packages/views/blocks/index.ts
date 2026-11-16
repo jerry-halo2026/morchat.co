@@ -16,6 +16,14 @@ export type { LedgerTableProps } from "./ledger-table";
 export { LEDGER_DOMAINS, isLedgerDomain } from "./data";
 export type { LedgerDomain, LedgerRowByDomain } from "./data";
 export {
+  HR_LEDGER_DOMAINS,
+  LEDGER_GROUPS,
+  ledgerDomainsIn,
+  ledgerGroup,
+} from "./data";
+export type { HrCountField, HrLedgerDomain, LedgerGroup } from "./data";
+export {
+  HR_METRIC_IDS,
   OVERVIEW_METRIC_IDS,
   gapDomain,
   metricContract,

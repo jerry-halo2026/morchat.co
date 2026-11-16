@@ -1,6 +1,17 @@
 "use client";
 
-import { Building2, Coins, FileText, Layers, Users, type IconComponent } from "@morechat/ui/icons";
+import {
+  Briefcase,
+  Building2,
+  CalendarClock,
+  CircleUser,
+  Coins,
+  FileText,
+  Layers,
+  UserRound,
+  Users,
+  type IconComponent,
+} from "@morechat/ui/icons";
 import { Badge } from "@morechat/ui/components/ui/badge";
 import { Button } from "@morechat/ui/components/ui/button";
 import { CurrencyNumberFlow, CompactNumberFlow } from "@morechat/ui/components/ui/number-flow";
@@ -10,6 +21,10 @@ import type {
   CrmCollab,
   CrmSettlement,
   Creator,
+  HrCandidate,
+  HrEmployeeProfile,
+  HrInterview,
+  HrJob,
 } from "@morechat/core/types";
 import { useLocale, useT } from "../i18n";
 import { CollectionPageState } from "../layout/collection-page";
@@ -22,6 +37,10 @@ const DOMAIN_ICON: Record<LedgerDomain, IconComponent> = {
   briefs: FileText,
   collabs: Layers,
   settlements: Coins,
+  jobs: Briefcase,
+  candidates: UserRound,
+  interviews: CalendarClock,
+  employees: CircleUser,
 };
 
 const PLACEHOLDER = "—";
@@ -39,8 +58,9 @@ interface LedgerTableCommon {
  * Rows are the core types themselves (`@morechat/core/types`), and every header
  * names a column of the table behind it (`docs/engineering/WORKBENCH-API.md`
  * §2), so a reader can go from the screen to the schema without guessing.
- * Cross-table names are not joined yet — a collab's creator and a settlement's
- * collab show the id's short form rather than pretending to know a name.
+ * Cross-table names are not joined yet — a collab's creator, a candidate's job
+ * and an interview's interviewer show the id's short form rather than
+ * pretending to know a name.
  */
 export type LedgerTableProps = LedgerTableCommon &
   (
@@ -49,12 +69,23 @@ export type LedgerTableProps = LedgerTableCommon &
     | { domain: "briefs"; rows: readonly CrmBrief[] }
     | { domain: "collabs"; rows: readonly CrmCollab[] }
     | { domain: "settlements"; rows: readonly CrmSettlement[] }
+    | { domain: "jobs"; rows: readonly HrJob[] }
+    | { domain: "candidates"; rows: readonly HrCandidate[] }
+    | { domain: "interviews"; rows: readonly HrInterview[] }
+    | { domain: "employees"; rows: readonly HrEmployeeProfile[] }
   );
 
 export function LedgerTable(props: LedgerTableProps) {
   const { t } = useT("blocks");
   const locales = useLocale();
   const { domain, loading = false, isError = false, onRetry } = props;
+
+  /** The money glyph comes from the bundle (`unit.currency`); a currency the
+   *  bundle does not carry falls back to its own code rather than a guess. */
+  const prefixFor = (currency: string): string =>
+    currency === "CNY" || currency === "USD"
+      ? t(($) => $.unit.currency[currency])
+      : `${currency} `;
 
   const empty = <LedgerEmptyState domain={domain} isError={isError} onRetry={onRetry} />;
   const label = t(($) => $.ledger.domain[domain]);
@@ -231,7 +262,7 @@ export function LedgerTable(props: LedgerTableProps) {
               <CurrencyNumberFlow
                 value={row.final_amount}
                 locales={locales}
-                prefix={currencyPrefix(row.currency)}
+                prefix={prefixFor(row.currency)}
               />
             ),
         },
@@ -278,7 +309,7 @@ export function LedgerTable(props: LedgerTableProps) {
             <CurrencyNumberFlow
               value={row.amount}
               locales={locales}
-              prefix={currencyPrefix(row.currency)}
+              prefix={prefixFor(row.currency)}
             />
           ),
         },
@@ -298,6 +329,229 @@ export function LedgerTable(props: LedgerTableProps) {
             ) : (
               <span className="text-muted-foreground">{t(($) => $.ledger.unpaid)}</span>
             ),
+        },
+      ];
+      return (
+        <CollectionList
+          label={label}
+          columns={columns}
+          rows={props.rows}
+          getRowId={(row) => row.id}
+          loading={loading}
+          empty={empty}
+          embedded
+        />
+      );
+    }
+    // --- B1 `people` (§10.2) ---------------------------------------------
+    // Same rule as the five above: a header is a column, and a cross-table id
+    // is drawn as the id rather than as a name nobody joined.
+    case "jobs": {
+      const columns: CollectionColumn<HrJob>[] = [
+        {
+          key: "job",
+          header: t(($) => $.ledger.column.job),
+          cell: (row) => <span className="truncate text-body">{row.title}</span>,
+        },
+        {
+          key: "level",
+          header: t(($) => $.ledger.column.level),
+          width: 110,
+          core: true,
+          cell: (row) => row.level || PLACEHOLDER,
+        },
+        {
+          key: "headcount",
+          header: t(($) => $.ledger.column.headcount),
+          width: 100,
+          align: "end",
+          cell: (row) => String(row.headcount),
+        },
+        {
+          key: "status",
+          header: t(($) => $.ledger.column.status),
+          width: 110,
+          cell: (row) => t(($) => $.ledger.job_status[row.status]),
+        },
+        {
+          key: "salary",
+          header: t(($) => $.ledger.column.salary),
+          width: 160,
+          align: "end",
+          cell: (row) => (
+            <MoneyRange
+              min={row.salary_min}
+              max={row.salary_max}
+              prefix={prefixFor(row.currency)}
+              locales={locales}
+            />
+          ),
+        },
+      ];
+      return (
+        <CollectionList
+          label={label}
+          columns={columns}
+          rows={props.rows}
+          getRowId={(row) => row.id}
+          loading={loading}
+          empty={empty}
+          embedded
+        />
+      );
+    }
+    case "candidates": {
+      const columns: CollectionColumn<HrCandidate>[] = [
+        {
+          key: "candidate",
+          header: t(($) => $.ledger.column.candidate),
+          cell: (row) => <span className="truncate text-body">{row.name}</span>,
+        },
+        {
+          key: "job",
+          header: t(($) => $.ledger.column.job_ref),
+          width: 130,
+          cell: (row) => <span className="font-mono text-caption">{shortId(row.job_id)}</span>,
+        },
+        {
+          key: "stage",
+          header: t(($) => $.ledger.column.stage),
+          width: 130,
+          core: true,
+          cell: (row) => t(($) => $.ledger.candidate_stage[row.stage]),
+        },
+        {
+          key: "match",
+          header: t(($) => $.ledger.column.match_score),
+          width: 90,
+          align: "end",
+          cell: (row) => (row.match_score === null ? PLACEHOLDER : String(row.match_score)),
+        },
+        {
+          key: "expected",
+          header: t(($) => $.ledger.column.expected_salary),
+          width: 150,
+          align: "end",
+          cell: (row) =>
+            row.expected_salary === null ? (
+              PLACEHOLDER
+            ) : (
+              <CurrencyNumberFlow
+                value={row.expected_salary}
+                locales={locales}
+                prefix={prefixFor(row.currency)}
+              />
+            ),
+        },
+      ];
+      return (
+        <CollectionList
+          label={label}
+          columns={columns}
+          rows={props.rows}
+          getRowId={(row) => row.id}
+          loading={loading}
+          empty={empty}
+          embedded
+        />
+      );
+    }
+    case "interviews": {
+      const columns: CollectionColumn<HrInterview>[] = [
+        {
+          key: "candidate",
+          header: t(($) => $.ledger.column.candidate),
+          cell: (row) => (
+            <span className="truncate font-mono text-caption">{shortId(row.candidate_id)}</span>
+          ),
+        },
+        {
+          key: "round",
+          header: t(($) => $.ledger.column.round),
+          width: 70,
+          align: "end",
+          cell: (row) => String(row.round),
+        },
+        {
+          key: "time",
+          header: t(($) => $.ledger.column.time),
+          width: 160,
+          core: true,
+          cell: (row) => formatDateTime(row.scheduled_at, locales),
+        },
+        {
+          key: "interviewer",
+          header: t(($) => $.ledger.column.interviewer),
+          width: 130,
+          cell: (row) => <span className="font-mono text-caption">{shortId(row.interviewer_member_id ?? "")}</span>,
+        },
+        {
+          key: "mode",
+          header: t(($) => $.ledger.column.mode),
+          width: 100,
+          cell: (row) => {
+            const mode = row.mode;
+            return mode === null ? PLACEHOLDER : t(($) => $.ledger.interview_mode[mode]);
+          },
+        },
+        {
+          key: "status",
+          header: t(($) => $.ledger.column.status),
+          width: 110,
+          cell: (row) => t(($) => $.ledger.interview_status[row.status]),
+        },
+      ];
+      return (
+        <CollectionList
+          label={label}
+          columns={columns}
+          rows={props.rows}
+          getRowId={(row) => row.id}
+          loading={loading}
+          empty={empty}
+          embedded
+        />
+      );
+    }
+    case "employees": {
+      const columns: CollectionColumn<HrEmployeeProfile>[] = [
+        {
+          key: "member",
+          header: t(($) => $.ledger.column.member),
+          cell: (row) => (
+            <span className="truncate font-mono text-caption">{shortId(row.member_id)}</span>
+          ),
+        },
+        {
+          key: "job_title",
+          header: t(($) => $.ledger.column.job_title),
+          width: 150,
+          core: true,
+          cell: (row) => row.job_title || PLACEHOLDER,
+        },
+        {
+          key: "grade",
+          header: t(($) => $.ledger.column.grade),
+          width: 100,
+          cell: (row) => row.grade || PLACEHOLDER,
+        },
+        {
+          key: "hire_date",
+          header: t(($) => $.ledger.column.hire_date),
+          width: 110,
+          cell: (row) => formatDay(row.hire_date, locales),
+        },
+        {
+          key: "regular_date",
+          header: t(($) => $.ledger.column.regular_date),
+          width: 110,
+          cell: (row) => formatDay(row.regular_date, locales),
+        },
+        {
+          key: "contract_end",
+          header: t(($) => $.ledger.column.contract_end),
+          width: 130,
+          cell: (row) => formatDay(row.contract_end, locales),
         },
       ];
       return (
@@ -367,8 +621,30 @@ function BudgetRange({
   locales: string;
 }) {
   const { t } = useT("blocks");
+  // CRM money is CNY by contract (`WORKBENCH-API.md` §8 row 8), so a brief's
+  // budget has one currency and needs no per-row symbol.
+  return (
+    <MoneyRange min={min} max={max} locales={locales} prefix={t(($) => $.unit.currency.CNY)} />
+  );
+}
+
+/**
+ * One or two amounts under one currency. A range is what a job's salary band and
+ * a brief's budget both are, so both draw it here — a second money format is the
+ * thing `docs/METRICS.md` C9 exists to prevent.
+ */
+function MoneyRange({
+  min,
+  max,
+  prefix,
+  locales,
+}: {
+  min: number | null;
+  max: number | null;
+  prefix: string;
+  locales: string;
+}) {
   if (min === null && max === null) return <>{PLACEHOLDER}</>;
-  const prefix = t(($) => $.unit.currency.CNY);
   if (min !== null && max !== null) {
     return (
       <span className="flex items-baseline justify-end gap-1">
@@ -408,19 +684,38 @@ function formatDate(value: string | null, locales: string): string {
   return new Intl.DateTimeFormat(locales, { month: "short", day: "numeric" }).format(parsed);
 }
 
-/** The rows carry their currency; only the three the product sells in have a
- * glyph worth hardcoding, and anything else falls back to the code itself. */
-function currencyPrefix(currency: string): string {
-  switch (currency) {
-    case "CNY":
-      return "¥";
-    case "USD":
-      return "$";
-    case "EUR":
-      return "€";
-    default:
-      return `${currency} `;
-  }
+/**
+ * A `YYYY-MM-DD` column (`hire_date`, `regular_date`, `contract_end`).
+ *
+ * Parsed as a local calendar day, not as `new Date("2024-03-01")` — that form is
+ * UTC midnight, which prints the previous day for anyone west of Greenwich, and
+ * an employment date must not shift because of where it is read.
+ */
+function formatDay(value: string | null, locales: string): string {
+  if (!value) return PLACEHOLDER;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return value;
+  const parsed = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  if (Number.isNaN(parsed.getTime())) return value;
+  return new Intl.DateTimeFormat(locales, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(parsed);
+}
+
+/** An interview's slot: the day and the time, because two interviews on one day
+ *  are told apart by the hour. */
+function formatDateTime(value: string | null, locales: string): string {
+  if (!value) return PLACEHOLDER;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return new Intl.DateTimeFormat(locales, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(parsed);
 }
 
 /** Ids are UUIDs; the first segment is what people read out loud. */
