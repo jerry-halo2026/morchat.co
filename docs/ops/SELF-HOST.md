@@ -184,3 +184,55 @@ docker compose -f docker-compose.selfhost.yml up -d
 - 本机 compose 不提供 TLS，只用于本地/内网；对外必须加反代。
 - `MULTICA_*` 环境变量名与 `~/.multica` 目录名沿用上游，暂未改名（可见品牌已改）。
 - 首次登录需要先注册账号；未配置邮件（SMTP）时邀请邮件不会真的发出。
+
+## 7. 知识库接给智能体（MCP）
+
+知识库对 agent 的唯一入口是 `POST /api/mcp/knowledge`（JSON-RPC 2.0），工具三个：
+`knowledge_search` / `knowledge_get` / `knowledge_propose`。它必须先注册成**工作区 MCP
+server**，再**绑定到 agent**，运行时才能取到工具。
+
+1. 用一个长期凭据（PAT，`mul_` 前缀）作为 header：
+
+```bash
+curl -s -X POST "$API/api/tokens/" \
+  -H "Authorization: Bearer $SESSION_TOKEN" -H "Content-Type: application/json" \
+  -d '{"name":"knowledge-mcp"}' | jq -r .token
+```
+
+2. 注册服务器（`config` 原样下发给运行时，`headers` 里放上一步的 PAT）：
+
+```bash
+curl -s -X POST "$API/api/workspaces/$WS/mcp-servers" \
+  -H "Authorization: Bearer $SESSION_TOKEN" -H "X-Workspace-ID: $WS" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"morechat-knowledge","config":{"type":"http","url":"'"$API"'/api/mcp/knowledge","headers":{"Authorization":"Bearer '"$PAT"'"}}}'
+```
+
+3. 绑定到每个 agent：
+
+```bash
+for id in $(curl -s "$API/api/agents" -H "Authorization: Bearer $SESSION_TOKEN" -H "X-Workspace-ID: $WS" | jq -r '.agents[].id'); do
+  curl -s -o /dev/null -w "%{http_code} $id\n" -X POST "$API/api/agents/$id/mcp-servers" \
+    -H "Authorization: Bearer $SESSION_TOKEN" -H "X-Workspace-ID: $WS" \
+    -H "Content-Type: application/json" -d '{"server_id":"'"$SERVER_ID"'"}'
+done
+```
+
+4. 自检（应返回三个工具）：
+
+```bash
+curl -s -X POST "$API/api/mcp/knowledge" -H "Authorization: Bearer $PAT" \
+  -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+写入是提案制：`knowledge_propose` 只生成草稿条目 + 一条 review issue，入库要人批准。
+
+## 8. 知识库可见性开关
+
+`.env.example` 里有六个 `FF_KNOWLEDGE_*` / `FF_DEPARTMENT_DEFAULT_SCOPE`，本机 compose
+会原样透传给后端。其中 `FF_KNOWLEDGE_SPACE_SCOPE` 与 `FF_KNOWLEDGE_PROJECT_ACL`
+**收缩**可见范围，多人环境先开 `FF_KNOWLEDGE_SPACE_SCOPE_SHADOW=on` 看日志：
+
+```bash
+docker logs multica-backend-1 2>&1 | grep "knowledge space scope shadow"
+```
