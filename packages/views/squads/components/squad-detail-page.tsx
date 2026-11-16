@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@morechat/core/api";
+import { ApiError } from "@morechat/core/api";
 import { useAuthStore } from "@morechat/core/auth";
 import { useCurrentWorkspace, useWorkspacePaths } from "@morechat/core/paths";
 import { useWorkspaceId } from "@morechat/core/hooks";
@@ -112,11 +113,22 @@ export function SquadDetailPage() {
   const queryClient = useQueryClient();
   const squadId = pathname.split("/").pop() ?? "";
 
-  const { data: squad, isError: squadError, refetch: refetchSquad } = useQuery<Squad>({
+  const { data: squad, isError: squadError, error: squadFailure, refetch: refetchSquad } = useQuery<Squad>({
     queryKey: [...workspaceKeys.squads(wsId), squadId],
     queryFn: () => api.getSquad(squadId),
     enabled: !!workspace?.id && !!squadId,
   });
+
+  // A squad can disappear under an open tab: re-importing a preset, or archiving
+  // the squad, leaves the route pointing at an id the server no longer has. The
+  // tab then 404s every request it makes. Land back on the list instead of
+  // leaving a dead page (and, on desktop, a dead tab) behind.
+  useEffect(() => {
+    if (!squadFailure) return;
+    const status = squadFailure instanceof ApiError ? squadFailure.status : 0;
+    if (status !== 404) return;
+    router.replace(p.squads());
+  }, [squadFailure, router, p]);
 
   const { data: members = [], refetch: refetchMembers } = useQuery<SquadMember[]>({
     queryKey: [...workspaceKeys.squads(wsId), squadId, "members"],
