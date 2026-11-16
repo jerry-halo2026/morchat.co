@@ -183,6 +183,16 @@
      - 本地发布 tag：`v0.9.0-morechat.1`（**未 push**；上游同名 `v0.9.0` 仍在）。
      - **故意保留**：`MULTICA_*` 环境变量、`~/.multica`、数据库/角色/容器名、
        DSH 的 `multica` profile、`multica://` 深链、`multica.ai` 历史文档。
+   - **Supabase 登录已接上（2026-11-16，可选）**：从 `codex/round1-continuous` 的
+     `dc8fe73a8` 移植（`39e3d7b94`）。启用只需 `SUPABASE_URL` +
+     `SUPABASE_PUBLISHABLE_KEY`（已写入 `.env.selfhost` 并传入容器），
+     `/auth/supabase/config` 返回 `enabled:true`。浏览器直接向项目换 token，后端用
+     `/auth/v1/user` 验证后签发**本地 JWT**（不可续期）；伪造 token 交换返回 401。
+     登录页的密码模式在 Supabase 启用时走该路径，否则回退原生
+     `/auth/password/login`。迁移重编号为 **656**（去掉外键/级联与写死的 project CHECK）。
+     限制：项目地址在 `server/internal/supabaseauth/verifier.go` 与
+     `packages/core/api/supabase-password.ts` 里是固定值，换项目要改代码；
+     `internal/supabaseauth` 有一条 fixture 用例（mock TxStarter）仍红，非生产路径。
    - **开箱即用的两个真实缺口（2026-11-16 实测）**：
      1. `api.morechat.co` 与 `morechat.co` 在公共 DNS 是 **NXDOMAIN**（DoH status 3），
         本机解析到代理 fake-IP `198.18.1.245` 且 TLS 握手失败。打包客户端默认指向这两个
