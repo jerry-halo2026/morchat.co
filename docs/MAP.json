@@ -6,7 +6,7 @@
     "docs/archive/**"
   ],
   "count": 195,
-  "fingerprint": "c7ca9f565b5a4c1fd00060c07b37ed3d41757d4484dc4e4744e7a0482851af2e",
+  "fingerprint": "80149e21cd7c1c260bc1af43197f05c518e71bb27f6aed0eae61bed1f99c4247",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -2619,10 +2619,10 @@
     {
       "path": "docs/tasks/SUPABASE-LOGIN-REVIEW.md",
       "title": "SUPABASE-LOGIN independent review",
-      "purpose": "SUPABASE-LOGIN independent review",
-      "owner": "task-owners",
-      "status": "current",
-      "updated": "2026-11-09",
+      "purpose": "",
+      "owner": "",
+      "status": "",
+      "updated": "",
       "related": [],
       "links_out": [],
       "links_in": []
@@ -2641,10 +2641,10 @@
     {
       "path": "docs/tasks/SUPABASE-LOGIN.md",
       "title": "SUPABASE-LOGIN — email/password to native Multica session",
-      "purpose": "SUPABASE-LOGIN — email/password to native Multica session",
-      "owner": "task-owners",
-      "status": "current",
-      "updated": "2026-11-09",
+      "purpose": "",
+      "owner": "",
+      "status": "",
+      "updated": "",
       "related": [],
       "links_out": [],
       "links_in": []
@@ -2945,7 +2945,10 @@
       ]
     }
   ],
-  "problems": [],
+  "problems": [
+    "docs/tasks/SUPABASE-LOGIN-REVIEW.md: missing front-matter",
+    "docs/tasks/SUPABASE-LOGIN.md: missing front-matter"
+  ],
   "dead_links": [
     "docs/ops/RELEASE.md -> related docs/ops/.github/workflows/release.yml",
     "docs/ops/RELEASE.md -> related docs/ops/.goreleaser.yml",

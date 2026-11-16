@@ -315,9 +315,9 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [回归基线（main @ 0.8.2 之后）](tasks/REGRESSION-BASELINE.md) | 0.8.2 合并后 main 上的隐性回归盘点（门禁 fail-open 掩盖的问题），作为修复基线 | lead | current | 2026-11-11 |
 | [本地启动与文档交付独立审核](tasks/STARTUP-DELIVERY-REVIEW.md) | 本地启动与文档交付独立审核 | task-owners | current | 2026-11-09 |
 | [本地启动实际索引独立复核](tasks/STARTUP-STAGED-REVIEW.md) | 本地启动实际索引独立复核 | task-owners | current | 2026-11-10 |
-| [SUPABASE-LOGIN independent review](tasks/SUPABASE-LOGIN-REVIEW.md) | SUPABASE-LOGIN independent review | task-owners | current | 2026-11-09 |
+| [SUPABASE-LOGIN independent review](tasks/SUPABASE-LOGIN-REVIEW.md) |  |  |  |  |
 | [SUPABASE-LOGIN staged review — APPROVED](tasks/SUPABASE-LOGIN-STAGED-REVIEW.md) | SUPABASE-LOGIN staged review — APPROVED | task-owners | current | 2026-11-10 |
-| [SUPABASE-LOGIN — email/password to native Multica session](tasks/SUPABASE-LOGIN.md) | SUPABASE-LOGIN — email/password to native Multica session | task-owners | current | 2026-11-09 |
+| [SUPABASE-LOGIN — email/password to native Multica session](tasks/SUPABASE-LOGIN.md) |  |  |  |  |
 | [TASK-DETAIL-404 — 自然创建与读取政策未接通](tasks/TASK-DETAIL-404.md) | TASK-DETAIL-404 — 自然创建与读取政策未接通 | task-owners | current | 2026-11-10 |
 | [TASK-ID：任务标题](tasks/TEMPLATE.md) | TASK-ID：任务标题 | task-owners | current | 2026-11-06 |
 | [UI-VERIFICATION：知识库与预设画廊真数据验收（W1-AG3）](tasks/UI-VERIFICATION.md) | W1-AG3 真数据验收：知识库六屏 + 预设画廊点击导入，记录可复现的请求/响应、截图与失败项 | task-owners | current | 2026-11-11 |

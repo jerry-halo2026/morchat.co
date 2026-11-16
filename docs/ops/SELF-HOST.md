@@ -84,8 +84,29 @@ curl http://localhost:8080/health        # {"status":"ok",...}
 curl -I http://localhost:3000            # 200
 ```
 
-## 2. 桌面客户端填地址（关键）
+## 1b. 用 Supabase 账号登录（可选）
 
+两行 env 即可启用（`docker-compose.selfhost.yml` 已把它们传进容器）：
+
+```
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+```
+
+启用后登录页的**密码模式**：浏览器直接把邮箱/密码发到 Supabase 换 access token，
+后端再用该 token 调项目 `/auth/v1/user` 验证，然后签发**本地 JWT 会话**（不存
+密码、不存 refresh token、不可滑动续期）。停用就清空这两项并重启后端。
+
+注意事项：
+
+- 用户必须**已存在于该 Supabase 项目且邮箱已确认**，否则验证失败。
+- 项目地址在 `server/internal/supabaseauth/verifier.go` 里是固定值（当前
+  `qcpgqehqjescuwqhnmie`），换项目需要改代码，不是纯配置。
+- 本地身份映射表 `external_auth_identity`（迁移 656）按 `(project, subject)` 绑定，
+  首次登录会创建本地用户；不会按邮箱合并已有账号。
+- 想回到纯邮箱验证码：清空两项 env 即可，验证码流程不受影响。
+
+## 2. 桌面客户端填地址（关键）
 生产构建的客户端**不读环境变量**，它读一个 JSON 文件：
 
 | 系统 | 路径 |
