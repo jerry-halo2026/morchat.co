@@ -1,4 +1,4 @@
-# Projects and resources
+﻿# Projects and resources
 
 A project groups work and carries durable resources. A resource is not just
 display metadata; it is context later injected into task briefs and
@@ -208,18 +208,18 @@ Use these only when the task is about the workflow itself: who handles a
 status, a step's instructions, or which workflow a project uses. Working an
 issue inside a workflow needs none of them.
 
-- Read first: `multica workflow list`, `multica workflow get <workflow>`
+- Read first: `morechat workflow list`, `morechat workflow get <workflow>`
   (an ID, ID prefix, exact name, or `default`), and
   `morechat project workflow get <project-id>`, which returns the effective
   workflow with `uses_default: true` when the project has none set.
-- One step: `multica workflow handoff set <workflow> <status-key>` with
+- One step: `morechat workflow handoff set <workflow> <status-key>` with
   `--handler` (`none`, `project_lead`, `creator`, or a member/agent/squad),
   `--instructions` / `--instructions-file`, `--next`, `--back`. Flags you do
   not pass keep their current value. The change applies to every project on
   that workflow; `--copy-for-project <project-id>` saves it on a copy only that
   project uses.
-- Whole workflow: `multica workflow create|update --steps-file <json>`
-  replaces all steps; `multica workflow delete` is refused for Default and for
+- Whole workflow: `morechat workflow create|update --steps-file <json>`
+  replaces all steps; `morechat workflow delete` is refused for Default and for
   a workflow a project still uses.
 - Status catalog: a step's `new_status` may carry `icon` (`dotted`, `circle`,
   `half`, `three_quarters`, `check`, `slash`, `cross`; empty keeps the category

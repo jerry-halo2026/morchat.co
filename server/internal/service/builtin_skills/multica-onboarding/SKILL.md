@@ -1,8 +1,8 @@
----
+﻿---
 name: multica-onboarding
 description: "Use when a product-authored kickoff starts or resumes Mika's interactive onboarding for a Multica workspace. The opening greeting has already been sent; carry the member from their first message to one real, confirmed, issue-based execution and a clear handoff."
 user-invocable: false
-allowed-tools: Bash(multica *)
+allowed-tools: Bash(morechat *)
 ---
 
 # Onboard a member with Mika

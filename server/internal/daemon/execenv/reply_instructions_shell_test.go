@@ -54,9 +54,9 @@ func snippetBlock(t *testing.T, rendered, marker string) []string {
 func stubMultica(t *testing.T, exitCode int) string {
 	t.Helper()
 	dir := t.TempDir()
-	name, body := "multica", "#!/bin/sh\nexit "+strconv.Itoa(exitCode)+"\n"
+	name, body := "morechat", "#!/bin/sh\nexit "+strconv.Itoa(exitCode)+"\n"
 	if runtime.GOOS == "windows" {
-		name, body = "multica.cmd", "@exit /b "+strconv.Itoa(exitCode)+"\r\n"
+		name, body = "morechat.cmd", "@exit /b "+strconv.Itoa(exitCode)+"\r\n"
 	}
 	if err := os.WriteFile(filepath.Join(dir, name), []byte(body), 0o755); err != nil {
 		t.Fatal(err)

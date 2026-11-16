@@ -1,4 +1,4 @@
-# Issues
+﻿# Issues
 
 Product contracts the runtime brief does not fully encode.
 
@@ -142,8 +142,8 @@ condition tree, relative due dates, project status — which `issue list`
 cannot express.
 
 ```bash
-multica view list --output json
-multica view issues "Bugs" --output json --fields identifier,title,status
+morechat view list --output json
+morechat view issues "Bugs" --output json --fields identifier,title,status
 ```
 
 `<view>` is an ID, ID prefix, or exact name. Pages hold at most 100 issues;
