@@ -1076,6 +1076,106 @@ type GithubPullRequestCheckSuite struct {
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 }
 
+type HrCandidate struct {
+	ID                 pgtype.UUID        `json:"id"`
+	WorkspaceID        pgtype.UUID        `json:"workspace_id"`
+	JobID              pgtype.UUID        `json:"job_id"`
+	Name               string             `json:"name"`
+	Stage              string             `json:"stage"`
+	Source             pgtype.Text        `json:"source"`
+	Phone              pgtype.Text        `json:"phone"`
+	Email              pgtype.Text        `json:"email"`
+	ResumeAttachmentID pgtype.UUID        `json:"resume_attachment_id"`
+	MatchScore         pgtype.Int2        `json:"match_score"`
+	ScoreResume        pgtype.Numeric     `json:"score_resume"`
+	ScoreTest          pgtype.Numeric     `json:"score_test"`
+	ScoreInterview     pgtype.Numeric     `json:"score_interview"`
+	ExpectedSalary     pgtype.Numeric     `json:"expected_salary"`
+	OfferSalary        pgtype.Numeric     `json:"offer_salary"`
+	Currency           pgtype.Text        `json:"currency"`
+	OwnerMemberID      pgtype.UUID        `json:"owner_member_id"`
+	HiredAt            pgtype.Timestamptz `json:"hired_at"`
+	RejectedReason     pgtype.Text        `json:"rejected_reason"`
+	CreatedBy          pgtype.UUID        `json:"created_by"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt         pgtype.Timestamptz `json:"archived_at"`
+}
+
+type HrEmployeeProfile struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	MemberID      pgtype.UUID        `json:"member_id"`
+	DepartmentID  pgtype.UUID        `json:"department_id"`
+	JobTitle      pgtype.Text        `json:"job_title"`
+	Grade         pgtype.Text        `json:"grade"`
+	HireDate      pgtype.Date        `json:"hire_date"`
+	RegularDate   pgtype.Date        `json:"regular_date"`
+	ContractEnd   pgtype.Date        `json:"contract_end"`
+	Ability       []byte             `json:"ability"`
+	Disc          []byte             `json:"disc"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+type HrInterview struct {
+	ID                  pgtype.UUID        `json:"id"`
+	WorkspaceID         pgtype.UUID        `json:"workspace_id"`
+	CandidateID         pgtype.UUID        `json:"candidate_id"`
+	Round               int16              `json:"round"`
+	ScheduledAt         pgtype.Timestamptz `json:"scheduled_at"`
+	DurationMinutes     int32              `json:"duration_minutes"`
+	InterviewerMemberID pgtype.UUID        `json:"interviewer_member_id"`
+	Mode                pgtype.Text        `json:"mode"`
+	Status              string             `json:"status"`
+	RescheduledCount    int32              `json:"rescheduled_count"`
+	Note                pgtype.Text        `json:"note"`
+	CreatedBy           pgtype.UUID        `json:"created_by"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt          pgtype.Timestamptz `json:"archived_at"`
+}
+
+type HrJob struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	Title         string             `json:"title"`
+	DepartmentID  pgtype.UUID        `json:"department_id"`
+	Level         pgtype.Text        `json:"level"`
+	Headcount     int32              `json:"headcount"`
+	Status        pgtype.Text        `json:"status"`
+	SalaryMin     pgtype.Numeric     `json:"salary_min"`
+	SalaryMax     pgtype.Numeric     `json:"salary_max"`
+	Currency      pgtype.Text        `json:"currency"`
+	Requirements  pgtype.Text        `json:"requirements"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+type HrScorecard struct {
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	InterviewID      pgtype.UUID        `json:"interview_id"`
+	ReviewerMemberID pgtype.UUID        `json:"reviewer_member_id"`
+	ScoreSkill       pgtype.Int2        `json:"score_skill"`
+	ScoreExperience  pgtype.Int2        `json:"score_experience"`
+	ScoreCulture     pgtype.Int2        `json:"score_culture"`
+	ScorePotential   pgtype.Int2        `json:"score_potential"`
+	WeightedScore    pgtype.Numeric     `json:"weighted_score"`
+	Verdict          pgtype.Text        `json:"verdict"`
+	Comment          pgtype.Text        `json:"comment"`
+	CreatedBy        pgtype.UUID        `json:"created_by"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt       pgtype.Timestamptz `json:"archived_at"`
+}
+
 type InboxItem struct {
 	ID            pgtype.UUID        `json:"id"`
 	WorkspaceID   pgtype.UUID        `json:"workspace_id"`

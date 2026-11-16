@@ -20,6 +20,7 @@ CREATE TABLE creator_post (
     created_by UUID,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    archived_at TIMESTAMPTZ,
-    UNIQUE (creator_id, url)
+    archived_at TIMESTAMPTZ
 );
+-- One post per (creator, url) while live; 700 owns the partial index so an
+-- archived row does not block re-importing the same URL.

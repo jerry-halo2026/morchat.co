@@ -169,6 +169,11 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"crm_brief":            workspaceDelete,
 	"crm_collab":           workspaceDelete,
 	"crm_settlement":       workspaceDelete,
+	"hr_job":               workspaceDelete,
+	"hr_candidate":         workspaceDelete,
+	"hr_interview":         workspaceDelete,
+	"hr_scorecard":         workspaceDelete,
+	"hr_employee_profile":  workspaceDelete,
 	"workspace_invitation": workspaceDelete,
 	"workspace_share_link": workspaceDelete,
 }

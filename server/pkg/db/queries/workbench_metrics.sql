@@ -251,6 +251,89 @@ WHERE c.workspace_id = sqlc.arg('workspace_id')
   AND c.confirmed_at >= now() - interval '30 days'
   AND (sqlc.narg('department_id')::uuid IS NULL OR m.department_id = sqlc.narg('department_id')::uuid);
 
+-- name: OverviewHrActiveCandidates :one
+-- `hr.candidates.active` (docs/METRICS.md §2): candidates whose stage is still in
+-- play. `hired` is not active — the funnel is finished for that person — and
+-- neither are the two ways out (`rejected`, `withdrawn`).
+--
+-- Department attribution follows the B0 fallback chain: the candidate's
+-- requisition carries `department_id`, and the owner's member department is the
+-- fallback for a requisition created before departments were filled in.
+SELECT (count(*))::bigint AS active_candidates
+FROM hr_candidate c
+LEFT JOIN hr_job j ON j.id = c.job_id AND j.workspace_id = c.workspace_id
+LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+WHERE c.workspace_id = sqlc.arg('workspace_id')
+  AND c.archived_at IS NULL
+  AND c.stage NOT IN ('hired', 'rejected', 'withdrawn')
+  AND (sqlc.narg('department_id')::uuid IS NULL
+       OR j.department_id = sqlc.narg('department_id')::uuid
+       OR m.department_id = sqlc.narg('department_id')::uuid);
+
+-- name: OverviewHrTimeToHire :one
+-- `hr.time_to_hire.median`: days from entering the funnel to `hired_at`, over the
+-- candidates hired in the last 90 days. `sample_count` is what decides
+-- `insufficient_data` — a median of 0 with no hires behind it is an empty funnel,
+-- not a same-day hire.
+SELECT
+    (count(*))::bigint AS sample_count,
+    coalesce(percentile_cont(0.5) WITHIN GROUP (
+        ORDER BY (EXTRACT(EPOCH FROM (c.hired_at - c.created_at))::float8 / 86400.0)
+    ), 0)::float8 AS median_days
+FROM hr_candidate c
+LEFT JOIN hr_job j ON j.id = c.job_id AND j.workspace_id = c.workspace_id
+LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+WHERE c.workspace_id = sqlc.arg('workspace_id')
+  AND c.archived_at IS NULL
+  AND c.hired_at IS NOT NULL
+  AND c.hired_at >= now() - interval '90 days'
+  AND (sqlc.narg('department_id')::uuid IS NULL
+       OR j.department_id = sqlc.narg('department_id')::uuid
+       OR m.department_id = sqlc.narg('department_id')::uuid);
+
+-- name: OverviewHrScorecardBacklog :one
+-- `hr.scorecard.backlog`: slots whose time has passed and that still have no
+-- scorecard. A cancelled interview is excluded — it was never held, so no
+-- scorecard is owed for it and counting it would inflate the backlog forever.
+SELECT (count(*))::bigint AS backlog_count
+FROM hr_interview i
+LEFT JOIN hr_scorecard s ON s.interview_id = i.id
+                        AND s.workspace_id = i.workspace_id
+                        AND s.archived_at IS NULL
+LEFT JOIN hr_candidate c ON c.id = i.candidate_id AND c.workspace_id = i.workspace_id
+LEFT JOIN hr_job j ON j.id = c.job_id AND j.workspace_id = c.workspace_id
+LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+WHERE i.workspace_id = sqlc.arg('workspace_id')
+  AND i.archived_at IS NULL
+  AND i.status IN ('scheduled', 'done')
+  AND i.scheduled_at < now()
+  AND s.id IS NULL
+  AND (sqlc.narg('department_id')::uuid IS NULL
+       OR j.department_id = sqlc.narg('department_id')::uuid
+       OR m.department_id = sqlc.narg('department_id')::uuid);
+
+-- name: OverviewHrInterviewOnTime :one
+-- `hr.interview.on_time_rate`: interviews held this calendar month that were never
+-- rescheduled, over the interviews held this calendar month. "Held" means the
+-- slot is inside the month and the interview actually reached the room
+-- (`done`) or missed it (`no_show`) — a future slot of this month is not a data
+-- point yet, and counting it as on time would make the rate improve by scheduling.
+SELECT
+    (count(*) FILTER (WHERE i.rescheduled_count = 0))::bigint AS on_time_count,
+    (count(*))::bigint AS scheduled_count
+FROM hr_interview i
+LEFT JOIN hr_candidate c ON c.id = i.candidate_id AND c.workspace_id = i.workspace_id
+LEFT JOIN hr_job j ON j.id = c.job_id AND j.workspace_id = c.workspace_id
+LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+WHERE i.workspace_id = sqlc.arg('workspace_id')
+  AND i.archived_at IS NULL
+  AND i.status IN ('done', 'no_show')
+  AND i.scheduled_at >= date_trunc('month', now())
+  AND i.scheduled_at < date_trunc('month', now()) + interval '1 month'
+  AND (sqlc.narg('department_id')::uuid IS NULL
+       OR j.department_id = sqlc.narg('department_id')::uuid
+       OR m.department_id = sqlc.narg('department_id')::uuid);
+
 -- name: OverviewCrmRepeatRate :one
 -- `crm.creator.repeat_rate`: creators with ≥2 settled collaborations this
 -- calendar quarter over creators with ≥1. "Settled" is the settled stage

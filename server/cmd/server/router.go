@@ -27,9 +27,9 @@ import (
 	"github.com/jerry-halo2026/morchat.co/server/internal/connectedapps"
 	"github.com/jerry-halo2026/morchat.co/server/internal/daemonws"
 	"github.com/jerry-halo2026/morchat.co/server/internal/entitlement"
-	"github.com/jerry-halo2026/morchat.co/server/internal/gateway"
 	"github.com/jerry-halo2026/morchat.co/server/internal/events"
 	"github.com/jerry-halo2026/morchat.co/server/internal/featureflags"
+	"github.com/jerry-halo2026/morchat.co/server/internal/gateway"
 	"github.com/jerry-halo2026/morchat.co/server/internal/gitca"
 	"github.com/jerry-halo2026/morchat.co/server/internal/handler"
 	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel"
@@ -2461,6 +2461,58 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 						r.Route("/{settlementId}", func(r chi.Router) {
 							r.Patch("/", h.UpdateCrmSettlement)
 							r.Delete("/", h.DeleteCrmSettlement)
+						})
+					})
+				})
+
+				// HR (docs/engineering/WORKBENCH-API.md §10.3). Same read/write
+				// split as the commerce ledgers; `scorecards` has no standalone
+				// GET because a scorecard is read with its interview, and `hire`
+				// is the one route that writes two tables in one transaction.
+				r.Route("/hr", func(r chi.Router) {
+					r.Route("/jobs", func(r chi.Router) {
+						r.Get("/", h.ListHrJobs)
+						r.Post("/", h.CreateHrJob)
+						r.Route("/{jobId}", func(r chi.Router) {
+							r.Get("/", h.GetHrJob)
+							r.Patch("/", h.UpdateHrJob)
+							r.Delete("/", h.DeleteHrJob)
+						})
+					})
+					r.Route("/candidates", func(r chi.Router) {
+						r.Get("/", h.ListHrCandidates)
+						r.Post("/", h.CreateHrCandidate)
+						r.Route("/{candidateId}", func(r chi.Router) {
+							r.Get("/", h.GetHrCandidate)
+							r.Patch("/", h.UpdateHrCandidate)
+							r.Delete("/", h.DeleteHrCandidate)
+							r.Post("/hire", h.HireHrCandidate)
+						})
+					})
+					r.Route("/interviews", func(r chi.Router) {
+						r.Get("/", h.ListHrInterviews)
+						r.Post("/", h.CreateHrInterview)
+						r.Route("/{interviewId}", func(r chi.Router) {
+							r.Get("/", h.GetHrInterview)
+							r.Patch("/", h.UpdateHrInterview)
+							r.Delete("/", h.DeleteHrInterview)
+						})
+					})
+					r.Route("/scorecards", func(r chi.Router) {
+						r.Get("/", h.ListHrScorecards)
+						r.Post("/", h.CreateHrScorecard)
+						r.Route("/{scorecardId}", func(r chi.Router) {
+							r.Patch("/", h.UpdateHrScorecard)
+							r.Delete("/", h.DeleteHrScorecard)
+						})
+					})
+					r.Route("/employees", func(r chi.Router) {
+						r.Get("/", h.ListHrEmployees)
+						r.Post("/", h.CreateHrEmployee)
+						r.Route("/{employeeId}", func(r chi.Router) {
+							r.Get("/", h.GetHrEmployee)
+							r.Patch("/", h.UpdateHrEmployee)
+							r.Delete("/", h.DeleteHrEmployee)
 						})
 					})
 				})

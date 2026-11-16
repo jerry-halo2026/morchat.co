@@ -32,8 +32,8 @@ CREATE TABLE creator (
     created_by UUID,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    archived_at TIMESTAMPTZ,
-    -- One creator per (workspace, platform, handle). Created inline with the
-    -- table: it is new and empty, so there is no concurrent-build hazard.
-    UNIQUE (workspace_id, platform, handle)
+    archived_at TIMESTAMPTZ
 );
+-- One creator per (workspace, platform, handle) while the row is live. The
+-- uniqueness lives in 699 as a partial index, not as an inline constraint: a
+-- soft-deleted creator must not keep its handle reserved forever.

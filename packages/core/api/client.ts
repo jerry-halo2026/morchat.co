@@ -310,6 +310,37 @@ import type {
   CreateCommentSubIssueAgentRequest,
   CreateCommentSubIssueRequest,
 } from "../types";
+// HR wire types come from their own module: the `../types` barrel does not
+// re-export the B1 block, and this file must not depend on that changing.
+import type {
+  CreateHrCandidateRequest,
+  CreateHrEmployeeProfileRequest,
+  CreateHrInterviewRequest,
+  CreateHrJobRequest,
+  CreateHrScorecardRequest,
+  HireHrCandidateRequest,
+  HireHrCandidateResponse,
+  HrCandidate,
+  HrCandidateListFilters,
+  HrCandidateListResponse,
+  HrEmployeeProfile,
+  HrEmployeeProfileListFilters,
+  HrEmployeeProfileListResponse,
+  HrInterview,
+  HrInterviewListFilters,
+  HrInterviewListResponse,
+  HrJob,
+  HrJobListFilters,
+  HrJobListResponse,
+  HrScorecard,
+  HrScorecardListFilters,
+  HrScorecardListResponse,
+  UpdateHrCandidateRequest,
+  UpdateHrEmployeeProfileRequest,
+  UpdateHrInterviewRequest,
+  UpdateHrJobRequest,
+  UpdateHrScorecardRequest,
+} from "../types/workbench";
 import type { OnboardingCompletionPath } from "../onboarding/types";
 import type {
   CreateFeedbackResponse,
@@ -634,6 +665,28 @@ import {
   EMPTY_CRM_SETTLEMENT_LIST_RESPONSE,
   WorkbenchCountsResponseSchema,
   EMPTY_WORKBENCH_COUNTS_RESPONSE,
+  HrJobSchema,
+  HrJobListResponseSchema,
+  EMPTY_HR_JOB,
+  EMPTY_HR_JOB_LIST_RESPONSE,
+  HrCandidateSchema,
+  HrCandidateListResponseSchema,
+  EMPTY_HR_CANDIDATE,
+  EMPTY_HR_CANDIDATE_LIST_RESPONSE,
+  HrInterviewSchema,
+  HrInterviewListResponseSchema,
+  EMPTY_HR_INTERVIEW,
+  EMPTY_HR_INTERVIEW_LIST_RESPONSE,
+  HrScorecardSchema,
+  HrScorecardListResponseSchema,
+  EMPTY_HR_SCORECARD,
+  EMPTY_HR_SCORECARD_LIST_RESPONSE,
+  HrEmployeeProfileSchema,
+  HrEmployeeProfileListResponseSchema,
+  HireHrCandidateResponseSchema,
+  EMPTY_HR_EMPLOYEE_PROFILE,
+  EMPTY_HR_EMPLOYEE_PROFILE_LIST_RESPONSE,
+  EMPTY_HIRE_HR_CANDIDATE_RESPONSE,
   type IssueView,
   type IssueViewPreference,
   type CreateIssueViewRequest,
@@ -4238,6 +4291,245 @@ export class ApiClient {
 
   async deleteCrmSettlement(id: string): Promise<void> {
     await this.fetch(`/api/workbench/crm/settlements/${id}`, { method: "DELETE" });
+  }
+
+  // HR (docs/engineering/WORKBENCH-API.md §10.3). Same base and same write scope
+  // as the ledgers above: reads are member-wide, writes are gated server-side.
+  // `scorecards` has no single-row GET — a scorecard is read through its
+  // interview — so there is no `getHrScorecard`, only the collection, the
+  // create, and the two row writes.
+
+  async listHrJobs(filters: HrJobListFilters = {}): Promise<HrJobListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/jobs${workbenchSearch({
+        status: filters.status,
+        department_id: filters.department_id,
+      })}`,
+    );
+    return parseWithFallback(raw, HrJobListResponseSchema, EMPTY_HR_JOB_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/jobs",
+    });
+  }
+
+  async createHrJob(data: CreateHrJobRequest): Promise<HrJob> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/jobs", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrJobSchema, EMPTY_HR_JOB, {
+      endpoint: "POST /api/workbench/hr/jobs",
+    });
+  }
+
+  async getHrJob(id: string): Promise<HrJob> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/jobs/${id}`);
+    return parseWithFallback(raw, HrJobSchema, EMPTY_HR_JOB, {
+      endpoint: "GET /api/workbench/hr/jobs/:jobId",
+    });
+  }
+
+  async updateHrJob(id: string, data: UpdateHrJobRequest): Promise<HrJob> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/jobs/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrJobSchema, EMPTY_HR_JOB, {
+      endpoint: "PATCH /api/workbench/hr/jobs/:jobId",
+    });
+  }
+
+  async deleteHrJob(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/jobs/${id}`, { method: "DELETE" });
+  }
+
+  async listHrCandidates(filters: HrCandidateListFilters = {}): Promise<HrCandidateListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/candidates${workbenchSearch({
+        job_id: filters.job_id,
+        stage: filters.stage,
+      })}`,
+    );
+    return parseWithFallback(raw, HrCandidateListResponseSchema, EMPTY_HR_CANDIDATE_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/candidates",
+    });
+  }
+
+  async createHrCandidate(data: CreateHrCandidateRequest): Promise<HrCandidate> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/candidates", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrCandidateSchema, EMPTY_HR_CANDIDATE, {
+      endpoint: "POST /api/workbench/hr/candidates",
+    });
+  }
+
+  async getHrCandidate(id: string): Promise<HrCandidate> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/candidates/${id}`);
+    return parseWithFallback(raw, HrCandidateSchema, EMPTY_HR_CANDIDATE, {
+      endpoint: "GET /api/workbench/hr/candidates/:candidateId",
+    });
+  }
+
+  async updateHrCandidate(id: string, data: UpdateHrCandidateRequest): Promise<HrCandidate> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/candidates/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrCandidateSchema, EMPTY_HR_CANDIDATE, {
+      endpoint: "PATCH /api/workbench/hr/candidates/:candidateId",
+    });
+  }
+
+  async deleteHrCandidate(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/candidates/${id}`, { method: "DELETE" });
+  }
+
+  /**
+   * The hire transition: `stage = hired`, `hired_at` stamped, and the employee
+   * profile created or updated in the same transaction (§10.3). The response is
+   * the candidate row the route names; the profile it wrote is re-read through
+   * `GET /hr/employees` (see `HireHrCandidateRequest`).
+   */
+  async hireHrCandidate(candidateId: string, data: HireHrCandidateRequest): Promise<HireHrCandidateResponse> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/candidates/${candidateId}/hire`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    const parsed = await parseWithFallback(
+      raw,
+      HireHrCandidateResponseSchema,
+      EMPTY_HIRE_HR_CANDIDATE_RESPONSE,
+      { endpoint: "POST /api/workbench/hr/candidates/:candidateId/hire" },
+    );
+    return {
+      candidate: parsed.candidate ?? EMPTY_HR_CANDIDATE,
+      employee_profile: parsed.employee_profile ?? EMPTY_HR_EMPLOYEE_PROFILE,
+    };
+  }
+
+  async listHrInterviews(filters: HrInterviewListFilters = {}): Promise<HrInterviewListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/interviews${workbenchSearch({
+        candidate_id: filters.candidate_id,
+        status: filters.status,
+      })}`,
+    );
+    return parseWithFallback(raw, HrInterviewListResponseSchema, EMPTY_HR_INTERVIEW_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/interviews",
+    });
+  }
+
+  async createHrInterview(data: CreateHrInterviewRequest): Promise<HrInterview> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/interviews", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrInterviewSchema, EMPTY_HR_INTERVIEW, {
+      endpoint: "POST /api/workbench/hr/interviews",
+    });
+  }
+
+  async getHrInterview(id: string): Promise<HrInterview> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/interviews/${id}`);
+    return parseWithFallback(raw, HrInterviewSchema, EMPTY_HR_INTERVIEW, {
+      endpoint: "GET /api/workbench/hr/interviews/:interviewId",
+    });
+  }
+
+  async updateHrInterview(id: string, data: UpdateHrInterviewRequest): Promise<HrInterview> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/interviews/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrInterviewSchema, EMPTY_HR_INTERVIEW, {
+      endpoint: "PATCH /api/workbench/hr/interviews/:interviewId",
+    });
+  }
+
+  async deleteHrInterview(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/interviews/${id}`, { method: "DELETE" });
+  }
+
+  async listHrScorecards(filters: HrScorecardListFilters = {}): Promise<HrScorecardListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/scorecards${workbenchSearch({ interview_id: filters.interview_id })}`,
+    );
+    return parseWithFallback(raw, HrScorecardListResponseSchema, EMPTY_HR_SCORECARD_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/scorecards",
+    });
+  }
+
+  async createHrScorecard(data: CreateHrScorecardRequest): Promise<HrScorecard> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/scorecards", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrScorecardSchema, EMPTY_HR_SCORECARD, {
+      endpoint: "POST /api/workbench/hr/scorecards",
+    });
+  }
+
+  async updateHrScorecard(id: string, data: UpdateHrScorecardRequest): Promise<HrScorecard> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/scorecards/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrScorecardSchema, EMPTY_HR_SCORECARD, {
+      endpoint: "PATCH /api/workbench/hr/scorecards/:scorecardId",
+    });
+  }
+
+  async deleteHrScorecard(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/scorecards/${id}`, { method: "DELETE" });
+  }
+
+  async listHrEmployees(
+    filters: HrEmployeeProfileListFilters = {},
+  ): Promise<HrEmployeeProfileListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/employees${workbenchSearch({ department_id: filters.department_id })}`,
+    );
+    return parseWithFallback(
+      raw,
+      HrEmployeeProfileListResponseSchema,
+      EMPTY_HR_EMPLOYEE_PROFILE_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/hr/employees" },
+    );
+  }
+
+  async createHrEmployee(data: CreateHrEmployeeProfileRequest): Promise<HrEmployeeProfile> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/employees", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrEmployeeProfileSchema, EMPTY_HR_EMPLOYEE_PROFILE, {
+      endpoint: "POST /api/workbench/hr/employees",
+    });
+  }
+
+  async getHrEmployee(id: string): Promise<HrEmployeeProfile> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/employees/${id}`);
+    return parseWithFallback(raw, HrEmployeeProfileSchema, EMPTY_HR_EMPLOYEE_PROFILE, {
+      endpoint: "GET /api/workbench/hr/employees/:employeeId",
+    });
+  }
+
+  async updateHrEmployee(
+    id: string,
+    data: UpdateHrEmployeeProfileRequest,
+  ): Promise<HrEmployeeProfile> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/employees/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrEmployeeProfileSchema, EMPTY_HR_EMPLOYEE_PROFILE, {
+      endpoint: "PATCH /api/workbench/hr/employees/:employeeId",
+    });
+  }
+
+  async deleteHrEmployee(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/employees/${id}`, { method: "DELETE" });
   }
 
   async createShareLink(workspaceId: string, data: { role?: string; expires_in?: number; max_uses?: number }): Promise<ShareLink> {

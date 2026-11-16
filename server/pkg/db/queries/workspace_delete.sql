@@ -765,10 +765,11 @@ DELETE FROM workspace_invitation
 WHERE workspace_invitation.workspace_id = $1;
 
 -- name: DeleteWorkspaceWorkbenchLedger :exec
--- Creator commerce and CRM ledgers (docs/engineering/WORKBENCH-API.md). No
+-- Creator commerce, CRM and HR ledgers (docs/engineering/WORKBENCH-API.md). No
 -- foreign key sits behind them (repository rule), so teardown removes every row
 -- explicitly, in dependency order: a settlement names a collaboration, a post
--- belongs to a creator.
+-- belongs to a creator, a scorecard names an interview, an interview names a
+-- candidate and a candidate names a job.
 WITH
 deleted_settlements AS (
     DELETE FROM crm_settlement WHERE crm_settlement.workspace_id = $1
@@ -787,5 +788,20 @@ deleted_metrics AS (
 ),
 deleted_posts AS (
     DELETE FROM creator_post WHERE creator_post.workspace_id = $1
+),
+deleted_creators AS (
+    DELETE FROM creator WHERE creator.workspace_id = $1
+),
+deleted_hr_scorecards AS (
+    DELETE FROM hr_scorecard WHERE hr_scorecard.workspace_id = $1
+),
+deleted_hr_interviews AS (
+    DELETE FROM hr_interview WHERE hr_interview.workspace_id = $1
+),
+deleted_hr_candidates AS (
+    DELETE FROM hr_candidate WHERE hr_candidate.workspace_id = $1
+),
+deleted_hr_jobs AS (
+    DELETE FROM hr_job WHERE hr_job.workspace_id = $1
 )
-DELETE FROM creator WHERE creator.workspace_id = $1;
+DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1;

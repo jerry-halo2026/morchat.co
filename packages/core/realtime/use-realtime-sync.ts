@@ -17,6 +17,7 @@ import { refreshSubscribedIssues, subscribedIssueKeys } from "../issues/subscrib
 import { projectKeys } from "../projects/queries";
 import { creatorKeys } from "../creator/queries";
 import { crmKeys, workbenchKeys } from "../crm/queries";
+import { hrKeys } from "../hr/queries";
 import { pinKeys } from "../pins/queries";
 import { autopilotKeys } from "../autopilots/queries";
 import { runtimeKeys } from "../runtimes/queries";
@@ -1130,6 +1131,10 @@ export function useRealtimeSync(
       "creator:changed", "creator_post:changed",
       "crm_client:changed", "crm_brief:changed", "crm_collab:changed",
       "crm_collab:stage_changed", "crm_settlement:changed",
+      // The HR block has dedicated handlers below for the same reason: the
+      // generic prefix path knows nothing about `["hr", wsId, …]`.
+      "hr_job:changed", "hr_candidate:changed", "hr_candidate:stage_changed",
+      "hr_interview:changed", "hr_scorecard:changed", "hr_employee_profile:changed",
       // task:completed / task:failed deliberately NOT here. They reach both
       // onAny (task-prefix invalidation and bounded activity refresh) and the
       // chat-specific ws.on() handlers below through independent subscriptions.
@@ -1996,6 +2001,63 @@ export function useRealtimeSync(
       invalidateWorkbenchLedger(workbenchKeys.all(wsId));
     });
 
+    // --- HR block (docs/engineering/WORKBENCH-API.md §10.4) ---
+    //
+    // Same shape as the ledgers above, one segment deeper: each event re-reads
+    // its own resource (`["hr", wsId, <resource>]`) and the two aggregates,
+    // because all four HR metrics are computed from these tables. The payload's
+    // `id` is not used for field patching: §10.4 names the row, it does not
+    // describe the change, and an HR row is wide enough that a refetch is the
+    // cheaper correct answer.
+    //
+    // A candidate stage move arrives twice (changed + stage_changed) for one
+    // write; both invalidate `["hr", wsId, "candidates"]` and React Query
+    // collapses the duplicate into a single refetch.
+    const unsubHrJobChanged = ws.on("hr_job:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateWorkbenchLedger(hrKeys.resource(wsId, "jobs"));
+      invalidateWorkbenchLedger(workbenchKeys.all(wsId));
+    });
+
+    const unsubHrCandidateChanged = ws.on("hr_candidate:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateWorkbenchLedger(hrKeys.resource(wsId, "candidates"));
+      invalidateWorkbenchLedger(workbenchKeys.all(wsId));
+    });
+
+    const unsubHrCandidateStageChanged = ws.on("hr_candidate:stage_changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateWorkbenchLedger(hrKeys.resource(wsId, "candidates"));
+      invalidateWorkbenchLedger(workbenchKeys.all(wsId));
+    });
+
+    const unsubHrInterviewChanged = ws.on("hr_interview:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateWorkbenchLedger(hrKeys.resource(wsId, "interviews"));
+      invalidateWorkbenchLedger(workbenchKeys.all(wsId));
+    });
+
+    // A scorecard change moves the backlog metric, and it is read through its
+    // interview's detail — that detail query names no scorecard, so the scorecard
+    // prefix is what has to refresh.
+    const unsubHrScorecardChanged = ws.on("hr_scorecard:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateWorkbenchLedger(hrKeys.resource(wsId, "scorecards"));
+      invalidateWorkbenchLedger(workbenchKeys.all(wsId));
+    });
+
+    const unsubHrEmployeeProfileChanged = ws.on("hr_employee_profile:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateWorkbenchLedger(hrKeys.resource(wsId, "employees"));
+      invalidateWorkbenchLedger(workbenchKeys.all(wsId));
+    });
+
     return () => {
       unsubAny();
       unsubIssueUpdated();
@@ -2051,6 +2113,12 @@ export function useRealtimeSync(
       unsubCrmCollabChanged();
       unsubCrmCollabStageChanged();
       unsubCrmSettlementChanged();
+      unsubHrJobChanged();
+      unsubHrCandidateChanged();
+      unsubHrCandidateStageChanged();
+      unsubHrInterviewChanged();
+      unsubHrScorecardChanged();
+      unsubHrEmployeeProfileChanged();
       if (taskMessageFlushTimer) clearTimeout(taskMessageFlushTimer);
       if (aggregateRefreshTimer) clearTimeout(aggregateRefreshTimer);
       timers.forEach(clearTimeout);

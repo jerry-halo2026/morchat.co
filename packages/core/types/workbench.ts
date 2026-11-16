@@ -1,11 +1,12 @@
 /**
- * Workbench ledger wire types (docs/engineering/WORKBENCH-API.md §2).
+ * Workbench wire types (docs/engineering/WORKBENCH-API.md §2 and §10).
  *
- * Seven tables, seven record types: creators (the supply side), their posts and
- * per-day post snapshots (the evidence side), and the four CRM ledgers
- * (client → brief → collab → settlement). Every field here is what the server
- * puts on the wire, snake_case and flat; nothing is denormalized, because the
- * ledger screens read rows and resolve labels at render time.
+ * B0's seven ledger tables — creators (the supply side), their posts and per-day
+ * post snapshots (the evidence side), and the four CRM ledgers (client → brief →
+ * collab → settlement) — plus B1's five HR records (job → candidate → interview
+ * → scorecard, and the employee profile a hire creates). Every field here is
+ * what the server puts on the wire, snake_case and flat; nothing is denormalized,
+ * because the ledger screens read rows and resolve labels at render time.
  *
  * Money is `number`, not a string: the server converts `NUMERIC(14,2)` columns
  * to JSON numbers, and `currency` travels next to it so the UI never guesses.
@@ -217,6 +218,15 @@ export interface WorkbenchCountsResponse {
   briefs: number;
   collabs_open: number;
   settlements_pending: number;
+  /**
+   * Recruiting ledgers. Optional because a server that predates B1 omits them,
+   * and a missing count must render as "no number yet" rather than a confident
+   * zero — the same rule `emptyRule` applies to metrics.
+   */
+  jobs?: number;
+  candidates?: number;
+  interviews?: number;
+  employees?: number;
 }
 
 // --- List envelopes -------------------------------------------------------
@@ -515,3 +525,412 @@ export type UpdateCrmSettlementRequest = Partial<
     "kind" | "amount" | "currency" | "due_at" | "paid_at" | "invoice_no" | "note"
   >
 >;
+
+// --- HR (docs/engineering/WORKBENCH-API.md §10) ---------------------------
+//
+// Five personnel records, same wire rules as the ledgers above: flat snake_case,
+// money as a JSON number with `currency` beside it, soft delete via
+// `archived_at`. The chain is job → candidate → interview → scorecard, plus the
+// employee profile a hire creates.
+//
+// Two exceptions to "everything is a column": `ability` (6 dimensions) and
+// `disc` (four axes) are JSONB, because they are only displayed and fed to the
+// AI context — never sorted, summed or uniquely constrained (§10.2). Everything
+// a metric needs is a real column.
+
+export type HrJobStatus = "draft" | "open" | "paused" | "closed";
+
+export type HrCandidateStage =
+  | "screening"
+  | "test"
+  | "interview"
+  | "scored"
+  | "offer"
+  | "hired"
+  | "rejected"
+  | "withdrawn";
+
+export type HrInterviewMode = "onsite" | "video" | "phone";
+
+export type HrInterviewStatus = "scheduled" | "done" | "cancelled" | "no_show";
+
+export type HrScorecardVerdict = "strong_yes" | "yes" | "no" | "strong_no";
+
+/**
+ * Ability matrix and DISC profile as they travel: dimension name → score.
+ * `ability` is the 1–10 six-dimension matrix, `disc` the 0–10 d/i/s/c axes.
+ * Both are open maps, not closed unions, because the dimension set is a product
+ * decision the server can extend without a client release.
+ */
+export type HrAbilityScores = Record<string, number>;
+
+export type HrDiscScores = Record<string, number>;
+
+/** An opening. `headcount` is a plan, not a count of hired candidates. */
+export interface HrJob {
+  id: string;
+  workspace_id: string;
+  title: string;
+  /** Aggregate dimension only, never an access boundary (same as §3). */
+  department_id: string | null;
+  level: string | null;
+  headcount: number;
+  status: HrJobStatus;
+  salary_min: number | null;
+  salary_max: number | null;
+  currency: string;
+  requirements: string | null;
+  owner_member_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+/**
+ * A person in the pipeline for one job. One candidate row belongs to one job —
+ * the same person applying twice is two rows (§10.2 `UNIQUE (workspace_id,
+ * job_id, lower(name), coalesce(phone,''))`).
+ */
+export interface HrCandidate {
+  id: string;
+  workspace_id: string;
+  job_id: string;
+  name: string;
+  stage: HrCandidateStage;
+  source: string | null;
+  phone: string | null;
+  email: string | null;
+  resume_attachment_id: string | null;
+  /** SMALLINT 0–100; null = never scored. */
+  match_score: number | null;
+  /** NUMERIC(5,2) 0–100 subscores for the three screening rounds. */
+  score_resume: number | null;
+  score_test: number | null;
+  score_interview: number | null;
+  expected_salary: number | null;
+  offer_salary: number | null;
+  currency: string;
+  owner_member_id: string | null;
+  /** Server-stamped when the candidate reaches `stage = "hired"`. */
+  hired_at: string | null;
+  rejected_reason: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+/** One scheduled round. `(interviewer_member_id, scheduled_at)` is exclusive. */
+export interface HrInterview {
+  id: string;
+  workspace_id: string;
+  candidate_id: string;
+  round: number;
+  scheduled_at: string;
+  duration_minutes: number;
+  interviewer_member_id: string | null;
+  /** Null while nobody has picked a channel; the column allows NULL. */
+  mode: HrInterviewMode | null;
+  status: HrInterviewStatus;
+  /** Bumped by the server on every reschedule (§10.3). */
+  rescheduled_count: number;
+  note: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+/**
+ * One reviewer's verdict on one interview. `(interview_id,
+ * reviewer_member_id)` is unique, so this is an upsert-shaped ledger even
+ * though the routes are plain CRUD.
+ */
+export interface HrScorecard {
+  id: string;
+  workspace_id: string;
+  interview_id: string;
+  reviewer_member_id: string | null;
+  /** SMALLINT 0–5 per dimension; null = that dimension was not rated. */
+  score_skill: number | null;
+  score_experience: number | null;
+  score_culture: number | null;
+  score_potential: number | null;
+  /** NUMERIC(5,2) 0–100, server-weighted from the four dimensions. */
+  weighted_score: number | null;
+  verdict: HrScorecardVerdict | null;
+  comment: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+/**
+ * The HR file of a workspace member: one row per member (§10.2 `UNIQUE
+ * (workspace_id, member_id)`). Created or updated by the hire transition.
+ */
+export interface HrEmployeeProfile {
+  id: string;
+  workspace_id: string;
+  member_id: string;
+  department_id: string | null;
+  job_title: string | null;
+  grade: string | null;
+  /** Calendar days `YYYY-MM-DD`. */
+  hire_date: string | null;
+  regular_date: string | null;
+  contract_end: string | null;
+  ability: HrAbilityScores;
+  disc: HrDiscScores;
+  owner_member_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+// --- HR list envelopes (§3.1 applies to §10.3 unchanged) -------------------
+// `total` is the page's row count, not a workspace-wide count.
+
+export interface HrJobListResponse {
+  jobs: HrJob[];
+  total: number;
+}
+
+export interface HrCandidateListResponse {
+  candidates: HrCandidate[];
+  total: number;
+}
+
+export interface HrInterviewListResponse {
+  interviews: HrInterview[];
+  total: number;
+}
+
+export interface HrScorecardListResponse {
+  scorecards: HrScorecard[];
+  total: number;
+}
+
+export interface HrEmployeeProfileListResponse {
+  employees: HrEmployeeProfile[];
+  total: number;
+}
+
+// --- HR filters -----------------------------------------------------------
+// §10.3 names the routes but not their query strings, so these carry only what
+// §10.2 makes filterable on real columns (the foreign keys, plus the status /
+// stage enums the boards group by). List endpoints ignore keys they do not
+// know, so an unchanged key set never narrows a page to nothing.
+
+export interface HrJobListFilters {
+  status?: HrJobStatus;
+  department_id?: string | null;
+}
+
+export interface HrCandidateListFilters {
+  job_id?: string;
+  stage?: HrCandidateStage;
+}
+
+export interface HrInterviewListFilters {
+  candidate_id?: string;
+  status?: HrInterviewStatus;
+}
+
+export interface HrScorecardListFilters {
+  interview_id?: string;
+}
+
+export interface HrEmployeeProfileListFilters {
+  department_id?: string | null;
+}
+
+// --- HR write requests ----------------------------------------------------
+
+export type CreateHrJobRequest = Pick<HrJob, "title"> &
+  Partial<
+    Pick<
+      HrJob,
+      | "department_id"
+      | "level"
+      | "headcount"
+      | "status"
+      | "salary_min"
+      | "salary_max"
+      | "currency"
+      | "requirements"
+      | "owner_member_id"
+    >
+  >;
+
+export type UpdateHrJobRequest = Partial<
+  Pick<
+    HrJob,
+    | "title"
+    | "department_id"
+    | "level"
+    | "headcount"
+    | "status"
+    | "salary_min"
+    | "salary_max"
+    | "currency"
+    | "requirements"
+    | "owner_member_id"
+  >
+>;
+
+/** `hired_at` is server-stamped by the hire transition, so it is not writable
+ *  here even though `stage` is. */
+export type CreateHrCandidateRequest = Pick<HrCandidate, "job_id" | "name"> &
+  Partial<
+    Pick<
+      HrCandidate,
+      | "stage"
+      | "source"
+      | "phone"
+      | "email"
+      | "resume_attachment_id"
+      | "match_score"
+      | "score_resume"
+      | "score_test"
+      | "score_interview"
+      | "expected_salary"
+      | "offer_salary"
+      | "currency"
+      | "owner_member_id"
+      | "rejected_reason"
+    >
+  >;
+
+export type UpdateHrCandidateRequest = Partial<
+  Pick<
+    HrCandidate,
+    | "job_id"
+    | "name"
+    | "stage"
+    | "source"
+    | "phone"
+    | "email"
+    | "resume_attachment_id"
+    | "match_score"
+    | "score_resume"
+    | "score_test"
+    | "score_interview"
+    | "expected_salary"
+    | "offer_salary"
+    | "currency"
+    | "owner_member_id"
+    | "rejected_reason"
+  >
+>;
+
+/** `rescheduled_count` is server-managed: a PATCH that moves `scheduled_at`
+ *  increments it, and a client-supplied value would overwrite the audit count. */
+export type CreateHrInterviewRequest = Pick<HrInterview, "candidate_id" | "scheduled_at"> &
+  Partial<
+    Pick<
+      HrInterview,
+      | "round"
+      | "duration_minutes"
+      | "interviewer_member_id"
+      | "mode"
+      | "status"
+      | "note"
+    >
+  >;
+
+export type UpdateHrInterviewRequest = Partial<
+  Pick<
+    HrInterview,
+    | "candidate_id"
+    | "round"
+    | "scheduled_at"
+    | "duration_minutes"
+    | "interviewer_member_id"
+    | "mode"
+    | "status"
+    | "note"
+  >
+>;
+
+export type CreateHrScorecardRequest = Pick<HrScorecard, "interview_id"> &
+  Partial<
+    Pick<
+      HrScorecard,
+      | "reviewer_member_id"
+      | "score_skill"
+      | "score_experience"
+      | "score_culture"
+      | "score_potential"
+      | "weighted_score"
+      | "verdict"
+      | "comment"
+    >
+  >;
+
+export type UpdateHrScorecardRequest = Partial<
+  Pick<
+    HrScorecard,
+    | "interview_id"
+    | "reviewer_member_id"
+    | "score_skill"
+    | "score_experience"
+    | "score_culture"
+    | "score_potential"
+    | "weighted_score"
+    | "verdict"
+    | "comment"
+  >
+>;
+
+export type CreateHrEmployeeProfileRequest = Pick<HrEmployeeProfile, "member_id"> &
+  Partial<
+    Pick<
+      HrEmployeeProfile,
+      | "department_id"
+      | "job_title"
+      | "grade"
+      | "hire_date"
+      | "regular_date"
+      | "contract_end"
+      | "ability"
+      | "disc"
+      | "owner_member_id"
+    >
+  >;
+
+export type UpdateHrEmployeeProfileRequest = Partial<
+  Pick<
+    HrEmployeeProfile,
+    | "member_id"
+    | "department_id"
+    | "job_title"
+    | "grade"
+    | "hire_date"
+    | "regular_date"
+    | "contract_end"
+    | "ability"
+    | "disc"
+    | "owner_member_id"
+  >
+>;
+
+/**
+ * `POST /candidates/{candidateId}/hire` takes the profile the same transaction
+ * creates or updates, which is exactly a profile create body: the route names
+ * the candidate, the body names the member it becomes.
+ */
+export type HireHrCandidateRequest = CreateHrEmployeeProfileRequest;
+
+/**
+ * What hiring returns: the updated candidate and the profile the same
+ * transaction created or updated. Both halves are needed — the caller routes to
+ * the employee record, and the candidate row alone cannot name it.
+ */
+export interface HireHrCandidateResponse {
+  candidate: HrCandidate;
+  employee_profile: HrEmployeeProfile;
+}

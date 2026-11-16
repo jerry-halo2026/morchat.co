@@ -363,6 +363,151 @@ func (q *Queries) OverviewCycleTime(ctx context.Context, arg OverviewCycleTimePa
 	return i, err
 }
 
+const overviewHrActiveCandidates = `-- name: OverviewHrActiveCandidates :one
+SELECT (count(*))::bigint AS active_candidates
+FROM hr_candidate c
+LEFT JOIN hr_job j ON j.id = c.job_id AND j.workspace_id = c.workspace_id
+LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+WHERE c.workspace_id = $1
+  AND c.archived_at IS NULL
+  AND c.stage NOT IN ('hired', 'rejected', 'withdrawn')
+  AND ($2::uuid IS NULL
+       OR j.department_id = $2::uuid
+       OR m.department_id = $2::uuid)
+`
+
+type OverviewHrActiveCandidatesParams struct {
+	WorkspaceID  pgtype.UUID `json:"workspace_id"`
+	DepartmentID pgtype.UUID `json:"department_id"`
+}
+
+// `hr.candidates.active` (docs/METRICS.md §2): candidates whose stage is still in
+// play. `hired` is not active — the funnel is finished for that person — and
+// neither are the two ways out (`rejected`, `withdrawn`).
+//
+// Department attribution follows the B0 fallback chain: the candidate's
+// requisition carries `department_id`, and the owner's member department is the
+// fallback for a requisition created before departments were filled in.
+func (q *Queries) OverviewHrActiveCandidates(ctx context.Context, arg OverviewHrActiveCandidatesParams) (int64, error) {
+	row := q.db.QueryRow(ctx, overviewHrActiveCandidates, arg.WorkspaceID, arg.DepartmentID)
+	var active_candidates int64
+	err := row.Scan(&active_candidates)
+	return active_candidates, err
+}
+
+const overviewHrInterviewOnTime = `-- name: OverviewHrInterviewOnTime :one
+SELECT
+    (count(*) FILTER (WHERE i.rescheduled_count = 0))::bigint AS on_time_count,
+    (count(*))::bigint AS scheduled_count
+FROM hr_interview i
+LEFT JOIN hr_candidate c ON c.id = i.candidate_id AND c.workspace_id = i.workspace_id
+LEFT JOIN hr_job j ON j.id = c.job_id AND j.workspace_id = c.workspace_id
+LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+WHERE i.workspace_id = $1
+  AND i.archived_at IS NULL
+  AND i.status IN ('done', 'no_show')
+  AND i.scheduled_at >= date_trunc('month', now())
+  AND i.scheduled_at < date_trunc('month', now()) + interval '1 month'
+  AND ($2::uuid IS NULL
+       OR j.department_id = $2::uuid
+       OR m.department_id = $2::uuid)
+`
+
+type OverviewHrInterviewOnTimeParams struct {
+	WorkspaceID  pgtype.UUID `json:"workspace_id"`
+	DepartmentID pgtype.UUID `json:"department_id"`
+}
+
+type OverviewHrInterviewOnTimeRow struct {
+	OnTimeCount    int64 `json:"on_time_count"`
+	ScheduledCount int64 `json:"scheduled_count"`
+}
+
+// `hr.interview.on_time_rate`: interviews held this calendar month that were never
+// rescheduled, over the interviews held this calendar month. "Held" means the
+// slot is inside the month and the interview actually reached the room
+// (`done`) or missed it (`no_show`) — a future slot of this month is not a data
+// point yet, and counting it as on time would make the rate improve by scheduling.
+func (q *Queries) OverviewHrInterviewOnTime(ctx context.Context, arg OverviewHrInterviewOnTimeParams) (OverviewHrInterviewOnTimeRow, error) {
+	row := q.db.QueryRow(ctx, overviewHrInterviewOnTime, arg.WorkspaceID, arg.DepartmentID)
+	var i OverviewHrInterviewOnTimeRow
+	err := row.Scan(&i.OnTimeCount, &i.ScheduledCount)
+	return i, err
+}
+
+const overviewHrScorecardBacklog = `-- name: OverviewHrScorecardBacklog :one
+SELECT (count(*))::bigint AS backlog_count
+FROM hr_interview i
+LEFT JOIN hr_scorecard s ON s.interview_id = i.id
+                        AND s.workspace_id = i.workspace_id
+                        AND s.archived_at IS NULL
+LEFT JOIN hr_candidate c ON c.id = i.candidate_id AND c.workspace_id = i.workspace_id
+LEFT JOIN hr_job j ON j.id = c.job_id AND j.workspace_id = c.workspace_id
+LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+WHERE i.workspace_id = $1
+  AND i.archived_at IS NULL
+  AND i.status IN ('scheduled', 'done')
+  AND i.scheduled_at < now()
+  AND s.id IS NULL
+  AND ($2::uuid IS NULL
+       OR j.department_id = $2::uuid
+       OR m.department_id = $2::uuid)
+`
+
+type OverviewHrScorecardBacklogParams struct {
+	WorkspaceID  pgtype.UUID `json:"workspace_id"`
+	DepartmentID pgtype.UUID `json:"department_id"`
+}
+
+// `hr.scorecard.backlog`: slots whose time has passed and that still have no
+// scorecard. A cancelled interview is excluded — it was never held, so no
+// scorecard is owed for it and counting it would inflate the backlog forever.
+func (q *Queries) OverviewHrScorecardBacklog(ctx context.Context, arg OverviewHrScorecardBacklogParams) (int64, error) {
+	row := q.db.QueryRow(ctx, overviewHrScorecardBacklog, arg.WorkspaceID, arg.DepartmentID)
+	var backlog_count int64
+	err := row.Scan(&backlog_count)
+	return backlog_count, err
+}
+
+const overviewHrTimeToHire = `-- name: OverviewHrTimeToHire :one
+SELECT
+    (count(*))::bigint AS sample_count,
+    coalesce(percentile_cont(0.5) WITHIN GROUP (
+        ORDER BY (EXTRACT(EPOCH FROM (c.hired_at - c.created_at))::float8 / 86400.0)
+    ), 0)::float8 AS median_days
+FROM hr_candidate c
+LEFT JOIN hr_job j ON j.id = c.job_id AND j.workspace_id = c.workspace_id
+LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+WHERE c.workspace_id = $1
+  AND c.archived_at IS NULL
+  AND c.hired_at IS NOT NULL
+  AND c.hired_at >= now() - interval '90 days'
+  AND ($2::uuid IS NULL
+       OR j.department_id = $2::uuid
+       OR m.department_id = $2::uuid)
+`
+
+type OverviewHrTimeToHireParams struct {
+	WorkspaceID  pgtype.UUID `json:"workspace_id"`
+	DepartmentID pgtype.UUID `json:"department_id"`
+}
+
+type OverviewHrTimeToHireRow struct {
+	SampleCount int64   `json:"sample_count"`
+	MedianDays  float64 `json:"median_days"`
+}
+
+// `hr.time_to_hire.median`: days from entering the funnel to `hired_at`, over the
+// candidates hired in the last 90 days. `sample_count` is what decides
+// `insufficient_data` — a median of 0 with no hires behind it is an empty funnel,
+// not a same-day hire.
+func (q *Queries) OverviewHrTimeToHire(ctx context.Context, arg OverviewHrTimeToHireParams) (OverviewHrTimeToHireRow, error) {
+	row := q.db.QueryRow(ctx, overviewHrTimeToHire, arg.WorkspaceID, arg.DepartmentID)
+	var i OverviewHrTimeToHireRow
+	err := row.Scan(&i.SampleCount, &i.MedianDays)
+	return i, err
+}
+
 const overviewKnowledgeWeek = `-- name: OverviewKnowledgeWeek :one
 SELECT (count(*))::bigint AS created_week
 FROM knowledge_items ki

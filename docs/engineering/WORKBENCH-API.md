@@ -269,11 +269,11 @@ hr_employee_profile(id PK, workspace_id, member_id UUID NOT NULL, department_id 
 
 ### 10.3 REST（基址 `/api/workbench/hr`）
 
-`jobs` / `candidates` / `interviews` / `scorecards` / `employees` 各 5 条：`GET /`、`POST /`、`GET /{id}`、`PATCH /{id}`、`DELETE /{id}`（软删）。
-- `scorecards` 不注册独立 GET 单项，随面试详情返回（同 B0 的 `settlements`）。
+`jobs` / `candidates` / `interviews` / `employees` 各 5 条：`GET /`、`POST /`、`GET /{id}`、`PATCH /{id}`、`DELETE /{id}`（软删）；`scorecards` **只有 4 条**（无 `GET /{id}`，评分随面试详情返回，同 B0 的 `settlements`）。
 - 列表包裹同 B0 §3.1：`{ <resource>: T[], total }`，`total` = 本页条数。
+- 列表过滤参数（服务端**忽略不认识的键**）：`jobs{status, department_id}`、`candidates{job_id, stage}`、`interviews{candidate_id, status}`、`scorecards{interview_id}`、`employees{department_id}`。
 - 面试创建/改期校验排他：同一 `interviewer_member_id` 同一 `scheduled_at` → **409**；改期 `rescheduled_count += 1`。
-- `POST /candidates/{candidateId}/hire`：置 `stage=hired`、写 `hired_at`，同一事务里创建或更新 `hr_employee_profile`（`member_id` 由请求给出）。
+- `POST /candidates/{candidateId}/hire`：请求体 `CreateHrEmployeeProfileRequest`（`member_id` 必填）；同一事务内置 `stage=hired`、写 `hired_at`、创建或更新 `hr_employee_profile`；**响应 `{ candidate, employee }`**，客户端要同时失效 candidates 与 employees 两个域。
 
 ### 10.4 事件
 
@@ -286,6 +286,10 @@ hr_employee_profile(id PK, workspace_id, member_id UUID NOT NULL, department_id 
 ### 10.6 Query key
 
 `["hr", wsId, resource, filters]`、`["hr", wsId, resource, { id }]`；`/overview` 与 `/counts` 沿用 `["workbench", wsId, …]`。
+
+`/counts` 增加 4 个字段：`jobs` / `candidates` / `interviews` / `employees`。在服务端补上之前它们在客户端是**可选**的（`packages/core/types/workbench.ts` 里 `?`），面板据此不画数字而不是画 0 —— 与 `emptyRule` 同一条原则。
+
+已知债务：面试官（`hr_interview.interviewer_member_id`）与员工（`hr_employee_profile.member_id`）目前只显示短 id，没有 join 到 member 姓名；补 join 时同步换成 `ActorAvatar`。
 
 ## 9. 完成定义（DoD）
 

@@ -74,6 +74,10 @@ var workbenchMetricCatalog = []struct {
 	{"crm.quote.margin_rate", metricEmptyInsufficientData},
 	{"crm.collab.roi", metricEmptyInsufficientData},
 	{"crm.creator.repeat_rate", metricEmptyInsufficientData},
+	{"hr.candidates.active", metricEmptyZero},
+	{"hr.time_to_hire.median", metricEmptyInsufficientData},
+	{"hr.scorecard.backlog", metricEmptyZero},
+	{"hr.interview.on_time_rate", metricEmptyInsufficientData},
 }
 
 // metricValue builds one entry. `computable` is what decides null: a metric whose
@@ -211,6 +215,38 @@ func (h *Handler) GetWorkbenchOverview(w http.ResponseWriter, r *http.Request) {
 		workbenchInternalError(w, r, "failed to load repeat-rate metric", err)
 		return
 	}
+	hrActive, err := h.Queries.OverviewHrActiveCandidates(ctx, db.OverviewHrActiveCandidatesParams{
+		WorkspaceID:  scope.WorkspaceUUID,
+		DepartmentID: department,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to load active-candidate metric", err)
+		return
+	}
+	hrTimeToHire, err := h.Queries.OverviewHrTimeToHire(ctx, db.OverviewHrTimeToHireParams{
+		WorkspaceID:  scope.WorkspaceUUID,
+		DepartmentID: department,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to load time-to-hire metric", err)
+		return
+	}
+	hrBacklog, err := h.Queries.OverviewHrScorecardBacklog(ctx, db.OverviewHrScorecardBacklogParams{
+		WorkspaceID:  scope.WorkspaceUUID,
+		DepartmentID: department,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to load scorecard backlog metric", err)
+		return
+	}
+	hrOnTime, err := h.Queries.OverviewHrInterviewOnTime(ctx, db.OverviewHrInterviewOnTimeParams{
+		WorkspaceID:  scope.WorkspaceUUID,
+		DepartmentID: department,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to load interview on-time metric", err)
+		return
+	}
 
 	onTimeRate, onTimeOK := ratioPercent(work.OnTimeHits, work.OnTimeSamples)
 	wipPerMember, wipOK := ratioValue(float64(work.OpenMemberAssigned), float64(work.ActiveMembers))
@@ -219,6 +255,7 @@ func (h *Handler) GetWorkbenchOverview(w http.ResponseWriter, r *http.Request) {
 	marginRate, marginOK := ratioPercentFloat(margin.Revenue-margin.Cost, margin.Revenue)
 	roiValue, roiOK := ratioValue(roi.AttributedGmv, roi.Cost)
 	repeatRate, repeatOK := ratioPercent(repeat.RepeatCreators, repeat.ActiveCreators)
+	hrOnTimeRate, hrOnTimeOK := ratioPercent(hrOnTime.OnTimeCount, hrOnTime.ScheduledCount)
 
 	metrics := map[string]WorkbenchMetricValue{
 		// Delivery behaviour: these read data the platform already writes, so the
@@ -251,6 +288,15 @@ func (h *Handler) GetWorkbenchOverview(w http.ResponseWriter, r *http.Request) {
 			metricEmptyInsufficientData),
 		"crm.collab.roi": metricValue(roiValue, roiOK, roi.SampleCount, metricEmptyInsufficientData),
 		"crm.creator.repeat_rate": metricValue(repeatRate, repeatOK, repeat.ActiveCreators,
+			metricEmptyInsufficientData),
+
+		// HR (docs/METRICS.md §2): the two counts answer from an empty ledger
+		// (a real zero), the two ratios need rows before they mean anything.
+		"hr.candidates.active": metricValue(float64(hrActive), true, hrActive, metricEmptyZero),
+		"hr.time_to_hire.median": metricValue(hrTimeToHire.MedianDays, hrTimeToHire.SampleCount > 0,
+			hrTimeToHire.SampleCount, metricEmptyInsufficientData),
+		"hr.scorecard.backlog": metricValue(float64(hrBacklog), true, hrBacklog, metricEmptyZero),
+		"hr.interview.on_time_rate": metricValue(hrOnTimeRate, hrOnTimeOK, hrOnTime.ScheduledCount,
 			metricEmptyInsufficientData),
 	}
 

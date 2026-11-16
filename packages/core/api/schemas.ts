@@ -126,6 +126,20 @@ import type {
 } from "../types";
 import type { CloudRuntimeNode } from "../runtimes/cloud-runtime";
 import type { CreateFeedbackResponse } from "../feedback/types";
+// The HR block is imported from its own module rather than the `../types`
+// barrel so this file does not depend on the barrel re-exporting it.
+import type {
+  HrCandidate,
+  HrCandidateListResponse,
+  HrEmployeeProfile,
+  HrEmployeeProfileListResponse,
+  HrInterview,
+  HrInterviewListResponse,
+  HrJob,
+  HrJobListResponse,
+  HrScorecard,
+  HrScorecardListResponse,
+} from "../types/workbench";
 
 export const PluginConfigFieldSchema = z.object({
   key: z.string(),
@@ -4696,6 +4710,11 @@ export const WorkbenchCountsResponseSchema = z.object({
   briefs: z.number().default(0),
   collabs_open: z.number().default(0),
   settlements_pending: z.number().default(0),
+  // Absent on a pre-B1 server; the panel draws no number rather than 0.
+  jobs: z.number().optional(),
+  candidates: z.number().optional(),
+  interviews: z.number().optional(),
+  employees: z.number().optional(),
 }).loose();
 
 export const EMPTY_WORKBENCH_COUNTS_RESPONSE: WorkbenchCountsResponse = {
@@ -4704,4 +4723,246 @@ export const EMPTY_WORKBENCH_COUNTS_RESPONSE: WorkbenchCountsResponse = {
   briefs: 0,
   collabs_open: 0,
   settlements_pending: 0,
+};
+
+// --- HR (docs/engineering/WORKBENCH-API.md §10) ----------------------------
+//
+// Same leniency rules as the ledgers above, plus three that are specific to this
+// block:
+//
+// 1. Every enum is a plain `z.string()` with the column's default. `stage`,
+//    `status`, `verdict` and `mode` are the four values §10.2 constrains today;
+//    a server that adds a stage (say `background_check`) must still parse, or a
+//    candidate would vanish from the board instead of landing in its "other"
+//    column.
+// 2. `mode` and `verdict` are nullable columns. A missing channel or an
+//    unrecorded verdict is `null`, not a fabricated default — the UI renders
+//    "not chosen" differently from "phone".
+// 3. `ability` and `disc` are JSONB open maps. A row whose JSONB drifted into a
+//    string must still parse as an empty matrix: these two fields are never
+//    aggregated, so losing them costs a panel, not the row.
+// 4. `status` and `currency` carry a DEFAULT but no NOT NULL, so a NULL there is
+//    a presentation default, not a broken row (see `hrDefaultedText`).
+
+const hrNullableNumber = workbenchNullableNumber;
+
+/** JSONB score maps: an open key set, and a drifted value degrades to `{}`. */
+const hrScoreMap = z.record(z.string(), z.number()).default({}).catch({});
+
+/**
+ * A column that has a DEFAULT but no NOT NULL (§10.2 writes `status TEXT CHECK
+ * (...)`, `currency CHAR(3) DEFAULT 'CNY'`): an API-written row always has a
+ * value, an imported one can be NULL. `catch` keeps such a row instead of
+ * failing the page over a presentation default.
+ */
+const hrDefaultedText = (fallback: string) => z.string().catch(fallback).default(fallback);
+const hrCurrency = hrDefaultedText("CNY");
+
+export const HrJobSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  title: z.string().default(""),
+  department_id: workbenchNullableString,
+  level: workbenchNullableString,
+  headcount: z.number().default(1),
+  status: hrDefaultedText("draft"),
+  salary_min: hrNullableNumber,
+  salary_max: hrNullableNumber,
+  currency: hrCurrency,
+  requirements: workbenchNullableString,
+  owner_member_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_HR_JOB: HrJob = {
+  id: "", workspace_id: "", title: "", department_id: null, level: null,
+  headcount: 1, status: "draft", salary_min: null, salary_max: null,
+  currency: "CNY", requirements: null, owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const HrJobListResponseSchema = z.object({
+  jobs: z.array(HrJobSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_HR_JOB_LIST_RESPONSE: HrJobListResponse = {
+  jobs: [],
+  total: 0,
+};
+
+export const HrCandidateSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  job_id: z.string().default(""),
+  name: z.string().default(""),
+  stage: z.string().default("screening"),
+  source: workbenchNullableString,
+  phone: workbenchNullableString,
+  email: workbenchNullableString,
+  resume_attachment_id: workbenchNullableString,
+  match_score: hrNullableNumber,
+  score_resume: hrNullableNumber,
+  score_test: hrNullableNumber,
+  score_interview: hrNullableNumber,
+  expected_salary: hrNullableNumber,
+  offer_salary: hrNullableNumber,
+  currency: hrCurrency,
+  owner_member_id: workbenchNullableString,
+  // Server-stamped by the hire transition; null until the candidate is hired.
+  hired_at: workbenchNullableString,
+  rejected_reason: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_HR_CANDIDATE: HrCandidate = {
+  id: "", workspace_id: "", job_id: "", name: "", stage: "screening", source: null,
+  phone: null, email: null, resume_attachment_id: null, match_score: null,
+  score_resume: null, score_test: null, score_interview: null,
+  expected_salary: null, offer_salary: null, currency: "CNY",
+  owner_member_id: null, hired_at: null, rejected_reason: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const HrCandidateListResponseSchema = z.object({
+  candidates: z.array(HrCandidateSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_HR_CANDIDATE_LIST_RESPONSE: HrCandidateListResponse = {
+  candidates: [],
+  total: 0,
+};
+
+export const HrInterviewSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  candidate_id: z.string().default(""),
+  round: z.number().default(1),
+  scheduled_at: z.string().default(""),
+  duration_minutes: z.number().default(45),
+  interviewer_member_id: workbenchNullableString,
+  // Nullable column: nobody has picked a channel yet.
+  mode: workbenchNullableString,
+  status: z.string().default("scheduled"),
+  rescheduled_count: z.number().default(0),
+  note: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_HR_INTERVIEW: HrInterview = {
+  id: "", workspace_id: "", candidate_id: "", round: 1, scheduled_at: "",
+  duration_minutes: 45, interviewer_member_id: null, mode: null,
+  status: "scheduled", rescheduled_count: 0, note: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const HrInterviewListResponseSchema = z.object({
+  interviews: z.array(HrInterviewSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_HR_INTERVIEW_LIST_RESPONSE: HrInterviewListResponse = {
+  interviews: [],
+  total: 0,
+};
+
+export const HrScorecardSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  interview_id: z.string().default(""),
+  reviewer_member_id: workbenchNullableString,
+  score_skill: hrNullableNumber,
+  score_experience: hrNullableNumber,
+  score_culture: hrNullableNumber,
+  score_potential: hrNullableNumber,
+  weighted_score: hrNullableNumber,
+  // Nullable column: a saved draft scorecard has no verdict yet.
+  verdict: workbenchNullableString,
+  comment: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_HR_SCORECARD: HrScorecard = {
+  id: "", workspace_id: "", interview_id: "", reviewer_member_id: null,
+  score_skill: null, score_experience: null, score_culture: null,
+  score_potential: null, weighted_score: null, verdict: null, comment: null,
+  created_by: null, created_at: "", updated_at: "", archived_at: null,
+};
+
+export const HrScorecardListResponseSchema = z.object({
+  scorecards: z.array(HrScorecardSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_HR_SCORECARD_LIST_RESPONSE: HrScorecardListResponse = {
+  scorecards: [],
+  total: 0,
+};
+
+export const HrEmployeeProfileSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  member_id: z.string().default(""),
+  department_id: workbenchNullableString,
+  job_title: workbenchNullableString,
+  grade: workbenchNullableString,
+  hire_date: workbenchNullableString,
+  regular_date: workbenchNullableString,
+  contract_end: workbenchNullableString,
+  // JSONB NOT NULL DEFAULT '{}': an unassessed profile is an empty matrix.
+  ability: hrScoreMap,
+  disc: hrScoreMap,
+  owner_member_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_HR_EMPLOYEE_PROFILE: HrEmployeeProfile = {
+  id: "", workspace_id: "", member_id: "", department_id: null, job_title: null,
+  grade: null, hire_date: null, regular_date: null, contract_end: null,
+  ability: {}, disc: {}, owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const HrEmployeeProfileListResponseSchema = z.object({
+  employees: z.array(HrEmployeeProfileSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_HR_EMPLOYEE_PROFILE_LIST_RESPONSE: HrEmployeeProfileListResponse = {
+  employees: [],
+  total: 0,
+};
+
+// Hiring answers with both halves of its transaction: the candidate that moved
+// to `hired`, and the profile it created or updated. Defaults rather than a
+// rejection, so a server returning only one half still yields a usable pair.
+// Both halves are optional at the parse boundary: a server that returns only one
+// of them (or reshapes the body) must not fail the whole response. The client
+// substitutes the empty row for whichever half is missing.
+export const HireHrCandidateResponseSchema = z
+  .object({
+    candidate: HrCandidateSchema.nullish(),
+    employee_profile: HrEmployeeProfileSchema.nullish(),
+  })
+  .loose();
+
+export const EMPTY_HIRE_HR_CANDIDATE_RESPONSE = {
+  candidate: null,
+  employee_profile: null,
 };

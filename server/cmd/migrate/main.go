@@ -140,6 +140,23 @@ var pgBigmOperatorClass = extensionOperatorClass{
 // they are still pending: a fresh self-hosted install, which is exactly where an
 // interrupted build would otherwise leave a permanently unusable index.
 var concurrentIndexCleanups = map[string]string{
+	"701_hr_interview_slot_unique":                              "idx_hr_interview_interviewer_slot",
+	"700_creator_post_creator_url_unique":                       "idx_creator_post_creator_url",
+	"699_creator_platform_handle_unique":                        "idx_creator_workspace_platform_handle",
+	"698_hr_employee_profile_owner_idx":                         "idx_hr_employee_profile_workspace_owner",
+	"697_hr_employee_profile_department_idx":                    "idx_hr_employee_profile_workspace_department",
+	"696_hr_scorecard_reviewer_idx":                             "idx_hr_scorecard_workspace_reviewer",
+	"695_hr_scorecard_interview_idx":                            "idx_hr_scorecard_workspace_interview",
+	"694_hr_interview_scheduled_idx":                            "idx_hr_interview_workspace_scheduled",
+	"693_hr_interview_candidate_idx":                            "idx_hr_interview_workspace_candidate",
+	"692_hr_candidate_hired_idx":                                "idx_hr_candidate_workspace_hired",
+	"691_hr_candidate_owner_idx":                                "idx_hr_candidate_workspace_owner",
+	"690_hr_candidate_stage_idx":                                "idx_hr_candidate_workspace_stage",
+	"689_hr_candidate_job_idx":                                  "idx_hr_candidate_workspace_job",
+	"688_hr_job_owner_idx":                                      "idx_hr_job_workspace_owner",
+	"687_hr_job_department_idx":                                 "idx_hr_job_workspace_department",
+	"686_hr_job_status_idx":                                     "idx_hr_job_workspace_status",
+	"685_hr_candidate_job_identity_idx":                         "idx_hr_candidate_workspace_job_identity",
 	"679_crm_settlement_collab_idx":                             "idx_crm_settlement_workspace_collab",
 	"678_crm_collab_brief_idx":                                  "idx_crm_collab_workspace_brief",
 	"677_crm_collab_creator_idx":                                "idx_crm_collab_workspace_creator",
