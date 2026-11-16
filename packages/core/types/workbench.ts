@@ -639,6 +639,21 @@ export interface HrCandidate {
   offer_salary: number | null;
   currency: string;
   owner_member_id: string | null;
+  /**
+   * The candidate's own education, free text and the same vocabulary as
+   * `HrJob.edu` ("本科", "硕士"): the education dimension of the match score is a
+   * normalised comparison against what the requisition asks for, not a ladder.
+   */
+  edu: string | null;
+  /** Years of experience, one decimal (`NUMERIC(4,1)`); the experience dimension
+   *  compares it against the range parsed out of `HrJob.years`. */
+  years_experience: number | null;
+  /**
+   * The résumé body — pasted, or produced by the attachment parser. `null` means
+   * "no résumé on file", which is a different answer from an empty string: the
+   * keyword dimension skips on `null` and scores 0 on text that matches nothing.
+   */
+  resume_text: string | null;
   /** Server-stamped when the candidate reaches `stage = "hired"`. */
   hired_at: string | null;
   rejected_reason: string | null;
@@ -854,6 +869,9 @@ export type CreateHrCandidateRequest = Pick<HrCandidate, "job_id" | "name"> &
       | "currency"
       | "owner_member_id"
       | "rejected_reason"
+      | "edu"
+      | "years_experience"
+      | "resume_text"
     >
   >;
 
@@ -876,6 +894,9 @@ export type UpdateHrCandidateRequest = Partial<
     | "currency"
     | "owner_member_id"
     | "rejected_reason"
+    | "edu"
+    | "years_experience"
+    | "resume_text"
   >
 >;
 

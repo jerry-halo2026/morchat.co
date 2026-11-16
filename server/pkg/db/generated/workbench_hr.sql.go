@@ -143,7 +143,8 @@ const createHrCandidate = `-- name: CreateHrCandidate :one
 INSERT INTO hr_candidate (
     workspace_id, job_id, name, stage, source, phone, email, resume_attachment_id,
     match_score, score_resume, score_test, score_interview, expected_salary,
-    offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by
+    offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by,
+    edu, years_experience, resume_text
 ) VALUES (
     $1, $2, $3, $4,
     $5::text, $6::text, $7::text,
@@ -152,9 +153,11 @@ INSERT INTO hr_candidate (
     $12::numeric, $13::numeric,
     $14::numeric, $15::text,
     $16::uuid, $17::timestamptz,
-    $18::text, $19::uuid
+    $18::text, $19::uuid,
+    $20::text, $21::numeric,
+    $22::text
 )
-RETURNING id, workspace_id, job_id, name, stage, source, phone, email, resume_attachment_id, match_score, score_resume, score_test, score_interview, expected_salary, offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, job_id, name, stage, source, phone, email, resume_attachment_id, match_score, score_resume, score_test, score_interview, expected_salary, offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by, created_at, updated_at, archived_at, edu, years_experience, resume_text
 `
 
 type CreateHrCandidateParams struct {
@@ -177,6 +180,9 @@ type CreateHrCandidateParams struct {
 	HiredAt            pgtype.Timestamptz `json:"hired_at"`
 	RejectedReason     pgtype.Text        `json:"rejected_reason"`
 	CreatedBy          pgtype.UUID        `json:"created_by"`
+	Edu                pgtype.Text        `json:"edu"`
+	YearsExperience    pgtype.Numeric     `json:"years_experience"`
+	ResumeText         pgtype.Text        `json:"resume_text"`
 }
 
 func (q *Queries) CreateHrCandidate(ctx context.Context, arg CreateHrCandidateParams) (HrCandidate, error) {
@@ -200,6 +206,9 @@ func (q *Queries) CreateHrCandidate(ctx context.Context, arg CreateHrCandidatePa
 		arg.HiredAt,
 		arg.RejectedReason,
 		arg.CreatedBy,
+		arg.Edu,
+		arg.YearsExperience,
+		arg.ResumeText,
 	)
 	var i HrCandidate
 	err := row.Scan(
@@ -226,6 +235,9 @@ func (q *Queries) CreateHrCandidate(ctx context.Context, arg CreateHrCandidatePa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Edu,
+		&i.YearsExperience,
+		&i.ResumeText,
 	)
 	return i, err
 }
@@ -526,7 +538,7 @@ func (q *Queries) CreateHrScorecard(ctx context.Context, arg CreateHrScorecardPa
 }
 
 const getHrCandidate = `-- name: GetHrCandidate :one
-SELECT id, workspace_id, job_id, name, stage, source, phone, email, resume_attachment_id, match_score, score_resume, score_test, score_interview, expected_salary, offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by, created_at, updated_at, archived_at FROM hr_candidate
+SELECT id, workspace_id, job_id, name, stage, source, phone, email, resume_attachment_id, match_score, score_resume, score_test, score_interview, expected_salary, offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by, created_at, updated_at, archived_at, edu, years_experience, resume_text FROM hr_candidate
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -562,6 +574,9 @@ func (q *Queries) GetHrCandidate(ctx context.Context, arg GetHrCandidateParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Edu,
+		&i.YearsExperience,
+		&i.ResumeText,
 	)
 	return i, err
 }
@@ -753,7 +768,7 @@ SET stage = 'hired',
     rejected_reason = NULL,
     updated_at = now()
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
-RETURNING id, workspace_id, job_id, name, stage, source, phone, email, resume_attachment_id, match_score, score_resume, score_test, score_interview, expected_salary, offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, job_id, name, stage, source, phone, email, resume_attachment_id, match_score, score_resume, score_test, score_interview, expected_salary, offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by, created_at, updated_at, archived_at, edu, years_experience, resume_text
 `
 
 type HireHrCandidateParams struct {
@@ -790,12 +805,15 @@ func (q *Queries) HireHrCandidate(ctx context.Context, arg HireHrCandidateParams
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Edu,
+		&i.YearsExperience,
+		&i.ResumeText,
 	)
 	return i, err
 }
 
 const listHrCandidates = `-- name: ListHrCandidates :many
-SELECT id, workspace_id, job_id, name, stage, source, phone, email, resume_attachment_id, match_score, score_resume, score_test, score_interview, expected_salary, offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by, created_at, updated_at, archived_at
+SELECT id, workspace_id, job_id, name, stage, source, phone, email, resume_attachment_id, match_score, score_resume, score_test, score_interview, expected_salary, offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by, created_at, updated_at, archived_at, edu, years_experience, resume_text
 FROM hr_candidate
 WHERE workspace_id = $1
   AND archived_at IS NULL
@@ -858,6 +876,9 @@ func (q *Queries) ListHrCandidates(ctx context.Context, arg ListHrCandidatesPara
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ArchivedAt,
+			&i.Edu,
+			&i.YearsExperience,
+			&i.ResumeText,
 		); err != nil {
 			return nil, err
 		}
@@ -1204,9 +1225,12 @@ SET job_id = $1,
     owner_member_id = $15::uuid,
     hired_at = $16::timestamptz,
     rejected_reason = $17::text,
+    edu = $18::text,
+    years_experience = $19::numeric,
+    resume_text = $20::text,
     updated_at = now()
-WHERE id = $18 AND workspace_id = $19 AND archived_at IS NULL
-RETURNING id, workspace_id, job_id, name, stage, source, phone, email, resume_attachment_id, match_score, score_resume, score_test, score_interview, expected_salary, offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by, created_at, updated_at, archived_at
+WHERE id = $21 AND workspace_id = $22 AND archived_at IS NULL
+RETURNING id, workspace_id, job_id, name, stage, source, phone, email, resume_attachment_id, match_score, score_resume, score_test, score_interview, expected_salary, offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by, created_at, updated_at, archived_at, edu, years_experience, resume_text
 `
 
 type UpdateHrCandidateParams struct {
@@ -1227,6 +1251,9 @@ type UpdateHrCandidateParams struct {
 	OwnerMemberID      pgtype.UUID        `json:"owner_member_id"`
 	HiredAt            pgtype.Timestamptz `json:"hired_at"`
 	RejectedReason     pgtype.Text        `json:"rejected_reason"`
+	Edu                pgtype.Text        `json:"edu"`
+	YearsExperience    pgtype.Numeric     `json:"years_experience"`
+	ResumeText         pgtype.Text        `json:"resume_text"`
 	ID                 pgtype.UUID        `json:"id"`
 	WorkspaceID        pgtype.UUID        `json:"workspace_id"`
 }
@@ -1250,6 +1277,9 @@ func (q *Queries) UpdateHrCandidate(ctx context.Context, arg UpdateHrCandidatePa
 		arg.OwnerMemberID,
 		arg.HiredAt,
 		arg.RejectedReason,
+		arg.Edu,
+		arg.YearsExperience,
+		arg.ResumeText,
 		arg.ID,
 		arg.WorkspaceID,
 	)
@@ -1278,6 +1308,9 @@ func (q *Queries) UpdateHrCandidate(ctx context.Context, arg UpdateHrCandidatePa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Edu,
+		&i.YearsExperience,
+		&i.ResumeText,
 	)
 	return i, err
 }

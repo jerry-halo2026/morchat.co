@@ -188,6 +188,29 @@ describe("HR schemas (contract §10.2/§10.3)", () => {
     expect(HrJobSchema.parse({ id: "j", keywords: "Go" }).keywords).toEqual([]);
   });
 
+  it("defaults the candidate's matching fields to null when the body omits them", () => {
+    // Migration 705: edu / years_experience / resume_text are nullable, and a
+    // server that predates them sends none of the three. Each must parse as null
+    // — the score reads null as "no signal", which is not a zero.
+    const parsed = HrCandidateSchema.parse({ id: "c-1" });
+    expect(parsed).toMatchObject({ edu: null, years_experience: null, resume_text: null });
+
+    const filled = HrCandidateSchema.parse({
+      id: "c-1",
+      edu: "本科",
+      years_experience: 3.5,
+      resume_text: "三年短视频剪辑经验",
+    });
+    expect(filled).toMatchObject({
+      edu: "本科",
+      years_experience: 3.5,
+      resume_text: "三年短视频剪辑经验",
+    });
+    expect(typeof filled.years_experience).toBe("number");
+    // An empty body value is "no résumé", not a résumé that says nothing.
+    expect(HrCandidateSchema.parse({ id: "c-1", resume_text: null }).resume_text).toBeNull();
+  });
+
   it("treats the JSONB score matrices as open maps that default to empty", () => {
     const parsed = HrEmployeeProfileListResponseSchema.parse({
       employees: [

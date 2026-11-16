@@ -15,6 +15,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
@@ -788,4 +789,139 @@ func TestHrJobScoringFields(t *testing.T) {
 	if !found {
 		t.Fatalf("job %s missing from the list", job.ID)
 	}
+}
+
+// TestHrCandidateProfileFields covers migration 705: the three columns the match
+// score reads on the candidate side survive a create, a read and a PATCH, and a
+// PATCH that omits them keeps the stored values.
+func TestHrCandidateProfileFields(t *testing.T) {
+	job := createHrJobFixture(t, testUserID, "Profile fields job")
+	req := workbenchRequest(t, "POST", "/api/workbench/hr/candidates", map[string]any{
+		"job_id":           job.ID,
+		"name":             "林伟",
+		"edu":              "本科",
+		"years_experience": 3.5,
+		"resume_text":      "三年短视频剪辑经验，熟悉 Premiere 与达芬奇调色。",
+	}, testUserID)
+	created := testutil.Decode[HrCandidateResponse](t, testHandler.CreateHrCandidate, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM hr_candidate WHERE id = $1`, created.ID) })
+
+	if created.Edu == nil || *created.Edu != "本科" {
+		t.Fatalf("edu = %v, want 本科", created.Edu)
+	}
+	// NUMERIC(4,1): one decimal survives, so "3.5 年" is not rounded to 4.
+	if created.YearsExperience == nil || *created.YearsExperience != 3.5 {
+		t.Fatalf("years_experience = %v, want 3.5", created.YearsExperience)
+	}
+	if created.ResumeText == nil || *created.ResumeText != "三年短视频剪辑经验，熟悉 Premiere 与达芬奇调色。" {
+		t.Fatalf("resume_text = %v, want the sent body", created.ResumeText)
+	}
+
+	// The single-row read returns the same three values, not the create's echo.
+	req = workbenchRequest(t, "GET", "/api/workbench/hr/candidates/"+created.ID, nil, testUserID)
+	req = withURLParam(req, "candidateId", created.ID)
+	got := testutil.Decode[HrCandidateResponse](t, testHandler.GetHrCandidate, req, http.StatusOK)
+	if got.Edu == nil || *got.Edu != "本科" ||
+		got.YearsExperience == nil || *got.YearsExperience != 3.5 ||
+		got.ResumeText == nil || *got.ResumeText != *created.ResumeText {
+		t.Fatalf("GetHrCandidate profile = %+v, want the stored trio", got)
+	}
+
+	// A PATCH that names only the stage must not blank the profile.
+	req = workbenchRequest(t, "PATCH", "/api/workbench/hr/candidates/"+created.ID, map[string]any{
+		"stage": "interview",
+	}, testUserID)
+	req = withURLParam(req, "candidateId", created.ID)
+	patched := testutil.Decode[HrCandidateResponse](t, testHandler.UpdateHrCandidate, req, http.StatusOK)
+	if patched.Edu == nil || *patched.Edu != "本科" ||
+		patched.YearsExperience == nil || *patched.YearsExperience != 3.5 ||
+		patched.ResumeText == nil || *patched.ResumeText != *created.ResumeText {
+		t.Fatalf("patched candidate = %+v, want the stored trio kept", patched)
+	}
+
+	// A PATCH that names them replaces them.
+	req = workbenchRequest(t, "PATCH", "/api/workbench/hr/candidates/"+created.ID, map[string]any{
+		"edu":              "硕士",
+		"years_experience": 5,
+		"resume_text":      "五年经验，带过三人小组。",
+	}, testUserID)
+	req = withURLParam(req, "candidateId", created.ID)
+	replaced := testutil.Decode[HrCandidateResponse](t, testHandler.UpdateHrCandidate, req, http.StatusOK)
+	if replaced.Edu == nil || *replaced.Edu != "硕士" ||
+		replaced.YearsExperience == nil || *replaced.YearsExperience != 5 ||
+		replaced.ResumeText == nil || *replaced.ResumeText != "五年经验，带过三人小组。" {
+		t.Fatalf("replaced candidate = %+v, want the new trio", replaced)
+	}
+
+	// An empty body value clears the field to NULL, so "no résumé" stays
+	// distinguishable from a résumé that is empty.
+	req = workbenchRequest(t, "PATCH", "/api/workbench/hr/candidates/"+created.ID, map[string]any{
+		"resume_text": "",
+	}, testUserID)
+	req = withURLParam(req, "candidateId", created.ID)
+	cleared := testutil.Decode[HrCandidateResponse](t, testHandler.UpdateHrCandidate, req, http.StatusOK)
+	if cleared.ResumeText != nil {
+		t.Fatalf("resume_text = %v after clearing, want nil", cleared.ResumeText)
+	}
+}
+
+// TestHrCandidateProfileBounds proves the two bounds: an experience outside a
+// working lifetime is a 400, and so is a résumé body past the column's limit.
+func TestHrCandidateProfileBounds(t *testing.T) {
+	job := createHrJobFixture(t, testUserID, "Profile bounds job")
+	base := map[string]any{"job_id": job.ID, "name": "张某"}
+
+	for _, years := range []float64{-1, 60.5, 200} {
+		body := map[string]any{"years_experience": years}
+		for key, value := range base {
+			body[key] = value
+		}
+		req := workbenchRequest(t, "POST", "/api/workbench/hr/candidates", body, testUserID)
+		testutil.Call(t, testHandler.CreateHrCandidate, req).Want(http.StatusBadRequest)
+	}
+
+	// The bounds themselves are inclusive: 0 years is a fresh graduate and 60 is
+	// a lifetime, and both are facts the score can use.
+	for _, years := range []float64{0, 60} {
+		body := map[string]any{"years_experience": years}
+		for key, value := range base {
+			body[key] = value
+		}
+		req := workbenchRequest(t, "POST", "/api/workbench/hr/candidates", body, testUserID)
+		created := testutil.Decode[HrCandidateResponse](t, testHandler.CreateHrCandidate, req, http.StatusCreated)
+		dbfx.Exec(t, `DELETE FROM hr_candidate WHERE id = $1`, created.ID)
+		if created.YearsExperience == nil || *created.YearsExperience != years {
+			t.Fatalf("years_experience = %v, want the sent %v", created.YearsExperience, years)
+		}
+	}
+
+	// 20000 characters is one long document; 20001 is a mis-targeted paste.
+	overlong := map[string]any{"resume_text": strings.Repeat("简", 20001)}
+	for key, value := range base {
+		overlong[key] = value
+	}
+	req := workbenchRequest(t, "POST", "/api/workbench/hr/candidates", overlong, testUserID)
+	testutil.Call(t, testHandler.CreateHrCandidate, req).Want(http.StatusBadRequest)
+
+	atLimit := map[string]any{"resume_text": strings.Repeat("简", 20000)}
+	for key, value := range base {
+		atLimit[key] = value
+	}
+	req = workbenchRequest(t, "POST", "/api/workbench/hr/candidates", atLimit, testUserID)
+	created := testutil.Decode[HrCandidateResponse](t, testHandler.CreateHrCandidate, req, http.StatusCreated)
+	dbfx.Exec(t, `DELETE FROM hr_candidate WHERE id = $1`, created.ID)
+
+	// The same bounds gate an update, not only a create.
+	existing := createHrCandidateFixture(t, job.ID, "李某", "+8613800000009")
+	req = workbenchRequest(t, "PATCH", "/api/workbench/hr/candidates/"+existing.ID, map[string]any{
+		"years_experience": 75,
+	}, testUserID)
+	req = withURLParam(req, "candidateId", existing.ID)
+	testutil.Call(t, testHandler.UpdateHrCandidate, req).Want(http.StatusBadRequest)
+
+	req = workbenchRequest(t, "PATCH", "/api/workbench/hr/candidates/"+existing.ID, map[string]any{
+		"resume_text": strings.Repeat("简", 20001),
+	}, testUserID)
+	req = withURLParam(req, "candidateId", existing.ID)
+	testutil.Call(t, testHandler.UpdateHrCandidate, req).Want(http.StatusBadRequest)
 }

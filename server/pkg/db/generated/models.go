@@ -1100,6 +1100,9 @@ type HrCandidate struct {
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt         pgtype.Timestamptz `json:"archived_at"`
+	Edu                pgtype.Text        `json:"edu"`
+	YearsExperience    pgtype.Numeric     `json:"years_experience"`
+	ResumeText         pgtype.Text        `json:"resume_text"`
 }
 
 type HrEmployeeProfile struct {

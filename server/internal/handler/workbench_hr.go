@@ -32,9 +32,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"math"
 	"net/http"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
@@ -105,6 +107,11 @@ type HrJobRequest struct {
 
 // HrCandidateRequest is the create/PATCH body for a candidate. `hired_at` is not
 // client-writable: the hire route owns that milestone.
+//
+// `edu`, `years_experience` and `resume_text` are the candidate's half of the
+// match score (migration 705): without them the keyword, education and
+// experience dimensions have nothing to compare against. Absent or empty means
+// NULL, so a PATCH can clear a field by sending "".
 type HrCandidateRequest struct {
 	JobID              *string  `json:"job_id"`
 	Name               *string  `json:"name"`
@@ -122,6 +129,9 @@ type HrCandidateRequest struct {
 	Currency           *string  `json:"currency"`
 	RejectedReason     *string  `json:"rejected_reason"`
 	OwnerMemberID      *string  `json:"owner_member_id"`
+	Edu                *string  `json:"edu"`
+	YearsExperience    *float64 `json:"years_experience"`
+	ResumeText         *string  `json:"resume_text"`
 }
 
 // HrHireRequest is `POST /candidates/{candidateId}/hire`. `member_id` names the
@@ -266,8 +276,14 @@ type HrCandidateResponse struct {
 	HiredAt            *string  `json:"hired_at"`
 	RejectedReason     *string  `json:"rejected_reason"`
 	CreatedBy          *string  `json:"created_by"`
-	CreatedAt          string   `json:"created_at"`
-	UpdatedAt          string   `json:"updated_at"`
+	// Migration 705: what the match score reads on this side. Nullable, and null
+	// is the honest "not recorded" — the score skips a dimension rather than
+	// deducting for it.
+	Edu             *string  `json:"edu"`
+	YearsExperience *float64 `json:"years_experience"`
+	ResumeText      *string  `json:"resume_text"`
+	CreatedAt       string   `json:"created_at"`
+	UpdatedAt       string   `json:"updated_at"`
 }
 
 func hrCandidateToResponse(c db.HrCandidate) HrCandidateResponse {
@@ -292,6 +308,9 @@ func hrCandidateToResponse(c db.HrCandidate) HrCandidateResponse {
 		HiredAt:            timestampToPtr(c.HiredAt),
 		RejectedReason:     textToPtr(c.RejectedReason),
 		CreatedBy:          uuidToPtr(c.CreatedBy),
+		Edu:                textToPtr(c.Edu),
+		YearsExperience:    numericToFloatPtr(c.YearsExperience),
+		ResumeText:         textToPtr(c.ResumeText),
 		CreatedAt:          timestampToString(c.CreatedAt),
 		UpdatedAt:          timestampToString(c.UpdatedAt),
 	}
@@ -1109,6 +1128,36 @@ func (h *Handler) DeleteHrJob(w http.ResponseWriter, r *http.Request) {
 
 // ---- candidates ------------------------------------------------------------
 
+// The two bounds the candidate profile carries (migration 705). They exist so the
+// match score can read a number and a body: `years_experience` outside a working
+// lifetime is not a candidate fact, and a résumé body is a paste, not a table
+// column — 20000 characters is one long document, and the limit keeps a
+// mis-targeted paste from being stored as a résumé.
+const (
+	hrMaxYearsExperience = 60
+	hrMaxResumeTextRunes = 20000
+)
+
+// validateHrCandidateProfile checks the three profile fields of a create/PATCH
+// body. It writes the 400 itself so both handlers answer the same way; `true`
+// means the body may be written.
+func validateHrCandidateProfile(w http.ResponseWriter, req HrCandidateRequest) bool {
+	if req.YearsExperience != nil {
+		years := *req.YearsExperience
+		if math.IsNaN(years) || math.IsInf(years, 0) || years < 0 || years > hrMaxYearsExperience {
+			writeError(w, http.StatusBadRequest,
+				"years_experience must be between 0 and 60")
+			return false
+		}
+	}
+	if req.ResumeText != nil && utf8.RuneCountInString(*req.ResumeText) > hrMaxResumeTextRunes {
+		writeError(w, http.StatusBadRequest,
+			"resume_text must be at most 20000 characters")
+		return false
+	}
+	return true
+}
+
 // ListHrCandidates — GET /api/workbench/hr/candidates
 func (h *Handler) ListHrCandidates(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
@@ -1201,6 +1250,9 @@ func (h *Handler) CreateHrCandidate(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !validateHrCandidateProfile(w, req) {
+		return
+	}
 
 	candidate, err := h.Queries.CreateHrCandidate(r.Context(), db.CreateHrCandidateParams{
 		WorkspaceID:        scope.WorkspaceUUID,
@@ -1221,6 +1273,9 @@ func (h *Handler) CreateHrCandidate(w http.ResponseWriter, r *http.Request) {
 		OwnerMemberID:      owner,
 		RejectedReason:     optionalTrimmedText(req.RejectedReason),
 		CreatedBy:          scope.Member.UserID,
+		Edu:                optionalTrimmedText(req.Edu),
+		YearsExperience:    floatToNumeric(req.YearsExperience),
+		ResumeText:         optionalTrimmedText(req.ResumeText),
 	})
 	if err != nil {
 		if isUniqueViolation(err) {
@@ -1334,6 +1389,9 @@ func (h *Handler) UpdateHrCandidate(w http.ResponseWriter, r *http.Request) {
 	if stage == "hired" && !hiredAt.Valid {
 		hiredAt = pgtype.Timestamptz{Time: time.Now().UTC(), Valid: true}
 	}
+	if !validateHrCandidateProfile(w, req) {
+		return
+	}
 
 	updated, err := h.Queries.UpdateHrCandidate(r.Context(), db.UpdateHrCandidateParams{
 		ID:                 current.ID,
@@ -1355,6 +1413,9 @@ func (h *Handler) UpdateHrCandidate(w http.ResponseWriter, r *http.Request) {
 		OwnerMemberID:      owner,
 		HiredAt:            hiredAt,
 		RejectedReason:     applyTextPatch(req.RejectedReason, current.RejectedReason),
+		Edu:                applyTextPatch(req.Edu, current.Edu),
+		YearsExperience:    applyNumericPatch(req.YearsExperience, current.YearsExperience),
+		ResumeText:         applyTextPatch(req.ResumeText, current.ResumeText),
 	})
 	if err != nil {
 		if isUniqueViolation(err) {

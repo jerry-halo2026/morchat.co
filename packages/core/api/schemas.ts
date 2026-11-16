@@ -4830,6 +4830,11 @@ export const HrCandidateSchema = z.object({
   offer_salary: hrNullableNumber,
   currency: hrCurrency,
   owner_member_id: workbenchNullableString,
+  // Migration 705: the candidate's half of the match score. Null means "not
+  // recorded", which the score treats as no signal rather than as a zero.
+  edu: workbenchNullableString,
+  years_experience: hrNullableNumber,
+  resume_text: workbenchNullableString,
   // Server-stamped by the hire transition; null until the candidate is hired.
   hired_at: workbenchNullableString,
   rejected_reason: workbenchNullableString,
@@ -4844,7 +4849,8 @@ export const EMPTY_HR_CANDIDATE: HrCandidate = {
   phone: null, email: null, resume_attachment_id: null, match_score: null,
   score_resume: null, score_test: null, score_interview: null,
   expected_salary: null, offer_salary: null, currency: "CNY",
-  owner_member_id: null, hired_at: null, rejected_reason: null, created_by: null,
+  owner_member_id: null, edu: null, years_experience: null, resume_text: null,
+  hired_at: null, rejected_reason: null, created_by: null,
   created_at: "", updated_at: "", archived_at: null,
 };
 

@@ -110,7 +110,8 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archiv
 INSERT INTO hr_candidate (
     workspace_id, job_id, name, stage, source, phone, email, resume_attachment_id,
     match_score, score_resume, score_test, score_interview, expected_salary,
-    offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by
+    offer_salary, currency, owner_member_id, hired_at, rejected_reason, created_by,
+    edu, years_experience, resume_text
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('job_id'), sqlc.arg('name'), sqlc.arg('stage'),
     sqlc.narg('source')::text, sqlc.narg('phone')::text, sqlc.narg('email')::text,
@@ -119,7 +120,9 @@ INSERT INTO hr_candidate (
     sqlc.narg('score_interview')::numeric, sqlc.narg('expected_salary')::numeric,
     sqlc.narg('offer_salary')::numeric, sqlc.narg('currency')::text,
     sqlc.narg('owner_member_id')::uuid, sqlc.narg('hired_at')::timestamptz,
-    sqlc.narg('rejected_reason')::text, sqlc.narg('created_by')::uuid
+    sqlc.narg('rejected_reason')::text, sqlc.narg('created_by')::uuid,
+    sqlc.narg('edu')::text, sqlc.narg('years_experience')::numeric,
+    sqlc.narg('resume_text')::text
 )
 RETURNING *;
 
@@ -142,6 +145,9 @@ SET job_id = sqlc.arg('job_id'),
     owner_member_id = sqlc.narg('owner_member_id')::uuid,
     hired_at = sqlc.narg('hired_at')::timestamptz,
     rejected_reason = sqlc.narg('rejected_reason')::text,
+    edu = sqlc.narg('edu')::text,
+    years_experience = sqlc.narg('years_experience')::numeric,
+    resume_text = sqlc.narg('resume_text')::text,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL
 RETURNING *;

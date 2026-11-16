@@ -225,6 +225,7 @@ server 数据一律 Query；Zustand 只放当前部门、列宽、筛选草稿�
 | 685–699 | 单独索引文件 | 各表二级索引 |
 | 701 | `701_hr_interview_slot_unique` | 面试官×时段排他索引（CONCURRENTLY） |
 | 702–704 | 列补齐：面试官姓名 / 评分类维度 / 岗位算分字段 | 无新表、无新索引 |
+| 705 | `705_hr_candidate_profile` | 候选人算分字段：`edu` / `years_experience` / `resume_text`（无新表、无新索引） |
 
 ### 10.2 表
 
@@ -246,9 +247,11 @@ hr_candidate(id PK, workspace_id, job_id UUID NOT NULL, name TEXT NOT NULL,
   match_score SMALLINT CHECK (match_score BETWEEN 0 AND 100),
   score_resume NUMERIC(5,2), score_test NUMERIC(5,2), score_interview NUMERIC(5,2),
   expected_salary NUMERIC(14,2), offer_salary NUMERIC(14,2), currency CHAR(3) DEFAULT 'CNY',
+  edu TEXT, years_experience NUMERIC(4,1), resume_text TEXT,  -- 705：匹配度算分输入（候选人侧）
   owner_member_id UUID, hired_at TIMESTAMPTZ, rejected_reason TEXT,
   created_by, created_at, updated_at, archived_at)
 -- 一人一岗：UNIQUE (workspace_id, job_id, lower(name), coalesce(phone,'')) 以内联表达式索引实现
+-- 705：`edu` 与 `hr_job.edu` 同口径的自由文本（归一化后相等即 100，岗位「不限」即 100）；`years_experience` 一位小数，与 `hr_job.years` 解析出的下限比对（落区间/高于上限均 100，低于下限按差额线性扣分）；`resume_text` 是简历正文，**NULL 表示没有简历，不用空串冒充**——关键词维在 NULL 上跳过，在「有文本但一名不中」上才记 0
 
 hr_interview(id PK, workspace_id, candidate_id UUID NOT NULL, round SMALLINT NOT NULL DEFAULT 1,
   scheduled_at TIMESTAMPTZ NOT NULL, duration_minutes INT NOT NULL DEFAULT 45,
@@ -277,7 +280,7 @@ hr_employee_profile(id PK, workspace_id, member_id UUID NOT NULL, department_id 
 -- UNIQUE (workspace_id, member_id)
 ```
 
-`ability` / `disc` 用 JSONB 而非 12 个列：它们只被展示与 AI 上下文消费，从不参与排序或聚合。同理 `hr_scorecard.dimensions`（维度集由每个岗位生成的评分模板决定）与 `hr_job.keywords`（关键词列表长度按岗位而定）也是 JSONB 容器，但**它们是算分输入**：匹配度算分读 `keywords/edu/years`，所以只要参与 SUM/排名/唯一约束的字段仍是真实列，这两处容器就不违反 B0 判据。
+`ability` / `disc` 用 JSONB 而非 12 个列：它们只被展示与 AI 上下文消费，从不参与排序或聚合。同理 `hr_scorecard.dimensions`（维度集由每个岗位生成的评分模板决定）与 `hr_job.keywords`（关键词列表长度按岗位而定）也是 JSONB 容器，但**它们是算分输入**：匹配度算分读岗位侧的 `keywords/edu/years/salary_min/salary_max` 与候选人侧的 `resume_text/edu/years_experience/expected_salary`，四维各按 40/20/20/20 加权，无信号的维不进分母（705 之前候选人侧三列都不存在，实际得分只由薪资一维决定）。所以只要参与 SUM/排名/唯一约束的字段仍是真实列，这两处容器就不违反 B0 判据。
 
 ### 10.3 REST（基址 `/api/workbench/hr`）
 
@@ -290,6 +293,7 @@ hr_employee_profile(id PK, workspace_id, member_id UUID NOT NULL, department_id 
   - 排他索引仍按 `interviewer_member_id`（701），NULL 不互斥：纯外部面试官（只有姓名）不参与时段互斥，冲突由排期人判断。
 - 评分：请求接受 `dimensions`（键为维度名，值 0–5；键去空白后非空、值越界 → **400**）；客户端未给 `weighted_score` 时服务端按**维度均分**回填（与维度同为 0–5 尺度；空表不回填，保持 `null`）。PATCH 只换 `dimensions` 会重算均分，同时给 `weighted_score` 则以客户端为准。四个 `score_*` 仍接收，但不写进 `dimensions`。
 - 岗位：接受并返回 `edu` / `years` / `city` / `jd` / `urgent` / `keywords`；`keywords` 为字符串数组（去空白、丢空串），创建缺省 `[]`，PATCH 传 `[]` 即清空，省略则保留。
+- 候选人：接受并返回 `edu` / `years_experience` / `resume_text`（705）。`years_experience` 越界（0–60 之外）→ **400**；`resume_text` 超过 20000 字符 → **400**；两者省略即保留，显式传 `""` 置 NULL（不是空串）。列表与详情响应同字段。
 - `POST /candidates/{candidateId}/hire`：请求体 `CreateHrEmployeeProfileRequest`（`member_id` 必填）；同一事务内置 `stage=hired`、写 `hired_at`、创建或更新 `hr_employee_profile`；**响应 `{ candidate, employee_profile }`**（字段名与表名一致，客户端类型见 `HireHrCandidateResponse`），客户端要同时失效 candidates 与 employees 两个域。
 
 ### 10.4 事件
