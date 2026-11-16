@@ -68,6 +68,24 @@ export const DEFAULT_PRESET_BASE_URL =
 /** Server-side proxy that mirrors index.json (see server/internal/handler/presets.go). */
 export const DEFAULT_PRESET_PROXY_URL = "/api/presets/catalog";
 
+/**
+ * The catalog proxy is an API route, so it lives on the API host — not on
+ * whatever origin the UI was served from. A relative path works on the web
+ * (Next proxies /api) but in the desktop renderer it hits the dev server (or
+ * file://) and 404s, which silently drops the gallery onto the third-party
+ * host. The client knows the base; fall back to the relative path only when
+ * there is no client yet (SSR, tests).
+ */
+function presetProxyUrl(): string {
+  try {
+    const base = getApi().getBaseUrl().replace(/\/+$/, "");
+    if (base) return `${base}/api/presets/catalog`;
+  } catch {
+    // No API instance: the relative path is all we can offer.
+  }
+  return DEFAULT_PRESET_PROXY_URL;
+}
+
 /** index.json paths are package-relative; the published tree roots them at catalog/. */
 export const PRESET_CATALOG_ROOT = "catalog";
 
@@ -155,7 +173,7 @@ export function createPresetSource(
   options: PresetSourceOptions = {},
 ): PresetSource {
   const baseUrl = options.baseUrl ?? DEFAULT_PRESET_BASE_URL;
-  const proxyUrl = options.proxyUrl ?? DEFAULT_PRESET_PROXY_URL;
+  const proxyUrl = options.proxyUrl ?? presetProxyUrl();
   const fetcher = options.fetcher ?? globalThis.fetch?.bind(globalThis);
   const now = options.now ?? (() => Date.now());
   const ttl = options.ttlMs ?? PRESET_CACHE_TTL_MS;
@@ -163,7 +181,14 @@ export function createPresetSource(
   const detailCache = new Map<string, CacheEntry<PresetPackageDetail>>();
   const docCache = new Map<string, CacheEntry<string>>();
 
-  const request = async (url: string, etag?: string | null, extra?: Record<string, string>) => {
+  const request = async (
+    url: string,
+    etag?: string | null,
+    extra?: Record<string, string>,
+    // The proxy route authenticates from the session cookie in cookie mode, so it
+    // has to be asked for explicitly; the upstream host is fetched without it.
+    credentials: RequestCredentials = "same-origin",
+  ) => {
     if (!fetcher) throw new Error("fetch is not available in this environment");
     const headers: Record<string, string> = {
       accept: "application/json, text/plain, */*",
@@ -172,6 +197,7 @@ export function createPresetSource(
     if (etag) headers["if-none-match"] = etag;
     return fetcher(url, {
       headers,
+      credentials,
       signal:
         typeof AbortSignal !== "undefined" &&
         typeof AbortSignal.timeout === "function"
@@ -180,8 +206,13 @@ export function createPresetSource(
     });
   };
 
-  const fetchText = async (url: string, etag?: string | null, extra?: Record<string, string>) => {
-    const response = await request(url, etag, extra);
+  const fetchText = async (
+    url: string,
+    etag?: string | null,
+    extra?: Record<string, string>,
+    credentials: RequestCredentials = "same-origin",
+  ) => {
+    const response = await request(url, etag, extra, credentials);
     if (response.status === 304) return { text: null, etag: etag ?? null, notModified: true };
     if (response.status === 404) throw new PresetNotFoundError(url);
     if (!response.ok) throw new Error(`${url} -> HTTP ${response.status}`);
@@ -220,7 +251,7 @@ export function createPresetSource(
     // 1. Our own proxy: no third-party host in the browser's path.
     if (proxyUrl !== "") {
       try {
-        const { text } = await fetchText(proxyUrl, null, proxyHeaders());
+        const { text } = await fetchText(proxyUrl, null, proxyHeaders(), "include");
         if (text !== null) {
           const catalog = parsePresetCatalog(JSON.parse(text));
           catalog.indexSource = "proxy";

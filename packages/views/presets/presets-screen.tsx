@@ -1,12 +1,12 @@
-"use client";
+﻿"use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   DEFAULT_PRESET_BASE_URL,
   getPresetSource,
-  usePresetCatalog,
+  presetCatalogOptions,
   usePresetPackage,
 } from "@morechat/core/presets";
 import type { PresetPackage } from "@morechat/core/presets/types";
@@ -52,7 +52,21 @@ export function PresetsScreen({
   const p = useWorkspacePaths();
   const source = getPresetSource();
 
-  const catalogQuery = usePresetCatalog(source);
+  // The proxy route needs the workspace header, so the catalog must not be asked
+  // for before the workspace is known: an early request answers 400 and the
+  // gallery falls back to the third-party host (and caches that for an hour).
+  const catalogQuery = useQuery({
+    ...presetCatalogOptions(source),
+    enabled: wsId !== "",
+  });
+  useEffect(() => {
+    if (!wsId) return;
+    // Retry once the workspace is known if the first attempt landed off-proxy.
+    if (catalogQuery.data && catalogQuery.data.indexSource !== "proxy") {
+      source.invalidate();
+      void catalogQuery.refetch();
+    }
+  }, [wsId, catalogQuery.data, catalogQuery, source]);
   const [selected, setSelected] = useState<PresetPackage | null>(null);
   const detailQuery = usePresetPackage(selected, source);
   const [importingId, setImportingId] = useState<string | null>(null);
