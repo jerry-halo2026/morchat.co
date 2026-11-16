@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Briefcase,
   Building2,
@@ -8,12 +9,14 @@ import {
   Coins,
   FileText,
   Layers,
+  Upload,
   UserRound,
   Users,
   type IconComponent,
 } from "@morechat/ui/icons";
 import { Badge } from "@morechat/ui/components/ui/badge";
 import { Button } from "@morechat/ui/components/ui/button";
+import { IconButton } from "@morechat/ui/components/common/icon-button";
 import { CurrencyNumberFlow, CompactNumberFlow } from "@morechat/ui/components/ui/number-flow";
 import type {
   CrmBrief,
@@ -30,6 +33,8 @@ import { useLocale, useT } from "../i18n";
 import { CollectionPageState } from "../layout/collection-page";
 import { CollectionList, type CollectionColumn } from "../layout/collection-list";
 import type { LedgerDomain } from "./data";
+import { ImportSheet } from "./import-sheet";
+import type { ImportDomain } from "./import";
 
 const DOMAIN_ICON: Record<LedgerDomain, IconComponent> = {
   creators: Users,
@@ -47,6 +52,13 @@ const PLACEHOLDER = "—";
 
 /** Shared state props: a ledger table differs from its siblings only in columns. */
 interface LedgerTableCommon {
+  /**
+   * The workspace the rows belong to. It is optional because a ledger table is
+   * a pure column set: the workbench passes it so the people ledgers can offer
+   * a pasted-row import, and anything that draws a ledger without a workspace
+   * (a preview, a test) draws no import entry rather than inventing one.
+   */
+  wsId?: string;
   loading?: boolean;
   isError?: boolean;
   onRetry?: () => void;
@@ -78,7 +90,7 @@ export type LedgerTableProps = LedgerTableCommon &
 export function LedgerTable(props: LedgerTableProps) {
   const { t } = useT("blocks");
   const locales = useLocale();
-  const { domain, loading = false, isError = false, onRetry } = props;
+  const { domain, wsId, loading = false, isError = false, onRetry } = props;
 
   /** The money glyph comes from the bundle (`unit.currency`); a currency the
    *  bundle does not carry falls back to its own code rather than a guess. */
@@ -389,15 +401,18 @@ export function LedgerTable(props: LedgerTableProps) {
         },
       ];
       return (
-        <CollectionList
-          label={label}
-          columns={columns}
-          rows={props.rows}
-          getRowId={(row) => row.id}
-          loading={loading}
-          empty={empty}
-          embedded
-        />
+        <>
+          <LedgerImportHeader wsId={wsId} domain="jobs" />
+          <CollectionList
+            label={label}
+            columns={columns}
+            rows={props.rows}
+            getRowId={(row) => row.id}
+            loading={loading}
+            empty={empty}
+            embedded
+          />
+        </>
       );
     }
     case "candidates": {
@@ -445,15 +460,18 @@ export function LedgerTable(props: LedgerTableProps) {
         },
       ];
       return (
-        <CollectionList
-          label={label}
-          columns={columns}
-          rows={props.rows}
-          getRowId={(row) => row.id}
-          loading={loading}
-          empty={empty}
-          embedded
-        />
+        <>
+          <LedgerImportHeader wsId={wsId} domain="candidates" />
+          <CollectionList
+            label={label}
+            columns={columns}
+            rows={props.rows}
+            getRowId={(row) => row.id}
+            loading={loading}
+            empty={empty}
+            embedded
+          />
+        </>
       );
     }
     case "interviews": {
@@ -555,18 +573,46 @@ export function LedgerTable(props: LedgerTableProps) {
         },
       ];
       return (
-        <CollectionList
-          label={label}
-          columns={columns}
-          rows={props.rows}
-          getRowId={(row) => row.id}
-          loading={loading}
-          empty={empty}
-          embedded
-        />
+        <>
+          <LedgerImportHeader wsId={wsId} domain="employees" />
+          <CollectionList
+            label={label}
+            columns={columns}
+            rows={props.rows}
+            getRowId={(row) => row.id}
+            loading={loading}
+            empty={empty}
+            embedded
+          />
+        </>
       );
     }
   }
+}
+
+/**
+ * The import entry of a people ledger: one icon in the row above the header,
+ * plus the sheet it opens.
+ *
+ * `CollectionList` owns its header row and offers no slot in it, so the entry
+ * sits on the line above — the same position a toolbar takes, kept to a single
+ * icon because a ledger's columns are the content. A workspace id is required:
+ * importing needs the ledger's own names to resolve against, and a ledger drawn
+ * without one (a preview) has nothing to resolve. The sheet stays mounted while
+ * closed so its exit animation runs; it empties itself on the next open.
+ */
+function LedgerImportHeader({ wsId, domain }: { wsId?: string; domain: ImportDomain }) {
+  const { t } = useT("blocks");
+  const [open, setOpen] = useState(false);
+  if (!wsId) return null;
+  return (
+    <div className="flex h-8 items-center justify-end">
+      <ImportSheet wsId={wsId} domain={domain} open={open} onOpenChange={setOpen} />
+      <IconButton label={t(($) => $.import.entry)} onClick={() => setOpen(true)}>
+        <Upload />
+      </IconButton>
+    </div>
+  );
 }
 
 function LedgerEmptyState({

@@ -376,6 +376,7 @@ function JobsPane({ wsId }: { wsId: string }) {
   });
   return (
     <LedgerTable
+      wsId={wsId}
       domain="jobs"
       rows={query.data ?? []}
       loading={query.isPending}
@@ -392,6 +393,7 @@ function CandidatesPane({ wsId }: { wsId: string }) {
   });
   return (
     <LedgerTable
+      wsId={wsId}
       domain="candidates"
       rows={query.data ?? []}
       loading={query.isPending}
@@ -424,6 +426,7 @@ function EmployeesPane({ wsId }: { wsId: string }) {
   });
   return (
     <LedgerTable
+      wsId={wsId}
       domain="employees"
       rows={query.data ?? []}
       loading={query.isPending}
