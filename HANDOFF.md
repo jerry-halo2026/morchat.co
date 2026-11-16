@@ -169,6 +169,31 @@
      （`KnowledgeMentionCard` 的 `ref` 属性、`use-knowledge-href` 在普通函数里调 hook、
      新建页 placeholder 硬编码）→ `df1e26a1c`；诊断路由不认 `presets`/`knowledge`
      → `3cce9eb37`。现在 `eslint knowledge` 0 error、`diagnostic-context` 15/15。
+   - **可见品牌改名 + 发布落地（2026-11-16）**：
+     - CLI 命令 `multica` → `morechat`（`server/cmd/morechat`，346 文件；Makefile /
+       Dockerfile / goreleaser / bundle-cli / 安装脚本 / 桌面自更新 / 7 语言 UI 文案同步）；
+       安装包可执行文件 `morechat.co.exe`，自带 CLI `resources/bin/morechat.exe`，
+       实测输出 `morechat 0.9.0-morechat.1`。
+     - 发布向改到本仓：`electron-builder` 的 `appId=co.morechat.desktop`、
+       `executableName=morechat-desktop`、`publish.owner=jerry-halo2026`,
+       `repo=morchat.co`；goreleaser `project_name/binary/formula=morechat`、brew owner
+       本仓；release 工作流守卫与镜像名（`morechat-backend`/`morechat-web`）。
+     - CLI 可见文案与默认端点：帮助语、`defaultCloudServerURL/AppURL`、
+       `setup` 成功提示、邀请邮件兜底地址、公开 API 规格 server 全部 morechat.co。
+     - 本地发布 tag：`v0.9.0-morechat.1`（**未 push**；上游同名 `v0.9.0` 仍在）。
+     - **故意保留**：`MULTICA_*` 环境变量、`~/.multica`、数据库/角色/容器名、
+       DSH 的 `multica` profile、`multica://` 深链、`multica.ai` 历史文档。
+   - **开箱即用的两个真实缺口（2026-11-16 实测）**：
+     1. `api.morechat.co` 与 `morechat.co` 在公共 DNS 是 **NXDOMAIN**（DoH status 3），
+        本机解析到代理 fake-IP `198.18.1.245` 且 TLS 握手失败。打包客户端默认指向这两个
+        地址 → 用户装完能打开但**无法登录**。缺的是部署，不是代码。
+     2. 本会话无法运行任何 GUI 程序（notepad/calc 同样立即退出），因此安装后的
+        窗口级验证必须在真实桌面会话里做；产物本身已验证：`dist/win-unpacked`
+        完整（exe 246 MB + dsh/python/git/node + `resources/bin/morechat.exe` 可执行）。
+   - **打包/typecheck 的本机工具链坑**：宿主 pnpm 是 11.28.5，仓库 pin 10.28.2，
+     turbo 与 electron-builder 的 module collector 会因此在子进程里报
+     `pmOnFail`。绕法：用 `.local/bin/pnpm.cmd`（转 `corepack pnpm`，即 10.28.2）
+     前置到 PATH；实测根 `pnpm typecheck` 9/9 通过、`package --win --dir` 能出包。
 
 1b. **素材库 P0 已完成、P1 搁置**（按你的指示先做知识库）：`contracts/library/` 的元契约 +
    video/legal 两个领域 manifest + `scripts/check-library-contracts.mjs` 已冻结；P1 的
