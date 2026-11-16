@@ -48,6 +48,7 @@
     "crm_creator_repeat_rate": "达人复投率"
   },
   "gap": {
+    "needs_hired": "还没有人从台账走完入职，缺入职时间作为计算起点。",
     "needs_creators": "还没有达人记录，成果无法归因到人。",
     "needs_clients": "还没有客户记录。",
     "needs_briefs": "还没有需求单，无法报价与匹配。",

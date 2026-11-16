@@ -48,6 +48,7 @@
     "crm_creator_repeat_rate": "達人複投率"
   },
   "gap": {
+    "needs_hired": "還沒有人從台帳完成入職，缺入職時間作為計算起點。",
     "needs_creators": "還沒有達人紀錄，成果無法歸因到人。",
     "needs_clients": "還沒有客戶紀錄。",
     "needs_briefs": "還沒有需求單，無法報價與媒合。",

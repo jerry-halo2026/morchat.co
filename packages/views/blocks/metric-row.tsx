@@ -68,7 +68,7 @@ export function MetricRow({
               <GapCard
                 key={id}
                 title={label}
-                needs={domain ? t(($) => $.gap[gapNeedsKey(domain)]) : t(($) => $.gap.needs_issues)}
+                needs={domain ? t(($) => $.gap[gapNeedsKey(domain, id)]) : t(($) => $.gap.needs_issues)}
                 actionLabel={domain ? t(($) => $.gap.fill_ledger) : t(($) => $.gap.fill_issues)}
                 // A ledger gap switches tabs in place when the page can do
                 // that; otherwise the same destination is a real link, so the

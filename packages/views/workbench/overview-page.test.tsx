@@ -258,10 +258,14 @@ describe("OverviewPage", () => {
     ]) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
-    // A zero is still a zero, and the missing number names the ledger to fill.
+    // A zero is still a zero, and the missing number names what actually has to
+    // be entered: time to hire reads the hire date, so it asks for a hire
+    // rather than for more candidates.
     expect(screen.getByText("None yet")).toBeInTheDocument();
     expect(
-      screen.getByText("No candidates yet, so no stage or hire date can be measured."),
+      screen.getByText(
+        "Nobody has been hired through the ledger yet, so there is no hire date to measure against.",
+      ),
     ).toBeInTheDocument();
   });
 

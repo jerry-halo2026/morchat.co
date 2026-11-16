@@ -183,7 +183,22 @@ export function gapDomain(id: MetricId): LedgerDomain | null {
 /** `blocks.gap.needs_*` — what has to be entered for the metric to light up. */
 export type GapNeedsKey = keyof typeof blocks.gap;
 
-export function gapNeedsKey(domain: LedgerDomain): GapNeedsKey {
+/**
+ * Metrics whose gap has its own reason.
+ *
+ * Time to hire reads `hired_at`, so three candidates in the pipeline still
+ * cannot produce a sample — the candidates' "no records yet" copy actively
+ * misleads there.
+ */
+const GAP_NEEDS_OVERRIDE: Partial<Record<MetricId, GapNeedsKey>> = {
+  "hr.time_to_hire.median": "needs_hired",
+};
+
+export function gapNeedsKey(domain: LedgerDomain, id?: MetricId): GapNeedsKey {
+  if (id) {
+    const override = GAP_NEEDS_OVERRIDE[id];
+    if (override) return override;
+  }
   switch (domain) {
     case "creators":
       return "needs_creators";

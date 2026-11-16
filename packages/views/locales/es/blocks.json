@@ -48,6 +48,7 @@
     "crm_creator_repeat_rate": "Creadores recurrentes"
   },
   "gap": {
+    "needs_hired": "Nadie ha sido contratado desde el registro todavía: falta la fecha de alta para medir.",
     "needs_creators": "Aún no hay creadores, así que no se puede atribuir nada a nadie.",
     "needs_clients": "Aún no hay clientes registrados.",
     "needs_briefs": "Aún no hay briefs, así que no hay contra qué cotizar ni emparejar.",

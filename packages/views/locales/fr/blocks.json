@@ -48,6 +48,7 @@
     "crm_creator_repeat_rate": "Créateurs récurrents"
   },
   "gap": {
+    "needs_hired": "Personne n'a encore été recruté via le registre : pas de date d'embauche à mesurer.",
     "needs_creators": "Aucun créateur enregistré : impossible d'attribuer un résultat à quelqu'un.",
     "needs_clients": "Aucun client enregistré pour l'instant.",
     "needs_briefs": "Aucun brief : rien à chiffrer ni à mettre en correspondance.",

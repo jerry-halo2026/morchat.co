@@ -48,6 +48,7 @@
     "crm_creator_repeat_rate": "Repeat creators"
   },
   "gap": {
+    "needs_hired": "Nobody has been hired through the ledger yet, so there is no hire date to measure against.",
     "needs_creators": "No creator records yet, so nothing can be attributed to anyone.",
     "needs_clients": "No client records yet.",
     "needs_briefs": "No briefs yet, so there is nothing to match or quote against.",

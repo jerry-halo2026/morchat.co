@@ -48,6 +48,7 @@
     "crm_creator_repeat_rate": "크리에이터 재섭외율"
   },
   "gap": {
+    "needs_hired": "아직 장부를 통해 입사한 사람이 없어 기준이 될 입사일이 없습니다.",
     "needs_creators": "크리에이터 기록이 없어 성과를 누구에게도 귀속할 수 없습니다.",
     "needs_clients": "클라이언트 기록이 아직 없습니다.",
     "needs_briefs": "브리프가 없어 견적과 매칭을 할 수 없습니다.",
