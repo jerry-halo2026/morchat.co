@@ -18,7 +18,9 @@
     "entries": "Entries",
     "retrieval_test": "Retrieval test",
     "pick_page": "Pick a page from the tree to start reading.",
-    "no_recent": "Nothing modified yet"
+    "no_recent": "Nothing modified yet",
+    "create_space_label": "Name the first knowledge space",
+    "create_space_placeholder": "e.g. Product docs"
   },
   "tree": {
     "toggle": "Toggle {{name}}",

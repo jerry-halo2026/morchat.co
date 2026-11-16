@@ -146,6 +146,17 @@ export function useKnowledgeSearch(wsId: string, query: string, limit = 8) {
   });
 }
 
+export function useCreateKnowledgeSpace(wsId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { name: string; description?: string }) =>
+      knowledgeApi.createSpace(wsId, input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: knowledgeKeys.spaces(wsId) });
+    },
+  });
+}
+
 export function useCreateKnowledgePage(wsId: string) {
   const queryClient = useQueryClient();
   return useMutation({

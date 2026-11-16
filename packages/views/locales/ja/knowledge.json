@@ -18,7 +18,9 @@
     "entries": "エントリ",
     "retrieval_test": "検索テスト",
     "pick_page": "左のツリーからページを選んでください。",
-    "no_recent": "更新履歴はまだありません"
+    "no_recent": "更新履歴はまだありません",
+    "create_space_label": "最初のナレッジスペースに名前を付ける",
+    "create_space_placeholder": "例: プロダクトドキュメント"
   },
   "tree": {
     "toggle": "{{name}} を開閉",

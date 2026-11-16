@@ -18,7 +18,9 @@
     "entries": "條目",
     "retrieval_test": "召回測試",
     "pick_page": "從左側目錄選擇頁面開始閱讀。",
-    "no_recent": "尚無修改紀錄"
+    "no_recent": "尚無修改紀錄",
+    "create_space_label": "替第一個知識空間命名",
+    "create_space_placeholder": "例如：產品文件"
   },
   "tree": {
     "toggle": "展開或收合 {{name}}",

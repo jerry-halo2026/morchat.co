@@ -53,6 +53,7 @@ import { resolvePublicFileUrl } from "@morechat/core/workspace/avatar-url";
 import { runtimeListOptions } from "@morechat/core/runtimes";
 import { parseFrontmatter } from "@morechat/core/skills/frontmatter";
 import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
+import { AoraAvatar, isAoraSpec } from "@morechat/ui/components/common/aora-avatar";
 import { IconButton } from "@morechat/ui/components/common/icon-button";
 import { Button, buttonVariants } from "@morechat/ui/components/ui/button";
 import {
@@ -325,13 +326,17 @@ function UsedByList({ agents }: { agents: Agent[] }) {
     <ObjectSectionCard>
       {agents.map((a) => (
         <div key={a.id} className="flex min-h-11 items-center gap-2.5 px-3 py-2">
-          <ActorAvatar
-            name={a.name}
-            initials={a.name.slice(0, 2).toUpperCase()}
-            avatarUrl={resolvePublicFileUrl(a.avatar_url)}
-            isAgent
-            size="md"
-          />
+          {isAoraSpec(a.avatar_url) ? (
+            <AoraAvatar entityId={a.id} avatarUrl={a.avatar_url} name={a.name} size="md" />
+          ) : (
+            <ActorAvatar
+              name={a.name}
+              initials={a.name.slice(0, 2).toUpperCase()}
+              avatarUrl={resolvePublicFileUrl(a.avatar_url)}
+              isAgent
+              size="md"
+            />
+          )}
           <div className="min-w-0 flex-1">
             <div className="truncate text-body font-medium">{a.name}</div>
             {a.description && (

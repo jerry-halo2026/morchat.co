@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+﻿import { describe, expect, it } from "vitest";
 
 import type { PresetSource } from "@morechat/core/presets/source";
 import { createPresetApiRuntime, type PresetApiClient } from "./api-runtime";
@@ -14,7 +14,7 @@ const BUNDLE: PresetSkillBundle = {
     files: 2,
     bytes: 120,
   },
-  content: `---\nname: ${SKILL_NS}\ndescription: Loaded\n---\nbody`,
+  content: `---\nname: ${SKILL_NS}\ndescription: Loaded\ndescription_zh: 深度研究\n---\nbody`,
   files: [{ path: "references/a.md", content: "a" }],
 };
 
@@ -125,7 +125,7 @@ describe("importSkillIdempotently", () => {
       {
         id: "skill-existing",
         input: {
-          description: "deep-research",
+          description: "深度研究",
           content: BUNDLE.content,
           files: BUNDLE.files,
         },

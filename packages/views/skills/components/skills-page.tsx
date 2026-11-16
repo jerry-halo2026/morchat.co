@@ -36,6 +36,7 @@ import {
   TooltipTrigger,
 } from "@morechat/ui/components/ui/tooltip";
 import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
+import { AoraAvatar, isAoraSpec } from "@morechat/ui/components/common/aora-avatar";
 import { rowLinkInteractiveProps, useNavigation } from "../../navigation";
 import {
   CollectionNoMatches,
@@ -94,10 +95,15 @@ type SkillScope = "all" | "mine";
 function NameCell({ row }: { row: SkillRow }) {
   const { t } = useT("skills");
   const { skill, canEdit } = row;
+  // Imported skills carry an English slug in `name` and a human label in
+  // `description` (the preset's Chinese one-liner when it has one), so the label is
+  // the title and the slug moves to the muted column: a list of
+  // "ai-engineer--research-deep" is unreadable next to a Chinese UI.
+  const label = skill.description?.trim() || skill.name;
   return (
     <CollectionNameCell
       icon={<SkillIcon className="size-4 shrink-0 text-muted-foreground" />}
-      title={skill.name}
+      title={label}
       badges={
         !canEdit && (
           <Tooltip>
@@ -108,7 +114,32 @@ function NameCell({ row }: { row: SkillRow }) {
           </Tooltip>
         )
       }
-      description={skill.description || undefined}
+      description={label === skill.name ? undefined : skill.name}
+    />
+  );
+}
+
+/**
+ * An agent's face, wherever a list needs one.
+ *
+ * A preset-imported agent stores an `aora:` spec in `avatar_url`; `ActorAvatar`
+ * only knows pictures and initials, so those agents rendered as initials and the
+ * used-by column looked empty. The spec goes to `AoraAvatar`, everything else
+ * stays on `ActorAvatar` (photos, emoji, initials).
+ */
+function AgentFace({ agent, size }: { agent: Agent; size: "sm" | "md" }) {
+  if (isAoraSpec(agent.avatar_url)) {
+    return (
+      <AoraAvatar entityId={agent.id} avatarUrl={agent.avatar_url} name={agent.name} size={size} />
+    );
+  }
+  return (
+    <ActorAvatar
+      name={agent.name}
+      initials={agent.name.slice(0, 2).toUpperCase()}
+      avatarUrl={resolvePublicFileUrl(agent.avatar_url)}
+      isAgent
+      size={size}
     />
   );
 }
@@ -121,13 +152,7 @@ function UsedByCell({ agents }: { agents: Agent[] }) {
     const agent = soleAgent;
     return (
       <>
-        <ActorAvatar
-          name={agent.name}
-          initials={agent.name.slice(0, 2).toUpperCase()}
-          avatarUrl={resolvePublicFileUrl(agent.avatar_url)}
-          isAgent
-          size="sm"
-        />
+        <AgentFace agent={agent} size="sm" />
         <span className="min-w-0 truncate">{agent.name}</span>
       </>
     );
@@ -141,13 +166,7 @@ function UsedByCell({ agents }: { agents: Agent[] }) {
             <TooltipTrigger
               render={
                 <span className="inline-flex rounded-full ring-2 ring-background">
-                  <ActorAvatar
-                    name={a.name}
-                    initials={a.name.slice(0, 2).toUpperCase()}
-                    avatarUrl={resolvePublicFileUrl(a.avatar_url)}
-                    isAgent
-                    size="sm"
-                  />
+                  <AgentFace agent={a} size="sm" />
                 </span>
               }
             />

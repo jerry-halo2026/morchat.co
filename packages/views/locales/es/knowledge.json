@@ -18,7 +18,9 @@
     "entries": "Entradas",
     "retrieval_test": "Prueba de recuperación",
     "pick_page": "Elige una página del árbol para empezar.",
-    "no_recent": "Aún no hay cambios"
+    "no_recent": "Aún no hay cambios",
+    "create_space_label": "Nombra el primer espacio de conocimiento",
+    "create_space_placeholder": "p. ej. Documentación de producto"
   },
   "tree": {
     "toggle": "Mostrar u ocultar {{name}}",

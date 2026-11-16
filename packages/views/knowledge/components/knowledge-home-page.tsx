@@ -25,6 +25,7 @@ import {
 } from "./knowledge-parts";
 import {
   useCreateKnowledgePage,
+  useCreateKnowledgeSpace,
   useKnowledgePages,
   useKnowledgeSpaces,
   useKnowledgeWorkspaceId,
@@ -45,9 +46,14 @@ export function KnowledgeHomePage({ wsId }: { wsId?: string }) {
   const activeSpace = space || spaces[0]?.id || "";
   const pagesQuery = useKnowledgePages(id, {});
   const createPage = useCreateKnowledgePage(id);
+  const createSpace = useCreateKnowledgeSpace(id);
   const [creating, setCreating] = useState(false);
+  const [newSpaceName, setNewSpaceName] = useState("");
   const [draftTitle, setDraftTitle] = useState("");
   const [importOpen, setImportOpen] = useState(false);
+  // A page needs a space, so a workspace with none cannot get past this screen:
+  // the create-space form is the first step, not an empty list with dead buttons.
+  const needsSpace = !spacesQuery.isPending && spaces.length === 0;
 
   const pages = useMemo(() => pagesQuery.data ?? [], [pagesQuery.data]);
   const recent = useMemo(
@@ -96,6 +102,39 @@ export function KnowledgeHomePage({ wsId }: { wsId?: string }) {
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-10">
+          {needsSpace ? (
+            <form
+              className="mt-4 flex items-end gap-2 rounded-xl border border-surface-border p-3"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const name = newSpaceName.trim();
+                if (!name) return;
+                createSpace.mutate(
+                  { name },
+                  {
+                    onSuccess: (created) => {
+                      setNewSpaceName("");
+                      setSpace(created.id);
+                    },
+                  },
+                );
+              }}
+            >
+              <label className="min-w-0 flex-1 text-caption text-muted-foreground">
+                {t(($) => $.home.create_space_label)}
+                <Input
+                  autoFocus
+                  value={newSpaceName}
+                  onChange={(event) => setNewSpaceName(event.target.value)}
+                  placeholder={t(($) => $.home.create_space_placeholder)}
+                  className="mt-1"
+                />
+              </label>
+              <Button type="submit" size="sm" disabled={createSpace.isPending || !newSpaceName.trim()}>
+                {t(($) => $.home.create)}
+              </Button>
+            </form>
+          ) : null}
           {creating ? (
             <form
               className="mb-4 flex items-end gap-2 rounded-xl border border-surface-border p-3"

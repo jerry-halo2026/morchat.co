@@ -18,7 +18,9 @@
     "entries": "条目",
     "retrieval_test": "召回测试",
     "pick_page": "从左侧目录选择页面开始阅读。",
-    "no_recent": "暂无修改记录"
+    "no_recent": "暂无修改记录",
+    "create_space_label": "给第一个知识空间起个名字",
+    "create_space_placeholder": "例如：产品文档"
   },
   "tree": {
     "toggle": "展开或收起 {{name}}",

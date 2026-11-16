@@ -445,6 +445,29 @@ export const knowledgeApi = {
   },
 
   /**
+   * Creates a space and returns it.
+   *
+   * A workspace with no space cannot create a page — `POST /pages` needs a
+   * `space_id` — so this is the first step out of an otherwise inert screen. The
+   * server answers the created row directly (201), not an envelope.
+   */
+  createSpace: async (
+    wsId: string,
+    input: { name: string; description?: string },
+  ): Promise<KnowledgeSpace> => {
+    const raw = await request<unknown>("/spaces", {
+      method: "POST",
+      headers: { "X-Workspace-ID": wsId },
+      query: { workspace_id: wsId },
+      body: JSON.stringify(input),
+    });
+    const body = ((raw as { space?: unknown }).space ?? raw) as WireSpace;
+    const space = toSpace(body);
+    if (!space) throw new KnowledgeApiError("knowledge: create space returned no space", 200, raw);
+    return space;
+  },
+
+  /**
    * The workspace's departments, for the space switcher's grouping.
    *
    * They come from `/api/departments` (the core client, not this module's own

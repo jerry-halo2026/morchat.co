@@ -74,19 +74,42 @@ export interface PresetApiClient {
  * and the create's own conflict (the narrow race, or a server that does enforce
  * uniqueness) is handled by listing once more.
  */
+/**
+ * The skill's human label, read from the SKILL.md frontmatter.
+ *
+ * Preset skills carry `description_zh` beside the English description, and some
+ * carry a Chinese `description`. The label is the Chinese line when there is one;
+ * otherwise the slug stays, because an English sentence is a description, not a
+ * name. Returns the fallback when the document has no usable frontmatter.
+ */
+export function skillDisplayLabel(content: string, fallback: string): string {
+  const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(content);
+  if (!frontmatter) return fallback;
+  const lines = frontmatter[1]!;
+  const zh = /^description_zh:\s*"?([^"\n]+)"?\s*$/m.exec(lines)?.[1]?.trim();
+  if (zh) return zh;
+  const plain = /^description:\s*"?([^"\n]+)"?\s*$/m.exec(lines)?.[1]?.trim();
+  if (plain && /[\u4e00-\u9fff]/.test(plain)) return plain;
+  return fallback;
+}
+
 async function importSkillIdempotently(
   client: PresetApiClient,
   bundle: PresetSkillBundle,
 ): Promise<PresetSkillImportResult> {
   const name = bundle.skill.ns || bundle.skill.name;
+  // The slug is the identity; the human label is in the document's frontmatter.
+  // Preset skills ship `description_zh` beside `description`, and the skills list
+  // shows the label, so a Chinese UI does not read "ai-engineer--research-deep".
+  const description = skillDisplayLabel(bundle.content, bundle.skill.name);
   const payload = {
     name,
-    description: bundle.skill.name,
+    description,
     content: bundle.content,
     files: bundle.files,
   };
   const write = {
-    description: bundle.skill.name,
+    description,
     content: bundle.content,
     files: bundle.files,
   };

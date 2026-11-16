@@ -18,7 +18,9 @@
     "entries": "항목",
     "retrieval_test": "검색 테스트",
     "pick_page": "왼쪽 트리에서 페이지를 선택하세요.",
-    "no_recent": "수정 기록이 없습니다"
+    "no_recent": "수정 기록이 없습니다",
+    "create_space_label": "첫 지식 공간의 이름",
+    "create_space_placeholder": "예: 제품 문서"
   },
   "tree": {
     "toggle": "{{name}} 펼치기/접기",

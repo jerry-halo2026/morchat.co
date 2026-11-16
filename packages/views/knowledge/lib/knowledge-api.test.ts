@@ -95,6 +95,37 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+describe("knowledgeApi.createSpace", () => {
+  it("posts the name and returns the created space", async () => {
+    const calls = mockFetch(() =>
+      jsonResponse(
+        {
+          id: SPACE,
+          workspace_id: WS,
+          name: "Handbook",
+          description: "",
+          department_id: null,
+          item_count: 0,
+        },
+        201,
+      ),
+    );
+
+    const space = await knowledgeApi.createSpace(WS, { name: "Handbook" });
+
+    expect(space).toEqual({
+      id: SPACE,
+      name: "Handbook",
+      description: "",
+      department_id: null,
+      item_count: 0,
+    });
+    expect(calls[0]!.url).toContain("/api/knowledge/spaces");
+    expect(calls[0]!.init?.method).toBe("POST");
+    expect(calls[0]!.init?.body).toContain("Handbook");
+  });
+});
+
 describe("knowledgeApi.listSpaces", () => {
   it("maps the space id and name, and never invents a slug", async () => {
     mockFetch(() =>

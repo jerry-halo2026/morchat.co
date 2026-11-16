@@ -18,7 +18,9 @@
     "entries": "Entrées",
     "retrieval_test": "Test de rappel",
     "pick_page": "Choisissez une page dans l’arborescence.",
-    "no_recent": "Aucune modification pour l’instant"
+    "no_recent": "Aucune modification pour l’instant",
+    "create_space_label": "Nommez le premier espace de connaissance",
+    "create_space_placeholder": "ex. Documentation produit"
   },
   "tree": {
     "toggle": "Afficher ou masquer {{name}}",
