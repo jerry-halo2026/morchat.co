@@ -391,10 +391,18 @@ function CandidatesPane({ wsId }: { wsId: string }) {
     ...hrCandidateListOptions(wsId),
     select: (response) => response.candidates,
   });
+  // The same cache entry `JobsPane` reads: a candidate row carries only
+  // `job_id`, and the title is a lookup away.
+  const jobs = useQuery({
+    ...hrJobListOptions(wsId),
+    select: (response) => response.jobs,
+  });
+  const jobTitles = Object.fromEntries((jobs.data ?? []).map((job) => [job.id, job.title]));
   return (
     <LedgerTable
       wsId={wsId}
       domain="candidates"
+      jobTitles={jobTitles}
       rows={query.data ?? []}
       loading={query.isPending}
       isError={query.isError}

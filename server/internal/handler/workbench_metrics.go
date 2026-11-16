@@ -104,29 +104,16 @@ func metricValue(value float64, computable bool, sampleCount int64, emptyRule st
 	return entry
 }
 
-// ratioPercent returns value/total as a 0-100 percentage, and whether it exists.
-func ratioPercent(part, total int64) (float64, bool) {
-	if total <= 0 {
-		return 0, false
-	}
-	return float64(part) / float64(total) * 100, true
-}
-
 // ratioValue returns numerator/denominator as a plain ratio.
+//
+// Rates travel at the 0–1 storage scale, not 0–100: the contract fixes that
+// scale (docs/METRICS.md C3) and the client multiplies by 100 for display. A
+// server that shipped 0–100 rendered as 10,000%.
 func ratioValue(numerator, denominator float64) (float64, bool) {
 	if denominator == 0 {
 		return 0, false
 	}
 	return numerator / denominator, true
-}
-
-// ratioPercentFloat is ratioValue expressed as a 0-100 percentage, for the
-// metrics whose unit is `percent` but whose inputs are already money.
-func ratioPercentFloat(part, total float64) (float64, bool) {
-	if total == 0 {
-		return 0, false
-	}
-	return part / total * 100, true
 }
 
 // GetWorkbenchOverview — GET /api/workbench/overview
@@ -261,14 +248,14 @@ func (h *Handler) GetWorkbenchOverview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	onTimeRate, onTimeOK := ratioPercent(work.OnTimeHits, work.OnTimeSamples)
+	onTimeRate, onTimeOK := ratioValue(float64(work.OnTimeHits), float64(work.OnTimeSamples))
 	wipPerMember, wipOK := ratioValue(float64(work.OpenMemberAssigned), float64(work.ActiveMembers))
-	crossRate, crossOK := ratioPercent(cross.CrossCount, cross.ResolvedCount)
-	failureRate, failureOK := ratioPercent(agentRuns.FailedRuns, agentRuns.FinishedRuns)
-	marginRate, marginOK := ratioPercentFloat(margin.Revenue-margin.Cost, margin.Revenue)
+	crossRate, crossOK := ratioValue(float64(cross.CrossCount), float64(cross.ResolvedCount))
+	failureRate, failureOK := ratioValue(float64(agentRuns.FailedRuns), float64(agentRuns.FinishedRuns))
+	marginRate, marginOK := ratioValue(margin.Revenue-margin.Cost, margin.Revenue)
 	roiValue, roiOK := ratioValue(roi.AttributedGmv, roi.Cost)
-	repeatRate, repeatOK := ratioPercent(repeat.RepeatCreators, repeat.ActiveCreators)
-	hrOnTimeRate, hrOnTimeOK := ratioPercent(hrOnTime.OnTimeCount, hrOnTime.ScheduledCount)
+	repeatRate, repeatOK := ratioValue(float64(repeat.RepeatCreators), float64(repeat.ActiveCreators))
+	hrOnTimeRate, hrOnTimeOK := ratioValue(float64(hrOnTime.OnTimeCount), float64(hrOnTime.ScheduledCount))
 
 	metrics := map[string]WorkbenchMetricValue{
 		// Delivery behaviour: these read data the platform already writes, so the

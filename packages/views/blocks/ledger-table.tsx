@@ -60,6 +60,14 @@ interface LedgerTableCommon {
    * (a preview, a test) draws no import entry rather than inventing one.
    */
   wsId?: string;
+  /**
+   * Job titles by id, for the ledgers that only carry `job_id`.
+   *
+   * A UUID prefix is not an answer to "which job is this?" when the workspace
+   * has three jobs and the titles are already in the query cache. When the map
+   * is absent (a preview, a test) the short id stays as the honest fallback.
+   */
+  jobTitles?: Record<string, string>;
   loading?: boolean;
   isError?: boolean;
   onRetry?: () => void;
@@ -427,7 +435,14 @@ export function LedgerTable(props: LedgerTableProps) {
           key: "job",
           header: t(($) => $.ledger.column.job_ref),
           width: 130,
-          cell: (row) => <span className="font-mono text-caption">{shortId(row.job_id)}</span>,
+          cell: (row) => {
+            const title = props.jobTitles?.[row.job_id];
+            return title ? (
+              <span className="truncate">{title}</span>
+            ) : (
+              <span className="font-mono text-caption">{shortId(row.job_id)}</span>
+            );
+          },
         },
         {
           key: "stage",

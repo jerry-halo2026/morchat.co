@@ -148,9 +148,11 @@ func TestWorkbenchOverviewCrmMetricsLightUp(t *testing.T) {
 		t.Fatalf("collected this month = %v, want 3000", *collected.Value)
 	}
 
+	// Rates travel at the 0–1 storage scale and are multiplied by 100 only for
+	// display (docs/METRICS.md C3). 10000 revenue over 5000 cost is half.
 	margin := metrics["crm.quote.margin_rate"]
-	if margin.Value == nil || *margin.Value != 50 {
-		t.Fatalf("margin rate = %v, want 50 (10000 revenue, 5000 cost)", *margin.Value)
+	if margin.Value == nil || *margin.Value != 0.5 {
+		t.Fatalf("margin rate = %v, want 0.5 (10000 revenue, 5000 cost)", *margin.Value)
 	}
 
 	roi := metrics["crm.collab.roi"]
