@@ -103,6 +103,10 @@ export function parseTabSubject(url: string): TabSubject {
         : { kind: "page", page: "squads" };
     case "usage":
       return { kind: "page", page: "usage" };
+    case "overview":
+      // The workbench is one page with three tabs; the tab lives in the query
+      // string (`?tab=`), so it stays a single page subject like `usage`.
+      return { kind: "page", page: "overview" };
     case "inbox":
       return {
         kind: "inbox",

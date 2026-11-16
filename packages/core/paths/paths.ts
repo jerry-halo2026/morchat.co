@@ -52,6 +52,9 @@ function workspaceScoped(slug: string) {
   return {
     root: () => `${ws}/issues`,
     usage: () => `${ws}/usage`,
+    // The workbench: one department's metrics, its ledgers and its team.
+    // Filing it under the `work` space keeps the Work panel as the left column.
+    overview: () => `${ws}/overview`,
     issues: () => `${ws}/issues`,
     issueDetail: (id: string) => `${ws}/issues/${encode(id)}`,
     // Opens the newest upload of the deliverable named `filename` on this

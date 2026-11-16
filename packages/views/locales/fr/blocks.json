@@ -1,0 +1,144 @@
+{
+  "title": "Établi",
+  "tabs": {
+    "overview": "Vue d'ensemble",
+    "ledger": "Registre",
+    "team": "Équipe"
+  },
+  "department": {
+    "label": "Service",
+    "all": "Tous les services"
+  },
+  "unit": {
+    "days": "j",
+    "hours": "h",
+    "percent": "%",
+    "ratio": "×",
+    "currency": {
+      "CNY": "¥",
+      "USD": "$"
+    }
+  },
+  "metric_value": {
+    "zero": "Rien pour l'instant",
+    "samples": "sur {{count}} lignes"
+  },
+  "metric": {
+    "work_throughput_week": "Terminé cette semaine",
+    "work_cycle_time_median": "Délai médian",
+    "work_on_time_rate": "Taux de respect des délais",
+    "work_overdue_count": "En retard",
+    "work_stalled_count": "À l'arrêt",
+    "work_wip_count": "En cours",
+    "work_wip_per_member": "En cours par personne",
+    "work_followup_due_count": "Relance du jour",
+    "collab_cross_department_rate": "Travail inter-services",
+    "agent_cost_month": "Coût des agents",
+    "agent_run_failure_rate": "Taux d'échec",
+    "knowledge_created_week": "Ajouté cette semaine",
+    "crm_pipeline_weighted_amount": "Pipeline pondéré",
+    "crm_contract_signed_month": "Signé ce mois",
+    "crm_payment_collected_month": "Encaissé ce mois",
+    "crm_quote_margin_rate": "Marge par collaboration",
+    "crm_collab_roi": "Retour par collaboration",
+    "crm_creator_repeat_rate": "Créateurs récurrents"
+  },
+  "gap": {
+    "needs_creators": "Aucun créateur enregistré : impossible d'attribuer un résultat à quelqu'un.",
+    "needs_clients": "Aucun client enregistré pour l'instant.",
+    "needs_briefs": "Aucun brief : rien à chiffrer ni à mettre en correspondance.",
+    "needs_collabs": "Aucune collaboration : montants, étapes et probabilités viennent d'ici.",
+    "needs_settlements": "Aucun règlement enregistré, donc rien ne compte comme encaissé.",
+    "needs_issues": "Les issues derrière ce chiffre ont un champ manquant.",
+    "fill_ledger": "Le saisir dans le registre",
+    "fill_issues": "Ouvrir les issues"
+  },
+  "ledger": {
+    "section": "Registres",
+    "domain": {
+      "creators": "Créateurs",
+      "clients": "Clients",
+      "briefs": "Briefs",
+      "collabs": "Collaborations",
+      "settlements": "Règlements"
+    },
+    "column": {
+      "creator": "Créateur",
+      "creator_ref": "Créateur",
+      "platform": "Plateforme",
+      "fans": "Abonnés",
+      "score": "Note",
+      "risk": "Risque",
+      "client": "Client",
+      "brand": "Marque",
+      "industry": "Secteur",
+      "brief": "Brief",
+      "budget": "Budget",
+      "deliverable": "Format",
+      "schedule": "Calendrier",
+      "collab": "Collaboration",
+      "stage": "Étape",
+      "contract_amount": "Contrat",
+      "scheduled": "Publication",
+      "settlement": "Règlement",
+      "amount": "Montant",
+      "due": "Échéance",
+      "paid": "Payé"
+    },
+    "deliverable": {
+      "short_video": "Vidéo courte",
+      "post": "Publication",
+      "live": "Direct"
+    },
+    "stage": {
+      "inquiry": "Demande",
+      "quoted": "Devisé",
+      "negotiating": "Négociation",
+      "confirmed": "Confirmé",
+      "sampling": "Échantillon",
+      "script_review": "Relecture du script",
+      "scheduled": "Programmé",
+      "published": "Publié",
+      "accepted": "Validé",
+      "settled": "Réglé",
+      "cancelled": "Annulé"
+    },
+    "settlement_kind": {
+      "prepay": "Acompte",
+      "final": "Solde",
+      "platform_fee": "Frais de plateforme",
+      "tax": "Taxe"
+    },
+    "risk_flagged": "Signalé",
+    "unpaid": "Non payé",
+    "empty_title": "Pas encore de {{domain}}",
+    "empty_description": "Les lignes saisies ici alimentent les indicateurs de la vue d'ensemble.",
+    "error_title": "Impossible de charger le registre",
+    "error_description": "Vérifiez la connexion puis réessayez.",
+    "retry": "Réessayer"
+  },
+  "team": {
+    "section": "Équipe",
+    "unassigned": "Sans service",
+    "group_counts": "{{members}} personnes · {{agents}} agents",
+    "role": {
+      "owner": "Propriétaire",
+      "admin": "Administrateur",
+      "member": "Membre"
+    },
+    "availability": {
+      "online": "En ligne",
+      "unstable": "Perdu récemment",
+      "offline": "Hors ligne",
+      "archived": "Archivé"
+    },
+    "workload": {
+      "working": "Au travail",
+      "queued": "En attente",
+      "idle": "Inactif"
+    },
+    "load": "{{running}}/{{capacity}}",
+    "empty_title": "Personne ici pour l'instant",
+    "empty_description": "Invitez des membres et créez des agents : leur travail apparaîtra ici."
+  }
+}

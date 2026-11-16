@@ -1,0 +1,144 @@
+{
+  "title": "ワークベンチ",
+  "tabs": {
+    "overview": "概要",
+    "ledger": "台帳",
+    "team": "チーム"
+  },
+  "department": {
+    "label": "部署",
+    "all": "すべての部署"
+  },
+  "unit": {
+    "days": "日",
+    "hours": "時間",
+    "percent": "%",
+    "ratio": "倍",
+    "currency": {
+      "CNY": "¥",
+      "USD": "$"
+    }
+  },
+  "metric_value": {
+    "zero": "まだなし",
+    "samples": "{{count}} 件で集計"
+  },
+  "metric": {
+    "work_throughput_week": "今週の完了",
+    "work_cycle_time_median": "納期の中央値",
+    "work_on_time_rate": "納期遵守率",
+    "work_overdue_count": "期限超過",
+    "work_stalled_count": "停滞",
+    "work_wip_count": "進行中",
+    "work_wip_per_member": "1人あたりの進行中",
+    "work_followup_due_count": "本日フォロー予定",
+    "collab_cross_department_rate": "部署横断の比率",
+    "agent_cost_month": "エージェント費用",
+    "agent_run_failure_rate": "実行失敗率",
+    "knowledge_created_week": "今週のナレッジ追加",
+    "crm_pipeline_weighted_amount": "パイプライン加重額",
+    "crm_contract_signed_month": "今月の契約",
+    "crm_payment_collected_month": "今月の入金",
+    "crm_quote_margin_rate": "案件粗利率",
+    "crm_collab_roi": "案件あたり ROI",
+    "crm_creator_repeat_rate": "クリエイター再登用率"
+  },
+  "gap": {
+    "needs_creators": "クリエイターの記録がまだなく、成果を誰にも紐づけられません。",
+    "needs_clients": "クライアントの記録がまだありません。",
+    "needs_briefs": "案件依頼がまだなく、見積もりも照合もできません。",
+    "needs_collabs": "案件がまだありません。金額・段階・確度はここから来ます。",
+    "needs_settlements": "入出金の記録がまだなく、入金として数えられるものがありません。",
+    "needs_issues": "この数字の元になる Issue に必要な項目が入っていません。",
+    "fill_ledger": "台帳で入力する",
+    "fill_issues": "Issue を開く"
+  },
+  "ledger": {
+    "section": "台帳",
+    "domain": {
+      "creators": "クリエイター",
+      "clients": "クライアント",
+      "briefs": "案件依頼",
+      "collabs": "案件",
+      "settlements": "精算"
+    },
+    "column": {
+      "creator": "クリエイター",
+      "creator_ref": "クリエイター",
+      "platform": "プラットフォーム",
+      "fans": "フォロワー",
+      "score": "評価",
+      "risk": "リスク",
+      "client": "クライアント",
+      "brand": "ブランド",
+      "industry": "業種",
+      "brief": "案件依頼",
+      "budget": "予算",
+      "deliverable": "形式",
+      "schedule": "日程",
+      "collab": "案件",
+      "stage": "段階",
+      "contract_amount": "契約額",
+      "scheduled": "公開",
+      "settlement": "精算",
+      "amount": "金額",
+      "due": "支払期日",
+      "paid": "支払済"
+    },
+    "deliverable": {
+      "short_video": "ショート動画",
+      "post": "投稿",
+      "live": "ライブ"
+    },
+    "stage": {
+      "inquiry": "問い合わせ",
+      "quoted": "見積済",
+      "negotiating": "交渉中",
+      "confirmed": "確定",
+      "sampling": "サンプル送付",
+      "script_review": "台本確認",
+      "scheduled": "日程確定",
+      "published": "公開済",
+      "accepted": "検収済",
+      "settled": "精算済",
+      "cancelled": "中止"
+    },
+    "settlement_kind": {
+      "prepay": "前払い",
+      "final": "残金",
+      "platform_fee": "プラットフォーム手数料",
+      "tax": "税"
+    },
+    "risk_flagged": "要注意",
+    "unpaid": "未払い",
+    "empty_title": "{{domain}}はまだありません",
+    "empty_description": "ここで入力した行が概要の指標を点灯させます。",
+    "error_title": "台帳を読み込めませんでした",
+    "error_description": "接続を確認してから再試行してください。",
+    "retry": "再試行"
+  },
+  "team": {
+    "section": "チーム",
+    "unassigned": "部署なし",
+    "group_counts": "{{members}} 人 · エージェント {{agents}}",
+    "role": {
+      "owner": "オーナー",
+      "admin": "管理者",
+      "member": "メンバー"
+    },
+    "availability": {
+      "online": "オンライン",
+      "unstable": "切断直後",
+      "offline": "オフライン",
+      "archived": "アーカイブ済"
+    },
+    "workload": {
+      "working": "実行中",
+      "queued": "待機中",
+      "idle": "待機なし"
+    },
+    "load": "{{running}}/{{capacity}}",
+    "empty_title": "まだ誰もいません",
+    "empty_description": "メンバーを招待しエージェントを作成すると、ここに表示されます。"
+  }
+}

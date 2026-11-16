@@ -1,0 +1,144 @@
+{
+  "title": "Workbench",
+  "tabs": {
+    "overview": "Overview",
+    "ledger": "Ledger",
+    "team": "Team"
+  },
+  "department": {
+    "label": "Department",
+    "all": "All departments"
+  },
+  "unit": {
+    "days": "d",
+    "hours": "h",
+    "percent": "%",
+    "ratio": "×",
+    "currency": {
+      "CNY": "¥",
+      "USD": "$"
+    }
+  },
+  "metric_value": {
+    "zero": "None yet",
+    "samples": "of {{count}} rows"
+  },
+  "metric": {
+    "work_throughput_week": "Closed this week",
+    "work_cycle_time_median": "Median cycle time",
+    "work_on_time_rate": "On-time rate",
+    "work_overdue_count": "Overdue",
+    "work_stalled_count": "Stalled",
+    "work_wip_count": "In progress",
+    "work_wip_per_member": "In progress per person",
+    "work_followup_due_count": "Follow-up due today",
+    "collab_cross_department_rate": "Cross-department work",
+    "agent_cost_month": "Agent cost",
+    "agent_run_failure_rate": "Run failure rate",
+    "knowledge_created_week": "Added this week",
+    "crm_pipeline_weighted_amount": "Weighted pipeline",
+    "crm_contract_signed_month": "Signed this month",
+    "crm_payment_collected_month": "Collected this month",
+    "crm_quote_margin_rate": "Collaboration margin",
+    "crm_collab_roi": "Return per collaboration",
+    "crm_creator_repeat_rate": "Repeat creators"
+  },
+  "gap": {
+    "needs_creators": "No creator records yet, so nothing can be attributed to anyone.",
+    "needs_clients": "No client records yet.",
+    "needs_briefs": "No briefs yet, so there is nothing to match or quote against.",
+    "needs_collabs": "No collaborations yet — amounts, stages and probabilities all come from here.",
+    "needs_settlements": "No settlement records yet, so nothing counts as collected.",
+    "needs_issues": "The issues behind this number are missing a field it needs.",
+    "fill_ledger": "Fill it in the ledger",
+    "fill_issues": "Open issues"
+  },
+  "ledger": {
+    "section": "Ledgers",
+    "domain": {
+      "creators": "Creators",
+      "clients": "Clients",
+      "briefs": "Briefs",
+      "collabs": "Collaborations",
+      "settlements": "Settlements"
+    },
+    "column": {
+      "creator": "Creator",
+      "creator_ref": "Creator",
+      "platform": "Platform",
+      "fans": "Followers",
+      "score": "Score",
+      "risk": "Risk",
+      "client": "Client",
+      "brand": "Brand",
+      "industry": "Industry",
+      "brief": "Brief",
+      "budget": "Budget",
+      "deliverable": "Format",
+      "schedule": "Schedule",
+      "collab": "Collaboration",
+      "stage": "Stage",
+      "contract_amount": "Contract",
+      "scheduled": "Publishing",
+      "settlement": "Settlement",
+      "amount": "Amount",
+      "due": "Due",
+      "paid": "Paid"
+    },
+    "deliverable": {
+      "short_video": "Short video",
+      "post": "Post",
+      "live": "Live"
+    },
+    "stage": {
+      "inquiry": "Inquiry",
+      "quoted": "Quoted",
+      "negotiating": "Negotiating",
+      "confirmed": "Confirmed",
+      "sampling": "Sampling",
+      "script_review": "Script review",
+      "scheduled": "Scheduled",
+      "published": "Published",
+      "accepted": "Accepted",
+      "settled": "Settled",
+      "cancelled": "Cancelled"
+    },
+    "settlement_kind": {
+      "prepay": "Prepayment",
+      "final": "Final payment",
+      "platform_fee": "Platform fee",
+      "tax": "Tax"
+    },
+    "risk_flagged": "Flagged",
+    "unpaid": "Unpaid",
+    "empty_title": "No {{domain}} yet",
+    "empty_description": "Rows entered here feed the metrics on the overview.",
+    "error_title": "Couldn't load this ledger",
+    "error_description": "Check the connection, then try again.",
+    "retry": "Retry"
+  },
+  "team": {
+    "section": "Team",
+    "unassigned": "No department",
+    "group_counts": "{{members}} people · {{agents}} agents",
+    "role": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member"
+    },
+    "availability": {
+      "online": "Online",
+      "unstable": "Recently lost",
+      "offline": "Offline",
+      "archived": "Archived"
+    },
+    "workload": {
+      "working": "Working",
+      "queued": "Waiting",
+      "idle": "Idle"
+    },
+    "load": "{{running}}/{{capacity}}",
+    "empty_title": "No one here yet",
+    "empty_description": "Invite members and create agents, then their work shows up here."
+  }
+}

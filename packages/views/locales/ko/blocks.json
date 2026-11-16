@@ -1,0 +1,144 @@
+{
+  "title": "워크벤치",
+  "tabs": {
+    "overview": "개요",
+    "ledger": "대장",
+    "team": "팀"
+  },
+  "department": {
+    "label": "부서",
+    "all": "모든 부서"
+  },
+  "unit": {
+    "days": "일",
+    "hours": "시간",
+    "percent": "%",
+    "ratio": "배",
+    "currency": {
+      "CNY": "¥",
+      "USD": "$"
+    }
+  },
+  "metric_value": {
+    "zero": "아직 없음",
+    "samples": "{{count}}건 기준"
+  },
+  "metric": {
+    "work_throughput_week": "이번 주 완료",
+    "work_cycle_time_median": "납기 소요 중앙값",
+    "work_on_time_rate": "정시 완료율",
+    "work_overdue_count": "기한 초과",
+    "work_stalled_count": "정체",
+    "work_wip_count": "진행 중",
+    "work_wip_per_member": "1인당 진행 중",
+    "work_followup_due_count": "오늘 팔로업",
+    "collab_cross_department_rate": "부서 간 협업 비율",
+    "agent_cost_month": "에이전트 비용",
+    "agent_run_failure_rate": "실행 실패율",
+    "knowledge_created_week": "이번 주 지식 추가",
+    "crm_pipeline_weighted_amount": "파이프라인 가중액",
+    "crm_contract_signed_month": "이번 달 계약",
+    "crm_payment_collected_month": "이번 달 입금",
+    "crm_quote_margin_rate": "협업 마진율",
+    "crm_collab_roi": "협업당 ROI",
+    "crm_creator_repeat_rate": "크리에이터 재섭외율"
+  },
+  "gap": {
+    "needs_creators": "크리에이터 기록이 없어 성과를 누구에게도 귀속할 수 없습니다.",
+    "needs_clients": "클라이언트 기록이 아직 없습니다.",
+    "needs_briefs": "브리프가 없어 견적과 매칭을 할 수 없습니다.",
+    "needs_collabs": "협업이 없습니다. 금액·단계·확률이 모두 여기서 나옵니다.",
+    "needs_settlements": "정산 기록이 없어 입금으로 잡히는 금액이 없습니다.",
+    "needs_issues": "이 숫자를 만드는 Issue에 필요한 필드가 비어 있습니다.",
+    "fill_ledger": "대장에서 입력",
+    "fill_issues": "Issue 열기"
+  },
+  "ledger": {
+    "section": "대장",
+    "domain": {
+      "creators": "크리에이터",
+      "clients": "클라이언트",
+      "briefs": "브리프",
+      "collabs": "협업",
+      "settlements": "정산"
+    },
+    "column": {
+      "creator": "크리에이터",
+      "creator_ref": "크리에이터",
+      "platform": "플랫폼",
+      "fans": "팔로워",
+      "score": "등급",
+      "risk": "위험",
+      "client": "클라이언트",
+      "brand": "브랜드",
+      "industry": "업종",
+      "brief": "브리프",
+      "budget": "예산",
+      "deliverable": "형식",
+      "schedule": "일정",
+      "collab": "협업",
+      "stage": "단계",
+      "contract_amount": "계약액",
+      "scheduled": "게시",
+      "settlement": "정산",
+      "amount": "금액",
+      "due": "기한",
+      "paid": "지급"
+    },
+    "deliverable": {
+      "short_video": "숏폼 영상",
+      "post": "게시물",
+      "live": "라이브"
+    },
+    "stage": {
+      "inquiry": "문의",
+      "quoted": "견적 완료",
+      "negotiating": "협상 중",
+      "confirmed": "확정",
+      "sampling": "샘플 발송",
+      "script_review": "스크립트 검수",
+      "scheduled": "일정 확정",
+      "published": "게시 완료",
+      "accepted": "검수 완료",
+      "settled": "정산 완료",
+      "cancelled": "취소"
+    },
+    "settlement_kind": {
+      "prepay": "선금",
+      "final": "잔금",
+      "platform_fee": "플랫폼 수수료",
+      "tax": "세금"
+    },
+    "risk_flagged": "위험 표시",
+    "unpaid": "미지급",
+    "empty_title": "{{domain}}이 아직 없습니다",
+    "empty_description": "여기서 입력한 행이 개요의 지표를 켭니다.",
+    "error_title": "대장을 불러오지 못했습니다",
+    "error_description": "연결을 확인한 뒤 다시 시도하세요.",
+    "retry": "다시 시도"
+  },
+  "team": {
+    "section": "팀",
+    "unassigned": "부서 없음",
+    "group_counts": "{{members}}명 · 에이전트 {{agents}}개",
+    "role": {
+      "owner": "소유자",
+      "admin": "관리자",
+      "member": "멤버"
+    },
+    "availability": {
+      "online": "온라인",
+      "unstable": "방금 끊김",
+      "offline": "오프라인",
+      "archived": "보관됨"
+    },
+    "workload": {
+      "working": "작업 중",
+      "queued": "대기 중",
+      "idle": "유휴"
+    },
+    "load": "{{running}}/{{capacity}}",
+    "empty_title": "아직 아무도 없습니다",
+    "empty_description": "멤버를 초대하고 에이전트를 만들면 여기에 표시됩니다."
+  }
+}

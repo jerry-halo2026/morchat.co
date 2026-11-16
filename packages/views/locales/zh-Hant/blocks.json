@@ -1,0 +1,144 @@
+{
+  "title": "工作台",
+  "tabs": {
+    "overview": "總覽",
+    "ledger": "台帳",
+    "team": "團隊"
+  },
+  "department": {
+    "label": "部門",
+    "all": "全部部門"
+  },
+  "unit": {
+    "days": "天",
+    "hours": "小時",
+    "percent": "%",
+    "ratio": "倍",
+    "currency": {
+      "CNY": "¥",
+      "USD": "$"
+    }
+  },
+  "metric_value": {
+    "zero": "暫無",
+    "samples": "統計 {{count}} 筆"
+  },
+  "metric": {
+    "work_throughput_week": "本週完成",
+    "work_cycle_time_median": "交付週期中位數",
+    "work_on_time_rate": "準時率",
+    "work_overdue_count": "逾期",
+    "work_stalled_count": "停滯",
+    "work_wip_count": "進行中",
+    "work_wip_per_member": "人均進行中",
+    "work_followup_due_count": "今日待跟進",
+    "collab_cross_department_rate": "跨部門協作比",
+    "agent_cost_month": "智能體成本",
+    "agent_run_failure_rate": "執行失敗率",
+    "knowledge_created_week": "本週知識新增",
+    "crm_pipeline_weighted_amount": "管道加權金額",
+    "crm_contract_signed_month": "本月簽約",
+    "crm_payment_collected_month": "本月回款",
+    "crm_quote_margin_rate": "合作毛利率",
+    "crm_collab_roi": "單筆合作 ROI",
+    "crm_creator_repeat_rate": "達人複投率"
+  },
+  "gap": {
+    "needs_creators": "還沒有達人紀錄，成果無法歸因到人。",
+    "needs_clients": "還沒有客戶紀錄。",
+    "needs_briefs": "還沒有需求單，無法報價與媒合。",
+    "needs_collabs": "還沒有合作單——金額、階段與機率都來自這裡。",
+    "needs_settlements": "還沒有結算流水，所以沒有可計的實付。",
+    "needs_issues": "支撐這個數字的 Issue 還缺一個欄位。",
+    "fill_ledger": "去台帳補登",
+    "fill_issues": "開啟 Issue"
+  },
+  "ledger": {
+    "section": "台帳",
+    "domain": {
+      "creators": "達人庫",
+      "clients": "客戶",
+      "briefs": "需求單",
+      "collabs": "合作單",
+      "settlements": "結算"
+    },
+    "column": {
+      "creator": "達人",
+      "creator_ref": "達人",
+      "platform": "平台",
+      "fans": "粉絲",
+      "score": "評級",
+      "risk": "風險",
+      "client": "客戶",
+      "brand": "品牌",
+      "industry": "行業",
+      "brief": "需求單",
+      "budget": "預算",
+      "deliverable": "形式",
+      "schedule": "排程",
+      "collab": "合作單",
+      "stage": "階段",
+      "contract_amount": "合約額",
+      "scheduled": "發布",
+      "settlement": "結算",
+      "amount": "金額",
+      "due": "到期",
+      "paid": "實付"
+    },
+    "deliverable": {
+      "short_video": "短影音",
+      "post": "圖文",
+      "live": "直播"
+    },
+    "stage": {
+      "inquiry": "詢單",
+      "quoted": "已報價",
+      "negotiating": "議價中",
+      "confirmed": "已確認",
+      "sampling": "寄樣",
+      "script_review": "腳本審核",
+      "scheduled": "已排程",
+      "published": "已發布",
+      "accepted": "已驗收",
+      "settled": "已結算",
+      "cancelled": "已取消"
+    },
+    "settlement_kind": {
+      "prepay": "預付款",
+      "final": "尾款",
+      "platform_fee": "平台費",
+      "tax": "稅費"
+    },
+    "risk_flagged": "有風險",
+    "unpaid": "未付",
+    "empty_title": "還沒有{{domain}}",
+    "empty_description": "在這裡登錄的資料會點亮總覽裡的指標。",
+    "error_title": "台帳載入失敗",
+    "error_description": "檢查連線後重試。",
+    "retry": "重試"
+  },
+  "team": {
+    "section": "團隊",
+    "unassigned": "未分配部門",
+    "group_counts": "{{members}} 人 · {{agents}} 個智能體",
+    "role": {
+      "owner": "擁有者",
+      "admin": "管理員",
+      "member": "成員"
+    },
+    "availability": {
+      "online": "在線",
+      "unstable": "剛斷線",
+      "offline": "離線",
+      "archived": "已封存"
+    },
+    "workload": {
+      "working": "工作中",
+      "queued": "排隊中",
+      "idle": "閒置"
+    },
+    "load": "{{running}}/{{capacity}}",
+    "empty_title": "這裡還沒有人",
+    "empty_description": "邀請成員、建立智能體後，他們的工作會出現在這裡。"
+  }
+}

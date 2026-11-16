@@ -32,6 +32,9 @@ const SPACE_BY_SEGMENT: Record<string, AppSpaceId> = {
   issues: "work",
   projects: "work",
   views: "work",
+  // The workbench reads delivery work plus the ledgers beside it, so it stays
+  // in Work rather than opening a space of its own: same panel, same rows.
+  overview: "work",
   agents: "team",
   squads: "team",
   members: "team",

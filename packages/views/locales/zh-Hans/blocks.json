@@ -1,0 +1,144 @@
+{
+  "title": "工作台",
+  "tabs": {
+    "overview": "概览",
+    "ledger": "台账",
+    "team": "团队"
+  },
+  "department": {
+    "label": "部门",
+    "all": "全部部门"
+  },
+  "unit": {
+    "days": "天",
+    "hours": "小时",
+    "percent": "%",
+    "ratio": "倍",
+    "currency": {
+      "CNY": "¥",
+      "USD": "$"
+    }
+  },
+  "metric_value": {
+    "zero": "暂无",
+    "samples": "统计 {{count}} 条"
+  },
+  "metric": {
+    "work_throughput_week": "本周完成",
+    "work_cycle_time_median": "交付周期中位数",
+    "work_on_time_rate": "准时率",
+    "work_overdue_count": "逾期",
+    "work_stalled_count": "停滞",
+    "work_wip_count": "在办",
+    "work_wip_per_member": "人均在办",
+    "work_followup_due_count": "今日待跟进",
+    "collab_cross_department_rate": "跨部门协作比",
+    "agent_cost_month": "智能体成本",
+    "agent_run_failure_rate": "运行失败率",
+    "knowledge_created_week": "本周知识新增",
+    "crm_pipeline_weighted_amount": "管道加权金额",
+    "crm_contract_signed_month": "本月签约",
+    "crm_payment_collected_month": "本月回款",
+    "crm_quote_margin_rate": "合作毛利率",
+    "crm_collab_roi": "单条合作 ROI",
+    "crm_creator_repeat_rate": "达人复投率"
+  },
+  "gap": {
+    "needs_creators": "还没有达人记录，成果无法归因到人。",
+    "needs_clients": "还没有客户记录。",
+    "needs_briefs": "还没有需求单，无法报价与匹配。",
+    "needs_collabs": "还没有合作单——金额、阶段和概率都来自这里。",
+    "needs_settlements": "还没有结算流水，所以没有可计的实付。",
+    "needs_issues": "支撑这个数字的 Issue 还缺一个字段。",
+    "fill_ledger": "去台账补录",
+    "fill_issues": "打开 Issue"
+  },
+  "ledger": {
+    "section": "台账",
+    "domain": {
+      "creators": "达人库",
+      "clients": "客户",
+      "briefs": "需求单",
+      "collabs": "合作单",
+      "settlements": "结算"
+    },
+    "column": {
+      "creator": "达人",
+      "creator_ref": "达人",
+      "platform": "平台",
+      "fans": "粉丝",
+      "score": "评级",
+      "risk": "风险",
+      "client": "客户",
+      "brand": "品牌",
+      "industry": "行业",
+      "brief": "需求单",
+      "budget": "预算",
+      "deliverable": "形式",
+      "schedule": "排期",
+      "collab": "合作单",
+      "stage": "阶段",
+      "contract_amount": "合同额",
+      "scheduled": "发布",
+      "settlement": "结算",
+      "amount": "金额",
+      "due": "到期",
+      "paid": "实付"
+    },
+    "deliverable": {
+      "short_video": "短视频",
+      "post": "图文",
+      "live": "直播"
+    },
+    "stage": {
+      "inquiry": "询单",
+      "quoted": "已报价",
+      "negotiating": "议价中",
+      "confirmed": "已确认",
+      "sampling": "寄样",
+      "script_review": "脚本审核",
+      "scheduled": "已排期",
+      "published": "已发布",
+      "accepted": "已验收",
+      "settled": "已结算",
+      "cancelled": "已取消"
+    },
+    "settlement_kind": {
+      "prepay": "预付款",
+      "final": "尾款",
+      "platform_fee": "平台费",
+      "tax": "税费"
+    },
+    "risk_flagged": "有风险",
+    "unpaid": "未付",
+    "empty_title": "还没有{{domain}}",
+    "empty_description": "在这里录入的行会点亮概览里的指标。",
+    "error_title": "台账加载失败",
+    "error_description": "检查网络后重试。",
+    "retry": "重试"
+  },
+  "team": {
+    "section": "团队",
+    "unassigned": "未分配部门",
+    "group_counts": "{{members}} 人 · {{agents}} 个智能体",
+    "role": {
+      "owner": "所有者",
+      "admin": "管理员",
+      "member": "成员"
+    },
+    "availability": {
+      "online": "在线",
+      "unstable": "刚断开",
+      "offline": "离线",
+      "archived": "已归档"
+    },
+    "workload": {
+      "working": "工作中",
+      "queued": "排队中",
+      "idle": "空闲"
+    },
+    "load": "{{running}}/{{capacity}}",
+    "empty_title": "这里还没有人",
+    "empty_description": "邀请成员、创建智能体后，他们的工作会出现在这里。"
+  }
+}

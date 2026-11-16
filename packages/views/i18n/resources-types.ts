@@ -29,6 +29,7 @@ import type squads from "../locales/en/squads.json";
 import type billing from "../locales/en/billing.json";
 import type presets from "../locales/en/presets.json";
 import type knowledge from "../locales/en/knowledge.json";
+import type blocks from "../locales/en/blocks.json";
 
 // Module augmentation enables i18next v26 selector API across the monorepo:
 // `t($ => $.signin.title)` resolves to the value in en/auth.json.
@@ -72,6 +73,7 @@ declare global {
     billing: typeof billing;
     presets: typeof presets;
     knowledge: typeof knowledge;
+    blocks: typeof blocks;
   }
 }
 

@@ -1,0 +1,144 @@
+{
+  "title": "Рабочий стол",
+  "tabs": {
+    "overview": "Обзор",
+    "ledger": "Реестр",
+    "team": "Команда"
+  },
+  "department": {
+    "label": "Отдел",
+    "all": "Все отделы"
+  },
+  "unit": {
+    "days": "дн.",
+    "hours": "ч",
+    "percent": "%",
+    "ratio": "×",
+    "currency": {
+      "CNY": "¥",
+      "USD": "$"
+    }
+  },
+  "metric_value": {
+    "zero": "Пока нет",
+    "samples": "по {{count}} строкам"
+  },
+  "metric": {
+    "work_throughput_week": "Закрыто за неделю",
+    "work_cycle_time_median": "Медианный срок",
+    "work_on_time_rate": "Доля в срок",
+    "work_overdue_count": "Просрочено",
+    "work_stalled_count": "Застряло",
+    "work_wip_count": "В работе",
+    "work_wip_per_member": "В работе на человека",
+    "work_followup_due_count": "Напоминания на сегодня",
+    "collab_cross_department_rate": "Межотдельская работа",
+    "agent_cost_month": "Расходы агентов",
+    "agent_run_failure_rate": "Доля сбоев",
+    "knowledge_created_week": "Добавлено за неделю",
+    "crm_pipeline_weighted_amount": "Взвешенная воронка",
+    "crm_contract_signed_month": "Подписано за месяц",
+    "crm_payment_collected_month": "Получено за месяц",
+    "crm_quote_margin_rate": "Маржа сотрудничества",
+    "crm_collab_roi": "Возврат на сотрудничество",
+    "crm_creator_repeat_rate": "Повторные авторы"
+  },
+  "gap": {
+    "needs_creators": "Записей об авторах ещё нет, результат не на кого отнести.",
+    "needs_clients": "Записей о клиентах ещё нет.",
+    "needs_briefs": "Брифов ещё нет, оценивать и сопоставлять нечего.",
+    "needs_collabs": "Сотрудничеств ещё нет: суммы, этапы и вероятности берутся отсюда.",
+    "needs_settlements": "Расчётов ещё нет, поэтому нечего считать полученным.",
+    "needs_issues": "У задач, на которых строится число, не заполнено поле.",
+    "fill_ledger": "Заполнить в реестре",
+    "fill_issues": "Открыть задачи"
+  },
+  "ledger": {
+    "section": "Реестры",
+    "domain": {
+      "creators": "Авторы",
+      "clients": "Клиенты",
+      "briefs": "Брифы",
+      "collabs": "Сотрудничества",
+      "settlements": "Расчёты"
+    },
+    "column": {
+      "creator": "Автор",
+      "creator_ref": "Автор",
+      "platform": "Площадка",
+      "fans": "Подписчики",
+      "score": "Оценка",
+      "risk": "Риск",
+      "client": "Клиент",
+      "brand": "Бренд",
+      "industry": "Отрасль",
+      "brief": "Бриф",
+      "budget": "Бюджет",
+      "deliverable": "Формат",
+      "schedule": "Сроки",
+      "collab": "Сотрудничество",
+      "stage": "Этап",
+      "contract_amount": "Сумма договора",
+      "scheduled": "Публикация",
+      "settlement": "Расчёт",
+      "amount": "Сумма",
+      "due": "Срок оплаты",
+      "paid": "Оплачено"
+    },
+    "deliverable": {
+      "short_video": "Короткое видео",
+      "post": "Пост",
+      "live": "Прямой эфир"
+    },
+    "stage": {
+      "inquiry": "Запрос",
+      "quoted": "Оценено",
+      "negotiating": "Переговоры",
+      "confirmed": "Подтверждено",
+      "sampling": "Образцы",
+      "script_review": "Проверка сценария",
+      "scheduled": "Запланировано",
+      "published": "Опубликовано",
+      "accepted": "Принято",
+      "settled": "Рассчитано",
+      "cancelled": "Отменено"
+    },
+    "settlement_kind": {
+      "prepay": "Предоплата",
+      "final": "Остаток",
+      "platform_fee": "Комиссия платформы",
+      "tax": "Налог"
+    },
+    "risk_flagged": "Отмечен",
+    "unpaid": "Не оплачено",
+    "empty_title": "{{domain}} пока нет",
+    "empty_description": "Строки, введённые здесь, включают показатели в обзоре.",
+    "error_title": "Не удалось загрузить реестр",
+    "error_description": "Проверьте соединение и повторите попытку.",
+    "retry": "Повторить"
+  },
+  "team": {
+    "section": "Команда",
+    "unassigned": "Без отдела",
+    "group_counts": "{{members}} чел. · агентов: {{agents}}",
+    "role": {
+      "owner": "Владелец",
+      "admin": "Администратор",
+      "member": "Участник"
+    },
+    "availability": {
+      "online": "В сети",
+      "unstable": "Только что пропал",
+      "offline": "Не в сети",
+      "archived": "В архиве"
+    },
+    "workload": {
+      "working": "Работает",
+      "queued": "В очереди",
+      "idle": "Простаивает"
+    },
+    "load": "{{running}}/{{capacity}}",
+    "empty_title": "Здесь пока никого",
+    "empty_description": "Пригласите участников и создайте агентов — их работа появится здесь."
+  }
+}
