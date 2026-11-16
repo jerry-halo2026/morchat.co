@@ -87,10 +87,19 @@ var workbenchMetricCatalog = []struct {
 // metricValue builds one entry. `computable` is what decides null: a metric whose
 // sample size is zero has no value, and saying so is the whole point of the
 // three-state contract.
+//
+// `empty` reports the state the value is in, not the contract's rule verbatim:
+// a metric that produced a number is never `insufficient_data`, even when its
+// rule says an empty ledger would be. Sending the rule unconditionally made the
+// client render a gap card over a real value (hr.interview.on_time_rate = 100 %
+// came back as insufficient_data).
 func metricValue(value float64, computable bool, sampleCount int64, emptyRule string) WorkbenchMetricValue {
 	entry := WorkbenchMetricValue{SampleCount: sampleCount, Empty: emptyRule}
 	if computable {
 		entry.Value = &value
+		if emptyRule == metricEmptyInsufficientData {
+			entry.Empty = metricEmptyZero
+		}
 	}
 	return entry
 }

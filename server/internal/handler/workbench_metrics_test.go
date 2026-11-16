@@ -8,6 +8,28 @@ import (
 	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
+// A metric that produced a number is never `insufficient_data`, even when its
+// contract rule is. Sending the rule verbatim made the client draw a gap card
+// over a real value: hr.interview.on_time_rate = 100% with one sample came back
+// as empty=insufficient_data and rendered as "not enough data yet".
+func TestMetricValueReportsStateNotRule(t *testing.T) {
+	computed := metricValue(100, true, 1, metricEmptyInsufficientData)
+	if computed.Value == nil || *computed.Value != 100 {
+		t.Fatalf("value = %v, want 100", computed.Value)
+	}
+	if computed.Empty != metricEmptyZero {
+		t.Fatalf("empty = %q, want %q for a computed metric", computed.Empty, metricEmptyZero)
+	}
+
+	missing := metricValue(0, false, 0, metricEmptyInsufficientData)
+	if missing.Value != nil {
+		t.Fatalf("value = %v, want nil", *missing.Value)
+	}
+	if missing.Empty != metricEmptyInsufficientData {
+		t.Fatalf("empty = %q, want %q for a metric with no data", missing.Empty, metricEmptyInsufficientData)
+	}
+}
+
 // Overview / counts tests. The point of these is the three-state contract
 // (docs/METRICS.md §1 rule 3): a metric with no rows behind it must come back as
 // `value: null` + `empty: insufficient_data`, never as a zero the UI would render
