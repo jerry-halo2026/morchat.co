@@ -5,8 +5,8 @@
   "skipped": [
     "docs/archive/**"
   ],
-  "count": 193,
-  "fingerprint": "b3fc9a00359246cdda07ff151458d70be35d1a69a9eb51be42184876da274dd0",
+  "count": 195,
+  "fingerprint": "c7ca9f565b5a4c1fd00060c07b37ed3d41757d4484dc4e4744e7a0482851af2e",
   "docs": [
     {
       "path": "docs/ARCHITECTURE.md",
@@ -1053,6 +1053,44 @@
       ],
       "links_in": [
         "docs/issue-status-lifecycle-rollout.md"
+      ]
+    },
+    {
+      "path": "docs/ops/RELEASE.md",
+      "title": "发版与部署方案",
+      "purpose": "morechat.co 发版与部署方案：tag 触发、产物清单、云端一键部署步骤",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-16",
+      "related": [
+        "docs/ops/SELF-HOST.md",
+        ".github/workflows/release.yml",
+        ".goreleaser.yml"
+      ],
+      "links_out": [
+        "docs/ops/SELF-HOST.md"
+      ],
+      "links_in": [
+        "docs/ops/SELF-HOST.md"
+      ]
+    },
+    {
+      "path": "docs/ops/SELF-HOST.md",
+      "title": "本地 Docker 部署与客户端接入",
+      "purpose": "用 Docker 在本机/自建服务器跑起 morechat.co，并让桌面客户端连上它",
+      "owner": "lead",
+      "status": "current",
+      "updated": "2026-11-16",
+      "related": [
+        "docs/ops/RELEASE.md",
+        "SELF_HOSTING.md",
+        "docker-compose.selfhost.yml"
+      ],
+      "links_out": [
+        "docs/ops/RELEASE.md"
+      ],
+      "links_in": [
+        "docs/ops/RELEASE.md"
       ]
     },
     {
@@ -2909,6 +2947,10 @@
   ],
   "problems": [],
   "dead_links": [
+    "docs/ops/RELEASE.md -> related docs/ops/.github/workflows/release.yml",
+    "docs/ops/RELEASE.md -> related docs/ops/.goreleaser.yml",
+    "docs/ops/SELF-HOST.md -> related docs/ops/SELF_HOSTING.md",
+    "docs/ops/SELF-HOST.md -> related docs/ops/docker-compose.selfhost.yml",
     "docs/tasks/PASSWORD-AUTH.md -> related docs/tasks/server/cmd/multica/cmd_user_password.go",
     "docs/tasks/PASSWORD-AUTH.md -> related docs/tasks/server/internal/auth/password.go",
     "docs/tasks/PASSWORD-AUTH.md -> related docs/tasks/server/internal/handler/auth_password.go",

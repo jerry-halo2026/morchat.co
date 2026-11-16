@@ -174,6 +174,13 @@ C03 的详细生效规则由 PRODUCT-LIFECYCLE 管；C01 在 ARCHITECTURE 定义
 | [工具链](engineering/TOOLCHAIN.md) | 三层工具链的职责与协作规则（pnpm/turbo、Go、Postgres、入口胶水） | lead | current | 2026-11-11 |
 | [Issue wakeups](engineering/issue-wakeups.md) | Issue wakeups | engineering | current | 2026-11-06 |
 
+### ops
+
+| 文档 | purpose | owner | status | updated |
+|---|---|---|---|---|
+| [发版与部署方案](ops/RELEASE.md) | morechat.co 发版与部署方案：tag 触发、产物清单、云端一键部署步骤 | lead | current | 2026-11-16 |
+| [本地 Docker 部署与客户端接入](ops/SELF-HOST.md) | 用 Docker 在本机/自建服务器跑起 morechat.co，并让桌面客户端连上它 | lead | current | 2026-11-16 |
+
 ### plans
 
 | 文档 | purpose | owner | status | updated |

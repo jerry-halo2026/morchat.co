@@ -48,3 +48,15 @@ coverage
 /.github/
 /deploy/
 /scripts/
+
+# Nested build artefacts and the desktop's bundled runtime/toolchain.
+# Without these the build context grows past 6 GB (packages/*/node_modules and
+# apps/desktop/resources hold the portable python/git/node/dsh trees).
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+/apps/desktop/resources
+/apps/desktop/dist
+/local
+/.local
