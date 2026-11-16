@@ -94,6 +94,7 @@ type PasswordFailure =
   | "locked"
   | "weak_password"
   | "unavailable"
+  | "conflict"
   | "unknown";
 
 // Helpers
@@ -181,6 +182,9 @@ export function readPasswordFailure(error: unknown): {
   }
   if (code === "weak_password") return { kind: "weak_password" };
   if (code === "invalid_credentials" || status === 401) return { kind: "invalid_credentials" };
+  // A local account already owns this email; the Supabase identity is not
+  // auto-linked, so this is an administrator decision, not a wrong password.
+  if (status === 409) return { kind: "conflict" };
   if (status === 404 || status === 405) return { kind: "unavailable" };
   return { kind: "unknown" };
 }
@@ -484,6 +488,8 @@ export function LoginPage({
             : t(($) => $.password.locked_no_wait);
         case "weak_password":
           return t(($) => $.password.weak_password);
+        case "conflict":
+          return t(($) => $.password.account_conflict);
         case "unavailable":
           return t(($) => $.password.unavailable);
         default:
