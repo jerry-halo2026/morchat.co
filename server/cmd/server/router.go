@@ -2585,6 +2585,10 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 			// to reach the content repository's raw host directly.
 			r.Route("/api/presets", func(r chi.Router) {
 				r.Get("/catalog", h.GetPresetCatalog)
+				// Package documents (preset.json, SKILL.md, reference files) go
+				// through the same proxy: the client cannot rely on reaching the
+				// raw host, and an import must not stall on it.
+				r.Get("/content", h.GetPresetContent)
 			})
 
 			// Dashboard — workspace-wide token + run-time rollups for the

@@ -66,6 +66,20 @@ export const DEFAULT_PRESET_BASE_URL =
   "https://raw.githubusercontent.com/jerry-halo2026/morechat.co-Assistant/main";
 
 /** Server-side proxy that mirrors index.json (see server/internal/handler/presets.go). */
+/**
+ * One package document through our own API. Returns null when there is no API
+ * client yet (SSR, tests), which sends the caller down the direct path.
+ */
+function presetContentProxyUrl(path: string): string | null {
+  try {
+    const base = getApi().getBaseUrl().replace(/\/+$/, "");
+    if (!base) return null;
+    return `${base}/api/presets/content?path=${encodeURIComponent(path)}`;
+  } catch {
+    return null;
+  }
+}
+
 export const DEFAULT_PRESET_PROXY_URL = "/api/presets/catalog";
 
 /**
@@ -318,6 +332,20 @@ export function createPresetSource(
   const loadDoc = async (path: string): Promise<string | null> => {
     const cached = docCache.get(path);
     if (!isExpired(cached, now(), ttl)) return cached!.value;
+    // Our own proxy first: a desktop renderer cannot assume it can reach the raw
+    // host, and an import stalls at the first blocked document.
+    const contentProxy = presetContentProxyUrl(path);
+    if (contentProxy) {
+      try {
+        const { text } = await fetchText(contentProxy, null, proxyHeaders(), "include");
+        if (text !== null) {
+          docCache.set(path, { value: text, etag: null, fetchedAt: now() });
+          return text;
+        }
+      } catch {
+        // Fall through to the direct read below.
+      }
+    }
     try {
       const { text } = await fetchText(joinPresetUrl(baseUrl, path));
       if (text === null) return cached?.value ?? null;
