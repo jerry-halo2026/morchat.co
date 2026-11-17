@@ -229,6 +229,54 @@ export interface WorkbenchCountsResponse {
   employees?: number;
 }
 
+// --- Money block (`GET /api/workbench/finance`) ----------------------------
+//
+// Four figures and one honest gap, all read-only aggregates for one calendar
+// month over the ledgers above (docs/engineering/WORKBENCH-API.md §3,
+// docs/METRICS.md §2). Each travels in the same three-state shape the metric
+// strip uses, so the client renders "not measurable" the same way on both
+// surfaces: `value: null` says the rows behind the figure are missing, which is a
+// different statement from a zero (docs/METRICS.md §1 rule 3).
+
+/** Which contract outcome a block's `empty` names. */
+export type WorkbenchFinanceEmptyState = "zero" | "insufficient_data";
+
+export interface WorkbenchFinanceBlock {
+  value: number | null;
+  /**
+   * Rows the figure was computed from (for a ratio: the denominator). `0` next to
+   * `value: 0` is a true zero — no money moved — not a missing measurement.
+   */
+  sample_count: number;
+  empty: WorkbenchFinanceEmptyState;
+}
+
+export interface WorkbenchFinanceResponse {
+  /** The calendar month every figure describes, `YYYY-MM`. */
+  window: { month: string };
+  /** Contract value confirmed this month, in CNY. Renewals included (C10). */
+  signed: WorkbenchFinanceBlock;
+  /** Settlement money that actually cleared this month, in CNY. */
+  collected: WorkbenchFinanceBlock;
+  /**
+   * (collected − settled cost) / collected at the 0–1 storage scale (C3); the UI
+   * multiplies by 100. Null until both sides of the division have rows.
+   */
+  gross_margin: WorkbenchFinanceBlock;
+  /** Mean age, in days, of the settlements still unpaid. */
+  receivable_days: WorkbenchFinanceBlock;
+  /**
+   * Always `null` + `insufficient_data` today: the schema holds neither an
+   * opening cash balance nor a cost entry, so there is nothing honest to state.
+   */
+  cash_floor: WorkbenchFinanceBlock;
+}
+
+export interface WorkbenchFinanceFilters {
+  /** Aggregate dimension only; never an access boundary (§3). */
+  department_id?: string | null;
+}
+
 // --- List envelopes -------------------------------------------------------
 // Lists page from the server, so every envelope carries `total` (the count the
 // current filters match, not the page length). Creator lists page by cursor and

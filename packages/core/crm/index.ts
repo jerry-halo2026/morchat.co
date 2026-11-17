@@ -9,6 +9,7 @@ export {
   crmCollabListOptions,
   crmSettlementListOptions,
   workbenchCountsOptions,
+  workbenchFinanceOptions,
   workbenchOverviewOptions,
   type CrmResource,
 } from "./queries";

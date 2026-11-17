@@ -1,0 +1,22 @@
+{
+  "tab": "Finances",
+  "card": {
+    "signed": "Signé ce mois-ci",
+    "collected": "Encaissé ce mois-ci",
+    "margin": "Marge brute",
+    "receivable": "Âge des créances",
+    "cash": "Trésorerie plancher"
+  },
+  "hint": {
+    "signed": "Ce mois-ci · renouvellements inclus",
+    "collected": "Ce mois-ci, argent reçu",
+    "margin": "Ce mois-ci · sur coûts réglés",
+    "receivable": "Moyenne des règlements impayés",
+    "cash": "Nécessite un solde d'ouverture et une saisie de coûts"
+  },
+  "empty": {
+    "no_cost": "Aucune collaboration réglée ce mois-ci : la marge n'a pas de coût à comparer.",
+    "cash": "Les coûts et la trésorerie ne sont pas saisis, le plancher ne peut pas être calculé."
+  },
+  "error": "Impossible de charger les chiffres financiers. Vérifiez la connexion, puis réessayez."
+}

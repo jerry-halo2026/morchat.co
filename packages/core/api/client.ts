@@ -200,6 +200,7 @@ import type {
   CreateCrmSettlementRequest,
   UpdateCrmSettlementRequest,
   WorkbenchCountsResponse,
+  WorkbenchFinanceResponse,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -665,6 +666,8 @@ import {
   EMPTY_CRM_SETTLEMENT_LIST_RESPONSE,
   WorkbenchCountsResponseSchema,
   EMPTY_WORKBENCH_COUNTS_RESPONSE,
+  WorkbenchFinanceResponseSchema,
+  EMPTY_WORKBENCH_FINANCE_RESPONSE,
   HrJobSchema,
   HrJobListResponseSchema,
   EMPTY_HR_JOB,
@@ -4004,6 +4007,23 @@ export class ApiClient {
     );
     return parseWithFallback(raw, WorkbenchCountsResponseSchema, EMPTY_WORKBENCH_COUNTS_RESPONSE, {
       endpoint: "GET /api/workbench/counts",
+    });
+  }
+
+  /**
+   * The money block for one department scope (contract §3, `GET /finance`).
+   *
+   * Same read rules as the other two aggregates: any member may read, and
+   * `department_id` narrows the aggregate instead of gating access. The whole
+   * response degrades to the all-gaps shape rather than throwing, so a malformed
+   * money payload leaves the tab with gap cards instead of a blank page.
+   */
+  async getWorkbenchFinance(params: { department_id?: string | null } = {}): Promise<WorkbenchFinanceResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/finance${workbenchSearch({ department_id: params.department_id })}`,
+    );
+    return parseWithFallback(raw, WorkbenchFinanceResponseSchema, EMPTY_WORKBENCH_FINANCE_RESPONSE, {
+      endpoint: "GET /api/workbench/finance",
     });
   }
 

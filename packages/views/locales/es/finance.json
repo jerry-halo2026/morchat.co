@@ -1,0 +1,22 @@
+{
+  "tab": "Finanzas",
+  "card": {
+    "signed": "Firmado este mes",
+    "collected": "Cobrado este mes",
+    "margin": "Margen bruto",
+    "receivable": "Antigüedad de cobro",
+    "cash": "Colchón de caja"
+  },
+  "hint": {
+    "signed": "Este mes · renovaciones incluidas",
+    "collected": "Este mes, dinero cobrado",
+    "margin": "Este mes · sobre coste liquidado",
+    "receivable": "Media de las liquidaciones sin pagar",
+    "cash": "Requiere saldo inicial y registro de costes"
+  },
+  "empty": {
+    "no_cost": "No se liquidó ninguna colaboración este mes, así que el margen no tiene lado de coste.",
+    "cash": "Faltan los costes y la caja, así que el colchón no se puede calcular."
+  },
+  "error": "No se pudieron cargar las cifras financieras. Comprueba la conexión y vuelve a intentarlo."
+}

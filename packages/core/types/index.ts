@@ -484,6 +484,10 @@ export type {
   UpdateCrmSettlementRequest,
   UpsertCreatorPostMetricRequest,
   WorkbenchCountsResponse,
+  WorkbenchFinanceBlock,
+  WorkbenchFinanceEmptyState,
+  WorkbenchFinanceFilters,
+  WorkbenchFinanceResponse,
 } from "./workbench";
 
 export type { WorkspaceWakeup, WorkspaceWakeupPage, WorkspaceWakeupFilters, WakeupScope } from "./issue-wakeup";

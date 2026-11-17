@@ -27,6 +27,7 @@ import enBilling from "./en/billing.json";
 import enPresets from "./en/presets.json";
 import enKnowledge from "./en/knowledge.json";
 import enBlocks from "./en/blocks.json";
+import enFinance from "./en/finance.json";
 import zhHansCommon from "./zh-Hans/common.json";
 import zhHansAuth from "./zh-Hans/auth.json";
 import zhHansSettings from "./zh-Hans/settings.json";
@@ -55,6 +56,7 @@ import zhHansBilling from "./zh-Hans/billing.json";
 import zhHansPresets from "./zh-Hans/presets.json";
 import zhHansKnowledge from "./zh-Hans/knowledge.json";
 import zhHansBlocks from "./zh-Hans/blocks.json";
+import zhHansFinance from "./zh-Hans/finance.json";
 import zhHantCommon from "./zh-Hant/common.json";
 import zhHantAuth from "./zh-Hant/auth.json";
 import zhHantSettings from "./zh-Hant/settings.json";
@@ -83,6 +85,7 @@ import zhHantBilling from "./zh-Hant/billing.json";
 import zhHantPresets from "./zh-Hant/presets.json";
 import zhHantKnowledge from "./zh-Hant/knowledge.json";
 import zhHantBlocks from "./zh-Hant/blocks.json";
+import zhHantFinance from "./zh-Hant/finance.json";
 import koCommon from "./ko/common.json";
 import koAuth from "./ko/auth.json";
 import koSettings from "./ko/settings.json";
@@ -111,6 +114,7 @@ import koBilling from "./ko/billing.json";
 import koPresets from "./ko/presets.json";
 import koKnowledge from "./ko/knowledge.json";
 import koBlocks from "./ko/blocks.json";
+import koFinance from "./ko/finance.json";
 import jaCommon from "./ja/common.json";
 import jaAuth from "./ja/auth.json";
 import jaSettings from "./ja/settings.json";
@@ -139,6 +143,7 @@ import jaBilling from "./ja/billing.json";
 import jaPresets from "./ja/presets.json";
 import jaKnowledge from "./ja/knowledge.json";
 import jaBlocks from "./ja/blocks.json";
+import jaFinance from "./ja/finance.json";
 import frCommon from "./fr/common.json";
 import frAuth from "./fr/auth.json";
 import frSettings from "./fr/settings.json";
@@ -167,6 +172,7 @@ import frBilling from "./fr/billing.json";
 import frPresets from "./fr/presets.json";
 import frKnowledge from "./fr/knowledge.json";
 import frBlocks from "./fr/blocks.json";
+import frFinance from "./fr/finance.json";
 import esCommon from "./es/common.json";
 import esAuth from "./es/auth.json";
 import esSettings from "./es/settings.json";
@@ -195,6 +201,7 @@ import esBilling from "./es/billing.json";
 import esPresets from "./es/presets.json";
 import esKnowledge from "./es/knowledge.json";
 import esBlocks from "./es/blocks.json";
+import esFinance from "./es/finance.json";
 import ruCommon from "./ru/common.json";
 import ruAuth from "./ru/auth.json";
 import ruSettings from "./ru/settings.json";
@@ -223,6 +230,7 @@ import ruBilling from "./ru/billing.json";
 import ruPresets from "./ru/presets.json";
 import ruKnowledge from "./ru/knowledge.json";
 import ruBlocks from "./ru/blocks.json";
+import ruFinance from "./ru/finance.json";
 
 // Single source of truth for the resource bundle. Both apps (web layout +
 // desktop App.tsx) import from here so adding a locale or namespace happens
@@ -257,6 +265,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     presets: enPresets,
     knowledge: enKnowledge,
     blocks: enBlocks,
+    finance: enFinance,
   },
   "zh-Hans": {
     common: zhHansCommon,
@@ -287,6 +296,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     presets: zhHansPresets,
     knowledge: zhHansKnowledge,
     blocks: zhHansBlocks,
+    finance: zhHansFinance,
   },
   "zh-Hant": {
     common: zhHantCommon,
@@ -317,6 +327,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     presets: zhHantPresets,
     knowledge: zhHantKnowledge,
     blocks: zhHantBlocks,
+    finance: zhHantFinance,
   },
   ko: {
     common: koCommon,
@@ -347,6 +358,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     presets: koPresets,
     knowledge: koKnowledge,
     blocks: koBlocks,
+    finance: koFinance,
   },
   ja: {
     common: jaCommon,
@@ -377,6 +389,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     presets: jaPresets,
     knowledge: jaKnowledge,
     blocks: jaBlocks,
+    finance: jaFinance,
   },
   fr: {
     common: frCommon,
@@ -407,6 +420,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     presets: frPresets,
     knowledge: frKnowledge,
     blocks: frBlocks,
+    finance: frFinance,
   },
   es: {
     common: esCommon,
@@ -437,6 +451,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     presets: esPresets,
     knowledge: esKnowledge,
     blocks: esBlocks,
+    finance: esFinance,
   },
   ru: {
     common: ruCommon,
@@ -467,5 +482,6 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     presets: ruPresets,
     knowledge: ruKnowledge,
     blocks: ruBlocks,
+    finance: ruFinance,
   },
 };

@@ -123,6 +123,7 @@ import type {
   CrmSettlement,
   CrmSettlementListResponse,
   WorkbenchCountsResponse,
+  WorkbenchFinanceResponse,
 } from "../types";
 import type { CloudRuntimeNode } from "../runtimes/cloud-runtime";
 import type { CreateFeedbackResponse } from "../feedback/types";
@@ -4723,6 +4724,73 @@ export const EMPTY_WORKBENCH_COUNTS_RESPONSE: WorkbenchCountsResponse = {
   briefs: 0,
   collabs_open: 0,
   settlements_pending: 0,
+};
+
+// --- Workbench money block (`GET /api/workbench/finance`) -------------------
+//
+// Five entries in the metric strip's own three-state shape. Two rules, both
+// borrowed from `../metrics/response`:
+//
+// 1. A missing figure degrades to "nothing measured" (`value: null` +
+//    `insufficient_data`), never to a zero: rendering 0 for a figure the server
+//    could not state is the confusion docs/METRICS.md rule 3 exists to prevent.
+// 2. A drifted block (a number arriving as a string, an unknown `empty`) degrades
+//    by itself instead of failing the whole response. One broken figure must cost
+//    a tile, not the money tab.
+//
+// `value` stays `number | null`; money is never a string on the wire
+// (§3.1), so a string here is drift and belongs in the degradation path.
+
+const workbenchFinanceEmptyState = z
+  .enum(["zero", "insufficient_data"])
+  .catch("insufficient_data");
+
+export const WorkbenchFinanceBlockSchema = z
+  .object({
+    value: z.number().nullable().default(null),
+    sample_count: z.number().default(0),
+    empty: workbenchFinanceEmptyState,
+  })
+  .loose();
+
+const EMPTY_WORKBENCH_FINANCE_BLOCK: z.output<typeof WorkbenchFinanceBlockSchema> = {
+  value: null,
+  sample_count: 0,
+  empty: "insufficient_data",
+};
+
+/**
+ * One block, with both guards applied: absent → the gap block (`.default`), and
+ * malformed → the gap block (`.catch`). The order matters — a missing key never
+ * reaches the inner schema, so the default has to sit on the outside.
+ */
+const workbenchFinanceBlock = WorkbenchFinanceBlockSchema.default(
+  EMPTY_WORKBENCH_FINANCE_BLOCK,
+).catch(EMPTY_WORKBENCH_FINANCE_BLOCK);
+
+export const WorkbenchFinanceResponseSchema = z
+  .object({
+    // The month label is display copy, so a missing one degrades to an empty
+    // string rather than rejecting the figures the server did send.
+    window: z
+      .object({ month: z.string().default("") })
+      .default({ month: "" })
+      .catch({ month: "" }),
+    signed: workbenchFinanceBlock,
+    collected: workbenchFinanceBlock,
+    gross_margin: workbenchFinanceBlock,
+    receivable_days: workbenchFinanceBlock,
+    cash_floor: workbenchFinanceBlock,
+  })
+  .loose();
+
+export const EMPTY_WORKBENCH_FINANCE_RESPONSE: WorkbenchFinanceResponse = {
+  window: { month: "" },
+  signed: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  collected: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  gross_margin: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  receivable_days: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  cash_floor: EMPTY_WORKBENCH_FINANCE_BLOCK,
 };
 
 // --- HR (docs/engineering/WORKBENCH-API.md §10) ----------------------------

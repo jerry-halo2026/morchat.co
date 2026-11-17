@@ -24,6 +24,7 @@ import { DepartmentSelect } from "../departments/department-select";
 import { ALL_DEPARTMENTS, departmentOptions } from "../departments/lib";
 import { LedgerSection } from "../blocks/ledger-section";
 import { LedgerTable } from "../blocks/ledger-table";
+import { FinanceSection } from "../blocks/finance-section";
 import { MetricRow } from "../blocks/metric-row";
 import { TeamStrip, type TeamStripEvent } from "../blocks/team-strip";
 import {
@@ -38,25 +39,31 @@ import { useNavigation } from "../navigation";
 import { PageHeader } from "../layout/page-header";
 
 const TAB_OVERVIEW = "overview";
+const TAB_FINANCE = "finance";
 const TAB_LEDGER = "ledger";
 const TAB_TEAM = "team";
 
 /**
  * `/{slug}/overview` — one department's workbench.
  *
- * Three tabs over one departmental filter: the metrics, the ledgers behind
- * them, and the people and agents who fill them in. The tab and the department
- * live in the URL, so a link can point at "the client ledger of the ops
- * department" and a new tab opens on the same view.
+ * Four tabs over one departmental filter: the delivery metrics, the money block
+ * that answers what was signed and collected, the ledgers behind both, and the
+ * people and agents who fill them in. The tab and the department live in the URL,
+ * so a link can point at "the client ledger of the ops department" and a new tab
+ * opens on the same view.
  */
 export function OverviewPage() {
   const { t } = useT("blocks");
+  const { t: tFinance } = useT("finance");
   const wsId = useWorkspaceId();
   const navigation = useNavigation();
   const { searchParams } = navigation;
 
   const tabParam = searchParams.get("tab");
-  const tab = tabParam === TAB_LEDGER || tabParam === TAB_TEAM ? tabParam : TAB_OVERVIEW;
+  const tab =
+    tabParam === TAB_LEDGER || tabParam === TAB_TEAM || tabParam === TAB_FINANCE
+      ? tabParam
+      : TAB_OVERVIEW;
   const domainParam = searchParams.get("domain");
   const domain: LedgerDomain = isLedgerDomain(domainParam) ? domainParam : "creators";
   const departmentParam = searchParams.get("dept");
@@ -126,6 +133,12 @@ export function OverviewPage() {
               {t(($) => $.tabs.overview)}
             </TabsTrigger>
             <TabsTrigger
+              value={TAB_FINANCE}
+              className="h-full rounded-none px-2.5 group-data-horizontal/tabs:after:bottom-0"
+            >
+              {tFinance(($) => $.tab)}
+            </TabsTrigger>
+            <TabsTrigger
               value={TAB_LEDGER}
               className="h-full rounded-none px-2.5 group-data-horizontal/tabs:after:bottom-0"
             >
@@ -186,6 +199,10 @@ export function OverviewPage() {
                 <TeamStrip wsId={wsId} departmentId={departmentId} onEvent={handleTeamEvent} />
               </>
             ) : null}
+          </TabsContent>
+
+          <TabsContent value={TAB_FINANCE} className="space-y-5">
+            {wsId ? <FinanceSection wsId={wsId} departmentId={departmentId} /> : null}
           </TabsContent>
 
           <TabsContent value={TAB_LEDGER} className="space-y-5">
@@ -314,6 +331,7 @@ function CreatorsPane({ wsId }: { wsId: string }) {
   });
   return (
     <LedgerTable
+      wsId={wsId}
       domain="creators"
       rows={query.data ?? []}
       loading={query.isPending}
@@ -362,6 +380,7 @@ function CollabsPane({ wsId }: { wsId: string }) {
   });
   return (
     <LedgerTable
+      wsId={wsId}
       domain="collabs"
       rows={query.data ?? []}
       loading={query.isPending}

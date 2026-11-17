@@ -30,6 +30,11 @@ export const workbenchKeys = {
     [...workbenchKeys.all(wsId), "overview", departmentId ?? "all"] as const,
   counts: (wsId: string, departmentId: string | null = null) =>
     [...workbenchKeys.all(wsId), "counts", departmentId ?? "all"] as const,
+  /** The money block shares the `["workbench", wsId, …]` prefix, so the ledger
+   *  events that already invalidate `workbenchKeys.all` refresh it too: a new
+   *  settlement moves both the count and the collected figure. */
+  finance: (wsId: string, departmentId: string | null = null) =>
+    [...workbenchKeys.all(wsId), "finance", departmentId ?? "all"] as const,
 };
 
 /**
@@ -50,6 +55,21 @@ export function workbenchCountsOptions(wsId: string, departmentId: string | null
   return queryOptions({
     queryKey: workbenchKeys.counts(wsId, departmentId),
     queryFn: () => api.getWorkbenchCounts({ department_id: departmentId }),
+    enabled: !!wsId,
+  });
+}
+
+/**
+ * The money block (signed / collected / margin / receivable) for one scope.
+ *
+ * Same scoping rule as the other two aggregates: the department is part of the
+ * key, so switching departments never shows the previous one's money while the
+ * new figures load.
+ */
+export function workbenchFinanceOptions(wsId: string, departmentId: string | null = null) {
+  return queryOptions({
+    queryKey: workbenchKeys.finance(wsId, departmentId),
+    queryFn: () => api.getWorkbenchFinance({ department_id: departmentId }),
     enabled: !!wsId,
   });
 }

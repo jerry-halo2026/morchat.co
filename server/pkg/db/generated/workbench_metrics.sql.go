@@ -94,6 +94,140 @@ func (q *Queries) OverviewCrmCollectedMonth(ctx context.Context, arg OverviewCrm
 	return i, err
 }
 
+const overviewCrmFinance = `-- name: OverviewCrmFinance :one
+WITH signed AS (
+    SELECT
+        coalesce(sum(c.final_amount), 0)::float8 AS amount,
+        (count(*) FILTER (WHERE c.final_amount IS NOT NULL))::bigint AS samples
+    FROM crm_collab c
+    LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+    WHERE c.workspace_id = $1
+      AND c.archived_at IS NULL
+      AND c.stage NOT IN ('inquiry', 'quoted', 'negotiating', 'cancelled')
+      AND c.confirmed_at >= date_trunc('month', now())
+      AND c.confirmed_at < date_trunc('month', now()) + interval '1 month'
+      AND ($2::uuid IS NULL OR m.department_id = $2::uuid)
+),
+collected AS (
+    SELECT
+        coalesce(sum(s.amount), 0)::float8 AS amount,
+        (count(*))::bigint AS samples
+    FROM crm_settlement s
+    JOIN crm_collab c ON c.id = s.collab_id AND c.workspace_id = s.workspace_id
+    LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+    WHERE s.workspace_id = $1
+      AND s.archived_at IS NULL
+      AND s.paid_at >= date_trunc('month', current_date)::date
+      AND s.paid_at < (date_trunc('month', current_date) + interval '1 month')::date
+      AND ($2::uuid IS NULL OR m.department_id = $2::uuid)
+),
+cost AS (
+    SELECT
+        coalesce(sum(
+            coalesce(c.creator_fee, 0) + coalesce(c.sample_cost, 0) + coalesce(c.platform_fee, 0)
+        ), 0)::float8 AS amount,
+        (count(*))::bigint AS samples
+    FROM crm_collab c
+    LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+    WHERE c.workspace_id = $1
+      AND c.archived_at IS NULL
+      AND c.stage = 'settled'
+      AND c.accepted_at >= date_trunc('month', now())
+      AND c.accepted_at < date_trunc('month', now()) + interval '1 month'
+      AND ($2::uuid IS NULL OR m.department_id = $2::uuid)
+),
+receivable AS (
+    SELECT
+        coalesce(avg(EXTRACT(EPOCH FROM (now() - s.created_at))::float8 / 86400.0), 0)::float8 AS avg_days,
+        (count(*))::bigint AS samples
+    FROM crm_settlement s
+    JOIN crm_collab c ON c.id = s.collab_id AND c.workspace_id = s.workspace_id
+    LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+    WHERE s.workspace_id = $1
+      AND s.archived_at IS NULL
+      AND s.paid_at IS NULL
+      AND ($2::uuid IS NULL OR m.department_id = $2::uuid)
+)
+SELECT
+    to_char(date_trunc('month', now()), 'YYYY-MM') AS month,
+    signed.amount AS signed_amount,
+    signed.samples AS signed_samples,
+    collected.amount AS collected_amount,
+    collected.samples AS collected_samples,
+    cost.amount AS cost_amount,
+    cost.samples AS cost_samples,
+    receivable.avg_days AS receivable_days,
+    receivable.samples AS receivable_samples
+FROM signed, collected, cost, receivable
+`
+
+type OverviewCrmFinanceParams struct {
+	WorkspaceID  pgtype.UUID `json:"workspace_id"`
+	DepartmentID pgtype.UUID `json:"department_id"`
+}
+
+type OverviewCrmFinanceRow struct {
+	Month             string  `json:"month"`
+	SignedAmount      float64 `json:"signed_amount"`
+	SignedSamples     int64   `json:"signed_samples"`
+	CollectedAmount   float64 `json:"collected_amount"`
+	CollectedSamples  int64   `json:"collected_samples"`
+	CostAmount        float64 `json:"cost_amount"`
+	CostSamples       int64   `json:"cost_samples"`
+	ReceivableDays    float64 `json:"receivable_days"`
+	ReceivableSamples int64   `json:"receivable_samples"`
+}
+
+// `GET /api/workbench/finance` — the read-only money block: signed, collected,
+// the cost side of gross margin, and receivable age, all for one calendar month.
+// The handler turns these raw sums into the same `{value, sample_count, empty}`
+// triple the metric strip uses, so a figure with no rows behind it is a gap card
+// on both surfaces and never a zero (docs/METRICS.md §1 rule 3).
+//
+// Caliber, figure by figure:
+//
+//   - signed — contract value whose confirmation date (`confirmed_at`, stamped by
+//     the stage transition) falls inside this calendar month, over every stage
+//     reached after negotiating instead of only the `confirmed` stage: a
+//     collaboration confirmed this month and since moved to `sampling` or
+//     `published` is still this month's signature, and testing the stage by
+//     equality would make the number shrink as the work progresses. Per C10 the
+//     total counts every settlement kind, renewals included; a renewal is its
+//     own `crm_settlement` row, so it is signed once here and collected once in
+//     `collected` when it is paid — never twice inside one figure.
+//
+//   - collected — money that cleared this month: `crm_settlement.paid_at` inside
+//     the month. An unpaid row is the receivable below, not revenue.
+//
+//   - cost — creator + sample + platform fees of the collaborations that reached
+//     `settled` this month (`accepted_at`, the milestone that stage stamps).
+//     This is the cost side of gross margin; the division happens in the handler
+//     so a ratio is computed in exactly one place.
+//
+//   - receivable_days — mean age, in days, of the settlements still unpaid,
+//     measured from `created_at`: how long the money has been owed. `samples` is
+//     the denominator the handler needs to tell "0 days" from "nothing owed".
+//
+// Department attribution follows the B0 fallback chain (docs/METRICS.md §4): the
+// collaboration owner's member department, reached from the settlement through
+// its collaboration. Nothing here is an access boundary.
+func (q *Queries) OverviewCrmFinance(ctx context.Context, arg OverviewCrmFinanceParams) (OverviewCrmFinanceRow, error) {
+	row := q.db.QueryRow(ctx, overviewCrmFinance, arg.WorkspaceID, arg.DepartmentID)
+	var i OverviewCrmFinanceRow
+	err := row.Scan(
+		&i.Month,
+		&i.SignedAmount,
+		&i.SignedSamples,
+		&i.CollectedAmount,
+		&i.CollectedSamples,
+		&i.CostAmount,
+		&i.CostSamples,
+		&i.ReceivableDays,
+		&i.ReceivableSamples,
+	)
+	return i, err
+}
+
 const overviewCrmMargin = `-- name: OverviewCrmMargin :one
 SELECT
     coalesce(sum(c.final_amount), 0)::float8 AS revenue,
@@ -268,6 +402,7 @@ FROM crm_collab c
 LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
 WHERE c.workspace_id = $1
   AND c.archived_at IS NULL
+  AND c.stage NOT IN ('inquiry', 'quoted', 'negotiating', 'cancelled')
   AND c.confirmed_at >= date_trunc('month', now())
   AND c.confirmed_at < date_trunc('month', now()) + interval '1 month'
   AND ($2::uuid IS NULL OR m.department_id = $2::uuid)
@@ -286,6 +421,11 @@ type OverviewCrmSignedMonthRow struct {
 // `crm.contract.signed_month`: contract value confirmed in this calendar month.
 // `confirmed_at` is written by the stage transition, so a row that was confirmed
 // last month never lands in this month's number.
+//
+// The stage filter matches `/finance`'s `signed`: a deal that was confirmed and
+// then cancelled, or rolled back to `negotiating`, is not a signed deal. Without
+// it the overview and the finance tab showed two different 签约 numbers for the
+// same month, which reads as a bug to anyone comparing them.
 func (q *Queries) OverviewCrmSignedMonth(ctx context.Context, arg OverviewCrmSignedMonthParams) (OverviewCrmSignedMonthRow, error) {
 	row := q.db.QueryRow(ctx, overviewCrmSignedMonth, arg.WorkspaceID, arg.DepartmentID)
 	var i OverviewCrmSignedMonthRow

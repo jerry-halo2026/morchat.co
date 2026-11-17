@@ -1,0 +1,22 @@
+{
+  "tab": "Money",
+  "card": {
+    "signed": "Signed this month",
+    "collected": "Collected this month",
+    "margin": "Gross margin",
+    "receivable": "Receivable age",
+    "cash": "Cash floor"
+  },
+  "hint": {
+    "signed": "This month · renewals included",
+    "collected": "This month, money that cleared",
+    "margin": "This month · against settled cost",
+    "receivable": "Average over unpaid settlements",
+    "cash": "Needs an opening balance and a cost entry"
+  },
+  "empty": {
+    "no_cost": "No collaboration was settled this month, so the margin has no cost side to measure against.",
+    "cash": "Cost and cash entries are missing, so the cash floor cannot be worked out."
+  },
+  "error": "Couldn't load the money figures. Check the connection, then try again."
+}

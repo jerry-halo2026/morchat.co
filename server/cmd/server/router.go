@@ -2405,6 +2405,7 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 			r.Route("/api/workbench", func(r chi.Router) {
 				r.Get("/overview", h.GetWorkbenchOverview)
 				r.Get("/counts", h.GetWorkbenchCounts)
+				r.Get("/finance", h.GetWorkbenchFinance)
 
 				r.Route("/creators", func(r chi.Router) {
 					r.Get("/", h.ListCreators)

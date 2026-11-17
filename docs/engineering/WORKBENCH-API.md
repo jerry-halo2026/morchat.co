@@ -111,6 +111,7 @@ crm_settlement(id PK, workspace_id, collab_id UUID NOT NULL,
 | --- | --- | --- |
 | GET | `/overview?department_id=` | 聚合指标：`{ metrics: { [MetricId]: { value: number \| null, sample_count: number, empty: "zero"\|"insufficient_data" } } }` |
 | GET | `/counts?department_id=` | 侧栏计数：`{ creators, clients, briefs, collabs_open, settlements_pending }` |
+| GET | `/finance?department_id=` | 经营只读聚合：`{ window, signed, collected, gross_margin, receivable_days, cash_floor }`，见 §3.2 |
 | GET/POST | `/creators` | 列表（`?kind=&q=&limit=&cursor=`）/ 新建 |
 | GET/PATCH/DELETE | `/creators/{creatorId}` | 单条；DELETE = 软删 |
 | GET/POST | `/creator-posts` | 列表（`?creator_id=&from=&to=`）/ 新建 |
@@ -148,6 +149,33 @@ crm_settlement(id PK, workspace_id, collab_id UUID NOT NULL,
 - 单条路由：`creator-posts` 与 `settlements` **没有 GET 单项**（列表与详情页都用列表数据），只注册 PATCH/DELETE。
 - 前端 `workbenchKeys` 位于 `packages/core/crm/queries.ts` 并从 `@morechat/core/crm` 导出（overview 是跨域聚合，暂不单开子包）。
 
+### 3.2 经营只读聚合 `GET /finance`
+
+handler：`GetWorkbenchFinance`（`server/internal/handler/workbench_finance.go`）；SQL：`workbench_metrics.sql` 的 `OverviewCrmFinance`（口径写在该查询的注释里）。**不新建月度表**，全部是既有台账行的只读聚合；一次请求取一个自然月的四个数 + 一个恒缺口。
+
+```json
+{
+  "window": { "month": "2026-11" },
+  "signed":          { "value": 0,    "sample_count": 0, "empty": "zero" },
+  "collected":       { "value": 0,    "sample_count": 0, "empty": "zero" },
+  "gross_margin":    { "value": null, "sample_count": 0, "empty": "insufficient_data" },
+  "receivable_days": { "value": null, "sample_count": 0, "empty": "insufficient_data" },
+  "cash_floor":      { "value": null, "sample_count": 0, "empty": "insufficient_data" }
+}
+```
+
+| 块 | 口径 | 空值 |
+| --- | --- | --- |
+| `signed` | `confirmed_at` 落在本自然月、阶段已过 `negotiating`（`confirmed` 及其后，含 `settled`）的 `final_amount` 之和；阶段按"已确认及之后"判定，否则本月确认、随后推进到 `sampling` 的单会从本月签约里消失 | `zero`（真零） |
+| `collected` | 本自然月 `crm_settlement.paid_at` 非空的 `amount` 之和 | `zero`（真零） |
+| `gross_margin` | (collected − 本月 `accepted_at` 落月内的 `settled` 单的 `creator_fee+sample_cost+platform_fee`) / collected，**0–1 量纲**（C3，展示 ×100） | `insufficient_data`：collected 为 0，或本月没有已结算单（成本侧不存在） |
+| `receivable_days` | 未回款结算单（`paid_at IS NULL`）的平均账龄（天，`now() - created_at`） | `insufficient_data`：没有未回款结算单 |
+| `cash_floor` | **恒为缺口**：库里没有现金期初，也没有成本录入，不编造 | `insufficient_data` |
+
+- C10：签约口径**含续费**；续费单列在 `crm_settlement.kind`。⚠️ 现有 CHECK 只允许 `prepay|final|platform_fee|tax`，**没有 `renewal`**，所以 B0 阶段续费只能记成一条普通结算行 —— 它只会在真正回款后进 `collected`，不会重复计入 `signed`。加 `renewal` 需要一条改 CHECK 的迁移，未在本次范围内。
+- 每块形状与 `/overview` 的 `{value, sample_count, empty}` 完全一致（Go 侧 `WorkbenchFinanceBlock` 是 `WorkbenchMetricValue` 的类型别名），`empty` 同样只发 `zero` / `insufficient_data`。
+- 部门过滤沿用 B0 回退链：结算单 → 其合作单 → `owner_member_id` 的 `member.department_id`；不参与鉴权。
+
 **handler 命名**（router.go 已按此注册，函数名不可改）：
 `GetWorkbenchOverview` `GetWorkbenchCounts` `ListCreators` `CreateCreator` `GetCreator` `UpdateCreator` `DeleteCreator` `ListCreatorPosts` `CreateCreatorPost` `UpdateCreatorPost` `DeleteCreatorPost` `ListCreatorPostMetrics` `UpsertCreatorPostMetric` `ListCrmClients` `CreateCrmClient` `GetCrmClient` `UpdateCrmClient` `DeleteCrmClient` `ListCrmBriefs` `CreateCrmBrief` `GetCrmBrief` `UpdateCrmBrief` `DeleteCrmBrief` `ListCrmCollabs` `CreateCrmCollab` `GetCrmCollab` `UpdateCrmCollab` `DeleteCrmCollab` `ListCrmSettlements` `CreateCrmSettlement` `UpdateCrmSettlement` `DeleteCrmSettlement`
 
@@ -172,6 +200,7 @@ patcher 一律"invalidate 该域列表 + 失效 overview/counts"，不做字段�
 ```
 ["workbench", wsId, "overview", departmentId ?? "all"]
 ["workbench", wsId, "counts",   departmentId ?? "all"]
+["workbench", wsId, "finance",  departmentId ?? "all"]
 ["crm",       wsId, resource, filters]     // resource ∈ clients|briefs|collabs|settlements
 ["creator",   wsId, filters]
 ["creator",   wsId, "posts", filters]
@@ -186,6 +215,7 @@ server 数据一律 Query；Zustand 只放当前部门、列宽、筛选草稿�
 | 板块 | 读什么 | 放在哪 |
 | --- | --- | --- |
 | 概览指标条 | `overview` | `/{slug}/overview` |
+| 经营标签（签约/回款/毛利/应收/现金） | `finance` | `/{slug}/overview?tab=finance` 的 `FinanceSection` |
 | 缺口卡 | `overview` 中 `empty = insufficient_data` 的项 | 同上 |
 | 台账列表（达人库/客户/需求单/合作单/结算） | 域列表 | `/{slug}/overview` 的 Tabs + `LedgerSection` |
 | 履约看板 | `crm/collabs?stage=` | 同上，按 `CollectionGroup` 分列 |

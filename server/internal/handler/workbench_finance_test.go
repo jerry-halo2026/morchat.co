@@ -1,0 +1,252 @@
+package handler
+
+import (
+	"math"
+	"net/http"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
+)
+
+// Money-block tests (`GET /api/workbench/finance`). The three properties the
+// endpoint has to keep, and the ones these cases pin:
+//
+//   - a figure with no rows behind it is a gap (`value: null` +
+//     `insufficient_data`), never a zero — docs/METRICS.md §1 rule 3;
+//   - signed / collected are real zeros on an empty ledger, and they move to the
+//     ledger's numbers as soon as a collaboration and a settlement exist;
+//   - the department filter narrows the aggregate and nothing else.
+
+func fetchWorkbenchFinance(t *testing.T, query, userID string) WorkbenchFinanceResponse {
+	t.Helper()
+	req := workbenchRequest(t, "GET", "/api/workbench/finance"+query, nil, userID)
+	return testutil.Decode[WorkbenchFinanceResponse](t, testHandler.GetWorkbenchFinance, req, http.StatusOK)
+}
+
+// financeDepartment inserts a department owned by nothing in particular. Every
+// finance test runs against its own department so the figures are exact even
+// though the suite shares one database with other packages' rows.
+func financeDepartment(t *testing.T, label string) string {
+	t.Helper()
+	return dbfx.Insert(t, "department", testutil.Cols{
+		"workspace_id": testWorkspaceID,
+		"name":         "Finance " + label + " " + t.Name(),
+	})
+}
+
+// seedFinanceLedger builds one department's worth of money rows through the
+// handlers (so the stage milestones the SQL reads are stamped the way production
+// stamps them) and returns the department that owns them:
+//
+//   - one collaboration settled this month: contract 10000, cost 1000;
+//   - one settlement that cleared this month: 3000;
+//   - one settlement still owed: 500.
+//
+// Every row is owned by a member of the department, which is the B0 fallback
+// chain the aggregate attributes through (docs/METRICS.md §4).
+func seedFinanceLedger(t *testing.T, label string) string {
+	t.Helper()
+
+	departmentID := financeDepartment(t, label)
+	ownerUserID := workbenchTestMember(t)
+	// The fixture's member is created without a department; give it this one so
+	// every row created below is attributable to it.
+	dbfx.Exec(t,
+		`UPDATE member SET department_id = $1 WHERE workspace_id = $2 AND user_id = $3`,
+		departmentID, testWorkspaceID, ownerUserID)
+
+	client := createWorkbenchClient(t, ownerUserID, "Finance "+label+" client")
+	brief := createWorkbenchBrief(t, client.ID, "Finance "+label+" brief")
+	creator := createWorkbenchCreator(t, ownerUserID, "Finance "+label+" creator "+strings.ReplaceAll(t.Name(), "/", "-"))
+
+	// One collaboration, confirmed this month and then settled: `confirmed_at` is
+	// stamped on the way in and `accepted_at` on the way to `settled`, which is
+	// what the signed window and the cost window each read. Going through the
+	// transition rather than inserting a settled row keeps the milestones exactly
+	// what production writes.
+	payload := map[string]any{
+		"stage":        "confirmed",
+		"final_amount": 10000,
+		"creator_fee":  1000,
+		"sample_cost":  0,
+		"platform_fee": 0,
+	}
+	req := workbenchRequest(t, "POST", "/api/workbench/crm/collabs", mergeCollabPayload(brief.ID, creator.ID, payload), ownerUserID)
+	collab := testutil.Decode[CrmCollabResponse](t, testHandler.CreateCrmCollab, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM crm_collab WHERE id = $1`, collab.ID) })
+
+	req = workbenchRequest(t, "PATCH", "/api/workbench/crm/collabs/"+collab.ID, map[string]any{
+		"stage": "settled",
+	}, ownerUserID)
+	req = withURLParam(req, "collabId", collab.ID)
+	testutil.Call(t, testHandler.UpdateCrmCollab, req).Want(http.StatusOK)
+
+	today := time.Now().Format("2006-01-02")
+	req = workbenchRequest(t, "POST", "/api/workbench/crm/settlements", map[string]any{
+		"collab_id": collab.ID,
+		"kind":      "final",
+		"amount":    3000,
+		"paid_at":   today,
+	}, ownerUserID)
+	paid := testutil.Decode[CrmSettlementResponse](t, testHandler.CreateCrmSettlement, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM crm_settlement WHERE id = $1`, paid.ID) })
+
+	req = workbenchRequest(t, "POST", "/api/workbench/crm/settlements", map[string]any{
+		"collab_id": collab.ID,
+		"kind":      "prepay",
+		"amount":    500,
+	}, ownerUserID)
+	owed := testutil.Decode[CrmSettlementResponse](t, testHandler.CreateCrmSettlement, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM crm_settlement WHERE id = $1`, owed.ID) })
+
+	return departmentID
+}
+
+func mergeCollabPayload(briefID, creatorID string, over map[string]any) map[string]any {
+	payload := map[string]any{"brief_id": briefID, "creator_id": creatorID}
+	for key, value := range over {
+		payload[key] = value
+	}
+	return payload
+}
+
+func assertGap(t *testing.T, label string, block WorkbenchFinanceBlock) {
+	t.Helper()
+	if block.Value != nil {
+		t.Fatalf("%s = %v, want null (a figure with no rows is a gap, not a zero)", label, *block.Value)
+	}
+	if block.Empty != metricEmptyInsufficientData {
+		t.Fatalf("%s empty = %q, want %q", label, block.Empty, metricEmptyInsufficientData)
+	}
+}
+
+// TestWorkbenchFinanceEmptyMonthReportsGaps is the three-state guard: in a
+// department with no money rows, the three figures that need rows come back null
+// and flagged, while signed and collected answer with a real zero.
+func TestWorkbenchFinanceEmptyMonthReportsGaps(t *testing.T) {
+	departmentID := financeDepartment(t, "empty")
+
+	figure := fetchWorkbenchFinance(t, "?department_id="+departmentID, testUserID)
+
+	// `YYYY-MM`, sliced by the same now() the SQL windows use.
+	if len(figure.Window.Month) != 7 || figure.Window.Month[4] != '-' {
+		t.Fatalf("window.month = %q, want YYYY-MM", figure.Window.Month)
+	}
+
+	assertGap(t, "gross_margin", figure.GrossMargin)
+	assertGap(t, "receivable_days", figure.ReceivableDays)
+	// No opening cash balance and no cost entry exist, so this one is a gap for
+	// every department, forever, until the schema grows those inputs.
+	assertGap(t, "cash_floor", figure.CashFloor)
+
+	for label, block := range map[string]WorkbenchFinanceBlock{
+		"signed":    figure.Signed,
+		"collected": figure.Collected,
+	} {
+		if block.Value == nil || *block.Value != 0 {
+			t.Fatalf("%s = %v in an empty department, want a real 0", label, block.Value)
+		}
+		if block.Empty != metricEmptyZero {
+			t.Fatalf("%s empty = %q, want %q", label, block.Empty, metricEmptyZero)
+		}
+		if block.SampleCount != 0 {
+			t.Fatalf("%s sample_count = %d, want 0", label, block.SampleCount)
+		}
+	}
+}
+
+// TestWorkbenchFinanceReadsTheLedgers is the definition of done for the block: a
+// settled collaboration and a cleared settlement turn the gaps into the exact
+// numbers the rows describe.
+func TestWorkbenchFinanceReadsTheLedgers(t *testing.T) {
+	departmentID := seedFinanceLedger(t, "ledger")
+
+	figure := fetchWorkbenchFinance(t, "?department_id="+departmentID, testUserID)
+
+	if figure.Signed.Value == nil || *figure.Signed.Value != 10000 {
+		t.Fatalf("signed = %v, want 10000 (the settled collaboration's contract)", figure.Signed.Value)
+	}
+	if figure.Signed.SampleCount != 1 {
+		t.Fatalf("signed sample_count = %d, want 1", figure.Signed.SampleCount)
+	}
+
+	// Only the settlement with a `paid_at` this month counts as money collected;
+	// the one still owed is a receivable.
+	if figure.Collected.Value == nil || *figure.Collected.Value != 3000 {
+		t.Fatalf("collected = %v, want 3000", figure.Collected.Value)
+	}
+	if figure.Collected.SampleCount != 1 {
+		t.Fatalf("collected sample_count = %d, want 1", figure.Collected.SampleCount)
+	}
+
+	// (3000 collected − 1000 settled cost) / 3000, at the 0–1 storage scale
+	// (docs/METRICS.md C3).
+	if figure.GrossMargin.Value == nil {
+		t.Fatal("gross_margin = null, want a ratio: both sides of the division exist")
+	}
+	margin := *figure.GrossMargin.Value
+	if margin < 0 || margin > 1 {
+		t.Fatalf("gross_margin = %v, want a 0–1 ratio", margin)
+	}
+	if math.Abs(margin-(2.0/3.0)) > 1e-6 {
+		t.Fatalf("gross_margin = %v, want 2/3 (3000 collected, 1000 cost)", margin)
+	}
+
+	// One settlement is still owed: its age is measurable, and it is tiny because
+	// the row was created by this test.
+	if figure.ReceivableDays.Value == nil {
+		t.Fatal("receivable_days = null, want the age of the one unpaid settlement")
+	}
+	if *figure.ReceivableDays.Value < 0 {
+		t.Fatalf("receivable_days = %v, want a non-negative age", *figure.ReceivableDays.Value)
+	}
+	if figure.ReceivableDays.SampleCount != 1 {
+		t.Fatalf("receivable_days sample_count = %d, want 1 unpaid settlement", figure.ReceivableDays.SampleCount)
+	}
+
+	assertGap(t, "cash_floor", figure.CashFloor)
+}
+
+// TestWorkbenchFinanceDepartmentFilterIsolatesRows proves the filter narrows the
+// aggregate: the same request against another department answers with zeros and
+// gaps, so one department's money never shows up in another's block.
+func TestWorkbenchFinanceDepartmentFilterIsolatesRows(t *testing.T) {
+	funded := seedFinanceLedger(t, "funded department")
+	other := financeDepartment(t, "other department")
+
+	inFunded := fetchWorkbenchFinance(t, "?department_id="+funded, testUserID)
+	if inFunded.Signed.Value == nil || *inFunded.Signed.Value != 10000 {
+		t.Fatalf("signed for the funded department = %v, want 10000", inFunded.Signed.Value)
+	}
+	if inFunded.Collected.Value == nil || *inFunded.Collected.Value != 3000 {
+		t.Fatalf("collected for the funded department = %v, want 3000", inFunded.Collected.Value)
+	}
+
+	inOther := fetchWorkbenchFinance(t, "?department_id="+other, testUserID)
+	if inOther.Signed.Value == nil || *inOther.Signed.Value != 0 {
+		t.Fatalf("signed for the other department = %v, want 0", inOther.Signed.Value)
+	}
+	if inOther.Collected.Value == nil || *inOther.Collected.Value != 0 {
+		t.Fatalf("collected for the other department = %v, want 0", inOther.Collected.Value)
+	}
+	assertGap(t, "gross_margin in the other department", inOther.GrossMargin)
+	assertGap(t, "receivable_days in the other department", inOther.ReceivableDays)
+
+	// The workspace-wide request still sees the funded rows on top of whatever the
+	// rest of the suite left behind, so it is a lower bound here rather than an
+	// equality: this test runs in a shared database.
+	all := fetchWorkbenchFinance(t, "", testUserID)
+	if all.Signed.Value == nil || *all.Signed.Value < 10000 {
+		t.Fatalf("workspace-wide signed = %v, want at least the funded 10000", all.Signed.Value)
+	}
+}
+
+// TestWorkbenchFinanceRejectsMalformedDepartment guards the shared filter parser
+// through this endpoint too: a malformed department id must be a 400, never a
+// silent widening to the whole workspace.
+func TestWorkbenchFinanceRejectsMalformedDepartment(t *testing.T) {
+	req := workbenchRequest(t, "GET", "/api/workbench/finance?department_id=not-a-uuid", nil, testUserID)
+	testutil.Call(t, testHandler.GetWorkbenchFinance, req).Want(http.StatusBadRequest)
+}
