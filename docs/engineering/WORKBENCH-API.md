@@ -630,6 +630,193 @@ B2 **不新增 WS 事件名**。理由：事件名的前端登记在 `packages/c
 - **UI / views 未接入**：本批只到 core 类型、zod 与 client；`packages/views/**` 不在写作用域内，所以月度指标条仍然只读原来的七个块，三个新块的展示要等界面批次。
 - **`ops_finance_month`（707）既不在 teardown 也不在 manifest**：与本批无关的既有缺口，`TestWorkspaceDeletionManifestCoversPublicSchema` 在已有该表（以及 `external_auth_identity`、`knowledge_*`）的库上会因此报漂移；四张新表已分类且在 `DeleteWorkspaceWorkbenchLedger` 内。
 
+## 12. 内容工作台契约（IP → 选题 → 脚本 → 拍摄 → 发布/复盘）
+
+内容侧原来在库里一张表都没有：`creator.media_ip_project_id` 只是指向通用 `project` 的弱指针，不是 IP 实体；`creator_post` 能记"已经发出去的一条内容"，记不了"计划要发的"。本节把那条流水线落成四张表 + 三个关联列。
+
+```
+IP（人设/赛道/受众）→ 一个 IP 挂多个平台账号（creator）
+   → 热点雷达/人工 → 选题池（五维打分）→ 脚本（按版本）→ 拍摄排期（镜头清单）
+   → 发布（复用 creator_post，加 media_script_id）→ 数据复盘（既有 creator_post_metric）
+```
+
+### 12.1 迁移号段
+
+| 号 | 文件 | 内容 |
+| --- | --- | --- |
+| 728 | `728_media_ip.up/down.sql` | 表 `media_ip` |
+| 729 | `729_creator_media_ip.up/down.sql` | 列 `creator.media_ip_id` + 两列注释 |
+| 730 | `730_media_topic.up/down.sql` | 表 `media_topic` |
+| 731 | `731_media_script.up/down.sql` | 表 `media_script` |
+| 732 | `732_media_shoot.up/down.sql` | 表 `media_shoot` |
+| 733 | `733_creator_post_media_script.up/down.sql` | 列 `creator_post.media_script_id` |
+| 734 | `734_media_ip_name_unique` | UNIQUE `(workspace_id, lower(name)) WHERE archived_at IS NULL` |
+| 735 | `735_media_ip_status_idx` | `(workspace_id, status)` |
+| 736 | `736_creator_media_ip_idx` | `creator (workspace_id, media_ip_id)` 部分索引 |
+| 737 | `737_media_topic_ip_idx` | `media_topic (workspace_id, ip_id)` |
+| 738 | `738_media_topic_status_idx` | `media_topic (workspace_id, status)` |
+| 739 | `739_media_script_version_unique` | UNIQUE `(workspace_id, topic_id, version) WHERE archived_at IS NULL` |
+| 740 | `740_media_script_status_idx` | `media_script (workspace_id, status)` |
+| 741 | `741_media_shoot_script_idx` | `media_shoot (workspace_id, script_id)` |
+| 742 | `742_media_shoot_date_idx` | `media_shoot (workspace_id, shoot_date, id)` |
+| 743 | `743_creator_post_media_script_idx` | `creator_post (workspace_id, media_script_id)` 部分索引 |
+
+十个索引全部是单语句 `CREATE [UNIQUE] INDEX CONCURRENTLY`，up 方向逐个登记在 `server/cmd/migrate/main.go` 的 `concurrentIndexCleanups`；down 方向只有 `DROP INDEX CONCURRENTLY IF EXISTS`（不重建索引，故不进 down map）。
+
+### 12.2 表
+
+```sql
+-- 728
+media_ip(
+  id UUID PK, workspace_id UUID NOT NULL,
+  name TEXT NOT NULL, persona TEXT, track TEXT, audience TEXT, color TEXT,
+  week_goal INTEGER NOT NULL DEFAULT 0 CHECK (week_goal >= 0),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','paused','ended')),
+  owner_member_id UUID, created_by UUID, created_at, updated_at, archived_at)
+
+-- 729：平台账号 → IP
+ALTER creator ADD COLUMN media_ip_id UUID;   -- 新实体指针
+-- media_ip_project_id（660）不动：它是历史的 project 指针，既有指标在 join 它
+
+-- 730
+media_topic(
+  id UUID PK, workspace_id UUID NOT NULL, ip_id UUID NOT NULL, title TEXT NOT NULL,
+  source TEXT NOT NULL DEFAULT 'manual' CHECK (source IN ('hot','manual','bench','ai')),
+  scores JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(scores) = 'object'),
+  status TEXT NOT NULL DEFAULT 'pool' CHECK (status IN
+    ('pool','scripting','shooting','publishing','done','dropped')),
+  hot_id UUID, note TEXT, owner_member_id UUID, created_by UUID,
+  created_at, updated_at, archived_at)
+
+-- 731
+media_script(
+  id UUID PK, workspace_id UUID NOT NULL, topic_id UUID NOT NULL, ip_id UUID,
+  version INTEGER NOT NULL DEFAULT 1 CHECK (version >= 1),
+  hook TEXT, body TEXT, cta TEXT, cover_note TEXT, tags TEXT[] NOT NULL DEFAULT '{}',
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','review','approved','archived')),
+  publish_at TIMESTAMPTZ, owner_member_id UUID, created_by UUID,
+  created_at, updated_at, archived_at)
+
+-- 732
+media_shoot(
+  id UUID PK, workspace_id UUID NOT NULL, script_id UUID NOT NULL, shoot_date DATE NOT NULL,
+  location TEXT,
+  shots JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(shots) = 'object'),
+  checklist JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(checklist) = 'object'),
+  status TEXT NOT NULL DEFAULT 'planned' CHECK (status IN
+    ('planned','shooting','editing','done','cancelled')),
+  owner_member_id UUID, created_by UUID, created_at, updated_at, archived_at)
+
+-- 733：发布 → 脚本
+ALTER creator_post ADD COLUMN media_script_id UUID;
+```
+
+规则与 B0 一致：无外键、无级联、`archived_at` 软删、每个索引单独一个并发文件。**发布不新建表**：一条发布就是 `creator_post` 的一行（账号 + URL + 时间），复盘数据挂既有的 `creator_post_metric`；733 只补上"这条发布出自哪个脚本"的指回列，多对一（一个脚本发到多个账号），可空（外部达人的发布、内容工作台上线前的历史行都没有脚本）。
+
+**两个 `media_ip_id` 的关系**（这是本节最容易搞错的一点）：
+
+| 列 | 是什么 | 谁读 |
+| --- | --- | --- |
+| `creator.media_ip_id`（729） | 新实体，这个人设 | 内容流水线全链路（选题 / 脚本 / 拍摄） |
+| `creator.media_ip_project_id`（660） | 历史指针，指向通用 `project` | 既有达人指标 join；内容侧不读 |
+
+一行可以两列都有（一个 IP 通过一个项目交付），但两者不互相推导：项目指针是历史，IP 是流水线的父。
+
+### 12.3 REST（基址 `/api/workbench/media`）
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET/POST | `/ips` | 列表（`?status=&limit=`）/ 新建 |
+| GET/PATCH/DELETE | `/ips/{ipId}` | 单条 / 改 / 软删；GET 返回 IP **+ `accounts[]`** |
+| POST | `/ips/{ipId}/accounts` | 把 `creator` 挂到 IP（写 `creator.media_ip_id`），body `{creator_id}`，**201** |
+| DELETE | `/ips/{ipId}/accounts/{creatorId}` | 置空 `media_ip_id`，**204** |
+| GET/POST | `/topics` | 列表（`?ip_id=&status=&limit=`）/ 新建 |
+| GET/PATCH/DELETE | `/topics/{topicId}` | 单条 |
+| GET/POST | `/scripts` | 列表（`?topic_id=&status=&limit=`，同一 topic 返回全部版本）/ 新建 |
+| GET/PATCH/DELETE | `/scripts/{scriptId}` | 单条；PATCH 默认生成新版本，`?inPlace=1` 覆盖当前行 |
+| GET/POST | `/shoots` | 列表（`?script_id=&from=&to=&limit=`，按 `shoot_date`，含边界）/ 新建 |
+| GET/PATCH/DELETE | `/shoots/{shootId}` | 单条 |
+
+包裹与序列化沿用 §3.1：列表 `{ <resource>: T[], total }`，`resource` 为 `ips` / `topics` / `scripts` / `shoots`，`total` = **本页条数**；单条不包裹；删除 204。`limit` 默认 50、上限 200（`workbenchLimit`）。
+
+- **`shoot_date` 是 DATE 且 NOT NULL**：没有日期的排期不叫排期，`?from=&to=` 也会把它悄悄漏掉。`from > to` 是 **400**，不是空列表。
+- **`scores`**：key 只有 `pain` / `save` / `debate` / `susp` / `fit` 五个，值必须是 0–100 的整数；越界、非整数、未知 key 都是 **400**。写入时服务器把请求合并进已存卡片（PATCH 只送一维不会清空另外四维），并归一化成五维全在；读取时宽容（未知 key 丢弃、非整数读 0）。
+- **`checklist`**：`{项名: bool}`，PATCH **按键合并**——勾一个框不会清掉其余；送 `false` 是"没勾"这个状态，不是删除。
+- **`shots`**：见 §12.5。
+- 金额不出现：本域没有钱。比率只出现在既有 `creator_post_metric` / 精选联盟那边。
+
+**权限**（写判定与 B0 同一套 `workbenchCanWrite` / `workbenchOwnerForCreate` / `workbenchOwnerForUpdate`）：
+
+| 资源 | 写判定 |
+| --- | --- |
+| IP | 行自己的 `owner_member_id` |
+| 账号挂载/摘除 | IP 的 owner（改的是 `creator` 行，但挂载权属于人设） |
+| 选题 | 行自己的 `owner_member_id` |
+| 脚本 | **沿 topic 的 owner**（`media_script.owner_member_id` 是插入时从 topic 拷来的副本，用于过滤与展示，不是写闸门） |
+| 拍摄 | **沿 script → topic 的 owner** |
+
+`owner`/`admin` 全写；`member` 只能写自己拥有的行；新建时省略 owner 就是"我自己"，member 指定别人当 owner 直接 **403**。脚本与拍摄的 owner 由 topic 派生，请求里指定成别的值一律 **400**——让两者分叉，就会让"我能改这个脚本"和"我能改这个选题"变成两个答案。
+
+### 12.4 脚本版本化语义
+
+- 一行 = **一个版本**，不是一份被反复覆盖的文档。`version` 在 topic 内单调递增，由 SQL 在 INSERT 里算 `MAX(version) + 1`（**含已软删的行**，所以号永不回收）；739 的唯一索引是并发兜底，撞号的那次请求得到 **409**，而不是两行 v2。
+- `PATCH /scripts/{id}`：
+  - 请求碰到任一**文案字段**（`hook` / `body` / `cta` / `cover_note` / `tags`）且没有 `?inPlace=1` → **插入新版本**，返回新行（v1 原封不动、仍可按 id 读，`GET /scripts?topic_id=` 一次拿到全部版本）；
+  - 只碰 `status` / `publish_at` / `ip_id` → **就地更新**，不生版本（把"复审通过"当成一次改稿会把文案历史淹掉）；
+  - `?inPlace=1` → 就地覆盖该行，用于修错别字这类"不是新版本"的改动。
+- 新版本继承链的身份：同 topic、同 IP、同 owner，`status` / `publish_at` 取请求里的值或沿用当前行；`created_by` 是本次改稿的人。
+- 脚本不能换 topic（**400**）：换主题是另一份文档。
+- `DELETE` 是软删，不删版本行；号已花掉。
+
+### 12.5 `shots` 与 `shotlist.v1.json` 的对齐
+
+`media_shoot.shots` 放的是 `contracts/library/domains/video/shotlist.v1.json`（`docs/engineering/LIBRARY.md:35-51`）里已冻结的那份契约，**不是自造格式**：
+
+| 契约 | 我们对齐的方式 |
+| --- | --- |
+| `required: [schema_version, title, duration_ms, aspect_ratio, shots]` | 写时校验：缺任一 → 400 |
+| `schema_version: {const: "shotlist.v1"}` | 只接受字面量 `"shotlist.v1"` |
+| `title` 1–120 | 按 rune 计长度 |
+| `duration_ms` 1000–600000 | 同上区间 |
+| `aspect_ratio` ∈ `9:16｜16:9｜1:1` | 枚举 |
+| `shots` 1–200 项 | 同上区间 |
+| 每镜 `index/start_ms/end_ms/shot_size/scene/rhythm` 必填 | 缺任一 → 400 |
+| `shot_size` ∈ `close-up｜medium｜wide`（景别，single） | 枚举 |
+| `rhythm` ∈ `fast-cut｜steady｜slow`（节奏，single） | 枚举 |
+| `scene` ∈ `indoor｜outdoor｜shelf｜studio`（场景，single） | 枚举 |
+| `selling_points[]` ∈ `price｜gift｜ingredient｜effect｜proof｜pain-point`（卖点，multi） | 逐项枚举 |
+| `text` ≤200、`product_ref` ≤80 | 按 rune 计长度 |
+| `additionalProperties: false` | `json.Decoder.DisallowUnknownFields()` |
+
+唯一不由契约描述的状态是**空对象 `{}`**：它是列默认值，含义"镜头清单还没排"。契约要求 `shots` 至少 1 项，所以"没排"不能用契约表达，只能作为 `{}` 这一个额外取值存在——客户端 zod 用 `z.unknown()` 原样透传文档（不在前端再实现一遍契约，避免两份契约要手工同步），空对象由 `MediaShoot.shots` 的类型 `MediaShotList | Record<string, never>` 表达。
+
+于是列里只可能是两种值：`{}`，或一份满足 shotlist.v1 的文档。契约升级到 v2 时旧行仍是合法的 v1，不需要迁移——这正是用 JSONB 而不是拆子表的原因。没有任何索引索引 JSON 内部：镜头清单永远整份读。
+
+`checklist` 的键是运营自己维护的拍摄清单项，不是我们的词表，所以同样是 JSONB：给每一项建行会逼着每次加清单项都走一次 fixture 迁移。
+
+### 12.6 事件与 query key
+
+事件（`workbench_media.go` 内定义，写成功后发出）：`media_ip:changed` / `media_topic:changed` / `media_script:changed` / `media_shoot:changed`，payload `{ "id": "<row id>" }`；账号挂载/摘除额外发既有的 `creator:changed`（改的是 `creator` 行）。
+
+```
+["media", wsId, resource, filters]     // resource ∈ ips|topics|scripts|shoots
+["media", wsId, resource, { id }]      // 详情（含 ips 的 accounts）
+```
+
+`packages/core/media/{index,queries,mutations}.ts`（导出 `./media`、`./media/queries`、`./media/mutations`）；类型在 `packages/core/types/media.ts`（**不塞进 `workbench.ts`**），zod 在 `packages/core/api/schemas.ts`，`api/client.ts` 有同名方法。mutation 失效 `mediaKeys.all(wsId)` + `workbenchKeys.all(wsId)`：一次挂账号会改 IP 详情，一次改稿会改整个版本列表，局部失效会留下描述旧链的界面。
+
+### 12.7 已知债务与本批未做
+
+- **UI / views 未接入**：本批只到迁移、SQL、handler、core 类型/zod/client；`packages/views/**`、`apps/**` 不在写作用域。
+- **前端实时 patcher 未注册**：`packages/core/types/events.ts` 不在本批作用域，四个 `media_*:changed` 目前只有服务端发出，客户端靠 mutation 失效刷新；接实时时按 §12.6 的 payload 加 patcher 即可。
+- **`creator_post.media_script_id` 暂时没有写入路径**：`workbench_creator.go` 不在本批作用域、行为未改，所以 `POST/PATCH /creator-posts` 既不接收也不返回该列，新发的行恒为 NULL。接线时要：请求结构体加字段、写入前校验脚本在本工作区、响应回显。
+- **`GET /creators` 不返回 `media_ip_id`**：同一原因（B0 handler 不在写作用域），`CreatorResponse` 没有这个字段；当前要从 IP 侧读账号（`GET /media/ips/{id}` 的 `accounts[]`）。接线时给 `CreatorResponse` 加字段即可，不会破坏旧客户端（新字段缺省即 null）。
+- **`/counts`、`/overview` 不含内容侧**：侧栏计数与指标条未扩展，本批不做聚合端点；列表 `total` 因此就是本页条数。
+- **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举未加 `media_*`。
+- **`hot_id` 是裸指针**：热点表不在本工作区范围（热点雷达尚未落库），读写都不校验存在性。
+- **`score_count` 之类的汇总没有**：五维分数的均值/分布要等选题看板批次，本批只存不算。
+- **不做**：素材库（`library_*`）、AI 生成选题/文案、发布编排（多账号定时投递）、数据复盘的新口径——复盘沿用 `creator_post_metric`。
+
 ## 9. 完成定义（DoD）
 
 一个域算完成，当且仅当：迁移可 up/down 往返、`make sqlc` 无脏 diff、handler 有权限用例、事件发出、zod 覆盖响应、`useRealtimeSync` 有 patcher、`/overview` 里对应指标从 `insufficient_data` 变为有值、页面能读能写。

@@ -765,7 +765,7 @@ DELETE FROM workspace_invitation
 WHERE workspace_invitation.workspace_id = $1;
 
 -- name: DeleteWorkspaceWorkbenchLedger :exec
--- Creator commerce, CRM, HR and affiliate ledgers
+-- Creator commerce, CRM, HR, affiliate and content ledgers
 -- (docs/engineering/WORKBENCH-API.md). No foreign key sits behind them
 -- (repository rule), so teardown removes every row explicitly, in dependency
 -- order: a settlement names a collaboration, a post belongs to a creator, a
@@ -821,5 +821,22 @@ deleted_hr_jobs AS (
 ),
 deleted_finance_month AS (
     DELETE FROM ops_finance_month WHERE ops_finance_month.workspace_id = $1
+),
+-- Content workbench (WORKBENCH-API §12): a shoot names a script, a script names a
+-- topic, a topic names an IP, and an IP is the root of the content chain. The two
+-- link columns — `creator.media_ip_id` (729) and `creator_post.media_script_id`
+-- (733) — need no reset of their own: both `creator` and `creator_post` are
+-- deleted in this same statement, so no cross-workspace pointer survives it.
+deleted_media_shoots AS (
+    DELETE FROM media_shoot WHERE media_shoot.workspace_id = $1
+),
+deleted_media_scripts AS (
+    DELETE FROM media_script WHERE media_script.workspace_id = $1
+),
+deleted_media_topics AS (
+    DELETE FROM media_topic WHERE media_topic.workspace_id = $1
+),
+deleted_media_ips AS (
+    DELETE FROM media_ip WHERE media_ip.workspace_id = $1
 )
 DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1;

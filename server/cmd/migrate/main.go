@@ -140,6 +140,16 @@ var pgBigmOperatorClass = extensionOperatorClass{
 // they are still pending: a fresh self-hosted install, which is exactly where an
 // interrupted build would otherwise leave a permanently unusable index.
 var concurrentIndexCleanups = map[string]string{
+	"743_creator_post_media_script_idx":                         "idx_creator_post_workspace_media_script",
+	"742_media_shoot_date_idx":                                  "idx_media_shoot_workspace_shoot_date",
+	"741_media_shoot_script_idx":                                "idx_media_shoot_workspace_script",
+	"740_media_script_status_idx":                               "idx_media_script_workspace_status",
+	"739_media_script_version_unique":                           "idx_media_script_workspace_topic_version",
+	"738_media_topic_status_idx":                                "idx_media_topic_workspace_status",
+	"737_media_topic_ip_idx":                                    "idx_media_topic_workspace_ip",
+	"736_creator_media_ip_idx":                                  "idx_creator_workspace_media_ip",
+	"735_media_ip_status_idx":                                   "idx_media_ip_workspace_status",
+	"734_media_ip_name_unique":                                  "idx_media_ip_workspace_name_lower",
 	"724_creator_post_pick_idx":                                 "idx_creator_post_workspace_pick",
 	"723_creator_post_product_idx":                              "idx_creator_post_workspace_product",
 	"722_affiliate_settlement_status_idx":                       "idx_affiliate_settlement_workspace_status",

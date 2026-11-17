@@ -225,6 +225,30 @@ import type {
   UpdateAffiliateProductRequest,
   UpdateAffiliateSettlementRequest,
   UpsertAffiliateDailyRequest,
+  // Content workbench (docs/engineering/WORKBENCH-API.md §12).
+  AttachMediaIPAccountRequest,
+  CreateMediaIPRequest,
+  CreateMediaScriptRequest,
+  CreateMediaShootRequest,
+  CreateMediaTopicRequest,
+  MediaIP,
+  MediaIPAccount,
+  MediaIPDetail,
+  MediaIPListFilters,
+  MediaIPListResponse,
+  MediaScript,
+  MediaScriptListFilters,
+  MediaScriptListResponse,
+  MediaShoot,
+  MediaShootListFilters,
+  MediaShootListResponse,
+  MediaTopic,
+  MediaTopicListFilters,
+  MediaTopicListResponse,
+  UpdateMediaIPRequest,
+  UpdateMediaScriptRequest,
+  UpdateMediaShootRequest,
+  UpdateMediaTopicRequest,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -714,6 +738,27 @@ import {
   EMPTY_AFFILIATE_SETTLEMENT_LIST_RESPONSE,
   AffiliateSummaryResponseSchema,
   EMPTY_AFFILIATE_SUMMARY_RESPONSE,
+  // Content workbench (§12).
+  MediaIPSchema,
+  MediaIPListResponseSchema,
+  EMPTY_MEDIA_IP,
+  EMPTY_MEDIA_IP_LIST_RESPONSE,
+  MediaIPDetailSchema,
+  EMPTY_MEDIA_IP_DETAIL,
+  MediaIPAccountSchema,
+  EMPTY_MEDIA_IP_ACCOUNT,
+  MediaTopicSchema,
+  MediaTopicListResponseSchema,
+  EMPTY_MEDIA_TOPIC,
+  EMPTY_MEDIA_TOPIC_LIST_RESPONSE,
+  MediaScriptSchema,
+  MediaScriptListResponseSchema,
+  EMPTY_MEDIA_SCRIPT,
+  EMPTY_MEDIA_SCRIPT_LIST_RESPONSE,
+  MediaShootSchema,
+  MediaShootListResponseSchema,
+  EMPTY_MEDIA_SHOOT,
+  EMPTY_MEDIA_SHOOT_LIST_RESPONSE,
   HrJobSchema,
   HrJobListResponseSchema,
   EMPTY_HR_JOB,
@@ -4608,6 +4653,232 @@ export class ApiClient {
       EMPTY_AFFILIATE_SUMMARY_RESPONSE,
       { endpoint: "GET /api/workbench/affiliate/summary" },
     );
+  }
+
+  // Content workbench (docs/engineering/WORKBENCH-API.md §12). Base
+  // `/api/workbench/media`, same read/write split as the ledgers above: reads are
+  // member-wide, writes are gated server-side (owner/admin write everything, a
+  // member writes the rows it owns, and a script or shoot is gated through the
+  // topic it came from).
+  //
+  // Two shapes here are not "the row": `GET /ips/:id` answers the IP *with* its
+  // accounts, and `listMediaShoots` filters on `shoot_date` with inclusive days.
+
+  async listMediaIPs(filters: MediaIPListFilters = {}): Promise<MediaIPListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/media/ips${workbenchSearch({
+        status: filters.status,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, MediaIPListResponseSchema, EMPTY_MEDIA_IP_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/media/ips",
+    });
+  }
+
+  async createMediaIP(data: CreateMediaIPRequest): Promise<MediaIP> {
+    const raw = await this.fetch<unknown>("/api/workbench/media/ips", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaIPSchema, EMPTY_MEDIA_IP, {
+      endpoint: "POST /api/workbench/media/ips",
+    });
+  }
+
+  /** The IP plus the platform accounts attached to it (`creator.media_ip_id`). */
+  async getMediaIP(id: string): Promise<MediaIPDetail> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/ips/${id}`);
+    return parseWithFallback(raw, MediaIPDetailSchema, EMPTY_MEDIA_IP_DETAIL, {
+      endpoint: "GET /api/workbench/media/ips/:ipId",
+    });
+  }
+
+  async updateMediaIP(id: string, data: UpdateMediaIPRequest): Promise<MediaIP> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/ips/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaIPSchema, EMPTY_MEDIA_IP, {
+      endpoint: "PATCH /api/workbench/media/ips/:ipId",
+    });
+  }
+
+  /** Soft delete: the IP keeps its rows and stops appearing in lists. */
+  async deleteMediaIP(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/media/ips/${id}`, { method: "DELETE" });
+  }
+
+  /**
+   * Attach a platform account to an IP by writing `creator.media_ip_id`. An
+   * account belongs to at most one IP, so attaching one that already carries a
+   * pointer is a 409 on the server.
+   */
+  async attachMediaIPAccount(ipId: string, data: AttachMediaIPAccountRequest): Promise<MediaIPAccount> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/ips/${ipId}/accounts`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaIPAccountSchema, EMPTY_MEDIA_IP_ACCOUNT, {
+      endpoint: "POST /api/workbench/media/ips/:ipId/accounts",
+    });
+  }
+
+  /** Clear the pointer. The account stays in the creator ledger. */
+  async detachMediaIPAccount(ipId: string, creatorId: string): Promise<void> {
+    await this.fetch(`/api/workbench/media/ips/${ipId}/accounts/${creatorId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async listMediaTopics(filters: MediaTopicListFilters = {}): Promise<MediaTopicListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/media/topics${workbenchSearch({
+        ip_id: filters.ip_id,
+        status: filters.status,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, MediaTopicListResponseSchema, EMPTY_MEDIA_TOPIC_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/media/topics",
+    });
+  }
+
+  async createMediaTopic(data: CreateMediaTopicRequest): Promise<MediaTopic> {
+    const raw = await this.fetch<unknown>("/api/workbench/media/topics", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaTopicSchema, EMPTY_MEDIA_TOPIC, {
+      endpoint: "POST /api/workbench/media/topics",
+    });
+  }
+
+  async getMediaTopic(id: string): Promise<MediaTopic> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/topics/${id}`);
+    return parseWithFallback(raw, MediaTopicSchema, EMPTY_MEDIA_TOPIC, {
+      endpoint: "GET /api/workbench/media/topics/:topicId",
+    });
+  }
+
+  async updateMediaTopic(id: string, data: UpdateMediaTopicRequest): Promise<MediaTopic> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/topics/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaTopicSchema, EMPTY_MEDIA_TOPIC, {
+      endpoint: "PATCH /api/workbench/media/topics/:topicId",
+    });
+  }
+
+  async deleteMediaTopic(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/media/topics/${id}`, { method: "DELETE" });
+  }
+
+  /**
+   * Every version of the topic's script, newest first. There is no "current
+   * version" read: v1 has to stay readable next to v2 for the review screen.
+   */
+  async listMediaScripts(filters: MediaScriptListFilters = {}): Promise<MediaScriptListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/media/scripts${workbenchSearch({
+        topic_id: filters.topic_id,
+        status: filters.status,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, MediaScriptListResponseSchema, EMPTY_MEDIA_SCRIPT_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/media/scripts",
+    });
+  }
+
+  async createMediaScript(data: CreateMediaScriptRequest): Promise<MediaScript> {
+    const raw = await this.fetch<unknown>("/api/workbench/media/scripts", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaScriptSchema, EMPTY_MEDIA_SCRIPT, {
+      endpoint: "POST /api/workbench/media/scripts",
+    });
+  }
+
+  async getMediaScript(id: string): Promise<MediaScript> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/scripts/${id}`);
+    return parseWithFallback(raw, MediaScriptSchema, EMPTY_MEDIA_SCRIPT, {
+      endpoint: "GET /api/workbench/media/scripts/:scriptId",
+    });
+  }
+
+  /**
+   * Rewrite a script. By default a PATCH that touches the copy (hook / body /
+   * cta / cover_note / tags) *creates the next version* and answers with it — the
+   * previous version stays readable under its own id. Pass `inPlace` for a
+   * correction that must not mint a version; a PATCH that only moves `status` or
+   * `publish_at` never does, whatever this flag says.
+   */
+  async updateMediaScript(
+    id: string,
+    data: UpdateMediaScriptRequest,
+    inPlace = false,
+  ): Promise<MediaScript> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/media/scripts/${id}${inPlace ? "?inPlace=1" : ""}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+    );
+    return parseWithFallback(raw, MediaScriptSchema, EMPTY_MEDIA_SCRIPT, {
+      endpoint: "PATCH /api/workbench/media/scripts/:scriptId",
+    });
+  }
+
+  async deleteMediaScript(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/media/scripts/${id}`, { method: "DELETE" });
+  }
+
+  /** The shoot calendar. `from`/`to` are inclusive `YYYY-MM-DD` days. */
+  async listMediaShoots(filters: MediaShootListFilters = {}): Promise<MediaShootListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/media/shoots${workbenchSearch({
+        script_id: filters.script_id,
+        from: filters.from,
+        to: filters.to,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, MediaShootListResponseSchema, EMPTY_MEDIA_SHOOT_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/media/shoots",
+    });
+  }
+
+  async createMediaShoot(data: CreateMediaShootRequest): Promise<MediaShoot> {
+    const raw = await this.fetch<unknown>("/api/workbench/media/shoots", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaShootSchema, EMPTY_MEDIA_SHOOT, {
+      endpoint: "POST /api/workbench/media/shoots",
+    });
+  }
+
+  async getMediaShoot(id: string): Promise<MediaShoot> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/shoots/${id}`);
+    return parseWithFallback(raw, MediaShootSchema, EMPTY_MEDIA_SHOOT, {
+      endpoint: "GET /api/workbench/media/shoots/:shootId",
+    });
+  }
+
+  /** `checklist` merges over the stored ticks; `shots` replaces the document. */
+  async updateMediaShoot(id: string, data: UpdateMediaShootRequest): Promise<MediaShoot> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/shoots/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaShootSchema, EMPTY_MEDIA_SHOOT, {
+      endpoint: "PATCH /api/workbench/media/shoots/:shootId",
+    });
+  }
+
+  async deleteMediaShoot(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/media/shoots/${id}`, { method: "DELETE" });
   }
 
   // HR (docs/engineering/WORKBENCH-API.md §10.3). Same base and same write scope

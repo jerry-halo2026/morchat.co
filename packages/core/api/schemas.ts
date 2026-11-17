@@ -155,6 +155,22 @@ import type {
   AffiliateSettlementListResponse,
   AffiliateSummaryResponse,
 } from "../types/workbench";
+// Content workbench (§12) has its own module (types/media.ts) rather than living
+// in the commerce barrel: the content pipeline is a separate domain with its own
+// frozen artifact contract.
+import type {
+  MediaIP,
+  MediaIPAccount,
+  MediaIPDetail,
+  MediaIPListResponse,
+  MediaScores,
+  MediaScript,
+  MediaScriptListResponse,
+  MediaShoot,
+  MediaShootListResponse,
+  MediaTopic,
+  MediaTopicListResponse,
+} from "../types/media";
 
 export const PluginConfigFieldSchema = z.object({
   key: z.string(),
@@ -5377,3 +5393,211 @@ export const EMPTY_AFFILIATE_SUMMARY_RESPONSE: AffiliateSummaryResponse = {
   pick_count: EMPTY_WORKBENCH_FINANCE_BLOCK,
   active_creator_count: EMPTY_WORKBENCH_FINANCE_BLOCK,
 };
+
+// --- Content workbench (docs/engineering/WORKBENCH-API.md §12) --------------
+//
+// IP → 选题 → 脚本（按版本）→ 拍摄, plus the two link columns that join the new
+// chain to `creator` (a platform account) and `creator_post` (a publish).
+//
+// The same two leniency rules as the ledgers above apply — enums stay
+// `z.string()`, nullable columns default to null — plus two of its own:
+//
+//   * `scores` is normalised to the five dimensions with 0 defaults. The server
+//     always stores the full card, so a missing dimension means an older payload,
+//     and "no score" is 0 rather than undefined: the radar chart must draw five
+//     axes, not four and a gap.
+//   * `shots` holds a `shotlist.v1` artifact and is passed through as
+//     `z.unknown()` on purpose. Re-validating a frozen contract in zod would give
+//     us a second copy of it to keep in step by hand; the server already rejects a
+//     document that breaks it, and `MediaShotList` in `types/media.ts` is the typed
+//     view the editor uses. `checklist` is the only part parsed: it is a tick map.
+
+export const MediaIPSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    name: z.string().default(""),
+    persona: workbenchNullableString,
+    track: workbenchNullableString,
+    audience: workbenchNullableString,
+    color: workbenchNullableString,
+    week_goal: z.number().default(0),
+    status: z.string().default("active"),
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_MEDIA_IP: MediaIP = {
+  id: "", workspace_id: "", name: "", persona: null, track: null, audience: null,
+  color: null, week_goal: 0, status: "active", owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const MediaIPAccountSchema = z
+  .object({
+    id: z.string(),
+    media_ip_id: z.string().default(""),
+    kind: z.string().default("external"),
+    display_name: z.string().default(""),
+    platform: z.string().default(""),
+    handle: z.string().default(""),
+    url: workbenchNullableString,
+    fans: z.number().default(0),
+    avg_play: z.number().default(0),
+    owner_member_id: workbenchNullableString,
+    created_at: z.string().default(""),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_IP_ACCOUNT: MediaIPAccount = {
+  id: "", media_ip_id: "", kind: "external", display_name: "", platform: "", handle: "",
+  url: null, fans: 0, avg_play: 0, owner_member_id: null, created_at: "",
+};
+
+/**
+ * `GET /media/ips/{id}`. `accounts` defaults to an empty list: an IP whose
+ * account list the server could not read is still a usable IP row, and a rejected
+ * parse would blank the whole detail screen.
+ */
+export const MediaIPDetailSchema = MediaIPSchema.extend({
+  accounts: z.array(MediaIPAccountSchema).default([]),
+}).loose();
+
+export const EMPTY_MEDIA_IP_DETAIL: MediaIPDetail = {
+  ...EMPTY_MEDIA_IP,
+  accounts: [],
+};
+
+export const MediaIPListResponseSchema = z
+  .object({
+    ips: z.array(MediaIPSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_IP_LIST_RESPONSE: MediaIPListResponse = { ips: [], total: 0 };
+
+/** The five dimensions, each 0–100, all present after a parse. */
+export const MediaScoresSchema = z
+  .object({
+    pain: z.number().default(0),
+    save: z.number().default(0),
+    debate: z.number().default(0),
+    susp: z.number().default(0),
+    fit: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_SCORES: MediaScores = { pain: 0, save: 0, debate: 0, susp: 0, fit: 0 };
+
+export const MediaTopicSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    ip_id: z.string().default(""),
+    title: z.string().default(""),
+    source: z.string().default("manual"),
+    scores: MediaScoresSchema.default(EMPTY_MEDIA_SCORES),
+    status: z.string().default("pool"),
+    hot_id: workbenchNullableString,
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_MEDIA_TOPIC: MediaTopic = {
+  id: "", workspace_id: "", ip_id: "", title: "", source: "manual",
+  scores: EMPTY_MEDIA_SCORES, status: "pool", hot_id: null, note: null,
+  owner_member_id: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
+};
+
+export const MediaTopicListResponseSchema = z
+  .object({
+    topics: z.array(MediaTopicSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_TOPIC_LIST_RESPONSE: MediaTopicListResponse = { topics: [], total: 0 };
+
+export const MediaScriptSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    topic_id: z.string().default(""),
+    ip_id: workbenchNullableString,
+    version: z.number().default(1),
+    hook: workbenchNullableString,
+    body: workbenchNullableString,
+    cta: workbenchNullableString,
+    cover_note: workbenchNullableString,
+    tags: z.array(z.string()).default([]),
+    status: z.string().default("draft"),
+    publish_at: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_MEDIA_SCRIPT: MediaScript = {
+  id: "", workspace_id: "", topic_id: "", ip_id: null, version: 1, hook: null,
+  body: null, cta: null, cover_note: null, tags: [], status: "draft", publish_at: null,
+  owner_member_id: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
+};
+
+export const MediaScriptListResponseSchema = z
+  .object({
+    scripts: z.array(MediaScriptSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_SCRIPT_LIST_RESPONSE: MediaScriptListResponse = { scripts: [], total: 0 };
+
+export const MediaShootSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    script_id: z.string().default(""),
+    shoot_date: z.string().default(""),
+    location: workbenchNullableString,
+    // `{}` before the shot list is planned; a `shotlist.v1` document otherwise.
+    // See the block comment above for why this is not re-validated here.
+    shots: z.unknown().default({}),
+    checklist: z.record(z.string(), z.boolean()).default({}),
+    status: z.string().default("planned"),
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_MEDIA_SHOOT: MediaShoot = {
+  id: "", workspace_id: "", script_id: "", shoot_date: "", location: null, shots: {},
+  checklist: {}, status: "planned", owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const MediaShootListResponseSchema = z
+  .object({
+    shoots: z.array(MediaShootSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_SHOOT_LIST_RESPONSE: MediaShootListResponse = { shoots: [], total: 0 };

@@ -2513,6 +2513,55 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 					})
 				})
 
+				// Content workbench (docs/engineering/WORKBENCH-API.md §12):
+				// IP → topic → script → shoot, plus the account attach that writes
+				// `creator.media_ip_id`. Same read/write split as the commerce
+				// ledgers — reads are member-wide, the write gate is inside each
+				// handler — and the chain decides ownership: a script or a shoot is
+				// gated on the owner of the topic it came through.
+				r.Route("/media", func(r chi.Router) {
+					r.Route("/ips", func(r chi.Router) {
+						r.Get("/", h.ListMediaIPs)
+						r.Post("/", h.CreateMediaIP)
+						r.Route("/{ipId}", func(r chi.Router) {
+							r.Get("/", h.GetMediaIP)
+							r.Patch("/", h.UpdateMediaIP)
+							r.Delete("/", h.DeleteMediaIP)
+							r.Post("/accounts", h.AttachMediaIPAccount)
+							r.Delete("/accounts/{creatorId}", h.DetachMediaIPAccount)
+						})
+					})
+					r.Route("/topics", func(r chi.Router) {
+						r.Get("/", h.ListMediaTopics)
+						r.Post("/", h.CreateMediaTopic)
+						r.Route("/{topicId}", func(r chi.Router) {
+							r.Get("/", h.GetMediaTopic)
+							r.Patch("/", h.UpdateMediaTopic)
+							r.Delete("/", h.DeleteMediaTopic)
+						})
+					})
+					r.Route("/scripts", func(r chi.Router) {
+						r.Get("/", h.ListMediaScripts)
+						r.Post("/", h.CreateMediaScript)
+						r.Route("/{scriptId}", func(r chi.Router) {
+							r.Get("/", h.GetMediaScript)
+							// PATCH versions the copy by default; `?inPlace=1`
+							// overwrites the row instead.
+							r.Patch("/", h.UpdateMediaScript)
+							r.Delete("/", h.DeleteMediaScript)
+						})
+					})
+					r.Route("/shoots", func(r chi.Router) {
+						r.Get("/", h.ListMediaShoots)
+						r.Post("/", h.CreateMediaShoot)
+						r.Route("/{shootId}", func(r chi.Router) {
+							r.Get("/", h.GetMediaShoot)
+							r.Patch("/", h.UpdateMediaShoot)
+							r.Delete("/", h.DeleteMediaShoot)
+						})
+					})
+				})
+
 				// HR (docs/engineering/WORKBENCH-API.md §10.3). Same read/write
 				// split as the commerce ledgers; `scorecards` has no standalone
 				// GET because a scorecard is read with its interview, and `hire`

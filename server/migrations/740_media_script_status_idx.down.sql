@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_media_script_workspace_status;

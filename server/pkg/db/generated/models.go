@@ -810,30 +810,33 @@ type ContactSalesInquiry struct {
 }
 
 type Creator struct {
-	ID               pgtype.UUID        `json:"id"`
-	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
-	Kind             string             `json:"kind"`
-	DisplayName      string             `json:"display_name"`
-	Platform         string             `json:"platform"`
-	Handle           string             `json:"handle"`
-	Url              pgtype.Text        `json:"url"`
-	Fans             int64              `json:"fans"`
-	FansD7           int64              `json:"fans_d7"`
-	AvgPlay          int64              `json:"avg_play"`
-	EngagementRate   pgtype.Numeric     `json:"engagement_rate"`
-	Category         pgtype.Text        `json:"category"`
-	AudienceNote     pgtype.Text        `json:"audience_note"`
-	Region           pgtype.Text        `json:"region"`
-	PriceNote        pgtype.Text        `json:"price_note"`
-	Score            pgtype.Int2        `json:"score"`
-	RiskFlag         bool               `json:"risk_flag"`
-	BlacklistReason  pgtype.Text        `json:"blacklist_reason"`
-	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
+	ID              pgtype.UUID    `json:"id"`
+	WorkspaceID     pgtype.UUID    `json:"workspace_id"`
+	Kind            string         `json:"kind"`
+	DisplayName     string         `json:"display_name"`
+	Platform        string         `json:"platform"`
+	Handle          string         `json:"handle"`
+	Url             pgtype.Text    `json:"url"`
+	Fans            int64          `json:"fans"`
+	FansD7          int64          `json:"fans_d7"`
+	AvgPlay         int64          `json:"avg_play"`
+	EngagementRate  pgtype.Numeric `json:"engagement_rate"`
+	Category        pgtype.Text    `json:"category"`
+	AudienceNote    pgtype.Text    `json:"audience_note"`
+	Region          pgtype.Text    `json:"region"`
+	PriceNote       pgtype.Text    `json:"price_note"`
+	Score           pgtype.Int2    `json:"score"`
+	RiskFlag        bool           `json:"risk_flag"`
+	BlacklistReason pgtype.Text    `json:"blacklist_reason"`
+	OwnerMemberID   pgtype.UUID    `json:"owner_member_id"`
+	// Legacy pointer to a generic project row (660). Not the content IP entity; media_ip_id is. Kept because existing creator metrics join it.
 	MediaIpProjectID pgtype.UUID        `json:"media_ip_project_id"`
 	CreatedBy        pgtype.UUID        `json:"created_by"`
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt       pgtype.Timestamptz `json:"archived_at"`
+	// Content IP this platform account speaks for (media_ip, migration 728). NULL for an account not attached to a persona.
+	MediaIpID pgtype.UUID `json:"media_ip_id"`
 }
 
 type CreatorPost struct {
@@ -853,6 +856,8 @@ type CreatorPost struct {
 	ArchivedAt     pgtype.Timestamptz `json:"archived_at"`
 	ProductID      pgtype.UUID        `json:"product_id"`
 	PickID         pgtype.UUID        `json:"pick_id"`
+	// Script this post was published from (media_script, migration 731). NULL for unscripted or pre-workbench posts.
+	MediaScriptID pgtype.UUID `json:"media_script_id"`
 }
 
 type CreatorPostMetric struct {
@@ -1928,6 +1933,76 @@ type MaintenanceJob struct {
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 	CompletedAt    pgtype.Timestamptz `json:"completed_at"`
+}
+
+type MediaIp struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	Name          string             `json:"name"`
+	Persona       pgtype.Text        `json:"persona"`
+	Track         pgtype.Text        `json:"track"`
+	Audience      pgtype.Text        `json:"audience"`
+	Color         pgtype.Text        `json:"color"`
+	WeekGoal      int32              `json:"week_goal"`
+	Status        string             `json:"status"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+type MediaScript struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	TopicID       pgtype.UUID        `json:"topic_id"`
+	IpID          pgtype.UUID        `json:"ip_id"`
+	Version       int32              `json:"version"`
+	Hook          pgtype.Text        `json:"hook"`
+	Body          pgtype.Text        `json:"body"`
+	Cta           pgtype.Text        `json:"cta"`
+	CoverNote     pgtype.Text        `json:"cover_note"`
+	Tags          []string           `json:"tags"`
+	Status        string             `json:"status"`
+	PublishAt     pgtype.Timestamptz `json:"publish_at"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+type MediaShoot struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	ScriptID      pgtype.UUID        `json:"script_id"`
+	ShootDate     pgtype.Date        `json:"shoot_date"`
+	Location      pgtype.Text        `json:"location"`
+	Shots         []byte             `json:"shots"`
+	Checklist     []byte             `json:"checklist"`
+	Status        string             `json:"status"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+type MediaTopic struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	IpID          pgtype.UUID        `json:"ip_id"`
+	Title         string             `json:"title"`
+	Source        string             `json:"source"`
+	Scores        []byte             `json:"scores"`
+	Status        string             `json:"status"`
+	HotID         pgtype.UUID        `json:"hot_id"`
+	Note          pgtype.Text        `json:"note"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
 }
 
 type Member struct {

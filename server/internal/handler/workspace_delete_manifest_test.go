@@ -182,7 +182,16 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"affiliate_settlement": workspaceDelete,
 	// Finance month entry (707): no foreign key either, so the same teardown has
 	// to name it or a deleted workspace leaves its cost rows behind.
-	"ops_finance_month":    workspaceDelete,
+	"ops_finance_month": workspaceDelete,
+	// Content workbench (WORKBENCH-API §12): IP → topic → script → shoot, the same
+	// treatment — no foreign key sits behind any of them, so
+	// DeleteWorkspaceWorkbenchLedger removes each explicitly. The two link columns
+	// (`creator.media_ip_id`, `creator_post.media_script_id`) sit on tables teardown
+	// already deletes, so they need no entry of their own.
+	"media_ip":             workspaceDelete,
+	"media_topic":          workspaceDelete,
+	"media_script":         workspaceDelete,
+	"media_shoot":          workspaceDelete,
 	"workspace_invitation": workspaceDelete,
 	"workspace_share_link": workspaceDelete,
 }

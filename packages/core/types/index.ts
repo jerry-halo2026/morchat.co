@@ -521,4 +521,47 @@ export type {
   UpsertAffiliateDailyRequest,
 } from "./workbench";
 
+// Content workbench (docs/engineering/WORKBENCH-API.md §12). Its own module
+// rather than more of `workbench.ts`: the content pipeline is a separate domain
+// with its own artifact contract (shotlist.v1), and appending to the commerce
+// barrel is what would make that file impossible to read.
+export type {
+  AttachMediaIPAccountRequest,
+  CreateMediaIPRequest,
+  CreateMediaScriptRequest,
+  CreateMediaShootRequest,
+  CreateMediaTopicRequest,
+  MediaIP,
+  MediaIPAccount,
+  MediaIPDetail,
+  MediaIPListFilters,
+  MediaIPListResponse,
+  MediaIPStatus,
+  MediaScoreDimension,
+  MediaScores,
+  MediaScript,
+  MediaScriptListFilters,
+  MediaScriptListResponse,
+  MediaScriptStatus,
+  MediaSellingPoint,
+  MediaShotItem,
+  MediaShotList,
+  MediaShotRhythm,
+  MediaShotScene,
+  MediaShotSize,
+  MediaShoot,
+  MediaShootListFilters,
+  MediaShootListResponse,
+  MediaShootStatus,
+  MediaTopic,
+  MediaTopicListFilters,
+  MediaTopicListResponse,
+  MediaTopicSource,
+  MediaTopicStatus,
+  UpdateMediaIPRequest,
+  UpdateMediaScriptRequest,
+  UpdateMediaShootRequest,
+  UpdateMediaTopicRequest,
+} from "./media";
+
 export type { WorkspaceWakeup, WorkspaceWakeupPage, WorkspaceWakeupFilters, WakeupScope } from "./issue-wakeup";
