@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_affiliate_product_workspace_client;

@@ -144,14 +144,15 @@ func (q *Queries) CreateCreator(ctx context.Context, arg CreateCreatorParams) (C
 
 const createCreatorPost = `-- name: CreateCreatorPost :one
 INSERT INTO creator_post (
-    workspace_id, creator_id, collab_id, content_issue_id, platform, title, url,
-    published_at, source, created_by
+    workspace_id, creator_id, collab_id, content_issue_id, product_id, pick_id,
+    platform, title, url, published_at, source, created_by
 ) VALUES (
     $1, $2, $3::uuid,
-    $4::uuid, $5, $6::text,
-    $7, $8, $9, $10::uuid
+    $4::uuid, $5::uuid, $6::uuid,
+    $7, $8::text,
+    $9, $10, $11, $12::uuid
 )
-RETURNING id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id
 `
 
 type CreateCreatorPostParams struct {
@@ -159,6 +160,8 @@ type CreateCreatorPostParams struct {
 	CreatorID      pgtype.UUID        `json:"creator_id"`
 	CollabID       pgtype.UUID        `json:"collab_id"`
 	ContentIssueID pgtype.UUID        `json:"content_issue_id"`
+	ProductID      pgtype.UUID        `json:"product_id"`
+	PickID         pgtype.UUID        `json:"pick_id"`
 	Platform       string             `json:"platform"`
 	Title          pgtype.Text        `json:"title"`
 	Url            string             `json:"url"`
@@ -173,6 +176,8 @@ func (q *Queries) CreateCreatorPost(ctx context.Context, arg CreateCreatorPostPa
 		arg.CreatorID,
 		arg.CollabID,
 		arg.ContentIssueID,
+		arg.ProductID,
+		arg.PickID,
 		arg.Platform,
 		arg.Title,
 		arg.Url,
@@ -196,6 +201,8 @@ func (q *Queries) CreateCreatorPost(ctx context.Context, arg CreateCreatorPostPa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.ProductID,
+		&i.PickID,
 	)
 	return i, err
 }
@@ -243,7 +250,7 @@ func (q *Queries) GetCreator(ctx context.Context, arg GetCreatorParams) (Creator
 }
 
 const getCreatorPost = `-- name: GetCreatorPost :one
-SELECT id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at FROM creator_post
+SELECT id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id FROM creator_post
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -270,6 +277,8 @@ func (q *Queries) GetCreatorPost(ctx context.Context, arg GetCreatorPostParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.ProductID,
+		&i.PickID,
 	)
 	return i, err
 }
@@ -335,7 +344,7 @@ func (q *Queries) ListCreatorPostMetrics(ctx context.Context, arg ListCreatorPos
 }
 
 const listCreatorPosts = `-- name: ListCreatorPosts :many
-SELECT id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at
+SELECT id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id
 FROM creator_post
 WHERE workspace_id = $1
   AND archived_at IS NULL
@@ -392,6 +401,8 @@ func (q *Queries) ListCreatorPosts(ctx context.Context, arg ListCreatorPostsPara
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ArchivedAt,
+			&i.ProductID,
+			&i.PickID,
 		); err != nil {
 			return nil, err
 		}
@@ -604,20 +615,24 @@ UPDATE creator_post
 SET creator_id = $1,
     collab_id = $2::uuid,
     content_issue_id = $3::uuid,
-    platform = $4,
-    title = $5::text,
-    url = $6,
-    published_at = $7,
-    source = $8,
+    product_id = $4::uuid,
+    pick_id = $5::uuid,
+    platform = $6,
+    title = $7::text,
+    url = $8,
+    published_at = $9,
+    source = $10,
     updated_at = now()
-WHERE id = $9 AND workspace_id = $10 AND archived_at IS NULL
-RETURNING id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at
+WHERE id = $11 AND workspace_id = $12 AND archived_at IS NULL
+RETURNING id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id
 `
 
 type UpdateCreatorPostParams struct {
 	CreatorID      pgtype.UUID        `json:"creator_id"`
 	CollabID       pgtype.UUID        `json:"collab_id"`
 	ContentIssueID pgtype.UUID        `json:"content_issue_id"`
+	ProductID      pgtype.UUID        `json:"product_id"`
+	PickID         pgtype.UUID        `json:"pick_id"`
 	Platform       string             `json:"platform"`
 	Title          pgtype.Text        `json:"title"`
 	Url            string             `json:"url"`
@@ -632,6 +647,8 @@ func (q *Queries) UpdateCreatorPost(ctx context.Context, arg UpdateCreatorPostPa
 		arg.CreatorID,
 		arg.CollabID,
 		arg.ContentIssueID,
+		arg.ProductID,
+		arg.PickID,
 		arg.Platform,
 		arg.Title,
 		arg.Url,
@@ -656,6 +673,8 @@ func (q *Queries) UpdateCreatorPost(ctx context.Context, arg UpdateCreatorPostPa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.ProductID,
+		&i.PickID,
 	)
 	return i, err
 }

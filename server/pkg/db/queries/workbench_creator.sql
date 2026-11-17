@@ -101,11 +101,12 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archiv
 
 -- name: CreateCreatorPost :one
 INSERT INTO creator_post (
-    workspace_id, creator_id, collab_id, content_issue_id, platform, title, url,
-    published_at, source, created_by
+    workspace_id, creator_id, collab_id, content_issue_id, product_id, pick_id,
+    platform, title, url, published_at, source, created_by
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('creator_id'), sqlc.narg('collab_id')::uuid,
-    sqlc.narg('content_issue_id')::uuid, sqlc.arg('platform'), sqlc.narg('title')::text,
+    sqlc.narg('content_issue_id')::uuid, sqlc.narg('product_id')::uuid, sqlc.narg('pick_id')::uuid,
+    sqlc.arg('platform'), sqlc.narg('title')::text,
     sqlc.arg('url'), sqlc.arg('published_at'), sqlc.arg('source'), sqlc.narg('created_by')::uuid
 )
 RETURNING *;
@@ -115,6 +116,8 @@ UPDATE creator_post
 SET creator_id = sqlc.arg('creator_id'),
     collab_id = sqlc.narg('collab_id')::uuid,
     content_issue_id = sqlc.narg('content_issue_id')::uuid,
+    product_id = sqlc.narg('product_id')::uuid,
+    pick_id = sqlc.narg('pick_id')::uuid,
     platform = sqlc.arg('platform'),
     title = sqlc.narg('title')::text,
     url = sqlc.arg('url'),

@@ -162,18 +162,27 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	// Workbench ledgers (docs/engineering/WORKBENCH-API.md): workspace-owned
 	// business rows with no foreign key behind them, so teardown deletes them
 	// explicitly in DeleteWorkspaceWorkbenchLedger.
-	"creator":              workspaceDelete,
-	"creator_post":         workspaceDelete,
-	"creator_post_metric":  workspaceDelete,
-	"crm_client":           workspaceDelete,
-	"crm_brief":            workspaceDelete,
-	"crm_collab":           workspaceDelete,
-	"crm_settlement":       workspaceDelete,
-	"hr_job":               workspaceDelete,
-	"hr_candidate":         workspaceDelete,
-	"hr_interview":         workspaceDelete,
-	"hr_scorecard":         workspaceDelete,
-	"hr_employee_profile":  workspaceDelete,
+	"creator":             workspaceDelete,
+	"creator_post":        workspaceDelete,
+	"creator_post_metric": workspaceDelete,
+	"crm_client":          workspaceDelete,
+	"crm_brief":           workspaceDelete,
+	"crm_collab":          workspaceDelete,
+	"crm_settlement":      workspaceDelete,
+	"hr_job":              workspaceDelete,
+	"hr_candidate":        workspaceDelete,
+	"hr_interview":        workspaceDelete,
+	"hr_scorecard":        workspaceDelete,
+	"hr_employee_profile": workspaceDelete,
+	// Affiliate distribution (WORKBENCH-API §11): the same treatment — no foreign
+	// key, so DeleteWorkspaceWorkbenchLedger removes them explicitly.
+	"affiliate_product":    workspaceDelete,
+	"affiliate_pick":       workspaceDelete,
+	"affiliate_daily":      workspaceDelete,
+	"affiliate_settlement": workspaceDelete,
+	// Finance month entry (707): no foreign key either, so the same teardown has
+	// to name it or a deleted workspace leaves its cost rows behind.
+	"ops_finance_month":    workspaceDelete,
 	"workspace_invitation": workspaceDelete,
 	"workspace_share_link": workspaceDelete,
 }

@@ -143,6 +143,18 @@ import type {
   HrScorecard,
   HrScorecardListResponse,
 } from "../types/workbench";
+// The affiliate block (§11) comes from the same module, for the same reason.
+import type {
+  AffiliateDaily,
+  AffiliateDailyListResponse,
+  AffiliatePick,
+  AffiliatePickListResponse,
+  AffiliateProduct,
+  AffiliateProductListResponse,
+  AffiliateSettlement,
+  AffiliateSettlementListResponse,
+  AffiliateSummaryResponse,
+} from "../types/workbench";
 
 export const PluginConfigFieldSchema = z.object({
   key: z.string(),
@@ -4482,6 +4494,10 @@ export const CreatorPostSchema = z.object({
   creator_id: z.string().default(""),
   collab_id: workbenchNullableString,
   content_issue_id: workbenchNullableString,
+  // 713: the affiliate pointers a product placement carries (§11). Null for a
+  // post that ran no 小黄车 and for rows imported before the columns existed.
+  product_id: workbenchNullableString,
+  pick_id: workbenchNullableString,
   platform: z.string().default(""),
   title: workbenchNullableString,
   url: z.string().default(""),
@@ -4495,9 +4511,9 @@ export const CreatorPostSchema = z.object({
 
 export const EMPTY_CREATOR_POST: CreatorPost = {
   id: "", workspace_id: "", creator_id: "", collab_id: null,
-  content_issue_id: null, platform: "", title: null, url: "", published_at: "",
-  source: "manual", created_by: null, created_at: "", updated_at: "",
-  archived_at: null,
+  content_issue_id: null, product_id: null, pick_id: null, platform: "", title: null,
+  url: "", published_at: "", source: "manual", created_by: null, created_at: "",
+  updated_at: "", archived_at: null,
 };
 
 export const CreatorPostListResponseSchema = z.object({
@@ -5140,4 +5156,202 @@ export const HireHrCandidateResponseSchema = z
 export const EMPTY_HIRE_HR_CANDIDATE_RESPONSE = {
   candidate: null,
   employee_profile: null,
+};
+
+// --- Affiliate distribution (docs/engineering/WORKBENCH-API.md §11) --------
+//
+// 精选联盟 分销. The same two leniency rules as the ledgers above (enums stay
+// `z.string()`, nullable columns default to null) plus one of its own: the money
+// columns of `affiliate_daily` and `affiliate_settlement` are NOT NULL on the
+// server, so a missing one is drift and degrades to 0 rather than blanking the
+// row — an unreported day is a row of zeros, not a row of nulls.
+//
+// `commission_rate` and the summary's `refund_rate` travel at the 0–1 scale
+// (docs/METRICS.md §3 C3) and are never rescaled here: the display layer
+// multiplies by 100, and a schema that did it would apply the scale twice.
+
+export const AffiliateProductSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    client_id: z.string().default(""),
+    platform: z.string().default(""),
+    platform_product_id: z.string().default(""),
+    title: z.string().default(""),
+    category: workbenchNullableString,
+    price: workbenchNullableNumber,
+    currency: z.string().default("CNY"),
+    commission_rate: workbenchNullableNumber,
+    activity: workbenchNullableString,
+    status: z.string().default("on_shelf"),
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_PRODUCT: AffiliateProduct = {
+  id: "", workspace_id: "", client_id: "", platform: "", platform_product_id: "",
+  title: "", category: null, price: null, currency: "CNY", commission_rate: null,
+  activity: null, status: "on_shelf", owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const AffiliateProductListResponseSchema = z
+  .object({
+    products: z.array(AffiliateProductSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_PRODUCT_LIST_RESPONSE: AffiliateProductListResponse = {
+  products: [],
+  total: 0,
+};
+
+export const AffiliatePickSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    product_id: z.string().default(""),
+    creator_id: z.string().default(""),
+    commission_rate: workbenchNullableNumber,
+    bound_at: z.string().default(""),
+    status: z.string().default("active"),
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_PICK: AffiliatePick = {
+  id: "", workspace_id: "", product_id: "", creator_id: "", commission_rate: null,
+  bound_at: "", status: "active", note: null, owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const AffiliatePickListResponseSchema = z
+  .object({
+    picks: z.array(AffiliatePickSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_PICK_LIST_RESPONSE: AffiliatePickListResponse = {
+  picks: [],
+  total: 0,
+};
+
+export const AffiliateDailySchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    pick_id: z.string().default(""),
+    stat_date: z.string().default(""),
+    gmv_amount: z.number().default(0),
+    order_count: z.number().default(0),
+    refund_amount: z.number().default(0),
+    est_commission: z.number().default(0),
+    settled_commission: z.number().default(0),
+    currency: z.string().default("CNY"),
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_DAILY: AffiliateDaily = {
+  id: "", workspace_id: "", pick_id: "", stat_date: "", gmv_amount: 0,
+  order_count: 0, refund_amount: 0, est_commission: 0, settled_commission: 0,
+  currency: "CNY", created_at: "", updated_at: "",
+};
+
+export const AffiliateDailyListResponseSchema = z
+  .object({
+    daily: z.array(AffiliateDailySchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_DAILY_LIST_RESPONSE: AffiliateDailyListResponse = {
+  daily: [],
+  total: 0,
+};
+
+export const AffiliateSettlementSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    period_start: z.string().default(""),
+    period_end: z.string().default(""),
+    gross_commission: z.number().default(0),
+    tech_service_fee: z.number().default(0),
+    refund_deduction: z.number().default(0),
+    net_amount: z.number().default(0),
+    currency: z.string().default("CNY"),
+    status: z.string().default("pending"),
+    paid_at: workbenchNullableString,
+    external_no: workbenchNullableString,
+    note: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_SETTLEMENT: AffiliateSettlement = {
+  id: "", workspace_id: "", period_start: "", period_end: "", gross_commission: 0,
+  tech_service_fee: 0, refund_deduction: 0, net_amount: 0, currency: "CNY",
+  status: "pending", paid_at: null, external_no: null, note: null, created_by: null,
+  created_at: "", updated_at: "",
+};
+
+export const AffiliateSettlementListResponseSchema = z
+  .object({
+    settlements: z.array(AffiliateSettlementSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_SETTLEMENT_LIST_RESPONSE: AffiliateSettlementListResponse = {
+  settlements: [],
+  total: 0,
+};
+
+/**
+ * `GET /api/workbench/affiliate/summary`: one month, seven three-state blocks.
+ *
+ * Same guards as the money block above — absent degrades to the gap block,
+ * malformed degrades to the gap block — because a rejected summary would cost
+ * the whole strip while a single drifted figure should cost one tile.
+ */
+export const AffiliateSummaryResponseSchema = z
+  .object({
+    window: z
+      .object({ month: z.string().default("") })
+      .default({ month: "" })
+      .catch({ month: "" }),
+    gmv: workbenchFinanceBlock,
+    commission_est: workbenchFinanceBlock,
+    commission_settled: workbenchFinanceBlock,
+    refund_rate: workbenchFinanceBlock,
+    tech_fee: workbenchFinanceBlock,
+    pick_count: workbenchFinanceBlock,
+    active_creator_count: workbenchFinanceBlock,
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_SUMMARY_RESPONSE: AffiliateSummaryResponse = {
+  window: { month: "" },
+  gmv: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  commission_est: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  commission_settled: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  refund_rate: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  tech_fee: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  pick_count: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  active_creator_count: EMPTY_WORKBENCH_FINANCE_BLOCK,
 };

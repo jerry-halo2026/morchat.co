@@ -56,6 +56,8 @@ type CreatorPostRequest struct {
 	CreatorID      *string `json:"creator_id"`
 	CollabID       *string `json:"collab_id"`
 	ContentIssueID *string `json:"content_issue_id"`
+	ProductID      *string `json:"product_id"`
+	PickID         *string `json:"pick_id"`
 	Platform       *string `json:"platform"`
 	Title          *string `json:"title"`
 	URL            *string `json:"url"`
@@ -583,6 +585,16 @@ func (h *Handler) CreateCreatorPost(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	// Attribution: which alliance product this post advertises, and under which
+	// pick. Nullable — a brand spot has no product behind it.
+	productID, ok := h.workbenchProductRef(w, r, scope, req.ProductID)
+	if !ok {
+		return
+	}
+	pickID, ok := h.workbenchPickRef(w, r, scope, req.PickID)
+	if !ok {
+		return
+	}
 
 	source := creatorPostSourceManual
 	if req.Source != nil {
@@ -598,6 +610,8 @@ func (h *Handler) CreateCreatorPost(w http.ResponseWriter, r *http.Request) {
 		CreatorID:      creator.ID,
 		CollabID:       collabID,
 		ContentIssueID: contentIssueID,
+		ProductID:      productID,
+		PickID:         pickID,
 		Platform:       platform,
 		Title:          optionalTrimmedText(req.Title),
 		Url:            url,
@@ -685,6 +699,22 @@ func (h *Handler) UpdateCreatorPost(w http.ResponseWriter, r *http.Request) {
 		}
 		contentIssueID = parsed
 	}
+	productID := current.ProductID
+	if req.ProductID != nil {
+		parsed, ok := h.workbenchProductRef(w, r, scope, req.ProductID)
+		if !ok {
+			return
+		}
+		productID = parsed
+	}
+	pickID := current.PickID
+	if req.PickID != nil {
+		parsed, ok := h.workbenchPickRef(w, r, scope, req.PickID)
+		if !ok {
+			return
+		}
+		pickID = parsed
+	}
 	source := current.Source
 	if req.Source != nil {
 		source = strings.TrimSpace(*req.Source)
@@ -700,6 +730,8 @@ func (h *Handler) UpdateCreatorPost(w http.ResponseWriter, r *http.Request) {
 		CreatorID:      creatorID,
 		CollabID:       collabID,
 		ContentIssueID: contentIssueID,
+		ProductID:      productID,
+		PickID:         pickID,
 		Platform:       platform,
 		Title:          applyTextPatch(req.Title, current.Title),
 		Url:            url,

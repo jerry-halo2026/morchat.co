@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_affiliate_pick_workspace_status;

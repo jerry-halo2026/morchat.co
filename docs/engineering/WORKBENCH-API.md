@@ -422,6 +422,168 @@ hr_employee_profile(id PK, workspace_id, member_id UUID NOT NULL, department_id 
 
 已知债务：面试官（`hr_interview.interviewer_member_id`）与员工（`hr_employee_profile.member_id`）目前只显示短 id，没有 join 到 member 姓名；外部面试官已由 `interviewer_name` 覆盖，内部人的姓名 join 仍待补，补 join 时同步换成 `ActorAvatar`。
 
+## 11. B2「精选联盟分销」契约
+
+B0 的 CRM 链（`crm_client → crm_brief → crm_collab → crm_settlement`）建模的是**项目制坑位费**。商务实际对接的是抖音电商精选联盟的分销业务，机制不同：
+
+- 商家把**商品**放进联盟并按**佣金率**付佣（普通计划 / 定向计划 / 活动佣金）；
+- 达人（或机构）在联盟**选品**，把商品加进自己的推广计划，发短视频/直播挂车；
+- 成交按联盟**归因**（订单），**确认收货后**才进结算，退款要冲减；
+- 平台按结算周期（T+N / 月结）出**结算单**，扣**技术服务费**（约 10%），再打给达人/机构；
+- 机构从达人佣金分成；坑位费/专场费是另一类收入。
+
+所以这一域的核心对象是 **商品 × 达人（推广计划）× 日期（成交）× 周期（结算单）**，不是"合作单"。B2 只做数据结构与读写面：**不接平台 API、不做自动归因、不做 UI**。
+
+### 11.1 迁移号段
+
+| 号 | 文件 | 内容 |
+| --- | --- | --- |
+| 709 | `709_affiliate_product` | 表 `affiliate_product` |
+| 710 | `710_affiliate_pick` | 表 `affiliate_pick` |
+| 711 | `711_affiliate_daily` | 表 `affiliate_daily`（内联 `UNIQUE (workspace_id, pick_id, stat_date)`） |
+| 712 | `712_affiliate_settlement` | 表 `affiliate_settlement` |
+| 713 | `713_creator_post_affiliate_refs` | `creator_post` 加 `product_id` / `pick_id` 两列（无新表） |
+| 714 | `714_affiliate_product_platform_unique` | 部分唯一索引 `(workspace_id, platform, platform_product_id) WHERE archived_at IS NULL`（CONCURRENTLY） |
+| 715/716 | `..._product_client_idx` / `..._product_status_idx` | 商品列表索引 |
+| 717 | `717_affiliate_pick_identity_unique` | 部分唯一索引 `(workspace_id, product_id, creator_id) WHERE archived_at IS NULL`（CONCURRENTLY） |
+| 718/719 | `..._pick_creator_idx` / `..._pick_status_idx` | 选品列表索引 |
+| 720 | `720_affiliate_daily_stat_date_idx` | 日事实的月份窗口扫描 |
+| 721/722 | `..._settlement_period_idx` / `..._settlement_status_idx` | 结算单列表索引 |
+| 723/724 | `..._creator_post_product_idx` / `..._creator_post_pick_idx` | `creator_post` 的两个归因指针索引 |
+
+规则与 B0 一致：无外键、无级联、`workspace_id UUID NOT NULL`、软删 `archived_at`；每个二级索引一个单语句 `CREATE [UNIQUE] INDEX CONCURRENTLY IF NOT EXISTS` 文件对，并逐个登记 `server/cmd/migrate/main.go` 的 `concurrentIndexCleanups`（714/715/716/717/718/719/720/721/722/723/724 共 11 条）。`affiliate_daily` 的唯一键内联在建表语句里（新表、无条件键，不需要部分索引）。
+
+### 11.2 表
+
+```sql
+-- 709
+affiliate_product(id PK, workspace_id, client_id UUID NOT NULL,   -- 卖家 = B0 crm_client
+  platform TEXT NOT NULL, platform_product_id TEXT NOT NULL,
+  title TEXT NOT NULL, category TEXT,
+  price NUMERIC(14,2), currency CHAR(3) NOT NULL DEFAULT 'CNY',
+  commission_rate NUMERIC(6,5) CHECK (0..1),                      -- C3 量纲
+  activity TEXT,                                                  -- 活动佣金名；NULL = 普通计划
+  status TEXT NOT NULL DEFAULT 'on_shelf' CHECK (status IN ('on_shelf','off_shelf','ended')),
+  owner_member_id UUID, created_by, created_at, updated_at, archived_at)
+-- 唯一：714，(workspace_id, platform, platform_product_id) WHERE archived_at IS NULL
+
+-- 710
+affiliate_pick(id PK, workspace_id, product_id UUID NOT NULL, creator_id UUID NOT NULL,
+  commission_rate NUMERIC(6,5) CHECK (0..1),                      -- 定向计划；NULL = 用商品默认
+  bound_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','paused','ended')),
+  note TEXT, owner_member_id UUID, created_by, created_at, updated_at, archived_at)
+-- 唯一：717，(workspace_id, product_id, creator_id) WHERE archived_at IS NULL
+
+-- 711
+affiliate_daily(id PK, workspace_id, pick_id UUID NOT NULL, stat_date DATE NOT NULL,
+  gmv_amount NUMERIC(14,2) NOT NULL DEFAULT 0, order_count INT NOT NULL DEFAULT 0,
+  refund_amount NUMERIC(14,2) NOT NULL DEFAULT 0,
+  est_commission NUMERIC(14,2) NOT NULL DEFAULT 0,
+  settled_commission NUMERIC(14,2) NOT NULL DEFAULT 0,
+  currency CHAR(3) NOT NULL DEFAULT 'CNY', created_by, created_at, updated_at,
+  UNIQUE (workspace_id, pick_id, stat_date))
+-- 无 archived_at：只有 upsert 一条写路径，没有删除
+
+-- 712
+affiliate_settlement(id PK, workspace_id,
+  period_start DATE NOT NULL, period_end DATE NOT NULL CHECK (period_end >= period_start),
+  gross_commission NUMERIC(14,2) NOT NULL DEFAULT 0,
+  tech_service_fee NUMERIC(14,2) NOT NULL DEFAULT 0,
+  refund_deduction NUMERIC(14,2) NOT NULL DEFAULT 0,
+  net_amount NUMERIC(14,2) NOT NULL DEFAULT 0,
+  currency CHAR(3) NOT NULL DEFAULT 'CNY',
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','paid','failed')),
+  paid_at DATE, external_no TEXT, note TEXT, created_by, created_at, updated_at)
+-- 无 archived_at、无 DELETE：结算单是平台事实
+
+-- 713：creator_post 加两列（成交归因把内容与商品连起来）
+creator_post.product_id UUID,   -- 这条发布挂的哪个商品
+creator_post.pick_id UUID       -- 这条发布属于哪个推广计划
+```
+
+**为什么商品独立于 `crm_brief`**：brief 是项目——一份预算、一个档期、一批交付；商品的生命周期比任何项目都长，同一个 SKU 会被多个达人在多个月里反复选品，日成交是记在商品（经 pick）上的。把它塞进 brief 链只能逼出"每个 SKU 每个周期建一个 brief"，并丢掉这一域真正的原子事实：商品 × 达人 × 日期。`client_id` 只表示**谁付这笔佣金**（卖家），与坑位费的合作单没有关系。
+
+**为什么 `daily` 与 `settlement` 分开**：两者是不同粒度的两份平台口径，互相不能推算。`affiliate_daily` 是平台报表的**日快照**——按 (pick, 日期) 报 GMV、退款、预计/已结佣金；退款单独一列，**不直接净额**，因为退款可能落在与成交不同的一天，写时净额会让过去某天的数字被后来的退款改写。`affiliate_settlement` 是平台按周期出的**结算单**——有技术服务费、退款扣减、平台四舍五入和活动调整，`net = gross − tech_service_fee − refund_deduction` 只是文档，**一律以平台给的数为准**，服务端不重算、不覆盖 `net_amount`（重算会把"平台数与我们加总不一致"这件事本身抹掉）。合成一张表就会被迫在"日"上分摊一笔"周期"的费用，或反过来把日数据复制进结算单。
+
+### 11.3 REST（基址 `/api/workbench/affiliate`）
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET/POST | `/products` | 列表（`?client_id=&status=&platform=&limit=&cursor=`）/ 新建 |
+| GET/PATCH/DELETE | `/products/{productId}` | 单条；DELETE = 软删 |
+| GET/POST | `/picks` | 列表（`?product_id=&creator_id=&status=&limit=&cursor=`）/ 新建 |
+| GET/PATCH/DELETE | `/picks/{pickId}` | 单条；DELETE = 软删 |
+| GET | `/daily` | 日事实列表（`?pick_id=&from=&to=&limit=`，`stat_date DESC`） |
+| PUT | `/daily` | 按 `(pick_id, stat_date)` upsert，**一次一条**；body 即整天，整体覆盖；返回 `201`（新建或覆盖同一天） |
+| GET/POST | `/settlements` | 列表（`?status=&from=&to=&limit=`，`summary` 同款重叠窗口）/ 新建 |
+| PATCH | `/settlements/{settlementId}` | 单条；**没有 DELETE**，也没有 GET 单项 |
+| GET | `/summary?month=YYYY-MM&department_id=` | 月度聚合，见 §11.5 |
+
+信封沿用 §3.1：`{ <resource>: T[], total }`，`total` = 本页条数；资源名 `products` / `picks` / `daily` / `settlements`（`daily` 是集合名词，不加 s）。单条 / 新建 / 更新直接返回对象，删除 `204` 无 body。商品与选品列表支持 `?cursor=`（与 CRM 列表一致的 keyset，不额外返回 `next_cursor`）；结算单与日事实按周期 / 日期读，只接受 `limit`（默认 50、上限 200）。
+
+**权限**（与 B0 同一套 `workbenchCanWrite` / `workbenchOwnerForCreate` / `workbenchOwnerForUpdate`）：
+
+| 资源 | 判断依据 |
+| --- | --- |
+| `affiliate_product` | 行自己的 `owner_member_id`；member 只能写自己拥有的行，新建时自动归自己，且不能把新行指给别人 |
+| `affiliate_pick` | 行自己的 `owner_member_id`；**新建还要求可写该商品**（与"不能给别人的达人发内容"同理，否则会造出一条 member 谁也维护不了的 pick） |
+| `affiliate_daily` | 无 owner 列，**沿 pick 的 owner 判权**（日事实归属它的推广计划，不另立第二份真相） |
+| `affiliate_settlement` | **按角色**：只有 `owner`/`admin` 能写。结算单是覆盖整个工作区所有 pick 的周期账单，没有一行可以继承 owner（同 `/finance/months` 的月度录入） |
+
+`department_id` 只筛聚合，不参与鉴权。§3.1 的金额规则照旧：金额一律 JSON number。
+
+### 11.4 事件与实时
+
+B2 **不新增 WS 事件名**。理由：事件名的前端登记在 `packages/core/types/events.ts` 与 patcher（`packages/views/**`），两者都不在本批范围内；发一个没人登记的事件只会让"事件发了但没人理"看起来像通的。客户端改由 mutation 主动失效 `["affiliate", wsId]`（含 summary）与 `["workbench", wsId]`，语义与 B0 的 patcher 相同，只是少了跨端推送这一层。加事件时需要：`events.ts` 追加 `affiliate_product:changed` / `affiliate_pick:changed` / `affiliate_daily:changed` / `affiliate_settlement:changed`（payload `{ id }`，daily 再带 `pick_id`）、views 侧 patcher、服务端 `publish`。
+
+### 11.5 月度聚合 `GET /summary`
+
+```json
+{
+  "window": { "month": "2026-11" },
+  "gmv":                { "value": 2000, "sample_count": 3,    "empty": "zero" },
+  "commission_est":     { "value": 400,  "sample_count": 3,    "empty": "zero" },
+  "commission_settled": { "value": 100,  "sample_count": 1,    "empty": "zero" },
+  "refund_rate":        { "value": 0.05, "sample_count": 3,    "empty": "zero" },
+  "tech_fee":           { "value": null, "sample_count": 0,    "empty": "insufficient_data" },
+  "pick_count":         { "value": 1,    "sample_count": 1,    "empty": "zero" },
+  "active_creator_count": { "value": 1,  "sample_count": 1,    "empty": "zero" }
+}
+```
+
+| 块 | 口径 | 空值 |
+| --- | --- | --- |
+| `gmv` / `commission_est` | 本月 `affiliate_daily.gmv_amount` / `est_commission` 之和；`sample_count` = 参与求和的**天数**（`stat_date` 落在本月）。**已归档 pick 的日行仍计入**：计划结束不该抹掉它已经卖出去的数，否则过去某个月的 GMV 会随归档改写 | `insufficient_data`（没有报表 ≠ 0） |
+| `commission_settled` | 本月 `settled_commission` 之和；`sample_count` = `settled_commission <> 0` 的天数，所以"结算单还没打款"是缺口不是 0 | `insufficient_data` |
+| `refund_rate` | Σ`refund_amount` ÷ Σ`gmv_amount`，**0–1 量纲**（C3，展示 ×100）；`sample_count` = `gmv_amount > 0` 的天数（分母的天） | `insufficient_data`：本月 GMV 为 0 |
+| `tech_fee` | 与本月**有重叠**的结算单（`period_start < 月末 AND period_end >= 月初`）的 `tech_service_fee` 之和；`sample_count` = 这些结算单数 | `insufficient_data`：没有重叠的结算单，**或带了 `department_id`**——结算单是工作区级账单，没有可回退的部门归属，此时报缺口而不是一个无视过滤的总额 |
+| `pick_count` | 本月 `bound_at` 落在期间的**live** pick 数（`archived_at IS NULL`） | `zero`（真零） |
+| `active_creator_count` | 同上行集合的 `DISTINCT creator_id` 数 | `zero`（真零） |
+
+- `month` 缺省取数据库 `now()` 的自然月；入参 `YYYY-MM`（也接受月初 `YYYY-MM-DD`），必须是月初否则 **400**；`window.month` 由 SQL 自己的月份边界回显，标签与数字不可能指向不同月份。
+- 部门过滤沿 B0 回退链：日事实 / pick → pick 的 `owner_member_id` 的 `member.department_id`；不参与鉴权。
+- 形状与 `/overview`、`/finance` 完全一致（Go 侧复用 `WorkbenchMetricValue`，`empty` 只发 `zero` / `insufficient_data`）。
+
+### 11.6 Query key
+
+```
+["affiliate", wsId, resource, filters]        // resource ∈ products|picks|daily|settlements
+["affiliate", wsId, resource, { id }]         // 商品 / 选品的详情
+["affiliate", wsId, "summary", month ?? "current", departmentId ?? "all"]
+```
+
+`packages/core/affiliate/{index,queries,mutations}.ts`；mutation 失效 `affiliateKeys.all(wsId)` + `workbenchKeys.all(wsId)`。
+
+### 11.7 已知债务与本批未做
+
+- **WS 事件**：见 §11.4。
+- **MCP 只读工具**：`/api/mcp/workbench` 的 `domain` 枚举仍是九个，未加 `affiliate_*`；要加需同时扩 `workbenchMCPLedgerDomainNames` 与 dispatcher。
+- **`creator_post` 的两个新列暂时没有写入路径**：713 只加列与索引，`workbench_creator.go`（B0 的发布台账）不在本批写作用域内、行为未改，所以 `POST/PATCH /api/workbench/creator-posts` 既不接收也不返回 `product_id` / `pick_id`，新发的行这两列恒为 NULL。前端 `CreatorPost` 类型与 zod schema 已按"可空、缺省 null"登记，等服务端接上就是同一份契约；接线时要：请求结构体加两个字段、写入前校验指向本工作区内存在的商品 / 选品、响应回显。
+- **`affiliate_daily` 的 PUT 是整天覆盖**：省略的度量存 0（"报表说这天没成交"），不是保留旧值；这正是"重导一份报表不重复计数"的代价，客户端必须送完整的一天。
+- **`price` 不叫 `_amount`**：它保留业务原名（售价），因为它是 SKU 的属性而不是应收/应付的一笔金额；B0 §1 的"金额字段以 `_amount` 结尾"在这一个字段上是有意的例外。
+- **`ops_finance_month`（707）既不在 teardown 也不在 manifest**：与本批无关的既有缺口，`TestWorkspaceDeletionManifestCoversPublicSchema` 在已有该表（以及 `external_auth_identity`、`knowledge_*`）的库上会因此报漂移；四张新表已分类且在 `DeleteWorkspaceWorkbenchLedger` 内。
+
 ## 9. 完成定义（DoD）
 
 一个域算完成，当且仅当：迁移可 up/down 往返、`make sqlc` 无脏 diff、handler 有权限用例、事件发出、zod 覆盖响应、`useRealtimeSync` 有 patcher、`/overview` 里对应指标从 `insufficient_data` 变为有值、页面能读能写。

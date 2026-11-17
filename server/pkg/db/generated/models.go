@@ -22,6 +22,77 @@ type ActivityLog struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
+type AffiliateDaily struct {
+	ID                pgtype.UUID        `json:"id"`
+	WorkspaceID       pgtype.UUID        `json:"workspace_id"`
+	PickID            pgtype.UUID        `json:"pick_id"`
+	StatDate          pgtype.Date        `json:"stat_date"`
+	GmvAmount         pgtype.Numeric     `json:"gmv_amount"`
+	OrderCount        int32              `json:"order_count"`
+	RefundAmount      pgtype.Numeric     `json:"refund_amount"`
+	EstCommission     pgtype.Numeric     `json:"est_commission"`
+	SettledCommission pgtype.Numeric     `json:"settled_commission"`
+	Currency          string             `json:"currency"`
+	CreatedBy         pgtype.UUID        `json:"created_by"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+}
+
+type AffiliatePick struct {
+	ID             pgtype.UUID        `json:"id"`
+	WorkspaceID    pgtype.UUID        `json:"workspace_id"`
+	ProductID      pgtype.UUID        `json:"product_id"`
+	CreatorID      pgtype.UUID        `json:"creator_id"`
+	CommissionRate pgtype.Numeric     `json:"commission_rate"`
+	BoundAt        pgtype.Timestamptz `json:"bound_at"`
+	Status         string             `json:"status"`
+	Note           pgtype.Text        `json:"note"`
+	OwnerMemberID  pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy      pgtype.UUID        `json:"created_by"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt     pgtype.Timestamptz `json:"archived_at"`
+}
+
+type AffiliateProduct struct {
+	ID                pgtype.UUID        `json:"id"`
+	WorkspaceID       pgtype.UUID        `json:"workspace_id"`
+	ClientID          pgtype.UUID        `json:"client_id"`
+	Platform          string             `json:"platform"`
+	PlatformProductID string             `json:"platform_product_id"`
+	Title             string             `json:"title"`
+	Category          pgtype.Text        `json:"category"`
+	Price             pgtype.Numeric     `json:"price"`
+	Currency          string             `json:"currency"`
+	CommissionRate    pgtype.Numeric     `json:"commission_rate"`
+	Activity          pgtype.Text        `json:"activity"`
+	Status            string             `json:"status"`
+	OwnerMemberID     pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy         pgtype.UUID        `json:"created_by"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt        pgtype.Timestamptz `json:"archived_at"`
+}
+
+type AffiliateSettlement struct {
+	ID              pgtype.UUID        `json:"id"`
+	WorkspaceID     pgtype.UUID        `json:"workspace_id"`
+	PeriodStart     pgtype.Date        `json:"period_start"`
+	PeriodEnd       pgtype.Date        `json:"period_end"`
+	GrossCommission pgtype.Numeric     `json:"gross_commission"`
+	TechServiceFee  pgtype.Numeric     `json:"tech_service_fee"`
+	RefundDeduction pgtype.Numeric     `json:"refund_deduction"`
+	NetAmount       pgtype.Numeric     `json:"net_amount"`
+	Currency        string             `json:"currency"`
+	Status          string             `json:"status"`
+	PaidAt          pgtype.Date        `json:"paid_at"`
+	ExternalNo      pgtype.Text        `json:"external_no"`
+	Note            pgtype.Text        `json:"note"`
+	CreatedBy       pgtype.UUID        `json:"created_by"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Agent struct {
 	ID                 pgtype.UUID        `json:"id"`
 	WorkspaceID        pgtype.UUID        `json:"workspace_id"`
@@ -776,6 +847,8 @@ type CreatorPost struct {
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt     pgtype.Timestamptz `json:"archived_at"`
+	ProductID      pgtype.UUID        `json:"product_id"`
+	PickID         pgtype.UUID        `json:"pick_id"`
 }
 
 type CreatorPostMetric struct {

@@ -204,6 +204,27 @@ import type {
   WorkbenchFinanceMonth,
   WorkbenchFinanceMonthListResponse,
   UpsertWorkbenchFinanceMonthRequest,
+  AffiliateDaily,
+  AffiliateDailyListFilters,
+  AffiliateDailyListResponse,
+  AffiliatePick,
+  AffiliatePickListFilters,
+  AffiliatePickListResponse,
+  AffiliateProduct,
+  AffiliateProductListFilters,
+  AffiliateProductListResponse,
+  AffiliateSettlement,
+  AffiliateSettlementListFilters,
+  AffiliateSettlementListResponse,
+  AffiliateSummaryFilters,
+  AffiliateSummaryResponse,
+  CreateAffiliatePickRequest,
+  CreateAffiliateProductRequest,
+  CreateAffiliateSettlementRequest,
+  UpdateAffiliatePickRequest,
+  UpdateAffiliateProductRequest,
+  UpdateAffiliateSettlementRequest,
+  UpsertAffiliateDailyRequest,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -675,6 +696,24 @@ import {
   EMPTY_WORKBENCH_FINANCE_MONTH,
   WorkbenchFinanceMonthListResponseSchema,
   EMPTY_WORKBENCH_FINANCE_MONTH_LIST,
+  AffiliateProductSchema,
+  AffiliateProductListResponseSchema,
+  EMPTY_AFFILIATE_PRODUCT,
+  EMPTY_AFFILIATE_PRODUCT_LIST_RESPONSE,
+  AffiliatePickSchema,
+  AffiliatePickListResponseSchema,
+  EMPTY_AFFILIATE_PICK,
+  EMPTY_AFFILIATE_PICK_LIST_RESPONSE,
+  AffiliateDailySchema,
+  AffiliateDailyListResponseSchema,
+  EMPTY_AFFILIATE_DAILY,
+  EMPTY_AFFILIATE_DAILY_LIST_RESPONSE,
+  AffiliateSettlementSchema,
+  AffiliateSettlementListResponseSchema,
+  EMPTY_AFFILIATE_SETTLEMENT,
+  EMPTY_AFFILIATE_SETTLEMENT_LIST_RESPONSE,
+  AffiliateSummaryResponseSchema,
+  EMPTY_AFFILIATE_SUMMARY_RESPONSE,
   HrJobSchema,
   HrJobListResponseSchema,
   EMPTY_HR_JOB,
@@ -4355,6 +4394,220 @@ export class ApiClient {
 
   async deleteCrmSettlement(id: string): Promise<void> {
     await this.fetch(`/api/workbench/crm/settlements/${id}`, { method: "DELETE" });
+  }
+
+  // Affiliate distribution (docs/engineering/WORKBENCH-API.md §11). Same base and
+  // same write scope as the ledgers above: reads are member-wide, writes are gated
+  // server-side (owner/admin, or the row's owner; a daily fact inherits its pick's
+  // owner, a settlement statement is owner/admin only). `settlements` has no
+  // delete — a statement is a platform fact — and `daily` has no create: its only
+  // write is the `(pick_id, stat_date)` upsert.
+
+  async listAffiliateProducts(
+    filters: AffiliateProductListFilters = {},
+  ): Promise<AffiliateProductListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/affiliate/products${workbenchSearch({
+        client_id: filters.client_id,
+        status: filters.status,
+        platform: filters.platform,
+        limit: filters.limit,
+        cursor: filters.cursor,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      AffiliateProductListResponseSchema,
+      EMPTY_AFFILIATE_PRODUCT_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/affiliate/products" },
+    );
+  }
+
+  async createAffiliateProduct(
+    data: CreateAffiliateProductRequest,
+  ): Promise<AffiliateProduct> {
+    const raw = await this.fetch<unknown>("/api/workbench/affiliate/products", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliateProductSchema, EMPTY_AFFILIATE_PRODUCT, {
+      endpoint: "POST /api/workbench/affiliate/products",
+    });
+  }
+
+  async getAffiliateProduct(id: string): Promise<AffiliateProduct> {
+    const raw = await this.fetch<unknown>(`/api/workbench/affiliate/products/${id}`);
+    return parseWithFallback(raw, AffiliateProductSchema, EMPTY_AFFILIATE_PRODUCT, {
+      endpoint: "GET /api/workbench/affiliate/products/:productId",
+    });
+  }
+
+  async updateAffiliateProduct(
+    id: string,
+    data: UpdateAffiliateProductRequest,
+  ): Promise<AffiliateProduct> {
+    const raw = await this.fetch<unknown>(`/api/workbench/affiliate/products/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliateProductSchema, EMPTY_AFFILIATE_PRODUCT, {
+      endpoint: "PATCH /api/workbench/affiliate/products/:productId",
+    });
+  }
+
+  async deleteAffiliateProduct(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/affiliate/products/${id}`, { method: "DELETE" });
+  }
+
+  async listAffiliatePicks(
+    filters: AffiliatePickListFilters = {},
+  ): Promise<AffiliatePickListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/affiliate/picks${workbenchSearch({
+        product_id: filters.product_id,
+        creator_id: filters.creator_id,
+        status: filters.status,
+        limit: filters.limit,
+        cursor: filters.cursor,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      AffiliatePickListResponseSchema,
+      EMPTY_AFFILIATE_PICK_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/affiliate/picks" },
+    );
+  }
+
+  async createAffiliatePick(data: CreateAffiliatePickRequest): Promise<AffiliatePick> {
+    const raw = await this.fetch<unknown>("/api/workbench/affiliate/picks", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliatePickSchema, EMPTY_AFFILIATE_PICK, {
+      endpoint: "POST /api/workbench/affiliate/picks",
+    });
+  }
+
+  async getAffiliatePick(id: string): Promise<AffiliatePick> {
+    const raw = await this.fetch<unknown>(`/api/workbench/affiliate/picks/${id}`);
+    return parseWithFallback(raw, AffiliatePickSchema, EMPTY_AFFILIATE_PICK, {
+      endpoint: "GET /api/workbench/affiliate/picks/:pickId",
+    });
+  }
+
+  async updateAffiliatePick(
+    id: string,
+    data: UpdateAffiliatePickRequest,
+  ): Promise<AffiliatePick> {
+    const raw = await this.fetch<unknown>(`/api/workbench/affiliate/picks/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliatePickSchema, EMPTY_AFFILIATE_PICK, {
+      endpoint: "PATCH /api/workbench/affiliate/picks/:pickId",
+    });
+  }
+
+  async deleteAffiliatePick(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/affiliate/picks/${id}`, { method: "DELETE" });
+  }
+
+  async listAffiliateDaily(
+    filters: AffiliateDailyListFilters = {},
+  ): Promise<AffiliateDailyListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/affiliate/daily${workbenchSearch({
+        pick_id: filters.pick_id,
+        from: filters.from,
+        to: filters.to,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      AffiliateDailyListResponseSchema,
+      EMPTY_AFFILIATE_DAILY_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/affiliate/daily" },
+    );
+  }
+
+  /** One day of one pick, upserted on `(pick_id, stat_date)`; PUT replaces the day. */
+  async upsertAffiliateDaily(data: UpsertAffiliateDailyRequest): Promise<AffiliateDaily> {
+    const raw = await this.fetch<unknown>("/api/workbench/affiliate/daily", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliateDailySchema, EMPTY_AFFILIATE_DAILY, {
+      endpoint: "PUT /api/workbench/affiliate/daily",
+    });
+  }
+
+  async listAffiliateSettlements(
+    filters: AffiliateSettlementListFilters = {},
+  ): Promise<AffiliateSettlementListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/affiliate/settlements${workbenchSearch({
+        status: filters.status,
+        from: filters.from,
+        to: filters.to,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      AffiliateSettlementListResponseSchema,
+      EMPTY_AFFILIATE_SETTLEMENT_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/affiliate/settlements" },
+    );
+  }
+
+  async createAffiliateSettlement(
+    data: CreateAffiliateSettlementRequest,
+  ): Promise<AffiliateSettlement> {
+    const raw = await this.fetch<unknown>("/api/workbench/affiliate/settlements", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliateSettlementSchema, EMPTY_AFFILIATE_SETTLEMENT, {
+      endpoint: "POST /api/workbench/affiliate/settlements",
+    });
+  }
+
+  async updateAffiliateSettlement(
+    id: string,
+    data: UpdateAffiliateSettlementRequest,
+  ): Promise<AffiliateSettlement> {
+    const raw = await this.fetch<unknown>(`/api/workbench/affiliate/settlements/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliateSettlementSchema, EMPTY_AFFILIATE_SETTLEMENT, {
+      endpoint: "PATCH /api/workbench/affiliate/settlements/:settlementId",
+    });
+  }
+
+  /**
+   * One month of the affiliate ledger (§11): GMV, estimated and settled
+   * commission, refund rate, platform tech fee, and the live plan set. Each block
+   * is the contract's three-state entry, so a month with no imported report
+   * leaves the money blocks on the gap card rather than at zero.
+   */
+  async getAffiliateSummary(
+    params: AffiliateSummaryFilters = {},
+  ): Promise<AffiliateSummaryResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/affiliate/summary${workbenchSearch({
+        month: params.month,
+        department_id: params.department_id,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      AffiliateSummaryResponseSchema,
+      EMPTY_AFFILIATE_SUMMARY_RESPONSE,
+      { endpoint: "GET /api/workbench/affiliate/summary" },
+    );
   }
 
   // HR (docs/engineering/WORKBENCH-API.md §10.3). Same base and same write scope

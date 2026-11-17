@@ -2475,6 +2475,44 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 					})
 				})
 
+				// 精选联盟 affiliate distribution (docs/engineering/WORKBENCH-API.md §11).
+				// Products and picks are soft-deleted ledgers with the B0 write
+				// gate; daily facts are an upsert on (pick, day) and inherit the
+				// pick's owner; a settlement statement is a platform fact with no
+				// delete route, written by owner/admin only.
+				r.Route("/affiliate", func(r chi.Router) {
+					r.Get("/summary", h.GetAffiliateSummary)
+					r.Route("/products", func(r chi.Router) {
+						r.Get("/", h.ListAffiliateProducts)
+						r.Post("/", h.CreateAffiliateProduct)
+						r.Route("/{productId}", func(r chi.Router) {
+							r.Get("/", h.GetAffiliateProduct)
+							r.Patch("/", h.UpdateAffiliateProduct)
+							r.Delete("/", h.DeleteAffiliateProduct)
+						})
+					})
+					r.Route("/picks", func(r chi.Router) {
+						r.Get("/", h.ListAffiliatePicks)
+						r.Post("/", h.CreateAffiliatePick)
+						r.Route("/{pickId}", func(r chi.Router) {
+							r.Get("/", h.GetAffiliatePick)
+							r.Patch("/", h.UpdateAffiliatePick)
+							r.Delete("/", h.DeleteAffiliatePick)
+						})
+					})
+					r.Route("/daily", func(r chi.Router) {
+						r.Get("/", h.ListAffiliateDaily)
+						r.Put("/", h.UpsertAffiliateDaily)
+					})
+					r.Route("/settlements", func(r chi.Router) {
+						r.Get("/", h.ListAffiliateSettlements)
+						r.Post("/", h.CreateAffiliateSettlement)
+						r.Route("/{settlementId}", func(r chi.Router) {
+							r.Patch("/", h.UpdateAffiliateSettlement)
+						})
+					})
+				})
+
 				// HR (docs/engineering/WORKBENCH-API.md §10.3). Same read/write
 				// split as the commerce ledgers; `scorecards` has no standalone
 				// GET because a scorecard is read with its interview, and `hire`

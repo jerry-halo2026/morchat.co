@@ -81,6 +81,14 @@ export interface CreatorPost {
   creator_id: string;
   collab_id: string | null;
   content_issue_id: string | null;
+  /**
+   * The affiliate product this post promoted, when it ran a 小黄车
+   * (docs/engineering/WORKBENCH-API.md §11). Null for a post that was not a
+   * product placement, and for rows imported before the column existed.
+   */
+  product_id: string | null;
+  /** The pick (product × creator plan) the post belongs to, when known. */
+  pick_id: string | null;
   platform: string;
   title: string | null;
   url: string;
@@ -472,7 +480,9 @@ export type CreateCreatorPostRequest = Pick<
   CreatorPost,
   "creator_id" | "platform" | "url" | "published_at"
 > &
-  Partial<Pick<CreatorPost, "collab_id" | "content_issue_id" | "title" | "source">>;
+  Partial<
+    Pick<CreatorPost, "collab_id" | "content_issue_id" | "title" | "source" | "product_id" | "pick_id">
+  >;
 
 export type UpdateCreatorPostRequest = Partial<
   Pick<
@@ -484,6 +494,8 @@ export type UpdateCreatorPostRequest = Partial<
     | "url"
     | "published_at"
     | "source"
+    | "product_id"
+    | "pick_id"
   >
 >;
 
@@ -1117,4 +1129,327 @@ export type HireHrCandidateRequest = CreateHrEmployeeProfileRequest;
 export interface HireHrCandidateResponse {
   candidate: HrCandidate;
   employee_profile: HrEmployeeProfile;
+}
+
+// --- Affiliate distribution (docs/engineering/WORKBENCH-API.md §11) --------
+//
+// 精选联盟 分销, a different business shape from the CRM ledgers above: the fact
+// is 商品 × 达人 × 日期, and the money arrives as a periodic platform statement.
+// Four records:
+//
+//   - `AffiliateProduct` — a SKU a client lists, with the commission it pays;
+//   - `AffiliatePick` — a creator promoting that SKU (the platform's 推广计划);
+//   - `AffiliateDaily` — the platform report's numbers for one pick on one day;
+//   - `AffiliateSettlement` — the statement the platform issues for a period.
+//
+// Same wire rules as the rest of this file: flat snake_case, money as JSON
+// numbers with `currency` beside them, and rates at the 0–1 storage scale (C3) —
+// `commission_rate` 0.2 is 20 %, and `refund_rate` in the summary is 0.05 for
+// 5 %. Schemas stay lenient on the enums so a new platform state degrades one
+// row's presentation instead of blanking the ledger.
+//
+// `affiliate_daily` and `affiliate_settlement` are NOT derivable from each other:
+// the daily row is what the platform reports per day, the settlement is what it
+// pays per cycle (with its own tech-service fee and rounding). Neither is
+// computed from the other on the server, so neither can be computed on the client.
+
+export type AffiliateProductStatus = "on_shelf" | "off_shelf" | "ended";
+
+export type AffiliatePickStatus = "active" | "paused" | "ended";
+
+export type AffiliateSettlementStatus = "pending" | "paid" | "failed";
+
+/** A 联盟商品: the SKU, its shelf price and the commission it pays. */
+export interface AffiliateProduct {
+  id: string;
+  workspace_id: string;
+  /** The seller — a `CrmClient` (the shop that pays the commission). */
+  client_id: string;
+  /** `douyin`, `kuaishou`, … Free text; the first half of the product identity. */
+  platform: string;
+  /** The platform's own product id; unique per platform while the row is live. */
+  platform_product_id: string;
+  title: string;
+  category: string | null;
+  /** On-shelf price, CNY. Null when the platform did not report one. */
+  price: number | null;
+  currency: string;
+  /** 0–1 (C3): 0.2 is a 20 % commission. Null means "not set yet". */
+  commission_rate: number | null;
+  /** The 活动佣金 this rate belongs to; null is the plain plan, not "unnamed". */
+  activity: string | null;
+  status: AffiliateProductStatus;
+  /** The row's owner; a `member` may edit only the rows it owns. */
+  owner_member_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+/**
+ * A 选品: one creator promoting one product. This is the row the platform
+ * attributes orders to, and the parent of every daily fact.
+ */
+export interface AffiliatePick {
+  id: string;
+  workspace_id: string;
+  product_id: string;
+  creator_id: string;
+  /**
+   * The pick's own rate (定向计划). Null means the product's default applies —
+   * which is a different statement from an agreed zero.
+   */
+  commission_rate: number | null;
+  /** When the creator added the product to their plan (ISO timestamp). */
+  bound_at: string;
+  status: AffiliatePickStatus;
+  note: string | null;
+  owner_member_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+/**
+ * One day of one pick, exactly as the platform report gives it.
+ *
+ * `refund_amount` is its own measure and is NOT netted out of `gmv_amount`: a
+ * refund can land on a different day than the sale, and the platform reports
+ * both side by side. `settled_commission` is the part of `est_commission` that
+ * has cleared; the gap between them is the cash lag, so both are stored.
+ */
+export interface AffiliateDaily {
+  id: string;
+  workspace_id: string;
+  pick_id: string;
+  /** Calendar day `YYYY-MM-DD`. */
+  stat_date: string;
+  gmv_amount: number;
+  order_count: number;
+  refund_amount: number;
+  est_commission: number;
+  settled_commission: number;
+  currency: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * One platform settlement statement for a period. `net_amount` is the platform's
+ * own arithmetic (`gross − tech_service_fee − refund_deduction`), stored as sent
+ * and never recomputed: a server that "fixed" it would hide the discrepancy the
+ * operator needs to see. There is no delete route — a wrong statement is
+ * corrected by PATCH.
+ */
+export interface AffiliateSettlement {
+  id: string;
+  workspace_id: string;
+  /** The statement period, `YYYY-MM-DD` at both ends. */
+  period_start: string;
+  period_end: string;
+  gross_commission: number;
+  /** 技术服务费, the platform's cut (~10 %). */
+  tech_service_fee: number;
+  refund_deduction: number;
+  net_amount: number;
+  currency: string;
+  status: AffiliateSettlementStatus;
+  paid_at: string | null;
+  /** The platform's statement number; null when the import did not carry it. */
+  external_no: string | null;
+  note: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** `GET /api/workbench/affiliate/products` — `total` is the page's row count. */
+export interface AffiliateProductListResponse {
+  products: AffiliateProduct[];
+  total: number;
+}
+
+export interface AffiliatePickListResponse {
+  picks: AffiliatePick[];
+  total: number;
+}
+
+/**
+ * `GET/PUT /api/workbench/affiliate/daily`. `daily` is the resource name and is
+ * already a mass noun, so it does not take a plural `s`.
+ */
+export interface AffiliateDailyListResponse {
+  daily: AffiliateDaily[];
+  total: number;
+}
+
+export interface AffiliateSettlementListResponse {
+  settlements: AffiliateSettlement[];
+  total: number;
+}
+
+// --- Affiliate filters ----------------------------------------------------
+// Same convention as the ledgers above: plain objects, because they are part of
+// the query key, and unknown keys are ignored by the server.
+
+export interface AffiliateProductListFilters {
+  client_id?: string;
+  status?: AffiliateProductStatus;
+  platform?: string;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface AffiliatePickListFilters {
+  product_id?: string;
+  creator_id?: string;
+  status?: AffiliatePickStatus;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface AffiliateDailyListFilters {
+  pick_id?: string;
+  /** Inclusive calendar days `YYYY-MM-DD`. */
+  from?: string;
+  to?: string;
+  limit?: number;
+}
+
+export interface AffiliateSettlementListFilters {
+  status?: AffiliateSettlementStatus;
+  /** Overlap window: a statement straddling the boundary still matches. */
+  from?: string;
+  to?: string;
+  limit?: number;
+}
+
+// --- Affiliate write requests ---------------------------------------------
+
+export type CreateAffiliateProductRequest = Pick<
+  AffiliateProduct,
+  "client_id" | "platform" | "platform_product_id" | "title"
+> &
+  Partial<
+    Pick<
+      AffiliateProduct,
+      | "category"
+      | "price"
+      | "currency"
+      | "commission_rate"
+      | "activity"
+      | "status"
+      | "owner_member_id"
+    >
+  >;
+
+export type UpdateAffiliateProductRequest = Partial<
+  Pick<
+    AffiliateProduct,
+    | "client_id"
+    | "platform"
+    | "platform_product_id"
+    | "title"
+    | "category"
+    | "price"
+    | "currency"
+    | "commission_rate"
+    | "activity"
+    | "status"
+    | "owner_member_id"
+  >
+>;
+
+export type CreateAffiliatePickRequest = Pick<AffiliatePick, "product_id" | "creator_id"> &
+  Partial<
+    Pick<AffiliatePick, "commission_rate" | "bound_at" | "status" | "note" | "owner_member_id">
+  >;
+
+export type UpdateAffiliatePickRequest = Partial<
+  Pick<
+    AffiliatePick,
+    | "product_id"
+    | "creator_id"
+    | "commission_rate"
+    | "bound_at"
+    | "status"
+    | "note"
+    | "owner_member_id"
+  >
+>;
+
+/**
+ * `PUT /api/workbench/affiliate/daily` — the whole reported day, keyed by
+ * `(pick_id, stat_date)`. The body replaces the day: an omitted measure is
+ * stored as 0, not merged with the previous value.
+ */
+export type UpsertAffiliateDailyRequest = Pick<AffiliateDaily, "pick_id" | "stat_date"> &
+  Partial<
+    Pick<
+      AffiliateDaily,
+      | "gmv_amount"
+      | "order_count"
+      | "refund_amount"
+      | "est_commission"
+      | "settled_commission"
+      | "currency"
+    >
+  >;
+
+/** `net_amount` is required: a statement that cannot name its net is not one. */
+export type CreateAffiliateSettlementRequest = Pick<
+  AffiliateSettlement,
+  "period_start" | "period_end" | "net_amount"
+> &
+  Partial<
+    Pick<
+      AffiliateSettlement,
+      "gross_commission" | "tech_service_fee" | "refund_deduction" | "currency" | "status" | "paid_at" | "external_no" | "note"
+    >
+  >;
+
+export type UpdateAffiliateSettlementRequest = Partial<
+  Pick<
+    AffiliateSettlement,
+    | "period_start"
+    | "period_end"
+    | "gross_commission"
+    | "tech_service_fee"
+    | "refund_deduction"
+    | "net_amount"
+    | "currency"
+    | "status"
+    | "paid_at"
+    | "external_no"
+    | "note"
+  >
+>;
+
+/**
+ * `GET /api/workbench/affiliate/summary` — one month of the affiliate ledger.
+ *
+ * Every entry is the same three-state block the metric strip uses, so
+ * `value: null` + `empty: "insufficient_data"` reads as "no report was imported"
+ * on this surface too, never as a zero. The two counts are true zeros on an
+ * empty month; the money blocks are gaps. `refund_rate` is 0–1 (C3).
+ */
+export interface AffiliateSummaryResponse {
+  /** The calendar month the figures describe, `YYYY-MM`. */
+  window: { month: string };
+  gmv: WorkbenchFinanceBlock;
+  commission_est: WorkbenchFinanceBlock;
+  commission_settled: WorkbenchFinanceBlock;
+  refund_rate: WorkbenchFinanceBlock;
+  tech_fee: WorkbenchFinanceBlock;
+  pick_count: WorkbenchFinanceBlock;
+  active_creator_count: WorkbenchFinanceBlock;
+}
+
+export interface AffiliateSummaryFilters {
+  /** `YYYY-MM`; the server's current month when omitted. */
+  month?: string | null;
+  /** Aggregate dimension only; never an access boundary (§3). */
+  department_id?: string | null;
 }
