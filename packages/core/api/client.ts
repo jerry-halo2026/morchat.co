@@ -286,6 +286,15 @@ import type {
   UpdateHrGuideItemRequest,
   UpdateHrInterviewGuideRequest,
   UpdateHrQuestionRequest,
+  // Offboarding management (docs/engineering/WORKBENCH-API.md §15).
+  CreateHrOffboardingRequest,
+  HrHandoverItem,
+  HrOffboarding,
+  HrOffboardingAdvanceResponse,
+  HrOffboardingListFilters,
+  HrOffboardingListResponse,
+  UpdateHrHandoverItemRequest,
+  UpdateHrOffboardingRequest,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -848,6 +857,12 @@ import {
   EMPTY_HR_INTERVIEW_GUIDE,
   EMPTY_HR_GUIDE_LIST_RESPONSE,
   EMPTY_HR_GUIDE_GENERATE_RESPONSE,
+  HrOffboardingSchema,
+  HrOffboardingListResponseSchema,
+  HrOffboardingAdvanceResponseSchema,
+  EMPTY_HR_OFFBOARDING,
+  EMPTY_HR_OFFBOARDING_LIST_RESPONSE,
+  EMPTY_HR_OFFBOARDING_ADVANCE_RESPONSE,
   type IssueView,
   type IssueViewPreference,
   type CreateIssueViewRequest,
@@ -5530,6 +5545,129 @@ export class ApiClient {
     });
     return parseWithFallback(raw, HrGuideGenerateResponseSchema, EMPTY_HR_GUIDE_GENERATE_RESPONSE, {
       endpoint: "POST /api/workbench/hr/guides/generate",
+    });
+  }
+
+  // Offboarding management (docs/engineering/WORKBENCH-API.md §15). Reads are
+  // member-wide; writes are gated server-side on the record's owner, and the two
+  // routes that move the state machine (`advance` / `cancel`) additionally require
+  // owner/admin.
+  //
+  // `advance` carries no body and answers `{ offboarding, employee }` — `employee`
+  // is null until the record reaches `done`, which is when the leave date is
+  // written onto the employee file. The three `handover` routes answer the whole
+  // record rather than 204: deleting an entry renumbers the rest.
+
+  async listHrOffboardings(
+    filters: HrOffboardingListFilters = {},
+  ): Promise<HrOffboardingListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/offboardings${workbenchSearch({
+        status: filters.status,
+        employee_id: filters.employee_id,
+      })}`,
+    );
+    return parseWithFallback(raw, HrOffboardingListResponseSchema, EMPTY_HR_OFFBOARDING_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/offboardings",
+    });
+  }
+
+  async createHrOffboarding(data: CreateHrOffboardingRequest): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/offboardings", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "POST /api/workbench/hr/offboardings",
+    });
+  }
+
+  async getHrOffboarding(id: string): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/offboardings/${id}`);
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "GET /api/workbench/hr/offboardings/:offboardingId",
+    });
+  }
+
+  async updateHrOffboarding(
+    id: string,
+    data: UpdateHrOffboardingRequest,
+  ): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/offboardings/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "PATCH /api/workbench/hr/offboardings/:offboardingId",
+    });
+  }
+
+  async deleteHrOffboarding(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/offboardings/${id}`, { method: "DELETE" });
+  }
+
+  /** apply → handover → done. 409 when the record is already past the step. */
+  async advanceHrOffboarding(id: string): Promise<HrOffboardingAdvanceResponse> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/offboardings/${id}/advance`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    return parseWithFallback(
+      raw,
+      HrOffboardingAdvanceResponseSchema,
+      EMPTY_HR_OFFBOARDING_ADVANCE_RESPONSE,
+      { endpoint: "POST /api/workbench/hr/offboardings/:offboardingId/advance" },
+    );
+  }
+
+  /** The way out: `cancelled` is terminal, and it frees the employee's slot. */
+  async cancelHrOffboarding(id: string): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/offboardings/${id}/cancel`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "POST /api/workbench/hr/offboardings/:offboardingId/cancel",
+    });
+  }
+
+  /** Append one checklist entry; the server assigns `key` when it is absent. */
+  async appendHrOffboardingHandoverItem(
+    id: string,
+    item: Partial<HrHandoverItem> & { label: string },
+  ): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/offboardings/${id}/handover`, {
+      method: "POST",
+      body: JSON.stringify(item),
+    });
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "POST /api/workbench/hr/offboardings/:offboardingId/handover",
+    });
+  }
+
+  /** Tick an entry by position in the checklist, or note what is left to say. */
+  async updateHrOffboardingHandoverItem(
+    id: string,
+    index: number,
+    data: UpdateHrHandoverItemRequest,
+  ): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/offboardings/${id}/handover/${index}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+    );
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "PATCH /api/workbench/hr/offboardings/:offboardingId/handover/:index",
+    });
+  }
+
+  /** Remove one entry. The response is the renumbered checklist. */
+  async deleteHrOffboardingHandoverItem(id: string, index: number): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/offboardings/${id}/handover/${index}`,
+      { method: "DELETE" },
+    );
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "DELETE /api/workbench/hr/offboardings/:offboardingId/handover/:index",
     });
   }
 

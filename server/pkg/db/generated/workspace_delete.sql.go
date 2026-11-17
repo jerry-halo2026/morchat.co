@@ -749,6 +749,9 @@ deleted_market_signals AS (
 ),
 deleted_goals AS (
     DELETE FROM goal_okr WHERE goal_okr.workspace_id = $1
+),
+deleted_hr_offboardings AS (
+    DELETE FROM hr_offboarding WHERE hr_offboarding.workspace_id = $1
 )
 DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1
 `
@@ -775,6 +778,11 @@ DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1
 // foreign key sits behind any of them, so each table is cleared explicitly.
 // The converted pointers need no reset of their own: both the goal and the issue
 // they can point at are rows of this workspace, deleted by this teardown.
+// Offboarding (WORKBENCH-API §15): a record names an employee profile, and the
+// profile names a member. Clearing the exits before the profiles keeps the
+// dependency order readable; neither holds the other alive (no foreign key), and
+// the `leave_date` a finished record wrote lives on the profile row this same
+// statement deletes.
 func (q *Queries) DeleteWorkspaceWorkbenchLedger(ctx context.Context, workspaceID pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, deleteWorkspaceWorkbenchLedger, workspaceID)
 	return err

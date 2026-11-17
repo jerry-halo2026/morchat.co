@@ -865,5 +865,13 @@ deleted_market_signals AS (
 ),
 deleted_goals AS (
     DELETE FROM goal_okr WHERE goal_okr.workspace_id = $1
+),
+-- Offboarding (WORKBENCH-API §15): a record names an employee profile, and the
+-- profile names a member. Clearing the exits before the profiles keeps the
+-- dependency order readable; neither holds the other alive (no foreign key), and
+-- the `leave_date` a finished record wrote lives on the profile row this same
+-- statement deletes.
+deleted_hr_offboardings AS (
+    DELETE FROM hr_offboarding WHERE hr_offboarding.workspace_id = $1
 )
 DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1;

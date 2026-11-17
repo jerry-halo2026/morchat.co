@@ -1252,6 +1252,7 @@ type HrEmployeeProfile struct {
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+	LeaveDate     pgtype.Date        `json:"leave_date"`
 }
 
 type HrInterview struct {
@@ -1313,6 +1314,24 @@ type HrJob struct {
 	Jd            pgtype.Text        `json:"jd"`
 	Urgent        bool               `json:"urgent"`
 	Keywords      []byte             `json:"keywords"`
+}
+
+type HrOffboarding struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	EmployeeID    pgtype.UUID        `json:"employee_id"`
+	Status        string             `json:"status"`
+	LastDay       pgtype.Date        `json:"last_day"`
+	Reason        pgtype.Text        `json:"reason"`
+	Kind          string             `json:"kind"`
+	Handover      []byte             `json:"handover"`
+	CertDone      bool               `json:"cert_done"`
+	Note          pgtype.Text        `json:"note"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
 }
 
 type HrQuestion struct {

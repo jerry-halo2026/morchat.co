@@ -253,7 +253,7 @@ INSERT INTO hr_employee_profile (
     $9::jsonb, $10::jsonb,
     $11::uuid, $12::uuid
 )
-RETURNING id, workspace_id, member_id, department_id, job_title, grade, hire_date, regular_date, contract_end, ability, disc, owner_member_id, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, member_id, department_id, job_title, grade, hire_date, regular_date, contract_end, ability, disc, owner_member_id, created_by, created_at, updated_at, archived_at, leave_date
 `
 
 type CreateHrEmployeeProfileParams struct {
@@ -304,6 +304,7 @@ func (q *Queries) CreateHrEmployeeProfile(ctx context.Context, arg CreateHrEmplo
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.LeaveDate,
 	)
 	return i, err
 }
@@ -582,7 +583,7 @@ func (q *Queries) GetHrCandidate(ctx context.Context, arg GetHrCandidateParams) 
 }
 
 const getHrEmployeeProfile = `-- name: GetHrEmployeeProfile :one
-SELECT id, workspace_id, member_id, department_id, job_title, grade, hire_date, regular_date, contract_end, ability, disc, owner_member_id, created_by, created_at, updated_at, archived_at FROM hr_employee_profile
+SELECT id, workspace_id, member_id, department_id, job_title, grade, hire_date, regular_date, contract_end, ability, disc, owner_member_id, created_by, created_at, updated_at, archived_at, leave_date FROM hr_employee_profile
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -611,12 +612,13 @@ func (q *Queries) GetHrEmployeeProfile(ctx context.Context, arg GetHrEmployeePro
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.LeaveDate,
 	)
 	return i, err
 }
 
 const getHrEmployeeProfileByMember = `-- name: GetHrEmployeeProfileByMember :one
-SELECT id, workspace_id, member_id, department_id, job_title, grade, hire_date, regular_date, contract_end, ability, disc, owner_member_id, created_by, created_at, updated_at, archived_at FROM hr_employee_profile
+SELECT id, workspace_id, member_id, department_id, job_title, grade, hire_date, regular_date, contract_end, ability, disc, owner_member_id, created_by, created_at, updated_at, archived_at, leave_date FROM hr_employee_profile
 WHERE workspace_id = $1
   AND member_id = $2
   AND archived_at IS NULL
@@ -649,6 +651,7 @@ func (q *Queries) GetHrEmployeeProfileByMember(ctx context.Context, arg GetHrEmp
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.LeaveDate,
 	)
 	return i, err
 }
@@ -891,7 +894,7 @@ func (q *Queries) ListHrCandidates(ctx context.Context, arg ListHrCandidatesPara
 }
 
 const listHrEmployeeProfiles = `-- name: ListHrEmployeeProfiles :many
-SELECT id, workspace_id, member_id, department_id, job_title, grade, hire_date, regular_date, contract_end, ability, disc, owner_member_id, created_by, created_at, updated_at, archived_at
+SELECT id, workspace_id, member_id, department_id, job_title, grade, hire_date, regular_date, contract_end, ability, disc, owner_member_id, created_by, created_at, updated_at, archived_at, leave_date
 FROM hr_employee_profile
 WHERE workspace_id = $1
   AND archived_at IS NULL
@@ -948,6 +951,7 @@ func (q *Queries) ListHrEmployeeProfiles(ctx context.Context, arg ListHrEmployee
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ArchivedAt,
+			&i.LeaveDate,
 		); err != nil {
 			return nil, err
 		}
@@ -1328,7 +1332,7 @@ SET department_id = $1::uuid,
     owner_member_id = $9::uuid,
     updated_at = now()
 WHERE id = $10 AND workspace_id = $11 AND archived_at IS NULL
-RETURNING id, workspace_id, member_id, department_id, job_title, grade, hire_date, regular_date, contract_end, ability, disc, owner_member_id, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, member_id, department_id, job_title, grade, hire_date, regular_date, contract_end, ability, disc, owner_member_id, created_by, created_at, updated_at, archived_at, leave_date
 `
 
 type UpdateHrEmployeeProfileParams struct {
@@ -1377,6 +1381,7 @@ func (q *Queries) UpdateHrEmployeeProfile(ctx context.Context, arg UpdateHrEmplo
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.LeaveDate,
 	)
 	return i, err
 }

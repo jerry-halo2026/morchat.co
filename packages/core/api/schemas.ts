@@ -194,6 +194,16 @@ import type {
   HrQuestion,
   HrQuestionListResponse,
 } from "../types/guide";
+// Offboarding (§15): its own module (types/offboard.ts), because the record is a
+// state machine — `status` moves through advance/cancel, never through a PATCH —
+// and the `done` step writes the employee's `leave_date`.
+import type {
+  HrHandoverItem,
+  HrOffboarding,
+  HrOffboardingAdvanceResponse,
+  HrOffboardingEmployee,
+  HrOffboardingListResponse,
+} from "../types/offboard";
 
 export const PluginConfigFieldSchema = z.object({
   key: z.string(),
@@ -5949,4 +5959,111 @@ export const EMPTY_HR_GUIDE_GENERATE_RESPONSE: HrGuideGenerateResponse = {
   source: "template",
   items: [],
   total: 0,
+};
+
+// ---- offboarding (WORKBENCH-API §15) ---------------------------------------
+//
+// Four rules from the contract's response section show up here:
+//
+//   * `handover` is always an array (`[]`, never null): the checklist panel maps
+//     over it, and a null would be a branch for no content.
+//   * `status` and `kind` stay plain strings. An unknown segment must render — the
+//     page shows what the row says — and defaulting an unknown value to `apply`
+//     would show a finished record as just started.
+//   * `last_day` is a calendar day (`YYYY-MM-DD`), the same wire form as every
+//     other HR date.
+//   * the advance answer keeps `employee` nullable: only the `done` step touches
+//     the employee file, so "no profile" is the honest read of the earlier one.
+
+export const HrHandoverItemSchema = z
+  .object({
+    key: z.string().default(""),
+    label: z.string().default(""),
+    done: z.boolean().default(false),
+    note: z.string().default(""),
+  })
+  .loose();
+
+export const EMPTY_HR_HANDOVER_ITEM: HrHandoverItem = {
+  key: "",
+  label: "",
+  done: false,
+  note: "",
+};
+
+export const HrOffboardingSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    employee_id: z.string().default(""),
+    status: z.string().default("apply"),
+    last_day: z.string().default(""),
+    reason: workbenchNullableString,
+    kind: z.string().default("voluntary"),
+    handover: z.array(HrHandoverItemSchema).default([]),
+    cert_done: z.boolean().default(false),
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_HR_OFFBOARDING: HrOffboarding = {
+  id: "",
+  workspace_id: "",
+  employee_id: "",
+  status: "apply",
+  last_day: "",
+  reason: null,
+  kind: "voluntary",
+  handover: [],
+  cert_done: false,
+  note: null,
+  owner_member_id: null,
+  created_by: null,
+  created_at: "",
+  updated_at: "",
+  archived_at: null,
+};
+
+export const HrOffboardingListResponseSchema = z
+  .object({
+    offboardings: z.array(HrOffboardingSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_OFFBOARDING_LIST_RESPONSE: HrOffboardingListResponse = {
+  offboardings: [],
+  total: 0,
+};
+
+/**
+ * The employee file plus the column the `done` transition writes. Built by
+ * extending the profile schema rather than re-listing it, so a field added to the
+ * employee payload cannot silently disappear from this answer.
+ */
+export const HrOffboardingEmployeeSchema = HrEmployeeProfileSchema.extend({
+  leave_date: workbenchNullableString,
+});
+
+export const EMPTY_HR_OFFBOARDING_EMPLOYEE: HrOffboardingEmployee = {
+  ...EMPTY_HR_EMPLOYEE_PROFILE,
+  leave_date: null,
+};
+
+export const HrOffboardingAdvanceResponseSchema = z
+  .object({
+    offboarding: HrOffboardingSchema,
+    // Null until `done`: the earlier step does not move the employee file.
+    employee: HrOffboardingEmployeeSchema.nullish(),
+  })
+  .loose();
+
+export const EMPTY_HR_OFFBOARDING_ADVANCE_RESPONSE: HrOffboardingAdvanceResponse = {
+  offboarding: EMPTY_HR_OFFBOARDING,
+  employee: null,
 };

@@ -625,4 +625,22 @@ export type {
   UpdateHrQuestionRequest,
 } from "./guide";
 
+// Offboarding management (docs/engineering/WORKBENCH-API.md §15). Its own module
+// for the same reason as §12–§14: an exit record is a state machine whose steps
+// carry side effects (the `done` write-back onto the employee file), and that is
+// not something the commerce barrel should have to explain.
+export type {
+  CreateHrOffboardingRequest,
+  HrHandoverItem,
+  HrOffboarding,
+  HrOffboardingAdvanceResponse,
+  HrOffboardingEmployee,
+  HrOffboardingKind,
+  HrOffboardingListFilters,
+  HrOffboardingListResponse,
+  HrOffboardingStatus,
+  UpdateHrHandoverItemRequest,
+  UpdateHrOffboardingRequest,
+} from "./offboard";
+
 export type { WorkspaceWakeup, WorkspaceWakeupPage, WorkspaceWakeupFilters, WakeupScope } from "./issue-wakeup";

@@ -2679,6 +2679,27 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 							r.Delete("/items/{index}", h.DeleteHrGuideItem)
 						})
 					})
+					// Offboarding (docs/engineering/WORKBENCH-API.md §15). The four
+					// segments of the old 离职管理 page as one record: `advance` walks
+					// apply → handover → done (owner/admin only, and `done` writes the
+					// employee's leave date in the same transaction), `cancel` is the way
+					// out, and the three `handover` routes edit the checklist in place —
+					// they answer the whole record rather than 204 because deleting an
+					// entry renumbers the rest.
+					r.Route("/offboardings", func(r chi.Router) {
+						r.Get("/", h.ListHrOffboardings)
+						r.Post("/", h.CreateHrOffboarding)
+						r.Route("/{offboardingId}", func(r chi.Router) {
+							r.Get("/", h.GetHrOffboarding)
+							r.Patch("/", h.UpdateHrOffboarding)
+							r.Delete("/", h.DeleteHrOffboarding)
+							r.Post("/advance", h.AdvanceHrOffboarding)
+							r.Post("/cancel", h.CancelHrOffboarding)
+							r.Post("/handover", h.AppendHrOffboardingHandoverItem)
+							r.Patch("/handover/{index}", h.UpdateHrOffboardingHandoverItem)
+							r.Delete("/handover/{index}", h.DeleteHrOffboardingHandoverItem)
+						})
+					})
 				})
 			})
 

@@ -86,7 +86,7 @@ const PAGES = [
   ["recruit", HrRecruitPage, "Recruiting"],
   ["resumes", HrResumesPage, "Resumes"],
   ["interviews", HrInterviewsPage, "Interviews"],
-  ["scores", HrScoresPage, "Scorecard"],
+  ["scores", HrScoresPage, "Combined scores"],
   ["guide", HrGuidePage, "Interview guide"],
   ["employees", HrEmployeesPage, "Employees"],
   ["offboard", HrOffboardPage, "Offboarding"],
