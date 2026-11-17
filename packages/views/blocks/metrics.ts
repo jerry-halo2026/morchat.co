@@ -218,6 +218,17 @@ export function gapNeedsKey(domain: LedgerDomain, id?: MetricId): GapNeedsKey {
       return "needs_interviews";
     case "employees":
       return "needs_employees";
+    // B2 (`§11`). No metric reads these tables yet, so no gap card points here
+    // today; the copy exists so the four ledgers can be reached from a gap the
+    // moment one does.
+    case "products":
+      return "needs_products";
+    case "picks":
+      return "needs_picks";
+    case "daily":
+      return "needs_daily";
+    case "affiliate_settlements":
+      return "needs_affiliate_settlements";
   }
 }
 

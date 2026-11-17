@@ -5,11 +5,15 @@ import {
   Briefcase,
   Building2,
   CalendarClock,
+  CalendarDays,
   ChevronRight,
   CircleUser,
   Coins,
   FileText,
   Layers,
+  Megaphone,
+  Package,
+  ScrollText,
   UserRound,
   Users,
   type IconComponent,
@@ -34,6 +38,10 @@ const DOMAIN_ICON: Record<LedgerDomain, IconComponent> = {
   briefs: FileText,
   collabs: Layers,
   settlements: Coins,
+  products: Package,
+  picks: Megaphone,
+  daily: CalendarDays,
+  affiliate_settlements: ScrollText,
   jobs: Briefcase,
   candidates: UserRound,
   interviews: CalendarClock,
@@ -41,15 +49,15 @@ const DOMAIN_ICON: Record<LedgerDomain, IconComponent> = {
 };
 
 /**
- * The overview's ledger entry points, in the two groups they belong to.
+ * The overview's ledger entry points, in the three groups they belong to.
  *
  * This is page content, not a sidebar section: it renders through
  * `ObjectSection` + `ObjectSectionCard`, the same bordered row stack every
  * object page uses for a list of destinations. (The sidebar primitives in
  * `panel-nav` carry their own column padding and hover band, which reads as a
- * stray nav list inside a `max-w-6xl` body.) The groups are the workbench's two
- * businesses — commerce (B0) and people (B1, `docs/engineering/WORKBENCH-API.md`
- * §10) — so the split the ledger tab draws is the split the overview draws.
+ * stray nav list inside a `max-w-6xl` body.) The groups are the workbench's
+ * three businesses — commerce (B0), 精选联盟 (B2, §11) and people (B1, §10) — so
+ * the split the ledger tab draws is the split the overview draws.
  *
  * Each row is a real destination (`/overview?tab=ledger&domain=…`), not a
  * callback: a ledger is a view someone can send to a colleague, and middle-click
@@ -96,6 +104,14 @@ export function LedgerSection({
       case "interviews":
       case "employees":
         return hrCount(data, domain);
+      // B2 (`§11`): the affiliate counts live on the summary read (`month` +
+      // department), not on `/counts`, so a row here carries no number rather
+      // than a zero that would read as "nothing is on shelf".
+      case "products":
+      case "picks":
+      case "daily":
+      case "affiliate_settlements":
+        return undefined;
     }
   };
 

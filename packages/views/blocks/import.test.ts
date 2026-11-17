@@ -27,6 +27,9 @@ const CTX: ImportRowContext = {
     { id: "memb-zhang", name: "张三" },
   ],
   departments: [{ id: "dept-content", name: "内容部" }],
+  // The daily-report import (B2, §11) resolves a pick from a product × creator
+  // pair; the HR sheets below never read it.
+  picks: [],
 };
 
 function columnOf(headers: string[], name: string): number {

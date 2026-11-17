@@ -68,6 +68,10 @@
     "needs_candidates": "Кандидатов пока нет, поэтому ни этап, ни дата найма не измеряются.",
     "needs_interviews": "Собеседования ещё не назначены, поэтому считать пунктуальность не по чему.",
     "needs_employees": "Профилей сотрудников пока нет: даты найма, грейды и окончание контракта вводятся здесь.",
+    "needs_products": "Товаров партнёрки пока нет — от них зависят подборки, продажи по дням и отчёты.",
+    "needs_picks": "Подборок пока нет: никто не продвигает товар.",
+    "needs_daily": "Продаж по дням пока нет — считать GMV и комиссию не на чем.",
+    "needs_affiliate_settlements": "Отчётов пока нет, поэтому поступление не подтверждено.",
     "needs_issues": "У задач, на которых строится число, не заполнено поле.",
     "fill_ledger": "Заполнить в реестре",
     "fill_issues": "Открыть задачи"
@@ -80,6 +84,10 @@
       "briefs": "Брифы",
       "collabs": "Сотрудничества",
       "settlements": "Расчёты",
+      "products": "Товары",
+      "picks": "Подборки",
+      "daily": "Продажи по дням",
+      "affiliate_settlements": "Отчёты",
       "jobs": "Вакансии",
       "candidates": "Кандидаты",
       "interviews": "Собеседования",
@@ -87,6 +95,7 @@
     },
     "group": {
       "commerce": "Коммерция",
+      "affiliate": "Партнёрка",
       "people": "Персонал"
     },
     "column": {
@@ -129,7 +138,28 @@
       "grade": "Грейд",
       "hire_date": "Дата найма",
       "regular_date": "В штате с",
-      "contract_end": "Окончание контракта"
+      "contract_end": "Окончание контракта",
+      "product_title": "Товар",
+      "product_ref": "Товар",
+      "ownership": "Принадлежность",
+      "platform_product": "Площадка / id товара",
+      "commission_rate": "Комиссия",
+      "pick_commission_rate": "Комиссия подборки",
+      "agency_share_rate": "Доля агентства",
+      "service_fee": "Сервисный сбор",
+      "pick": "Подборка",
+      "stat_date": "Дата",
+      "gmv": "GMV",
+      "order_count": "Заказы",
+      "refund": "Возврат",
+      "est_commission": "Ожидаемая комиссия",
+      "settled_commission": "Выплаченная комиссия",
+      "period": "Период",
+      "gross_commission": "Комиссия брутто",
+      "tech_service_fee": "Технический сбор",
+      "refund_deduction": "Вычет по возвратам",
+      "net_amount": "Сумма к выплате",
+      "settled_to": "Получатель"
     },
     "deliverable": {
       "short_video": "Короткое видео",
@@ -233,7 +263,15 @@
       "member": "Участник",
       "job_title": "Позиция",
       "grade": "Грейд",
-      "hire_date": "Дата найма"
+      "hire_date": "Дата найма",
+      "pick": "Подборка",
+      "product": "Товар",
+      "creator": "Автор",
+      "stat_date": "Дата",
+      "gmv": "GMV",
+      "orders": "Заказы",
+      "refund": "Возврат",
+      "commission": "Комиссия"
     },
     "errors": {
       "missing_title": "Нет должности",
@@ -246,7 +284,10 @@
       "bad_date": "Дату «{{value}}» не прочитать",
       "bad_amount": "«{{value}}» не одно число; разделите диапазон на два столбца",
       "bad_stage": "Этапа «{{value}}» нет",
-      "server_error": "Сервер отклонил эту строку"
+      "server_error": "Сервер отклонил эту строку",
+      "missing_pick": "Нет товара и автора, к которым отнести этот день",
+      "unknown_pick": "Нет подборки «{{value}}»",
+      "missing_date": "Нет даты"
     }
   },
   "resume": {
@@ -386,6 +427,82 @@
     "error": {
       "required": "Заполните: {{fields}}",
       "submit": "Сервер отклонил эту запись. Ничего не сохранено — исправьте и повторите."
+    }
+  },
+  "affiliate": {
+    "ownership": {
+      "own_brand": "Свой бренд",
+      "client_brand": "Бренд клиента"
+    },
+    "recipient": {
+      "agency": "Агентство",
+      "creator": "Автор"
+    },
+    "product_status": {
+      "on_shelf": "В продаже",
+      "off_shelf": "Снят с продажи",
+      "ended": "Завершён"
+    },
+    "pick_status": {
+      "active": "Активна",
+      "paused": "На паузе",
+      "ended": "Завершена"
+    },
+    "settlement_status": {
+      "pending": "Ожидает",
+      "paid": "Выплачено",
+      "failed": "Ошибка"
+    },
+    "form": {
+      "title": {
+        "products": "Новый товар партнёрки",
+        "picks": "Новая подборка",
+        "daily": "Внести день",
+        "affiliate_settlements": "Новый отчёт"
+      },
+      "field": {
+        "title": "Название товара",
+        "ownership": "Принадлежность",
+        "client": "Клиент",
+        "platform": "Площадка",
+        "platform_product_id": "Id товара на площадке",
+        "category": "Категория",
+        "price": "Цена",
+        "commission_rate": "Комиссия (%)",
+        "activity": "Акция",
+        "status": "Статус",
+        "product": "Товар",
+        "creator": "Автор",
+        "agency_share_rate": "Доля агентства (%)",
+        "service_fee": "Сервисный сбор",
+        "pick": "Подборка",
+        "stat_date": "Дата",
+        "gmv": "GMV",
+        "orders": "Заказы",
+        "refund": "Возврат",
+        "est_commission": "Ожидаемая комиссия",
+        "settled_commission": "Выплаченная комиссия",
+        "period_start": "Начало периода",
+        "period_end": "Конец периода",
+        "gross_commission": "Комиссия брутто",
+        "tech_service_fee": "Технический сбор",
+        "refund_deduction": "Вычет по возвратам",
+        "net_amount": "Сумма к выплате",
+        "settled_to": "Получатель",
+        "external_no": "Номер отчёта"
+      },
+      "option": {
+        "choose": "Выбрать"
+      },
+      "action": {
+        "save": "Сохранить",
+        "close": "Закрыть"
+      },
+      "error": {
+        "required": "Заполните: {{fields}}",
+        "period": "Конец периода раньше начала",
+        "submit": "Сервер отклонил строку. Ничего не сохранено — исправьте и попробуйте снова."
+      }
     }
   },
   "match": {

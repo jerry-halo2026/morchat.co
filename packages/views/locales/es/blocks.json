@@ -68,6 +68,10 @@
     "needs_candidates": "Aún no hay candidatos, así que no se puede medir ni la fase ni la fecha de contratación.",
     "needs_interviews": "Aún no hay entrevistas programadas, así que no hay puntualidad que contar.",
     "needs_employees": "Aún no hay fichas de empleado: las fechas de alta, las categorías y el fin de contrato salen de aquí.",
+    "needs_products": "Aún no hay productos de afiliación: las selecciones, las ventas diarias y las liquidaciones dependen de ellos.",
+    "needs_picks": "Aún no hay selecciones, así que nadie está promocionando nada.",
+    "needs_daily": "Aún no hay ventas diarias, así que no hay GMV ni comisiones que contar.",
+    "needs_affiliate_settlements": "Aún no hay liquidaciones, así que no se ha confirmado ningún cobro.",
     "needs_issues": "A los issues detrás de esta cifra les falta un campo necesario.",
     "fill_ledger": "Rellenarlo en el registro",
     "fill_issues": "Abrir issues"
@@ -80,6 +84,10 @@
       "briefs": "Briefs",
       "collabs": "Colaboraciones",
       "settlements": "Liquidaciones",
+      "products": "Productos",
+      "picks": "Selecciones",
+      "daily": "Ventas diarias",
+      "affiliate_settlements": "Liquidaciones",
       "jobs": "Vacantes",
       "candidates": "Candidatos",
       "interviews": "Entrevistas",
@@ -87,6 +95,7 @@
     },
     "group": {
       "commerce": "Comercio",
+      "affiliate": "Afiliados",
       "people": "Personas"
     },
     "column": {
@@ -129,7 +138,28 @@
       "grade": "Categoría",
       "hire_date": "Alta",
       "regular_date": "Confirmación",
-      "contract_end": "Fin de contrato"
+      "contract_end": "Fin de contrato",
+      "product_title": "Producto",
+      "product_ref": "Producto",
+      "ownership": "Titularidad",
+      "platform_product": "Plataforma / id de producto",
+      "commission_rate": "Comisión",
+      "pick_commission_rate": "Comisión de la selección",
+      "agency_share_rate": "Reparto de agencia",
+      "service_fee": "Tarifa de servicio",
+      "pick": "Selección",
+      "stat_date": "Fecha",
+      "gmv": "GMV",
+      "order_count": "Pedidos",
+      "refund": "Reembolso",
+      "est_commission": "Comisión estimada",
+      "settled_commission": "Comisión liquidada",
+      "period": "Periodo",
+      "gross_commission": "Comisión bruta",
+      "tech_service_fee": "Tarifa técnica",
+      "refund_deduction": "Deducción por reembolso",
+      "net_amount": "Importe neto",
+      "settled_to": "Se liquida a"
     },
     "deliverable": {
       "short_video": "Vídeo corto",
@@ -233,7 +263,15 @@
       "member": "Miembro",
       "job_title": "Cargo",
       "grade": "Grado",
-      "hire_date": "Fecha de alta"
+      "hire_date": "Fecha de alta",
+      "pick": "Selección",
+      "product": "Producto",
+      "creator": "Creador",
+      "stat_date": "Fecha",
+      "gmv": "GMV",
+      "orders": "Pedidos",
+      "refund": "Reembolso",
+      "commission": "Comisión"
     },
     "errors": {
       "missing_title": "Falta el puesto",
@@ -246,7 +284,10 @@
       "bad_date": "No se entiende la fecha «{{value}}»",
       "bad_amount": "«{{value}}» no es un solo número; separa el rango en dos columnas",
       "bad_stage": "No hay ninguna etapa «{{value}}»",
-      "server_error": "El servidor rechazó esta fila"
+      "server_error": "El servidor rechazó esta fila",
+      "missing_pick": "No hay producto y creador a los que imputar este día",
+      "unknown_pick": "No hay selección para «{{value}}»",
+      "missing_date": "Sin fecha"
     }
   },
   "resume": {
@@ -386,6 +427,82 @@
     "error": {
       "required": "Rellena: {{fields}}",
       "submit": "El servidor rechazó esta fila. No se guardó nada; corrígela y vuelve a intentarlo."
+    }
+  },
+  "affiliate": {
+    "ownership": {
+      "own_brand": "Marca propia",
+      "client_brand": "Marca del cliente"
+    },
+    "recipient": {
+      "agency": "Agencia",
+      "creator": "Creador"
+    },
+    "product_status": {
+      "on_shelf": "En catálogo",
+      "off_shelf": "Retirado",
+      "ended": "Finalizado"
+    },
+    "pick_status": {
+      "active": "Activa",
+      "paused": "En pausa",
+      "ended": "Finalizada"
+    },
+    "settlement_status": {
+      "pending": "Pendiente",
+      "paid": "Pagada",
+      "failed": "Fallida"
+    },
+    "form": {
+      "title": {
+        "products": "Nuevo producto de afiliación",
+        "picks": "Nueva selección",
+        "daily": "Registrar un día",
+        "affiliate_settlements": "Nueva liquidación"
+      },
+      "field": {
+        "title": "Nombre del producto",
+        "ownership": "Titularidad",
+        "client": "Cliente",
+        "platform": "Plataforma",
+        "platform_product_id": "Id de producto en la plataforma",
+        "category": "Categoría",
+        "price": "Precio",
+        "commission_rate": "Comisión (%)",
+        "activity": "Campaña",
+        "status": "Estado",
+        "product": "Producto",
+        "creator": "Creador",
+        "agency_share_rate": "Reparto de agencia (%)",
+        "service_fee": "Tarifa de servicio",
+        "pick": "Selección",
+        "stat_date": "Fecha",
+        "gmv": "GMV",
+        "orders": "Pedidos",
+        "refund": "Reembolso",
+        "est_commission": "Comisión estimada",
+        "settled_commission": "Comisión liquidada",
+        "period_start": "Inicio del periodo",
+        "period_end": "Fin del periodo",
+        "gross_commission": "Comisión bruta",
+        "tech_service_fee": "Tarifa técnica",
+        "refund_deduction": "Deducción por reembolso",
+        "net_amount": "Importe neto",
+        "settled_to": "Se liquida a",
+        "external_no": "N.º de liquidación"
+      },
+      "option": {
+        "choose": "Elegir"
+      },
+      "action": {
+        "save": "Guardar",
+        "close": "Cerrar"
+      },
+      "error": {
+        "required": "Completa: {{fields}}",
+        "period": "El periodo termina antes de empezar",
+        "submit": "El servidor rechazó esta fila. No se guardó nada: corrígela y vuelve a intentarlo."
+      }
     }
   },
   "match": {

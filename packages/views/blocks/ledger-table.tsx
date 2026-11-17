@@ -6,11 +6,15 @@ import {
   Briefcase,
   Building2,
   CalendarClock,
+  CalendarDays,
   CircleUser,
   Coins,
   FileText,
   Layers,
+  Megaphone,
+  Package,
   Plus,
+  ScrollText,
   Upload,
   UserRound,
   Users,
@@ -24,6 +28,10 @@ import { Spinner } from "@morechat/ui/components/ui/spinner";
 import { useUpdateHrCandidate } from "@morechat/core/hr/mutations";
 import { hrJobListOptions } from "@morechat/core/hr/queries";
 import type {
+  AffiliateDaily,
+  AffiliatePick,
+  AffiliateProduct,
+  AffiliateSettlement,
   CrmBrief,
   CrmClient,
   CrmCollab,
@@ -38,8 +46,9 @@ import { useLocale, useT } from "../i18n";
 import { CollectionPageState } from "../layout/collection-page";
 import { CollectionList, type CollectionColumn } from "../layout/collection-list";
 import { AiDispatchButton } from "./ai-dispatch";
+import { AffiliateForm } from "./affiliate-form";
 import { CollabSheet } from "./collab-sheet";
-import type { HrLedgerDomain, LedgerDomain } from "./data";
+import type { AffiliateLedgerDomain, HrLedgerDomain, LedgerDomain } from "./data";
 import { ImportSheet } from "./import-sheet";
 import { HireDialog } from "./hire-dialog";
 import { scoreCandidate, type MatchReason, type MatchResult } from "./match-score";
@@ -55,6 +64,12 @@ const DOMAIN_ICON: Record<LedgerDomain, IconComponent> = {
   briefs: FileText,
   collabs: Layers,
   settlements: Coins,
+  // B2 (`§11`): a SKU, the creator promoting it, its daily report, the
+  // platform's statement for the period.
+  products: Package,
+  picks: Megaphone,
+  daily: CalendarDays,
+  affiliate_settlements: ScrollText,
   jobs: Briefcase,
   candidates: UserRound,
   interviews: CalendarClock,
@@ -82,6 +97,22 @@ interface LedgerTableCommon {
   jobTitles?: Record<string, string>
   /** Candidate names by id, for the interview ledger's candidate_id. */
   candidateNames?: Record<string, string>;
+  /**
+   * Product titles by id, for the two B2 ledgers that carry only `product_id`
+   * (`§11`). The affiliate panes already read the product list, so a pick can
+   * name its SKU without a second read; a title that is not in the cache (a
+   * product deleted under a live pick) falls back to the id's short form.
+   */
+  productTitles?: Record<string, string>;
+  /** Creator names by id, for the pick ledger's `creator_id`. */
+  creatorNames?: Record<string, string>;
+  /**
+   * Pick labels (`商品 × 达人`) by id, for the daily ledger's `pick_id`.
+   *
+   * A daily row is one pick's day, so its first column has to name both halves
+   * of that pick — a product title alone would not say whose orders these were.
+   */
+  pickLabels?: Record<string, string>;
   loading?: boolean;
   isError?: boolean;
   onRetry?: () => void;
@@ -109,6 +140,10 @@ export type LedgerTableProps = LedgerTableCommon &
     | { domain: "briefs"; rows: readonly CrmBrief[] }
     | { domain: "collabs"; rows: readonly CrmCollab[] }
     | { domain: "settlements"; rows: readonly CrmSettlement[] }
+    | { domain: "products"; rows: readonly AffiliateProduct[] }
+    | { domain: "picks"; rows: readonly AffiliatePick[] }
+    | { domain: "daily"; rows: readonly AffiliateDaily[] }
+    | { domain: "affiliate_settlements"; rows: readonly AffiliateSettlement[] }
     | { domain: "jobs"; rows: readonly HrJob[]; onRowClick?: (row: HrJob) => void }
     | {
         domain: "candidates";
@@ -152,6 +187,18 @@ export function LedgerTable(props: LedgerTableProps) {
     currency === "CNY" || currency === "USD"
       ? t(($) => $.unit.currency[currency])
       : `${currency} `;
+
+  /** A 0–1 rate as the percentage a reader expects (`§11` stores 0.2 for 20 %).
+   *  One decimal, because a commission rate is negotiated in half percents and a
+   *  rounded integer would hide the difference between 15.5 % and 16 %. */
+  const rateText = (rate: number | null): string => {
+    if (rate === null) return PLACEHOLDER;
+    const percent = new Intl.NumberFormat(locales, {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).format(rate * 100);
+    return `${percent}${t(($) => $.unit.percent)}`;
+  };
 
   const empty = <LedgerEmptyState domain={domain} isError={isError} onRetry={onRetry} />;
   const label = t(($) => $.ledger.domain[domain]);
@@ -433,6 +480,313 @@ export function LedgerTable(props: LedgerTableProps) {
           empty={empty}
           embedded
         />
+      );
+    }
+    // --- B2 `affiliate` (§11) --------------------------------------------
+    // 精选联盟 分销 is a different business shape from the five above: the fact
+    // is 商品 × 达人 × 日期, and the money arrives as a periodic platform
+    // statement. Same column rule as everywhere else — a header names a column
+    // of the table behind it — with cross-table ids resolved from the lists the
+    // pane already reads, and a rate drawn as the percentage it is stored for.
+    case "products": {
+      const columns: CollectionColumn<AffiliateProduct>[] = [
+        {
+          key: "product",
+          header: t(($) => $.ledger.column.product_title),
+          cell: (row) => <span className="truncate text-body">{row.title}</span>,
+        },
+        {
+          key: "ownership",
+          header: t(($) => $.ledger.column.ownership),
+          width: 110,
+          core: true,
+          cell: (row) => t(($) => $.affiliate.ownership[row.ownership]),
+        },
+        {
+          key: "platform",
+          header: t(($) => $.ledger.column.platform_product),
+          width: 190,
+          // The platform's id is long and nobody reads it whole: the platform
+          // names the export it came from, the prefix tells two rows apart.
+          cell: (row) => (
+            <span className="flex min-w-0 items-baseline gap-1.5">
+              <span className="truncate">{row.platform}</span>
+              <span className="shrink-0 font-mono text-caption text-muted-foreground">
+                {shortId(row.platform_product_id)}
+              </span>
+            </span>
+          ),
+        },
+        {
+          key: "commission_rate",
+          header: t(($) => $.ledger.column.commission_rate),
+          width: 110,
+          align: "end",
+          cell: (row) => rateText(row.commission_rate),
+        },
+        {
+          key: "status",
+          header: t(($) => $.ledger.column.status),
+          width: 110,
+          cell: (row) => t(($) => $.affiliate.product_status[row.status]),
+        },
+      ];
+      return (
+        <>
+          <LedgerAffiliateHeader wsId={wsId} create="products" />
+          <CollectionList
+            label={label}
+            columns={columns}
+            rows={props.rows}
+            getRowId={(row) => row.id}
+            loading={loading}
+            empty={empty}
+            embedded
+          />
+        </>
+      );
+    }
+    case "picks": {
+      const columns: CollectionColumn<AffiliatePick>[] = [
+        {
+          key: "product",
+          header: t(($) => $.ledger.column.product_ref),
+          cell: (row) => {
+            const title = props.productTitles?.[row.product_id];
+            return title ? (
+              <span className="truncate text-body">{title}</span>
+            ) : (
+              <span className="truncate font-mono text-caption">{shortId(row.product_id)}</span>
+            );
+          },
+        },
+        {
+          key: "creator",
+          header: t(($) => $.ledger.column.creator_ref),
+          width: 140,
+          cell: (row) => {
+            const name = props.creatorNames?.[row.creator_id];
+            return name ? (
+              <span className="truncate">{name}</span>
+            ) : (
+              <span className="truncate font-mono text-caption">{shortId(row.creator_id)}</span>
+            );
+          },
+        },
+        {
+          key: "commission_rate",
+          header: t(($) => $.ledger.column.pick_commission_rate),
+          width: 120,
+          align: "end",
+          core: true,
+          // A null rate is "the product's default applies", not a zero.
+          cell: (row) => rateText(row.commission_rate),
+        },
+        {
+          key: "agency_share_rate",
+          header: t(($) => $.ledger.column.agency_share_rate),
+          width: 110,
+          align: "end",
+          cell: (row) => rateText(row.agency_share_rate),
+        },
+        {
+          key: "service_fee",
+          header: t(($) => $.ledger.column.service_fee),
+          width: 120,
+          align: "end",
+          cell: (row) =>
+            row.service_fee_amount === null ? (
+              PLACEHOLDER
+            ) : (
+              // A 招商服务费 is invoiced by us in CNY; the pick row carries no
+              // currency of its own (`§11`).
+              <CurrencyNumberFlow
+                value={row.service_fee_amount}
+                locales={locales}
+                prefix={t(($) => $.unit.currency.CNY)}
+              />
+            ),
+        },
+        {
+          key: "status",
+          header: t(($) => $.ledger.column.status),
+          width: 110,
+          cell: (row) => t(($) => $.affiliate.pick_status[row.status]),
+        },
+      ];
+      return (
+        <>
+          <LedgerAffiliateHeader wsId={wsId} create="picks" />
+          <CollectionList
+            label={label}
+            columns={columns}
+            rows={props.rows}
+            getRowId={(row) => row.id}
+            loading={loading}
+            empty={empty}
+            embedded
+          />
+        </>
+      );
+    }
+    case "daily": {
+      const columns: CollectionColumn<AffiliateDaily>[] = [
+        {
+          key: "pick",
+          header: t(($) => $.ledger.column.pick),
+          cell: (row) => {
+            const name = props.pickLabels?.[row.pick_id];
+            return name ? (
+              <span className="truncate text-body">{name}</span>
+            ) : (
+              <span className="truncate font-mono text-caption">{shortId(row.pick_id)}</span>
+            );
+          },
+        },
+        {
+          key: "stat_date",
+          header: t(($) => $.ledger.column.stat_date),
+          width: 120,
+          core: true,
+          cell: (row) => formatDay(row.stat_date, locales),
+        },
+        {
+          key: "gmv",
+          header: t(($) => $.ledger.column.gmv),
+          width: 130,
+          align: "end",
+          cell: (row) => (
+            <CurrencyNumberFlow value={row.gmv_amount} locales={locales} prefix={prefixFor(row.currency)} />
+          ),
+        },
+        {
+          key: "orders",
+          header: t(($) => $.ledger.column.order_count),
+          width: 90,
+          align: "end",
+          cell: (row) => <CompactNumberFlow value={row.order_count} locales={locales} />,
+        },
+        {
+          key: "refund",
+          header: t(($) => $.ledger.column.refund),
+          width: 120,
+          align: "end",
+          cell: (row) => (
+            <CurrencyNumberFlow value={row.refund_amount} locales={locales} prefix={prefixFor(row.currency)} />
+          ),
+        },
+        {
+          key: "est_commission",
+          header: t(($) => $.ledger.column.est_commission),
+          width: 130,
+          align: "end",
+          cell: (row) => (
+            <CurrencyNumberFlow value={row.est_commission} locales={locales} prefix={prefixFor(row.currency)} />
+          ),
+        },
+        {
+          key: "settled_commission",
+          header: t(($) => $.ledger.column.settled_commission),
+          width: 130,
+          align: "end",
+          cell: (row) => (
+            <CurrencyNumberFlow value={row.settled_commission} locales={locales} prefix={prefixFor(row.currency)} />
+          ),
+        },
+      ];
+      return (
+        <>
+          <LedgerAffiliateHeader wsId={wsId} create="daily" importDomain="affiliate_daily" />
+          <CollectionList
+            label={label}
+            columns={columns}
+            rows={props.rows}
+            getRowId={(row) => row.id}
+            loading={loading}
+            empty={empty}
+            embedded
+          />
+        </>
+      );
+    }
+    case "affiliate_settlements": {
+      const columns: CollectionColumn<AffiliateSettlement>[] = [
+        {
+          key: "period",
+          header: t(($) => $.ledger.column.period),
+          cell: (row) => (
+            // A statement period is two calendar days, so both ends are read
+            // as local days rather than as instants (`formatDay`).
+            <span className="flex min-w-0 items-baseline gap-1">
+              <span className="truncate">{formatDay(row.period_start, locales)}</span>
+              <span className="text-muted-foreground">–</span>
+              <span className="truncate">{formatDay(row.period_end, locales)}</span>
+            </span>
+          ),
+        },
+        {
+          key: "gross_commission",
+          header: t(($) => $.ledger.column.gross_commission),
+          width: 130,
+          align: "end",
+          core: true,
+          cell: (row) => (
+            <CurrencyNumberFlow value={row.gross_commission} locales={locales} prefix={prefixFor(row.currency)} />
+          ),
+        },
+        {
+          key: "tech_service_fee",
+          header: t(($) => $.ledger.column.tech_service_fee),
+          width: 130,
+          align: "end",
+          cell: (row) => (
+            <CurrencyNumberFlow value={row.tech_service_fee} locales={locales} prefix={prefixFor(row.currency)} />
+          ),
+        },
+        {
+          key: "refund_deduction",
+          header: t(($) => $.ledger.column.refund_deduction),
+          width: 130,
+          align: "end",
+          cell: (row) => (
+            <CurrencyNumberFlow value={row.refund_deduction} locales={locales} prefix={prefixFor(row.currency)} />
+          ),
+        },
+        {
+          key: "net_amount",
+          header: t(($) => $.ledger.column.net_amount),
+          width: 130,
+          align: "end",
+          cell: (row) => (
+            <CurrencyNumberFlow value={row.net_amount} locales={locales} prefix={prefixFor(row.currency)} />
+          ),
+        },
+        {
+          key: "settled_to",
+          header: t(($) => $.ledger.column.settled_to),
+          width: 110,
+          cell: (row) => t(($) => $.affiliate.recipient[row.settled_to]),
+        },
+        {
+          key: "status",
+          header: t(($) => $.ledger.column.status),
+          width: 110,
+          cell: (row) => t(($) => $.affiliate.settlement_status[row.status]),
+        },
+      ];
+      return (
+        <>
+          <LedgerAffiliateHeader wsId={wsId} create="affiliate_settlements" />
+          <CollectionList
+            label={label}
+            columns={columns}
+            rows={props.rows}
+            getRowId={(row) => row.id}
+            loading={loading}
+            empty={empty}
+            embedded
+          />
+        </>
       );
     }
     // --- B1 `people` (§10.2) ---------------------------------------------
@@ -771,18 +1125,88 @@ export function LedgerTable(props: LedgerTableProps) {
 }
 
 /**
- * The entry row of a people ledger: the create icon, the import icon, plus the
- * résumé upload for the candidate ledger, and the dialogs they open.
+ * The entry row of a ledger: the create icon, the import icon where the ledger
+ * takes pasted rows, plus the résumé upload for the candidate ledger, and the
+ * dialogs they open.
  *
  * `CollectionList` owns its header row and offers no slot in it, so the entries
  * sit on the line above — the same position a toolbar takes, kept small because
  * a ledger's columns are the content. A workspace id is required: creating,
  * importing and uploading all resolve against the ledger's own names, and a
- * ledger drawn without one (a preview, a test) has none of them. Creation is
- * every people ledger's; import is only the three that take pasted rows, since
- * an interview references a candidate the sheet cannot invent. The dialogs stay
- * mounted while closed so their exit animation runs; each empties itself on the
- * next open.
+ * ledger drawn without one (a preview, a test) has none of them. The dialogs
+ * stay mounted only while open (their data hooks would otherwise run for every
+ * ledger render, including pages that never open one and test renders without a
+ * QueryClient); each empties itself on the next open.
+ */
+function LedgerEntryHeader({
+  wsId,
+  extra,
+  resume = false,
+  importDomain,
+  createForm,
+}: {
+  wsId?: string;
+  /**
+   * A ledger-specific entry, drawn at the start of the row. The batch match
+   * score is the candidate ledger's; the others have nothing to put here.
+   */
+  extra?: ReactNode;
+  resume?: boolean;
+  importDomain?: ImportDomain;
+  /** The create dialog, mounted only while the create button is open. */
+  createForm: (wsId: string, open: boolean, onOpenChange: (next: boolean) => void) => ReactNode;
+}) {
+  const { t } = useT("blocks");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [resumeOpen, setResumeOpen] = useState(false);
+  // A narrow local alias: `wsId` is a parameter, so the guard above does not
+  // reach into the closures below.
+  const id = wsId;
+  if (!id) return null;
+  return (
+    <div className="flex h-8 items-center justify-end gap-2">
+      {extra}
+      {resume ? (
+        <>
+          {resumeOpen ? <ResumeUpload wsId={id} open onOpenChange={setResumeOpen} /> : null}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setResumeOpen(true)}
+          >
+            {t(($) => $.resume.title)}
+          </Button>
+        </>
+      ) : null}
+      {createForm(id, createOpen, setCreateOpen)}
+      <IconButton label={t(($) => $.record.action.create)} onClick={() => setCreateOpen(true)}>
+        <Plus />
+      </IconButton>
+      {importDomain ? (
+        <>
+          {importOpen ? (
+            <ImportSheet
+              wsId={id}
+              domain={importDomain}
+              open
+              onOpenChange={setImportOpen}
+            />
+          ) : null}
+          <IconButton label={t(($) => $.import.entry)} onClick={() => setImportOpen(true)}>
+            <Upload />
+          </IconButton>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * The entry row of a people ledger. Creation is every people ledger's; import
+ * is only the three that take pasted rows, since an interview references a
+ * candidate the sheet cannot invent.
  */
 function LedgerPeopleHeader({
   wsId,
@@ -795,60 +1219,49 @@ function LedgerPeopleHeader({
   create: HrLedgerDomain;
   importDomain?: ImportDomain;
   resume?: boolean;
-  /**
-   * A ledger-specific entry, drawn at the start of the row. The batch match
-   * score is the candidate ledger's; the other three have nothing to put here.
-   */
   extra?: ReactNode;
 }) {
-  const { t } = useT("blocks");
-  const [createOpen, setCreateOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
-  const [resumeOpen, setResumeOpen] = useState(false);
-  if (!wsId) return null;
   return (
-    <div className="flex h-8 items-center justify-end gap-2">
-      {extra}
-      {resume ? (
-        <>
-          {/* Mounted only while open: the dialog's data hooks would otherwise
-              run for every ledger render, including pages that never open it
-              (and test renders without a QueryClient). */}
-          {resumeOpen ? (
-            <ResumeUpload wsId={wsId} open onOpenChange={setResumeOpen} />
-          ) : null}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setResumeOpen(true)}
-          >
-            {t(($) => $.resume.title)}
-          </Button>
-        </>
-      ) : null}
-      {createOpen ? (
-        <RecordForm domain={create} wsId={wsId} open onOpenChange={setCreateOpen} />
-      ) : null}
-      <IconButton label={t(($) => $.record.action.create)} onClick={() => setCreateOpen(true)}>
-        <Plus />
-      </IconButton>
-      {importDomain ? (
-        <>
-          {importOpen ? (
-            <ImportSheet
-              wsId={wsId}
-              domain={importDomain}
-              open
-              onOpenChange={setImportOpen}
-            />
-          ) : null}
-          <IconButton label={t(($) => $.import.entry)} onClick={() => setImportOpen(true)}>
-            <Upload />
-          </IconButton>
-        </>
-      ) : null}
-    </div>
+    <LedgerEntryHeader
+      wsId={wsId}
+      extra={extra}
+      resume={resume}
+      importDomain={importDomain}
+      createForm={(id, open, onOpenChange) =>
+        open ? <RecordForm domain={create} wsId={id} open onOpenChange={onOpenChange} /> : null
+      }
+    />
+  );
+}
+
+/**
+ * The entry row of a B2 ledger: 新建 for all four, and 导入 for 日成交 only.
+ *
+ * The daily report is the one affiliate ledger that arrives as a file — the
+ * platform exports a day per row — while a product, a pick and a platform
+ * statement are each one decision someone makes. Importing a product would have
+ * to invent an ownership, and importing a statement would have to invent its
+ * period arithmetic, so neither gets a paste entry.
+ */
+function LedgerAffiliateHeader({
+  wsId,
+  create,
+  importDomain,
+}: {
+  wsId?: string;
+  create: AffiliateLedgerDomain;
+  importDomain?: ImportDomain;
+}) {
+  return (
+    <LedgerEntryHeader
+      wsId={wsId}
+      importDomain={importDomain}
+      createForm={(id, open, onOpenChange) =>
+        open ? (
+          <AffiliateForm domain={create} wsId={id} open onOpenChange={onOpenChange} />
+        ) : null
+      }
+    />
   );
 }
 

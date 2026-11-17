@@ -24,6 +24,8 @@ export { CreatorSheet, PublishDialog } from "./publish-dialog";
 export type { CreatorSheetProps, PublishDialogProps } from "./publish-dialog";
 export { RecordForm } from "./record-form";
 export type { RecordFormProps } from "./record-form";
+export { AffiliateForm } from "./affiliate-form";
+export type { AffiliateField, AffiliateFormProps } from "./affiliate-form";
 export { ResumeUpload, matchResumeFile } from "./resume-upload";
 export type { ResumeCandidateRef, ResumeMatch, ResumeMatchState } from "./resume-upload";
 export { AiDispatchButton } from "./ai-dispatch";
@@ -46,6 +48,7 @@ export {
   parseImportAmount,
   parseImportDay,
   parseImportError,
+  parseImportNumber,
   parseTable,
 } from "./import";
 export type {
@@ -59,12 +62,18 @@ export type {
 export { LEDGER_DOMAINS, isLedgerDomain } from "./data";
 export type { LedgerDomain, LedgerRowByDomain } from "./data";
 export {
+  AFFILIATE_LEDGER_DOMAINS,
   HR_LEDGER_DOMAINS,
   LEDGER_GROUPS,
   ledgerDomainsIn,
   ledgerGroup,
 } from "./data";
-export type { HrCountField, HrLedgerDomain, LedgerGroup } from "./data";
+export type {
+  AffiliateLedgerDomain,
+  HrCountField,
+  HrLedgerDomain,
+  LedgerGroup,
+} from "./data";
 export {
   HR_METRIC_IDS,
   OVERVIEW_METRIC_IDS,

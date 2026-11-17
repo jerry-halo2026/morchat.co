@@ -4,6 +4,10 @@ import { NavigationProvider, type NavigationAdapter } from "../navigation";
 import { renderWithI18n } from "../test/i18n";
 import { LedgerTable } from "./ledger-table";
 import type {
+  AffiliateDaily,
+  AffiliatePick,
+  AffiliateProduct,
+  AffiliateSettlement,
   HrCandidate,
   HrEmployeeProfile,
   HrInterview,
@@ -207,5 +211,212 @@ describe("LedgerTable · B1 columns", () => {
       </NavigationProvider>,
     );
     expect(screen.getByText("No Candidates yet")).toBeInTheDocument();
+  });
+});
+
+// The four B2 ledgers (`docs/engineering/WORKBENCH-API.md` §11). Same rule as
+// the suites above: a fixture is the row shape itself, so a column that stops
+// matching a field breaks the test instead of drawing a placeholder. Rates are
+// stored 0–1 (C3) and drawn as percentages; a null rate or fee is "—", because
+// "not agreed" is not the same statement as zero.
+
+const PRODUCT: AffiliateProduct = {
+  id: "prod-1-0000-0000-0000-000000000001",
+  workspace_id: "ws-1",
+  ownership: "own_brand",
+  client_id: null,
+  platform: "douyin",
+  platform_product_id: "3801234567890",
+  title: "便携榨汁杯",
+  category: null,
+  price: 39.9,
+  currency: "CNY",
+  commission_rate: 0.2,
+  activity: null,
+  status: "on_shelf",
+  owner_member_id: null,
+  created_by: null,
+  created_at: "2026-02-01T09:00:00Z",
+  updated_at: "2026-02-01T09:00:00Z",
+  archived_at: null,
+};
+
+const PICK: AffiliatePick = {
+  id: "pick-1-0000-0000-0000-000000000001",
+  workspace_id: "ws-1",
+  product_id: "prod-1-0000-0000-0000-000000000001",
+  creator_id: "creator-1-0000-0000-0000-000000000001",
+  commission_rate: 0.155,
+  // Null is "not an internal split", not a zero share.
+  agency_share_rate: null,
+  service_fee_amount: 2000,
+  bound_at: "2026-02-03T09:00:00Z",
+  status: "active",
+  note: null,
+  owner_member_id: null,
+  created_by: null,
+  created_at: "2026-02-03T09:00:00Z",
+  updated_at: "2026-02-03T09:00:00Z",
+  archived_at: null,
+};
+
+const DAILY: AffiliateDaily = {
+  id: "daily-1-0000-0000-0000-00000000001",
+  workspace_id: "ws-1",
+  pick_id: "pick-1-0000-0000-0000-000000000001",
+  stat_date: "2026-03-01",
+  gmv_amount: 12800,
+  order_count: 64,
+  refund_amount: 320,
+  est_commission: 1536,
+  settled_commission: 0,
+  currency: "CNY",
+  created_at: "2026-03-02T01:00:00Z",
+  updated_at: "2026-03-02T01:00:00Z",
+};
+
+const STATEMENT: AffiliateSettlement = {
+  id: "stmt-1-0000-0000-0000-000000000001",
+  workspace_id: "ws-1",
+  period_start: "2026-03-01",
+  period_end: "2026-03-31",
+  gross_commission: 1000,
+  tech_service_fee: 100,
+  refund_deduction: 50,
+  net_amount: 850,
+  currency: "CNY",
+  status: "pending",
+  settled_to: "agency",
+  paid_at: null,
+  external_no: "ST-2026-03",
+  note: null,
+  created_by: null,
+  created_at: "2026-04-01T09:00:00Z",
+  updated_at: "2026-04-01T09:00:00Z",
+};
+
+describe("LedgerTable · B2 columns", () => {
+  it("draws the product ledger's title, ownership, platform pair and rate", () => {
+    renderWithI18n(
+      <NavigationProvider value={adapter()}>
+        <LedgerTable wsId="ws-1" domain="products" rows={[PRODUCT]} />
+      </NavigationProvider>,
+    );
+    const grid = screen.getByRole("grid", { name: "Products" });
+    for (const header of [
+      "Product",
+      "Ownership",
+      "Platform / product id",
+      "Commission rate",
+      "Status",
+    ]) {
+      expect(within(grid).getByRole("columnheader", { name: header })).toBeInTheDocument();
+    }
+    expect(within(grid).getByText("便携榨汁杯")).toBeInTheDocument();
+    // The enum is copy, not the raw column value.
+    expect(within(grid).getByText("Own brand")).toBeInTheDocument();
+    expect(within(grid).getByText("douyin")).toBeInTheDocument();
+    // The platform id is drawn as its short form: the prefix is what tells two
+    // rows apart, and nobody reads forty digits out loud.
+    expect(within(grid).getByText("38012345")).toBeInTheDocument();
+    // 0.2 is stored as a rate (C3) and read as a percentage, one decimal.
+    expect(within(grid).getByText("20.0%")).toBeInTheDocument();
+    expect(within(grid).getByText("On shelf")).toBeInTheDocument();
+    // The ledger's own entry row comes with the columns.
+    expect(screen.getByRole("button", { name: "New" })).toBeInTheDocument();
+  });
+
+  it("draws a pick's product, creator, rates and fee, with — for an unset share", () => {
+    renderWithI18n(
+      <NavigationProvider value={adapter()}>
+        <LedgerTable
+          wsId="ws-1"
+          domain="picks"
+          rows={[PICK]}
+          productTitles={{ [PICK.product_id]: "便携榨汁杯" }}
+          creatorNames={{ [PICK.creator_id]: "林小满" }}
+        />
+      </NavigationProvider>,
+    );
+    const grid = screen.getByRole("grid", { name: "Picks" });
+    for (const header of [
+      "Product",
+      "Creator",
+      "Pick rate",
+      "Agency share",
+      "Service fee",
+      "Status",
+    ]) {
+      expect(within(grid).getByRole("columnheader", { name: header })).toBeInTheDocument();
+    }
+    expect(within(grid).getByText("便携榨汁杯")).toBeInTheDocument();
+    expect(within(grid).getByText("林小满")).toBeInTheDocument();
+    // 0.155 is 15.55 %, shown to one decimal like every other rate.
+    expect(within(grid).getByText("15.5%")).toBeInTheDocument();
+    expect(grid).toHaveTextContent("¥2000");
+    expect(within(grid).getByText("Active")).toBeInTheDocument();
+    expect(within(grid).getByText("—")).toBeInTheDocument();
+  });
+
+  it("draws a day's pick as 商品 × 达人 and its five measures", () => {
+    renderWithI18n(
+      <NavigationProvider value={adapter()}>
+        <LedgerTable
+          wsId="ws-1"
+          domain="daily"
+          rows={[DAILY]}
+          pickLabels={{ [DAILY.pick_id]: "便携榨汁杯 × 林小满" }}
+        />
+      </NavigationProvider>,
+    );
+    const grid = screen.getByRole("grid", { name: "Daily sales" });
+    for (const header of [
+      "Pick",
+      "Date",
+      "GMV",
+      "Orders",
+      "Refund",
+      "Estimated commission",
+      "Settled commission",
+    ]) {
+      expect(within(grid).getByRole("columnheader", { name: header })).toBeInTheDocument();
+    }
+    expect(within(grid).getByText("便携榨汁杯 × 林小满")).toBeInTheDocument();
+    // A `YYYY-MM-DD` column is a local calendar day, not an instant.
+    expect(within(grid).getByText(/Mar 1, 2026/)).toBeInTheDocument();
+    expect(grid).toHaveTextContent("¥12800");
+    expect(grid).toHaveTextContent("64");
+    expect(grid).toHaveTextContent("¥320");
+    expect(grid).toHaveTextContent("¥1536");
+    // The daily report is the one affiliate ledger that also takes a paste.
+    expect(screen.getByRole("button", { name: "Import" })).toBeInTheDocument();
+  });
+
+  it("draws a statement's period, its three deductions and the net", () => {
+    renderWithI18n(
+      <NavigationProvider value={adapter()}>
+        <LedgerTable wsId="ws-1" domain="affiliate_settlements" rows={[STATEMENT]} />
+      </NavigationProvider>,
+    );
+    const grid = screen.getByRole("grid", { name: "Statements" });
+    for (const header of [
+      "Period",
+      "Gross commission",
+      "Tech service fee",
+      "Refund deduction",
+      "Net amount",
+      "Settled to",
+      "Status",
+    ]) {
+      expect(within(grid).getByRole("columnheader", { name: header })).toBeInTheDocument();
+    }
+    expect(within(grid).getByText(/Mar 1, 2026/)).toBeInTheDocument();
+    expect(within(grid).getByText(/Mar 31, 2026/)).toBeInTheDocument();
+    expect(grid).toHaveTextContent("¥1000");
+    expect(grid).toHaveTextContent("¥100");
+    expect(grid).toHaveTextContent("¥50");
+    expect(grid).toHaveTextContent("¥850");
+    expect(within(grid).getByText("Agency")).toBeInTheDocument();
+    expect(within(grid).getByText("Pending")).toBeInTheDocument();
   });
 });

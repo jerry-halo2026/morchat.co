@@ -26,6 +26,12 @@ import {
   useCreateHrJob,
 } from "@morechat/core/hr/mutations";
 import { hrJobListOptions } from "@morechat/core/hr/queries";
+import {
+  affiliatePickListOptions,
+  affiliateProductListOptions,
+} from "@morechat/core/affiliate/queries";
+import { useUpsertAffiliateDaily } from "@morechat/core/affiliate/mutations";
+import { creatorListOptions } from "@morechat/core/creator/queries";
 import { departmentListOptions, memberListOptions } from "@morechat/core/workspace/queries";
 import type { HrCandidateStage } from "@morechat/core/types";
 import { useT } from "../i18n";
@@ -61,8 +67,9 @@ interface ImportResult {
 }
 
 /**
- * Paste → map columns → preview → import, for the three people ledgers that
- * take pasted rows (`jobs`, `candidates`, `employees`).
+ * Paste → map columns → preview → import, for the ledgers that take pasted rows:
+ * the three people ledgers (`jobs`, `candidates`, `employees`) and the affiliate
+ * daily report (`affiliate_daily`, `§11`).
  *
  * The dialog owns no rules. Everything that decides whether a row can be
  * written — header aliases, reference resolution, dates, amounts, duplicates —
@@ -111,7 +118,9 @@ export function ImportSheet({
   }
 
   // Only the references the dialog's own domain needs are read: a jobs import
-  // never resolves a job, and an employees import never resolves a member post.
+  // never resolves a job, an employees import never resolves a member post, and
+  // a daily report resolves a pick out of the product and creator lists the
+  // affiliate panes already load.
   const jobsQuery = useQuery({
     ...hrJobListOptions(wsId),
     enabled: open && !!wsId && domain === "candidates",
@@ -122,21 +131,50 @@ export function ImportSheet({
   });
   const departmentsQuery = useQuery({
     ...departmentListOptions(wsId),
-    enabled: open && !!wsId && domain !== "candidates",
+    enabled: open && !!wsId && (domain === "jobs" || domain === "employees"),
+  });
+  const picksQuery = useQuery({
+    ...affiliatePickListOptions(wsId),
+    enabled: open && !!wsId && domain === "affiliate_daily",
+  });
+  const productsQuery = useQuery({
+    ...affiliateProductListOptions(wsId),
+    enabled: open && !!wsId && domain === "affiliate_daily",
+  });
+  const creatorsQuery = useQuery({
+    ...creatorListOptions(wsId),
+    enabled: open && !!wsId && domain === "affiliate_daily",
   });
 
   const parsed = useMemo(() => parseTable(text), [text]);
   const guessed = useMemo(() => guessColumnMap(parsed.headers, domain), [parsed.headers, domain]);
   const columnMap = picked ?? guessed;
 
-  const ctx = useMemo<ImportRowContext>(
-    () => ({
+  const ctx = useMemo<ImportRowContext>(() => {
+    const productTitles = new Map(
+      (productsQuery.data?.products ?? []).map((row) => [row.id, row.title] as const),
+    );
+    const creatorNames = new Map(
+      (creatorsQuery.data?.creators ?? []).map((row) => [row.id, row.display_name] as const),
+    );
+    return {
       jobs: (jobsQuery.data?.jobs ?? []).map((job) => ({ id: job.id, title: job.title })),
       members: (membersQuery.data ?? []).map((member) => ({ id: member.id, name: member.name })),
       departments: departmentsQuery.data ?? [],
-    }),
-    [jobsQuery.data, membersQuery.data, departmentsQuery.data],
-  );
+      picks: (picksQuery.data?.picks ?? []).map((pick) => ({
+        id: pick.id,
+        productTitle: productTitles.get(pick.product_id) ?? pick.product_id,
+        creatorName: creatorNames.get(pick.creator_id) ?? pick.creator_id,
+      })),
+    };
+  }, [
+    jobsQuery.data,
+    membersQuery.data,
+    departmentsQuery.data,
+    picksQuery.data,
+    productsQuery.data,
+    creatorsQuery.data,
+  ]);
 
   const rows = useMemo(
     () => buildImportRows(parsed, columnMap, domain, ctx),
@@ -159,6 +197,7 @@ export function ImportSheet({
   const createJob = useCreateHrJob();
   const createCandidate = useCreateHrCandidate();
   const createEmployee = useCreateHrEmployee();
+  const upsertDaily = useUpsertAffiliateDaily();
 
   /** One row's write, in the ledger's own request shape. Ids were resolved by
    *  `buildImportRows`, so a row that reaches here is already writable. */
@@ -206,6 +245,18 @@ export function ImportSheet({
           hire_date: values.hire_date ?? null,
           regular_date: values.regular_date ?? null,
           contract_end: values.contract_end ?? null,
+        });
+      case "affiliate_daily":
+        // The day is replaced, not merged (`§11`): a paste of a corrected report
+        // has to overwrite the numbers that were wrong, so an absent measure is
+        // written as the server's zero rather than keeping the old value.
+        return upsertDaily.mutateAsync({
+          pick_id: values.pick_id ?? "",
+          stat_date: values.stat_date ?? "",
+          gmv_amount: values.gmv ? Number(values.gmv) : undefined,
+          order_count: values.orders ? Number(values.orders) : undefined,
+          refund_amount: values.refund ? Number(values.refund) : undefined,
+          est_commission: values.commission ? Number(values.commission) : undefined,
         });
     }
   };

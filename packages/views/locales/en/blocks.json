@@ -68,6 +68,10 @@
     "needs_candidates": "No candidates yet, so no stage or hire date can be measured.",
     "needs_interviews": "No interviews scheduled yet, so punctuality has nothing to count.",
     "needs_employees": "No employee profiles yet — hire dates, grades and contract ends all live here.",
+    "needs_products": "No affiliate products yet — picks, daily reports and statements all hang off them.",
+    "needs_picks": "No picks yet, so no creator is promoting anything.",
+    "needs_daily": "No daily reports yet, so there is no GMV or commission to count.",
+    "needs_affiliate_settlements": "No platform statements yet, so nothing is confirmed as received.",
     "needs_issues": "The issues behind this number are missing a field it needs.",
     "fill_ledger": "Fill it in the ledger",
     "fill_issues": "Open issues"
@@ -80,6 +84,10 @@
       "briefs": "Briefs",
       "collabs": "Collaborations",
       "settlements": "Settlements",
+      "products": "Products",
+      "picks": "Picks",
+      "daily": "Daily sales",
+      "affiliate_settlements": "Statements",
       "jobs": "Jobs",
       "candidates": "Candidates",
       "interviews": "Interviews",
@@ -87,6 +95,7 @@
     },
     "group": {
       "commerce": "Commerce",
+      "affiliate": "Affiliate",
       "people": "People"
     },
     "column": {
@@ -129,7 +138,28 @@
       "grade": "Grade",
       "hire_date": "Hired",
       "regular_date": "Regularized",
-      "contract_end": "Contract ends"
+      "contract_end": "Contract ends",
+      "product_title": "Product",
+      "product_ref": "Product",
+      "ownership": "Ownership",
+      "platform_product": "Platform / product id",
+      "commission_rate": "Commission rate",
+      "pick_commission_rate": "Pick rate",
+      "agency_share_rate": "Agency share",
+      "service_fee": "Service fee",
+      "pick": "Pick",
+      "stat_date": "Date",
+      "gmv": "GMV",
+      "order_count": "Orders",
+      "refund": "Refund",
+      "est_commission": "Estimated commission",
+      "settled_commission": "Settled commission",
+      "period": "Period",
+      "gross_commission": "Gross commission",
+      "tech_service_fee": "Tech service fee",
+      "refund_deduction": "Refund deduction",
+      "net_amount": "Net amount",
+      "settled_to": "Settled to"
     },
     "deliverable": {
       "short_video": "Short video",
@@ -233,7 +263,15 @@
       "member": "Member",
       "job_title": "Position",
       "grade": "Grade",
-      "hire_date": "Hire date"
+      "hire_date": "Hire date",
+      "pick": "Pick",
+      "product": "Product",
+      "creator": "Creator",
+      "stat_date": "Date",
+      "gmv": "GMV",
+      "orders": "Orders",
+      "refund": "Refund",
+      "commission": "Commission"
     },
     "errors": {
       "missing_title": "No job title",
@@ -246,7 +284,10 @@
       "bad_date": "Can’t read the date “{{value}}”",
       "bad_amount": "Can’t read “{{value}}” as one number; split a range into two columns",
       "bad_stage": "No stage called “{{value}}”",
-      "server_error": "The server rejected this row"
+      "server_error": "The server rejected this row",
+      "missing_pick": "No product and creator to file this day against",
+      "unknown_pick": "No pick for “{{value}}”",
+      "missing_date": "No date"
     }
   },
   "resume": {
@@ -386,6 +427,82 @@
     "error": {
       "required": "Fill in: {{fields}}",
       "submit": "The server rejected this row. Nothing was saved — fix it and try again."
+    }
+  },
+  "affiliate": {
+    "ownership": {
+      "own_brand": "Own brand",
+      "client_brand": "Client brand"
+    },
+    "recipient": {
+      "agency": "Agency",
+      "creator": "Creator"
+    },
+    "product_status": {
+      "on_shelf": "On shelf",
+      "off_shelf": "Off shelf",
+      "ended": "Ended"
+    },
+    "pick_status": {
+      "active": "Active",
+      "paused": "Paused",
+      "ended": "Ended"
+    },
+    "settlement_status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "failed": "Failed"
+    },
+    "form": {
+      "title": {
+        "products": "New affiliate product",
+        "picks": "New pick",
+        "daily": "Log a day",
+        "affiliate_settlements": "New platform statement"
+      },
+      "field": {
+        "title": "Product title",
+        "ownership": "Ownership",
+        "client": "Client",
+        "platform": "Platform",
+        "platform_product_id": "Platform product id",
+        "category": "Category",
+        "price": "Price",
+        "commission_rate": "Commission rate (%)",
+        "activity": "Campaign",
+        "status": "Status",
+        "product": "Product",
+        "creator": "Creator",
+        "agency_share_rate": "Agency share (%)",
+        "service_fee": "Service fee",
+        "pick": "Pick",
+        "stat_date": "Date",
+        "gmv": "GMV",
+        "orders": "Orders",
+        "refund": "Refund",
+        "est_commission": "Estimated commission",
+        "settled_commission": "Settled commission",
+        "period_start": "Period start",
+        "period_end": "Period end",
+        "gross_commission": "Gross commission",
+        "tech_service_fee": "Tech service fee",
+        "refund_deduction": "Refund deduction",
+        "net_amount": "Net amount",
+        "settled_to": "Settled to",
+        "external_no": "Statement no."
+      },
+      "option": {
+        "choose": "Choose"
+      },
+      "action": {
+        "save": "Save",
+        "close": "Close"
+      },
+      "error": {
+        "required": "Fill in: {{fields}}",
+        "period": "The period ends before it starts",
+        "submit": "The server rejected this row. Nothing was saved — fix it and try again."
+      }
     }
   },
   "match": {

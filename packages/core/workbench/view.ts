@@ -46,13 +46,14 @@ export const WORKBENCH_VIEWS = ["all", "commerce", "people", "finance"] as const
 export type WorkbenchView = (typeof WORKBENCH_VIEWS)[number];
 
 /**
- * The two read-out groups a ledger belongs to (`docs/engineering/WORKBENCH-API.md`
- * §10): commerce rows are money moving, people rows are who is being hired and
- * who is on staff. `packages/views/blocks/data.ts` owns the ledger→group table;
- * this union is the same two names, repeated because core may not import the
- * view layer.
+ * The three read-out groups a ledger belongs to (`docs/engineering/WORKBENCH-API.md`
+ * §2, §10, §11): commerce rows are money moving through a signed deal,
+ * affiliate rows are the 精选联盟 platform reports, and people rows are who is
+ * being hired and who is on staff. `packages/views/blocks/data.ts` owns the
+ * ledger→group table; this union is the same three names, repeated because core
+ * may not import the view layer.
  */
-export type LedgerGroup = "commerce" | "people";
+export type LedgerGroup = "commerce" | "affiliate" | "people";
 
 /** Narrows a stored or externally supplied value to a view. */
 export function isWorkbenchView(value: string | null): value is WorkbenchView {
@@ -73,10 +74,13 @@ export function defaultViewFor(role: "owner" | "admin" | "member"): WorkbenchVie
 /**
  * Which ledgers a view lists.
  *
- * `"all"` means "every group, in the contract's own order": the two narrow
- * views name their one group, and the view that reads everything lists them
- * all. The page renders the groups in the array's order, so the narrow views'
- * group also leads.
+ * `"all"` means "every group, in the contract's own order": the narrow views
+ * name their one group, and the view that reads everything lists them all. The
+ * page renders the groups in the array's order, so the narrow views' group also
+ * leads. The affiliate group has no view of its own yet, so both commerce and
+ * people readers see it only through the views that read everything — a
+ * narrow view that cannot reach a ledger is a ledger the reader must not be
+ * shown half of.
  */
 export function viewGroups(view: WorkbenchView): readonly LedgerGroup[] | "all" {
   switch (view) {

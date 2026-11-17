@@ -68,6 +68,10 @@
     "needs_candidates": "Aucun candidat pour l'instant : ni l'étape ni la date d'embauche ne peuvent être mesurées.",
     "needs_interviews": "Aucun entretien planifié : la ponctualité n'a rien à compter.",
     "needs_employees": "Aucune fiche salarié : dates d'embauche, classes et fins de contrat viennent d'ici.",
+    "needs_products": "Pas encore de produits d’affiliation : les sélections, les ventes quotidiennes et les relevés en dépendent.",
+    "needs_picks": "Pas encore de sélection : personne ne fait la promotion de rien.",
+    "needs_daily": "Pas encore de ventes quotidiennes : ni GMV ni commission à compter.",
+    "needs_affiliate_settlements": "Pas encore de relevé : aucun encaissement confirmé.",
     "needs_issues": "Les issues derrière ce chiffre ont un champ manquant.",
     "fill_ledger": "Le saisir dans le registre",
     "fill_issues": "Ouvrir les issues"
@@ -80,6 +84,10 @@
       "briefs": "Briefs",
       "collabs": "Collaborations",
       "settlements": "Règlements",
+      "products": "Produits",
+      "picks": "Sélections",
+      "daily": "Ventes quotidiennes",
+      "affiliate_settlements": "Relevés",
       "jobs": "Postes",
       "candidates": "Candidats",
       "interviews": "Entretiens",
@@ -87,6 +95,7 @@
     },
     "group": {
       "commerce": "Commerce",
+      "affiliate": "Affiliation",
       "people": "Personnel"
     },
     "column": {
@@ -129,7 +138,28 @@
       "grade": "Classe",
       "hire_date": "Embauche",
       "regular_date": "Titularisation",
-      "contract_end": "Fin de contrat"
+      "contract_end": "Fin de contrat",
+      "product_title": "Produit",
+      "product_ref": "Produit",
+      "ownership": "Périmètre",
+      "platform_product": "Plateforme / id produit",
+      "commission_rate": "Taux de commission",
+      "pick_commission_rate": "Taux de la sélection",
+      "agency_share_rate": "Part agence",
+      "service_fee": "Frais de service",
+      "pick": "Sélection",
+      "stat_date": "Date",
+      "gmv": "GMV",
+      "order_count": "Commandes",
+      "refund": "Remboursement",
+      "est_commission": "Commission estimée",
+      "settled_commission": "Commission réglée",
+      "period": "Période",
+      "gross_commission": "Commission brute",
+      "tech_service_fee": "Frais techniques",
+      "refund_deduction": "Déduction de remboursement",
+      "net_amount": "Montant net",
+      "settled_to": "Versé à"
     },
     "deliverable": {
       "short_video": "Vidéo courte",
@@ -233,7 +263,15 @@
       "member": "Membre",
       "job_title": "Fonction",
       "grade": "Grade",
-      "hire_date": "Date d’embauche"
+      "hire_date": "Date d’embauche",
+      "pick": "Sélection",
+      "product": "Produit",
+      "creator": "Créateur",
+      "stat_date": "Date",
+      "gmv": "GMV",
+      "orders": "Commandes",
+      "refund": "Remboursement",
+      "commission": "Commission"
     },
     "errors": {
       "missing_title": "Intitulé du poste manquant",
@@ -246,7 +284,10 @@
       "bad_date": "Date « {{value}} » illisible",
       "bad_amount": "« {{value}} » n’est pas un seul nombre ; séparez la plage en deux colonnes",
       "bad_stage": "Aucune étape « {{value}} »",
-      "server_error": "Le serveur a refusé cette ligne"
+      "server_error": "Le serveur a refusé cette ligne",
+      "missing_pick": "Aucun produit et créateur auxquels imputer cette journée",
+      "unknown_pick": "Aucune sélection pour « {{value}} »",
+      "missing_date": "Pas de date"
     }
   },
   "resume": {
@@ -386,6 +427,82 @@
     "error": {
       "required": "À renseigner : {{fields}}",
       "submit": "Le serveur a refusé cette ligne. Rien n’a été enregistré — corrigez-la et réessayez."
+    }
+  },
+  "affiliate": {
+    "ownership": {
+      "own_brand": "Marque propre",
+      "client_brand": "Marque client"
+    },
+    "recipient": {
+      "agency": "Agence",
+      "creator": "Créateur"
+    },
+    "product_status": {
+      "on_shelf": "En ligne",
+      "off_shelf": "Retiré",
+      "ended": "Terminé"
+    },
+    "pick_status": {
+      "active": "Active",
+      "paused": "En pause",
+      "ended": "Terminée"
+    },
+    "settlement_status": {
+      "pending": "En attente",
+      "paid": "Payé",
+      "failed": "Échoué"
+    },
+    "form": {
+      "title": {
+        "products": "Nouveau produit d’affiliation",
+        "picks": "Nouvelle sélection",
+        "daily": "Saisir une journée",
+        "affiliate_settlements": "Nouveau relevé"
+      },
+      "field": {
+        "title": "Nom du produit",
+        "ownership": "Périmètre",
+        "client": "Client",
+        "platform": "Plateforme",
+        "platform_product_id": "Id produit sur la plateforme",
+        "category": "Catégorie",
+        "price": "Prix",
+        "commission_rate": "Taux de commission (%)",
+        "activity": "Campagne",
+        "status": "Statut",
+        "product": "Produit",
+        "creator": "Créateur",
+        "agency_share_rate": "Part agence (%)",
+        "service_fee": "Frais de service",
+        "pick": "Sélection",
+        "stat_date": "Date",
+        "gmv": "GMV",
+        "orders": "Commandes",
+        "refund": "Remboursement",
+        "est_commission": "Commission estimée",
+        "settled_commission": "Commission réglée",
+        "period_start": "Début de la période",
+        "period_end": "Fin de la période",
+        "gross_commission": "Commission brute",
+        "tech_service_fee": "Frais techniques",
+        "refund_deduction": "Déduction de remboursement",
+        "net_amount": "Montant net",
+        "settled_to": "Versé à",
+        "external_no": "N° de relevé"
+      },
+      "option": {
+        "choose": "Choisir"
+      },
+      "action": {
+        "save": "Enregistrer",
+        "close": "Fermer"
+      },
+      "error": {
+        "required": "Renseignez : {{fields}}",
+        "period": "La période se termine avant de commencer",
+        "submit": "Le serveur a refusé cette ligne. Rien n’a été enregistré : corrigez-la et réessayez."
+      }
     }
   },
   "match": {

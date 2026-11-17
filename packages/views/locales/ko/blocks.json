@@ -68,6 +68,10 @@
     "needs_candidates": "지원자가 아직 없어 단계와 입사일을 잴 수 없습니다.",
     "needs_interviews": "예정된 면접이 아직 없어 정시 진행을 셀 수 없습니다.",
     "needs_employees": "직원 프로필이 아직 없습니다. 입사일, 등급, 계약 만료일은 여기에서 입력합니다.",
+    "needs_products": "어필리에이트 상품이 아직 없습니다. 픽, 일별 매출, 정산서가 모두 여기서 시작됩니다.",
+    "needs_picks": "픽이 아직 없습니다. 아무도 상품을 소개하지 않았습니다.",
+    "needs_daily": "일별 매출이 아직 없습니다. GMV와 수수료를 셀 수 없습니다.",
+    "needs_affiliate_settlements": "정산서가 아직 없습니다. 입금을 확인할 수 없습니다.",
     "needs_issues": "이 숫자를 만드는 Issue에 필요한 필드가 비어 있습니다.",
     "fill_ledger": "대장에서 입력",
     "fill_issues": "Issue 열기"
@@ -80,6 +84,10 @@
       "briefs": "브리프",
       "collabs": "협업",
       "settlements": "정산",
+      "products": "상품",
+      "picks": "픽",
+      "daily": "일별 매출",
+      "affiliate_settlements": "정산서",
       "jobs": "채용 공고",
       "candidates": "지원자",
       "interviews": "면접",
@@ -87,6 +95,7 @@
     },
     "group": {
       "commerce": "비즈니스",
+      "affiliate": "어필리에이트",
       "people": "인사"
     },
     "column": {
@@ -129,7 +138,28 @@
       "grade": "등급",
       "hire_date": "입사일",
       "regular_date": "정규직 전환",
-      "contract_end": "계약 만료"
+      "contract_end": "계약 만료",
+      "product_title": "상품명",
+      "product_ref": "상품",
+      "ownership": "구분",
+      "platform_product": "플랫폼 / 상품 ID",
+      "commission_rate": "수수료율",
+      "pick_commission_rate": "지정 수수료율",
+      "agency_share_rate": "분배율",
+      "service_fee": "서비스 수수료",
+      "pick": "픽",
+      "stat_date": "날짜",
+      "gmv": "GMV",
+      "order_count": "주문 수",
+      "refund": "환불",
+      "est_commission": "예상 수수료",
+      "settled_commission": "정산 수수료",
+      "period": "기간",
+      "gross_commission": "총 수수료",
+      "tech_service_fee": "기술 서비스 수수료",
+      "refund_deduction": "환불 차감",
+      "net_amount": "순액",
+      "settled_to": "정산 대상"
     },
     "deliverable": {
       "short_video": "숏폼 영상",
@@ -233,7 +263,15 @@
       "member": "멤버",
       "job_title": "직책",
       "grade": "직급",
-      "hire_date": "입사일"
+      "hire_date": "입사일",
+      "pick": "픽",
+      "product": "상품",
+      "creator": "크리에이터",
+      "stat_date": "날짜",
+      "gmv": "GMV",
+      "orders": "주문",
+      "refund": "환불",
+      "commission": "수수료"
     },
     "errors": {
       "missing_title": "직무가 없습니다",
@@ -246,7 +284,10 @@
       "bad_date": "날짜 “{{value}}”을(를) 읽을 수 없습니다",
       "bad_amount": "“{{value}}”을(를) 하나의 숫자로 읽을 수 없습니다. 범위는 두 열로 나눠 주세요",
       "bad_stage": "단계 “{{value}}”이(가) 없습니다",
-      "server_error": "서버가 이 행을 거부했습니다"
+      "server_error": "서버가 이 행을 거부했습니다",
+      "missing_pick": "이 날짜를 귀속할 픽(상품 + 크리에이터)이 없습니다",
+      "unknown_pick": "「{{value}}」 픽이 없습니다",
+      "missing_date": "날짜가 없습니다"
     }
   },
   "resume": {
@@ -386,6 +427,82 @@
     "error": {
       "required": "{{fields}}을(를) 입력하세요",
       "submit": "서버가 이 항목을 거부했습니다. 저장되지 않았습니다. 수정 후 다시 시도하세요."
+    }
+  },
+  "affiliate": {
+    "ownership": {
+      "own_brand": "자체 브랜드",
+      "client_brand": "고객 브랜드"
+    },
+    "recipient": {
+      "agency": "에이전시",
+      "creator": "크리에이터"
+    },
+    "product_status": {
+      "on_shelf": "판매 중",
+      "off_shelf": "판매 중지",
+      "ended": "종료"
+    },
+    "pick_status": {
+      "active": "진행 중",
+      "paused": "일시중지",
+      "ended": "종료"
+    },
+    "settlement_status": {
+      "pending": "대기",
+      "paid": "지급 완료",
+      "failed": "실패"
+    },
+    "form": {
+      "title": {
+        "products": "상품 추가",
+        "picks": "픽 추가",
+        "daily": "일별 매출 입력",
+        "affiliate_settlements": "정산서 추가"
+      },
+      "field": {
+        "title": "상품명",
+        "ownership": "구분",
+        "client": "고객",
+        "platform": "플랫폼",
+        "platform_product_id": "플랫폼 상품 ID",
+        "category": "카테고리",
+        "price": "판매가",
+        "commission_rate": "수수료율(%)",
+        "activity": "캠페인",
+        "status": "상태",
+        "product": "상품",
+        "creator": "크리에이터",
+        "agency_share_rate": "분배율(%)",
+        "service_fee": "서비스 수수료",
+        "pick": "픽",
+        "stat_date": "날짜",
+        "gmv": "GMV",
+        "orders": "주문 수",
+        "refund": "환불",
+        "est_commission": "예상 수수료",
+        "settled_commission": "정산 수수료",
+        "period_start": "기간 시작",
+        "period_end": "기간 종료",
+        "gross_commission": "총 수수료",
+        "tech_service_fee": "기술 서비스 수수료",
+        "refund_deduction": "환불 차감",
+        "net_amount": "순액",
+        "settled_to": "정산 대상",
+        "external_no": "명세서 번호"
+      },
+      "option": {
+        "choose": "선택"
+      },
+      "action": {
+        "save": "저장",
+        "close": "닫기"
+      },
+      "error": {
+        "required": "입력하세요: {{fields}}",
+        "period": "기간 종료가 시작보다 빠릅니다",
+        "submit": "서버가 이 행을 거부했습니다. 저장되지 않았습니다. 수정 후 다시 시도하세요."
+      }
     }
   },
   "match": {

@@ -24,9 +24,15 @@
 
 import type { HrCandidateStage } from "@morechat/core/types";
 
-/** The three ledgers an import can fill. Interviews are scheduled per candidate
- *  and scorecards belong to an interview, so neither has a paste entry. */
-export type ImportDomain = "jobs" | "candidates" | "employees";
+/**
+ * The ledgers an import can fill.
+ *
+ * Interviews are scheduled per candidate and scorecards belong to an interview,
+ * so neither has a paste entry. The affiliate ledgers have one between them:
+ * `affiliate_daily` is the platform's export (a day per row), while a product, a
+ * pick and a platform statement are each one decision rather than a sheet.
+ */
+export type ImportDomain = "jobs" | "candidates" | "employees" | "affiliate_daily";
 
 export interface ParsedTable {
   headers: string[];
@@ -37,6 +43,12 @@ export interface ImportRowContext {
   jobs: { id: string; title: string }[];
   members: { id: string; name: string }[];
   departments: { id: string; name: string }[];
+  /**
+   * The picks a daily report can be filed against (`§11`), each with both halves
+   * of its identity. A daily row is written per pick, so the importer resolves
+   * 商品 + 达人 (the sheet's own columns) into that pick's id.
+   */
+  picks: { id: string; productTitle: string; creatorName: string }[];
 }
 
 export interface ImportRowResult {
@@ -80,7 +92,17 @@ export type ImportField =
   // without them three of the four dimensions stay "no signal".
   | "edu"
   | "years_experience"
-  | "resume_text";
+  | "resume_text"
+  // B2 (`§11`): a platform report row is 商品 × 达人 × 日期 plus the day's five
+  // measures. The first three resolve into one `pick_id`.
+  | "pick"
+  | "product"
+  | "creator"
+  | "stat_date"
+  | "gmv"
+  | "orders"
+  | "refund"
+  | "commission";
 
 /**
  * The fields each ledger asks for, in mapping order.
@@ -112,6 +134,18 @@ export const IMPORT_FIELDS: Record<ImportDomain, readonly ImportField[]> = {
     "regular_date",
     "contract_end",
     "department",
+  ],
+  // The explicit 选品 column first, then the two halves the daily sheet usually
+  // carries instead: either resolves the pick the day belongs to.
+  affiliate_daily: [
+    "pick",
+    "product",
+    "creator",
+    "stat_date",
+    "gmv",
+    "orders",
+    "refund",
+    "commission",
   ],
 };
 
@@ -162,6 +196,17 @@ const FIELD_ALIASES: Record<ImportField, readonly string[]> = {
     "工作经验",
   ],
   resume_text: ["resume_text", "resume", "cv", "简历", "简历正文", "简历内容"],
+  // --- B2 (`§11`) ---------------------------------------------------------
+  // A platform report in this workspace says 选品 / 商品 / 达人 / 日期 / GMV /
+  // 订单 / 退款 / 佣金; an English export of the same report says the field names.
+  pick: ["pick", "pick_label", "selection", "选品", "推广计划", "选品名称"],
+  product: ["product", "product_title", "product_name", "商品", "商品名称", "商品标题", "sku"],
+  creator: ["creator", "creator_name", "influencer", "达人", "达人名称", "主播"],
+  stat_date: ["stat_date", "date", "day", "日报日期", "日期", "统计日期", "成交日期"],
+  gmv: ["gmv", "gmv_amount", "revenue", "成交额", "销售额", "成交金额"],
+  orders: ["orders", "order_count", "order", "订单", "订单数", "订单量"],
+  refund: ["refund", "refund_amount", "退款", "退款金额", "退货金额"],
+  commission: ["commission", "commission_amount", "佣金", "预估佣金", "佣金金额"],
 };
 
 /** A candidate's stage as a sheet spells it. The enum is the server's
@@ -190,7 +235,12 @@ export type ImportErrorCode =
   | "bad_date"
   | "bad_amount"
   | "bad_stage"
-  | "server_error";
+  | "server_error"
+  // B2 (`§11`): a daily row is keyed by a pick and a day, so both can be the
+  // thing that is missing or unreadable.
+  | "missing_pick"
+  | "unknown_pick"
+  | "missing_date";
 
 /**
  * `errors` entries are `code` or `code|value`.
@@ -499,6 +549,43 @@ function validateRow(
       }
       break;
     }
+    case "affiliate_daily": {
+      if (!values.stat_date) {
+        errors.push(formatImportError("missing_date"));
+      } else {
+        const day = parseImportDay(values.stat_date);
+        if (day) values.stat_date = day;
+        else errors.push(formatImportError("bad_date", values.stat_date));
+      }
+      const pick = resolvePick(values, ctx);
+      if (pick) {
+        values.pick_id = pick;
+      } else if (values.product || values.creator || values.pick) {
+        // Named but not found: the sheet's 商品/达人 pair does not describe a
+        // pick in this workspace, so the day has nowhere to be written.
+        errors.push(
+          formatImportError(
+            "unknown_pick",
+            values.pick ?? [values.product, values.creator].filter(Boolean).join(" × "),
+          ),
+        );
+      } else {
+        errors.push(formatImportError("missing_pick"));
+      }
+      for (const field of ["gmv", "refund", "commission"] as const) {
+        const cell = values[field];
+        if (!cell) continue;
+        const parsed = parseImportNumber(cell);
+        if (parsed === null) errors.push(formatImportError("bad_amount", cell));
+        else values[field] = String(parsed);
+      }
+      if (values.orders) {
+        const parsed = parseImportNumber(values.orders);
+        if (parsed === null) errors.push(formatImportError("bad_amount", values.orders));
+        else values.orders = String(Math.round(parsed));
+      }
+      break;
+    }
   }
 
   return errors;
@@ -514,6 +601,11 @@ function duplicateKey(domain: ImportDomain, values: Record<string, string>): str
       return `${normalizeLabel(values.name ?? "")}|${values.job_id ?? normalizeLabel(values.job ?? "")}`;
     case "employees":
       return values.member_id ?? normalizeLabel(values.member ?? "");
+    case "affiliate_daily":
+      // The same `(pick_id, stat_date)` the server upserts on: two rows for one
+      // day of one pick would silently overwrite each other, so the batch says
+      // so before it writes either.
+      return `${values.pick_id ?? normalizeLabel(values.pick ?? "")}|${values.stat_date ?? ""}`;
   }
 }
 
@@ -529,6 +621,63 @@ function jobId(title: string, jobs: ImportRowContext["jobs"]): string | undefine
   const exact = jobs.find((job) => normalizeLabel(job.title) === needle);
   if (exact) return exact.id;
   return jobs.find((job) => normalizeLabel(job.title).includes(needle))?.id;
+}
+
+/**
+ * A daily report's pick, from whichever pair of columns the sheet carries.
+ *
+ * Two shapes are understood, because the platform's export and a hand-made
+ * sheet say the same thing differently: an explicit 选品 label (the
+ * `商品 × 达人` string the ledger draws, matched whole) or the 商品 and 达人
+ * columns separately. A product alone is enough when only one pick of it exists;
+ * anything ambiguous stays unresolved rather than filing a day against the wrong
+ * creator.
+ */
+function resolvePick(
+  values: Record<string, string>,
+  ctx: ImportRowContext,
+): string | undefined {
+  if (values.product) {
+    const product = normalizeLabel(values.product);
+    const creator = normalizeLabel(values.creator ?? "");
+    const hits = ctx.picks.filter(
+      (pick) =>
+        normalizeLabel(pick.productTitle) === product &&
+        (creator === "" || normalizeLabel(pick.creatorName) === creator),
+    );
+    if (hits.length === 1) return hits[0]?.id;
+    if (hits.length > 1) return undefined;
+    // The same containment rule a job title gets: a sheet may say 剪辑 for
+    // 短视频剪辑, and a product title is long.
+    const loose = ctx.picks.filter(
+      (pick) =>
+        normalizeLabel(pick.productTitle).includes(product) &&
+        (creator === "" || normalizeLabel(pick.creatorName) === creator),
+    );
+    return loose.length === 1 ? loose[0]?.id : undefined;
+  }
+  const needle = normalizeLabel(values.pick ?? "");
+  if (!needle) return undefined;
+  return ctx.picks.find(
+    (pick) => normalizeLabel(`${pick.productTitle}×${pick.creatorName}`) === needle,
+  )?.id;
+}
+
+/** A money or count cell as one number, or `null`.
+ *
+ *  Unlike `parseImportAmount`, zero and a negative are accepted: a day with no
+ *  sales is a real row (`gmv_amount: 0`), and a refund column in a platform
+ *  export is sometimes signed. Bands are not — a daily measure is one number. */
+export function parseImportNumber(value: string): number | null {
+  const cleaned = value
+    .normalize("NFKC")
+    .replace(/[¥￥$€£,]/g, "")
+    .replace(/(?:cny|rmb|usd|元|人民币)/gi, "")
+    .replace(/\s/g, "");
+  if (!cleaned) return null;
+  if (!/^[-+]?\d+(?:\.\d+)?$/.test(cleaned)) return null;
+  const parsed = Number(cleaned);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 /** Exact name → id. Members and departments are matched exactly: two people
@@ -563,8 +712,7 @@ function resolveMember(
   return { id: only.id };
 }
 
-function parseStage(value: string): HrCandidateStage | null {
-  const needle = normalizeLabel(value);
+function parseStage(value: string): HrCandidateStage | null {  const needle = normalizeLabel(value);
   for (const [stage, aliases] of Object.entries(STAGE_ALIASES) as [
     HrCandidateStage,
     readonly string[],
@@ -728,5 +876,15 @@ export const IMPORT_SAMPLE: Record<ImportDomain, string> = {
     "王强\t剪辑师\tP5\t2024-03-01\t2024-06-01\t2027-03-01\t内容部",
     "陈静\t运营\tP4\t2023-07-15\t2024-01-15\t2026-07-15\t",
     "\t摄影师\tP3\t2024-01-08\t2024-04-08\t2027-01-08\t内容部",
+  ].join("\n"),
+  // A platform export: 商品 + 达人 + 日期 + the day's measures. The last row
+  // leaves 达人 blank, so the preview shows the "no pick" error beside rows that
+  // resolve; the second row repeats the first day, which is the duplicate the
+  // batch refuses because the server's key is `(pick_id, stat_date)`.
+  affiliate_daily: [
+    "商品\t达人\t日期\tGMV\t订单\t退款\t佣金",
+    "便携榨汁杯\t林小满\t2026-03-01\t12800\t64\t320\t1536",
+    "便携榨汁杯\t林小满\t2026-03-01\t4300\t21\t0\t516",
+    "便携榨汁杯\t\t2026-03-02\t2100\t11\t0\t252",
   ].join("\n"),
 };

@@ -68,6 +68,10 @@
     "needs_candidates": "还没有候选人，阶段和入职时间都无从统计。",
     "needs_interviews": "还没有安排面试，准时率没有可统计的对象。",
     "needs_employees": "还没有员工档案——入职、职级和合同到期都从这里来。",
+    "needs_products": "还没有联盟商品——选品、日成交和结算单都挂在它下面。",
+    "needs_picks": "还没有选品，没有达人在推商品。",
+    "needs_daily": "还没有日成交，GMV 和佣金都无从统计。",
+    "needs_affiliate_settlements": "还没有平台结算单，收入无法确认到账。",
     "needs_issues": "支撑这个数字的 Issue 还缺一个字段。",
     "fill_ledger": "去台账补录",
     "fill_issues": "打开 Issue"
@@ -80,6 +84,10 @@
       "briefs": "需求单",
       "collabs": "合作单",
       "settlements": "结算",
+      "products": "商品",
+      "picks": "选品",
+      "daily": "日成交",
+      "affiliate_settlements": "结算单",
       "jobs": "职位",
       "candidates": "候选人",
       "interviews": "面试",
@@ -87,6 +95,7 @@
     },
     "group": {
       "commerce": "商务",
+      "affiliate": "精选联盟",
       "people": "人事"
     },
     "column": {
@@ -129,7 +138,28 @@
       "grade": "职级",
       "hire_date": "入职",
       "regular_date": "转正",
-      "contract_end": "合同到期"
+      "contract_end": "合同到期",
+      "product_title": "商品标题",
+      "product_ref": "商品",
+      "ownership": "归属",
+      "platform_product": "平台 / 商品 id",
+      "commission_rate": "佣金率",
+      "pick_commission_rate": "定向佣金率",
+      "agency_share_rate": "分成率",
+      "service_fee": "服务费",
+      "pick": "选品",
+      "stat_date": "日期",
+      "gmv": "GMV",
+      "order_count": "订单数",
+      "refund": "退款",
+      "est_commission": "预估佣金",
+      "settled_commission": "已结佣金",
+      "period": "周期",
+      "gross_commission": "毛佣金",
+      "tech_service_fee": "技术服务费",
+      "refund_deduction": "退款冲减",
+      "net_amount": "净额",
+      "settled_to": "结算对象"
     },
     "deliverable": {
       "short_video": "短视频",
@@ -233,7 +263,15 @@
       "member": "成员",
       "job_title": "职位",
       "grade": "职级",
-      "hire_date": "入职日期"
+      "hire_date": "入职日期",
+      "pick": "选品",
+      "product": "商品",
+      "creator": "达人",
+      "stat_date": "日期",
+      "gmv": "成交额",
+      "orders": "订单",
+      "refund": "退款",
+      "commission": "佣金"
     },
     "errors": {
       "missing_title": "缺少职位",
@@ -246,7 +284,10 @@
       "bad_date": "日期「{{value}}」无法识别",
       "bad_amount": "「{{value}}」不是一个数，区间请拆成两列",
       "bad_stage": "阶段「{{value}}」不存在",
-      "server_error": "服务端拒绝了这一行"
+      "server_error": "服务端拒绝了这一行",
+      "missing_pick": "没有可归属的选品（商品 + 达人）",
+      "unknown_pick": "没有「{{value}}」这个选品",
+      "missing_date": "没有日期"
     }
   },
   "resume": {
@@ -386,6 +427,82 @@
     "error": {
       "required": "请填写：{{fields}}",
       "submit": "服务端拒绝了这条记录，未保存，请修改后重试。"
+    }
+  },
+  "affiliate": {
+    "ownership": {
+      "own_brand": "自营",
+      "client_brand": "代卖"
+    },
+    "recipient": {
+      "agency": "机构",
+      "creator": "达人"
+    },
+    "product_status": {
+      "on_shelf": "在架",
+      "off_shelf": "下架",
+      "ended": "已结束"
+    },
+    "pick_status": {
+      "active": "进行中",
+      "paused": "已暂停",
+      "ended": "已结束"
+    },
+    "settlement_status": {
+      "pending": "待结算",
+      "paid": "已结算",
+      "failed": "结算失败"
+    },
+    "form": {
+      "title": {
+        "products": "新建商品",
+        "picks": "新建选品",
+        "daily": "录入日成交",
+        "affiliate_settlements": "新建结算单"
+      },
+      "field": {
+        "title": "商品标题",
+        "ownership": "归属",
+        "client": "客户",
+        "platform": "平台",
+        "platform_product_id": "平台商品 id",
+        "category": "类目",
+        "price": "标价",
+        "commission_rate": "佣金率（%）",
+        "activity": "活动",
+        "status": "状态",
+        "product": "商品",
+        "creator": "达人",
+        "agency_share_rate": "分成率（%）",
+        "service_fee": "服务费",
+        "pick": "选品",
+        "stat_date": "日期",
+        "gmv": "GMV",
+        "orders": "订单数",
+        "refund": "退款",
+        "est_commission": "预估佣金",
+        "settled_commission": "已结佣金",
+        "period_start": "周期开始",
+        "period_end": "周期结束",
+        "gross_commission": "毛佣金",
+        "tech_service_fee": "技术服务费",
+        "refund_deduction": "退款冲减",
+        "net_amount": "净额",
+        "settled_to": "结算对象",
+        "external_no": "平台单号"
+      },
+      "option": {
+        "choose": "请选择"
+      },
+      "action": {
+        "save": "保存",
+        "close": "关闭"
+      },
+      "error": {
+        "required": "请填写：{{fields}}",
+        "period": "周期结束早于开始",
+        "submit": "服务端拒绝了这一行，没有写入；请修改后重试。"
+      }
     }
   },
   "match": {

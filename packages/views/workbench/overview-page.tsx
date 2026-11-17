@@ -11,6 +11,12 @@ import {
   crmSettlementListOptions,
 } from "@morechat/core/crm/queries";
 import {
+  affiliateDailyOptions,
+  affiliatePickListOptions,
+  affiliateProductListOptions,
+  affiliateSettlementListOptions,
+} from "@morechat/core/affiliate/queries";
+import {
   hrCandidateListOptions,
   hrEmployeeListOptions,
   hrInterviewListOptions,
@@ -388,11 +394,12 @@ export function OverviewPage() {
 }
 
 /**
- * The nine ledgers, one at a time, in the two groups the workbench runs: the
- * commercial five from B0 and the four hiring ledgers from B1
- * (`docs/engineering/WORKBENCH-API.md` §10). Two tab rows rather than nine tabs
- * in a row: the group is the first question ("is this about money or about
- * people?") and `?domain=` alone already answers it.
+ * The thirteen ledgers, one at a time, in the three groups the workbench runs:
+ * the commercial five from B0, the four 精选联盟 ledgers from B2 (`§11`) and the
+ * four hiring ledgers from B1 (`§10`). One tab row per group rather than
+ * thirteen tabs in a row: the group is the first question ("is this a signed
+ * deal, a platform report, or someone's job?") and `?domain=` alone already
+ * answers it.
  *
  * `groups` is the view's list: a narrow view lists its own group only, so a
  * reader who chose the people view is not handed the client ledger as the
@@ -463,10 +470,11 @@ function LedgerPanes({
 /**
  * One query per ledger, picked by the active domain.
  *
- * The nine are separate components rather than one generic table because each
- * row type is its own contract: `hrJobListOptions` and its CRM siblings are
- * typed per domain (`WORKBENCH-API.md` §5, §10.6), and keeping the narrowing
- * here is what lets `LedgerTable` stay exhaustive over its column sets.
+ * The thirteen are separate components rather than one generic table because
+ * each row type is its own contract: `affiliatePickListOptions` and its CRM and
+ * HR siblings are typed per domain (`WORKBENCH-API.md` §5, §10.6, §11), and
+ * keeping the narrowing here is what lets `LedgerTable` stay exhaustive over its
+ * column sets.
  */
 function LedgerPane({ wsId, domain }: { wsId: string; domain: LedgerDomain }) {
   switch (domain) {
@@ -480,6 +488,14 @@ function LedgerPane({ wsId, domain }: { wsId: string; domain: LedgerDomain }) {
       return <CollabsPane wsId={wsId} />;
     case "settlements":
       return <SettlementsPane wsId={wsId} />;
+    case "products":
+      return <ProductsPane wsId={wsId} />;
+    case "picks":
+      return <PicksPane wsId={wsId} />;
+    case "daily":
+      return <DailyPane wsId={wsId} />;
+    case "affiliate_settlements":
+      return <AffiliateSettlementsPane wsId={wsId} />;
     case "jobs":
       return <JobsPane wsId={wsId} />;
     case "candidates":
@@ -565,6 +581,128 @@ function SettlementsPane({ wsId }: { wsId: string }) {
   return (
     <LedgerTable
       domain="settlements"
+      rows={query.data ?? []}
+      loading={query.isPending}
+      isError={query.isError}
+      onRetry={() => void query.refetch()}
+    />
+  );
+}
+
+/**
+ * The four B2 panes (`§11`).
+ *
+ * Same shape as the panes above: one query per ledger, and a cross-table name is
+ * read from the cache the neighbouring pane already fills rather than joined on
+ * the server. The product list is what a pick and a day both name, and the
+ * creator list is what a pick names — so `PicksPane` and `DailyPane` read them
+ * beside their own rows.
+ */
+function ProductsPane({ wsId }: { wsId: string }) {
+  const query = useQuery({
+    ...affiliateProductListOptions(wsId),
+    select: (response) => response.products,
+  });
+  return (
+    <LedgerTable
+      wsId={wsId}
+      domain="products"
+      rows={query.data ?? []}
+      loading={query.isPending}
+      isError={query.isError}
+      onRetry={() => void query.refetch()}
+    />
+  );
+}
+
+function PicksPane({ wsId }: { wsId: string }) {
+  const query = useQuery({
+    ...affiliatePickListOptions(wsId),
+    select: (response) => response.picks,
+  });
+  const products = useQuery({
+    ...affiliateProductListOptions(wsId),
+    select: (response) => response.products,
+  });
+  const creators = useQuery({
+    ...creatorListOptions(wsId),
+    select: (response) => response.creators,
+  });
+  const productTitles = Object.fromEntries(
+    (products.data ?? []).map((product) => [product.id, product.title]),
+  );
+  const creatorNames = Object.fromEntries(
+    (creators.data ?? []).map((creator) => [creator.id, creator.display_name]),
+  );
+  return (
+    <LedgerTable
+      wsId={wsId}
+      domain="picks"
+      productTitles={productTitles}
+      creatorNames={creatorNames}
+      rows={query.data ?? []}
+      loading={query.isPending}
+      isError={query.isError}
+      onRetry={() => void query.refetch()}
+    />
+  );
+}
+
+function DailyPane({ wsId }: { wsId: string }) {
+  const query = useQuery({
+    ...affiliateDailyOptions(wsId),
+    select: (response) => response.daily,
+  });
+  const picks = useQuery({
+    ...affiliatePickListOptions(wsId),
+    select: (response) => response.picks,
+  });
+  const products = useQuery({
+    ...affiliateProductListOptions(wsId),
+    select: (response) => response.products,
+  });
+  const creators = useQuery({
+    ...creatorListOptions(wsId),
+    select: (response) => response.creators,
+  });
+  // A day belongs to one pick, and a pick is a product × creator pair: the
+  // label is composed from the two lists rather than from a third read.
+  const productTitles = Object.fromEntries(
+    (products.data ?? []).map((product) => [product.id, product.title]),
+  );
+  const creatorNames = Object.fromEntries(
+    (creators.data ?? []).map((creator) => [creator.id, creator.display_name]),
+  );
+  const pickLabels = Object.fromEntries(
+    (picks.data ?? []).map((pick) => [
+      pick.id,
+      `${productTitles[pick.product_id] ?? pick.product_id} × ${
+        creatorNames[pick.creator_id] ?? pick.creator_id
+      }`,
+    ]),
+  );
+  return (
+    <LedgerTable
+      wsId={wsId}
+      domain="daily"
+      pickLabels={pickLabels}
+      rows={query.data ?? []}
+      loading={query.isPending}
+      isError={query.isError}
+      onRetry={() => void query.refetch()}
+    />
+  );
+}
+
+function AffiliateSettlementsPane({ wsId }: { wsId: string }) {
+  const query = useQuery({
+    ...affiliateSettlementListOptions(wsId),
+    select: (response) => response.settlements,
+  });
+  return (
+    <LedgerTable
+      wsId={wsId}
+      domain="affiliate_settlements"
       rows={query.data ?? []}
       loading={query.isPending}
       isError={query.isError}
