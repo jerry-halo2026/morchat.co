@@ -184,6 +184,16 @@ import type {
   MarketSignalConvertResponse,
   MarketSignalListResponse,
 } from "../types/goal";
+// Interview questions and guides (§14): its own module (types/guide.ts), because a
+// guide's `items` is a snapshot document with rules of its own.
+import type {
+  HrGuideGenerateResponse,
+  HrGuideItem,
+  HrGuideListResponse,
+  HrInterviewGuide,
+  HrQuestion,
+  HrQuestionListResponse,
+} from "../types/guide";
 
 export const PluginConfigFieldSchema = z.object({
   key: z.string(),
@@ -5801,4 +5811,142 @@ export const MarketSignalConvertResponseSchema = z
 
 export const EMPTY_MARKET_SIGNAL_CONVERT_RESPONSE: MarketSignalConvertResponse = {
   signal: EMPTY_MARKET_SIGNAL,
+};
+
+// ---- interview questions and guides (WORKBENCH-API §14) --------------------
+//
+// Three rules from the contract's response section show up here:
+//
+//   * `items` is a snapshot array and is always present (`[]`, never null): the
+//     outline panel maps over it, and a null would be a branch for no content.
+//   * `score` stays a nullable number. A question scored 0 and a question nobody
+//     scored are different answers, so 0 must not be the read of "unscored".
+//   * both lists default to empty, so a payload from an older server blanks the
+//     panel instead of the page.
+
+export const HrQuestionSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    // Null = a general question that fits any requisition.
+    job_id: workbenchNullableString,
+    dimension: z.string().default("skill"),
+    question: z.string().default(""),
+    intent: workbenchNullableString,
+    signals: workbenchNullableString,
+    red_flags: workbenchNullableString,
+    source: z.string().default("manual"),
+    tags: z.array(z.string()).default([]),
+    usage_count: z.number().default(0),
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_HR_QUESTION: HrQuestion = {
+  id: "", workspace_id: "", job_id: null, dimension: "skill", question: "",
+  intent: null, signals: null, red_flags: null, source: "manual", tags: [],
+  usage_count: 0, owner_member_id: null, created_by: null, created_at: "",
+  updated_at: "", archived_at: null,
+};
+
+export const HrQuestionListResponseSchema = z
+  .object({
+    questions: z.array(HrQuestionSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_QUESTION_LIST_RESPONSE: HrQuestionListResponse = {
+  questions: [],
+  total: 0,
+};
+
+/**
+ * One guide item. Every text field falls back to "" rather than null: the snapshot
+ * stores strings, and `""` is the honest read of "nothing written down".
+ */
+export const HrGuideItemSchema = z
+  .object({
+    question_id: workbenchNullableString,
+    dimension: z.string().default("skill"),
+    question: z.string().default(""),
+    intent: z.string().default(""),
+    signals: z.string().default(""),
+    red_flags: z.string().default(""),
+    asked: z.boolean().default(false),
+    note: z.string().default(""),
+    score: z.number().nullable().default(null),
+  })
+  .loose();
+
+export const EMPTY_HR_GUIDE_ITEM: HrGuideItem = {
+  question_id: null, dimension: "skill", question: "", intent: "", signals: "",
+  red_flags: "", asked: false, note: "", score: null,
+};
+
+export const HrInterviewGuideSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    // Null until the round is booked — an outline is normally prepared first.
+    interview_id: workbenchNullableString,
+    candidate_id: z.string().default(""),
+    job_id: workbenchNullableString,
+    round: z.number().default(1),
+    status: z.string().default("draft"),
+    items: z.array(HrGuideItemSchema).default([]),
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_HR_INTERVIEW_GUIDE: HrInterviewGuide = {
+  id: "", workspace_id: "", interview_id: null, candidate_id: "", job_id: null,
+  round: 1, status: "draft", items: [], note: null, owner_member_id: null,
+  created_by: null, created_at: "", updated_at: "", archived_at: null,
+};
+
+export const HrGuideListResponseSchema = z
+  .object({
+    guides: z.array(HrInterviewGuideSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_GUIDE_LIST_RESPONSE: HrGuideListResponse = {
+  guides: [],
+  total: 0,
+};
+
+/**
+ * `POST /guides/generate` — an unsaved draft. `source` is kept as a plain string so
+ * a future generator name still parses; the UI reads `template` to label the draft as
+ * the deterministic skeleton.
+ */
+export const HrGuideGenerateResponseSchema = z
+  .object({
+    candidate_id: z.string().default(""),
+    round: z.number().default(1),
+    job_id: workbenchNullableString,
+    source: z.string().default("template"),
+    items: z.array(HrGuideItemSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_GUIDE_GENERATE_RESPONSE: HrGuideGenerateResponse = {
+  candidate_id: "",
+  round: 1,
+  job_id: null,
+  source: "template",
+  items: [],
+  total: 0,
 };

@@ -601,4 +601,28 @@ export type {
   UpdateMarketSignalRequest,
 } from "./goal";
 
+// Interview questions and per-round guides (docs/engineering/WORKBENCH-API.md §14).
+// Its own module for the same reason as §12 and §13: "what we will ask, and what we
+// listen for" is a distinct vocabulary, and the guide's snapshot semantics are not
+// something the commerce barrel should have to explain.
+export type {
+  CreateHrInterviewGuideRequest,
+  CreateHrQuestionRequest,
+  HrGuideGenerateRequest,
+  HrGuideGenerateResponse,
+  HrGuideItem,
+  HrGuideListFilters,
+  HrGuideListResponse,
+  HrGuideStatus,
+  HrInterviewGuide,
+  HrQuestion,
+  HrQuestionDimension,
+  HrQuestionListFilters,
+  HrQuestionListResponse,
+  HrQuestionSource,
+  UpdateHrGuideItemRequest,
+  UpdateHrInterviewGuideRequest,
+  UpdateHrQuestionRequest,
+} from "./guide";
+
 export type { WorkspaceWakeup, WorkspaceWakeupPage, WorkspaceWakeupFilters, WakeupScope } from "./issue-wakeup";

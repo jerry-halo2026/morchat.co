@@ -1273,6 +1273,23 @@ type HrInterview struct {
 	InterviewerName     string             `json:"interviewer_name"`
 }
 
+type HrInterviewGuide struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	InterviewID   pgtype.UUID        `json:"interview_id"`
+	CandidateID   pgtype.UUID        `json:"candidate_id"`
+	JobID         pgtype.UUID        `json:"job_id"`
+	Round         int16              `json:"round"`
+	Status        string             `json:"status"`
+	Items         []byte             `json:"items"`
+	Note          pgtype.Text        `json:"note"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
 type HrJob struct {
 	ID            pgtype.UUID        `json:"id"`
 	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
@@ -1296,6 +1313,25 @@ type HrJob struct {
 	Jd            pgtype.Text        `json:"jd"`
 	Urgent        bool               `json:"urgent"`
 	Keywords      []byte             `json:"keywords"`
+}
+
+type HrQuestion struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	JobID         pgtype.UUID        `json:"job_id"`
+	Dimension     string             `json:"dimension"`
+	Question      string             `json:"question"`
+	Intent        pgtype.Text        `json:"intent"`
+	Signals       pgtype.Text        `json:"signals"`
+	RedFlags      pgtype.Text        `json:"red_flags"`
+	Source        string             `json:"source"`
+	Tags          []string           `json:"tags"`
+	UsageCount    int32              `json:"usage_count"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
 }
 
 type HrScorecard struct {

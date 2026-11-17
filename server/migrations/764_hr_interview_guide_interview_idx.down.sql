@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_hr_interview_guide_workspace_interview;

@@ -174,6 +174,11 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"hr_interview":        workspaceDelete,
 	"hr_scorecard":        workspaceDelete,
 	"hr_employee_profile": workspaceDelete,
+	// Interview questions and guides (WORKBENCH-API §14): no foreign key either —
+	// a guide's items are snapshots, and both tables are workspace-owned business
+	// rows — so DeleteWorkspaceWorkbenchLedger removes each explicitly.
+	"hr_question":        workspaceDelete,
+	"hr_interview_guide": workspaceDelete,
 	// Affiliate distribution (WORKBENCH-API §11): the same treatment — no foreign
 	// key, so DeleteWorkspaceWorkbenchLedger removes them explicitly.
 	"affiliate_product":    workspaceDelete,

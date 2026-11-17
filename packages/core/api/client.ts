@@ -271,6 +271,21 @@ import type {
   UpdateGoalPackageRequest,
   UpdateGoalRequest,
   UpdateMarketSignalRequest,
+  // Interview questions and per-round guides (docs/engineering/WORKBENCH-API.md §14).
+  CreateHrInterviewGuideRequest,
+  CreateHrQuestionRequest,
+  HrGuideGenerateRequest,
+  HrGuideGenerateResponse,
+  HrGuideItem,
+  HrGuideListFilters,
+  HrGuideListResponse,
+  HrInterviewGuide,
+  HrQuestion,
+  HrQuestionListFilters,
+  HrQuestionListResponse,
+  UpdateHrGuideItemRequest,
+  UpdateHrInterviewGuideRequest,
+  UpdateHrQuestionRequest,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -822,6 +837,17 @@ import {
   EMPTY_HR_EMPLOYEE_PROFILE,
   EMPTY_HR_EMPLOYEE_PROFILE_LIST_RESPONSE,
   EMPTY_HIRE_HR_CANDIDATE_RESPONSE,
+  // Interview questions and per-round guides (§14).
+  HrQuestionSchema,
+  HrQuestionListResponseSchema,
+  EMPTY_HR_QUESTION,
+  EMPTY_HR_QUESTION_LIST_RESPONSE,
+  HrInterviewGuideSchema,
+  HrGuideListResponseSchema,
+  HrGuideGenerateResponseSchema,
+  EMPTY_HR_INTERVIEW_GUIDE,
+  EMPTY_HR_GUIDE_LIST_RESPONSE,
+  EMPTY_HR_GUIDE_GENERATE_RESPONSE,
   type IssueView,
   type IssueViewPreference,
   type CreateIssueViewRequest,
@@ -5352,6 +5378,159 @@ export class ApiClient {
 
   async deleteHrEmployee(id: string): Promise<void> {
     await this.fetch(`/api/workbench/hr/employees/${id}`, { method: "DELETE" });
+  }
+
+  // Interview questions and per-round guides (docs/engineering/WORKBENCH-API.md
+  // §14). Same base and same write scope as the HR ledger above: reads are
+  // member-wide, writes are gated server-side on the question's own owner and on the
+  // candidate a guide belongs to.
+  //
+  // `generate` writes nothing — it answers an unsaved draft that the caller reviews
+  // and then saves through `createHrInterviewGuide`. The item routes answer the whole
+  // updated outline rather than 204, because appending shifts no index but deleting
+  // one renumbers the rest.
+
+  async listHrQuestions(filters: HrQuestionListFilters = {}): Promise<HrQuestionListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/questions${workbenchSearch({
+        job_id: filters.job_id,
+        dimension: filters.dimension,
+        q: filters.q,
+      })}`,
+    );
+    return parseWithFallback(raw, HrQuestionListResponseSchema, EMPTY_HR_QUESTION_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/questions",
+    });
+  }
+
+  async createHrQuestion(data: CreateHrQuestionRequest): Promise<HrQuestion> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/questions", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrQuestionSchema, EMPTY_HR_QUESTION, {
+      endpoint: "POST /api/workbench/hr/questions",
+    });
+  }
+
+  async getHrQuestion(id: string): Promise<HrQuestion> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/questions/${id}`);
+    return parseWithFallback(raw, HrQuestionSchema, EMPTY_HR_QUESTION, {
+      endpoint: "GET /api/workbench/hr/questions/:questionId",
+    });
+  }
+
+  async updateHrQuestion(id: string, data: UpdateHrQuestionRequest): Promise<HrQuestion> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/questions/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrQuestionSchema, EMPTY_HR_QUESTION, {
+      endpoint: "PATCH /api/workbench/hr/questions/:questionId",
+    });
+  }
+
+  async deleteHrQuestion(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/questions/${id}`, { method: "DELETE" });
+  }
+
+  async listHrInterviewGuides(filters: HrGuideListFilters = {}): Promise<HrGuideListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/guides${workbenchSearch({
+        candidate_id: filters.candidate_id,
+        interview_id: filters.interview_id,
+        status: filters.status,
+      })}`,
+    );
+    return parseWithFallback(raw, HrGuideListResponseSchema, EMPTY_HR_GUIDE_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/guides",
+    });
+  }
+
+  async createHrInterviewGuide(data: CreateHrInterviewGuideRequest): Promise<HrInterviewGuide> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/guides", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrInterviewGuideSchema, EMPTY_HR_INTERVIEW_GUIDE, {
+      endpoint: "POST /api/workbench/hr/guides",
+    });
+  }
+
+  async getHrInterviewGuide(id: string): Promise<HrInterviewGuide> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/guides/${id}`);
+    return parseWithFallback(raw, HrInterviewGuideSchema, EMPTY_HR_INTERVIEW_GUIDE, {
+      endpoint: "GET /api/workbench/hr/guides/:guideId",
+    });
+  }
+
+  async updateHrInterviewGuide(
+    id: string,
+    data: UpdateHrInterviewGuideRequest,
+  ): Promise<HrInterviewGuide> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/guides/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrInterviewGuideSchema, EMPTY_HR_INTERVIEW_GUIDE, {
+      endpoint: "PATCH /api/workbench/hr/guides/:guideId",
+    });
+  }
+
+  async deleteHrInterviewGuide(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/guides/${id}`, { method: "DELETE" });
+  }
+
+  /** Append one snapshot entry (usually a picked bank question) to an outline. */
+  async appendHrGuideItem(guideId: string, item: HrGuideItem): Promise<HrInterviewGuide> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/guides/${guideId}/items`, {
+      method: "POST",
+      body: JSON.stringify(item),
+    });
+    return parseWithFallback(raw, HrInterviewGuideSchema, EMPTY_HR_INTERVIEW_GUIDE, {
+      endpoint: "POST /api/workbench/hr/guides/:guideId/items",
+    });
+  }
+
+  /** Tick a question, note the answer, or score it — by position in the snapshot. */
+  async updateHrGuideItem(
+    guideId: string,
+    index: number,
+    data: UpdateHrGuideItemRequest,
+  ): Promise<HrInterviewGuide> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/guides/${guideId}/items/${index}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrInterviewGuideSchema, EMPTY_HR_INTERVIEW_GUIDE, {
+      endpoint: "PATCH /api/workbench/hr/guides/:guideId/items/:index",
+    });
+  }
+
+  /** Remove one snapshot entry. The response is the renumbered outline. */
+  async deleteHrGuideItem(guideId: string, index: number): Promise<HrInterviewGuide> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/guides/${guideId}/items/${index}`, {
+      method: "DELETE",
+    });
+    return parseWithFallback(raw, HrInterviewGuideSchema, EMPTY_HR_INTERVIEW_GUIDE, {
+      endpoint: "DELETE /api/workbench/hr/guides/:guideId/items/:index",
+    });
+  }
+
+  /**
+   * Draft an outline without saving it. `source` in the response says which
+   * generator ran: `template` when the deployment has no model configured, `ai` when
+   * one drafted the questions. Either way the caller gets 6–8 items and decides
+   * whether to save them.
+   */
+  async generateHrInterviewGuide(data: HrGuideGenerateRequest): Promise<HrGuideGenerateResponse> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/guides/generate", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrGuideGenerateResponseSchema, EMPTY_HR_GUIDE_GENERATE_RESPONSE, {
+      endpoint: "POST /api/workbench/hr/guides/generate",
+    });
   }
 
   async createShareLink(workspaceId: string, data: { role?: string; expires_in?: number; max_uses?: number }): Promise<ShareLink> {

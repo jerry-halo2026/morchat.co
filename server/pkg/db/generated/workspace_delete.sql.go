@@ -717,6 +717,12 @@ deleted_hr_candidates AS (
 deleted_hr_jobs AS (
     DELETE FROM hr_job WHERE hr_job.workspace_id = $1
 ),
+deleted_hr_guides AS (
+    DELETE FROM hr_interview_guide WHERE hr_interview_guide.workspace_id = $1
+),
+deleted_hr_questions AS (
+    DELETE FROM hr_question WHERE hr_question.workspace_id = $1
+),
 deleted_finance_month AS (
     DELETE FROM ops_finance_month WHERE ops_finance_month.workspace_id = $1
 ),
@@ -755,6 +761,10 @@ DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1
 // a job, a daily fact and a pick name a product, and a pick names a creator.
 // Affiliate distribution (WORKBENCH-API §11): a day fact names a pick, a pick
 // names a product and a creator, a settlement statement stands alone.
+// Interview questions and guides (WORKBENCH-API §14): a guide names a candidate
+// and, once booked, an interview; a question may name a requisition. Neither holds
+// the other alive — a guide carries snapshots (759), not references — so clearing
+// them needs no reset of any column on another table.
 // Content workbench (WORKBENCH-API §12): a shoot names a script, a script names a
 // topic, a topic names an IP, and an IP is the root of the content chain. The two
 // link columns — `creator.media_ip_id` (729) and `creator_post.media_script_id`

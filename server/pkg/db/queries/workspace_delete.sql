@@ -819,6 +819,16 @@ deleted_hr_candidates AS (
 deleted_hr_jobs AS (
     DELETE FROM hr_job WHERE hr_job.workspace_id = $1
 ),
+-- Interview questions and guides (WORKBENCH-API §14): a guide names a candidate
+-- and, once booked, an interview; a question may name a requisition. Neither holds
+-- the other alive — a guide carries snapshots (759), not references — so clearing
+-- them needs no reset of any column on another table.
+deleted_hr_guides AS (
+    DELETE FROM hr_interview_guide WHERE hr_interview_guide.workspace_id = $1
+),
+deleted_hr_questions AS (
+    DELETE FROM hr_question WHERE hr_question.workspace_id = $1
+),
 deleted_finance_month AS (
     DELETE FROM ops_finance_month WHERE ops_finance_month.workspace_id = $1
 ),

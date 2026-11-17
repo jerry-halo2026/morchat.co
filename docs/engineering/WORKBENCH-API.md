@@ -1022,6 +1022,175 @@ ALTER issue ADD COLUMN goal_id UUID;
 - **不做**：OKR 对齐树（目标之间的父子/依赖）、权限矩阵、目标模板与周期自动滚动、信号与外部数据源的自动去重。
 - **归档目标不解除任务挂载**：`DELETE /goals/{id}` 归档目标、关键结果与分包，`issue.goal_id` 保留（"这个目标是误建的"不等于"把干过的活摘下来"）；目标读取都过 `goal_okr`，悬空指针不会被渲染。
 
+## 14. 面试提纲契约（题库 + 某轮提纲）
+
+原 HR 工作台有一页「笔试管理」：出卷、答题、判分。客户否掉了这个方向——**出卷与答题在 AI 时代都是伪需求**，候选人能搜到答案，判分也没有人真的回看。真正缺的是**给人事一份能问到点子的面试提纲**：坐下之前就知道这场面试要验证什么、每个问题在考察什么、什么样的回答算好、什么信号是红旗。
+
+所以这一批建的是「提问资产」，不是「考试」：
+
+```
+hr_question（可复用，按岗位/维度沉淀）
+   ↓ 挑题，或让生成器起草
+hr_interview_guide.items（快照 + 顺序 + 现场要点）
+   ↓ 面试时逐题勾选、记要点、给分
+hr_scorecard（四维 40/20/20/20，§10）
+```
+
+关键取舍是**提纲是快照，不是引用**（§14.4）。题库改了不影响已经用过/正在用的提纲，否则历史记录会漂移。
+
+### 14.1 迁移号段
+
+| 号 | 文件 | 内容 |
+| --- | --- | --- |
+| 758 | `758_hr_question.up/down.sql` | 表 `hr_question` |
+| 759 | `759_hr_interview_guide.up/down.sql` | 表 `hr_interview_guide` |
+| 760 | `760_hr_question_job_idx` | `hr_question (workspace_id, job_id)` |
+| 761 | `761_hr_question_dimension_idx` | `hr_question (workspace_id, dimension)` |
+| 762 | `762_hr_question_question_unique` | UNIQUE `(workspace_id, lower(question)) WHERE archived_at IS NULL` |
+| 763 | `763_hr_interview_guide_candidate_round_unique` | UNIQUE `(workspace_id, candidate_id, round) WHERE archived_at IS NULL` |
+| 764 | `764_hr_interview_guide_interview_idx` | `hr_interview_guide (workspace_id, interview_id, candidate_id)` |
+| 765 | `765_hr_interview_guide_status_idx` | `hr_interview_guide (workspace_id, status)` |
+
+六个索引全部是单语句 `CREATE [UNIQUE] INDEX CONCURRENTLY`，up 方向逐个登记在 `server/cmd/migrate/main.go` 的 `concurrentIndexCleanups`；down 方向只有 `DROP INDEX CONCURRENTLY IF EXISTS`（不重建索引，故不进 down map）。建表 758–759 每张表一个文件。
+
+### 14.2 表
+
+```sql
+-- 758
+hr_question(
+  id UUID PK, workspace_id UUID NOT NULL,
+  job_id UUID,                            -- 可空：NULL = 通用题
+  dimension TEXT NOT NULL
+    CHECK (dimension IN ('skill','experience','culture','potential','risk')),
+  question TEXT NOT NULL CHECK (btrim(question) <> ''),
+  intent TEXT,                            -- 考察什么
+  signals TEXT,                           -- 好答案的特征
+  red_flags TEXT,                         -- 什么回答要警惕
+  source TEXT NOT NULL DEFAULT 'manual'
+    CHECK (source IN ('manual','ai','template')),
+  tags TEXT[] NOT NULL DEFAULT '{}',
+  usage_count INTEGER NOT NULL DEFAULT 0 CHECK (usage_count >= 0),
+  owner_member_id UUID, created_by UUID,
+  created_at, updated_at, archived_at)
+
+-- 759
+hr_interview_guide(
+  id UUID PK, workspace_id UUID NOT NULL,
+  interview_id UUID,                      -- 可空：还没约面试也能先备提纲
+  candidate_id UUID NOT NULL,
+  job_id UUID,
+  round SMALLINT NOT NULL DEFAULT 1 CHECK (round > 0),
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','ready','used')),
+  items JSONB NOT NULL DEFAULT '[]'::jsonb,
+  note TEXT, owner_member_id UUID, created_by UUID,
+  created_at, updated_at, archived_at)
+```
+
+规则与 B0 一致：无外键、无级联、`archived_at` 软删、每个索引单独一个并发文件。
+
+**`dimension` 复用记分卡四维再补一个 `risk`**：`skill` / `experience` / `culture` / `potential` 与 `hr_scorecard` 一致（683），这样提纲的一条条与评审人之后要填的卡片是同一套词；`risk` 是额外的一维，因为「用来问出淘汰信号的问题」不是「技能很低」——把红旗维度并进技能分，等于把红旗平均成一个 3。
+
+**`round` 是 NOT NULL**：契约原文只写了 `round INTEGER`，但它是「一人一轮一份提纲」这个唯一键（763）的一半，可空会让同一个人第一轮的提纲因为 NULL 互不相等而能建两份。空值的语义也没有别的解释——没有第 0 轮。
+
+**`items` 是 JSONB 数组而不是子表**：一份提纲就是 6–8 条，整体读、整体写，面试官在页面上就地改；子表会为一个没人按元素查询的列表加上行 id、排序列和删除路径。服务端在写入前校验形状（维度枚举、0–5 分、最多 40 条、单条题目非空），所以这一列没有 CHECK：CHECK 说不出「数组里每个元素的 `dimension` 字段」。
+
+### 14.3 REST（基址 `/api/workbench/hr`）
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET/POST | `/questions` | 列表（`?job_id=&dimension=&q=&limit=`）/ 新建，**201** |
+| GET/PATCH/DELETE | `/questions/{questionId}` | 单条 / 改 / 软删 |
+| GET/POST | `/guides` | 列表（`?candidate_id=&interview_id=&status=&limit=`）/ 新建，**201** |
+| GET/PATCH/DELETE | `/guides/{guideId}` | 单条 / 改 / 软删 |
+| POST | `/guides/{guideId}/items` | 追加一条快照项，**201**，返回整份提纲 |
+| PATCH/DELETE | `/guides/{guideId}/items/{index}` | 改 `asked`/`note`/`score`，或删掉该条；**200**，返回整份提纲 |
+| POST | `/guides/generate` | body `{candidate_id, round?, job_id?, limit?}` → **200**，未保存的草稿 items |
+
+包裹与序列化沿用 §3.1：列表 `{ <resource>: T[], total }`，`resource` 为 `questions` / `guides`，`total` = **本页条数**；单条不包裹；删除 204。`limit` 默认 50、上限 200（`workbenchLimit`）。
+
+- **`items` 永远是数组，不是 null**：缺省 `[]`。提纲面板直接 map，不该先判断「有没有取到」。
+- **`score` 是 `null` 或 0–5**：0 和「还没打分」是两个答案，所以 0 不能当缺省。`score: 6` → **400**。
+- **`items` 最多 40 条**：追加到满、以及 create/PATCH 一次传 41 条，都是 **400**（不是静默丢弃）。
+- **同句重复入库 → 409**：身份是 `lower(question)`（762），handler 先 trim 再比，所以 `"  X  "` 与 `"x"` 是同一条。软删后这句话重新可用（部分索引）。
+- **同一候选人同一轮重复建提纲 → 409**（763）。
+- **`candidate_id` 不可改**：改的是「这是谁的这一轮」。PATCH 回同一个 id 允许（客户端可以整行回传），换人 → 400。
+- **`interview_id` 若给，必须同属该候选人**：给别人的轮次挂提纲 → 400。
+- **`job_id` 缺省取候选人的 requisition**：创建时省略就填 `hr_candidate.job_id`，否则提纲会丢掉它与哪个岗位有关。
+- **三个 item 路由都返回整份提纲**：删除第 3 条会把 4..n 重编号，只回 204 等于让前端猜新顺序。这是本域对「删除 204」的唯一偏离，写在这里而不是隐含在代码里。
+- **`POST /guides/generate` 不落库**：被用户否掉的草稿不应该成为一行，也不应该有需要清理的第二处状态。前端确认后再 `POST /guides`（把草稿 items 原样传回）。
+- **`limit` 被夹在 6–8**：超出窗口不是错误，窗口是契约（少到 6 才覆盖得完五维，多到 9 就不像一轮面试）。
+
+### 14.4 快照语义：为什么 `items` 不引用题库
+
+`items` 的每一条是**当时那份题目的副本**：`question` / `intent` / `signals` / `red_flags` 都是文本拷贝，加上现场记录 `asked` / `note` / `score`。`question_id` 只是出处，用来让题库统计「这道题被用过几次」（`usage_count`），**没有任何读路径顺着它回题库取内容**。
+
+理由是对账：一份提纲是「这场面试问了什么」的记录。如果页面按 `question_id` 现取题目，那么任何人昨天整理一下题库用语，就会把上周那场面试的记录改写成另一批问题——而按这份记录做出的评价已经发出去了。所以：
+
+- 改题库（`PATCH /questions/{id}`）只影响**之后**新建的提纲；
+- 软删题库行（`DELETE /questions/{id}`）不伸手进任何提纲；
+- `usage_count` 是**写入的数字**，不是对现存提纲的 count：用过的提纲被删掉之后，「这题被用过」仍然是事实。
+
+`workbench_guide_test.go` 的 `TestGuideSnapshotSurvivesQuestionEdit` 就是这条语义的回归用例：改题库三处文本 + 改维度 → 已存提纲逐字段不变；再软删题库行 → 仍然不变。
+
+### 14.5 `generate` 的两个来源
+
+响应的 `source` 是**关于文本出处的真话**，不是装饰：
+
+| `source` | 何时 | 怎么产生 |
+| --- | --- | --- |
+| `ai` | 部署配了模型（`h.LLM.Enabled()`）且回复可用 | `GenerateText` 起草，系统提示要求只返回 `{"items":[{dimension,question,intent,signals,red_flags}]}`；回复经与保存同一套规则校验，少于 6 条有效项即判为不可用 |
+| `template` | 没配模型，或模型调用失败，或回复解析不出 6 条 | 确定性骨架生成器，同样 6–8 条，每条都带 `intent` 与 `signals` |
+
+**没有模型就明说 `template`，不假装有。** 模型失败也回落到模板并把原因写进日志——这个接口永远能返回一份可用草稿，而 `source` 让前端能把「这是模板骨架，请自己改」如实标出来。
+
+模板策略（必须实现的那条）：
+
+1. 关键词池（最多 12 个，去重、去停用词）依次取：`hr_job.keywords`（招聘方自己选的）→ `hr_job.title` / `requirements` / `jd` 的分词 → `hr_candidate.resume_text` 的分词。分词是「字母/数字连续段」，CJK 没有空格，所以连续两个以上汉字算一个词（"分布式"、"带团队"）。`edu` / `years_experience` **不参与替换**：它们作为事实进 AI 提示（§14.5 上表），但塞进骨架会得到「用 本科 时你踩过最大的坑」这种不像人会问的话。
+2. 八个骨架按固定顺序铺：`skill`、`experience`、`culture`、`potential`、`risk`、`skill`、`experience`、`risk`。顺序是设计过的——**任何长度 ≥6 的前缀都覆盖全部五维**，所以请求 6 条也不会漏掉红旗维度。
+3. 每个骨架自带 `intent` / `signals` / `red_flags` 兜底文本（模板就是"听什么"本身，不是一串光秃秃的问题）；`%[1]s` 换成关键词池里的词，池空时用「这个岗位的核心技能」。
+4. 草稿项一律 `asked=false`、`note=""`、`score=null`、`question_id=null`：它们还没进过题库，也还没发生过任何面试。
+
+> **契约问题（已按现状实现，需产品确认）**：任务书写的抽取字段是 `hr_candidate`（`resume_text` / `keywords` / `years_experience` / `edu`），但 `hr_candidate` **没有 `keywords` 列**（681 + 705 只有 `edu` / `years_experience` / `resume_text`）。本批因此从 `resume_text` 分词得到候选人侧关键词，没有给 `hr_candidate` 加列（既有表不在本批写作用域）。
+
+### 14.6 权限
+
+写判定与 B0 同一套（`workbenchCanWrite` / `workbenchOwnerForCreate` / `workbenchOwnerForUpdate`）：
+
+| 资源 | 写判定 |
+| --- | --- |
+| 题库 | 行自己的 `owner_member_id` |
+| 提纲（含 items、含 generate） | **沿 candidate 的 owner**；候选人的 owner 为空时，按提纲自己的 owner（即创建者）判 |
+
+`owner`/`admin` 全写；`member` 只能改自己拥有的行；新建时省略 owner 就是"我自己"，member 指定别人当 owner 直接 **403**。
+
+提纲不先看自己的 owner，是为了让「我能改这个候选人」和「我能改他这一轮的提纲」是同一个答案：提纲是那个候选人的视图，不是准备它的人的资产。候选人没有 owner（NULL）时，`workbenchCanWrite` 对 unowned 行本来就不给 member 通过，所以回落到提纲创建者——否则 member 备好的一份提纲会在保存后立刻自己改不了。
+
+`generate` 也走同一道门（它产出的是"下一步要写的那份提纲"，只是先不落库）：给别人的候选人起草 → **403**。
+
+### 14.7 事件与 query key
+
+事件（`workbench_guide.go` 内定义，写成功后发出）：`hr_question:changed` / `hr_interview_guide:changed`，payload `{ "id": "<row id>" }`。题库和提纲各自只发自己的事件；item 的三个路由发的是 `hr_interview_guide:changed`（改的是提纲那一行）。
+
+```
+["guide", wsId, resource, filters]   // resource ∈ questions|guides
+["guide", wsId, resource, { id }]    // 详情
+```
+
+`packages/core/guide/{index,queries,mutations}.ts`（导出 `./guide`、`./guide/queries`、`./guide/mutations`）；类型在 `packages/core/types/guide.ts`（**不塞进 `workbench.ts`**），zod 在 `packages/core/api/schemas.ts`，`api/client.ts` 有同名方法。mutation 失效整个 `guideKeys.all(wsId)` + `workbenchKeys.all(wsId)`：一次保存既写提纲又给题库的 `usage_count` 加一，局部失效会留下「提纲存了但题库显示没被用过」。
+
+`useGenerateHrInterviewGuide` 是一个**不失效任何东西**的 mutation：它不写库，草稿属于发起它的那个页面；把它做成 query 会让一份被丢弃的草稿看起来像服务端数据。
+
+### 14.8 已知债务与本批未做
+
+- **UI / views 未接入**：本批只到迁移、SQL、handler、core 类型/zod/client；`packages/views/**`、`apps/**` 不在写作用域。
+- **前端实时 patcher 未注册**：`packages/core/types/events.ts` 不在本批作用域，两个事件目前只有服务端发出，客户端靠 mutation 失效刷新。
+- **不做作答 / 判分 / 考试**：没有候选人侧界面、没有答案存储、没有自动评分。提纲的 `score` 是面试官自己的 0–5 记录，与 `hr_scorecard` 的四维权重分是两回事（后者仍是唯一的评价落点）。
+- **不做难度分级、不做多人协同编辑**：一份提纲只有一个 owner 可写；同一份提纲不支持两个人同时改（`items` 是整份替换，后写覆盖先写）。
+- **没有提纲 → 记分卡的自动接线**：`items[].score` 不会汇总进 `hr_scorecard.dimensions`。写回必须一条一条指名「这条对应卡上的哪一维」，那是人的判断，不是数据库能猜的。
+- **`/counts`、`/overview` 不含题库/提纲**：列表 `total` 因此就是本页条数。
+- **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举未加 `hr_question` / `hr_interview_guide`。
+- **`generate` 没有可用的真实模型回归**：`agentintegration` 之外，测试只覆盖无模型时的模板路径（`source='template'`），AI 路径的解析器由 `hrParseGuideDraft` 的单元行为保证。
+
 ## 9. 完成定义（DoD）
 
 一个域算完成，当且仅当：迁移可 up/down 往返、`make sqlc` 无脏 diff、handler 有权限用例、事件发出、zod 覆盖响应、`useRealtimeSync` 有 patcher、`/overview` 里对应指标从 `insufficient_data` 变为有值、页面能读能写。

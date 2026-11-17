@@ -2650,6 +2650,35 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 							r.Delete("/", h.DeleteHrEmployee)
 						})
 					})
+					// Interview questions and per-round guides
+					// (docs/engineering/WORKBENCH-API.md §14). The question bank is a
+					// reusable asset gated on its own owner; a guide is gated on the
+					// candidate it belongs to. `generate` returns an unsaved draft —
+					// nothing is written until POST /guides — and `guides/{guideId}/items`
+					// edits the snapshot in place, so every item route answers the whole
+					// outline rather than 204.
+					r.Route("/questions", func(r chi.Router) {
+						r.Get("/", h.ListHrQuestions)
+						r.Post("/", h.CreateHrQuestion)
+						r.Route("/{questionId}", func(r chi.Router) {
+							r.Get("/", h.GetHrQuestion)
+							r.Patch("/", h.UpdateHrQuestion)
+							r.Delete("/", h.DeleteHrQuestion)
+						})
+					})
+					r.Route("/guides", func(r chi.Router) {
+						r.Get("/", h.ListHrInterviewGuides)
+						r.Post("/", h.CreateHrInterviewGuide)
+						r.Post("/generate", h.GenerateHrInterviewGuide)
+						r.Route("/{guideId}", func(r chi.Router) {
+							r.Get("/", h.GetHrInterviewGuide)
+							r.Patch("/", h.UpdateHrInterviewGuide)
+							r.Delete("/", h.DeleteHrInterviewGuide)
+							r.Post("/items", h.AppendHrGuideItem)
+							r.Patch("/items/{index}", h.UpdateHrGuideItem)
+							r.Delete("/items/{index}", h.DeleteHrGuideItem)
+						})
+					})
 				})
 			})
 
