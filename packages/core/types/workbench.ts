@@ -1155,7 +1155,27 @@ export interface HireHrCandidateResponse {
 
 export type AffiliateProductStatus = "on_shelf" | "off_shelf" | "ended";
 
+/**
+ * Whose SKU a product is (725).
+ *
+ * `own_brand` — 自营品牌商品: ours, no client, and the commission it pays is our
+ * revenue. `client_brand` — 代卖: a client's SKU, the commission is that client's
+ * cost and our income is the 招商服务费 on the pick. 毛利 is only meaningful
+ * inside one of the two, so the label travels with every product row.
+ */
+export type AffiliateOwnership = "own_brand" | "client_brand";
+
 export type AffiliatePickStatus = "active" | "paused" | "ended";
+
+/**
+ * Whose pocket a statement's commission reached (727).
+ *
+ * `agency` — it landed in our 机构号, so it is revenue we received (and out of
+ * which a 自有达人's split is paid). `creator` — the platform paid the creator
+ * directly, so the GMV is ours to count but the commission is not our income.
+ * The two are never added together.
+ */
+export type AffiliateSettlementRecipient = "agency" | "creator";
 
 export type AffiliateSettlementStatus = "pending" | "paid" | "failed";
 
@@ -1163,8 +1183,13 @@ export type AffiliateSettlementStatus = "pending" | "paid" | "failed";
 export interface AffiliateProduct {
   id: string;
   workspace_id: string;
-  /** The seller — a `CrmClient` (the shop that pays the commission). */
-  client_id: string;
+  /** Whose SKU it is: `own_brand` (ours) or `client_brand` (a client's). */
+  ownership: AffiliateOwnership;
+  /**
+   * The seller — a `CrmClient` — for a `client_brand` product, and null for an
+   * `own_brand` one (we list our own SKU, so there is nobody to charge).
+   */
+  client_id: string | null;
   /** `douyin`, `kuaishou`, … Free text; the first half of the product identity. */
   platform: string;
   /** The platform's own product id; unique per platform while the row is live. */
@@ -1201,6 +1226,17 @@ export interface AffiliatePick {
    * which is a different statement from an agreed zero.
    */
   commission_rate: number | null;
+  /**
+   * 0–1 (C3): our cut of the commission for a 自有达人 whose settlement runs
+   * through our 机构号. Null means "not an internal split" — an 外部达人 the
+   * platform pays directly — so it is also the marker the summary reads.
+   *
+   * It is NOT `commission_rate`: that one is the platform's cut of the GMV, this
+   * one is our cut of that commission.
+   */
+  agency_share_rate: number | null;
+  /** 招商服务费 / 坑位费 we invoice for the placement, CNY. Null = no fee. */
+  service_fee_amount: number | null;
   /** When the creator added the product to their plan (ISO timestamp). */
   bound_at: string;
   status: AffiliatePickStatus;
@@ -1256,6 +1292,8 @@ export interface AffiliateSettlement {
   net_amount: number;
   currency: string;
   status: AffiliateSettlementStatus;
+  /** Whose pocket the commission reached (727); `agency` by default. */
+  settled_to: AffiliateSettlementRecipient;
   paid_at: string | null;
   /** The platform's statement number; null when the import did not carry it. */
   external_no: string | null;
@@ -1328,13 +1366,23 @@ export interface AffiliateSettlementListFilters {
 
 // --- Affiliate write requests ---------------------------------------------
 
+/**
+ * `POST /api/workbench/affiliate/products`.
+ *
+ * `client_id` is optional because a 自营 SKU has no seller; `ownership` defaults
+ * to `client_brand` server-side, which is what every product created before 725
+ * meant. The two must agree — a client-brand product names a client, an
+ * own-brand one does not — and the server refuses the mismatch with a 400.
+ */
 export type CreateAffiliateProductRequest = Pick<
   AffiliateProduct,
-  "client_id" | "platform" | "platform_product_id" | "title"
+  "platform" | "platform_product_id" | "title"
 > &
   Partial<
     Pick<
       AffiliateProduct,
+      | "client_id"
+      | "ownership"
       | "category"
       | "price"
       | "currency"
@@ -1349,6 +1397,7 @@ export type UpdateAffiliateProductRequest = Partial<
   Pick<
     AffiliateProduct,
     | "client_id"
+    | "ownership"
     | "platform"
     | "platform_product_id"
     | "title"
@@ -1364,7 +1413,16 @@ export type UpdateAffiliateProductRequest = Partial<
 
 export type CreateAffiliatePickRequest = Pick<AffiliatePick, "product_id" | "creator_id"> &
   Partial<
-    Pick<AffiliatePick, "commission_rate" | "bound_at" | "status" | "note" | "owner_member_id">
+    Pick<
+      AffiliatePick,
+      | "commission_rate"
+      | "agency_share_rate"
+      | "service_fee_amount"
+      | "bound_at"
+      | "status"
+      | "note"
+      | "owner_member_id"
+    >
   >;
 
 export type UpdateAffiliatePickRequest = Partial<
@@ -1373,6 +1431,8 @@ export type UpdateAffiliatePickRequest = Partial<
     | "product_id"
     | "creator_id"
     | "commission_rate"
+    | "agency_share_rate"
+    | "service_fee_amount"
     | "bound_at"
     | "status"
     | "note"
@@ -1406,7 +1466,15 @@ export type CreateAffiliateSettlementRequest = Pick<
   Partial<
     Pick<
       AffiliateSettlement,
-      "gross_commission" | "tech_service_fee" | "refund_deduction" | "currency" | "status" | "paid_at" | "external_no" | "note"
+      | "gross_commission"
+      | "tech_service_fee"
+      | "refund_deduction"
+      | "currency"
+      | "status"
+      | "settled_to"
+      | "paid_at"
+      | "external_no"
+      | "note"
     >
   >;
 
@@ -1421,6 +1489,7 @@ export type UpdateAffiliateSettlementRequest = Partial<
     | "net_amount"
     | "currency"
     | "status"
+    | "settled_to"
     | "paid_at"
     | "external_no"
     | "note"
@@ -1434,6 +1503,14 @@ export type UpdateAffiliateSettlementRequest = Partial<
  * `value: null` + `empty: "insufficient_data"` reads as "no report was imported"
  * on this surface too, never as a zero. The two counts are true zeros on an
  * empty month; the money blocks are gaps. `refund_rate` is 0–1 (C3).
+ *
+ * The income side is three blocks, not one, because the business has two pockets
+ * (725–727). `gmv` counts every pick whatever happened to the commission;
+ * `commission_agency` is what actually reached us (agency-settled commission plus
+ * the 招商服务费 we invoiced); `commission_creator` is what the platform paid
+ * creators directly — real GMV, not our revenue; `agency_share_income` is our cut
+ * of the internal creators' cleared commission. Adding the first two incomes
+ * together would report money we never received.
  */
 export interface AffiliateSummaryResponse {
   /** The calendar month the figures describe, `YYYY-MM`. */
@@ -1441,6 +1518,12 @@ export interface AffiliateSummaryResponse {
   gmv: WorkbenchFinanceBlock;
   commission_est: WorkbenchFinanceBlock;
   commission_settled: WorkbenchFinanceBlock;
+  /** Commission that reached our 机构号 + 招商服务费 — money we received. */
+  commission_agency: WorkbenchFinanceBlock;
+  /** Commission the platform paid creators directly — GMV, not our income. */
+  commission_creator: WorkbenchFinanceBlock;
+  /** Our cut of internal creators' cleared commission (0–1 rate × settled). */
+  agency_share_income: WorkbenchFinanceBlock;
   refund_rate: WorkbenchFinanceBlock;
   tech_fee: WorkbenchFinanceBlock;
   pick_count: WorkbenchFinanceBlock;

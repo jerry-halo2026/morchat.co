@@ -39,19 +39,21 @@ type AffiliateDaily struct {
 }
 
 type AffiliatePick struct {
-	ID             pgtype.UUID        `json:"id"`
-	WorkspaceID    pgtype.UUID        `json:"workspace_id"`
-	ProductID      pgtype.UUID        `json:"product_id"`
-	CreatorID      pgtype.UUID        `json:"creator_id"`
-	CommissionRate pgtype.Numeric     `json:"commission_rate"`
-	BoundAt        pgtype.Timestamptz `json:"bound_at"`
-	Status         string             `json:"status"`
-	Note           pgtype.Text        `json:"note"`
-	OwnerMemberID  pgtype.UUID        `json:"owner_member_id"`
-	CreatedBy      pgtype.UUID        `json:"created_by"`
-	CreatedAt      pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
-	ArchivedAt     pgtype.Timestamptz `json:"archived_at"`
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	ProductID        pgtype.UUID        `json:"product_id"`
+	CreatorID        pgtype.UUID        `json:"creator_id"`
+	CommissionRate   pgtype.Numeric     `json:"commission_rate"`
+	BoundAt          pgtype.Timestamptz `json:"bound_at"`
+	Status           string             `json:"status"`
+	Note             pgtype.Text        `json:"note"`
+	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy        pgtype.UUID        `json:"created_by"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt       pgtype.Timestamptz `json:"archived_at"`
+	AgencyShareRate  pgtype.Numeric     `json:"agency_share_rate"`
+	ServiceFeeAmount pgtype.Numeric     `json:"service_fee_amount"`
 }
 
 type AffiliateProduct struct {
@@ -72,6 +74,7 @@ type AffiliateProduct struct {
 	CreatedAt         pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt        pgtype.Timestamptz `json:"archived_at"`
+	Ownership         string             `json:"ownership"`
 }
 
 type AffiliateSettlement struct {
@@ -91,6 +94,7 @@ type AffiliateSettlement struct {
 	CreatedBy       pgtype.UUID        `json:"created_by"`
 	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	SettledTo       string             `json:"settled_to"`
 }
 
 type Agent struct {

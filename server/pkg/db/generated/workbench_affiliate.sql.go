@@ -20,7 +20,8 @@ period AS (
     FROM bounds
 ),
 daily AS (
-    SELECT d.gmv_amount, d.refund_amount, d.est_commission, d.settled_commission
+    SELECT d.gmv_amount, d.refund_amount, d.est_commission, d.settled_commission,
+           p.agency_share_rate
     FROM affiliate_daily d
     JOIN affiliate_pick p ON p.id = d.pick_id AND p.workspace_id = d.workspace_id
     LEFT JOIN member m ON m.workspace_id = p.workspace_id AND m.user_id = p.owner_member_id
@@ -41,7 +42,21 @@ totals AS (
         (count(*) FILTER (WHERE daily.gmv_amount > 0))::bigint AS gmv_samples,
         coalesce(sum(daily.est_commission), 0)::float8 AS est_commission,
         coalesce(sum(daily.settled_commission), 0)::float8 AS settled_commission,
-        (count(*) FILTER (WHERE daily.settled_commission <> 0))::bigint AS settled_samples
+        (count(*) FILTER (WHERE daily.settled_commission <> 0))::bigint AS settled_samples,
+        -- Our cut of the internal creators' cleared commission. Rounded to the
+        -- fen because the product of a rate and an amount lands on more decimals
+        -- than money has; the rate itself stays at the 0–1 scale it was stored in.
+        round(
+            coalesce(
+                sum(daily.settled_commission * daily.agency_share_rate)
+                    FILTER (WHERE daily.agency_share_rate IS NOT NULL),
+                0
+            ),
+            2
+        )::float8 AS agency_share_income,
+        (count(*) FILTER (
+            WHERE daily.agency_share_rate IS NOT NULL AND daily.settled_commission <> 0
+        ))::bigint AS agency_share_samples
     FROM daily
 ),
 picks AS (
@@ -62,12 +77,29 @@ picks AS (
 ),
 settlements AS (
     SELECT coalesce(sum(s.tech_service_fee), 0)::float8 AS tech_service_fee,
-           (count(*))::bigint AS settlement_samples
+           (count(*))::bigint AS settlement_samples,
+           coalesce(sum(s.net_amount) FILTER (WHERE s.settled_to = 'agency'), 0)::float8 AS agency_settled_commission,
+           (count(*) FILTER (WHERE s.settled_to = 'agency'))::bigint AS agency_settlement_samples,
+           coalesce(sum(s.net_amount) FILTER (WHERE s.settled_to = 'creator'), 0)::float8 AS creator_settled_commission,
+           (count(*) FILTER (WHERE s.settled_to = 'creator'))::bigint AS creator_settlement_samples
     FROM affiliate_settlement s
     CROSS JOIN period
     WHERE s.workspace_id = $2
       AND s.period_start < period.month_end
       AND s.period_end >= period.month_start
+      AND $3::uuid IS NULL
+),
+agency_fees AS (
+    SELECT coalesce(sum(p.service_fee_amount), 0)::float8 AS service_fee_amount,
+           (count(*) FILTER (
+               WHERE p.service_fee_amount IS NOT NULL AND p.service_fee_amount <> 0
+           ))::bigint AS service_fee_samples
+    FROM affiliate_pick p
+    CROSS JOIN period
+    WHERE p.workspace_id = $2
+      AND p.archived_at IS NULL
+      AND p.bound_at >= period.month_start::timestamptz
+      AND p.bound_at < period.month_end::timestamptz
       AND $3::uuid IS NULL
 )
 SELECT
@@ -80,11 +112,17 @@ SELECT
     totals.est_commission,
     totals.settled_commission,
     totals.settled_samples,
+    (settlements.agency_settled_commission + agency_fees.service_fee_amount)::float8 AS commission_agency,
+    (settlements.agency_settlement_samples + agency_fees.service_fee_samples)::bigint AS commission_agency_samples,
+    settlements.creator_settled_commission AS commission_creator,
+    settlements.creator_settlement_samples AS commission_creator_samples,
+    totals.agency_share_income,
+    totals.agency_share_samples,
     picks.pick_count,
     picks.active_creator_count,
     settlements.tech_service_fee,
     settlements.settlement_samples
-FROM period, totals, picks, settlements
+FROM period, totals, picks, settlements, agency_fees
 `
 
 type AffiliateSummaryParams struct {
@@ -94,19 +132,25 @@ type AffiliateSummaryParams struct {
 }
 
 type AffiliateSummaryRow struct {
-	MonthStart         pgtype.Date `json:"month_start"`
-	MonthLabel         string      `json:"month_label"`
-	GmvAmount          float64     `json:"gmv_amount"`
-	DailySamples       int64       `json:"daily_samples"`
-	RefundAmount       float64     `json:"refund_amount"`
-	GmvSamples         int64       `json:"gmv_samples"`
-	EstCommission      float64     `json:"est_commission"`
-	SettledCommission  float64     `json:"settled_commission"`
-	SettledSamples     int64       `json:"settled_samples"`
-	PickCount          int64       `json:"pick_count"`
-	ActiveCreatorCount int64       `json:"active_creator_count"`
-	TechServiceFee     float64     `json:"tech_service_fee"`
-	SettlementSamples  int64       `json:"settlement_samples"`
+	MonthStart               pgtype.Date `json:"month_start"`
+	MonthLabel               string      `json:"month_label"`
+	GmvAmount                float64     `json:"gmv_amount"`
+	DailySamples             int64       `json:"daily_samples"`
+	RefundAmount             float64     `json:"refund_amount"`
+	GmvSamples               int64       `json:"gmv_samples"`
+	EstCommission            float64     `json:"est_commission"`
+	SettledCommission        float64     `json:"settled_commission"`
+	SettledSamples           int64       `json:"settled_samples"`
+	CommissionAgency         float64     `json:"commission_agency"`
+	CommissionAgencySamples  int64       `json:"commission_agency_samples"`
+	CommissionCreator        float64     `json:"commission_creator"`
+	CommissionCreatorSamples int64       `json:"commission_creator_samples"`
+	AgencyShareIncome        float64     `json:"agency_share_income"`
+	AgencyShareSamples       int64       `json:"agency_share_samples"`
+	PickCount                int64       `json:"pick_count"`
+	ActiveCreatorCount       int64       `json:"active_creator_count"`
+	TechServiceFee           float64     `json:"tech_service_fee"`
+	SettlementSamples        int64       `json:"settlement_samples"`
 }
 
 // One calendar month of the affiliate ledger
@@ -124,6 +168,29 @@ type AffiliateSummaryRow struct {
 //     only days with a non-zero settled figure, so a month whose statements have
 //     not been paid yet reports a gap rather than 0.
 //
+//   - commission_agency / commission_creator — the settled money split by who
+//     received it (727). `agency` statements pay into our 机构号, so their
+//     `net_amount` is income we receive; `creator` statements are paid by the
+//     platform straight to the creator, so they are GMV without income. Adding
+//     the two would count the business twice — that is why this pair exists
+//     instead of a single settled total.
+//
+//     `commission_agency` also carries the `service_fee_amount` of picks bound in
+//     the month (726): the 招商服务费 we invoice ourselves, which the platform
+//     never routes and no statement therefore mentions. The two halves share a
+//     block because an operator reads them as "what this month earned us", so
+//     the block's samples count both kinds of contributing row.
+//
+//     `status` does not filter either half: like `commission_settled`, "settled"
+//     means cleared into a statement cycle, not "the money has landed" — the
+//     arrival day is `paid_at` and is a separate fact.
+//
+//   - agency_share_income — the 自有达人 split: `settled_commission` ×
+//     `agency_share_rate`, summed over the month's daily rows of picks that have
+//     a rate. A pick with a NULL rate is an 外部达人 and contributes nothing by
+//     definition — the commission was never ours to split — so the samples count
+//     only rows that both have a rate and carry a settled figure.
+//
 //   - refund_amount — kept separate from gmv (see 711); the handler divides it by
 //     gmv to get the 0–1 refund rate (docs/METRICS.md §3 C3).
 //
@@ -135,11 +202,18 @@ type AffiliateSummaryRow struct {
 //     A settlement is issued for the whole workspace, not for a person, so it has
 //     no owner whose department could stand in for it: with `department_id` given
 //     the block answers "not attributable" (no rows) instead of a total that
-//     silently ignores the filter.
+//     silently ignores the filter. `commission_agency` / `commission_creator`
+//     read the same statements and follow the same rule, which is why the service
+//     fees that ride along with `commission_agency` are guarded too: a
+//     department-filtered agency figure would be half a total.
 //
 // Department attribution follows the B0 fallback chain (docs/METRICS.md §4): the
 // pick's owner member department. It is an aggregate filter and never an access
 // boundary.
+// The other half of `commission_agency`: the 招商服务费 invoiced for the picks
+// bound this month. Guarded by the department filter for the same reason the
+// statements above are — the block they add up into cannot answer a
+// department-scoped question, so it reports a gap instead of a partial total.
 func (q *Queries) AffiliateSummary(ctx context.Context, arg AffiliateSummaryParams) (AffiliateSummaryRow, error) {
 	row := q.db.QueryRow(ctx, affiliateSummary, arg.MonthStart, arg.WorkspaceID, arg.DepartmentID)
 	var i AffiliateSummaryRow
@@ -153,6 +227,12 @@ func (q *Queries) AffiliateSummary(ctx context.Context, arg AffiliateSummaryPara
 		&i.EstCommission,
 		&i.SettledCommission,
 		&i.SettledSamples,
+		&i.CommissionAgency,
+		&i.CommissionAgencySamples,
+		&i.CommissionCreator,
+		&i.CommissionCreatorSamples,
+		&i.AgencyShareIncome,
+		&i.AgencyShareSamples,
 		&i.PickCount,
 		&i.ActiveCreatorCount,
 		&i.TechServiceFee,
@@ -201,26 +281,29 @@ func (q *Queries) ArchiveAffiliateProduct(ctx context.Context, arg ArchiveAffili
 
 const createAffiliatePick = `-- name: CreateAffiliatePick :one
 INSERT INTO affiliate_pick (
-    workspace_id, product_id, creator_id, commission_rate, bound_at, status, note,
-    owner_member_id, created_by
+    workspace_id, product_id, creator_id, commission_rate, agency_share_rate,
+    service_fee_amount, bound_at, status, note, owner_member_id, created_by
 ) VALUES (
     $1, $2, $3,
-    $4::numeric, $5, $6,
-    $7::text, $8::uuid, $9::uuid
+    $4::numeric, $5::numeric,
+    $6::numeric, $7, $8,
+    $9::text, $10::uuid, $11::uuid
 )
-RETURNING id, workspace_id, product_id, creator_id, commission_rate, bound_at, status, note, owner_member_id, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, product_id, creator_id, commission_rate, bound_at, status, note, owner_member_id, created_by, created_at, updated_at, archived_at, agency_share_rate, service_fee_amount
 `
 
 type CreateAffiliatePickParams struct {
-	WorkspaceID    pgtype.UUID        `json:"workspace_id"`
-	ProductID      pgtype.UUID        `json:"product_id"`
-	CreatorID      pgtype.UUID        `json:"creator_id"`
-	CommissionRate pgtype.Numeric     `json:"commission_rate"`
-	BoundAt        pgtype.Timestamptz `json:"bound_at"`
-	Status         string             `json:"status"`
-	Note           pgtype.Text        `json:"note"`
-	OwnerMemberID  pgtype.UUID        `json:"owner_member_id"`
-	CreatedBy      pgtype.UUID        `json:"created_by"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	ProductID        pgtype.UUID        `json:"product_id"`
+	CreatorID        pgtype.UUID        `json:"creator_id"`
+	CommissionRate   pgtype.Numeric     `json:"commission_rate"`
+	AgencyShareRate  pgtype.Numeric     `json:"agency_share_rate"`
+	ServiceFeeAmount pgtype.Numeric     `json:"service_fee_amount"`
+	BoundAt          pgtype.Timestamptz `json:"bound_at"`
+	Status           string             `json:"status"`
+	Note             pgtype.Text        `json:"note"`
+	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy        pgtype.UUID        `json:"created_by"`
 }
 
 func (q *Queries) CreateAffiliatePick(ctx context.Context, arg CreateAffiliatePickParams) (AffiliatePick, error) {
@@ -229,6 +312,8 @@ func (q *Queries) CreateAffiliatePick(ctx context.Context, arg CreateAffiliatePi
 		arg.ProductID,
 		arg.CreatorID,
 		arg.CommissionRate,
+		arg.AgencyShareRate,
+		arg.ServiceFeeAmount,
 		arg.BoundAt,
 		arg.Status,
 		arg.Note,
@@ -250,27 +335,30 @@ func (q *Queries) CreateAffiliatePick(ctx context.Context, arg CreateAffiliatePi
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.AgencyShareRate,
+		&i.ServiceFeeAmount,
 	)
 	return i, err
 }
 
 const createAffiliateProduct = `-- name: CreateAffiliateProduct :one
 INSERT INTO affiliate_product (
-    workspace_id, client_id, platform, platform_product_id, title, category, price,
-    currency, commission_rate, activity, status, owner_member_id, created_by
+    workspace_id, client_id, ownership, platform, platform_product_id, title, category,
+    price, currency, commission_rate, activity, status, owner_member_id, created_by
 ) VALUES (
     $1, $2, $3,
-    $4, $5, $6::text,
-    $7::numeric, $8, $9::numeric,
-    $10::text, $11, $12::uuid,
-    $13::uuid
+    $4, $5, $6,
+    $7::text, $8::numeric, $9,
+    $10::numeric, $11::text, $12,
+    $13::uuid, $14::uuid
 )
-RETURNING id, workspace_id, client_id, platform, platform_product_id, title, category, price, currency, commission_rate, activity, status, owner_member_id, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, client_id, platform, platform_product_id, title, category, price, currency, commission_rate, activity, status, owner_member_id, created_by, created_at, updated_at, archived_at, ownership
 `
 
 type CreateAffiliateProductParams struct {
 	WorkspaceID       pgtype.UUID    `json:"workspace_id"`
 	ClientID          pgtype.UUID    `json:"client_id"`
+	Ownership         string         `json:"ownership"`
 	Platform          string         `json:"platform"`
 	PlatformProductID string         `json:"platform_product_id"`
 	Title             string         `json:"title"`
@@ -284,10 +372,14 @@ type CreateAffiliateProductParams struct {
 	CreatedBy         pgtype.UUID    `json:"created_by"`
 }
 
+// `client_id` is written as sent: NULL for an own-brand SKU, a client for a
+// client-brand one. The pair constraint (725) is the authority on which is
+// legal; the handler only turns it into an error a caller can act on.
 func (q *Queries) CreateAffiliateProduct(ctx context.Context, arg CreateAffiliateProductParams) (AffiliateProduct, error) {
 	row := q.db.QueryRow(ctx, createAffiliateProduct,
 		arg.WorkspaceID,
 		arg.ClientID,
+		arg.Ownership,
 		arg.Platform,
 		arg.PlatformProductID,
 		arg.Title,
@@ -319,6 +411,7 @@ func (q *Queries) CreateAffiliateProduct(ctx context.Context, arg CreateAffiliat
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Ownership,
 	)
 	return i, err
 }
@@ -326,15 +419,16 @@ func (q *Queries) CreateAffiliateProduct(ctx context.Context, arg CreateAffiliat
 const createAffiliateSettlement = `-- name: CreateAffiliateSettlement :one
 INSERT INTO affiliate_settlement (
     workspace_id, period_start, period_end, gross_commission, tech_service_fee,
-    refund_deduction, net_amount, currency, status, paid_at, external_no, note, created_by
+    refund_deduction, net_amount, currency, status, settled_to, paid_at, external_no,
+    note, created_by
 ) VALUES (
     $1, $2, $3,
     $4::numeric, $5::numeric,
     $6::numeric, $7::numeric,
-    $8, $9, $10::date,
-    $11::text, $12::text, $13::uuid
+    $8, $9, $10, $11::date,
+    $12::text, $13::text, $14::uuid
 )
-RETURNING id, workspace_id, period_start, period_end, gross_commission, tech_service_fee, refund_deduction, net_amount, currency, status, paid_at, external_no, note, created_by, created_at, updated_at
+RETURNING id, workspace_id, period_start, period_end, gross_commission, tech_service_fee, refund_deduction, net_amount, currency, status, paid_at, external_no, note, created_by, created_at, updated_at, settled_to
 `
 
 type CreateAffiliateSettlementParams struct {
@@ -347,6 +441,7 @@ type CreateAffiliateSettlementParams struct {
 	NetAmount       pgtype.Numeric `json:"net_amount"`
 	Currency        string         `json:"currency"`
 	Status          string         `json:"status"`
+	SettledTo       string         `json:"settled_to"`
 	PaidAt          pgtype.Date    `json:"paid_at"`
 	ExternalNo      pgtype.Text    `json:"external_no"`
 	Note            pgtype.Text    `json:"note"`
@@ -364,6 +459,7 @@ func (q *Queries) CreateAffiliateSettlement(ctx context.Context, arg CreateAffil
 		arg.NetAmount,
 		arg.Currency,
 		arg.Status,
+		arg.SettledTo,
 		arg.PaidAt,
 		arg.ExternalNo,
 		arg.Note,
@@ -387,12 +483,13 @@ func (q *Queries) CreateAffiliateSettlement(ctx context.Context, arg CreateAffil
 		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SettledTo,
 	)
 	return i, err
 }
 
 const getAffiliatePick = `-- name: GetAffiliatePick :one
-SELECT id, workspace_id, product_id, creator_id, commission_rate, bound_at, status, note, owner_member_id, created_by, created_at, updated_at, archived_at FROM affiliate_pick
+SELECT id, workspace_id, product_id, creator_id, commission_rate, bound_at, status, note, owner_member_id, created_by, created_at, updated_at, archived_at, agency_share_rate, service_fee_amount FROM affiliate_pick
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -418,12 +515,14 @@ func (q *Queries) GetAffiliatePick(ctx context.Context, arg GetAffiliatePickPara
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.AgencyShareRate,
+		&i.ServiceFeeAmount,
 	)
 	return i, err
 }
 
 const getAffiliateProduct = `-- name: GetAffiliateProduct :one
-SELECT id, workspace_id, client_id, platform, platform_product_id, title, category, price, currency, commission_rate, activity, status, owner_member_id, created_by, created_at, updated_at, archived_at FROM affiliate_product
+SELECT id, workspace_id, client_id, platform, platform_product_id, title, category, price, currency, commission_rate, activity, status, owner_member_id, created_by, created_at, updated_at, archived_at, ownership FROM affiliate_product
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -453,12 +552,13 @@ func (q *Queries) GetAffiliateProduct(ctx context.Context, arg GetAffiliateProdu
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Ownership,
 	)
 	return i, err
 }
 
 const getAffiliateSettlement = `-- name: GetAffiliateSettlement :one
-SELECT id, workspace_id, period_start, period_end, gross_commission, tech_service_fee, refund_deduction, net_amount, currency, status, paid_at, external_no, note, created_by, created_at, updated_at FROM affiliate_settlement
+SELECT id, workspace_id, period_start, period_end, gross_commission, tech_service_fee, refund_deduction, net_amount, currency, status, paid_at, external_no, note, created_by, created_at, updated_at, settled_to FROM affiliate_settlement
 WHERE id = $1 AND workspace_id = $2
 `
 
@@ -487,6 +587,7 @@ func (q *Queries) GetAffiliateSettlement(ctx context.Context, arg GetAffiliateSe
 		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SettledTo,
 	)
 	return i, err
 }
@@ -553,7 +654,7 @@ func (q *Queries) ListAffiliateDaily(ctx context.Context, arg ListAffiliateDaily
 }
 
 const listAffiliatePicks = `-- name: ListAffiliatePicks :many
-SELECT id, workspace_id, product_id, creator_id, commission_rate, bound_at, status, note, owner_member_id, created_by, created_at, updated_at, archived_at
+SELECT id, workspace_id, product_id, creator_id, commission_rate, bound_at, status, note, owner_member_id, created_by, created_at, updated_at, archived_at, agency_share_rate, service_fee_amount
 FROM affiliate_pick
 WHERE workspace_id = $1
   AND archived_at IS NULL
@@ -609,6 +710,8 @@ func (q *Queries) ListAffiliatePicks(ctx context.Context, arg ListAffiliatePicks
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ArchivedAt,
+			&i.AgencyShareRate,
+			&i.ServiceFeeAmount,
 		); err != nil {
 			return nil, err
 		}
@@ -622,7 +725,7 @@ func (q *Queries) ListAffiliatePicks(ctx context.Context, arg ListAffiliatePicks
 
 const listAffiliateProducts = `-- name: ListAffiliateProducts :many
 
-SELECT id, workspace_id, client_id, platform, platform_product_id, title, category, price, currency, commission_rate, activity, status, owner_member_id, created_by, created_at, updated_at, archived_at
+SELECT id, workspace_id, client_id, platform, platform_product_id, title, category, price, currency, commission_rate, activity, status, owner_member_id, created_by, created_at, updated_at, archived_at, ownership
 FROM affiliate_product
 WHERE workspace_id = $1
   AND archived_at IS NULL
@@ -670,6 +773,23 @@ type ListAffiliateProductsParams struct {
 // platform said, `gmv_amount` and `refund_amount` are reported side by side, and
 // the only division in this domain (refund rate) happens in the handler through
 // `ratioValue` so the 0–1 scale is applied in exactly one place.
+//
+// Two labels decide what the money *means*, and both are written by the caller
+// rather than inferred:
+//
+//   - `affiliate_product.ownership` (725) — `own_brand` (our own SKU, the
+//     commission is our revenue) or `client_brand` (a client's SKU, the
+//     commission is their cost). The database enforces the pair with
+//     `client_id`: a client-brand product has a seller, an own-brand one does
+//     not.
+//   - `affiliate_settlement.settled_to` (727) — `agency` (the commission landed
+//     in our 机构号, so it is revenue) or `creator` (the platform paid the
+//     creator directly, so it is GMV without income). Summing both would count
+//     the business twice.
+//
+// `affiliate_pick` carries the internal split (`agency_share_rate`, our cut of a
+// 自有达人's commission) and `service_fee_amount` (招商服务费 we invoice), which
+// are the two numbers the summary's income blocks are built from.
 func (q *Queries) ListAffiliateProducts(ctx context.Context, arg ListAffiliateProductsParams) ([]AffiliateProduct, error) {
 	rows, err := q.db.Query(ctx, listAffiliateProducts,
 		arg.WorkspaceID,
@@ -705,6 +825,7 @@ func (q *Queries) ListAffiliateProducts(ctx context.Context, arg ListAffiliatePr
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ArchivedAt,
+			&i.Ownership,
 		); err != nil {
 			return nil, err
 		}
@@ -717,7 +838,7 @@ func (q *Queries) ListAffiliateProducts(ctx context.Context, arg ListAffiliatePr
 }
 
 const listAffiliateSettlements = `-- name: ListAffiliateSettlements :many
-SELECT id, workspace_id, period_start, period_end, gross_commission, tech_service_fee, refund_deduction, net_amount, currency, status, paid_at, external_no, note, created_by, created_at, updated_at
+SELECT id, workspace_id, period_start, period_end, gross_commission, tech_service_fee, refund_deduction, net_amount, currency, status, paid_at, external_no, note, created_by, created_at, updated_at, settled_to
 FROM affiliate_settlement
 WHERE workspace_id = $1
   AND ($2::text IS NULL OR status = $2::text)
@@ -774,6 +895,7 @@ func (q *Queries) ListAffiliateSettlements(ctx context.Context, arg ListAffiliat
 			&i.CreatedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.SettledTo,
 		); err != nil {
 			return nil, err
 		}
@@ -790,25 +912,29 @@ UPDATE affiliate_pick
 SET product_id = $1,
     creator_id = $2,
     commission_rate = $3::numeric,
-    bound_at = $4,
-    status = $5,
-    note = $6::text,
-    owner_member_id = $7::uuid,
+    agency_share_rate = $4::numeric,
+    service_fee_amount = $5::numeric,
+    bound_at = $6,
+    status = $7,
+    note = $8::text,
+    owner_member_id = $9::uuid,
     updated_at = now()
-WHERE id = $8 AND workspace_id = $9 AND archived_at IS NULL
-RETURNING id, workspace_id, product_id, creator_id, commission_rate, bound_at, status, note, owner_member_id, created_by, created_at, updated_at, archived_at
+WHERE id = $10 AND workspace_id = $11 AND archived_at IS NULL
+RETURNING id, workspace_id, product_id, creator_id, commission_rate, bound_at, status, note, owner_member_id, created_by, created_at, updated_at, archived_at, agency_share_rate, service_fee_amount
 `
 
 type UpdateAffiliatePickParams struct {
-	ProductID      pgtype.UUID        `json:"product_id"`
-	CreatorID      pgtype.UUID        `json:"creator_id"`
-	CommissionRate pgtype.Numeric     `json:"commission_rate"`
-	BoundAt        pgtype.Timestamptz `json:"bound_at"`
-	Status         string             `json:"status"`
-	Note           pgtype.Text        `json:"note"`
-	OwnerMemberID  pgtype.UUID        `json:"owner_member_id"`
-	ID             pgtype.UUID        `json:"id"`
-	WorkspaceID    pgtype.UUID        `json:"workspace_id"`
+	ProductID        pgtype.UUID        `json:"product_id"`
+	CreatorID        pgtype.UUID        `json:"creator_id"`
+	CommissionRate   pgtype.Numeric     `json:"commission_rate"`
+	AgencyShareRate  pgtype.Numeric     `json:"agency_share_rate"`
+	ServiceFeeAmount pgtype.Numeric     `json:"service_fee_amount"`
+	BoundAt          pgtype.Timestamptz `json:"bound_at"`
+	Status           string             `json:"status"`
+	Note             pgtype.Text        `json:"note"`
+	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
 }
 
 func (q *Queries) UpdateAffiliatePick(ctx context.Context, arg UpdateAffiliatePickParams) (AffiliatePick, error) {
@@ -816,6 +942,8 @@ func (q *Queries) UpdateAffiliatePick(ctx context.Context, arg UpdateAffiliatePi
 		arg.ProductID,
 		arg.CreatorID,
 		arg.CommissionRate,
+		arg.AgencyShareRate,
+		arg.ServiceFeeAmount,
 		arg.BoundAt,
 		arg.Status,
 		arg.Note,
@@ -838,6 +966,8 @@ func (q *Queries) UpdateAffiliatePick(ctx context.Context, arg UpdateAffiliatePi
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.AgencyShareRate,
+		&i.ServiceFeeAmount,
 	)
 	return i, err
 }
@@ -845,23 +975,25 @@ func (q *Queries) UpdateAffiliatePick(ctx context.Context, arg UpdateAffiliatePi
 const updateAffiliateProduct = `-- name: UpdateAffiliateProduct :one
 UPDATE affiliate_product
 SET client_id = $1,
-    platform = $2,
-    platform_product_id = $3,
-    title = $4,
-    category = $5::text,
-    price = $6::numeric,
-    currency = $7,
-    commission_rate = $8::numeric,
-    activity = $9::text,
-    status = $10,
-    owner_member_id = $11::uuid,
+    ownership = $2,
+    platform = $3,
+    platform_product_id = $4,
+    title = $5,
+    category = $6::text,
+    price = $7::numeric,
+    currency = $8,
+    commission_rate = $9::numeric,
+    activity = $10::text,
+    status = $11,
+    owner_member_id = $12::uuid,
     updated_at = now()
-WHERE id = $12 AND workspace_id = $13 AND archived_at IS NULL
-RETURNING id, workspace_id, client_id, platform, platform_product_id, title, category, price, currency, commission_rate, activity, status, owner_member_id, created_by, created_at, updated_at, archived_at
+WHERE id = $13 AND workspace_id = $14 AND archived_at IS NULL
+RETURNING id, workspace_id, client_id, platform, platform_product_id, title, category, price, currency, commission_rate, activity, status, owner_member_id, created_by, created_at, updated_at, archived_at, ownership
 `
 
 type UpdateAffiliateProductParams struct {
 	ClientID          pgtype.UUID    `json:"client_id"`
+	Ownership         string         `json:"ownership"`
 	Platform          string         `json:"platform"`
 	PlatformProductID string         `json:"platform_product_id"`
 	Title             string         `json:"title"`
@@ -879,6 +1011,7 @@ type UpdateAffiliateProductParams struct {
 func (q *Queries) UpdateAffiliateProduct(ctx context.Context, arg UpdateAffiliateProductParams) (AffiliateProduct, error) {
 	row := q.db.QueryRow(ctx, updateAffiliateProduct,
 		arg.ClientID,
+		arg.Ownership,
 		arg.Platform,
 		arg.PlatformProductID,
 		arg.Title,
@@ -911,6 +1044,7 @@ func (q *Queries) UpdateAffiliateProduct(ctx context.Context, arg UpdateAffiliat
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.Ownership,
 	)
 	return i, err
 }
@@ -925,12 +1059,13 @@ SET period_start = $1,
     net_amount = $6::numeric,
     currency = $7,
     status = $8,
-    paid_at = $9::date,
-    external_no = $10::text,
-    note = $11::text,
+    settled_to = $9,
+    paid_at = $10::date,
+    external_no = $11::text,
+    note = $12::text,
     updated_at = now()
-WHERE id = $12 AND workspace_id = $13
-RETURNING id, workspace_id, period_start, period_end, gross_commission, tech_service_fee, refund_deduction, net_amount, currency, status, paid_at, external_no, note, created_by, created_at, updated_at
+WHERE id = $13 AND workspace_id = $14
+RETURNING id, workspace_id, period_start, period_end, gross_commission, tech_service_fee, refund_deduction, net_amount, currency, status, paid_at, external_no, note, created_by, created_at, updated_at, settled_to
 `
 
 type UpdateAffiliateSettlementParams struct {
@@ -942,6 +1077,7 @@ type UpdateAffiliateSettlementParams struct {
 	NetAmount       pgtype.Numeric `json:"net_amount"`
 	Currency        string         `json:"currency"`
 	Status          string         `json:"status"`
+	SettledTo       string         `json:"settled_to"`
 	PaidAt          pgtype.Date    `json:"paid_at"`
 	ExternalNo      pgtype.Text    `json:"external_no"`
 	Note            pgtype.Text    `json:"note"`
@@ -962,6 +1098,7 @@ func (q *Queries) UpdateAffiliateSettlement(ctx context.Context, arg UpdateAffil
 		arg.NetAmount,
 		arg.Currency,
 		arg.Status,
+		arg.SettledTo,
 		arg.PaidAt,
 		arg.ExternalNo,
 		arg.Note,
@@ -986,6 +1123,7 @@ func (q *Queries) UpdateAffiliateSettlement(ctx context.Context, arg UpdateAffil
 		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SettledTo,
 	)
 	return i, err
 }

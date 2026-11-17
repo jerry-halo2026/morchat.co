@@ -21,6 +21,23 @@
 -- platform said, `gmv_amount` and `refund_amount` are reported side by side, and
 -- the only division in this domain (refund rate) happens in the handler through
 -- `ratioValue` so the 0–1 scale is applied in exactly one place.
+--
+-- Two labels decide what the money *means*, and both are written by the caller
+-- rather than inferred:
+--
+--   * `affiliate_product.ownership` (725) — `own_brand` (our own SKU, the
+--     commission is our revenue) or `client_brand` (a client's SKU, the
+--     commission is their cost). The database enforces the pair with
+--     `client_id`: a client-brand product has a seller, an own-brand one does
+--     not.
+--   * `affiliate_settlement.settled_to` (727) — `agency` (the commission landed
+--     in our 机构号, so it is revenue) or `creator` (the platform paid the
+--     creator directly, so it is GMV without income). Summing both would count
+--     the business twice.
+--
+-- `affiliate_pick` carries the internal split (`agency_share_rate`, our cut of a
+-- 自有达人's commission) and `service_fee_amount` (招商服务费 we invoice), which
+-- are the two numbers the summary's income blocks are built from.
 
 -- name: ListAffiliateProducts :many
 SELECT *
@@ -42,21 +59,25 @@ SELECT * FROM affiliate_product
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
 
 -- name: CreateAffiliateProduct :one
+-- `client_id` is written as sent: NULL for an own-brand SKU, a client for a
+-- client-brand one. The pair constraint (725) is the authority on which is
+-- legal; the handler only turns it into an error a caller can act on.
 INSERT INTO affiliate_product (
-    workspace_id, client_id, platform, platform_product_id, title, category, price,
-    currency, commission_rate, activity, status, owner_member_id, created_by
+    workspace_id, client_id, ownership, platform, platform_product_id, title, category,
+    price, currency, commission_rate, activity, status, owner_member_id, created_by
 ) VALUES (
-    sqlc.arg('workspace_id'), sqlc.arg('client_id'), sqlc.arg('platform'),
-    sqlc.arg('platform_product_id'), sqlc.arg('title'), sqlc.narg('category')::text,
-    sqlc.narg('price')::numeric, sqlc.arg('currency'), sqlc.narg('commission_rate')::numeric,
-    sqlc.narg('activity')::text, sqlc.arg('status'), sqlc.narg('owner_member_id')::uuid,
-    sqlc.narg('created_by')::uuid
+    sqlc.arg('workspace_id'), sqlc.arg('client_id'), sqlc.arg('ownership'),
+    sqlc.arg('platform'), sqlc.arg('platform_product_id'), sqlc.arg('title'),
+    sqlc.narg('category')::text, sqlc.narg('price')::numeric, sqlc.arg('currency'),
+    sqlc.narg('commission_rate')::numeric, sqlc.narg('activity')::text, sqlc.arg('status'),
+    sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
 )
 RETURNING *;
 
 -- name: UpdateAffiliateProduct :one
 UPDATE affiliate_product
 SET client_id = sqlc.arg('client_id'),
+    ownership = sqlc.arg('ownership'),
     platform = sqlc.arg('platform'),
     platform_product_id = sqlc.arg('platform_product_id'),
     title = sqlc.arg('title'),
@@ -97,11 +118,12 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archiv
 
 -- name: CreateAffiliatePick :one
 INSERT INTO affiliate_pick (
-    workspace_id, product_id, creator_id, commission_rate, bound_at, status, note,
-    owner_member_id, created_by
+    workspace_id, product_id, creator_id, commission_rate, agency_share_rate,
+    service_fee_amount, bound_at, status, note, owner_member_id, created_by
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('product_id'), sqlc.arg('creator_id'),
-    sqlc.narg('commission_rate')::numeric, sqlc.arg('bound_at'), sqlc.arg('status'),
+    sqlc.narg('commission_rate')::numeric, sqlc.narg('agency_share_rate')::numeric,
+    sqlc.narg('service_fee_amount')::numeric, sqlc.arg('bound_at'), sqlc.arg('status'),
     sqlc.narg('note')::text, sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
 )
 RETURNING *;
@@ -111,6 +133,8 @@ UPDATE affiliate_pick
 SET product_id = sqlc.arg('product_id'),
     creator_id = sqlc.arg('creator_id'),
     commission_rate = sqlc.narg('commission_rate')::numeric,
+    agency_share_rate = sqlc.narg('agency_share_rate')::numeric,
+    service_fee_amount = sqlc.narg('service_fee_amount')::numeric,
     bound_at = sqlc.arg('bound_at'),
     status = sqlc.arg('status'),
     note = sqlc.narg('note')::text,
@@ -185,12 +209,13 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id');
 -- name: CreateAffiliateSettlement :one
 INSERT INTO affiliate_settlement (
     workspace_id, period_start, period_end, gross_commission, tech_service_fee,
-    refund_deduction, net_amount, currency, status, paid_at, external_no, note, created_by
+    refund_deduction, net_amount, currency, status, settled_to, paid_at, external_no,
+    note, created_by
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('period_start'), sqlc.arg('period_end'),
     sqlc.arg('gross_commission')::numeric, sqlc.arg('tech_service_fee')::numeric,
     sqlc.arg('refund_deduction')::numeric, sqlc.arg('net_amount')::numeric,
-    sqlc.arg('currency'), sqlc.arg('status'), sqlc.narg('paid_at')::date,
+    sqlc.arg('currency'), sqlc.arg('status'), sqlc.arg('settled_to'), sqlc.narg('paid_at')::date,
     sqlc.narg('external_no')::text, sqlc.narg('note')::text, sqlc.narg('created_by')::uuid
 )
 RETURNING *;
@@ -208,6 +233,7 @@ SET period_start = sqlc.arg('period_start'),
     net_amount = sqlc.arg('net_amount')::numeric,
     currency = sqlc.arg('currency'),
     status = sqlc.arg('status'),
+    settled_to = sqlc.arg('settled_to'),
     paid_at = sqlc.narg('paid_at')::date,
     external_no = sqlc.narg('external_no')::text,
     note = sqlc.narg('note')::text,
@@ -231,6 +257,29 @@ RETURNING *;
 --     only days with a non-zero settled figure, so a month whose statements have
 --     not been paid yet reports a gap rather than 0.
 --
+--   * commission_agency / commission_creator — the settled money split by who
+--     received it (727). `agency` statements pay into our 机构号, so their
+--     `net_amount` is income we receive; `creator` statements are paid by the
+--     platform straight to the creator, so they are GMV without income. Adding
+--     the two would count the business twice — that is why this pair exists
+--     instead of a single settled total.
+--
+--     `commission_agency` also carries the `service_fee_amount` of picks bound in
+--     the month (726): the 招商服务费 we invoice ourselves, which the platform
+--     never routes and no statement therefore mentions. The two halves share a
+--     block because an operator reads them as "what this month earned us", so
+--     the block's samples count both kinds of contributing row.
+--
+--     `status` does not filter either half: like `commission_settled`, "settled"
+--     means cleared into a statement cycle, not "the money has landed" — the
+--     arrival day is `paid_at` and is a separate fact.
+--
+--   * agency_share_income — the 自有达人 split: `settled_commission` ×
+--     `agency_share_rate`, summed over the month's daily rows of picks that have
+--     a rate. A pick with a NULL rate is an 外部达人 and contributes nothing by
+--     definition — the commission was never ours to split — so the samples count
+--     only rows that both have a rate and carry a settled figure.
+--
 --   * refund_amount — kept separate from gmv (see 711); the handler divides it by
 --     gmv to get the 0–1 refund rate (docs/METRICS.md §3 C3).
 --
@@ -242,7 +291,10 @@ RETURNING *;
 --     A settlement is issued for the whole workspace, not for a person, so it has
 --     no owner whose department could stand in for it: with `department_id` given
 --     the block answers "not attributable" (no rows) instead of a total that
---     silently ignores the filter.
+--     silently ignores the filter. `commission_agency` / `commission_creator`
+--     read the same statements and follow the same rule, which is why the service
+--     fees that ride along with `commission_agency` are guarded too: a
+--     department-filtered agency figure would be half a total.
 --
 -- Department attribution follows the B0 fallback chain (docs/METRICS.md §4): the
 -- pick's owner member department. It is an aggregate filter and never an access
@@ -255,7 +307,8 @@ period AS (
     FROM bounds
 ),
 daily AS (
-    SELECT d.gmv_amount, d.refund_amount, d.est_commission, d.settled_commission
+    SELECT d.gmv_amount, d.refund_amount, d.est_commission, d.settled_commission,
+           p.agency_share_rate
     FROM affiliate_daily d
     JOIN affiliate_pick p ON p.id = d.pick_id AND p.workspace_id = d.workspace_id
     LEFT JOIN member m ON m.workspace_id = p.workspace_id AND m.user_id = p.owner_member_id
@@ -276,7 +329,21 @@ totals AS (
         (count(*) FILTER (WHERE daily.gmv_amount > 0))::bigint AS gmv_samples,
         coalesce(sum(daily.est_commission), 0)::float8 AS est_commission,
         coalesce(sum(daily.settled_commission), 0)::float8 AS settled_commission,
-        (count(*) FILTER (WHERE daily.settled_commission <> 0))::bigint AS settled_samples
+        (count(*) FILTER (WHERE daily.settled_commission <> 0))::bigint AS settled_samples,
+        -- Our cut of the internal creators' cleared commission. Rounded to the
+        -- fen because the product of a rate and an amount lands on more decimals
+        -- than money has; the rate itself stays at the 0–1 scale it was stored in.
+        round(
+            coalesce(
+                sum(daily.settled_commission * daily.agency_share_rate)
+                    FILTER (WHERE daily.agency_share_rate IS NOT NULL),
+                0
+            ),
+            2
+        )::float8 AS agency_share_income,
+        (count(*) FILTER (
+            WHERE daily.agency_share_rate IS NOT NULL AND daily.settled_commission <> 0
+        ))::bigint AS agency_share_samples
     FROM daily
 ),
 picks AS (
@@ -297,12 +364,33 @@ picks AS (
 ),
 settlements AS (
     SELECT coalesce(sum(s.tech_service_fee), 0)::float8 AS tech_service_fee,
-           (count(*))::bigint AS settlement_samples
+           (count(*))::bigint AS settlement_samples,
+           coalesce(sum(s.net_amount) FILTER (WHERE s.settled_to = 'agency'), 0)::float8 AS agency_settled_commission,
+           (count(*) FILTER (WHERE s.settled_to = 'agency'))::bigint AS agency_settlement_samples,
+           coalesce(sum(s.net_amount) FILTER (WHERE s.settled_to = 'creator'), 0)::float8 AS creator_settled_commission,
+           (count(*) FILTER (WHERE s.settled_to = 'creator'))::bigint AS creator_settlement_samples
     FROM affiliate_settlement s
     CROSS JOIN period
     WHERE s.workspace_id = sqlc.arg('workspace_id')
       AND s.period_start < period.month_end
       AND s.period_end >= period.month_start
+      AND sqlc.narg('department_id')::uuid IS NULL
+),
+-- The other half of `commission_agency`: the 招商服务费 invoiced for the picks
+-- bound this month. Guarded by the department filter for the same reason the
+-- statements above are — the block they add up into cannot answer a
+-- department-scoped question, so it reports a gap instead of a partial total.
+agency_fees AS (
+    SELECT coalesce(sum(p.service_fee_amount), 0)::float8 AS service_fee_amount,
+           (count(*) FILTER (
+               WHERE p.service_fee_amount IS NOT NULL AND p.service_fee_amount <> 0
+           ))::bigint AS service_fee_samples
+    FROM affiliate_pick p
+    CROSS JOIN period
+    WHERE p.workspace_id = sqlc.arg('workspace_id')
+      AND p.archived_at IS NULL
+      AND p.bound_at >= period.month_start::timestamptz
+      AND p.bound_at < period.month_end::timestamptz
       AND sqlc.narg('department_id')::uuid IS NULL
 )
 SELECT
@@ -315,8 +403,14 @@ SELECT
     totals.est_commission,
     totals.settled_commission,
     totals.settled_samples,
+    (settlements.agency_settled_commission + agency_fees.service_fee_amount)::float8 AS commission_agency,
+    (settlements.agency_settlement_samples + agency_fees.service_fee_samples)::bigint AS commission_agency_samples,
+    settlements.creator_settled_commission AS commission_creator,
+    settlements.creator_settlement_samples AS commission_creator_samples,
+    totals.agency_share_income,
+    totals.agency_share_samples,
     picks.pick_count,
     picks.active_creator_count,
     settlements.tech_service_fee,
     settlements.settlement_samples
-FROM period, totals, picks, settlements;
+FROM period, totals, picks, settlements, agency_fees;

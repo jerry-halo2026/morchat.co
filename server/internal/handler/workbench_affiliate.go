@@ -33,14 +33,21 @@ import (
 )
 
 var (
-	affiliateProductStatuses    = map[string]bool{"on_shelf": true, "off_shelf": true, "ended": true}
-	affiliatePickStatuses       = map[string]bool{"active": true, "paused": true, "ended": true}
-	affiliateSettlementStatuses = map[string]bool{"pending": true, "paid": true, "failed": true}
+	affiliateProductStatuses      = map[string]bool{"on_shelf": true, "off_shelf": true, "ended": true}
+	affiliateProductOwnerships    = map[string]bool{"own_brand": true, "client_brand": true}
+	affiliatePickStatuses         = map[string]bool{"active": true, "paused": true, "ended": true}
+	affiliateSettlementStatuses   = map[string]bool{"pending": true, "paid": true, "failed": true}
+	affiliateSettlementRecipients = map[string]bool{"agency": true, "creator": true}
 )
 
 // AffiliateProductRequest is the create/PATCH body for a 联盟商品.
+//
+// `client_id` and `ownership` are one decision, not two: an own-brand SKU has no
+// seller and a client-brand SKU must name one. `ownership` defaults to
+// `client_brand`, which is what every row created before 725 meant.
 type AffiliateProductRequest struct {
 	ClientID          *string  `json:"client_id"`
+	Ownership         *string  `json:"ownership"`
 	Platform          *string  `json:"platform"`
 	PlatformProductID *string  `json:"platform_product_id"`
 	Title             *string  `json:"title"`
@@ -54,14 +61,22 @@ type AffiliateProductRequest struct {
 }
 
 // AffiliatePickRequest is the create/PATCH body for a 选品 (product × creator).
+//
+// `agency_share_rate` and `service_fee_amount` are the agency-side economics
+// (726): the first is our cut of an internal creator's commission, the second is
+// the 招商服务费 we invoice for placing an external one. Both are optional and
+// nullable — an external creator with no fee has neither, and "absent" must not
+// turn into 0.
 type AffiliatePickRequest struct {
-	ProductID      *string  `json:"product_id"`
-	CreatorID      *string  `json:"creator_id"`
-	CommissionRate *float64 `json:"commission_rate"`
-	BoundAt        *string  `json:"bound_at"`
-	Status         *string  `json:"status"`
-	Note           *string  `json:"note"`
-	OwnerMemberID  *string  `json:"owner_member_id"`
+	ProductID        *string  `json:"product_id"`
+	CreatorID        *string  `json:"creator_id"`
+	CommissionRate   *float64 `json:"commission_rate"`
+	AgencyShareRate  *float64 `json:"agency_share_rate"`
+	ServiceFeeAmount *float64 `json:"service_fee_amount"`
+	BoundAt          *string  `json:"bound_at"`
+	Status           *string  `json:"status"`
+	Note             *string  `json:"note"`
+	OwnerMemberID    *string  `json:"owner_member_id"`
 }
 
 // AffiliateDailyRequest is the body of `PUT /api/workbench/affiliate/daily`: one
@@ -81,6 +96,10 @@ type AffiliateDailyRequest struct {
 }
 
 // AffiliateSettlementRequest is the create/PATCH body for a 平台结算单.
+//
+// `settled_to` says whose pocket the commission reached (727): `agency` is money
+// we receive, `creator` is money the platform paid directly to the creator. It
+// defaults to `agency`, the only case the ledger could express before 727.
 type AffiliateSettlementRequest struct {
 	PeriodStart     *string  `json:"period_start"`
 	PeriodEnd       *string  `json:"period_end"`
@@ -90,6 +109,7 @@ type AffiliateSettlementRequest struct {
 	NetAmount       *float64 `json:"net_amount"`
 	Currency        *string  `json:"currency"`
 	Status          *string  `json:"status"`
+	SettledTo       *string  `json:"settled_to"`
 	PaidAt          *string  `json:"paid_at"`
 	ExternalNo      *string  `json:"external_no"`
 	Note            *string  `json:"note"`
@@ -98,9 +118,11 @@ type AffiliateSettlementRequest struct {
 // ---- responses -------------------------------------------------------------
 
 type AffiliateProductResponse struct {
-	ID                string   `json:"id"`
-	WorkspaceID       string   `json:"workspace_id"`
-	ClientID          string   `json:"client_id"`
+	ID          string `json:"id"`
+	WorkspaceID string `json:"workspace_id"`
+	// Null for an own-brand SKU: we list it ourselves, so there is no seller.
+	ClientID          *string  `json:"client_id"`
+	Ownership         string   `json:"ownership"`
 	Platform          string   `json:"platform"`
 	PlatformProductID string   `json:"platform_product_id"`
 	Title             string   `json:"title"`
@@ -120,7 +142,8 @@ func affiliateProductToResponse(p db.AffiliateProduct) AffiliateProductResponse 
 	return AffiliateProductResponse{
 		ID:                uuidToString(p.ID),
 		WorkspaceID:       uuidToString(p.WorkspaceID),
-		ClientID:          uuidToString(p.ClientID),
+		ClientID:          uuidToPtr(p.ClientID),
+		Ownership:         p.Ownership,
 		Platform:          p.Platform,
 		PlatformProductID: p.PlatformProductID,
 		Title:             p.Title,
@@ -138,34 +161,38 @@ func affiliateProductToResponse(p db.AffiliateProduct) AffiliateProductResponse 
 }
 
 type AffiliatePickResponse struct {
-	ID             string   `json:"id"`
-	WorkspaceID    string   `json:"workspace_id"`
-	ProductID      string   `json:"product_id"`
-	CreatorID      string   `json:"creator_id"`
-	CommissionRate *float64 `json:"commission_rate"`
-	BoundAt        string   `json:"bound_at"`
-	Status         string   `json:"status"`
-	Note           *string  `json:"note"`
-	OwnerMemberID  *string  `json:"owner_member_id"`
-	CreatedBy      *string  `json:"created_by"`
-	CreatedAt      string   `json:"created_at"`
-	UpdatedAt      string   `json:"updated_at"`
+	ID               string   `json:"id"`
+	WorkspaceID      string   `json:"workspace_id"`
+	ProductID        string   `json:"product_id"`
+	CreatorID        string   `json:"creator_id"`
+	CommissionRate   *float64 `json:"commission_rate"`
+	AgencyShareRate  *float64 `json:"agency_share_rate"`
+	ServiceFeeAmount *float64 `json:"service_fee_amount"`
+	BoundAt          string   `json:"bound_at"`
+	Status           string   `json:"status"`
+	Note             *string  `json:"note"`
+	OwnerMemberID    *string  `json:"owner_member_id"`
+	CreatedBy        *string  `json:"created_by"`
+	CreatedAt        string   `json:"created_at"`
+	UpdatedAt        string   `json:"updated_at"`
 }
 
 func affiliatePickToResponse(p db.AffiliatePick) AffiliatePickResponse {
 	return AffiliatePickResponse{
-		ID:             uuidToString(p.ID),
-		WorkspaceID:    uuidToString(p.WorkspaceID),
-		ProductID:      uuidToString(p.ProductID),
-		CreatorID:      uuidToString(p.CreatorID),
-		CommissionRate: numericToFloatPtr(p.CommissionRate),
-		BoundAt:        timestampToString(p.BoundAt),
-		Status:         p.Status,
-		Note:           textToPtr(p.Note),
-		OwnerMemberID:  uuidToPtr(p.OwnerMemberID),
-		CreatedBy:      uuidToPtr(p.CreatedBy),
-		CreatedAt:      timestampToString(p.CreatedAt),
-		UpdatedAt:      timestampToString(p.UpdatedAt),
+		ID:               uuidToString(p.ID),
+		WorkspaceID:      uuidToString(p.WorkspaceID),
+		ProductID:        uuidToString(p.ProductID),
+		CreatorID:        uuidToString(p.CreatorID),
+		CommissionRate:   numericToFloatPtr(p.CommissionRate),
+		AgencyShareRate:  numericToFloatPtr(p.AgencyShareRate),
+		ServiceFeeAmount: numericToFloatPtr(p.ServiceFeeAmount),
+		BoundAt:          timestampToString(p.BoundAt),
+		Status:           p.Status,
+		Note:             textToPtr(p.Note),
+		OwnerMemberID:    uuidToPtr(p.OwnerMemberID),
+		CreatedBy:        uuidToPtr(p.CreatedBy),
+		CreatedAt:        timestampToString(p.CreatedAt),
+		UpdatedAt:        timestampToString(p.UpdatedAt),
 	}
 }
 
@@ -212,6 +239,7 @@ type AffiliateSettlementResponse struct {
 	NetAmount       float64 `json:"net_amount"`
 	Currency        string  `json:"currency"`
 	Status          string  `json:"status"`
+	SettledTo       string  `json:"settled_to"`
 	PaidAt          *string `json:"paid_at"`
 	ExternalNo      *string `json:"external_no"`
 	Note            *string `json:"note"`
@@ -232,6 +260,7 @@ func affiliateSettlementToResponse(s db.AffiliateSettlement) AffiliateSettlement
 		NetAmount:       numericToFloat(s.NetAmount),
 		Currency:        s.Currency,
 		Status:          s.Status,
+		SettledTo:       s.SettledTo,
 		PaidAt:          dateToPtr(s.PaidAt),
 		ExternalNo:      textToPtr(s.ExternalNo),
 		Note:            textToPtr(s.Note),
@@ -254,11 +283,25 @@ type AffiliateSummaryWindow struct {
 // empty}`), including the two counts, so the client renders a gap on this strip
 // the same way it does on `/overview` (docs/METRICS.md §1 rule 3). `refund_rate`
 // travels at the 0–1 storage scale (C3); the client multiplies by 100.
+//
+// The income side is split three ways because one total would double-count the
+// business (725–727):
+//
+//   - `gmv` is every pick's GMV, whatever pocket the commission ended in;
+//   - `commission_agency` is the settled commission that reached our 机构号 plus
+//     the 招商服务费 we invoiced — the money this month actually earned us;
+//   - `commission_creator` is the settled commission the platform paid straight
+//     to creators — GMV, not income;
+//   - `agency_share_income` is our cut of the internal creators' cleared
+//     commission (`settled_commission × agency_share_rate`).
 type AffiliateSummaryResponse struct {
 	Window             AffiliateSummaryWindow `json:"window"`
 	GMV                WorkbenchMetricValue   `json:"gmv"`
 	CommissionEst      WorkbenchMetricValue   `json:"commission_est"`
 	CommissionSettled  WorkbenchMetricValue   `json:"commission_settled"`
+	CommissionAgency   WorkbenchMetricValue   `json:"commission_agency"`
+	CommissionCreator  WorkbenchMetricValue   `json:"commission_creator"`
+	AgencyShareIncome  WorkbenchMetricValue   `json:"agency_share_income"`
 	RefundRate         WorkbenchMetricValue   `json:"refund_rate"`
 	TechFee            WorkbenchMetricValue   `json:"tech_fee"`
 	PickCount          WorkbenchMetricValue   `json:"pick_count"`
@@ -320,6 +363,60 @@ func affiliatePlatform(raw *string) string {
 	return strings.ToLower(strings.TrimSpace(valueOrEmpty(raw)))
 }
 
+// affiliateOwnership normalises a product's ownership (725). An absent field is
+// `client_brand`, which is what every product created before 725 was — reading
+// a silent body as "own brand" would turn the whole existing ledger into our own
+// revenue.
+func affiliateOwnership(w http.ResponseWriter, raw *string) (string, bool) {
+	if raw == nil || strings.TrimSpace(*raw) == "" {
+		return "client_brand", true
+	}
+	ownership := strings.TrimSpace(*raw)
+	if !affiliateProductOwnerships[ownership] {
+		writeError(w, http.StatusBadRequest, "ownership must be own_brand or client_brand")
+		return "", false
+	}
+	return ownership, true
+}
+
+// affiliateOwnershipClient checks the (ownership, client_id) pair the database
+// also enforces (725 `affiliate_product_ownership_client_check`).
+//
+// Both layers exist for different reasons: the constraint is the guarantee — no
+// write path, import script or future handler can leave the pair inconsistent —
+// and this is the answer a caller can act on, naming the field that has to
+// change. It returns the uuid to store, which is the invalid (NULL) one for an
+// own-brand product.
+func affiliateOwnershipClient(w http.ResponseWriter, ownership string, clientID pgtype.UUID) (pgtype.UUID, bool) {
+	if ownership == "own_brand" {
+		if clientID.Valid {
+			writeError(w, http.StatusBadRequest, "client_id must be empty when ownership is own_brand")
+			return pgtype.UUID{}, false
+		}
+		return pgtype.UUID{}, true
+	}
+	if !clientID.Valid {
+		writeError(w, http.StatusBadRequest, "client_id is required when ownership is client_brand")
+		return pgtype.UUID{}, false
+	}
+	return clientID, true
+}
+
+// affiliateSettledTo normalises a statement's recipient (727). An absent field
+// is `agency`: every statement before 727 was one whose commission reached the
+// agency account, and defaulting to `creator` would drop it out of our revenue.
+func affiliateSettledTo(w http.ResponseWriter, raw *string) (string, bool) {
+	if raw == nil || strings.TrimSpace(*raw) == "" {
+		return "agency", true
+	}
+	settledTo := strings.TrimSpace(*raw)
+	if !affiliateSettlementRecipients[settledTo] {
+		writeError(w, http.StatusBadRequest, "settled_to must be agency or creator")
+		return "", false
+	}
+	return settledTo, true
+}
+
 // ---- products --------------------------------------------------------------
 
 // ListAffiliateProducts — GET /api/workbench/affiliate/products
@@ -368,7 +465,7 @@ func (h *Handler) ListAffiliateProducts(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, map[string]any{"products": resp, "total": len(resp)})
 }
 
-// affiliateClientRef validates the product's required seller pointer. No foreign
+// affiliateClientRef resolves a client pointer inside the workspace. No foreign
 // key sits behind it, so a product that names a client of another workspace would
 // be stored as an orphan unless it is checked here.
 func (h *Handler) affiliateClientRef(w http.ResponseWriter, r *http.Request, scope workbenchScope, raw *string) (pgtype.UUID, bool) {
@@ -377,7 +474,7 @@ func (h *Handler) affiliateClientRef(w http.ResponseWriter, r *http.Request, sco
 		return pgtype.UUID{}, false
 	}
 	if !clientID.Valid {
-		writeError(w, http.StatusBadRequest, "client_id is required")
+		writeError(w, http.StatusBadRequest, "client_id is required to name a seller")
 		return pgtype.UUID{}, false
 	}
 	if _, err := h.Queries.GetCrmClient(r.Context(), db.GetCrmClientParams{
@@ -421,7 +518,18 @@ func (h *Handler) CreateAffiliateProduct(w http.ResponseWriter, r *http.Request)
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
-	clientID, ok := h.affiliateClientRef(w, r, scope, req.ClientID)
+	ownership, ok := affiliateOwnership(w, req.Ownership)
+	if !ok {
+		return
+	}
+	clientID := pgtype.UUID{}
+	if req.ClientID != nil && strings.TrimSpace(*req.ClientID) != "" {
+		clientID, ok = h.affiliateClientRef(w, r, scope, req.ClientID)
+		if !ok {
+			return
+		}
+	}
+	clientID, ok = affiliateOwnershipClient(w, ownership, clientID)
 	if !ok {
 		return
 	}
@@ -459,6 +567,7 @@ func (h *Handler) CreateAffiliateProduct(w http.ResponseWriter, r *http.Request)
 
 	product, err := h.Queries.CreateAffiliateProduct(r.Context(), db.CreateAffiliateProductParams{WorkspaceID: scope.WorkspaceUUID,
 		ClientID:          clientID,
+		Ownership:         ownership,
 		Platform:          platform,
 		PlatformProductID: platformProductID,
 		Title:             title,
@@ -539,13 +648,36 @@ func (h *Handler) UpdateAffiliateProduct(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	clientID := current.ClientID
-	if req.ClientID != nil && strings.TrimSpace(*req.ClientID) != "" {
-		parsed, ok := h.affiliateClientRef(w, r, scope, req.ClientID)
+	// The seller and the ownership are one decision (725), so they are merged
+	// before the pair is checked: a PATCH may move a product between the two
+	// halves in a single body (`ownership: own_brand` + `client_id: ""`), and a
+	// per-field check would refuse a legal transition.
+	ownership := current.Ownership
+	if req.Ownership != nil {
+		parsed, ok := affiliateOwnership(w, req.Ownership)
 		if !ok {
 			return
 		}
-		clientID = parsed
+		ownership = parsed
+	}
+	clientID := current.ClientID
+	if req.ClientID != nil {
+		if strings.TrimSpace(*req.ClientID) == "" {
+			// An explicit empty string is how a PATCH drops the seller — the same
+			// spelling that moves a product to `own_brand`. It is applied here and
+			// checked against the ownership below, not rejected as a missing field.
+			clientID = pgtype.UUID{}
+		} else {
+			parsed, ok := h.affiliateClientRef(w, r, scope, req.ClientID)
+			if !ok {
+				return
+			}
+			clientID = parsed
+		}
+	}
+	clientID, ok = affiliateOwnershipClient(w, ownership, clientID)
+	if !ok {
+		return
 	}
 	platform := current.Platform
 	if req.Platform != nil {
@@ -608,6 +740,7 @@ func (h *Handler) UpdateAffiliateProduct(w http.ResponseWriter, r *http.Request)
 		ID:                current.ID,
 		WorkspaceID:       scope.WorkspaceUUID,
 		ClientID:          clientID,
+		Ownership:         ownership,
 		Platform:          platform,
 		PlatformProductID: platformProductID,
 		Title:             title,
@@ -757,21 +890,34 @@ func (h *Handler) CreateAffiliatePick(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	// 726: our cut of an internal creator's commission, and the 招商服务费 we
+	// invoice for an external one. Both are optional; absent stays NULL, so
+	// "not an internal split" and "we waived the fee" stay distinguishable.
+	shareRate, ok := affiliateRate(w, req.AgencyShareRate, "agency_share_rate")
+	if !ok {
+		return
+	}
+	serviceFee, ok := affiliateAmount(w, req.ServiceFeeAmount, "service_fee_amount")
+	if !ok {
+		return
+	}
 	owner, ok := h.workbenchOwnerForCreate(w, r, scope, req.OwnerMemberID)
 	if !ok {
 		return
 	}
 
 	pick, err := h.Queries.CreateAffiliatePick(r.Context(), db.CreateAffiliatePickParams{
-		WorkspaceID:    scope.WorkspaceUUID,
-		ProductID:      product.ID,
-		CreatorID:      creator.ID,
-		CommissionRate: rate,
-		BoundAt:        boundAt,
-		Status:         status,
-		Note:           optionalTrimmedText(req.Note),
-		OwnerMemberID:  owner,
-		CreatedBy:      scope.Member.UserID,
+		WorkspaceID:      scope.WorkspaceUUID,
+		ProductID:        product.ID,
+		CreatorID:        creator.ID,
+		CommissionRate:   rate,
+		AgencyShareRate:  shareRate,
+		ServiceFeeAmount: serviceFee,
+		BoundAt:          boundAt,
+		Status:           status,
+		Note:             optionalTrimmedText(req.Note),
+		OwnerMemberID:    owner,
+		CreatedBy:        scope.Member.UserID,
 	})
 	if err != nil {
 		if isUniqueViolation(err) {
@@ -881,6 +1027,12 @@ func (h *Handler) UpdateAffiliatePick(w http.ResponseWriter, r *http.Request) {
 	if _, ok := affiliateRate(w, req.CommissionRate, "commission_rate"); !ok {
 		return
 	}
+	if _, ok := affiliateRate(w, req.AgencyShareRate, "agency_share_rate"); !ok {
+		return
+	}
+	if _, ok := affiliateAmount(w, req.ServiceFeeAmount, "service_fee_amount"); !ok {
+		return
+	}
 	requestedOwner, ok := workbenchOptionalUUID(w, req.OwnerMemberID, "owner_member_id")
 	if !ok {
 		return
@@ -891,15 +1043,17 @@ func (h *Handler) UpdateAffiliatePick(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updated, err := h.Queries.UpdateAffiliatePick(r.Context(), db.UpdateAffiliatePickParams{
-		ID:             current.ID,
-		WorkspaceID:    scope.WorkspaceUUID,
-		ProductID:      productID,
-		CreatorID:      creatorID,
-		CommissionRate: applyNumericPatch(req.CommissionRate, current.CommissionRate),
-		BoundAt:        boundAt,
-		Status:         status,
-		Note:           applyTextPatch(req.Note, current.Note),
-		OwnerMemberID:  owner,
+		ID:               current.ID,
+		WorkspaceID:      scope.WorkspaceUUID,
+		ProductID:        productID,
+		CreatorID:        creatorID,
+		CommissionRate:   applyNumericPatch(req.CommissionRate, current.CommissionRate),
+		AgencyShareRate:  applyNumericPatch(req.AgencyShareRate, current.AgencyShareRate),
+		ServiceFeeAmount: applyNumericPatch(req.ServiceFeeAmount, current.ServiceFeeAmount),
+		BoundAt:          boundAt,
+		Status:           status,
+		Note:             applyTextPatch(req.Note, current.Note),
+		OwnerMemberID:    owner,
 	})
 	if err != nil {
 		if isUniqueViolation(err) {
@@ -1174,6 +1328,13 @@ func (h *Handler) CreateAffiliateSettlement(w http.ResponseWriter, r *http.Reque
 		writeError(w, http.StatusBadRequest, "invalid status")
 		return
 	}
+	// 727: whose pocket the commission reached. It decides whether the statement
+	// counts as our revenue at all, so it is validated like a status rather than
+	// passed through as free text.
+	settledTo, ok := affiliateSettledTo(w, req.SettledTo)
+	if !ok {
+		return
+	}
 	paidAt, ok := workbenchDateValue(w, req.PaidAt, "paid_at")
 	if !ok {
 		return
@@ -1189,6 +1350,7 @@ func (h *Handler) CreateAffiliateSettlement(w http.ResponseWriter, r *http.Reque
 		NetAmount:       numericOrZero(req.NetAmount),
 		Currency:        currency,
 		Status:          status,
+		SettledTo:       settledTo,
 		PaidAt:          paidAt,
 		ExternalNo:      optionalTrimmedText(req.ExternalNo),
 		Note:            optionalTrimmedText(req.Note),
@@ -1276,6 +1438,14 @@ func (h *Handler) UpdateAffiliateSettlement(w http.ResponseWriter, r *http.Reque
 			return
 		}
 	}
+	settledTo := current.SettledTo
+	if req.SettledTo != nil {
+		parsed, ok := affiliateSettledTo(w, req.SettledTo)
+		if !ok {
+			return
+		}
+		settledTo = parsed
+	}
 	paidAt, ok := applyDatePatch(req.PaidAt, w, "paid_at", current.PaidAt)
 	if !ok {
 		return
@@ -1292,6 +1462,7 @@ func (h *Handler) UpdateAffiliateSettlement(w http.ResponseWriter, r *http.Reque
 		NetAmount:       applyNumericPatch(req.NetAmount, current.NetAmount),
 		Currency:        currency,
 		Status:          status,
+		SettledTo:       settledTo,
 		PaidAt:          paidAt,
 		ExternalNo:      applyTextPatch(req.ExternalNo, current.ExternalNo),
 		Note:            applyTextPatch(req.Note, current.Note),
@@ -1342,10 +1513,17 @@ func (h *Handler) GetAffiliateSummary(w http.ResponseWriter, r *http.Request) {
 	refundRate, refundOK := ratioValue(figure.RefundAmount, figure.GmvAmount)
 
 	writeJSON(w, http.StatusOK, AffiliateSummaryResponse{
-		Window:             AffiliateSummaryWindow{Month: figure.MonthLabel},
-		GMV:                metricValue(figure.GmvAmount, figure.DailySamples > 0, figure.DailySamples, metricEmptyInsufficientData),
-		CommissionEst:      metricValue(figure.EstCommission, figure.DailySamples > 0, figure.DailySamples, metricEmptyInsufficientData),
-		CommissionSettled:  metricValue(figure.SettledCommission, figure.SettledSamples > 0, figure.SettledSamples, metricEmptyInsufficientData),
+		Window:            AffiliateSummaryWindow{Month: figure.MonthLabel},
+		GMV:               metricValue(figure.GmvAmount, figure.DailySamples > 0, figure.DailySamples, metricEmptyInsufficientData),
+		CommissionEst:     metricValue(figure.EstCommission, figure.DailySamples > 0, figure.DailySamples, metricEmptyInsufficientData),
+		CommissionSettled: metricValue(figure.SettledCommission, figure.SettledSamples > 0, figure.SettledSamples, metricEmptyInsufficientData),
+		// The income side (725–727). `commission_agency` is the only block that
+		// counts as money we received; its samples cover both halves it sums —
+		// agency statements and picks invoicing a 招商服务费 — because either one
+		// alone can be the month's whole answer.
+		CommissionAgency:   metricValue(figure.CommissionAgency, figure.CommissionAgencySamples > 0, figure.CommissionAgencySamples, metricEmptyInsufficientData),
+		CommissionCreator:  metricValue(figure.CommissionCreator, figure.CommissionCreatorSamples > 0, figure.CommissionCreatorSamples, metricEmptyInsufficientData),
+		AgencyShareIncome:  metricValue(figure.AgencyShareIncome, figure.AgencyShareSamples > 0, figure.AgencyShareSamples, metricEmptyInsufficientData),
 		RefundRate:         metricValue(refundRate, refundOK, figure.GmvSamples, metricEmptyInsufficientData),
 		TechFee:            metricValue(figure.TechServiceFee, figure.SettlementSamples > 0, figure.SettlementSamples, metricEmptyInsufficientData),
 		PickCount:          metricValue(float64(figure.PickCount), true, figure.PickCount, metricEmptyZero),

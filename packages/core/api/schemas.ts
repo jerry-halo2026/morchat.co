@@ -5169,12 +5169,20 @@ export const EMPTY_HIRE_HR_CANDIDATE_RESPONSE = {
 // `commission_rate` and the summary's `refund_rate` travel at the 0–1 scale
 // (docs/METRICS.md §3 C3) and are never rescaled here: the display layer
 // multiplies by 100, and a schema that did it would apply the scale twice.
+//
+// The three labels 725–727 add (`ownership`, `settled_to`, and the pick's
+// `agency_share_rate`) are the two-value enums the ledger's income split rests
+// on. They follow the lenient-enum rule above: a value we do not know degrades to
+// the default the server would have applied — `client_brand`, `agency` — because
+// those are also the readings every row created before the migrations had, so an
+// old client renders an old row exactly as it did.
 
 export const AffiliateProductSchema = z
   .object({
     id: z.string(),
     workspace_id: z.string().default(""),
-    client_id: z.string().default(""),
+    ownership: z.string().default("client_brand"),
+    client_id: workbenchNullableString,
     platform: z.string().default(""),
     platform_product_id: z.string().default(""),
     title: z.string().default(""),
@@ -5193,10 +5201,10 @@ export const AffiliateProductSchema = z
   .loose();
 
 export const EMPTY_AFFILIATE_PRODUCT: AffiliateProduct = {
-  id: "", workspace_id: "", client_id: "", platform: "", platform_product_id: "",
-  title: "", category: null, price: null, currency: "CNY", commission_rate: null,
-  activity: null, status: "on_shelf", owner_member_id: null, created_by: null,
-  created_at: "", updated_at: "", archived_at: null,
+  id: "", workspace_id: "", ownership: "client_brand", client_id: null, platform: "",
+  platform_product_id: "", title: "", category: null, price: null, currency: "CNY",
+  commission_rate: null, activity: null, status: "on_shelf", owner_member_id: null,
+  created_by: null, created_at: "", updated_at: "", archived_at: null,
 };
 
 export const AffiliateProductListResponseSchema = z
@@ -5218,6 +5226,8 @@ export const AffiliatePickSchema = z
     product_id: z.string().default(""),
     creator_id: z.string().default(""),
     commission_rate: workbenchNullableNumber,
+    agency_share_rate: workbenchNullableNumber,
+    service_fee_amount: workbenchNullableNumber,
     bound_at: z.string().default(""),
     status: z.string().default("active"),
     note: workbenchNullableString,
@@ -5231,8 +5241,9 @@ export const AffiliatePickSchema = z
 
 export const EMPTY_AFFILIATE_PICK: AffiliatePick = {
   id: "", workspace_id: "", product_id: "", creator_id: "", commission_rate: null,
-  bound_at: "", status: "active", note: null, owner_member_id: null, created_by: null,
-  created_at: "", updated_at: "", archived_at: null,
+  agency_share_rate: null, service_fee_amount: null, bound_at: "", status: "active",
+  note: null, owner_member_id: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
 };
 
 export const AffiliatePickListResponseSchema = z
@@ -5294,6 +5305,7 @@ export const AffiliateSettlementSchema = z
     net_amount: z.number().default(0),
     currency: z.string().default("CNY"),
     status: z.string().default("pending"),
+    settled_to: z.string().default("agency"),
     paid_at: workbenchNullableString,
     external_no: workbenchNullableString,
     note: workbenchNullableString,
@@ -5306,8 +5318,8 @@ export const AffiliateSettlementSchema = z
 export const EMPTY_AFFILIATE_SETTLEMENT: AffiliateSettlement = {
   id: "", workspace_id: "", period_start: "", period_end: "", gross_commission: 0,
   tech_service_fee: 0, refund_deduction: 0, net_amount: 0, currency: "CNY",
-  status: "pending", paid_at: null, external_no: null, note: null, created_by: null,
-  created_at: "", updated_at: "",
+  status: "pending", settled_to: "agency", paid_at: null, external_no: null, note: null,
+  created_by: null, created_at: "", updated_at: "",
 };
 
 export const AffiliateSettlementListResponseSchema = z
@@ -5323,11 +5335,15 @@ export const EMPTY_AFFILIATE_SETTLEMENT_LIST_RESPONSE: AffiliateSettlementListRe
 };
 
 /**
- * `GET /api/workbench/affiliate/summary`: one month, seven three-state blocks.
+ * `GET /api/workbench/affiliate/summary`: one month, ten three-state blocks.
  *
  * Same guards as the money block above — absent degrades to the gap block,
  * malformed degrades to the gap block — because a rejected summary would cost
  * the whole strip while a single drifted figure should cost one tile.
+ *
+ * `commission_agency`, `commission_creator` and `agency_share_income` are the
+ * income split (725–727). A server that predates them simply omits the keys, and
+ * each degrades to the same gap block as the money it would have carried.
  */
 export const AffiliateSummaryResponseSchema = z
   .object({
@@ -5338,6 +5354,9 @@ export const AffiliateSummaryResponseSchema = z
     gmv: workbenchFinanceBlock,
     commission_est: workbenchFinanceBlock,
     commission_settled: workbenchFinanceBlock,
+    commission_agency: workbenchFinanceBlock,
+    commission_creator: workbenchFinanceBlock,
+    agency_share_income: workbenchFinanceBlock,
     refund_rate: workbenchFinanceBlock,
     tech_fee: workbenchFinanceBlock,
     pick_count: workbenchFinanceBlock,
@@ -5350,6 +5369,9 @@ export const EMPTY_AFFILIATE_SUMMARY_RESPONSE: AffiliateSummaryResponse = {
   gmv: EMPTY_WORKBENCH_FINANCE_BLOCK,
   commission_est: EMPTY_WORKBENCH_FINANCE_BLOCK,
   commission_settled: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  commission_agency: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  commission_creator: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  agency_share_income: EMPTY_WORKBENCH_FINANCE_BLOCK,
   refund_rate: EMPTY_WORKBENCH_FINANCE_BLOCK,
   tech_fee: EMPTY_WORKBENCH_FINANCE_BLOCK,
   pick_count: EMPTY_WORKBENCH_FINANCE_BLOCK,

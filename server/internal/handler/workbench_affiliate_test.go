@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+	"fmt"
 	"math"
 	"net/http"
 	"os"
@@ -267,6 +269,9 @@ func TestAffiliateSummaryEmptyMonthIsAGap(t *testing.T) {
 		{"gmv", summary.GMV},
 		{"commission_est", summary.CommissionEst},
 		{"commission_settled", summary.CommissionSettled},
+		{"commission_agency", summary.CommissionAgency},
+		{"commission_creator", summary.CommissionCreator},
+		{"agency_share_income", summary.AgencyShareIncome},
 		{"refund_rate", summary.RefundRate},
 		{"tech_fee", summary.TechFee},
 	} {
@@ -530,4 +535,343 @@ func TestWorkspaceTeardownCoversAffiliateTables(t *testing.T) {
 			t.Errorf("%s is not classified as workspaceDelete in the teardown manifest", table)
 		}
 	}
+}
+
+// ---- 725–727: 自营 vs 代卖, 自有 vs 外部达人, 机构 vs 达人结算 ----------------
+//
+// The first four tables only ever described one half of the business: a client's
+// SKU, promoted by a creator, settled into our 机构号. These three cases cover the
+// labels that make the other halves expressible, and the last one proves the
+// monthly aggregate reads them without counting the same commission twice.
+
+// createAffiliateProductAs posts a product body as sent, registers its teardown
+// and returns the response. The body is spelled out by the caller because the
+// cases here are about which fields legal bodies carry.
+func createAffiliateProductAs(t *testing.T, body map[string]any) AffiliateProductResponse {
+	t.Helper()
+	req := workbenchRequest(t, "POST", "/api/workbench/affiliate/products", body, testUserID)
+	created := testutil.Decode[AffiliateProductResponse](t, testHandler.CreateAffiliateProduct, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM affiliate_product WHERE id = $1`, created.ID) })
+	return created
+}
+
+// createAffiliatePickAs does the same for a pick, tearing its daily facts down
+// first (they hang off the pick with no foreign key).
+func createAffiliatePickAs(t *testing.T, body map[string]any) AffiliatePickResponse {
+	t.Helper()
+	req := workbenchRequest(t, "POST", "/api/workbench/affiliate/picks", body, testUserID)
+	created := testutil.Decode[AffiliatePickResponse](t, testHandler.CreateAffiliatePick, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM affiliate_daily WHERE pick_id = $1`, created.ID) })
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM affiliate_pick WHERE id = $1`, created.ID) })
+	return created
+}
+
+// createAffiliateSettlementAs records one statement and registers its teardown.
+func createAffiliateSettlementAs(t *testing.T, body map[string]any) AffiliateSettlementResponse {
+	t.Helper()
+	req := workbenchRequest(t, "POST", "/api/workbench/affiliate/settlements", body, testUserID)
+	created := testutil.Decode[AffiliateSettlementResponse](t, testHandler.CreateAffiliateSettlement, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM affiliate_settlement WHERE id = $1`, created.ID) })
+	return created
+}
+
+// TestAffiliateProductOwnershipPair covers 725 from both directions and at both
+// layers: the ownership decides whether a product has a seller, the handler says
+// which field is wrong, and the database refuses the same pair even when the
+// handler is not the one writing.
+func TestAffiliateProductOwnershipPair(t *testing.T) {
+	client := createWorkbenchClient(t, testUserID, "Affiliate ownership client")
+
+	// A 自营 SKU has no seller, so it must be creatable without a client_id.
+	own := createAffiliateProductAs(t, map[string]any{
+		"ownership":           "own_brand",
+		"platform":            "douyin",
+		"platform_product_id": "ownership-own-brand",
+		"title":               "Our own brand SKU",
+		"commission_rate":     0.18,
+	})
+	if own.Ownership != "own_brand" {
+		t.Fatalf("ownership = %q, want own_brand", own.Ownership)
+	}
+	if own.ClientID != nil {
+		t.Fatalf("client_id = %v on an own_brand product, want null", *own.ClientID)
+	}
+
+	// The mirror image: a 代卖 SKU must name the seller whose shop pays.
+	req := workbenchRequest(t, "POST", "/api/workbench/affiliate/products", map[string]any{
+		"ownership":           "client_brand",
+		"platform":            "douyin",
+		"platform_product_id": "ownership-no-client",
+		"title":               "Client brand without a client",
+	}, testUserID)
+	testutil.Call(t, testHandler.CreateAffiliateProduct, req).Want(http.StatusBadRequest)
+
+	// ...and an own-brand one must not name one.
+	req = workbenchRequest(t, "POST", "/api/workbench/affiliate/products", map[string]any{
+		"ownership":           "own_brand",
+		"client_id":           client.ID,
+		"platform":            "douyin",
+		"platform_product_id": "ownership-own-brand-with-client",
+		"title":               "Own brand claiming a client",
+	}, testUserID)
+	testutil.Call(t, testHandler.CreateAffiliateProduct, req).Want(http.StatusBadRequest)
+
+	// An unknown label is a 400, not a fourth kind of product.
+	req = workbenchRequest(t, "POST", "/api/workbench/affiliate/products", map[string]any{
+		"ownership":           "consignment",
+		"client_id":           client.ID,
+		"platform":            "douyin",
+		"platform_product_id": "ownership-unknown",
+		"title":               "Unknown ownership",
+	}, testUserID)
+	testutil.Call(t, testHandler.CreateAffiliateProduct, req).Want(http.StatusBadRequest)
+
+	// A PATCH may move a product between the halves, but only in a body that ends
+	// consistent: keeping the seller while claiming 自营 is refused...
+	switchable := createAffiliateProductAs(t, map[string]any{
+		"client_id":           client.ID,
+		"platform":            "douyin",
+		"platform_product_id": "ownership-switch",
+		"title":               "Switchable product",
+	})
+	req = workbenchRequest(t, "PATCH", "/api/workbench/affiliate/products/"+switchable.ID, map[string]any{
+		"ownership": "own_brand",
+	}, testUserID)
+	req = withURLParam(req, "productId", switchable.ID)
+	testutil.Call(t, testHandler.UpdateAffiliateProduct, req).Want(http.StatusBadRequest)
+
+	// ...and dropping the seller in the same body is the legal transition.
+	req = workbenchRequest(t, "PATCH", "/api/workbench/affiliate/products/"+switchable.ID, map[string]any{
+		"ownership": "own_brand",
+		"client_id": "",
+	}, testUserID)
+	req = withURLParam(req, "productId", switchable.ID)
+	moved := testutil.Decode[AffiliateProductResponse](t, testHandler.UpdateAffiliateProduct, req, http.StatusOK)
+	if moved.Ownership != "own_brand" || moved.ClientID != nil {
+		t.Fatalf("switched product = %+v, want own_brand with no client", moved)
+	}
+
+	// The pair is a database rule as well. Nothing but the constraint stops an
+	// import script or a future write path from leaving a row that belongs to
+	// neither half, and a client_brand row with no seller is a cost of nobody.
+	for _, bad := range []struct {
+		what      string
+		ownership string
+		client    string
+	}{
+		{"client_brand with no client", "client_brand", "NULL"},
+		{"own_brand with a client", "own_brand", "'" + client.ID + "'"},
+	} {
+		statement := fmt.Sprintf(`INSERT INTO affiliate_product
+			(workspace_id, client_id, ownership, platform, platform_product_id, title)
+			VALUES ($1, %s, '%s', 'douyin', $2, 'db pair check')`, bad.client, bad.ownership)
+		if _, err := dbfx.Pool.Exec(context.Background(), statement,
+			dbfx.WorkspaceID, "ownership-db-"+strings.ReplaceAll(bad.ownership, "_", "-")); err == nil {
+			dbfx.Exec(t, `DELETE FROM affiliate_product WHERE workspace_id = $1 AND platform_product_id LIKE 'ownership-db-%'`, dbfx.WorkspaceID)
+			t.Fatalf("the database accepted %s; the pair check in 725 must reject it", bad.what)
+		}
+	}
+}
+
+// TestAffiliatePickShareCoversInternalAndExternalCreators covers 726: our cut of
+// an internal creator's commission is a 0–1 rate like every other rate, the
+// service fee cannot be negative, and an external pick may carry neither (NULL is
+// "not applicable", not 0).
+func TestAffiliatePickShareCoversInternalAndExternalCreators(t *testing.T) {
+	client := createWorkbenchClient(t, testUserID, "Affiliate share client")
+	product := createAffiliateProductFixture(t, testUserID, client.ID, "share-sku")
+	creator := createWorkbenchCreator(t, testUserID, "Affiliate share creator")
+
+	for _, bad := range []struct {
+		field string
+		value float64
+	}{
+		{"agency_share_rate", 1.5},
+		{"agency_share_rate", -0.1},
+		{"service_fee_amount", -1},
+	} {
+		req := workbenchRequest(t, "POST", "/api/workbench/affiliate/picks", map[string]any{
+			"product_id": product.ID,
+			"creator_id": creator.ID,
+			bad.field:    bad.value,
+		}, testUserID)
+		testutil.Call(t, testHandler.CreateAffiliatePick, req).Want(http.StatusBadRequest)
+	}
+
+	// An internal creator: the commission is settled through our 机构号, so we
+	// record our share of it.
+	internal := createAffiliatePickAs(t, map[string]any{
+		"product_id":        product.ID,
+		"creator_id":        creator.ID,
+		"agency_share_rate": 0.3,
+	})
+	if internal.AgencyShareRate == nil || *internal.AgencyShareRate != 0.3 {
+		t.Fatalf("agency_share_rate = %v, want 0.3", internal.AgencyShareRate)
+	}
+	if internal.ServiceFeeAmount != nil {
+		t.Fatalf("service_fee_amount = %v, want null when the body omits it", *internal.ServiceFeeAmount)
+	}
+
+	// The rate is patched, and an out-of-range patch is still a 400.
+	req := workbenchRequest(t, "PATCH", "/api/workbench/affiliate/picks/"+internal.ID, map[string]any{
+		"agency_share_rate": 0.45,
+	}, testUserID)
+	req = withURLParam(req, "pickId", internal.ID)
+	patched := testutil.Decode[AffiliatePickResponse](t, testHandler.UpdateAffiliatePick, req, http.StatusOK)
+	if patched.AgencyShareRate == nil || *patched.AgencyShareRate != 0.45 {
+		t.Fatalf("agency_share_rate = %v after PATCH, want 0.45", patched.AgencyShareRate)
+	}
+
+	req = workbenchRequest(t, "PATCH", "/api/workbench/affiliate/picks/"+internal.ID, map[string]any{
+		"agency_share_rate": 45,
+	}, testUserID)
+	req = withURLParam(req, "pickId", internal.ID)
+	testutil.Call(t, testHandler.UpdateAffiliatePick, req).Want(http.StatusBadRequest)
+
+	// An external creator: no split (the platform pays them), but we invoice a
+	// 招商服务费 for the placement.
+	otherCreator := createWorkbenchCreator(t, testUserID, "Affiliate external creator")
+	external := createAffiliatePickAs(t, map[string]any{
+		"product_id":         product.ID,
+		"creator_id":         otherCreator.ID,
+		"service_fee_amount": 250,
+	})
+	if external.AgencyShareRate != nil {
+		t.Fatalf("agency_share_rate = %v on an external pick, want null", *external.AgencyShareRate)
+	}
+	if external.ServiceFeeAmount == nil || *external.ServiceFeeAmount != 250 {
+		t.Fatalf("service_fee_amount = %v, want 250", external.ServiceFeeAmount)
+	}
+}
+
+// TestAffiliateSummarySplitsIncomeByRecipient covers ⑤ and ⑥ of this batch: the
+// same month has commission that reached our 机构号 and commission the platform
+// paid to a creator, and the summary reports them as two numbers, counts their
+// GMV once, and derives the internal split from the pick's rate.
+func TestAffiliateSummarySplitsIncomeByRecipient(t *testing.T) {
+	// A month no other case uses, so the numbers below are this test's alone.
+	const month = "2027-03"
+
+	client := createWorkbenchClient(t, testUserID, "Affiliate split client")
+
+	// 自营商品 + 自有达人: our SKU, our creator, settled through the agency, split
+	// 40/60 with the creator.
+	ownProduct := createAffiliateProductAs(t, map[string]any{
+		"ownership":           "own_brand",
+		"platform":            "douyin",
+		"platform_product_id": "split-own-brand",
+		"title":               "Own brand for the split",
+	})
+	internalCreator := createWorkbenchCreator(t, testUserID, "Affiliate internal creator")
+	internalPick := createAffiliatePickAs(t, map[string]any{
+		"product_id":        ownProduct.ID,
+		"creator_id":        internalCreator.ID,
+		"agency_share_rate": 0.4,
+		"bound_at":          month + "-01T02:00:00Z",
+	})
+
+	// 代卖商品 + 外部达人: the client's SKU, the platform pays the creator, we keep
+	// the 招商服务费.
+	clientProduct := createAffiliateProductAs(t, map[string]any{
+		"client_id":           client.ID,
+		"platform":            "douyin",
+		"platform_product_id": "split-client-brand",
+		"title":               "Client brand for the split",
+	})
+	externalCreator := createWorkbenchCreator(t, testUserID, "Affiliate external split creator")
+	externalPick := createAffiliatePickAs(t, map[string]any{
+		"product_id":         clientProduct.ID,
+		"creator_id":         externalCreator.ID,
+		"service_fee_amount": 200,
+		"bound_at":           month + "-02T02:00:00Z",
+	})
+
+	// Both picks sold: 1000 + 500 GMV, of which 100 and 60 commission cleared.
+	putAffiliateDaily(t, internalPick.ID, month+"-05", map[string]any{
+		"gmv_amount": 1000, "est_commission": 200, "settled_commission": 100,
+	})
+	putAffiliateDaily(t, externalPick.ID, month+"-06", map[string]any{
+		"gmv_amount": 500, "est_commission": 100, "settled_commission": 60,
+	})
+
+	// Two statements in the same window, differing only in who was paid.
+	createAffiliateSettlementAs(t, map[string]any{
+		"period_start": month + "-01", "period_end": month + "-15",
+		"gross_commission": 240, "net_amount": 240, "settled_to": "agency",
+	})
+	createAffiliateSettlementAs(t, map[string]any{
+		"period_start": month + "-01", "period_end": month + "-15",
+		"gross_commission": 60, "net_amount": 60, "settled_to": "creator",
+	})
+
+	summary := fetchAffiliateSummary(t, "?month="+month, testUserID)
+
+	// GMV is GMV whichever pocket the commission ended in.
+	if summary.GMV.Value == nil || math.Abs(*summary.GMV.Value-1500) > 0.01 {
+		t.Fatalf("gmv = %v, want 1500 (both picks, both settlement recipients)", summary.GMV.Value)
+	}
+	if summary.GMV.SampleCount != 2 {
+		t.Fatalf("gmv sample_count = %d, want the 2 reported days", summary.GMV.SampleCount)
+	}
+
+	// Ours: the agency statement (240) plus the 招商服务费 invoiced (200). The
+	// creator's 60 is not in here.
+	if summary.CommissionAgency.Value == nil || math.Abs(*summary.CommissionAgency.Value-440) > 0.01 {
+		t.Fatalf("commission_agency = %v, want 440 (240 agency net + 200 service fee)",
+			summary.CommissionAgency.Value)
+	}
+	if summary.CommissionAgency.SampleCount != 2 {
+		t.Fatalf("commission_agency sample_count = %d, want 1 statement + 1 pick fee",
+			summary.CommissionAgency.SampleCount)
+	}
+
+	// Theirs: the creator statement, and only it.
+	if summary.CommissionCreator.Value == nil || math.Abs(*summary.CommissionCreator.Value-60) > 0.01 {
+		t.Fatalf("commission_creator = %v, want 60 (the creator statement alone)",
+			summary.CommissionCreator.Value)
+	}
+	if summary.CommissionCreator.SampleCount != 1 {
+		t.Fatalf("commission_creator sample_count = %d, want 1 statement",
+			summary.CommissionCreator.SampleCount)
+	}
+
+	// The split is the internal pick's cleared commission × its rate: the external
+	// pick has no rate and contributes nothing.
+	if summary.AgencyShareIncome.Value == nil || math.Abs(*summary.AgencyShareIncome.Value-40) > 0.01 {
+		t.Fatalf("agency_share_income = %v, want 100 × 0.4 = 40", summary.AgencyShareIncome.Value)
+	}
+	if summary.AgencyShareIncome.SampleCount != 1 {
+		t.Fatalf("agency_share_income sample_count = %d, want the 1 settled day behind it",
+			summary.AgencyShareIncome.SampleCount)
+	}
+
+	// The existing settled total still spans both — it answers "how much
+	// commission cleared", not "how much we earned".
+	if summary.CommissionSettled.Value == nil || math.Abs(*summary.CommissionSettled.Value-160) > 0.01 {
+		t.Fatalf("commission_settled = %v, want 160 (100 + 60)", summary.CommissionSettled.Value)
+	}
+
+	// Both picks were bound this month, one per creator.
+	if summary.PickCount.Value == nil || *summary.PickCount.Value != 2 {
+		t.Fatalf("pick_count = %v, want 2", summary.PickCount.Value)
+	}
+
+	// A statement recorded without a recipient is the agency case: the default is
+	// what every pre-727 row meant, and reading it as `creator` would drop it out
+	// of our revenue.
+	req := workbenchRequest(t, "POST", "/api/workbench/affiliate/settlements", map[string]any{
+		"period_start": month + "-16", "period_end": month + "-28", "net_amount": 10,
+	}, testUserID)
+	defaulted := testutil.Decode[AffiliateSettlementResponse](t, testHandler.CreateAffiliateSettlement, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM affiliate_settlement WHERE id = $1`, defaulted.ID) })
+	if defaulted.SettledTo != "agency" {
+		t.Fatalf("settled_to = %q, want the agency default", defaulted.SettledTo)
+	}
+
+	// An unknown recipient is refused before the CHECK sees it.
+	req = workbenchRequest(t, "POST", "/api/workbench/affiliate/settlements", map[string]any{
+		"period_start": month + "-01", "period_end": month + "-15", "net_amount": 10,
+		"settled_to": "platform",
+	}, testUserID)
+	testutil.Call(t, testHandler.CreateAffiliateSettlement, req).Want(http.StatusBadRequest)
 }
