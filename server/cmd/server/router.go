@@ -2562,6 +2562,44 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 					})
 				})
 
+				// General manager workbench (docs/engineering/WORKBENCH-API.md §13):
+				// OKR goals with their key results and department packages, and the
+				// radar signals that convert into one or the other. Same read/write
+				// split as the ledgers above — reads are member-wide, the write gate
+				// is inside each handler — and a key result or a package is gated on
+				// the owner of the goal it hangs off.
+				r.Route("/goals", func(r chi.Router) {
+					r.Get("/", h.ListGoals)
+					r.Post("/", h.CreateGoal)
+					r.Route("/{goalId}", func(r chi.Router) {
+						r.Get("/", h.GetGoal)
+						r.Patch("/", h.UpdateGoal)
+						r.Delete("/", h.DeleteGoal)
+						// The task side of the goal: `issue.goal_id` (748).
+						r.Post("/issues", h.AttachGoalIssue)
+						r.Delete("/issues/{issueId}", h.DetachGoalIssue)
+						r.Post("/key-results", h.CreateGoalKeyResult)
+						r.Patch("/key-results/{keyResultId}", h.UpdateGoalKeyResult)
+						r.Delete("/key-results/{keyResultId}", h.DeleteGoalKeyResult)
+						r.Post("/packages", h.CreateGoalPackage)
+						r.Patch("/packages/{packageId}", h.UpdateGoalPackage)
+						r.Delete("/packages/{packageId}", h.DeleteGoalPackage)
+					})
+				})
+
+				// Radar signals (docs/engineering/WORKBENCH-API.md §13): the observation
+				// side. `convert` is the only write that creates something else — a goal
+				// or an issue — and it answers 409 once the signal has been converted.
+				r.Route("/signals", func(r chi.Router) {
+					r.Get("/", h.ListMarketSignals)
+					r.Post("/", h.CreateMarketSignal)
+					r.Route("/{signalId}", func(r chi.Router) {
+						r.Patch("/", h.UpdateMarketSignal)
+						r.Delete("/", h.DeleteMarketSignal)
+						r.Post("/convert", h.ConvertMarketSignal)
+					})
+				})
+
 				// HR (docs/engineering/WORKBENCH-API.md §10.3). Same read/write
 				// split as the commerce ledgers; `scorecards` has no standalone
 				// GET because a scorecard is read with its interview, and `hire`

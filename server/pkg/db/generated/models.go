@@ -1158,6 +1158,54 @@ type GithubPullRequestCheckSuite struct {
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 }
 
+type GoalKeyResult struct {
+	ID          pgtype.UUID        `json:"id"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	GoalID      pgtype.UUID        `json:"goal_id"`
+	Title       string             `json:"title"`
+	Target      pgtype.Numeric     `json:"target"`
+	Current     pgtype.Numeric     `json:"current"`
+	Unit        pgtype.Text        `json:"unit"`
+	Position    int32              `json:"position"`
+	Status      string             `json:"status"`
+	CreatedBy   pgtype.UUID        `json:"created_by"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt  pgtype.Timestamptz `json:"archived_at"`
+}
+
+type GoalOkr struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	Cycle         string             `json:"cycle"`
+	Title         string             `json:"title"`
+	Description   pgtype.Text        `json:"description"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	DepartmentID  pgtype.UUID        `json:"department_id"`
+	Status        string             `json:"status"`
+	DueDate       pgtype.Date        `json:"due_date"`
+	Priority      string             `json:"priority"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+type GoalPackage struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	GoalID        pgtype.UUID        `json:"goal_id"`
+	DepartmentID  pgtype.UUID        `json:"department_id"`
+	Title         string             `json:"title"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	Status        string             `json:"status"`
+	Position      int32              `json:"position"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
 type HrCandidate struct {
 	ID                 pgtype.UUID        `json:"id"`
 	WorkspaceID        pgtype.UUID        `json:"workspace_id"`
@@ -1332,6 +1380,8 @@ type Issue struct {
 	DuplicateOfIssueID pgtype.UUID        `json:"duplicate_of_issue_id"`
 	RequesterUserID    pgtype.UUID        `json:"requester_user_id"`
 	ClosedAt           pgtype.Timestamptz `json:"closed_at"`
+	// OKR goal this issue advances (goal_okr, migration 744). NULL for work outside any objective. The aggregate is written back to goal_key_result.current by the application, never by a trigger.
+	GoalID pgtype.UUID `json:"goal_id"`
 }
 
 type IssueChildEvent struct {
@@ -1933,6 +1983,28 @@ type MaintenanceJob struct {
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 	CompletedAt    pgtype.Timestamptz `json:"completed_at"`
+}
+
+type MarketSignal struct {
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	Title            string             `json:"title"`
+	Category         string             `json:"category"`
+	Source           string             `json:"source"`
+	Url              pgtype.Text        `json:"url"`
+	Summary          pgtype.Text        `json:"summary"`
+	Cut              string             `json:"cut"`
+	Score            pgtype.Numeric     `json:"score"`
+	Urgency          string             `json:"urgency"`
+	Status           string             `json:"status"`
+	ConvertedGoalID  pgtype.UUID        `json:"converted_goal_id"`
+	ConvertedIssueID pgtype.UUID        `json:"converted_issue_id"`
+	Note             pgtype.Text        `json:"note"`
+	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy        pgtype.UUID        `json:"created_by"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt       pgtype.Timestamptz `json:"archived_at"`
 }
 
 type MediaIp struct {

@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_goal_key_result_workspace_goal;

@@ -188,10 +188,19 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	// DeleteWorkspaceWorkbenchLedger removes each explicitly. The two link columns
 	// (`creator.media_ip_id`, `creator_post.media_script_id`) sit on tables teardown
 	// already deletes, so they need no entry of their own.
-	"media_ip":             workspaceDelete,
-	"media_topic":          workspaceDelete,
-	"media_script":         workspaceDelete,
-	"media_shoot":          workspaceDelete,
+	"media_ip":     workspaceDelete,
+	"media_topic":  workspaceDelete,
+	"media_script": workspaceDelete,
+	"media_shoot":  workspaceDelete,
+	// General manager workbench (WORKBENCH-API §13): OKR goals, their key results
+	// and department packages, and the radar signals. No foreign key sits behind
+	// any of them, so DeleteWorkspaceWorkbenchLedger removes each explicitly.
+	// `issue.goal_id` (748) needs no entry: it is a column on `issue`, which
+	// teardown already deletes.
+	"goal_okr":             workspaceDelete,
+	"goal_key_result":      workspaceDelete,
+	"goal_package":         workspaceDelete,
+	"market_signal":        workspaceDelete,
 	"workspace_invitation": workspaceDelete,
 	"workspace_share_link": workspaceDelete,
 }

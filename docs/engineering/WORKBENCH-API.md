@@ -817,6 +817,211 @@ ALTER creator_post ADD COLUMN media_script_id UUID;
 - **`score_count` 之类的汇总没有**：五维分数的均值/分布要等选题看板批次，本批只存不算。
 - **不做**：素材库（`library_*`）、AI 生成选题/文案、发布编排（多账号定时投递）、数据复盘的新口径——复盘沿用 `creator_post_metric`。
 
+## 13. 总经理工作台契约（OKR 目标 + 市场雷达信号）
+
+原 `workstation-BOSS-main`（9 个页面）是老板视角：团队、市场雷达、目标拆解、任务派发、客户商机、经营数据。其中四块在本仓库已有落点——
+
+| 原页面 | 已有承载 |
+| --- | --- |
+| 任务派发 | `issue` + `project` + `issue_workflow` + `issue_property` |
+| 客户商机 | `crm_client` / `crm_brief` / `crm_collab` / `crm_settlement` |
+| 经营数据 | `ops_finance_month` + `GET /api/workbench/finance` + `affiliate_*` |
+| 团队画像 | `member` + `hr_employee_profile`（`ability` / `disc` 已是 JSONB） |
+
+真正缺的只有两块，本节把它们落成四张表加一个列：
+
+```
+目标拆解  goal（周期 / 负责人）→ 关键结果（target / current）→ 部门分包（谁负责那一份）
+                                   ↑
+                              issue.goal_id（哪个任务在推进它）
+
+市场雷达  market_signal（分级 / 相关性 / 紧急度）→ convert → 上面那个 goal，或一个 issue
+```
+
+`issue_wakeup` 不是雷达：wakeup 是"对已存事实的订阅"（某个 issue、某个 PR 到了一个状态就叫醒我），它不存观测本身。信号必须在 workspace 里还没有任何东西可订阅的时候就先存下来，这就是 `market_signal`。
+
+### 13.1 迁移号段
+
+| 号 | 文件 | 内容 |
+| --- | --- | --- |
+| 744 | `744_goal_okr.up/down.sql` | 表 `goal_okr` |
+| 745 | `745_goal_key_result.up/down.sql` | 表 `goal_key_result` |
+| 746 | `746_goal_package.up/down.sql` | 表 `goal_package` |
+| 747 | `747_market_signal.up/down.sql` | 表 `market_signal` |
+| 748 | `748_issue_goal_id.up/down.sql` | 列 `issue.goal_id` + 列注释 |
+| 749 | `749_goal_okr_cycle_title_unique` | UNIQUE `(workspace_id, cycle, lower(title)) WHERE archived_at IS NULL` |
+| 750 | `750_goal_okr_status_idx` | `goal_okr (workspace_id, status, cycle)` |
+| 751 | `751_goal_okr_owner_idx` | `goal_okr (workspace_id, owner_member_id)` |
+| 752 | `752_goal_key_result_goal_idx` | `goal_key_result (workspace_id, goal_id, position)` |
+| 753 | `753_goal_package_goal_idx` | `goal_package (workspace_id, goal_id, position)` |
+| 754 | `754_goal_package_department_idx` | `goal_package (workspace_id, department_id)` |
+| 755 | `755_market_signal_cut_idx` | `market_signal (workspace_id, cut, score DESC)` |
+| 756 | `756_market_signal_status_idx` | `market_signal (workspace_id, status)` |
+| 757 | `757_issue_goal_idx` | `issue (workspace_id, goal_id, number)` 部分索引，`WHERE goal_id IS NOT NULL` |
+
+九个索引全部是单语句 `CREATE [UNIQUE] INDEX CONCURRENTLY`，up 方向逐个登记在 `server/cmd/migrate/main.go` 的 `concurrentIndexCleanups`；down 方向只有 `DROP INDEX CONCURRENTLY IF EXISTS`（不重建索引，故不进 down map）。建表 744–747 与加列 748 每张表/每列一个文件；`issue.goal_id` 用 `ADD COLUMN IF NOT EXISTS`（`issue` 是既有大表，重跑安全）。
+
+### 13.2 表
+
+```sql
+-- 744
+goal_okr(
+  id UUID PK, workspace_id UUID NOT NULL,
+  cycle TEXT NOT NULL,                    -- 2026Q4 / 2026-11 / 2026H2，自由文本
+  title TEXT NOT NULL, description TEXT,
+  owner_member_id UUID NOT NULL,          -- 写闸门，NOT NULL：没人负责的目标不算目标
+  department_id UUID,                     -- 可空：公司级目标不属于某一个部门
+  status TEXT NOT NULL DEFAULT 'draft'
+    CHECK (status IN ('draft','active','paused','done','cancelled')),
+  due_date DATE,
+  priority TEXT NOT NULL DEFAULT 'P2' CHECK (priority IN ('P0','P1','P2')),
+  created_by UUID, created_at, updated_at, archived_at)
+
+-- 745
+goal_key_result(
+  id UUID PK, workspace_id UUID NOT NULL, goal_id UUID NOT NULL,
+  title TEXT NOT NULL,
+  target NUMERIC(14,2) CHECK (target >= 0),      -- 可空：数字还没定时仍是这个目标的关键结果
+  current NUMERIC(14,2) NOT NULL DEFAULT 0,      -- 写入值，不在读时算（§13.5）
+  unit TEXT,                                     -- % / 万元 / 个，自由文本
+  position INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'on_track'
+    CHECK (status IN ('on_track','at_risk','off_track','done')),
+  created_by UUID, created_at, updated_at, archived_at)
+
+-- 746
+goal_package(
+  id UUID PK, workspace_id UUID NOT NULL, goal_id UUID NOT NULL,
+  department_id UUID NOT NULL,             -- 分包就是"分给哪个部门"，所以 NOT NULL
+  title TEXT NOT NULL,
+  owner_member_id UUID,                    -- 这一份谁扛；不是写闸门（§13.4）
+  status TEXT NOT NULL DEFAULT 'draft'
+    CHECK (status IN ('draft','active','paused','done','cancelled')),
+  position INTEGER NOT NULL DEFAULT 0,
+  created_by UUID, created_at, updated_at, archived_at)
+
+-- 747
+market_signal(
+  id UUID PK, workspace_id UUID NOT NULL, title TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'other'
+    CHECK (category IN ('market','competitor','channel','product','policy','other')),
+  source TEXT NOT NULL DEFAULT 'manual' CHECK (source IN ('manual','ai','import')),
+  url TEXT, summary TEXT,
+  cut TEXT NOT NULL DEFAULT 'warm' CHECK (cut IN ('hot','warm','cold')),
+  score NUMERIC(6,2) CHECK (score IS NULL OR (score >= 0 AND score <= 100)),
+  urgency TEXT NOT NULL DEFAULT 'medium' CHECK (urgency IN ('high','medium','low')),
+  status TEXT NOT NULL DEFAULT 'new'
+    CHECK (status IN ('new','reviewing','converted','dismissed')),
+  converted_goal_id UUID, converted_issue_id UUID,   -- 落点，可同时为 NULL
+  note TEXT, owner_member_id UUID,
+  created_by UUID, created_at, updated_at, archived_at)
+
+-- 748：任务侧
+ALTER issue ADD COLUMN goal_id UUID;
+```
+
+规则与 B0 一致：无外键、无级联、`archived_at` 软删、每个索引单独一个并发文件、金额/比率用 NUMERIC 不用浮点。
+
+**三个枚举为一列而不是拆表**：`cut`（分级）、`urgency`（紧急度）、`score`（0–100 相关性）是三件事——运营先按 `cut` 排雷达队列，热点里再按 `score` 排，`urgency` 决定叫醒谁。合成一个"重要度"就丢掉了"重要"和"马上要"的区别。
+
+**`cycle` 是文本不是日期区间**：这套系统服务的公司规划周期口径不同（季度、月、半年），列表读按等值过滤而不是范围，`'2026Q4' > '2026Q3'` 本身也排得对。用日期列会逼所有调用方对"一季度多长"达成一致。
+
+**两个"分区"级别的设计取舍**：
+
+| 选择 | 理由 |
+| --- | --- |
+| `goal_okr.department_id` 可空、`goal_package.department_id` 必填 | 公司级目标不属于单个部门；而"分包"本身就是分给部门，缺部门的分包只是目标的副本 |
+| `goal_key_result.target` 可空、`current` NOT NULL DEFAULT 0 | 没定数字的关键结果也是一条关键结果；而 `target = 0` 是"已经没达成"的断言，不能拿来表示"还没定" |
+| `current` 允许 > `target` | 超额完成是正常结果，夹到 `target` 就把这个季度最好看的数字藏了 |
+| `market_signal.converted_*` 都可空 | 未处理是常态，雷达的职责就是显示没处理的那些 |
+
+### 13.3 REST（基址 `/api/workbench`）
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET/POST | `/goals` | 列表（`?cycle=&status=&limit=`）/ 新建；**每条内嵌 `key_results[]` 与 `packages[]`** |
+| GET/PATCH/DELETE | `/goals/{goalId}` | 单条 / 改 / 软删；GET 额外返回 `issues[]` |
+| POST | `/goals/{goalId}/issues` | 把已有 issue 挂到目标（写 `issue.goal_id`），body `{issue_id}`，**201** |
+| DELETE | `/goals/{goalId}/issues/{issueId}` | 置空 `goal_id`，**204** |
+| POST | `/goals/{goalId}/key-results` | 新建关键结果，**201** |
+| PATCH/DELETE | `/goals/{goalId}/key-results/{keyResultId}` | 改 / 软删 |
+| POST | `/goals/{goalId}/packages` | 新建部门分包，**201** |
+| PATCH/DELETE | `/goals/{goalId}/packages/{packageId}` | 改 / 软删 |
+| GET/POST | `/signals` | 列表（`?cut=&status=&category=&limit=`）/ 新建 |
+| PATCH/DELETE | `/signals/{signalId}` | 改 / 软删（**不能**把 `status` 改成 `converted`） |
+| POST | `/signals/{signalId}/convert` | body `{target:"goal"\|"issue", cycle?, department_id?, project_id?}`，**201**；已转换过 → **409** |
+
+包裹与序列化沿用 §3.1：列表 `{ <resource>: T[], total }`，`resource` 为 `goals` / `signals`，`total` = **本页条数**；单条不包裹；删除 204。`limit` 默认 50、上限 200（`workbenchLimit`）。
+
+- **子列表永远内嵌且永远不是 null**：`key_results` / `packages` / `issues` 缺省是 `[]`。一次看板读一个周期的目标只要三条语句（目标、关键结果、分包），不需要逐个目标再取一次进度；客户端也不必先判断"子列表取了没"。
+- **子列表顺序是 `position`，同 position 按创建顺序**：运营排过的顺序就是渲染顺序，两条同 position 也不会随机跳。
+- **`target < 0` 是 400**（`current > target` 不是错误）。列的 CHECK 是兜底，handler 先拦，这样错误信息点名"target"而不是把约束名漏出去。
+- **`score` 越界（<0 或 >100）是 400**；`due_date` / `cycle` 的格式错误也是 400。
+- **`status: "converted"` 不能 PATCH**：那个值属于 convert 端点，因为它总带着"变成什么"的指针；一个声称 converted 却没有 `converted_*` 的信号，列表无法解释。
+- **`department_id` 不校验存在性**：部门是归属与筛选，不是访问边界（`docs/engineering/ORG-MODEL.md`），和 §12 的 `hot_id` 一样是裸指针。
+
+### 13.4 权限
+
+写判定与 B0 同一套（`workbenchCanWrite` / `workbenchOwnerForCreate` / `workbenchOwnerForUpdate`）：
+
+| 资源 | 写判定 |
+| --- | --- |
+| 目标 | 行自己的 `owner_member_id` |
+| 关键结果 | **沿 goal 的 owner** |
+| 部门分包 | **沿 goal 的 owner**（`goal_package.owner_member_id` 是"这一份谁扛"，用于过滤与展示，不是闸门） |
+| 信号 | 行自己的 `owner_member_id`（含 convert） |
+| 目标 ↔ 任务挂载 | goal 的 owner（改的是 `issue.goal_id`，但挂载权属于目标） |
+
+`owner`/`admin` 全写；`member` 只能改自己拥有的行；新建时省略 owner 就是"我自己"，member 指定别人当 owner 直接 **403**。关键结果与分包沿着目标的 owner 判权，是为了让"我能改这个目标"和"我能改它的关键结果"是同一个答案——让分包自带 owner 当闸门，改派目标负责人之后就会出现两套权限。
+
+### 13.5 进度：`goal_key_result.current` 为什么不在读时算
+
+`current` 是**写入的数字**，不是读时的聚合。写它的只有两条路：
+
+1. 运营/负责人自己录入（`PATCH /goals/{id}/key-results/{krId}`）；
+2. 应用层把挂在目标下的 issue 进度汇总后写回（`issue.goal_id`，748）——**本批不含这个汇总器**，接线见 §13.8。
+
+读时算会毁掉对账：上周的经营会看到 62%，如果每次打开页面都用"现在的 issue 表"重算，一次任务重开就会让上周的 62% 变成 58%——同一个季度的两份导出永远不一致，也就无法和按它发的奖金对账。而且读时聚合是每次翻页都在跑一次无界扫描（OKR 看板一次列出整个周期的目标）。
+
+这也是没有触发器、没有生成列的原因：那两者会把 `current` 变成"当前 issue 表的函数"，而不是"某人在某个时刻记录下来的事实"。**注释落在 745 与 748 的迁移文件里**，因为下一个想加触发器的人会先读那里。
+
+### 13.6 convert 的幂等与落点
+
+`POST /signals/{id}/convert` 是雷达唯一的出口：
+
+| `target` | 建什么 | 落点列 |
+| --- | --- | --- |
+| `"goal"` | `goal_okr`（`cycle` 缺省当前季度，`status='active'`，owner 取信号 owner 否则取操作者） | `converted_goal_id` |
+| `"issue"` | 一个真 issue（走 `IssueService.Create`：编号/查重/工作流状态/`issue:created` 广播一条都不少） | `converted_issue_id` |
+
+- 一次调用只写其中一个指针，另一个保持 NULL；信号 `status` 变成 `converted`。
+- **幂等**：handler 先在事务里 `SELECT … FOR UPDATE` 锁住信号并检查状态，再建目标/任务，最后用 `UPDATE … WHERE status <> 'converted'` 写落点。并发的第二次 convert 会等锁，然后在状态检查这里拿到 **409**，什么都不会创建；`ConvertMarketSignal` 的条件更新是"锁没盖住"时的兜底（回滚把已建的目标一起撤掉，不会留下无人指向的行）。
+- **任务的描述**由信号的 `summary` + `url` + `note` 拼成：issue 界面读不到信号行，丢了这三段就丢了"为什么有这个任务"。
+- 转换走 `IssueService.Create` 而不是直接 INSERT：任务编号、查重、状态目录、广播都在那一条路径里，绕过去就会出现"同一个 workspace 两个 12 号任务"这种事故。
+
+### 13.7 事件与 query key
+
+事件（`workbench_goal.go` 内定义，写成功后发出）：`goal:changed` / `market_signal:changed`，payload `{ "id": "<row id>" }`。关键结果、分包、任务挂载都发 `goal:changed`（挂载改的是 issue，但列表变化在目标侧）；convert 同时发 `market_signal:changed` 与 `goal:changed`。
+
+```
+["goal", wsId, resource, filters]     // resource ∈ goals|signals
+["goal", wsId, resource, { id }]      // 详情（goals 含 issues）
+```
+
+`packages/core/goal/{index,queries,mutations}.ts`（导出 `./goal`、`./goal/queries`、`./goal/mutations`）；类型在 `packages/core/types/goal.ts`（**不塞进 `workbench.ts` / `media.ts`**），zod 在 `packages/core/api/schemas.ts`，`api/client.ts` 有同名方法。mutation 失效 `goalKeys.all(wsId)` + `workbenchKeys.all(wsId)`：一次 convert 既改信号又建目标，局部失效会留下"信号已转换但目标面板还是空的"。
+
+### 13.8 已知债务与本批未做
+
+- **UI / views 未接入**：本批只到迁移、SQL、handler、core 类型/zod/client；`packages/views/**`、`apps/**` 不在写作用域。
+- **前端实时 patcher 未注册**：`packages/core/types/events.ts` 不在本批作用域，两个事件目前只有服务端发出，客户端靠 mutation 失效刷新。
+- **任务 → 关键结果的自动汇总没有接线**：`issue.goal_id` 已经能挂、能按目标查（`GET /goals/{id}` 的 `issues[]`），但"任务完成后把进度写回某条 `current`"的应用层汇总器不在本批。写回时必须一条一条指定写哪条关键结果——那是人的判断（"这个任务算在签约金额还是签约数上"），不能由数据库猜，所以它也不会是触发器。
+- **issue 响应不返回 `goal_id`**：`issue.go` 不在本批写作用域，`IssueResponse` 没有这个字段；当前只能从目标侧读任务（`GET /goals/{id}` 的 `issues[]`）。接线时给响应加字段即可，不会破坏旧客户端。
+- **`/counts`、`/overview` 不含目标/信号**：侧栏计数与指标条未扩展，列表 `total` 因此就是本页条数。
+- **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举未加 `goal_*` / `market_signal`。
+- **没有信号自动抓取**：`source` 的 `ai` / `import` 是给导入器留的口子，本批没有爬虫、没有定时任务。
+- **不做**：OKR 对齐树（目标之间的父子/依赖）、权限矩阵、目标模板与周期自动滚动、信号与外部数据源的自动去重。
+- **归档目标不解除任务挂载**：`DELETE /goals/{id}` 归档目标、关键结果与分包，`issue.goal_id` 保留（"这个目标是误建的"不等于"把干过的活摘下来"）；目标读取都过 `goal_okr`，悬空指针不会被渲染。
+
 ## 9. 完成定义（DoD）
 
 一个域算完成，当且仅当：迁移可 up/down 往返、`make sqlc` 无脏 diff、handler 有权限用例、事件发出、zod 覆盖响应、`useRealtimeSync` 有 patcher、`/overview` 里对应指标从 `insufficient_data` 变为有值、页面能读能写。

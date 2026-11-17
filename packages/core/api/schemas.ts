@@ -171,6 +171,19 @@ import type {
   MediaTopic,
   MediaTopicListResponse,
 } from "../types/media";
+// General manager workbench (§13): its own module (types/goal.ts) for the same
+// reason — OKR and radar are a separate domain, not more commerce rows.
+import type {
+  Goal,
+  GoalDetail,
+  GoalIssue,
+  GoalKeyResult,
+  GoalListResponse,
+  GoalPackage,
+  MarketSignal,
+  MarketSignalConvertResponse,
+  MarketSignalListResponse,
+} from "../types/goal";
 
 export const PluginConfigFieldSchema = z.object({
   key: z.string(),
@@ -5601,3 +5614,191 @@ export const MediaShootListResponseSchema = z
   .loose();
 
 export const EMPTY_MEDIA_SHOOT_LIST_RESPONSE: MediaShootListResponse = { shoots: [], total: 0 };
+
+// --- General manager workbench (docs/engineering/WORKBENCH-API.md §13) ------
+//
+// OKR goals 目标 -> key results -> department packages, and the radar signals that
+// convert into a goal or an issue.
+//
+// The same leniency rules as the ledgers above apply — enums stay `z.string()`,
+// nullable columns default to null — plus two of its own:
+//
+//   * the child lists (`key_results`, `packages`, `issues`) default to empty
+//     arrays. The server always sends them, so a missing one means an older
+//     payload; a goal whose children a rejected parse blanked would render as an
+//     objective with no progress, which is a worse lie than an empty list.
+//   * `target` and `score` stay nullable numbers. A key result with no target is
+//     a row whose number is undecided, and reading it as 0 would claim it is
+//     already missed.
+
+export const GoalKeyResultSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    goal_id: z.string().default(""),
+    title: z.string().default(""),
+    target: z.number().nullable().default(null),
+    current: z.number().default(0),
+    unit: workbenchNullableString,
+    position: z.number().default(0),
+    status: z.string().default("on_track"),
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_GOAL_KEY_RESULT: GoalKeyResult = {
+  id: "", workspace_id: "", goal_id: "", title: "", target: null, current: 0,
+  unit: null, position: 0, status: "on_track", created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const GoalPackageSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    goal_id: z.string().default(""),
+    department_id: z.string().default(""),
+    title: z.string().default(""),
+    owner_member_id: workbenchNullableString,
+    status: z.string().default("draft"),
+    position: z.number().default(0),
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_GOAL_PACKAGE: GoalPackage = {
+  id: "", workspace_id: "", goal_id: "", department_id: "", title: "",
+  owner_member_id: null, status: "draft", position: 0, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const GoalSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    cycle: z.string().default(""),
+    title: z.string().default(""),
+    description: workbenchNullableString,
+    owner_member_id: z.string().default(""),
+    department_id: workbenchNullableString,
+    status: z.string().default("draft"),
+    due_date: workbenchNullableString,
+    priority: z.string().default("P2"),
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+    key_results: z.array(GoalKeyResultSchema).default([]),
+    packages: z.array(GoalPackageSchema).default([]),
+  })
+  .loose();
+
+export const EMPTY_GOAL: Goal = {
+  id: "", workspace_id: "", cycle: "", title: "", description: null,
+  owner_member_id: "", department_id: null, status: "draft", due_date: null,
+  priority: "P2", created_by: null, created_at: "", updated_at: "",
+  archived_at: null, key_results: [], packages: [],
+};
+
+export const GoalIssueSchema = z
+  .object({
+    id: z.string(),
+    number: z.number().default(0),
+    title: z.string().default(""),
+    status: z.string().default(""),
+    goal_id: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_GOAL_ISSUE: GoalIssue = {
+  id: "", number: 0, title: "", status: "todo", goal_id: null,
+};
+
+/**
+ * `GET /goals/{id}`. `issues` defaults to an empty list for the same reason as
+ * the other child lists: an older payload must not blank the task strip.
+ */
+export const GoalDetailSchema = GoalSchema.extend({
+  issues: z.array(GoalIssueSchema).default([]),
+}).loose();
+
+export const EMPTY_GOAL_DETAIL: GoalDetail = {
+  ...EMPTY_GOAL,
+  issues: [],
+};
+
+export const GoalListResponseSchema = z
+  .object({
+    goals: z.array(GoalSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_GOAL_LIST_RESPONSE: GoalListResponse = { goals: [], total: 0 };
+
+export const MarketSignalSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    title: z.string().default(""),
+    category: z.string().default("other"),
+    source: z.string().default("manual"),
+    url: workbenchNullableString,
+    summary: workbenchNullableString,
+    cut: z.string().default("warm"),
+    score: z.number().nullable().default(null),
+    urgency: z.string().default("medium"),
+    status: z.string().default("new"),
+    converted_goal_id: workbenchNullableString,
+    converted_issue_id: workbenchNullableString,
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_MARKET_SIGNAL: MarketSignal = {
+  id: "", workspace_id: "", title: "", category: "other", source: "manual",
+  url: null, summary: null, cut: "warm", score: null, urgency: "medium",
+  status: "new", converted_goal_id: null, converted_issue_id: null, note: null,
+  owner_member_id: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
+};
+
+export const MarketSignalListResponseSchema = z
+  .object({
+    signals: z.array(MarketSignalSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MARKET_SIGNAL_LIST_RESPONSE: MarketSignalListResponse = {
+  signals: [],
+  total: 0,
+};
+
+/**
+ * `POST /signals/{id}/convert`. Exactly one of `goal` / `issue` arrives, chosen
+ * by the `target` that was sent; both are optional here so a client does not have
+ * to branch on the response shape before reading the signal it just converted.
+ */
+export const MarketSignalConvertResponseSchema = z
+  .object({
+    signal: MarketSignalSchema,
+    goal: GoalSchema.optional(),
+    issue: GoalIssueSchema.optional(),
+  })
+  .loose();
+
+export const EMPTY_MARKET_SIGNAL_CONVERT_RESPONSE: MarketSignalConvertResponse = {
+  signal: EMPTY_MARKET_SIGNAL,
+};

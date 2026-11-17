@@ -564,4 +564,41 @@ export type {
   UpdateMediaTopicRequest,
 } from "./media";
 
+// General manager workbench (docs/engineering/WORKBENCH-API.md §13): OKR goals,
+// their key results and department packages, and the radar signals that convert
+// into one or the other. Its own module for the same reason as §12 — a separate
+// domain with its own vocabulary, not more rows on the commerce barrel.
+export type {
+  AttachGoalIssueRequest,
+  ConvertMarketSignalRequest,
+  CreateGoalKeyResultRequest,
+  CreateGoalPackageRequest,
+  CreateGoalRequest,
+  CreateMarketSignalRequest,
+  Goal,
+  GoalDetail,
+  GoalIssue,
+  GoalKeyResult,
+  GoalKeyResultStatus,
+  GoalListFilters,
+  GoalListResponse,
+  GoalPackage,
+  GoalPriority,
+  GoalStatus,
+  MarketSignal,
+  MarketSignalCategory,
+  MarketSignalConvertResponse,
+  MarketSignalConvertTarget,
+  MarketSignalCut,
+  MarketSignalListFilters,
+  MarketSignalListResponse,
+  MarketSignalSource,
+  MarketSignalStatus,
+  MarketSignalUrgency,
+  UpdateGoalKeyResultRequest,
+  UpdateGoalPackageRequest,
+  UpdateGoalRequest,
+  UpdateMarketSignalRequest,
+} from "./goal";
+
 export type { WorkspaceWakeup, WorkspaceWakeupPage, WorkspaceWakeupFilters, WakeupScope } from "./issue-wakeup";

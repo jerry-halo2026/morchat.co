@@ -249,6 +249,28 @@ import type {
   UpdateMediaScriptRequest,
   UpdateMediaShootRequest,
   UpdateMediaTopicRequest,
+  // General manager workbench (docs/engineering/WORKBENCH-API.md §13).
+  AttachGoalIssueRequest,
+  ConvertMarketSignalRequest,
+  CreateGoalKeyResultRequest,
+  CreateGoalPackageRequest,
+  CreateGoalRequest,
+  CreateMarketSignalRequest,
+  Goal,
+  GoalDetail,
+  GoalIssue,
+  GoalKeyResult,
+  GoalListFilters,
+  GoalListResponse,
+  GoalPackage,
+  MarketSignal,
+  MarketSignalConvertResponse,
+  MarketSignalListFilters,
+  MarketSignalListResponse,
+  UpdateGoalKeyResultRequest,
+  UpdateGoalPackageRequest,
+  UpdateGoalRequest,
+  UpdateMarketSignalRequest,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -759,6 +781,25 @@ import {
   MediaShootListResponseSchema,
   EMPTY_MEDIA_SHOOT,
   EMPTY_MEDIA_SHOOT_LIST_RESPONSE,
+  // General manager workbench (§13).
+  GoalSchema,
+  GoalDetailSchema,
+  GoalListResponseSchema,
+  GoalKeyResultSchema,
+  GoalPackageSchema,
+  GoalIssueSchema,
+  EMPTY_GOAL,
+  EMPTY_GOAL_DETAIL,
+  EMPTY_GOAL_LIST_RESPONSE,
+  EMPTY_GOAL_KEY_RESULT,
+  EMPTY_GOAL_PACKAGE,
+  EMPTY_GOAL_ISSUE,
+  MarketSignalSchema,
+  MarketSignalListResponseSchema,
+  MarketSignalConvertResponseSchema,
+  EMPTY_MARKET_SIGNAL,
+  EMPTY_MARKET_SIGNAL_LIST_RESPONSE,
+  EMPTY_MARKET_SIGNAL_CONVERT_RESPONSE,
   HrJobSchema,
   HrJobListResponseSchema,
   EMPTY_HR_JOB,
@@ -4879,6 +4920,199 @@ export class ApiClient {
 
   async deleteMediaShoot(id: string): Promise<void> {
     await this.fetch(`/api/workbench/media/shoots/${id}`, { method: "DELETE" });
+  }
+
+  // General manager workbench (docs/engineering/WORKBENCH-API.md §13): OKR goals
+  // with their key results and department packages, and the radar signals that
+  // convert into a goal or an issue. `/api/workbench`, same read/write split as
+  // the ledgers above: reads are member-wide, the write gate is server-side, and a
+  // key result or a package is gated on the owner of the goal it hangs off.
+
+  async listGoals(filters: GoalListFilters = {}): Promise<GoalListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/goals${workbenchSearch({
+        cycle: filters.cycle,
+        status: filters.status,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, GoalListResponseSchema, EMPTY_GOAL_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/goals",
+    });
+  }
+
+  async createGoal(data: CreateGoalRequest): Promise<Goal> {
+    const raw = await this.fetch<unknown>("/api/workbench/goals", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, GoalSchema, EMPTY_GOAL, {
+      endpoint: "POST /api/workbench/goals",
+    });
+  }
+
+  /** The goal plus its key results, its packages and the issues under it. */
+  async getGoal(id: string): Promise<GoalDetail> {
+    const raw = await this.fetch<unknown>(`/api/workbench/goals/${id}`);
+    return parseWithFallback(raw, GoalDetailSchema, EMPTY_GOAL_DETAIL, {
+      endpoint: "GET /api/workbench/goals/:goalId",
+    });
+  }
+
+  async updateGoal(id: string, data: UpdateGoalRequest): Promise<Goal> {
+    const raw = await this.fetch<unknown>(`/api/workbench/goals/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, GoalSchema, EMPTY_GOAL, {
+      endpoint: "PATCH /api/workbench/goals/:goalId",
+    });
+  }
+
+  /** Soft delete; the goal's key results and packages are archived with it. */
+  async deleteGoal(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/goals/${id}`, { method: "DELETE" });
+  }
+
+  async createGoalKeyResult(
+    goalId: string,
+    data: CreateGoalKeyResultRequest,
+  ): Promise<GoalKeyResult> {
+    const raw = await this.fetch<unknown>(`/api/workbench/goals/${goalId}/key-results`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, GoalKeyResultSchema, EMPTY_GOAL_KEY_RESULT, {
+      endpoint: "POST /api/workbench/goals/:goalId/key-results",
+    });
+  }
+
+  /**
+   * Records a key result's figure. `current` may exceed `target`; the server
+   * stores what it is given and never re-derives one from the other.
+   */
+  async updateGoalKeyResult(
+    goalId: string,
+    keyResultId: string,
+    data: UpdateGoalKeyResultRequest,
+  ): Promise<GoalKeyResult> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/goals/${goalId}/key-results/${keyResultId}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+    );
+    return parseWithFallback(raw, GoalKeyResultSchema, EMPTY_GOAL_KEY_RESULT, {
+      endpoint: "PATCH /api/workbench/goals/:goalId/key-results/:keyResultId",
+    });
+  }
+
+  async deleteGoalKeyResult(goalId: string, keyResultId: string): Promise<void> {
+    await this.fetch(`/api/workbench/goals/${goalId}/key-results/${keyResultId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async createGoalPackage(goalId: string, data: CreateGoalPackageRequest): Promise<GoalPackage> {
+    const raw = await this.fetch<unknown>(`/api/workbench/goals/${goalId}/packages`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, GoalPackageSchema, EMPTY_GOAL_PACKAGE, {
+      endpoint: "POST /api/workbench/goals/:goalId/packages",
+    });
+  }
+
+  async updateGoalPackage(
+    goalId: string,
+    packageId: string,
+    data: UpdateGoalPackageRequest,
+  ): Promise<GoalPackage> {
+    const raw = await this.fetch<unknown>(`/api/workbench/goals/${goalId}/packages/${packageId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, GoalPackageSchema, EMPTY_GOAL_PACKAGE, {
+      endpoint: "PATCH /api/workbench/goals/:goalId/packages/:packageId",
+    });
+  }
+
+  async deleteGoalPackage(goalId: string, packageId: string): Promise<void> {
+    await this.fetch(`/api/workbench/goals/${goalId}/packages/${packageId}`, { method: "DELETE" });
+  }
+
+  /** Attaches an existing issue to the goal (`issue.goal_id`); 409 if it has one. */
+  async attachGoalIssue(goalId: string, data: AttachGoalIssueRequest): Promise<GoalIssue> {
+    const raw = await this.fetch<unknown>(`/api/workbench/goals/${goalId}/issues`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, GoalIssueSchema, EMPTY_GOAL_ISSUE, {
+      endpoint: "POST /api/workbench/goals/:goalId/issues",
+    });
+  }
+
+  async detachGoalIssue(goalId: string, issueId: string): Promise<void> {
+    await this.fetch(`/api/workbench/goals/${goalId}/issues/${issueId}`, { method: "DELETE" });
+  }
+
+  async listMarketSignals(filters: MarketSignalListFilters = {}): Promise<MarketSignalListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/signals${workbenchSearch({
+        cut: filters.cut,
+        status: filters.status,
+        category: filters.category,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, MarketSignalListResponseSchema, EMPTY_MARKET_SIGNAL_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/signals",
+    });
+  }
+
+  async createMarketSignal(data: CreateMarketSignalRequest): Promise<MarketSignal> {
+    const raw = await this.fetch<unknown>("/api/workbench/signals", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MarketSignalSchema, EMPTY_MARKET_SIGNAL, {
+      endpoint: "POST /api/workbench/signals",
+    });
+  }
+
+  /** `status: "converted"` is not accepted here — use `convertMarketSignal`. */
+  async updateMarketSignal(id: string, data: UpdateMarketSignalRequest): Promise<MarketSignal> {
+    const raw = await this.fetch<unknown>(`/api/workbench/signals/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MarketSignalSchema, EMPTY_MARKET_SIGNAL, {
+      endpoint: "PATCH /api/workbench/signals/:signalId",
+    });
+  }
+
+  async deleteMarketSignal(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/signals/${id}`, { method: "DELETE" });
+  }
+
+  /**
+   * Turns a signal into work: a goal or an issue, with the landing pointer written
+   * back onto the signal. A second convert of the same signal is a 409 — the
+   * server answers that, so the client can surface it instead of creating a
+   * duplicate objective.
+   */
+  async convertMarketSignal(
+    id: string,
+    data: ConvertMarketSignalRequest,
+  ): Promise<MarketSignalConvertResponse> {
+    const raw = await this.fetch<unknown>(`/api/workbench/signals/${id}/convert`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(
+      raw,
+      MarketSignalConvertResponseSchema,
+      EMPTY_MARKET_SIGNAL_CONVERT_RESPONSE,
+      { endpoint: "POST /api/workbench/signals/:signalId/convert" },
+    );
   }
 
   // HR (docs/engineering/WORKBENCH-API.md §10.3). Same base and same write scope

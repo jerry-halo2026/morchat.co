@@ -731,6 +731,18 @@ deleted_media_topics AS (
 ),
 deleted_media_ips AS (
     DELETE FROM media_ip WHERE media_ip.workspace_id = $1
+),
+deleted_goal_key_results AS (
+    DELETE FROM goal_key_result WHERE goal_key_result.workspace_id = $1
+),
+deleted_goal_packages AS (
+    DELETE FROM goal_package WHERE goal_package.workspace_id = $1
+),
+deleted_market_signals AS (
+    DELETE FROM market_signal WHERE market_signal.workspace_id = $1
+),
+deleted_goals AS (
+    DELETE FROM goal_okr WHERE goal_okr.workspace_id = $1
 )
 DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1
 `
@@ -748,6 +760,11 @@ DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1
 // link columns — `creator.media_ip_id` (729) and `creator_post.media_script_id`
 // (733) — need no reset of their own: both `creator` and `creator_post` are
 // deleted in this same statement, so no cross-workspace pointer survives it.
+// General manager workbench (WORKBENCH-API §13): a key result and a package name
+// a goal, and a signal names the goal or the issue it was converted into. No
+// foreign key sits behind any of them, so each table is cleared explicitly.
+// The converted pointers need no reset of their own: both the goal and the issue
+// they can point at are rows of this workspace, deleted by this teardown.
 func (q *Queries) DeleteWorkspaceWorkbenchLedger(ctx context.Context, workspaceID pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, deleteWorkspaceWorkbenchLedger, workspaceID)
 	return err
