@@ -2,7 +2,7 @@
 purpose: B0（达人商务）的服务端契约：表、迁移号段、REST、事件、query key、UI 归属
 owner: lead
 status: current
-updated: 2026-11-16
+updated: 2026-11-17
 related: [docs/METRICS.md, docs/engineering/ORG-MODEL.md]
 ---
 
@@ -244,6 +244,65 @@ server 数据一律 Query；Zustand 只放当前部门、列宽、筛选草稿�
 | 侧栏计数 | `counts` | `WorkPanel` 的 `LedgerSection` |
 
 ⚠️ **不用 `BoardView`**（它只吃 `Issue[]`）。台账列表用 `CollectionList`；"按阶段分组"用 `CollectionGroup`。
+
+## 7. Agent 读取通道：MCP 只读工具（`POST /api/mcp/workbench`）
+
+agent 的读取通道是 MCP 工具，不是 HTTP。工作台的数据已经在服务端通了（同一套 Postgres + 本文件的 REST），但此前只有 knowledge 暴露了 MCP 端点，所以 AI 同事读不到台账与指标。本节补上第二个端点：**四个只读工具**，与 `POST /api/mcp/knowledge` 同一套 JSON-RPC 2.0 over HTTP（`initialize` → `tools/list` → `tools/call`，单请求、无 session）。实现：`server/internal/handler/mcp_workbench.go`。
+
+### 7.1 鉴权与工作区
+
+与 knowledge MCP 逐字一致（`router.go` 同一个中间件组）：
+
+```
+MCPTokenExpiryGate → middleware.Auth → middleware.RequireWorkspaceMember → h.WorkbenchMCP
+```
+
+- `Authorization: Bearer mat_…`：token 行决定 workspace 与 user（`X-Workspace-ID` / `X-User-ID` 由 Auth 改写），agent 自己给的 workspace 标识不能扩张范围（MUL-2600）。
+- `Authorization: Bearer mul_…`：user 来自 PAT，workspace 按仓库既有规则（slug / header / query）选。
+- 只有 `X-Workspace-ID` 没有 token → 到不了 handler（401）。
+- 过期 `mat_` → `-32002`，由同一个 `MCPTokenExpiryGate` 在 Auth 之前答。
+- **工具参数里没有 workspace**：工具无法指定工作区，也就无法读到调用者不是成员的工作区。跨 workspace 用另一个身份的 run 调用 → 中间件 404，不会出现工具文档。
+
+**实现方式（防漂移）**：每个工具不重新拼装响应，而是把带身份的请求重放给拥有该读逻辑的 REST handler（`h.GetWorkbenchOverview`、`h.ListHrJobs` …），返回它写出的字节。于是 `workbench_overview` 与 `GET /api/workbench/overview` 是**同一个文档**——同样的 metric id、同样的三态条目、同样的字段名；台账页与 REST 列表同字段同信封。测试 `TestWorkbenchMCPOverviewInEmptyWorkspace` / `TestWorkbenchMCPLedgerReadsJobs` 直接对两边做逐字节/逐字段比较。
+
+### 7.2 工具
+
+| 工具 | 参数 | 返回 |
+| --- | --- | --- |
+| `workbench_overview` | `department_id?` | 与 `GET /overview` 同构：`{ metrics: { [MetricId]: { value, sample_count, empty } } }`，22 个指标 |
+| `workbench_counts` | `department_id?` | 与 `GET /counts` 同构：9 个计数 |
+| `workbench_ledger` | `domain`（必填）、`limit?`（默认 20，上限 100）、`cursor?`、`department_id?` | 与对应 REST 列表同构：`{ <domain>: [...], total }`（`creators` 另有 `next_cursor`） |
+| `workbench_finance` | `month?`（`YYYY-MM`）、`department_id?` | 与 `GET /finance` 同构，含 `gross_margin.basis` / `cash_floor.basis` |
+
+`domain` 取值九个：`creators` · `clients` · `briefs` · `collabs` · `settlements` · `jobs` · `candidates` · `interviews` · `employees`（= §3 的五张商务表 + §10 的四张人事表）。`tools/list` 的 `domain` enum 由 `workbenchMCPLedgerDomainNames` 生成，与 dispatcher 的 `switch` 同源，不会出现"声明了但没人答"的名字。
+
+### 7.3 只读与边界
+
+- **只读**：四个工具都不写库，dispatcher 只能走到读 handler，没有任何 PATCH/POST 路径。工具 description 明写 read-only，避免模型以为能"顺便改一下"。
+- **三态语义沿用 `metricValue`**：`value: null` + `empty: "insufficient_data"` = 没有样本（不是 0）；`empty: "zero"` = 0 是真答案。工具描述写明这一点，防止 agent 把缺口报成 0。
+- **金额一律 JSON number，币种随行**（`_amount` 字段配行上的 `currency`；`agent.cost.month` 是 USD，CRM 是 CNY）。
+- **`total` = 本页条数**，与 REST 一致；要总数用 `workbench_counts`。
+- **`department_id` 是归属不是权限**：只筛聚合的行集合，既不放宽也不收紧成员能读什么。台账里只有 `jobs` / `employees` 两个域有部门列，其余域带 `department_id` 会**报错**而不是静默返回全部门——静默放宽比报错更糟。
+- **`limit` 上限 100**：超过直接 `isError`（`limit must be between 1 and 100`），不截断。
+- **单次响应 ≤ 256 KB**（`workbenchMCPMaxResult`）：超出时 `isError` 提示"用更小的 limit 配合 cursor 翻页"，不返回半截文档。
+- **`month` 是断言不是选择器**：`OverviewCrmFinance` 按数据库 `now()` 切月，本 build 没有任何按月入参的读查询，因此只有当前自然月被接受（`window.month` 会回显），其它月份 `isError`——把本月数字贴上另一个月的标签是这层最不能犯的错。要读任意月份，需要一条按月入参的查询 + handler，属后续项。
+- 参数校验失败一律 `isError: true` + 可读原因（如 `domain must be one of …`），协议层问题（帧不合法、未知方法、没有工具名）仍是 JSON-RPC 错误码（`-32700` / `-32601` / `-32602`）。
+
+### 7.4 注册成工作区 MCP server
+
+同 KNOWLEDGE-MCP §5，`name` 用 `initialize` 的 `serverInfo.name`：
+
+```jsonc
+POST /api/workspaces/{wsId}/mcp-servers
+{"name":"morechat-workbench","transport":"http",
+ "config":{"url":"http://<server>/api/mcp/workbench",
+           "headers":{"Authorization":"Bearer <token>","X-Workspace-ID":"<ws>"}}}
+```
+
+### 7.5 测试
+
+`server/internal/handler/mcp_workbench_test.go`：`tools/list` 的四个名字与 schema（含 `domain` enum、`limit` 上限）；空 workspace 的 22 个 key 与缺口指标；非法 `domain`、`limit=101`、坏 `department_id`、无部门列的域带 `department_id`、未知参数 → `isError`；造一条 `hr_job` 后 `workbench_ledger(domain=jobs)` 与 REST 列表逐字段相等；跨 workspace（他人身份 + 指定本工作区）被中间件拒绝、且台账只跟着工作区走。
+
 
 ## 8. 已裁决的分歧（服务端/前端交付时提出的问题）
 

@@ -1659,6 +1659,10 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 		r.Use(middleware.Auth(queries, patCache, cloudPATVerifier, cfSigner))
 		r.Use(middleware.RequireWorkspaceMember(queries))
 		r.Post("/api/mcp/knowledge", h.KnowledgeMCP)
+		// The workbench's read surface as tools (docs/engineering/WORKBENCH-API.md
+		// §7): the same four reads agents need — metric strip, counts, ledgers,
+		// money block — read-only, behind the same token and membership chain.
+		r.Post("/api/mcp/workbench", h.WorkbenchMCP)
 	})
 
 	// Daemon API routes (require daemon token or valid user token)
