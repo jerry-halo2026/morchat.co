@@ -19,8 +19,11 @@
       "USD": "$"
     }
   },
+  "empty": {
+    "value": "—"
+  },
+  "group_total": "· {{count}} 项",
   "metric_value": {
-    "zero": "暂无",
     "samples": "统计 {{count}} 条"
   },
   "metric": {

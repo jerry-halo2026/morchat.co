@@ -13,14 +13,17 @@ import { Button } from "@morechat/ui/components/ui/button";
 import { CurrencyNumberFlow, NumberFlow } from "@morechat/ui/components/ui/number-flow";
 import { Skeleton } from "@morechat/ui/components/ui/skeleton";
 import { useLocale, useT } from "../i18n";
-import { KpiCard } from "../runtimes/components/shared";
 import { FinanceCostDialog } from "./finance-cost-dialog";
+import { KPI_GRID_CLASS, KpiCell, kpiLastCellClass } from "./metric-row";
 
 interface FinanceSectionProps {
   wsId: string;
   /** `?dept=` — null reads every department. */
   departmentId: string | null;
 }
+
+/** Signed, collected, margin, receivable days, cash floor. */
+const FINANCE_FIGURES = 5;
 
 /**
  * The workbench's money block: what was signed, what was collected, what the
@@ -109,11 +112,11 @@ export function FinanceSection({ wsId, departmentId }: FinanceSectionProps) {
           {t(($) => $.error)}
         </p>
       ) : null}
-      <div className="grid grid-cols-1 divide-y rounded-lg border bg-card sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-5">
+      <div className={KPI_GRID_CLASS}>
         {isPending ? <FinanceSkeleton /> : null}
         {!isPending && figures ? (
           <>
-            <KpiCard
+            <KpiCell
               label={t(($) => $.card.signed)}
               value={
                 <MoneyValue
@@ -124,7 +127,7 @@ export function FinanceSection({ wsId, departmentId }: FinanceSectionProps) {
               }
               hint={t(($) => $.hint.signed)}
             />
-            <KpiCard
+            <KpiCell
               label={t(($) => $.card.collected)}
               value={
                 <MoneyValue
@@ -135,7 +138,7 @@ export function FinanceSection({ wsId, departmentId }: FinanceSectionProps) {
               }
               hint={t(($) => $.hint.collected)}
             />
-            <KpiCard
+            <KpiCell
               label={t(($) => $.card.margin)}
               value={
                 <PercentValue
@@ -152,7 +155,7 @@ export function FinanceSection({ wsId, departmentId }: FinanceSectionProps) {
                   : marginGap(figures.gross_margin, figures.collected)
               }
             />
-            <KpiCard
+            <KpiCell
               label={t(($) => $.card.receivable)}
               value={
                 <DaysValue
@@ -163,8 +166,12 @@ export function FinanceSection({ wsId, departmentId }: FinanceSectionProps) {
               }
               hint={t(($) => $.hint.receivable)}
             />
-            <KpiCard
+            <KpiCell
               label={t(($) => $.card.cash)}
+              // The five-figure block closes here: at `lg` the fifth figure has
+              // one column left beside it, so it takes the rest of the row
+              // instead of leaving a hole (same rule as the metric strips).
+              className={kpiLastCellClass(FINANCE_FIGURES)}
               value={
                 <MoneyValue
                   amount={figures.cash_floor.value}
@@ -210,8 +217,12 @@ function FinanceSkeleton() {
   );
 }
 
+/** A figure with no rows behind it: the workbench's one glyph for that, from
+ * `blocks.empty.value`, so the money block and the metric strips print the same
+ * word for "no number here". */
 function DashValue() {
-  return <span className="text-muted-foreground">—</span>;
+  const { t } = useT("blocks");
+  return <span className="text-muted-foreground">{t(($) => $.empty.value)}</span>;
 }
 
 /** Money in the ledger's currency (CNY, C9), through the shared currency flow. */

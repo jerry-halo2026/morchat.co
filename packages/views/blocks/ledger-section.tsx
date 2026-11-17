@@ -113,7 +113,16 @@ export function LedgerSection({
           ? counts.reduce<number>((sum, count) => sum + (count ?? 0), 0)
           : undefined;
         return (
-          <ObjectSection key={group} title={t(($) => $.ledger.group[group])} count={total}>
+          <ObjectSection
+            key={group}
+            title={t(($) => $.ledger.group[group])}
+            // The total counts the rows entered in the group's ledgers, and says
+            // so: a bare number beside "Commerce" read as money, or as the count
+            // of ledgers, depending on the reader (screenshot review).
+            count={
+              total === undefined ? undefined : t(($) => $.group_total, { count: total })
+            }
+          >
             <ObjectSectionCard>
               {domains.map((domain) => {
                 const Icon = DOMAIN_ICON[domain];

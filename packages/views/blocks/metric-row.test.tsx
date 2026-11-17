@@ -81,14 +81,26 @@ describe("MetricRow", () => {
     expect(screen.getByText("of 20 rows")).toBeInTheDocument();
   });
 
-  it("renders a true zero as 0 plus 'none yet', never as a gap", () => {
+  it("renders a true zero as 0 alone, never as a gap and never with a dash", () => {
     renderRow();
     const label = screen.getByText("Overdue");
     const cell = label.parentElement;
     expect(cell).toHaveTextContent("0");
-    expect(cell).toHaveTextContent("None yet");
+    // A measured zero is a figure. Printing the "no value" glyph under it said
+    // two contradictory things at once, so the dash now belongs to gaps only.
+    expect(cell).not.toHaveTextContent("—");
     // The zero cell is still a KPI tile: no gap copy leaked into it.
     expect(cell).not.toHaveTextContent("The issues behind this number");
+  });
+
+  it("draws into the shared KPI grid and closes the last row", () => {
+    const { container } = renderRow();
+    const grid = container.firstElementChild as HTMLElement;
+    // The same column rule as every other strip on the workbench.
+    expect(grid).toHaveClass("grid-cols-1", "md:grid-cols-2", "lg:grid-cols-4", "xl:grid-cols-5");
+    // Four cards in five columns leave one cell; the closing card takes two.
+    const closing = [...container.querySelectorAll<HTMLElement>("[class*='xl:col-span-2']")];
+    expect(closing).toHaveLength(1);
   });
 
   it("renders insufficient_data as a gap card naming what to enter", () => {

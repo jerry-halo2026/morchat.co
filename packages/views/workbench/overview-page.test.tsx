@@ -30,9 +30,21 @@ const overview = vi.hoisted(() => ({
 }));
 
 // `/counts` is read straight from the core query options, so the fixture is the
-// wire shape (`collabs_open`), not a view-layer rename.
+// wire shape (`collabs_open`), not a view-layer rename. The four B1 counters are
+// here too: a group total is only stated when the group has counts, and the
+// people band's "· N items" is one of the things this suite pins.
 const counts = vi.hoisted(() => ({
-  current: { creators: 7, clients: 3, briefs: 5, collabs_open: 2, settlements_pending: 1 },
+  current: {
+    creators: 7,
+    clients: 3,
+    briefs: 5,
+    collabs_open: 2,
+    settlements_pending: 1,
+    jobs: 4,
+    candidates: 3,
+    interviews: 2,
+    employees: 1,
+  },
 }));
 
 // Already narrowed by the pane's `select`, because a mocked `useQuery` returns
@@ -148,12 +160,34 @@ describe("OverviewPage", () => {
     expect(screen.getByText("Closed this week")).toBeInTheDocument();
     expect(container).toHaveTextContent("12");
     expect(screen.getByText("Overdue")).toBeInTheDocument();
-    // Two zero states now draw it — the delivery strip's overdue count and the
-    // hiring strip's scorecard backlog — so the copy is asserted on both cells
-    // rather than on whichever one the query happened to reach first.
-    expect(screen.getAllByText("None yet")).toHaveLength(2);
+    // A measured zero prints its 0 and nothing else: the dash belongs to gaps,
+    // and putting it under a zero said two contradictory things at once.
+    expect(screen.queryByText("None yet")).toBeNull();
+    expect(screen.queryByText("—")).toBeNull();
     expect(screen.getByText("Median cycle time")).toBeInTheDocument();
     expect(screen.getByText("Weighted pipeline")).toBeInTheDocument();
+  });
+
+  it("draws the delivery and hiring strips into the same KPI grid", () => {
+    const { container } = renderPage();
+    // One grid rule for every strip on the page: phones one column, md two,
+    // desktop four, five once xl has the room.
+    const grids = [...container.querySelectorAll<HTMLElement>("[class*='xl:grid-cols-5']")];
+    expect(grids).toHaveLength(2);
+    for (const grid of grids) {
+      expect(grid).toHaveClass("grid-cols-1", "md:grid-cols-2", "lg:grid-cols-4", "xl:grid-cols-5");
+    }
+  });
+
+  it("closes the last row of a strip instead of leaving empty cells", () => {
+    const { container } = renderPage();
+    // Six numbers in five columns (four at lg): the closing card takes the cells
+    // it would otherwise leave blank.
+    const delivery = [...container.querySelectorAll<HTMLElement>("[class*='xl:col-span-5']")];
+    expect(delivery).toHaveLength(1);
+    expect(delivery[0]).toHaveClass("lg:col-span-3");
+    // Four hiring numbers in five columns leave one cell: the closing card takes two.
+    expect(container.querySelectorAll("[class*='xl:col-span-2']")).toHaveLength(1);
   });
 
   it("lists all nine ledgers under their two groups, with the commerce counts", () => {
@@ -163,6 +197,9 @@ describe("OverviewPage", () => {
     // people), so the group is named once per band rather than per row.
     expect(within(section).getByRole("heading", { name: "Commerce" })).toBeInTheDocument();
     expect(within(section).getByRole("heading", { name: "People" })).toBeInTheDocument();
+    // The band total says what it counts — rows entered, not money, not ledgers.
+    expect(within(section).getByText("· 18 items")).toBeInTheDocument();
+    expect(within(section).getByText("· 10 items")).toBeInTheDocument();
     for (const [label, count] of [
       ["Creators", "7"],
       ["Clients", "3"],
@@ -263,10 +300,11 @@ describe("OverviewPage", () => {
     ]) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
-    // A zero is still a zero, and the missing number names what actually has to
-    // be entered: time to hire reads the hire date, so it asks for a hire
-    // rather than for more candidates.
-    expect(screen.getByText("None yet")).toBeInTheDocument();
+    // A zero is still a zero (no glyph under it), and the missing number names
+    // what actually has to be entered: time to hire reads the hire date, so it
+    // asks for a hire rather than for more candidates.
+    expect(screen.queryByText("None yet")).toBeNull();
+    expect(screen.queryByText("—")).toBeNull();
     expect(
       screen.getByText(
         "Nobody has been hired through the ledger yet, so there is no hire date to measure against.",
@@ -314,6 +352,8 @@ describe("OverviewPage", () => {
         "Nobody has been hired through the ledger yet, so there is no hire date to measure against.",
       ),
     ).toBeInTheDocument();
+    // The band's title carries its own count, in the ledger groups' form.
+    expect(within(hiring).getByText("· 4 items")).toBeInTheDocument();
   });
 
   it("does not draw the hiring numbers twice on the ledger tab", () => {

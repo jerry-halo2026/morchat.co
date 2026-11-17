@@ -19,8 +19,11 @@
       "USD": "$"
     }
   },
+  "empty": {
+    "value": "—"
+  },
+  "group_total": "· {{count}} items",
   "metric_value": {
-    "zero": "None yet",
     "samples": "of {{count}} rows"
   },
   "metric": {

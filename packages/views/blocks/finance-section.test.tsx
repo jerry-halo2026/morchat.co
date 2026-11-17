@@ -69,6 +69,19 @@ afterEach(() => {
 });
 
 describe("FinanceSection", () => {
+  it("draws its five figures into the workbench's KPI grid", async () => {
+    const { container } = renderSection();
+    expect(await screen.findByText("Signed this month")).toBeInTheDocument();
+
+    // Same column rule as the metric strips, so the money block's tiles line up
+    // with the numbers above them: phones one, md two, desktop four, xl five.
+    const grid = container.querySelector<HTMLElement>("[class*='xl:grid-cols-5']");
+    expect(grid).toHaveClass("grid-cols-1", "md:grid-cols-2", "lg:grid-cols-4", "xl:grid-cols-5");
+    // Five figures in four desktop columns: the closing card takes the rest of
+    // the row rather than leaving three empty cells beside it.
+    expect(container.querySelectorAll("[class*='lg:col-span-4']")).toHaveLength(1);
+  });
+
   it("prints the stated figures: money, the percent at the display scale, the age", async () => {
     const { container } = renderSection();
 
@@ -131,8 +144,10 @@ describe("FinanceSection", () => {
 
     expect(await screen.findByText("Gross margin")).toBeInTheDocument();
 
-    // Five cells, five dashes: a figure with no rows behind it is not a 0.
+    // Five cells, five dashes: a figure with no rows behind it is not a 0, and
+    // the dash is the workbench's one glyph for that (`blocks.empty.value`).
     expect(screen.getAllByText("—")).toHaveLength(5);
+    expect(screen.queryByText("None yet")).toBeNull();
     expect(container).not.toHaveTextContent("¥0");
     expect(container).not.toHaveTextContent("0%");
 

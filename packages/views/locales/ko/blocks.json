@@ -19,8 +19,11 @@
       "USD": "$"
     }
   },
+  "empty": {
+    "value": "—"
+  },
+  "group_total": "· {{count}}개",
   "metric_value": {
-    "zero": "아직 없음",
     "samples": "{{count}}건 기준"
   },
   "metric": {

@@ -19,8 +19,11 @@
       "USD": "$"
     }
   },
+  "empty": {
+    "value": "—"
+  },
+  "group_total": "· {{count}} 項",
   "metric_value": {
-    "zero": "暫無",
     "samples": "統計 {{count}} 筆"
   },
   "metric": {

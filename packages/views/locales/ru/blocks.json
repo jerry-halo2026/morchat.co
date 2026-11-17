@@ -19,8 +19,11 @@
       "USD": "$"
     }
   },
+  "empty": {
+    "value": "—"
+  },
+  "group_total": "· {{count}} шт.",
   "metric_value": {
-    "zero": "Пока нет",
     "samples": "по {{count}} строкам"
   },
   "metric": {

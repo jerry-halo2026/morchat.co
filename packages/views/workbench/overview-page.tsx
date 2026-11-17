@@ -182,6 +182,11 @@ export function OverviewPage() {
                 <section aria-label={t(($) => $.overview.hr_metrics)} className="space-y-2">
                   <div className="flex h-7 items-center gap-2">
                     <h2 className="text-body font-medium">{t(($) => $.overview.hr_metrics)}</h2>
+                    {/* The strip's own count, in the same "· N items" form the
+                        ledger groups use: four numbers, not four thousand. */}
+                    <span className="text-caption tabular-nums text-muted-foreground">
+                      {t(($) => $.group_total, { count: HR_METRIC_IDS.length })}
+                    </span>
                   </div>
                   <MetricRow
                     wsId={wsId}
