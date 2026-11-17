@@ -27,12 +27,30 @@
     "hr_analysis": "Analyse RH"
   },
   "hr": {
+    
     "recruit": {
       "empty_title": "Aucun poste ouvert",
       "empty_description": "Chaque poste ouvert et l'avancement de sa recherche.",
-      "action": "Nouveau poste"
-    },
-    "resumes": {
+      "action": "Nouveau poste",
+      "board_label": "Tableau des candidats",
+      "job_label": "Poste",
+      "closed_label": "Clôturé",
+      "readonly_hint": "Vous pouvez consulter ce tableau mais pas déplacer les candidats.",
+      "reject": "Écarter",
+      "restore": "Rétablir",
+      "delete": "Supprimer",
+      "cancel": "Annuler",
+      "delete_confirm": "Supprimer ce candidat ?",
+      "test_scheduled": "Test planifié",
+      "resume_empty": "Pas encore de CV",
+      "interviews_empty": "Aucun entretien",
+      "tab": {
+        "profile": "Profil",
+        "resume": "CV",
+        "interviews": "Entretiens",
+        "review": "Évaluation"
+      }
+    },    "resumes": {
       "empty_title": "Aucune candidature",
       "empty_description": "Les candidatures à lire et celles déjà triées.",
       "action": "Ajouter une candidature"

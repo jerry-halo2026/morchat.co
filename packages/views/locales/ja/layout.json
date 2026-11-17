@@ -27,12 +27,30 @@
     "hr_analysis": "人事分析"
   },
   "hr": {
+    
     "recruit": {
-      "empty_title": "募集中のポジションはありません",
-      "empty_description": "募集中のポジションと、それぞれの進み具合。",
-      "action": "ポジションを作成"
-    },
-    "resumes": {
+      "empty_title": "募集中の職種はありません",
+      "empty_description": "募集中の職種と、選考の進み具合。",
+      "action": "職種を作成",
+      "board_label": "候補者ボード",
+      "job_label": "募集職種",
+      "closed_label": "終了",
+      "readonly_hint": "このボードは閲覧できますが、候補者は移動できません。",
+      "reject": "不採用",
+      "restore": "戻す",
+      "delete": "削除",
+      "cancel": "キャンセル",
+      "delete_confirm": "この候補者を削除しますか？",
+      "test_scheduled": "筆記試験を予定済み",
+      "resume_empty": "職務経歴書の本文がまだありません",
+      "interviews_empty": "面接はまだありません",
+      "tab": {
+        "profile": "プロフィール",
+        "resume": "職務経歴書",
+        "interviews": "面接",
+        "review": "評価"
+      }
+    },    "resumes": {
       "empty_title": "応募者はまだいません",
       "empty_description": "選考待ちの応募書類と、すでに選考したもの。",
       "action": "応募者を追加"

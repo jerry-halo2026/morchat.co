@@ -27,12 +27,30 @@
     "hr_analysis": "人事分析"
   },
   "hr": {
+    
     "recruit": {
-      "empty_title": "还没有招聘岗位",
-      "empty_description": "每个在招岗位，以及它的招聘推进到哪一步。",
-      "action": "新建岗位"
-    },
-    "resumes": {
+      "empty_title": "还没有在招职位",
+      "empty_description": "每个在招职位，以及它的招聘进展。",
+      "action": "新建职位",
+      "board_label": "候选人看板",
+      "job_label": "职位",
+      "closed_label": "已结束",
+      "readonly_hint": "你可以查看这个看板，但不能挪动候选人。",
+      "reject": "淘汰",
+      "restore": "恢复",
+      "delete": "删除",
+      "cancel": "取消",
+      "delete_confirm": "确定删除这位候选人？",
+      "test_scheduled": "已安排笔试",
+      "resume_empty": "还没有简历正文",
+      "interviews_empty": "还没有面试",
+      "tab": {
+        "profile": "档案",
+        "resume": "简历",
+        "interviews": "面试",
+        "review": "评价"
+      }
+    },    "resumes": {
       "empty_title": "还没有简历",
       "empty_description": "等待筛选的简历，以及已经筛过的。",
       "action": "新增简历"

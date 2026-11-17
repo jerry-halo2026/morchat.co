@@ -27,12 +27,30 @@
     "hr_analysis": "HR analytics"
   },
   "hr": {
+    
     "recruit": {
       "empty_title": "No open roles yet",
       "empty_description": "Every open role and how far its search has come.",
-      "action": "New role"
-    },
-    "resumes": {
+      "action": "New role",
+      "board_label": "Candidate board",
+      "job_label": "Role",
+      "closed_label": "Closed",
+      "readonly_hint": "You can read this board but not move candidates.",
+      "reject": "Reject",
+      "restore": "Restore",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "delete_confirm": "Delete this candidate?",
+      "test_scheduled": "Assessment scheduled",
+      "resume_empty": "No résumé text yet",
+      "interviews_empty": "No interviews yet",
+      "tab": {
+        "profile": "Profile",
+        "resume": "Résumé",
+        "interviews": "Interviews",
+        "review": "Review"
+      }
+    },    "resumes": {
       "empty_title": "No applications yet",
       "empty_description": "Applications waiting to be read, and the ones already screened.",
       "action": "Add application"

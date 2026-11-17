@@ -27,12 +27,30 @@
     "hr_analysis": "인사 분석"
   },
   "hr": {
+    
     "recruit": {
-      "empty_title": "아직 채용 공고가 없습니다",
-      "empty_description": "진행 중인 채용 공고와 각 공고의 단계.",
-      "action": "공고 만들기"
-    },
-    "resumes": {
+      "empty_title": "모집 중인 직무가 없습니다",
+      "empty_description": "모집 중인 직무와 채용 진행 상황.",
+      "action": "직무 만들기",
+      "board_label": "후보자 보드",
+      "job_label": "직무",
+      "closed_label": "종료",
+      "readonly_hint": "이 보드는 볼 수 있지만 후보자를 옮길 수는 없습니다.",
+      "reject": "불합격",
+      "restore": "복원",
+      "delete": "삭제",
+      "cancel": "취소",
+      "delete_confirm": "이 후보자를 삭제할까요?",
+      "test_scheduled": "필기 시험 예정됨",
+      "resume_empty": "이력서 본문이 아직 없습니다",
+      "interviews_empty": "면접이 아직 없습니다",
+      "tab": {
+        "profile": "프로필",
+        "resume": "이력서",
+        "interviews": "면접",
+        "review": "평가"
+      }
+    },    "resumes": {
       "empty_title": "아직 이력서가 없습니다",
       "empty_description": "검토를 기다리는 이력서와 이미 검토한 이력서.",
       "action": "이력서 추가"

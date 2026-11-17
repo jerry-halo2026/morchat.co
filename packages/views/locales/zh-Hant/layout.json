@@ -27,12 +27,30 @@
     "hr_analysis": "人事分析"
   },
   "hr": {
+    
     "recruit": {
-      "empty_title": "還沒有招聘職缺",
-      "empty_description": "每個在招職缺，以及它的招募推進到哪一步。",
-      "action": "新增職缺"
-    },
-    "resumes": {
+      "empty_title": "還沒有在招職位",
+      "empty_description": "每個在招職位，以及它的招募進展。",
+      "action": "新增職位",
+      "board_label": "候選人看板",
+      "job_label": "職位",
+      "closed_label": "已結束",
+      "readonly_hint": "你可以檢視這個看板，但不能移動候選人。",
+      "reject": "淘汰",
+      "restore": "恢復",
+      "delete": "刪除",
+      "cancel": "取消",
+      "delete_confirm": "確定刪除這位候選人？",
+      "test_scheduled": "已安排筆試",
+      "resume_empty": "還沒有履歷正文",
+      "interviews_empty": "還沒有面試",
+      "tab": {
+        "profile": "檔案",
+        "resume": "履歷",
+        "interviews": "面試",
+        "review": "評價"
+      }
+    },    "resumes": {
       "empty_title": "還沒有履歷",
       "empty_description": "等待篩選的履歷，以及已經篩過的。",
       "action": "新增履歷"

@@ -27,12 +27,30 @@
     "hr_analysis": "Análisis de RR. HH."
   },
   "hr": {
+    
     "recruit": {
-      "empty_title": "Aún no hay vacantes",
-      "empty_description": "Cada vacante abierta y en qué punto está su búsqueda.",
-      "action": "Nueva vacante"
-    },
-    "resumes": {
+      "empty_title": "Aún no hay puestos abiertos",
+      "empty_description": "Cada puesto abierto y el avance de su búsqueda.",
+      "action": "Nuevo puesto",
+      "board_label": "Tablero de candidatos",
+      "job_label": "Puesto",
+      "closed_label": "Cerrada",
+      "readonly_hint": "Puedes ver este tablero pero no mover candidatos.",
+      "reject": "Descartar",
+      "restore": "Restaurar",
+      "delete": "Eliminar",
+      "cancel": "Cancelar",
+      "delete_confirm": "¿Eliminar este candidato?",
+      "test_scheduled": "Prueba programada",
+      "resume_empty": "Aún no hay CV",
+      "interviews_empty": "Aún no hay entrevistas",
+      "tab": {
+        "profile": "Perfil",
+        "resume": "CV",
+        "interviews": "Entrevistas",
+        "review": "Evaluación"
+      }
+    },    "resumes": {
       "empty_title": "Aún no hay candidaturas",
       "empty_description": "Candidaturas por leer y las ya cribadas.",
       "action": "Añadir candidatura"

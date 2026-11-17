@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   HR_PAGE_ORDER,
   RAIL_SPACES,
@@ -29,6 +30,24 @@ import {
  * asserted here is the wiring, not any page's content.
  */
 
+// A workspace id has to exist before a routed page can ask for one. The id is
+// never used: every query below stays pending or errors, which is all a
+// registration test needs.
+vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
+
+// The reader's role decides whether a page offers its write actions. "member"
+// keeps every page on its read path, which is what a registration test wants.
+vi.mock("@morechat/core/auth", () => ({
+  useAuthStore: (selector?: (state: { user: { id: string } }) => unknown) => {
+    const state = { user: { id: "user-1" } };
+    return selector ? selector(state) : state;
+  },
+}));
+
+vi.mock("@morechat/core/permissions", () => ({
+  useCurrentMember: () => ({ userId: "user-1", role: "member", member: null, isLoading: false }),
+}));
+
 /** A navigation adapter with nothing behind it: these pages do not navigate. */
 function adapter(pathname: string): NavigationAdapter {
   return {
@@ -42,38 +61,47 @@ function adapter(pathname: string): NavigationAdapter {
   };
 }
 
+/**
+ * Wraps a page in the providers a routed HR page needs. Pages that read data
+ * need a query client; its queries never resolve here, which is the point —
+ * this suite asserts registration (a heading appears), not any page's content.
+ */
 function renderAt(ui: ReactElement, pathname = "/acme/hr/recruit") {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+  });
   return renderWithI18n(
-    <WorkspaceSlugProvider slug="acme">
-      <NavigationProvider value={adapter(pathname)}>{ui}</NavigationProvider>
-    </WorkspaceSlugProvider>,
+    <QueryClientProvider client={client}>
+      <WorkspaceSlugProvider slug="acme">
+        <NavigationProvider value={adapter(pathname)}>{ui}</NavigationProvider>
+      </WorkspaceSlugProvider>
+    </QueryClientProvider>,
   );
 }
 
-// Page component, its label in the nav (en bundle), and the empty state's one
-// action. The label doubles as the page's own heading: a page is named the
-// same in the column that lists it and in its header.
+// Page component and its label in the nav (en bundle). The label doubles as the
+// page's own heading: a page is named the same in the column that lists it and
+// in its header.
 const PAGES = [
-  ["recruit", HrRecruitPage, "Recruiting", "New role"],
-  ["resumes", HrResumesPage, "Resumes", "Add application"],
-  ["interviews", HrInterviewsPage, "Interviews", "Schedule interview"],
-  ["scores", HrScoresPage, "Scorecard", "Add score"],
-  ["tests", HrTestsPage, "Assessments", "New assessment"],
-  ["employees", HrEmployeesPage, "Employees", "Add employee"],
-  ["offboard", HrOffboardPage, "Offboarding", "Start offboarding"],
-  ["files", HrFilesPage, "Files", "Upload file"],
-  ["analysis", HrAnalysisPage, "HR analytics", "New report"],
+  ["recruit", HrRecruitPage, "Recruiting"],
+  ["resumes", HrResumesPage, "Resumes"],
+  ["interviews", HrInterviewsPage, "Interviews"],
+  ["scores", HrScoresPage, "Scorecard"],
+  ["tests", HrTestsPage, "Assessments"],
+  ["employees", HrEmployeesPage, "Employees"],
+  ["offboard", HrOffboardPage, "Offboarding"],
+  ["files", HrFilesPage, "Files"],
+  ["analysis", HrAnalysisPage, "HR analytics"],
 ] as const;
 
 describe("HR routes", () => {
-  it.each(PAGES)(
-    "renders the %s page with its own header and empty state",
-    (_page, Page, title, action) => {
-      renderAt(<Page />);
-      expect(screen.getByRole("heading", { level: 1, name: title })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: action })).toBeInTheDocument();
-    },
-  );
+  // Registration only: each route opens and names itself. A page's empty state
+  // and its actions belong to that page's own suite, where data can be seeded —
+  // here the queries never resolve, so a header is the honest assertion.
+  it.each(PAGES)("renders the %s page with its own header", (_page, Page, title) => {
+    renderAt(<Page />);
+    expect(screen.getByRole("heading", { level: 1, name: title })).toBeInTheDocument();
+  });
 });
 
 describe("HR panel", () => {
