@@ -404,5 +404,52 @@
     "failed": "issue 没能创建，再试一次。",
     "issue_title": "梳理候选人：{{name}}",
     "issue_body": "候选人：{{name}}\n应聘岗位：{{job}}\n当前阶段：{{stage}}\n期望薪资：{{salary}}\n岗位关键词：{{keywords}}\n学历要求：{{edu}}\n经验要求：{{years}}\n\n请针对该岗位输出这位候选人的要点卡，并给出要点卡引出的面试问题。"
+  },
+  "collab": {
+    "field": {
+      "creator": "达人",
+      "stage": "阶段",
+      "amount": "合同金额",
+      "fee": "达人服务费",
+      "schedule": "排期",
+      "settlement": "结算方式",
+      "issue": "履约任务"
+    },
+    "action": {
+      "create_issue": "建履约任务",
+      "open_issue": "打开任务"
+    },
+    "issue_created": "履约任务已创建",
+    "issue_failed": "履约任务没建成，请重试。",
+    "issue_title": "履约：{{creator}} × {{client}}",
+    "issue_body": "合作单：{{id}}\n金额：{{amount}}\n排期：{{schedule}}\n\n按这份合作单完成交付，发布后登记发布记录。",
+    "settlement_mode": {
+      "flat": "一口价",
+      "cps": "按成交分成（CPS）",
+      "cpa": "按行动计费（CPA）",
+      "barter": "置换"
+    }
+  },
+  "publish": {
+    "title": "登记发布记录",
+    "field": {
+      "url": "链接",
+      "title": "标题",
+      "published_at": "发布时间",
+      "platform": "平台"
+    },
+    "action": {
+      "submit": "登记"
+    },
+    "done": "发布记录已登记",
+    "conflict": "这位达人已有同样链接的发布记录。",
+    "failed": "发布记录没存上，请重试。"
+  },
+  "creator": {
+    "sheet": {
+      "title": "达人详情",
+      "posts": "发布记录",
+      "no_posts": "还没有发布记录"
+    }
   }
 }

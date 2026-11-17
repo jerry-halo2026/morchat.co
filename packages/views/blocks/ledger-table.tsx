@@ -38,10 +38,12 @@ import { useLocale, useT } from "../i18n";
 import { CollectionPageState } from "../layout/collection-page";
 import { CollectionList, type CollectionColumn } from "../layout/collection-list";
 import { AiDispatchButton } from "./ai-dispatch";
+import { CollabSheet } from "./collab-sheet";
 import type { HrLedgerDomain, LedgerDomain } from "./data";
 import { ImportSheet } from "./import-sheet";
 import { HireDialog } from "./hire-dialog";
 import { scoreCandidate, type MatchReason, type MatchResult } from "./match-score";
+import { CreatorSheet } from "./publish-dialog";
 import { RecordForm } from "./record-form";
 import { RecordSheet } from "./record-sheet";
 import { ResumeUpload } from "./resume-upload";
@@ -95,9 +97,10 @@ interface LedgerTableCommon {
  * and an interview's interviewer show the id's short form rather than
  * pretending to know a name.
  *
- * A people row is a record: activating it opens the detail sheet for that row
+ * A row is a record: activating it opens the detail sheet for that row
  * (`onRowClick` overrides where activation goes, for a page that would rather
- * navigate). The five commerce ledgers have no detail sheet yet and stay inert.
+ * navigate). Creators and collabs have a sheet of their own (`CreatorSheet`,
+ * `CollabSheet`); clients, briefs and settlements have none yet and stay inert.
  */
 export type LedgerTableProps = LedgerTableCommon &
   (
@@ -136,6 +139,12 @@ export function LedgerTable(props: LedgerTableProps) {
   const [candidateDetail, setCandidateDetail] = useState<HrCandidate | null>(null);
   const [interviewDetail, setInterviewDetail] = useState<HrInterview | null>(null);
   const [employeeDetail, setEmployeeDetail] = useState<HrEmployeeProfile | null>(null);
+  // The two commerce rows that carry a detail sheet of their own: a collab is
+  // where work starts (`CollabSheet`), a creator is where the evidence behind
+  // their numbers is (`CreatorSheet`). The other three commerce ledgers stay
+  // inert — they have no sheet yet.
+  const [collabDetail, setCollabDetail] = useState<CrmCollab | null>(null);
+  const [creatorDetail, setCreatorDetail] = useState<Creator | null>(null);
 
   /** The money glyph comes from the bundle (`unit.currency`); a currency the
    *  bundle does not carry falls back to its own code rather than a guess. */
@@ -194,15 +203,28 @@ export function LedgerTable(props: LedgerTableProps) {
         },
       ];
       return (
-        <CollectionList
-          label={label}
-          columns={columns}
-          rows={props.rows}
-          getRowId={(row) => row.id}
-          loading={loading}
-          empty={empty}
-          embedded
-        />
+        <>
+          <CollectionList
+            label={label}
+            columns={columns}
+            rows={props.rows}
+            getRowId={(row) => row.id}
+            loading={loading}
+            empty={empty}
+            embedded
+            onRowOpen={(row) => setCreatorDetail(row)}
+          />
+          {creatorDetail ? (
+            <CreatorSheet
+              wsId={wsId}
+              creator={creatorDetail}
+              open
+              onOpenChange={(next) => {
+                if (!next) setCreatorDetail(null);
+              }}
+            />
+          ) : null}
+        </>
       );
     }
     case "clients": {
@@ -331,15 +353,28 @@ export function LedgerTable(props: LedgerTableProps) {
         },
       ];
       return (
-        <CollectionList
-          label={label}
-          columns={columns}
-          rows={props.rows}
-          getRowId={(row) => row.id}
-          loading={loading}
-          empty={empty}
-          embedded
-        />
+        <>
+          <CollectionList
+            label={label}
+            columns={columns}
+            rows={props.rows}
+            getRowId={(row) => row.id}
+            loading={loading}
+            empty={empty}
+            embedded
+            onRowOpen={(row) => setCollabDetail(row)}
+          />
+          {collabDetail ? (
+            <CollabSheet
+              wsId={wsId}
+              collab={collabDetail}
+              open
+              onOpenChange={(next) => {
+                if (!next) setCollabDetail(null);
+              }}
+            />
+          ) : null}
+        </>
       );
     }
     case "settlements": {

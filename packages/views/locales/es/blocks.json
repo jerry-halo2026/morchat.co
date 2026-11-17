@@ -404,5 +404,52 @@
     "failed": "No se creó la incidencia. Inténtalo de nuevo.",
     "issue_title": "Preparar candidatura: {{name}}",
     "issue_body": "Candidato: {{name}}\nVacante: {{job}}\nEtapa: {{stage}}\nSalario previsto: {{salary}}\nPalabras clave de la vacante: {{keywords}}\nFormación requerida: {{edu}}\nExperiencia requerida: {{years}}\n\nRedacta una ficha de puntos clave de esta persona para la vacante y, después, las preguntas de entrevista que se derivan de la ficha."
+  },
+  "collab": {
+    "field": {
+      "creator": "Creador",
+      "stage": "Etapa",
+      "amount": "Importe del contrato",
+      "fee": "Honorarios del creador",
+      "schedule": "Calendario",
+      "settlement": "Liquidación",
+      "issue": "Tarea de entrega"
+    },
+    "action": {
+      "create_issue": "Crear tarea",
+      "open_issue": "Abrir tarea"
+    },
+    "issue_created": "Tarea creada",
+    "issue_failed": "No se pudo crear la tarea. Inténtalo de nuevo.",
+    "issue_title": "Entrega: {{creator}} × {{client}}",
+    "issue_body": "Colaboración: {{id}}\nImporte: {{amount}}\nCalendario: {{schedule}}\n\nEntrega esta colaboración y registra la publicación cuando salga.",
+    "settlement_mode": {
+      "flat": "Tarifa fija",
+      "cps": "CPS",
+      "cpa": "CPA",
+      "barter": "Canje"
+    }
+  },
+  "publish": {
+    "title": "Registrar publicación",
+    "field": {
+      "url": "URL",
+      "title": "Título",
+      "published_at": "Publicado el",
+      "platform": "Plataforma"
+    },
+    "action": {
+      "submit": "Registrar"
+    },
+    "done": "Publicación registrada",
+    "conflict": "Este creador ya tiene una publicación con esta URL.",
+    "failed": "No se pudo guardar la publicación. Inténtalo de nuevo."
+  },
+  "creator": {
+    "sheet": {
+      "title": "Detalles del creador",
+      "posts": "Publicaciones",
+      "no_posts": "Aún no hay publicaciones"
+    }
   }
 }

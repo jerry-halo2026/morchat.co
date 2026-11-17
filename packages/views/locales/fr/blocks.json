@@ -404,5 +404,52 @@
     "failed": "Le ticket n’a pas été créé. Réessayez.",
     "issue_title": "Préparer la candidature : {{name}}",
     "issue_body": "Candidat : {{name}}\nPoste : {{job}}\nÉtape : {{stage}}\nSalaire attendu : {{salary}}\nMots-clés du poste : {{keywords}}\nFormation requise : {{edu}}\nExpérience requise : {{years}}\n\nRédigez une fiche de points clés pour ce candidat au regard du poste, puis les questions d’entretien qu’elle suggère."
+  },
+  "collab": {
+    "field": {
+      "creator": "Créateur",
+      "stage": "Étape",
+      "amount": "Montant du contrat",
+      "fee": "Rémunération du créateur",
+      "schedule": "Calendrier",
+      "settlement": "Règlement",
+      "issue": "Tâche de livraison"
+    },
+    "action": {
+      "create_issue": "Créer la tâche",
+      "open_issue": "Ouvrir la tâche"
+    },
+    "issue_created": "Tâche créée",
+    "issue_failed": "La tâche n’a pas été créée. Réessayez.",
+    "issue_title": "Livraison : {{creator}} × {{client}}",
+    "issue_body": "Collaboration : {{id}}\nMontant : {{amount}}\nCalendrier : {{schedule}}\n\nLivrez cette collaboration et enregistrez la publication une fois en ligne.",
+    "settlement_mode": {
+      "flat": "Forfait",
+      "cps": "CPS",
+      "cpa": "CPA",
+      "barter": "Troc"
+    }
+  },
+  "publish": {
+    "title": "Enregistrer une publication",
+    "field": {
+      "url": "URL",
+      "title": "Titre",
+      "published_at": "Publié le",
+      "platform": "Plateforme"
+    },
+    "action": {
+      "submit": "Enregistrer"
+    },
+    "done": "Publication enregistrée",
+    "conflict": "Ce créateur a déjà une publication avec cette URL.",
+    "failed": "La publication n’a pas été enregistrée. Réessayez."
+  },
+  "creator": {
+    "sheet": {
+      "title": "Détails du créateur",
+      "posts": "Publications",
+      "no_posts": "Aucune publication pour l’instant"
+    }
   }
 }

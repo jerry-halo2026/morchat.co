@@ -404,5 +404,52 @@
     "failed": "issue 沒能建立，再試一次。",
     "issue_title": "梳理候選人：{{name}}",
     "issue_body": "候選人：{{name}}\n應聘職缺：{{job}}\n目前階段：{{stage}}\n期望薪資：{{salary}}\n職缺關鍵詞：{{keywords}}\n學歷要求：{{edu}}\n經驗要求：{{years}}\n\n請針對該職缺輸出這位候選人的要點卡，並給出要點卡引出的面試問題。"
+  },
+  "collab": {
+    "field": {
+      "creator": "達人",
+      "stage": "階段",
+      "amount": "合約金額",
+      "fee": "達人服務費",
+      "schedule": "排期",
+      "settlement": "結算方式",
+      "issue": "履約任務"
+    },
+    "action": {
+      "create_issue": "建立履約任務",
+      "open_issue": "開啟任務"
+    },
+    "issue_created": "履約任務已建立",
+    "issue_failed": "履約任務沒有建立成功，請重試。",
+    "issue_title": "履約：{{creator}} × {{client}}",
+    "issue_body": "合作單：{{id}}\n金額：{{amount}}\n排期：{{schedule}}\n\n依這份合作單完成交付，發布後登記發布記錄。",
+    "settlement_mode": {
+      "flat": "一口價",
+      "cps": "依成交分成（CPS）",
+      "cpa": "依行動計費（CPA）",
+      "barter": "置換"
+    }
+  },
+  "publish": {
+    "title": "登記發布記錄",
+    "field": {
+      "url": "連結",
+      "title": "標題",
+      "published_at": "發布時間",
+      "platform": "平台"
+    },
+    "action": {
+      "submit": "登記"
+    },
+    "done": "發布記錄已登記",
+    "conflict": "這位達人已有相同連結的發布記錄。",
+    "failed": "發布記錄沒有存上，請重試。"
+  },
+  "creator": {
+    "sheet": {
+      "title": "達人詳情",
+      "posts": "發布記錄",
+      "no_posts": "還沒有發布記錄"
+    }
   }
 }

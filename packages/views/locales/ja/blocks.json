@@ -404,5 +404,52 @@
     "failed": "課題を作成できませんでした。もう一度お試しください。",
     "issue_title": "応募者の整理：{{name}}",
     "issue_body": "応募者：{{name}}\n応募先：{{job}}\n現在の段階：{{stage}}\n希望給与：{{salary}}\n求人のキーワード：{{keywords}}\n学歴要件：{{edu}}\n経験要件：{{years}}\n\nこの求人に対して応募者の要点カードを作成し、そのカードから導かれる面接質問を挙げてください。"
+  },
+  "collab": {
+    "field": {
+      "creator": "クリエイター",
+      "stage": "ステージ",
+      "amount": "契約金額",
+      "fee": "クリエイター報酬",
+      "schedule": "スケジュール",
+      "settlement": "精算方法",
+      "issue": "履行タスク"
+    },
+    "action": {
+      "create_issue": "タスクを作成",
+      "open_issue": "タスクを開く"
+    },
+    "issue_created": "タスクを作成しました",
+    "issue_failed": "タスクを作成できませんでした。もう一度お試しください。",
+    "issue_title": "履行：{{creator}} × {{client}}",
+    "issue_body": "コラボレーション：{{id}}\n金額：{{amount}}\nスケジュール：{{schedule}}\n\nこのコラボレーションを納品し、公開後に投稿を登録してください。",
+    "settlement_mode": {
+      "flat": "固定報酬",
+      "cps": "成果報酬（CPS）",
+      "cpa": "行動報酬（CPA）",
+      "barter": "物々交換"
+    }
+  },
+  "publish": {
+    "title": "投稿を登録",
+    "field": {
+      "url": "URL",
+      "title": "タイトル",
+      "published_at": "公開日時",
+      "platform": "プラットフォーム"
+    },
+    "action": {
+      "submit": "登録"
+    },
+    "done": "投稿を登録しました",
+    "conflict": "このクリエイターには同じ URL の投稿がすでに登録されています。",
+    "failed": "投稿を保存できませんでした。もう一度お試しください。"
+  },
+  "creator": {
+    "sheet": {
+      "title": "クリエイター詳細",
+      "posts": "投稿",
+      "no_posts": "まだ投稿がありません"
+    }
   }
 }

@@ -404,5 +404,52 @@
     "failed": "이슈를 만들지 못했습니다. 다시 시도해 주세요.",
     "issue_title": "지원자 정리: {{name}}",
     "issue_body": "지원자: {{name}}\n지원 공고: {{job}}\n현재 단계: {{stage}}\n희망 연봉: {{salary}}\n공고 키워드: {{keywords}}\n학력 요건: {{edu}}\n경력 요건: {{years}}\n\n이 공고에 맞춰 지원자의 요점 카드를 작성하고, 그 카드에서 나오는 면접 질문을 제시하세요."
+  },
+  "collab": {
+    "field": {
+      "creator": "크리에이터",
+      "stage": "단계",
+      "amount": "계약 금액",
+      "fee": "크리에이터 비용",
+      "schedule": "일정",
+      "settlement": "정산 방식",
+      "issue": "수행 작업"
+    },
+    "action": {
+      "create_issue": "작업 만들기",
+      "open_issue": "작업 열기"
+    },
+    "issue_created": "작업을 만들었습니다",
+    "issue_failed": "작업을 만들지 못했습니다. 다시 시도해 주세요.",
+    "issue_title": "수행: {{creator}} × {{client}}",
+    "issue_body": "협업: {{id}}\n금액: {{amount}}\n일정: {{schedule}}\n\n이 협업을 납품하고 게시 후 게시물을 등록하세요.",
+    "settlement_mode": {
+      "flat": "고정 금액",
+      "cps": "성과 정산(CPS)",
+      "cpa": "액션 정산(CPA)",
+      "barter": "물물 교환"
+    }
+  },
+  "publish": {
+    "title": "게시물 등록",
+    "field": {
+      "url": "URL",
+      "title": "제목",
+      "published_at": "게시 시각",
+      "platform": "플랫폼"
+    },
+    "action": {
+      "submit": "등록"
+    },
+    "done": "게시물을 등록했습니다",
+    "conflict": "이 크리에이터에게 같은 URL의 게시물이 이미 있습니다.",
+    "failed": "게시물을 저장하지 못했습니다. 다시 시도해 주세요."
+  },
+  "creator": {
+    "sheet": {
+      "title": "크리에이터 정보",
+      "posts": "게시물",
+      "no_posts": "아직 게시물이 없습니다"
+    }
   }
 }

@@ -404,5 +404,52 @@
     "failed": "The issue wasn’t created. Try again.",
     "issue_title": "Brief candidate: {{name}}",
     "issue_body": "Candidate: {{name}}\nRole: {{job}}\nStage: {{stage}}\nExpected salary: {{salary}}\nJob keywords: {{keywords}}\nEducation required: {{edu}}\nExperience required: {{years}}\n\nWrite a brief card for this candidate against the role, then the interview questions the card implies."
+  },
+  "collab": {
+    "field": {
+      "creator": "Creator",
+      "stage": "Stage",
+      "amount": "Contract amount",
+      "fee": "Creator fee",
+      "schedule": "Schedule",
+      "settlement": "Settlement",
+      "issue": "Fulfilment task"
+    },
+    "action": {
+      "create_issue": "Create task",
+      "open_issue": "Open task"
+    },
+    "issue_created": "Task created",
+    "issue_failed": "The task wasn’t created. Try again.",
+    "issue_title": "Fulfilment: {{creator}} × {{client}}",
+    "issue_body": "Collaboration: {{id}}\nAmount: {{amount}}\nSchedule: {{schedule}}\n\nDeliver this collaboration, then log the post once it goes live.",
+    "settlement_mode": {
+      "flat": "Flat fee",
+      "cps": "CPS",
+      "cpa": "CPA",
+      "barter": "Barter"
+    }
+  },
+  "publish": {
+    "title": "Log a post",
+    "field": {
+      "url": "URL",
+      "title": "Title",
+      "published_at": "Published at",
+      "platform": "Platform"
+    },
+    "action": {
+      "submit": "Log post"
+    },
+    "done": "Post logged",
+    "conflict": "This creator already has a post with this URL.",
+    "failed": "The post wasn’t saved — try again."
+  },
+  "creator": {
+    "sheet": {
+      "title": "Creator details",
+      "posts": "Posts",
+      "no_posts": "No posts logged yet"
+    }
   }
 }
