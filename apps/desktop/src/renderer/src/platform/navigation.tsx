@@ -81,17 +81,20 @@ function tryRouteToOverlay(path: string): boolean {
  * full workspace URL, and on desktop we translate "target slug differs
  * from active" into "switch the tab-group that's visible in the TabBar".
  *
- * The target's bare Issues root (what the workspace switchers send, and where
- * web lands) resumes the workspace's last active tab instead, or Issues if it
- * has none. Any deeper path opens exactly that path. When another window
- * already shows the target workspace, that window takes the navigation.
+ * The target's landing surface (the workbench, what the workspace switchers
+ * send, and where web lands — `/{slug}/overview`; `/issues` stays an alias for
+ * callers outside this app that still spell the old landing page) resumes the
+ * workspace's last active tab instead, or the workbench if it has none. Any
+ * deeper path opens exactly that path. When another window already shows the
+ * target workspace, that window takes the navigation.
  */
 function tryRouteToOtherWorkspace(path: string): boolean {
   const targetSlug = workspaceSlugForPath(path);
   if (!targetSlug) return false;
   const { activeWorkspaceSlug, switchWorkspace } = useTabStore.getState();
   if (targetSlug === activeWorkspaceSlug) return false;
-  const resume = path === paths.workspace(targetSlug).issues();
+  const landing = paths.workspace(targetSlug);
+  const resume = path === landing.overview() || path === landing.issues();
   const openPath = resume ? undefined : path;
   if (handOffToWorkspaceWindow(targetSlug, openPath)) return true;
   switchWorkspace(targetSlug, openPath);

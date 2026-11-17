@@ -50,10 +50,13 @@ export function isMyAgentsSearch(searchParams: URLSearchParams): boolean {
 function workspaceScoped(slug: string) {
   const ws = `/${encode(slug)}`;
   return {
-    root: () => `${ws}/issues`,
+    // The workspace lands on the workbench, so `root` is the workbench: a
+    // "back to the workspace" button that jumped to the issue list would undo
+    // the default both the rail and the post-auth redirect follow.
+    root: () => `${ws}/overview`,
     usage: () => `${ws}/usage`,
-    // The workbench: one department's metrics, its ledgers and its team.
-    // Filing it under the `work` space keeps the Work panel as the left column.
+    // The workbench: one department's metrics, its ledgers and its team. It
+    // owns its own rail space now; the Work panel is still its left column.
     overview: () => `${ws}/overview`,
     issues: () => `${ws}/issues`,
     issueDetail: (id: string) => `${ws}/issues/${encode(id)}`,
