@@ -167,8 +167,9 @@ func TestOffboardHandoverCeiling(t *testing.T) {
 }
 
 // TestOffboardAdvanceWritesLeaveDate covers ③ and ④: the machine walks
-// apply → handover → done, the `done` step writes `leave_date` from `last_day`,
-// and a finished record cannot advance again.
+// apply → handover → done, the `done` step writes `leave_date` from `last_day`
+// (and a later correction of `last_day` rewrites it), and a finished record cannot
+// advance again.
 func TestOffboardAdvanceWritesLeaveDate(t *testing.T) {
 	employee := createOffboardEmployeeFixture(t)
 	created := createHrOffboardingFixture(t, employee.ID, nil, http.StatusCreated)
@@ -219,6 +220,22 @@ func TestOffboardAdvanceWritesLeaveDate(t *testing.T) {
 	if events.count(eventHrEmployeeProfileChanged) != 1 {
 		t.Fatalf("hr_employee_profile:changed published %d times, want 1",
 			events.count(eventHrEmployeeProfileChanged))
+	}
+
+	// The manual repair path: `last_day` is the single source, so fixing it on a
+	// done record rewrites the leave date in the same request.
+	req = workbenchRequest(t, "PATCH", "/api/workbench/hr/offboardings/"+created.ID, map[string]any{
+		"last_day": "2027-01-15",
+	}, testUserID)
+	req = withURLParam(req, "offboardingId", created.ID)
+	corrected := testutil.Decode[HrOffboardingResponse](t, testHandler.UpdateHrOffboarding, req, http.StatusOK)
+	if corrected.LastDay != "2027-01-15" {
+		t.Fatalf("last_day = %q after the correction, want 2027-01-15", corrected.LastDay)
+	}
+	if n := dbfx.Count(t,
+		`SELECT count(*) FROM hr_employee_profile WHERE id = $1 AND leave_date = DATE '2027-01-15'`,
+		employee.ID); n != 1 {
+		t.Fatalf("fixing a done record's last_day did not rewrite leave_date")
 	}
 
 	// ④ A finished record cannot advance, and cannot be cancelled either.

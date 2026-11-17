@@ -1191,6 +1191,157 @@ hr_interview_guide(
 - **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举未加 `hr_question` / `hr_interview_guide`。
 - **`generate` 没有可用的真实模型回归**：`agentintegration` 之外，测试只覆盖无模型时的模板路径（`source='template'`），AI 路径的解析器由 `hrParseGuideDraft` 的单元行为保证。
 
+## 15. 离职管理契约（离职单 + 交接清单 + 离职日期）
+
+原 HR 工作台有一页「离职管理」：发起离职 → 交接清单逐项勾 → 离职文书生成 → 归档。**这一页从来没有服务端**：流程活在组件 state 里，交接清单是模板里的一个数组字面量，刷新即失。而 `hr_employee_profile`（684）只有 `hire_date` / `regular_date` / `contract_end`，**没有离职日期、没有离职原因、没有交接清单**——「谁要走了、还差什么、哪天真的走了」三个问题在库里都没有答案。
+
+这一批补的就是这三个答案：
+
+```
+hr_employee_profile（人；leave_date = 真的走了那一天，766 新增列）
+   ↓ 发起离职
+hr_offboarding.status：apply → handover → done    （cancelled 是出口）
+   ↓ handover[] 逐项勾（勾选 / 备注 / 删除）
+leave_date ← last_day（`done` 跃迁时同一事务写入）
+```
+
+关键取舍有两条：**四段是状态机，不是状态列**（§15.4）；**`last_day` 是计划，`leave_date` 是事实**，事实只由离职单在 `done` 时写（§15.5）。
+
+不做审批流、不做交接人指派、不做离职文书模板（原页那套 Word 生成）——那三件都是「谁批的 / 谁接的 / 文书长什么样」，与「这个人走没走」无关。
+
+### 15.1 迁移号段
+
+| 号 | 文件 | 内容 |
+| --- | --- | --- |
+| 766 | `766_hr_employee_leave_date` | `ALTER TABLE hr_employee_profile ADD COLUMN leave_date DATE` |
+| 767 | `767_hr_offboarding` | 表 `hr_offboarding` |
+| 768 | `768_hr_offboarding_employee_unique` | UNIQUE `(workspace_id, employee_id) WHERE archived_at IS NULL AND status <> 'cancelled'` |
+| 769 | `769_hr_offboarding_status_idx` | `hr_offboarding (workspace_id, status)` |
+| 770 | `770_hr_offboarding_owner_idx` | `hr_offboarding (workspace_id, owner_member_id)` |
+| 771 | `771_hr_offboarding_employee_idx` | `hr_offboarding (workspace_id, employee_id)` |
+
+三个索引全部是单语句 `CREATE [UNIQUE] INDEX CONCURRENTLY`，up 方向逐个登记在 `server/cmd/migrate/main.go` 的 `concurrentIndexCleanups`；down 方向只有 `DROP INDEX CONCURRENTLY IF EXISTS`（不重建索引，故不进 down map）。766 是列变更、767 是建表，都在事务内，各自一个文件。
+
+### 15.2 表
+
+```sql
+-- 767
+hr_offboarding(
+  id UUID PK, workspace_id UUID NOT NULL,
+  employee_id UUID NOT NULL,              -- 指向 hr_employee_profile.id
+  status TEXT NOT NULL DEFAULT 'apply'
+    CHECK (status IN ('apply','handover','done','cancelled')),
+  last_day DATE NOT NULL,                 -- 计划离职日
+  reason TEXT,                            -- 离职原因，自由文本
+  kind TEXT NOT NULL DEFAULT 'voluntary'
+    CHECK (kind IN ('voluntary','involuntary','contract_end','other')),
+  handover JSONB NOT NULL DEFAULT '[]'::jsonb,   -- [{key,label,done,note}]
+  cert_done BOOLEAN NOT NULL DEFAULT false,      -- 离职证明已开
+  note TEXT, owner_member_id UUID, created_by UUID,
+  created_at, updated_at, archived_at)
+```
+
+规则与 B0 一致：无外键、无级联、`archived_at` 软删、每个索引单独一个并发文件。
+
+**`last_day` 是 NOT NULL**：没有日期的离职单排不出交接顺序，也答不出「这人什么时候不再是我们的人」。契约原文只写了 `DATE`，这里收紧为必填——空值的语义没有别的解释，而 NULL 会让「在办」列表出现一张没有时间的单子。
+
+**`kind` 是 NOT NULL 的枚举**：「为什么走」要能聚合，自由文本 `reason` 回答不了「今年主动离职几位」。两者并存：枚举是报表的维度，`reason` 是人写下的那句话。
+
+**`handover` 是 JSONB 数组而不是子表**：一份清单就是十几条，整体读、整体写，页面就地勾选；子表会为一个没人按元素查询的列表加上行 id、排序列和删除路径。服务端在写入前校验形状（最多 40 条、每条 `label` 非空、`key` 在单内唯一），所以这一列没有 CHECK——CHECK 说不出「数组里每个元素的 `label` 字段」。
+
+**`cert_done` 是列而不是 `handover` 里的一项**：「离职证明已开」是这套流程里唯一有法律答复的步骤，原页也是单独印的；埋进清单会让「开过没有」变成一个下标。
+
+**`leave_date` 可空**：没走的人没有离职日期，NULL 恰好就是这个答案（与 `contract_end` 的 NULL=无固定期限不同）。它没有索引：花名册按部门 / 成员过滤，「谁走了」是 `leave_date IS NULL` 在这个规模的表上走既有的 `(workspace_id, …)` 索引就够。
+
+### 15.3 REST（基址 `/api/workbench/hr/offboardings`）
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET/POST | `/offboardings` | 列表（`?status=&employee_id=&limit=`）/ 新建，**201** |
+| GET/PATCH/DELETE | `/offboardings/{offboardingId}` | 单条 / 改 / 软删 |
+| POST | `/offboardings/{offboardingId}/advance` | body `{}`；`apply → handover → done`，**200** |
+| POST | `/offboardings/{offboardingId}/cancel` | → `cancelled`，**200** |
+| POST | `/offboardings/{offboardingId}/handover` | 追加一项，**201**，返回整张单 |
+| PATCH/DELETE | `/offboardings/{offboardingId}/handover/{index}` | 勾选 / 改备注，或删掉该条；**200**，返回整张单 |
+
+包裹与序列化沿用 §3.1：列表 `{ offboardings: T[], total }`，`total` = **本页条数**；单条不包裹；删除 204。`limit` 默认 50、上限 200（`workbenchLimit`）。
+
+- **`handover` 永远是数组，不是 null**：缺省 `[]`。清单面板直接 map。
+- **`handover` 最多 40 条**：创建时超限、以及往满清单追加，都是 **400**（不是静默丢弃）。`label` 为空 → 400。
+- **同一员工重复发起 → 409**（768）。被 `cancel` 掉的那张不再占位，所以「重新发起」就是再 POST 一次（§15.4）。
+- **`status` 不能通过 PATCH 改**：PATCH 回传当前值允许（客户端可以整行回传），换成别的值 → **400**，提示走 `advance` / `cancel`。原因是那两个路由才是带副作用的（`done` 要回写 `leave_date`），一个裸列更新会跳过它。
+- **创建永远落在 `apply`**：状态机只有两个入口（这个 INSERT 与 `cancel`），`{"status":"done"}` 是 **400**，不是捷径。
+- **`employee_id` 不可改**：PATCH 回传同一个值允许，换人 → 400（那会改写「这是谁的离职」）。
+- **三个交接路由都返回整张单**：删除第 3 条会把 4..n 重编号，只回 204 等于让前端猜新顺序。与 §14.3 同一处偏离。
+- **`advance` 的响应是 `{ offboarding, employee }`**：`employee` 只在进入 `done` 时有值（带 `leave_date`），上一步不动员工档案，所以是 `null`——让前端去猜「这份档案里的离职日期是不是刚写的」不如直接不给。
+- **非法跃迁一律 409**：`done → handover`、`done → advance`、`cancelled → advance`、`done` 再 `cancel`，以及并发下第二个写者的「这张单已经动过了」。
+- **`done` / `cancelled` 之后交接清单封闭**：再追加 / 勾选 → 409（完成后的清单是记录，不是草稿纸）。
+
+### 15.4 状态机：为什么 `status` 不是可写列
+
+四段就是原页的「发起 → 交接 → 归档」加一个出口：
+
+| 当前 | `advance` | `cancel` | PATCH 改 `status` | 交接项路由 |
+| --- | --- | --- | --- | --- |
+| `apply` | → `handover` | → `cancelled` | 400 | 可写 |
+| `handover` | → `done` + 回写 | → `cancelled` | 400 | 可写 |
+| `done` | 409 | 409 | 400 | 409 |
+| `cancelled` | 409 | 409 | 400 | 409 |
+
+三条实现约束：
+
+1. **跃迁是条件更新**：`TransitionHrOffboarding … WHERE status = from_status`。两个人同时点「下一步」、或者页面停留在旧状态，第二个写者拿到 0 行而不是一次静默的重复跃迁——handler 把 0 行翻成 409。
+2. **`done` 是唯一带副作用的跃迁**：`status` 与 `hr_employee_profile.leave_date` 在同一事务里写（`SetHrEmployeeLeaveDate`），任何一半失败都整体回滚。「单子完成了」和「人已经走了」不能分家。
+3. **`cancelled` 是终态但释放唯一键**：768 的部分索引带 `AND status <> 'cancelled'`，所以取消后可以重新发起同一员工的离职。契约原文写的是 `(workspace_id, employee_id) WHERE archived_at IS NULL`；按字面实现会让「取消后重新发起」必然撞 409，与「取消的这张只是那次尝试的历史」这条需求矛盾，因此唯一键的谓词把 `cancelled` 一并排除（handler 的 `CountHrOffboardingConflicts` 用同一谓词）。
+
+### 15.5 回写：`last_day` 与 `leave_date` 谁说了算
+
+- `hr_offboarding.last_day` 是**计划**，由发起离职的人填；
+- `hr_employee_profile.leave_date` 是**事实**，只在离职单进入 `done` 时由它写入，同一事务；
+- **手工修正走这条线**：把已完成单的 `last_day` 改对（PATCH），同一事务把 `leave_date` 跟着改；删掉离职单不会撤销 `leave_date`（删掉的是文书，人并没有回来）。
+
+因此这一批**没有**给 `PATCH /employees` 加 `leave_date`（见 §15.8）：两个可写副本是数据不一致的来源，而唯一写入口让「人事档案上的离职日」永远等于某张离职单的 `last_day`。
+
+### 15.6 权限
+
+写判定与 B0 同一套（`workbenchCanWrite` / `workbenchOwnerForCreate` / `workbenchOwnerForUpdate`），只有一处收紧：
+
+| 路由 | 判定 |
+| --- | --- |
+| GET（列表 / 单条） | 任意工作区成员 |
+| POST / PATCH / DELETE / 交接三项 | 单自己的 `owner_member_id`；`owner`/`admin` 全写，`member` 只写自己的 |
+| **`advance` / `cancel`** | **仅 `owner` / `admin`** |
+
+`advance` / `cancel` 收紧的理由：这两条路由决定「这个人还在不在编」，也就是花名册和人数统计的答案。离职这件事，`member` 不能给自己办，也不能替同事办——发起、整理交接、勾清单都可以，闭环必须落到 owner/admin 手上。
+
+新建时的 owner 默认是**发起人**（与 §10 一致）；owner/admin 可以 PATCH 改写 `owner_member_id`，把单子交办给实际办事的人。`member` 指定别人当 owner 直接 **403**。
+
+### 15.7 事件与 query key
+
+事件（`workbench_offboard.go` 内定义，写成功后发出）：
+
+- `hr_offboarding:changed`，payload `{ "id": "<离职单 id>" }` —— 每次写入（含三个交接项路由，改的是离职单那一行）；
+- `hr_employee_profile:changed`，payload `{ "id": "<档案 id>" }` —— 只在真正写了 `leave_date` 时发（`done` 跃迁、以及已完成单的 `last_day` 修正）。
+
+```
+["offboard", wsId, "offboardings", filters]
+["offboard", wsId, "offboardings", { id }]
+```
+
+`packages/core/hr/offboard.ts`（不塞进 `hr/queries.ts` / `hr/mutations.ts`：这个域的失效规则不一样）；类型在 `packages/core/types/offboard.ts`（**不塞进 `workbench.ts`**），zod 在 `packages/core/api/schemas.ts`，`api/client.ts` 有同名方法。mutation 失效 `offboardKeys.all(wsId)` + `hrKeys.resource(wsId, "employees")` + `workbenchKeys.all(wsId)`：`done` 一次写两张表，只失效离职单会留下「单子完成了、花名册还显示在职」。
+
+### 15.8 已知债务与本批未做
+
+- **UI / views 未接入**：本批只到迁移、SQL、handler、core 类型/zod/client；`packages/views/**`、`apps/**` 不在写作用域。员工花名册页的「待建表」空态可以摘掉了。
+- **`GET /employees` 不返回 `leave_date`**：`HrEmployeeProfileResponse` 在 `workbench_hr.go`（不在本批写作用域），所以花名册接口目前看不到离职日期；本批只有 `advance → done` 的响应带 `leave_date`（`HrOffboardingEmployeeResponse`）。补法是给 `HrEmployeeProfileResponse` 加一个字段并映射 `p.LeaveDate`，一行；在那之前，前端要显示「已离职」必须读离职单列表。
+- **前端实时 patcher 未注册**：`packages/core/types/events.ts` 不在本批作用域，两个事件目前只有服务端发出，客户端靠 mutation 失效刷新。
+- **不做审批流**：没有 `pending_approval`，没有审批人、没有多级会签。四段是「流程走到哪」，不是「谁批到哪」。
+- **不做交接人指派**：`handover[]` 只有 `label` / `done` / `note`，没有「交接给谁」。指派是另一个实体（人 × 事项），一列字符串装不下，本批不做。
+- **不做离职文书模板**：原页那套 `openDocGen('leave')` 的 Word 生成不在本批；`cert_done` 只记「开过没有」。
+- **`item` 的 `label` 不可改**：改名会改写「当时交接了什么」，正确做法是删掉再加一条（保留下标级历史）。
+- **`/counts`、`/overview` 不含离职**：没有「本月在办离职」这类指标，列表 `total` 因此就是本页条数。
+- **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举未加 `hr_offboarding`。
+
 ## 9. 完成定义（DoD）
 
 一个域算完成，当且仅当：迁移可 up/down 往返、`make sqlc` 无脏 diff、handler 有权限用例、事件发出、zod 覆盖响应、`useRealtimeSync` 有 patcher、`/overview` 里对应指标从 `insufficient_data` 变为有值、页面能读能写。

@@ -625,7 +625,11 @@ func (h *Handler) UpdateHrOffboarding(w http.ResponseWriter, r *http.Request) {
 		OwnerMemberID: owner,
 	}
 
-	if current.Status != "done" {
+	// A finished record: a proposed date has a second row to keep honest. Any
+	// other edit of a done record (a note, the certificate flag) does not touch
+	// the employee file, so it does not need the transaction — and must not bump
+	// the profile's `updated_at` or wake the roster for nothing.
+	if current.Status != "done" || req.LastDay == nil {
 		updated, err := h.Queries.UpdateHrOffboarding(r.Context(), params)
 		if err != nil {
 			workbenchInternalError(w, r, "failed to update offboarding", err)
@@ -636,7 +640,6 @@ func (h *Handler) UpdateHrOffboarding(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// A finished record: the date change has a second row to keep honest.
 	tx, err := h.TxStarter.Begin(r.Context())
 	if err != nil {
 		workbenchInternalError(w, r, "failed to update offboarding", err)
