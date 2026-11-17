@@ -89,7 +89,10 @@ const TONE_DOT: Record<KanbanTone, string> = {
  */
 const NO_REORDER_PREVIEW: SortingStrategy = () => null;
 
-const COLUMN_WIDTH = "w-72";
+// Columns share the width when there is room and keep a floor when there is
+// not: a six-column board fits a 1280px window instead of hiding two columns
+// behind a horizontal scroll.
+const COLUMN_WIDTH = "w-56 min-w-44 flex-1";
 
 const ITEM_SEPARATOR = "\u0001";
 const COLUMN_SEPARATOR = "\u0002";

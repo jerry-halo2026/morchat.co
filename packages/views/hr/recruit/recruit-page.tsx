@@ -59,7 +59,35 @@ function RecruitPageBody({ wsId }: { wsId: string }) {
 
   const jobs = useQuery(hrJobListOptions(wsId));
   const jobRows = jobs.data?.jobs ?? [];
-  const activeJob = jobRows.find((job) => job.id === chosenJobId) ?? jobRows[0] ?? null;
+  // Default to a role that actually has candidates: opening on an empty role
+  // reads as "nothing is happening" even when the pipeline is full elsewhere.
+  // This asks for every candidate once, and only until the reader picks a role.
+  const allCandidates = useQuery({
+    ...hrCandidateListOptions(wsId, {}),
+    enabled: chosenJobId === null && jobRows.length > 1,
+  });
+  const busiestJobId = useMemo(() => {
+    const perJob: Record<string, number> = {};
+    for (const row of allCandidates.data?.candidates ?? []) {
+      perJob[row.job_id] = (perJob[row.job_id] ?? 0) + 1;
+    }
+    let best: string | null = null;
+    let bestCount = 0;
+    for (const job of jobRows) {
+      const count = perJob[job.id] ?? 0;
+      if (count > bestCount) {
+        best = job.id;
+        bestCount = count;
+      }
+    }
+    return best;
+  }, [allCandidates.data, jobRows]);
+  const chosenJob =
+    jobRows.find((job) => job.id === chosenJobId) ??
+    jobRows.find((job) => job.id === busiestJobId) ??
+    jobRows[0] ??
+    null;
+  const activeJob = chosenJob;
 
   const candidates = useQuery({
     ...hrCandidateListOptions(wsId, activeJob ? { job_id: activeJob.id } : {}),
