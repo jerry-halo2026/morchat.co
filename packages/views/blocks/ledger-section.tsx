@@ -25,6 +25,7 @@ import {
   ledgerDomainsIn,
   type HrCountField,
   type LedgerDomain,
+  type LedgerGroup,
 } from "./data";
 
 const DOMAIN_ICON: Record<LedgerDomain, IconComponent> = {
@@ -56,15 +57,21 @@ const DOMAIN_ICON: Record<LedgerDomain, IconComponent> = {
  * without waiting for the route commit. Counts come from `/counts`
  * (`docs/engineering/WORKBENCH-API.md` §3) — the same key the realtime patchers
  * invalidate, so a row never lags its ledger.
+ *
+ * `groups` is what the reader's view lists, in its order: the page passes one
+ * group for a narrow view and both for the view that reads everything. Default
+ * is both, so a surface that does not filter keeps drawing the whole split.
  */
 export function LedgerSection({
   wsId,
   departmentId,
+  groups = LEDGER_GROUPS,
   activeDomain,
   onSelect,
 }: {
   wsId: string;
   departmentId: string | null;
+  groups?: readonly LedgerGroup[];
   activeDomain?: LedgerDomain | null;
   onSelect?: (domain: LedgerDomain) => void;
 }) {
@@ -103,7 +110,7 @@ export function LedgerSection({
     // is what lets a screen reader jump to "the ledger list", and what the page
     // test anchors on.
     <section aria-label={t(($) => $.ledger.section)} className="space-y-5">
-      {LEDGER_GROUPS.map((group) => {
+      {groups.map((group) => {
         const domains = ledgerDomainsIn(group);
         const counts = domains.map(countFor);
         // A group total is only stated when at least one of its counts is: the

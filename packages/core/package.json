@@ -91,6 +91,8 @@
     "./metrics": "./metrics/index.ts",
     "./metrics/contracts": "./metrics/contracts.ts",
     "./metrics/response": "./metrics/response.ts",
+    "./workbench": "./workbench/index.ts",
+    "./workbench/view": "./workbench/view.ts",
     "./creator": "./creator/index.ts",
     "./creator/queries": "./creator/queries.ts",
     "./creator/mutations": "./creator/mutations.ts",

@@ -9,6 +9,13 @@
     "label": "Departamento",
     "all": "Todos los departamentos"
   },
+  "view": {
+    "label": "Vista",
+    "all": "Todo",
+    "commerce": "Ventas",
+    "people": "Personas",
+    "finance": "P&L"
+  },
   "unit": {
     "days": "d",
     "hours": "h",

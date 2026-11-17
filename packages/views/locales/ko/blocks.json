@@ -9,6 +9,13 @@
     "label": "부서",
     "all": "모든 부서"
   },
+  "view": {
+    "label": "보기",
+    "all": "전체",
+    "commerce": "영업",
+    "people": "인사",
+    "finance": "손익"
+  },
   "unit": {
     "days": "일",
     "hours": "시간",

@@ -9,6 +9,13 @@
     "label": "Service",
     "all": "Tous les services"
   },
+  "view": {
+    "label": "Vue",
+    "all": "Tout",
+    "commerce": "Ventes",
+    "people": "Personnes",
+    "finance": "P&L"
+  },
   "unit": {
     "days": "j",
     "hours": "h",

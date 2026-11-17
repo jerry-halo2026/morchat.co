@@ -9,6 +9,13 @@
     "label": "Отдел",
     "all": "Все отделы"
   },
+  "view": {
+    "label": "Вид",
+    "all": "Все",
+    "commerce": "Продажи",
+    "people": "Персонал",
+    "finance": "P&L"
+  },
   "unit": {
     "days": "дн.",
     "hours": "ч",

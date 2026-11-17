@@ -9,6 +9,13 @@
     "label": "部门",
     "all": "全部部门"
   },
+  "view": {
+    "label": "视图",
+    "all": "全部",
+    "commerce": "商务",
+    "people": "人事",
+    "finance": "经营"
+  },
   "unit": {
     "days": "天",
     "hours": "小时",

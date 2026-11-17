@@ -9,6 +9,13 @@
     "label": "Department",
     "all": "All departments"
   },
+  "view": {
+    "label": "View",
+    "all": "All",
+    "commerce": "Sales",
+    "people": "People",
+    "finance": "P&L"
+  },
   "unit": {
     "days": "d",
     "hours": "h",

@@ -9,6 +9,13 @@
     "label": "部署",
     "all": "すべての部署"
   },
+  "view": {
+    "label": "ビュー",
+    "all": "すべて",
+    "commerce": "営業",
+    "people": "人事",
+    "finance": "損益"
+  },
   "unit": {
     "days": "日",
     "hours": "時間",
