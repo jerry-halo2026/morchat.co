@@ -70,7 +70,7 @@ export type NavLabelKey =
   | "hr_resumes"
   | "hr_interviews"
   | "hr_scores"
-  | "hr_tests"
+  | "hr_guide"
   | "hr_employees"
   | "hr_offboard"
   | "hr_files"
@@ -157,7 +157,7 @@ export type HrPageKey =
   | "resumes"
   | "interviews"
   | "scores"
-  | "tests"
+  | "guide"
   | "employees"
   | "offboard"
   | "files"
@@ -168,8 +168,8 @@ export type NavPageKey = WorkspacePageKey | HrPageKey;
 
 /**
  * The HR pages in panel order: the hiring pipeline first (a role, the people
- * who applied, the interviews, the score, the written test), then the
- * employee record and what happens around it (roster, offboarding, the file
+ * who applied, the interviews, the score, the outline for the next round), then
+ * the employee record and what happens around it (roster, offboarding, the file
  * cabinet), and the analysis over all of it.
  */
 export const HR_PAGE_ORDER: readonly HrPageKey[] = [
@@ -177,7 +177,7 @@ export const HR_PAGE_ORDER: readonly HrPageKey[] = [
   "resumes",
   "interviews",
   "scores",
-  "tests",
+  "guide",
   "employees",
   "offboard",
   "files",
@@ -194,7 +194,9 @@ export const HR_PAGES: Record<HrPageKey, WorkspacePage> = {
   resumes: { segment: "hr/resumes", icon: "FileText", navKey: "hr_resumes" },
   interviews: { segment: "hr/interviews", icon: "MessageSquare", navKey: "hr_interviews" },
   scores: { segment: "hr/scores", icon: "BarChart3", navKey: "hr_scores" },
-  tests: { segment: "hr/tests", icon: "BookOpenText", navKey: "hr_tests" },
+  // The outline an interviewer holds during the round: a document of questions,
+  // which is what `FileQuestion` draws and what none of the other HR pages is.
+  guide: { segment: "hr/guide", icon: "FileQuestion", navKey: "hr_guide" },
   employees: { segment: "hr/employees", icon: "Users", navKey: "hr_employees" },
   offboard: { segment: "hr/offboard", icon: "Package", navKey: "hr_offboard" },
   files: { segment: "hr/files", icon: "FileArchive", navKey: "hr_files" },

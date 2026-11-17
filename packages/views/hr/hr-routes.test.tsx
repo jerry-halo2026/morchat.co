@@ -15,12 +15,12 @@ import {
   HrAnalysisPage,
   HrEmployeesPage,
   HrFilesPage,
+  HrGuidePage,
   HrInterviewsPage,
   HrOffboardPage,
   HrRecruitPage,
   HrResumesPage,
   HrScoresPage,
-  HrTestsPage,
 } from "./index";
 
 /**
@@ -87,7 +87,7 @@ const PAGES = [
   ["resumes", HrResumesPage, "Resumes"],
   ["interviews", HrInterviewsPage, "Interviews"],
   ["scores", HrScoresPage, "Scorecard"],
-  ["tests", HrTestsPage, "Assessments"],
+  ["guide", HrGuidePage, "Interview guide"],
   ["employees", HrEmployeesPage, "Employees"],
   ["offboard", HrOffboardPage, "Offboarding"],
   ["files", HrFilesPage, "Files"],

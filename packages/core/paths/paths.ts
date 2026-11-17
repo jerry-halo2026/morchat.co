@@ -137,7 +137,7 @@ function workspaceScoped(slug: string) {
       resumes: () => `${ws}/hr/resumes`,
       interviews: () => `${ws}/hr/interviews`,
       scores: () => `${ws}/hr/scores`,
-      tests: () => `${ws}/hr/tests`,
+      guide: () => `${ws}/hr/guide`,
       employees: () => `${ws}/hr/employees`,
       offboard: () => `${ws}/hr/offboard`,
       files: () => `${ws}/hr/files`,

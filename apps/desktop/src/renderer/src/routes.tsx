@@ -27,12 +27,12 @@ import {
   HrAnalysisPage,
   HrEmployeesPage,
   HrFilesPage,
+  HrGuidePage,
   HrInterviewsPage,
   HrOffboardPage,
   HrRecruitPage,
   HrResumesPage,
   HrScoresPage,
-  HrTestsPage,
 } from "@morechat/views/hr";
 import { AutopilotsPage } from "@morechat/views/autopilots/components";
 import { MyIssuesPage } from "@morechat/views/my-issues";
@@ -336,7 +336,7 @@ export const appRoutes: RouteObject[] = [
           { path: "hr/resumes", element: <HrResumesPage />, handle: { title: "HR" } },
           { path: "hr/interviews", element: <HrInterviewsPage />, handle: { title: "HR" } },
           { path: "hr/scores", element: <HrScoresPage />, handle: { title: "HR" } },
-          { path: "hr/tests", element: <HrTestsPage />, handle: { title: "HR" } },
+          { path: "hr/guide", element: <HrGuidePage />, handle: { title: "HR" } },
           { path: "hr/employees", element: <HrEmployeesPage />, handle: { title: "HR" } },
           { path: "hr/offboard", element: <HrOffboardPage />, handle: { title: "HR" } },
           { path: "hr/files", element: <HrFilesPage />, handle: { title: "HR" } },

@@ -52,7 +52,7 @@ describe("paths.workspace().hr / HR_PAGES", () => {
     ["resumes", "hr/resumes", "hr_resumes"],
     ["interviews", "hr/interviews", "hr_interviews"],
     ["scores", "hr/scores", "hr_scores"],
-    ["tests", "hr/tests", "hr_tests"],
+    ["guide", "hr/guide", "hr_guide"],
     ["employees", "hr/employees", "hr_employees"],
     ["offboard", "hr/offboard", "hr_offboard"],
     ["files", "hr/files", "hr_files"],
