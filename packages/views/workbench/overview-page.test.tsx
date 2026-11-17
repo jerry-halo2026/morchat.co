@@ -282,7 +282,9 @@ describe("OverviewPage", () => {
     // the ledger that fills it.
     const fill = screen.getAllByRole("button", { name: "Fill it in the ledger" });
     expect(fill.length).toBeGreaterThan(0);
-    await userEvent.click(fill[0]);
+    const first = fill[0];
+    if (!first) throw new Error("no gap card in the sales strip");
+    await userEvent.click(first);
     expect(replace).toHaveBeenLastCalledWith("/acme/overview?tab=ledger&domain=collabs");
   });
 
