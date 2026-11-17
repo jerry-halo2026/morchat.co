@@ -2406,6 +2406,11 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 				r.Get("/overview", h.GetWorkbenchOverview)
 				r.Get("/counts", h.GetWorkbenchCounts)
 				r.Get("/finance", h.GetWorkbenchFinance)
+				// The month entry that feeds the margin's cost side and the cash
+				// floor (707). Reads are member-wide; PUT is gated to
+				// owner/admin inside the handler like the other workbench writes.
+				r.Get("/finance/months", h.ListWorkbenchFinanceMonths)
+				r.Put("/finance/months", h.UpsertWorkbenchFinanceMonth)
 
 				r.Route("/creators", func(r chi.Router) {
 					r.Get("/", h.ListCreators)

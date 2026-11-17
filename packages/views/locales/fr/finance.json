@@ -10,13 +10,37 @@
   "hint": {
     "signed": "Ce mois-ci · renouvellements inclus",
     "collected": "Ce mois-ci, argent reçu",
-    "margin": "Ce mois-ci · sur coûts réglés",
-    "receivable": "Moyenne des règlements impayés",
-    "cash": "Nécessite un solde d'ouverture et une saisie de coûts"
+    "receivable": "Moyenne des règlements impayés"
+  },
+  "basis": {
+    "entered": "Coûts saisis",
+    "settled_collabs": "Coûts des collaborations réglées",
+    "none": "Coûts non saisis"
   },
   "empty": {
     "no_cost": "Aucune collaboration réglée ce mois-ci : la marge n'a pas de coût à comparer.",
-    "cash": "Les coûts et la trésorerie ne sont pas saisis, le plancher ne peut pas être calculé."
+    "no_cost_entry": "Aucun coût n'a été saisi ce mois-ci : la marge n'a pas de coût à comparer.",
+    "no_revenue": "Aucun encaissement ce mois-ci : la marge n'a pas de dénominateur.",
+    "cash_open": "Le solde de trésorerie d'ouverture n'est pas saisi, le plancher ne peut pas être calculé."
+  },
+  "cost": {
+    "open": "{{month}} · saisir les coûts",
+    "title": "Saisir les coûts de {{month}}",
+    "field": {
+      "cash_open": "Trésorerie d'ouverture",
+      "fixed_cost": "Coûts fixes",
+      "variable_cost": "Coûts variables",
+      "note": "Note"
+    },
+    "action": {
+      "save": "Enregistrer",
+      "cancel": "Annuler"
+    },
+    "error": {
+      "required": "Saisissez au moins un montant.",
+      "submit": "Impossible d'enregistrer les coûts de ce mois-ci."
+    },
+    "saved": "Les coûts de ce mois-ci sont enregistrés."
   },
   "error": "Impossible de charger les chiffres financiers. Vérifiez la connexion, puis réessayez."
 }

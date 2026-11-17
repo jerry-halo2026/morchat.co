@@ -1876,6 +1876,20 @@ type NotificationPreference struct {
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
+type OpsFinanceMonth struct {
+	ID           pgtype.UUID        `json:"id"`
+	WorkspaceID  pgtype.UUID        `json:"workspace_id"`
+	Month        pgtype.Date        `json:"month"`
+	CashOpen     pgtype.Numeric     `json:"cash_open"`
+	FixedCost    pgtype.Numeric     `json:"fixed_cost"`
+	VariableCost pgtype.Numeric     `json:"variable_cost"`
+	Note         pgtype.Text        `json:"note"`
+	CreatedBy    pgtype.UUID        `json:"created_by"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt   pgtype.Timestamptz `json:"archived_at"`
+}
+
 type PersonalAccessToken struct {
 	ID          pgtype.UUID        `json:"id"`
 	UserID      pgtype.UUID        `json:"user_id"`

@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_ops_finance_month_workspace_month;

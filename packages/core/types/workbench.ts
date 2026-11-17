@@ -231,15 +231,27 @@ export interface WorkbenchCountsResponse {
 
 // --- Money block (`GET /api/workbench/finance`) ----------------------------
 //
-// Four figures and one honest gap, all read-only aggregates for one calendar
-// month over the ledgers above (docs/engineering/WORKBENCH-API.md §3,
-// docs/METRICS.md §2). Each travels in the same three-state shape the metric
-// strip uses, so the client renders "not measurable" the same way on both
-// surfaces: `value: null` says the rows behind the figure are missing, which is a
-// different statement from a zero (docs/METRICS.md §1 rule 3).
+// Five figures for one calendar month over the ledgers above, plus the month
+// entry that supplies the two inputs the ledgers cannot (migration 707)
+// (docs/engineering/WORKBENCH-API.md §3, docs/METRICS.md §2). Each figure travels
+// in the same three-state shape the metric strip uses, so the client renders "not
+// measurable" the same way on both surfaces: `value: null` says the rows behind
+// the figure are missing, which is a different statement from a zero
+// (docs/METRICS.md §1 rule 3). The two figures with a cost side also say which
+// cost set they used, so a hint can name it instead of implying one.
 
 /** Which contract outcome a block's `empty` names. */
 export type WorkbenchFinanceEmptyState = "zero" | "insufficient_data";
+
+/**
+ * Which cost side a money figure was computed against.
+ *
+ * `entered` — the month's own entry (`ops_finance_month`, migration 707) carries
+ * the cost; `settled_collabs` — no entry, so the fees of the collaborations
+ * settled this month are the fallback; `none` — neither exists, so the figure has
+ * no cost side at all and the client says so instead of naming a number.
+ */
+export type WorkbenchFinanceCostBasis = "entered" | "settled_collabs" | "none";
 
 export interface WorkbenchFinanceBlock {
   value: number | null;
@@ -251,6 +263,11 @@ export interface WorkbenchFinanceBlock {
   empty: WorkbenchFinanceEmptyState;
 }
 
+/** A figure with a cost side: the metric entry plus the cost set behind it. */
+export interface WorkbenchFinanceCostBlock extends WorkbenchFinanceBlock {
+  basis: WorkbenchFinanceCostBasis;
+}
+
 export interface WorkbenchFinanceResponse {
   /** The calendar month every figure describes, `YYYY-MM`. */
   window: { month: string };
@@ -259,22 +276,61 @@ export interface WorkbenchFinanceResponse {
   /** Settlement money that actually cleared this month, in CNY. */
   collected: WorkbenchFinanceBlock;
   /**
-   * (collected − settled cost) / collected at the 0–1 storage scale (C3); the UI
-   * multiplies by 100. Null until both sides of the division have rows.
+   * (collected − cost) / collected at the 0–1 storage scale (C3); the UI
+   * multiplies by 100. Null until both sides of the division exist — `basis` says
+   * which cost side was used.
    */
-  gross_margin: WorkbenchFinanceBlock;
+  gross_margin: WorkbenchFinanceCostBlock;
   /** Mean age, in days, of the settlements still unpaid. */
   receivable_days: WorkbenchFinanceBlock;
   /**
-   * Always `null` + `insufficient_data` today: the schema holds neither an
-   * opening cash balance nor a cost entry, so there is nothing honest to state.
+   * Opening cash + collected − the month's cost, in CNY. Null until the month has
+   * an opening balance, which no ledger row can supply.
    */
-  cash_floor: WorkbenchFinanceBlock;
+  cash_floor: WorkbenchFinanceCostBlock;
 }
 
 export interface WorkbenchFinanceFilters {
   /** Aggregate dimension only; never an access boundary (§3). */
   department_id?: string | null;
+}
+
+/**
+ * One month's own money entry (`ops_finance_month`, migration 707): the inputs
+ * the money block cannot derive from the ledgers. A null amount is "not
+ * recorded", which the UI renders as `—`, never as 0.
+ */
+export interface WorkbenchFinanceMonth {
+  id: string;
+  workspace_id: string;
+  /** The month as its first day, `YYYY-MM-DD` (C7: a date, never a label). */
+  month: string;
+  cash_open: number | null;
+  fixed_cost: number | null;
+  variable_cost: number | null;
+  note: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** `GET /api/workbench/finance/months` — every entered month, newest first. */
+export interface WorkbenchFinanceMonthListResponse {
+  months: WorkbenchFinanceMonth[];
+  total: number;
+}
+
+/**
+ * `PUT /api/workbench/finance/months`. PUT replaces the month, so an omitted
+ * amount is stored as "not recorded" rather than merged with the previous write.
+ */
+export interface UpsertWorkbenchFinanceMonthRequest {
+  /** `YYYY-MM-DD`, the first day of the month. */
+  month: string;
+  cash_open?: number | null;
+  fixed_cost?: number | null;
+  variable_cost?: number | null;
+  note?: string | null;
 }
 
 // --- List envelopes -------------------------------------------------------

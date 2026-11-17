@@ -1,12 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { workbenchFinanceOptions } from "@morechat/core/crm/queries";
-import type { WorkbenchFinanceBlock, WorkbenchFinanceResponse } from "@morechat/core/types";
+import type {
+  WorkbenchFinanceBlock,
+  WorkbenchFinanceCostBasis,
+  WorkbenchFinanceCostBlock,
+  WorkbenchFinanceResponse,
+} from "@morechat/core/types";
+import { Button } from "@morechat/ui/components/ui/button";
 import { CurrencyNumberFlow, NumberFlow } from "@morechat/ui/components/ui/number-flow";
 import { Skeleton } from "@morechat/ui/components/ui/skeleton";
 import { useLocale, useT } from "../i18n";
 import { KpiCard } from "../runtimes/components/shared";
+import { FinanceCostDialog } from "./finance-cost-dialog";
 
 interface FinanceSectionProps {
   wsId: string;
@@ -16,7 +24,7 @@ interface FinanceSectionProps {
 
 /**
  * The workbench's money block: what was signed, what was collected, what the
- * margin is, and how long the money has been owed
+ * margin is, how long the money has been owed, and where the cash would land
  * (`GET /api/workbench/finance`, docs/engineering/WORKBENCH-API.md §3).
  *
  * The server owns every number, the margin ratio included: this block only
@@ -26,6 +34,12 @@ interface FinanceSectionProps {
  * figure with no rows behind it renders `—` and the copy that says what is
  * missing; it never renders a 0 the ledger cannot support
  * (docs/METRICS.md §1 rule 3).
+ *
+ * The two figures with a cost side also name the cost set they used (`basis`):
+ * this month's entered cost, the fees of the collaborations settled this month, or
+ * nothing at all. That is what makes the gap actionable — the header's button
+ * opens `FinanceCostDialog` for the missing input instead of leaving the reader to
+ * guess which table to fill in.
  *
  * The one arithmetic step is the percent display scale (C3: stored 0–1, shown
  * 0–100), the same conversion `metricDisplay` applies — not a recomputation of
@@ -40,14 +54,56 @@ export function FinanceSection({ wsId, departmentId }: FinanceSectionProps) {
   const { data, isPending, isError } = useQuery(
     workbenchFinanceOptions(wsId, departmentId),
   );
+  const [costOpen, setCostOpen] = useState(false);
 
   const figures: WorkbenchFinanceResponse | null = data ?? null;
+  const month = figures?.window.month ?? "";
+
+  /** The small text for a stated figure: which cost set produced it. */
+  const basisLabel = (basis: WorkbenchFinanceCostBasis): string => {
+    switch (basis) {
+      case "entered":
+        return t(($) => $.basis.entered);
+      case "settled_collabs":
+        return t(($) => $.basis.settled_collabs);
+      case "none":
+        return t(($) => $.basis.none);
+    }
+  };
+
+  /**
+   * What is missing when the margin has no value. Two different gaps hide here:
+   * no cost side at all, and no collected money to divide by. With a cost side and
+   * no revenue the division has no denominator, so that is the one to name.
+   */
+  const marginGap = (block: WorkbenchFinanceCostBlock, collected: WorkbenchFinanceBlock): string => {
+    if (block.basis !== "none") return t(($) => $.empty.no_revenue);
+    // Revenue with no cost side is a stale entry, not an empty ledger: the reader
+    // can fix it, so the copy points at the form.
+    const revenue = collected.value ?? 0;
+    return revenue > 0 ? t(($) => $.empty.no_cost_entry) : t(($) => $.empty.no_cost);
+  };
 
   return (
     <section aria-label={t(($) => $.tab)} className="space-y-1.5">
-      {figures?.window.month ? (
-        <p className="text-caption text-muted-foreground">{figures.window.month}</p>
-      ) : null}
+      <div className="flex h-7 items-center justify-between gap-2">
+        {month ? (
+          <p className="text-caption text-muted-foreground">{month}</p>
+        ) : (
+          <span />
+        )}
+        {month ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={isPending}
+            onClick={() => setCostOpen(true)}
+          >
+            {t(($) => $.cost.open, { month })}
+          </Button>
+        ) : null}
+      </div>
       {isError ? (
         <p role="status" className="text-caption text-muted-foreground">
           {t(($) => $.error)}
@@ -88,12 +144,12 @@ export function FinanceSection({ wsId, departmentId }: FinanceSectionProps) {
                   suffix={tUnit(($) => $.unit.percent)}
                 />
               }
-              // A margin with no settled collaboration is not "0 % margin": the
-              // cost side is missing, and that is what the cell has to say.
+              // A margin with no cost side is not "0 % margin": the cell says
+              // which input is missing, or which cost set the number used.
               hint={
                 isStated(figures.gross_margin)
-                  ? t(($) => $.hint.margin)
-                  : t(($) => $.empty.no_cost)
+                  ? basisLabel(figures.gross_margin.basis)
+                  : marginGap(figures.gross_margin, figures.collected)
               }
             />
             <KpiCard
@@ -109,14 +165,29 @@ export function FinanceSection({ wsId, departmentId }: FinanceSectionProps) {
             />
             <KpiCard
               label={t(($) => $.card.cash)}
-              value={<DashValue />}
-              // Always a gap today: the schema has neither an opening cash
-              // balance nor a cost entry, so saying "0" would be fiction.
-              hint={t(($) => $.empty.cash)}
+              value={
+                <MoneyValue
+                  amount={figures.cash_floor.value}
+                  locales={locales}
+                  prefix={tUnit(($) => $.unit.currency.CNY)}
+                />
+              }
+              // The one input the ledgers cannot supply: opening cash. Without it
+              // there is nothing to add the month's flow to, and "0" would be
+              // fiction.
+              hint={
+                isStated(figures.cash_floor)
+                  ? basisLabel(figures.cash_floor.basis)
+                  : t(($) => $.empty.cash_open)
+              }
             />
           </>
         ) : null}
       </div>
+      {/* Mounted only while open, so a closed dialog costs no query and no hook. */}
+      {figures && month && costOpen ? (
+        <FinanceCostDialog wsId={wsId} month={month} open onOpenChange={setCostOpen} />
+      ) : null}
     </section>
   );
 }

@@ -201,6 +201,9 @@ import type {
   UpdateCrmSettlementRequest,
   WorkbenchCountsResponse,
   WorkbenchFinanceResponse,
+  WorkbenchFinanceMonth,
+  WorkbenchFinanceMonthListResponse,
+  UpsertWorkbenchFinanceMonthRequest,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -668,6 +671,10 @@ import {
   EMPTY_WORKBENCH_COUNTS_RESPONSE,
   WorkbenchFinanceResponseSchema,
   EMPTY_WORKBENCH_FINANCE_RESPONSE,
+  WorkbenchFinanceMonthSchema,
+  EMPTY_WORKBENCH_FINANCE_MONTH,
+  WorkbenchFinanceMonthListResponseSchema,
+  EMPTY_WORKBENCH_FINANCE_MONTH_LIST,
   HrJobSchema,
   HrJobListResponseSchema,
   EMPTY_HR_JOB,
@@ -4024,6 +4031,43 @@ export class ApiClient {
     );
     return parseWithFallback(raw, WorkbenchFinanceResponseSchema, EMPTY_WORKBENCH_FINANCE_RESPONSE, {
       endpoint: "GET /api/workbench/finance",
+    });
+  }
+
+  /**
+   * The month entries that feed the money block's cost side (contract §3,
+   * migration 707): every entered month, newest first, or one month when
+   * `month` (the `YYYY-MM` label) is given. Reads are member-wide; a malformed
+   * body degrades to an empty history rather than throwing, so the tab keeps its
+   * figures and the dialog opens on empty fields.
+   */
+  async listWorkbenchFinanceMonths(
+    params: { month?: string | null } = {},
+  ): Promise<WorkbenchFinanceMonthListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/finance/months${workbenchSearch({ month: params.month })}`,
+    );
+    return parseWithFallback(
+      raw,
+      WorkbenchFinanceMonthListResponseSchema,
+      EMPTY_WORKBENCH_FINANCE_MONTH_LIST,
+      { endpoint: "GET /api/workbench/finance/months" },
+    );
+  }
+
+  /**
+   * Put one month's money entry (`PUT`, an upsert on workspace + month). The
+   * server replaces the month, so an omitted amount is stored as "not recorded".
+   */
+  async upsertWorkbenchFinanceMonth(
+    data: UpsertWorkbenchFinanceMonthRequest,
+  ): Promise<WorkbenchFinanceMonth> {
+    const raw = await this.fetch<unknown>("/api/workbench/finance/months", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, WorkbenchFinanceMonthSchema, EMPTY_WORKBENCH_FINANCE_MONTH, {
+      endpoint: "PUT /api/workbench/finance/months",
     });
   }
 

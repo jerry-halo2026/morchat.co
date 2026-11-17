@@ -10,13 +10,37 @@
   "hint": {
     "signed": "This month · renewals included",
     "collected": "This month, money that cleared",
-    "margin": "This month · against settled cost",
-    "receivable": "Average over unpaid settlements",
-    "cash": "Needs an opening balance and a cost entry"
+    "receivable": "Average over unpaid settlements"
+  },
+  "basis": {
+    "entered": "Entered cost",
+    "settled_collabs": "Settled collaboration fees",
+    "none": "No cost entry yet"
   },
   "empty": {
     "no_cost": "No collaboration was settled this month, so the margin has no cost side to measure against.",
-    "cash": "Cost and cash entries are missing, so the cash floor cannot be worked out."
+    "no_cost_entry": "No cost was entered for this month, so the margin has no cost side.",
+    "no_revenue": "No money cleared this month, so the margin has no denominator.",
+    "cash_open": "No opening cash balance was entered for this month, so the cash floor cannot be worked out."
+  },
+  "cost": {
+    "open": "{{month}} · enter cost",
+    "title": "Enter {{month}} cost",
+    "field": {
+      "cash_open": "Opening cash",
+      "fixed_cost": "Fixed cost",
+      "variable_cost": "Variable cost",
+      "note": "Note"
+    },
+    "action": {
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "error": {
+      "required": "Fill in at least one amount.",
+      "submit": "Couldn't save this month's cost."
+    },
+    "saved": "This month's cost was saved."
   },
   "error": "Couldn't load the money figures. Check the connection, then try again."
 }

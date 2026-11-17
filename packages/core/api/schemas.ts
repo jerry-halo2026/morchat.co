@@ -123,6 +123,8 @@ import type {
   CrmSettlement,
   CrmSettlementListResponse,
   WorkbenchCountsResponse,
+  WorkbenchFinanceMonth,
+  WorkbenchFinanceMonthListResponse,
   WorkbenchFinanceResponse,
 } from "../types";
 import type { CloudRuntimeNode } from "../runtimes/cloud-runtime";
@@ -4745,6 +4747,16 @@ const workbenchFinanceEmptyState = z
   .enum(["zero", "insufficient_data"])
   .catch("insufficient_data");
 
+/**
+ * Which cost set a figure used (the server's `basis`). An unknown value is drift
+ * and degrades to `none` — the "no cost side" reading — because naming a cost set
+ * the client does not understand would make the card claim a number it cannot
+ * explain.
+ */
+const workbenchFinanceCostBasis = z
+  .enum(["entered", "settled_collabs", "none"])
+  .catch("none");
+
 export const WorkbenchFinanceBlockSchema = z
   .object({
     value: z.number().nullable().default(null),
@@ -4753,10 +4765,20 @@ export const WorkbenchFinanceBlockSchema = z
   })
   .loose();
 
+/** A figure that carries the cost set behind it (gross margin, cash floor). */
+export const WorkbenchFinanceCostBlockSchema = WorkbenchFinanceBlockSchema.extend({
+  basis: workbenchFinanceCostBasis,
+});
+
 const EMPTY_WORKBENCH_FINANCE_BLOCK: z.output<typeof WorkbenchFinanceBlockSchema> = {
   value: null,
   sample_count: 0,
   empty: "insufficient_data",
+};
+
+const EMPTY_WORKBENCH_FINANCE_COST_BLOCK: z.output<typeof WorkbenchFinanceCostBlockSchema> = {
+  ...EMPTY_WORKBENCH_FINANCE_BLOCK,
+  basis: "none",
 };
 
 /**
@@ -4768,6 +4790,10 @@ const workbenchFinanceBlock = WorkbenchFinanceBlockSchema.default(
   EMPTY_WORKBENCH_FINANCE_BLOCK,
 ).catch(EMPTY_WORKBENCH_FINANCE_BLOCK);
 
+const workbenchFinanceCostBlock = WorkbenchFinanceCostBlockSchema.default(
+  EMPTY_WORKBENCH_FINANCE_COST_BLOCK,
+).catch(EMPTY_WORKBENCH_FINANCE_COST_BLOCK);
+
 export const WorkbenchFinanceResponseSchema = z
   .object({
     // The month label is display copy, so a missing one degrades to an empty
@@ -4778,9 +4804,9 @@ export const WorkbenchFinanceResponseSchema = z
       .catch({ month: "" }),
     signed: workbenchFinanceBlock,
     collected: workbenchFinanceBlock,
-    gross_margin: workbenchFinanceBlock,
+    gross_margin: workbenchFinanceCostBlock,
     receivable_days: workbenchFinanceBlock,
-    cash_floor: workbenchFinanceBlock,
+    cash_floor: workbenchFinanceCostBlock,
   })
   .loose();
 
@@ -4788,9 +4814,58 @@ export const EMPTY_WORKBENCH_FINANCE_RESPONSE: WorkbenchFinanceResponse = {
   window: { month: "" },
   signed: EMPTY_WORKBENCH_FINANCE_BLOCK,
   collected: EMPTY_WORKBENCH_FINANCE_BLOCK,
-  gross_margin: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  gross_margin: EMPTY_WORKBENCH_FINANCE_COST_BLOCK,
   receivable_days: EMPTY_WORKBENCH_FINANCE_BLOCK,
-  cash_floor: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  cash_floor: EMPTY_WORKBENCH_FINANCE_COST_BLOCK,
+};
+
+// --- Month entry (`/api/workbench/finance/months`, migration 707) -----------
+//
+// The inputs the money block cannot derive: opening cash and the month's own cost
+// bill. Same leniency rules as the ledgers above — every field degrades instead of
+// rejecting the row, and a null amount stays null, because "not recorded" is what
+// keeps the figures on the gap card.
+
+const workbenchFinanceMonthNumber = z.number().nullable().default(null);
+
+export const WorkbenchFinanceMonthSchema = z
+  .object({
+    id: z.string().default(""),
+    workspace_id: z.string().default(""),
+    // `YYYY-MM-DD` (C7). The server validates the key on the write path; here it
+    // is display copy, so a missing one degrades to an empty string.
+    month: z.string().default(""),
+    cash_open: workbenchFinanceMonthNumber,
+    fixed_cost: workbenchFinanceMonthNumber,
+    variable_cost: workbenchFinanceMonthNumber,
+    note: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+  })
+  .loose();
+
+// The empty row, typed as the schema's own output so `.catch` below can take it
+// (a `.loose()` object carries an index signature the interface does not).
+const EMPTY_WORKBENCH_FINANCE_MONTH_ROW: z.output<typeof WorkbenchFinanceMonthSchema> =
+  WorkbenchFinanceMonthSchema.parse({});
+
+export const EMPTY_WORKBENCH_FINANCE_MONTH: WorkbenchFinanceMonth =
+  EMPTY_WORKBENCH_FINANCE_MONTH_ROW;
+
+export const WorkbenchFinanceMonthListResponseSchema = z
+  .object({
+    months: z
+      .array(WorkbenchFinanceMonthSchema.catch(EMPTY_WORKBENCH_FINANCE_MONTH_ROW))
+      .default([])
+      .catch([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_WORKBENCH_FINANCE_MONTH_LIST: WorkbenchFinanceMonthListResponse = {
+  months: [],
+  total: 0,
 };
 
 // --- HR (docs/engineering/WORKBENCH-API.md §10) ----------------------------

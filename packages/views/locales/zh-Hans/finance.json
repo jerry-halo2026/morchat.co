@@ -10,13 +10,37 @@
   "hint": {
     "signed": "本月 · 含续费",
     "collected": "本月实收",
-    "margin": "本月 · 对已结算成本",
-    "receivable": "未回款结算单平均",
-    "cash": "需现金期初与成本录入"
+    "receivable": "未回款结算单平均"
+  },
+  "basis": {
+    "entered": "录入成本",
+    "settled_collabs": "已结算合作单费用",
+    "none": "缺成本录入"
   },
   "empty": {
     "no_cost": "本月没有已结算的合作单，毛利缺成本侧。",
-    "cash": "缺成本与现金录入，现金底线算不出来。"
+    "no_cost_entry": "本月没有录入成本，毛利缺成本侧。",
+    "no_revenue": "本月没有回款，毛利率没有分母。",
+    "cash_open": "本月没有录入现金期初，现金底线算不出来。"
+  },
+  "cost": {
+    "open": "{{month}} 录入成本",
+    "title": "录入 {{month}} 成本",
+    "field": {
+      "cash_open": "现金期初",
+      "fixed_cost": "固定成本",
+      "variable_cost": "可变成本",
+      "note": "备注"
+    },
+    "action": {
+      "save": "保存",
+      "cancel": "取消"
+    },
+    "error": {
+      "required": "至少填一项金额。",
+      "submit": "本月成本保存失败。"
+    },
+    "saved": "已保存本月成本。"
   },
   "error": "经营数据加载失败，检查网络后重试。"
 }

@@ -176,6 +176,27 @@ handler：`GetWorkbenchFinance`（`server/internal/handler/workbench_finance.go`
 - 每块形状与 `/overview` 的 `{value, sample_count, empty}` 完全一致（Go 侧 `WorkbenchFinanceBlock` 是 `WorkbenchMetricValue` 的类型别名），`empty` 同样只发 `zero` / `insufficient_data`。
 - 部门过滤沿用 B0 回退链：结算单 → 其合作单 → `owner_member_id` 的 `member.department_id`；不参与鉴权。
 
+### 3.3 月度成本与现金录入
+
+`ops_finance_month`（迁移 707/708）一个 workspace 一月一行（部分唯一索引 `WHERE archived_at IS NULL`），`month` 存月初 DATE（C7）。金额单位元，**NULL = 未录入，不是 0**。
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| `GET` | `/finance/months?month=YYYY-MM` | 按月倒序列出全部历史；带 `month` 只返回那一月（弹窗预填） |
+| `PUT` | `/finance/months` | **整月替换**（不是合并）：body `{month: "YYYY-MM-DD"(必须月初), cash_open?, fixed_cost?, variable_cost?, note?}`；省略的金额存 NULL，`created_by`/`created_at` 保留首次写入者 |
+
+写权限同 workbench（owner/admin；member 403）。校验：`month` 必须月初且 `YYYY-MM-DD`；金额 0–1e12；`note` ≤2000 字符。
+
+`gross_margin` 与 `cash_floor` 因此多一个 `basis` 字段，说明这个数是用哪套成本算的：
+
+| `basis` | 含义 | 毛利率 | 现金底线 |
+| --- | --- | --- | --- |
+| `entered` | 本月 `ops_finance_month` 的固定+可变成本 | `(collected − 录入成本)/collected` | `cash_open + collected − 录入成本` |
+| `settled_collabs` | 回退到本月已结算合作单的费用合计 | 同上口径 | 不用（现金底线必须要有 `cash_open`） |
+| `none` | 两套都没有 | `null` + `insufficient_data`（否则会出现凭空 100% 毛利） | `cash_open` 有值但不扣成本；`cash_open` 为空则 `null` + 缺口 |
+
+`basis` 缺失时客户端降级为 `none`（兼容老服务端），代价是"已结算合作单费用"会显示成"缺成本录入"——这是刻意选的兼容优先。
+
 **handler 命名**（router.go 已按此注册，函数名不可改）：
 `GetWorkbenchOverview` `GetWorkbenchCounts` `ListCreators` `CreateCreator` `GetCreator` `UpdateCreator` `DeleteCreator` `ListCreatorPosts` `CreateCreatorPost` `UpdateCreatorPost` `DeleteCreatorPost` `ListCreatorPostMetrics` `UpsertCreatorPostMetric` `ListCrmClients` `CreateCrmClient` `GetCrmClient` `UpdateCrmClient` `DeleteCrmClient` `ListCrmBriefs` `CreateCrmBrief` `GetCrmBrief` `UpdateCrmBrief` `DeleteCrmBrief` `ListCrmCollabs` `CreateCrmCollab` `GetCrmCollab` `UpdateCrmCollab` `DeleteCrmCollab` `ListCrmSettlements` `CreateCrmSettlement` `UpdateCrmSettlement` `DeleteCrmSettlement`
 

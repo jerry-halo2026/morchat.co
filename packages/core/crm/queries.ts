@@ -35,6 +35,14 @@ export const workbenchKeys = {
    *  settlement moves both the count and the collected figure. */
   finance: (wsId: string, departmentId: string | null = null) =>
     [...workbenchKeys.all(wsId), "finance", departmentId ?? "all"] as const,
+  /**
+   * The month entries that feed the money block's cost side (707). A separate
+   * segment from `finance` because it is a different resource with its own write
+   * — and `all(wsId)` still covers both, so one invalidation after a save
+   * refreshes the entry and the figures it moves.
+   */
+  financeMonths: (wsId: string, month: string | null = null) =>
+    [...workbenchKeys.all(wsId), "finance_months", month ?? "all"] as const,
 };
 
 /**
@@ -70,6 +78,21 @@ export function workbenchFinanceOptions(wsId: string, departmentId: string | nul
   return queryOptions({
     queryKey: workbenchKeys.finance(wsId, departmentId),
     queryFn: () => api.getWorkbenchFinance({ department_id: departmentId }),
+    enabled: !!wsId,
+  });
+}
+
+/**
+ * The month entries behind the margin's cost side and the cash floor (707).
+ *
+ * `month` is the `YYYY-MM` label: with it the read is the one row the entry dialog
+ * pre-fills from, without it the whole history. The month is part of the key, so a
+ * save on one month cannot leave another month's form showing stale numbers.
+ */
+export function workbenchFinanceMonthsOptions(wsId: string, month: string | null = null) {
+  return queryOptions({
+    queryKey: workbenchKeys.financeMonths(wsId, month),
+    queryFn: () => api.listWorkbenchFinanceMonths({ month }),
     enabled: !!wsId,
   });
 }

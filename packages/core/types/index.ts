@@ -483,10 +483,15 @@ export type {
   UpdateCrmCollabRequest,
   UpdateCrmSettlementRequest,
   UpsertCreatorPostMetricRequest,
+  UpsertWorkbenchFinanceMonthRequest,
   WorkbenchCountsResponse,
   WorkbenchFinanceBlock,
+  WorkbenchFinanceCostBasis,
+  WorkbenchFinanceCostBlock,
   WorkbenchFinanceEmptyState,
   WorkbenchFinanceFilters,
+  WorkbenchFinanceMonth,
+  WorkbenchFinanceMonthListResponse,
   WorkbenchFinanceResponse,
 } from "./workbench";
 
