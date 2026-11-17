@@ -589,5 +589,26 @@
       "posts": "投稿",
       "no_posts": "まだ投稿がありません"
     }
+  },
+  "doc_editor": {
+    "toolbar": "書式",
+    "tools": {
+      "bold": "太字",
+      "italic": "斜体",
+      "strike": "取り消し線",
+      "h2": "見出し 2",
+      "h3": "見出し 3",
+      "bullet": "箇条書き",
+      "ordered": "番号付きリスト",
+      "quote": "引用",
+      "link": "リンク",
+      "undo": "元に戻す",
+      "redo": "やり直す"
+    },
+    "limit": "上限の {{count}} 文字に達しました",
+    "link": {
+      "url": "リンク URL",
+      "apply": "リンクを適用"
+    }
   }
 }

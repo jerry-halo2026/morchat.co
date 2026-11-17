@@ -199,6 +199,13 @@
     "shortcuts": "Raccourcis clavier"
   },
   "collection": {
+  "pager": {
+    "more": "Charger plus",
+    "loading": "Chargement…",
+    "end": "Plus de lignes",
+    "count": "{{loaded}} sur {{total}} affichées",
+    "count_loaded": "{{loaded}} affichées"
+  },
     "filter": "Filtrer",
     "filter_count_one": "{{count}} filtre",
     "filter_count_other": "{{count}} filtres",

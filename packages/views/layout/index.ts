@@ -52,3 +52,4 @@ export {
   type CalendarEventTone,
   type CalendarViewProps,
 } from "./calendar-view";
+export { CollectionPager, type CollectionPagerProps } from "./collection-list/pager";

@@ -420,3 +420,37 @@ describe("LedgerTable · B2 columns", () => {
     expect(within(grid).getByText("Pending")).toBeInTheDocument();
   });
 });
+
+// Cursor paging (`WORKBENCH-API.md` §3.1). A ledger is drawn whole unless the
+// caller hands it a cursor: the pager lives in `CollectionList`'s footer slot,
+// so the columns and the assertions above do not change when a list grows.
+describe("LedgerTable · cursor paging", () => {
+  it("puts the load-more control under a ledger with another page behind it", async () => {
+    const onLoadMore = vi.fn();
+    renderWithI18n(
+      <NavigationProvider value={adapter()}>
+        <LedgerTable domain="jobs" rows={[JOB]} hasMore onLoadMore={onLoadMore} total={2} />
+      </NavigationProvider>,
+    );
+
+    const grid = screen.getByRole("grid", { name: "Jobs" });
+    // The pager names the list it belongs to, so a page with several grids on it
+    // can still tell the controls apart.
+    const group = within(grid).getByRole("group", { name: "Jobs" });
+    expect(within(group).getByText("Showing 1 of 2")).toBeInTheDocument();
+    const button = within(group).getByRole("button", { name: "Load more" });
+    await button.click();
+    expect(onLoadMore).toHaveBeenCalledTimes(1);
+  });
+
+  it("draws no pager for a ledger the server returns whole", () => {
+    renderWithI18n(
+      <NavigationProvider value={adapter()}>
+        <LedgerTable domain="jobs" rows={[JOB]} />
+      </NavigationProvider>,
+    );
+
+    expect(screen.queryByRole("group", { name: "Jobs" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Load more" })).toBeNull();
+  });
+});

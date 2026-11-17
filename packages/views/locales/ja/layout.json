@@ -193,6 +193,13 @@
     "shortcuts": "キーボードショートカット"
   },
   "collection": {
+  "pager": {
+    "more": "さらに読み込む",
+    "loading": "読み込み中…",
+    "end": "これ以上ありません",
+    "count": "{{loaded}} / {{total}} 件を表示",
+    "count_loaded": "{{loaded}} 件を表示"
+  },
     "filter": "フィルター",
     "filter_count_other": "{{count}} 件のフィルター",
     "reset": "リセット",

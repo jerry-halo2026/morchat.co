@@ -193,6 +193,13 @@
     "shortcuts": "快捷鍵"
   },
   "collection": {
+  "pager": {
+    "more": "載入更多",
+    "loading": "載入中…",
+    "end": "沒有更多了",
+    "count": "已顯示 {{loaded}} / 共 {{total}}",
+    "count_loaded": "已顯示 {{loaded}}"
+  },
     "filter": "篩選",
     "filter_count_other": "{{count}} 個篩選",
     "reset": "重設",

@@ -589,5 +589,26 @@
       "posts": "发布记录",
       "no_posts": "还没有发布记录"
     }
+  },
+  "doc_editor": {
+    "toolbar": "格式",
+    "tools": {
+      "bold": "加粗",
+      "italic": "斜体",
+      "strike": "删除线",
+      "h2": "二级标题",
+      "h3": "三级标题",
+      "bullet": "无序列表",
+      "ordered": "有序列表",
+      "quote": "引用",
+      "link": "链接",
+      "undo": "撤销",
+      "redo": "重做"
+    },
+    "limit": "已到上限 {{count}} 字",
+    "link": {
+      "url": "链接地址",
+      "apply": "应用链接"
+    }
   }
 }

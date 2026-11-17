@@ -589,5 +589,26 @@
       "posts": "發布記錄",
       "no_posts": "還沒有發布記錄"
     }
+  },
+  "doc_editor": {
+    "toolbar": "格式",
+    "tools": {
+      "bold": "加粗",
+      "italic": "斜體",
+      "strike": "刪除線",
+      "h2": "二級標題",
+      "h3": "三級標題",
+      "bullet": "無序列表",
+      "ordered": "有序列表",
+      "quote": "引用",
+      "link": "連結",
+      "undo": "復原",
+      "redo": "重做"
+    },
+    "limit": "已達上限 {{count}} 字",
+    "link": {
+      "url": "連結位址",
+      "apply": "套用連結"
+    }
   }
 }

@@ -185,6 +185,13 @@
     "shortcuts": "Сочетания клавиш"
   },
   "collection": {
+  "pager": {
+    "more": "Загрузить ещё",
+    "loading": "Загрузка…",
+    "end": "Больше нет",
+    "count": "Показано {{loaded}} из {{total}}",
+    "count_loaded": "Показано {{loaded}}"
+  },
     "filter": "Фильтр",
     "filter_count_one": "{{count}} фильтр",
     "filter_count_other": "{{count}} фильтра",

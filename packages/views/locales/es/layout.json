@@ -199,6 +199,13 @@
     "shortcuts": "Atajos de teclado"
   },
   "collection": {
+  "pager": {
+    "more": "Cargar más",
+    "loading": "Cargando…",
+    "end": "No hay más filas",
+    "count": "Mostrando {{loaded}} de {{total}}",
+    "count_loaded": "Mostrando {{loaded}}"
+  },
     "filter": "Filtrar",
     "filter_count_one": "{{count}} filtro",
     "filter_count_other": "{{count}} filtros",

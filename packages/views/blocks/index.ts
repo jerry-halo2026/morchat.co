@@ -8,6 +8,13 @@
  */
 export { MetricRow } from "./metric-row";
 export { GapCard } from "./gap-card";
+// The radar is a primitive with no reads of its own, so it lives in
+// `@morechat/ui`; the block barrel is where the workbench picks it up.
+export { RadarChart } from "@morechat/ui/components/ui/radar-chart";
+export type {
+  RadarChartProps,
+  RadarSeries,
+} from "@morechat/ui/components/ui/radar-chart";
 export { TeamStrip, buildTeamGroups } from "./team-strip";
 export type { TeamGroup, TeamStripEvent } from "./team-strip";
 export { LedgerSection } from "./ledger-section";

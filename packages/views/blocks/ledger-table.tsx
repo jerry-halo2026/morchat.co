@@ -45,6 +45,7 @@ import type {
 import { useLocale, useT } from "../i18n";
 import { CollectionPageState } from "../layout/collection-page";
 import { CollectionList, type CollectionColumn } from "../layout/collection-list";
+import { CollectionPager } from "../layout/collection-list/pager";
 import { AiDispatchButton } from "./ai-dispatch";
 import { AffiliateForm } from "./affiliate-form";
 import { CollabSheet } from "./collab-sheet";
@@ -116,6 +117,25 @@ interface LedgerTableCommon {
   loading?: boolean;
   isError?: boolean;
   onRetry?: () => void;
+  /**
+   * Cursor paging (`docs/engineering/WORKBENCH-API.md` §3.1: `?cursor=&limit=`,
+   * no `offset`). `hasMore` says the server holds another page and `loadingMore`
+   * rises while it is in flight.
+   *
+   * `total` is the list's size, and only `/counts` is authoritative for it. A
+   * list response's own `total` is **this page's** row count (§3.1), so passing
+   * it here would draw "showing 50 of 50" over a list that has more behind it;
+   * a caller without a real count leaves the field out and the pager says how
+   * many rows are loaded.
+   *
+   * A ledger the server returns whole (every domain but creators today) passes
+   * no `onLoadMore` and draws no pager; the control is opt-in so a preview or a
+   * test keeps the columns-only table it had.
+   */
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  total?: number;
+  onLoadMore?: () => void;
 }
 
 /**
@@ -166,6 +186,12 @@ export function LedgerTable(props: LedgerTableProps) {
   const { t } = useT("blocks");
   const locales = useLocale();
   const { domain, wsId, loading = false, isError = false, onRetry } = props;
+  const {
+    hasMore = false,
+    loadingMore = false,
+    total,
+    onLoadMore,
+  } = props;
 
   // The row whose detail sheet is open, one per people ledger. They are four
   // states rather than one union so each sheet receives its own row type: a
@@ -202,6 +228,19 @@ export function LedgerTable(props: LedgerTableProps) {
 
   const empty = <LedgerEmptyState domain={domain} isError={isError} onRetry={onRetry} />;
   const label = t(($) => $.ledger.domain[domain]);
+  // One pager for every ledger: it sits in `CollectionList`'s footer slot, so
+  // the count and the "load more" control stay at the end of the rows instead
+  // of needing a place of their own under the grid.
+  const footer = onLoadMore ? (
+    <CollectionPager
+      hasMore={hasMore}
+      loading={loadingMore}
+      loadedCount={props.rows.length}
+      total={total}
+      onLoadMore={onLoadMore}
+      label={label}
+    />
+  ) : undefined;
 
   switch (props.domain) {
     case "creators": {
@@ -258,6 +297,7 @@ export function LedgerTable(props: LedgerTableProps) {
             getRowId={(row) => row.id}
             loading={loading}
             empty={empty}
+            footer={footer}
             embedded
             onRowOpen={(row) => setCreatorDetail(row)}
           />
@@ -303,6 +343,7 @@ export function LedgerTable(props: LedgerTableProps) {
           getRowId={(row) => row.id}
           loading={loading}
           empty={empty}
+          footer={footer}
           embedded
         />
       );
@@ -352,6 +393,7 @@ export function LedgerTable(props: LedgerTableProps) {
           getRowId={(row) => row.id}
           loading={loading}
           empty={empty}
+          footer={footer}
           embedded
         />
       );
@@ -408,6 +450,7 @@ export function LedgerTable(props: LedgerTableProps) {
             getRowId={(row) => row.id}
             loading={loading}
             empty={empty}
+            footer={footer}
             embedded
             onRowOpen={(row) => setCollabDetail(row)}
           />
@@ -478,6 +521,7 @@ export function LedgerTable(props: LedgerTableProps) {
           getRowId={(row) => row.id}
           loading={loading}
           empty={empty}
+          footer={footer}
           embedded
         />
       );
@@ -541,6 +585,7 @@ export function LedgerTable(props: LedgerTableProps) {
             getRowId={(row) => row.id}
             loading={loading}
             empty={empty}
+            footer={footer}
             embedded
           />
         </>
@@ -624,6 +669,7 @@ export function LedgerTable(props: LedgerTableProps) {
             getRowId={(row) => row.id}
             loading={loading}
             empty={empty}
+            footer={footer}
             embedded
           />
         </>
@@ -704,6 +750,7 @@ export function LedgerTable(props: LedgerTableProps) {
             getRowId={(row) => row.id}
             loading={loading}
             empty={empty}
+            footer={footer}
             embedded
           />
         </>
@@ -784,6 +831,7 @@ export function LedgerTable(props: LedgerTableProps) {
             getRowId={(row) => row.id}
             loading={loading}
             empty={empty}
+            footer={footer}
             embedded
           />
         </>
@@ -844,6 +892,7 @@ export function LedgerTable(props: LedgerTableProps) {
             getRowId={(row) => row.id}
             loading={loading}
             empty={empty}
+            footer={footer}
             embedded
             onRowOpen={(row) => {
               if (props.onRowClick) props.onRowClick(row);
@@ -933,6 +982,7 @@ export function LedgerTable(props: LedgerTableProps) {
             getRowId={(row) => row.id}
             loading={loading}
             empty={empty}
+            footer={footer}
             embedded
             onRowOpen={(row) => {
               if (props.onRowClick) props.onRowClick(row);
@@ -1030,6 +1080,7 @@ export function LedgerTable(props: LedgerTableProps) {
             getRowId={(row) => row.id}
             loading={loading}
             empty={empty}
+            footer={footer}
             embedded
             onRowOpen={(row) => {
               if (props.onRowClick) props.onRowClick(row);
@@ -1101,6 +1152,7 @@ export function LedgerTable(props: LedgerTableProps) {
             getRowId={(row) => row.id}
             loading={loading}
             empty={empty}
+            footer={footer}
             embedded
             onRowOpen={(row) => {
               if (props.onRowClick) props.onRowClick(row);

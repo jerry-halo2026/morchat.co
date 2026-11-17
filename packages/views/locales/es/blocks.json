@@ -589,5 +589,26 @@
       "posts": "Publicaciones",
       "no_posts": "Aún no hay publicaciones"
     }
+  },
+  "doc_editor": {
+    "toolbar": "Formato",
+    "tools": {
+      "bold": "Negrita",
+      "italic": "Cursiva",
+      "strike": "Tachado",
+      "h2": "Título 2",
+      "h3": "Título 3",
+      "bullet": "Lista con viñetas",
+      "ordered": "Lista numerada",
+      "quote": "Cita",
+      "link": "Enlace",
+      "undo": "Deshacer",
+      "redo": "Rehacer"
+    },
+    "limit": "Límite alcanzado: {{count}} caracteres",
+    "link": {
+      "url": "URL del enlace",
+      "apply": "Aplicar enlace"
+    }
   }
 }

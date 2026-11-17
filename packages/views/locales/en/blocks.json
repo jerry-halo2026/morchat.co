@@ -589,5 +589,26 @@
       "posts": "Posts",
       "no_posts": "No posts logged yet"
     }
+  },
+  "doc_editor": {
+    "toolbar": "Formatting",
+    "tools": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "strike": "Strikethrough",
+      "h2": "Heading 2",
+      "h3": "Heading 3",
+      "bullet": "Bulleted list",
+      "ordered": "Numbered list",
+      "quote": "Quote",
+      "link": "Link",
+      "undo": "Undo",
+      "redo": "Redo"
+    },
+    "limit": "Limit reached — {{count}} characters",
+    "link": {
+      "url": "Link URL",
+      "apply": "Apply link"
+    }
   }
 }

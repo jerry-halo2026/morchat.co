@@ -589,5 +589,26 @@
       "posts": "Publications",
       "no_posts": "Aucune publication pour l’instant"
     }
+  },
+  "doc_editor": {
+    "toolbar": "Mise en forme",
+    "tools": {
+      "bold": "Gras",
+      "italic": "Italique",
+      "strike": "Barré",
+      "h2": "Titre 2",
+      "h3": "Titre 3",
+      "bullet": "Liste à puces",
+      "ordered": "Liste numérotée",
+      "quote": "Citation",
+      "link": "Lien",
+      "undo": "Annuler",
+      "redo": "Rétablir"
+    },
+    "limit": "Limite atteinte — {{count}} caractères",
+    "link": {
+      "url": "URL du lien",
+      "apply": "Appliquer le lien"
+    }
   }
 }
