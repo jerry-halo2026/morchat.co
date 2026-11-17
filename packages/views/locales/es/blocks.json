@@ -290,6 +290,17 @@
       "missing_date": "Sin fecha"
     }
   },
+  "export": {
+    "action": "Exportar",
+    "empty": "No hay filas para exportar",
+    "done": "{{count}} filas exportadas"
+  },
+  "calendar": {
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "today": "Hoy",
+    "allday": "Todo el día"
+  },
   "resume": {
     "title": "Subir currículums",
     "hint": "El nombre del archivo se compara con el de cada candidato. Un archivo que no coincide con nadie no se sube: importa primero al candidato.",

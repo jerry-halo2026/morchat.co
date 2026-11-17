@@ -290,6 +290,17 @@
       "missing_date": "沒有日期"
     }
   },
+  "export": {
+    "action": "匯出",
+    "empty": "沒有可匯出的列",
+    "done": "已匯出 {{count}} 列"
+  },
+  "calendar": {
+    "prev": "上一個",
+    "next": "下一個",
+    "today": "今天",
+    "allday": "全天"
+  },
   "resume": {
     "title": "上傳履歷",
     "hint": "檔名含候選人姓名即自動比對；比對不到的檔案不會上傳，請先匯入候選人。",

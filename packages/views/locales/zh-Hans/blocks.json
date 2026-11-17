@@ -290,6 +290,17 @@
       "missing_date": "没有日期"
     }
   },
+  "export": {
+    "action": "导出",
+    "empty": "没有可导出的行",
+    "done": "已导出 {{count}} 行"
+  },
+  "calendar": {
+    "prev": "上一个",
+    "next": "下一个",
+    "today": "今天",
+    "allday": "全天"
+  },
   "resume": {
     "title": "上传简历",
     "hint": "文件名里含候选人姓名即自动匹配；匹配不到的文件不会上传，请先导入候选人。",

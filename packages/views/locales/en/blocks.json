@@ -290,6 +290,17 @@
       "missing_date": "No date"
     }
   },
+  "export": {
+    "action": "Export",
+    "empty": "Nothing to export",
+    "done": "Exported {{count}} rows"
+  },
+  "calendar": {
+    "prev": "Previous",
+    "next": "Next",
+    "today": "Today",
+    "allday": "All day"
+  },
   "resume": {
     "title": "Upload résumés",
     "hint": "A candidate's name in the file name is matched automatically. A file that matches nobody is not uploaded — import the candidate first.",

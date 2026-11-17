@@ -290,6 +290,17 @@
       "missing_date": "Pas de date"
     }
   },
+  "export": {
+    "action": "Exporter",
+    "empty": "Aucune ligne à exporter",
+    "done": "{{count}} lignes exportées"
+  },
+  "calendar": {
+    "prev": "Précédent",
+    "next": "Suivant",
+    "today": "Aujourd'hui",
+    "allday": "Journée"
+  },
   "resume": {
     "title": "Importer des CV",
     "hint": "Le nom du fichier est comparé à celui des candidats. Un fichier sans correspondance n’est pas envoyé : importez d’abord le candidat.",
