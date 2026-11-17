@@ -48,12 +48,19 @@ vi.mock("recharts", async () => {
 });
 
 const WS = "ws-roster";
-const auth = vi.hoisted(() => ({ userId: "user-ada" }));
+
+// Who is reading the roster: the page takes the id and the role from the shared
+// `useCurrentMember`, so a test switches the reader by switching these two.
+const viewer = vi.hoisted(() => ({ userId: "user-ada", role: "admin" as "owner" | "admin" | "member" }));
 
 vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-roster" }));
-vi.mock("@morechat/core/auth", () => ({
-  useAuthStore: (selector: (state: { user: { id: string } }) => unknown) =>
-    selector({ user: { id: auth.userId } }),
+vi.mock("@morechat/core/permissions", () => ({
+  useCurrentMember: () => ({
+    userId: viewer.userId,
+    role: viewer.role,
+    member: null,
+    isLoading: false,
+  }),
 }));
 
 const adapter: NavigationAdapter = {
@@ -201,7 +208,8 @@ function openEmployee(name: string) {
 
 describe("HrEmployeesPage", () => {
   beforeEach(() => {
-    auth.userId = "user-ada";
+    viewer.userId = "user-ada";
+    viewer.role = "admin";
   });
 
   it("shows the first-run state when the roster is empty", () => {
@@ -296,7 +304,8 @@ describe("HrEmployeesPage", () => {
   it("hides the inline writes from a reader who does not own the row", () => {
     // `user-nobody` is not an admin and files no row of their own: every write
     // is gone from the list.
-    auth.userId = "user-nobody";
+    viewer.userId = "user-nobody";
+    viewer.role = "member";
     renderPage();
 
     expect(document.querySelectorAll("[data-collection-row-menu]")).toHaveLength(0);
@@ -304,7 +313,8 @@ describe("HrEmployeesPage", () => {
 
   it("leaves a member their own file and nothing else", () => {
     // Grace is a plain member: she may keep her own row in order, not the rest.
-    auth.userId = "user-grace";
+    viewer.userId = "user-grace";
+    viewer.role = "member";
     renderPage();
 
     const menus = document.querySelectorAll("[data-collection-row-menu]");
