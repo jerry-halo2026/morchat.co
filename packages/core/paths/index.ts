@@ -8,14 +8,21 @@ export type { WorkspacePaths } from "./paths";
 export { RESERVED_SLUGS, isReservedSlug } from "./reserved-slugs";
 export {
   WORKSPACE_PAGES,
+  HR_PAGES,
+  HR_PAGE_ORDER,
   DEFAULT_ROUTE_ICON_NAME,
   resolveRouteIconName,
   pageForSegment,
+  hrPageForSegment,
+  navPageFor,
+  navPageKeyForPath,
 } from "./route-icons";
 export type {
   RouteIconName,
   NavLabelKey,
+  NavPageKey,
   WorkspacePageKey,
+  HrPageKey,
   WorkspacePage,
 } from "./route-icons";
 export { RAIL_SPACES, spaceForPath } from "./spaces";

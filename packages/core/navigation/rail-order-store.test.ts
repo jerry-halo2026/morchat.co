@@ -8,14 +8,14 @@ describe("resolveRailOrder", () => {
   });
 
   it("keeps a saved order", () => {
-    const saved = ["chat", "inbox", "workbench", "work", "team", "autopilots"];
+    const saved = ["chat", "inbox", "workbench", "hr", "work", "team", "autopilots"];
     expect(resolveRailOrder(saved)).toEqual(saved);
   });
 
   it("drops unknown and repeated ids", () => {
     expect(
-      resolveRailOrder(["chat", "settings", 3, "chat", "inbox", "workbench", "work", "team", "autopilots"]),
-    ).toEqual(["chat", "inbox", "workbench", "work", "team", "autopilots"]);
+      resolveRailOrder(["chat", "settings", 3, "chat", "inbox", "workbench", "hr", "work", "team", "autopilots"]),
+    ).toEqual(["chat", "inbox", "workbench", "hr", "work", "team", "autopilots"]);
   });
 
   it("puts a space missing from the saved order after its default neighbour", () => {
@@ -24,12 +24,14 @@ describe("resolveRailOrder", () => {
       "inbox",
       "autopilots",
       "workbench",
+      "hr",
       "work",
       "team",
     ]);
     expect(resolveRailOrder(["chat", "workbench", "work", "team", "autopilots"])).toEqual([
       "chat",
       "workbench",
+      "hr",
       "inbox",
       "work",
       "team",
@@ -39,10 +41,12 @@ describe("resolveRailOrder", () => {
 
   // The workbench was added in front of Inbox after users had already saved an
   // order without it. Such an order must absorb it — leading the rail, the way
-  // the default order puts it — instead of dropping the new space.
+  // the default order puts it — instead of dropping the new space. HR, added
+  // after the workbench, is absorbed the same way.
   it("leads an order saved before the workbench existed with the workbench", () => {
     expect(resolveRailOrder(["inbox", "work", "team", "chat", "autopilots"])).toEqual([
       "workbench",
+      "hr",
       "inbox",
       "work",
       "team",
@@ -51,6 +55,7 @@ describe("resolveRailOrder", () => {
     ]);
     expect(resolveRailOrder(["chat", "inbox", "work", "team", "autopilots"])).toEqual([
       "workbench",
+      "hr",
       "chat",
       "inbox",
       "work",
@@ -63,11 +68,12 @@ describe("resolveRailOrder", () => {
   // the order stays exactly as saved.
   it("keeps the user's arrangement when the workbench is absorbed", () => {
     const saved = ["team", "autopilots", "work", "chat", "inbox"];
-    expect(resolveRailOrder(saved)).toEqual(["workbench", ...saved]);
+    expect(resolveRailOrder(saved)).toEqual(["workbench", "hr", ...saved]);
     // And once the user places it themselves, that placement is the order.
-    expect(resolveRailOrder(["inbox", "workbench", "chat", "work", "team", "autopilots"])).toEqual([
+    expect(resolveRailOrder(["inbox", "workbench", "hr", "chat", "work", "team", "autopilots"])).toEqual([
       "inbox",
       "workbench",
+      "hr",
       "chat",
       "work",
       "team",
@@ -82,7 +88,7 @@ describe("useRailOrderStore", () => {
   });
 
   it("saves a custom order", () => {
-    const order = ["chat", "inbox", "workbench", "work", "team", "autopilots"] as const;
+    const order = ["chat", "inbox", "workbench", "hr", "work", "team", "autopilots"] as const;
     useRailOrderStore.getState().setOrder(order);
     expect(useRailOrderStore.getState().order).toEqual(order);
   });

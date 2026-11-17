@@ -19,7 +19,7 @@
 import type { Issue, IssueStatus, IssueStatusCategory } from "../types";
 import { issueStatusCategory } from "../issues/status-category";
 import {
-  WORKSPACE_PAGES,
+  navPageFor,
   type NavLabelKey,
   type RouteIconName,
 } from "./route-icons";
@@ -150,7 +150,10 @@ export function resolveTabPresentation(
 ): TabPresentation {
   switch (subject.kind) {
     case "page": {
-      const page = WORKSPACE_PAGES[subject.page];
+      // Both registries answer here: the flat pages (Issues, Projects, …) and
+      // the HR space's nested ones (`/hr/recruit`). The registry owns the icon
+      // and the nav label, so a new page needs no entry in this switch.
+      const page = navPageFor(subject.page);
       return {
         visual: { kind: "icon", icon: page.icon },
         title: { kind: "nav", navKey: page.navKey },

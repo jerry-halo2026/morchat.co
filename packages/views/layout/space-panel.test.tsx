@@ -18,6 +18,7 @@ vi.mock("./panels/team-panel", () => ({ TeamPanel: () => <div data-testid="team-
 vi.mock("./panels/autopilots-panel", () => ({
   AutopilotsPanel: () => <div data-testid="autopilots-panel" />,
 }));
+vi.mock("../hr/hr-panel", () => ({ HrPanel: () => <div data-testid="hr-panel" /> }));
 vi.mock("./panels/list-space-peeks", () => ({
   InboxPeek: () => <div data-testid="inbox-peek" />,
   ChatPeek: () => <div data-testid="chat-peek" />,
@@ -71,6 +72,14 @@ describe("SpacePanel", () => {
     renderPanel();
     expect(panel()).toHaveAttribute("data-state", "expanded");
     expect(screen.getByTestId("work-panel")).toBeInTheDocument();
+  });
+
+  // HR's nine pages are siblings, so it brings a panel of its own.
+  it("gives the HR space its own panel", () => {
+    navigation.pathname = "/acme/hr/recruit";
+    renderPanel();
+    expect(panel()).toHaveAttribute("data-state", "expanded");
+    expect(screen.getByTestId("hr-panel")).toBeInTheDocument();
   });
 
   it("collapses from a click on its edge and keeps its content out of reach", () => {

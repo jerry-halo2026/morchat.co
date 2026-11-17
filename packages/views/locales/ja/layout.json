@@ -15,7 +15,63 @@
     "presets": "プリセット",
     "settings": "設定",
     "views": "ビュー",
-    "knowledge": "ナレッジ"
+    "knowledge": "ナレッジ",
+    "hr_recruit": "採用",
+    "hr_resumes": "履歴書",
+    "hr_interviews": "面接",
+    "hr_scores": "総合評価",
+    "hr_tests": "筆記試験",
+    "hr_employees": "従業員名簿",
+    "hr_offboard": "退職管理",
+    "hr_files": "ファイル",
+    "hr_analysis": "人事分析"
+  },
+  "hr": {
+    "recruit": {
+      "empty_title": "募集中のポジションはありません",
+      "empty_description": "募集中のポジションと、それぞれの進み具合。",
+      "action": "ポジションを作成"
+    },
+    "resumes": {
+      "empty_title": "応募者はまだいません",
+      "empty_description": "選考待ちの応募書類と、すでに選考したもの。",
+      "action": "応募者を追加"
+    },
+    "interviews": {
+      "empty_title": "面接の予定はありません",
+      "empty_description": "誰が、いつ、誰に会うか。",
+      "action": "面接を設定"
+    },
+    "scores": {
+      "empty_title": "評価はまだありません",
+      "empty_description": "候補者ごとの総合評価を一人一行で。",
+      "action": "評価を入力"
+    },
+    "tests": {
+      "empty_title": "筆記試験はまだありません",
+      "empty_description": "ポジションが求める筆記試験と、受験済みの人。",
+      "action": "筆記試験を作成"
+    },
+    "employees": {
+      "empty_title": "従業員はまだいません",
+      "empty_description": "在籍する全員と、職種・入社日。",
+      "action": "従業員を追加"
+    },
+    "offboard": {
+      "empty_title": "退職手続き中の人はいません",
+      "empty_description": "進行中の退職手続きと、その周りの残件。",
+      "action": "退職手続きを開始"
+    },
+    "files": {
+      "empty_title": "ファイルはまだありません",
+      "empty_description": "契約書・証明書・署名書類を人ごとに。",
+      "action": "ファイルをアップロード"
+    },
+    "analysis": {
+      "empty_title": "分析できるデータがありません",
+      "empty_description": "在籍数・離職率・採用日数。ほかのページの数字から。",
+      "action": "レポートを作成"
+    }
   },
   "tab": {
     "issue": "タスク",
@@ -93,7 +149,8 @@
   "spaces": {
     "workbench": "ワークベンチ",
     "work": "作業",
-    "team": "チーム"
+    "team": "チーム",
+    "hr": "人事"
   },
   "rail": {
     "workbench": "ワークベンチ",
@@ -112,7 +169,8 @@
     "open_in_new_window_click": "クリック",
     "open_in_other_window": "別のウィンドウで開いています",
     "in_other_window": "別ウィンドウ",
-    "all_workspaces_open": "すべてのワークスペースがすでにウィンドウで開いています"
+    "all_workspaces_open": "すべてのワークスペースがすでにウィンドウで開いています",
+    "hr": "人事"
   },
   "panels": {
     "work": {
@@ -193,13 +251,13 @@
     "shortcuts": "キーボードショートカット"
   },
   "collection": {
-  "pager": {
-    "more": "さらに読み込む",
-    "loading": "読み込み中…",
-    "end": "これ以上ありません",
-    "count": "{{loaded}} / {{total}} 件を表示",
-    "count_loaded": "{{loaded}} 件を表示"
-  },
+    "pager": {
+      "more": "さらに読み込む",
+      "loading": "読み込み中…",
+      "end": "これ以上ありません",
+      "count": "{{loaded}} / {{total}} 件を表示",
+      "count_loaded": "{{loaded}} 件を表示"
+    },
     "filter": "フィルター",
     "filter_count_other": "{{count}} 件のフィルター",
     "reset": "リセット",

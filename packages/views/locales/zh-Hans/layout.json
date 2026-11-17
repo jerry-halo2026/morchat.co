@@ -15,7 +15,63 @@
     "presets": "预设",
     "settings": "设置",
     "views": "视图",
-    "knowledge": "知识库"
+    "knowledge": "知识库",
+    "hr_recruit": "招聘",
+    "hr_resumes": "简历筛选",
+    "hr_interviews": "面试安排",
+    "hr_scores": "综合成绩",
+    "hr_tests": "笔试管理",
+    "hr_employees": "员工花名册",
+    "hr_offboard": "离职管理",
+    "hr_files": "文件柜",
+    "hr_analysis": "人事分析"
+  },
+  "hr": {
+    "recruit": {
+      "empty_title": "还没有招聘岗位",
+      "empty_description": "每个在招岗位，以及它的招聘推进到哪一步。",
+      "action": "新建岗位"
+    },
+    "resumes": {
+      "empty_title": "还没有简历",
+      "empty_description": "等待筛选的简历，以及已经筛过的。",
+      "action": "新增简历"
+    },
+    "interviews": {
+      "empty_title": "还没有面试安排",
+      "empty_description": "谁在什么时间由谁面试。",
+      "action": "安排面试"
+    },
+    "scores": {
+      "empty_title": "还没有成绩",
+      "empty_description": "每位候选人的综合成绩，一人一行。",
+      "action": "录入成绩"
+    },
+    "tests": {
+      "empty_title": "还没有笔试",
+      "empty_description": "岗位要求的笔试卷，以及谁已经做过。",
+      "action": "新建笔试"
+    },
+    "employees": {
+      "empty_title": "还没有员工",
+      "empty_description": "所有在职员工，连同岗位和入职日期。",
+      "action": "添加员工"
+    },
+    "offboard": {
+      "empty_title": "没有在办离职",
+      "empty_description": "正在办理的离职，以及与之相关的待办。",
+      "action": "发起离职"
+    },
+    "files": {
+      "empty_title": "文件柜是空的",
+      "empty_description": "合同、证书和签字文件，按人归档。",
+      "action": "上传文件"
+    },
+    "analysis": {
+      "empty_title": "还没有可分析的数据",
+      "empty_description": "在职人数、流失率和招聘周期，取自其余页面。",
+      "action": "新建报表"
+    }
   },
   "tab": {
     "issue": "任务",
@@ -93,7 +149,8 @@
   "spaces": {
     "workbench": "工作台",
     "work": "工作",
-    "team": "团队"
+    "team": "团队",
+    "hr": "人事"
   },
   "rail": {
     "workbench": "工作台",
@@ -112,7 +169,8 @@
     "open_in_new_window_click": "点击",
     "open_in_other_window": "已在其他窗口打开",
     "in_other_window": "其他窗口",
-    "all_workspaces_open": "所有工作区都已在窗口中打开"
+    "all_workspaces_open": "所有工作区都已在窗口中打开",
+    "hr": "人事"
   },
   "panels": {
     "work": {
@@ -193,13 +251,13 @@
     "shortcuts": "快捷键"
   },
   "collection": {
-  "pager": {
-    "more": "加载更多",
-    "loading": "加载中…",
-    "end": "没有更多了",
-    "count": "已显示 {{loaded}} / 共 {{total}}",
-    "count_loaded": "已显示 {{loaded}}"
-  },
+    "pager": {
+      "more": "加载更多",
+      "loading": "加载中…",
+      "end": "没有更多了",
+      "count": "已显示 {{loaded}} / 共 {{total}}",
+      "count_loaded": "已显示 {{loaded}}"
+    },
     "filter": "筛选",
     "filter_count_other": "{{count}} 个筛选",
     "reset": "重置",

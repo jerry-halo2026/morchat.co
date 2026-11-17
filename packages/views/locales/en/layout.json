@@ -15,7 +15,63 @@
     "presets": "Presets",
     "settings": "Settings",
     "views": "Views",
-    "knowledge": "Knowledge"
+    "knowledge": "Knowledge",
+    "hr_recruit": "Recruiting",
+    "hr_resumes": "Resumes",
+    "hr_interviews": "Interviews",
+    "hr_scores": "Scorecard",
+    "hr_tests": "Assessments",
+    "hr_employees": "Employees",
+    "hr_offboard": "Offboarding",
+    "hr_files": "Files",
+    "hr_analysis": "HR analytics"
+  },
+  "hr": {
+    "recruit": {
+      "empty_title": "No open roles yet",
+      "empty_description": "Every open role and how far its search has come.",
+      "action": "New role"
+    },
+    "resumes": {
+      "empty_title": "No applications yet",
+      "empty_description": "Applications waiting to be read, and the ones already screened.",
+      "action": "Add application"
+    },
+    "interviews": {
+      "empty_title": "No interviews scheduled",
+      "empty_description": "Who is being seen, by whom, and when.",
+      "action": "Schedule interview"
+    },
+    "scores": {
+      "empty_title": "No scores yet",
+      "empty_description": "Each candidate's combined score, one row per person.",
+      "action": "Add score"
+    },
+    "tests": {
+      "empty_title": "No assessments yet",
+      "empty_description": "The written tests a role asks for, and who has sat them.",
+      "action": "New assessment"
+    },
+    "employees": {
+      "empty_title": "No employees yet",
+      "empty_description": "Everyone on staff, with the post and dates the rest of HR reads.",
+      "action": "Add employee"
+    },
+    "offboard": {
+      "empty_title": "No one is offboarding",
+      "empty_description": "Departures in progress and what is still open around them.",
+      "action": "Start offboarding"
+    },
+    "files": {
+      "empty_title": "No files yet",
+      "empty_description": "Contracts, certificates and signed forms, kept per person.",
+      "action": "Upload file"
+    },
+    "analysis": {
+      "empty_title": "No numbers to analyse yet",
+      "empty_description": "Headcount, turnover and time to hire, read from the other pages.",
+      "action": "New report"
+    }
   },
   "tab": {
     "issue": "Issue",
@@ -94,7 +150,8 @@
   "spaces": {
     "workbench": "Workbench",
     "work": "Work",
-    "team": "Team"
+    "team": "Team",
+    "hr": "HR"
   },
   "rail": {
     "label": "App navigation",
@@ -113,7 +170,8 @@
     "open_in_new_window_click": "Click",
     "open_in_other_window": "Already open in another window",
     "in_other_window": "Other window",
-    "all_workspaces_open": "Every workspace is already open in a window"
+    "all_workspaces_open": "Every workspace is already open in a window",
+    "hr": "HR"
   },
   "panels": {
     "work": {
@@ -199,13 +257,13 @@
     "shortcuts": "Keyboard shortcuts"
   },
   "collection": {
-  "pager": {
-    "more": "Load more",
-    "loading": "Loading…",
-    "end": "No more rows",
-    "count": "Showing {{loaded}} of {{total}}",
-    "count_loaded": "Showing {{loaded}}"
-  },
+    "pager": {
+      "more": "Load more",
+      "loading": "Loading…",
+      "end": "No more rows",
+      "count": "Showing {{loaded}} of {{total}}",
+      "count_loaded": "Showing {{loaded}}"
+    },
     "filter": "Filter",
     "filter_count_one": "{{count}} filter",
     "filter_count_other": "{{count}} filters",

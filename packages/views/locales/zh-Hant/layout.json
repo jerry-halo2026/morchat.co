@@ -15,7 +15,63 @@
     "presets": "預設",
     "settings": "設定",
     "views": "檢視",
-    "knowledge": "知識庫"
+    "knowledge": "知識庫",
+    "hr_recruit": "招聘",
+    "hr_resumes": "履歷篩選",
+    "hr_interviews": "面試安排",
+    "hr_scores": "綜合成績",
+    "hr_tests": "筆試管理",
+    "hr_employees": "員工名冊",
+    "hr_offboard": "離職管理",
+    "hr_files": "檔案櫃",
+    "hr_analysis": "人事分析"
+  },
+  "hr": {
+    "recruit": {
+      "empty_title": "還沒有招聘職缺",
+      "empty_description": "每個在招職缺，以及它的招募推進到哪一步。",
+      "action": "新增職缺"
+    },
+    "resumes": {
+      "empty_title": "還沒有履歷",
+      "empty_description": "等待篩選的履歷，以及已經篩過的。",
+      "action": "新增履歷"
+    },
+    "interviews": {
+      "empty_title": "還沒有面試安排",
+      "empty_description": "誰在什麼時間由誰面試。",
+      "action": "安排面試"
+    },
+    "scores": {
+      "empty_title": "還沒有成績",
+      "empty_description": "每位候選人的綜合成績，一人一行。",
+      "action": "登錄成績"
+    },
+    "tests": {
+      "empty_title": "還沒有筆試",
+      "empty_description": "職缺要求的筆試卷，以及誰已經做過。",
+      "action": "新增筆試"
+    },
+    "employees": {
+      "empty_title": "還沒有員工",
+      "empty_description": "所有在職員工，連同職稱和到職日期。",
+      "action": "新增員工"
+    },
+    "offboard": {
+      "empty_title": "沒有在辦的離職",
+      "empty_description": "正在辦理中的離職，以及相關待辦。",
+      "action": "發起離職"
+    },
+    "files": {
+      "empty_title": "檔案櫃是空的",
+      "empty_description": "合約、證書和簽署文件，按人歸檔。",
+      "action": "上傳檔案"
+    },
+    "analysis": {
+      "empty_title": "還沒有可分析的資料",
+      "empty_description": "在職人數、流失率和招募週期，取自其餘頁面。",
+      "action": "新增報表"
+    }
   },
   "tab": {
     "issue": "任務",
@@ -93,7 +149,8 @@
   "spaces": {
     "workbench": "工作台",
     "work": "工作",
-    "team": "團隊"
+    "team": "團隊",
+    "hr": "人事"
   },
   "rail": {
     "workbench": "工作台",
@@ -112,7 +169,8 @@
     "open_in_new_window_click": "點擊",
     "open_in_other_window": "已在其他視窗開啟",
     "in_other_window": "其他視窗",
-    "all_workspaces_open": "所有工作區都已在視窗中開啟"
+    "all_workspaces_open": "所有工作區都已在視窗中開啟",
+    "hr": "人事"
   },
   "panels": {
     "work": {
@@ -193,13 +251,13 @@
     "shortcuts": "快捷鍵"
   },
   "collection": {
-  "pager": {
-    "more": "載入更多",
-    "loading": "載入中…",
-    "end": "沒有更多了",
-    "count": "已顯示 {{loaded}} / 共 {{total}}",
-    "count_loaded": "已顯示 {{loaded}}"
-  },
+    "pager": {
+      "more": "載入更多",
+      "loading": "載入中…",
+      "end": "沒有更多了",
+      "count": "已顯示 {{loaded}} / 共 {{total}}",
+      "count_loaded": "已顯示 {{loaded}}"
+    },
     "filter": "篩選",
     "filter_count_other": "{{count}} 個篩選",
     "reset": "重設",

@@ -15,7 +15,63 @@
     "presets": "Presets",
     "settings": "Ajustes",
     "views": "Vistas",
-    "knowledge": "Conocimiento"
+    "knowledge": "Conocimiento",
+    "hr_recruit": "Reclutamiento",
+    "hr_resumes": "Currículums",
+    "hr_interviews": "Entrevistas",
+    "hr_scores": "Puntuación",
+    "hr_tests": "Pruebas",
+    "hr_employees": "Empleados",
+    "hr_offboard": "Bajas",
+    "hr_files": "Archivos",
+    "hr_analysis": "Análisis de RR. HH."
+  },
+  "hr": {
+    "recruit": {
+      "empty_title": "Aún no hay vacantes",
+      "empty_description": "Cada vacante abierta y en qué punto está su búsqueda.",
+      "action": "Nueva vacante"
+    },
+    "resumes": {
+      "empty_title": "Aún no hay candidaturas",
+      "empty_description": "Candidaturas por leer y las ya cribadas.",
+      "action": "Añadir candidatura"
+    },
+    "interviews": {
+      "empty_title": "No hay entrevistas programadas",
+      "empty_description": "Quién se ve con quién, y cuándo.",
+      "action": "Programar entrevista"
+    },
+    "scores": {
+      "empty_title": "Aún no hay puntuaciones",
+      "empty_description": "La puntuación combinada de cada candidato, una fila por persona.",
+      "action": "Añadir puntuación"
+    },
+    "tests": {
+      "empty_title": "Aún no hay pruebas",
+      "empty_description": "Las pruebas escritas que pide cada puesto y quién las ha hecho.",
+      "action": "Nueva prueba"
+    },
+    "employees": {
+      "empty_title": "Aún no hay empleados",
+      "empty_description": "Todo el equipo, con el puesto y las fechas que lee el resto del área.",
+      "action": "Añadir empleado"
+    },
+    "offboard": {
+      "empty_title": "Nadie está de salida",
+      "empty_description": "Salidas en curso y lo que queda abierto alrededor.",
+      "action": "Iniciar salida"
+    },
+    "files": {
+      "empty_title": "Aún no hay archivos",
+      "empty_description": "Contratos, certificados y formularios firmados, por persona.",
+      "action": "Subir archivo"
+    },
+    "analysis": {
+      "empty_title": "Aún no hay datos que analizar",
+      "empty_description": "Plantilla, rotación y tiempo de contratación, leídos de las otras páginas.",
+      "action": "Nuevo informe"
+    }
   },
   "tab": {
     "issue": "Tarea",
@@ -94,7 +150,8 @@
   "spaces": {
     "workbench": "Mesa de trabajo",
     "work": "Trabajo",
-    "team": "Equipo"
+    "team": "Equipo",
+    "hr": "Personal"
   },
   "rail": {
     "workbench": "Mesa de trabajo",
@@ -113,7 +170,8 @@
     "open_in_new_window_click": "Clic",
     "open_in_other_window": "Ya está abierto en otra ventana",
     "in_other_window": "Otra ventana",
-    "all_workspaces_open": "Todos los espacios de trabajo ya están abiertos en una ventana"
+    "all_workspaces_open": "Todos los espacios de trabajo ya están abiertos en una ventana",
+    "hr": "Personal"
   },
   "panels": {
     "work": {
@@ -199,13 +257,13 @@
     "shortcuts": "Atajos de teclado"
   },
   "collection": {
-  "pager": {
-    "more": "Cargar más",
-    "loading": "Cargando…",
-    "end": "No hay más filas",
-    "count": "Mostrando {{loaded}} de {{total}}",
-    "count_loaded": "Mostrando {{loaded}}"
-  },
+    "pager": {
+      "more": "Cargar más",
+      "loading": "Cargando…",
+      "end": "No hay más filas",
+      "count": "Mostrando {{loaded}} de {{total}}",
+      "count_loaded": "Mostrando {{loaded}}"
+    },
     "filter": "Filtrar",
     "filter_count_one": "{{count}} filtro",
     "filter_count_other": "{{count}} filtros",

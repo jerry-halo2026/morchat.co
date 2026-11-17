@@ -15,7 +15,63 @@
     "presets": "Préréglages",
     "settings": "Paramètres",
     "views": "Vues",
-    "knowledge": "Connaissances"
+    "knowledge": "Connaissances",
+    "hr_recruit": "Recrutement",
+    "hr_resumes": "CV",
+    "hr_interviews": "Entretiens",
+    "hr_scores": "Évaluation",
+    "hr_tests": "Tests",
+    "hr_employees": "Employés",
+    "hr_offboard": "Départs",
+    "hr_files": "Fichiers",
+    "hr_analysis": "Analyse RH"
+  },
+  "hr": {
+    "recruit": {
+      "empty_title": "Aucun poste ouvert",
+      "empty_description": "Chaque poste ouvert et l'avancement de sa recherche.",
+      "action": "Nouveau poste"
+    },
+    "resumes": {
+      "empty_title": "Aucune candidature",
+      "empty_description": "Les candidatures à lire et celles déjà triées.",
+      "action": "Ajouter une candidature"
+    },
+    "interviews": {
+      "empty_title": "Aucun entretien planifié",
+      "empty_description": "Qui rencontre qui, et quand.",
+      "action": "Planifier un entretien"
+    },
+    "scores": {
+      "empty_title": "Aucune évaluation",
+      "empty_description": "L'évaluation combinée de chaque candidat, une ligne par personne.",
+      "action": "Saisir l'évaluation"
+    },
+    "tests": {
+      "empty_title": "Aucun test",
+      "empty_description": "Les tests écrits demandés par un poste et qui les a passés.",
+      "action": "Nouveau test"
+    },
+    "employees": {
+      "empty_title": "Aucun employé",
+      "empty_description": "Toute l'équipe, avec le poste et les dates que lit le reste du service.",
+      "action": "Ajouter un employé"
+    },
+    "offboard": {
+      "empty_title": "Aucun départ en cours",
+      "empty_description": "Les départs en cours et ce qui reste ouvert autour.",
+      "action": "Lancer un départ"
+    },
+    "files": {
+      "empty_title": "Aucun fichier",
+      "empty_description": "Contrats, certificats et formulaires signés, classés par personne.",
+      "action": "Importer un fichier"
+    },
+    "analysis": {
+      "empty_title": "Aucune donnée à analyser",
+      "empty_description": "Effectif, turnover et délai d'embauche, lus dans les autres pages.",
+      "action": "Nouveau rapport"
+    }
   },
   "tab": {
     "issue": "Tâche",
@@ -94,7 +150,8 @@
   "spaces": {
     "workbench": "Atelier",
     "work": "Travail",
-    "team": "Équipe"
+    "team": "Équipe",
+    "hr": "RH"
   },
   "rail": {
     "workbench": "Atelier",
@@ -113,7 +170,8 @@
     "open_in_new_window_click": "Clic",
     "open_in_other_window": "Déjà ouvert dans une autre fenêtre",
     "in_other_window": "Autre fenêtre",
-    "all_workspaces_open": "Chaque espace de travail est déjà ouvert dans une fenêtre"
+    "all_workspaces_open": "Chaque espace de travail est déjà ouvert dans une fenêtre",
+    "hr": "RH"
   },
   "panels": {
     "work": {
@@ -199,13 +257,13 @@
     "shortcuts": "Raccourcis clavier"
   },
   "collection": {
-  "pager": {
-    "more": "Charger plus",
-    "loading": "Chargement…",
-    "end": "Plus de lignes",
-    "count": "{{loaded}} sur {{total}} affichées",
-    "count_loaded": "{{loaded}} affichées"
-  },
+    "pager": {
+      "more": "Charger plus",
+      "loading": "Chargement…",
+      "end": "Plus de lignes",
+      "count": "{{loaded}} sur {{total}} affichées",
+      "count_loaded": "{{loaded}} affichées"
+    },
     "filter": "Filtrer",
     "filter_count_one": "{{count}} filtre",
     "filter_count_other": "{{count}} filtres",

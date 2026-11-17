@@ -15,7 +15,63 @@
     "presets": "프리셋",
     "settings": "설정",
     "views": "뷰",
-    "knowledge": "지식 베이스"
+    "knowledge": "지식 베이스",
+    "hr_recruit": "채용",
+    "hr_resumes": "이력서",
+    "hr_interviews": "면접",
+    "hr_scores": "종합 성적",
+    "hr_tests": "필기 시험",
+    "hr_employees": "직원 명부",
+    "hr_offboard": "퇴사 관리",
+    "hr_files": "파일",
+    "hr_analysis": "인사 분석"
+  },
+  "hr": {
+    "recruit": {
+      "empty_title": "아직 채용 공고가 없습니다",
+      "empty_description": "진행 중인 채용 공고와 각 공고의 단계.",
+      "action": "공고 만들기"
+    },
+    "resumes": {
+      "empty_title": "아직 이력서가 없습니다",
+      "empty_description": "검토를 기다리는 이력서와 이미 검토한 이력서.",
+      "action": "이력서 추가"
+    },
+    "interviews": {
+      "empty_title": "예정된 면접이 없습니다",
+      "empty_description": "누가 언제 누구를 만나는지.",
+      "action": "면접 잡기"
+    },
+    "scores": {
+      "empty_title": "아직 성적이 없습니다",
+      "empty_description": "지원자별 종합 성적을 한 사람에 한 줄로.",
+      "action": "성적 입력"
+    },
+    "tests": {
+      "empty_title": "아직 필기 시험이 없습니다",
+      "empty_description": "공고가 요구하는 필기 시험과 응시한 사람.",
+      "action": "시험 만들기"
+    },
+    "employees": {
+      "empty_title": "아직 직원이 없습니다",
+      "empty_description": "재직 중인 모든 직원과 직책, 입사일.",
+      "action": "직원 추가"
+    },
+    "offboard": {
+      "empty_title": "퇴사 진행 중인 직원이 없습니다",
+      "empty_description": "진행 중인 퇴사와 그 주변의 남은 일.",
+      "action": "퇴사 시작"
+    },
+    "files": {
+      "empty_title": "아직 파일이 없습니다",
+      "empty_description": "계약서, 증명서, 서명 문서를 사람별로.",
+      "action": "파일 업로드"
+    },
+    "analysis": {
+      "empty_title": "분석할 데이터가 없습니다",
+      "empty_description": "재직 인원, 이직률, 채용 소요 기간.",
+      "action": "보고서 만들기"
+    }
   },
   "tab": {
     "issue": "태스크",
@@ -93,7 +149,8 @@
   "spaces": {
     "workbench": "워크벤치",
     "work": "작업",
-    "team": "팀"
+    "team": "팀",
+    "hr": "인사"
   },
   "rail": {
     "workbench": "워크벤치",
@@ -112,7 +169,8 @@
     "open_in_new_window_click": "클릭",
     "open_in_other_window": "다른 창에서 열려 있음",
     "in_other_window": "다른 창",
-    "all_workspaces_open": "모든 워크스페이스가 이미 창에 열려 있습니다"
+    "all_workspaces_open": "모든 워크스페이스가 이미 창에 열려 있습니다",
+    "hr": "인사"
   },
   "panels": {
     "work": {
@@ -193,13 +251,13 @@
     "shortcuts": "키보드 단축키"
   },
   "collection": {
-  "pager": {
-    "more": "더 불러오기",
-    "loading": "불러오는 중…",
-    "end": "더 이상 없습니다",
-    "count": "{{loaded}} / {{total}} 표시",
-    "count_loaded": "{{loaded}}개 표시"
-  },
+    "pager": {
+      "more": "더 불러오기",
+      "loading": "불러오는 중…",
+      "end": "더 이상 없습니다",
+      "count": "{{loaded}} / {{total}} 표시",
+      "count_loaded": "{{loaded}}개 표시"
+    },
     "filter": "필터",
     "filter_count_other": "필터 {{count}}개",
     "reset": "초기화",
