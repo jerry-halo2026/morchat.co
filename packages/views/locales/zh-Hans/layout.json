@@ -91,10 +91,12 @@
     "show_fewer_pins": "收起"
   },
   "spaces": {
+    "workbench": "工作台",
     "work": "工作",
     "team": "团队"
   },
   "rail": {
+    "workbench": "工作台",
     "label": "应用导航",
     "sheet_description": "切换空间和工作区。",
     "inbox": "收件箱",

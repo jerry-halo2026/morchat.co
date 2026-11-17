@@ -92,10 +92,12 @@
     "show_fewer_pins": "Afficher moins"
   },
   "spaces": {
+    "workbench": "Atelier",
     "work": "Travail",
     "team": "Équipe"
   },
   "rail": {
+    "workbench": "Atelier",
     "label": "Navigation de l'application",
     "sheet_description": "Changer d'espace et d'espace de travail.",
     "inbox": "Boîte",

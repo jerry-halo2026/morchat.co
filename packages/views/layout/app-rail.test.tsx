@@ -128,11 +128,11 @@ describe("AppRail global actions", () => {
 describe("AppRail order", () => {
   it("lists the spaces in the default order", () => {
     renderRail();
-    expect(railOrder()).toEqual(["inbox", "work", "team", "chat", "autopilots"]);
+    expect(railOrder()).toEqual(["workbench", "inbox", "work", "team", "chat", "autopilots"]);
   });
 
   it("follows the saved order", () => {
-    const order = ["chat", "inbox", "work", "team", "autopilots"] as const;
+    const order = ["chat", "inbox", "workbench", "work", "team", "autopilots"] as const;
     useRailOrderStore.getState().setOrder(order);
     renderRail();
     expect(railOrder()).toEqual(order);
@@ -160,12 +160,37 @@ describe("AppRail spaces", () => {
     state.pathname = "/acme/projects/p-1";
     renderRail();
 
-    for (const href of ["/acme/inbox", "/acme/issues", "/acme/agents", "/acme/chat", "/acme/autopilots"]) {
+    for (const href of [
+      "/acme/overview",
+      "/acme/inbox",
+      "/acme/issues",
+      "/acme/agents",
+      "/acme/chat",
+      "/acme/autopilots",
+    ]) {
       expect(link(href)).not.toBeNull();
     }
     // Projects belong to the work space, which links to Issues.
     expect(link("/acme/issues")).toHaveAttribute("aria-current", "page");
     expect(link("/acme/agents")).not.toHaveAttribute("aria-current");
+  });
+
+  // The workbench is the workspace's home page, so it leads the rail and is the
+  // space the overview route lights.
+  it("leads the rail with the workbench and lights it on the overview route", () => {
+    state.pathname = "/acme/overview?tab=ledger&dept=d-1";
+    renderRail();
+
+    expect(railOrder()[0]).toBe("workbench");
+    expect(link("/acme/overview")).toHaveAttribute("aria-current", "page");
+  });
+
+  it("leaves the workbench unlit on a work route", () => {
+    state.pathname = "/acme/issues";
+    renderRail();
+
+    expect(link("/acme/overview")).not.toHaveAttribute("aria-current");
+    expect(link("/acme/issues")).toHaveAttribute("aria-current", "page");
   });
 
   it("marks Settings in the footer while on a settings route", () => {

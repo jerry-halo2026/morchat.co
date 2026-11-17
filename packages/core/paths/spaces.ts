@@ -7,6 +7,7 @@
  */
 
 export type AppSpaceId =
+  | "workbench"
   | "inbox"
   | "work"
   | "team"
@@ -17,8 +18,9 @@ export type AppSpaceId =
 /** Settings lives in the rail footer rather than the space list. */
 export type RailSpaceId = Exclude<AppSpaceId, "settings">;
 
-/** Spaces in rail order. */
+/** Spaces in rail order: the workbench leads, since it is the home page. */
 export const RAIL_SPACES: readonly RailSpaceId[] = [
+  "workbench",
   "inbox",
   "work",
   "team",
@@ -27,14 +29,16 @@ export const RAIL_SPACES: readonly RailSpaceId[] = [
 ];
 
 const SPACE_BY_SEGMENT: Record<string, AppSpaceId> = {
+  // The workbench is its own space — one department's metrics, its ledgers and
+  // its team, the page a workspace opens on. Its tabs ride the query string,
+  // so it stays one segment. It reads the Work rows beside it and keeps the
+  // Work panel, but the rail marks it apart from Work.
+  overview: "workbench",
   inbox: "inbox",
   "my-issues": "work",
   issues: "work",
   projects: "work",
   views: "work",
-  // The workbench reads delivery work plus the ledgers beside it, so it stays
-  // in Work rather than opening a space of its own: same panel, same rows.
-  overview: "work",
   agents: "team",
   squads: "team",
   members: "team",

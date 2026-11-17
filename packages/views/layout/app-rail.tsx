@@ -198,7 +198,7 @@ function SortableRailItem({ id, children }: { id: RailSpaceId; children: React.R
 const DRAG_MODIFIERS = [restrictToVerticalAxis, restrictToFirstScrollableAncestor];
 
 /**
- * The app rail: workspaces, New issue and search, the five spaces in the
+ * The app rail: workspaces, New issue and search, the six spaces in the
  * user's order (drag to reorder), then help, settings and the account. It
  * sits on the app shell, outside the content card, and stays put while the
  * panel beside it collapses. Desktop passes `globalActions={false}`: its
@@ -238,6 +238,12 @@ export function AppRail({
   );
 
   const items: Record<RailSpaceId, { href: string; icon: IconComponent; label: string; fullLabel: string }> = {
+    workbench: {
+      href: p.overview(),
+      icon: routeIconForPath(p.overview()),
+      label: t(($) => $.rail.workbench),
+      fullLabel: t(($) => $.spaces.workbench),
+    },
     inbox: {
       href: p.inbox(),
       icon: routeIconForPath(p.inbox()),

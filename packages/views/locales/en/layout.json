@@ -92,12 +92,14 @@
     "show_fewer_pins": "Show fewer"
   },
   "spaces": {
+    "workbench": "Workbench",
     "work": "Work",
     "team": "Team"
   },
   "rail": {
     "label": "App navigation",
     "sheet_description": "Switch spaces and workspaces.",
+    "workbench": "Workbench",
     "inbox": "Inbox",
     "work": "Work",
     "team": "Team",

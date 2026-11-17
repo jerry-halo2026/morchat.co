@@ -209,7 +209,7 @@ describe("LoginPage", () => {
       render(<LoginPage />, { wrapper: createWrapper() });
 
       await waitFor(() => {
-        expect(mockReplace).toHaveBeenCalledWith("/acme/issues");
+        expect(mockReplace).toHaveBeenCalledWith("/acme/overview");
       });
       expect(mockListWorkspaces).toHaveBeenCalledTimes(1);
     });

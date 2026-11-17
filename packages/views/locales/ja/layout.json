@@ -91,10 +91,12 @@
     "show_fewer_pins": "表示を減らす"
   },
   "spaces": {
+    "workbench": "ワークベンチ",
     "work": "作業",
     "team": "チーム"
   },
   "rail": {
+    "workbench": "ワークベンチ",
     "label": "アプリナビゲーション",
     "sheet_description": "スペースとワークスペースを切り替えます。",
     "inbox": "受信箱",

@@ -92,10 +92,12 @@
     "close": "Cerrar"
   },
   "spaces": {
+    "workbench": "Mesa de trabajo",
     "work": "Trabajo",
     "team": "Equipo"
   },
   "rail": {
+    "workbench": "Mesa de trabajo",
     "label": "Navegación de la app",
     "sheet_description": "Cambia de sección y de espacio de trabajo.",
     "inbox": "Bandeja",
