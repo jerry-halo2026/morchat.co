@@ -406,6 +406,7 @@ type HrEmployeeProfileResponse struct {
 	HireDate      *string         `json:"hire_date"`
 	RegularDate   *string         `json:"regular_date"`
 	ContractEnd   *string         `json:"contract_end"`
+	LeaveDate     *string         `json:"leave_date"`
 	Ability       json.RawMessage `json:"ability"`
 	Disc          json.RawMessage `json:"disc"`
 	OwnerMemberID *string         `json:"owner_member_id"`
@@ -435,6 +436,7 @@ func hrEmployeeProfileToResponse(p db.HrEmployeeProfile) HrEmployeeProfileRespon
 		HireDate:      dateToPtr(p.HireDate),
 		RegularDate:   dateToPtr(p.RegularDate),
 		ContractEnd:   dateToPtr(p.ContractEnd),
+		LeaveDate:     dateToPtr(p.LeaveDate),
 		Ability:       hrJSONColumn(p.Ability),
 		Disc:          hrJSONColumn(p.Disc),
 		OwnerMemberID: uuidToPtr(p.OwnerMemberID),

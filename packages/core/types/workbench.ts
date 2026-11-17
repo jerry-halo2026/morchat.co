@@ -853,6 +853,8 @@ export interface HrEmployeeProfile {
   hire_date: string | null;
   regular_date: string | null;
   contract_end: string | null;
+  /** The day the person actually left; set when an offboarding reaches done. */
+  leave_date: string | null;
   ability: HrAbilityScores;
   disc: HrDiscScores;
   owner_member_id: string | null;

@@ -131,6 +131,7 @@ const EMPLOYEE: HrEmployeeProfile = {
   hire_date: "2024-03-01",
   regular_date: null,
   contract_end: "2027-03-01",
+  leave_date: null,
   ability: {},
   disc: {},
   owner_member_id: null,

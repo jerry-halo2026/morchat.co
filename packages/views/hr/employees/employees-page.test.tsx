@@ -136,6 +136,7 @@ function profile(over: Partial<HrEmployeeProfile> & { id: string }): HrEmployeeP
     hire_date: "2024-03-01",
     regular_date: "2024-06-01",
     contract_end: "2027-03-01",
+    leave_date: null,
     ability: { plan: 8, design: 9, code: 5, test: 6, review: 7, ops: 4 },
     disc: { d: 6, i: 7, s: 4, c: 5 },
     owner_member_id: null,

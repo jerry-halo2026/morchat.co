@@ -5162,6 +5162,8 @@ export const HrEmployeeProfileSchema = z.object({
   hire_date: workbenchNullableString,
   regular_date: workbenchNullableString,
   contract_end: workbenchNullableString,
+  // Written when an offboarding reaches done; null until then.
+  leave_date: workbenchNullableString,
   // JSONB NOT NULL DEFAULT '{}': an unassessed profile is an empty matrix.
   ability: hrScoreMap,
   disc: hrScoreMap,
@@ -5174,7 +5176,7 @@ export const HrEmployeeProfileSchema = z.object({
 
 export const EMPTY_HR_EMPLOYEE_PROFILE: HrEmployeeProfile = {
   id: "", workspace_id: "", member_id: "", department_id: null, job_title: null,
-  grade: null, hire_date: null, regular_date: null, contract_end: null,
+  grade: null, hire_date: null, regular_date: null, contract_end: null, leave_date: null,
   ability: {}, disc: {}, owner_member_id: null, created_by: null,
   created_at: "", updated_at: "", archived_at: null,
 };
