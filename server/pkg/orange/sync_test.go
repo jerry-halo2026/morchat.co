@@ -220,7 +220,7 @@ func TestMirrorCreatorMapping(t *testing.T) {
 		}
 	})
 
-	t.Run("signed contract stage is accepted verbatim", func(t *testing.T) {
+	t.Run("signed contract stage is translated to the machine value", func(t *testing.T) {
 		t.Parallel()
 		value := int64(10)
 		mirrored, warnings := mirrorCreator(CreatorRow{
@@ -232,8 +232,10 @@ func TestMirrorCreatorMapping(t *testing.T) {
 		if len(warnings) != 0 {
 			t.Fatalf("unexpected warnings: %+v", warnings)
 		}
-		if mirrored.CooperationIntent == nil || *mirrored.CooperationIntent != "已签约" {
-			t.Fatalf("cooperation_intent = %v, want 已签约 verbatim", mirrored.CooperationIntent)
+		// Migration 811 stores machine values; the upstream label arrives as
+		// 「已签约」 and must land as `signed`, not be dropped.
+		if mirrored.CooperationIntent == nil || *mirrored.CooperationIntent != "signed" {
+			t.Fatalf("cooperation_intent = %v, want signed", mirrored.CooperationIntent)
 		}
 	})
 

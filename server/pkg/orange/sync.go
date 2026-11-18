@@ -508,14 +508,18 @@ func mirrorCreator(upstream CreatorRow, extra creatorExtra) (creatorMirror, []Wa
 	}
 
 	if intent := trimmedPointer(upstream.CooperationIntent); intent != nil {
-		if _, ok := cooperationIntents[*intent]; ok {
-			mirrored.CooperationIntent = intent
-		} else {
+		// The upstream still sends Chinese labels; migration 811 narrowed the
+		// column to machine values. Translate rather than reject, or every row
+		// that carries real intent data would lose it.
+		machine, ok := cooperationIntentMachine(*intent)
+		if ok && machine != "" {
+			mirrored.CooperationIntent = &machine
+		} else if !ok {
 			warnings = append(warnings, Warning{
 				SecUID: secUID,
 				Field:  "cooperation_intent",
 				Value:  *intent,
-				Reason: "value is outside the migration 785 enum; the mirror row leaves the stage empty",
+				Reason: "value is neither an upstream label nor a machine value; the mirror row leaves the stage empty",
 			})
 		}
 	}
