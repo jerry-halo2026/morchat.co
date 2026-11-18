@@ -123,27 +123,56 @@ hit_rate        = 点赞 > 2 × 该作者作品点赞中位数 的作品占比  
 
 ## 3. 商务流水线（BD）
 
-五个表，全部带 `workspace_id`、`owner_member_id`、`created_at`、`updated_at`、`archived_at`。
+四个对象，全部带 `workspace_id`、`owner_member_id`、`created_at`、`updated_at`、`archived_at`。
+
+> **§3.3 的合作单用已有的 `crm_collab`，不再建 `creator_order`。** 原稿把它列成第五张表，
+> 但它和 `crm_collab` 是同一个东西——一位达人 × 一张需求单的合作凭证，`stage` /
+> `quote_amount` / `final_amount` / `creator_fee` / `sample_cost` / `commission_rate` /
+> `issue_id` 已经全在。同一件事两个真相源是这个项目已经付过一次学费的错误（两个毛利率）。
+> 本批只给 `crm_collab` 补两列 `publish_url` / `settled_on`，结算继续用 `crm_settlement`。
+> 因此真正要建的只有三张：`creator_activity` / `creator_quote` / `creator_campaign`。
+> 接口与权限见 `WORKBENCH-API.md` §20。
 
 ### 3.1 `creator_activity`（跟进记录）
 `creator_id`、`kind`（`dm` / `call` / `meeting` / `email` / `note`）、`happened_at`、`summary`、`outcome`（`no_reply|replied|declined|advanced`）、`next_follow_at`
 
-### 3.2 `creator_quote`（报价）
-`creator_id`、`status`（`draft|sent|accepted|rejected|expired`）、`quoted_at`、`valid_until date`、
-`fee_amount`（坑位费）、`commission_rate`（**0–1**）、`currency`、`items jsonb`（明细）
+- `outcome` **可空**：NULL = 还没有结果的笔记（「记得问她要报价单」），**不等于** `no_reply`。驾驶舱的 `contacted` 只数 `outcome` 非空的达人。
+- `next_follow_at` **可空**：NULL = 没安排下次跟进；只有非空的行才会计入「今日待跟进 / 逾期」。
 
-### 3.3 `creator_order`（合作单 / 履约）
-`creator_id`、`quote_id`、`title`、`status`（`signed|in_progress|delivered|settled|cancelled`）、
-`total_amount`、`paid_amount`、`currency`、`signed_on date`、`publish_url`、`settled_at`、
-`issue_id`（挂到我们的任务，可空）
+### 3.2 `creator_quote`（报价）
+`creator_id`、`brief_id`（可空，指向 `crm_brief`）、`status`（`draft|sent|accepted|rejected|expired`）、`quoted_at`、
+`valid_until date`、`fee_amount`（坑位费）、`commission_rate`（**0–1**）、`currency`、`items jsonb`（明细）
+
+- `quoted_at` 可空：草稿还没发出去，「报价日期」和「录入日期」是两个事实。
+- `commission_rate` 是 `numeric(6,5)` 的 0–1 比率（§0 规则 1），带 `CHECK (BETWEEN 0 AND 1)`；界面才乘 100。
+- `valid_until < quoted_at` **是录入错误，接口直接 400**（理由见 `WORKBENCH-API.md` §20.4）：这一列是所有读者判断「这份报价还能不能被接受」的唯一依据。
+- `items` 默认 `'[]'`，不是 NULL：没有明细和有明细但为空，界面读法一致。
+
+### 3.3 合作单 / 履约（**复用 `crm_collab`**，不新建表）
+一位达人 × 一张需求单的合作凭证就是 `crm_collab` 的一行。它已有的列承担原来的 `creator_order` 职责：
+
+| 原稿 `creator_order` 的列 | 现在落在哪里 |
+|---|---|
+| `creator_id` / `issue_id` | `crm_collab.creator_id` / `crm_collab.issue_id`（挂到我们的任务，可空） |
+| `status` | `crm_collab.stage`（11 个阶段：`inquiry → quoted → negotiating → confirmed → sampling → script_review → scheduled → published → accepted → settled`，外加 `cancelled`） |
+| `total_amount` / `paid_amount` | `crm_collab.final_amount` + `crm_settlement`（`paid_at` 非空即到账） |
+| `currency` | `crm_collab.currency` |
+| `signed_on` | `crm_collab.confirmed_at`（阶段推进时写入） |
+| `publish_url` | **新增列 `crm_collab.publish_url`**（履约链接） |
+| `settled_at` | **新增列 `crm_collab.settled_on date`**（结算日期） |
+| `quote_id` | 不需要：报价用 `(workspace_id, creator_id)` 关联，先有单后补报价的情况真实存在，硬绑一个 id 会逼着先造报价 |
 
 ### 3.4 `creator_campaign`（活动 / 批次）
 `name`、`kind`（`search` / `comment` / `manual`）、`budget_amount`、`currency`、`started_on`、`ended_on`、
 `source_keyword`、`creator_count`（缓存，可重算）
 
+- 名称在本工作区内大小写不敏感唯一（`UNIQUE (workspace_id, lower(name)) WHERE archived_at IS NULL`）；归档后名字释放。
+- `creator_count` `NOT NULL DEFAULT 0`：新批次确实还没挂达人，这里的 0 是真 0，不是「未知」。
+
 ### 3.5 关系
-**不用外键**（我们的约定：关系在应用层校验）。`creator_order.quote_id` 指向 `creator_quote.id`，
-`creator_order.creator_id` 指向 `creator.id`，都允许为空（先有单后补报价的情况真实存在）。
+**不用外键**（我们的约定：关系在应用层校验）。`creator_activity.creator_id`、`creator_quote.creator_id`、
+`crm_collab.creator_id` 都指向 `creator.id`；`creator_quote.brief_id` 指向 `crm_brief.id`，允许为空
+（达人可以先被报价，书面需求单后补）。所有指针在 handler 里校验「必须属于本工作区」。
 
 ---
 
@@ -230,6 +259,7 @@ POST /api/integrations/orange/creators
 ## 7. 我们这边待建的（本方工作，不需对面配合）
 
 1. `creator_video` / `creator_metric` 落表 + 三个指标进指标契约（互动率 / 爆款率 / 近30天更新）
-2. `creator_activity` / `creator_quote` / `creator_order` / `creator_campaign` 四张 BD 表 + 商务驾驶舱
+2. `creator_activity` / `creator_quote` / `creator_campaign` 三张 BD 表 + 商务驾驶舱
+   （合作单**不新建表**，复用 `crm_collab` 并补 `publish_url` / `settled_on` 两列，见 §3.3）
 3. `affiliate_sku` + 佣金率范围校验
 4. 达人列表按「粉丝量级 → 互动率分位 → 爆款率」排序（这是没有报价数据时唯一可靠的排序）

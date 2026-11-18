@@ -699,6 +699,15 @@ deleted_creator_videos AS (
 deleted_creator_metrics AS (
     DELETE FROM creator_metric WHERE creator_metric.workspace_id = $1
 ),
+deleted_creator_activities AS (
+    DELETE FROM creator_activity WHERE creator_activity.workspace_id = $1
+),
+deleted_creator_quotes AS (
+    DELETE FROM creator_quote WHERE creator_quote.workspace_id = $1
+),
+deleted_creator_campaigns AS (
+    DELETE FROM creator_campaign WHERE creator_campaign.workspace_id = $1
+),
 deleted_creators AS (
     DELETE FROM creator WHERE creator.workspace_id = $1
 ),
@@ -790,6 +799,9 @@ DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1
 // Content health (WORKBENCH-API §19): a work names a creator and a snapshot names
 // a creator, with no foreign key behind either, so both are cleared here — before
 // the creators they describe.
+// BD pipeline (WORKBENCH-API §20): follow-ups, quotes and collection campaigns
+// name a creator (and a quote a brief) with no foreign key behind either, so
+// teardown clears them explicitly before the creators and briefs they describe.
 // Affiliate distribution (WORKBENCH-API §11): a day fact names a pick, a pick
 // names a product and a creator, a settlement statement stands alone.
 // Interview questions and guides (WORKBENCH-API §14): a guide names a candidate

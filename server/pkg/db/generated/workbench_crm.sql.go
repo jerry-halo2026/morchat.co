@@ -236,7 +236,7 @@ INSERT INTO crm_collab (
     workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob,
     creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate,
     sample_required, script_required, scheduled_at, confirmed_at, published_at,
-    accepted_at, issue_id, owner_member_id, created_by
+    accepted_at, issue_id, owner_member_id, created_by, publish_url, settled_on
 ) VALUES (
     $1, $2, $3, $4,
     $5::numeric, $6::numeric,
@@ -245,9 +245,10 @@ INSERT INTO crm_collab (
     $13::numeric, $14, $15,
     $16::timestamptz, $17::timestamptz,
     $18::timestamptz, $19::timestamptz,
-    $20::uuid, $21::uuid, $22::uuid
+    $20::uuid, $21::uuid, $22::uuid,
+    $23::text, $24::date
 )
-RETURNING id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at, publish_url, settled_on
 `
 
 type CreateCrmCollabParams struct {
@@ -273,8 +274,13 @@ type CreateCrmCollabParams struct {
 	IssueID        pgtype.UUID        `json:"issue_id"`
 	OwnerMemberID  pgtype.UUID        `json:"owner_member_id"`
 	CreatedBy      pgtype.UUID        `json:"created_by"`
+	PublishUrl     pgtype.Text        `json:"publish_url"`
+	SettledOn      pgtype.Date        `json:"settled_on"`
 }
 
+// `publish_url` / `settled_on` (810) are the two fulfilment facts the
+// collaboration row carries: where the work went live, and the day the money was
+// settled (WORKBENCH-API §20.2).
 func (q *Queries) CreateCrmCollab(ctx context.Context, arg CreateCrmCollabParams) (CrmCollab, error) {
 	row := q.db.QueryRow(ctx, createCrmCollab,
 		arg.WorkspaceID,
@@ -299,6 +305,8 @@ func (q *Queries) CreateCrmCollab(ctx context.Context, arg CreateCrmCollabParams
 		arg.IssueID,
 		arg.OwnerMemberID,
 		arg.CreatedBy,
+		arg.PublishUrl,
+		arg.SettledOn,
 	)
 	var i CrmCollab
 	err := row.Scan(
@@ -328,6 +336,8 @@ func (q *Queries) CreateCrmCollab(ctx context.Context, arg CreateCrmCollabParams
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.PublishUrl,
+		&i.SettledOn,
 	)
 	return i, err
 }
@@ -462,7 +472,7 @@ func (q *Queries) GetCrmClient(ctx context.Context, arg GetCrmClientParams) (Crm
 }
 
 const getCrmCollab = `-- name: GetCrmCollab :one
-SELECT id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at FROM crm_collab
+SELECT id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at, publish_url, settled_on FROM crm_collab
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -501,6 +511,8 @@ func (q *Queries) GetCrmCollab(ctx context.Context, arg GetCrmCollabParams) (Crm
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.PublishUrl,
+		&i.SettledOn,
 	)
 	return i, err
 }
@@ -686,7 +698,7 @@ func (q *Queries) ListCrmClients(ctx context.Context, arg ListCrmClientsParams) 
 }
 
 const listCrmCollabs = `-- name: ListCrmCollabs :many
-SELECT id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at
+SELECT id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at, publish_url, settled_on
 FROM crm_collab
 WHERE workspace_id = $1
   AND archived_at IS NULL
@@ -755,6 +767,8 @@ func (q *Queries) ListCrmCollabs(ctx context.Context, arg ListCrmCollabsParams) 
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ArchivedAt,
+			&i.PublishUrl,
+			&i.SettledOn,
 		); err != nil {
 			return nil, err
 		}
@@ -1008,9 +1022,11 @@ SET brief_id = $1,
     accepted_at = $18::timestamptz,
     issue_id = $19::uuid,
     owner_member_id = $20::uuid,
+    publish_url = $21::text,
+    settled_on = $22::date,
     updated_at = now()
-WHERE id = $21 AND workspace_id = $22 AND archived_at IS NULL
-RETURNING id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at
+WHERE id = $23 AND workspace_id = $24 AND archived_at IS NULL
+RETURNING id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at, publish_url, settled_on
 `
 
 type UpdateCrmCollabParams struct {
@@ -1034,6 +1050,8 @@ type UpdateCrmCollabParams struct {
 	AcceptedAt     pgtype.Timestamptz `json:"accepted_at"`
 	IssueID        pgtype.UUID        `json:"issue_id"`
 	OwnerMemberID  pgtype.UUID        `json:"owner_member_id"`
+	PublishUrl     pgtype.Text        `json:"publish_url"`
+	SettledOn      pgtype.Date        `json:"settled_on"`
 	ID             pgtype.UUID        `json:"id"`
 	WorkspaceID    pgtype.UUID        `json:"workspace_id"`
 }
@@ -1062,6 +1080,8 @@ func (q *Queries) UpdateCrmCollab(ctx context.Context, arg UpdateCrmCollabParams
 		arg.AcceptedAt,
 		arg.IssueID,
 		arg.OwnerMemberID,
+		arg.PublishUrl,
+		arg.SettledOn,
 		arg.ID,
 		arg.WorkspaceID,
 	)
@@ -1093,6 +1113,8 @@ func (q *Queries) UpdateCrmCollab(ctx context.Context, arg UpdateCrmCollabParams
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.PublishUrl,
+		&i.SettledOn,
 	)
 	return i, err
 }

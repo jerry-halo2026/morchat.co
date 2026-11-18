@@ -128,6 +128,15 @@ import type {
   CrmCollabListResponse,
   CrmSettlement,
   CrmSettlementListResponse,
+  // BD pipeline (WORKBENCH-API §20): follow-ups, quotes, campaigns and the
+  // 驾驶舱 aggregate.
+  BdActivity,
+  BdActivityListResponse,
+  BdCampaign,
+  BdCampaignListResponse,
+  BdPipeline,
+  BdQuote,
+  BdQuoteListResponse,
   WorkbenchCountsResponse,
   WorkbenchFinanceMonth,
   WorkbenchFinanceMonthListResponse,
@@ -4905,6 +4914,10 @@ export const CrmCollabSchema = z.object({
   created_at: z.string().default(""),
   updated_at: z.string().default(""),
   archived_at: workbenchNullableString,
+  // Fulfilment (WORKBENCH-API §20.2, migration 810). Absent on a server that
+  // predates them; null means "not published / not settled", not "empty string".
+  publish_url: workbenchNullableString,
+  settled_on: workbenchNullableString,
 }).loose();
 
 export const EMPTY_CRM_COLLAB: CrmCollab = {
@@ -4914,7 +4927,7 @@ export const EMPTY_CRM_COLLAB: CrmCollab = {
   commission_rate: null, sample_required: false, script_required: false,
   scheduled_at: null, confirmed_at: null, published_at: null, accepted_at: null,
   issue_id: null, owner_member_id: null, created_by: null, created_at: "",
-  updated_at: "", archived_at: null,
+  updated_at: "", archived_at: null, publish_url: null, settled_on: null,
 };
 
 export const CrmCollabListResponseSchema = z.object({
@@ -4959,6 +4972,239 @@ export const CrmSettlementListResponseSchema = z.object({
 export const EMPTY_CRM_SETTLEMENT_LIST_RESPONSE: CrmSettlementListResponse = {
   settlements: [],
   total: 0,
+};
+
+// --- BD pipeline (`/api/workbench/bd`, WORKBENCH-API §20) -------------------
+//
+// Three ledgers plus one aggregate. Same leniency rules as the CRM block above:
+// every field degrades rather than rejecting the row, because a renamed or missing
+// key must not blank a page that could still show the rest. Two states are
+// distinct and both load-bearing:
+//
+//   * `null` means "not recorded" (a note with no outcome, a draft with no
+//     `quoted_at`), which is not an empty string and not a zero;
+//   * a cockpit number carries `empty: "insufficient_data"` with `value: null`
+//     when nothing was summed, so the client can draw a gap instead of ￥0.00.
+
+export const BdActivitySchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  creator_id: z.string().default(""),
+  kind: z.string().default("note"),
+  happened_at: z.string().default(""),
+  summary: z.string().default(""),
+  outcome: workbenchNullableString,
+  next_follow_at: workbenchNullableString,
+  owner_member_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+}).loose();
+
+export const EMPTY_BD_ACTIVITY: BdActivity = {
+  id: "", workspace_id: "", creator_id: "", kind: "note", happened_at: "",
+  summary: "", outcome: null, next_follow_at: null, owner_member_id: null,
+  created_by: null, created_at: "", updated_at: "",
+};
+
+export const BdActivityListResponseSchema = z.object({
+  activities: z.array(BdActivitySchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_BD_ACTIVITY_LIST_RESPONSE: BdActivityListResponse = {
+  activities: [],
+  total: 0,
+};
+
+export const BdQuoteSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  creator_id: z.string().default(""),
+  brief_id: workbenchNullableString,
+  status: z.string().default("draft"),
+  quoted_at: workbenchNullableString,
+  valid_until: workbenchNullableString,
+  fee_amount: workbenchNullableNumber,
+  // 0–1. A server that sent 20 would be a contract bug; the number is kept as it
+  // arrived so the display layer can show what the server actually said.
+  commission_rate: workbenchNullableNumber,
+  currency: z.string().default("CNY"),
+  // The line-item breakdown. An absent or malformed one degrades to the empty
+  // array the column defaults to, never to null: the reader iterates it.
+  items: z.array(z.unknown()).default([]),
+  note: workbenchNullableString,
+  owner_member_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+}).loose();
+
+export const EMPTY_BD_QUOTE: BdQuote = {
+  id: "", workspace_id: "", creator_id: "", brief_id: null, status: "draft",
+  quoted_at: null, valid_until: null, fee_amount: null, commission_rate: null,
+  currency: "CNY", items: [], note: null, owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "",
+};
+
+export const BdQuoteListResponseSchema = z.object({
+  quotes: z.array(BdQuoteSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_BD_QUOTE_LIST_RESPONSE: BdQuoteListResponse = {
+  quotes: [],
+  total: 0,
+};
+
+export const BdCampaignSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  name: z.string().default(""),
+  kind: z.string().default("manual"),
+  budget_amount: workbenchNullableNumber,
+  currency: z.string().default("CNY"),
+  started_on: workbenchNullableString,
+  ended_on: workbenchNullableString,
+  source_keyword: workbenchNullableString,
+  creator_count: z.number().default(0),
+  note: workbenchNullableString,
+  owner_member_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+}).loose();
+
+export const EMPTY_BD_CAMPAIGN: BdCampaign = {
+  id: "", workspace_id: "", name: "", kind: "manual", budget_amount: null,
+  currency: "CNY", started_on: null, ended_on: null, source_keyword: null,
+  creator_count: 0, note: null, owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "",
+};
+
+export const BdCampaignListResponseSchema = z.object({
+  campaigns: z.array(BdCampaignSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_BD_CAMPAIGN_LIST_RESPONSE: BdCampaignListResponse = {
+  campaigns: [],
+  total: 0,
+};
+
+/**
+ * Which empty rule a cockpit number is in. A closed pair on purpose: an unknown
+ * value degrades to `insufficient_data`, so a build that does not know a future
+ * third state draws a gap rather than claiming a zero.
+ */
+const bdPipelineEmptyState = z
+  .enum(["zero", "insufficient_data"])
+  .catch("insufficient_data");
+
+const BdPipelineNumberSchema = z
+  .object({
+    value: z.number().nullable().default(null),
+    sample_count: z.number().default(0),
+    empty: bdPipelineEmptyState,
+  })
+  .loose();
+
+const BdPipelineMoneySchema = z
+  .object({
+    amount: z.number().nullable().default(null),
+    // Present even while empty: the figure still has to be labelled.
+    currency: z.string().default("CNY"),
+    sample_count: z.number().default(0),
+    empty: bdPipelineEmptyState,
+  })
+  .loose();
+
+/** A number that never answers: what a missing block degrades to. */
+const EMPTY_BD_PIPELINE_NUMBER: z.output<typeof BdPipelineNumberSchema> = {
+  value: null,
+  sample_count: 0,
+  empty: "insufficient_data",
+};
+
+const EMPTY_BD_PIPELINE_MONEY: z.output<typeof BdPipelineMoneySchema> = {
+  amount: null,
+  currency: "CNY",
+  sample_count: 0,
+  empty: "insufficient_data",
+};
+
+const bdPipelineNumber = BdPipelineNumberSchema.default(
+  EMPTY_BD_PIPELINE_NUMBER,
+).catch(EMPTY_BD_PIPELINE_NUMBER);
+
+const bdPipelineMoney = BdPipelineMoneySchema.default(EMPTY_BD_PIPELINE_MONEY).catch(
+  EMPTY_BD_PIPELINE_MONEY,
+);
+
+export const BdPipelineSchema = z
+  .object({
+    creators: z
+      .object({
+        total: bdPipelineNumber,
+        contacted: bdPipelineNumber,
+        replied: bdPipelineNumber,
+        quoted: bdPipelineNumber,
+        signed: bdPipelineNumber,
+        deal: bdPipelineNumber,
+      })
+      .loose(),
+    quotes: z
+      .object({
+        open: bdPipelineNumber,
+        accepted: bdPipelineNumber,
+        rejected: bdPipelineNumber,
+        total_fee: bdPipelineMoney,
+      })
+      .loose(),
+    orders: z
+      .object({
+        open: bdPipelineNumber,
+        delivered: bdPipelineNumber,
+        settled: bdPipelineNumber,
+        total_amount: bdPipelineMoney,
+        paid_amount: bdPipelineMoney,
+      })
+      .loose(),
+    followups: z
+      .object({
+        due_today: bdPipelineNumber,
+        overdue: bdPipelineNumber,
+      })
+      .loose(),
+  })
+  .loose();
+
+export const EMPTY_BD_PIPELINE: BdPipeline = {
+  creators: {
+    total: EMPTY_BD_PIPELINE_NUMBER,
+    contacted: EMPTY_BD_PIPELINE_NUMBER,
+    replied: EMPTY_BD_PIPELINE_NUMBER,
+    quoted: EMPTY_BD_PIPELINE_NUMBER,
+    signed: EMPTY_BD_PIPELINE_NUMBER,
+    deal: EMPTY_BD_PIPELINE_NUMBER,
+  },
+  quotes: {
+    open: EMPTY_BD_PIPELINE_NUMBER,
+    accepted: EMPTY_BD_PIPELINE_NUMBER,
+    rejected: EMPTY_BD_PIPELINE_NUMBER,
+    total_fee: EMPTY_BD_PIPELINE_MONEY,
+  },
+  orders: {
+    open: EMPTY_BD_PIPELINE_NUMBER,
+    delivered: EMPTY_BD_PIPELINE_NUMBER,
+    settled: EMPTY_BD_PIPELINE_NUMBER,
+    total_amount: EMPTY_BD_PIPELINE_MONEY,
+    paid_amount: EMPTY_BD_PIPELINE_MONEY,
+  },
+  followups: {
+    due_today: EMPTY_BD_PIPELINE_NUMBER,
+    overdue: EMPTY_BD_PIPELINE_NUMBER,
+  },
 };
 
 export const WorkbenchCountsResponseSchema = z.object({

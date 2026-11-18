@@ -237,6 +237,13 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	// DeleteWorkspaceWorkbenchLedger. The mirrored `creator` rows it points at
 	// are ordinary workspace rows and are classified above.
 	"orange_account": workspaceDelete,
+	// BD pipeline (WORKBENCH-API §20, 802–809): a follow-up and a quote name a
+	// creator (a quote may also name a brief) with no foreign key behind either,
+	// and a campaign names nothing. DeleteWorkspaceWorkbenchLedger removes all
+	// three before the creators and briefs they describe.
+	"creator_activity": workspaceDelete,
+	"creator_quote":    workspaceDelete,
+	"creator_campaign": workspaceDelete,
 }
 
 func TestWorkspaceDeletionManifestCoversPublicSchema(t *testing.T) {

@@ -203,6 +203,23 @@ import type {
   CrmSettlementListResponse,
   CreateCrmSettlementRequest,
   UpdateCrmSettlementRequest,
+  // BD pipeline (docs/engineering/WORKBENCH-API.md §20).
+  BdActivity,
+  BdActivityListFilters,
+  BdActivityListResponse,
+  BdCampaign,
+  BdCampaignListFilters,
+  BdCampaignListResponse,
+  BdPipeline,
+  BdQuote,
+  BdQuoteListFilters,
+  BdQuoteListResponse,
+  CreateBdActivityRequest,
+  CreateBdCampaignRequest,
+  CreateBdQuoteRequest,
+  UpdateBdActivityRequest,
+  UpdateBdCampaignRequest,
+  UpdateBdQuoteRequest,
   WorkbenchCountsResponse,
   WorkbenchFinanceResponse,
   WorkbenchFinanceMonth,
@@ -789,6 +806,21 @@ import {
   CrmSettlementListResponseSchema,
   EMPTY_CRM_SETTLEMENT,
   EMPTY_CRM_SETTLEMENT_LIST_RESPONSE,
+  // BD pipeline (WORKBENCH-API §20).
+  BdActivitySchema,
+  BdActivityListResponseSchema,
+  EMPTY_BD_ACTIVITY,
+  EMPTY_BD_ACTIVITY_LIST_RESPONSE,
+  BdQuoteSchema,
+  BdQuoteListResponseSchema,
+  EMPTY_BD_QUOTE,
+  EMPTY_BD_QUOTE_LIST_RESPONSE,
+  BdCampaignSchema,
+  BdCampaignListResponseSchema,
+  EMPTY_BD_CAMPAIGN,
+  EMPTY_BD_CAMPAIGN_LIST_RESPONSE,
+  BdPipelineSchema,
+  EMPTY_BD_PIPELINE,
   WorkbenchCountsResponseSchema,
   EMPTY_WORKBENCH_COUNTS_RESPONSE,
   WorkbenchFinanceResponseSchema,
@@ -4617,6 +4649,171 @@ export class ApiClient {
 
   async deleteCrmSettlement(id: string): Promise<void> {
     await this.fetch(`/api/workbench/crm/settlements/${id}`, { method: "DELETE" });
+  }
+
+  // BD pipeline (docs/engineering/WORKBENCH-API.md §20): follow-ups, quotes and
+  // collection campaigns, plus the 驾驶舱 aggregate. Reads are member-wide, writes
+  // are gated server-side (owner/admin, or the row's owner), and there is no
+  // `orders` resource on purpose — a collaboration is `/crm/collabs` (§20.1), and
+  // a second one would be a second answer to "what did this creator cost us".
+
+  async listBdActivities(
+    filters: BdActivityListFilters = {},
+  ): Promise<BdActivityListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/bd/activities${workbenchSearch({
+        creator_id: filters.creator_id,
+        kind: filters.kind,
+        from: filters.from,
+        to: filters.to,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      BdActivityListResponseSchema,
+      EMPTY_BD_ACTIVITY_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/bd/activities" },
+    );
+  }
+
+  async createBdActivity(data: CreateBdActivityRequest): Promise<BdActivity> {
+    const raw = await this.fetch<unknown>("/api/workbench/bd/activities", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, BdActivitySchema, EMPTY_BD_ACTIVITY, {
+      endpoint: "POST /api/workbench/bd/activities",
+    });
+  }
+
+  async getBdActivity(id: string): Promise<BdActivity> {
+    const raw = await this.fetch<unknown>(`/api/workbench/bd/activities/${id}`);
+    return parseWithFallback(raw, BdActivitySchema, EMPTY_BD_ACTIVITY, {
+      endpoint: "GET /api/workbench/bd/activities/:activityId",
+    });
+  }
+
+  /** `creator_id` is not editable: the server answers 400 for it (§20.4). */
+  async updateBdActivity(id: string, data: UpdateBdActivityRequest): Promise<BdActivity> {
+    const raw = await this.fetch<unknown>(`/api/workbench/bd/activities/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, BdActivitySchema, EMPTY_BD_ACTIVITY, {
+      endpoint: "PATCH /api/workbench/bd/activities/:activityId",
+    });
+  }
+
+  async deleteBdActivity(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/bd/activities/${id}`, { method: "DELETE" });
+  }
+
+  async listBdQuotes(filters: BdQuoteListFilters = {}): Promise<BdQuoteListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/bd/quotes${workbenchSearch({
+        creator_id: filters.creator_id,
+        status: filters.status,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, BdQuoteListResponseSchema, EMPTY_BD_QUOTE_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/bd/quotes",
+    });
+  }
+
+  async createBdQuote(data: CreateBdQuoteRequest): Promise<BdQuote> {
+    const raw = await this.fetch<unknown>("/api/workbench/bd/quotes", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, BdQuoteSchema, EMPTY_BD_QUOTE, {
+      endpoint: "POST /api/workbench/bd/quotes",
+    });
+  }
+
+  async getBdQuote(id: string): Promise<BdQuote> {
+    const raw = await this.fetch<unknown>(`/api/workbench/bd/quotes/${id}`);
+    return parseWithFallback(raw, BdQuoteSchema, EMPTY_BD_QUOTE, {
+      endpoint: "GET /api/workbench/bd/quotes/:quoteId",
+    });
+  }
+
+  /** The 400 on a commission rate outside 0–1 and on `valid_until < quoted_at`
+   *  arrives as a thrown error, not as a patched row — the server refuses the
+   *  write instead of flagging it (§20.4). */
+  async updateBdQuote(id: string, data: UpdateBdQuoteRequest): Promise<BdQuote> {
+    const raw = await this.fetch<unknown>(`/api/workbench/bd/quotes/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, BdQuoteSchema, EMPTY_BD_QUOTE, {
+      endpoint: "PATCH /api/workbench/bd/quotes/:quoteId",
+    });
+  }
+
+  async deleteBdQuote(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/bd/quotes/${id}`, { method: "DELETE" });
+  }
+
+  async listBdCampaigns(
+    filters: BdCampaignListFilters = {},
+  ): Promise<BdCampaignListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/bd/campaigns${workbenchSearch({
+        kind: filters.kind,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      BdCampaignListResponseSchema,
+      EMPTY_BD_CAMPAIGN_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/bd/campaigns" },
+    );
+  }
+
+  /** A duplicate name (case-insensitive, live rows) answers 409. */
+  async createBdCampaign(data: CreateBdCampaignRequest): Promise<BdCampaign> {
+    const raw = await this.fetch<unknown>("/api/workbench/bd/campaigns", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, BdCampaignSchema, EMPTY_BD_CAMPAIGN, {
+      endpoint: "POST /api/workbench/bd/campaigns",
+    });
+  }
+
+  async getBdCampaign(id: string): Promise<BdCampaign> {
+    const raw = await this.fetch<unknown>(`/api/workbench/bd/campaigns/${id}`);
+    return parseWithFallback(raw, BdCampaignSchema, EMPTY_BD_CAMPAIGN, {
+      endpoint: "GET /api/workbench/bd/campaigns/:campaignId",
+    });
+  }
+
+  async updateBdCampaign(id: string, data: UpdateBdCampaignRequest): Promise<BdCampaign> {
+    const raw = await this.fetch<unknown>(`/api/workbench/bd/campaigns/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, BdCampaignSchema, EMPTY_BD_CAMPAIGN, {
+      endpoint: "PATCH /api/workbench/bd/campaigns/:campaignId",
+    });
+  }
+
+  async deleteBdCampaign(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/bd/campaigns/${id}`, { method: "DELETE" });
+  }
+
+  /**
+   * The 驾驶舱: four blocks in one round trip. Every number is three-state, so a
+   * caller renders `value: null` as a gap and never as a zero it invented.
+   */
+  async getBdPipeline(): Promise<BdPipeline> {
+    const raw = await this.fetch<unknown>("/api/workbench/bd/pipeline");
+    return parseWithFallback(raw, BdPipelineSchema, EMPTY_BD_PIPELINE, {
+      endpoint: "GET /api/workbench/bd/pipeline",
+    });
   }
 
   // Affiliate distribution (docs/engineering/WORKBENCH-API.md §11). Same base and

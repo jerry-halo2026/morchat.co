@@ -749,6 +749,12 @@ type CrmCollabResponse struct {
 	CreatedBy      *string  `json:"created_by"`
 	CreatedAt      string   `json:"created_at"`
 	UpdatedAt      string   `json:"updated_at"`
+	// Fulfilment (WORKBENCH-API §20.2, migration 810): the link to what went
+	// live, and the calendar day the money was settled. Both nullable — a row
+	// that has not been published or settled has neither, which is not "empty
+	// string" and not "today".
+	PublishURL *string `json:"publish_url"`
+	SettledOn  *string `json:"settled_on"`
 }
 
 func crmCollabToResponse(c db.CrmCollab) CrmCollabResponse {
@@ -778,6 +784,8 @@ func crmCollabToResponse(c db.CrmCollab) CrmCollabResponse {
 		CreatedBy:      uuidToPtr(c.CreatedBy),
 		CreatedAt:      timestampToString(c.CreatedAt),
 		UpdatedAt:      timestampToString(c.UpdatedAt),
+		PublishURL:     textToPtr(c.PublishUrl),
+		SettledOn:      dateToPtr(c.SettledOn),
 	}
 }
 

@@ -2482,6 +2482,43 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 					})
 				})
 
+				// BD pipeline (docs/engineering/WORKBENCH-API.md §20): the three
+				// ledgers that had no storage — follow-ups, quotes, collection
+				// campaigns — plus the 驾驶舱 aggregate that reads them together with
+				// `crm_collab`. No `orders` route here on purpose: a collaboration
+				// stays `/crm/collabs`, and a second cooperation resource would be a
+				// second answer to "what did this creator cost us".
+				r.Route("/bd", func(r chi.Router) {
+					r.Get("/pipeline", h.GetBdPipeline)
+					r.Route("/activities", func(r chi.Router) {
+						r.Get("/", h.ListBdActivities)
+						r.Post("/", h.CreateBdActivity)
+						r.Route("/{activityId}", func(r chi.Router) {
+							r.Get("/", h.GetBdActivity)
+							r.Patch("/", h.UpdateBdActivity)
+							r.Delete("/", h.DeleteBdActivity)
+						})
+					})
+					r.Route("/quotes", func(r chi.Router) {
+						r.Get("/", h.ListBdQuotes)
+						r.Post("/", h.CreateBdQuote)
+						r.Route("/{quoteId}", func(r chi.Router) {
+							r.Get("/", h.GetBdQuote)
+							r.Patch("/", h.UpdateBdQuote)
+							r.Delete("/", h.DeleteBdQuote)
+						})
+					})
+					r.Route("/campaigns", func(r chi.Router) {
+						r.Get("/", h.ListBdCampaigns)
+						r.Post("/", h.CreateBdCampaign)
+						r.Route("/{campaignId}", func(r chi.Router) {
+							r.Get("/", h.GetBdCampaign)
+							r.Patch("/", h.UpdateBdCampaign)
+							r.Delete("/", h.DeleteBdCampaign)
+						})
+					})
+				})
+
 				// 精选联盟 affiliate distribution (docs/engineering/WORKBENCH-API.md §11).
 				// Products and picks are soft-deleted ledgers with the B0 write
 				// gate; daily facts are an upsert on (pick, day) and inherit the

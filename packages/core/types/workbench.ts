@@ -350,6 +350,17 @@ export interface CrmCollab {
   created_at: string;
   updated_at: string;
   archived_at: string | null;
+  /**
+   * Where the collaboration went live (WORKBENCH-API §20.2, migration 810).
+   * `null` until something was published — `published_at` says when, this says
+   * where.
+   */
+  publish_url: string | null;
+  /**
+   * Calendar day (`YYYY-MM-DD`) the collaboration was settled. `null` while
+   * unpaid; the individual money movements live in `CrmSettlement`.
+   */
+  settled_on: string | null;
 }
 
 /** One money movement against a collab. `paid_at` null = still owed. */
@@ -801,6 +812,10 @@ export type CreateCrmCollabRequest = Pick<CrmCollab, "brief_id" | "creator_id"> 
       | "scheduled_at"
       | "issue_id"
       | "owner_member_id"
+      // Fulfilment (WORKBENCH-API §20.2): the link to what went live, and the
+      // calendar day the money was settled. Both optional on create.
+      | "publish_url"
+      | "settled_on"
     >
   >;
 
@@ -824,6 +839,10 @@ export type UpdateCrmCollabRequest = Partial<
     | "scheduled_at"
     | "issue_id"
     | "owner_member_id"
+    // Fulfilment (WORKBENCH-API §20.2): the link to what went live, and the
+    // calendar day the money was settled.
+    | "publish_url"
+    | "settled_on"
   >
 >;
 

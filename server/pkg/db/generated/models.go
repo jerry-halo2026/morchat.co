@@ -868,6 +868,51 @@ type Creator struct {
 	SourceID pgtype.Text `json:"source_id"`
 }
 
+// One BD follow-up: a DM / call / meeting / email / note with a creator (WORKBENCH-DATA-CONTRACT §3.1). Soft-deleted, no foreign key.
+type CreatorActivity struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	CreatorID   pgtype.UUID `json:"creator_id"`
+	Kind        string      `json:"kind"`
+	// When the conversation happened, not when the row was typed; the ledger reads happened_at DESC.
+	HappenedAt pgtype.Timestamptz `json:"happened_at"`
+	// What was said / what was learned. Never empty: the handler rejects a blank summary.
+	Summary string `json:"summary"`
+	// no_reply | replied | declined | advanced. NULL means the row is a note with no result yet, which is not "no reply".
+	Outcome pgtype.Text `json:"outcome"`
+	// When to follow up again. NULL schedules nothing; only a non-NULL value can make a creator due or overdue.
+	NextFollowAt  pgtype.Timestamptz `json:"next_follow_at"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+// One collection batch / campaign: where these creators came from and what it cost (WORKBENCH-DATA-CONTRACT §3.4). Soft-deleted, no foreign key.
+type CreatorCampaign struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	Name        string      `json:"name"`
+	// search | comment | manual — how the batch was collected.
+	Kind string `json:"kind"`
+	// Budget spent or allocated for the batch, NUMERIC(14,2) in `currency`; NULL when no budget was set.
+	BudgetAmount pgtype.Numeric `json:"budget_amount"`
+	Currency     string         `json:"currency"`
+	StartedOn    pgtype.Date    `json:"started_on"`
+	EndedOn      pgtype.Date    `json:"ended_on"`
+	// The keyword a `search` / `comment` batch was collected with; NULL for a hand-made list.
+	SourceKeyword pgtype.Text `json:"source_keyword"`
+	// Cached size of the batch. NOT NULL DEFAULT 0: a new batch has zero creators, which is not the same as "unknown".
+	CreatorCount  int32              `json:"creator_count"`
+	Note          pgtype.Text        `json:"note"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
 // One day's content health per creator (WORKBENCH-DATA-CONTRACT §2.2). NULL metrics mean "not computable", and sample_note says why.
 type CreatorMetric struct {
 	ID          pgtype.UUID `json:"id"`
@@ -930,6 +975,32 @@ type CreatorPostMetric struct {
 	Source      string             `json:"source"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+// One offer to one creator: 坑位费 + 佣金率 + validity, with the answer (WORKBENCH-DATA-CONTRACT §3.2). Soft-deleted, no foreign key.
+type CreatorQuote struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	CreatorID   pgtype.UUID `json:"creator_id"`
+	// The crm_brief this offer answers. NULL when the quote predates the written brief.
+	BriefID pgtype.UUID `json:"brief_id"`
+	// draft | sent | accepted | rejected | expired. Only a non-draft quote counts as "quoted" in the cockpit (WORKBENCH-API §20.3).
+	Status     string             `json:"status"`
+	QuotedAt   pgtype.Timestamptz `json:"quoted_at"`
+	ValidUntil pgtype.Date        `json:"valid_until"`
+	// 坑位费 in `currency`, NUMERIC(14,2), NULL when the deal is pure commission.
+	FeeAmount pgtype.Numeric `json:"fee_amount"`
+	// Ratio, not a percentage: 20% is 0.20000 (contract §0 rule 1). CHECK keeps it inside 0–1.
+	CommissionRate pgtype.Numeric `json:"commission_rate"`
+	Currency       string         `json:"currency"`
+	// Line-item breakdown (坑位 / 佣金 / 赠品 …) as a JSON array; never NULL, an empty array means "no breakdown yet".
+	Items         []byte             `json:"items"`
+	Note          pgtype.Text        `json:"note"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
 }
 
 // One row per 抖音 aweme, mirrored from orange creator_video (WORKBENCH-DATA-CONTRACT §2.1). Counters are NULL when the platform statistic was never collected — never 0.
@@ -1032,6 +1103,10 @@ type CrmCollab struct {
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt     pgtype.Timestamptz `json:"archived_at"`
+	// Where the collaboration went live (the published work's link). NULL until something was published.
+	PublishUrl pgtype.Text `json:"publish_url"`
+	// Calendar day the collaboration was settled. NULL while unpaid; the money movements themselves live in crm_settlement.
+	SettledOn pgtype.Date `json:"settled_on"`
 }
 
 type CrmSettlement struct {

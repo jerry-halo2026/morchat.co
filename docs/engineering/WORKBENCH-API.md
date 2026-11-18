@@ -1918,6 +1918,176 @@ word/styles.xml
 - **不做定时任务**：`-videos` 需要外部调度（cron / CI）来每天跑一次。
 - **不做趋势图/导出**：台账三列 + 抽屉一节到此为止，`recent` 的 30 天序列还没有可视化。
 
+## 20. BD 流水线契约（跟进记录 + 报价 + 采集活动 + 驾驶舱聚合）
+
+口径**不在本文**：见 `WORKBENCH-DATA-CONTRACT.md` §3。本文只写迁移号段、表、接口、权限、query key 和已知债务。
+
+### 20.1 一个设计裁决：不建 `creator_order`
+
+数据契约 §3 原本列了四张表，其中 `creator_order`（合作单/履约）与**已有的 `crm_collab` 是同一个东西**：一位达人 × 一张需求单的合作凭证，已经带 `stage / quote_amount / final_amount / creator_fee / sample_cost / platform_fee / commission_rate / issue_id`。
+
+再建一张等于同一件事两个真相源——这个项目在精选联盟上已经吃过一次（两个毛利率口径）。所以：
+
+- **合作单继续用 `crm_collab`**，只补两列：`publish_url`（履约链接）、`settled_on`（结算日期）；
+- **结算继续用 `crm_settlement`**（预付款 / 尾款 / 平台费 / 税，`paid_at` 非空即已到账）；
+- 本批只建真正缺的三张：`creator_activity` / `creator_quote` / `creator_campaign`；
+- **没有 `/bd/orders` 路由**。驱动盘的 `orders` 块读 `crm_collab` + `crm_settlement`，写入口仍是 `/crm/collabs`。
+
+### 20.2 迁移号段与表
+
+| # | 迁移 | 内容 |
+| --- | --- | --- |
+| 802 | `creator_activity` | 跟进记录表 |
+| 803 | `creator_activity_creator_idx` | `(workspace_id, creator_id, happened_at DESC)` |
+| 804 | `creator_activity_next_follow_idx` | `(workspace_id, next_follow_at) WHERE archived_at IS NULL AND next_follow_at IS NOT NULL` |
+| 805 | `creator_quote` | 报价表 |
+| 806 | `creator_quote_creator_idx` | `(workspace_id, creator_id, quoted_at DESC)` |
+| 807 | `creator_quote_status_idx` | `(workspace_id, status)` |
+| 808 | `creator_campaign` | 活动 / 采集批次表 |
+| 809 | `creator_campaign_name_unique` | 唯一 `(workspace_id, lower(name)) WHERE archived_at IS NULL` |
+| 810 | `crm_collab_fulfilment` | `crm_collab` 加 `publish_url TEXT`、`settled_on DATE` |
+
+803、804、806、807、809 都是 `CREATE INDEX CONCURRENTLY` 的**单语句**迁移，且都在 `server/cmd/migrate/main.go` 的 `concurrentIndexCleanups` 里登记。
+
+三张表都没有外键（仓库规则），都用 `archived_at` 软删。要点：
+
+**`creator_activity`**（跟进记录）——`creator_id NOT NULL`、`kind`（`dm|call|meeting|email|note`）、`happened_at TIMESTAMPTZ NOT NULL`、`summary TEXT NOT NULL`、`outcome`（`no_reply|replied|declined|advanced`，**可空**）、`next_follow_at`（可空）、`owner_member_id`、`created_by`、时间戳、`archived_at`。
+
+- `outcome` 的 NULL 是**有信息量的状态**：「记得问她要报价单」这种记录还没有结果，和「没回」是两件事。驾驶舱的 `contacted` 只数 `outcome` 非空的达人，就是为了这个区别。
+- `next_follow_at` 的 NULL 表示没安排下次；只有非空的行才可能「今日待跟进 / 逾期」。
+
+**`creator_quote`**（报价）——`creator_id NOT NULL`、`brief_id`（可空，指向 `crm_brief`）、`status`（`draft|sent|accepted|rejected|expired`，默认 `draft`）、`quoted_at`（**可空**）、`valid_until DATE`、`fee_amount NUMERIC(14,2)`、`commission_rate NUMERIC(6,5)`（**0–1**，`CHECK (commission_rate BETWEEN 0 AND 1)`）、`currency CHAR(3) NOT NULL DEFAULT 'CNY'`、`items JSONB NOT NULL DEFAULT '[]'`、`note`、`owner_member_id`、`created_by`、时间戳、`archived_at`。
+
+- `quoted_at` 可空：草稿还没发给任何人，报价日期和录入日期是两个事实。列表读序用 `coalesce(quoted_at, created_at) DESC`，草稿不会排到已发出的旧报价下面。
+- `items` 是明细（坑位 / 佣金 / 赠品…），默认空数组而不是 NULL：界面对「还没有明细」和「明细为空」读法一致。
+
+**`creator_campaign`**（活动 / 采集批次）——`name TEXT NOT NULL`、`kind`（`search|comment|manual`，默认 `manual`）、`budget_amount NUMERIC(14,2)`、`currency`、`started_on DATE`、`ended_on DATE`、`source_keyword`、`creator_count INTEGER NOT NULL DEFAULT 0`、`note`、`owner_member_id`、时间戳、`archived_at`。
+
+- `creator_count` 是缓存值（契约允许重算），`NOT NULL DEFAULT 0`：新批次确实还没挂达人，「0」和「不知道」在这里不是一回事，0 就是真的 0。
+
+**`crm_collab` 新增两列**——`publish_url TEXT`（履约链接：`published_at` 说什么时候发，这一列说发在哪）、`settled_on DATE`（结算日期：`stage='settled'` 说这单结束了、`crm_settlement` 记每笔钱，但都没有「结算发生在哪天」）。
+
+### 20.3 REST（基址 `/api/workbench/bd`）
+
+三个台账的读法是 `limit` 而不带 `cursor`：它们的排序键不是单条单调时间轴（`quoted_at` 可空、活动按开始日排），HR 异动（§16）已是同一个先例。三个台账都是百行量级。
+
+#### 跟进记录
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/activities?creator_id=&kind=&from=&to=&limit=` | 列表，读序 `happened_at DESC, id DESC`；`from`/`to` 是 `happened_at` 的闭区间（RFC 3339 或 `YYYY-MM-DD`） |
+| POST | `/activities` | `creator_id`、`kind`、`happened_at`、`summary` 必填；`outcome`、`next_follow_at` 可选 |
+| GET | `/activities/{activityId}` | 单条 |
+| PATCH | `/activities/{activityId}` | 六个可写字段；`creator_id` 传非空 → 400 |
+| DELETE | `/activities/{activityId}` | 软删（204） |
+
+#### 报价
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/quotes?creator_id=&status=&limit=` | 列表，读序 `coalesce(quoted_at, created_at) DESC, id DESC` |
+| POST | `/quotes` | `creator_id` 必填；`status` 缺省 `draft`；`currency` 缺省 `CNY` |
+| GET | `/quotes/{quoteId}` | 单条 |
+| PATCH | `/quotes/{quoteId}` | `creator_id` 传非空 → 400 |
+| DELETE | `/quotes/{quoteId}` | 软删（204） |
+
+#### 活动 / 采集批次
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/campaigns?kind=&limit=` | 列表，读序 `coalesce(started_on, created_at::date) DESC, created_at DESC, id DESC` |
+| POST | `/campaigns` | `name` 必填且本工作区内唯一（大小写不敏感）；`kind` 缺省 `manual` |
+| GET | `/campaigns/{campaignId}` | 单条 |
+| PATCH | `/campaigns/{campaignId}` | 改名撞上既有名字 → 409 |
+| DELETE | `/campaigns/{campaignId}` | 软删（204）；归档后名字释放 |
+
+#### `GET /api/workbench/bd/pipeline`
+
+一次返回四块。**每个数字都是三态**（照 §3 的 `/overview`）：计数器 `value` 永远是数字（空库就是 0，`empty: "zero"`）；金额 `amount: null` + `empty: "insufficient_data"` 表示「没有行可加」，不是 0。
+
+```json
+{
+  "creators": { "total":   { "value": 625, "sample_count": 625, "empty": "zero" },
+                "contacted": { "value": 12, "sample_count": 12, "empty": "zero" },
+                "replied":   { "value": 7,  "sample_count": 7,  "empty": "zero" },
+                "quoted":    { "value": 5,  "sample_count": 5,  "empty": "zero" },
+                "signed":    { "value": 0,  "sample_count": 0,  "empty": "zero" },
+                "deal":      { "value": 0,  "sample_count": 0,  "empty": "zero" } },
+  "quotes": { "open":     { "value": 3, "sample_count": 3, "empty": "zero" },
+              "accepted": { "value": 2, "sample_count": 2, "empty": "zero" },
+              "rejected": { "value": 0, "sample_count": 0, "empty": "zero" },
+              "total_fee": { "amount": 5000, "currency": "CNY", "sample_count": 5, "empty": "zero" } },
+  "orders": { "open":      { "value": 4, "sample_count": 4, "empty": "zero" },
+              "delivered": { "value": 2, "sample_count": 2, "empty": "zero" },
+              "settled":   { "value": 1, "sample_count": 1, "empty": "zero" },
+              "total_amount": { "amount": 42000, "currency": "CNY", "sample_count": 6, "empty": "zero" },
+              "paid_amount":  { "amount": null, "currency": "CNY", "sample_count": 0, "empty": "insufficient_data" } },
+  "followups": { "due_today": { "value": 3, "sample_count": 3, "empty": "zero" },
+                 "overdue":   { "value": 1, "sample_count": 1, "empty": "zero" } }
+}
+```
+
+**每个数字的口径**（`server/pkg/db/queries/workbench_bd.sql` 里逐条注释）：
+
+| 字段 | 口径 |
+| --- | --- |
+| `creators.total` | 本工作区未归档的达人数 |
+| `creators.contacted` | 有 `creator_activity` 且 `outcome` 非空的**达人数**（去重；纯笔记不算联系过） |
+| `creators.replied` | 跟进结果里出现过 `replied` / `advanced` 的达人数（`bool_or`，不是最新一条） |
+| `creators.quoted` | 有 `creator_quote` 且 `status <> 'draft'` 的达人数（草稿不算报过价） |
+| `creators.signed` / `deal` | `creator.cooperation_intent = 'signed'` / `'deal'` 的达人数 |
+| `quotes.open` | `status = 'sent'`（等答复）。`draft` 从未成为报价，`expired` 不再是开口的 |
+| `quotes.accepted` / `rejected` | 同名状态的条数 |
+| `quotes.total_fee` | 本工作区**主币种**（行数最多的 `currency`）的 Σ`fee_amount`；`currency` 说明加的是哪个币种 |
+| `orders.open` | `crm_collab` 里处于 `confirmed / sampling / script_review / scheduled / published / accepted` 的单数——即「已开工、未结算、未取消」。**与 `delivered` 有意重叠**：已发布未打款的单既是 open 也是 delivered |
+| `orders.delivered` | `stage in ('published','accepted')`（已发布或已验收） |
+| `orders.settled` | `stage = 'settled'` |
+| `orders.total_amount` | 非 `cancelled` 单的 Σ`final_amount`（主币种） |
+| `orders.paid_amount` | `crm_settlement` 中 `paid_at` 非空的 Σ`amount`（主币种）。这是**钱真的走了多少**，不等于「我们把哪些单标成了已结算」 |
+| `followups.due_today` | 该达人**最新一条**跟进记录的 `next_follow_at` 落在今天（会话时区自然日，线上为 UTC） |
+| `followups.overdue` | 最新一条跟进记录的 `next_follow_at < now()`。旧记录的 `next_follow_at` 不算数——更新的跟进已经回答了它，这正是契约里「且该达人无更新的跟进记录」 |
+
+`creators.*` 的每个子计数都 `JOIN` 未归档的 `creator`，所以它们都是 `total` 的子集：达人归档后遗留的跟进记录不会让漏斗的第一格比总数还大。
+
+### 20.4 校验规则（以及为什么是 400 而不是「存下来加个 warning」）
+
+| 规则 | 结果 |
+| --- | --- |
+| `commission_rate` 不在 0–1 | **400**，报错文案直接说「20% 请传 0.2」 |
+| `valid_until` 早于 `quoted_at`（**按合并后的行判断**，PATCH 只动一个字段也会触发） | **400** |
+| 活动名重复（`lower(name)`，仅未归档行；改名时排除自己） | **409**（先读 + 唯一索引 809 兜并发） |
+| `ended_on` 早于 `started_on` | **400**（808 的 CHECK 是兜底） |
+| `creator_id` 出现在 PATCH 里且非空 | **400**：换人的跟进/报价是另一条记录，改它等于同时改两个人的历史 |
+| `summary` 空、`name` 空、`happened_at` 缺失 | **400** |
+
+**为什么 `valid_until < quoted_at` 定为 400**：`valid_until` 是唯一能回答「这份报价在第 X 天还能不能被接受」的列，所有读者（报价台账、驾驶舱的 `open`、将来的过期扫描）都直接采信它。`valid_until < quoted_at` 不是一种需要被标注的业务状态，它是**录入错误**；一旦落库，「第 12 天还开着哪些报价」这个问题的答案就被悄悄改了。走「存下来 + warning 字段」还有第二个代价：每条读这份报价的链路都要回传那个 warning，等于规则在 N 个消费方各存一份，而只要有人没读 warning，脏数据就已经在回答问题了。
+
+### 20.5 权限与 query key
+
+**权限**：三个台账都走 `workbenchReadScope`——**任意成员可读**；写入口是 `workbenchCanWrite` + `workbenchOwnerForCreate/Update`：owner/admin 可写任意行，`member` 只能写 `owner_member_id` 是自己的行。归属读**行自己**的 `owner_member_id`，不读它指向的达人：跟进是个人笔记，把它绑到达人的归属人身上，会让别人的一次转交顺手改掉你的记录。
+
+**query key**（`packages/core/bd/queries.ts`）：
+
+```
+["bd", wsId, "pipeline"]
+["bd", wsId, resource, filters]     resource ∈ activities | quotes | campaigns
+["bd", wsId, resource, { id }]
+```
+
+全部挂在 `bdKeys.all(wsId)` 下，所以一次失效能同时刷新驾驶舱和它旁边那张台账；详情读和列表共用 resource 前缀。`packages/core/bd/index.ts` 统一导出，`package.json` 声明 `./bd`、`./bd/queries`、`./bd/mutations`。
+
+**没有事件**：本批只交付数据层，事件词表在 `packages/core/types/events.ts`，不在本批写作用域内。三个台账的变更靠写入后的 invalidate 与重新拉取体现。
+
+### 20.6 已知债务与本批未做
+
+- **没有 `:changed` 事件**：`creator_activity` / `creator_quote` / `creator_campaign` 的写入不发 WebSocket 事件，另一个客户端的台账不会自动刷新（见 §20.5）。
+- **混合币种只读主币种**：`quotes.total_fee` / `orders.total_amount` / `orders.paid_amount` 只汇总本工作区行数最多的那个币种，并按币种给出总量是下一批的事。今天全库只有 CNY。
+- **没有分页 cursor**：三个台账 limit-only（见 §20.3）。达人侧的 `?creator_id=` 已经把一条时间线限到几十行。
+- **`creator_order` 的四个状态没有对应物**：`crm_collab.stage` 有 11 个阶段，驾驶舱只把它们折叠成 open / delivered / settled 三档（口径见 §20.3）；`signed` 这个中间态没有独立计数。
+- **`cooperation_intent` 有一个历史中文值**：现网 1 行仍是「已签约」，不是枚举值 `signed`，所以驾驶舱的 `creators.signed` 暂时数不到它。这是数据问题，按契约 §1.1 应改成 `signed`（本批不写数据迁移）。
+- **`creator_campaign` 与 `creator` 还没有关联**：本批只落批次自身（名字 / 预算 / 窗口 / 缓存人数），`creator.source_*` 仍是达人的来源事实；「这个批次包含哪些达人」是下一批的多对多。
+- **不做审批流、不做寄样记录表、不做发票、不做 UI、不动指标契约**（`packages/core/metrics/contracts.ts` 本批未改）。
+
 ## 9. 完成定义（DoD）
 
 一个域算完成，当且仅当：迁移可 up/down 往返、`make sqlc` 无脏 diff、handler 有权限用例、事件发出、zod 覆盖响应、`useRealtimeSync` 有 patcher、`/overview` 里对应指标从 `insufficient_data` 变为有值、页面能读能写。

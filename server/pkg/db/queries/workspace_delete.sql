@@ -806,6 +806,18 @@ deleted_creator_videos AS (
 deleted_creator_metrics AS (
     DELETE FROM creator_metric WHERE creator_metric.workspace_id = $1
 ),
+-- BD pipeline (WORKBENCH-API §20): follow-ups, quotes and collection campaigns
+-- name a creator (and a quote a brief) with no foreign key behind either, so
+-- teardown clears them explicitly before the creators and briefs they describe.
+deleted_creator_activities AS (
+    DELETE FROM creator_activity WHERE creator_activity.workspace_id = $1
+),
+deleted_creator_quotes AS (
+    DELETE FROM creator_quote WHERE creator_quote.workspace_id = $1
+),
+deleted_creator_campaigns AS (
+    DELETE FROM creator_campaign WHERE creator_campaign.workspace_id = $1
+),
 deleted_creators AS (
     DELETE FROM creator WHERE creator.workspace_id = $1
 ),
