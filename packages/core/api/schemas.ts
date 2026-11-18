@@ -142,6 +142,8 @@ import type {
   WorkbenchFinanceMonth,
   WorkbenchFinanceMonthListResponse,
   WorkbenchFinanceResponse,
+  // Batch CSV import (WORKBENCH-API §23).
+  ImportPreviewResponse,
 } from "../types";
 import type { CloudRuntimeNode } from "../runtimes/cloud-runtime";
 import type { CreateFeedbackResponse } from "../feedback/types";
@@ -6965,4 +6967,56 @@ export const EMPTY_BD_PERFORMANCE: BdPerformance = {
   },
   by_member: [],
   by_month: [],
+};
+
+// --- Batch CSV import (docs/engineering/WORKBENCH-API.md §23) ---------------
+//
+// Same shape for a preview and a real import. The leniencies follow the workbench
+// block above:
+//
+//   * `rows` / `errors` default to empty arrays — a rejected file has no rows and a
+//     clean file has no errors, and neither should blank the response.
+//   * `reason` and `action` stay `z.string()`: the client renders unknown codes as
+//     themselves instead of dropping the row, and the reason list is expected to
+//     grow (§23.3 records what exists today).
+//   * `preview` is an open record: what a row carries differs per kind, and the
+//     server, not this schema, is the authority on those fields.
+export const ImportPreviewResponseSchema = z
+  .object({
+    kind: z.string().default("quotes"),
+    parsed: z.number().default(0),
+    accepted: z.number().default(0),
+    committed: z.number().default(0),
+    rows: z
+      .array(
+        z
+          .object({
+            line: z.number().default(0),
+            action: z.string().default("create"),
+            preview: z.record(z.string(), z.unknown()).default({}),
+          })
+          .loose(),
+      )
+      .default([]),
+    errors: z
+      .array(
+        z
+          .object({
+            line: z.number().default(0),
+            column: z.string().default(""),
+            reason: z.string().default(""),
+          })
+          .loose(),
+      )
+      .default([]),
+  })
+  .loose();
+
+export const EMPTY_IMPORT_PREVIEW_RESPONSE: ImportPreviewResponse = {
+  kind: "quotes",
+  parsed: 0,
+  accepted: 0,
+  committed: 0,
+  rows: [],
+  errors: [],
 };

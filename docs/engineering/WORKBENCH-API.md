@@ -2353,6 +2353,136 @@ GET /api/workbench/bd/performance?from=2026-11-01&to=2026-11-30
 - **没有 `:changed` 事件**：业绩是读出来的，写入用的是 §20 的事件（`creator:changed` / `creator_post:changed` / `crm_*:changed` / 本批的 `media_hot:changed` 等）。业绩页的刷新靠这些事件失效 `["bd", wsId]` 前缀（`bdKeys.all` 已覆盖 `performance`）。
 - **不做目标对比**：`goal_okr` 的关键结果（`target/current`）与业绩窗口的自动比对不在本批——那会引入「业绩算出来的数字 vs 手动填的进度」两个真相源，跟 §2 的裁决（不建 `revenue_target`）同一理由。
 
+## 23. 批量导入契约（CSV → 报价 / 跟进 / 合作单）
+
+真实业务第一批就是几十条报价、跟进和合作单，一条一条点不成立。本节是唯一入口：**一个端点、三种 kind、CSV 文本即请求体**。语义按 `dry_run` 分两段，但校验代码**只有一份**——预览说能过、正式导入却报错，是最坏的结果。
+
+### 23.1 端点
+
+```
+POST /api/workbench/import?kind=quotes|activities|collabs&dry_run=1|0
+Content-Type: text/csv; charset=utf-8
+
+creator_handle,fee_amount,commission_rate,valid_until,currency,note
+umi,3000,0.2,2026-12-31,CNY,首轮报价
+…
+```
+
+| 项 | 规则 |
+| --- | --- |
+| `kind` | 必填，`quotes` / `activities` / `collabs`；其它值 **400** |
+| `dry_run` | 省略或 `1`/`true` = 预览（**默认**）；`0`/`false` = 正式导入；其它值 **400** |
+| 请求体 | UTF-8 CSV 文本，首行表头。Excel 写的 BOM 会被剥掉 |
+| 体积上限 | **1 MiB**，超出 **413** |
+| 行数上限 | **2000 数据行**（不含表头），超出 **413** |
+| Content-Type | `text/csv`；`text/plain` 与空值也接受（shell 的 curl 常常不带）；其它 **415** |
+| 空文件 | 没有表头或没有数据行 → 400（`parsed: 0` 的正常空批没有意义，用户是选错文件了） |
+
+响应（**dry_run 与正式导入同形**，只有 `committed` 不同）：
+
+```json
+{
+  "kind": "quotes", "parsed": 42, "accepted": 40, "committed": 0,
+  "rows":   [{ "line": 2, "action": "create", "preview": { "creator_id": "…", "fee_amount": 3000, "currency": "CNY" } }],
+  "errors": [{ "line": 7, "column": "creator_handle", "reason": "creator_not_found" }]
+}
+```
+
+- `parsed`：读到的数据行数（含出错行）。
+- `accepted`：会被写入的行数 = `action: "create"` 的行（重复行是 `skip`，不算）。
+- `committed`：真正写入的行数。**预览恒 0；有错的正式导入也恒 0**。
+- `rows[].line` 是**文件行号**（表头是第 1 行，第一条数据是第 2 行），前端据此标红。
+- `preview` 是服务器**推导后**的值（解析好的达人 id、金额、币种），不是把用户的单元格抄回来——预览的意义是让他确认将要写进库的东西。
+- `rows` / `errors` 按行号升序；`errors` 同一行内按列名升序。
+
+### 23.2 列定义（表头接受中英别名，大小写 / 空格 / 下划线 / 连字符不敏感）
+
+| kind | 必填 | 可选 |
+| --- | --- | --- |
+| `quotes` | `creator_handle` \| `creator_id`、`fee_amount` | `brief_id`、`commission_rate`（0–1）、`valid_until`、`currency`、`note` |
+| `activities` | `creator_handle` \| `creator_id`、`kind`（`dm/call/meeting/email/note`）、`happened_at`、`summary` | `outcome`（`no_reply/replied/declined/advanced`）、`next_follow_at` |
+| `collabs` | `creator_handle` \| `creator_id`、`brief_id` | `stage`、`quote_amount`、`final_amount`、`creator_fee`、`sample_cost`、`platform_fee`、`commission_rate`、`publish_url`、`settled_on`、`currency` |
+
+三种 kind 都额外接受一个可选列 **`platform`**：`creator_handle` 的匹配键是 `(platform, handle)`（§23.3 规则 1），给了 `platform` 就按精确键匹配；**不给**则在整个工作区的 handle 里找，找到多个就是 `ambiguous_handle`——同名两个平台账号时不能替用户猜。
+
+中英别名（截选，实现是 `workbench_import.go` 的 `importSpecs` 表）：`creator_handle`=`达人账号/账号/达人`、`fee_amount`=`坑位费/报价/金额`、`happened_at`=`跟进时间/时间`、`summary`=`内容/摘要`、`stage`=`阶段`、`settled_on`=`结算日期`、`publish_url`=`发布链接/履约链接`。表里没有的列**忽略**（导出文件常带多余列）；同一个列出现两次是 `duplicate_column`（不玩「后者覆盖」）。
+
+导入行的默认值（都不在 CSV 里，写死在 handler）：
+
+| kind | 默认 |
+| --- | --- |
+| `quotes` | `status='sent'`（批量补录的是**已经发出去**的报价；`draft` 是界面上还没发的草稿）、`quoted_at=NULL`（合同草案没有这一列，列表按 `created_at` 排序）、`items=[]` |
+| `activities` | 无额外默认（`kind`/`happened_at`/`summary` 必填） |
+| `collabs` | `stage='inquiry'`；阶段里程碑按 `collabStageMilestones` 与手工建单一致（`confirmed/published/accepted` 由 stage 推进补齐），`sample_required`/`script_required=false` |
+| 三者 | `owner_member_id` = **导入者**（谁导入谁负责），`created_by` = 导入者 |
+
+### 23.3 三条硬规则
+
+1. **不自动建达人。** `creator_handle` 按 `(platform, handle)` 在本工作区**未归档**达人中匹配；`creator_id` 必须是本工作区未归档达人。匹配不到 → 错误行 `creator_not_found`，`creator_id` 形状不对 → `invalid_uuid`。达人档案是上游客体 + 人工维护，导入界面不该成为第三个写入源——否则 623 行的基线会变成「基线 + 表格里写了什么」。
+2. **全或全不。** `dry_run=0` 时整批在一个事务里。**校验先跑完**：只要有任何一行出错，就整批不写（`committed: 0`）并把同样的错误清单返回。半批导入没人能对账——「42 条里进了 30 条」是最难查的状态。
+3. **`dry_run=1` 什么都不写**：不分配 id、不发事件、不触碰序列；但**校验逐字相同**（两条路径共用 `importPlanFor`，唯一差别是 `importCommit` 是否被调用）。预览里能过、正式导入却失败，是不允许出现的行为。
+
+**重复导入不产生重复行**（见 §23.4），重复行是 `action: "skip"`，不是错误、不计入 `accepted`、不写入。
+
+### 23.4 重复检测（不加唯一索引）
+
+同一份文件再导一次是**幂等**的：重复行被识别成 `skip`。判定按 kind 的自然键，且**批内去重 + 与库内已有行比对**：
+
+| kind | 重复键 | 为什么是它 |
+| --- | --- | --- |
+| `quotes` | `(creator_id, fee_amount, valid_until, currency)`（金额按两位小数、`valid_until` 的 NULL 归一成空串） | 合同草案没有 `quoted_at` 列，一份报价的「同一性」就是谁、多少钱、什么币种、有效期到哪天 |
+| `activities` | `(creator_id, happened_at, kind, summary)` | 跟进记录的同一性就是谁、什么时候、怎么联系、说了什么 |
+| `collabs` | `(brief_id, creator_id)` | 合作单是「一位达人 × 一张需求单」（§20.1），这一对就是它 |
+
+**为什么不加唯一索引**：`quotes` 的键含可空列（`valid_until`）与金额，`activities` 的键含自由文本（`summary`）——部分唯一索引只能覆盖 `collabs` 的 `(brief_id, creator_id)`，而那一条对已有数据的假设（现网/共享库里可能本来就存在同一对的多行）无法在迁移里安全验证，失败方式是**迁移直接中断**。所以本批用**应用层重复检测**：不新增表、不新增索引、不回填数据，代价是「并发同时导同一份文件」仍可能各写一份（两份内容完全相同，去重是防误操作，不是并发保护）。要升级成硬约束时，先跑一遍 `SELECT (workspace_id, brief_id, creator_id) ... HAVING count(*) > 1` 清掉历史重复，再加 `CREATE UNIQUE INDEX CONCURRENTLY`（单语句文件 + `concurrentIndexCleanups` 登记）。
+
+批内：同一文件里两行键相同，第二行也是 `skip`（不是两行都写）。
+
+### 23.5 错误码与列
+
+`errors[].reason` 是**稳定字符串**，前端按键渲染（未知码原样显示）：
+
+| reason | 何时 | `column` |
+| --- | --- | --- |
+| `missing_column` | 表头缺必填列（含 `creator_handle` 与 `creator_id` 都没有的情况） | 缺的那列；`line: 1` |
+| `duplicate_column` | 表头里同一列出现两次 | 该列；`line: 1` |
+| `column_count_mismatch` | 该行的单元格数量与表头不一致 | `""` |
+| `missing_value` | 必填单元格为空 | 该列 |
+| `creator_not_found` | handle / id 在本工作区未归档达人里找不到 | `creator_handle` 或 `creator_id` |
+| `ambiguous_handle` | 没给 `platform`，handle 命中多个达人 | `creator_handle` |
+| `invalid_uuid` | `creator_id` / `brief_id` 不是 UUID | 该列 |
+| `brief_not_found` | `brief_id` 不是本工作区未归档需求单 | `brief_id` |
+| `invalid_amount` | 金额不是数字、为负或超过 1e12 | 该金额列 |
+| `invalid_rate` | `commission_rate` 不在 0–1（`20` 不换算成 `0.2`，直接拒——猜单位就是把 2000% 写进库） | `commission_rate` |
+| `invalid_date` | `valid_until` / `settled_on` 不是 `YYYY-MM-DD`（也接受 RFC 3339 取其日期） | 该列 |
+| `invalid_timestamp` | `happened_at` / `next_follow_at` 解析不了（接受 RFC 3339、`YYYY-MM-DD HH:MM:SS`、纯日期） | 该列 |
+| `invalid_enum` | `kind` / `outcome` / `stage` 不在枚举内 | 该列 |
+| `invalid_currency` | 不是 3 个字母 | `currency` |
+
+**同一行只报第一处致命问题**：`creator` 解析不出来就只报那条（后面的字段在这个前提下没有意义），其余字段各自独立校验、各自报错。表头级错误（`missing_column` / `duplicate_column`）会让整个文件不进入行校验（`rows: []`，`parsed` 仍报读到的行数）。
+
+### 23.6 事件与 query key
+
+- 正式导入后按行发事件，**只发已有的事件词**：`collabs` → 每行一条 `crm_collab:changed`。`quotes` / `activities` 没有 `:changed` 事件（§20.5 的既有债务），导入完由客户端用本次响应的 `committed > 0` 自行失效 `["bd", wsId]`。
+- `dry_run=1` **不发任何事件**（规则 3）。
+- query key 不新增：导入是 mutation，失效 `bdKeys.all(wsId)` + `workbenchKeys.all(wsId)`（报价/跟进/合作单三张列表 + 驾驶舱 + `/counts`）。
+
+### 23.7 客户端面
+
+- 类型：`packages/core/types/workbench.ts` 的 `ImportKind` / `ImportRow` / `ImportRowAction` / `ImportError` / `ImportPreviewResponse`（字段名与 §23.1 的 JSON 逐字一致；`ImportError` 就是 `errors[]` 的元素，命名为兼容草案）。
+- zod：`packages/core/api/schemas.ts` 的 `ImportPreviewResponseSchema` + `EMPTY_IMPORT_PREVIEW_RESPONSE`（`rows`/`errors` 默认空数组，`reason`/`action` 保持字符串以容忍未来新增码）。
+- 方法：`api.importWorkbenchCsv({ kind, csv, dryRun })` —— 走 `fetchRaw`，`Content-Type: text/csv; charset=utf-8`，query 里带 `kind` 与 `dry_run`（`dryRun === false` 才发 0）。
+- **有错的文件是 200**，不是异常：`committed: 0` + `errors[]`。只有请求本身不合法（`kind` 错、Content-Type 错、超限）才抛 `ApiError`。
+
+### 23.8 已知债务与本批未做
+
+- **并发同导不互斥**：两个客户端同时导同一份文件会各写一份（§23.4）。去重是防误操作，不是并发保护；要硬保证得加唯一的自然键索引，前置条件是先清历史重复。
+- **`quotes` 的重复键偏弱**：同一达人同一天发两份**完全相同**的报价（同金额、同有效期）会被判成重复而跳过。真实业务里这种「一模一样的两条」通常就是重复录入；如果确实需要两条，日期/备注任一不同即可区分。
+- **没有部分导入 / 断点续传**：全或全不（规则 2）。几千行的文件要靠 2000 行上限分成多个文件，这是有意的取舍。
+- **`activities` 没有 `currency` 列**（草案里曾列过）：`creator_activity` 没有金额，也就没有币种。
+- **`quotes` 不写 `quoted_at`**：草案没有这一列，导入行按 `created_at` 排序；要补历史报价日期需要加一列并定义「空 = 未知」，本批不做。
+- **不做 xlsx**：只吃 CSV。前端让用户「另存为 CSV」比在服务端解析 xlsx 便宜得多。
+
 ## 9. 完成定义（DoD）
 
 一个域算完成，当且仅当：迁移可 up/down 往返、`make sqlc` 无脏 diff、handler 有权限用例、事件发出、zod 覆盖响应、`useRealtimeSync` 有 patcher、`/overview` 里对应指标从 `insufficient_data` 变为有值、页面能读能写。

@@ -224,6 +224,9 @@ import type {
   UpdateBdQuoteRequest,
   WorkbenchCountsResponse,
   WorkbenchFinanceResponse,
+  // Batch CSV import (WORKBENCH-API §23).
+  ImportKind,
+  ImportPreviewResponse,
   WorkbenchFinanceMonth,
   WorkbenchFinanceMonthListResponse,
   UpsertWorkbenchFinanceMonthRequest,
@@ -835,6 +838,8 @@ import {
   EMPTY_BD_CAMPAIGN_LIST_RESPONSE,
   BdPipelineSchema,
   EMPTY_BD_PIPELINE,
+  ImportPreviewResponseSchema,
+  EMPTY_IMPORT_PREVIEW_RESPONSE,
   BdPerformanceSchema,
   EMPTY_BD_PERFORMANCE,
   WorkbenchCountsResponseSchema,
@@ -4302,6 +4307,43 @@ export class ApiClient {
    * answered before the parameter existed. A malformed month is a 400; a month
    * with no rows answers `insufficient_data` per figure, never a zero.
    */
+  /**
+   * Batch CSV import for the BD ledgers (WORKBENCH-API §23).
+   *
+   * `csv` is the file text itself — header row included — posted as `text/csv`; the
+   * server parses it, so this method does not build a JSON body. `dryRun` defaults to
+   * true on the server as well: omitting it previews. The response shape is identical
+   * either way (only `committed` differs), so a preview and its confirmation can be
+   * rendered by the same code.
+   *
+   * A rejected file is a **200** with `errors` populated and `committed: 0` — that is
+   * a normal answer, not an API error. Only a malformed request (bad `kind`, non-CSV
+   * content type, oversized body) throws.
+   */
+  async importWorkbenchCsv(params: {
+    kind: ImportKind;
+    csv: string;
+    dryRun?: boolean;
+  }): Promise<ImportPreviewResponse> {
+    const res = await this.fetchRaw(
+      `/api/workbench/import${workbenchSearch({
+        kind: params.kind,
+        dry_run: params.dryRun === false ? 0 : 1,
+      })}`,
+      {
+        method: "POST",
+        body: params.csv,
+        headers: { "Content-Type": "text/csv; charset=utf-8" },
+      },
+    );
+    const raw = (await res.json()) as unknown;
+    return parseWithFallback(
+      raw,
+      ImportPreviewResponseSchema,
+      EMPTY_IMPORT_PREVIEW_RESPONSE,
+      { endpoint: "POST /api/workbench/import" },
+    );
+  }
   async getWorkbenchFinance(
     params: { department_id?: string | null; month?: string } = {},
   ): Promise<WorkbenchFinanceResponse> {

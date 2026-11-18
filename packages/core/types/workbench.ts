@@ -1774,3 +1774,52 @@ export interface AffiliateSummaryFilters {
   /** Aggregate dimension only; never an access boundary (搂3). */
   department_id?: string | null;
 }
+
+// --- Batch CSV import (`POST /api/workbench/import`, WORKBENCH-API §23) ------
+//
+// One endpoint, three kinds. The request body is the CSV text itself and the query
+// carries `kind` plus `dry_run` (default 1 = preview). The response shape is the
+// same for a preview and a real import; only `committed` differs, which is what
+// makes the preview trustworthy: the server validates both paths with one code path.
+//
+//   - `rows[].action` is `create` for a row that would be (or was) written and
+//     `skip` for a duplicate already in the ledger — a duplicate is not an error.
+//   - `errors[]` names the line, the column and a stable reason code; the file is
+//     rejected whole when any row errors (`committed: 0`), so the list is complete.
+//   - `preview` holds the values the server derived (resolved creator id, parsed
+//     amounts, normalised currency), not a copy of the file's cells.
+
+export type ImportKind = "quotes" | "activities" | "collabs";
+
+export type ImportRowAction = "create" | "skip";
+
+/** One parsed row: where it came from, what the server would do, and with what. */
+export interface ImportRow {
+  /** 1-based line in the file, header included (`2` is the first data row). */
+  line: number;
+  action: ImportRowAction;
+  preview: Record<string, unknown>;
+}
+
+/**
+ * One row that cannot be imported. `column` is the canonical column name (empty for
+ * a whole-row problem such as a wrong cell count), `reason` a stable code — see
+ * WORKBENCH-API §23.3 for the list.
+ */
+export interface ImportError {
+  line: number;
+  column: string;
+  reason: string;
+}
+
+export interface ImportPreviewResponse {
+  kind: ImportKind;
+  /** Data rows read (header excluded), including the ones that errored. */
+  parsed: number;
+  /** Rows that would be written: `create` rows, duplicates excluded. */
+  accepted: number;
+  /** Rows actually written — always 0 on a dry run and on a rejected batch. */
+  committed: number;
+  rows: ImportRow[];
+  errors: ImportError[];
+}

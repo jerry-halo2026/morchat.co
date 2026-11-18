@@ -505,6 +505,12 @@ export type {
   WorkbenchFinanceMonth,
   WorkbenchFinanceMonthListResponse,
   WorkbenchFinanceResponse,
+  // Batch CSV import (WORKBENCH-API §23).
+  ImportError,
+  ImportKind,
+  ImportPreviewResponse,
+  ImportRow,
+  ImportRowAction,
   AffiliateDaily,
   AffiliateDailyListFilters,
   AffiliateDailyListResponse,

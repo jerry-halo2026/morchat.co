@@ -2409,6 +2409,11 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 			r.Route("/api/workbench", func(r chi.Router) {
 				r.Get("/overview", h.GetWorkbenchOverview)
 				r.Get("/counts", h.GetWorkbenchCounts)
+				// Batch CSV import for the BD ledgers (WORKBENCH-API §23). One
+				// endpoint, three kinds, dry_run defaulting to 1; the body is the
+				// CSV file itself, so it is parsed by the handler rather than by a
+				// JSON body decoder.
+				r.Post("/import", h.ImportWorkbenchCSV)
 				r.Get("/finance", h.GetWorkbenchFinance)
 				// The month entry that feeds the margin's cost side and the cash
 				// floor (707). Reads are member-wide; PUT is gated to
