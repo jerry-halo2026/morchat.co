@@ -298,8 +298,10 @@ describe("HrEmployeesPage", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Rewards & discipline" }));
     expect(screen.getByTestId("pending-table-rewards")).toHaveTextContent("No table yet");
 
+    // Changes has a table now: an unanswered query leaves the section empty
+    // rather than claiming the data does not exist.
     fireEvent.click(screen.getByRole("tab", { name: "Changes" }));
-    expect(screen.getByTestId("pending-table-history")).toHaveTextContent("No table yet");
+    expect(screen.queryByTestId("pending-table-history")).toBeNull();
   });
 
   it("hides the inline writes from a reader who does not own the row", () => {

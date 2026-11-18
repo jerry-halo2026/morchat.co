@@ -184,6 +184,10 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	// `leave_date` those records wrote sits on `hr_employee_profile`, which the
 	// same teardown already deletes.
 	"hr_offboarding": workspaceDelete,
+	// Employee file change stream (WORKBENCH-API §16): append-only rows naming an
+	// employee profile, no foreign key, so DeleteWorkspaceWorkbenchLedger clears
+	// them explicitly before the profiles they describe.
+	"hr_employee_change": workspaceDelete,
 	// Affiliate distribution (WORKBENCH-API §11): the same treatment — no foreign
 	// key, so DeleteWorkspaceWorkbenchLedger removes them explicitly.
 	"affiliate_product":    workspaceDelete,

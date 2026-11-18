@@ -1235,6 +1235,31 @@ type HrCandidate struct {
 	ResumeText         pgtype.Text        `json:"resume_text"`
 }
 
+// Append-only employee file change stream (WORKBENCH-API §16). Never updated or deleted; archived_at is the only soft-delete mark. Read ordered by effective_on DESC.
+type HrEmployeeChange struct {
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	EmployeeID       pgtype.UUID        `json:"employee_id"`
+	Kind             string             `json:"kind"`
+	EffectiveOn      pgtype.Date        `json:"effective_on"`
+	FromDepartmentID pgtype.UUID        `json:"from_department_id"`
+	ToDepartmentID   pgtype.UUID        `json:"to_department_id"`
+	FromJobTitle     pgtype.Text        `json:"from_job_title"`
+	ToJobTitle       pgtype.Text        `json:"to_job_title"`
+	FromGrade        pgtype.Text        `json:"from_grade"`
+	ToGrade          pgtype.Text        `json:"to_grade"`
+	FromContractEnd  pgtype.Date        `json:"from_contract_end"`
+	ToContractEnd    pgtype.Date        `json:"to_contract_end"`
+	FromAmount       pgtype.Numeric     `json:"from_amount"`
+	ToAmount         pgtype.Numeric     `json:"to_amount"`
+	Currency         pgtype.Text        `json:"currency"`
+	Note             pgtype.Text        `json:"note"`
+	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy        pgtype.UUID        `json:"created_by"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	ArchivedAt       pgtype.Timestamptz `json:"archived_at"`
+}
+
 type HrEmployeeProfile struct {
 	ID            pgtype.UUID        `json:"id"`
 	WorkspaceID   pgtype.UUID        `json:"workspace_id"`

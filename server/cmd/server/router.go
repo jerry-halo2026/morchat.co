@@ -2650,6 +2650,20 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 							r.Delete("/", h.DeleteHrEmployee)
 						})
 					})
+					// Employee file change stream (docs/engineering/WORKBENCH-API.md
+					// §16): 入职 / 转正 / 续签 / 调岗 / 职级 / 薪资 / 离职 as an
+					// append-only list per person. Most rows are written by the
+					// `PATCH /employees` hook above, in the same transaction; `POST`
+					// is the manual entry (a salary adjustment has no profile column),
+					// `PATCH` accepts `note` only, and `DELETE` is a soft delete.
+					r.Route("/changes", func(r chi.Router) {
+						r.Get("/", h.ListHrEmployeeChanges)
+						r.Post("/", h.CreateHrEmployeeChange)
+						r.Route("/{changeId}", func(r chi.Router) {
+							r.Patch("/", h.UpdateHrEmployeeChange)
+							r.Delete("/", h.DeleteHrEmployeeChange)
+						})
+					})
 					// Interview questions and per-round guides
 					// (docs/engineering/WORKBENCH-API.md §14). The question bank is a
 					// reusable asset gated on its own owner; a guide is gated on the

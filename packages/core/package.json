@@ -18,7 +18,6 @@
     "./attachments/image-sequence": "./attachments/image-sequence.ts",
     "./api": "./api/index.ts",
     "./appearance": "./appearance/index.ts",
-
     "./avatar/product-faces": "./avatar/product-faces.ts",
     "./api/client": "./api/client.ts",
     "./api/schema": "./api/schema.ts",
@@ -228,7 +227,9 @@
     "./skills/pack-archive": "./skills/pack-archive.ts",
     "./skills/stores": "./skills/stores/index.ts",
     "./autopilots/stores": "./autopilots/stores/index.ts",
-    "./runtimes/qoder": "./runtimes/qoder.ts"
+    "./runtimes/qoder": "./runtimes/qoder.ts",
+    "./hr/offboard": "./hr/offboard.ts",
+    "./hr/change": "./hr/change.ts"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "catalog:",

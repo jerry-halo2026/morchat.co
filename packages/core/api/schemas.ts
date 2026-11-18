@@ -204,6 +204,13 @@ import type {
   HrOffboardingEmployee,
   HrOffboardingListResponse,
 } from "../types/offboard";
+// Employee file change stream (§16): its own module (types/change.ts), because an
+// append-only event list is a different contract from the profile it describes —
+// `PATCH` accepts `note` and nothing else.
+import type {
+  HrEmployeeChange,
+  HrEmployeeChangeListResponse,
+} from "../types/change";
 
 export const PluginConfigFieldSchema = z.object({
   key: z.string(),
@@ -6068,4 +6075,78 @@ export const HrOffboardingAdvanceResponseSchema = z
 export const EMPTY_HR_OFFBOARDING_ADVANCE_RESPONSE: HrOffboardingAdvanceResponse = {
   offboarding: EMPTY_HR_OFFBOARDING,
   employee: null,
+};
+
+// ---- employee file change stream (WORKBENCH-API §16) -----------------------
+//
+// Three rules from the contract's response section show up here:
+//
+//   * `kind` stays a plain string. A kind this build does not know must still
+//     render — the 异动 list shows what the row says — and collapsing it to
+//     `other` would relabel a real event.
+//   * every from/to pair is nullable and defaults to null: a change that was not
+//     about a field must not look like it cleared the field.
+//   * amounts are JSON numbers (§3.1) and `effective_on` is a calendar day, the
+//     same wire forms as the rest of HR.
+
+export const HrEmployeeChangeSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    employee_id: z.string().default(""),
+    kind: z.string().default("other"),
+    effective_on: z.string().default(""),
+    from_department_id: workbenchNullableString,
+    to_department_id: workbenchNullableString,
+    from_job_title: workbenchNullableString,
+    to_job_title: workbenchNullableString,
+    from_grade: workbenchNullableString,
+    to_grade: workbenchNullableString,
+    from_contract_end: workbenchNullableString,
+    to_contract_end: workbenchNullableString,
+    from_amount: workbenchNullableNumber,
+    to_amount: workbenchNullableNumber,
+    currency: z.string().default(""),
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_HR_EMPLOYEE_CHANGE: HrEmployeeChange = {
+  id: "",
+  workspace_id: "",
+  employee_id: "",
+  kind: "other",
+  effective_on: "",
+  from_department_id: null,
+  to_department_id: null,
+  from_job_title: null,
+  to_job_title: null,
+  from_grade: null,
+  to_grade: null,
+  from_contract_end: null,
+  to_contract_end: null,
+  from_amount: null,
+  to_amount: null,
+  currency: "",
+  note: null,
+  owner_member_id: null,
+  created_by: null,
+  created_at: "",
+  archived_at: null,
+};
+
+export const HrEmployeeChangeListResponseSchema = z
+  .object({
+    changes: z.array(HrEmployeeChangeSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_EMPLOYEE_CHANGE_LIST_RESPONSE: HrEmployeeChangeListResponse = {
+  changes: [],
+  total: 0,
 };

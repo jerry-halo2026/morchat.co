@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_hr_employee_change_workspace_kind;

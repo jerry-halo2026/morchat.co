@@ -14,6 +14,7 @@ import { cn } from "@morechat/ui/lib/utils";
 import { ObjectSectionEmpty } from "../../layout/object-page";
 import { CollectionEmptyValue } from "../../layout/collection-list";
 import { useEmployeesCopy } from "./employees-copy";
+import { ChangesTab } from "./employee-changes";
 import {
   abilityAxes,
   discAxes,
@@ -137,13 +138,7 @@ export function EmployeeSheet({
                   </div>
                 </TabsContent>
                 <TabsContent value="history" className="outline-none">
-                  <div data-testid="pending-table-history" data-pending-table="history">
-                    <ObjectSectionEmpty
-                      icon={History}
-                      title={copy("history_empty_title")}
-                      description={copy("history_empty_description")}
-                    />
-                  </div>
+                  <ChangesTab employeeId={row.profile.id} empty={copy("history_empty_description")} />
                 </TabsContent>
               </div>
             </Tabs>

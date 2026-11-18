@@ -1342,6 +1342,160 @@ hr_offboarding(
 - **`/counts`、`/overview` 不含离职**：没有「本月在办离职」这类指标，列表 `total` 因此就是本页条数。
 - **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举未加 `hr_offboarding`。
 
+## 16. 人事异动留痕契约（档案变更事件流）
+
+员工花名册的「异动」页签在 B1 阶段只是一个「待建表」空态，因为库里确实没有东西可读：转正、续签、调岗、职级变动、薪资调整**全都是对 `hr_employee_profile`（684）的一次普通 PATCH**，改完就没人记得之前是什么。「这个人什么时候、因为什么变过」在库里没有答案。
+
+这一批补的就是这个答案：
+
+```
+hr_employee_profile（人）
+   ↓ PATCH /employees（department_id / job_title / grade / contract_end / regular_date 有变化）
+hr_employee_change[]（只追加：一条事件一行，按 effective_on DESC 读）
+   ↑ POST /hr/changes（手工补录：薪资调整、入职补录）
+```
+
+关键取舍有两条：**这是只追加的事件流**（§16.5）；**自动留痕写在 PATCH 的同一事务里**（§16.4）。
+
+不做异动审批、不做薪资历史对比视图、不做 UI——那三件分别是「谁批的 / 涨了多少 / 长什么样」，与「档案什么时候因为什么变过」无关。
+
+### 16.1 迁移号段
+
+| 号 | 文件 | 内容 |
+| --- | --- | --- |
+| 772 | `772_hr_employee_change` | 表 `hr_employee_change`（+ `COMMENT ON TABLE`） |
+| 773 | `773_hr_employee_change_employee_idx` | `(workspace_id, employee_id, effective_on DESC)` |
+| 774 | `774_hr_employee_change_kind_idx` | `(workspace_id, kind)` |
+
+两个索引都是单语句 `CREATE INDEX CONCURRENTLY`，up 方向逐个登记在 `server/cmd/migrate/main.go` 的 `concurrentIndexCleanups`；down 方向只有 `DROP INDEX CONCURRENTLY IF EXISTS`（不重建索引，故不进 down map）。772 是建表，在事务内，单独一个文件。
+
+### 16.2 表
+
+```sql
+-- 772
+hr_employee_change(
+  id UUID PK, workspace_id UUID NOT NULL,
+  employee_id UUID NOT NULL,              -- 指向 hr_employee_profile.id
+  kind TEXT NOT NULL
+    CHECK (kind IN ('hire','regularize','renew','move','promote','grade','salary','leave','other')),
+  effective_on DATE NOT NULL,             -- 生效日（不是录入日）
+  from_department_id UUID, to_department_id UUID,
+  from_job_title TEXT,     to_job_title TEXT,
+  from_grade TEXT,         to_grade TEXT,
+  from_contract_end DATE,  to_contract_end DATE,
+  from_amount NUMERIC(14,2), to_amount NUMERIC(14,2), currency CHAR(3),
+  note TEXT, owner_member_id UUID, created_by UUID,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(), archived_at TIMESTAMPTZ)
+```
+
+规则与 B0 一致：无外键、无级联、`archived_at` 软删、每个索引单独一个并发文件。
+
+**`from_*` / `to_*` 是快照，不是指针**：把两个值抄进这一行，事件才独立可读，部门或职级以后被删掉也不影响「当时是什么」。每一对都可空，**NULL = 这次异动与这个字段无关**（在生成的 `note` 里渲染成 `(none)`），与档案上 NULL 的含义（如 `contract_end` NULL = 无固定期限）保持一致。
+
+**没有 `from_regular_date` / `to_regular_date` 列**：`regularize` 这个 kind 本身就是「试用期结束了」这个事实，两个日期写在 `note` 里。再加一对列等于给 `hr_employee_profile.regular_date` 添第三份拷贝。
+
+**`effective_on` 是生效日，不是录入日**：今天签、下月 1 号生效的调薪记在 1 号，列表按它倒序（§16.3）。读取顺序 `effective_on DESC, created_at DESC, id DESC` 写在 `ListHrEmployeeChanges` 里。
+
+**`currency` 可空**：只有薪资调整才有意义，非金额事件留 NULL，响应里渲染成 `""`（不替用户默认 CNY）。
+
+**`owner_member_id` 是写权限闸门**（与其它台账一致）：PATCH 钩子写入的行、以及手工补录的行，owner 都取**员工档案的 owner**——往某个人的历史里写一笔，属于编辑他的档案。
+
+表级注释（`COMMENT ON TABLE`）写明：只追加、不更新不删除、只有软删留痕、读取按 `effective_on DESC`。
+
+### 16.3 REST（基址 `/api/workbench/hr/changes`）
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/changes` | 列表（`?employee_id=&kind=&from=&to=&limit=`），包裹 `{ changes, total }` |
+| POST | `/changes` | 手工补录一条，**201** |
+| PATCH | `/changes/{changeId}` | **只允许改 `note`**；改其它字段 → **400** |
+| DELETE | `/changes/{changeId}` | 软删，**204** |
+
+包裹与序列化沿用 §3.1：列表 `{ changes: T[], total }`，`total` = **本页条数**；单条不包裹；`limit` 默认 50、上限 200（`workbenchLimit`）。
+
+- **没有 `GET /changes/{id}`**：一行异动离开它所在的列表没有意义，页面读的是列表；唯一打开单行的写是改 `note`。
+- **`from` / `to` 是 `effective_on` 的闭区间**（`>=` / `<=`），`to < from` → 400。
+- **`kind` 未知值 → 400**（列表与创建同一条消息），因为它是报表的分组维度。
+- **创建必须带 `employee_id` / `kind` / `effective_on`**，缺一个 400；`employee_id` 必须是本工作区的员工档案（否则 400）。
+- **`POST` 没有 `owner_member_id`**：行的 owner 由档案决定（§16.6），目标档案不归你 → 403，而不是把别人的历史改归自己。
+- **`PATCH` 的 body 按 key 集合解析，不是按结构体**：只有 `note` 字段的结构体会把 `{"kind":"move"}` 静默忽略并回 200，客户端会以为它改成功了。任何别的 key → 400「only note can be edited: the change stream is append-only」。`note` 传 `null`/`""` = 清空。
+- **`DELETE` 是软删**：记错的一行退出答案，但「有人记过这一笔」留在表里。事实更正靠再记一行（§16.5）。
+- 金额沿用 §3.1：**JSON number**，服务端从 `NUMERIC(14,2)` 转 `float64`；`effective_on` 与其它 HR 日期同形（`YYYY-MM-DD`）。
+
+### 16.4 自动留痕：PATCH 档案时写什么、不写什么
+
+钩子在 `UpdateHrEmployee`（`workbench_hr.go`）里，判定逻辑单独一个函数 `hrEmployeeChangeFromProfile`（`workbench_change.go`），**发生在与档案 UPDATE 同一个事务**里：档案变了却没有那一行，或者有一行而档案没变，都不可能。
+
+**字段映射**
+
+| 变化的字段 | 生成的 `kind` | 写入的 from/to |
+| --- | --- | --- |
+| `regular_date` 由 NULL 变为有值 | `regularize` | 只在 `note` 里（无此列对） |
+| `contract_end` | `renew` | `from_contract_end` / `to_contract_end` |
+| `department_id` | `move` | `from_department_id` / `to_department_id` |
+| `grade` | `grade` | `from_grade` / `to_grade` |
+| `job_title` | `promote` | `from_job_title` / `to_job_title` |
+
+**多项同时变 → 一条，`kind` 取优先级最高的一项**，优先级顺序就是上表顺序（`regularize` > `renew` > `move` > `grade` > `promote`）：先「在编状态/合同阶段」的里程碑，再「随行的属性」。`note` 列出**全部**变化的字段，例如：
+
+```
+grade: P5 -> P6; contract_end: 2026-12-31 -> 2027-12-31
+```
+
+（`kind = renew`。两行会说这人同一天发生了两件事；`note` 只写一个字段会丢掉另一件。）
+
+**不满足条件的两种情况都不留痕**
+
+1. **只改展示/上下文字段**：`ability` / `disc`（以及 `owner_member_id`、`hire_date`）不在判定范围内——它们是六维评分和 TAI 上下文，不是「档案事实」，每次评分卡刷新都往异动里塞一行是噪音。
+2. **值没变**：判定比较的是**读到的那一行**与**即将写下的那一列**，不是请求体。所以前端整表单回传（同值）、或空白被 trim 后相等，都不是变化。这条也是「同一份原值 PATCH 回来不留痕」的实现方式：不需要客户端判断，服务端比的是列。
+
+补充规则：
+
+- **`regular_date` 的变化只有 NULL→有值算 `regularize`**；改成另一个日期、或者清空，是修数据，记 `other`（`note` 里写明前后值）。
+- **`effective_on` 取当天（UTC 日期）**：PATCH 没有「生效日」这个概念，档案改动当天生效是它的语义。要让一笔异动记在别的日子（调薪下月生效），走 `POST /hr/changes`。
+- **`hire` / `leave` 没有自动钩子**：入职补录走 `POST`；离职的事实仍由 §15 的离职单写 `leave_date`，本批不重复留痕（§16.8）。
+
+### 16.5 为什么是只追加
+
+一条异动的价值在于「当时是什么、后来变成什么」；能改写的事件流回答不了这个问题。所以：
+
+- `PATCH` 只接 `note`（改备注不改事实）；
+- `DELETE` 只做软删（记错的那笔退出答案，记录本身还在）；
+- 事实更正 = **再记一行**（`POST`），两行都在，时间线上能看出修过什么；
+- `CreateHrEmployeeChange` 每次写全部列（`NULL` 也写），因此「没提到的那一对」永远是 NULL，不会继承上一条。
+
+### 16.6 权限
+
+| 路由 | 判定 |
+| --- | --- |
+| GET（列表） | 任意工作区成员 |
+| POST | 目标档案的 `owner_member_id`（`workbenchCanWrite`）：`owner`/`admin` 全写，`member` 只能给自己 owner 的档案补录 |
+| PATCH / DELETE | 该行自己的 `owner_member_id`：同上，`member` 只能改自己 owner 的行 |
+
+「读任意、写看 owner」沿用 §3 / §15.6。这里没有再收紧到 owner/admin：异动是档案的附注，谁能改档案谁能记；而把别人的历史改成自己的（`member` 指定别的 owner）没有入口——行的 owner 由档案决定，不由请求决定。
+
+### 16.7 事件与 query key
+
+事件：写入成功后发 `hr_employee_profile:changed`，payload `{ "id": "<员工档案 id>" }`（不新增事件类型——`packages/core/types/events.ts` 不在本批作用域）。三处写入（PATCH 的自动留痕、`POST`、`PATCH note`、`DELETE`）都发同一个事件，因为客户端对它的反应一样：失效员工档案的列表与计数，异动列表挂在档案下面。
+
+```
+["change", wsId, "changes", filters]
+```
+
+**没有 detail key**：§16.3 没有单条读（见该节）。
+
+`packages/core/hr/change.ts`（不塞进 `hr/queries.ts` / `hr/mutations.ts`：这个域的失效规则不一样——异动是 PATCH 档案写出来的，不是自己的路由）；类型在 `packages/core/types/change.ts`（**不塞进 `workbench.ts`**），zod 在 `packages/core/api/schemas.ts`，`api/client.ts` 有同名方法（`listHrEmployeeChanges` / `createHrEmployeeChange` / `updateHrEmployeeChange` / `deleteHrEmployeeChange`）。mutation 失效 `changeKeys.all(wsId)` + `hrKeys.resource(wsId, "employees")` + `workbenchKeys.all(wsId)`。
+
+### 16.8 已知债务与本批未做
+
+- **UI / views 未接入**：本批只到迁移、SQL、handler、core 类型/zod/client；`packages/views/**`、`apps/**` 不在写作用域。花名册「异动」页签的空态可以摘掉了。
+- **`packages/core/hr/index.ts` 未导出**：由统一导出那一批补（本批不改该文件，也不改 `queries.ts` / `mutations.ts` / `workbench.ts`）。
+- **前端实时 patcher 未注册**：`packages/core/types/events.ts` 不在作用域，服务端只在档案事件上发；客户端目前靠 mutation 失效刷新。
+- **`hire` / `leave` 不自动留痕**：入职（`POST /candidates/{id}/hire`）与离职（§15 `done`）都没有钩子。补法各是一处单行插入，但两处都属于别的批次的写路径，本批不叠加。
+- **不做审批、不做薪资历史对比视图**：`from_amount`/`to_amount` 只回答「这次调了多少」，不做曲线、不做分位。
+- **没有游标分页**：`?limit=` 有硬上限（`workbenchLimit`），异动的读取口径是「这个人/这段时间发生了什么」，量级远小于其它台账；真需要翻页时按 `(effective_on, created_at, id)` 加 keyset，索引已经带上第一列。
+- **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举未加 `hr_employee_change`。
+
 ## 9. 完成定义（DoD）
 
 一个域算完成，当且仅当：迁移可 up/down 往返、`make sqlc` 无脏 diff、handler 有权限用例、事件发出、zod 覆盖响应、`useRealtimeSync` 有 patcher、`/overview` 里对应指标从 `insufficient_data` 变为有值、页面能读能写。

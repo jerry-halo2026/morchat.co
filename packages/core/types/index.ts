@@ -643,4 +643,17 @@ export type {
   UpdateHrOffboardingRequest,
 } from "./offboard";
 
+// Employee file change stream (docs/engineering/WORKBENCH-API.md §16). Its own
+// module for the same reason as §12–§15: an append-only event list is a different
+// contract from the records it describes, and `PATCH` accepting one field is the
+// kind of rule that should be stated where the type is.
+export type {
+  CreateHrEmployeeChangeRequest,
+  HrEmployeeChange,
+  HrEmployeeChangeKind,
+  HrEmployeeChangeListFilters,
+  HrEmployeeChangeListResponse,
+  UpdateHrEmployeeChangeRequest,
+} from "./change";
+
 export type { WorkspaceWakeup, WorkspaceWakeupPage, WorkspaceWakeupFilters, WakeupScope } from "./issue-wakeup";

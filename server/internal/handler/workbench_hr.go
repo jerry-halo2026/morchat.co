@@ -2361,7 +2361,7 @@ func (h *Handler) UpdateHrEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updated, err := h.Queries.UpdateHrEmployeeProfile(r.Context(), db.UpdateHrEmployeeProfileParams{
+	params := db.UpdateHrEmployeeProfileParams{
 		ID:            current.ID,
 		WorkspaceID:   scope.WorkspaceUUID,
 		DepartmentID:  departmentID,
@@ -2373,8 +2373,50 @@ func (h *Handler) UpdateHrEmployee(w http.ResponseWriter, r *http.Request) {
 		Ability:       applyJSONPatch(ability, current.Ability),
 		Disc:          applyJSONPatch(disc, current.Disc),
 		OwnerMemberID: owner,
-	})
+	}
+
+	// The 异动 hook (docs/engineering/WORKBENCH-API.md §16.4). A PATCH that moves
+	// a fact about the employment — department, title, grade, contract end, the
+	// day probation ended — records what it moved in the same transaction, so the
+	// file cannot change without the row that says it changed. A PATCH that only
+	// touches `ability` / `disc` / the owner, or that sends the stored values back,
+	// records nothing: the comparison is against the row this handler read, not
+	// against the request body.
+	next := current
+	next.DepartmentID = departmentID
+	next.JobTitle = params.JobTitle
+	next.Grade = params.Grade
+	next.RegularDate = regularDate
+	next.ContractEnd = contractEnd
+	change, traced := hrEmployeeChangeFromProfile(current, next, pgtypeDateToday(), owner, scope.Member.UserID)
+	if !traced {
+		updated, err := h.Queries.UpdateHrEmployeeProfile(r.Context(), params)
+		if err != nil {
+			workbenchInternalError(w, r, "failed to update employee profile", err)
+			return
+		}
+		h.publishHrChanged(eventHrEmployeeProfileChanged, scope.WorkspaceID, uuidToString(updated.ID), uuidToString(scope.Member.UserID))
+		writeJSON(w, http.StatusOK, hrEmployeeProfileToResponse(updated))
+		return
+	}
+
+	tx, err := h.TxStarter.Begin(r.Context())
 	if err != nil {
+		workbenchInternalError(w, r, "failed to update employee profile", err)
+		return
+	}
+	defer tx.Rollback(r.Context())
+	qtx := h.Queries.WithTx(tx)
+	updated, err := qtx.UpdateHrEmployeeProfile(r.Context(), params)
+	if err != nil {
+		workbenchInternalError(w, r, "failed to update employee profile", err)
+		return
+	}
+	if _, err := qtx.CreateHrEmployeeChange(r.Context(), change); err != nil {
+		workbenchInternalError(w, r, "failed to record the change", err)
+		return
+	}
+	if err := tx.Commit(r.Context()); err != nil {
 		workbenchInternalError(w, r, "failed to update employee profile", err)
 		return
 	}

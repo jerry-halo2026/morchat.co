@@ -295,6 +295,12 @@ import type {
   HrOffboardingListResponse,
   UpdateHrHandoverItemRequest,
   UpdateHrOffboardingRequest,
+  // Employee file change stream (docs/engineering/WORKBENCH-API.md §16).
+  CreateHrEmployeeChangeRequest,
+  HrEmployeeChange,
+  HrEmployeeChangeListFilters,
+  HrEmployeeChangeListResponse,
+  UpdateHrEmployeeChangeRequest,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -863,6 +869,10 @@ import {
   EMPTY_HR_OFFBOARDING,
   EMPTY_HR_OFFBOARDING_LIST_RESPONSE,
   EMPTY_HR_OFFBOARDING_ADVANCE_RESPONSE,
+  HrEmployeeChangeSchema,
+  HrEmployeeChangeListResponseSchema,
+  EMPTY_HR_EMPLOYEE_CHANGE,
+  EMPTY_HR_EMPLOYEE_CHANGE_LIST_RESPONSE,
   type IssueView,
   type IssueViewPreference,
   type CreateIssueViewRequest,
@@ -5669,6 +5679,63 @@ export class ApiClient {
     return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
       endpoint: "DELETE /api/workbench/hr/offboardings/:offboardingId/handover/:index",
     });
+  }
+
+  // Employee file change stream (docs/engineering/WORKBENCH-API.md §16). Reads are
+  // member-wide; writes are gated on the employee profile's owner. Most rows are
+  // written by the `PATCH /employees` hook server-side, so the client only creates
+  // the manual entry (a salary adjustment has no profile column) and edits a note.
+  //
+  // `PATCH` accepts `note` and nothing else: the server answers 400 for any other
+  // field, because a stream whose facts can be rewritten cannot answer "what
+  // changed". `DELETE` is a soft delete.
+
+  async listHrEmployeeChanges(
+    filters: HrEmployeeChangeListFilters = {},
+  ): Promise<HrEmployeeChangeListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/changes${workbenchSearch({
+        employee_id: filters.employee_id,
+        kind: filters.kind,
+        from: filters.from,
+        to: filters.to,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      HrEmployeeChangeListResponseSchema,
+      EMPTY_HR_EMPLOYEE_CHANGE_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/hr/changes" },
+    );
+  }
+
+  async createHrEmployeeChange(data: CreateHrEmployeeChangeRequest): Promise<HrEmployeeChange> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/changes", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrEmployeeChangeSchema, EMPTY_HR_EMPLOYEE_CHANGE, {
+      endpoint: "POST /api/workbench/hr/changes",
+    });
+  }
+
+  /** The one editable field. Sending anything else is a 400. */
+  async updateHrEmployeeChange(
+    id: string,
+    data: UpdateHrEmployeeChangeRequest,
+  ): Promise<HrEmployeeChange> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/changes/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrEmployeeChangeSchema, EMPTY_HR_EMPLOYEE_CHANGE, {
+      endpoint: "PATCH /api/workbench/hr/changes/:changeId",
+    });
+  }
+
+  async deleteHrEmployeeChange(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/changes/${id}`, { method: "DELETE" });
   }
 
   async createShareLink(workspaceId: string, data: { role?: string; expires_in?: number; max_uses?: number }): Promise<ShareLink> {

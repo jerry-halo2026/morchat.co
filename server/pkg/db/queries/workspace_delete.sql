@@ -873,5 +873,11 @@ deleted_goals AS (
 -- statement deletes.
 deleted_hr_offboardings AS (
     DELETE FROM hr_offboarding WHERE hr_offboarding.workspace_id = $1
+),
+-- Employee file change stream (WORKBENCH-API §16): append-only rows that name an
+-- employee profile. No foreign key, so teardown clears them explicitly, before
+-- the profiles they describe.
+deleted_hr_employee_changes AS (
+    DELETE FROM hr_employee_change WHERE hr_employee_change.workspace_id = $1
 )
 DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1;
