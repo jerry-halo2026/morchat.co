@@ -3,6 +3,7 @@ package handler
 import (
 	"math"
 	"net/http"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -489,4 +490,94 @@ func TestWorkbenchFinanceCashFloorNeedsOpeningCash(t *testing.T) {
 	if withCash.CashFloor.Empty != metricEmptyZero {
 		t.Fatalf("cash_floor empty = %q, want %q for a stated figure", withCash.CashFloor.Empty, metricEmptyZero)
 	}
+}
+
+// TestWorkbenchFinanceReadsTheRequestedMonth covers `?month=` (§3.2): the same
+// caliber, a different window. One department holds money in 2025-03 and nothing in
+// the current month, so each read proves it sliced its own month and only that one.
+func TestWorkbenchFinanceReadsTheRequestedMonth(t *testing.T) {
+	departmentID := financeDepartment(t, "month-window")
+	ownerUserID := workbenchTestMember(t)
+	dbfx.Exec(t,
+		`UPDATE member SET department_id = $1 WHERE workspace_id = $2 AND user_id = $3`,
+		departmentID, testWorkspaceID, ownerUserID)
+
+	client := createWorkbenchClient(t, ownerUserID, "Finance month client")
+	brief := createWorkbenchBrief(t, client.ID, "Finance month brief")
+	creator := createWorkbenchCreator(t, ownerUserID, "Finance month creator")
+
+	// A collaboration whose signature and settlement are both dated 2025-03.
+	req := workbenchRequest(t, "POST", "/api/workbench/crm/collabs", mergeCollabPayload(brief.ID, creator.ID, map[string]any{
+		"stage":        "confirmed",
+		"final_amount": 10000,
+		"creator_fee":  1000,
+	}), ownerUserID)
+	collab := testutil.Decode[CrmCollabResponse](t, testHandler.CreateCrmCollab, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM crm_collab WHERE id = $1`, collab.ID) })
+
+	req = withURLParam(workbenchRequest(t, "PATCH", "/api/workbench/crm/collabs/"+collab.ID, map[string]any{
+		"stage":        "settled",
+		"confirmed_at": "2025-03-10T09:00:00Z",
+		"accepted_at":  "2025-03-20T09:00:00Z",
+	}, ownerUserID), "collabId", collab.ID)
+	testutil.Call(t, testHandler.UpdateCrmCollab, req).Want(http.StatusOK)
+
+	req = workbenchRequest(t, "POST", "/api/workbench/crm/settlements", map[string]any{
+		"collab_id": collab.ID,
+		"kind":      "final",
+		"amount":    3000,
+		"paid_at":   "2025-03-15",
+	}, ownerUserID)
+	paid := testutil.Decode[CrmSettlementResponse](t, testHandler.CreateCrmSettlement, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM crm_settlement WHERE id = $1`, paid.ID) })
+
+	// The historical month sees exactly these rows.
+	past := fetchWorkbenchFinance(t, "?department_id="+departmentID+"&month=2025-03", testUserID)
+	if past.Window.Month != "2025-03" {
+		t.Fatalf("window.month = %q, want 2025-03", past.Window.Month)
+	}
+	if past.Signed.Value == nil || *past.Signed.Value != 10000 {
+		t.Fatalf("2025-03 signed = %v, want 10000", past.Signed.Value)
+	}
+	if past.Collected.Value == nil || *past.Collected.Value != 3000 {
+		t.Fatalf("2025-03 collected = %v, want 3000", past.Collected.Value)
+	}
+	// No month entry for 2025-03, so the cost side is the settled collaboration's fees.
+	if past.GrossMargin.Basis != financeBasisSettledCollabs {
+		t.Fatalf("2025-03 gross_margin basis = %q, want %q", past.GrossMargin.Basis, financeBasisSettledCollabs)
+	}
+	if past.GrossMargin.Value == nil || math.Abs(*past.GrossMargin.Value-2.0/3.0) > 1e-9 {
+		t.Fatalf("2025-03 gross_margin = %v, want (3000-1000)/3000", past.GrossMargin.Value)
+	}
+
+	// This month holds nothing for that department: signed/collected are real zeros,
+	// and the margin is a gap rather than a 100% claim with no cost side.
+	current := fetchWorkbenchFinance(t, "?department_id="+departmentID, testUserID)
+	if current.Signed.Value == nil || *current.Signed.Value != 0 {
+		t.Fatalf("current-month signed = %v, want 0", current.Signed.Value)
+	}
+	if current.Collected.Value == nil || *current.Collected.Value != 0 {
+		t.Fatalf("current-month collected = %v, want 0", current.Collected.Value)
+	}
+	assertCostGap(t, "current-month gross_margin", current.GrossMargin)
+
+	// Omitting the parameter is the current month — the behaviour that predates it.
+	implicit := fetchWorkbenchFinance(t, "?department_id="+departmentID, testUserID)
+	if !reflect.DeepEqual(implicit, current) {
+		t.Fatalf("implicit window = %+v, want the same read as the explicit current month", implicit.Window)
+	}
+
+	// A month with no rows at all is allowed: future months answer empty, not 400.
+	future := fetchWorkbenchFinance(t, "?department_id="+departmentID+"&month=2099-01", testUserID)
+	if future.Window.Month != "2099-01" {
+		t.Fatalf("future window.month = %q, want 2099-01", future.Window.Month)
+	}
+	if future.Signed.Value == nil || *future.Signed.Value != 0 {
+		t.Fatalf("future signed = %v, want 0", future.Signed.Value)
+	}
+	assertCostGap(t, "future gross_margin", future.GrossMargin)
+
+	// A malformed month is a 400, not a silently defaulted current month.
+	req = workbenchRequest(t, "GET", "/api/workbench/finance?month=2025-3", nil, testUserID)
+	testutil.Call(t, testHandler.GetWorkbenchFinance, req).Want(http.StatusBadRequest)
 }

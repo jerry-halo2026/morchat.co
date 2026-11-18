@@ -92,7 +92,7 @@ func RecordAutopilotRuleVersion(ctx context.Context, q *db.Queries, ap db.Autopi
 		WorkspaceID:     ap.WorkspaceID,
 		PublishedByType: publishedByType,
 		PublishedByID:   publishedByID,
-		ConfigSummary:   summary,
+		ConfigSummary:   jsonbText(summary),
 	}); err != nil {
 		return fmt.Errorf("create autopilot rule version: %w", err)
 	}

@@ -161,7 +161,7 @@ INSERT INTO autopilot_rule_version (
 )
 VALUES (
     $1, $2, $3, $4,
-    COALESCE($5, '{}'::jsonb)
+    COALESCE($5::text, '{}')::jsonb
 )
 RETURNING id, autopilot_id, workspace_id, published_by_type, published_by_id, config_summary, created_at
 `
@@ -171,7 +171,7 @@ type CreateAutopilotRuleVersionParams struct {
 	WorkspaceID     pgtype.UUID `json:"workspace_id"`
 	PublishedByType string      `json:"published_by_type"`
 	PublishedByID   pgtype.UUID `json:"published_by_id"`
-	ConfigSummary   interface{} `json:"config_summary"`
+	ConfigSummary   pgtype.Text `json:"config_summary"`
 }
 
 // =====================

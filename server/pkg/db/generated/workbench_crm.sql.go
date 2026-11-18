@@ -87,6 +87,52 @@ func (q *Queries) ArchiveCrmSettlement(ctx context.Context, arg ArchiveCrmSettle
 	return result.RowsAffected(), nil
 }
 
+const archiveCrmSettlementsByCollab = `-- name: ArchiveCrmSettlementsByCollab :many
+UPDATE crm_settlement
+SET archived_at = now(), updated_at = now()
+WHERE workspace_id = $1::uuid
+  AND collab_id = $2::uuid
+  AND archived_at IS NULL
+RETURNING id
+`
+
+type ArchiveCrmSettlementsByCollabParams struct {
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	CollabID    pgtype.UUID `json:"collab_id"`
+}
+
+// Deleting a collaboration archives the settlements that name it in the same
+// transaction (WORKBENCH-API §20.1, §20.3). Without this a withdrawn collaboration
+// left its settlement rows live: they kept counting toward orders.paid_amount
+// and the receivable list while their collaboration had vanished, and the delete
+// endpoint was unusable because a single click would have manufactured orphans.
+//
+// Paid rows are included on purpose: paid_at records that money moved once, and
+// archiving the row does not un-pay it — it removes the row from the ledgers the
+// way every other workbench delete does (§20.2). The statement returns the ids so
+// the handler can publish one crm_settlement:changed per archived row; a client
+// that only treated it as a collab edit would keep the vanished settlements in its
+// list cache.
+func (q *Queries) ArchiveCrmSettlementsByCollab(ctx context.Context, arg ArchiveCrmSettlementsByCollabParams) ([]pgtype.UUID, error) {
+	rows, err := q.db.Query(ctx, archiveCrmSettlementsByCollab, arg.WorkspaceID, arg.CollabID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []pgtype.UUID{}
+	for rows.Next() {
+		var id pgtype.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const createCrmBrief = `-- name: CreateCrmBrief :one
 INSERT INTO crm_brief (
     workspace_id, client_id, title, category, budget_min_amount, budget_max_amount,

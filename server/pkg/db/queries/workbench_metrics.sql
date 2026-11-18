@@ -474,17 +474,22 @@ FROM settled;
 -- Department attribution follows the B0 fallback chain (docs/METRICS.md §4): the
 -- collaboration owner's member department, reached from the settlement through
 -- its collaboration. Nothing here is an access boundary.
-WITH signed AS (
+WITH bounds AS (
+    SELECT coalesce(sqlc.narg('month_start')::date, date_trunc('month', now())::date) AS month_start
+),
+signed AS (
     SELECT
         coalesce(sum(c.final_amount), 0)::float8 AS amount,
         (count(*) FILTER (WHERE c.final_amount IS NOT NULL))::bigint AS samples
     FROM crm_collab c
     LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+
+    CROSS JOIN bounds b
     WHERE c.workspace_id = sqlc.arg('workspace_id')
       AND c.archived_at IS NULL
       AND c.stage NOT IN ('inquiry', 'quoted', 'negotiating', 'cancelled')
-      AND c.confirmed_at >= date_trunc('month', now())
-      AND c.confirmed_at < date_trunc('month', now()) + interval '1 month'
+      AND c.confirmed_at >= b.month_start::timestamptz
+      AND c.confirmed_at < (b.month_start + interval '1 month')::timestamptz
       AND (sqlc.narg('department_id')::uuid IS NULL OR m.department_id = sqlc.narg('department_id')::uuid)
 ),
 collected AS (
@@ -494,10 +499,12 @@ collected AS (
     FROM crm_settlement s
     JOIN crm_collab c ON c.id = s.collab_id AND c.workspace_id = s.workspace_id
     LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+
+    CROSS JOIN bounds b
     WHERE s.workspace_id = sqlc.arg('workspace_id')
       AND s.archived_at IS NULL
-      AND s.paid_at >= date_trunc('month', current_date)::date
-      AND s.paid_at < (date_trunc('month', current_date) + interval '1 month')::date
+      AND s.paid_at >= b.month_start
+      AND s.paid_at < (b.month_start + interval '1 month')::date
       AND (sqlc.narg('department_id')::uuid IS NULL OR m.department_id = sqlc.narg('department_id')::uuid)
 ),
 cost AS (
@@ -508,11 +515,13 @@ cost AS (
         (count(*))::bigint AS samples
     FROM crm_collab c
     LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
+
+    CROSS JOIN bounds b
     WHERE c.workspace_id = sqlc.arg('workspace_id')
       AND c.archived_at IS NULL
       AND c.stage = 'settled'
-      AND c.accepted_at >= date_trunc('month', now())
-      AND c.accepted_at < date_trunc('month', now()) + interval '1 month'
+      AND c.accepted_at >= b.month_start::timestamptz
+      AND c.accepted_at < (b.month_start + interval '1 month')::timestamptz
       AND (sqlc.narg('department_id')::uuid IS NULL OR m.department_id = sqlc.narg('department_id')::uuid)
 ),
 receivable AS (
@@ -528,7 +537,7 @@ receivable AS (
       AND (sqlc.narg('department_id')::uuid IS NULL OR m.department_id = sqlc.narg('department_id')::uuid)
 )
 SELECT
-    to_char(date_trunc('month', now()), 'YYYY-MM') AS month,
+    to_char(b.month_start, 'YYYY-MM') AS month,
     signed.amount AS signed_amount,
     signed.samples AS signed_samples,
     collected.amount AS collected_amount,
@@ -537,4 +546,6 @@ SELECT
     cost.samples AS cost_samples,
     receivable.avg_days AS receivable_days,
     receivable.samples AS receivable_samples
-FROM signed, collected, cost, receivable;
+FROM signed, collected, cost, receivable
+
+CROSS JOIN bounds b;

@@ -4296,9 +4296,17 @@ export class ApiClient {
    * response degrades to the all-gaps shape rather than throwing, so a malformed
    * money payload leaves the tab with gap cards instead of a blank page.
    */
-  async getWorkbenchFinance(params: { department_id?: string | null } = {}): Promise<WorkbenchFinanceResponse> {
+  /**
+   * The money block for one calendar month. `month` is the `YYYY-MM` label;
+   * omitting it reads the current month, which is what this endpoint always
+   * answered before the parameter existed. A malformed month is a 400; a month
+   * with no rows answers `insufficient_data` per figure, never a zero.
+   */
+  async getWorkbenchFinance(
+    params: { department_id?: string | null; month?: string } = {},
+  ): Promise<WorkbenchFinanceResponse> {
     const raw = await this.fetch<unknown>(
-      `/api/workbench/finance${workbenchSearch({ department_id: params.department_id })}`,
+      `/api/workbench/finance${workbenchSearch({ department_id: params.department_id, month: params.month })}`,
     );
     return parseWithFallback(raw, WorkbenchFinanceResponseSchema, EMPTY_WORKBENCH_FINANCE_RESPONSE, {
       endpoint: "GET /api/workbench/finance",

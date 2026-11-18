@@ -4679,6 +4679,8 @@ export const CreatorPostSchema = z.object({
   // post that ran no 灏忛粍杞?and for rows imported before the columns existed.
   product_id: workbenchNullableString,
   pick_id: workbenchNullableString,
+  // 733: the script version this post was published from (section 12).
+  media_script_id: workbenchNullableString,
   platform: z.string().default(""),
   title: workbenchNullableString,
   url: z.string().default(""),
@@ -4692,7 +4694,7 @@ export const CreatorPostSchema = z.object({
 
 export const EMPTY_CREATOR_POST: CreatorPost = {
   id: "", workspace_id: "", creator_id: "", collab_id: null,
-  content_issue_id: null, product_id: null, pick_id: null, platform: "", title: null,
+  content_issue_id: null, product_id: null, pick_id: null, media_script_id: null, platform: "", title: null,
   url: "", published_at: "", source: "manual", created_by: null, created_at: "",
   updated_at: "", archived_at: null,
 };

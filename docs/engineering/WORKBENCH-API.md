@@ -122,7 +122,7 @@ crm_settlement(id PK, workspace_id, collab_id UUID NOT NULL,
 | GET/POST | `/crm/briefs` | 列表（`?status=&client_id=`）/ 新建 |
 | GET/PATCH/DELETE | `/crm/briefs/{briefId}` | 单条 |
 | GET/POST | `/crm/collabs` | 列表（`?stage=&brief_id=&creator_id=`）/ 新建 |
-| GET/PATCH/DELETE | `/crm/collabs/{collabId}` | 单条；PATCH 改 `stage` 时写 `confirmed_at` 等时间戳 |
+| GET/PATCH/DELETE | `/crm/collabs/{collabId}` | 单条；PATCH 改 `stage` 时写 `confirmed_at` 等时间戳；DELETE 连带归档该合作单的结算（见 §20.1） |
 | GET/POST | `/crm/settlements` | 列表（`?collab_id=&paid=`）/ 新建 |
 | PATCH/DELETE | `/crm/settlements/{settlementId}` | 单条 |
 
@@ -175,6 +175,21 @@ handler：`GetWorkbenchFinance`（`server/internal/handler/workbench_finance.go`
 - C10：签约口径**含续费**；续费单列在 `crm_settlement.kind`。⚠️ 现有 CHECK 只允许 `prepay|final|platform_fee|tax`，**没有 `renewal`**，所以 B0 阶段续费只能记成一条普通结算行 —— 它只会在真正回款后进 `collected`，不会重复计入 `signed`。加 `renewal` 需要一条改 CHECK 的迁移，未在本次范围内。
 - 每块形状与 `/overview` 的 `{value, sample_count, empty}` 完全一致（Go 侧 `WorkbenchFinanceBlock` 是 `WorkbenchMetricValue` 的类型别名），`empty` 同样只发 `zero` / `insufficient_data`。
 - 部门过滤沿用 B0 回退链：结算单 → 其合作单 → `owner_member_id` 的 `member.department_id`；不参与鉴权。
+
+**按月份读取（`?month=YYYY-MM`）**
+
+```
+GET /api/workbench/finance?month=2026-09[&department_id=]
+```
+
+- **省略 `month` = 服务器当前自然月**，与参数出现之前的行为逐字相同（`window.month` 由 SQL 的 `now()` 推出）。
+- 给了 `month` 就返回**那个自然月**：窗口是绑定参数 `month_start`（`coalesce(narg('month_start')::date, date_trunc('month', now())::date)`），上表的五条口径**一个字都没改**，只是把 `now()` 换成这个月初 —— signed 仍按 `confirmed_at`、collected 仍按 `crm_settlement.paid_at`、成本侧仍按该月 `ops_finance_month`（或该月 `accepted_at` 落月内的 settled 单费用）。
+- 只接受 `YYYY-MM`（本端点也接受 `YYYY-MM-DD` 且必须是月初）；其它形状 **400**，不会静默退回当月。
+- **没有数据的历史月与未来月都是允许的**，按三态回答：`signed` / `collected` 是 `zero`（真零），`gross_margin` / `cash_floor` / `receivable_days` 是 `insufficient_data`。未来月份因此不会 400 —— 「这个月还没发生」是数据状态，不是请求错误。
+- `window.month` 回显**被请求的那个月**（不是当月），客户端据此给趋势图配标签。
+- `receivable_days` 与月份无关（它问的是「此刻还有多少钱没回来」），换月份不会让它变；它只受 department 过滤影响。
+- 客户端：`api.getWorkbenchFinance({ month })`（`packages/core/api/client.ts`），query key 不变（`workbenchKeys` 下按 filters 拼），一次失效同时刷新当月与历史月。
+- 已知边界：一次请求只算一个月，没有区间聚合 —— 趋势图由客户端按需连点若干次（老板页一次最多 6 个月），服务端没有跨月合计是**有意**的，跨月求和会重新引入「哪个月的币种/口径」问题。
 
 ### 3.3 月度成本与现金录入
 
@@ -1930,6 +1945,9 @@ word/styles.xml
 
 - **合作单继续用 `crm_collab`**，只补两列：`publish_url`（履约链接）、`settled_on`（结算日期）；
 - **结算继续用 `crm_settlement`**（预付款 / 尾款 / 平台费 / 税，`paid_at` 非空即已到账）；
+- **撤销合作单连带归档它的结算**：`DELETE /crm/collabs/{id}` 在同一事务里归档该合作单 **和** `collab_id` 指向它的未归档结算行，仍 204、仍软删，并分别发 `crm_collab:changed` 与该批结算的 `crm_settlement:changed`。
+  - **已到账（`paid_at` 非空）的结算也归档，不拦**。理由：`paid_at` 记的是「这笔钱确实走过一次」，归档不会把它变回没付；行只是从台账里退出（和所有软删一样）。反过来在有到账行时返回 409 会让「建错的单」永久无法撤销 —— 运营能修的手段只剩下 API 不给改的结算行。要保住这笔钱可见，正确答案是**别撤销这张单**，而不是让撤销半途而废。
+  - 撤销之前结算行是活的、合作单已归档，会让 `orders.paid_amount` 和应收清单继续算着一条「合作单已经不在任何屏幕上」的钱；这也正是前端此前不敢放删除入口的原因（一点就造孤儿）。
 - 本批只建真正缺的三张：`creator_activity` / `creator_quote` / `creator_campaign`；
 - **没有 `/bd/orders` 路由**。驱动盘的 `orders` 块读 `crm_collab` + `crm_settlement`，写入口仍是 `/crm/collabs`。
 

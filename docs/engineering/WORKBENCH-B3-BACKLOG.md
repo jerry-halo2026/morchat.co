@@ -16,10 +16,10 @@ related: [docs/engineering/WORKBENCH-B3-PLAN.md, docs/engineering/WORKBENCH-API.
 | # | 事项 | 现状 / 为什么是 P0 | 做完的标准 |
 | --- | --- | --- | --- |
 | 1 | **录入路径没有批量导入** | 达人 623 条靠 `orange-sync` 从上游进来，但**商务自己的报价/跟进/合作单只能一条一条点**。真实业务第一批就是几十条报价。 | CSV 导入（dry-run 预览 + 错误行回显），落 `creator_quote` / `creator_activity` / `crm_collab` |
-| 2 | **合作单不能删、结算不能标已到账** | `crm_collab` 没有删除入口（删了会孤立 `crm_settlement`）；结算只有「新增」，`paid_at` 无法回填——而回款是业绩页的核心口径。 | 撤销合作单（连带结算清理，事务内）+ 结算行「标记已到账」，都要有用例 |
-| 3 | **`/finance` 只能读当月** | 经营页的历史月只有成本与期初现金，收入/毛利全是「数据不足」。老板看趋势看到的是一条断线。 | `GET /finance?month=` 或 `/finance/months/{month}`，返回该月收入/毛利，页面接上 |
-| 4 | **侧栏徽标没接新计数** | `/counts` 已有 15 个键，但面板只消费 B2 的 9 个：内容/老板两个空间的徽标看不出「待发布几条、今天几条跟进」。 | `sales/content/boss` 三个 `panel.tsx` 用新键（`media_scripts`/`media_shoots`/`hot`/`bench`/`goals`/`signals`）|
-| 5 | **`creator_post.media_script_id` 前端没用上** | 后端已读写，发布页还缺「关联脚本」列——发布记录和脚本是断开的，复盘时说不清哪条脚本跑出了什么。 | 发布页/数据页加该列（空值显示未关联），发布时可选脚本 |
+| 2 | ✅ 已完成：合作单撤销（同事务归档其结算）+ 结算行标记/撤销到账 | 不再有孤儿结算 | 已合入本批，见 commit 与 WORKBENCH-B3-PLAN §6 |
+| 3 | ✅ 已完成：`GET /finance?month=` + 经营页月份切换 | 历史月真的出数字 | 已合入本批，见 commit 与 WORKBENCH-B3-PLAN §6 |
+| 4 | ✅ 已完成：内容面板补「待发布 / 本周拍摄」两个队列徽标 | 徽标仍走列表，不新增请求口径 | 已合入本批，见 commit 与 WORKBENCH-B3-PLAN §6 |
+| 5 | ✅ 已完成：发布页「关联脚本」列 + core `CreatorPost.media_script_id` 转正 | 列不再靠 unknown 收窄 | 已合入本批，见 commit 与 WORKBENCH-B3-PLAN §6 |
 
 ## P1：能绕，但绕得难看
 
@@ -63,3 +63,51 @@ related: [docs/engineering/WORKBENCH-B3-PLAN.md, docs/engineering/WORKBENCH-API.
 - **脚本发布**：页面把「推进到发布中」落在 **topic** 上（`media_script.status` 没有 `publishing` 值）。要不要给脚本加一个发布态，还是维持「脚本=内容版本、topic=流水线位置」。
 - **目标 vs 业绩**：业绩页刻意不做目标对比（避免和 `goal_okr` 两个真相源）。要不要在目标页反向链一组业绩数字。
 - **合作单 stage 11 段**与驾驶舱 3 档折叠（open/delivered/settled）是否需要页面上能切两种视角。
+
+## 附：批量导入的契约草案（P0 第 1 条，施工前先定死）
+
+真实业务第一批就是几十条报价/跟进/合作单，一条一条点不成立。下面是给实现者的定稿草案，**实现时把它搬进 `WORKBENCH-API.md` §23 并逐条对齐**。
+
+### 端点
+
+```
+POST /api/workbench/import        Content-Type: text/csv; charset=utf-8
+  ?kind=quotes|activities|collabs    必填
+  ?dry_run=1|0                       默认 1（只预览，不写库）
+```
+
+- 请求体就是 CSV 文本（首行为表头），上限 1 MiB / 2000 行，超限 413。
+- 响应（dry_run 与正式导入同形，正式导入多出 `committed`）：
+
+```json
+{
+  "kind": "quotes",
+  "parsed": 42, "accepted": 40, "committed": 0,
+  "rows":   [{ "line": 2, "action": "create", "preview": { "creator_id": "…", "fee_amount": 3000 } }],
+  "errors": [{ "line": 7, "column": "creator_handle", "reason": "creator_not_found" }]
+}
+```
+
+### 列定义（表头接受中英两套别名，大小写与空格不敏感）
+
+| kind | 必填 | 可选 |
+| --- | --- | --- |
+| `quotes` | `creator_handle` \| `creator_id`、`fee_amount` | `brief_id`、`commission_rate`（0–1）、`valid_until`、`currency`、`note` |
+| `activities` | `creator_handle` \| `creator_id`、`kind`（dm/call/meeting/email/note）、`happened_at`、`summary` | `outcome`、`next_follow_at`、`currency` |
+| `collabs` | `creator_handle` \| `creator_id`、`brief_id` | `stage`、`quote_amount`、`final_amount`、`creator_fee`、`sample_cost`、`platform_fee`、`commission_rate`、`publish_url`、`settled_on`、`currency` |
+
+### 三条硬规则
+
+1. **不自动建达人。** `creator_handle` 按 `(platform, handle)` 在**本工作区未归档**的达人里匹配，匹配不到就是错误行（`creator_not_found`），绝不悄悄新建——达人档案是上游客体，界面不该成为它的第二个写入源。
+2. **全或全不。** `dry_run=0` 时整批在一个事务里：任何一行有错就整批回滚，返回错误行清单 + `committed: 0`。半批导入没人能对账。
+3. **`dry_run=1` 不写任何东西**（包括不分配 id、不发事件），但校验规则与正式导入**逐字相同**——预览说能过、正式导入却报错，是最坏的体验。
+
+### 前端
+
+`sales` 空间三页各一个「导入 CSV」入口 → 选文件 → 预览（表格式，错误行标红并给出原因）→「确认导入 N 条」。导入成功后失效对应列表；失败时保留预览，不吞错误。
+### 2026-11-18 晚批新增的两条债（做 P0 时发现的）
+
+| # | 事项 | 说明 |
+| --- | --- | --- |
+| 28 | **PATCH 清空字段的语义不统一** | `scores` 是「省略=保留、`null`=清空」（B3 §21 定的），但结算的 `paid_at` 走 `applyTimestampPatch`：JSON `null` 解码成 nil 指针 = 「没传」→ 静默保留，唯一能落成 SQL NULL 的是空串 `""`。前端因此发 `{"paid_at": ""}`。要统一成「显式 null 清空」需要 `json.RawMessage` 三态解码，涉及 4 个台账 handler + core schema + 三个页面的 model；**在统一之前，别把 `""` 当临时补丁删掉**。 |
+| 29 | **经营页趋势是 6 次并发月读** | `/finance` 一次只答一个月，趋势块按 6 个月各读一次（首屏约 8 个请求）。后端若给 `/finance/months?from=&to=` 返回每月 `signed/collected/cash_floor`，前端把 `useQueries` 换成一次读即可。 |

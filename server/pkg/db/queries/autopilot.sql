@@ -142,7 +142,7 @@ INSERT INTO autopilot_rule_version (
 )
 VALUES (
     @autopilot_id, @workspace_id, @published_by_type, sqlc.narg(published_by_id),
-    COALESCE(sqlc.narg(config_summary), '{}'::jsonb)
+    COALESCE(sqlc.narg(config_summary)::text, '{}')::jsonb
 )
 RETURNING *;
 

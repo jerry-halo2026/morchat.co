@@ -95,18 +95,23 @@ func (q *Queries) OverviewCrmCollectedMonth(ctx context.Context, arg OverviewCrm
 }
 
 const overviewCrmFinance = `-- name: OverviewCrmFinance :one
-WITH signed AS (
+WITH bounds AS (
+    SELECT coalesce($1::date, date_trunc('month', now())::date) AS month_start
+),
+signed AS (
     SELECT
         coalesce(sum(c.final_amount), 0)::float8 AS amount,
         (count(*) FILTER (WHERE c.final_amount IS NOT NULL))::bigint AS samples
     FROM crm_collab c
     LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
-    WHERE c.workspace_id = $1
+
+    CROSS JOIN bounds b
+    WHERE c.workspace_id = $2
       AND c.archived_at IS NULL
       AND c.stage NOT IN ('inquiry', 'quoted', 'negotiating', 'cancelled')
-      AND c.confirmed_at >= date_trunc('month', now())
-      AND c.confirmed_at < date_trunc('month', now()) + interval '1 month'
-      AND ($2::uuid IS NULL OR m.department_id = $2::uuid)
+      AND c.confirmed_at >= b.month_start::timestamptz
+      AND c.confirmed_at < (b.month_start + interval '1 month')::timestamptz
+      AND ($3::uuid IS NULL OR m.department_id = $3::uuid)
 ),
 collected AS (
     SELECT
@@ -115,11 +120,13 @@ collected AS (
     FROM crm_settlement s
     JOIN crm_collab c ON c.id = s.collab_id AND c.workspace_id = s.workspace_id
     LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
-    WHERE s.workspace_id = $1
+
+    CROSS JOIN bounds b
+    WHERE s.workspace_id = $2
       AND s.archived_at IS NULL
-      AND s.paid_at >= date_trunc('month', current_date)::date
-      AND s.paid_at < (date_trunc('month', current_date) + interval '1 month')::date
-      AND ($2::uuid IS NULL OR m.department_id = $2::uuid)
+      AND s.paid_at >= b.month_start
+      AND s.paid_at < (b.month_start + interval '1 month')::date
+      AND ($3::uuid IS NULL OR m.department_id = $3::uuid)
 ),
 cost AS (
     SELECT
@@ -129,12 +136,14 @@ cost AS (
         (count(*))::bigint AS samples
     FROM crm_collab c
     LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
-    WHERE c.workspace_id = $1
+
+    CROSS JOIN bounds b
+    WHERE c.workspace_id = $2
       AND c.archived_at IS NULL
       AND c.stage = 'settled'
-      AND c.accepted_at >= date_trunc('month', now())
-      AND c.accepted_at < date_trunc('month', now()) + interval '1 month'
-      AND ($2::uuid IS NULL OR m.department_id = $2::uuid)
+      AND c.accepted_at >= b.month_start::timestamptz
+      AND c.accepted_at < (b.month_start + interval '1 month')::timestamptz
+      AND ($3::uuid IS NULL OR m.department_id = $3::uuid)
 ),
 receivable AS (
     SELECT
@@ -143,13 +152,13 @@ receivable AS (
     FROM crm_settlement s
     JOIN crm_collab c ON c.id = s.collab_id AND c.workspace_id = s.workspace_id
     LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
-    WHERE s.workspace_id = $1
+    WHERE s.workspace_id = $2
       AND s.archived_at IS NULL
       AND s.paid_at IS NULL
-      AND ($2::uuid IS NULL OR m.department_id = $2::uuid)
+      AND ($3::uuid IS NULL OR m.department_id = $3::uuid)
 )
 SELECT
-    to_char(date_trunc('month', now()), 'YYYY-MM') AS month,
+    to_char(b.month_start, 'YYYY-MM') AS month,
     signed.amount AS signed_amount,
     signed.samples AS signed_samples,
     collected.amount AS collected_amount,
@@ -159,9 +168,12 @@ SELECT
     receivable.avg_days AS receivable_days,
     receivable.samples AS receivable_samples
 FROM signed, collected, cost, receivable
+
+CROSS JOIN bounds b
 `
 
 type OverviewCrmFinanceParams struct {
+	MonthStart   pgtype.Date `json:"month_start"`
 	WorkspaceID  pgtype.UUID `json:"workspace_id"`
 	DepartmentID pgtype.UUID `json:"department_id"`
 }
@@ -212,7 +224,7 @@ type OverviewCrmFinanceRow struct {
 // collaboration owner's member department, reached from the settlement through
 // its collaboration. Nothing here is an access boundary.
 func (q *Queries) OverviewCrmFinance(ctx context.Context, arg OverviewCrmFinanceParams) (OverviewCrmFinanceRow, error) {
-	row := q.db.QueryRow(ctx, overviewCrmFinance, arg.WorkspaceID, arg.DepartmentID)
+	row := q.db.QueryRow(ctx, overviewCrmFinance, arg.MonthStart, arg.WorkspaceID, arg.DepartmentID)
 	var i OverviewCrmFinanceRow
 	err := row.Scan(
 		&i.Month,

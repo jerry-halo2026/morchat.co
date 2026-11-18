@@ -128,7 +128,14 @@ type UpsertWorkbenchFinanceMonthRequest struct {
 	Note         *string  `json:"note"`
 }
 
-// GetWorkbenchFinance — GET /api/workbench/finance?department_id=
+// GetWorkbenchFinance — GET /api/workbench/finance?month=YYYY-MM&department_id=
+//
+// `?month=` selects the calendar month the figures describe. Omitting it reads the
+// server's current month, which is what this endpoint answered before the parameter
+// existed — the caliber of every figure is untouched, only the window moves, so a
+// historical month is the same read with a different `month_start`. A malformed
+// month is a 400; a month with no rows answers `insufficient_data` (or a real zero
+// for the two counters), exactly like a current month with nothing in it.
 func (h *Handler) GetWorkbenchFinance(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -138,10 +145,15 @@ func (h *Handler) GetWorkbenchFinance(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	monthStart, ok := workbenchMonthValue(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("month"))), "month", true)
+	if !ok {
+		return
+	}
 
 	figure, err := h.Queries.OverviewCrmFinance(r.Context(), db.OverviewCrmFinanceParams{
 		WorkspaceID:  scope.WorkspaceUUID,
 		DepartmentID: department,
+		MonthStart:   monthStart,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to load finance figures", err)
