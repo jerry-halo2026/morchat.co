@@ -2501,7 +2501,7 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 1. `member.role = owner|admin` → 全部 capability。
 2. `workbench_role_template`(workspace_id, job_title) 命中 → 用模板集合（`hr_employee_profile.job_title`，未归档）。
 3. `member.department_id` 命中的部门默认集（本批内置一张常量表，不建表）。
-4. 兜底：`*.read` 全给，`*.write` 不给。
+4. 兜底（无模板、无部门、role=member）：**等于上线前的行为** —— `crm.read crm.write crm.amount crm.settle media.read media.write media.publish hr.read ads.read boss.read`。回收不回 `hr.write` / `review.accept` / `agent.delegate`（这三个是 §24 才有的能力，默认不给才不改变存量行为）。
 
 ### 24.3 接口
 
@@ -2517,7 +2517,28 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 `workspace.settings.workbench_visibility`：`transparent`（默认，工作区级读）| `department`（读路径按 `department_id` 过滤）。
 切换只影响读，不影响已有写权限。
 
-### 24.5 迁移
+### 24.5 实现落点与本批边界
+
+| 项 | 位置 |
+| --- | --- |
+| capability 常量、解析顺序、403、可见性开关 | `server/internal/handler/workbench_capability.go` |
+| 判定点 | 每个 `workbench_*` handler 的 `workbenchReadScope` 之后一行 `requireWorkbenchCapability`（读 `*.read`、写 `*.write`） |
+| 金额 / 结算 | `crm_collabs` 的 create/patch 在字段层面判定（`quote_amount|final_amount|creator_fee|sample_cost|platform_fee|commission_rate` → `crm.amount`；`stage=settled` → `crm.settle`）；`crm_settlements` 三个写全部 `crm.settle`；`bd/quotes` 的 `fee_amount|commission_rate` → `crm.amount`；CSV 导入按 kind（quotes/collabs 还要 `crm.amount`） |
+| 403 形状 | `403 {"error":"forbidden_capability","capability":"crm.settle"}`；部门越界是 `403 {"error":"cross_department"}` |
+| 模板接口 | `GET/PUT/DELETE /api/workbench/role-templates[/{jobTitle}]`（PUT/DELETE 仅 owner/admin）、`GET /api/workbench/capabilities` |
+| 客户端 | `packages/core/permissions/workbench.ts`（`useCapabilities(wsId)` / `WORKBENCH_CAPABILITIES`）、`types/workbench.ts` 类型、`api/schemas.ts` 的 zod + `EMPTY_*`、`api/client.ts` 四个方法 |
+
+**兜底不是只读**：它等于 capability 出现前的行为（见 §24.2 第 4 步），hr.write / review.accept / agent.delegate 才默认不给。部门默认与职位模板是收窄或放宽的地方，兜底只是不倒退。
+
+解析是**每次判定重新读**（`hr_employee_profile` 与模板各一条索引查询），没有进程内缓存：权限缓存失效的代价是「刚收回的权限还能用一会儿」，比多两条查询贵得多。
+
+本批**没做**的（下一批）：
+
+- **列表读的部门过滤**：`workbench_visibility=department` 目前在**按 id 读单条**时拦（`cross_department`），列表仍未按部门收窄——要收窄需要给六张核心台账的 list 查询都加 `department_id` 谓词，本批只把开关与判定点立起来。
+- **`agent.delegate` 未执行**：MCP 代写通道还没接，常量与解析已就位。
+- **`review.accept` 未接复核队列**：§7.2 的 `review_state` 不在本批。
+- **`ads.read`**：千川接口（§25）落地时直接复用同一张表。
+### 24.6 迁移
 
 `817_workbench_role_template`（表）+ `818_workbench_role_template_unique`（唯一索引，单语句 CONCURRENTLY，登记 `concurrentIndexCleanups`）。
 
