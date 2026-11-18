@@ -128,13 +128,35 @@ describe("AppRail global actions", () => {
 describe("AppRail order", () => {
   it("lists the spaces in the default order", () => {
     renderRail();
-    expect(railOrder()).toEqual(["workbench", "hr", "inbox", "work", "team", "chat", "autopilots"]);
+    expect(railOrder()).toEqual([
+      "workbench",
+      "hr",
+      "sales",
+      "content",
+      "boss",
+      "inbox",
+      "work",
+      "team",
+      "chat",
+      "autopilots",
+    ]);
   });
 
   it("follows the saved order", () => {
     // A saved order names every space: one missing is absorbed after its
     // default neighbour (see resolveRailOrder), not kept where it was left.
-    const order = ["chat", "inbox", "workbench", "hr", "work", "team", "autopilots"] as const;
+    const order = [
+      "chat",
+      "inbox",
+      "workbench",
+      "hr",
+      "sales",
+      "content",
+      "boss",
+      "work",
+      "team",
+      "autopilots",
+    ] as const;
     useRailOrderStore.getState().setOrder(order);
     renderRail();
     expect(railOrder()).toEqual(order);
@@ -164,6 +186,10 @@ describe("AppRail spaces", () => {
 
     for (const href of [
       "/acme/overview",
+      "/acme/hr/recruit",
+      "/acme/sales",
+      "/acme/content",
+      "/acme/boss",
       "/acme/inbox",
       "/acme/issues",
       "/acme/agents",

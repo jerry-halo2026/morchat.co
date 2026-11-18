@@ -9,6 +9,9 @@
 export type AppSpaceId =
   | "workbench"
   | "hr"
+  | "sales"
+  | "content"
+  | "boss"
   | "inbox"
   | "work"
   | "team"
@@ -20,13 +23,17 @@ export type AppSpaceId =
 export type RailSpaceId = Exclude<AppSpaceId, "settings">;
 
 /**
- * Spaces in rail order: the workbench leads, since it is the home page, and
- * HR sits beside it — one department reading its numbers, the other running
- * the hiring and employee record that fill them in.
+ * Spaces in rail order: the workbench leads, since it is the home page, and the
+ * four departments follow it — the workbench reads the numbers, and HR (people),
+ * sales (creators and deals), content (the studio's output) and the general
+ * manager (the whole business) are the departments that fill them in.
  */
 export const RAIL_SPACES: readonly RailSpaceId[] = [
   "workbench",
   "hr",
+  "sales",
+  "content",
+  "boss",
   "inbox",
   "work",
   "team",
@@ -44,6 +51,12 @@ const SPACE_BY_SEGMENT: Record<string, AppSpaceId> = {
   // left column. Every one of them sits under the `hr` segment, so the space
   // is decided by the first segment alone.
   hr: "hr",
+  // The three department spaces beside it. Same rule: one segment decides the
+  // space, and the page is the second segment (`/sales/creators`); the segment
+  // alone is the space's landing page (`/sales` is the cockpit).
+  sales: "sales",
+  content: "content",
+  boss: "boss",
   inbox: "inbox",
   "my-issues": "work",
   issues: "work",

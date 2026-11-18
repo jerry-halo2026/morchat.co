@@ -24,7 +24,30 @@
     "hr_employees": "Empleados",
     "hr_offboard": "Bajas",
     "hr_files": "Archivos",
-    "hr_analysis": "Análisis de RR. HH."
+    "hr_analysis": "Análisis de RR. HH.",
+    "sales_dashboard": "Cabina",
+    "sales_creators": "Creadores",
+    "sales_followups": "Seguimientos",
+    "sales_quotes": "Presupuestos",
+    "sales_collabs": "Colaboraciones",
+    "sales_campaigns": "Campañas",
+    "sales_performance": "Rendimiento",
+    "content_studio": "Estudio",
+    "content_ips": "IP y cuentas",
+    "content_hot": "Radar de tendencias",
+    "content_bench": "Cuentas de referencia",
+    "content_topics": "Batería de temas",
+    "content_scripts": "Guiones",
+    "content_shoots": "Rodaje y edición",
+    "content_publish": "Calendario de publicación",
+    "content_data": "Revisión",
+    "boss_overview": "Resumen",
+    "boss_goals": "Objetivos",
+    "boss_tasks": "Tareas",
+    "boss_radar": "Radar de mercado",
+    "boss_customers": "Clientes",
+    "boss_biz": "Operación",
+    "boss_team": "Equipo"
   },
   "hr": {
     "recruit": {
@@ -686,7 +709,10 @@
     "workbench": "Mesa de trabajo",
     "work": "Trabajo",
     "team": "Equipo",
-    "hr": "Personal"
+    "hr": "Personal",
+    "sales": "Ventas",
+    "content": "Contenido",
+    "boss": "Dirección general"
   },
   "rail": {
     "workbench": "Mesa de trabajo",
@@ -706,7 +732,10 @@
     "open_in_other_window": "Ya está abierto en otra ventana",
     "in_other_window": "Otra ventana",
     "all_workspaces_open": "Todos los espacios de trabajo ya están abiertos en una ventana",
-    "hr": "Personal"
+    "hr": "Personal",
+    "sales": "Ventas",
+    "content": "Contenido",
+    "boss": "DG"
   },
   "panels": {
     "work": {
@@ -775,6 +804,46 @@
       "all": "Todas las automatizaciones",
       "list": "Automatizaciones",
       "templates": "Desde una plantilla"
+    },
+    "recent": {
+      "label": "Recientes"
+    },
+    "hr": {
+      "group": {
+        "hiring": "Selección",
+        "people": "Plantilla",
+        "tools": "Herramientas"
+      }
+    },
+    "sales": {
+      "subtitle": "BD de creadores",
+      "group": {
+        "pipeline": "Canal",
+        "ops": "Operación"
+      },
+      "empty": {
+        "title": "Aún no hay nada",
+        "description": "El canal empieza con un creador y un primer seguimiento. Esta página se llena en cuanto existen."
+      }
+    },
+    "content": {
+      "group": {
+        "production": "Producción de contenido"
+      },
+      "empty": {
+        "title": "Aún no hay nada",
+        "description": "La producción del estudio empieza con una IP y sus cuentas. Esta página se llena en cuanto existen."
+      }
+    },
+    "boss": {
+      "group": {
+        "biz": "Negocio",
+        "market": "Mercado"
+      },
+      "empty": {
+        "title": "Aún no hay nada",
+        "description": "Esta vista lee los objetivos, el libro mayor y el equipo. Se llena en cuanto existen."
+      }
     }
   },
   "account": {

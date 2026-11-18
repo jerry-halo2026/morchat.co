@@ -253,6 +253,26 @@ export function AppRail({
       label: t(($) => $.rail.hr),
       fullLabel: t(($) => $.spaces.hr),
     },
+    // The three department spaces beside HR, each leading with its own landing
+    // page — the same one its panel lists first.
+    sales: {
+      href: p.sales.dashboard(),
+      icon: routeIconForPath(p.sales.dashboard()),
+      label: t(($) => $.rail.sales),
+      fullLabel: t(($) => $.spaces.sales),
+    },
+    content: {
+      href: p.content.studio(),
+      icon: routeIconForPath(p.content.studio()),
+      label: t(($) => $.rail.content),
+      fullLabel: t(($) => $.spaces.content),
+    },
+    boss: {
+      href: p.boss.home(),
+      icon: routeIconForPath(p.boss.home()),
+      label: t(($) => $.rail.boss),
+      fullLabel: t(($) => $.spaces.boss),
+    },
     inbox: {
       href: p.inbox(),
       icon: routeIconForPath(p.inbox()),

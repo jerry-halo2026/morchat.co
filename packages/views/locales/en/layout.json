@@ -24,7 +24,30 @@
     "hr_employees": "Employees",
     "hr_offboard": "Offboarding",
     "hr_files": "Files",
-    "hr_analysis": "HR analytics"
+    "hr_analysis": "HR analytics",
+    "sales_dashboard": "Cockpit",
+    "sales_creators": "Creators",
+    "sales_followups": "Follow-ups",
+    "sales_quotes": "Quotes",
+    "sales_collabs": "Collabs",
+    "sales_campaigns": "Campaigns",
+    "sales_performance": "Performance",
+    "content_studio": "Studio",
+    "content_ips": "IPs & accounts",
+    "content_hot": "Hot radar",
+    "content_bench": "Benchmarks",
+    "content_topics": "Topic pool",
+    "content_scripts": "Scripts",
+    "content_shoots": "Shooting & editing",
+    "content_publish": "Publishing",
+    "content_data": "Review",
+    "boss_overview": "Overview",
+    "boss_goals": "Goals",
+    "boss_tasks": "Tasks",
+    "boss_radar": "Market radar",
+    "boss_customers": "Customers",
+    "boss_biz": "Operations",
+    "boss_team": "Team"
   },
   "hr": {
     "recruit": {
@@ -686,7 +709,10 @@
     "workbench": "Workbench",
     "work": "Work",
     "team": "Team",
-    "hr": "HR"
+    "hr": "HR",
+    "sales": "Sales",
+    "content": "Content",
+    "boss": "General manager"
   },
   "rail": {
     "label": "App navigation",
@@ -706,7 +732,10 @@
     "open_in_other_window": "Already open in another window",
     "in_other_window": "Other window",
     "all_workspaces_open": "Every workspace is already open in a window",
-    "hr": "HR"
+    "hr": "HR",
+    "sales": "Sales",
+    "content": "Content",
+    "boss": "GM"
   },
   "panels": {
     "work": {
@@ -775,6 +804,46 @@
       "all": "All autopilots",
       "list": "Autopilots",
       "templates": "From a template"
+    },
+    "recent": {
+      "label": "Recent"
+    },
+    "hr": {
+      "group": {
+        "hiring": "Hiring",
+        "people": "People",
+        "tools": "Tools"
+      }
+    },
+    "sales": {
+      "subtitle": "Creator BD",
+      "group": {
+        "pipeline": "Pipeline",
+        "ops": "Ops"
+      },
+      "empty": {
+        "title": "Nothing here yet",
+        "description": "The pipeline starts with a creator and a first follow-up. This page fills in once the rows exist."
+      }
+    },
+    "content": {
+      "group": {
+        "production": "Content production"
+      },
+      "empty": {
+        "title": "Nothing here yet",
+        "description": "The studio's output starts with a persona and its accounts. This page fills in once they exist."
+      }
+    },
+    "boss": {
+      "group": {
+        "biz": "Business",
+        "market": "Market"
+      },
+      "empty": {
+        "title": "Nothing here yet",
+        "description": "This view reads the goals, the ledger and the team. It fills in once they exist."
+      }
     }
   },
   "account": {

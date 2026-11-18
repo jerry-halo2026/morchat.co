@@ -159,6 +159,8 @@ const COLLAB: CrmCollab = {
   published_at: null,
   accepted_at: null,
   issue_id: null,
+  publish_url: null,
+  settled_on: null,
   owner_member_id: null,
   created_by: null,
   created_at: "2026-01-03T09:00:00Z",

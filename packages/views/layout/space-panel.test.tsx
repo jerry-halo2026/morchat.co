@@ -1,6 +1,7 @@
 import { act, fireEvent, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SidebarProvider, useSidebar } from "@morechat/ui/components/ui/sidebar";
+import { RAIL_SPACES } from "@morechat/core/paths";
 import { renderWithI18n } from "../test/i18n";
 import { AppShellProvider, useAppShell } from "./app-shell-context";
 import { SpacePanel } from "./space-panel";
@@ -19,6 +20,9 @@ vi.mock("./panels/autopilots-panel", () => ({
   AutopilotsPanel: () => <div data-testid="autopilots-panel" />,
 }));
 vi.mock("../hr/hr-panel", () => ({ HrPanel: () => <div data-testid="hr-panel" /> }));
+vi.mock("../sales/panel", () => ({ SalesPanel: () => <div data-testid="sales-panel" /> }));
+vi.mock("../content/panel", () => ({ ContentPanel: () => <div data-testid="content-panel" /> }));
+vi.mock("../boss/panel", () => ({ BossPanel: () => <div data-testid="boss-panel" /> }));
 vi.mock("./panels/list-space-peeks", () => ({
   InboxPeek: () => <div data-testid="inbox-peek" />,
   ChatPeek: () => <div data-testid="chat-peek" />,
@@ -80,6 +84,42 @@ describe("SpacePanel", () => {
     renderPanel();
     expect(panel()).toHaveAttribute("data-state", "expanded");
     expect(screen.getByTestId("hr-panel")).toBeInTheDocument();
+  });
+
+  // The three department spaces beside HR: same rule, one panel each, and the
+  // landing page of the space (a bare `/{slug}/sales`) counts as inside it.
+  it.each([
+    ["/acme/sales", "sales-panel"],
+    ["/acme/sales/creators", "sales-panel"],
+    ["/acme/content", "content-panel"],
+    ["/acme/content/topics", "content-panel"],
+    ["/acme/boss", "boss-panel"],
+    ["/acme/boss/goals", "boss-panel"],
+  ])("gives %s its space's panel", (pathname, testId) => {
+    navigation.pathname = pathname;
+    renderPanel();
+    expect(panel()).toHaveAttribute("data-state", "expanded");
+    expect(screen.getByTestId(testId)).toBeInTheDocument();
+  });
+
+  // The rail order is the registry's order; this is the one place the batch
+  // fixes it, and every surface that lists spaces (the rail, the compact sheet)
+  // reads the same list.
+  it("puts the three department spaces after HR in the rail", () => {
+    expect(RAIL_SPACES.slice(0, 5)).toEqual(["workbench", "hr", "sales", "content", "boss"]);
+  });
+
+  it("previews a department space while the nav is collapsed", () => {
+    vi.useFakeTimers();
+    try {
+      renderPanel();
+      act(() => shell!.toggleNav());
+      act(() => shell!.requestPeek("sales"));
+      act(() => vi.advanceTimersByTime(200));
+      expect(screen.getByTestId("sales-panel")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("collapses from a click on its edge and keeps its content out of reach", () => {

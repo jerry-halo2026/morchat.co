@@ -4,7 +4,10 @@ import { useEffect, useRef } from "react";
 import type { AppSpaceId } from "@morechat/core/paths";
 import { cn } from "@morechat/ui/lib/utils";
 import { useSidebar } from "@morechat/ui/components/ui/sidebar";
+import { BossPanel } from "../boss/panel";
+import { ContentPanel } from "../content/panel";
 import { HrPanel } from "../hr/hr-panel";
+import { SalesPanel } from "../sales/panel";
 import { useAppShell } from "./app-shell-context";
 import { PanelResizeHandle } from "./panel-resize-handle";
 import { AutopilotsPanel } from "./panels/autopilots-panel";
@@ -19,6 +22,12 @@ const PANELS: Partial<Record<AppSpaceId, () => React.ReactNode>> = {
   workbench: () => <WorkPanel space="workbench" />,
   // HR lists its own nine pages; nothing in it is a row of the Work tree.
   hr: HrPanel,
+  // The three department spaces beside it, each with a column of its own: their
+  // pages are siblings inside the space, not rows of anything the workbench
+  // already lists.
+  sales: SalesPanel,
+  content: ContentPanel,
+  boss: BossPanel,
   work: WorkPanel,
   team: TeamPanel,
   autopilots: AutopilotsPanel,

@@ -24,7 +24,30 @@
     "hr_employees": "Сотрудники",
     "hr_offboard": "Увольнения",
     "hr_files": "Файлы",
-    "hr_analysis": "Аналитика по кадрам"
+    "hr_analysis": "Аналитика по кадрам",
+    "sales_dashboard": "Кокпит",
+    "sales_creators": "Креаторы",
+    "sales_followups": "Повторные касания",
+    "sales_quotes": "Сметы",
+    "sales_collabs": "Коллаборации",
+    "sales_campaigns": "Кампании",
+    "sales_performance": "Результаты",
+    "content_studio": "Студия",
+    "content_ips": "IP и аккаунты",
+    "content_hot": "Радар трендов",
+    "content_bench": "Эталонные аккаунты",
+    "content_topics": "Банк тем",
+    "content_scripts": "Сценарии",
+    "content_shoots": "Съёмка и монтаж",
+    "content_publish": "График публикаций",
+    "content_data": "Разбор",
+    "boss_overview": "Обзор",
+    "boss_goals": "Цели",
+    "boss_tasks": "Задачи",
+    "boss_radar": "Радар рынка",
+    "boss_customers": "Клиенты",
+    "boss_biz": "Операции",
+    "boss_team": "Команда"
   },
   "hr": {
     "recruit": {
@@ -662,7 +685,10 @@
     "workbench": "Воркбенч",
     "work": "Работа",
     "team": "Команда",
-    "hr": "Кадры"
+    "hr": "Кадры",
+    "sales": "Продажи",
+    "content": "Контент",
+    "boss": "Генеральный директор"
   },
   "rail": {
     "workbench": "Воркбенч",
@@ -682,7 +708,10 @@
     "all_workspaces_open": "Все рабочие пространства уже открыты в окнах",
     "pin_workspace": "Закрепить рабочее пространство",
     "unpin_workspace": "Открепить рабочее пространство",
-    "hr": "Кадры"
+    "hr": "Кадры",
+    "sales": "Продажи",
+    "content": "Контент",
+    "boss": "ГД"
   },
   "panels": {
     "work": {
@@ -761,6 +790,46 @@
       "all": "Все автопилоты",
       "list": "Автопилоты",
       "templates": "Из шаблона"
+    },
+    "recent": {
+      "label": "Недавние"
+    },
+    "hr": {
+      "group": {
+        "hiring": "Найм",
+        "people": "Сотрудники",
+        "tools": "Инструменты"
+      }
+    },
+    "sales": {
+      "subtitle": "Работа с креаторами",
+      "group": {
+        "pipeline": "Воронка",
+        "ops": "Операции"
+      },
+      "empty": {
+        "title": "Пока пусто",
+        "description": "Воронка начинается с креатора и первого касания. Страница заполнится, когда строки появятся."
+      }
+    },
+    "content": {
+      "group": {
+        "production": "Производство контента"
+      },
+      "empty": {
+        "title": "Пока пусто",
+        "description": "Работа студии начинается с IP и его аккаунтов. Страница заполнится, когда они появятся."
+      }
+    },
+    "boss": {
+      "group": {
+        "biz": "Бизнес",
+        "market": "Рынок"
+      },
+      "empty": {
+        "title": "Пока пусто",
+        "description": "Здесь читаются цели, реестр и команда. Страница заполнится, когда они появятся."
+      }
     }
   },
   "account": {
