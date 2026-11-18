@@ -11,6 +11,143 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const deleteGatewayCredentialsForWorkspace = `-- name: DeleteGatewayCredentialsForWorkspace :exec
+DELETE FROM gateway_credentials WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteGatewayCredentialsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteGatewayCredentialsForWorkspace, workspaceID)
+	return err
+}
+
+const deleteKnowledgeChunksForWorkspace = `-- name: DeleteKnowledgeChunksForWorkspace :exec
+DELETE FROM knowledge_chunks WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteKnowledgeChunksForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteKnowledgeChunksForWorkspace, workspaceID)
+	return err
+}
+
+const deleteKnowledgeDistillationCursorsForWorkspace = `-- name: DeleteKnowledgeDistillationCursorsForWorkspace :exec
+DELETE FROM knowledge_distillation_cursors WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteKnowledgeDistillationCursorsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteKnowledgeDistillationCursorsForWorkspace, workspaceID)
+	return err
+}
+
+const deleteKnowledgeDistillationRunsForWorkspace = `-- name: DeleteKnowledgeDistillationRunsForWorkspace :exec
+
+DELETE FROM knowledge_distillation_runs WHERE workspace_id = $1
+`
+
+// ---- knowledge (migrations 637-651) ----------------------------------------
+// These are the only workspace tables in the schema that still carry real
+// foreign keys (repository rule: new tables do not add them), so teardown has
+// to walk them children -> parents. They also reference `issue` and `project`,
+// which is why the whole family is swept *before* issues and projects: a
+// knowledge row that outlives its issue turns the later delete into an FK
+// violation, i.e. the workspace could not be deleted at all.
+//
+// They were missing from this plan until 2026-11 (the manifest test caught the
+// classification gap; the FK reality is why the order below matters).
+func (q *Queries) DeleteKnowledgeDistillationRunsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteKnowledgeDistillationRunsForWorkspace, workspaceID)
+	return err
+}
+
+const deleteKnowledgeDistillationWorkItemsForWorkspace = `-- name: DeleteKnowledgeDistillationWorkItemsForWorkspace :exec
+DELETE FROM knowledge_distillation_work_items WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteKnowledgeDistillationWorkItemsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteKnowledgeDistillationWorkItemsForWorkspace, workspaceID)
+	return err
+}
+
+const deleteKnowledgeDocumentsForWorkspace = `-- name: DeleteKnowledgeDocumentsForWorkspace :exec
+DELETE FROM knowledge_documents WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteKnowledgeDocumentsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteKnowledgeDocumentsForWorkspace, workspaceID)
+	return err
+}
+
+const deleteKnowledgeImportTasksForWorkspace = `-- name: DeleteKnowledgeImportTasksForWorkspace :exec
+DELETE FROM knowledge_import_tasks WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteKnowledgeImportTasksForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteKnowledgeImportTasksForWorkspace, workspaceID)
+	return err
+}
+
+const deleteKnowledgeInstancesForWorkspace = `-- name: DeleteKnowledgeInstancesForWorkspace :exec
+DELETE FROM knowledge_instances WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteKnowledgeInstancesForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteKnowledgeInstancesForWorkspace, workspaceID)
+	return err
+}
+
+const deleteKnowledgeItemsForWorkspace = `-- name: DeleteKnowledgeItemsForWorkspace :exec
+DELETE FROM knowledge_items WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteKnowledgeItemsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteKnowledgeItemsForWorkspace, workspaceID)
+	return err
+}
+
+const deleteKnowledgePageBacklinksForWorkspace = `-- name: DeleteKnowledgePageBacklinksForWorkspace :exec
+DELETE FROM knowledge_page_backlinks WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteKnowledgePageBacklinksForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteKnowledgePageBacklinksForWorkspace, workspaceID)
+	return err
+}
+
+const deleteKnowledgePageRevisionsForWorkspace = `-- name: DeleteKnowledgePageRevisionsForWorkspace :exec
+DELETE FROM knowledge_page_revisions WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteKnowledgePageRevisionsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteKnowledgePageRevisionsForWorkspace, workspaceID)
+	return err
+}
+
+const deleteKnowledgePagesForWorkspace = `-- name: DeleteKnowledgePagesForWorkspace :exec
+DELETE FROM knowledge_pages WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteKnowledgePagesForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteKnowledgePagesForWorkspace, workspaceID)
+	return err
+}
+
+const deleteKnowledgeSourcesForWorkspace = `-- name: DeleteKnowledgeSourcesForWorkspace :exec
+DELETE FROM knowledge_sources WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteKnowledgeSourcesForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteKnowledgeSourcesForWorkspace, workspaceID)
+	return err
+}
+
+const deleteKnowledgeSpacesForWorkspace = `-- name: DeleteKnowledgeSpacesForWorkspace :exec
+DELETE FROM knowledge_spaces WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteKnowledgeSpacesForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteKnowledgeSpacesForWorkspace, workspaceID)
+	return err
+}
+
 const deleteTaskBatch = `-- name: DeleteTaskBatch :exec
 WITH
 batch AS MATERIALIZED (

@@ -936,3 +936,55 @@ deleted_hr_doc_templates AS (
     DELETE FROM hr_doc_template WHERE hr_doc_template.workspace_id = $1
 )
 DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1;
+-- ---- knowledge (migrations 637-651) ----------------------------------------
+-- These are the only workspace tables in the schema that still carry real
+-- foreign keys (repository rule: new tables do not add them), so teardown has
+-- to walk them children -> parents. They also reference `issue` and `project`,
+-- which is why the whole family is swept *before* issues and projects: a
+-- knowledge row that outlives its issue turns the later delete into an FK
+-- violation, i.e. the workspace could not be deleted at all.
+--
+-- They were missing from this plan until 2026-11 (the manifest test caught the
+-- classification gap; the FK reality is why the order below matters).
+
+-- name: DeleteKnowledgeDistillationRunsForWorkspace :exec
+DELETE FROM knowledge_distillation_runs WHERE workspace_id = $1;
+
+-- name: DeleteKnowledgeDistillationWorkItemsForWorkspace :exec
+DELETE FROM knowledge_distillation_work_items WHERE workspace_id = $1;
+
+-- name: DeleteKnowledgeDistillationCursorsForWorkspace :exec
+DELETE FROM knowledge_distillation_cursors WHERE workspace_id = $1;
+
+-- name: DeleteKnowledgeChunksForWorkspace :exec
+DELETE FROM knowledge_chunks WHERE workspace_id = $1;
+
+-- name: DeleteKnowledgeDocumentsForWorkspace :exec
+DELETE FROM knowledge_documents WHERE workspace_id = $1;
+
+-- name: DeleteKnowledgePageBacklinksForWorkspace :exec
+DELETE FROM knowledge_page_backlinks WHERE workspace_id = $1;
+
+-- name: DeleteKnowledgePageRevisionsForWorkspace :exec
+DELETE FROM knowledge_page_revisions WHERE workspace_id = $1;
+
+-- name: DeleteKnowledgeItemsForWorkspace :exec
+DELETE FROM knowledge_items WHERE workspace_id = $1;
+
+-- name: DeleteKnowledgePagesForWorkspace :exec
+DELETE FROM knowledge_pages WHERE workspace_id = $1;
+
+-- name: DeleteKnowledgeImportTasksForWorkspace :exec
+DELETE FROM knowledge_import_tasks WHERE workspace_id = $1;
+
+-- name: DeleteKnowledgeSourcesForWorkspace :exec
+DELETE FROM knowledge_sources WHERE workspace_id = $1;
+
+-- name: DeleteKnowledgeSpacesForWorkspace :exec
+DELETE FROM knowledge_spaces WHERE workspace_id = $1;
+
+-- name: DeleteKnowledgeInstancesForWorkspace :exec
+DELETE FROM knowledge_instances WHERE workspace_id = $1;
+
+-- name: DeleteGatewayCredentialsForWorkspace :exec
+DELETE FROM gateway_credentials WHERE workspace_id = $1;

@@ -959,6 +959,48 @@ const workspaceDeleteVerifyPasses = 3
 // Late arrivals are handled by the fence, not here: migration 284 makes every task
 // write take FOR KEY SHARE on its owners' workspace rows, which conflicts with the
 // FOR UPDATE that LockWorkspaceForDelete holds for this whole transaction.
+// deleteWorkspaceKnowledge sweeps the knowledge family (migrations 637–651) in
+// children → parents order.
+//
+// The order is not cosmetic: those tables predate the repository's no-foreign-key
+// rule and still carry real FKs between each other, plus `workspace`, `issue` and
+// `project`. Deleting a parent first is rejected by the FK, which would abort the
+// whole teardown transaction — so a workspace that had ever opened a knowledge
+// space could not be deleted at all until this step existed.
+//
+// One statement per table rather than a single multi-CTE query: data-modifying
+// CTEs run against the same snapshot with no defined order between them, which is
+// exactly the guarantee these FKs need.
+func deleteWorkspaceKnowledge(ctx context.Context, qtx *db.Queries, workspaceID pgtype.UUID) error {
+	steps := []struct {
+		name string
+		run  func(context.Context, pgtype.UUID) error
+	}{
+		{"distillation runs", qtx.DeleteKnowledgeDistillationRunsForWorkspace},
+		{"distillation work items", qtx.DeleteKnowledgeDistillationWorkItemsForWorkspace},
+		{"distillation cursors", qtx.DeleteKnowledgeDistillationCursorsForWorkspace},
+		{"chunks", qtx.DeleteKnowledgeChunksForWorkspace},
+		{"documents", qtx.DeleteKnowledgeDocumentsForWorkspace},
+		{"page backlinks", qtx.DeleteKnowledgePageBacklinksForWorkspace},
+		{"page revisions", qtx.DeleteKnowledgePageRevisionsForWorkspace},
+		{"items", qtx.DeleteKnowledgeItemsForWorkspace},
+		{"pages", qtx.DeleteKnowledgePagesForWorkspace},
+		{"import tasks", qtx.DeleteKnowledgeImportTasksForWorkspace},
+		{"sources", qtx.DeleteKnowledgeSourcesForWorkspace},
+		{"spaces", qtx.DeleteKnowledgeSpacesForWorkspace},
+		{"instances", qtx.DeleteKnowledgeInstancesForWorkspace},
+		// Gateway credentials are workspace-owned secrets (they carry both
+		// workspace_id and user_id); they go with the workspace, not with the user.
+		{"gateway credentials", qtx.DeleteGatewayCredentialsForWorkspace},
+	}
+	for _, step := range steps {
+		if err := step.run(ctx, workspaceID); err != nil {
+			return fmt.Errorf("delete knowledge %s: %w", step.name, err)
+		}
+	}
+	return nil
+}
+
 func deleteWorkspaceTasks(ctx context.Context, qtx *db.Queries, workspaceID pgtype.UUID) error {
 	ownerKinds := []struct {
 		label          string
@@ -1292,6 +1334,18 @@ func (h *Handler) DeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 				}
 				return qtx.PrepareSeatCapacityMemberReleasesForWorkspaceDeletion(ctx, requester.WorkspaceID)
 			},
+		},
+		{
+			// Knowledge is the one workspace family that still carries real
+			// foreign keys (migrations 637–651 predate the no-FK rule), and it
+			// references `issue` and `project`. Sweeping it here — before any
+			// issue or project row goes — is what keeps those later deletes from
+			// being rejected by `knowledge_*_issue/project_fkey`. Children first
+			// inside the family: runs → work items → cursors → chunks →
+			// documents → backlinks/revisions → items → pages → import tasks →
+			// sources → spaces → instances.
+			name: "delete knowledge",
+			run:  func() error { return deleteWorkspaceKnowledge(ctx, qtx, requester.WorkspaceID) },
 		},
 		{
 			name: "delete chat pins",
