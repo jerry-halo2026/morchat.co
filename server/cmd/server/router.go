@@ -2648,6 +2648,27 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 							r.Get("/", h.GetHrEmployee)
 							r.Patch("/", h.UpdateHrEmployee)
 							r.Delete("/", h.DeleteHrEmployee)
+							// Generated documents (docs/engineering/WORKBENCH-API.md §18):
+							// the ledger of files produced for this person. Reads are
+							// member-wide; `POST` renders a template, stores the result as an
+							// attachment and records the values it used, and is owner/admin
+							// only because the file is filed in the person's record.
+							r.Route("/documents", func(r chi.Router) {
+								r.Get("/", h.ListHrEmployeeDocuments)
+								r.Post("/", h.CreateHrEmployeeDocument)
+							})
+						})
+					})
+					// Document templates (docs/engineering/WORKBENCH-API.md §18): the
+					// bodies the routes above render. Reads seed the three builtin
+					// templates on first use; writes are owner/admin, and a builtin row
+					// answers 400 to PATCH and DELETE because the next read re-seeds it.
+					r.Route("/doc-templates", func(r chi.Router) {
+						r.Get("/", h.ListHrDocTemplates)
+						r.Post("/", h.CreateHrDocTemplate)
+						r.Route("/{templateId}", func(r chi.Router) {
+							r.Patch("/", h.UpdateHrDocTemplate)
+							r.Delete("/", h.DeleteHrDocTemplate)
 						})
 					})
 					// Employee file change stream (docs/engineering/WORKBENCH-API.md
@@ -2691,6 +2712,21 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 							r.Post("/items", h.AppendHrGuideItem)
 							r.Patch("/items/{index}", h.UpdateHrGuideItem)
 							r.Delete("/items/{index}", h.DeleteHrGuideItem)
+						})
+					})
+					// Rewards and disciplines (docs/engineering/WORKBENCH-API.md
+					// §17): the roster's 奖惩 tab. Same read/write split as the
+					// rest of HR — reads are member-wide, writes are gated inside
+					// each handler on the owner of the employee profile (a `member`
+					// records only for profiles it owns, and only touches rows it
+					// owns). `PATCH` edits the six descriptive columns and answers
+					// 400 for `employee_id` / `kind`; `DELETE` is a soft delete.
+					r.Route("/rewards", func(r chi.Router) {
+						r.Get("/", h.ListHrEmployeeRewards)
+						r.Post("/", h.CreateHrEmployeeReward)
+						r.Route("/{rewardId}", func(r chi.Router) {
+							r.Patch("/", h.UpdateHrEmployeeReward)
+							r.Delete("/", h.DeleteHrEmployeeReward)
 						})
 					})
 					// Offboarding (docs/engineering/WORKBENCH-API.md §15). The four

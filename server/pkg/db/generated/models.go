@@ -1235,6 +1235,37 @@ type HrCandidate struct {
 	ResumeText         pgtype.Text        `json:"resume_text"`
 }
 
+// HR document generation ledger, WORKBENCH-API section 18. template_name and values are snapshots taken at generation time; the file lives in attachments. Read ordered by created_at DESC.
+type HrDocGeneration struct {
+	ID           pgtype.UUID `json:"id"`
+	WorkspaceID  pgtype.UUID `json:"workspace_id"`
+	EmployeeID   pgtype.UUID `json:"employee_id"`
+	TemplateID   pgtype.UUID `json:"template_id"`
+	TemplateName string      `json:"template_name"`
+	Format       string      `json:"format"`
+	AttachmentID pgtype.UUID `json:"attachment_id"`
+	// The placeholder map the template was rendered with (input snapshot, not a re-derivation). Unknown placeholders were left verbatim in the file and are absent here.
+	Values      []byte             `json:"values"`
+	GeneratedBy pgtype.UUID        `json:"generated_by"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+// HR document templates, WORKBENCH-API section 18. body is plain text with {{placeholder}} slots; builtin rows are seeded per workspace and read-only. No foreign key; archived_at is the soft delete.
+type HrDocTemplate struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	Name        string      `json:"name"`
+	Kind        string      `json:"kind"`
+	// Plain text with {{placeholder}} slots. Unknown slots are rendered verbatim by the generator, never silently blanked.
+	Body          string             `json:"body"`
+	Builtin       bool               `json:"builtin"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
 // Append-only employee file change stream (WORKBENCH-API §16). Never updated or deleted; archived_at is the only soft-delete mark. Read ordered by effective_on DESC.
 type HrEmployeeChange struct {
 	ID               pgtype.UUID        `json:"id"`
@@ -1278,6 +1309,26 @@ type HrEmployeeProfile struct {
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
 	LeaveDate     pgtype.Date        `json:"leave_date"`
+}
+
+// Employee rewards (奖励) and disciplines (处分), WORKBENCH-API §17. amount is nullable and always >= 0 — kind says bonus or fine, never the sign. A record of facts: no aggregate, rollup or cost line reads this table. Read ordered by decided_on DESC.
+type HrEmployeeReward struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	EmployeeID  pgtype.UUID `json:"employee_id"`
+	Kind        string      `json:"kind"`
+	Category    pgtype.Text `json:"category"`
+	Reason      string      `json:"reason"`
+	// Bonus or fine, stored positive; NULL = no money attached. Not a cost line: nothing sums this column.
+	Amount        pgtype.Numeric     `json:"amount"`
+	Currency      string             `json:"currency"`
+	DecidedOn     pgtype.Date        `json:"decided_on"`
+	Note          pgtype.Text        `json:"note"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
 }
 
 type HrInterview struct {

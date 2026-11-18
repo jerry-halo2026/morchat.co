@@ -755,6 +755,15 @@ deleted_hr_offboardings AS (
 ),
 deleted_hr_employee_changes AS (
     DELETE FROM hr_employee_change WHERE hr_employee_change.workspace_id = $1
+),
+deleted_hr_employee_rewards AS (
+    DELETE FROM hr_employee_reward WHERE hr_employee_reward.workspace_id = $1
+),
+deleted_hr_doc_generations AS (
+    DELETE FROM hr_doc_generation WHERE hr_doc_generation.workspace_id = $1
+),
+deleted_hr_doc_templates AS (
+    DELETE FROM hr_doc_template WHERE hr_doc_template.workspace_id = $1
 )
 DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1
 `
@@ -789,6 +798,14 @@ DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1
 // Employee file change stream (WORKBENCH-API §16): append-only rows that name an
 // employee profile. No foreign key, so teardown clears them explicitly, before
 // the profiles they describe.
+// Rewards and disciplines (WORKBENCH-API §17): rows that name an employee profile,
+// with no foreign key behind them, so teardown clears them explicitly before the
+// profiles they describe.
+// HR documents (WORKBENCH-API §18): a generation row names an employee profile and
+// a template; a template is a workspace-owned body. No foreign key behind either, so
+// teardown clears both explicitly -- the generations first (they point at the
+// templates), then the templates, before the profiles the generations describe. The
+// produced files are ordinary attachments, already cleared by this same statement.
 func (q *Queries) DeleteWorkspaceWorkbenchLedger(ctx context.Context, workspaceID pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, deleteWorkspaceWorkbenchLedger, workspaceID)
 	return err

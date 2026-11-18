@@ -301,6 +301,12 @@ import type {
   HrEmployeeChangeListFilters,
   HrEmployeeChangeListResponse,
   UpdateHrEmployeeChangeRequest,
+  // Employee rewards and disciplines (docs/engineering/WORKBENCH-API.md §17).
+  CreateHrEmployeeRewardRequest,
+  HrEmployeeReward,
+  HrEmployeeRewardListFilters,
+  HrEmployeeRewardListResponse,
+  UpdateHrEmployeeRewardRequest,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -873,6 +879,10 @@ import {
   HrEmployeeChangeListResponseSchema,
   EMPTY_HR_EMPLOYEE_CHANGE,
   EMPTY_HR_EMPLOYEE_CHANGE_LIST_RESPONSE,
+  HrEmployeeRewardSchema,
+  HrEmployeeRewardListResponseSchema,
+  EMPTY_HR_EMPLOYEE_REWARD,
+  EMPTY_HR_EMPLOYEE_REWARD_LIST_RESPONSE,
   type IssueView,
   type IssueViewPreference,
   type CreateIssueViewRequest,
@@ -5736,6 +5746,62 @@ export class ApiClient {
 
   async deleteHrEmployeeChange(id: string): Promise<void> {
     await this.fetch(`/api/workbench/hr/changes/${id}`, { method: "DELETE" });
+  }
+
+  // Employee rewards and disciplines (docs/engineering/WORKBENCH-API.md §17). Reads
+  // are member-wide; writes are gated on the employee profile's owner — recording
+  // somebody's 奖励 or 处分 is part of editing their file.
+  //
+  // `amount` is always >= 0 and `kind` says which direction, so a fine is a
+  // `discipline` of 500 rather than a bonus of -500. `PATCH` edits the six
+  // descriptive columns and the server answers 400 for `employee_id` / `kind`.
+
+  async listHrEmployeeRewards(
+    filters: HrEmployeeRewardListFilters = {},
+  ): Promise<HrEmployeeRewardListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/rewards${workbenchSearch({
+        employee_id: filters.employee_id,
+        kind: filters.kind,
+        from: filters.from,
+        to: filters.to,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      HrEmployeeRewardListResponseSchema,
+      EMPTY_HR_EMPLOYEE_REWARD_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/hr/rewards" },
+    );
+  }
+
+  async createHrEmployeeReward(data: CreateHrEmployeeRewardRequest): Promise<HrEmployeeReward> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/rewards", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrEmployeeRewardSchema, EMPTY_HR_EMPLOYEE_REWARD, {
+      endpoint: "POST /api/workbench/hr/rewards",
+    });
+  }
+
+  /** The six descriptive columns. `employee_id` / `kind` are a 400. */
+  async updateHrEmployeeReward(
+    id: string,
+    data: UpdateHrEmployeeRewardRequest,
+  ): Promise<HrEmployeeReward> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/rewards/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrEmployeeRewardSchema, EMPTY_HR_EMPLOYEE_REWARD, {
+      endpoint: "PATCH /api/workbench/hr/rewards/:rewardId",
+    });
+  }
+
+  async deleteHrEmployeeReward(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/rewards/${id}`, { method: "DELETE" });
   }
 
   async createShareLink(workspaceId: string, data: { role?: string; expires_in?: number; max_uses?: number }): Promise<ShareLink> {

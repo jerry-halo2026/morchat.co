@@ -656,4 +656,16 @@ export type {
   UpdateHrEmployeeChangeRequest,
 } from "./change";
 
+// Employee rewards and disciplines (docs/engineering/WORKBENCH-API.md §17). Its
+// own module for the same reason as §12–§16: `amount` is always positive and
+// `kind` carries the direction, and that rule belongs where the field is.
+export type {
+  CreateHrEmployeeRewardRequest,
+  HrEmployeeReward,
+  HrEmployeeRewardKind,
+  HrEmployeeRewardListFilters,
+  HrEmployeeRewardListResponse,
+  UpdateHrEmployeeRewardRequest,
+} from "./reward";
+
 export type { WorkspaceWakeup, WorkspaceWakeupPage, WorkspaceWakeupFilters, WakeupScope } from "./issue-wakeup";

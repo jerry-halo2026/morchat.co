@@ -296,7 +296,9 @@ describe("HrEmployeesPage", () => {
     openEmployee("Ada Lovelace");
 
     fireEvent.click(screen.getByRole("tab", { name: "Rewards & discipline" }));
-    expect(screen.getByTestId("pending-table-rewards")).toHaveTextContent("No table yet");
+    // Both records have tables now: an unanswered query leaves the section
+    // empty rather than claiming the data does not exist.
+    expect(screen.queryByTestId("pending-table-rewards")).toBeNull();
 
     // Changes has a table now: an unanswered query leaves the section empty
     // rather than claiming the data does not exist.

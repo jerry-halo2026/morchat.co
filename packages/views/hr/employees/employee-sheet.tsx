@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { CalendarClock, History, TriangleAlert, UserRound } from "@morechat/ui/icons";
+import { CalendarClock, TriangleAlert, UserRound } from "@morechat/ui/icons";
 import {
   Sheet,
   SheetContent,
@@ -11,10 +11,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@morechat/ui/components/ui/tabs";
 import { RadarChart } from "@morechat/ui/components/ui/radar-chart";
 import { cn } from "@morechat/ui/lib/utils";
-import { ObjectSectionEmpty } from "../../layout/object-page";
+
 import { CollectionEmptyValue } from "../../layout/collection-list";
 import { useEmployeesCopy } from "./employees-copy";
 import { ChangesTab } from "./employee-changes";
+import { RewardsTab } from "./employee-rewards";
 import {
   abilityAxes,
   discAxes,
@@ -129,13 +130,7 @@ export function EmployeeSheet({
                   <ContractTab row={row} />
                 </TabsContent>
                 <TabsContent value="rewards" className="outline-none">
-                  <div data-testid="pending-table-rewards" data-pending-table="rewards">
-                    <ObjectSectionEmpty
-                      icon={History}
-                      title={copy("rewards_empty_title")}
-                      description={copy("rewards_empty_description")}
-                    />
-                  </div>
+                  <RewardsTab employeeId={row.profile.id} empty={copy("rewards_empty_description")} />
                 </TabsContent>
                 <TabsContent value="history" className="outline-none">
                   <ChangesTab employeeId={row.profile.id} empty={copy("history_empty_description")} />

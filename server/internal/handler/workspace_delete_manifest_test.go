@@ -188,6 +188,16 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	// employee profile, no foreign key, so DeleteWorkspaceWorkbenchLedger clears
 	// them explicitly before the profiles they describe.
 	"hr_employee_change": workspaceDelete,
+	// Rewards and disciplines (WORKBENCH-API §17): a row names an employee profile,
+	// no foreign key behind it, so DeleteWorkspaceWorkbenchLedger clears it
+	// explicitly before the profiles it describes.
+	"hr_employee_reward": workspaceDelete,
+	// HR documents (WORKBENCH-API §18): a generation row names an employee profile
+	// and a template, a template is a workspace-owned body, and neither table has a
+	// foreign key behind it. The generated files themselves are ordinary
+	// attachments, which the same teardown already deletes.
+	"hr_doc_generation": workspaceDelete,
+	"hr_doc_template":   workspaceDelete,
 	// Affiliate distribution (WORKBENCH-API §11): the same treatment — no foreign
 	// key, so DeleteWorkspaceWorkbenchLedger removes them explicitly.
 	"affiliate_product":    workspaceDelete,

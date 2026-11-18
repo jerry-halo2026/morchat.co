@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_hr_doc_template_workspace_kind;

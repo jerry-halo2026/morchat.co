@@ -211,6 +211,12 @@ import type {
   HrEmployeeChange,
   HrEmployeeChangeListResponse,
 } from "../types/change";
+// Rewards and disciplines (§17): its own module (types/reward.ts), because the
+// stored `amount` is always positive and `kind` carries the direction.
+import type {
+  HrEmployeeReward,
+  HrEmployeeRewardListResponse,
+} from "../types/reward";
 
 export const PluginConfigFieldSchema = z.object({
   key: z.string(),
@@ -6148,5 +6154,66 @@ export const HrEmployeeChangeListResponseSchema = z
 
 export const EMPTY_HR_EMPLOYEE_CHANGE_LIST_RESPONSE: HrEmployeeChangeListResponse = {
   changes: [],
+  total: 0,
+};
+
+// ---- employee rewards and disciplines (WORKBENCH-API §17) -------------------
+//
+// Four rules from the contract's response section show up here:
+//
+//   * `kind` stays a plain string: a kind this build does not know must still
+//     render, and folding it into `reward` would relabel somebody's 处分.
+//   * `amount` is a JSON number (§3.1) or null — null is "no money attached",
+//     which is not 0, and is always >= 0 (the sign lives in `kind`).
+//   * `currency` is always a string (the column is NOT NULL, default CNY).
+//   * `decided_on` is a calendar day, the same wire form as the rest of HR.
+
+export const HrEmployeeRewardSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    employee_id: z.string().default(""),
+    kind: z.string().default("reward"),
+    category: workbenchNullableString,
+    reason: z.string().default(""),
+    amount: workbenchNullableNumber,
+    currency: z.string().default("CNY"),
+    decided_on: z.string().default(""),
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_HR_EMPLOYEE_REWARD: HrEmployeeReward = {
+  id: "",
+  workspace_id: "",
+  employee_id: "",
+  kind: "reward",
+  category: null,
+  reason: "",
+  amount: null,
+  currency: "CNY",
+  decided_on: "",
+  note: null,
+  owner_member_id: null,
+  created_by: null,
+  created_at: "",
+  updated_at: "",
+  archived_at: null,
+};
+
+export const HrEmployeeRewardListResponseSchema = z
+  .object({
+    rewards: z.array(HrEmployeeRewardSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_EMPLOYEE_REWARD_LIST_RESPONSE: HrEmployeeRewardListResponse = {
+  rewards: [],
   total: 0,
 };
