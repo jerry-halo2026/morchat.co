@@ -344,6 +344,9 @@ func (h *Handler) GetBdPipeline(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	ctx := r.Context()
 
 	creators, err := h.Queries.BdPipelineCreators(ctx, scope.WorkspaceUUID)
@@ -545,6 +548,9 @@ func bdPerformanceWinRate(sent, accepted bdPerformanceBucket) WorkbenchMetricVal
 func (h *Handler) GetBdPerformance(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	from, to, ok := workbenchPerformanceWindow(w, r)
@@ -912,6 +918,9 @@ func (h *Handler) ListBdActivities(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	query := r.URL.Query()
 	kind, ok := bdEnum(w, optionalString(query.Get("kind")), bdActivityKinds, "kind")
 	if !ok {
@@ -967,6 +976,9 @@ func optionalString(raw string) *string {
 func (h *Handler) CreateBdActivity(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	var req BdActivityRequest
@@ -1056,6 +1068,9 @@ func (h *Handler) GetBdActivity(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	id, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "activityId"), "activity id")
 	if !ok {
 		return
@@ -1075,6 +1090,9 @@ func (h *Handler) GetBdActivity(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateBdActivity(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	current, ok := h.loadBdActivityForWrite(w, r, scope)
@@ -1155,6 +1173,9 @@ func (h *Handler) DeleteBdActivity(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, ok := h.loadBdActivityForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1180,6 +1201,9 @@ func (h *Handler) DeleteBdActivity(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListBdQuotes(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	query := r.URL.Query()
@@ -1235,9 +1259,17 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	var req BdQuoteRequest
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
+	}
+	if req.FeeAmount != nil || req.CommissionRate != nil {
+		if !h.requireWorkbenchCapability(w, r, scope, capCRMAmount) {
+			return
+		}
 	}
 	creator, ok := h.requireCreatorInWorkspace(r.Context(), w, scope.WorkspaceID, req.CreatorID)
 	if !ok {
@@ -1329,6 +1361,9 @@ func (h *Handler) GetBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	id, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "quoteId"), "quote id")
 	if !ok {
 		return
@@ -1354,6 +1389,9 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, ok := h.loadBdQuoteForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1361,6 +1399,11 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 	var req BdQuoteRequest
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
+	}
+	if req.FeeAmount != nil || req.CommissionRate != nil {
+		if !h.requireWorkbenchCapability(w, r, scope, capCRMAmount) {
+			return
+		}
 	}
 	if req.CreatorID != nil && strings.TrimSpace(*req.CreatorID) != "" {
 		writeError(w, http.StatusBadRequest,
@@ -1448,6 +1491,9 @@ func (h *Handler) DeleteBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, ok := h.loadBdQuoteForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1473,6 +1519,9 @@ func (h *Handler) DeleteBdQuote(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListBdCampaigns(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	kind, ok := bdEnum(w, optionalString(r.URL.Query().Get("kind")), bdCampaignKinds, "kind")
@@ -1519,6 +1568,9 @@ func (h *Handler) bdCampaignConflicts(w http.ResponseWriter, r *http.Request, sc
 func (h *Handler) CreateBdCampaign(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	var req BdCampaignRequest
@@ -1621,6 +1673,9 @@ func (h *Handler) GetBdCampaign(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	id, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "campaignId"), "campaign id")
 	if !ok {
 		return
@@ -1640,6 +1695,9 @@ func (h *Handler) GetBdCampaign(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateBdCampaign(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	current, ok := h.loadBdCampaignForWrite(w, r, scope)
@@ -1732,6 +1790,9 @@ func (h *Handler) UpdateBdCampaign(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) DeleteBdCampaign(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	current, ok := h.loadBdCampaignForWrite(w, r, scope)

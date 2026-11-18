@@ -136,6 +136,9 @@ func (h *Handler) GetWorkbenchOverview(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	department, ok := workbenchDepartmentFilter(w, r)
 	if !ok {
 		return
@@ -331,6 +334,9 @@ func (h *Handler) GetWorkbenchOverview(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetWorkbenchCounts(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	department, ok := workbenchDepartmentFilter(w, r)

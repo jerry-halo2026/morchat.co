@@ -59,6 +59,10 @@ type workbenchScope struct {
 	// Department is the aggregate filter from `?department_id=`; the zero value
 	// means "every department".
 	Department pgtype.UUID
+	// Capabilities caches one request's resolved capability set (§24.2). Nil until
+	// the first lookup; a scope is per-request, so the cache never outlives the
+	// membership it was resolved from.
+	Capabilities capabilitySet
 }
 
 // workbenchReadScope resolves the workspace and the caller's membership. It

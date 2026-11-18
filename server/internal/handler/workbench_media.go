@@ -913,6 +913,9 @@ func (h *Handler) ListMediaIPs(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	status := strings.TrimSpace(r.URL.Query().Get("status"))
 	if status != "" && mediaEnumInvalid(status, mediaIPStatuses) {
 		writeError(w, http.StatusBadRequest, "status must be active, paused or ended")
@@ -940,6 +943,9 @@ func (h *Handler) ListMediaIPs(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateMediaIP(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	var req MediaIPRequest
@@ -1003,6 +1009,9 @@ func (h *Handler) GetMediaIP(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	ipID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "ipId"), "ip id")
 	if !ok {
 		return
@@ -1034,6 +1043,9 @@ func (h *Handler) GetMediaIP(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateMediaIP(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	current, ok := h.loadMediaIPForWrite(w, r, scope)
@@ -1108,6 +1120,9 @@ func (h *Handler) DeleteMediaIP(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	current, ok := h.loadMediaIPForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1136,6 +1151,9 @@ func (h *Handler) DeleteMediaIP(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AttachMediaIPAccount(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	ip, ok := h.loadMediaIPForWrite(w, r, scope)
@@ -1190,6 +1208,9 @@ func (h *Handler) DetachMediaIPAccount(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	ip, ok := h.loadMediaIPForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1231,6 +1252,9 @@ func (h *Handler) ListMediaTopics(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	ipID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("ip_id"))), "ip_id")
 	if !ok {
 		return
@@ -1262,6 +1286,9 @@ func (h *Handler) ListMediaTopics(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateMediaTopic(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	var req MediaTopicRequest
@@ -1337,6 +1364,9 @@ func (h *Handler) GetMediaTopic(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	topicID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "topicId"), "topic id")
 	if !ok {
 		return
@@ -1355,6 +1385,9 @@ func (h *Handler) GetMediaTopic(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateMediaTopic(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	current, ok := h.loadMediaTopicForWrite(w, r, scope)
@@ -1445,6 +1478,9 @@ func (h *Handler) DeleteMediaTopic(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	current, ok := h.loadMediaTopicForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1473,6 +1509,9 @@ func (h *Handler) DeleteMediaTopic(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListMediaScripts(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
 		return
 	}
 	topicID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("topic_id"))), "topic_id")
@@ -1510,6 +1549,9 @@ func (h *Handler) ListMediaScripts(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateMediaScript(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	var req MediaScriptRequest
@@ -1599,6 +1641,9 @@ func (h *Handler) GetMediaScript(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	scriptID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "scriptId"), "script id")
 	if !ok {
 		return
@@ -1625,6 +1670,9 @@ func (h *Handler) GetMediaScript(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateMediaScript(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	current, _, ok := h.loadMediaScriptForWrite(w, r, scope)
@@ -1753,6 +1801,9 @@ func (h *Handler) DeleteMediaScript(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	current, _, ok := h.loadMediaScriptForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1781,6 +1832,9 @@ func (h *Handler) DeleteMediaScript(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListMediaShoots(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
 		return
 	}
 	scriptID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("script_id"))), "script_id")
@@ -1821,6 +1875,9 @@ func (h *Handler) ListMediaShoots(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateMediaShoot(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	var req MediaShootRequest
@@ -1905,6 +1962,9 @@ func (h *Handler) GetMediaShoot(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	shootID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "shootId"), "shoot id")
 	if !ok {
 		return
@@ -1927,6 +1987,9 @@ func (h *Handler) GetMediaShoot(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateMediaShoot(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	current, _, topic, ok := h.loadMediaShootForWrite(w, r, scope)
@@ -2008,6 +2071,9 @@ func (h *Handler) UpdateMediaShoot(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) DeleteMediaShoot(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	current, _, _, ok := h.loadMediaShootForWrite(w, r, scope)
@@ -2181,6 +2247,9 @@ func (h *Handler) ListMediaHot(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	capturedOn, ok := workbenchDateValue(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("captured_on"))), "captured_on")
 	if !ok {
 		return
@@ -2208,6 +2277,9 @@ func (h *Handler) ListMediaHot(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateMediaHot(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	var req MediaHotRequest
@@ -2279,6 +2351,9 @@ func (h *Handler) GetMediaHot(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	hotID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "hotId"), "hot id")
 	if !ok {
 		return
@@ -2295,6 +2370,9 @@ func (h *Handler) GetMediaHot(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateMediaHot(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	current, ok := h.loadMediaHotForWrite(w, r, scope)
@@ -2388,6 +2466,9 @@ func (h *Handler) DeleteMediaHot(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	current, ok := h.loadMediaHotForWrite(w, r, scope)
 	if !ok {
 		return
@@ -2413,6 +2494,9 @@ func (h *Handler) DeleteMediaHot(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListMediaBench(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
 		return
 	}
 	ipID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("ip_id"))), "ip_id")
@@ -2446,6 +2530,9 @@ func (h *Handler) ListMediaBench(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateMediaBench(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	var req MediaBenchRequest
@@ -2512,6 +2599,9 @@ func (h *Handler) GetMediaBench(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	benchID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "benchId"), "bench id")
 	if !ok {
 		return
@@ -2528,6 +2618,9 @@ func (h *Handler) GetMediaBench(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateMediaBench(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	current, ok := h.loadMediaBenchForWrite(w, r, scope)
@@ -2620,6 +2713,9 @@ func (h *Handler) DeleteMediaBench(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	current, ok := h.loadMediaBenchForWrite(w, r, scope)
 	if !ok {
 		return
@@ -2654,6 +2750,9 @@ func (h *Handler) AdoptMediaHot(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	hotID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "hotId"), "hot id")
 	if !ok {
 		return
@@ -2674,6 +2773,9 @@ func (h *Handler) AdoptMediaHot(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AdoptMediaBench(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	benchID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "benchId"), "bench id")

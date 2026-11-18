@@ -425,6 +425,9 @@ func (h *Handler) ListAffiliateProducts(w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	clientID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("client_id"))), "client_id")
 	if !ok {
 		return
@@ -512,6 +515,9 @@ func (h *Handler) affiliateProductRef(w http.ResponseWriter, r *http.Request, sc
 func (h *Handler) CreateAffiliateProduct(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	var req AffiliateProductRequest
@@ -618,6 +624,9 @@ func (h *Handler) GetAffiliateProduct(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	productID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "productId"), "product id")
 	if !ok {
 		return
@@ -637,6 +646,9 @@ func (h *Handler) GetAffiliateProduct(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateAffiliateProduct(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	current, ok := h.loadAffiliateProductForWrite(w, r, scope)
@@ -773,6 +785,9 @@ func (h *Handler) DeleteAffiliateProduct(w http.ResponseWriter, r *http.Request)
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, ok := h.loadAffiliateProductForWrite(w, r, scope)
 	if !ok {
 		return
@@ -798,6 +813,9 @@ func (h *Handler) DeleteAffiliateProduct(w http.ResponseWriter, r *http.Request)
 func (h *Handler) ListAffiliatePicks(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	productID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("product_id"))), "product_id")
@@ -852,6 +870,9 @@ func (h *Handler) ListAffiliatePicks(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateAffiliatePick(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	var req AffiliatePickRequest
@@ -958,6 +979,9 @@ func (h *Handler) GetAffiliatePick(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	pickID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "pickId"), "pick id")
 	if !ok {
 		return
@@ -977,6 +1001,9 @@ func (h *Handler) GetAffiliatePick(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateAffiliatePick(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	current, ok := h.loadAffiliatePickForWrite(w, r, scope)
@@ -1075,6 +1102,9 @@ func (h *Handler) DeleteAffiliatePick(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, ok := h.loadAffiliatePickForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1100,6 +1130,9 @@ func (h *Handler) DeleteAffiliatePick(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListAffiliateDaily(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	pickID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("pick_id"))), "pick_id")
@@ -1141,6 +1174,9 @@ func (h *Handler) ListAffiliateDaily(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpsertAffiliateDaily(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	var req AffiliateDailyRequest
@@ -1223,6 +1259,9 @@ func (h *Handler) ListAffiliateSettlements(w http.ResponseWriter, r *http.Reques
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	status := strings.TrimSpace(r.URL.Query().Get("status"))
 	if status != "" && !affiliateSettlementStatuses[status] {
 		writeError(w, http.StatusBadRequest, "invalid status")
@@ -1270,6 +1309,9 @@ func affiliateSettlementWriteAllowed(member db.Member) bool {
 func (h *Handler) CreateAffiliateSettlement(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	if !affiliateSettlementWriteAllowed(scope.Member) {
@@ -1371,6 +1413,9 @@ func (h *Handler) CreateAffiliateSettlement(w http.ResponseWriter, r *http.Reque
 func (h *Handler) UpdateAffiliateSettlement(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	if !affiliateSettlementWriteAllowed(scope.Member) {
@@ -1485,6 +1530,9 @@ func (h *Handler) UpdateAffiliateSettlement(w http.ResponseWriter, r *http.Reque
 func (h *Handler) GetAffiliateSummary(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	department, ok := workbenchDepartmentFilter(w, r)

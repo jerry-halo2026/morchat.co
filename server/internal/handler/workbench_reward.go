@@ -257,6 +257,9 @@ func (h *Handler) ListHrEmployeeRewards(w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	query := r.URL.Query()
 	kind := strings.TrimSpace(query.Get("kind"))
 	if kind != "" && !hrEmployeeRewardKinds[kind] {
@@ -306,6 +309,9 @@ func (h *Handler) ListHrEmployeeRewards(w http.ResponseWriter, r *http.Request) 
 func (h *Handler) CreateHrEmployeeReward(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	var req HrEmployeeRewardRequest
@@ -374,6 +380,9 @@ func (h *Handler) CreateHrEmployeeReward(w http.ResponseWriter, r *http.Request)
 func (h *Handler) UpdateHrEmployeeReward(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrEmployeeRewardForWrite(w, r, scope)
@@ -471,6 +480,9 @@ func (h *Handler) UpdateHrEmployeeReward(w http.ResponseWriter, r *http.Request)
 func (h *Handler) DeleteHrEmployeeReward(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrEmployeeRewardForWrite(w, r, scope)

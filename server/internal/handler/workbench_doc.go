@@ -324,6 +324,9 @@ func (h *Handler) ListHrDocTemplates(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	kind := strings.TrimSpace(r.URL.Query().Get("kind"))
 	if kind != "" && !docgen.ValidKind(kind) {
 		writeError(w, http.StatusBadRequest,
@@ -352,6 +355,9 @@ func (h *Handler) ListHrDocTemplates(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateHrDocTemplate(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	if !requireHrDocWriter(w, scope, "only an owner or admin can create doc templates") {
@@ -410,6 +416,9 @@ func (h *Handler) CreateHrDocTemplate(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateHrDocTemplate(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	if !requireHrDocWriter(w, scope, "only an owner or admin can change doc templates") {
@@ -517,6 +526,9 @@ func (h *Handler) DeleteHrDocTemplate(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
+		return
+	}
 	if !requireHrDocWriter(w, scope, "only an owner or admin can delete doc templates") {
 		return
 	}
@@ -552,6 +564,9 @@ func (h *Handler) DeleteHrDocTemplate(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListHrEmployeeDocuments(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
 		return
 	}
 	employee, ok := h.loadHrDocEmployee(w, r, scope)
@@ -603,6 +618,9 @@ func (h *Handler) ListHrEmployeeDocuments(w http.ResponseWriter, r *http.Request
 func (h *Handler) CreateHrEmployeeDocument(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	if !requireHrDocWriter(w, scope,

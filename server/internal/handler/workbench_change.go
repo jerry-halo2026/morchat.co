@@ -396,6 +396,9 @@ func (h *Handler) ListHrEmployeeChanges(w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	query := r.URL.Query()
 	kind := strings.TrimSpace(query.Get("kind"))
 	if kind != "" && !hrEmployeeChangeKinds[kind] {

@@ -1,4 +1,4 @@
-﻿package handler
+package handler
 
 import (
 	"context"
@@ -226,6 +226,9 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	// DeleteWorkspaceWorkbenchLedger removes them explicitly alongside the topics
 	// whose bare `hot_id` may point at them.
 	"media_hot":   workspaceDelete,
+	// Product-layer capability templates (WORKBENCH-API §24): granting rights is
+	// workspace state, so a deleted workspace must not leave a template behind.
+	"workbench_role_template": workspaceDelete,
 	"media_bench": workspaceDelete,
 	// General manager workbench (WORKBENCH-API 搂13): OKR goals, their key results
 	// and department packages, and the radar signals. No foreign key sits behind

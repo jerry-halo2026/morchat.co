@@ -2627,6 +2627,341 @@ type ProjectResource struct {
 	CreatedBy    pgtype.UUID        `json:"created_by"`
 }
 
+// 一张千川投放账户。`account_id` 是平台 id，不是 UUID：它是数据源的主键，也是所有日报表的外键式引用（仓库规则：不建外键，应用层解析）。
+type QianchuanAccount struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	// 平台广告主 id（18 位整数，按 TEXT 存：超出 int64 就再也不会有精度问题）
+	AccountID string `json:"account_id"`
+	// 平台返回的账户名，原样保存
+	AccountName pgtype.Text `json:"account_name"`
+	// 平台返回的其余列，键名保持官方原样（snake_case）。读方只按名字取值，不做加总——跨结算窗口求和是 bug（§25.2）。
+	Metrics []byte `json:"metrics"`
+	// 拍平快照的版本号（packages/qianchuan-sync 的不可变版本链）；同一天两次采集是两行不同版本。
+	SourceVersion string `json:"source_version"`
+	// 本次采集的时刻。与 stat_date 不同：stat_date 说的是数据属于哪天，captured_at 说的是我们哪一刻看到的。
+	CapturedAt pgtype.Timestamptz `json:"captured_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 投放账户下的达人授权关系（`aweme_auth_list`）。一个达人可以被多个账户投放，因此钱要按 (账户, 达人) 记。
+type QianchuanAnchor struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	AccountID   string      `json:"account_id"`
+	AccountName pgtype.Text `json:"account_name"`
+	// 抖音号 id。同一个达人可以授权给多个投放账户，所以自然键是账户 × 达人
+	AwemeID string `json:"aweme_id"`
+	// 达人昵称，平台原样
+	AwemeName pgtype.Text `json:"aweme_name"`
+	// 平台返回的其余列，键名保持官方原样（snake_case）。读方只按名字取值，不做加总——跨结算窗口求和是 bug（§25.2）。
+	Metrics []byte `json:"metrics"`
+	// 拍平快照的版本号（packages/qianchuan-sync 的不可变版本链）；同一天两次采集是两行不同版本。
+	SourceVersion string `json:"source_version"`
+	// 本次采集的时刻。与 stat_date 不同：stat_date 说的是数据属于哪天，captured_at 说的是我们哪一刻看到的。
+	CapturedAt pgtype.Timestamptz `json:"captured_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 账户余额快照。余额没有历史账本口径（平台只给当下值），所以每次 sync 追加一条快照而不是覆盖：**这是唯一一张按 captured_at 做自然键的千川表**。
+type QianchuanBalance struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	AccountID   string      `json:"account_id"`
+	AccountName pgtype.Text `json:"account_name"`
+	// 账户总余额。**单位是分**（平台 `AccountBalanceGet` 的口径）：26234080 = 262,340.80 元。本表不做元/分换算，换算只发生在展示层
+	Balance pgtype.Numeric `json:"balance"`
+	// 现金余额，分
+	Cash pgtype.Numeric `json:"cash"`
+	// 普通赠款，分
+	CommonGrant pgtype.Numeric `json:"common_grant"`
+	// 有效赠款，分。cash + valid_grant 应等于 balance，导入时对不上只记 warning，不改数
+	ValidGrant pgtype.Numeric `json:"valid_grant"`
+	// 平台返回的其余列，键名保持官方原样（snake_case）。读方只按名字取值，不做加总——跨结算窗口求和是 bug（§25.2）。
+	Metrics []byte `json:"metrics"`
+	// 拍平快照的版本号（packages/qianchuan-sync 的不可变版本链）；同一天两次采集是两行不同版本。
+	SourceVersion string `json:"source_version"`
+	// 本次采集的时刻。与 stat_date 不同：stat_date 说的是数据属于哪天，captured_at 说的是我们哪一刻看到的。
+	CapturedAt pgtype.Timestamptz `json:"captured_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 账户日汇总。**一张表四种切片**：`overall` / `product` / `image` / `live_video` —— 四个 flat 文件是同一组指标列的不同维度切法，拆成四张表会让『这一天花了多少』有四个读法。
+type QianchuanDailyOverall struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	StatDate    pgtype.Date `json:"stat_date"`
+	AccountID   string      `json:"account_id"`
+	AccountName pgtype.Text `json:"account_name"`
+	// overall | product | image | live_video —— 同一组指标列的四种切片，来自四个 flat 文件；不拆表是为了让『某天某账户花了多少』只有一个读法
+	DimKind string `json:"dim_kind"`
+	// 切片维度 id：overall 是计划 id，product 是商品 id，image 是图文素材 id，live_video 是视频 aweme id
+	DimID    pgtype.Text `json:"dim_id"`
+	DimName  pgtype.Text `json:"dim_name"`
+	TopicTag pgtype.Text `json:"topic_tag"`
+	// 花费，元（`stat_cost_for_roi2`；live_video 切片用 `stat_cost_for_roi2_fork`，映射在 cmd/qianchuan-sync）
+	Spend pgtype.Numeric `json:"spend"`
+	// 成交金额，元（`total_pay_order_gmv_for_roi2`）
+	Gmv pgtype.Numeric `json:"gmv"`
+	// 支付订单数（`total_pay_order_count_for_roi2`）
+	OrderCount pgtype.Int8 `json:"order_count"`
+	// 退款金额，元（`total_refund_order_gmv_for_roi2_1h_all`）
+	RefundAmount pgtype.Numeric `json:"refund_amount"`
+	// 1 小时结算口径的结算额（`total_order_settle_amount_for_roi2_1h`）。**不能和 7d/14d/30d/90d 相加**（§25.2）
+	SettleAmount1h pgtype.Numeric `json:"settle_amount_1h"`
+	// 7 天结算口径的结算额（`total_order_settle_amount_for_roi2_7d`）。默认展示口径
+	SettleAmount7d pgtype.Numeric `json:"settle_amount_7d"`
+	// 平台返回的其余列，键名保持官方原样（snake_case）。读方只按名字取值，不做加总——跨结算窗口求和是 bug（§25.2）。
+	Metrics []byte `json:"metrics"`
+	// 拍平快照的版本号（packages/qianchuan-sync 的不可变版本链）；同一天两次采集是两行不同版本。
+	SourceVersion string `json:"source_version"`
+	// 本次采集的时刻。与 stat_date 不同：stat_date 说的是数据属于哪天，captured_at 说的是我们哪一刻看到的。
+	CapturedAt pgtype.Timestamptz `json:"captured_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 全域推广直播维度的日数据（`uni_live`，源文件约 25 MB）。核心列同 §25.1（花费/GMV/订单/退款/1h 与 7d 结算额），**其余五十多列进 `metrics`**；这一族的花费列名带 `_fork` 后缀，映射在 sync 里显式写出。
+type QianchuanDailyUniLive struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	StatDate    pgtype.Date `json:"stat_date"`
+	AccountID   string      `json:"account_id"`
+	AccountName pgtype.Text `json:"account_name"`
+	// 直播间/达人维度 id（`uni_live` 的 dim）
+	DimID pgtype.Text `json:"dim_id"`
+	// 维度名（直播间标题或达人名，平台原样，可能含 # 话题）
+	DimName pgtype.Text `json:"dim_name"`
+	// 花费，元。这一族平台用 `stat_cost_for_roi2_fork` 命名，映射在 cmd/qianchuan-sync
+	Spend        pgtype.Numeric `json:"spend"`
+	Gmv          pgtype.Numeric `json:"gmv"`
+	OrderCount   pgtype.Int8    `json:"order_count"`
+	RefundAmount pgtype.Numeric `json:"refund_amount"`
+	// 1 小时结算口径的结算额。**不能和 7d 相加**（§25.2）
+	SettleAmount1h pgtype.Numeric `json:"settle_amount_1h"`
+	// 7 天结算口径的结算额
+	SettleAmount7d pgtype.Numeric `json:"settle_amount_7d"`
+	// 平台返回的其余列，键名保持官方原样（snake_case）。读方只按名字取值，不做加总——跨结算窗口求和是 bug（§25.2）。
+	Metrics []byte `json:"metrics"`
+	// 拍平快照的版本号（packages/qianchuan-sync 的不可变版本链）；同一天两次采集是两行不同版本。
+	SourceVersion string `json:"source_version"`
+	// 本次采集的时刻。与 stat_date 不同：stat_date 说的是数据属于哪天，captured_at 说的是我们哪一刻看到的。
+	CapturedAt pgtype.Timestamptz `json:"captured_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 全域推广视频维度的日数据（`uni_video`，源文件约 16 MB）。与 845 同构，拆开是因为维度的语义不同（直播间 vs 短视频），且两张源表各自更新。
+type QianchuanDailyUniVideo struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	StatDate    pgtype.Date `json:"stat_date"`
+	AccountID   string      `json:"account_id"`
+	AccountName pgtype.Text `json:"account_name"`
+	// 视频（aweme item）id
+	DimID pgtype.Text `json:"dim_id"`
+	// 视频标题，平台原样
+	DimName pgtype.Text `json:"dim_name"`
+	// 花费，元（`stat_cost_for_roi2`）
+	Spend        pgtype.Numeric `json:"spend"`
+	Gmv          pgtype.Numeric `json:"gmv"`
+	OrderCount   pgtype.Int8    `json:"order_count"`
+	RefundAmount pgtype.Numeric `json:"refund_amount"`
+	// 1 小时结算口径的结算额。**不能和 7d 相加**（§25.2）
+	SettleAmount1h pgtype.Numeric `json:"settle_amount_1h"`
+	// 7 天结算口径的结算额
+	SettleAmount7d pgtype.Numeric `json:"settle_amount_7d"`
+	// 平台返回的其余列，键名保持官方原样（snake_case）。读方只按名字取值，不做加总——跨结算窗口求和是 bug（§25.2）。
+	Metrics []byte `json:"metrics"`
+	// 拍平快照的版本号（packages/qianchuan-sync 的不可变版本链）；同一天两次采集是两行不同版本。
+	SourceVersion string `json:"source_version"`
+	// 本次采集的时刻。与 stat_date 不同：stat_date 说的是数据属于哪天，captured_at 说的是我们哪一刻看到的。
+	CapturedAt pgtype.Timestamptz `json:"captured_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 素材档案。视频 / 图片 / 图文三种形态共用一张表（`kind` 区分）：它们的档案字段高度重叠，低效/原创两个标记来自单独一个 flag 文件，导入时按 (account_id, material_id) 合并。
+type QianchuanMaterial struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	// video | image | carousel —— 三个 flat 文件（material_video / material_image / material_carousel）加上 material_flag 的两种布尔
+	Kind string `json:"kind"`
+	// 素材 id。图文没有 video_id/image_id，只有它
+	MaterialID  string      `json:"material_id"`
+	AccountID   pgtype.Text `json:"account_id"`
+	AccountName pgtype.Text `json:"account_name"`
+	Filename    pgtype.Text `json:"filename"`
+	VideoID     pgtype.Text `json:"video_id"`
+	ImageID     pgtype.Text `json:"image_id"`
+	Width       pgtype.Int4 `json:"width"`
+	Height      pgtype.Int4 `json:"height"`
+	SizeBytes   pgtype.Int8 `json:"size_bytes"`
+	Duration    pgtype.Int4 `json:"duration"`
+	Format      pgtype.Text `json:"format"`
+	ImageMode   pgtype.Text `json:"image_mode"`
+	IsAiCreate  pgtype.Bool `json:"is_ai_create"`
+	// 来自 material_flag.csv：平台判定的低效素材
+	IsInefficient pgtype.Bool `json:"is_inefficient"`
+	// 来自 material_flag.csv：是否原创
+	IsOriginal pgtype.Bool        `json:"is_original"`
+	Source     pgtype.Text        `json:"source"`
+	Signature  pgtype.Text        `json:"signature"`
+	Tag        pgtype.Text        `json:"tag"`
+	CreateTime pgtype.Timestamptz `json:"create_time"`
+	// 挂到内容侧脚本（`media_script`）上的桥，NULL 表示未挂。仓库规则：不建外键，应用层校验同工作区
+	MediaScriptID pgtype.UUID `json:"media_script_id"`
+	// 平台返回的其余列，键名保持官方原样（snake_case）。读方只按名字取值，不做加总——跨结算窗口求和是 bug（§25.2）。
+	Metrics []byte `json:"metrics"`
+	// 拍平快照的版本号（packages/qianchuan-sync 的不可变版本链）；同一天两次采集是两行不同版本。
+	SourceVersion string `json:"source_version"`
+	// 本次采集的时刻。与 stat_date 不同：stat_date 说的是数据属于哪天，captured_at 说的是我们哪一刻看到的。
+	CapturedAt pgtype.Timestamptz `json:"captured_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 平台操作日志（`oplog`）。这是我们**没有**做过的改动的唯一记录：投放写操作不在本批，所以这张表是审计面而不是执行面。
+type QianchuanOplog struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	// 平台日志 id
+	LogID       string      `json:"log_id"`
+	AccountID   pgtype.Text `json:"account_id"`
+	AccountName pgtype.Text `json:"account_name"`
+	ObjectType  pgtype.Text `json:"object_type"`
+	// 被操作对象 id（计划/素材…），TEXT：三种 id 混在一列
+	ObjectID   pgtype.Text `json:"object_id"`
+	ObjectName pgtype.Text `json:"object_name"`
+	// 平台动作枚举原样
+	Action pgtype.Text `json:"action"`
+	// 平台原文（含变更前后值），不解析
+	Content    pgtype.Text        `json:"content"`
+	CreateTime pgtype.Timestamptz `json:"create_time"`
+	// 平台返回的其余列，键名保持官方原样（snake_case）。读方只按名字取值，不做加总——跨结算窗口求和是 bug（§25.2）。
+	Metrics []byte `json:"metrics"`
+	// 拍平快照的版本号（packages/qianchuan-sync 的不可变版本链）；同一天两次采集是两行不同版本。
+	SourceVersion string `json:"source_version"`
+	// 本次采集的时刻。与 stat_date 不同：stat_date 说的是数据属于哪天，captured_at 说的是我们哪一刻看到的。
+	CapturedAt pgtype.Timestamptz `json:"captured_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 千川计划档案。只存档案字段，计划的当日表现不在本表（每日报表在 daily_* 里，维度是计划 id）。**不提供任何投放写操作**（§25.5）。
+type QianchuanPlan struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	// 平台计划 id（TEXT，同上）
+	PlanID        string      `json:"plan_id"`
+	AccountID     string      `json:"account_id"`
+	AccountName   pgtype.Text `json:"account_name"`
+	Name          pgtype.Text `json:"name"`
+	MarketingGoal pgtype.Text `json:"marketing_goal"`
+	// 平台状态枚举原样（ENABLE / DISABLE / DELETE …），不做翻译
+	Status    pgtype.Text `json:"status"`
+	OptStatus pgtype.Text `json:"opt_status"`
+	// 计划预算，元，两位小数（平台以元下发）
+	Budget     pgtype.Numeric `json:"budget"`
+	BudgetMode pgtype.Text    `json:"budget_mode"`
+	// 目标 ROI，0–1 以外的正数比值，不 clamp：平台给什么存什么
+	Roi2Goal     pgtype.Numeric     `json:"roi2_goal"`
+	SmartBidType pgtype.Text        `json:"smart_bid_type"`
+	CreateTime   pgtype.Timestamptz `json:"create_time"`
+	StartTime    pgtype.Timestamptz `json:"start_time"`
+	EndTime      pgtype.Timestamptz `json:"end_time"`
+	ModifyTime   pgtype.Timestamptz `json:"modify_time"`
+	// 平台返回的其余列，键名保持官方原样（snake_case）。读方只按名字取值，不做加总——跨结算窗口求和是 bug（§25.2）。
+	Metrics []byte `json:"metrics"`
+	// 拍平快照的版本号（packages/qianchuan-sync 的不可变版本链）；同一天两次采集是两行不同版本。
+	SourceVersion string `json:"source_version"`
+	// 本次采集的时刻。与 stat_date 不同：stat_date 说的是数据属于哪天，captured_at 说的是我们哪一刻看到的。
+	CapturedAt pgtype.Timestamptz `json:"captured_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 商品档案（`products`）。只存档案：商品维度的投放表现在 `qianchuan_daily_overall` 的 `dim_kind='product'` 切片里。
+type QianchuanProduct struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	// 平台商品 id
+	ProductID   string      `json:"product_id"`
+	ProductName pgtype.Text `json:"product_name"`
+	Category    pgtype.Text `json:"category"`
+	AccountID   pgtype.Text `json:"account_id"`
+	AccountName pgtype.Text `json:"account_name"`
+	// 累计销量，平台原样（不是本窗口的销量）
+	SellNum pgtype.Int8 `json:"sell_num"`
+	// 库存
+	StockNum  pgtype.Int8        `json:"stock_num"`
+	AuditTime pgtype.Timestamptz `json:"audit_time"`
+	// 平台标签原样
+	Tag pgtype.Text `json:"tag"`
+	// 平台返回的其余列，键名保持官方原样（snake_case）。读方只按名字取值，不做加总——跨结算窗口求和是 bug（§25.2）。
+	Metrics []byte `json:"metrics"`
+	// 拍平快照的版本号（packages/qianchuan-sync 的不可变版本链）；同一天两次采集是两行不同版本。
+	SourceVersion string `json:"source_version"`
+	// 本次采集的时刻。与 stat_date 不同：stat_date 说的是数据属于哪天，captured_at 说的是我们哪一刻看到的。
+	CapturedAt pgtype.Timestamptz `json:"captured_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 对账快照。`acct_*` 是平台侧的口径；台账侧的数字由 `GET /ads/recon` 现算（Σ daily_overall），两边差额就是这张表存在的理由。
+type QianchuanRecon struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	AccountID   string      `json:"account_id"`
+	AccountName pgtype.Text `json:"account_name"`
+	// 平台的推广目的分组（ALL / LIVE_PROM_GOODS …）
+	Goal string `json:"goal"`
+	// 平台侧账户消耗合计，元
+	AcctCost pgtype.Numeric `json:"acct_cost"`
+	// 平台侧成交合计，元
+	AcctGmv pgtype.Numeric `json:"acct_gmv"`
+	// 平台侧订单合计
+	AcctOrders pgtype.Int8 `json:"acct_orders"`
+	// 平台返回的其余列，键名保持官方原样（snake_case）。读方只按名字取值，不做加总——跨结算窗口求和是 bug（§25.2）。
+	Metrics []byte `json:"metrics"`
+	// 拍平快照的版本号（packages/qianchuan-sync 的不可变版本链）；同一天两次采集是两行不同版本。
+	SourceVersion string `json:"source_version"`
+	// 本次采集的时刻。与 stat_date 不同：stat_date 说的是数据属于哪天，captured_at 说的是我们哪一刻看到的。
+	CapturedAt pgtype.Timestamptz `json:"captured_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+// 违规事件。只读：本批不做申诉，也不改平台状态。
+type QianchuanViolation struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	// 平台违规事件 id
+	EventID     string             `json:"event_id"`
+	AccountID   pgtype.Text        `json:"account_id"`
+	AccountName pgtype.Text        `json:"account_name"`
+	AdID        pgtype.Text        `json:"ad_id"`
+	CreateTime  pgtype.Timestamptz `json:"create_time"`
+	IllegalType pgtype.Text        `json:"illegal_type"`
+	// 平台给的严重度分
+	Score pgtype.Int4 `json:"score"`
+	// 平台状态枚举原样（TIMEOUT / FAILAPPEAL …）。**逾期未处理**是本批唯一一个『打开状态』的来源，指标 `qianchuan.violation.open` 读它
+	Status pgtype.Text `json:"status"`
+	// 平台原文（很长），不截断
+	RejectReason pgtype.Text `json:"reject_reason"`
+	// 平台返回的其余列，键名保持官方原样（snake_case）。读方只按名字取值，不做加总——跨结算窗口求和是 bug（§25.2）。
+	Metrics []byte `json:"metrics"`
+	// 拍平快照的版本号（packages/qianchuan-sync 的不可变版本链）；同一天两次采集是两行不同版本。
+	SourceVersion string `json:"source_version"`
+	// 本次采集的时刻。与 stat_date 不同：stat_date 说的是数据属于哪天，captured_at 说的是我们哪一刻看到的。
+	CapturedAt pgtype.Timestamptz `json:"captured_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
 type QuickAction struct {
 	ID            pgtype.UUID        `json:"id"`
 	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
@@ -3049,6 +3384,19 @@ type WecomInstallSession struct {
 	ErrorMessage       pgtype.Text        `json:"error_message"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+}
+
+// Capability set granted to one job title in one workspace (WORKBENCH-API §24). No foreign key; soft delete via archived_at.
+type WorkbenchRoleTemplate struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	// Matched against hr_employee_profile.job_title (case-insensitively) when a member's capabilities are resolved.
+	JobTitle string `json:"job_title"`
+	// Capability constants from server/internal/handler/workbench_capability.go, e.g. {crm.read,crm.write}. Unknown values are ignored on read.
+	Capabilities []string           `json:"capabilities"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt   pgtype.Timestamptz `json:"archived_at"`
 }
 
 type Workspace struct {

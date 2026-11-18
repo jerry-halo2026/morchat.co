@@ -141,6 +141,9 @@ func (h *Handler) GetWorkbenchFinance(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	department, ok := workbenchDepartmentFilter(w, r)
 	if !ok {
 		return
@@ -226,6 +229,9 @@ func (h *Handler) ListWorkbenchFinanceMonths(w http.ResponseWriter, r *http.Requ
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	month, ok := workbenchMonthValue(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("month"))), "month", true)
 	if !ok {
 		return
@@ -255,6 +261,9 @@ func (h *Handler) ListWorkbenchFinanceMonths(w http.ResponseWriter, r *http.Requ
 func (h *Handler) UpsertWorkbenchFinanceMonth(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMAmount) {
 		return
 	}
 	// The entry is workspace-wide bookkeeping — it has no owner column a member

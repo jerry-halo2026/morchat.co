@@ -144,6 +144,10 @@ import type {
   WorkbenchFinanceResponse,
   // Batch CSV import (WORKBENCH-API §23).
   ImportPreviewResponse,
+  // Capabilities (WORKBENCH-API §24).
+  WorkbenchCapabilitiesResponse,
+  WorkbenchRoleTemplate,
+  WorkbenchRoleTemplateListResponse,
 } from "../types";
 import type { CloudRuntimeNode } from "../runtimes/cloud-runtime";
 import type { CreateFeedbackResponse } from "../feedback/types";
@@ -7019,4 +7023,62 @@ export const EMPTY_IMPORT_PREVIEW_RESPONSE: ImportPreviewResponse = {
   committed: 0,
   rows: [],
   errors: [],
+};
+
+// --- Capabilities (docs/engineering/WORKBENCH-API.md §24) -------------------
+//
+// The server resolves what the caller may do (§24.2: role → job-title template →
+// department default → read-only fallback); the client never computes it. These
+// schemas are the boundary defense: a missing field degrades to "no capabilities",
+// which hides entry points instead of offering a button that 403s.
+//
+// `capabilities` is `z.array(z.string())`, not an enum union: a server that learns a
+// new capability must not blank the whole response for an older client, and an unknown
+// string simply never matches a known one.
+export const WorkbenchCapabilitiesResponseSchema = z
+  .object({
+    capabilities: z.array(z.string()).default([]),
+    source: z.string().default("fallback"),
+    role: z.string().default("member"),
+    visibility: z.string().default("transparent"),
+  })
+  .loose();
+
+export const EMPTY_WORKBENCH_CAPABILITIES_RESPONSE: WorkbenchCapabilitiesResponse = {
+  capabilities: [],
+  source: "fallback",
+  role: "member",
+  visibility: "transparent",
+};
+
+export const WorkbenchRoleTemplateSchema = z
+  .object({
+    id: z.string().default(""),
+    workspace_id: z.string().default(""),
+    job_title: z.string().default(""),
+    capabilities: z.array(z.string()).default([]),
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+  })
+  .loose();
+
+export const EMPTY_WORKBENCH_ROLE_TEMPLATE: WorkbenchRoleTemplate = {
+  id: "",
+  workspace_id: "",
+  job_title: "",
+  capabilities: [],
+  created_at: "",
+  updated_at: "",
+};
+
+export const WorkbenchRoleTemplateListResponseSchema = z
+  .object({
+    templates: z.array(WorkbenchRoleTemplateSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_WORKBENCH_ROLE_TEMPLATE_LIST_RESPONSE: WorkbenchRoleTemplateListResponse = {
+  templates: [],
+  total: 0,
 };

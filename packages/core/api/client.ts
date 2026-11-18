@@ -212,6 +212,14 @@ import type {
   BdCampaignListResponse,
   BdPerformance,
   BdPerformanceFilters,
+  // 千川投放 (§25) — reads only; `cmd/qianchuan-sync` is the writer.
+  AdsAccountListResponse,
+  AdsMaterialListResponse,
+  AdsPlanListResponse,
+  AdsReconListResponse,
+  AdsSummary,
+  AdsSummaryFilters,
+  AdsViolationListResponse,
   BdPipeline,
   BdQuote,
   BdQuoteListFilters,
@@ -226,6 +234,9 @@ import type {
   WorkbenchFinanceResponse,
   // Batch CSV import (WORKBENCH-API §23).
   ImportKind,
+  WorkbenchCapabilitiesResponse,
+  WorkbenchRoleTemplate,
+  WorkbenchRoleTemplateListResponse,
   ImportPreviewResponse,
   WorkbenchFinanceMonth,
   WorkbenchFinanceMonthListResponse,
@@ -840,6 +851,12 @@ import {
   EMPTY_BD_PIPELINE,
   ImportPreviewResponseSchema,
   EMPTY_IMPORT_PREVIEW_RESPONSE,
+  WorkbenchCapabilitiesResponseSchema,
+  EMPTY_WORKBENCH_CAPABILITIES_RESPONSE,
+  WorkbenchRoleTemplateSchema,
+  EMPTY_WORKBENCH_ROLE_TEMPLATE,
+  WorkbenchRoleTemplateListResponseSchema,
+  EMPTY_WORKBENCH_ROLE_TEMPLATE_LIST_RESPONSE,
   BdPerformanceSchema,
   EMPTY_BD_PERFORMANCE,
   WorkbenchCountsResponseSchema,
@@ -977,6 +994,23 @@ import {
   type IssueViewPreference,
   type CreateIssueViewRequest,
 } from "./schemas";
+
+// 千川投放的响应解析器（WORKBENCH-API §25）。单独一个模块，因为它只有读：
+// 写入口是 `cmd/qianchuan-sync`，这里没有对应的 mutation 要一起放。
+import {
+  AdsSummarySchema,
+  EMPTY_ADS_SUMMARY,
+  AdsAccountListSchema,
+  EMPTY_ADS_ACCOUNTS,
+  AdsPlanListSchema,
+  EMPTY_ADS_PLANS,
+  AdsMaterialListSchema,
+  EMPTY_ADS_MATERIALS,
+  AdsViolationListSchema,
+  EMPTY_ADS_VIOLATIONS,
+  AdsReconListSchema,
+  EMPTY_ADS_RECON,
+} from "./qianchuan";
 
 /** Identifies the calling client to the server.
  *  Sent on every HTTP request as X-Client-Platform / X-Client-Version /
@@ -4320,6 +4354,50 @@ export class ApiClient {
    * a normal answer, not an API error. Only a malformed request (bad `kind`, non-CSV
    * content type, oversized body) throws.
    */
+  // Capabilities (docs/engineering/WORKBENCH-API.md §24). The server resolves what
+  // the caller may do; the client reads it once and hides entry points. Reads are
+  // member-wide — this is not an access-check API, it is a rendering hint whose
+  // authority is the 403 the real write would return.
+  async getWorkbenchCapabilities(): Promise<WorkbenchCapabilitiesResponse> {
+    const raw = await this.fetch<unknown>("/api/workbench/capabilities");
+    return parseWithFallback(
+      raw,
+      WorkbenchCapabilitiesResponseSchema,
+      EMPTY_WORKBENCH_CAPABILITIES_RESPONSE,
+      { endpoint: "GET /api/workbench/capabilities" },
+    );
+  }
+
+  async listWorkbenchRoleTemplates(): Promise<WorkbenchRoleTemplateListResponse> {
+    const raw = await this.fetch<unknown>("/api/workbench/role-templates");
+    return parseWithFallback(
+      raw,
+      WorkbenchRoleTemplateListResponseSchema,
+      EMPTY_WORKBENCH_ROLE_TEMPLATE_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/role-templates" },
+    );
+  }
+
+  /** `PUT` replaces the whole set for one job title (owner/admin only). */
+  async putWorkbenchRoleTemplate(
+    jobTitle: string,
+    capabilities: string[],
+  ): Promise<WorkbenchRoleTemplate> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/role-templates/${encodeURIComponent(jobTitle)}`,
+      { method: "PUT", body: JSON.stringify({ capabilities }) },
+    );
+    return parseWithFallback(raw, WorkbenchRoleTemplateSchema, EMPTY_WORKBENCH_ROLE_TEMPLATE, {
+      endpoint: "PUT /api/workbench/role-templates/:jobTitle",
+    });
+  }
+
+  /** Removing a template returns its holders to the next resolution step. */
+  async deleteWorkbenchRoleTemplate(jobTitle: string): Promise<void> {
+    await this.fetch(`/api/workbench/role-templates/${encodeURIComponent(jobTitle)}`, {
+      method: "DELETE",
+    });
+  }
   async importWorkbenchCsv(params: {
     kind: ImportKind;
     csv: string;
@@ -4906,6 +4984,74 @@ export class ApiClient {
     );
     return parseWithFallback(raw, BdPerformanceSchema, EMPTY_BD_PERFORMANCE, {
       endpoint: "GET /api/workbench/bd/performance",
+    });
+  }
+
+  // 千川投放 (docs/engineering/WORKBENCH-API.md §25). Six reads and no writes:
+  // the only writer is `cmd/qianchuan-sync`, so there is no create/update method
+  // here to call. Every amount carries its `basis` — `summary` takes one of the
+  // five settlement windows per request, and there is no endpoint that adds two.
+  async getAdsSummary(filters: AdsSummaryFilters = {}): Promise<AdsSummary> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/ads/summary${workbenchSearch({
+        from: filters.from,
+        to: filters.to,
+        basis: filters.basis,
+      })}`,
+    );
+    return parseWithFallback(raw, AdsSummarySchema, EMPTY_ADS_SUMMARY, {
+      endpoint: "GET /api/workbench/ads/summary",
+    });
+  }
+
+  async listAdsAccounts(): Promise<AdsAccountListResponse> {
+    const raw = await this.fetch<unknown>(`/api/workbench/ads/accounts`);
+    return parseWithFallback(raw, AdsAccountListSchema, EMPTY_ADS_ACCOUNTS, {
+      endpoint: "GET /api/workbench/ads/accounts",
+    });
+  }
+
+  async listAdsPlans(filters: { account_id?: string; status?: string } = {}): Promise<AdsPlanListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/ads/plans${workbenchSearch({
+        account_id: filters.account_id,
+        status: filters.status,
+      })}`,
+    );
+    return parseWithFallback(raw, AdsPlanListSchema, EMPTY_ADS_PLANS, {
+      endpoint: "GET /api/workbench/ads/plans",
+    });
+  }
+
+  async listAdsMaterials(
+    filters: { account_id?: string; type?: string } = {},
+  ): Promise<AdsMaterialListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/ads/materials${workbenchSearch({
+        account_id: filters.account_id,
+        type: filters.type,
+      })}`,
+    );
+    return parseWithFallback(raw, AdsMaterialListSchema, EMPTY_ADS_MATERIALS, {
+      endpoint: "GET /api/workbench/ads/materials",
+    });
+  }
+
+  async listAdsViolations(filters: { status?: string } = {}): Promise<AdsViolationListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/ads/violations${workbenchSearch({ status: filters.status })}`,
+    );
+    return parseWithFallback(raw, AdsViolationListSchema, EMPTY_ADS_VIOLATIONS, {
+      endpoint: "GET /api/workbench/ads/violations",
+    });
+  }
+
+  async listAdsRecon(filters: { account_id?: string } = {}): Promise<AdsReconListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/ads/recon${workbenchSearch({ account_id: filters.account_id })}`,
+    );
+    return parseWithFallback(raw, AdsReconListSchema, EMPTY_ADS_RECON, {
+      endpoint: "GET /api/workbench/ads/recon",
     });
   }
 

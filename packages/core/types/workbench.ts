@@ -1823,3 +1823,63 @@ export interface ImportPreviewResponse {
   rows: ImportRow[];
   errors: ImportError[];
 }
+
+// --- Capabilities (`GET /api/workbench/capabilities`, WORKBENCH-API §24) -----
+//
+// The product layer's own vocabulary, resolved server-side from role → job-title
+// template → department default → read-only fallback. The client does not compute
+// this; it reads the set and hides what it cannot do. The strings are the wire values
+// (§24.1), so a typo here is a capability that never matches.
+
+export type WorkbenchCapability =
+  | "crm.read"
+  | "crm.write"
+  | "crm.amount"
+  | "crm.settle"
+  | "media.read"
+  | "media.write"
+  | "media.publish"
+  | "hr.read"
+  | "hr.write"
+  | "boss.read"
+  | "ads.read"
+  | "review.accept"
+  | "agent.delegate";
+
+/**
+ * Which resolution step answered, for diagnostics: `role` (owner/admin), `template`
+ * (the member's job title), `department` (the built-in default for their department)
+ * or `fallback` (reads only). It is what makes "why can't I edit this?" answerable
+ * without reading the server logs.
+ */
+export type WorkbenchCapabilitySource = "role" | "template" | "department" | "fallback";
+
+/** `workspace.settings.workbench_visibility` (§24.4). */
+export type WorkbenchVisibility = "transparent" | "department";
+
+export interface WorkbenchCapabilitiesResponse {
+  capabilities: WorkbenchCapability[];
+  source: WorkbenchCapabilitySource;
+  /** The caller's platform role — `member | admin | owner`, verbatim. */
+  role: string;
+  visibility: WorkbenchVisibility;
+}
+
+/**
+ * One job title's capability set. `PUT /role-templates/{jobTitle}` replaces the whole
+ * set; unknown capability strings are dropped server-side, so a response never
+ * carries one this build cannot render.
+ */
+export interface WorkbenchRoleTemplate {
+  id: string;
+  workspace_id: string;
+  job_title: string;
+  capabilities: WorkbenchCapability[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkbenchRoleTemplateListResponse {
+  templates: WorkbenchRoleTemplate[];
+  total: number;
+}

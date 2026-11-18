@@ -881,6 +881,12 @@ deleted_media_ips AS (
 -- raw material a topic is adopted from, so they go in the same statement as the
 -- topics: `media_topic.hot_id` is a bare pointer with no foreign key behind it, and
 -- nothing else in this graph holds either table alive.
+-- Product-layer capability templates (WORKBENCH-API §24). A template grants rights,
+-- so a deleted workspace must not leave one behind for a re-created workspace id to
+-- inherit: nothing else holds this table alive (no foreign key).
+deleted_workbench_role_templates AS (
+    DELETE FROM workbench_role_template WHERE workbench_role_template.workspace_id = $1
+),
 deleted_media_hot AS (
     DELETE FROM media_hot WHERE media_hot.workspace_id = $1
 ),

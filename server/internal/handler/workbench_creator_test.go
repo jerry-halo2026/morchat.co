@@ -64,12 +64,36 @@ func (c *workbenchEvents) last(eventType string) map[string]any {
 
 // workbenchTestMember joins a fresh user to the test workspace with the `member`
 // role — the role that is allowed to read everything and write only its own rows.
+//
+// Since §24 a write also needs a capability, so the fixture gives the member a job
+// title (`商务`) covered by a role template seeded once per test workspace. The
+// template deliberately grants the writes the existing cases exercise and **not**
+// `crm.amount` / `crm.settle`: those two are what the capability cases assert a 403
+// on, and a fixture that granted them would make every such assertion vacuous.
+// Ownership is untouched, so "a member cannot change someone else's row" still holds.
 func workbenchTestMember(t *testing.T) string {
 	t.Helper()
 	suffix := strings.NewReplacer("_", "-", "/", "-").Replace(strings.ToLower(t.Name()))
 	userID := dbfx.User(t, "Workbench Member", fmt.Sprintf("wb-member-%s@multica.ai", suffix))
 	dbfx.Member(t, testWorkspaceID, userID, "member")
+	seedWorkbenchMemberCapabilities(t, userID)
 	return userID
+}
+
+// seedWorkbenchMemberCapabilities gives one test member the baseline job title and,
+// once per workspace, the template that title resolves to.
+func seedWorkbenchMemberCapabilities(t *testing.T, userID string) {
+	t.Helper()
+	dbfx.Insert(t, "hr_employee_profile", testutil.Cols{
+		"workspace_id": testWorkspaceID,
+		"member_id":    userID,
+		"job_title":    "商务",
+	})
+	dbfx.Exec(t, `
+		INSERT INTO workbench_role_template (workspace_id, job_title, capabilities)
+		VALUES ($1, '商务', ARRAY['crm.read','crm.write','crm.amount','crm.settle','media.read','media.write','media.publish','hr.read','hr.write','boss.read','ads.read']::text[])
+		ON CONFLICT (workspace_id, lower(job_title)) WHERE archived_at IS NULL
+		DO NOTHING`, testWorkspaceID)
 }
 
 // workbenchRequest builds a request that acts as userID (empty means the

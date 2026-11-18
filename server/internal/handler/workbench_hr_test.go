@@ -403,7 +403,9 @@ func TestHrScorecardGateAndDuplicate(t *testing.T) {
 // TestHrEmployeeProfilePermissionsAndEvent covers the profile ledger on its own
 // route, without going through a hire.
 func TestHrEmployeeProfilePermissionsAndEvent(t *testing.T) {
-	employeeUserID := workbenchTestMember(t)
+	// A plain member with no capability fixture: this case creates the profile that
+	// fixture would otherwise have created, and the ledger allows one per member.
+	employeeUserID := capabilityMember(t, "hr-profile", "", "")
 
 	req := workbenchRequest(t, "POST", "/api/workbench/hr/employees", map[string]any{
 		"member_id": employeeUserID,

@@ -534,6 +534,9 @@ func (h *Handler) ListGoals(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	cycle := strings.TrimSpace(r.URL.Query().Get("cycle"))
 	status := strings.TrimSpace(r.URL.Query().Get("status"))
 	if status != "" && mediaEnumInvalid(status, goalStatuses) {
@@ -618,6 +621,9 @@ func (h *Handler) CreateGoal(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	var req GoalRequest
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
@@ -683,6 +689,9 @@ func (h *Handler) GetGoal(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	goalID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "goalId"), "goal id")
 	if !ok {
 		return
@@ -722,6 +731,9 @@ func (h *Handler) GetGoal(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateGoal(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	current, ok := h.loadGoalForWrite(w, r, scope)
@@ -811,6 +823,9 @@ func (h *Handler) DeleteGoal(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	current, ok := h.loadGoalForWrite(w, r, scope)
 	if !ok {
 		return
@@ -869,6 +884,9 @@ func (h *Handler) AttachGoalIssue(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	goal, ok := h.loadGoalForWrite(w, r, scope)
 	if !ok {
 		return
@@ -918,6 +936,9 @@ func (h *Handler) AttachGoalIssue(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) DetachGoalIssue(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	goal, ok := h.loadGoalForWrite(w, r, scope)
@@ -982,6 +1003,9 @@ func (h *Handler) CreateGoalKeyResult(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	goal, ok := h.loadGoalForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1035,6 +1059,9 @@ func (h *Handler) UpdateGoalKeyResult(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	current, goal, ok := h.loadGoalKeyResultForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1085,6 +1112,9 @@ func (h *Handler) DeleteGoalKeyResult(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	current, goal, ok := h.loadGoalKeyResultForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1114,6 +1144,9 @@ func (h *Handler) DeleteGoalKeyResult(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateGoalPackage(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	goal, ok := h.loadGoalForWrite(w, r, scope)
@@ -1169,6 +1202,9 @@ func (h *Handler) CreateGoalPackage(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateGoalPackage(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	current, goal, ok := h.loadGoalPackageForWrite(w, r, scope)
@@ -1235,6 +1271,9 @@ func (h *Handler) DeleteGoalPackage(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	current, goal, ok := h.loadGoalPackageForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1263,6 +1302,9 @@ func (h *Handler) DeleteGoalPackage(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListMarketSignals(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	cut := strings.TrimSpace(r.URL.Query().Get("cut"))
@@ -1303,6 +1345,9 @@ func (h *Handler) ListMarketSignals(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateMarketSignal(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	var req MarketSignalRequest
@@ -1371,6 +1416,9 @@ func (h *Handler) CreateMarketSignal(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateMarketSignal(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	current, ok := h.loadMarketSignalForWrite(w, r, scope)
@@ -1452,6 +1500,9 @@ func (h *Handler) DeleteMarketSignal(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	current, ok := h.loadMarketSignalForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1505,6 +1556,9 @@ func goalSignalStatusValue(w http.ResponseWriter, patched *string, current strin
 func (h *Handler) ConvertMarketSignal(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	signalID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "signalId"), "signal id")

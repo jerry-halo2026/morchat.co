@@ -186,6 +186,9 @@ func (h *Handler) ListCreatorHealth(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	sort, ok := workbenchHealthSort(w, r)
 	if !ok {
 		return
@@ -232,6 +235,9 @@ func (h *Handler) ListCreatorHealth(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetCreatorHealth(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	creatorID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "creatorId"), "creator id")

@@ -127,6 +127,9 @@ func (h *Handler) loadCreatorForWrite(w http.ResponseWriter, r *http.Request, sc
 		writeError(w, http.StatusForbidden, "you can only change creators you own")
 		return db.Creator{}, false
 	}
+	if !h.workbenchCrossDepartmentGate(w, r, scope, creator.OwnerMemberID) {
+		return db.Creator{}, false
+	}
 	return creator, true
 }
 
@@ -331,6 +334,9 @@ func (h *Handler) ListCreators(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	kind := strings.TrimSpace(r.URL.Query().Get("kind"))
 	if kind != "" && kind != creatorKindOwned && kind != creatorKindExternal {
 		writeError(w, http.StatusBadRequest, "kind must be owned or external")
@@ -377,6 +383,9 @@ func (h *Handler) ListCreators(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateCreator(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	var req CreatorRequest
@@ -462,6 +471,9 @@ func (h *Handler) GetCreator(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	creatorID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "creatorId"), "creator id")
 	if !ok {
 		return
@@ -508,6 +520,9 @@ func (h *Handler) ListCreatorVideos(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	creatorID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "creatorId"), "creator id")
 	if !ok {
 		return
@@ -541,6 +556,9 @@ func (h *Handler) ListCreatorVideos(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateCreator(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	current, ok := h.loadCreatorForWrite(w, r, scope)
@@ -655,6 +673,9 @@ func (h *Handler) DeleteCreator(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, ok := h.loadCreatorForWrite(w, r, scope)
 	if !ok {
 		return
@@ -682,6 +703,9 @@ func (h *Handler) DeleteCreator(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListCreatorPosts(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	creatorID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("creator_id"))), "creator_id")
@@ -727,6 +751,9 @@ func (h *Handler) ListCreatorPosts(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateCreatorPost(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	var req CreatorPostRequest
@@ -822,6 +849,9 @@ func (h *Handler) CreateCreatorPost(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateCreatorPost(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	current, _, ok := h.loadCreatorPostForWrite(w, r, scope)
@@ -952,6 +982,9 @@ func (h *Handler) DeleteCreatorPost(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, _, ok := h.loadCreatorPostForWrite(w, r, scope)
 	if !ok {
 		return
@@ -979,6 +1012,9 @@ func (h *Handler) DeleteCreatorPost(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListCreatorPostMetrics(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	postID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "postId"), "post id")
@@ -1022,6 +1058,9 @@ func (h *Handler) ListCreatorPostMetrics(w http.ResponseWriter, r *http.Request)
 func (h *Handler) UpsertCreatorPostMetric(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	post, _, ok := h.loadCreatorPostForWrite(w, r, scope)

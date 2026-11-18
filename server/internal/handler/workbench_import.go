@@ -338,6 +338,17 @@ func (h *Handler) ImportWorkbenchCSV(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "kind must be quotes, activities or collabs")
 		return
 	}
+	// An import writes the same ledgers a hand-typed row does, so it needs the same
+	// capabilities: crm.write for all three kinds, crm.amount when the kind carries
+	// money (quotes and collaborations do, follow-ups do not).
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
+	if kind == importKindQuotes || kind == importKindCollabs {
+		if !h.requireWorkbenchCapability(w, r, scope, capCRMAmount) {
+			return
+		}
+	}
 	dryRun, ok := importDryRun(w, r)
 	if !ok {
 		return

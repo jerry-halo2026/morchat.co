@@ -552,6 +552,9 @@ func (h *Handler) ListHrQuestions(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	jobID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("job_id"))), "job_id")
 	if !ok {
 		return
@@ -593,6 +596,9 @@ func (h *Handler) ListHrQuestions(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateHrQuestion(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	var req HrQuestionRequest
@@ -660,6 +666,9 @@ func (h *Handler) GetHrQuestion(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	questionID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "questionId"), "question id")
 	if !ok {
 		return
@@ -682,6 +691,9 @@ func (h *Handler) GetHrQuestion(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateHrQuestion(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrQuestionForWrite(w, r, scope)
@@ -778,6 +790,9 @@ func (h *Handler) DeleteHrQuestion(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
+		return
+	}
 	current, ok := h.loadHrQuestionForWrite(w, r, scope)
 	if !ok {
 		return
@@ -837,6 +852,9 @@ func (h *Handler) ListHrInterviewGuides(w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	candidateID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("candidate_id"))), "candidate_id")
 	if !ok {
 		return
@@ -884,6 +902,9 @@ func (h *Handler) ListHrInterviewGuides(w http.ResponseWriter, r *http.Request) 
 func (h *Handler) CreateHrInterviewGuide(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	var req HrGuideRequest
@@ -981,6 +1002,9 @@ func (h *Handler) GetHrInterviewGuide(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	guideID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "guideId"), "guide id")
 	if !ok {
 		return
@@ -1004,6 +1028,9 @@ func (h *Handler) GetHrInterviewGuide(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateHrInterviewGuide(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, candidate, ok := h.loadHrGuideForWrite(w, r, scope)
@@ -1102,6 +1129,9 @@ func (h *Handler) DeleteHrInterviewGuide(w http.ResponseWriter, r *http.Request)
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
+		return
+	}
 	current, _, ok := h.loadHrGuideForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1132,6 +1162,9 @@ func (h *Handler) DeleteHrInterviewGuide(w http.ResponseWriter, r *http.Request)
 func (h *Handler) AppendHrGuideItem(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	guide, _, ok := h.loadHrGuideForWrite(w, r, scope)
@@ -1182,6 +1215,9 @@ func hrGuideItemIndex(w http.ResponseWriter, raw string, count int) (int, bool) 
 func (h *Handler) UpdateHrGuideItem(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	guide, _, ok := h.loadHrGuideForWrite(w, r, scope)
@@ -1236,6 +1272,9 @@ func (h *Handler) UpdateHrGuideItem(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) DeleteHrGuideItem(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	guide, _, ok := h.loadHrGuideForWrite(w, r, scope)
@@ -1300,6 +1339,9 @@ func (h *Handler) saveHrGuideItems(w http.ResponseWriter, r *http.Request, scope
 func (h *Handler) GenerateHrInterviewGuide(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	var req HrGuideGenerateRequest

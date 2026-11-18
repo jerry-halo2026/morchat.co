@@ -179,6 +179,9 @@ func (h *Handler) ListCrmClients(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
 		row, err := h.Queries.GetCrmClient(r.Context(), db.GetCrmClientParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
 		return row.CreatedAt, err
@@ -208,6 +211,9 @@ func (h *Handler) ListCrmClients(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateCrmClient(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	var req CrmClientRequest
@@ -268,6 +274,9 @@ func (h *Handler) GetCrmClient(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	id, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "clientId"), "client id")
 	if !ok {
 		return
@@ -284,6 +293,9 @@ func (h *Handler) GetCrmClient(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateCrmClient(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	current, ok := h.loadCrmClientForWrite(w, r, scope)
@@ -337,6 +349,9 @@ func (h *Handler) DeleteCrmClient(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, ok := h.loadCrmClientForWrite(w, r, scope)
 	if !ok {
 		return
@@ -363,6 +378,9 @@ func (h *Handler) DeleteCrmClient(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListCrmBriefs(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	status := strings.TrimSpace(r.URL.Query().Get("status"))
@@ -424,6 +442,9 @@ func (h *Handler) workbenchClientRef(w http.ResponseWriter, r *http.Request, sco
 func (h *Handler) CreateCrmBrief(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	var req CrmBriefRequest
@@ -518,6 +539,9 @@ func (h *Handler) GetCrmBrief(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	id, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "briefId"), "brief id")
 	if !ok {
 		return
@@ -534,6 +558,9 @@ func (h *Handler) GetCrmBrief(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateCrmBrief(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	current, ok := h.loadCrmBriefForWrite(w, r, scope)
@@ -631,6 +658,9 @@ func (h *Handler) DeleteCrmBrief(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, ok := h.loadCrmBriefForWrite(w, r, scope)
 	if !ok {
 		return
@@ -657,6 +687,9 @@ func (h *Handler) DeleteCrmBrief(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListCrmCollabs(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	stage := strings.TrimSpace(r.URL.Query().Get("stage"))
@@ -707,9 +740,26 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	var req CrmCollabRequest
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
+	}
+	// Money and settlement are their own capabilities (搂24.1): "may edit a
+	// collaboration" is not "may change what it pays". The check runs on the
+	// fields the request actually touches, so a title rename stays crm.write.
+	if req.QuoteAmount != nil || req.FinalAmount != nil || req.CreatorFee != nil ||
+		req.SampleCost != nil || req.PlatformFee != nil || req.CommissionRate != nil {
+		if !h.requireWorkbenchCapability(w, r, scope, capCRMAmount) {
+			return
+		}
+	}
+	if req.Stage != nil && strings.TrimSpace(*req.Stage) == "settled" {
+		if !h.requireWorkbenchCapability(w, r, scope, capCRMSettle) {
+			return
+		}
 	}
 	brief, ok := h.requireBriefInWorkspace(w, r, scope, req.BriefID)
 	if !ok {
@@ -832,6 +882,11 @@ func (h *Handler) loadCrmCollabForWrite(w http.ResponseWriter, r *http.Request, 
 		writeError(w, http.StatusForbidden, "you can only change collaborations you own")
 		return db.CrmCollab{}, false
 	}
+	// §24.4 write half: with workbench_visibility=department, a row owned by
+	// another department is not this member's to change.
+	if !h.workbenchCrossDepartmentGate(w, r, scope, collab.OwnerMemberID) {
+		return db.CrmCollab{}, false
+	}
 	return collab, true
 }
 
@@ -841,6 +896,9 @@ func (h *Handler) GetCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	id, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "collabId"), "collab id")
 	if !ok {
 		return
@@ -848,6 +906,11 @@ func (h *Handler) GetCrmCollab(w http.ResponseWriter, r *http.Request) {
 	collab, err := h.Queries.GetCrmCollab(r.Context(), db.GetCrmCollabParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
 	if err != nil {
 		writeError(w, http.StatusNotFound, "collab not found")
+		return
+	}
+	// §24.4 read half: in department mode a by-id read of another department's
+	// collaboration answers 403 instead of handing out the row the id names.
+	if !h.workbenchCrossDepartmentGate(w, r, scope, collab.OwnerMemberID) {
 		return
 	}
 	writeJSON(w, http.StatusOK, crmCollabToResponse(collab))
@@ -863,6 +926,9 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, ok := h.loadCrmCollabForWrite(w, r, scope)
 	if !ok {
 		return
@@ -870,6 +936,20 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	var req CrmCollabRequest
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
+	}
+	// Money and settlement are their own capabilities (搂24.1): "may edit a
+	// collaboration" is not "may change what it pays". The check runs on the
+	// fields the request actually touches, so a title rename stays crm.write.
+	if req.QuoteAmount != nil || req.FinalAmount != nil || req.CreatorFee != nil ||
+		req.SampleCost != nil || req.PlatformFee != nil || req.CommissionRate != nil {
+		if !h.requireWorkbenchCapability(w, r, scope, capCRMAmount) {
+			return
+		}
+	}
+	if req.Stage != nil && strings.TrimSpace(*req.Stage) == "settled" {
+		if !h.requireWorkbenchCapability(w, r, scope, capCRMSettle) {
+			return
+		}
 	}
 
 	briefID := current.BriefID
@@ -1028,6 +1108,9 @@ func (h *Handler) DeleteCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, ok := h.loadCrmCollabForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1084,6 +1167,9 @@ func (h *Handler) DeleteCrmCollab(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListCrmSettlements(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	collabID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("collab_id"))), "collab_id")
@@ -1150,6 +1236,14 @@ func (h *Handler) loadCollabForSettlementWrite(w http.ResponseWriter, r *http.Re
 func (h *Handler) CreateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
+	// Settlement money is its own capability (搂24.1): recording or withdrawing a
+	// payment is not covered by "may edit the collaboration".
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMSettle) {
 		return
 	}
 	var req CrmSettlementRequest
@@ -1236,6 +1330,14 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
+	// Settlement money is its own capability (搂24.1): recording or withdrawing a
+	// payment is not covered by "may edit the collaboration".
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMSettle) {
+		return
+	}
 	current, ok := h.loadCrmSettlementForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1309,6 +1411,14 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) DeleteCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
+	// Settlement money is its own capability (搂24.1): recording or withdrawing a
+	// payment is not covered by "may edit the collaboration".
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMSettle) {
 		return
 	}
 	current, ok := h.loadCrmSettlementForWrite(w, r, scope)
