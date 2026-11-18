@@ -73,6 +73,46 @@ export interface Creator {
   created_at: string;
   updated_at: string;
   archived_at: string | null;
+
+  /**
+   * Mirrored from the orange 达人 database (docs/engineering/ORANGE-SYNC.md).
+   *
+   * These are upstream-owned: a sync rewrites them, so a local edit is lost.
+   * `sec_uid` doubles as the mirror identity — `source_system` + `source_id`
+   * name the upstream row, and both are null on a creator someone typed in.
+   */
+  sec_uid: string | null;
+  douyin_id: string | null;
+  dy_uid: string | null;
+  /** Upstream display follower count verbatim ("2.6万"), next to the parsed `fans`. */
+  fans_display: string | null;
+  quote_min: number | null;
+  quote_max: number | null;
+  /** orange outreach stage, verbatim Chinese (未接触 … 已成单 / 已签约 / 排除). */
+  cooperation_intent: string | null;
+  /** orange funnel state: LEAD_NEW | LEAD_CONTACTED | LEAD_DEAL | LEAD_REJECT. */
+  lead_status: string | null;
+  last_dm_at: string | null;
+  likes_total: number | null;
+  following_count: number | null;
+  verify_type: string | null;
+  tags: CreatorTag[];
+  source_type: string | null;
+  source_keyword: string | null;
+  source_rank: number | null;
+  source_system: string | null;
+  source_id: string | null;
+}
+
+/**
+ * One upstream creator tag, copied verbatim from orange's `tags` jsonb array.
+ * The vocabulary is orange's: renaming a tag there rewrites it here on the next
+ * sync, so nothing should key off the name.
+ */
+export interface CreatorTag {
+  id: string;
+  name: string;
+  color: string | null;
 }
 
 export interface CreatorPost {

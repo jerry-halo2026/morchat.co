@@ -672,6 +672,13 @@ func (q *Queries) DeleteWorkspaceSquadsAndSkills(ctx context.Context, workspaceI
 
 const deleteWorkspaceWorkbenchLedger = `-- name: DeleteWorkspaceWorkbenchLedger :exec
 WITH
+-- orange account mapping (787): a workspace that mirrored an upstream 达人
+-- account must not leave the claim behind. Deleting it frees the upstream
+-- account for another workspace, which is what "this workspace is gone" means
+-- for a mirror that is not the source of truth.
+deleted_orange_accounts AS (
+    DELETE FROM orange_account WHERE orange_account.workspace_id = $1
+),
 deleted_settlements AS (
     DELETE FROM crm_settlement WHERE crm_settlement.workspace_id = $1
 ),

@@ -837,6 +837,35 @@ type Creator struct {
 	ArchivedAt       pgtype.Timestamptz `json:"archived_at"`
 	// Content IP this platform account speaks for (media_ip, migration 728). NULL for an account not attached to a persona.
 	MediaIpID pgtype.UUID `json:"media_ip_id"`
+	// orange 抖音 sec_uid; mirror identity together with source_system (785). NULL for a hand-created creator.
+	SecUid   pgtype.Text `json:"sec_uid"`
+	DouyinID pgtype.Text `json:"douyin_id"`
+	DyUid    pgtype.Text `json:"dy_uid"`
+	// Upstream display follower count verbatim ("2.6万"), next to the parsed creator.fans.
+	FansDisplay pgtype.Text    `json:"fans_display"`
+	QuoteMin    pgtype.Numeric `json:"quote_min"`
+	QuoteMax    pgtype.Numeric `json:"quote_max"`
+	// orange outreach stage, verbatim Chinese: 未接触/待发送/已发送/已回复/已报价/寄样中/已成单/已签约/排除.
+	CooperationIntent pgtype.Text `json:"cooperation_intent"`
+	// orange crawl_status funnel state: LEAD_NEW/LEAD_CONTACTED/LEAD_DEAL/LEAD_REJECT.
+	LeadStatus pgtype.Text `json:"lead_status"`
+	// orange dm_time: when the outreach DM was sent.
+	LastDmAt       pgtype.Timestamptz `json:"last_dm_at"`
+	LikesTotal     pgtype.Int8        `json:"likes_total"`
+	FollowingCount pgtype.Int4        `json:"following_count"`
+	VerifyType     pgtype.Text        `json:"verify_type"`
+	// orange tags jsonb array verbatim ([{id, name, color}]), rewritten by every sync.
+	Tags []byte `json:"tags"`
+	// orange source_type: search / comment / manual — how the lead was discovered.
+	SourceType pgtype.Text `json:"source_type"`
+	// orange source_keyword: the search keyword (or comment context) that produced the lead.
+	SourceKeyword pgtype.Text `json:"source_keyword"`
+	// orange source_rank: position in the discovery result the lead came from.
+	SourceRank pgtype.Int4 `json:"source_rank"`
+	// Mirror source system ("orange"); NULL for a hand-created creator.
+	SourceSystem pgtype.Text `json:"source_system"`
+	// Row identity inside source_system (orange: sec_uid).
+	SourceID pgtype.Text `json:"source_id"`
 }
 
 type CreatorPost struct {
@@ -2243,6 +2272,15 @@ type OpsFinanceMonth struct {
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt   pgtype.Timestamptz `json:"archived_at"`
+}
+
+// Which workspace mirrors which orange account (docs/engineering/ORANGE-SYNC.md). account_id is a uuid in the orange database, not a foreign key.
+type OrangeAccount struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	// orange account.id. Unique: one upstream account is mirrored into one workspace only.
+	AccountID pgtype.UUID        `json:"account_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type PersonalAccessToken struct {

@@ -4512,6 +4512,13 @@ export const WorkspacePinnedSchema = z.object({
 const workbenchNullableString = z.string().nullable().default(null);
 const workbenchNullableNumber = z.number().nullable().default(null);
 
+/** orange's own tag vocabulary, copied verbatim (id + name + colour). */
+export const CreatorTagSchema = z.object({
+  id: z.string().default(""),
+  name: z.string().default(""),
+  color: workbenchNullableString,
+}).loose();
+
 export const CreatorSchema = z.object({
   id: z.string(),
   workspace_id: z.string().default(""),
@@ -4537,6 +4544,27 @@ export const CreatorSchema = z.object({
   created_at: z.string().default(""),
   updated_at: z.string().default(""),
   archived_at: workbenchNullableString,
+  // Mirrored from orange (docs/engineering/ORANGE-SYNC.md). Defaults are null
+  // because the ledger surface did not carry them before the mirror existed: an
+  // old server must not fail the parse.
+  sec_uid: workbenchNullableString,
+  douyin_id: workbenchNullableString,
+  dy_uid: workbenchNullableString,
+  fans_display: workbenchNullableString,
+  quote_min: workbenchNullableNumber,
+  quote_max: workbenchNullableNumber,
+  cooperation_intent: workbenchNullableString,
+  lead_status: workbenchNullableString,
+  last_dm_at: workbenchNullableString,
+  likes_total: workbenchNullableNumber,
+  following_count: workbenchNullableNumber,
+  verify_type: workbenchNullableString,
+  tags: z.array(CreatorTagSchema).default([]),
+  source_type: workbenchNullableString,
+  source_keyword: workbenchNullableString,
+  source_rank: workbenchNullableNumber,
+  source_system: workbenchNullableString,
+  source_id: workbenchNullableString,
 }).loose();
 
 export const EMPTY_CREATOR: Creator = {
@@ -4546,6 +4574,11 @@ export const EMPTY_CREATOR: Creator = {
   risk_flag: false, blacklist_reason: null, owner_member_id: null,
   media_ip_project_id: null, created_by: null, created_at: "", updated_at: "",
   archived_at: null,
+  sec_uid: null, douyin_id: null, dy_uid: null, fans_display: null,
+  quote_min: null, quote_max: null, cooperation_intent: null, lead_status: null,
+  last_dm_at: null, likes_total: null, following_count: null, verify_type: null,
+  tags: [], source_type: null, source_keyword: null, source_rank: null,
+  source_system: null, source_id: null,
 };
 
 export const CreatorListResponseSchema = z.object({

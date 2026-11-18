@@ -227,6 +227,11 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"market_signal":        workspaceDelete,
 	"workspace_invitation": workspaceDelete,
 	"workspace_share_link": workspaceDelete,
+	// orange 达人 mirror (785–793, docs/engineering/ORANGE-SYNC.md): the
+	// workspace-owned claim on an upstream orange account, deleted by
+	// DeleteWorkspaceWorkbenchLedger. The mirrored `creator` rows it points at
+	// are ordinary workspace rows and are classified above.
+	"orange_account": workspaceDelete,
 }
 
 func TestWorkspaceDeletionManifestCoversPublicSchema(t *testing.T) {
