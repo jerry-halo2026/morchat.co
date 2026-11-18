@@ -189,6 +189,32 @@ func TestPDFWrapsLongLines(t *testing.T) {
 	}
 }
 
+// TestPDFWrapsLatinByTheDeclaredMetric: `/DW 1000` makes every glyph one em wide, so
+// ASCII has to be measured at a full em as well. Estimating Latin at half an em put
+// the tail of a long sentence past the right margin, which is a visible defect on a
+// printed page.
+func TestPDFWrapsLatinByTheDeclaredMetric(t *testing.T) {
+	lines := wrapLine(strings.Repeat("a", 40), 451)
+	if len(lines) != 2 {
+		t.Fatalf("40 ASCII runes wrapped into %d lines, want 2 (37 per line)", len(lines))
+	}
+	if got := len([]rune(lines[0])); got != 37 {
+		t.Fatalf("first wrapped line = %d runes, want 37", got)
+	}
+
+	// The mixed sentence from the certificate: 12 pt per rune, so it must break at
+	// 37 runes and never exceed the 451 pt column.
+	mixed := "兹证明 张三 先生/女士，自 2023-04-10 起在我公司 研发部 部门担任 高级后端工程师 一职，现仍在职。"
+	for i, line := range wrapLine(mixed, 451) {
+		if runes := len([]rune(line)); runes > 37 {
+			t.Fatalf("wrapped line %d has %d runes, want <= 37: %q", i, runes, line)
+		}
+	}
+	if joined := strings.Join(wrapLine(mixed, 451), ""); joined != mixed {
+		t.Fatal("wrapping lost or reordered characters")
+	}
+}
+
 // TestPDFEncodesAstralAndControlRunes: UCS-2 cannot carry an astral rune, and a tab
 // has no meaning in the text object, so both are substituted rather than emitted as
 // a malformed hex string.

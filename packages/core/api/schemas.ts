@@ -217,6 +217,17 @@ import type {
   HrEmployeeReward,
   HrEmployeeRewardListResponse,
 } from "../types/reward";
+// HR documents (§18): its own module (types/doc.ts). The generated file is a
+// different contract from the profile it is about — the values are a snapshot, an
+// unknown placeholder is kept rather than blanked, and a builtin template is
+// read-only.
+import type {
+  CreateHrDocGenerationResponse,
+  HrDocGeneration,
+  HrDocGenerationListResponse,
+  HrDocTemplate,
+  HrDocTemplateListResponse,
+} from "../types/doc";
 
 export const PluginConfigFieldSchema = z.object({
   key: z.string(),
@@ -6216,4 +6227,124 @@ export const HrEmployeeRewardListResponseSchema = z
 export const EMPTY_HR_EMPLOYEE_REWARD_LIST_RESPONSE: HrEmployeeRewardListResponse = {
   rewards: [],
   total: 0,
+};
+
+// HR documents (docs/engineering/WORKBENCH-API.md §18). The templates and the
+// generation ledger live in their own module (types/doc.ts).
+//
+// Rules from the contract that show up here:
+//
+//   * `kind` stays a plain string: a kind this build does not know must still
+//     render, and folding it into `other` would relabel a real document.
+//   * `placeholders` defaults to `[]` rather than failing: it is derived from
+//     `body` server-side, and a client built before that field existed still gets a
+//     usable template.
+//   * `builtin` defaults to `false` — the safe reading, because the read-only rules
+//     are what a client gates the edit affordance on.
+//   * `values` defaults to `{}` and `url` / `filename` / `template_id` /
+//     `attachment_id` default to null-or-empty: the attachment can be deleted from
+//     the file list, and that must not break the row rendered next to it.
+//   * `format` stays a string for the same reason `kind` does.
+
+export const HrDocTemplateSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    name: z.string().default(""),
+    kind: z.string().default("other"),
+    body: z.string().default(""),
+    builtin: z.boolean().default(false),
+    placeholders: z.array(z.string()).default([]),
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_HR_DOC_TEMPLATE: HrDocTemplate = {
+  id: "",
+  workspace_id: "",
+  name: "",
+  kind: "other",
+  body: "",
+  builtin: false,
+  placeholders: [],
+  owner_member_id: null,
+  created_by: null,
+  created_at: "",
+  updated_at: "",
+  archived_at: null,
+};
+
+export const HrDocTemplateListResponseSchema = z
+  .object({
+    templates: z.array(HrDocTemplateSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_DOC_TEMPLATE_LIST_RESPONSE: HrDocTemplateListResponse = {
+  templates: [],
+  total: 0,
+};
+
+export const HrDocGenerationSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    employee_id: z.string().default(""),
+    template_id: workbenchNullableString,
+    template_name: z.string().default(""),
+    format: z.string().default("docx"),
+    attachment_id: workbenchNullableString,
+    url: z.string().default(""),
+    filename: z.string().default(""),
+    values: z.record(z.string(), z.string()).default({}),
+    generated_by: workbenchNullableString,
+    created_at: z.string().default(""),
+  })
+  .loose();
+
+export const EMPTY_HR_DOC_GENERATION: HrDocGeneration = {
+  id: "",
+  workspace_id: "",
+  employee_id: "",
+  template_id: null,
+  template_name: "",
+  format: "docx",
+  attachment_id: null,
+  url: "",
+  filename: "",
+  values: {},
+  generated_by: null,
+  created_at: "",
+};
+
+export const HrDocGenerationListResponseSchema = z
+  .object({
+    documents: z.array(HrDocGenerationSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_DOC_GENERATION_LIST_RESPONSE: HrDocGenerationListResponse = {
+  documents: [],
+  total: 0,
+};
+
+// `POST .../documents` answers `{ document, warnings }`. A malformed envelope still
+// has to yield a document, because the caller navigates on it; `warnings` defaults
+// to an empty array, which is the "nothing was kept verbatim" reading.
+export const HrDocGenerationEnvelopeSchema = z
+  .object({
+    document: HrDocGenerationSchema,
+    warnings: z.array(z.string()).default([]),
+  })
+  .loose();
+
+export const EMPTY_HR_DOC_GENERATION_ENVELOPE: CreateHrDocGenerationResponse = {
+  document: EMPTY_HR_DOC_GENERATION,
+  warnings: [],
 };

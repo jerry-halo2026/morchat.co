@@ -1496,6 +1496,306 @@ grade: P5 -> P6; contract_end: 2026-12-31 -> 2027-12-31
 - **没有游标分页**：`?limit=` 有硬上限（`workbenchLimit`），异动的读取口径是「这个人/这段时间发生了什么」，量级远小于其它台账；真需要翻页时按 `(effective_on, created_at, id)` 加 keyset，索引已经带上第一列。
 - **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举未加 `hr_employee_change`。
 
+## 17. 员工奖惩契约（奖励 + 处分）
+
+员工花名册的「奖惩」页签是人事最后一张「待建表」空态：库里没有任何存储，谁被表扬、谁被处分、什么时候、因为什么，全都只活在聊天记录里。
+
+这一批补的就是这个答案：
+
+```
+hr_employee_profile（人）
+   ↓ POST /hr/rewards（月度之星 +500 / 迟到 500 —— 方向由 kind 决定，不由正负号）
+hr_employee_reward[]（一条决定一行，按 decided_on DESC 读）
+```
+
+关键取舍有两条：**金额一律按正数存，方向由 `kind` 决定**（§17.4）；**这张表是事实记录，不参与任何汇总**（§17.2）。
+
+不做奖惩审批、不做汇总统计、不做附件、不做 UI——那四件分别是「谁批的 / 一共发了多少 / 证明材料 / 长什么样」，与「这个人什么时候因为什么被奖励或处分」无关。
+
+### 17.1 迁移号段
+
+| 号 | 文件 | 内容 |
+| --- | --- | --- |
+| 775 | `775_hr_employee_reward` | 表 `hr_employee_reward`（+ `COMMENT ON TABLE` / `COMMENT ON COLUMN`） |
+| 776 | `776_hr_employee_reward_employee_idx` | `(workspace_id, employee_id, decided_on DESC)` |
+| 777 | `777_hr_employee_reward_kind_idx` | `(workspace_id, kind)` |
+
+两个索引都是单语句 `CREATE INDEX CONCURRENTLY`，up 方向逐个登记在 `server/cmd/migrate/main.go` 的 `concurrentIndexCleanups`；down 方向只有 `DROP INDEX CONCURRENTLY IF EXISTS`（不重建索引，故不进 down map）。775 是建表，在事务内，单独一个文件。
+
+### 17.2 表
+
+```sql
+-- 775
+hr_employee_reward(
+  id UUID PK, workspace_id UUID NOT NULL,
+  employee_id UUID NOT NULL,                -- 指向 hr_employee_profile.id
+  kind TEXT NOT NULL CHECK (kind IN ('reward','discipline')),
+  category TEXT,                            -- 自由文本（"月度之星" / "迟到"），可空
+  reason TEXT NOT NULL,                     -- 发生了什么
+  amount NUMERIC(14,2) CHECK (amount >= 0), -- 奖金/罚金，可空、恒为正
+  currency CHAR(3) NOT NULL DEFAULT 'CNY',
+  decided_on DATE NOT NULL,                 -- 决定日（不是录入日）
+  note TEXT, owner_member_id UUID, created_by UUID,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  archived_at TIMESTAMPTZ)
+```
+
+规则与 B0 一致：无外键、无级联、`archived_at` 软删、每个二级索引单独一个并发文件。
+
+**金额可空**：`NULL` 表示这一笔没有钱（通报表扬、口头警告），不是 0。前端不要用 0 兜底——「发了 0 元」和「没有金额」在列表里是两种意思。
+
+**`amount` 是量级，不是台账金额**：字段名按本批契约取 `amount`（§1 的台账字段命名是 `*_amount`），因为它回答的是「这次奖惩带不带钱、带多少」，不是某笔账的应收应付。它不进任何成本、毛利、现金流口径。
+
+**这张表不参与任何汇总**：`/overview`、`/counts`、月度成本、佣金结算都不读它。别的页面以后要统计「本季度奖金总额」时，自己按 `kind` + `amount` 写一条查询；把某个还没人做过的统计口径预置进表结构（视图、物化列、rollup）只会在口径变的时候多一处要改的地方。
+
+**`decided_on` 是决定日，不是录入日**：3 月补录 2 月的决定记在 2 月，列表按它倒序（§17.3）。读取顺序 `decided_on DESC, created_at DESC, id DESC` 写在 `ListHrEmployeeRewards` 里，后两列只做同一天 / 同一批写入的稳定兜底。
+
+**`owner_member_id` 是写权限闸门**（与其它台账一致）：行创建时取**员工档案的 owner**——往某个人的档案里记一笔奖惩，属于编辑他的档案。
+
+表级注释（`COMMENT ON TABLE`）写明：金额可空且恒 >= 0、方向由 `kind`、本表不参与任何汇总、读取按 `decided_on DESC`；列注释（`COMMENT ON COLUMN`）单独说明 `amount` 不是成本行。
+
+### 17.3 REST（基址 `/api/workbench/hr/rewards`）
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/rewards` | 列表（`?employee_id=&kind=&from=&to=&limit=`），包裹 `{ rewards, total }` |
+| POST | `/rewards` | 新建一条，**201** |
+| PATCH | `/rewards/{rewardId}` | 可改 `category` / `reason` / `amount` / `currency` / `decided_on` / `note`；改 `employee_id` / `kind` → **400** |
+| DELETE | `/rewards/{rewardId}` | 软删，**204** |
+
+包裹与序列化沿用 §3.1：列表 `{ rewards: T[], total }`，`total` = **本页条数**；单条不包裹；`limit` 默认 50、上限 200（`workbenchLimit`）。
+
+- **没有 `GET /rewards/{id}`**：一行奖惩离开它所在的列表没有意义，页面读的是列表。
+- **`from` / `to` 是 `decided_on` 的闭区间**（`>=` / `<=`），`to < from` → 400。
+- **`kind` 未知值 → 400**（列表与创建同一条消息），因为它是页签的分段维度。
+- **创建必须带 `employee_id` / `kind` / `reason` / `decided_on`**，缺一个 400；`employee_id` 必须是本工作区的员工档案（否则 400）；`reason` 只有空白也算缺（400），因为它是这一行唯一必须回答的问题。
+- **`POST` 没有 `owner_member_id`**：行的 owner 由档案决定（§17.6），目标档案不归你 → 403，而不是把别人的奖惩记成自己的。
+- **`PATCH` 的 body 按 key 集合解析，不是按结构体**：只有已知字段的结构体会把 `{"kind":"reward"}` 静默忽略并回 200，客户端会以为它改成功了。所以 `employee_id` / `kind` → 400「employee_id and kind cannot be edited: delete the row and record a new one」，未知 key 也 400（`unknown field …`）。
+- **`amount: null` 清空金额**；`currency` 传 `null` / `""` 保持原值（列 NOT NULL，一行永远有单位）。其余可空字段（`category` / `note`）传 `null` 或 `""` 都是清空。
+- **`DELETE` 是软删**：记错的一行退出答案，但「有人记过这一笔」留在表里。
+- 金额沿用 §3.1：**JSON number**，服务端从 `NUMERIC(14,2)` 转 `float64`；`decided_on` 与其它 HR 日期同形（`YYYY-MM-DD`）；`currency` 落库前大写，非三位 → 400（`CHAR(3)` 会把短值补空格）。
+
+### 17.4 金额与符号：为什么罚金也是正数
+
+**一笔罚金是 `kind = discipline` 的 500，不是 `kind = reward` 的 -500。**
+
+- 「正数是奖金、负数是罚金」这种约定只有读代码的人记得；任何一次 `SUM(amount)` 都会在没读注释的地方算错。
+- 符号混用会让同一量级的两行排序、比较、分组都变得要额外判断。
+- 方向是分类信息，`kind` 本来就是类别，重复编码两遍等于给同一条事实两个可能互相矛盾的表示（`kind=discipline, amount=+500` 与 `kind=reward, amount=-500` 说的是两件事）。
+
+所以：handler 对负数 **400**（创建与 PATCH 同一条消息），数据库 `CHECK (amount >= 0)` 是兜底——绕过 API 写入的负数也进不来。
+
+### 17.5 `PATCH` 的可改字段
+
+| 字段 | 可改 | 说明 |
+| --- | --- | --- |
+| `category` / `reason` / `note` | ✅ | `reason` 改后仍必须非空白；`null` / `""` 清空可空字段 |
+| `amount` | ✅ | `>= 0`；`null` 清空 |
+| `currency` | ✅ | 三位代码，大写落库；`null` / `""` 保持原值 |
+| `decided_on` | ✅ | `YYYY-MM-DD`；必填字段，传空 → 400 |
+| `employee_id` | ❌ 400 | 换成另一个人 = 换一条记录：删掉重建 |
+| `kind` | ❌ 400 | 处分改成奖励 = 换一条记录：删掉重建 |
+
+允许改的是「打字打错的那些」（分类、事由、金额、币种、日期、备注）；不允许改的是「这一行是关于谁、是奖还是罚」——那两列变了，这一行描述的就是另一件事了。
+
+### 17.6 权限
+
+| 路由 | 判定 |
+| --- | --- |
+| GET（列表） | 任意工作区成员 |
+| POST | 目标档案的 `owner_member_id`（`workbenchCanWrite`）：`owner`/`admin` 全写，`member` 只能给自己 owner 的档案记奖惩 |
+| PATCH / DELETE | 该行自己的 `owner_member_id`：同上，`member` 只能改自己 owner 的行 |
+
+「读任意、写看 owner」沿用 §3 / §15.6 / §16.6：奖惩是档案的一部分，谁能改档案谁能记；把别人的奖惩改成自己的没有入口——行的 owner 由档案决定，不由请求决定。
+
+### 17.7 事件与 query key
+
+事件：写入成功后发 `hr_employee_profile:changed`，payload `{ "id": "<员工档案 id>" }`（不新增事件类型——`packages/core/types/events.ts` 不在本批作用域）。三处写入（`POST`、`PATCH`、`DELETE`）都发同一个事件，因为客户端对它的反应一样：失效员工档案的列表与计数，奖惩列表挂在档案下面。
+
+```
+["reward", wsId, "rewards", filters]
+```
+
+**没有 detail key**：§17.3 没有单条读（见该节）。
+
+`packages/core/hr/reward.ts`（不塞进 `hr/queries.ts` / `hr/mutations.ts`：这个域的失效规则不一样——奖惩行挂在员工档案下面，改一行要连带失效 `employees`）；类型在 `packages/core/types/reward.ts`（**不塞进 `workbench.ts`**），zod 在 `packages/core/api/schemas.ts`，`api/client.ts` 有同名方法（`listHrEmployeeRewards` / `createHrEmployeeReward` / `updateHrEmployeeReward` / `deleteHrEmployeeReward`）。mutation 失效 `rewardKeys.all(wsId)` + `hrKeys.resource(wsId, "employees")` + `workbenchKeys.all(wsId)`。
+
+### 17.8 已知债务与本批未做
+
+- **UI / views 未接入**：本批只到迁移、SQL、handler、core 类型/zod/client；`packages/views/**`、`apps/**` 不在写作用域。花名册「奖惩」页签的空态可以摘掉了。
+- **`packages/core/hr/index.ts` 未导出**：由统一导出那一批补（本批不改该文件，也不改 `queries.ts` / `mutations.ts` / `workbench.ts`）。
+- **前端实时 patcher 未注册**：`packages/core/types/events.ts` 不在作用域，服务端只在档案事件上发；客户端目前靠 mutation 失效刷新。
+- **奖惩不进异动流（§16）**：`POST /hr/rewards` 不写 `hr_employee_change`。「记一笔奖惩算不算一次档案异动」是产品判断，本批不替它决定；真要联动，是一处单行插入，属于 §16 的写路径。
+- **不做审批、不做汇总统计、不做附件**：没有 `status`（奖惩是已发生的事实，不是待批的申请）、没有「本季度奖金合计」（要统计时按 `kind` + `amount` 自己查）、没有证明材料上传。
+- **没有游标分页**：`?limit=` 有硬上限（`workbenchLimit`），读取口径是「这个人/这段时间被奖励或处分了什么」，量级远小于其它台账。
+- **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举未加 `hr_employee_reward`。
+
+## 18. 人事文书生成契约（Word / PDF 模板 + 生成留痕）
+
+客户已确认：**盖章走线下流程**，系统只负责**生成文件**（下载、打印、拿去盖章）。所以这一批的写入路径到「字节进了对象存储 + 一行留痕」为止，没有审批、没有签章、没有电子签名。
+
+```
+hr_doc_template    （正文，含 {{占位符}}；三条内置为 builtin=true 只读）
+      ↓ POST /hr/employees/{id}/documents  { template_id, format: docx|pdf, values? }
+hr_doc_generation  （谁、什么时候、用哪个模板、用了哪些字段值）
+      ↓ attachment_id
+attachment         （产物本身就是一张普通附件：.docx 或 .pdf）
+```
+
+关键取舍有三条：**产物落成普通附件**（复用既有上传/下载/预览链路，不另造存储）；**留痕里存快照**（模板之后被改、员工之后升职，都不改已开出的文件说了什么）；**未知占位符保留并在响应里给出 warning**（不能静默变空白，否则错字只会出现在盖完章的纸上）。
+
+不做盖章流程、不做排版引擎（单栏顺序排版）、不做页眉页脚页码、不做 UI——那四件分别是「谁负责盖章 / 版式好不好看 / 页码长什么样 / 长什么样」。
+
+### 18.1 迁移号段
+
+| 号 | 文件 | 内容 |
+| --- | --- | --- |
+| 780 | `780_hr_doc_template` | 表 `hr_doc_template`（+ `COMMENT ON`） |
+| 781 | `781_hr_doc_template_name_unique` | 唯一索引 `(workspace_id, lower(name)) WHERE archived_at IS NULL` |
+| 782 | `782_hr_doc_template_kind_idx` | `(workspace_id, kind)` |
+| 783 | `783_hr_doc_generation` | 表 `hr_doc_generation`（+ `COMMENT ON`） |
+| 784 | `784_hr_doc_generation_employee_idx` | `(workspace_id, employee_id, created_at DESC)` |
+
+三个索引都是单语句 `CREATE INDEX CONCURRENTLY`，up 方向逐个登记在 `server/cmd/migrate/main.go` 的 `concurrentIndexCleanups`；down 方向只有 `DROP INDEX CONCURRENTLY IF EXISTS`（不重建索引，故不进 down map）。780 / 783 是建表，在事务内，各自单独一个文件。
+
+### 18.2 表
+
+```sql
+-- 780
+hr_doc_template(
+  id UUID PK, workspace_id UUID NOT NULL,
+  name TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('employment','resignation','contract','offer','other')),
+  body TEXT NOT NULL,                 -- 纯文本，含 {{占位符}}；\n 分段
+  builtin BOOLEAN NOT NULL DEFAULT false,
+  owner_member_id UUID, created_by UUID,
+  created_at/updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), archived_at TIMESTAMPTZ)
+
+-- 783
+hr_doc_generation(
+  id UUID PK, workspace_id UUID NOT NULL,
+  employee_id UUID NOT NULL,          -- 指向 hr_employee_profile.id
+  template_id UUID,                   -- 软指针；模板被删/归档后可为 NULL
+  template_name TEXT NOT NULL,        -- 快照
+  format TEXT NOT NULL CHECK (format IN ('docx','pdf')),
+  attachment_id UUID,                 -- 产物（普通附件；附件被删后为 NULL）
+  values JSONB NOT NULL DEFAULT '{}'::jsonb,   -- 生成时用的字段快照（审计用）
+  generated_by UUID, created_at TIMESTAMPTZ NOT NULL DEFAULT now())
+```
+
+规则与 B0 一致：无外键、无级联、`archived_at` 软删、每个索引单独一个并发文件。
+
+**`body` 是 TEXT，不是结构化文档模型**：改模板的人是在改一段话，结构化模型会逼他用字段拼句子。渲染器只认 `{{key}}`，别的语法一概不解释。
+
+**唯一性是 `(workspace_id, lower(name)) WHERE archived_at IS NULL`**（781）：大小写不敏感（人改名时不会想大小写），且软删后名字可以再用（改名换姓是正常操作，不是占用）。
+
+**`builtin` 的三条内置模板由服务端按工作区落库**：读模板列表时 `SeedHrDocTemplate`（`ON CONFLICT ... DO NOTHING`）幂等补三条，所以「新建的 workspace 也有内置模板」不需要一条要知道所有 workspace 的迁移。内置行**只读**：`PATCH` / `DELETE` 回 **400**——下一次读会把它补回来，改它就是骗客户端；想要别的措辞就复制正文建自己的模板。
+
+**`hr_doc_generation` 是快照，不是指针**：`template_name` 与 `values` 在生成时抄一份，之后模板改了措辞、员工调了岗，都不影响已开出的那份文件说了什么。`values` 是 JSONB，因为键就是模板的占位符——列不出来；存的是**渲染时的入参**（不是事后推导），未命中的占位符不在里面，正好是重渲染需要的东西。
+
+### 18.3 生成器 `server/pkg/docgen`
+
+`server/` 之前没有任何 docx/pdf 生成能力（全部是附件的上传/下载/预览），这一批从零写，**不引第三方依赖**（`archive/zip` + 手写 OOXML 与 PDF 足够，见 AGENTS.md 的依赖要求）。
+
+**docx（`docx.go`）**：`.docx` 就是「zip + 几段 XML」，所以只写 Word 真正需要的五个部件：
+
+```
+[Content_Types].xml
+_rels/.rels
+word/document.xml
+word/_rels/document.xml.rels
+word/styles.xml
+```
+
+- 一行输入 = 一个 `<w:p>`，空行 = `<w:p/>`；正文放在 `<w:t xml:space="preserve">` 里，按 XML 规则转义 `& < > "`。
+- 中文字符串就是 XML 文本节点里的 UTF-8；`word/styles.xml` 的 `docDefaults` 设 `w:eastAsia="SimSun"`、12pt，读者有字体就不会掉回拉丁字形。
+- 版式是 A4 纵向、上下左右 1 英寸（`w:pgSz 11906x16838` + `w:pgMar 1440`）：这页要打印出来盖章，纸张尺寸有意义，排版没有。
+- zip 内时间戳固定，同样的正文产出同样的字节（测试因此能直接比字节）。
+
+**pdf（`pdf.go`）**：手写最小 PDF，中文方案是**标准 CJK 字体 + 预定义 CMap、不嵌入字体文件**：
+
+- 字体对象：`/Subtype /Type0` + `/BaseFont /STSong-Light` + `/Encoding /UniGB-UCS2-H`（预定义 CMap），后代字体 `/Subtype /CIDFontType0`、`/CIDSystemInfo << /Registry (Adobe) /Ordering (GB1) /Supplement 2 >>`、`/DW 1000`，**没有 `/FontFile*`**。
+- 文本按 UTF-16BE 码元写成十六进制串（`<5728804C...>`），由读者的 CMap 把码元映射到字形；因此文件只有 KB 级（一份在职证明约 1.4 KB），仓库里也没有字体授权问题。
+- **可用性结论（重要）**：这条路径要求读者自带中文字体。Adobe Acrobat（含亚洲语言包）/ Acrobat DC、macOS 预览、mupdf、多数手机阅读器显示正常；**没有装 CJK 包的 poppler / Ghostscript、以及部分 Linux 桌面阅读器会做字形替换或把中文画成空白**（拉丁与标点仍可见）。这不是实现缺陷，是「不嵌入字体」的必然结果；**要在任何机器上都能打开就先给 docx**。
+- 版面是单栏顺序排版：行高 20pt、A4、1 英寸边距，满页 35 行；折行按**每字一个全角**（`/DW 1000` 且不写 `/W`，所以每个字形都前进一个 em——ASCII 也算全角；按半角估宽会把长句画到右边距之外），不做两端对齐、不做页眉页脚页码。星平面字符（emoji）UCS-2 表示不了，替换成 `?`。
+- 结构自检写在测试里：`%PDF-` 头、`%%EOF` 尾、`startxref` 指向的偏移处必须是 `xref`、xref 每一行的偏移必须指向 `N 0 obj`、`/Count` 必须与页对象数一致。
+
+**渲染（`template.go`）**：
+
+- `{{key}}` 替换成 `values[key]`；**值为空串就渲染成空白**（没有离职日期的人，纸上那一行就是空的，不是 `null`）。
+- **未知占位符原样保留**并记一条 warning（同一个键只报一次），响应里带 `warnings`、服务端 `slog.Warn` 记一条。静默变空会让错字只出现在盖章之后，保留则肉眼可见。
+- 未闭合的 `{{` 视为普通文本；`{{}}` 空槽保留并报 warning；`{{ 员工姓名 }}` 与 `{{员工姓名}}` 是同一个键。
+- 换行是段落分隔，其它 markdown 语法一概不解释。
+
+### 18.4 缺省取值（`values` 可省略）
+
+`values` 省略时从员工档案自动填；请求里给了同名键就覆盖（给 `""` 就是显式留空）。
+
+| 占位符 | 来源 |
+| --- | --- |
+| `员工姓名` | `hr_employee_profile.member_id` → `user.name` |
+| `部门` | `hr_employee_profile.department_id` → `department.name`（部门已删就是空白，不是 500） |
+| `职位` | `hr_employee_profile.job_title` |
+| `入职日期` | `hr_employee_profile.hire_date` |
+| `离职日期` | `hr_employee_profile.leave_date` |
+| `公司名称` | `workspace.name` |
+| `今天` | 服务端当天（UTC 日期） |
+
+**`member_id` 存的是 user id**（`getWorkspaceMember` 的入参、入职路径写进去的都是 user id），所以姓名只有一次查询，不需要先查 `member`。
+
+### 18.5 REST（基址 `/api/workbench/hr`）
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/doc-templates` | 模板列表（`?kind=`），包裹 `{ templates, total }`；顺带幂等补三条内置 |
+| POST | `/doc-templates` | 新建模板，**201**；重名 **409** |
+| PATCH | `/doc-templates/{templateId}` | 改 `name` / `kind` / `body` / `owner_member_id`；内置 **400**；重名 **409** |
+| DELETE | `/doc-templates/{templateId}` | 软删，**204**；内置 **400** |
+| GET | `/employees/{employeeId}/documents` | 该员工的生成留痕，`{ documents, total }`，`created_at DESC` |
+| POST | `/employees/{employeeId}/documents` | 生成一份，**201** → `{ document, warnings }` |
+
+生成请求体：`{ "template_id": "...", "format": "docx" | "pdf", "values": { "职位": "..." } }`；`document` 里有 `id` / `format` / `attachment_id` / `url` / `filename` / `template_name` / `values` / `created_at`。
+
+- **`employee_id` 在路径里，不在 body 里**：一份文书永远是「关于某一个人的」，请求写在别人的路径下没有意义。
+- **未知 `template_id` → 404**（别的工作区或已归档同一条消息）；`template_id` 缺失/非 UUID、`format` 不在枚举 → **400**。
+- **没有 `GET` 单条生成**：一行留痕离开它所属的列表没有意义；页面上唯一的写是「再生成一份」。
+- **attachment 被删后**：`url` / `filename` 为空串、`attachment_id` 为 null，留痕仍然读得出来（「确实开过这份文件」这件事不该因为文件被清理就消失）。
+- 列表沿用 §3.1：`limit` 默认 50、上限 200（`workbenchLimit`）；`total` = 本页条数。
+
+### 18.6 权限
+
+| 路由 | 判定 |
+| --- | --- |
+| GET（模板列表 / 留痕列表） | 任意工作区成员 |
+| POST / PATCH / DELETE `/doc-templates` | **`owner` / `admin`**（`requireHrDocWriter`） |
+| POST `/employees/{id}/documents` | **`owner` / `admin`**，且 `employeeId` 必须是本工作区的员工档案 |
+
+比 §16 / §17 **更紧**：模板正文是公司口径的文书，开出来的文件会进人事档案，所以这里没有「member 写自己 owner 的行」这条路——member 生成一律 403。读仍然是成员级：看到某位同事被开过哪些证明，属于人事档案的一部分。
+
+### 18.7 事件与 query key
+
+事件：生成成功后发 `hr_employee_profile:changed`，payload `{ "id": "<员工档案 id>" }`（不新增事件类型——`packages/core/types/events.ts` 不在本批作用域）。模板写入**不发事件**：模板不是某个人的档案，客户端靠 mutation 失效刷新。
+
+```
+["doc", wsId, "templates", filters]
+["doc", wsId, "documents", employeeId]
+```
+
+**没有 detail key**：§18.5 没有单条读。
+
+`packages/core/hr/doc.ts`（不塞进 `hr/queries.ts` / `hr/mutations.ts`：失效规则不一样——生成一份文件要连带失效员工档案与工作台计数）；类型在 `packages/core/types/doc.ts`（**不塞进 `workbench.ts`**），zod 在 `packages/core/api/schemas.ts`（`HrDocTemplateSchema` / `HrDocGenerationSchema` / `HrDocGenerationEnvelopeSchema`），`api/client.ts` 有同名方法（`listHrDocTemplates` / `createHrDocTemplate` / `updateHrDocTemplate` / `deleteHrDocTemplate` / `listHrEmployeeDocuments` / `createHrEmployeeDocument`）。mutation 失效 `docKeys.all(wsId)` + `hrKeys.resource(wsId, "employees")` + `workbenchKeys.all(wsId)`。
+
+### 18.8 已知债务与本批未做
+
+- **UI / views 未接入**：本批只到迁移、SQL、生成器、handler、core 类型/zod/client；`packages/views/**`、`apps/**` 不在写作用域。
+- **`packages/core/hr/index.ts` 未导出**：由统一导出那一批补（本批不改该文件，也不改 `queries.ts` / `mutations.ts` / `workbench.ts`）。
+- **PDF 不嵌字体**：见 §18.3 的可用性结论——愿意接受体积时，改成嵌入一份 CJK 子集字体是 `pdf.go` 内的一处改动，但要先决定字体授权。
+- **不做盖章/签署/审批**：线下流程，系统不记录「谁盖的章、哪天盖的」。
+- **不做排版**：单栏顺序排版，没有表格、页眉页脚、页码、加粗/字号/居中等富文本；首行标题与正文同字号。
+- **模板不做版本历史**：改了就改了；已经开出的文件靠 `template_name` + `values` 快照自证。
+- **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举未加 `hr_doc_template` / `hr_doc_generation`。
+
 ## 9. 完成定义（DoD）
 
 一个域算完成，当且仅当：迁移可 up/down 往返、`make sqlc` 无脏 diff、handler 有权限用例、事件发出、zod 覆盖响应、`useRealtimeSync` 有 patcher、`/overview` 里对应指标从 `insufficient_data` 变为有值、页面能读能写。

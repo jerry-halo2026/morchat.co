@@ -462,15 +462,6 @@ func TestDocBuiltinTemplatesAreSeeded(t *testing.T) {
 	testutil.Call(t, testHandler.DeleteHrDocTemplate, req).Want(http.StatusBadRequest)
 }
 
-func contains(values []string, want string) bool {
-	for _, value := range values {
-		if value == want {
-			return true
-		}
-	}
-	return false
-}
-
 // TestDocTeardownCoversNewTables covers (6): both new tables are part of the
 // workspace-deletion manifest (which classifies every table in the schema), and the
 // per-test fixtures remove their rows -- no foreign key removes them.

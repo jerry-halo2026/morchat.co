@@ -230,7 +230,8 @@
     "./runtimes/qoder": "./runtimes/qoder.ts",
     "./hr/offboard": "./hr/offboard.ts",
     "./hr/change": "./hr/change.ts",
-    "./hr/reward": "./hr/reward.ts"
+    "./hr/reward": "./hr/reward.ts",
+    "./hr/doc": "./hr/doc.ts"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "catalog:",

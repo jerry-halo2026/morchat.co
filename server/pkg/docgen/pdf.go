@@ -25,9 +25,9 @@ import (
 // the customer's "no bundled fonts" constraint implies; the .docx has no such
 // caveat and is the format to prefer when the file must open anywhere.
 //
-// Layout is sequential and single column: lines break on the estimated advance of
-// each rune (a CJK rune is one em, a Latin rune about half), a blank input line is
-// a blank line, and a full page starts a new one. There is no justification,
+// Layout is sequential and single column: lines break at one em per rune (the
+// advance `/DW 1000` declares for every glyph -- see wrapLine), a blank input line
+// is a blank line, and a full page starts a new one. There is no justification,
 // hyphenation, header, footer or page number -- printing and stamping happen
 // offline, so the page only has to be legible.
 func PDF(text string) ([]byte, error) {
@@ -169,12 +169,18 @@ func paginate(text string) [][]string {
 	return pages
 }
 
-// wrapLine breaks one logical line at the estimated advance of each rune at 12 pt.
+// wrapLine breaks one logical line at the advance of each rune at 12 pt.
+//
+// Every rune is assumed to advance one em, because that is exactly what the font
+// dictionary says: `/DW 1000` with no `/W` array makes *every* glyph 1000/1000 em
+// wide, ASCII included. Estimating Latin at half an em (the honest guess for a
+// proportional face) drew lines wider than the measured column, so the last
+// characters of a long sentence ran past the right margin. Measuring the metrics the
+// file actually declares is the only consistent choice; the cost is that digits and
+// Latin look wide, which the standard CJK face does anyway.
 func wrapLine(line string, maxWidth float64) []string {
-	const (
-		cjkAdvance   = 12.0
-		latinAdvance = 6.0
-	)
+	const emAdvance = 12.0
+
 	if line == "" {
 		return []string{""}
 	}
@@ -183,17 +189,13 @@ func wrapLine(line string, maxWidth float64) []string {
 	var current strings.Builder
 	width := 0.0
 	for _, r := range line {
-		advance := latinAdvance
-		if isWideRune(r) {
-			advance = cjkAdvance
-		}
-		if width+advance > maxWidth && current.Len() > 0 {
+		if width+emAdvance > maxWidth && current.Len() > 0 {
 			lines = append(lines, current.String())
 			current.Reset()
 			width = 0
 		}
 		current.WriteRune(r)
-		width += advance
+		width += emAdvance
 	}
 	if current.Len() > 0 {
 		lines = append(lines, current.String())
@@ -202,23 +204,6 @@ func wrapLine(line string, maxWidth float64) []string {
 		return []string{""}
 	}
 	return lines
-}
-
-// isWideRune reports whether a rune advances a full em in the CJK font: Han,
-// kana, hangul, full-width forms and CJK punctuation. Everything else is treated
-// as half-width.
-func isWideRune(r rune) bool {
-	switch {
-	case r >= 0x1100 && r <= 0x115F, // hangul jamo
-		r >= 0x2E80 && r <= 0xA4CF, // CJK radicals .. yi
-		r >= 0xAC00 && r <= 0xD7A3, // hangul syllables
-		r >= 0xF900 && r <= 0xFAFF, // CJK compatibility ideographs
-		r >= 0xFE30 && r <= 0xFE6F, // CJK compatibility forms
-		r >= 0xFF00 && r <= 0xFF60, // full-width forms
-		r >= 0xFFE0 && r <= 0xFFE6:
-		return true
-	}
-	return false
 }
 
 // pdfWriter accumulates objects and remembers their byte offsets for the xref

@@ -307,6 +307,15 @@ import type {
   HrEmployeeRewardListFilters,
   HrEmployeeRewardListResponse,
   UpdateHrEmployeeRewardRequest,
+  // HR documents (docs/engineering/WORKBENCH-API.md §18).
+  CreateHrDocGenerationRequest,
+  CreateHrDocGenerationResponse,
+  CreateHrDocTemplateRequest,
+  HrDocGenerationListResponse,
+  HrDocTemplate,
+  HrDocTemplateListFilters,
+  HrDocTemplateListResponse,
+  UpdateHrDocTemplateRequest,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -883,6 +892,15 @@ import {
   HrEmployeeRewardListResponseSchema,
   EMPTY_HR_EMPLOYEE_REWARD,
   EMPTY_HR_EMPLOYEE_REWARD_LIST_RESPONSE,
+  // HR documents (docs/engineering/WORKBENCH-API.md §18).
+  HrDocTemplateSchema,
+  HrDocTemplateListResponseSchema,
+  EMPTY_HR_DOC_TEMPLATE,
+  EMPTY_HR_DOC_TEMPLATE_LIST_RESPONSE,
+  HrDocGenerationListResponseSchema,
+  HrDocGenerationEnvelopeSchema,
+  EMPTY_HR_DOC_GENERATION_LIST_RESPONSE,
+  EMPTY_HR_DOC_GENERATION_ENVELOPE,
   type IssueView,
   type IssueViewPreference,
   type CreateIssueViewRequest,
@@ -5802,6 +5820,84 @@ export class ApiClient {
 
   async deleteHrEmployeeReward(id: string): Promise<void> {
     await this.fetch(`/api/workbench/hr/rewards/${id}`, { method: "DELETE" });
+  }
+
+  // HR documents (docs/engineering/WORKBENCH-API.md §18). Reads are member-wide;
+  // template writes and generation are owner/admin only, because the produced file
+  // is filed in the person's record. `POST .../documents` renders the template,
+  // stores the result as an ordinary attachment and returns the ledger row plus the
+  // renderer's warnings — a warning means the file still contains a literal
+  // `{{...}}`, so it should be looked at before it is printed and stamped.
+
+  async listHrDocTemplates(
+    filters: HrDocTemplateListFilters = {},
+  ): Promise<HrDocTemplateListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/doc-templates${workbenchSearch({ kind: filters.kind })}`,
+    );
+    return parseWithFallback(
+      raw,
+      HrDocTemplateListResponseSchema,
+      EMPTY_HR_DOC_TEMPLATE_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/hr/doc-templates" },
+    );
+  }
+
+  async createHrDocTemplate(data: CreateHrDocTemplateRequest): Promise<HrDocTemplate> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/doc-templates", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrDocTemplateSchema, EMPTY_HR_DOC_TEMPLATE, {
+      endpoint: "POST /api/workbench/hr/doc-templates",
+    });
+  }
+
+  /** `PATCH` is a 400 on a builtin template: the server re-seeds those on every read. */
+  async updateHrDocTemplate(
+    id: string,
+    data: UpdateHrDocTemplateRequest,
+  ): Promise<HrDocTemplate> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/doc-templates/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrDocTemplateSchema, EMPTY_HR_DOC_TEMPLATE, {
+      endpoint: "PATCH /api/workbench/hr/doc-templates/:templateId",
+    });
+  }
+
+  async deleteHrDocTemplate(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/doc-templates/${id}`, { method: "DELETE" });
+  }
+
+  async listHrEmployeeDocuments(employeeId: string): Promise<HrDocGenerationListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/employees/${employeeId}/documents`,
+    );
+    return parseWithFallback(
+      raw,
+      HrDocGenerationListResponseSchema,
+      EMPTY_HR_DOC_GENERATION_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/hr/employees/{id}/documents" },
+    );
+  }
+
+  /** `values` is optional: omitted, every slot is filled from the employee's file. */
+  async createHrEmployeeDocument(
+    employeeId: string,
+    data: CreateHrDocGenerationRequest,
+  ): Promise<CreateHrDocGenerationResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/employees/${employeeId}/documents`,
+      { method: "POST", body: JSON.stringify(data) },
+    );
+    return parseWithFallback(
+      raw,
+      HrDocGenerationEnvelopeSchema,
+      EMPTY_HR_DOC_GENERATION_ENVELOPE,
+      { endpoint: "POST /api/workbench/hr/employees/{id}/documents" },
+    );
   }
 
   async createShareLink(workspaceId: string, data: { role?: string; expires_in?: number; max_uses?: number }): Promise<ShareLink> {

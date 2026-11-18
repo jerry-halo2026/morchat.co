@@ -774,18 +774,15 @@ func (h *Handler) hrDocDocumentValues(w http.ResponseWriter, r *http.Request, sc
 		"今天":   dateToString(pgtypeDateToday()),
 	}
 
-	member, err := h.Queries.GetMember(r.Context(), employee.MemberID)
-	if err != nil {
-		workbenchInternalError(w, r, "failed to read the employee's member row", err)
-		return nil, false
-	}
-	user, err := h.Queries.GetUser(r.Context(), member.UserID)
+	// `hr_employee_profile.member_id` holds a *user* id, not `member.id`: it is the
+	// value `getWorkspaceMember` accepts and every hire path writes, so the name is
+	// one lookup away rather than two.
+	user, err := h.Queries.GetUser(r.Context(), employee.MemberID)
 	if err != nil {
 		workbenchInternalError(w, r, "failed to read the employee's name", err)
 		return nil, false
 	}
 	values["员工姓名"] = strings.TrimSpace(user.Name)
-
 	if employee.DepartmentID.Valid {
 		if department, err := h.Queries.GetDepartment(r.Context(), db.GetDepartmentParams{
 			ID:          employee.DepartmentID,

@@ -668,4 +668,22 @@ export type {
   UpdateHrEmployeeRewardRequest,
 } from "./reward";
 
+// HR documents (docs/engineering/WORKBENCH-API.md §18). Its own module for the same
+// reason as §12–§17: a generated file is a different contract from the profile it is
+// about — the values are a snapshot, an unknown placeholder is kept rather than
+// blanked, and the builtin templates are read-only.
+export type {
+  CreateHrDocGenerationRequest,
+  CreateHrDocGenerationResponse,
+  CreateHrDocTemplateRequest,
+  HrDocFormat,
+  HrDocGeneration,
+  HrDocGenerationListResponse,
+  HrDocTemplate,
+  HrDocTemplateKind,
+  HrDocTemplateListFilters,
+  HrDocTemplateListResponse,
+  UpdateHrDocTemplateRequest,
+} from "./doc";
+
 export type { WorkspaceWakeup, WorkspaceWakeupPage, WorkspaceWakeupFilters, WakeupScope } from "./issue-wakeup";
