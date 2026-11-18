@@ -42,6 +42,12 @@ cd server && go test ./internal/handler/ -run '<本波关键字>' -count=1
 cd server && go test ./cmd/migrate ./internal/migrations -count=1
 pnpm --filter @morechat/views exec vitest run locales/parity.test.ts
 
+# 门 0 预热：把 B 批的新迁移应用到**测试库**（否则 handler 用例会因为缺列而假红）
+docker run ... DATABASE_URL=<multica_wb> go run ./cmd/migrate up
+
+# 门 3 测试：handler 套件现在约 760s，必须显式放宽超时
+#   go test ./internal/handler -timeout 40m -run '<关键字>'
+
 # 门 4 迁移（本地 multica_wb）
 go run ./cmd/migrate up            # 检查 indisvalid=t
 go run ./cmd/migrate down          # 只回本波号段，再 up
@@ -61,4 +67,7 @@ go test ./internal/handler/ -run TestWorkspaceDeletionManifestCoversPublicSchema
 | 2026-11-19 | W1-A 体系一致性 | parity | 通过 | 桌面 23 路由可渲染(5 用例)、palette 48 键(51 用例)、MCP 15 域、search 5 kind 真插行、reserved 102→106、迁移 816 |
 | 2026-11-19 | W1-C0 权限 capability | iam | 通过（含一次返工） | 解析顺序 4 级 + 194 处判定；兜底按裁决改为「等于上线前行为」并补 2 条用例；迁移 817/818；manifest 绿 |
 | 2026-11-19 | W1-H 千川入仓 | ads | 通过（含一次返工） | 12 表 + sync（177,773 行，read=inserted+duplicate）+ 6 端点 + 4 指标；修复 simple_protocol 下 map 参数无 encode plan |
+| 2026-11-19 | W2-ADS-UI 千川看板 | ads-ui | 通过 | `/content/ads` 六块 + basis 切换 + 三态；22 用例；content 43 files/1116 绿；注册 `Target` 图标（完备映射编译期校验）；core 新增 qianchuan-queries 导出 |
+| 2026-11-19 | W2-B4-1 审计与并发 | collab | 通过（一次环境返工） | 迁移 819–825；`workbench_audit.go`（resolveActor/diff/action 词表/≤4KB/同事务）；409 stale_write 守卫写在 UPDATE WHERE；8 条用例 + core 5 条；首次跑红因测试库未迁，迁后全绿 |
+| 2026-11-19 | Lead 审计与合并 | lead | 通过 | 共享库 head 852 + 819–825 均 applied，8 条索引 indisvalid=t；typecheck 9/9、lint 6/6；顺带修复 workbench_crm.go 注释被洗成 ??? 的破折号（仅注释，build 后复验） |
 | 2026-11-19 | Lead 合并与真库 | lead | 通过 | router/migrate 共用文件挂载；共享库迁移 816–852（psql 分事务 + 并发索引，一次 INVALID 已重建）；/capabilities、/search、/ads/* 全 200；账号 45 行导入→校验→清理 |
