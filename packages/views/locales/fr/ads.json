@@ -1,1 +1,86 @@
-{}
+{
+  "basis": {
+    "label": "Fenêtre de règlement",
+    "note": "Les cinq fenêtres mesurent la même dépense différemment. Elles ne s'additionnent jamais et cette page n'affiche aucun total entre elles.",
+    "settle_1h": "1 heure",
+    "settle_7d": "7 jours",
+    "settle_14d": "14 jours",
+    "settle_30d": "30 jours",
+    "settle_90d": "90 jours"
+  },
+  "range": {
+    "from": "Du",
+    "to": "Au",
+    "note": "Jours calendaires inclus. Laissez les deux vides pour la période par défaut du serveur."
+  },
+  "summary": {
+    "title": "Fenêtre",
+    "spend": "Dépense",
+    "gmv": "GMV",
+    "orders": "Commandes",
+    "refund": "Remboursements",
+    "settle": "Réglé",
+    "previous": "vs fenêtre précédente",
+    "no_previous": "Rien à comparer",
+    "empty": "Aucun fait publicitaire dans cette fenêtre."
+  },
+  "accounts": {
+    "title": "Comptes",
+    "empty": "Aucun compte publicitaire synchronisé.",
+    "name": "Compte",
+    "balance": "Solde",
+    "cash": "Trésorerie",
+    "grant": "Crédit valide",
+    "spend": "Dépense cumulée",
+    "captured": "Relevé le",
+    "unit_note": "Les soldes arrivent en fen ; la page divise une seule fois par 100 pour afficher des yuans."
+  },
+  "plans": {
+    "title": "Plans",
+    "empty": "Aucun plan synchronisé.",
+    "name": "Plan",
+    "account": "Compte",
+    "goal": "Objectif",
+    "status": "Statut",
+    "budget": "Budget",
+    "roi": "Objectif de ROI",
+    "updated": "Mis à jour"
+  },
+  "materials": {
+    "title": "Créations",
+    "empty": "Aucune création synchronisée.",
+    "kind": "Format",
+    "name": "Fichier",
+    "duration": "Durée",
+    "script": "Script",
+    "unlinked": "Non lié",
+    "ai": "Généré par IA",
+    "inefficient": "Peu efficace"
+  },
+  "violations": {
+    "title": "Infractions",
+    "empty": "Aucune infraction enregistrée.",
+    "time": "Heure",
+    "type": "Type",
+    "score": "Score",
+    "status": "Statut",
+    "reason": "Motif"
+  },
+  "recon": {
+    "title": "Rapprochement",
+    "empty": "Rien à rapprocher pour l'instant.",
+    "account": "Compte",
+    "side": "Côté",
+    "platform": "Plateforme",
+    "ledger": "Registre",
+    "spend": "Dépense",
+    "gmv": "GMV",
+    "orders": "Commandes",
+    "diff": "Écart",
+    "unavailable": "Non comparable",
+    "note": "La plateforme est le dernier relevé, le registre le rapport du même jour. Les trois écarts sont affichés tels quels : ni ratio, ni somme."
+  },
+  "block_error": "Ce bloc n'a pas pu être chargé.",
+  "retry": "Réessayer",
+  "insufficient": "Données insuffisantes"
+}

@@ -137,6 +137,7 @@ const DEPT_SPACES = [
       ["scripts", "content/scripts", "content_scripts"],
       ["shoots", "content/shoots", "content_shoots"],
       ["publish", "content/publish", "content_publish"],
+      ["ads", "content/ads", "content_ads"],
       ["data", "content/data", "content_data"],
     ],
   },

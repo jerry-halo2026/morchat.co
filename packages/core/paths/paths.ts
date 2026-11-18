@@ -165,6 +165,7 @@ function workspaceScoped(slug: string) {
       scripts: () => `${ws}/content/scripts`,
       shoots: () => `${ws}/content/shoots`,
       publish: () => `${ws}/content/publish`,
+      ads: () => `${ws}/content/ads`,
       data: () => `${ws}/content/data`,
     } satisfies Record<ContentPageKey, () => string>,
     boss: {

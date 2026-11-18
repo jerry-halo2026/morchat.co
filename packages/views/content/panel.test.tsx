@@ -1,4 +1,4 @@
-﻿import type { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
@@ -91,6 +91,7 @@ describe("ContentPanel", () => {
       "/acme/content/scripts",
       "/acme/content/shoots",
       "/acme/content/publish",
+      "/acme/content/ads",
       "/acme/content/data",
     ]);
   });

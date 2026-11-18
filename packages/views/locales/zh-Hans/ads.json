@@ -1,1 +1,86 @@
-{}
+{
+  "basis": {
+    "label": "结算窗口",
+    "note": "五个窗口是对同一笔花费的四种计量与一种结算口径，永不相加；这一页没有任何跨窗口的合计。",
+    "settle_1h": "1 小时",
+    "settle_7d": "7 天",
+    "settle_14d": "14 天",
+    "settle_30d": "30 天",
+    "settle_90d": "90 天"
+  },
+  "range": {
+    "from": "起始日",
+    "to": "结束日",
+    "note": "闭区间自然日；两边都留空则用服务端默认区间。"
+  },
+  "summary": {
+    "title": "窗口合计",
+    "spend": "花费",
+    "gmv": "成交额",
+    "orders": "订单",
+    "refund": "退款",
+    "settle": "结算额",
+    "previous": "对比上一窗口",
+    "no_previous": "没有可对比的数",
+    "empty": "这个窗口没有投放事实。"
+  },
+  "accounts": {
+    "title": "账户",
+    "empty": "还没有同步投放账户。",
+    "name": "账户",
+    "balance": "余额",
+    "cash": "现金",
+    "grant": "有效赠款",
+    "spend": "累计花费",
+    "captured": "快照时间",
+    "unit_note": "余额来自平台的「分」，页面只在这里除以 100 换成元。"
+  },
+  "plans": {
+    "title": "计划",
+    "empty": "还没有同步计划。",
+    "name": "计划",
+    "account": "账户",
+    "goal": "营销目标",
+    "status": "状态",
+    "budget": "预算",
+    "roi": "ROI 目标",
+    "updated": "更新时间"
+  },
+  "materials": {
+    "title": "素材",
+    "empty": "还没有同步素材。",
+    "kind": "形态",
+    "name": "文件",
+    "duration": "时长",
+    "script": "关联脚本",
+    "unlinked": "未关联",
+    "ai": "AI 生成",
+    "inefficient": "低效"
+  },
+  "violations": {
+    "title": "违规",
+    "empty": "没有违规记录。",
+    "time": "时间",
+    "type": "类型",
+    "score": "分值",
+    "status": "状态",
+    "reason": "原因"
+  },
+  "recon": {
+    "title": "对账",
+    "empty": "还没有可对账的数据。",
+    "account": "账户",
+    "side": "侧",
+    "platform": "平台",
+    "ledger": "台账",
+    "spend": "花费",
+    "gmv": "成交额",
+    "orders": "订单",
+    "diff": "差额",
+    "unavailable": "不可比",
+    "note": "平台侧是最近一次快照，台账侧是快照当天的日报。三个差额按原样显示，不算比例、不相加。"
+  },
+  "block_error": "这一块没有加载出来。",
+  "retry": "重试",
+  "insufficient": "数据不足"
+}

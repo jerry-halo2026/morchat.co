@@ -40,6 +40,7 @@
     "content_scripts": "Scripts",
     "content_shoots": "Tournage et montage",
     "content_publish": "Calendrier de publication",
+    "content_ads": "Publicité",
     "content_data": "Bilan",
     "boss_overview": "Vue d'ensemble",
     "boss_goals": "Objectifs",

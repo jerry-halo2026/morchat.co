@@ -23,6 +23,7 @@ import {
   FileAudio,
   FileVideo,
   FileQuestion,
+  Target,
   type IconComponent,
 } from "@morechat/ui/icons";
 import { resolveRouteIconName, type RouteIconName } from "@morechat/core/paths";
@@ -59,6 +60,8 @@ export const ROUTE_ICON_COMPONENTS: Record<RouteIconName, IconComponent> = {
   FileAudio,
   FileVideo,
   FileQuestion,
+  // 投放看板's mark: targeting, which is what the page is about.
+  Target,
 };
 
 /**

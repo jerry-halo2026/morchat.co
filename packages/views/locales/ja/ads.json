@@ -1,1 +1,86 @@
-{}
+{
+  "basis": {
+    "label": "精算ウィンドウ",
+    "note": "5 つのウィンドウは同じ費用の異なる測り方です。合算はせず、このページに横断合計はありません。",
+    "settle_1h": "1 時間",
+    "settle_7d": "7 日",
+    "settle_14d": "14 日",
+    "settle_30d": "30 日",
+    "settle_90d": "90 日"
+  },
+  "range": {
+    "from": "開始日",
+    "to": "終了日",
+    "note": "両端を含む暦日です。両方空ならサーバー既定の期間になります。"
+  },
+  "summary": {
+    "title": "ウィンドウ合計",
+    "spend": "費用",
+    "gmv": "GMV",
+    "orders": "注文",
+    "refund": "返金",
+    "settle": "精算額",
+    "previous": "前のウィンドウとの比較",
+    "no_previous": "比較できる数がありません",
+    "empty": "このウィンドウに配信実績がありません。"
+  },
+  "accounts": {
+    "title": "アカウント",
+    "empty": "配信アカウントはまだ同期されていません。",
+    "name": "アカウント",
+    "balance": "残高",
+    "cash": "現金",
+    "grant": "有効付与",
+    "spend": "累計費用",
+    "captured": "取得時刻",
+    "unit_note": "残高はプラットフォームの「分」です。ページはここで 100 で割って元に直します。"
+  },
+  "plans": {
+    "title": "キャンペーン",
+    "empty": "キャンペーンはまだ同期されていません。",
+    "name": "キャンペーン",
+    "account": "アカウント",
+    "goal": "目標",
+    "status": "ステータス",
+    "budget": "予算",
+    "roi": "ROI 目標",
+    "updated": "更新"
+  },
+  "materials": {
+    "title": "素材",
+    "empty": "素材はまだ同期されていません。",
+    "kind": "形式",
+    "name": "ファイル",
+    "duration": "長さ",
+    "script": "スクリプト",
+    "unlinked": "未紐付け",
+    "ai": "AI 生成",
+    "inefficient": "低効率"
+  },
+  "violations": {
+    "title": "違反",
+    "empty": "違反記録はありません。",
+    "time": "時刻",
+    "type": "種別",
+    "score": "スコア",
+    "status": "ステータス",
+    "reason": "理由"
+  },
+  "recon": {
+    "title": "突合",
+    "empty": "突合できるデータがまだありません。",
+    "account": "アカウント",
+    "side": "側",
+    "platform": "プラットフォーム",
+    "ledger": "台帳",
+    "spend": "費用",
+    "gmv": "GMV",
+    "orders": "注文",
+    "diff": "差額",
+    "unavailable": "比較不可",
+    "note": "プラットフォーム側は最新スナップショット、台帳側はその日の日報です。3 つの差額はそのまま表示し、比率も合算もしません。"
+  },
+  "block_error": "このブロックを読み込めませんでした。",
+  "retry": "再試行",
+  "insufficient": "データ不足"
+}

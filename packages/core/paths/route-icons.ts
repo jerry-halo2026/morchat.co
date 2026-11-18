@@ -43,7 +43,8 @@ export type RouteIconName =
   | "FileArchive"
   | "FileAudio"
   | "FileVideo"
-  | "FileQuestion";
+  | "FileQuestion"
+  | "Target";
 
 /** i18n label key (under the `layout.nav` namespace) for a page. */
 export type NavLabelKey =
@@ -92,6 +93,7 @@ export type NavLabelKey =
   | "content_scripts"
   | "content_shoots"
   | "content_publish"
+  | "content_ads"
   | "content_data"
   | "boss_overview"
   | "boss_goals"
@@ -210,6 +212,7 @@ export type ContentPageKey =
   | "scripts"
   | "shoots"
   | "publish"
+  | "ads"
   | "data";
 
 /** The general manager's pages, `/{slug}/boss/...`. */
@@ -308,6 +311,7 @@ export const CONTENT_PAGE_ORDER: readonly ContentPageKey[] = [
   "scripts",
   "shoots",
   "publish",
+  "ads",
   "data",
 ];
 
@@ -321,6 +325,10 @@ export const CONTENT_PAGES: Record<ContentPageKey, WorkspacePage> = {
   scripts: { segment: "content/scripts", icon: "FileText", navKey: "content_scripts" },
   shoots: { segment: "content/shoots", icon: "FileVideo", navKey: "content_shoots" },
   publish: { segment: "content/publish", icon: "FileQuestion", navKey: "content_publish" },
+  // 投放 sits between what was published and what it earned: the paid side of
+  // the same funnel. `Target` marks it as the targeting surface (`Zap` is the
+  // hot radar's, four rows up, and two neighbouring pages must not share a mark).
+  ads: { segment: "content/ads", icon: "Target", navKey: "content_ads" },
   data: { segment: "content/data", icon: "BarChart3", navKey: "content_data" },
 };
 

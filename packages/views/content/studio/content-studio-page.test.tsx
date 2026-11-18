@@ -83,6 +83,7 @@ const paths = {
     scripts: () => "/acme/content/scripts",
     shoots: () => "/acme/content/shoots",
     publish: () => "/acme/content/publish",
+    ads: () => "/acme/content/ads",
     data: () => "/acme/content/data",
   },
   settings: () => "/acme/settings",

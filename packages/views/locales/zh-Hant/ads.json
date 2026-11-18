@@ -1,1 +1,86 @@
-{}
+{
+  "basis": {
+    "label": "結算窗口",
+    "note": "五個窗口是對同一筆花費的不同計量，永不相加；這一頁沒有任何跨窗口的合計。",
+    "settle_1h": "1 小時",
+    "settle_7d": "7 天",
+    "settle_14d": "14 天",
+    "settle_30d": "30 天",
+    "settle_90d": "90 天"
+  },
+  "range": {
+    "from": "起始日",
+    "to": "結束日",
+    "note": "閉區間自然日；兩邊都留空則用服務端預設區間。"
+  },
+  "summary": {
+    "title": "窗口合計",
+    "spend": "花費",
+    "gmv": "成交額",
+    "orders": "訂單",
+    "refund": "退款",
+    "settle": "結算額",
+    "previous": "對比上一窗口",
+    "no_previous": "沒有可對比的數",
+    "empty": "這個窗口沒有投放事實。"
+  },
+  "accounts": {
+    "title": "帳戶",
+    "empty": "還沒有同步投放帳戶。",
+    "name": "帳戶",
+    "balance": "餘額",
+    "cash": "現金",
+    "grant": "有效贈款",
+    "spend": "累計花費",
+    "captured": "快照時間",
+    "unit_note": "餘額來自平台的「分」，頁面只在這裡除以 100 換成元。"
+  },
+  "plans": {
+    "title": "計劃",
+    "empty": "還沒有同步計劃。",
+    "name": "計劃",
+    "account": "帳戶",
+    "goal": "行銷目標",
+    "status": "狀態",
+    "budget": "預算",
+    "roi": "ROI 目標",
+    "updated": "更新時間"
+  },
+  "materials": {
+    "title": "素材",
+    "empty": "還沒有同步素材。",
+    "kind": "形態",
+    "name": "檔案",
+    "duration": "時長",
+    "script": "關聯腳本",
+    "unlinked": "未關聯",
+    "ai": "AI 生成",
+    "inefficient": "低效"
+  },
+  "violations": {
+    "title": "違規",
+    "empty": "沒有違規記錄。",
+    "time": "時間",
+    "type": "類型",
+    "score": "分值",
+    "status": "狀態",
+    "reason": "原因"
+  },
+  "recon": {
+    "title": "對帳",
+    "empty": "還沒有可對帳的資料。",
+    "account": "帳戶",
+    "side": "側",
+    "platform": "平台",
+    "ledger": "台賬",
+    "spend": "花費",
+    "gmv": "成交額",
+    "orders": "訂單",
+    "diff": "差額",
+    "unavailable": "不可比",
+    "note": "平台側是最近一次快照，台賬側是快照當天的日報。三個差額按原樣顯示，不算比例、不相加。"
+  },
+  "block_error": "這一塊沒有載入出來。",
+  "retry": "重試",
+  "insufficient": "資料不足"
+}

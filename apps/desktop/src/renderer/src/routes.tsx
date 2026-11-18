@@ -44,6 +44,7 @@ import {
   SalesQuotesPage,
 } from "@morechat/views/sales";
 import {
+  ContentAdsPage,
   ContentBenchPage,
   ContentDataPage,
   ContentHotPage,
@@ -402,6 +403,7 @@ export const appRoutes: RouteObject[] = [
             handle: { title: "Shooting & editing" },
           },
           { path: "content/publish", element: <ContentPublishPage />, handle: { title: "Publishing" } },
+          { path: "content/ads", element: <ContentAdsPage />, handle: { title: "Ads" } },
           { path: "content/data", element: <ContentDataPage />, handle: { title: "Review" } },
           { path: "boss", element: <BossHomePage />, handle: { title: "GM" } },
           { path: "boss/goals", element: <BossGoalsPage />, handle: { title: "Goals" } },

@@ -1,1 +1,86 @@
-{}
+{
+  "basis": {
+    "label": "Settlement window",
+    "note": "The five windows measure the same spend differently. They are never added together, and nothing on this page is a total across them.",
+    "settle_1h": "1 hour",
+    "settle_7d": "7 days",
+    "settle_14d": "14 days",
+    "settle_30d": "30 days",
+    "settle_90d": "90 days"
+  },
+  "range": {
+    "from": "From",
+    "to": "To",
+    "note": "Inclusive calendar days. Leave both empty for the server's own default."
+  },
+  "summary": {
+    "title": "Window",
+    "spend": "Spend",
+    "gmv": "GMV",
+    "orders": "Orders",
+    "refund": "Refund",
+    "settle": "Settled",
+    "previous": "vs previous window",
+    "no_previous": "Nothing to compare",
+    "empty": "No ad fact in this window."
+  },
+  "accounts": {
+    "title": "Accounts",
+    "empty": "No ad account synced yet.",
+    "name": "Account",
+    "balance": "Balance",
+    "cash": "Cash",
+    "grant": "Valid grant",
+    "spend": "Spend to date",
+    "captured": "Captured",
+    "unit_note": "Balances arrive as fen; the page divides by 100 once and prints yuan."
+  },
+  "plans": {
+    "title": "Plans",
+    "empty": "No plan synced yet.",
+    "name": "Plan",
+    "account": "Account",
+    "goal": "Goal",
+    "status": "Status",
+    "budget": "Budget",
+    "roi": "ROI goal",
+    "updated": "Updated"
+  },
+  "materials": {
+    "title": "Materials",
+    "empty": "No material synced yet.",
+    "kind": "Format",
+    "name": "File",
+    "duration": "Duration",
+    "script": "Script",
+    "unlinked": "Not linked",
+    "ai": "AI-generated",
+    "inefficient": "Inefficient"
+  },
+  "violations": {
+    "title": "Violations",
+    "empty": "No violation recorded.",
+    "time": "Time",
+    "type": "Type",
+    "score": "Score",
+    "status": "Status",
+    "reason": "Reason"
+  },
+  "recon": {
+    "title": "Reconciliation",
+    "empty": "Nothing to reconcile yet.",
+    "account": "Account",
+    "side": "Side",
+    "platform": "Platform",
+    "ledger": "Ledger",
+    "spend": "Spend",
+    "gmv": "GMV",
+    "orders": "Orders",
+    "diff": "Difference",
+    "unavailable": "Not comparable",
+    "note": "Platform is the last snapshot, the ledger is that day's report. The three differences are printed as they are — no ratio, no sum."
+  },
+  "block_error": "This block didn’t load.",
+  "retry": "Retry",
+  "insufficient": "Not enough data"
+}
