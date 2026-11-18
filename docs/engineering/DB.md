@@ -94,3 +94,9 @@ workbench_doc / workbench_offboard / workbench_creator_health / orange_sync）�
 4. 新增列必须可空或有默认值（见 CONTRACTS.md），以保证外部插入语句不会因 schema 演进而报错。
 
 更省事的方式是 `morechat user import --csv`：它按同一份契约成对写入并记审计。
+
+**simple_protocol 还会咬另一种 SQL**：手拼条件的那几条查询（例如
+`/api/issues/grouped` 里 `unknown + unknown` 的排序键）在 simple protocol 下会把参数
+内联成**无类型字面量**，PostgreSQL 报 `operator is not unique`（42725）。这不是 jsonb
+类型问题，也不会在扩展协议下出现——给拼接片段补显式类型（`$n::int` / `$n::text`）即可。
+遇到「本地测试全绿、托管池化器 500」时，先按这条线索查手拼 SQL，再查 jsonb 参数。
