@@ -2409,6 +2409,28 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 			r.Route("/api/workbench", func(r chi.Router) {
 				r.Get("/overview", h.GetWorkbenchOverview)
 				r.Get("/counts", h.GetWorkbenchCounts)
+		// The workbench's own search (creators/collabs/quotes/goals/topics),
+		// one query with per-kind branches; see WORKBENCH-API §26.
+		r.Get("/search", h.WorkbenchSearch)
+
+		// Product-layer capabilities (WORKBENCH-API §24). `/capabilities` is what
+		// the UI reads to hide entries; the templates are the admin surface.
+		r.Get("/capabilities", h.GetWorkbenchCapabilities)
+		r.Get("/role-templates", h.ListWorkbenchRoleTemplates)
+		r.Put("/role-templates/{jobTitle}", h.PutWorkbenchRoleTemplate)
+		r.Delete("/role-templates/{jobTitle}", h.DeleteWorkbenchRoleTemplate)
+
+		// Qianchuan ad delivery (WORKBENCH-API §25). Read-only: the only writer is
+		// `cmd/qianchuan-sync`, which lands the flat CSVs the collector already
+		// produces. Every money figure carries a settle window; none of them add up.
+		r.Route("/ads", func(r chi.Router) {
+			r.Get("/summary", h.AdsSummary)
+			r.Get("/accounts", h.AdsAccounts)
+			r.Get("/plans", h.AdsPlans)
+			r.Get("/materials", h.AdsMaterials)
+			r.Get("/violations", h.AdsViolations)
+			r.Get("/recon", h.AdsRecon)
+		})
 				// Batch CSV import for the BD ledgers (WORKBENCH-API §23). One
 				// endpoint, three kinds, dry_run defaulting to 1; the body is the
 				// CSV file itself, so it is parsed by the handler rather than by a

@@ -140,6 +140,9 @@ var pgBigmOperatorClass = extensionOperatorClass{
 // they are still pending: a fresh self-hosted install, which is exactly where an
 // interrupted build would otherwise leave a permanently unusable index.
 var concurrentIndexCleanups = map[string]string{
+	// Product layer (B4/C0 + H): each index has its own single-statement file.
+	"852_qianchuan_daily_overall_range_idx":              "idx_qianchuan_daily_overall_range",
+	"818_workbench_role_template_unique":                "idx_workbench_role_template_workspace_title",
 	"815_media_bench_captured_idx":                              "idx_media_bench_workspace_captured",
 	"813_media_hot_captured_idx":                                "idx_media_hot_workspace_captured",
 	"809_creator_campaign_name_unique":                          "idx_creator_campaign_workspace_name_lower",
