@@ -15,7 +15,7 @@ related: [docs/engineering/WORKBENCH-B3-PLAN.md, docs/engineering/WORKBENCH-API.
 
 | # | 事项 | 现状 / 为什么是 P0 | 做完的标准 |
 | --- | --- | --- | --- |
-| 1 | **录入路径没有批量导入** | 达人 623 条靠 `orange-sync` 从上游进来，但**商务自己的报价/跟进/合作单只能一条一条点**。真实业务第一批就是几十条报价。 | CSV 导入（dry-run 预览 + 错误行回显），落 `creator_quote` / `creator_activity` / `crm_collab` |
+| 1 | ✅ 已完成：CSV 批量导入（POST /api/workbench/import，三种 kind，dry-run 预览 + 全或全不 + 幂等 skip） | 不再一条条点 | 已合入本批，见 §23 与 commit |
 | 2 | ✅ 已完成：合作单撤销（同事务归档其结算）+ 结算行标记/撤销到账 | 不再有孤儿结算 | 已合入本批，见 commit 与 WORKBENCH-B3-PLAN §6 |
 | 3 | ✅ 已完成：`GET /finance?month=` + 经营页月份切换 | 历史月真的出数字 | 已合入本批，见 commit 与 WORKBENCH-B3-PLAN §6 |
 | 4 | ✅ 已完成：内容面板补「待发布 / 本周拍摄」两个队列徽标 | 徽标仍走列表，不新增请求口径 | 已合入本批，见 commit 与 WORKBENCH-B3-PLAN §6 |
