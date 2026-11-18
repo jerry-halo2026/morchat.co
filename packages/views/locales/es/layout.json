@@ -419,7 +419,6 @@
       "kind_voluntary": "Voluntaria",
       "kind_involuntary": "Despido",
       "kind_contract_end": "Fin de contrato",
-      "kind_other": "Otra",
       "handover_progress": "{{done}}/{{total}}",
       "cert_issued": "Emitido",
       "cert_missing": "Sin emitir",
@@ -469,7 +468,8 @@
       "create_failed": "El servidor rechazó este registro.",
       "create_empty": "Todo el personal ya tiene una baja en curso.",
       "expand_show": "Ver más",
-      "expand_hide": "Ver menos"
+      "expand_hide": "Ver menos",
+      "kind_misc": "Otra"
     },
     "files": {
       "empty_title": "Aún no hay archivos",

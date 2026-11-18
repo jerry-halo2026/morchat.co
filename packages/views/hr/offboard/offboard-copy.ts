@@ -49,7 +49,9 @@ const COPY = {
   kind_voluntary: "Voluntary",
   kind_involuntary: "Involuntary",
   kind_contract_end: "Contract ended",
-  kind_other: "Other",
+  // Not `kind_other`: a key ending in `_other` is read as the plural form of
+  // `kind` by the i18n bundle, and the missing-plural guard fails on it.
+  kind_misc: "Other",
 
   /** 交接进度: the ticked entries over the whole checklist. */
   handover_progress: "{{done}}/{{total}}",
@@ -141,7 +143,7 @@ export const KIND_COPY_KEYS: Readonly<Record<HrOffboardingKind, OffboardCopyKey>
   voluntary: "kind_voluntary",
   involuntary: "kind_involuntary",
   contract_end: "kind_contract_end",
-  other: "kind_other",
+  other: "kind_misc",
 };
 
 export type OffboardTranslate = (

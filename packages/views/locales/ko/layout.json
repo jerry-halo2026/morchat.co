@@ -419,7 +419,6 @@
       "kind_voluntary": "자발적 퇴사",
       "kind_involuntary": "회사 사정",
       "kind_contract_end": "계약 만료",
-      "kind_other": "기타",
       "handover_progress": "{{done}}/{{total}}",
       "cert_issued": "발급됨",
       "cert_missing": "미발급",
@@ -469,7 +468,8 @@
       "create_failed": "서버가 이 기록을 거절했습니다.",
       "create_empty": "모든 직원에게 이미 퇴사 기록이 있습니다.",
       "expand_show": "더 보기",
-      "expand_hide": "접기"
+      "expand_hide": "접기",
+      "kind_misc": "기타"
     },
     "files": {
       "empty_title": "아직 파일이 없습니다",

@@ -419,7 +419,6 @@
       "kind_voluntary": "Voluntary",
       "kind_involuntary": "Involuntary",
       "kind_contract_end": "Contract ended",
-      "kind_other": "Other",
       "handover_progress": "{{done}}/{{total}}",
       "cert_issued": "Issued",
       "cert_missing": "Not issued",
@@ -469,7 +468,8 @@
       "create_failed": "The server refused this record.",
       "create_empty": "Everyone on staff already has an offboarding on file.",
       "expand_show": "Show more",
-      "expand_hide": "Show less"
+      "expand_hide": "Show less",
+      "kind_misc": "Other"
     },
     "files": {
       "empty_title": "No files yet",

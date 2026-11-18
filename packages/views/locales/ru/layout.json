@@ -419,7 +419,6 @@
       "kind_voluntary": "По собственному желанию",
       "kind_involuntary": "По инициативе компании",
       "kind_contract_end": "Окончание договора",
-      "kind_other": "Другое",
       "handover_progress": "{{done}}/{{total}}",
       "cert_issued": "Выдана",
       "cert_missing": "Не выдана",
@@ -469,7 +468,8 @@
       "create_failed": "Сервер отклонил эту запись.",
       "create_empty": "У всех сотрудников уже есть увольнение.",
       "expand_show": "Показать больше",
-      "expand_hide": "Свернуть"
+      "expand_hide": "Свернуть",
+      "kind_misc": "Другое"
     },
     "files": {
       "empty_title": "Файлов пока нет",

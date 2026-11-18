@@ -419,7 +419,6 @@
       "kind_voluntary": "自行離職",
       "kind_involuntary": "公司資遣",
       "kind_contract_end": "合約到期",
-      "kind_other": "其他",
       "handover_progress": "{{done}}/{{total}}",
       "cert_issued": "已開立",
       "cert_missing": "未開立",
@@ -469,7 +468,8 @@
       "create_failed": "伺服器拒絕了這次發起。",
       "create_empty": "在職員工都已經有離職單了。",
       "expand_show": "展開",
-      "expand_hide": "收合"
+      "expand_hide": "收合",
+      "kind_misc": "其他"
     },
     "files": {
       "empty_title": "檔案櫃是空的",

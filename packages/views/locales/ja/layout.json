@@ -419,7 +419,6 @@
       "kind_voluntary": "自己都合",
       "kind_involuntary": "会社都合",
       "kind_contract_end": "契約満了",
-      "kind_other": "その他",
       "handover_progress": "{{done}}/{{total}}",
       "cert_issued": "発行済み",
       "cert_missing": "未発行",
@@ -469,7 +468,8 @@
       "create_failed": "サーバーがこの登録を拒否しました。",
       "create_empty": "在籍者全員に退職手続きがあります。",
       "expand_show": "さらに表示",
-      "expand_hide": "折りたたむ"
+      "expand_hide": "折りたたむ",
+      "kind_misc": "その他"
     },
     "files": {
       "empty_title": "ファイルはまだありません",

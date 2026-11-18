@@ -419,7 +419,6 @@
       "kind_voluntary": "Démission",
       "kind_involuntary": "Licenciement",
       "kind_contract_end": "Fin de contrat",
-      "kind_other": "Autre",
       "handover_progress": "{{done}}/{{total}}",
       "cert_issued": "Émis",
       "cert_missing": "Non émis",
@@ -469,7 +468,8 @@
       "create_failed": "Le serveur a refusé cette fiche.",
       "create_empty": "Tout le personnel a déjà un départ en cours.",
       "expand_show": "Afficher plus",
-      "expand_hide": "Afficher moins"
+      "expand_hide": "Afficher moins",
+      "kind_misc": "Autre"
     },
     "files": {
       "empty_title": "Aucun fichier",

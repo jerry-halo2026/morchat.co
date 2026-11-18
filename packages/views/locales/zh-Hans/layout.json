@@ -419,7 +419,6 @@
       "kind_voluntary": "主动离职",
       "kind_involuntary": "公司辞退",
       "kind_contract_end": "合同到期",
-      "kind_other": "其他",
       "handover_progress": "{{done}}/{{total}}",
       "cert_issued": "已开",
       "cert_missing": "未开",
@@ -469,7 +468,8 @@
       "create_failed": "服务器拒绝了这次发起。",
       "create_empty": "在职员工都已经有离职单了。",
       "expand_show": "展开",
-      "expand_hide": "收起"
+      "expand_hide": "收起",
+      "kind_misc": "其他"
     },
     "files": {
       "empty_title": "文件柜是空的",
