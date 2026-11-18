@@ -24,6 +24,7 @@ import {
 } from "../layout/panel-nav";
 import { ROUTE_ICON_COMPONENTS } from "../layout/route-icon-components";
 import { usePanelReader } from "../layout/use-panel-reader";
+import { IpScopeSelect } from "./ip-scope";
 
 /**
  * The content space's left column: the production line in the order work runs
@@ -35,6 +36,10 @@ import { usePanelReader } from "../layout/use-panel-reader";
  * whatever the workspace calls its studio, so nothing here can be a constant.
  * The one badge is the topic pool's size — how much raw material is waiting to
  * become scripts. It renders only once the list answers.
+ *
+ * Under the brand sits the IP switcher, as in the original: the pages behind
+ * this column are all one IP's work, and choosing it is a reading scope stored
+ * per tab (`ip-scope.tsx`), not a store and not a server filter.
  */
 export function ContentPanel() {
   const { t } = useT("layout");
@@ -53,6 +58,10 @@ export function ContentPanel() {
         subtitle={workspace?.name ?? undefined}
       />
       <PanelBody>
+        {/* The IP switcher, between the brand and the nav: the scope narrows
+            everything the column leads to, so it reads before the list it
+            changes. It renders nothing until there is an IP to switch to. */}
+        <IpScopeSelect className="mt-1" />
         <div className="mt-1">
           <PanelLabel>{t(($) => $.panels.content.group.production)}</PanelLabel>
           <PanelList>
