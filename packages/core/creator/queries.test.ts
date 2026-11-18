@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  creatorHealthDetailOptions,
+  creatorHealthOptions,
   creatorDetailOptions,
   creatorKeys,
   creatorListOptions,
@@ -86,5 +88,29 @@ describe("creator query keys (contract §5)", () => {
     expect(creatorDetailOptions("ws-1", "").enabled).toBe(false);
     expect(creatorPostMetricsOptions("ws-1", "").enabled).toBe(false);
     expect(creatorPostMetricsOptions("ws-1", "p-1").enabled).toBe(true);
+  });
+
+  it("nests content health under the same domain prefix (contract §19)", () => {
+    expect(creatorKeys.health("ws-1", { sort: "engagement" })).toEqual([
+      "creator",
+      "ws-1",
+      "health",
+      { sort: "engagement" },
+    ]);
+    expect(creatorKeys.healthDetail("ws-1", "c-1")).toEqual(["creator", "ws-1", { id: "c-1" }, "health"]);
+
+    for (const key of [
+      creatorKeys.health("ws-1", {}),
+      creatorKeys.healthDetail("ws-1", "c-1"),
+    ]) {
+      expect(isUnder(key, creatorKeys.all("ws-1"))).toBe(true);
+    }
+    // A board key must not collide with a creator-list key: the list filters are
+    // objects too, and sharing a cache entry between them would show health rows
+    // on the creator screen.
+    expect(creatorKeys.health("ws-1", {})).not.toEqual(creatorKeys.list("ws-1", {}));
+    expect(creatorHealthOptions("ws-1", {}).enabled).toBe(true);
+    expect(creatorHealthOptions("").enabled).toBe(false);
+    expect(creatorHealthDetailOptions("ws-1", "").enabled).toBe(false);
   });
 });

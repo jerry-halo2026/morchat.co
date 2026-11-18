@@ -155,6 +155,7 @@ func (q *Queries) InsertMirroredCreators(ctx context.Context, arg InsertMirrored
 }
 
 const listMirroredCreatorRows = `-- name: ListMirroredCreatorRows :many
+
 SELECT id, source_id, archived_at
 FROM creator
 WHERE workspace_id = $1::uuid
@@ -173,6 +174,31 @@ type ListMirroredCreatorRowsRow struct {
 	ArchivedAt pgtype.Timestamptz `json:"archived_at"`
 }
 
+// Mirror writes for the orange 达人 sync (docs/engineering/ORANGE-SYNC.md).
+//
+// These statements are the only writer of the mirror columns 785 added, and the
+// only writer of orange_account. Nothing here is reachable from an HTTP request:
+// the sync runs as `cmd/orange-sync`, one batch per workspace.
+//
+// The rows travel as one jsonb array per statement instead of one parameter bag
+// per row. 623 rows per run is small either way, but a single statement keeps
+// the batch atomic per phase and makes the "did anything actually change"
+// filter a property of the SQL (IS DISTINCT FROM) rather than something Go has
+// to remember to apply.
+//
+// Two invariants live in this file and are enforced by the statements, not by
+// the caller:
+//   - a mirror row is rewritten only when one of its mirror columns differs, so
+//     a second run of the same batch reports Updated = 0 (idempotence);
+//   - `fans` is never zeroed. `coalesce(r.fans, c.fans)` on the update path
+//     means an upstream row whose follower count cannot be parsed keeps the
+//     number this workspace already had, instead of claiming the creator lost
+//     every follower.
+//
+// The human-owned columns — owner_member_id, score, risk_flag,
+// blacklist_reason, category, media_ip_id, media_ip_project_id — are absent
+// from every SET list here on purpose. A sync must not be able to clear a
+// rating, a risk flag or an IP assignment.
 // Every mirror row in this workspace for one source system, live or archived:
 // the sync needs the archived ones to revive a row that came back upstream
 // instead of inserting a second copy next to its own tombstone.
@@ -244,7 +270,7 @@ SET display_name = r.display_name,
     source_rank = r.source_rank,
     archived_at = NULL,
     updated_at = now()
-FROM jsonb_to_recordset($1::jsonb) AS r(
+FROM jsonb_to_recordset($2::jsonb) AS r(
     id UUID,
     display_name TEXT,
     handle TEXT,
@@ -270,7 +296,7 @@ FROM jsonb_to_recordset($1::jsonb) AS r(
     source_id TEXT
 )
 WHERE c.id = r.id
-  AND c.workspace_id = $2::uuid
+  AND c.workspace_id = $1::uuid
   AND (
     c.archived_at IS NOT NULL
     OR c.display_name IS DISTINCT FROM r.display_name
@@ -298,8 +324,8 @@ WHERE c.id = r.id
 `
 
 type UpdateMirroredCreatorsParams struct {
-	Rows        []byte      `json:"rows"`
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	Rows        []byte      `json:"rows"`
 }
 
 // The update half. The WHERE clause is the idempotence contract: a row whose
@@ -310,7 +336,7 @@ type UpdateMirroredCreatorsParams struct {
 // that came back upstream has to become live again), and the SET list clears
 // archived_at for that case.
 func (q *Queries) UpdateMirroredCreators(ctx context.Context, arg UpdateMirroredCreatorsParams) (int64, error) {
-	result, err := q.db.Exec(ctx, updateMirroredCreators, arg.Rows, arg.WorkspaceID)
+	result, err := q.db.Exec(ctx, updateMirroredCreators, arg.WorkspaceID, arg.Rows)
 	if err != nil {
 		return 0, err
 	}

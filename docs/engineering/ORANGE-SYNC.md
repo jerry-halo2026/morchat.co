@@ -7,7 +7,7 @@ orange 是达人建联（`orange_daren`）的**上游事实源**，morechat 只�
 
 - 上游：容器 `orange-daren-db`，库 `orange_daren`，宿主端口 `55433`。**只读**：连接以 `default_transaction_read_only=on` 打开，`server/pkg/orange` 里没有任何写语句。
 - 本库：`multica_wb`。镜像写入口只有 `cmd/orange-sync`。本批**没有** HTTP 接口。
-- 本批范围：只镜像 `creator`。`bd_*`、`creator_video` / `v_creator_content`（O3/O4）、定时任务、UI 都不在本批。
+- 本批范围：`creator`（O2）与 `creator_video` + `creator_metric`（O3a，§7）。`bd_*`、定时任务、UI 都不在本批。
 
 ## 1. 运行方式
 
@@ -118,7 +118,9 @@ DATABASE_URL=postgres://…/multica_wb ORANGE_DATABASE_URL=postgres://…/orange
 | `creator.quote_min/quote_max` | 各 1 行有值 | 原样；倒挂落空 + warning |
 | `creator.dm_time` | 1 行有值 | 原样 |
 | `product_sku.commission_rate` | 19 个 SKU 是 `438.00`（百分数最大只能 100） | **本批不搬 SKU**；O3/O4 换算前必须做范围检查，别把 438% 变成 4.38 |
-| `v_creator_content.engagement_rate` | 298/514 为空，最大 4503 | 同上；NULL 必须是 `insufficient_data` |
+| `v_creator_content.engagement_rate` | 298/514 为空，最大 4503.021 | 已搬（§7）：入库除以 100 得 `45.02988`，**不 clamp**，NULL 保持 NULL |
+| `v_creator_content.hit_rate` | 198/514 非空，最大 47.6 | 已搬（§7）：入库 `0.47619`，样本 < 10 保持 NULL |
+| `creator_video` 统计列 | 12449 行里只有 3837 行有点赞数；`topics` 有 11593 行非空；`play_count` 有 3047 行非空 | 作品照搬，统计列 NULL 就是 NULL；`topics` 按任务要求从 `desc_text` 解析；`play_count` 不进表（契约 §2.1） |
 
 ## 6. 对账
 
@@ -149,7 +151,106 @@ ORANGE_TEST_DATABASE_URL=postgres://…/orange_daren \
 | `archived` 突然等于整个工作区的达人数 | 是否有人手改了 `source_system` / 上游账号换了 `account_id` | 空读保护会拦住"读到 0 行"，但"读到别的账号的行"拦不住——先把 `orange_account` 的映射对上 |
 | `orange account … already mirrored into workspace …` | `orange_account` | 一个上游账号只能进一个工作区；确认后删掉旧映射（这是唯一的解法，代码不会替你做） |
 
-## 7. 本批已知的契约问题
+## 7. 作品同步与内容健康度（O3a，`-videos`）
+
+`creator_video`（一条 aweme 一行）+ `creator_metric`（每达人每天一行的快照）。口径是
+`WORKBENCH-DATA-CONTRACT.md` §2.1/§2.3，**照此实现，不改**。
+
+```bash
+# 全量：作品 → 受影响达人的当日指标
+DATABASE_URL=…/multica_wb ORANGE_DATABASE_URL=…/orange_daren \
+  go run ./cmd/orange-sync -workspace xinghe -account 11111111-2222-4333-8444-555555555555 -videos -limit 2000
+
+# 增量：只拉 create_time >= since 的作品；指标仍按「该达人全部本地作品」重算
+… go run ./cmd/orange-sync -workspace xinghe -account <uuid> -videos -since 2026-11-01T00:00:00Z
+```
+
+两步，都在 `server/pkg/orange/videos.go`：
+
+1. `SyncVideos` —— 上游 `creator_video` → 本库 `creator_video`，按 `aweme_id` 幂等。
+2. `StoreCreatorHealth` —— 本地作品 + `creator.fans` → `creator_metric`（**纯本地，不读上游**）。
+
+只对**本次被改动的达人**重算指标（`AffectedCreatorIDs`）：511 个达人只算一次，而不是每次把 623 个都扫一遍作品。
+
+输出：
+
+```json
+{ "videos": { "scanned": 12449, "created": 12337, "updated": 0, "skipped": 112 },
+  "metrics": { "computed": 511, "skipped": 0 }, "affected_creators": 511,
+  "warning_count": 1, "warnings": [ … ] }
+```
+
+### 7.1 列级映射（`creator_video`）
+
+| morechat | orange `creator_video` | 口径 |
+| --- | --- | --- |
+| `creator_id` | `sec_uid` | 经 `creator` 镜像行解析成 `id`；解析不到 → 跳过（§7.2） |
+| `aweme_id` | `aweme_id` | 原样；唯一键 `(workspace_id, aweme_id) WHERE archived_at IS NULL` |
+| `desc_text` | `desc_text` | 空串 → NULL |
+| `topics` | （由 `desc_text` 解析） | 正则 `#([^\s#]+)`，去重、保留首次出现顺序 |
+| `create_time` | `create_time` | 上游 265 行为 NULL，原样 |
+| `duration_ms` | `duration_ms` | 原样 |
+| `digg_count` / `comment_count` / `share_count` | 同名列 | 原样；**NULL 表示没采到统计，不写 0** |
+| `cover_url` / `video_url` | 同名列 | 空串 → NULL |
+| `stats_collected_at` | `stats_collected_at` | 上游目前 12449 行全为 NULL |
+| `source_system` / `source_id` | — | `'orange'` / `aweme_id` |
+
+不搬的列：`play_count`（契约 §2.1 明确不进表）、`collect_count`、`is_top`、`comment_collected`、`author_sec_uid`、`collected_at`。
+
+### 7.2 归属：作品必须挂到达人
+
+`creator_video.creator_id` 是 NOT NULL，所以一条作品只有在 `sec_uid` 能对上**本工作区 live 的镜像达人**时才入库。今天 12449 条里有 112 条对不上（4 个 `sec_uid` 在 `creator` 里已经没有行），全部跳过并在 `warnings` 里聚合成一条（不是 112 条刷屏）。
+
+这也解释了为什么我们的行数比上游少 112：不是漏采，是这些作品**没有主人**。
+
+### 7.3 两个指标（`ComputeHealth`，纯函数）
+
+```
+engagement_rate = (avg_digg + avg_comment + avg_share) / fans    // 存 0–1，不 clamp
+hit_rate        = count(digg > 2 × median(digg)) / count(有统计的作品)
+```
+
+- **判定顺序**（`sample_note` 只能写一个原因，按此优先级）：
+  1. 没有任何一条作品带点赞数 → `no_stats`，所有指标 NULL；
+  2. 带统计的作品 < 10 → `hit_rate` NULL，`sample_below_10`；
+  3. 粉丝数 NULL 或 0 → `engagement_rate` NULL，`no_followers`。
+  两条同时成立时取编号小的（`sample_below_10` 优先于 `no_followers`）。
+- **中位数**：偶数条取中间两个的**平均**（与上游 `percentile_cont(0.5)` 同口径）。上游视图会先把中位数 `round(…, 1)` 再乘 2，我们不做这步预舍入——只在样本恰好落在 2× 边界附近时可能差一条命中，实际数据里 195 个达人的命中数与上游逐条一致。
+- **缺失的分量按 0 计入分子**（与上游视图的 `coalesce(avg, 0)` 一致）：三个均值本来就是一个和，少一项也不能让我们的数字和上游对不上。
+- **真的 0 照存 0**：`VideosWithStats > 0` 且互动为 0，就是 0，不是"未知"。
+- **不 clamp**：直播数据里 `engagement_rate` 最大 45.02988（= 4503%），原样存，由页面标注"这行数据有问题"。
+
+### 7.4 幂等
+
+按 `aweme_id` upsert，且 UPDATE 带 `IS DISTINCT FROM` 过滤；指标 upsert 是 `ON CONFLICT (workspace_id, creator_id, captured_on) DO UPDATE … WHERE 有变化`。实测第二次全量跑：
+
+```
+videos: { scanned: 12449, created: 0, updated: 0, skipped: 112 }
+metrics: { computed: 0 }
+```
+
+### 7.5 对账（2026-11-18 真实数字）
+
+| 项 | 上游 `v_creator_content` | 本库 `creator_metric` | 差异原因 |
+| --- | --- | --- | --- |
+| 达人行 | 514 | 511 | 3 个 `sec_uid` 上游有作品但 `creator` 已无行（§7.2） |
+| `engagement_rate` 非空 / 空 | 216 / 298 | **216 / 295** | 那 3 行在上游是 NULL（无粉丝数），我们根本没有这 3 行 |
+| `hit_rate` 非空 | 198 | **195** | 同上 3 行 |
+| `engagement_rate` 最大 | 4503.021（%） | **45.02988** | 上游先把三个均值各 `round(…, 1)` 再相除；我们按契约用精确均值 |
+| `hit_rate` 最大 | 47.6（%） | **0.47619** | 同一个比值（10/21），上游展示时 `round(…, 1)`% |
+| 作品行 | 12449 | 12337 | 112 条无主作品（§7.2） |
+
+结论：能归属的 511 个达人**逐项对上**；差异全部可解释，没有一条是"算错"。
+
+### 7.6 本节的契约问题
+
+1. **上游其实有 `topics` 列**（12449 行里 11593 行非空），本批按任务要求仍从 `desc_text` 解析。若要改成"上游有就用上游"，只动 `mirrorVideo` 一行；同时要想清楚两者不一致时谁赢。
+2. **上游 `creator_video` 没有软删列、没有 `updated_at`**：作品只增不删，本批**不做归档**。`-since` 只能按 `create_time` 过滤，因此会跳过 `create_time IS NULL` 的 265 行。
+3. **上游 `play_count` 有 3047 行非空**，与契约 §2.1 的"抖音作品接口不返回 play_count"不符。本批不搬，留作 O4 的输入。
+4. **`fans` NOT NULL**（§7 老问题延续）：粉丝数 0 与"未知"在本库仍分不开；好在契约对两者行为一致（都不出 `engagement_rate`）。
+5. **指标契约 `packages/core/metrics/contracts.ts` 未改**：本批只把两个指标存进 `creator_metric`，进指标契约是另一批的事。
+
+## 8. 本批已知的契约问题
 
 1. **`creator.fans` NOT NULL**：阻止"未知粉丝数"落 NULL（§3.1）。要修需同时改 `fans` 可空 + handler 的序列化，跨出本批写作用域。
 2. **`ListCreators` 的投影少了 5 列**（`uid`、`dm_time`、`source_type`、`source_keyword`、`source_rank`）：为了不改已经评审过的 `pkg/orange/queries.go`，`sync.go` 自己读了一次这几列。要收敛就把它们并进 `CreatorRow`，然后删掉 `creatorExtras`。

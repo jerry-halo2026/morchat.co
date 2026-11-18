@@ -3,6 +3,7 @@
 // 785. See docs/engineering/ORANGE-SYNC.md.
 //
 //	go run ./cmd/orange-sync -workspace xinghe -account <uuid> [-since RFC3339] [-dry-run] [-limit 500]
+//	go run ./cmd/orange-sync -workspace xinghe -account <uuid> -videos [-since RFC3339] [-dry-run] [-limit 2000]
 //
 // The command prints one JSON summary on stdout. A run that succeeded with
 // warnings still exits 0 — warnings are data-quality notes about the upstream
@@ -49,6 +50,32 @@ type summary struct {
 	Warnings     []orange.Warning `json:"warnings"`
 }
 
+// videoSummary is the `-videos` run's report: the mirror's counts and the metric
+// run's count, in the two blocks the operator asked for
+// (`{videos:{scanned,created,updated}, metrics:{computed}}`).
+type videoSummary struct {
+	WorkspaceID string  `json:"workspace_id"`
+	Workspace   string  `json:"workspace"`
+	AccountID   string  `json:"account_id"`
+	DryRun      bool    `json:"dry_run"`
+	Since       *string `json:"since,omitempty"`
+	Videos      struct {
+		Scanned int `json:"scanned"`
+		Created int `json:"created"`
+		Updated int `json:"updated"`
+		Skipped int `json:"skipped"`
+	} `json:"videos"`
+	Metrics struct {
+		Computed int `json:"computed"`
+		Skipped  int `json:"skipped"`
+	} `json:"metrics"`
+	// AffectedCreators is how many creators' works this run touched — the input
+	// size of the metric block.
+	AffectedCreators int              `json:"affected_creators"`
+	WarningCount     int              `json:"warning_count"`
+	Warnings         []orange.Warning `json:"warnings"`
+}
+
 func main() {
 	if err := run(); err != nil {
 		fmt.Fprintf(os.Stderr, "orange-sync: %v\n", err)
@@ -58,14 +85,15 @@ func main() {
 
 func run() error {
 	flag.Usage = func() {
-		fmt.Fprintln(flag.CommandLine.Output(), "usage: orange-sync -workspace <slug|uuid> -account <uuid> [-since RFC3339] [-dry-run] [-limit 500]")
+		fmt.Fprintln(flag.CommandLine.Output(), "usage: orange-sync -workspace <slug|uuid> -account <uuid> [-since RFC3339] [-dry-run] [-limit 500] [-videos]")
 		flag.PrintDefaults()
 	}
 	workspaceFlag := flag.String("workspace", "", "workspace slug or uuid to mirror into (required)")
 	accountFlag := flag.String("account", "", "orange account id to mirror (required)")
-	sinceFlag := flag.String("since", "", "only rows updated at or after this RFC3339 instant; also disables archiving")
+	sinceFlag := flag.String("since", "", "only rows updated at or after this RFC3339 instant; also disables archiving (with -videos: works published at or after it)")
 	dryRunFlag := flag.Bool("dry-run", false, "run the whole sync inside a transaction and roll it back")
 	limitFlag := flag.Int("limit", 500, "upstream page size")
+	videosFlag := flag.Bool("videos", false, "mirror the account's works and recompute the day's creator health instead of mirroring creators")
 	flag.Parse()
 
 	if strings.TrimSpace(*workspaceFlag) == "" {
@@ -152,6 +180,10 @@ func run() error {
 	}
 	defer client.Close()
 
+	if *videosFlag {
+		return runVideos(ctx, pool, client, workspace, workspaceID, accountID, since, *limitFlag, *dryRunFlag)
+	}
+
 	result, err := client.SyncCreators(ctx, pool, orange.SyncOptions{
 		WorkspaceID: workspaceID,
 		AccountID:   accountID,
@@ -176,6 +208,63 @@ func run() error {
 		WarningCount: len(result.Warnings),
 		Warnings:     result.Warnings,
 	}
+	if !since.IsZero() {
+		stamp := since.UTC().Format(time.RFC3339)
+		payload.Since = &stamp
+	}
+	if len(payload.Warnings) > printedWarnings {
+		payload.Warnings = payload.Warnings[:printedWarnings]
+	}
+
+	encoder := json.NewEncoder(os.Stdout)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(payload)
+}
+
+// runVideos mirrors the account's works and then recomputes the day's health
+// snapshot for exactly the creators those works belong to
+// (docs/engineering/ORANGE-SYNC.md §6).
+//
+// The two steps are separate on purpose: the mirror is upstream-shaped and
+// idempotent, the metrics are a pure function of what this workspace already
+// holds. Recomputing 623 creators because three changed would be a scan of every
+// work in the workspace for no new number.
+func runVideos(ctx context.Context, pool *pgxpool.Pool, client *orange.Client, workspace db.Workspace, workspaceID, accountID uuid.UUID, since time.Time, limit int, dryRun bool) error {
+	videos, err := client.SyncVideos(ctx, pool, orange.VideoSyncOptions{
+		WorkspaceID: workspaceID,
+		AccountID:   accountID,
+		Since:       since,
+		Limit:       limit,
+		DryRun:      dryRun,
+	})
+	if err != nil {
+		return err
+	}
+
+	metrics, err := orange.StoreCreatorHealth(ctx, pool, orange.HealthStoreOptions{
+		WorkspaceID: workspaceID,
+		CreatorIDs:  videos.AffectedCreatorIDs,
+		DryRun:      dryRun,
+	})
+	if err != nil {
+		return err
+	}
+
+	payload := videoSummary{
+		WorkspaceID:      workspaceID.String(),
+		Workspace:        workspace.Slug,
+		AccountID:        accountID.String(),
+		DryRun:           dryRun,
+		AffectedCreators: len(videos.AffectedCreatorIDs),
+		WarningCount:     len(videos.Warnings),
+		Warnings:         videos.Warnings,
+	}
+	payload.Videos.Scanned = videos.Scanned
+	payload.Videos.Created = videos.Created
+	payload.Videos.Updated = videos.Updated
+	payload.Videos.Skipped = videos.Skipped
+	payload.Metrics.Computed = metrics.Computed
+	payload.Metrics.Skipped = metrics.Skipped
 	if !since.IsZero() {
 		stamp := since.UTC().Format(time.RFC3339)
 		payload.Since = &stamp

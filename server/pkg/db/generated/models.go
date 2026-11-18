@@ -868,6 +868,31 @@ type Creator struct {
 	SourceID pgtype.Text `json:"source_id"`
 }
 
+// One day's content health per creator (WORKBENCH-DATA-CONTRACT §2.2). NULL metrics mean "not computable", and sample_note says why.
+type CreatorMetric struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	CreatorID   pgtype.UUID `json:"creator_id"`
+	CapturedOn  pgtype.Date `json:"captured_on"`
+	// Works on record for this creator, with or without statistics.
+	VideoCount pgtype.Int4 `json:"video_count"`
+	// Works whose digg_count is non-NULL — the sample size behind every metric here.
+	VideosWithStats pgtype.Int4 `json:"videos_with_stats"`
+	// Works published in the 30 days before the capture; a work with no create_time cannot be counted.
+	PostsLast30d pgtype.Int4    `json:"posts_last_30d"`
+	AvgDigg      pgtype.Numeric `json:"avg_digg"`
+	AvgComment   pgtype.Numeric `json:"avg_comment"`
+	AvgShare     pgtype.Numeric `json:"avg_share"`
+	// (avg_digg + avg_comment + avg_share) / fans. Stored 0–1, unclamped: values above 1 are real upstream data (max 45.03021 = 4503 %) and mean the follower count disagrees with the works.
+	EngagementRate pgtype.Numeric `json:"engagement_rate"`
+	// Share of works whose likes exceed 2x the median of the creator's works. NULL below 10 works with statistics.
+	HitRate pgtype.Numeric `json:"hit_rate"`
+	// Why a metric is NULL: no_stats | sample_below_10 | no_followers. NULL when every metric was computable.
+	SampleNote pgtype.Text        `json:"sample_note"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
 type CreatorPost struct {
 	ID             pgtype.UUID        `json:"id"`
 	WorkspaceID    pgtype.UUID        `json:"workspace_id"`
@@ -905,6 +930,36 @@ type CreatorPostMetric struct {
 	Source      string             `json:"source"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+// One row per 抖音 aweme, mirrored from orange creator_video (WORKBENCH-DATA-CONTRACT §2.1). Counters are NULL when the platform statistic was never collected — never 0.
+type CreatorVideo struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	// creator.id this work belongs to. No foreign key (repository rule); the sync resolves it from the mirrored sec_uid.
+	CreatorID pgtype.UUID `json:"creator_id"`
+	AwemeID   string      `json:"aweme_id"`
+	DescText  pgtype.Text `json:"desc_text"`
+	// Topics parsed out of desc_text (#话题), de-duplicated, in first-seen order. Derived, not mirrored.
+	Topics []string `json:"topics"`
+	// Publish time. NULL on 265 of 12449 upstream rows — a work without a publish time cannot be counted in posts_last_30d.
+	CreateTime pgtype.Timestamptz `json:"create_time"`
+	DurationMs pgtype.Int4        `json:"duration_ms"`
+	// Likes. NULL = not collected (this is the column the health sample size counts).
+	DiggCount        pgtype.Int4        `json:"digg_count"`
+	CommentCount     pgtype.Int4        `json:"comment_count"`
+	ShareCount       pgtype.Int4        `json:"share_count"`
+	CoverUrl         pgtype.Text        `json:"cover_url"`
+	VideoUrl         pgtype.Text        `json:"video_url"`
+	StatsCollectedAt pgtype.Timestamptz `json:"stats_collected_at"`
+	// Mirror source system ("orange"); NULL for a work entered by hand.
+	SourceSystem pgtype.Text `json:"source_system"`
+	// Row identity inside source_system (orange: aweme_id).
+	SourceID  pgtype.Text        `json:"source_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	// Soft delete. The unique key and the metric reads only see live rows.
+	ArchivedAt pgtype.Timestamptz `json:"archived_at"`
 }
 
 type CrmBrief struct {

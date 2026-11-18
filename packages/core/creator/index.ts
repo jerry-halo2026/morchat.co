@@ -1,4 +1,6 @@
 export {
+  creatorHealthDetailOptions,
+  creatorHealthOptions,
   creatorKeys,
   creatorDetailOptions,
   creatorListOptions,

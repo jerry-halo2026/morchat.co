@@ -1796,6 +1796,96 @@ word/styles.xml
 - **模板不做版本历史**：改了就改了；已经开出的文件靠 `template_name` + `values` 快照自证。
 - **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举未加 `hr_doc_template` / `hr_doc_generation`。
 
+## 19. 达人内容健康度契约（作品表 + 指标快照 + 只读接口，O3a）
+
+口径**不在本文**：见 `WORKBENCH-DATA-CONTRACT.md` §2（`creator_video` / `creator_metric` / 两个指标的定义与前置条件）。本文只写迁移号段、表、接口、权限、query key 和已知债务。
+
+写入口只有一个：`cmd/orange-sync -videos`（`docs/engineering/ORANGE-SYNC.md` §7）。**没有 HTTP 写接口**——作品是指标的下游事实，不应该由界面录入。
+
+### 19.1 迁移号段
+
+| # | 迁移 | 内容 |
+| --- | --- | --- |
+| 794 | `creator_video` | 作品表（一条 aweme 一行） |
+| 795 | `creator_video_aweme_unique` | 唯一 `(workspace_id, aweme_id) WHERE archived_at IS NULL` |
+| 796 | `creator_video_creator_idx` | `(workspace_id, creator_id, create_time DESC)` |
+| 797 | `creator_video_source_idx` | `(workspace_id, source_system, source_id)` |
+| 798 | `creator_metric` | 每日快照表 |
+| 799 | `creator_metric_creator_day_unique` | 唯一 `(workspace_id, creator_id, captured_on)` |
+| 800 | `creator_metric_creator_idx` | `(workspace_id, creator_id, captured_on DESC)` |
+
+795–797、799–800 都是 `CREATE INDEX CONCURRENTLY` 的**单语句**迁移，且都在 `server/cmd/migrate/main.go` 的 `concurrentIndexCleanups` 里登记（INVALID 索引先删再重试）。
+
+### 19.2 表
+
+两表都没有外键（仓库规则），关系由应用层解析；两表都用 `archived_at` 软删，**没有任何物理删除**（工作区销毁除外）。
+
+**`creator_video`**：`workspace_id`、`creator_id`、`aweme_id`、`desc_text`、`topics text[] NOT NULL DEFAULT '{}'`、`create_time`、`duration_ms`、`digg_count` / `comment_count` / `share_count`、`cover_url`、`video_url`、`stats_collected_at`、`source_system`、`source_id`、`created_at` / `updated_at` / `archived_at`。
+
+- 三个计数列可空：**NULL = 还没采到统计，不是 0**（今天 12449 条里 8612 条是 NULL）。
+- `topics` 是派生列（从 `desc_text` 解析），不是上游列。
+- 没有 `play_count`：契约 §2.1 明确不进表。
+
+**`creator_metric`**：`workspace_id`、`creator_id`、`captured_on date`、`video_count`、`videos_with_stats`、`posts_last_30d`、`avg_digg` / `avg_comment` / `avg_share` `numeric(14,2)`、`engagement_rate` `numeric(10,5)`、`hit_rate` `numeric(6,5)`、`sample_note`、`created_at` / `updated_at`。
+
+- `engagement_rate` 的整数位是 5 位而不是 1 位：上游真实数据里有 4503%（= 45.02988），契约要求原样保留，**不 clamp**。
+- `sample_note` 写"为什么是 NULL"：`no_stats` / `sample_below_10` / `no_followers`；全部可算时为 NULL。
+
+### 19.3 REST（基址 `/api/workbench/creators`）
+
+#### `GET /api/workbench/creators/health?sort=fans|engagement|hit&cursor=&limit=`
+
+```json
+{
+  "creators": [
+    { "id": "…", "display_name": "…", "fans": 31418,
+      "engagement_rate": 0.01923, "hit_rate": 0.1,
+      "posts_last_30d": 10, "videos_with_stats": 10, "captured_on": "2026-11-18" }
+  ],
+  "total": 50,
+  "next_cursor": "…"
+}
+```
+
+- `sort` 缺省 `fans`（= `fans DESC`，没有内容数据时唯一有意义的排序）；`engagement` / `hit` 按各自指标降序。
+- **三种排序都是 `NULLS LAST`**，次级排序键是 `fans DESC`，再用 `id` 定序：没采到数据的达人沉底，而不是浮到榜首。
+- **没有健康度行的达人不会被排除**：`engagement_rate` / `hit_rate` / `posts_last_30d` / `videos_with_stats` / `captured_on` 全部 `null`，行的其余字段照出。读者需要看见"这个人还没采到数据"。
+- `total` = **本页条数**（与 `/creators` 一致，不是全量 COUNT）；`next_cursor` 是本页最后一行的 `id`，只有满页才有后继，传回 `?cursor=`。
+- `cursor` 是达人 id，服务端会重新读它当前的排序值再拼 keyset 条件（`(sort_value, fans, id) <` 三元组）：指标会变，把旧值编码进 cursor 会让翻页卡在无法解释的位置。cursor 指向本工作区以外的达人 → 400。
+- `sort` 非法 → 400（不静默回退，否则客户端会拿到"未排序"当"已排序"）。
+
+#### `GET /api/workbench/creators/{creatorId}/health`
+
+```json
+{ "creator_id": "…", "latest": { …: CreatorMetric }, "recent": [ { …: CreatorMetric } ] }
+```
+
+- `latest`：该达人最新一天的快照；从没采过 → `null`（不是空对象）。
+- `recent`：最近 **30 天**（今天 + 前 29 天）的快照，按 `captured_on DESC`。`recent` 永远不是 `null`。
+- 达人不在本工作区（或已归档）→ 404，而不是一条空健康记录。
+
+### 19.4 权限
+
+两个接口都走 `workbenchReadScope`：**任意工作区成员可读**。内容数据不是 ACL，也没有"我的达人/你的达人"之分；写入口是 CLI，没有成员级授权问题。
+
+### 19.5 Query key
+
+```
+["creator", wsId, "health", filters]
+["creator", wsId, { id }, "health"]
+```
+
+两条都挂在 `creatorKeys.all(wsId)` 下，`creator:changed` 的失效能覆盖到；`packages/core/creator/queries.ts` 导出 `creatorHealthOptions` / `creatorHealthDetailOptions`，`packages/core/creator/index.ts` 统一导出。**没有事件**：写入口是批处理 CLI，不通过 WebSocket 通知（客户端靠刷新/重新拉取看到新快照）。
+
+### 19.6 已知债务与本批未做
+
+- **没有作品（`creator_video`）的读接口**：本批只交付指标读；作品列表/详情（含 `topics`、`cover_url`）留给下一批，`CreatorVideo` 类型已经备好。
+- **没有指标写入接口**：`creator_metric` 只由 CLI 写。手工修正一个达人当天的指标目前要么重跑，要么直接改库。
+- **UI / views 未接入**：`packages/views/**`、`apps/**` 不在写作用域。
+- **`packages/core/metrics/contracts.ts` 未改**：两个指标进指标契约是另一批（本批只保证落库口径与契约 §2.3 逐字一致）。
+- **指标不归档**：`creator_metric` 没有 `archived_at`，历史快照永久保留；达人归档后其历史仍在（这正是快照的意义）。
+- **不做定时任务**：`-videos` 需要外部调度（cron / CI）来每天跑一次。
+
 ## 9. 完成定义（DoD）
 
 一个域算完成，当且仅当：迁移可 up/down 往返、`make sqlc` 无脏 diff、handler 有权限用例、事件发出、zod 覆盖响应、`useRealtimeSync` 有 patcher、`/overview` 里对应指标从 `insufficient_data` 变为有值、页面能读能写。

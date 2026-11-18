@@ -165,6 +165,11 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"creator":             workspaceDelete,
 	"creator_post":        workspaceDelete,
 	"creator_post_metric": workspaceDelete,
+	// Content health (WORKBENCH-API §19, 794–800): a work names a creator and a
+	// daily snapshot names a creator, with no foreign key behind either, so
+	// DeleteWorkspaceWorkbenchLedger clears both before the creators.
+	"creator_video":       workspaceDelete,
+	"creator_metric":      workspaceDelete,
 	"crm_client":          workspaceDelete,
 	"crm_brief":           workspaceDelete,
 	"crm_collab":          workspaceDelete,

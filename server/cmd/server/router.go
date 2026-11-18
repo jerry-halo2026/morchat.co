@@ -2417,12 +2417,16 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 				r.Put("/finance/months", h.UpsertWorkbenchFinanceMonth)
 
 				r.Route("/creators", func(r chi.Router) {
+					// Content health (WORKBENCH-API §19). Registered before the
+					// `{creatorId}` route so `health` is not read as an id.
+					r.Get("/health", h.ListCreatorHealth)
 					r.Get("/", h.ListCreators)
 					r.Post("/", h.CreateCreator)
 					r.Route("/{creatorId}", func(r chi.Router) {
 						r.Get("/", h.GetCreator)
 						r.Patch("/", h.UpdateCreator)
 						r.Delete("/", h.DeleteCreator)
+						r.Get("/health", h.GetCreatorHealth)
 					})
 				})
 

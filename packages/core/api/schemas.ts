@@ -114,6 +114,10 @@ import type {
   CreatorPostListResponse,
   CreatorPostMetric,
   CreatorPostMetricListResponse,
+  CreatorHealth,
+  CreatorHealthDetailResponse,
+  CreatorHealthListResponse,
+  CreatorMetric,
   CrmClient,
   CrmClientListResponse,
   CrmBrief,
@@ -4666,6 +4670,77 @@ export const CreatorPostMetricListResponseSchema = z.object({
 export const EMPTY_CREATOR_POST_METRIC_LIST_RESPONSE: CreatorPostMetricListResponse = {
   metrics: [],
   total: 0,
+};
+
+// Content health (WORKBENCH-API §19, WORKBENCH-DATA-CONTRACT §2.2). Every measure
+// is nullable because NULL is the contract's "not computable" — a zero here would
+// be a claim about the creator, and `sample_note` carries the reason instead.
+export const CreatorMetricSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  creator_id: z.string().default(""),
+  captured_on: z.string().default(""),
+  video_count: workbenchNullableNumber,
+  videos_with_stats: workbenchNullableNumber,
+  posts_last_30d: workbenchNullableNumber,
+  avg_digg: workbenchNullableNumber,
+  avg_comment: workbenchNullableNumber,
+  avg_share: workbenchNullableNumber,
+  // Deliberately unclamped: values above 1 are real upstream data and mean the
+  // follower count disagrees with the works.
+  engagement_rate: workbenchNullableNumber,
+  hit_rate: workbenchNullableNumber,
+  sample_note: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+}).loose();
+
+export const EMPTY_CREATOR_METRIC: CreatorMetric = {
+  id: "", workspace_id: "", creator_id: "", captured_on: "", video_count: null,
+  videos_with_stats: null, posts_last_30d: null, avg_digg: null, avg_comment: null,
+  avg_share: null, engagement_rate: null, hit_rate: null, sample_note: null,
+  created_at: "", updated_at: "",
+};
+
+/** One board row: a creator plus its latest snapshot, nulls intact. */
+export const CreatorHealthSchema = z.object({
+  id: z.string(),
+  display_name: z.string().default(""),
+  fans: z.number().default(0),
+  engagement_rate: workbenchNullableNumber,
+  hit_rate: workbenchNullableNumber,
+  posts_last_30d: workbenchNullableNumber,
+  videos_with_stats: workbenchNullableNumber,
+  captured_on: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CREATOR_HEALTH: CreatorHealth = {
+  id: "", display_name: "", fans: 0, engagement_rate: null, hit_rate: null,
+  posts_last_30d: null, videos_with_stats: null, captured_on: null,
+};
+
+export const CreatorHealthListResponseSchema = z.object({
+  creators: z.array(CreatorHealthSchema).default([]),
+  total: z.number().default(0),
+  next_cursor: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CREATOR_HEALTH_LIST_RESPONSE: CreatorHealthListResponse = {
+  creators: [],
+  total: 0,
+  next_cursor: null,
+};
+
+export const CreatorHealthDetailResponseSchema = z.object({
+  creator_id: z.string().default(""),
+  latest: CreatorMetricSchema.nullable().default(null),
+  recent: z.array(CreatorMetricSchema).default([]),
+}).loose();
+
+export const EMPTY_CREATOR_HEALTH_DETAIL_RESPONSE: CreatorHealthDetailResponse = {
+  creator_id: "",
+  latest: null,
+  recent: [],
 };
 
 export const CrmClientSchema = z.object({

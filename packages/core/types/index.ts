@@ -484,6 +484,16 @@ export type {
   UpdateCrmSettlementRequest,
   UpsertCreatorPostMetricRequest,
   UpsertWorkbenchFinanceMonthRequest,
+  // Content health (WORKBENCH-API §19): the mirrored works, the daily snapshots
+  // and the board row that joins them.
+  CreatorVideo,
+  CreatorMetric,
+  CreatorMetricSampleNote,
+  CreatorHealth,
+  CreatorHealthListFilters,
+  CreatorHealthListResponse,
+  CreatorHealthDetailResponse,
+  CreatorHealthSort,
   WorkbenchCountsResponse,
   WorkbenchFinanceBlock,
   WorkbenchFinanceCostBasis,

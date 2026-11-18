@@ -63,7 +63,7 @@ INSERT INTO creator (
     $18::uuid, $19::uuid,
     $20::uuid
 )
-RETURNING id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id
+RETURNING id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id, sec_uid, douyin_id, dy_uid, fans_display, quote_min, quote_max, cooperation_intent, lead_status, last_dm_at, likes_total, following_count, verify_type, tags, source_type, source_keyword, source_rank, source_system, source_id
 `
 
 type CreateCreatorParams struct {
@@ -139,6 +139,24 @@ func (q *Queries) CreateCreator(ctx context.Context, arg CreateCreatorParams) (C
 		&i.UpdatedAt,
 		&i.ArchivedAt,
 		&i.MediaIpID,
+		&i.SecUid,
+		&i.DouyinID,
+		&i.DyUid,
+		&i.FansDisplay,
+		&i.QuoteMin,
+		&i.QuoteMax,
+		&i.CooperationIntent,
+		&i.LeadStatus,
+		&i.LastDmAt,
+		&i.LikesTotal,
+		&i.FollowingCount,
+		&i.VerifyType,
+		&i.Tags,
+		&i.SourceType,
+		&i.SourceKeyword,
+		&i.SourceRank,
+		&i.SourceSystem,
+		&i.SourceID,
 	)
 	return i, err
 }
@@ -210,7 +228,7 @@ func (q *Queries) CreateCreatorPost(ctx context.Context, arg CreateCreatorPostPa
 }
 
 const getCreator = `-- name: GetCreator :one
-SELECT id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id FROM creator
+SELECT id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id, sec_uid, douyin_id, dy_uid, fans_display, quote_min, quote_max, cooperation_intent, lead_status, last_dm_at, likes_total, following_count, verify_type, tags, source_type, source_keyword, source_rank, source_system, source_id FROM creator
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -248,6 +266,24 @@ func (q *Queries) GetCreator(ctx context.Context, arg GetCreatorParams) (Creator
 		&i.UpdatedAt,
 		&i.ArchivedAt,
 		&i.MediaIpID,
+		&i.SecUid,
+		&i.DouyinID,
+		&i.DyUid,
+		&i.FansDisplay,
+		&i.QuoteMin,
+		&i.QuoteMax,
+		&i.CooperationIntent,
+		&i.LeadStatus,
+		&i.LastDmAt,
+		&i.LikesTotal,
+		&i.FollowingCount,
+		&i.VerifyType,
+		&i.Tags,
+		&i.SourceType,
+		&i.SourceKeyword,
+		&i.SourceRank,
+		&i.SourceSystem,
+		&i.SourceID,
 	)
 	return i, err
 }
@@ -421,7 +457,7 @@ func (q *Queries) ListCreatorPosts(ctx context.Context, arg ListCreatorPostsPara
 
 const listCreators = `-- name: ListCreators :many
 
-SELECT id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id
+SELECT id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id, sec_uid, douyin_id, dy_uid, fans_display, quote_min, quote_max, cooperation_intent, lead_status, last_dm_at, likes_total, following_count, verify_type, tags, source_type, source_keyword, source_rank, source_system, source_id
 FROM creator
 WHERE workspace_id = $1
   AND archived_at IS NULL
@@ -502,6 +538,24 @@ func (q *Queries) ListCreators(ctx context.Context, arg ListCreatorsParams) ([]C
 			&i.UpdatedAt,
 			&i.ArchivedAt,
 			&i.MediaIpID,
+			&i.SecUid,
+			&i.DouyinID,
+			&i.DyUid,
+			&i.FansDisplay,
+			&i.QuoteMin,
+			&i.QuoteMax,
+			&i.CooperationIntent,
+			&i.LeadStatus,
+			&i.LastDmAt,
+			&i.LikesTotal,
+			&i.FollowingCount,
+			&i.VerifyType,
+			&i.Tags,
+			&i.SourceType,
+			&i.SourceKeyword,
+			&i.SourceRank,
+			&i.SourceSystem,
+			&i.SourceID,
 		); err != nil {
 			return nil, err
 		}
@@ -535,7 +589,7 @@ SET kind = $1,
     media_ip_project_id = $18::uuid,
     updated_at = now()
 WHERE id = $19 AND workspace_id = $20 AND archived_at IS NULL
-RETURNING id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id
+RETURNING id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id, sec_uid, douyin_id, dy_uid, fans_display, quote_min, quote_max, cooperation_intent, lead_status, last_dm_at, likes_total, following_count, verify_type, tags, source_type, source_keyword, source_rank, source_system, source_id
 `
 
 type UpdateCreatorParams struct {
@@ -613,6 +667,24 @@ func (q *Queries) UpdateCreator(ctx context.Context, arg UpdateCreatorParams) (C
 		&i.UpdatedAt,
 		&i.ArchivedAt,
 		&i.MediaIpID,
+		&i.SecUid,
+		&i.DouyinID,
+		&i.DyUid,
+		&i.FansDisplay,
+		&i.QuoteMin,
+		&i.QuoteMax,
+		&i.CooperationIntent,
+		&i.LeadStatus,
+		&i.LastDmAt,
+		&i.LikesTotal,
+		&i.FollowingCount,
+		&i.VerifyType,
+		&i.Tags,
+		&i.SourceType,
+		&i.SourceKeyword,
+		&i.SourceRank,
+		&i.SourceSystem,
+		&i.SourceID,
 	)
 	return i, err
 }

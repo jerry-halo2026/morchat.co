@@ -797,6 +797,15 @@ deleted_metrics AS (
 deleted_posts AS (
     DELETE FROM creator_post WHERE creator_post.workspace_id = $1
 ),
+-- Content health (WORKBENCH-API §19): a work names a creator and a snapshot names
+-- a creator, with no foreign key behind either, so both are cleared here — before
+-- the creators they describe.
+deleted_creator_videos AS (
+    DELETE FROM creator_video WHERE creator_video.workspace_id = $1
+),
+deleted_creator_metrics AS (
+    DELETE FROM creator_metric WHERE creator_metric.workspace_id = $1
+),
 deleted_creators AS (
     DELETE FROM creator WHERE creator.workspace_id = $1
 ),

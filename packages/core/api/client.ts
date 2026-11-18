@@ -174,6 +174,9 @@ import type {
   CreatorPostListResponse,
   CreatorPostMetric,
   CreatorPostMetricListResponse,
+  CreatorHealthDetailResponse,
+  CreatorHealthListFilters,
+  CreatorHealthListResponse,
   CreateCreatorRequest,
   UpdateCreatorRequest,
   CreateCreatorPostRequest,
@@ -763,6 +766,10 @@ import {
   CreatorPostMetricListResponseSchema,
   EMPTY_CREATOR_POST_METRIC,
   EMPTY_CREATOR_POST_METRIC_LIST_RESPONSE,
+  CreatorHealthListResponseSchema,
+  EMPTY_CREATOR_HEALTH_LIST_RESPONSE,
+  CreatorHealthDetailResponseSchema,
+  EMPTY_CREATOR_HEALTH_DETAIL_RESPONSE,
   CrmClientSchema,
   CrmClientListResponseSchema,
   EMPTY_CRM_CLIENT,
@@ -4366,6 +4373,37 @@ export class ApiClient {
       CreatorPostMetricListResponseSchema,
       EMPTY_CREATOR_POST_METRIC_LIST_RESPONSE,
       { endpoint: "GET /api/workbench/creator-posts/:postId/metrics" },
+    );
+  }
+
+  /**
+   * The creator health board (WORKBENCH-API §19): every creator in the workspace
+   * with its latest content snapshot. A creator without one is still returned,
+   * with null metrics — the board is not allowed to hide it.
+   */
+  async listCreatorHealth(
+    filters: CreatorHealthListFilters = {},
+  ): Promise<CreatorHealthListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/creators/health${workbenchSearch({
+        sort: filters.sort,
+        limit: filters.limit,
+        cursor: filters.cursor,
+      })}`,
+    );
+    return parseWithFallback(raw, CreatorHealthListResponseSchema, EMPTY_CREATOR_HEALTH_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/creators/health",
+    });
+  }
+
+  /** One creator's newest snapshot plus the last 30 days of them. */
+  async getCreatorHealth(creatorId: string): Promise<CreatorHealthDetailResponse> {
+    const raw = await this.fetch<unknown>(`/api/workbench/creators/${creatorId}/health`);
+    return parseWithFallback(
+      raw,
+      CreatorHealthDetailResponseSchema,
+      EMPTY_CREATOR_HEALTH_DETAIL_RESPONSE,
+      { endpoint: "GET /api/workbench/creators/:creatorId/health" },
     );
   }
 
