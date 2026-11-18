@@ -32,12 +32,14 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
 	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
@@ -81,6 +83,11 @@ type BdActivityRequest struct {
 	Outcome       *string `json:"outcome"`
 	NextFollowAt  *string `json:"next_follow_at"`
 	OwnerMemberID *string `json:"owner_member_id"`
+	// Who follows it up, and the revision this reader last saw
+	// (COLLAB-MODEL §1/§3): mismatched is a 409 `stale_write`.
+	AssigneeType     *string `json:"assignee_type"`
+	AssigneeID       *string `json:"assignee_id"`
+	ExpectedRevision *int32  `json:"expected_revision"`
 }
 
 // BdQuoteRequest is the create/PATCH body for an offer.
@@ -100,6 +107,11 @@ type BdQuoteRequest struct {
 	Items          json.RawMessage `json:"items"`
 	Note           *string         `json:"note"`
 	OwnerMemberID  *string         `json:"owner_member_id"`
+	// Who is working the offer, and the revision this reader last saw
+	// (COLLAB-MODEL §1/§3): mismatched is a 409 `stale_write`.
+	AssigneeType     *string `json:"assignee_type"`
+	AssigneeID       *string `json:"assignee_id"`
+	ExpectedRevision *int32  `json:"expected_revision"`
 }
 
 // BdCampaignRequest is the create/PATCH body for a collection batch.
@@ -134,9 +146,15 @@ type BdActivityResponse struct {
 	CreatedBy     *string `json:"created_by"`
 	CreatedAt     string  `json:"created_at"`
 	UpdatedAt     string  `json:"updated_at"`
+	// Who follows this up, the concurrency counter, and the newest audit event
+	// (COLLAB-MODEL §1/§2/§3).
+	AssigneeType *string             `json:"assignee_type"`
+	AssigneeID   *string             `json:"assignee_id"`
+	Revision     int32               `json:"revision"`
+	LastActor    *WorkbenchLastActor `json:"last_actor"`
 }
 
-func bdActivityToResponse(a db.CreatorActivity) BdActivityResponse {
+func bdActivityToResponse(a db.CreatorActivity, last *WorkbenchLastActor) BdActivityResponse {
 	return BdActivityResponse{
 		ID:            uuidToString(a.ID),
 		WorkspaceID:   uuidToString(a.WorkspaceID),
@@ -150,6 +168,10 @@ func bdActivityToResponse(a db.CreatorActivity) BdActivityResponse {
 		CreatedBy:     uuidToPtr(a.CreatedBy),
 		CreatedAt:     timestampToString(a.CreatedAt),
 		UpdatedAt:     timestampToString(a.UpdatedAt),
+		AssigneeType:  textToPtr(a.AssigneeType),
+		AssigneeID:    uuidToPtr(a.AssigneeID),
+		Revision:      a.Revision,
+		LastActor:     last,
 	}
 }
 
@@ -173,9 +195,15 @@ type BdQuoteResponse struct {
 	CreatedBy      *string         `json:"created_by"`
 	CreatedAt      string          `json:"created_at"`
 	UpdatedAt      string          `json:"updated_at"`
+	// Who is working the offer, the concurrency counter, and the newest audit
+	// event (COLLAB-MODEL §1/§2/§3).
+	AssigneeType *string             `json:"assignee_type"`
+	AssigneeID   *string             `json:"assignee_id"`
+	Revision     int32               `json:"revision"`
+	LastActor    *WorkbenchLastActor `json:"last_actor"`
 }
 
-func bdQuoteToResponse(q db.CreatorQuote) BdQuoteResponse {
+func bdQuoteToResponse(q db.CreatorQuote, last *WorkbenchLastActor) BdQuoteResponse {
 	return BdQuoteResponse{
 		ID:             uuidToString(q.ID),
 		WorkspaceID:    uuidToString(q.WorkspaceID),
@@ -193,6 +221,10 @@ func bdQuoteToResponse(q db.CreatorQuote) BdQuoteResponse {
 		CreatedBy:      uuidToPtr(q.CreatedBy),
 		CreatedAt:      timestampToString(q.CreatedAt),
 		UpdatedAt:      timestampToString(q.UpdatedAt),
+		AssigneeType:   textToPtr(q.AssigneeType),
+		AssigneeID:     uuidToPtr(q.AssigneeID),
+		Revision:       q.Revision,
+		LastActor:      last,
 	}
 }
 
@@ -955,8 +987,10 @@ func (h *Handler) ListBdActivities(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := make([]BdActivityResponse, len(rows))
+	actors := h.lastWorkbenchActors(r.Context(), scope, subjectCreatorActivity,
+		subjectIDs(rows, func(row db.CreatorActivity) pgtype.UUID { return row.ID }))
 	for i, row := range rows {
-		resp[i] = bdActivityToResponse(row)
+		resp[i] = bdActivityToResponse(row, actors[uuidToString(row.ID)])
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"activities": resp, "total": len(resp)})
 }
@@ -1022,8 +1056,27 @@ func (h *Handler) CreateBdActivity(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	if !agentOwnerGate(w, actor, req.OwnerMemberID) {
+		return
+	}
+	assigneeType, assigneeID, ok := h.workbenchAssigneePatch(w, r, scope,
+		pgtype.Text{}, pgtype.UUID{}, req.AssigneeType, req.AssigneeID)
+	if !ok {
+		return
+	}
+	assigneeType, assigneeID = initialAssignee(owner, req.AssigneeType, req.AssigneeID, assigneeType, assigneeID)
 
-	created, err := h.Queries.CreateCreatorActivity(r.Context(), db.CreateCreatorActivityParams{
+	// The row and its audit event commit together (COLLAB-MODEL §2).
+	tx, err := h.TxStarter.Begin(r.Context())
+	if err != nil {
+		workbenchInternalError(w, r, "failed to record the follow-up", err)
+		return
+	}
+	defer tx.Rollback(r.Context())
+	qtx := h.Queries.WithTx(tx)
+
+	created, err := qtx.CreateCreatorActivity(r.Context(), db.CreateCreatorActivityParams{
 		WorkspaceID:   scope.WorkspaceUUID,
 		CreatorID:     creator.ID,
 		Kind:          kind,
@@ -1033,12 +1086,25 @@ func (h *Handler) CreateBdActivity(w http.ResponseWriter, r *http.Request) {
 		NextFollowAt:  nextFollowAt,
 		OwnerMemberID: owner,
 		CreatedBy:     scope.Member.UserID,
+		AssigneeType:  assigneeType,
+		AssigneeID:    assigneeID,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to record the follow-up", err)
 		return
 	}
-	writeJSON(w, http.StatusCreated, bdActivityToResponse(created))
+	event, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCreatorActivity, created.ID,
+		subjectCreatorActivity+".created", actor, actor.delegatedBy(scope), auditCreate,
+		activityChanges(db.CreatorActivity{}, created))
+	if err != nil {
+		workbenchInternalError(w, r, "failed to record the follow-up's creation", err)
+		return
+	}
+	if err := tx.Commit(r.Context()); err != nil {
+		workbenchInternalError(w, r, "failed to record the follow-up", err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, bdActivityToResponse(created, lastActorFromActivity(event)))
 }
 
 // loadBdActivityForWrite resolves {activityId} and applies the write gate.
@@ -1083,7 +1149,8 @@ func (h *Handler) GetBdActivity(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "follow-up not found")
 		return
 	}
-	writeJSON(w, http.StatusOK, bdActivityToResponse(activity))
+	writeJSON(w, http.StatusOK, bdActivityToResponse(activity,
+		h.lastWorkbenchActor(r.Context(), scope, subjectCreatorActivity, activity.ID)))
 }
 
 // UpdateBdActivity 鈥?PATCH /api/workbench/bd/activities/{activityId}
@@ -1145,26 +1212,79 @@ func (h *Handler) UpdateBdActivity(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	if !agentOwnerGate(w, actor, req.OwnerMemberID) {
+		return
+	}
 	owner, ok := h.workbenchOwnerForUpdate(w, r, scope, current.OwnerMemberID, requestedOwner)
 	if !ok {
 		return
 	}
+	assigneeType, assigneeID, ok := h.workbenchAssigneePatch(w, r, scope,
+		current.AssigneeType, current.AssigneeID, req.AssigneeType, req.AssigneeID)
+	if !ok {
+		return
+	}
+	expectedRevision, ok := workbenchExpectedRevision(w, req.ExpectedRevision)
+	if !ok {
+		return
+	}
 
-	updated, err := h.Queries.UpdateCreatorActivity(r.Context(), db.UpdateCreatorActivityParams{
-		Kind:          kind,
-		HappenedAt:    happenedAt,
-		Summary:       summary,
-		Outcome:       outcome,
-		NextFollowAt:  nextFollowAt,
-		OwnerMemberID: owner,
-		ID:            current.ID,
-		WorkspaceID:   scope.WorkspaceUUID,
-	})
+	tx, err := h.TxStarter.Begin(r.Context())
 	if err != nil {
 		workbenchInternalError(w, r, "failed to update the follow-up", err)
 		return
 	}
-	writeJSON(w, http.StatusOK, bdActivityToResponse(updated))
+	defer tx.Rollback(r.Context())
+	qtx := h.Queries.WithTx(tx)
+
+	updated, err := qtx.UpdateCreatorActivity(r.Context(), db.UpdateCreatorActivityParams{
+		Kind:             kind,
+		HappenedAt:       happenedAt,
+		Summary:          summary,
+		Outcome:          outcome,
+		NextFollowAt:     nextFollowAt,
+		OwnerMemberID:    owner,
+		AssigneeType:     assigneeType,
+		AssigneeID:       assigneeID,
+		ID:               current.ID,
+		WorkspaceID:      scope.WorkspaceUUID,
+		ExpectedRevision: expectedRevision,
+	})
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			workbenchInternalError(w, r, "failed to update the follow-up", err)
+			return
+		}
+		_ = tx.Rollback(r.Context())
+		survivor, readErr := h.Queries.GetCreatorActivity(r.Context(), db.GetCreatorActivityParams{
+			ID: current.ID, WorkspaceID: scope.WorkspaceUUID,
+		})
+		if readErr != nil {
+			writeError(w, http.StatusNotFound, "follow-up not found")
+			return
+		}
+		writeStaleWrite(w, bdActivityToResponse(survivor,
+			h.lastWorkbenchActor(r.Context(), scope, subjectCreatorActivity, survivor.ID)))
+		return
+	}
+	// `summary` is the note of a follow-up: a PATCH that only rewrites it moves
+	// no business field and therefore leaves no audit row (COLLAB-MODEL §2).
+	var last *WorkbenchLastActor
+	if fields := activityChanges(current, updated); len(fields) > 0 {
+		event, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCreatorActivity, updated.ID,
+			activityAction(), actor, actor.delegatedBy(scope), auditUpdate, fields)
+		if err != nil {
+			workbenchInternalError(w, r, "failed to record the follow-up's change", err)
+			return
+		}
+		last = lastActorFromActivity(event)
+	}
+	if err := tx.Commit(r.Context()); err != nil {
+		workbenchInternalError(w, r, "failed to update the follow-up", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, bdActivityToResponse(updated, last))
 }
 
 // DeleteBdActivity 鈥?DELETE /api/workbench/bd/activities/{activityId}
@@ -1180,7 +1300,20 @@ func (h *Handler) DeleteBdActivity(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	archived, err := h.Queries.ArchiveCreatorActivity(r.Context(), db.ArchiveCreatorActivityParams{
+	actor := h.workbenchActor(r, scope)
+	if !agentDeleteGate(w, actor) {
+		return
+	}
+
+	tx, err := h.TxStarter.Begin(r.Context())
+	if err != nil {
+		workbenchInternalError(w, r, "failed to delete the follow-up", err)
+		return
+	}
+	defer tx.Rollback(r.Context())
+	qtx := h.Queries.WithTx(tx)
+
+	archived, err := qtx.ArchiveCreatorActivity(r.Context(), db.ArchiveCreatorActivityParams{
 		ID:          current.ID,
 		WorkspaceID: scope.WorkspaceUUID,
 	})
@@ -1190,6 +1323,16 @@ func (h *Handler) DeleteBdActivity(w http.ResponseWriter, r *http.Request) {
 	}
 	if archived == 0 {
 		writeError(w, http.StatusNotFound, "follow-up not found")
+		return
+	}
+	if _, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCreatorActivity, current.ID,
+		subjectCreatorActivity+".deleted", actor, actor.delegatedBy(scope), auditDelete,
+		activityChanges(current, db.CreatorActivity{})); err != nil {
+		workbenchInternalError(w, r, "failed to record the follow-up's deletion", err)
+		return
+	}
+	if err := tx.Commit(r.Context()); err != nil {
+		workbenchInternalError(w, r, "failed to delete the follow-up", err)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -1226,8 +1369,10 @@ func (h *Handler) ListBdQuotes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := make([]BdQuoteResponse, len(rows))
+	actors := h.lastWorkbenchActors(r.Context(), scope, subjectCreatorQuote,
+		subjectIDs(rows, func(row db.CreatorQuote) pgtype.UUID { return row.ID }))
 	for i, row := range rows {
-		resp[i] = bdQuoteToResponse(row)
+		resp[i] = bdQuoteToResponse(row, actors[uuidToString(row.ID)])
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"quotes": resp, "total": len(resp)})
 }
@@ -1311,8 +1456,26 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	if !agentOwnerGate(w, actor, req.OwnerMemberID) {
+		return
+	}
+	assigneeType, assigneeID, ok := h.workbenchAssigneePatch(w, r, scope,
+		pgtype.Text{}, pgtype.UUID{}, req.AssigneeType, req.AssigneeID)
+	if !ok {
+		return
+	}
+	assigneeType, assigneeID = initialAssignee(owner, req.AssigneeType, req.AssigneeID, assigneeType, assigneeID)
 
-	created, err := h.Queries.CreateCreatorQuote(r.Context(), db.CreateCreatorQuoteParams{
+	tx, err := h.TxStarter.Begin(r.Context())
+	if err != nil {
+		workbenchInternalError(w, r, "failed to record the quote", err)
+		return
+	}
+	defer tx.Rollback(r.Context())
+	qtx := h.Queries.WithTx(tx)
+
+	created, err := qtx.CreateCreatorQuote(r.Context(), db.CreateCreatorQuoteParams{
 		WorkspaceID:    scope.WorkspaceUUID,
 		CreatorID:      creator.ID,
 		BriefID:        briefID,
@@ -1326,12 +1489,25 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 		Note:           optionalTrimmedText(req.Note),
 		OwnerMemberID:  owner,
 		CreatedBy:      scope.Member.UserID,
+		AssigneeType:   assigneeType,
+		AssigneeID:     assigneeID,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to record the quote", err)
 		return
 	}
-	writeJSON(w, http.StatusCreated, bdQuoteToResponse(created))
+	event, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCreatorQuote, created.ID,
+		subjectCreatorQuote+".created", actor, actor.delegatedBy(scope), auditCreate,
+		quoteChanges(db.CreatorQuote{}, created))
+	if err != nil {
+		workbenchInternalError(w, r, "failed to record the quote's creation", err)
+		return
+	}
+	if err := tx.Commit(r.Context()); err != nil {
+		workbenchInternalError(w, r, "failed to record the quote", err)
+		return
+	}
+	writeJSON(w, http.StatusCreated, bdQuoteToResponse(created, lastActorFromActivity(event)))
 }
 
 // loadBdQuoteForWrite resolves {quoteId} and applies the write gate.
@@ -1376,7 +1552,8 @@ func (h *Handler) GetBdQuote(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "quote not found")
 		return
 	}
-	writeJSON(w, http.StatusOK, bdQuoteToResponse(quote))
+	writeJSON(w, http.StatusOK, bdQuoteToResponse(quote,
+		h.lastWorkbenchActor(r.Context(), scope, subjectCreatorQuote, quote.ID)))
 }
 
 // UpdateBdQuote 鈥?PATCH /api/workbench/bd/quotes/{quoteId}
@@ -1459,30 +1636,83 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	if !agentOwnerGate(w, actor, req.OwnerMemberID) {
+		return
+	}
 	owner, ok := h.workbenchOwnerForUpdate(w, r, scope, current.OwnerMemberID, requestedOwner)
 	if !ok {
 		return
 	}
+	assigneeType, assigneeID, ok := h.workbenchAssigneePatch(w, r, scope,
+		current.AssigneeType, current.AssigneeID, req.AssigneeType, req.AssigneeID)
+	if !ok {
+		return
+	}
+	expectedRevision, ok := workbenchExpectedRevision(w, req.ExpectedRevision)
+	if !ok {
+		return
+	}
 
-	updated, err := h.Queries.UpdateCreatorQuote(r.Context(), db.UpdateCreatorQuoteParams{
-		BriefID:        briefID,
-		Status:         status,
-		QuotedAt:       quotedAt,
-		ValidUntil:     validUntil,
-		FeeAmount:      applyNumericPatch(req.FeeAmount, current.FeeAmount),
-		CommissionRate: applyNumericPatch(req.CommissionRate, current.CommissionRate),
-		Currency:       currency,
-		Items:          string(items),
-		Note:           applyTextPatch(req.Note, current.Note),
-		OwnerMemberID:  owner,
-		ID:             current.ID,
-		WorkspaceID:    scope.WorkspaceUUID,
-	})
+	tx, err := h.TxStarter.Begin(r.Context())
 	if err != nil {
 		workbenchInternalError(w, r, "failed to update the quote", err)
 		return
 	}
-	writeJSON(w, http.StatusOK, bdQuoteToResponse(updated))
+	defer tx.Rollback(r.Context())
+	qtx := h.Queries.WithTx(tx)
+
+	updated, err := qtx.UpdateCreatorQuote(r.Context(), db.UpdateCreatorQuoteParams{
+		BriefID:          briefID,
+		Status:           status,
+		QuotedAt:         quotedAt,
+		ValidUntil:       validUntil,
+		FeeAmount:        applyNumericPatch(req.FeeAmount, current.FeeAmount),
+		CommissionRate:   applyNumericPatch(req.CommissionRate, current.CommissionRate),
+		Currency:         currency,
+		Items:            string(items),
+		Note:             applyTextPatch(req.Note, current.Note),
+		OwnerMemberID:    owner,
+		AssigneeType:     assigneeType,
+		AssigneeID:       assigneeID,
+		ID:               current.ID,
+		WorkspaceID:      scope.WorkspaceUUID,
+		ExpectedRevision: expectedRevision,
+	})
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			workbenchInternalError(w, r, "failed to update the quote", err)
+			return
+		}
+		_ = tx.Rollback(r.Context())
+		survivor, readErr := h.Queries.GetCreatorQuote(r.Context(), db.GetCreatorQuoteParams{
+			ID: current.ID, WorkspaceID: scope.WorkspaceUUID,
+		})
+		if readErr != nil {
+			writeError(w, http.StatusNotFound, "quote not found")
+			return
+		}
+		writeStaleWrite(w, bdQuoteToResponse(survivor,
+			h.lastWorkbenchActor(r.Context(), scope, subjectCreatorQuote, survivor.ID)))
+		return
+	}
+	// `note` is excluded from the diff: a note-only PATCH bumps the revision and
+	// leaves the trail alone (COLLAB-MODEL §2).
+	var last *WorkbenchLastActor
+	if fields := quoteChanges(current, updated); len(fields) > 0 {
+		event, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCreatorQuote, updated.ID,
+			quoteAction(fields), actor, actor.delegatedBy(scope), auditUpdate, fields)
+		if err != nil {
+			workbenchInternalError(w, r, "failed to record the quote's change", err)
+			return
+		}
+		last = lastActorFromActivity(event)
+	}
+	if err := tx.Commit(r.Context()); err != nil {
+		workbenchInternalError(w, r, "failed to update the quote", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, bdQuoteToResponse(updated, last))
 }
 
 // DeleteBdQuote 鈥?DELETE /api/workbench/bd/quotes/{quoteId}
@@ -1498,7 +1728,20 @@ func (h *Handler) DeleteBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	archived, err := h.Queries.ArchiveCreatorQuote(r.Context(), db.ArchiveCreatorQuoteParams{
+	actor := h.workbenchActor(r, scope)
+	if !agentDeleteGate(w, actor) {
+		return
+	}
+
+	tx, err := h.TxStarter.Begin(r.Context())
+	if err != nil {
+		workbenchInternalError(w, r, "failed to delete the quote", err)
+		return
+	}
+	defer tx.Rollback(r.Context())
+	qtx := h.Queries.WithTx(tx)
+
+	archived, err := qtx.ArchiveCreatorQuote(r.Context(), db.ArchiveCreatorQuoteParams{
 		ID:          current.ID,
 		WorkspaceID: scope.WorkspaceUUID,
 	})
@@ -1508,6 +1751,16 @@ func (h *Handler) DeleteBdQuote(w http.ResponseWriter, r *http.Request) {
 	}
 	if archived == 0 {
 		writeError(w, http.StatusNotFound, "quote not found")
+		return
+	}
+	if _, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCreatorQuote, current.ID,
+		subjectCreatorQuote+".deleted", actor, actor.delegatedBy(scope), auditDelete,
+		quoteChanges(current, db.CreatorQuote{})); err != nil {
+		workbenchInternalError(w, r, "failed to record the quote's deletion", err)
+		return
+	}
+	if err := tx.Commit(r.Context()); err != nil {
+		workbenchInternalError(w, r, "failed to delete the quote", err)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)

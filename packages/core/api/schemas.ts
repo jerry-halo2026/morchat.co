@@ -4900,6 +4900,24 @@ export const EMPTY_CRM_BRIEF_LIST_RESPONSE: CrmBriefListResponse = {
   total: 0,
 };
 
+/**
+ * The audit fold a workbench GET carries (COLLAB-MODEL §2): the newest event
+ * about the row. Degrades to null — a row whose trail predates migration 819 has
+ * none, and a missing annotation must not blank the row it annotates.
+ */
+export const WorkbenchLastActorSchema = z
+  .object({
+    type: z.string().default(""),
+    id: workbenchNullableString,
+    action: z.string().default(""),
+    at: z.string().default(""),
+  })
+  .nullable()
+  .default(null);
+
+/** `member | agent`; free text on the wire like every workbench enum. */
+export const workbenchAssigneeType = z.string().nullable().default(null);
+
 export const CrmCollabSchema = z.object({
   id: z.string(),
   workspace_id: z.string().default(""),
@@ -4931,6 +4949,14 @@ export const CrmCollabSchema = z.object({
   // predates them; null means "not published / not settled", not "empty string".
   publish_url: workbenchNullableString,
   settled_on: workbenchNullableString,
+  // Assignment, concurrency and the trail (COLLAB-MODEL §1/§2/§3, migration
+  // 821). Absent on a server that predates them: `revision: 1` matches the
+  // column default, and a missing `assignee_*` reads as unassigned rather than
+  // rejecting the row.
+  assignee_type: workbenchAssigneeType,
+  assignee_id: workbenchNullableString,
+  revision: z.number().default(1),
+  last_actor: WorkbenchLastActorSchema,
 }).loose();
 
 export const EMPTY_CRM_COLLAB: CrmCollab = {
@@ -4941,6 +4967,7 @@ export const EMPTY_CRM_COLLAB: CrmCollab = {
   scheduled_at: null, confirmed_at: null, published_at: null, accepted_at: null,
   issue_id: null, owner_member_id: null, created_by: null, created_at: "",
   updated_at: "", archived_at: null, publish_url: null, settled_on: null,
+  assignee_type: null, assignee_id: null, revision: 1, last_actor: null,
 };
 
 export const CrmCollabListResponseSchema = z.object({
@@ -4969,12 +4996,18 @@ export const CrmSettlementSchema = z.object({
   created_at: z.string().default(""),
   updated_at: z.string().default(""),
   archived_at: workbenchNullableString,
+  // Assignment, concurrency and the trail (COLLAB-MODEL §1/§2/§3).
+  assignee_type: workbenchAssigneeType,
+  assignee_id: workbenchNullableString,
+  revision: z.number().default(1),
+  last_actor: WorkbenchLastActorSchema,
 }).loose();
 
 export const EMPTY_CRM_SETTLEMENT: CrmSettlement = {
   id: "", workspace_id: "", collab_id: "", kind: "final", amount: 0,
   currency: "CNY", due_at: null, paid_at: null, invoice_no: null, note: null,
   created_by: null, created_at: "", updated_at: "", archived_at: null,
+  assignee_type: null, assignee_id: null, revision: 1, last_actor: null,
 };
 
 export const CrmSettlementListResponseSchema = z.object({
@@ -5012,12 +5045,18 @@ export const BdActivitySchema = z.object({
   created_by: workbenchNullableString,
   created_at: z.string().default(""),
   updated_at: z.string().default(""),
+  // Assignment, concurrency and the trail (COLLAB-MODEL §1/§2/§3).
+  assignee_type: workbenchAssigneeType,
+  assignee_id: workbenchNullableString,
+  revision: z.number().default(1),
+  last_actor: WorkbenchLastActorSchema,
 }).loose();
 
 export const EMPTY_BD_ACTIVITY: BdActivity = {
   id: "", workspace_id: "", creator_id: "", kind: "note", happened_at: "",
   summary: "", outcome: null, next_follow_at: null, owner_member_id: null,
   created_by: null, created_at: "", updated_at: "",
+  assignee_type: null, assignee_id: null, revision: 1, last_actor: null,
 };
 
 export const BdActivityListResponseSchema = z.object({
@@ -5051,6 +5090,11 @@ export const BdQuoteSchema = z.object({
   created_by: workbenchNullableString,
   created_at: z.string().default(""),
   updated_at: z.string().default(""),
+  // Assignment, concurrency and the trail (COLLAB-MODEL §1/§2/§3).
+  assignee_type: workbenchAssigneeType,
+  assignee_id: workbenchNullableString,
+  revision: z.number().default(1),
+  last_actor: WorkbenchLastActorSchema,
 }).loose();
 
 export const EMPTY_BD_QUOTE: BdQuote = {
@@ -5058,6 +5102,7 @@ export const EMPTY_BD_QUOTE: BdQuote = {
   quoted_at: null, valid_until: null, fee_amount: null, commission_rate: null,
   currency: "CNY", items: [], note: null, owner_member_id: null, created_by: null,
   created_at: "", updated_at: "",
+  assignee_type: null, assignee_id: null, revision: 1, last_actor: null,
 };
 
 export const BdQuoteListResponseSchema = z.object({

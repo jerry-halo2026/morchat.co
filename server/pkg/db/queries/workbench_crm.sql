@@ -142,11 +142,16 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archiv
 -- `publish_url` / `settled_on` (810) are the two fulfilment facts the
 -- collaboration row carries: where the work went live, and the day the money was
 -- settled (WORKBENCH-API §20.2).
+--
+-- `assignee_*` (821) is who is doing the work — an agent may hold it, unlike
+-- `owner_member_id` (COLLAB-MODEL §1). `revision` starts at 1 from the column
+-- default, so a create never names it.
 INSERT INTO crm_collab (
     workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob,
     creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate,
     sample_required, script_required, scheduled_at, confirmed_at, published_at,
-    accepted_at, issue_id, owner_member_id, created_by, publish_url, settled_on
+    accepted_at, issue_id, owner_member_id, created_by, publish_url, settled_on,
+    assignee_type, assignee_id
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('brief_id'), sqlc.arg('creator_id'), sqlc.arg('stage'),
     sqlc.narg('quote_amount')::numeric, sqlc.narg('final_amount')::numeric,
@@ -156,13 +161,23 @@ INSERT INTO crm_collab (
     sqlc.narg('scheduled_at')::timestamptz, sqlc.narg('confirmed_at')::timestamptz,
     sqlc.narg('published_at')::timestamptz, sqlc.narg('accepted_at')::timestamptz,
     sqlc.narg('issue_id')::uuid, sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid,
-    sqlc.narg('publish_url')::text, sqlc.narg('settled_on')::date
+    sqlc.narg('publish_url')::text, sqlc.narg('settled_on')::date,
+    sqlc.narg('assignee_type')::text, sqlc.narg('assignee_id')::uuid
 )
 RETURNING *;
 
 -- name: UpdateCrmCollab :one
 -- The stage milestones are inputs, not triggers: the handler decides which
 -- timestamp a stage transition fills in, so the SQL stays a plain write.
+--
+-- Two things every workbench update carries (COLLAB-MODEL §3):
+--
+--   * `revision = revision + 1`, so a reader can tell the row moved;
+--   * an optional `expected_revision` in the WHERE. Absent = no check, which is
+--     the old-client behaviour; present and stale = zero rows, and the handler
+--     turns that into a 409 `stale_write` with the current row. The check lives
+--     in the statement rather than in a read-then-write so two connections
+--     racing cannot both see "revision 1" and both win.
 UPDATE crm_collab
 SET brief_id = sqlc.arg('brief_id'),
     creator_id = sqlc.arg('creator_id'),
@@ -186,13 +201,19 @@ SET brief_id = sqlc.arg('brief_id'),
     owner_member_id = sqlc.narg('owner_member_id')::uuid,
     publish_url = sqlc.narg('publish_url')::text,
     settled_on = sqlc.narg('settled_on')::date,
+    assignee_type = sqlc.narg('assignee_type')::text,
+    assignee_id = sqlc.narg('assignee_id')::uuid,
+    revision = revision + 1,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL
+  AND (sqlc.narg('expected_revision')::int IS NULL OR revision = sqlc.narg('expected_revision')::int)
 RETURNING *;
 
 -- name: ArchiveCrmCollab :execrows
+-- A delete is a write too: the revision moves so an audit trail that reads the
+-- row's revision before and after a delete cannot claim nothing happened.
 UPDATE crm_collab
-SET archived_at = now(), updated_at = now()
+SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
 
 -- name: ListCrmSettlements :many
@@ -218,17 +239,22 @@ SELECT * FROM crm_settlement
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
 
 -- name: CreateCrmSettlement :one
+-- `assignee_*` (821): a settlement's owner is its collaboration's, so a new row
+-- may be handed to somebody directly — that is who chases the money.
 INSERT INTO crm_settlement (
     workspace_id, collab_id, kind, amount, currency, due_at, paid_at, invoice_no,
-    note, created_by
+    note, created_by, assignee_type, assignee_id
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('collab_id'), sqlc.arg('kind'), sqlc.arg('amount')::numeric,
     sqlc.arg('currency'), sqlc.narg('due_at')::date, sqlc.narg('paid_at')::date,
-    sqlc.narg('invoice_no')::text, sqlc.narg('note')::text, sqlc.narg('created_by')::uuid
+    sqlc.narg('invoice_no')::text, sqlc.narg('note')::text, sqlc.narg('created_by')::uuid,
+    sqlc.narg('assignee_type')::text, sqlc.narg('assignee_id')::uuid
 )
 RETURNING *;
 
 -- name: UpdateCrmSettlement :one
+-- Same revision contract as the collaboration (COLLAB-MODEL §3): bump on write,
+-- compare only when the caller named the revision it read.
 UPDATE crm_settlement
 SET collab_id = sqlc.arg('collab_id'),
     kind = sqlc.arg('kind'),
@@ -238,8 +264,12 @@ SET collab_id = sqlc.arg('collab_id'),
     paid_at = sqlc.narg('paid_at')::date,
     invoice_no = sqlc.narg('invoice_no')::text,
     note = sqlc.narg('note')::text,
+    assignee_type = sqlc.narg('assignee_type')::text,
+    assignee_id = sqlc.narg('assignee_id')::uuid,
+    revision = revision + 1,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL
+  AND (sqlc.narg('expected_revision')::int IS NULL OR revision = sqlc.narg('expected_revision')::int)
 RETURNING *;
 
 -- name: ArchiveCrmSettlementsByCollab :many
@@ -256,12 +286,12 @@ RETURNING *;
 -- that only treated it as a collab edit would keep the vanished settlements in its
 -- list cache.
 UPDATE crm_settlement
-SET archived_at = now(), updated_at = now()
+SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE workspace_id = sqlc.arg('workspace_id')::uuid
   AND collab_id = sqlc.arg('collab_id')::uuid
   AND archived_at IS NULL
 RETURNING id;
 -- name: ArchiveCrmSettlement :execrows
 UPDATE crm_settlement
-SET archived_at = now(), updated_at = now()
+SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;

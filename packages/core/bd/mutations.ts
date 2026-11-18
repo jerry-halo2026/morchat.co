@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../api";
+import { api, isStaleWrite } from "../api";
 import { useWorkspaceId } from "../hooks";
 import { bdKeys } from "./queries";
 import type {
+  BdActivity,
+  BdQuote,
   CreateBdActivityRequest,
   CreateBdCampaignRequest,
   CreateBdQuoteRequest,
@@ -46,10 +48,20 @@ export function useCreateBdActivity() {
 
 export function useUpdateBdActivity() {
   const invalidate = useInvalidateBd();
+  const qc = useQueryClient();
+  const wsId = useWorkspaceId();
   return useMutation({
     mutationFn: ({ id, ...data }: { id: string } & UpdateBdActivityRequest) =>
       api.updateBdActivity(id, data),
     onSuccess: () => invalidate("activities"),
+    // 409 `stale_write`: put the server's row into the cache and re-read the
+    // ledger, so the editor shows what changed instead of retrying the write
+    // (COLLAB-MODEL §3).
+    onError: (error, variables) => {
+      if (!isStaleWrite<BdActivity>(error)) return;
+      qc.setQueryData(bdKeys.detail(wsId, "activities", variables.id), error.current);
+      invalidate("activities");
+    },
   });
 }
 
@@ -77,10 +89,17 @@ export function useCreateBdQuote() {
  */
 export function useUpdateBdQuote() {
   const invalidate = useInvalidateBd();
+  const qc = useQueryClient();
+  const wsId = useWorkspaceId();
   return useMutation({
     mutationFn: ({ id, ...data }: { id: string } & UpdateBdQuoteRequest) =>
       api.updateBdQuote(id, data),
     onSuccess: () => invalidate("quotes"),
+    onError: (error, variables) => {
+      if (!isStaleWrite<BdQuote>(error)) return;
+      qc.setQueryData(bdKeys.detail(wsId, "quotes", variables.id), error.current);
+      invalidate("quotes");
+    },
   });
 }
 

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../api";
+import { api, isStaleWrite } from "../api";
 import { useWorkspaceId } from "../hooks";
 import { crmKeys, workbenchKeys } from "./queries";
 import type {
@@ -7,6 +7,8 @@ import type {
   CreateCrmClientRequest,
   CreateCrmCollabRequest,
   CreateCrmSettlementRequest,
+  CrmCollab,
+  CrmSettlement,
   UpdateCrmBriefRequest,
   UpdateCrmClientRequest,
   UpdateCrmCollabRequest,
@@ -102,10 +104,21 @@ export function useCreateCrmCollab() {
  */
 export function useUpdateCrmCollab() {
   const invalidate = useInvalidateCrm();
+  const qc = useQueryClient();
+  const wsId = useWorkspaceId();
   return useMutation({
     mutationFn: ({ id, ...data }: { id: string } & UpdateCrmCollabRequest) =>
       api.updateCrmCollab(id, data),
     onSuccess: () => invalidate("collabs"),
+    // 409 `stale_write` means somebody else moved the row (COLLAB-MODEL §3).
+    // The page must refresh from the server's row, never replay its own body:
+    // the row the server sent is put straight into the detail cache so an open
+    // editor re-renders with what is actually stored.
+    onError: (error, variables) => {
+      if (!isStaleWrite<CrmCollab>(error)) return;
+      qc.setQueryData(crmKeys.detail(wsId, "collabs", variables.id), error.current);
+      invalidate("collabs");
+    },
   });
 }
 
@@ -128,10 +141,17 @@ export function useCreateCrmSettlement() {
 /** Marking a settlement paid is a `paid_at` write; it moves collected revenue. */
 export function useUpdateCrmSettlement() {
   const invalidate = useInvalidateCrm();
+  const qc = useQueryClient();
+  const wsId = useWorkspaceId();
   return useMutation({
     mutationFn: ({ id, ...data }: { id: string } & UpdateCrmSettlementRequest) =>
       api.updateCrmSettlement(id, data),
     onSuccess: () => invalidate("settlements"),
+    onError: (error, variables) => {
+      if (!isStaleWrite<CrmSettlement>(error)) return;
+      qc.setQueryData(crmKeys.detail(wsId, "settlements", variables.id), error.current);
+      invalidate("settlements");
+    },
   });
 }
 

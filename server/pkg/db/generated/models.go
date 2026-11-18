@@ -20,6 +20,10 @@ type ActivityLog struct {
 	Action      string             `json:"action"`
 	Details     []byte             `json:"details"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	// Business name of the ledger row this event is about (crm_collab, creator_quote, creator_activity, crm_settlement, media_topic, goal_okr, qianchuan_plan). NULL for issue timeline events.
+	SubjectType pgtype.Text `json:"subject_type"`
+	// Id of that ledger row. No foreign key: the audit trail outlives the row it describes.
+	SubjectID pgtype.UUID `json:"subject_id"`
 }
 
 type AffiliateDaily struct {
@@ -887,6 +891,11 @@ type CreatorActivity struct {
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+	// member | agent — who is following this creator up. NULL = unassigned.
+	AssigneeType pgtype.Text `json:"assignee_type"`
+	AssigneeID   pgtype.UUID `json:"assignee_id"`
+	// Optimistic-concurrency counter (COLLAB-MODEL §3).
+	Revision int32 `json:"revision"`
 }
 
 // One collection batch / campaign: where these creators came from and what it cost (WORKBENCH-DATA-CONTRACT §3.4). Soft-deleted, no foreign key.
@@ -1001,6 +1010,11 @@ type CreatorQuote struct {
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+	// member | agent — who is working this offer. NULL = unassigned.
+	AssigneeType pgtype.Text `json:"assignee_type"`
+	AssigneeID   pgtype.UUID `json:"assignee_id"`
+	// Optimistic-concurrency counter (COLLAB-MODEL §3).
+	Revision int32 `json:"revision"`
 }
 
 // One row per 抖音 aweme, mirrored from orange creator_video (WORKBENCH-DATA-CONTRACT §2.1). Counters are NULL when the platform statistic was never collected — never 0.
@@ -1107,6 +1121,11 @@ type CrmCollab struct {
 	PublishUrl pgtype.Text `json:"publish_url"`
 	// Calendar day the collaboration was settled. NULL while unpaid; the money movements themselves live in crm_settlement.
 	SettledOn pgtype.Date `json:"settled_on"`
+	// member | agent — who is doing this collaboration. NULL = unassigned. Not the owner: see COLLAB-MODEL §1.
+	AssigneeType pgtype.Text `json:"assignee_type"`
+	AssigneeID   pgtype.UUID `json:"assignee_id"`
+	// Optimistic-concurrency counter: bumped on every write, compared against PATCH expected_revision (409 stale_write).
+	Revision int32 `json:"revision"`
 }
 
 type CrmSettlement struct {
@@ -1124,6 +1143,11 @@ type CrmSettlement struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt  pgtype.Timestamptz `json:"archived_at"`
+	// member | agent — who is chasing this payment. NULL = unassigned (the rows inherited no owner: crm_settlement has none).
+	AssigneeType pgtype.Text `json:"assignee_type"`
+	AssigneeID   pgtype.UUID `json:"assignee_id"`
+	// Optimistic-concurrency counter (COLLAB-MODEL §3).
+	Revision int32 `json:"revision"`
 }
 
 type DaemonConnection struct {

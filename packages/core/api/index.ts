@@ -4,8 +4,10 @@ export {
   clientErrorMessage,
   dispatchReasonCode,
   errorCode,
+  isStaleWrite,
   PreviewTooLargeError,
   PreviewUnsupportedError,
+  StaleWriteError,
 } from "./client";
 export type {
   ApiClientOptions,

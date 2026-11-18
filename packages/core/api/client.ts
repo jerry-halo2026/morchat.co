@@ -1129,6 +1129,68 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * The `409 stale_write` a guarded workbench PATCH answers
+ * (docs/engineering/COLLAB-MODEL.md §3).
+ *
+ * `current` is the row the server holds, already parsed: the caller's job is to
+ * *show* it — "somebody changed this, here is what it says now" — not to replay
+ * its own body over the other writer's edit. Carrying the row on the error is
+ * what makes that possible without a second request.
+ *
+ * It extends `ApiError`, so code that only branches on `status` (a toast, a
+ * generic retry) keeps working.
+ */
+export class StaleWriteError<T> extends ApiError {
+  readonly current: T;
+
+  constructor(message: string, current: T, body?: unknown) {
+    super(message, 409, "Conflict", body);
+    this.name = "StaleWriteError";
+    this.current = current;
+  }
+}
+
+/** Whether a mutation error is the optimistic-concurrency refusal (§3). */
+export function isStaleWrite<T>(error: unknown): error is StaleWriteError<T> {
+  return error instanceof StaleWriteError;
+}
+
+/**
+ * Re-throws a 409 `stale_write` as a `StaleWriteError` carrying the parsed
+ * current row, and any other error unchanged.
+ *
+ * The four guarded ledgers route their PATCH through this, so a page's mutation
+ * error tells it "refresh" rather than "save failed", without every call site
+ * re-parsing the 409 body.
+ */
+function rethrowStaleWrite<T>(
+  error: unknown,
+  schema: ZodType,
+  fallback: T,
+  endpoint: string,
+): never {
+  if (error instanceof ApiError && error.status === 409 && isStaleWriteBody(error.body)) {
+    throw new StaleWriteError(
+      error.message,
+      parseWithFallback(error.body.current, schema, fallback, { endpoint }),
+      error.body,
+    );
+  }
+  throw error;
+}
+
+/** The 409 body the server writes: `{ error: "stale_write", current: {...} }`. */
+function isStaleWriteBody(
+  body: unknown,
+): body is { error: "stale_write"; current: unknown } {
+  return (
+    typeof body === "object" &&
+    body !== null &&
+    (body as { error?: unknown }).error === "stale_write"
+  );
+}
+
 function assertAgentConversationStartersWriteSupported(data: {
   conversation_starters?: unknown;
 }): void {
@@ -4748,7 +4810,14 @@ export class ApiClient {
     const raw = await this.fetch<unknown>(`/api/workbench/crm/collabs/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
-    });
+    }).catch((error: unknown) =>
+      rethrowStaleWrite(
+        error,
+        CrmCollabSchema,
+        EMPTY_CRM_COLLAB,
+        "PATCH /api/workbench/crm/collabs/:collabId",
+      ),
+    );
     return parseWithFallback(raw, CrmCollabSchema, EMPTY_CRM_COLLAB, {
       endpoint: "PATCH /api/workbench/crm/collabs/:collabId",
     });
@@ -4794,7 +4863,14 @@ export class ApiClient {
     const raw = await this.fetch<unknown>(`/api/workbench/crm/settlements/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
-    });
+    }).catch((error: unknown) =>
+      rethrowStaleWrite(
+        error,
+        CrmSettlementSchema,
+        EMPTY_CRM_SETTLEMENT,
+        "PATCH /api/workbench/crm/settlements/:settlementId",
+      ),
+    );
     return parseWithFallback(raw, CrmSettlementSchema, EMPTY_CRM_SETTLEMENT, {
       endpoint: "PATCH /api/workbench/crm/settlements/:settlementId",
     });
@@ -4852,7 +4928,14 @@ export class ApiClient {
     const raw = await this.fetch<unknown>(`/api/workbench/bd/activities/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
-    });
+    }).catch((error: unknown) =>
+      rethrowStaleWrite(
+        error,
+        BdActivitySchema,
+        EMPTY_BD_ACTIVITY,
+        "PATCH /api/workbench/bd/activities/:activityId",
+      ),
+    );
     return parseWithFallback(raw, BdActivitySchema, EMPTY_BD_ACTIVITY, {
       endpoint: "PATCH /api/workbench/bd/activities/:activityId",
     });
@@ -4899,7 +4982,9 @@ export class ApiClient {
     const raw = await this.fetch<unknown>(`/api/workbench/bd/quotes/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
-    });
+    }).catch((error: unknown) =>
+      rethrowStaleWrite(error, BdQuoteSchema, EMPTY_BD_QUOTE, "PATCH /api/workbench/bd/quotes/:quoteId"),
+    );
     return parseWithFallback(raw, BdQuoteSchema, EMPTY_BD_QUOTE, {
       endpoint: "PATCH /api/workbench/bd/quotes/:quoteId",
     });

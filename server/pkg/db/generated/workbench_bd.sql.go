@@ -13,7 +13,7 @@ import (
 
 const archiveCreatorActivity = `-- name: ArchiveCreatorActivity :execrows
 UPDATE creator_activity
-SET archived_at = now(), updated_at = now()
+SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = $1 AND workspace_id = $2::uuid
   AND archived_at IS NULL
 `
@@ -53,7 +53,7 @@ func (q *Queries) ArchiveCreatorCampaign(ctx context.Context, arg ArchiveCreator
 
 const archiveCreatorQuote = `-- name: ArchiveCreatorQuote :execrows
 UPDATE creator_quote
-SET archived_at = now(), updated_at = now()
+SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = $1 AND workspace_id = $2::uuid
   AND archived_at IS NULL
 `
@@ -738,14 +738,15 @@ func (q *Queries) CountCreatorCampaignNameConflicts(ctx context.Context, arg Cou
 const createCreatorActivity = `-- name: CreateCreatorActivity :one
 INSERT INTO creator_activity (
     workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at,
-    owner_member_id, created_by
+    owner_member_id, created_by, assignee_type, assignee_id
 ) VALUES (
     $1::uuid, $2::uuid, $3::text,
     $4::timestamptz, $5::text,
     $6::text, $7::timestamptz,
-    $8::uuid, $9::uuid
+    $8::uuid, $9::uuid,
+    $10::text, $11::uuid
 )
-RETURNING id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision
 `
 
 type CreateCreatorActivityParams struct {
@@ -758,8 +759,12 @@ type CreateCreatorActivityParams struct {
 	NextFollowAt  pgtype.Timestamptz `json:"next_follow_at"`
 	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
 	CreatedBy     pgtype.UUID        `json:"created_by"`
+	AssigneeType  pgtype.Text        `json:"assignee_type"`
+	AssigneeID    pgtype.UUID        `json:"assignee_id"`
 }
 
+// `assignee_*` (821): who follows this conversation up. An agent may hold it;
+// `owner_member_id` stays a human seat (COLLAB-MODEL §1).
 func (q *Queries) CreateCreatorActivity(ctx context.Context, arg CreateCreatorActivityParams) (CreatorActivity, error) {
 	row := q.db.QueryRow(ctx, createCreatorActivity,
 		arg.WorkspaceID,
@@ -771,6 +776,8 @@ func (q *Queries) CreateCreatorActivity(ctx context.Context, arg CreateCreatorAc
 		arg.NextFollowAt,
 		arg.OwnerMemberID,
 		arg.CreatedBy,
+		arg.AssigneeType,
+		arg.AssigneeID,
 	)
 	var i CreatorActivity
 	err := row.Scan(
@@ -787,6 +794,9 @@ func (q *Queries) CreateCreatorActivity(ctx context.Context, arg CreateCreatorAc
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.AssigneeType,
+		&i.AssigneeID,
+		&i.Revision,
 	)
 	return i, err
 }
@@ -861,16 +871,18 @@ func (q *Queries) CreateCreatorCampaign(ctx context.Context, arg CreateCreatorCa
 const createCreatorQuote = `-- name: CreateCreatorQuote :one
 INSERT INTO creator_quote (
     workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount,
-    commission_rate, currency, items, note, owner_member_id, created_by
+    commission_rate, currency, items, note, owner_member_id, created_by,
+    assignee_type, assignee_id
 ) VALUES (
     $1::uuid, $2::uuid,
     $3::uuid, $4::text,
     $5::timestamptz, $6::date,
     $7::numeric, $8::numeric,
     $9::text, $10::text::jsonb, $11::text,
-    $12::uuid, $13::uuid
+    $12::uuid, $13::uuid,
+    $14::text, $15::uuid
 )
-RETURNING id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision
 `
 
 type CreateCreatorQuoteParams struct {
@@ -887,6 +899,8 @@ type CreateCreatorQuoteParams struct {
 	Note           pgtype.Text        `json:"note"`
 	OwnerMemberID  pgtype.UUID        `json:"owner_member_id"`
 	CreatedBy      pgtype.UUID        `json:"created_by"`
+	AssigneeType   pgtype.Text        `json:"assignee_type"`
+	AssigneeID     pgtype.UUID        `json:"assignee_id"`
 }
 
 func (q *Queries) CreateCreatorQuote(ctx context.Context, arg CreateCreatorQuoteParams) (CreatorQuote, error) {
@@ -904,6 +918,8 @@ func (q *Queries) CreateCreatorQuote(ctx context.Context, arg CreateCreatorQuote
 		arg.Note,
 		arg.OwnerMemberID,
 		arg.CreatedBy,
+		arg.AssigneeType,
+		arg.AssigneeID,
 	)
 	var i CreatorQuote
 	err := row.Scan(
@@ -924,12 +940,15 @@ func (q *Queries) CreateCreatorQuote(ctx context.Context, arg CreateCreatorQuote
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.AssigneeType,
+		&i.AssigneeID,
+		&i.Revision,
 	)
 	return i, err
 }
 
 const getCreatorActivity = `-- name: GetCreatorActivity :one
-SELECT id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at FROM creator_activity
+SELECT id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision FROM creator_activity
 WHERE id = $1 AND workspace_id = $2::uuid
   AND archived_at IS NULL
 `
@@ -956,6 +975,9 @@ func (q *Queries) GetCreatorActivity(ctx context.Context, arg GetCreatorActivity
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.AssigneeType,
+		&i.AssigneeID,
+		&i.Revision,
 	)
 	return i, err
 }
@@ -996,7 +1018,7 @@ func (q *Queries) GetCreatorCampaign(ctx context.Context, arg GetCreatorCampaign
 }
 
 const getCreatorQuote = `-- name: GetCreatorQuote :one
-SELECT id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at FROM creator_quote
+SELECT id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision FROM creator_quote
 WHERE id = $1 AND workspace_id = $2::uuid
   AND archived_at IS NULL
 `
@@ -1027,6 +1049,9 @@ func (q *Queries) GetCreatorQuote(ctx context.Context, arg GetCreatorQuoteParams
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.AssigneeType,
+		&i.AssigneeID,
+		&i.Revision,
 	)
 	return i, err
 }
@@ -1034,7 +1059,7 @@ func (q *Queries) GetCreatorQuote(ctx context.Context, arg GetCreatorQuoteParams
 const listCreatorActivities = `-- name: ListCreatorActivities :many
 
 
-SELECT id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at
+SELECT id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision
 FROM creator_activity
 WHERE workspace_id = $1::uuid
   AND archived_at IS NULL
@@ -1106,6 +1131,9 @@ func (q *Queries) ListCreatorActivities(ctx context.Context, arg ListCreatorActi
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ArchivedAt,
+			&i.AssigneeType,
+			&i.AssigneeID,
+			&i.Revision,
 		); err != nil {
 			return nil, err
 		}
@@ -1176,7 +1204,7 @@ func (q *Queries) ListCreatorCampaigns(ctx context.Context, arg ListCreatorCampa
 
 const listCreatorQuotes = `-- name: ListCreatorQuotes :many
 
-SELECT id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at
+SELECT id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision
 FROM creator_quote
 WHERE workspace_id = $1::uuid
   AND archived_at IS NULL
@@ -1230,6 +1258,9 @@ func (q *Queries) ListCreatorQuotes(ctx context.Context, arg ListCreatorQuotesPa
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ArchivedAt,
+			&i.AssigneeType,
+			&i.AssigneeID,
+			&i.Revision,
 		); err != nil {
 			return nil, err
 		}
@@ -1249,25 +1280,35 @@ SET kind = $1::text,
     outcome = $4::text,
     next_follow_at = $5::timestamptz,
     owner_member_id = $6::uuid,
+    assignee_type = $7::text,
+    assignee_id = $8::uuid,
+    revision = revision + 1,
     updated_at = now()
-WHERE id = $7 AND workspace_id = $8::uuid
+WHERE id = $9 AND workspace_id = $10::uuid
   AND archived_at IS NULL
-RETURNING id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at
+  AND ($11::int IS NULL OR revision = $11::int)
+RETURNING id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision
 `
 
 type UpdateCreatorActivityParams struct {
-	Kind          string             `json:"kind"`
-	HappenedAt    pgtype.Timestamptz `json:"happened_at"`
-	Summary       string             `json:"summary"`
-	Outcome       pgtype.Text        `json:"outcome"`
-	NextFollowAt  pgtype.Timestamptz `json:"next_follow_at"`
-	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
-	ID            pgtype.UUID        `json:"id"`
-	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	Kind             string             `json:"kind"`
+	HappenedAt       pgtype.Timestamptz `json:"happened_at"`
+	Summary          string             `json:"summary"`
+	Outcome          pgtype.Text        `json:"outcome"`
+	NextFollowAt     pgtype.Timestamptz `json:"next_follow_at"`
+	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
+	AssigneeType     pgtype.Text        `json:"assignee_type"`
+	AssigneeID       pgtype.UUID        `json:"assignee_id"`
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	ExpectedRevision pgtype.Int4        `json:"expected_revision"`
 }
 
 // `creator_id` is not in the SET: a follow-up that stops being about the same
 // person is a different record, and the handler answers 400 for that field.
+//
+// The revision contract (COLLAB-MODEL §3): bump on every write, compare only
+// when the caller sent the revision it read.
 func (q *Queries) UpdateCreatorActivity(ctx context.Context, arg UpdateCreatorActivityParams) (CreatorActivity, error) {
 	row := q.db.QueryRow(ctx, updateCreatorActivity,
 		arg.Kind,
@@ -1276,8 +1317,11 @@ func (q *Queries) UpdateCreatorActivity(ctx context.Context, arg UpdateCreatorAc
 		arg.Outcome,
 		arg.NextFollowAt,
 		arg.OwnerMemberID,
+		arg.AssigneeType,
+		arg.AssigneeID,
 		arg.ID,
 		arg.WorkspaceID,
+		arg.ExpectedRevision,
 	)
 	var i CreatorActivity
 	err := row.Scan(
@@ -1294,6 +1338,9 @@ func (q *Queries) UpdateCreatorActivity(ctx context.Context, arg UpdateCreatorAc
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.AssigneeType,
+		&i.AssigneeID,
+		&i.Revision,
 	)
 	return i, err
 }
@@ -1380,29 +1427,39 @@ SET brief_id = $1::uuid,
     items = $8::text::jsonb,
     note = $9::text,
     owner_member_id = $10::uuid,
+    assignee_type = $11::text,
+    assignee_id = $12::uuid,
+    revision = revision + 1,
     updated_at = now()
-WHERE id = $11 AND workspace_id = $12::uuid
+WHERE id = $13 AND workspace_id = $14::uuid
   AND archived_at IS NULL
-RETURNING id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at
+  AND ($15::int IS NULL OR revision = $15::int)
+RETURNING id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision
 `
 
 type UpdateCreatorQuoteParams struct {
-	BriefID        pgtype.UUID        `json:"brief_id"`
-	Status         string             `json:"status"`
-	QuotedAt       pgtype.Timestamptz `json:"quoted_at"`
-	ValidUntil     pgtype.Date        `json:"valid_until"`
-	FeeAmount      pgtype.Numeric     `json:"fee_amount"`
-	CommissionRate pgtype.Numeric     `json:"commission_rate"`
-	Currency       string             `json:"currency"`
-	Items          string             `json:"items"`
-	Note           pgtype.Text        `json:"note"`
-	OwnerMemberID  pgtype.UUID        `json:"owner_member_id"`
-	ID             pgtype.UUID        `json:"id"`
-	WorkspaceID    pgtype.UUID        `json:"workspace_id"`
+	BriefID          pgtype.UUID        `json:"brief_id"`
+	Status           string             `json:"status"`
+	QuotedAt         pgtype.Timestamptz `json:"quoted_at"`
+	ValidUntil       pgtype.Date        `json:"valid_until"`
+	FeeAmount        pgtype.Numeric     `json:"fee_amount"`
+	CommissionRate   pgtype.Numeric     `json:"commission_rate"`
+	Currency         string             `json:"currency"`
+	Items            string             `json:"items"`
+	Note             pgtype.Text        `json:"note"`
+	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
+	AssigneeType     pgtype.Text        `json:"assignee_type"`
+	AssigneeID       pgtype.UUID        `json:"assignee_id"`
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	ExpectedRevision pgtype.Int4        `json:"expected_revision"`
 }
 
 // `creator_id` stays out of the SET for the same reason as the follow-up log: an
 // offer to a different creator is a different offer.
+//
+// The revision contract (COLLAB-MODEL §3) is the same as every other ledger:
+// bump on write, compare only against a revision the caller named.
 func (q *Queries) UpdateCreatorQuote(ctx context.Context, arg UpdateCreatorQuoteParams) (CreatorQuote, error) {
 	row := q.db.QueryRow(ctx, updateCreatorQuote,
 		arg.BriefID,
@@ -1415,8 +1472,11 @@ func (q *Queries) UpdateCreatorQuote(ctx context.Context, arg UpdateCreatorQuote
 		arg.Items,
 		arg.Note,
 		arg.OwnerMemberID,
+		arg.AssigneeType,
+		arg.AssigneeID,
 		arg.ID,
 		arg.WorkspaceID,
+		arg.ExpectedRevision,
 	)
 	var i CreatorQuote
 	err := row.Scan(
@@ -1437,6 +1497,9 @@ func (q *Queries) UpdateCreatorQuote(ctx context.Context, arg UpdateCreatorQuote
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.AssigneeType,
+		&i.AssigneeID,
+		&i.Revision,
 	)
 	return i, err
 }

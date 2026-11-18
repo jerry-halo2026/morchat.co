@@ -14,11 +14,13 @@ package handler
 // they would have to reconstruct.
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
 	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
@@ -78,7 +80,7 @@ type CrmBriefRequest struct {
 	OwnerMemberID   *string   `json:"owner_member_id"`
 }
 
-// CrmCollabRequest is the create/PATCH body for a collaboration (合作单).
+// CrmCollabRequest is the create/PATCH body for a collaboration (合作单)。
 type CrmCollabRequest struct {
 	BriefID        *string  `json:"brief_id"`
 	CreatorID      *string  `json:"creator_id"`
@@ -105,6 +107,13 @@ type CrmCollabRequest struct {
 	// sending `""` clears them, omitting them keeps the stored value.
 	PublishURL *string `json:"publish_url"`
 	SettledOn  *string `json:"settled_on"`
+	// Assignment and concurrency (COLLAB-MODEL §1/§3, migration 821):
+	// `assignee_*` is who is doing the work (member or agent); `expected_revision`
+	// is the revision this reader last saw — mismatched is a 409 `stale_write`,
+	// omitted is no check at all (old clients).
+	AssigneeType     *string `json:"assignee_type"`
+	AssigneeID       *string `json:"assignee_id"`
+	ExpectedRevision *int32  `json:"expected_revision"`
 }
 
 // CrmSettlementRequest is the create/PATCH body for one settlement row
@@ -118,6 +127,10 @@ type CrmSettlementRequest struct {
 	PaidAt    *string  `json:"paid_at"`
 	InvoiceNo *string  `json:"invoice_no"`
 	Note      *string  `json:"note"`
+	// Assignment and concurrency, same contract as the collaboration.
+	AssigneeType     *string `json:"assignee_type"`
+	AssigneeID       *string `json:"assignee_id"`
+	ExpectedRevision *int32  `json:"expected_revision"`
 }
 
 // collabStageMilestones returns the milestones a transition into stage leaves
@@ -143,6 +156,13 @@ func collabStageMilestones(stage string, now time.Time, confirmed, published, ac
 
 func (h *Handler) publishCRMChanged(eventType, workspaceID, id, actorID string) {
 	h.publish(eventType, workspaceID, "member", actorID, map[string]any{"id": id})
+}
+
+// publishCRMActor is publishCRMChanged for a caller that resolved its actor: an
+// agent's write must reach other clients as the agent's, not as the member whose
+// identity the tool ran under (COLLAB-MODEL §2/§6).
+func (h *Handler) publishCRMActor(eventType, workspaceID, id string, actor workbenchActor) {
+	h.publish(eventType, workspaceID, actor.Type, actor.idString(), map[string]any{"id": id})
 }
 
 // workbenchCurrency normalises a CHAR(3) currency code, defaulting to CNY.
@@ -728,8 +748,10 @@ func (h *Handler) ListCrmCollabs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := make([]CrmCollabResponse, len(rows))
+	actors := h.lastWorkbenchActors(r.Context(), scope, subjectCrmCollab,
+		subjectIDs(rows, func(row db.CrmCollab) pgtype.UUID { return row.ID }))
 	for i, row := range rows {
-		resp[i] = crmCollabToResponse(row)
+		resp[i] = crmCollabToResponse(row, actors[uuidToString(row.ID)])
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"collabs": resp, "total": len(resp)})
 }
@@ -747,7 +769,7 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
-	// Money and settlement are their own capabilities (搂24.1): "may edit a
+	// Money and settlement are their own capabilities (—4.1): "may edit a
 	// collaboration" is not "may change what it pays". The check runs on the
 	// fields the request actually touches, so a title rename stays crm.write.
 	if req.QuoteAmount != nil || req.FinalAmount != nil || req.CreatorFee != nil ||
@@ -812,10 +834,30 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	if !agentOwnerGate(w, actor, req.OwnerMemberID) {
+		return
+	}
+	assigneeType, assigneeID, ok := h.workbenchAssigneePatch(w, r, scope,
+		pgtype.Text{}, pgtype.UUID{}, req.AssigneeType, req.AssigneeID)
+	if !ok {
+		return
+	}
+	assigneeType, assigneeID = initialAssignee(owner, req.AssigneeType, req.AssigneeID, assigneeType, assigneeID)
 
 	confirmed, published, accepted := collabStageMilestones(stage, time.Now().UTC(), pgtype.Timestamptz{}, pgtype.Timestamptz{}, pgtype.Timestamptz{})
 
-	collab, err := h.Queries.CreateCrmCollab(r.Context(), db.CreateCrmCollabParams{
+	// One transaction: the row and the audit event that says it exists
+	// (COLLAB-MODEL §2 — a create with no trail is a row nobody can account for).
+	tx, err := h.TxStarter.Begin(r.Context())
+	if err != nil {
+		workbenchInternalError(w, r, "failed to create collab", err)
+		return
+	}
+	defer tx.Rollback(r.Context())
+	qtx := h.Queries.WithTx(tx)
+
+	collab, err := qtx.CreateCrmCollab(r.Context(), db.CreateCrmCollabParams{
 		WorkspaceID:    scope.WorkspaceUUID,
 		BriefID:        brief.ID,
 		CreatorID:      creator.ID,
@@ -840,13 +882,26 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		CreatedBy:      scope.Member.UserID,
 		PublishUrl:     optionalTrimmedText(req.PublishURL),
 		SettledOn:      settledOn,
+		AssigneeType:   assigneeType,
+		AssigneeID:     assigneeID,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to create collab", err)
 		return
 	}
-	h.publishCRMChanged(eventCRMCollabChanged, scope.WorkspaceID, uuidToString(collab.ID), uuidToString(scope.Member.UserID))
-	writeJSON(w, http.StatusCreated, crmCollabToResponse(collab))
+	event, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCrmCollab, collab.ID,
+		subjectCrmCollab+".created", actor, actor.delegatedBy(scope), auditCreate,
+		collabChanges(db.CrmCollab{}, collab))
+	if err != nil {
+		workbenchInternalError(w, r, "failed to record the collab's creation", err)
+		return
+	}
+	if err := tx.Commit(r.Context()); err != nil {
+		workbenchInternalError(w, r, "failed to create collab", err)
+		return
+	}
+	h.publishCRMActor(eventCRMCollabChanged, scope.WorkspaceID, uuidToString(collab.ID), actor)
+	writeJSON(w, http.StatusCreated, crmCollabToResponse(collab, lastActorFromActivity(event)))
 }
 
 // requireBriefInWorkspace validates a collaboration's required brief pointer.
@@ -913,7 +968,8 @@ func (h *Handler) GetCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !h.workbenchCrossDepartmentGate(w, r, scope, collab.OwnerMemberID) {
 		return
 	}
-	writeJSON(w, http.StatusOK, crmCollabToResponse(collab))
+	writeJSON(w, http.StatusOK, crmCollabToResponse(collab,
+		h.lastWorkbenchActor(r.Context(), scope, subjectCrmCollab, collab.ID)))
 }
 
 // UpdateCrmCollab — PATCH /api/workbench/crm/collabs/{collabId}
@@ -937,7 +993,7 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
-	// Money and settlement are their own capabilities (搂24.1): "may edit a
+	// Money and settlement are their own capabilities (—4.1): "may edit a
 	// collaboration" is not "may change what it pays". The check runs on the
 	// fields the request actually touches, so a title rename stays crm.write.
 	if req.QuoteAmount != nil || req.FinalAmount != nil || req.CreatorFee != nil ||
@@ -1041,12 +1097,37 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	if !agentOwnerGate(w, actor, req.OwnerMemberID) {
+		return
+	}
 	owner, ok := h.workbenchOwnerForUpdate(w, r, scope, current.OwnerMemberID, requestedOwner)
 	if !ok {
 		return
 	}
+	assigneeType, assigneeID, ok := h.workbenchAssigneePatch(w, r, scope,
+		current.AssigneeType, current.AssigneeID, req.AssigneeType, req.AssigneeID)
+	if !ok {
+		return
+	}
+	expectedRevision, ok := workbenchExpectedRevision(w, req.ExpectedRevision)
+	if !ok {
+		return
+	}
 
-	updated, err := h.Queries.UpdateCrmCollab(r.Context(), db.UpdateCrmCollabParams{
+	// One transaction, three statements: the write, the guarded revision check
+	// inside it, and the audit row that says what moved (COLLAB-MODEL §2/§3).
+	// A mismatch is zero rows rather than an error, which the branch below turns
+	// into a 409 carrying the row the writer did not see.
+	tx, err := h.TxStarter.Begin(r.Context())
+	if err != nil {
+		workbenchInternalError(w, r, "failed to update collab", err)
+		return
+	}
+	defer tx.Rollback(r.Context())
+	qtx := h.Queries.WithTx(tx)
+
+	updated, err := qtx.UpdateCrmCollab(r.Context(), db.UpdateCrmCollabParams{
 		ID:             current.ID,
 		WorkspaceID:    scope.WorkspaceUUID,
 		BriefID:        briefID,
@@ -1071,34 +1152,67 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		OwnerMemberID:  owner,
 		PublishUrl:     applyTextPatch(req.PublishURL, current.PublishUrl),
 		SettledOn:      settledOn,
+		AssigneeType:   assigneeType,
+		AssigneeID:     assigneeID,
+		ExpectedRevision: expectedRevision,
 	})
 	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			workbenchInternalError(w, r, "failed to update collab", err)
+			return
+		}
+		// No row: either the revision moved under this writer or the row is gone.
+		// The transaction is aborted, so roll it back before reading again.
+		_ = tx.Rollback(r.Context())
+		survivor, readErr := h.Queries.GetCrmCollab(r.Context(), db.GetCrmCollabParams{
+			ID: current.ID, WorkspaceID: scope.WorkspaceUUID,
+		})
+		if readErr != nil {
+			writeError(w, http.StatusNotFound, "collab not found")
+			return
+		}
+		writeStaleWrite(w, crmCollabToResponse(survivor,
+			h.lastWorkbenchActor(r.Context(), scope, subjectCrmCollab, survivor.ID)))
+		return
+	}
+
+	fields := collabChanges(current, updated)
+	var last *WorkbenchLastActor
+	if len(fields) > 0 {
+		event, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCrmCollab, updated.ID,
+			collabAction(fields), actor, actor.delegatedBy(scope), auditUpdate, fields)
+		if err != nil {
+			workbenchInternalError(w, r, "failed to record the collab's change", err)
+			return
+		}
+		last = lastActorFromActivity(event)
+	}
+	if err := tx.Commit(r.Context()); err != nil {
 		workbenchInternalError(w, r, "failed to update collab", err)
 		return
 	}
 
-	actorID := uuidToString(scope.Member.UserID)
 	if updated.Stage != current.Stage {
-		h.publish(eventCRMCollabStageChange, scope.WorkspaceID, "member", actorID, map[string]any{
+		h.publish(eventCRMCollabStageChange, scope.WorkspaceID, actor.Type, actor.idString(), map[string]any{
 			"id":   uuidToString(updated.ID),
 			"from": current.Stage,
 			"to":   updated.Stage,
 		})
 	}
-	h.publishCRMChanged(eventCRMCollabChanged, scope.WorkspaceID, uuidToString(updated.ID), actorID)
-	writeJSON(w, http.StatusOK, crmCollabToResponse(updated))
+	h.publishCRMActor(eventCRMCollabChanged, scope.WorkspaceID, uuidToString(updated.ID), actor)
+	writeJSON(w, http.StatusOK, crmCollabToResponse(updated, last))
 }
 
-// DeleteCrmCollab 鈥?DELETE /api/workbench/crm/collabs/{collabId} (soft delete)
+// DeleteCrmCollab — DELETE /api/workbench/crm/collabs/{collabId} (soft delete)
 //
 // Archiving a collaboration archives the settlements that name it, in the same
-// transaction (搂20.1). The alternative 鈥?archive the collab and leave its money 鈥?// produced two lies at once: `orders.paid_amount` and the receivable list kept
+// transaction (—0.1). The alternative — archive the collab and leave its money — // produced two lies at once: `orders.paid_amount` and the receivable list kept
 // counting settlements whose collaboration had left every screen, and the UI had to
 // hide the delete affordance entirely because one click manufactured orphans. A
 // collaboration is the vertex of that pair, so deleting it takes its money with it.
 //
 // Paid settlements are archived too, deliberately: `paid_at` records that money moved
-// once, and archiving the row does not un-pay it 鈥?the row leaves the ledgers like
+// once, and archiving the row does not un-pay it — the row leaves the ledgers like
 // every other workbench delete. Refusing with a 409 while anything has cleared was
 // rejected because it makes a mis-created collaboration permanent: the operator's only
 // repair would be editing rows the API does not let them edit. A reader who needs the
@@ -1115,9 +1229,15 @@ func (h *Handler) DeleteCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	if !agentDeleteGate(w, actor) {
+		return
+	}
 
 	// One transaction: a collab archived without its settlements (or the reverse)
-	// is exactly the orphan this endpoint exists to avoid.
+	// is exactly the orphan this endpoint exists to avoid. The audit rows ride in
+	// the same transaction — the collab's own, and one per settlement it took with
+	// it, because those rows left the ledger too (COLLAB-MODEL §2).
 	tx, err := h.TxStarter.Begin(r.Context())
 	if err != nil {
 		workbenchInternalError(w, r, "failed to delete collab", err)
@@ -1138,6 +1258,24 @@ func (h *Handler) DeleteCrmCollab(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "collab not found")
 		return
 	}
+	if _, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCrmCollab, current.ID,
+		subjectCrmCollab+".deleted", actor, actor.delegatedBy(scope), auditDelete,
+		collabChanges(current, db.CrmCollab{})); err != nil {
+		workbenchInternalError(w, r, "failed to record the collab's deletion", err)
+		return
+	}
+	// The settlements the delete takes with it, read *before* they are archived:
+	// their audit line records what the money was, and a row that is already
+	// archived is readable through no query that filters archived rows.
+	doomed, err := qtx.ListCrmSettlements(r.Context(), db.ListCrmSettlementsParams{
+		WorkspaceID: scope.WorkspaceUUID,
+		CollabID:    current.ID,
+		Limit:       workbenchAuditCascadeLimit,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to read the collab's settlements", err)
+		return
+	}
 	settlementIDs, err := qtx.ArchiveCrmSettlementsByCollab(r.Context(), db.ArchiveCrmSettlementsByCollabParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		CollabID:    current.ID,
@@ -1146,17 +1284,36 @@ func (h *Handler) DeleteCrmCollab(w http.ResponseWriter, r *http.Request) {
 		workbenchInternalError(w, r, "failed to delete the collab's settlements", err)
 		return
 	}
+	before := make(map[string]db.CrmSettlement, len(doomed))
+	for _, row := range doomed {
+		before[uuidToString(row.ID)] = row
+	}
+	for _, settlementID := range settlementIDs {
+		key := uuidToString(settlementID)
+		settlement := before[key]
+		if settlement.ID == (pgtype.UUID{}) {
+			// Beyond the cascade window: the delete still happened, so the trail
+			// names the row without inventing values it did not read.
+			settlement = db.CrmSettlement{ID: settlementID}
+		}
+		if _, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCrmSettlement, settlementID,
+			subjectCrmSettlement+".deleted", actor, actor.delegatedBy(scope), auditDelete,
+			settlementChanges(settlement, db.CrmSettlement{})); err != nil {
+			workbenchInternalError(w, r, "failed to record the settlement's deletion", err)
+			return
+		}
+	}
 	if err := tx.Commit(r.Context()); err != nil {
 		workbenchInternalError(w, r, "failed to delete collab", err)
 		return
 	}
 
-	h.publishCRMChanged(eventCRMCollabChanged, scope.WorkspaceID, uuidToString(current.ID), uuidToString(scope.Member.UserID))
+	h.publishCRMActor(eventCRMCollabChanged, scope.WorkspaceID, uuidToString(current.ID), actor)
 	// One event per archived settlement: another client's settlement list and the
 	// cockpit's `paid_amount` both read these rows, and a collab-only event would
 	// leave them showing money whose collaboration no longer exists.
 	for _, settlementID := range settlementIDs {
-		h.publishCRMChanged(eventCRMSettlementChanged, scope.WorkspaceID, uuidToString(settlementID), uuidToString(scope.Member.UserID))
+		h.publishCRMActor(eventCRMSettlementChanged, scope.WorkspaceID, uuidToString(settlementID), actor)
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -1208,8 +1365,10 @@ func (h *Handler) ListCrmSettlements(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := make([]CrmSettlementResponse, len(rows))
+	actors := h.lastWorkbenchActors(r.Context(), scope, subjectCrmSettlement,
+		subjectIDs(rows, func(row db.CrmSettlement) pgtype.UUID { return row.ID }))
 	for i, row := range rows {
-		resp[i] = crmSettlementToResponse(row)
+		resp[i] = crmSettlementToResponse(row, actors[uuidToString(row.ID)])
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"settlements": resp, "total": len(resp)})
 }
@@ -1241,7 +1400,7 @@ func (h *Handler) CreateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
-	// Settlement money is its own capability (搂24.1): recording or withdrawing a
+	// Settlement money is its own capability (—4.1): recording or withdrawing a
 	// payment is not covered by "may edit the collaboration".
 	if !h.requireWorkbenchCapability(w, r, scope, capCRMSettle) {
 		return
@@ -1258,7 +1417,8 @@ func (h *Handler) CreateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "collab_id is required")
 		return
 	}
-	if _, ok := h.loadCollabForSettlementWrite(w, r, scope, collabID); !ok {
+	collab, ok := h.loadCollabForSettlementWrite(w, r, scope, collabID)
+	if !ok {
 		return
 	}
 	kind := strings.TrimSpace(valueOrEmpty(req.Kind))
@@ -1282,25 +1442,56 @@ func (h *Handler) CreateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	assigneeType, assigneeID, ok := h.workbenchAssigneePatch(w, r, scope,
+		pgtype.Text{}, pgtype.UUID{}, req.AssigneeType, req.AssigneeID)
+	if !ok {
+		return
+	}
+	// A settlement has no owner column of its own (§20.1): it starts assigned to
+	// the collaboration's owner, the same rule 821 backfilled the other three
+	// ledgers with.
+	assigneeType, assigneeID = initialAssignee(collab.OwnerMemberID, req.AssigneeType, req.AssigneeID, assigneeType, assigneeID)
 
-	settlement, err := h.Queries.CreateCrmSettlement(r.Context(), db.CreateCrmSettlementParams{
-		WorkspaceID: scope.WorkspaceUUID,
-		CollabID:    collabID,
-		Kind:        kind,
-		Amount:      floatToNumeric(req.Amount),
-		Currency:    currency,
-		DueAt:       dueAt,
-		PaidAt:      paidAt,
-		InvoiceNo:   optionalTrimmedText(req.InvoiceNo),
-		Note:        optionalTrimmedText(req.Note),
-		CreatedBy:   scope.Member.UserID,
+	tx, err := h.TxStarter.Begin(r.Context())
+	if err != nil {
+		workbenchInternalError(w, r, "failed to create settlement", err)
+		return
+	}
+	defer tx.Rollback(r.Context())
+	qtx := h.Queries.WithTx(tx)
+
+	settlement, err := qtx.CreateCrmSettlement(r.Context(), db.CreateCrmSettlementParams{
+		WorkspaceID:  scope.WorkspaceUUID,
+		CollabID:     collabID,
+		Kind:         kind,
+		Amount:       floatToNumeric(req.Amount),
+		Currency:     currency,
+		DueAt:        dueAt,
+		PaidAt:       paidAt,
+		InvoiceNo:    optionalTrimmedText(req.InvoiceNo),
+		Note:         optionalTrimmedText(req.Note),
+		CreatedBy:    scope.Member.UserID,
+		AssigneeType: assigneeType,
+		AssigneeID:   assigneeID,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to create settlement", err)
 		return
 	}
-	h.publishCRMChanged(eventCRMSettlementChanged, scope.WorkspaceID, uuidToString(settlement.ID), uuidToString(scope.Member.UserID))
-	writeJSON(w, http.StatusCreated, crmSettlementToResponse(settlement))
+	event, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCrmSettlement, settlement.ID,
+		subjectCrmSettlement+".created", actor, actor.delegatedBy(scope), auditCreate,
+		settlementChanges(db.CrmSettlement{}, settlement))
+	if err != nil {
+		workbenchInternalError(w, r, "failed to record the settlement's creation", err)
+		return
+	}
+	if err := tx.Commit(r.Context()); err != nil {
+		workbenchInternalError(w, r, "failed to create settlement", err)
+		return
+	}
+	h.publishCRMActor(eventCRMSettlementChanged, scope.WorkspaceID, uuidToString(settlement.ID), actor)
+	writeJSON(w, http.StatusCreated, crmSettlementToResponse(settlement, lastActorFromActivity(event)))
 }
 
 // loadCrmSettlementForWrite resolves {settlementId} and checks the write gate
@@ -1333,7 +1524,7 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
-	// Settlement money is its own capability (搂24.1): recording or withdrawing a
+	// Settlement money is its own capability (—4.1): recording or withdrawing a
 	// payment is not covered by "may edit the collaboration".
 	if !h.requireWorkbenchCapability(w, r, scope, capCRMSettle) {
 		return
@@ -1386,25 +1577,74 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	assigneeType, assigneeID, ok := h.workbenchAssigneePatch(w, r, scope,
+		current.AssigneeType, current.AssigneeID, req.AssigneeType, req.AssigneeID)
+	if !ok {
+		return
+	}
+	expectedRevision, ok := workbenchExpectedRevision(w, req.ExpectedRevision)
+	if !ok {
+		return
+	}
 
-	updated, err := h.Queries.UpdateCrmSettlement(r.Context(), db.UpdateCrmSettlementParams{
-		ID:          current.ID,
-		WorkspaceID: scope.WorkspaceUUID,
-		CollabID:    collabID,
-		Kind:        kind,
-		Amount:      applyNumericPatch(req.Amount, current.Amount),
-		Currency:    currency,
-		DueAt:       dueAt,
-		PaidAt:      paidAt,
-		InvoiceNo:   applyTextPatch(req.InvoiceNo, current.InvoiceNo),
-		Note:        applyTextPatch(req.Note, current.Note),
-	})
+	tx, err := h.TxStarter.Begin(r.Context())
 	if err != nil {
 		workbenchInternalError(w, r, "failed to update settlement", err)
 		return
 	}
-	h.publishCRMChanged(eventCRMSettlementChanged, scope.WorkspaceID, uuidToString(updated.ID), uuidToString(scope.Member.UserID))
-	writeJSON(w, http.StatusOK, crmSettlementToResponse(updated))
+	defer tx.Rollback(r.Context())
+	qtx := h.Queries.WithTx(tx)
+
+	updated, err := qtx.UpdateCrmSettlement(r.Context(), db.UpdateCrmSettlementParams{
+		ID:               current.ID,
+		WorkspaceID:      scope.WorkspaceUUID,
+		CollabID:         collabID,
+		Kind:             kind,
+		Amount:           applyNumericPatch(req.Amount, current.Amount),
+		Currency:         currency,
+		DueAt:            dueAt,
+		PaidAt:           paidAt,
+		InvoiceNo:        applyTextPatch(req.InvoiceNo, current.InvoiceNo),
+		Note:             applyTextPatch(req.Note, current.Note),
+		AssigneeType:     assigneeType,
+		AssigneeID:       assigneeID,
+		ExpectedRevision: expectedRevision,
+	})
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			workbenchInternalError(w, r, "failed to update settlement", err)
+			return
+		}
+		_ = tx.Rollback(r.Context())
+		survivor, readErr := h.Queries.GetCrmSettlement(r.Context(), db.GetCrmSettlementParams{
+			ID: current.ID, WorkspaceID: scope.WorkspaceUUID,
+		})
+		if readErr != nil {
+			writeError(w, http.StatusNotFound, "settlement not found")
+			return
+		}
+		writeStaleWrite(w, crmSettlementToResponse(survivor,
+			h.lastWorkbenchActor(r.Context(), scope, subjectCrmSettlement, survivor.ID)))
+		return
+	}
+	fields := settlementChanges(current, updated)
+	var last *WorkbenchLastActor
+	if len(fields) > 0 {
+		event, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCrmSettlement, updated.ID,
+			settlementAction(fields), actor, actor.delegatedBy(scope), auditUpdate, fields)
+		if err != nil {
+			workbenchInternalError(w, r, "failed to record the settlement's change", err)
+			return
+		}
+		last = lastActorFromActivity(event)
+	}
+	if err := tx.Commit(r.Context()); err != nil {
+		workbenchInternalError(w, r, "failed to update settlement", err)
+		return
+	}
+	h.publishCRMActor(eventCRMSettlementChanged, scope.WorkspaceID, uuidToString(updated.ID), actor)
+	writeJSON(w, http.StatusOK, crmSettlementToResponse(updated, last))
 }
 
 // DeleteCrmSettlement — DELETE /api/workbench/crm/settlements/{settlementId}
@@ -1416,7 +1656,7 @@ func (h *Handler) DeleteCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
-	// Settlement money is its own capability (搂24.1): recording or withdrawing a
+	// Settlement money is its own capability (—4.1): recording or withdrawing a
 	// payment is not covered by "may edit the collaboration".
 	if !h.requireWorkbenchCapability(w, r, scope, capCRMSettle) {
 		return
@@ -1425,7 +1665,20 @@ func (h *Handler) DeleteCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	deleted, err := h.Queries.ArchiveCrmSettlement(r.Context(), db.ArchiveCrmSettlementParams{
+	actor := h.workbenchActor(r, scope)
+	if !agentDeleteGate(w, actor) {
+		return
+	}
+
+	tx, err := h.TxStarter.Begin(r.Context())
+	if err != nil {
+		workbenchInternalError(w, r, "failed to delete settlement", err)
+		return
+	}
+	defer tx.Rollback(r.Context())
+	qtx := h.Queries.WithTx(tx)
+
+	deleted, err := qtx.ArchiveCrmSettlement(r.Context(), db.ArchiveCrmSettlementParams{
 		ID:          current.ID,
 		WorkspaceID: scope.WorkspaceUUID,
 	})
@@ -1437,6 +1690,16 @@ func (h *Handler) DeleteCrmSettlement(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "settlement not found")
 		return
 	}
-	h.publishCRMChanged(eventCRMSettlementChanged, scope.WorkspaceID, uuidToString(current.ID), uuidToString(scope.Member.UserID))
+	if _, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCrmSettlement, current.ID,
+		subjectCrmSettlement+".deleted", actor, actor.delegatedBy(scope), auditDelete,
+		settlementChanges(current, db.CrmSettlement{})); err != nil {
+		workbenchInternalError(w, r, "failed to record the settlement's deletion", err)
+		return
+	}
+	if err := tx.Commit(r.Context()); err != nil {
+		workbenchInternalError(w, r, "failed to delete settlement", err)
+		return
+	}
+	h.publishCRMActor(eventCRMSettlementChanged, scope.WorkspaceID, uuidToString(current.ID), actor)
 	w.WriteHeader(http.StatusNoContent)
 }

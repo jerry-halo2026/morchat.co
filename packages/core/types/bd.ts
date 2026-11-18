@@ -35,9 +35,10 @@
  *     and the money block already follow (docs/METRICS.md §1 rule 3).
  */
 
+import type { WorkbenchAssigneeType, WorkbenchLastActor } from "./workbench";
+
 /** How the conversation happened. */
 export type BdActivityKind = "dm" | "call" | "meeting" | "email" | "note";
-
 /**
  * What came of it. `null` on a row means "not recorded yet" — a note with no
  * result — and is deliberately not folded into `no_reply`.
@@ -49,7 +50,6 @@ export type BdQuoteStatus = "draft" | "sent" | "accepted" | "rejected" | "expire
 
 /** How a batch of creators was collected. */
 export type BdCampaignKind = "search" | "comment" | "manual";
-
 /** One follow-up with one creator. */
 export interface BdActivity {
   id: string;
@@ -68,6 +68,12 @@ export interface BdActivity {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  /** Who follows this up, the concurrency counter and the newest audit event.
+   *  Optional: a server that predates migration 821 omits all four. */
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
+  revision?: number;
+  last_actor?: WorkbenchLastActor | null;
 }
 
 /** One offer to one creator. */
@@ -94,6 +100,12 @@ export interface BdQuote {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  /** Who is working the offer, the concurrency counter and the newest audit event.
+   *  Optional: a server that predates migration 821 omits all four. */
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
+  revision?: number;
+  last_actor?: WorkbenchLastActor | null;
 }
 
 /** One collection batch. */
@@ -165,6 +177,9 @@ export interface CreateBdActivityRequest {
   outcome?: BdActivityOutcome | null;
   next_follow_at?: string | null;
   owner_member_id?: string;
+  /** Who follows it up. Omitted = the owner (the server's default). */
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
 }
 
 /** `PATCH /bd/activities/{id}` — `creator_id` is absent: the server 400s it. */
@@ -177,6 +192,13 @@ export interface UpdateBdActivityRequest {
   /** `null` clears the scheduled follow-up. */
   next_follow_at?: string | null;
   owner_member_id?: string | null;
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
+  /**
+   * The revision this reader last saw. A mismatch is `409 stale_write` with the
+   * current row; omitting it skips the check (old clients).
+   */
+  expected_revision?: number;
 }
 
 /** `POST /bd/quotes`. A quote defaults to `status: "draft"` and currency CNY. */
@@ -193,6 +215,9 @@ export interface CreateBdQuoteRequest {
   items?: unknown[];
   note?: string | null;
   owner_member_id?: string;
+  /** Who is working it. Omitted = the owner (the server's default). */
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
 }
 
 /** `PATCH /bd/quotes/{id}` — `creator_id` is absent: the server 400s it. */
@@ -207,6 +232,10 @@ export interface UpdateBdQuoteRequest {
   items?: unknown[];
   note?: string | null;
   owner_member_id?: string | null;
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
+  /** See `UpdateBdActivityRequest.expected_revision`. */
+  expected_revision?: number;
 }
 
 /** `POST /bd/campaigns`. `name` is required and unique per workspace (409). */

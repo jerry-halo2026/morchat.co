@@ -764,9 +764,18 @@ type CrmCollabResponse struct {
 	// string" and not "today".
 	PublishURL *string `json:"publish_url"`
 	SettledOn  *string `json:"settled_on"`
+	// Collaboration identity (COLLAB-MODEL §1/§3, migration 821):
+	// `assignee_*` is who is doing the work — an agent may hold it, unlike
+	// `owner_member_id`; `revision` is the counter a PATCH compares against; and
+	// `last_actor` is the newest audit event, folded (nil for a row whose trail
+	// predates this batch).
+	AssigneeType *string             `json:"assignee_type"`
+	AssigneeID   *string             `json:"assignee_id"`
+	Revision     int32               `json:"revision"`
+	LastActor    *WorkbenchLastActor `json:"last_actor"`
 }
 
-func crmCollabToResponse(c db.CrmCollab) CrmCollabResponse {
+func crmCollabToResponse(c db.CrmCollab, last *WorkbenchLastActor) CrmCollabResponse {
 	return CrmCollabResponse{
 		ID:             uuidToString(c.ID),
 		WorkspaceID:    uuidToString(c.WorkspaceID),
@@ -795,6 +804,10 @@ func crmCollabToResponse(c db.CrmCollab) CrmCollabResponse {
 		UpdatedAt:      timestampToString(c.UpdatedAt),
 		PublishURL:     textToPtr(c.PublishUrl),
 		SettledOn:      dateToPtr(c.SettledOn),
+		AssigneeType:   textToPtr(c.AssigneeType),
+		AssigneeID:     uuidToPtr(c.AssigneeID),
+		Revision:       c.Revision,
+		LastActor:      last,
 	}
 }
 
@@ -812,22 +825,34 @@ type CrmSettlementResponse struct {
 	CreatedBy   *string `json:"created_by"`
 	CreatedAt   string  `json:"created_at"`
 	UpdatedAt   string  `json:"updated_at"`
+	// Same three fields as the collaboration (COLLAB-MODEL §1/§3): who is
+	// chasing the money, the concurrency counter, and the newest audit event.
+	// A settlement has no owner column of its own — its owner is the
+	// collaboration's — so `assignee_*` is the only "whose is this" it carries.
+	AssigneeType *string             `json:"assignee_type"`
+	AssigneeID   *string             `json:"assignee_id"`
+	Revision     int32               `json:"revision"`
+	LastActor    *WorkbenchLastActor `json:"last_actor"`
 }
 
-func crmSettlementToResponse(s db.CrmSettlement) CrmSettlementResponse {
+func crmSettlementToResponse(s db.CrmSettlement, last *WorkbenchLastActor) CrmSettlementResponse {
 	return CrmSettlementResponse{
-		ID:          uuidToString(s.ID),
-		WorkspaceID: uuidToString(s.WorkspaceID),
-		CollabID:    uuidToString(s.CollabID),
-		Kind:        s.Kind,
-		Amount:      numericToFloat(s.Amount),
-		Currency:    s.Currency,
-		DueAt:       dateToPtr(s.DueAt),
-		PaidAt:      dateToPtr(s.PaidAt),
-		InvoiceNo:   textToPtr(s.InvoiceNo),
-		Note:        textToPtr(s.Note),
-		CreatedBy:   uuidToPtr(s.CreatedBy),
-		CreatedAt:   timestampToString(s.CreatedAt),
-		UpdatedAt:   timestampToString(s.UpdatedAt),
+		ID:           uuidToString(s.ID),
+		WorkspaceID:  uuidToString(s.WorkspaceID),
+		CollabID:     uuidToString(s.CollabID),
+		Kind:         s.Kind,
+		Amount:       numericToFloat(s.Amount),
+		Currency:     s.Currency,
+		DueAt:        dateToPtr(s.DueAt),
+		PaidAt:       dateToPtr(s.PaidAt),
+		InvoiceNo:    textToPtr(s.InvoiceNo),
+		Note:         textToPtr(s.Note),
+		CreatedBy:    uuidToPtr(s.CreatedBy),
+		CreatedAt:    timestampToString(s.CreatedAt),
+		UpdatedAt:    timestampToString(s.UpdatedAt),
+		AssigneeType: textToPtr(s.AssigneeType),
+		AssigneeID:   uuidToPtr(s.AssigneeID),
+		Revision:     s.Revision,
+		LastActor:    last,
 	}
 }

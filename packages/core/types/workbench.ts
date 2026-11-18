@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Workbench wire types (docs/engineering/WORKBENCH-API.md 搂2 and 搂10).
  *
  * B0's seven ledger tables 鈥?creators (the supply side), their posts and per-day
@@ -327,6 +327,27 @@ export interface CrmBrief {
   archived_at: string | null;
 }
 
+/**
+ * Who is doing a workbench row (docs/engineering/COLLAB-MODEL.md §1, migration
+ * 821). `member` is a human seat, `agent` is an agent; it is **not** the owner —
+ * `owner_member_id` is always a human and answers "who is accountable for the
+ * deal", not "who is on it".
+ */
+export type WorkbenchAssigneeType = "member" | "agent";
+
+/**
+ * The newest audit event about one ledger row, folded into the row a GET
+ * returns (COLLAB-MODEL §2). `action` is the dot-separated verb the trail uses
+ * (`crm_collab.stage_changed`), `type` is `member | agent | system`, and `at` is
+ * when it happened — not when the row was last written, which a note edit moves.
+ */
+export interface WorkbenchLastActor {
+  type: string;
+  id: string | null;
+  action: string;
+  at: string;
+}
+
 /** One brief matched to one creator, with its own funnel position and money. */
 export interface CrmCollab {
   id: string;
@@ -367,6 +388,22 @@ export interface CrmCollab {
    * unpaid; the individual money movements live in `CrmSettlement`.
    */
   settled_on: string | null;
+  /**
+   * Who is doing the work (a member or an agent); `null` = unassigned. Optional
+   * because a server that predates migration 821 omits the pair — absence means
+   * the same thing the column's NULL does, not "unknown".
+   */
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
+  /**
+   * Optimistic-concurrency counter: bumped on every write. A PATCH that names a
+   * different `expected_revision` answers `409 stale_write` with the current row
+   * instead of overwriting it. Absent on a pre-821 server, where every write is
+   * unguarded.
+   */
+  revision?: number;
+  /** The newest audit event about this row; absent before its first audited write. */
+  last_actor?: WorkbenchLastActor | null;
 }
 
 /** One money movement against a collab. `paid_at` null = still owed. */
@@ -385,6 +422,16 @@ export interface CrmSettlement {
   created_at: string;
   updated_at: string;
   archived_at: string | null;
+  /**
+   * Who is chasing the money. A settlement has no owner column of its own — its
+   * owner is the collaboration's — so this pair is the only "whose is this" it
+   * carries. Optional for the same reason as `CrmCollab.assignee_type`.
+   */
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
+  /** See `CrmCollab.revision`. */
+  revision?: number;
+  last_actor?: WorkbenchLastActor | null;
 }
 
 /** Sidebar counts. `collabs_open` excludes settled/cancelled, matching the
@@ -836,6 +883,10 @@ export type CreateCrmCollabRequest = Pick<CrmCollab, "brief_id" | "creator_id"> 
       // calendar day the money was settled. Both optional on create.
       | "publish_url"
       | "settled_on"
+      // Assignment (COLLAB-MODEL §1): omitted = the owner, which is what the
+      // server's default does.
+      | "assignee_type"
+      | "assignee_id"
     >
   >;
 
@@ -863,20 +914,44 @@ export type UpdateCrmCollabRequest = Partial<
     // calendar day the money was settled.
     | "publish_url"
     | "settled_on"
+    // Assignment and concurrency (COLLAB-MODEL §1/§3).
+    | "assignee_type"
+    | "assignee_id"
   >
->;
+> & {
+  /**
+   * The revision this reader last saw. A mismatch is `409 stale_write` with the
+   * current row; omitting it skips the check (old clients). It is not a column,
+   * so it sits outside the `Pick`.
+   */
+  expected_revision?: number;
+};
 
 export type CreateCrmSettlementRequest = Pick<CrmSettlement, "collab_id" | "kind" | "amount"> &
   Partial<
-    Pick<CrmSettlement, "currency" | "due_at" | "paid_at" | "invoice_no" | "note">
+    Pick<
+      CrmSettlement,
+      "currency" | "due_at" | "paid_at" | "invoice_no" | "note" | "assignee_type" | "assignee_id"
+    >
   >;
 
 export type UpdateCrmSettlementRequest = Partial<
   Pick<
     CrmSettlement,
-    "kind" | "amount" | "currency" | "due_at" | "paid_at" | "invoice_no" | "note"
+    | "kind"
+    | "amount"
+    | "currency"
+    | "due_at"
+    | "paid_at"
+    | "invoice_no"
+    | "note"
+    | "assignee_type"
+    | "assignee_id"
   >
->;
+> & {
+  /** See `UpdateCrmCollabRequest.expected_revision`. */
+  expected_revision?: number;
+};
 
 // --- HR (docs/engineering/WORKBENCH-API.md 搂10) ---------------------------
 //

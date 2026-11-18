@@ -39,20 +39,26 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
   AND archived_at IS NULL;
 
 -- name: CreateCreatorActivity :one
+-- `assignee_*` (821): who follows this conversation up. An agent may hold it;
+-- `owner_member_id` stays a human seat (COLLAB-MODEL §1).
 INSERT INTO creator_activity (
     workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at,
-    owner_member_id, created_by
+    owner_member_id, created_by, assignee_type, assignee_id
 ) VALUES (
     sqlc.arg('workspace_id')::uuid, sqlc.arg('creator_id')::uuid, sqlc.arg('kind')::text,
     sqlc.arg('happened_at')::timestamptz, sqlc.arg('summary')::text,
     sqlc.narg('outcome')::text, sqlc.narg('next_follow_at')::timestamptz,
-    sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
+    sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid,
+    sqlc.narg('assignee_type')::text, sqlc.narg('assignee_id')::uuid
 )
 RETURNING *;
 
 -- name: UpdateCreatorActivity :one
 -- `creator_id` is not in the SET: a follow-up that stops being about the same
 -- person is a different record, and the handler answers 400 for that field.
+--
+-- The revision contract (COLLAB-MODEL §3): bump on every write, compare only
+-- when the caller sent the revision it read.
 UPDATE creator_activity
 SET kind = sqlc.arg('kind')::text,
     happened_at = sqlc.arg('happened_at')::timestamptz,
@@ -60,14 +66,18 @@ SET kind = sqlc.arg('kind')::text,
     outcome = sqlc.narg('outcome')::text,
     next_follow_at = sqlc.narg('next_follow_at')::timestamptz,
     owner_member_id = sqlc.narg('owner_member_id')::uuid,
+    assignee_type = sqlc.narg('assignee_type')::text,
+    assignee_id = sqlc.narg('assignee_id')::uuid,
+    revision = revision + 1,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
   AND archived_at IS NULL
+  AND (sqlc.narg('expected_revision')::int IS NULL OR revision = sqlc.narg('expected_revision')::int)
 RETURNING *;
 
 -- name: ArchiveCreatorActivity :execrows
 UPDATE creator_activity
-SET archived_at = now(), updated_at = now()
+SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
   AND archived_at IS NULL;
 
@@ -95,20 +105,25 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
 -- name: CreateCreatorQuote :one
 INSERT INTO creator_quote (
     workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount,
-    commission_rate, currency, items, note, owner_member_id, created_by
+    commission_rate, currency, items, note, owner_member_id, created_by,
+    assignee_type, assignee_id
 ) VALUES (
     sqlc.arg('workspace_id')::uuid, sqlc.arg('creator_id')::uuid,
     sqlc.narg('brief_id')::uuid, sqlc.arg('status')::text,
     sqlc.narg('quoted_at')::timestamptz, sqlc.narg('valid_until')::date,
     sqlc.narg('fee_amount')::numeric, sqlc.narg('commission_rate')::numeric,
     sqlc.arg('currency')::text, sqlc.arg('items')::text::jsonb, sqlc.narg('note')::text,
-    sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
+    sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid,
+    sqlc.narg('assignee_type')::text, sqlc.narg('assignee_id')::uuid
 )
 RETURNING *;
 
 -- name: UpdateCreatorQuote :one
 -- `creator_id` stays out of the SET for the same reason as the follow-up log: an
 -- offer to a different creator is a different offer.
+--
+-- The revision contract (COLLAB-MODEL §3) is the same as every other ledger:
+-- bump on write, compare only against a revision the caller named.
 UPDATE creator_quote
 SET brief_id = sqlc.narg('brief_id')::uuid,
     status = sqlc.arg('status')::text,
@@ -120,14 +135,18 @@ SET brief_id = sqlc.narg('brief_id')::uuid,
     items = sqlc.arg('items')::text::jsonb,
     note = sqlc.narg('note')::text,
     owner_member_id = sqlc.narg('owner_member_id')::uuid,
+    assignee_type = sqlc.narg('assignee_type')::text,
+    assignee_id = sqlc.narg('assignee_id')::uuid,
+    revision = revision + 1,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
   AND archived_at IS NULL
+  AND (sqlc.narg('expected_revision')::int IS NULL OR revision = sqlc.narg('expected_revision')::int)
 RETURNING *;
 
 -- name: ArchiveCreatorQuote :execrows
 UPDATE creator_quote
-SET archived_at = now(), updated_at = now()
+SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
   AND archived_at IS NULL;
 
