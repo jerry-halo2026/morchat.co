@@ -40,7 +40,7 @@ related: [docs/engineering/WORKBENCH-B3-PLAN.md, docs/engineering/WORKBENCH-API.
 | # | 事项 | 现状 |
 | --- | --- | --- |
 | 15 | 脚本版本只能切换阅读 | 没有并排 diff；「这个 v3 改了什么」还得人眼比 |
-| 16 | 内容的 publish/data/scripts/shoots 不跟左栏 IP 切换 | 只有 ips/topics 读了 `useIpScope()`；其余按全局读，切 IP 后列表不变 |
+| 16 | 内容的 publish/data/scripts/shoots 与左栏 IP 切换的关系**未定义**（不是漏做） | ips/topics 读 `useIpScope()`；脚本与拍摄的归属是 `topic.ip_id`（脚本表上还有冗余 `ip_id`），publish/data 的归属是作品/达人，而一个达人可能跨 IP。**先定语义再动手**：①脚本与拍摄按 IP 收窄（需给 `/media/scripts`、`/media/shoots` 加 `ip_id` 过滤，客户端窗口筛会与 200 条上限打架）；②publish/data 明说「不按 IP 收窄」（它们是产出与复盘，不是某个 IP 的流水线）。建议 ①+②一起做，别只做一半 | 页面头部能看出当前 IP 作用域是否生效（生效则显示 IP 名，不生效显示「全部 IP」）|
 | 17 | 拍摄页没有状态筛选 | 端点无 `status` 参数，客户端筛会和「本周」窗口语义打架 |
 | 18 | 雷达/客户筛选全在客户端 | 窗口 200 条，超出的看不见，界面上也没说 |
 | 19 | 业绩页「未回款」是派生值 | `签约额 − 回款额`，不是账龄；旁边已注明，但口径早晚要服务端给 |
