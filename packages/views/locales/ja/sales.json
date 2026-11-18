@@ -53,7 +53,13 @@
       "final": "残金",
       "platform_fee": "プラットフォーム費",
       "tax": "税"
-    }
+    },
+    "revoke": "コラボを取り消す",
+    "revoke_title": "このコラボを取り消しますか？",
+    "revoke_description": "この行は台帳から外れ、このコラボの精算記録もまとめてアーカイブされます。ここから元に戻すことはできません。",
+    "revoke_confirm": "取り消す",
+    "settlement_mark_received": "入金済みにする",
+    "settlement_undo_received": "入金を取り消す"
   },
   "campaigns": {
     "new": "バッチを追加",

@@ -16,6 +16,8 @@
     "column_link": "Ссылка",
     "column_published_at": "Опубликовано",
     "column_creator": "Автор",
+    "column_linked_script": "Связанный сценарий",
+    "script_unlinked": "Не связано",
     "version": "v{{version}}",
     "push_publishing": "Перевести в публикацию",
     "save_failed": "Время публикации не сохранилось. Попробуйте ещё раз.",

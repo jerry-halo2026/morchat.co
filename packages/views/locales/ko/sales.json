@@ -53,7 +53,13 @@
       "final": "잔금",
       "platform_fee": "플랫폼비",
       "tax": "세금"
-    }
+    },
+    "revoke": "콜라보 취소",
+    "revoke_title": "이 콜라보를 취소할까요?",
+    "revoke_description": "이 행은 원장에서 빠지고, 이 콜라보의 정산 기록도 함께 보관 처리됩니다. 여기서는 되돌릴 수 없습니다.",
+    "revoke_confirm": "취소",
+    "settlement_mark_received": "입금 완료로 표시",
+    "settlement_undo_received": "입금 취소"
   },
   "campaigns": {
     "new": "새 배치",

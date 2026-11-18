@@ -53,7 +53,13 @@
       "final": "Final payment",
       "platform_fee": "Platform fee",
       "tax": "Tax"
-    }
+    },
+    "revoke": "Revoke collaboration",
+    "revoke_title": "Revoke this collaboration?",
+    "revoke_description": "The row leaves the ledger, and the settlement records recorded against it are archived with it. This cannot be undone from here.",
+    "revoke_confirm": "Revoke",
+    "settlement_mark_received": "Mark received",
+    "settlement_undo_received": "Undo receipt"
   },
   "campaigns": {
     "new": "New batch",

@@ -7,8 +7,11 @@ import {
   groupByPublishDay,
   localDateTimeValue,
   parseLocalDateTime,
+  postScriptId,
   publishInstant,
+  scriptIndex,
   scriptTitle,
+  shortId,
   sortPublished,
   sortScheduled,
   startOfLocalDay,
@@ -63,6 +66,7 @@ function post(overrides: Partial<CreatorPost> & Pick<CreatorPost, "id">): Creato
     content_issue_id: null,
     product_id: null,
     pick_id: null,
+    media_script_id: null,
     platform: "douyin",
     title: "One post",
     url: "https://www.douyin.com/video/1",
@@ -238,5 +242,40 @@ describe("the published side", () => {
   it("prints the host of a link, and the raw string when it is not a URL", () => {
     expect(urlHost("https://www.douyin.com/video/7")).toBe("www.douyin.com");
     expect(urlHost("douyin.com/video/7")).toBe("douyin.com/video/7");
+  });
+});
+
+/**
+ * `media_script_id` is on the wire (`CreatorPostResponse.MediaScriptID`) but not
+ * yet on the `CreatorPost` type, so the reader has to survive every shape the key
+ * can arrive in — including not arriving at all.
+ */
+describe("postScriptId", () => {
+  it("reads the id the response carries", () => {
+    const withScript = Object.assign(post({ id: "p-1" }), { media_script_id: "script-1" });
+
+    expect(postScriptId(withScript)).toBe("script-1");
+  });
+
+  it("answers null for an unlinked post, an empty value and a key that is not a string", () => {
+    expect(postScriptId(post({ id: "p-1" }))).toBeNull();
+    expect(postScriptId(Object.assign(post({ id: "p-1" }), { media_script_id: null }))).toBeNull();
+    expect(postScriptId(Object.assign(post({ id: "p-1" }), { media_script_id: "  " }))).toBeNull();
+    expect(postScriptId(Object.assign(post({ id: "p-1" }), { media_script_id: 42 }))).toBeNull();
+  });
+});
+
+describe("shortId and scriptIndex", () => {
+  it("keeps eight characters of an id this page cannot resolve", () => {
+    expect(shortId("0192f3a4-5b6c-7d8e-9f00-112233445566")).toBe("0192f3a4");
+    // An id shorter than the handle is printed whole rather than padded.
+    expect(shortId("abc")).toBe("abc");
+  });
+
+  it("indexes scripts by id for the published column", () => {
+    const index = scriptIndex([script({ id: "script-1", version: 3 })]);
+
+    expect(index.get("script-1")?.version).toBe(3);
+    expect(index.get("missing")).toBeUndefined();
   });
 });

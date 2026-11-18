@@ -157,6 +157,40 @@ export function creatorNameIndex(creators: readonly Creator[]): Map<string, stri
   return new Map(creators.map((creator) => [creator.id, creator.display_name]));
 }
 
+/** Every script this page can name, by id — the map a published row resolves against. */
+export function scriptIndex(scripts: readonly MediaScript[]): Map<string, MediaScript> {
+  return new Map(scripts.map((script) => [script.id, script]));
+}
+
+/**
+ * `creator_post.media_script_id` — the script version a post came from (migration
+ * 733, `CreatorPostResponse.MediaScriptID`).
+ *
+ * **The field is on the wire but not in the type.** `CreatorPostResponse` has
+ * carried it since the B3 backend batch, and the client's post parser is a zod
+ * `.loose()` object, so the value survives parsing — but
+ * `packages/core/types/workbench.ts` does not declare it on `CreatorPost` yet.
+ * This module may not change `core`, so the value is read off the row as an
+ * unknown extra and narrowed here rather than asserted: the column shows when the
+ * response carries the key and behaves as unlinked when it does not.
+ */
+export function postScriptId(post: CreatorPost): string | null {
+  // The column is nullable on the wire and `.loose()` lets older payloads
+  // drop it entirely, so an absent key reads as "no script" rather than
+  // throwing a column that claims nothing.
+  const value = post.media_script_id;
+  return typeof value === "string" && value.trim() !== "" ? value : null;
+}
+
+/**
+ * The head of an id, for a link this page cannot resolve to a row. Eight
+ * characters is enough to tell two scripts apart in a column and short enough to
+ * read; printing nothing would claim the post has no script.
+ */
+export function shortId(id: string): string {
+  return id.slice(0, 8);
+}
+
 /** The host of a post's URL, for a cell that has to stay one line. */
 export function urlHost(url: string): string {
   try {

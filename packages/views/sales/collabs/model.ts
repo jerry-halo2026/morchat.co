@@ -457,3 +457,24 @@ export function paidAtFromDay(day: string): string | null {
   if (!year || !month || !date) return null;
   return new Date(year, month - 1, date, 12, 0, 0, 0).toISOString();
 }
+
+/**
+ * The `PATCH /crm/settlements/{id}` a row action sends — the same instant rule as
+ * {@link settlementRequest}, so a mark and a create cannot disagree about which
+ * day the money arrived on.
+ *
+ * `day: null` is 撤销到账, and it travels as an **empty string, not `null`**. The
+ * handler reads a nullable field through `applyTimestampPatch`, which treats an
+ * absent *or* null `paid_at` as "keep what is stored" (`workbench_types.go`), so
+ * `{"paid_at": null}` would be a silent no-op; `workbenchTimestampValue("")` is
+ * the one value it turns into SQL NULL, and the statement assigns the argument
+ * straight to the column (`workbench_crm.sql`, `paid_at = sqlc.narg(…::date)`), so
+ * the column really clears. A day that is not a day answers `null` instead of a
+ * patch, so a malformed value can never silently clear an arrival that was
+ * already recorded.
+ */
+export function receiptPatch(day: string | null): { paid_at: string } | null {
+  if (day === null) return { paid_at: "" };
+  const paidAt = paidAtFromDay(day);
+  return paidAt === null ? null : { paid_at: paidAt };
+}

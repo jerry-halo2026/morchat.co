@@ -16,6 +16,8 @@
     "column_link": "リンク",
     "column_published_at": "公開日時",
     "column_creator": "所属クリエイター",
+    "column_linked_script": "紐づく台本",
+    "script_unlinked": "未紐づけ",
     "version": "v{{version}}",
     "push_publishing": "公開中へ進める",
     "save_failed": "公開日時を保存できませんでした。もう一度お試しください。",

@@ -16,6 +16,8 @@
     "column_link": "链接",
     "column_published_at": "发布时间",
     "column_creator": "所属达人",
+    "column_linked_script": "关联脚本",
+    "script_unlinked": "未关联",
     "version": "v{{version}}",
     "push_publishing": "推进到发布中",
     "save_failed": "发布时间没保存成功，再试一次。",

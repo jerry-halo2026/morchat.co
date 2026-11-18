@@ -33,7 +33,9 @@ const api = vi.hoisted(() => ({
   listCreators: vi.fn(),
   createCrmCollab: vi.fn(),
   updateCrmCollab: vi.fn(),
+  deleteCrmCollab: vi.fn(),
   createCrmSettlement: vi.fn(),
+  updateCrmSettlement: vi.fn(),
 }));
 
 const viewer = vi.hoisted(() => ({
@@ -218,12 +220,24 @@ function settlement(overrides: Partial<CrmSettlement> = {}): CrmSettlement {
   };
 }
 
+/**
+ * What the settlement query answers *now*. A row action writes through the
+ * server, so the "after" list is served by mutating this and letting the
+ * invalidation reread it — the page never patches the ledger itself.
+ */
+let servedSettlements: CrmSettlement[] = [];
+
+function setSettlements(next: readonly CrmSettlement[]) {
+  servedSettlements = [...next];
+}
+
 function serve(rows: readonly CrmCollab[], settlements: readonly CrmSettlement[] = []) {
   api.listCrmCollabs.mockResolvedValue({ collabs: [...rows], total: rows.length });
-  api.listCrmSettlements.mockResolvedValue({
-    settlements: [...settlements],
-    total: settlements.length,
-  });
+  setSettlements(settlements);
+  api.listCrmSettlements.mockImplementation(async () => ({
+    settlements: [...servedSettlements],
+    total: servedSettlements.length,
+  }));
   api.listCreators.mockResolvedValue({
     creators: [creator("creator-1", "Lin Wei"), creator("creator-2", "Zhang Yu")],
     total: 2,
@@ -262,7 +276,9 @@ beforeEach(() => {
   serve([]);
   api.updateCrmCollab.mockResolvedValue(collab({ id: "collab-1" }));
   api.createCrmCollab.mockResolvedValue(collab({ id: "collab-new" }));
+  api.deleteCrmCollab.mockResolvedValue(undefined);
   api.createCrmSettlement.mockResolvedValue(settlement());
+  api.updateCrmSettlement.mockResolvedValue(settlement({ id: "s-1" }));
 });
 
 afterEach(() => {
@@ -492,6 +508,149 @@ describe("SalesCollabsPage · 结算", () => {
         paid_at: new Date(2026, 10, 18, 12).toISOString(),
       }),
     );
+  });
+});
+
+describe("SalesCollabsPage · 结算到账", () => {
+  it("marks an unpaid row received with today's local-noon instant", async () => {
+    serve(
+      [collab({ id: "collab-1" })],
+      [settlement({ id: "s-1", kind: "prepay", amount: 3000, paid_at: null })],
+    );
+    renderPage();
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+
+    fireEvent.click(within(bodyRows()[0]!).getByText("Lin Wei"));
+    await userEvent.click(await screen.findByRole("button", { name: "Mark received" }));
+
+    await waitFor(() =>
+      expect(api.updateCrmSettlement).toHaveBeenCalledWith("s-1", {
+        // The same instant rule the add form uses: that day, at local noon.
+        paid_at: new Date(2026, 10, 18, 12).toISOString(),
+      }),
+    );
+  });
+
+  it("undoes an arrival by clearing paid_at", async () => {    serve(
+      [collab({ id: "collab-1" })],
+      [
+        settlement({
+          id: "s-1",
+          kind: "prepay",
+          amount: 3000,
+          paid_at: new Date(2026, 10, 10, 9).toISOString(),
+        }),
+      ],
+    );
+    renderPage();
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+
+    fireEvent.click(within(bodyRows()[0]!).getByText("Lin Wei"));
+    await userEvent.click(await screen.findByRole("button", { name: "Undo receipt" }));
+
+    await waitFor(() =>
+      // An empty day, not `null`: the handler reads null as "keep the stored
+      // value" and would leave the row received.
+      expect(api.updateCrmSettlement).toHaveBeenCalledWith("s-1", { paid_at: "" }),
+    );
+  });
+
+  it("moves the money from owed to received when a row is marked", async () => {
+    const paid = settlement({
+      id: "s-paid",
+      kind: "prepay",
+      amount: 3000,
+      paid_at: new Date(2026, 10, 10, 9).toISOString(),
+    });
+    const owed = settlement({ id: "s-owed", kind: "final", amount: 6000, paid_at: null });
+    serve([collab({ id: "collab-1" })], [paid, owed]);
+    // The server's answer: both rows have arrived now.
+    api.updateCrmSettlement.mockImplementation(async () => {
+      const arrived = { ...owed, paid_at: new Date(2026, 10, 18, 12).toISOString() };
+      setSettlements([paid, arrived]);
+      return arrived;
+    });
+    renderPage();
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+
+    fireEvent.click(within(bodyRows()[0]!).getByText("Lin Wei"));
+    const received = () => document.querySelector('[data-settlement-total="received"]');
+    const stillOwed = () => document.querySelector('[data-settlement-total="owed"]');
+
+    await waitFor(() => expect(received()).toHaveTextContent("¥3,000"));
+    expect(stillOwed()).toHaveTextContent("¥6,000");
+
+    // Only the unpaid row offers the action, so its name is unambiguous.
+    await userEvent.click(screen.getByRole("button", { name: "Mark received" }));
+
+    // The totals are reread from the ledger, not patched by hand: the sum of the
+    // two arrivals, and nothing left owed.
+    await waitFor(() => expect(received()).toHaveTextContent("¥9,000"));
+    expect(stillOwed()).toHaveTextContent("—");
+  });
+});
+
+describe("SalesCollabsPage · 撤销合作单", () => {
+  it("asks once, names the settlements it takes with it, then deletes the row", async () => {
+    serve([]);
+    // The ledger answers with the row once, then without it: the deletion has to
+    // invalidate `crmKeys` for the page to reread, not patch the list itself.
+    let reads = 0;
+    api.listCrmCollabs.mockImplementation(async () => {
+      reads += 1;
+      const rows = reads === 1 ? [collab({ id: "collab-1" })] : [];
+      return { collabs: rows, total: rows.length };
+    });
+    renderPage();
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+
+    fireEvent.click(within(bodyRows()[0]!).getByText("Lin Wei"));
+    expect(await screen.findByRole("heading", { name: "Lin Wei" })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Revoke collaboration" }));
+
+    expect(await screen.findByText("Revoke this collaboration?")).toBeInTheDocument();
+    // The confirmation has to say the money goes with the row.
+    expect(
+      screen.getByText(/the settlement records recorded against it are archived with it/),
+    ).toBeInTheDocument();
+    // Nothing is written until the second click.
+    expect(api.deleteCrmCollab).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: "Revoke" }));
+
+    await waitFor(() => expect(api.deleteCrmCollab).toHaveBeenCalledWith("collab-1"));
+    // The drawer closes on the server's answer, and the ledger is reread.
+    await waitFor(() => expect(screen.queryByRole("heading", { name: "Lin Wei" })).toBeNull());
+    expect(await screen.findByText("No collaborations yet")).toBeInTheDocument();
+    expect(reads).toBeGreaterThan(1);
+  });
+
+  it("stays open and says why when the server refuses", async () => {
+    api.deleteCrmCollab.mockRejectedValue(new Error("settlements are still linked"));
+    serve([collab({ id: "collab-1" })]);
+    renderPage();
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+
+    fireEvent.click(within(bodyRows()[0]!).getByText("Lin Wei"));
+    await userEvent.click(await screen.findByRole("button", { name: "Revoke collaboration" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Revoke" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("settlements are still linked");
+    // The dialog is still the open layer, and the row it is about is still there:
+    // nothing was removed optimistically.
+    expect(screen.getByText("Revoke this collaboration?")).toBeInTheDocument();
+    expect(api.deleteCrmCollab).toHaveBeenCalledTimes(1);
+
+    // Dismissing the dialog returns to the drawer it was opened from.
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(await screen.findByRole("heading", { name: "Lin Wei" })).toBeInTheDocument();
+
+    // And the row is still in the ledger behind it: nothing was removed
+    // optimistically. (The page is aria-hidden while the drawer is up, so the
+    // grid is read after closing it.)
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
   });
 });
 

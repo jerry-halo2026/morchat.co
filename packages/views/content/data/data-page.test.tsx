@@ -87,6 +87,7 @@ function post(overrides: Partial<CreatorPost> & Pick<CreatorPost, "id">): Creato
     content_issue_id: null,
     product_id: null,
     pick_id: null,
+    media_script_id: null,
     platform: "douyin",
     title: "三个收纳误区",
     url: "https://www.douyin.com/video/7001",

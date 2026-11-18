@@ -16,6 +16,8 @@
     "column_link": "Lien",
     "column_published_at": "Publié le",
     "column_creator": "Créateur",
+    "column_linked_script": "Script lié",
+    "script_unlinked": "Non lié",
     "version": "v{{version}}",
     "push_publishing": "Passer en publication",
     "save_failed": "L’heure de publication n’a pas été enregistrée. Réessayez.",

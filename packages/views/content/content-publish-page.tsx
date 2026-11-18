@@ -15,7 +15,7 @@ import { useT } from "../i18n";
 import { CollectionPageHeader, CollectionPageState } from "../layout/collection-page";
 import { PAGE_GUTTER } from "../layout/page-header";
 import { ROUTE_ICON_COMPONENTS } from "../layout/route-icon-components";
-import { approvedScripts, creatorNameIndex } from "./publish/model";
+import { approvedScripts, creatorNameIndex, scriptIndex } from "./publish/model";
 import { PublishedTable } from "./publish/published-table";
 import { ScheduledTable } from "./publish/scheduled-table";
 
@@ -43,9 +43,11 @@ const LIST_LIMIT = 200;
  * (§19), and the note above the queue says so — a publish screen with a play-count
  * field would invite numbers nobody measured. Reading them is `/content/data`.
  *
- * `creator_post.media_script_id` — which script a published post came from — is
- * the next batch's field (§2, item 4), so the published table has no column for
- * it rather than a column of dashes.
+ * `creator_post.media_script_id` — which script a published post came from — is on
+ * the wire (`CreatorPostResponse.MediaScriptID`, migration 733) but not yet in the
+ * `CreatorPost` type, so the published table reads it as an unknown extra and
+ * prints it read-only; see `publish/model.ts:postScriptId`. Choosing the script at
+ * publish time is a later batch: this one only makes the link visible.
  */
 export function ContentPublishPage() {
   const wsId = useWorkspaceId();
@@ -62,6 +64,11 @@ function PublishBody({ wsId }: { wsId: string }) {
   const scripts = useQuery(
     mediaScriptListOptions(wsId, { status: "approved", limit: LIST_LIMIT }),
   );
+  // A published post names the script version it came from, and that version may
+  // be any status (approved last month, archived today). The queue above cannot
+  // resolve those ids, so the whole list is read once for the mapping — a window
+  // of the newest 200, which is why an older id falls back to its short form.
+  const allScripts = useQuery(mediaScriptListOptions(wsId, { limit: LIST_LIMIT }));
   const posts = useQuery(creatorPostsOptions(wsId));
   // Names for the published table's 所属达人 column: the post row carries the
   // creator id only, so the ledger is folded into a map once.
@@ -75,6 +82,10 @@ function PublishBody({ wsId }: { wsId: string }) {
   const creatorNames = useMemo(
     () => creatorNameIndex(creators.data?.creators ?? []),
     [creators.data],
+  );
+  const scriptsById = useMemo(
+    () => scriptIndex(allScripts.data?.scripts ?? []),
+    [allScripts.data],
   );
 
   const pending = updateScript.isPending || updateTopic.isPending;
@@ -99,10 +110,11 @@ function PublishBody({ wsId }: { wsId: string }) {
   };
 
   const loading = scripts.isPending || posts.isPending || creators.isPending;
-  const failed = scripts.isError || posts.isError || creators.isError;
+  const failed = scripts.isError || allScripts.isError || posts.isError || creators.isError;
 
   const retry = () => {
     void scripts.refetch();
+    void allScripts.refetch();
     void posts.refetch();
     void creators.refetch();
   };
@@ -181,6 +193,7 @@ function PublishBody({ wsId }: { wsId: string }) {
             <PublishedTable
               posts={posts.data?.posts ?? []}
               creatorNames={creatorNames}
+              scriptsById={scriptsById}
               loading={posts.isPending}
             />
           </section>

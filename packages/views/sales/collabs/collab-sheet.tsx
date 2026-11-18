@@ -1,6 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@morechat/ui/components/ui/alert-dialog";
 import { Button } from "@morechat/ui/components/ui/button";
 import {
   Field,
@@ -25,7 +35,11 @@ import {
   SheetTitle,
 } from "@morechat/ui/components/ui/sheet";
 import { Spinner } from "@morechat/ui/components/ui/spinner";
-import { useCreateCrmCollab, useUpdateCrmCollab } from "@morechat/core/crm/mutations";
+import {
+  useCreateCrmCollab,
+  useDeleteCrmCollab,
+  useUpdateCrmCollab,
+} from "@morechat/core/crm/mutations";
 import type { CrmBrief, CrmCollab, CrmCollabStage, Creator } from "@morechat/core/types";
 import { useT } from "../../i18n";
 import { useCollabsCopy } from "./copy";
@@ -44,7 +58,7 @@ import { SettlementsSection } from "./settlements-section";
 /**
  * 一张合作单 — the drawer, and the only write surface this page has.
  *
- * Three things it deliberately does:
+ * Four things it deliberately does:
  *
  *   - **It moves the stage, and the server stamps the rest.** `PATCH /crm/collabs`
  *     writes `confirmed_at` / `published_at` / `accepted_at` from the new stage
@@ -60,6 +74,12 @@ import { SettlementsSection } from "./settlements-section";
  *     平台费 / 税 are `crm_settlement` rows under this `collab_id`, and the
  *     section rereads them from that filter; the drawer never guesses the sum of
  *     a settlement it has not loaded.
+ *   - **撤销 is one `DELETE`, and the server owns what follows it.** A
+ *     collaboration's settlements hang off its `collab_id` with no cascade (the
+ *     repository forbids them), so the row and its money are archived together by
+ *     the server; the drawer asks once, in words that name that consequence, and
+ *     then lets the invalidated list say what is left. Deleting them here would be
+ *     a second transaction racing the first.
  *
  * The create half is here rather than on a brief page because this page is the
  * one place a collaboration is asked for; a collaboration is a brief **and** a
@@ -84,6 +104,7 @@ export function CollabSheet({
   const { t: tCommon } = useT("common");
   const create = useCreateCrmCollab();
   const update = useUpdateCrmCollab();
+  const remove = useDeleteCrmCollab();
 
   const editing = collab !== null;
   const [briefId, setBriefId] = useState("");
@@ -91,8 +112,10 @@ export function CollabSheet({
   const [form, setForm] = useState<CollabForm>(collab ? collabForm(collab) : EMPTY_COLLAB_FORM);
   const [amountError, setAmountError] = useState<string | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState(false);
+  const [revokeFailure, setRevokeFailure] = useState<string | null>(null);
 
-  const pending = create.isPending || update.isPending;
+  const pending = create.isPending || update.isPending || remove.isPending;
   const creatorName =
     creators.find((row) => row.id === collab?.creator_id)?.display_name ?? null;
   const canSave = editing || (briefId !== "" && creatorId !== "");
@@ -110,6 +133,31 @@ export function CollabSheet({
       onClose();
     } catch (error) {
       setFailure(
+        error instanceof Error && error.message
+          ? error.message
+          : t(($) => $.collabs.write_failed),
+      );
+    }
+  };
+
+  /**
+   * 撤销合作单 — the one irreversible write on this page.
+   *
+   * The confirmation waits for the server before anything closes: a drawer that
+   * vanished on a failed request would leave the reader believing a row and its
+   * settlements were gone. On success the drawer closes and the invalidated
+   * `crmKeys` subtree redraws the list; on failure the dialog stays open with the
+   * reason beside the button that tried.
+   */
+  const revoke = async () => {
+    if (!collab) return;
+    setRevokeFailure(null);
+    try {
+      await remove.mutateAsync(collab.id);
+      setRevoking(false);
+      onClose();
+    } catch (error) {
+      setRevokeFailure(
         error instanceof Error && error.message
           ? error.message
           : t(($) => $.collabs.write_failed),
@@ -286,22 +334,70 @@ export function CollabSheet({
               {failure}
             </p>
           ) : null}
-          <div className="flex items-center justify-end gap-2">
-            <Button type="button" variant="ghost" size="sm" disabled={pending} onClick={onClose}>
-              {tCommon(($) => $.cancel)}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              disabled={pending || !canSave}
-              aria-busy={pending}
-              onClick={() => void save()}
-            >
-              {pending ? <Spinner className="size-3.5" /> : null}
-              {tCommon(($) => $.save)}
-            </Button>
+          <div className="flex items-center gap-2">
+            {collab ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-destructive"
+                disabled={pending}
+                onClick={() => {
+                  setRevokeFailure(null);
+                  setRevoking(true);
+                }}
+              >
+                {t(($) => $.collabs.revoke)}
+              </Button>
+            ) : null}
+            <div className="ml-auto flex items-center gap-2">
+              <Button type="button" variant="ghost" size="sm" disabled={pending} onClick={onClose}>
+                {tCommon(($) => $.cancel)}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                disabled={pending || !canSave}
+                aria-busy={update.isPending || create.isPending}
+                onClick={() => void save()}
+              >
+                {update.isPending || create.isPending ? <Spinner className="size-3.5" /> : null}
+                {tCommon(($) => $.save)}
+              </Button>
+            </div>
           </div>
         </SheetFooter>
+
+        <AlertDialog open={revoking} onOpenChange={setRevoking}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t(($) => $.collabs.revoke_title)}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t(($) => $.collabs.revoke_description)}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            {revokeFailure ? (
+              <p role="alert" className="text-caption text-destructive">
+                {revokeFailure}
+              </p>
+            ) : null}
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={remove.isPending}>
+                {tCommon(($) => $.cancel)}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={remove.isPending}
+                aria-busy={remove.isPending}
+                onClick={(event) => {
+                  event.preventDefault();
+                  void revoke();
+                }}
+              >
+                {t(($) => $.collabs.revoke_confirm)}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SheetContent>
     </Sheet>
   );

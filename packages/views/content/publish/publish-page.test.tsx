@@ -38,7 +38,12 @@ const api = vi.hoisted(() => ({
 
 const state = vi.hoisted(() => ({
   scripts: [] as MediaScript[],
-  posts: [] as CreatorPost[],
+  /**
+   * The posts as the server sends them: `media_script_id` is on the wire
+   * (`CreatorPostResponse`) but not yet on the `CreatorPost` type, so the fixture
+   * carries it without pretending the type does.
+   */
+  posts: [] as (CreatorPost & { media_script_id?: string | null })[],
   creators: [] as Creator[],
 }));
 
@@ -115,7 +120,10 @@ function script(overrides: Partial<MediaScript> & Pick<MediaScript, "id">): Medi
   };
 }
 
-function post(overrides: Partial<CreatorPost> & Pick<CreatorPost, "id">): CreatorPost {
+function post(
+  overrides: Partial<CreatorPost & { media_script_id: string | null }> &
+    Pick<CreatorPost, "id">,
+): CreatorPost & { media_script_id: string | null } {
   return {
     workspace_id: WS,
     creator_id: "c-1",
@@ -132,6 +140,7 @@ function post(overrides: Partial<CreatorPost> & Pick<CreatorPost, "id">): Creato
     created_at: "2026-11-15T12:00:00Z",
     updated_at: "2026-11-15T12:00:00Z",
     archived_at: null,
+    media_script_id: null,
     ...overrides,
   };
 }
@@ -356,9 +365,10 @@ describe("ContentPublishPage · scheduling", () => {
 });
 
 describe("ContentPublishPage · the published side", () => {
-  it("draws platform, title, link, time and creator — and no script column", async () => {
+  it("draws platform, title, link, time, creator and the linked script", async () => {
     state.creators = [creator("c-1", "Lin")];
-    state.posts = [post({ id: "p-1", creator_id: "c-1" })];
+    state.scripts = [script({ id: "script-1", hook: "收纳的三个误区", version: 2 })];
+    state.posts = [post({ id: "p-1", creator_id: "c-1", media_script_id: "script-1" })];
     renderPage();
 
     await waitFor(() => expect(bodyRows(publishedGrid())).toHaveLength(1));
@@ -367,7 +377,7 @@ describe("ContentPublishPage · the published side", () => {
       within(publishedGrid())
         .getAllByRole("columnheader")
         .map((header) => header.textContent),
-    ).toEqual(["Title", "Link", "Published", "Creator"]);
+    ).toEqual(["Title", "Link", "Published", "Creator", "Linked script"]);
 
     const row = bodyRows(publishedGrid())[0];
     expect(row).toBeDefined();
@@ -379,6 +389,9 @@ describe("ContentPublishPage · the published side", () => {
     expect(link).toHaveTextContent("www.douyin.com");
     expect(link).toHaveAttribute("href", "https://www.douyin.com/video/7001");
     expect(cells[3]).toHaveTextContent("Lin");
+    // The script it came from: its version, then its opening line.
+    expect(cells[4]).toHaveTextContent("v2 · 收纳的三个误区");
+    expect(cells[4]?.querySelector("[data-slot]")).toHaveAttribute("data-state", "linked");
   });
 
   it("prints a dash for a post whose creator is not in the ledger", async () => {
@@ -388,5 +401,48 @@ describe("ContentPublishPage · the published side", () => {
     await waitFor(() => expect(bodyRows(publishedGrid())).toHaveLength(1));
     const row = bodyRows(publishedGrid())[0];
     expect(within(row!).getAllByRole("gridcell")[3]).toHaveTextContent("—");
+  });
+
+  it("says a post has no script instead of printing an empty cell", async () => {
+    state.posts = [post({ id: "p-1", media_script_id: null })];
+    renderPage();
+
+    await waitFor(() => expect(bodyRows(publishedGrid())).toHaveLength(1));
+    const cell = within(bodyRows(publishedGrid())[0]!).getAllByRole("gridcell")[4];
+    expect(cell).toHaveTextContent("Not linked");
+    expect(cell?.querySelector("[data-slot]")).toHaveAttribute("data-state", "unlinked");
+  });
+
+  it("falls back to the short id when the script is outside the list this page reads", async () => {
+    // The mapping is built from the newest 200 scripts; an older version is not
+    // in it, and the row still states which script it came from.
+    state.scripts = [];
+    state.posts = [
+      post({ id: "p-1", media_script_id: "0192f3a4-5b6c-7d8e-9f00-112233445566" }),
+    ];
+    renderPage();
+
+    await waitFor(() => expect(bodyRows(publishedGrid())).toHaveLength(1));
+    const cell = within(bodyRows(publishedGrid())[0]!).getAllByRole("gridcell")[4];
+    expect(cell).toHaveTextContent("0192f3a4");
+    expect(cell?.querySelector("[data-slot]")).toHaveAttribute("data-state", "unresolved");
+    // The whole id stays reachable on hover rather than being thrown away.
+    expect(cell?.querySelector("[data-slot]")).toHaveAttribute(
+      "title",
+      "0192f3a4-5b6c-7d8e-9f00-112233445566",
+    );
+  });
+
+  it("reads the whole script list once, so an archived or draft version can still be named", async () => {
+    state.scripts = [script({ id: "script-1", status: "archived", hook: "收纳的三个误区" })];
+    state.posts = [post({ id: "p-1", media_script_id: "script-1" })];
+    renderPage();
+
+    await waitFor(() => expect(bodyRows(publishedGrid())).toHaveLength(1));
+    // Two reads: the queue's approved-only set, and the unfiltered map.
+    expect(api.listMediaScripts).toHaveBeenCalledWith({ status: "approved", limit: 200 });
+    expect(api.listMediaScripts).toHaveBeenCalledWith({ limit: 200 });
+    const cell = within(bodyRows(publishedGrid())[0]!).getAllByRole("gridcell")[4];
+    expect(cell).toHaveTextContent("v1 · 收纳的三个误区");
   });
 });

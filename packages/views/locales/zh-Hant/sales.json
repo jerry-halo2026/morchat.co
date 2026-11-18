@@ -53,7 +53,13 @@
       "final": "尾款",
       "platform_fee": "平台費",
       "tax": "稅"
-    }
+    },
+    "revoke": "撤銷合作單",
+    "revoke_title": "撤銷這張合作單？",
+    "revoke_description": "這一列會離開台帳，這張單名下的結算記錄也會一起歸檔。這裡無法撤銷這個操作。",
+    "revoke_confirm": "撤銷",
+    "settlement_mark_received": "標記已到帳",
+    "settlement_undo_received": "撤銷到帳"
   },
   "campaigns": {
     "new": "新建批次",

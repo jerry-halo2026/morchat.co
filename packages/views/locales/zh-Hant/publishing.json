@@ -16,6 +16,8 @@
     "column_link": "連結",
     "column_published_at": "發佈時間",
     "column_creator": "所屬達人",
+    "column_linked_script": "關聯腳本",
+    "script_unlinked": "未關聯",
     "version": "v{{version}}",
     "push_publishing": "推進到發佈中",
     "save_failed": "發佈時間沒有儲存成功，再試一次。",

@@ -23,6 +23,7 @@ import {
   parseSettlementKind,
   parseStage,
   parseWindow,
+  receiptPatch,
   settlementRequest,
   settlementTotals,
   stageRank,
@@ -346,5 +347,21 @@ describe("settlements", () => {
     // Noon survives every UTC offset, so the day never shifts when it is read back.
     expect(instantDayText(paidAt)).toBe("2026-11-18");
     expect(paidAtFromDay("")).toBeNull();
+  });
+
+  it("marks an arrival with the same instant rule and clears it with an empty day", () => {
+    const mark = receiptPatch("2026-11-18");
+    expect(mark).not.toBeNull();
+    // The same day the create form would have written.
+    expect(mark!.paid_at).toBe(paidAtFromDay("2026-11-18"));
+    expect(instantDayText(mark!.paid_at)).toBe("2026-11-18");
+
+    // 撤销到账 travels as an empty string: the handler reads `null` as "keep the
+    // stored value", so only `""` reaches the column as SQL NULL.
+    expect(receiptPatch(null)).toEqual({ paid_at: "" });
+
+    // A day that is not a day is refused instead of clearing a recorded arrival.
+    expect(receiptPatch("")).toBeNull();
+    expect(receiptPatch("not a day")).toBeNull();
   });
 });

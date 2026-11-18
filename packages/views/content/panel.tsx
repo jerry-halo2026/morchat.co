@@ -1,13 +1,18 @@
-"use client";
+﻿"use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { useWorkspaceId } from "@morechat/core/hooks";
-import { mediaTopicListOptions } from "@morechat/core/media/queries";
+import {
+  mediaScriptListOptions,
+  mediaShootListOptions,
+  mediaTopicListOptions,
+} from "@morechat/core/media/queries";
 import {
   CONTENT_PAGES,
   CONTENT_PAGE_ORDER,
   useCurrentWorkspace,
   useWorkspacePaths,
+  type ContentPageKey,
 } from "@morechat/core/paths";
 import { ActorAvatar } from "@morechat/ui/components/common/actor-avatar";
 import { useT } from "../i18n";
@@ -24,17 +29,18 @@ import {
 } from "../layout/panel-nav";
 import { ROUTE_ICON_COMPONENTS } from "../layout/route-icon-components";
 import { usePanelReader } from "../layout/use-panel-reader";
+import { weekWindow } from "./studio/model";
 import { IpScopeSelect } from "./ip-scope";
 
 /**
  * The content space's left column: the production line in the order work runs
- * through it — the studio, its personas and accounts, where ideas come from
+ * through it 鈥?the studio, its personas and accounts, where ideas come from
  * (the hot radar and the benchmark accounts), the topic pool, the scripts, the
  * shoots, the publishing schedule, and the read-back over what went out.
  *
  * The brand's second line is the studio's own name: this space's business is
  * whatever the workspace calls its studio, so nothing here can be a constant.
- * The one badge is the topic pool's size — how much raw material is waiting to
+ * The one badge is the topic pool's size 鈥?how much raw material is waiting to
  * become scripts. It renders only once the list answers.
  *
  * Under the brand sits the IP switcher, as in the original: the pages behind
@@ -50,6 +56,29 @@ export function ContentPanel() {
   const reader = usePanelReader();
 
   const topics = useQuery({ ...mediaTopicListOptions(wsId ?? ""), enabled: !!wsId });
+  // The two action counts the column was missing: scripts waiting for a publish
+  // date and shoots this week. Both ride the lists the pages already read (same
+  // query keys, so opening the page costs no extra request) instead of a
+  // dedicated counter endpoint 鈥?the badge and the list it sits next to must
+  // never disagree about what "waiting" means.
+  const approvedScripts = useQuery({
+    ...mediaScriptListOptions(wsId ?? "", { status: "approved", limit: 200 }),
+    enabled: !!wsId,
+  });
+  const week = weekWindow(new Date());
+  const weekShoots = useQuery({
+    ...mediaShootListOptions(wsId ?? "", { from: week.firstDay, to: week.lastDay }),
+    enabled: !!wsId,
+  });
+
+  const badgeFor = (page: ContentPageKey) => {
+    if (page === "topics" && topics.data) return <PanelBadge value={topics.data.total} />;
+    if (page === "publish" && approvedScripts.data) {
+      return <PanelBadge value={approvedScripts.data.total} />;
+    }
+    if (page === "shoots" && weekShoots.data) return <PanelBadge value={weekShoots.data.total} />;
+    return undefined;
+  };
 
   return (
     <>
@@ -75,11 +104,7 @@ export function ContentPanel() {
                   label={t(($) => $.nav[CONTENT_PAGES[page].navKey])}
                   active={isPathWithin(pathname, href)}
                   icon={<Icon aria-hidden="true" />}
-                  trailing={
-                    page === "topics" && topics.data ? (
-                      <PanelBadge value={topics.data.total} />
-                    ) : undefined
-                  }
+                  trailing={badgeFor(page)}
                 />
               );
             })}

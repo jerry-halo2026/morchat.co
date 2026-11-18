@@ -16,6 +16,8 @@
     "column_link": "Enlace",
     "column_published_at": "Publicado",
     "column_creator": "Creador",
+    "column_linked_script": "Guion vinculado",
+    "script_unlinked": "Sin vincular",
     "version": "v{{version}}",
     "push_publishing": "Pasar a publicación",
     "save_failed": "No se guardó la hora de publicación. Inténtalo de nuevo.",

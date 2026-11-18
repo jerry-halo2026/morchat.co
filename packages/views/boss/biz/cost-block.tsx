@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  workbenchFinanceMonthsOptions,
-  workbenchFinanceOptions,
-} from "@morechat/core/crm/queries";
+import { workbenchFinanceMonthsOptions } from "@morechat/core/crm/queries";
 import { Coins, PencilLine } from "@morechat/ui/icons";
 import { Button } from "@morechat/ui/components/ui/button";
 import { FinanceCostDialog } from "../../blocks/finance-cost-dialog";
@@ -14,35 +11,38 @@ import { useT } from "../../i18n";
 import { BossBlock } from "../home/block";
 import { monthEntry } from "../home/model";
 import { MoneyText } from "./figure";
+import { bizFinanceOptions } from "./finance-query";
 import { costLines, costTotals } from "./model";
 
 /**
- * 本月成本明细: the two cost lines, the opening cash and the note, plus the write
- * this page owns (`PUT /finance/months`).
+ * 成本明细: the two cost lines, the opening cash and the note, plus the write this
+ * page owns (`PUT /finance/months`).
  *
- * The read is the same key the cost dialog prefills from, so the number in the
- * block and the number in the form cannot be different rows. An amount the reader
- * never filled in stays `null` and prints 数据不足 — that is why the block has an
- * empty state of its own ("no cost or cash entered for this month") rather than a
- * row of zeros: `ops_finance_month` stores "not recorded" as NULL.
+ * The month is the reader's choice, and it reaches both halves: the read is that
+ * month's entry, and the dialog is opened on that month, so `PUT /finance/months`
+ * writes the month the block is showing (the body's `month` is its first day). A
+ * month with no row is the empty state — `ops_finance_month` stores "not recorded"
+ * as NULL, and a row of zeros would claim a cost of zero.
  *
  * The three amounts are 元 (WORKBENCH-API §3.3); the entry carries no currency
  * column, which is why every figure here is labelled CNY and the total goes through
  * `currencyTotals` instead of a bare `+`.
  */
-export function BossBizCostBlock({ wsId }: { wsId: string }) {
+export function BossBizCostBlock({ wsId, month }: { wsId: string; month: string | null }) {
   const { t } = useT("biz");
   const { t: tFinance } = useT("finance");
   const { t: tLabel } = useT("blocks");
-  const finance = useQuery(workbenchFinanceOptions(wsId));
-  const month = finance.data?.window.month ?? "";
+  const finance = useQuery(bizFinanceOptions(wsId, month));
+  // The month the aggregate says it sliced: the dialog must write that month, not
+  // a label the page assumed.
+  const answered = finance.data?.window.month ?? (month ?? "");
   const months = useQuery({
-    ...workbenchFinanceMonthsOptions(wsId, month || null),
-    enabled: !!wsId && !!month,
+    ...workbenchFinanceMonthsOptions(wsId, answered || null),
+    enabled: !!wsId && !!answered,
   });
   const [open, setOpen] = useState(false);
 
-  const entry = monthEntry(months.data?.months, month);
+  const entry = monthEntry(months.data?.months, answered);
   const lines = costLines(entry);
   const totals = costTotals(entry);
   const empty = tLabel(($) => $.empty.value);
@@ -50,23 +50,18 @@ export function BossBizCostBlock({ wsId }: { wsId: string }) {
   return (
     <BossBlock
       title={t(($) => $.biz.block_cost)}
-      count={month || undefined}
-      isLoading={finance.isPending || (!!month && months.isPending)}
-      isError={finance.isError || (!!month && months.isError)}
+      count={answered || undefined}
+      isLoading={finance.isPending || (!!answered && months.isPending)}
+      isError={finance.isError || (!!answered && months.isError)}
       onRetry={() => {
         void finance.refetch();
         void months.refetch();
       }}
       action={
-        month ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() => setOpen(true)}
-          >
+        answered ? (
+          <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
             <PencilLine className="size-3.5" />
-            {tFinance(($) => $.cost.open, { month })}
+            {tFinance(($) => $.cost.open, { month: answered })}
           </Button>
         ) : null
       }
@@ -77,9 +72,9 @@ export function BossBizCostBlock({ wsId }: { wsId: string }) {
           title={t(($) => $.biz.cost_empty_title)}
           description={t(($) => $.biz.cost_empty_description)}
           action={
-            month ? (
+            answered ? (
               <Button type="button" size="sm" onClick={() => setOpen(true)}>
-                {tFinance(($) => $.cost.open, { month })}
+                {tFinance(($) => $.cost.open, { month: answered })}
               </Button>
             ) : null
           }
@@ -123,8 +118,8 @@ export function BossBizCostBlock({ wsId }: { wsId: string }) {
         </ObjectSectionCard>
       )}
 
-      {month && open ? (
-        <FinanceCostDialog wsId={wsId} month={month} open onOpenChange={setOpen} />
+      {answered && open ? (
+        <FinanceCostDialog wsId={wsId} month={answered} open onOpenChange={setOpen} />
       ) : null}
     </BossBlock>
   );

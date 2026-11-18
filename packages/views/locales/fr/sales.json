@@ -53,7 +53,13 @@
       "final": "Solde",
       "platform_fee": "Frais de plateforme",
       "tax": "Taxe"
-    }
+    },
+    "revoke": "Annuler la collaboration",
+    "revoke_title": "Annuler cette collaboration ?",
+    "revoke_description": "La ligne quitte le registre et ses règlements sont archivés avec elle. Cette action est irréversible depuis ici.",
+    "revoke_confirm": "Annuler la collaboration",
+    "settlement_mark_received": "Marquer comme encaissé",
+    "settlement_undo_received": "Annuler l’encaissement"
   },
   "campaigns": {
     "new": "Nouveau lot",

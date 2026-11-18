@@ -16,6 +16,8 @@
     "column_link": "링크",
     "column_published_at": "게시 시각",
     "column_creator": "담당 크리에이터",
+    "column_linked_script": "연결된 스크립트",
+    "script_unlinked": "연결 없음",
     "version": "v{{version}}",
     "push_publishing": "게시 중으로 옮기기",
     "save_failed": "게시 시각을 저장하지 못했습니다. 다시 시도하세요.",

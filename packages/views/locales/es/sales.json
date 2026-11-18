@@ -53,7 +53,13 @@
       "final": "Saldo",
       "platform_fee": "Comisión de plataforma",
       "tax": "Impuesto"
-    }
+    },
+    "revoke": "Anular la colaboración",
+    "revoke_title": "¿Anular esta colaboración?",
+    "revoke_description": "La fila sale del registro y sus liquidaciones se archivan con ella. Desde aquí no se puede deshacer.",
+    "revoke_confirm": "Anular",
+    "settlement_mark_received": "Marcar como cobrado",
+    "settlement_undo_received": "Deshacer el cobro"
   },
   "campaigns": {
     "new": "Nuevo lote",

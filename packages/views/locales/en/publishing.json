@@ -16,6 +16,8 @@
     "column_link": "Link",
     "column_published_at": "Published",
     "column_creator": "Creator",
+    "column_linked_script": "Linked script",
+    "script_unlinked": "Not linked",
     "version": "v{{version}}",
     "push_publishing": "Move to publishing",
     "save_failed": "The publish time wasn’t saved. Try again.",

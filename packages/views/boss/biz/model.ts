@@ -2,7 +2,7 @@
  * What the business page states, computed once and drawn by its four blocks
  * (`/boss/biz`).
  *
- * Two rules hold this file together, and both are pinned by unit tests:
+ * Three rules hold this file together, and all three are pinned by unit tests:
  *
  * 1. **A missing number is not a zero.** A month with no entry, an entry whose
  *    amounts were never filled in, and an aggregate the server reports as
@@ -12,17 +12,27 @@
  *    CRM and affiliate ledgers are CNY (WORKBENCH-API.md §8 rule 8), so every sum
  *    here goes through {@link currencyTotals}, which returns one line per currency
  *    and cannot produce a mixed total.
+ * 3. **The month is a parameter, not a page.** Every figure on the page is read for
+ *    one `YYYY-MM`; `null` means "whatever month the server calls current", and the
+ *    label under the numbers is always the month the response says it sliced.
  *
  * The margin is *not* re-derived: {@link trendRows} calls the overview's own
  * `moneySummary` so 毛利 means "已回款 − 当月录入成本" here, in `money-block.tsx`
  * and in the drawer, from one implementation.
  */
 
-import type { AffiliateSummaryResponse, WorkbenchFinanceMonth } from "@morechat/core/types";
-import { moneySummary } from "../home/model";
+import type {
+  AffiliateSummaryResponse,
+  WorkbenchFinanceMonth,
+  WorkbenchFinanceResponse,
+} from "@morechat/core/types";
+import { moneySummary, type MoneySummary } from "../home/model";
 
 /** How many months the trend draws, the newest one included. */
 export const TREND_MONTHS = 6;
+
+/** How many months the picker offers, this month included. */
+export const MONTH_CHOICES = 12;
 
 /**
  * The `count` month labels ending at `endMonth`, oldest first.
@@ -46,6 +56,25 @@ export function recentMonths(endMonth: string, count = TREND_MONTHS): string[] {
   }
   return months;
 }
+
+/**
+ * The picker's options, newest first, ending at `currentMonth`.
+ *
+ * Newest first because the menu is read top-down and the month the reader most
+ * often wants is the one at the top; the list is anchored to the calendar month
+ * rather than to the selected one, so opening the menu after visiting March does
+ * not quietly renumber the choices.
+ */
+export function monthChoices(currentMonth: string, count = MONTH_CHOICES): string[] {
+  return recentMonths(currentMonth, count).reverse();
+}
+
+/** The `YYYY-MM` label of a local date — the same shape `window.month` uses. */
+export function monthOf(date: Date): string {
+  const month = date.getMonth() + 1;
+  return `${date.getFullYear()}-${month < 10 ? "0" : ""}${month}`;
+}
+
 
 /** One currency's own total. There is deliberately no combined total. */
 export interface CurrencyTotal {
@@ -79,10 +108,37 @@ export function currencyTotals(
   return [...totals.values()].sort((a, b) => a.currency.localeCompare(b.currency));
 }
 
+/** The four figures one month's aggregate states, pulled out of the response. */
+export interface MonthFinance {
+  month: string;
+  signed: number | null;
+  collected: number | null;
+  /** 账面现金 for that month (`cash_floor`): opening + collected − cost. */
+  cash: number | null;
+  receivableDays: number | null;
+}
+
+/**
+ * One month's aggregate as the figures this page reads.
+ *
+ * `window.month` is the label the response itself carries: the server says which
+ * month it sliced, so a request the server narrowed differently can never be
+ * printed under the requested month by accident.
+ */
+export function monthFinanceOf(response: WorkbenchFinanceResponse): MonthFinance {
+  return {
+    month: response.window?.month ?? "",
+    signed: response.signed?.value ?? null,
+    collected: response.collected?.value ?? null,
+    cash: response.cash_floor?.value ?? null,
+    receivableDays: response.receivable_days?.value ?? null,
+  };
+}
+
 /** One row of the trend: four figures and whether the month was ever entered. */
 export interface TrendRow {
   month: string;
-  /** 收入 — only the month the money block aggregates carries one. */
+  /** 收入 (签约额) for that month, or null when the month answered without one. */
   revenue: number | null;
   /** 已回款 for that same month. */
   collected: number | null;
@@ -90,40 +146,48 @@ export interface TrendRow {
   cost: number | null;
   /** 毛利: 已回款 − 成本, and only when both sides are stated. */
   gross: number | null;
-  /** 期初现金 — the entry's opening balance, not a closing one. */
-  cashOpen: number | null;
+  /** 账面现金 at the end of that month (`cash_floor`). */
+  cash: number | null;
   /**
-   * Whether the month has an entry row at all. `false` renders 未录入;
+   * Whether the month has a cost entry row at all. `false` renders 未录入;
    * `true` with a null cost renders 数据不足. Neither is a 0.
    */
   recorded: boolean;
+  /** Whether the month's aggregate answered at all (a read, not an entry). */
+  answered: boolean;
 }
 
 /**
  * The trend's rows, oldest first, one per calendar month.
  *
- * A month nobody touched is still a row (the axis stays continuous) and is marked
- * `recorded: false`. Revenue and gross are only known for the month the server
- * aggregated — `GET /finance` describes the current natural month and there is no
- * per-month revenue read (WORKBENCH-API.md §7.3) — so earlier months state their
- * cost and opening cash and leave the other two `null`, which is the honest
- * answer rather than a series that looks complete.
+ * Every month of the window is read on its own (`GET /finance?month=`), so each
+ * row states that month's 收入 / 已回款 / 现金 as the server aggregated them —
+ * not only the current month's, and not a derived series. The cost side still
+ * comes from `GET /finance/months`, which is where the entered amounts live.
+ *
+ * A month with no answer keeps `null` everywhere and 数据不足, and a month nobody
+ * entered is marked `recorded: false` (未录入). The margin is `moneySummary`, the
+ * same call `boss/home/money-block.tsx` makes, so 毛利 means one thing across the
+ * product.
  */
 export function trendRows(
   months: readonly WorkbenchFinanceMonth[] | undefined,
-  window: { month: string; signed: number | null; collected: number | null },
+  finances: readonly MonthFinance[],
+  endMonth: string,
   count = TREND_MONTHS,
 ): TrendRow[] {
-  const labels = recentMonths(window.month, count);
+  const labels = recentMonths(endMonth, count);
   if (labels.length === 0) return [];
   const byMonth = new Map<string, WorkbenchFinanceMonth>();
   for (const entry of months ?? []) byMonth.set(entry.month.slice(0, 7), entry);
+  const answered = new Map<string, MonthFinance>();
+  for (const finance of finances) answered.set(finance.month, finance);
 
   return labels.map((month) => {
     const entry = byMonth.get(month) ?? null;
-    const isWindow = month === window.month;
+    const finance = answered.get(month) ?? null;
     const summary = moneySummary(
-      isWindow ? { signed: window.signed, collected: window.collected } : null,
+      finance ? { signed: finance.signed, collected: finance.collected } : null,
       entry,
       month,
     );
@@ -133,10 +197,32 @@ export function trendRows(
       collected: summary.paid,
       cost: summary.cost,
       gross: summary.margin,
-      cashOpen: entry?.cash_open ?? null,
+      cash: finance?.cash ?? null,
       recorded: entry !== null,
+      answered: finance !== null,
     };
   });
+}
+
+/** The two reasons a month's margin can be missing, told apart. */
+export type MonthGap = "no_revenue" | "no_cost";
+
+/**
+ * Why the margin has no value — and it is two different facts:
+ *
+ *   - `no_revenue` — nothing cleared that month, so the subtraction has no minuend;
+ *   - `no_cost`    — money came in but no cost was entered, so it has no subtrahend.
+ *
+ * Both can be true at once (a month with nothing recorded), which is why this
+ * returns a list rather than one reason: the reader can fix the cost side, and
+ * cannot fix "nobody paid yet" by typing.
+ */
+export function monthGaps(summary: MoneySummary): MonthGap[] {
+  if (summary.margin !== null) return [];
+  const gaps: MonthGap[] = [];
+  if (summary.paid === null || summary.paid === 0) gaps.push("no_revenue");
+  if (summary.cost === null) gaps.push("no_cost");
+  return gaps;
 }
 
 /** The cost side of one month, laid out as the lines the block prints. */
