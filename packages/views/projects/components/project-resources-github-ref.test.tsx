@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, screen, fireEvent, waitFor, within } from "@testing-library/react";
@@ -84,6 +84,8 @@ vi.mock("@morechat/core/runtimes", () => ({
 }));
 vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
 vi.mock("@morechat/core/paths", () => ({
+  useWorkspaceSlug: () => "ws",
+  paths: { workspace: () => ({ knowledgePage: (s: string, p: string) => `/ws/knowledge/${s}/${p}` }) },
   useCurrentWorkspace: () => ({
     id: "workspace-1",
     slug: "ws",
@@ -102,7 +104,7 @@ vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 import { ProjectResourcesSection } from "./project-resources-section";
 
-describe("ProjectResourcesSection — github_repo checkout ref", () => {
+describe("ProjectResourcesSection 鈥?github_repo checkout ref", () => {
   beforeEach(() => {
     updateMock.mockClear();
     createMock.mockClear();
@@ -362,7 +364,7 @@ describe("ProjectResourcesSection — github_repo checkout ref", () => {
 
   // The field asks for a branch because a pinned start is also the PR target,
   // and a commit has nothing to merge back into. Only a full-length object id
-  // is refused — `v1.2.3` is a legal branch name, so the rest cannot be told
+  // is refused 鈥?`v1.2.3` is a legal branch name, so the rest cannot be told
   // apart without asking the remote, which the product does not do.
   it("declines a pasted commit id and points at the per-task escape hatch", () => {
     renderWithI18n(<ProjectResourcesSection projectId="p1" />);
@@ -379,7 +381,7 @@ describe("ProjectResourcesSection — github_repo checkout ref", () => {
     expect(updateMock).not.toHaveBeenCalled();
   });
 
-  it("still accepts a tag-shaped name — it could be a branch, and only the remote knows", async () => {
+  it("still accepts a tag-shaped name 鈥?it could be a branch, and only the remote knows", async () => {
     renderWithI18n(<ProjectResourcesSection projectId="p1" />);
 
     fireEvent.click(screen.getAllByRole("button", { name: /change the branch tasks work on/i })[0]!);
