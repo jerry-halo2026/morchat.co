@@ -39,6 +39,7 @@ import type boss from "../locales/en/boss.json";
 import type biz from "../locales/en/biz.json";
 import type discovery from "../locales/en/discovery.json";
 import type performance from "../locales/en/performance.json";
+import type ads from "../locales/en/ads.json";
 
 // Module augmentation enables i18next v26 selector API across the monorepo:
 // `t($ => $.signin.title)` resolves to the value in en/auth.json.
@@ -92,6 +93,7 @@ declare global {
     biz: typeof biz;
     discovery: typeof discovery;
     performance: typeof performance;
+    ads: typeof ads;
   }
 }
 
