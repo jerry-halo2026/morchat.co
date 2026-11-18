@@ -2486,3 +2486,72 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 ## 9. 完成定义（DoD）
 
 一个域算完成，当且仅当：迁移可 up/down 往返、`make sqlc` 无脏 diff、handler 有权限用例、事件发出、zod 覆盖响应、`useRealtimeSync` 有 patcher、`/overview` 里对应指标从 `insufficient_data` 变为有值、页面能读能写。
+
+## 24. 产品层权限（capability）
+
+工作区角色（`member.role`）是平台原语，本产品不改它的语义；产品层需要更细的判定，于是引入 **capability**。规则正文见 `docs/engineering/COLLAB-MODEL.md` §1/§6，这里只写接口与解析顺序。
+
+### 24.1 capability 清单
+
+`crm.read` `crm.write` `crm.amount`（改金额）`crm.settle`（结算）`media.read` `media.write` `media.publish`
+`hr.read` `hr.write` `boss.read` `ads.read` `review.accept`（复核闸门）`agent.delegate`（允许 agent 代写）
+
+### 24.2 解析顺序（先命中先返回）
+
+1. `member.role = owner|admin` → 全部 capability。
+2. `workbench_role_template`(workspace_id, job_title) 命中 → 用模板集合（`hr_employee_profile.job_title`，未归档）。
+3. `member.department_id` 命中的部门默认集（本批内置一张常量表，不建表）。
+4. 兜底：`*.read` 全给，`*.write` 不给。
+
+### 24.3 接口
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/workbench/role-templates` | 列出本工作区的职位模板 |
+| PUT | `/api/workbench/role-templates/{jobTitle}` | 覆盖一个职位的能力集合（owner/admin） |
+
+无权时返回 **403 `forbidden_capability`**，body 带 `{capability}`，前端据此隐藏入口而不是弹错。
+
+### 24.4 部门可见性
+
+`workspace.settings.workbench_visibility`：`transparent`（默认，工作区级读）| `department`（读路径按 `department_id` 过滤）。
+切换只影响读，不影响已有写权限。
+
+### 24.5 迁移
+
+`817_workbench_role_template`（表）+ `818_workbench_role_template_unique`（唯一索引，单语句 CONCURRENTLY，登记 `concurrentIndexCleanups`）。
+
+## 25. 千川投放（数据源已在 `packages/qianchuan-sync`）
+
+### 25.1 表
+
+`qianchuan_account` `qianchuan_anchor` `qianchuan_plan` `qianchuan_balance` `qianchuan_daily_overall`
+`qianchuan_daily_uni_live` `qianchuan_daily_uni_video` `qianchuan_product` `qianchuan_material`
+`qianchuan_violation` `qianchuan_oplog` `qianchuan_recon`
+
+约定：核心列结构化（`stat_date`/`account_id`/`dim_id`/花费/GMV/订单/退款 + 1h/7d 结算额），其余列原样进 `metrics jsonb`；
+每行带 `source_version`（对应 `data/raw` 版本号）与 `captured_at`，以支持「历史某天当时看到的数」。
+
+### 25.2 口径（不许相加）
+
+结算窗口 `settle_1h|settle_7d|settle_14d|settle_30d|settle_90d`。**任何跨窗口求和都是 bug**，金额指标必须带 `basis`。
+默认展示 `settle_7d`；切换必须显式。
+
+### 25.3 接口
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/workbench/ads/summary?from=&to=&basis=` | 账户级汇总 + 环比 |
+| GET | `/api/workbench/ads/accounts` | 账户与余额 |
+| GET | `/api/workbench/ads/plans?account_id=&status=` | 计划表 |
+| GET | `/api/workbench/ads/materials?account_id=&type=` | 素材（可挂 `media_script_id`）|
+| GET | `/api/workbench/ads/violations?status=` | 违规 |
+| GET | `/api/workbench/ads/recon?account_id=` | 对账（账面 vs 平台）|
+
+### 25.4 指标
+
+`qianchuan.spend.day`、`qianchuan.gmv.day`、`qianchuan.roi`（带 `basis`）、`qianchuan.violation.open`。三态沿用 `contracts.ts`。
+
+### 25.5 写入口
+
+只有 `cmd/qianchuan-sync`（读 `packages/qianchuan-sync/data/flat/*.csv`）。**不做投放写操作**（建计划、改预算）。
