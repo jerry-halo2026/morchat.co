@@ -1,5 +1,4 @@
-export { SalesPageShell } from "./page-shell";
-export { SalesPanel } from "./panel";
+﻿export { SalesPanel } from "./panel";
 export { SalesDashboardPage } from "./sales-dashboard-page";
 export { SalesCreatorsPage } from "./sales-creators-page";
 export { SalesFollowupsPage } from "./sales-followups-page";

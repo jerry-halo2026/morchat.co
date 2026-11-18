@@ -1,5 +1,4 @@
-export { ContentPageShell } from "./page-shell";
-export { ContentPanel } from "./panel";
+﻿export { ContentPanel } from "./panel";
 export { ContentStudioPage } from "./content-studio-page";
 export { ContentIpsPage } from "./content-ips-page";
 export { ContentHotPage } from "./content-hot-page";
