@@ -3,7 +3,7 @@ package handler
 // The workbench MCP endpoint: POST /api/mcp/workbench.
 //
 // The workbench data an agent needs to be useful — the metric strip, the sidebar
-// counts, the money block, the nine ledgers — is already reachable over REST
+// counts, the money block, the fifteen ledgers — is already reachable over REST
 // (docs/engineering/WORKBENCH-API.md §3). An agent's read channel, though, is a
 // tool surface, not HTTP: a run holds an MCP client and nothing else. So this
 // file speaks the four reads as MCP tools over the same JSON-RPC 2.0 transport
@@ -81,16 +81,52 @@ const (
 // documents them. The schema's enum is generated from this list, so a domain
 // added here is immediately callable and a name that is not here cannot be
 // asked for.
+//
+// Fifteen ledgers: the nine the first surface shipped (BD accounts and HR
+// records) plus the six the workbench pages read directly — quotes, follow-ups
+// and campaigns on the sales side, and the topic pool, the hotspot radar and the
+// budget's goals on the content and GM sides. A domain is only added together
+// with its entry in workbenchMCPLedgerDomains; `TestWorkbenchMCPLedgerDomains`
+// fails if the two ever disagree, which is the failure this file exists to
+// prevent: a tool advertising a name nobody answers.
 var workbenchMCPLedgerDomainNames = []string{
 	"creators",
 	"clients",
 	"briefs",
 	"collabs",
 	"settlements",
+	"quotes",
+	"activities",
+	"campaigns",
 	"jobs",
 	"candidates",
 	"interviews",
 	"employees",
+	"goals",
+	"topics",
+	"hot",
+}
+
+// workbenchMCPLedgerTables names the table each domain pages through. It exists
+// for the coverage test, not for the dispatcher: a domain whose table no
+// migration creates is a domain that can only answer an error, and the test
+// catches that at build time instead of when an agent calls it.
+var workbenchMCPLedgerTables = map[string]string{
+	"creators":    "creator",
+	"clients":     "crm_client",
+	"briefs":      "crm_brief",
+	"collabs":     "crm_collab",
+	"settlements": "crm_settlement",
+	"quotes":      "creator_quote",
+	"activities":  "creator_activity",
+	"campaigns":   "creator_campaign",
+	"jobs":        "hr_job",
+	"candidates":  "hr_candidate",
+	"interviews":  "hr_interview",
+	"employees":   "hr_employee_profile",
+	"goals":       "goal_okr",
+	"topics":      "media_topic",
+	"hot":         "media_hot",
 }
 
 // workbenchMCPTool is one declared tool, in the shape an MCP client expects.
@@ -427,10 +463,16 @@ func (h *Handler) workbenchMCPLedgerDomains() map[string]workbenchMCPLedgerDomai
 		"briefs":      {read: h.ListCrmBriefs, department: false},
 		"collabs":     {read: h.ListCrmCollabs, department: false},
 		"settlements": {read: h.ListCrmSettlements, department: false},
+		"quotes":      {read: h.ListBdQuotes, department: false},
+		"activities":  {read: h.ListBdActivities, department: false},
+		"campaigns":   {read: h.ListBdCampaigns, department: false},
 		"jobs":        {read: h.ListHrJobs, department: true},
 		"candidates":  {read: h.ListHrCandidates, department: false},
 		"interviews":  {read: h.ListHrInterviews, department: false},
 		"employees":   {read: h.ListHrEmployees, department: true},
+		"goals":       {read: h.ListGoals, department: false},
+		"topics":      {read: h.ListMediaTopics, department: false},
+		"hot":         {read: h.ListMediaHot, department: false},
 	}
 }
 

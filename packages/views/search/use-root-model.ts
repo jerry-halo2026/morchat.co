@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import type { CommandBarContext } from "@morechat/core/command-bar";
-import { WORKSPACE_PAGES, type WorkspacePageKey } from "@morechat/core/paths";
+import { navPageFor, useWorkspaceSlug } from "@morechat/core/paths";
 import { partitionAggregatedSearchResults } from "@morechat/core/search/cancelled-rank";
 import type { SearchIssueResult, SearchProjectResult } from "@morechat/core/types";
 import { useT } from "../i18n";
@@ -10,51 +10,33 @@ import { useAgentCommandGroup, useAutopilotCommandGroup, useChatCommandGroup, us
 import { useGlobalCommands } from "./commands/global-commands";
 import { useIssueCommandGroup } from "./commands/issue-commands";
 import { parseScope, scoreRow, scoreText, type SearchScope } from "./matching";
+import { NAV_PAGE_ENTRIES, pageHref, pageKeywords, type NavPageSpace } from "./pages";
 import type { IssueTarget, PaletteCommand, PaletteCommandGroup } from "./types";
 import type { AgentEntry } from "./use-actor-directory";
 import { useObjectSearch, type ObjectHits, type Scored } from "./use-object-search";
 import { useRecentItems, type RecentItem } from "./use-recent-items";
 import { useServerSearch, type SearchResults } from "./use-server-search";
+import { useWorkbenchSearch, type WorkbenchHits } from "./use-workbench-search";
 
-// The palette's Pages group is generated from WORKSPACE_PAGES, the same
-// registry the sidebar nav and the desktop tab bar read. It used to be a
-// hand-written list, which silently went stale every time a page was added:
-// Chat, Autopilot, Squads and Analytics shipped in the sidebar but were
-// unreachable from the palette (MUL-6272). Deriving the list means a new
-// workspace page is in the palette the moment it is in the registry.
+// The palette's Pages group is generated from the page registries — the same
+// tables the sidebar nav, the left column and the desktop tab bar read. It used
+// to be a hand-written list, which silently went stale every time a page was
+// added (MUL-6272), and then it was `WORKSPACE_PAGES` alone, which left the 29
+// department pages (`/sales/creators`, `/content/topics`, `/boss/goals`, …)
+// reachable from the columns but not from ⌘K. `pages.ts` joins both registries
+// once; the group is grouped by space rather than flattened into 40 rows.
 //
-// Page keys double as WorkspacePaths method names, so `p[key]()` resolves the
-// destination against the current workspace slug at render time. Every
-// WorkspacePageKey must therefore stay a parameterless path builder.
-
-// Extra query aliases per page, on top of the localized label. Declared as a
-// total Record so adding a workspace page is a compile error until its
-// keywords are filled in.
-const PAGE_KEYWORDS: Record<WorkspacePageKey, string[]> = {
-  inbox: ["inbox", "notifications", "收件箱", "通知"],
-  chat: ["chat", "messages", "conversation", "聊天", "消息", "对话"],
-  myIssues: ["my", "issues", "assigned", "mine", "我的", "任务"],
-  issues: ["issues", "tasks", "bugs", "任务"],
-  views: ["views", "saved", "filters", "视图", "筛选"],
-  projects: ["projects", "kanban", "项目"],
-  autopilots: ["autopilot", "autopilots", "automation", "schedule", "cron", "webhook", "自动化", "定时"],
-  agents: ["agents", "bots", "ai", "智能体"],
-  squads: ["squads", "teams", "小队", "团队"],
-  usage: ["usage", "analytics", "stats", "metrics", "统计", "分析", "用量"],
-  overview: ["overview", "workbench", "ledger", "metrics", "工作台", "概览", "台账", "指标"],
-  runtimes: ["runtimes", "environments", "machines", "运行时"],
-  skills: ["skills", "library", "技能"],
-  presets: ["presets", "templates", "gallery", "预设", "模板"],
-  knowledge: ["knowledge", "wiki", "docs", "notes", "知识库", "文档", "资料"],
-  settings: ["settings", "config", "preferences", "设置", "配置"],
-};
-
-const NAV_PAGE_KEYS = Object.keys(WORKSPACE_PAGES) as WorkspacePageKey[];
+// A page entry carries its own `href` (built from `navPageFor(key).segment`),
+// because a nested page's builder is `p.sales.creators()`, not `p.creators()`. It
+// also carries its space, which is what the group headings key off.
 
 export interface NavPage {
-  key: WorkspacePageKey;
+  key: import("@morechat/core/paths").NavPageKey;
   label: string;
   keywords: string[];
+  space: NavPageSpace;
+  /** Workspace-absolute destination; `""` before the slug is known. */
+  href: string;
 }
 
 export type BestMatch =
@@ -83,6 +65,8 @@ export interface RootModel {
   commands: Scored<PaletteCommand>[];
   pages: Scored<NavPage>[];
   objects: ObjectHits;
+  /** Creators, collabs, quotes, goals and topics — the workbench's own ledgers. */
+  workbench: WorkbenchHits;
   server: { results: SearchResults; isLoading: boolean; stale: boolean };
   partitioned: ReturnType<typeof partitionAggregatedSearchResults>;
   liveIssueScore: number;
@@ -154,16 +138,23 @@ export function useRootModel(
   const searching = active && scope !== "commands" && scope !== "people" ? text : "";
   const server = useServerSearch(searching, { projects: scope === "all" });
   const objects = useObjectSearch(scope === "issues" || scope === "commands" ? "" : q, active);
+  const workbench = useWorkbenchSearch(scope === "all" ? q : "", active);
   const recent = useRecentItems(active && !rawQuery.trim());
 
+  const slug = useWorkspaceSlug();
   const navPages = useMemo<NavPage[]>(
     () =>
-      NAV_PAGE_KEYS.map((key) => ({
-        key,
-        label: tNav(($) => $.nav[WORKSPACE_PAGES[key].navKey]),
-        keywords: PAGE_KEYWORDS[key],
-      })),
-    [tNav],
+      NAV_PAGE_ENTRIES.map(({ key, space }) => {
+        const label = tNav(($) => $.nav[navPageFor(key).navKey]);
+        return {
+          key,
+          label,
+          keywords: pageKeywords(key, label),
+          space,
+          href: pageHref(slug, key),
+        };
+      }),
+    [slug, tNav],
   );
 
   return useMemo<RootModel>(() => {
@@ -266,8 +257,15 @@ export function useRootModel(
       visibleObjects.chats.length +
       visibleObjects.skills.length +
       visibleObjects.workspaces.length;
+    const workbenchCount =
+      workbench.creators.length +
+      workbench.collabs.length +
+      workbench.quotes.length +
+      workbench.goals.length +
+      workbench.topics.length;
     const hasResults =
       objectCount > 0 ||
+      workbenchCount > 0 ||
       results.issues.length > 0 ||
       results.projects.length > 0 ||
       pages.length > 0 ||
@@ -298,6 +296,7 @@ export function useRootModel(
       commands,
       pages,
       objects: visibleObjects,
+      workbench,
       server,
       partitioned,
       liveIssueScore,
@@ -330,5 +329,6 @@ export function useRootModel(
     singleGroup,
     singleTarget,
     text,
+    workbench,
   ]);
 }

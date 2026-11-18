@@ -11,7 +11,19 @@ import {
 import { inboxUnreadSummaryOptions } from "@morechat/core/inbox/queries";
 import { I18nProvider } from "@morechat/core/i18n/react";
 import { issueDetailOptions, issueTimelineOptions } from "@morechat/core/issues/queries";
-import { WORKSPACE_PAGES } from "@morechat/core/paths";
+import { navPageFor } from "@morechat/core/paths";
+import {
+  BOSS_PAGE_ORDER,
+  CONTENT_PAGE_ORDER,
+  HR_PAGE_ORDER,
+  SALES_PAGE_ORDER,
+  WORKSPACE_PAGES,
+} from "@morechat/core/paths";
+import { creatorListOptions } from "@morechat/core/creator/queries";
+import { crmCollabListOptions } from "@morechat/core/crm/queries";
+import { bdQuoteListOptions } from "@morechat/core/bd/queries";
+import { goalListOptions } from "@morechat/core/goal/queries";
+import { mediaTopicListOptions } from "@morechat/core/media/queries";
 import type { Issue } from "@morechat/core/types";
 import {
   agentListOptions,
@@ -22,6 +34,7 @@ import {
 import { RESOURCES } from "../locales";
 import enLayout from "../locales/en/layout.json";
 import zhHansProjects from "../locales/zh-Hans/projects.json";
+import { NAV_PAGE_ENTRIES } from "./pages";
 import { SearchCommand } from "./search-command";
 
 vi.mock("@morechat/core/issue-statuses/hooks", () => ({
@@ -180,6 +193,7 @@ vi.mock("@morechat/core/paths", async (importOriginal) => {
   return {
     ...actual,
     useWorkspacePaths: () => actual.paths.workspace("ws-test"),
+    useWorkspaceSlug: () => "ws-test",
     useCurrentWorkspace: () => ({ id: "ws-test", slug: "ws-test", name: "Test Workspace" }),
   };
 });
@@ -423,16 +437,38 @@ describe("SearchCommand", () => {
       expect(screen.queryByText("Inbox")).not.toBeInTheDocument();
     });
 
-    it("offers every workspace nav page, not a hand-maintained subset", async () => {
+    it("offers every registered page, the platform's and all four spaces'", async () => {
       const user = userEvent.setup();
       renderSearch();
-      // The Pages group is generated from WORKSPACE_PAGES — the registry the
-      // sidebar and the desktop tab bar read (MUL-6272).
-      for (const [key, page] of Object.entries(WORKSPACE_PAGES)) {
+      // The Pages group is generated from the page registries — the same tables
+      // the sidebar, the left column and the desktop tab bar read (MUL-6272).
+      // The union matters: `WORKSPACE_PAGES` alone left the 29 department pages
+      // unreachable from ⌘K even though the columns listed them.
+      const registered =
+        Object.keys(WORKSPACE_PAGES).length +
+        HR_PAGE_ORDER.length +
+        SALES_PAGE_ORDER.length +
+        CONTENT_PAGE_ORDER.length +
+        BOSS_PAGE_ORDER.length;
+      expect(NAV_PAGE_ENTRIES).toHaveLength(registered);
+      expect(new Set(NAV_PAGE_ENTRIES.map((entry) => entry.key)).size).toBe(registered);
+
+      for (const { key } of NAV_PAGE_ENTRIES) {
         await user.clear(input());
-        await user.type(input(), enLayout.nav[page.navKey]);
+        await user.type(input(), enLayout.nav[navPageFor(key).navKey]);
         await waitFor(() => expect(renderedValues()).toContain(`page:${key}`));
       }
+    }, 180_000);
+
+    it("groups the pages by space instead of flattening them", async () => {
+      const user = userEvent.setup();
+      renderSearch();
+      await user.type(input(), "creators");
+
+      // The department pages carry their space's own heading, so a reader sees
+      // "Sales" over the row rather than a single "Pages" list of forty.
+      await waitFor(() => expect(renderedHeadings()).toContain(enLayout.spaces.sales));
+      expect(renderedValues()).toContain("page:creators");
     });
 
     it("does not surface a page on an incidental substring of a hidden keyword", async () => {
@@ -442,6 +478,58 @@ describe("SearchCommand", () => {
 
       expect(await rowText("Settings")).toBeInTheDocument();
       expect(screen.queryByText("Inbox")).not.toBeInTheDocument();
+    });
+
+    it("searches the workbench's own ledgers, one group per kind", async () => {
+      const user = userEvent.setup();
+      const creator = {
+        id: "c-1",
+        workspace_id: "ws-test",
+        kind: "external",
+        display_name: "厨房笔记",
+        platform: "xiaohongshu",
+        handle: "kitchen_notes",
+      };
+      seed(creatorListOptions("ws-test", { limit: 100 }), {
+        creators: [creator],
+        total: 1,
+        next_cursor: null,
+      });
+      seed(crmCollabListOptions("ws-test"), {
+        collabs: [{ id: "x-1", creator_id: "c-1", brief_id: "b-1", stage: "quoted" }],
+        total: 1,
+      });
+      seed(bdQuoteListOptions("ws-test", { limit: 100 }), {
+        quotes: [
+          { id: "q-1", creator_id: "c-1", status: "sent", fee_amount: 12000, currency: "CNY" },
+        ],
+        total: 1,
+      });
+      seed(goalListOptions("ws-test", { limit: 100 }), {
+        goals: [{ id: "g-1", title: "Q4 厨房号涨粉", cycle: "2026-Q4", status: "active" }],
+        total: 1,
+      });
+      seed(mediaTopicListOptions("ws-test", { limit: 100 }), {
+        topics: [{ id: "t-1", title: "立冬吃饺子", status: "pool", source: "manual" }],
+        total: 1,
+      });
+      renderSearch();
+
+      await user.type(input(), "厨房");
+      // Five kinds, five groups. The three creator-shaped ones match on the
+      // creator's name; the goal matches on its title.
+      await waitFor(() => expect(renderedValues()).toContain("creators:c-1"));
+      expect(renderedValues()).toContain("collabs:x-1");
+      expect(renderedValues()).toContain("quotes:q-1");
+      expect(renderedValues()).toContain("goals:g-1");
+      expect(renderedHeadings()).toContain(enLayout.nav.sales_creators);
+      expect(renderedHeadings()).toContain(enLayout.nav.sales_collabs);
+      expect(renderedHeadings()).toContain(enLayout.nav.boss_goals);
+
+      await user.clear(input());
+      await user.type(input(), "饺子");
+      await waitFor(() => expect(renderedValues()).toContain("topics:t-1"));
+      expect(renderedHeadings()).toContain(enLayout.nav.content_topics);
     });
 
     it("navigates to a page whose label differs from its route segment", async () => {

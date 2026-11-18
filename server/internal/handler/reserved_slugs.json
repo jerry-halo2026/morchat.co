@@ -70,7 +70,7 @@
     },
     {
       "label": "Workspace route segments",
-      "description": "Reserving each segment name prevents `/{slug}/{view}` from being visually ambiguous (e.g. a workspace named `issues` would make `/issues/abc` mean two things). `workspaces` covers the global `/workspaces/new` workspace-creation page; `teams` is reserved for future team management.",
+      "description": "Reserving each segment name prevents `/{slug}/{view}` from being visually ambiguous (e.g. a workspace named `issues` would make `/issues/abc` mean two things). `workspaces` covers the global `/workspaces/new` workspace-creation page; `teams` is reserved for future team management. The four department spaces (`hr`, `sales`, `content`, `boss`) are first-level segments too: a workspace slugged `sales` would make `/sales/creators` address two different things.",
       "slugs": [
         "issues",
         "projects",
@@ -85,7 +85,11 @@
         "skills",
         "settings",
         "workspaces",
-        "teams"
+        "teams",
+        "hr",
+        "sales",
+        "content",
+        "boss"
       ]
     },
     {

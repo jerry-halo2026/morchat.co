@@ -34,10 +34,35 @@ import {
   HrResumesPage,
   HrScoresPage,
 } from "@morechat/views/hr";
-import { SalesDashboardPage } from "@morechat/views/sales";
-import { ContentStudioPage } from "@morechat/views/content";
-import { BossHomePage } from "@morechat/views/boss";
-import { AutopilotsPage } from "@morechat/views/autopilots/components";
+import {
+  SalesCampaignsPage,
+  SalesCollabsPage,
+  SalesCreatorsPage,
+  SalesDashboardPage,
+  SalesFollowupsPage,
+  SalesPerformancePage,
+  SalesQuotesPage,
+} from "@morechat/views/sales";
+import {
+  ContentBenchPage,
+  ContentDataPage,
+  ContentHotPage,
+  ContentIpsPage,
+  ContentPublishPage,
+  ContentScriptsPage,
+  ContentShootsPage,
+  ContentStudioPage,
+  ContentTopicsPage,
+} from "@morechat/views/content";
+import {
+  BossBizPage,
+  BossCustomersPage,
+  BossGoalsPage,
+  BossHomePage,
+  BossRadarPage,
+  BossTasksPage,
+  BossTeamPage,
+} from "@morechat/views/boss";import { AutopilotsPage } from "@morechat/views/autopilots/components";
 import { MyIssuesPage } from "@morechat/views/my-issues";
 import { SkillsPage } from "@morechat/views/skills";
 import { DesktopRuntimesPage } from "./components/desktop-runtimes-page";
@@ -347,9 +372,44 @@ export const appRoutes: RouteObject[] = [
           // The three department spaces beside HR. Each entry is its space's
           // landing page — the one its panel lists first — so opening the space
           // in a tab names the page instead of resolving to unknown.
+          //
+          // `handle.title` is read statically by TitleSync and the tab bar, so it
+          // cannot hold a `tNav` call: a route's handle is a plain object built at
+          // module load, before any provider exists. These use the English page
+          // names (the same words the layout bundle carries) and HR's "HR" for its
+          // nine pages. TODO: give `handle.title` a `{ key: NavLabelKey }` shape
+          // and let TitleSync translate it, so this table stops holding copy.
           { path: "sales", element: <SalesDashboardPage />, handle: { title: "Sales" } },
+          { path: "sales/creators", element: <SalesCreatorsPage />, handle: { title: "Creators" } },
+          { path: "sales/followups", element: <SalesFollowupsPage />, handle: { title: "Follow-ups" } },
+          { path: "sales/quotes", element: <SalesQuotesPage />, handle: { title: "Quotes" } },
+          { path: "sales/collabs", element: <SalesCollabsPage />, handle: { title: "Collabs" } },
+          { path: "sales/campaigns", element: <SalesCampaignsPage />, handle: { title: "Campaigns" } },
+          {
+            path: "sales/performance",
+            element: <SalesPerformancePage />,
+            handle: { title: "Performance" },
+          },
           { path: "content", element: <ContentStudioPage />, handle: { title: "Content" } },
+          { path: "content/ips", element: <ContentIpsPage />, handle: { title: "IPs & accounts" } },
+          { path: "content/hot", element: <ContentHotPage />, handle: { title: "Hot radar" } },
+          { path: "content/bench", element: <ContentBenchPage />, handle: { title: "Benchmarks" } },
+          { path: "content/topics", element: <ContentTopicsPage />, handle: { title: "Topic pool" } },
+          { path: "content/scripts", element: <ContentScriptsPage />, handle: { title: "Scripts" } },
+          {
+            path: "content/shoots",
+            element: <ContentShootsPage />,
+            handle: { title: "Shooting & editing" },
+          },
+          { path: "content/publish", element: <ContentPublishPage />, handle: { title: "Publishing" } },
+          { path: "content/data", element: <ContentDataPage />, handle: { title: "Review" } },
           { path: "boss", element: <BossHomePage />, handle: { title: "GM" } },
+          { path: "boss/goals", element: <BossGoalsPage />, handle: { title: "Goals" } },
+          { path: "boss/tasks", element: <BossTasksPage />, handle: { title: "Tasks" } },
+          { path: "boss/radar", element: <BossRadarPage />, handle: { title: "Market radar" } },
+          { path: "boss/customers", element: <BossCustomersPage />, handle: { title: "Customers" } },
+          { path: "boss/biz", element: <BossBizPage />, handle: { title: "Operations" } },
+          { path: "boss/team", element: <BossTeamPage />, handle: { title: "Team" } },
           {
             path: "settings",
             element: <DesktopSettingsRoute />,

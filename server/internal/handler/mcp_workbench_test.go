@@ -16,6 +16,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -212,8 +214,8 @@ func TestWorkbenchMCPToolsList(t *testing.T) {
 		}
 	}
 
-	// ledger: domain is required and its enum is the nine ledgers the dispatcher
-	// answers; limit is bounded at the same 100 the handler enforces.
+	// ledger: domain is required and its enum is the fifteen ledgers the
+	// dispatcher answers; limit is bounded at the same 100 the handler enforces.
 	ledger := declared[workbenchToolLedger]
 	if len(ledger.Required) != 1 || ledger.Required[0] != "domain" {
 		t.Fatalf("%s required = %v, want [domain]", workbenchToolLedger, ledger.Required)
@@ -588,4 +590,96 @@ func TestWorkbenchMCPIsWorkspaceScoped(t *testing.T) {
 			t.Fatalf("counts.jobs = %d, want %d (this workspace's rows only)", counts.Jobs, len(page.Jobs))
 		}
 	})
+}
+
+// TestWorkbenchMCPLedgerDomains is the guard that keeps the ledger tool's
+// vocabulary and its dispatcher one list.
+//
+// It answers three questions, all without a database:
+//
+//   - Every advertised domain has a read behind it, and no read is reachable
+//     without being advertised. A name in the enum that the map does not know
+//     is a tool that can only ever answer "unknown ledger"; a map entry the enum
+//     omits is a ledger no agent can ask for.
+//   - The vocabulary is the fifteen ledgers this batch covers, spelled once. The
+//     count is asserted rather than derived so adding a sixteenth is a deliberate
+//     edit to this test, not a side effect.
+//   - Every domain's table exists in the migrations. A domain whose table no
+//     migration creates answers an error forever, and "the page works but the
+//     tool does not" is exactly the drift the coverage list is for.
+func TestWorkbenchMCPLedgerDomains(t *testing.T) {
+	h := &Handler{}
+
+	if len(workbenchMCPLedgerDomainNames) != 15 {
+		t.Fatalf("domain vocabulary has %d names, want 15: %v",
+			len(workbenchMCPLedgerDomainNames), workbenchMCPLedgerDomainNames)
+	}
+
+	seen := make(map[string]bool, len(workbenchMCPLedgerDomainNames))
+	for _, name := range workbenchMCPLedgerDomainNames {
+		if seen[name] {
+			t.Fatalf("domain %q is declared twice", name)
+		}
+		seen[name] = true
+	}
+
+	domains := h.workbenchMCPLedgerDomains()
+	for _, name := range workbenchMCPLedgerDomainNames {
+		domain, ok := domains[name]
+		if !ok {
+			t.Errorf("domain %q is advertised but has no read", name)
+			continue
+		}
+		if domain.read == nil {
+			t.Errorf("domain %q maps to a nil read", name)
+		}
+	}
+	for name := range domains {
+		if !seen[name] {
+			t.Errorf("domain %q has a read but is not advertised", name)
+		}
+	}
+
+	// The four channel origins and nine of the original ledgers are in the
+	// list; these six are what this batch added.
+	for _, name := range []string{"quotes", "activities", "campaigns", "goals", "topics", "hot"} {
+		if !seen[name] {
+			t.Errorf("domain %q is missing from the vocabulary", name)
+		}
+	}
+
+	if len(workbenchMCPLedgerTables) != len(workbenchMCPLedgerDomainNames) {
+		t.Fatalf("table map has %d entries, vocabulary has %d",
+			len(workbenchMCPLedgerTables), len(workbenchMCPLedgerDomainNames))
+	}
+
+	migrations, err := filepath.Glob(filepath.Join("..", "..", "migrations", "*.up.sql"))
+	if err != nil {
+		t.Fatalf("list migrations: %v", err)
+	}
+	if len(migrations) == 0 {
+		t.Fatalf("no migrations found; the coverage check would pass vacuously")
+	}
+	var schema strings.Builder
+	for _, path := range migrations {
+		body, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("read %s: %v", path, err)
+		}
+		schema.Write(body)
+		schema.WriteByte('\n')
+	}
+	ddl := schema.String()
+
+	for name, table := range workbenchMCPLedgerTables {
+		if !seen[name] {
+			t.Errorf("table map names domain %q, which is not advertised", name)
+		}
+		// Both spellings are in use: the platform's migrations say
+		// `CREATE TABLE IF NOT EXISTS`, the product ones say `CREATE TABLE`.
+		if !strings.Contains(ddl, "CREATE TABLE IF NOT EXISTS "+table) &&
+			!strings.Contains(ddl, "CREATE TABLE "+table) {
+			t.Errorf("domain %q pages table %q, which no migration creates", name, table)
+		}
+	}
 }
