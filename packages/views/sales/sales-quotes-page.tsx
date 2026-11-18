@@ -39,6 +39,7 @@ import {
 } from "../layout/collection-list";
 import { PAGE_GUTTER } from "../layout/page-header";
 import { ROUTE_ICON_COMPONENTS } from "../layout/route-icon-components";
+import { ImportCsvButton } from "./import/import-dialog";
 import { SORT_KEYS, STATUS_KEYS, useQuotesCopy, type QuotesCopyKey } from "./quotes/copy";
 import {
   QUOTE_STATUSES,
@@ -255,10 +256,19 @@ function QuotesBody({ wsId }: { wsId: string }) {
       title={tLayout(($) => $.nav[SALES_PAGES.quotes.navKey])}
       actions={
         canWrite ? (
-          <CollectionCreateButton
-            label={copy("new_quote")}
-            onClick={() => setSheet({ quote: null })}
-          />
+          <>
+            {/*
+              A batch of quotes is how the desk actually starts a month, so the
+              import sits beside 新建报价 rather than behind a menu. The dialog
+              invalidates `["bd", wsId]` + `["workbench", wsId]` itself when the
+              batch commits (§23.6); this page has nothing to add.
+            */}
+            <ImportCsvButton wsId={wsId} kind="quotes" />
+            <CollectionCreateButton
+              label={copy("new_quote")}
+              onClick={() => setSheet({ quote: null })}
+            />
+          </>
         ) : null
       }
     />

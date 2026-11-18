@@ -29,6 +29,7 @@ import {
   type QueueRow,
 } from "./followups/model";
 import { shortCreatorId, useCreatorDirectory } from "./followups/use-creator-directory";
+import { ImportCsvButton } from "./import/import-dialog";
 
 /**
  * `/{slug}/sales/followups` —— 跟进：商务每天开工看的第一页。
@@ -114,16 +115,25 @@ function FollowupsBody({ wsId }: { wsId: string }) {
       title={tLayout(($) => $.nav[SALES_PAGES.followups.navKey])}
       actions={
         canWrite ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 px-2"
-            aria-expanded={composerOpen}
-            onClick={() => setComposerOpen((open) => !open)}
-          >
-            {copy("log_single")}
-          </Button>
+          <>
+            {/*
+              A month of follow-ups is typed, not clicked: the import writes
+              `creator_activity` rows straight into this page's ledger, and the
+              dialog invalidates `["bd", wsId]` + `["workbench", wsId]` on commit
+              (§23.6), so the three queues reread themselves.
+            */}
+            <ImportCsvButton wsId={wsId} kind="activities" />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 px-2"
+              aria-expanded={composerOpen}
+              onClick={() => setComposerOpen((open) => !open)}
+            >
+              {copy("log_single")}
+            </Button>
+          </>
         ) : undefined
       }
     />

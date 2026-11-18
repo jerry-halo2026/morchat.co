@@ -298,6 +298,8 @@ describe("SalesCollabsPage · 空", () => {
     // The header and its one action stay: an empty ledger is a page, not a blank screen.
     expect(screen.getByRole("heading", { name: "Collabs" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "New collaboration" })).toBeInTheDocument();
+    // The batch import sits beside it: a first month is imported, not clicked.
+    expect(screen.getByRole("button", { name: "Import CSV" })).toBeInTheDocument();
     // No request invented a filter: the endpoint is asked for the whole ledger.
     expect(api.listCrmCollabs).toHaveBeenCalledWith({ stage: undefined, creator_id: undefined });
   });
@@ -662,6 +664,8 @@ describe("SalesCollabsPage · 无写权限", () => {
 
     await waitFor(() => expect(bodyRows()).toHaveLength(1));
     expect(screen.queryByRole("button", { name: "New collaboration" })).toBeNull();
+    // The batch import is a write too.
+    expect(screen.queryByRole("button", { name: "Import CSV" })).toBeNull();
 
     fireEvent.click(within(bodyRows()[0]!).getByText("Lin Wei"));
     expect(screen.queryByRole("heading", { name: "Lin Wei" })).toBeNull();

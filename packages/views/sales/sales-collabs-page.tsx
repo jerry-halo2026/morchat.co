@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle } from "@morechat/ui/icons";
 import { Button } from "@morechat/ui/components/ui/button";
 import {
@@ -13,7 +13,12 @@ import {
 } from "@morechat/ui/components/ui/select";
 import { cn } from "@morechat/ui/lib/utils";
 import { creatorListOptions } from "@morechat/core/creator/queries";
-import { crmBriefListOptions, crmClientListOptions, crmCollabListOptions } from "@morechat/core/crm/queries";
+import {
+  crmBriefListOptions,
+  crmClientListOptions,
+  crmCollabListOptions,
+  crmKeys,
+} from "@morechat/core/crm/queries";
 import { useWorkspaceId } from "@morechat/core/hooks";
 import { SALES_PAGES } from "@morechat/core/paths";
 import { useCurrentMember } from "@morechat/core/permissions";
@@ -31,6 +36,7 @@ import { ROUTE_ICON_COMPONENTS } from "../layout/route-icon-components";
 import { useCollabColumns } from "./collabs/collab-columns";
 import { CollabSheet } from "./collabs/collab-sheet";
 import { useCollabsCopy } from "./collabs/copy";
+import { ImportCsvButton } from "./import/import-dialog";
 import {
   COLLAB_STAGES,
   filterByWindow,
@@ -102,6 +108,7 @@ function CollabsBody({ wsId }: { wsId: string }) {
   // A member may open a collaboration; a reader with no role at all is not a
   // member of this workspace and gets the ledger without its write surface.
   const canWrite = !memberLoading && role !== null;
+  const queryClient = useQueryClient();
 
   const [stage, setStage] = useState<CrmCollabStage | "all">("all");
   const [creatorId, setCreatorId] = useState<string>("all");
@@ -189,10 +196,25 @@ function CollabsBody({ wsId }: { wsId: string }) {
       title={tLayout(($) => $.nav[SALES_PAGES.collabs.navKey])}
       actions={
         canWrite ? (
-          <CollectionCreateButton
-            label={t(($) => $.collabs.new)}
-            onClick={() => setSheet({ collab: null })}
-          />
+          <>
+            {/*
+              Imported collaborations land in `crm_collab`, so this page's list
+              moves too — the dialog already invalidates `["bd", wsId]` +
+              `["workbench", wsId]` (§23.6); the collaboration ledger hangs off a
+              third root, so the page adds `["crm", wsId]` itself.
+            */}
+            <ImportCsvButton
+              wsId={wsId}
+              kind="collabs"
+              onImported={() => {
+                void queryClient.invalidateQueries({ queryKey: crmKeys.all(wsId) });
+              }}
+            />
+            <CollectionCreateButton
+              label={t(($) => $.collabs.new)}
+              onClick={() => setSheet({ collab: null })}
+            />
+          </>
         ) : null
       }
     />

@@ -220,6 +220,9 @@ describe("SalesFollowupsPage", () => {
 
     await waitFor(() => expect(rowNames()).toEqual(["Alice"]));
 
+    // The batch import sits beside 记一条: a month of follow-ups is typed in a file.
+    expect(screen.getByRole("button", { name: "Import CSV" })).toBeInTheDocument();
+
     await user.click(screen.getByRole("button", { name: "Overdue" }));
     await waitFor(() => expect(rowNames()).toEqual(["Bella"]));
 
@@ -321,6 +324,8 @@ describe("SalesFollowupsPage", () => {
 
     await waitFor(() => expect(rowNames()).toEqual(["Alice"]));
     expect(screen.queryByRole("button", { name: "Log one" })).not.toBeInTheDocument();
+    // The batch import is a write too: it is gone with the rest.
+    expect(screen.queryByRole("button", { name: "Import CSV" })).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Log a follow-up with Alice" }),
     ).not.toBeInTheDocument();
