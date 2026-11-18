@@ -89,14 +89,15 @@ excluded       排除
 | `creator_id` | `uuid` | ✓ |
 | `aweme_id` | `text` | ✓ 唯一键之一：`(workspace_id, aweme_id)` |
 | `desc_text` | `text` | 作品描述（含话题） |
-| `topics` | `text[]` | 从描述解析的 `#话题` |
+| `topics` | `text[]` | `#话题`。**上游自己有这一列（11593 行非空），优先用它**；上游为空时才从 `desc_text` 解析 |
 | `create_time` | `timestamptz` | 发布时间（由秒级时间戳转换） |
 | `duration_ms` | `integer` | |
 | `digg_count` / `comment_count` / `share_count` | `integer` | **可为 NULL**：还没采到统计就是 NULL，不是 0 |
-| `cover_url` / `video_url` | `text` | |
+| play_count | integer | 播放量。可空；**上游 12449 行里 3047 行有值**，缺失就是缺失，不写 0 |
+| cover_url / ideo_url | 	ext | |
 | `stats_collected_at` | `timestamptz` | 点赞/评论/转发数据的采集时间 |
 
-> 抖音作品接口不返回 `play_count`，本表不设该列。**不要为了凑字段写 0。**
+> 早期记录说"抖音作品接口不返回播放量"，在他们的爬取链路里不成立——`play_count` 有三分之一的行有值，因此保留该列。缺的行仍然写 NULL，不写 0。
 
 ### 2.2 `creator_metric`（按天快照）
 

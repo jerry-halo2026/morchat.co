@@ -95,6 +95,12 @@ type VideoRow struct {
 	AwemeID  string
 	SecUID   string
 	DescText *string
+	// Topics is upstream's own `#话题` array; it is filled on most rows and beats
+	// anything we could parse back out of DescText.
+	Topics []string
+	// PlayCount is set on a quarter of upstream rows. The contract note that
+	// Douyin never returns plays was wrong for their capture path.
+	PlayCount *int32
 	// CreateTime is NULL on 265 upstream rows.
 	CreateTime       *time.Time
 	DurationMs       *int32
@@ -186,9 +192,9 @@ func (c *Client) ListVideos(ctx context.Context, accountID uuid.UUID, since time
 		afterArg = after
 	}
 	rows, err := c.pool.Query(ctx, `
-		SELECT id, aweme_id, sec_uid, desc_text, create_time, duration_ms,
-		       digg_count, comment_count, share_count, cover_url, video_url,
-		       stats_collected_at
+		SELECT id, aweme_id, sec_uid, desc_text, topics, create_time, duration_ms,
+		       digg_count, comment_count, share_count, play_count, cover_url,
+		       video_url, stats_collected_at
 		FROM creator_video
 		WHERE account_id = $1
 		  AND ($2::timestamptz IS NULL OR create_time >= $2)
@@ -206,9 +212,9 @@ func (c *Client) ListVideos(ctx context.Context, accountID uuid.UUID, since time
 	for rows.Next() {
 		var row VideoRow
 		if err := rows.Scan(
-			&row.ID, &row.AwemeID, &row.SecUID, &row.DescText, &row.CreateTime,
+			&row.ID, &row.AwemeID, &row.SecUID, &row.DescText, &row.Topics, &row.CreateTime,
 			&row.DurationMs, &row.DiggCount, &row.CommentCount, &row.ShareCount,
-			&row.CoverURL, &row.VideoURL, &row.StatsCollectedAt,
+			&row.PlayCount, &row.CoverURL, &row.VideoURL, &row.StatsCollectedAt,
 		); err != nil {
 			return nil, fmt.Errorf("orange: scan video: %w", err)
 		}
@@ -414,6 +420,7 @@ type videoMirror struct {
 	CoverURL         *string    `json:"cover_url"`
 	VideoURL         *string    `json:"video_url"`
 	StatsCollectedAt *string    `json:"stats_collected_at"`
+	PlayCount        *int32     `json:"play_count"`
 	SourceID         string     `json:"source_id"`
 }
 
@@ -432,11 +439,12 @@ func mirrorVideo(upstream VideoRow, creatorID uuid.UUID) (videoMirror, *Warning)
 		CreatorID:    creatorID.String(),
 		AwemeID:      awemeID,
 		DescText:     trimmedPointer(upstream.DescText),
-		Topics:       ParseTopics(stringValue(upstream.DescText)),
+		Topics:       videoTopics(upstream),
 		DurationMs:   upstream.DurationMs,
 		DiggCount:    upstream.DiggCount,
 		CommentCount: upstream.CommentCount,
 		ShareCount:   upstream.ShareCount,
+		PlayCount:    upstream.PlayCount,
 		CoverURL:     trimmedPointer(upstream.CoverURL),
 		VideoURL:     trimmedPointer(upstream.VideoURL),
 		SourceID:     awemeID,
@@ -491,6 +499,26 @@ func marshalBatch(rows any) ([]byte, error) {
 		return nil, fmt.Errorf("orange: encode batch rows: %w", err)
 	}
 	return payload, nil
+}
+
+// videoTopics prefers the topics upstream already extracted. Parsing the
+// description is the fallback for the rows where upstream left the column empty,
+// because a `#` inside quoted text is a topic there but not necessarily in the
+// description we would scan.
+func videoTopics(upstream VideoRow) []string {
+	if len(upstream.Topics) > 0 {
+		out := make([]string, 0, len(upstream.Topics))
+		for _, topic := range upstream.Topics {
+			trimmed := strings.TrimSpace(topic)
+			if trimmed != "" {
+				out = append(out, trimmed)
+			}
+		}
+		if len(out) > 0 {
+			return out
+		}
+	}
+	return ParseTopics(stringValue(upstream.DescText))
 }
 
 // ParseTopics pulls `#话题` out of a work description, de-duplicated, in the order

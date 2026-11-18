@@ -56,8 +56,8 @@ func (q *Queries) GetCreatorMetricLatest(ctx context.Context, arg GetCreatorMetr
 const insertMirroredCreatorVideos = `-- name: InsertMirroredCreatorVideos :execrows
 INSERT INTO creator_video (
     workspace_id, creator_id, aweme_id, desc_text, topics, create_time,
-    duration_ms, digg_count, comment_count, share_count, cover_url, video_url,
-    stats_collected_at, source_system, source_id
+    duration_ms, digg_count, comment_count, share_count, play_count, cover_url,
+    video_url, stats_collected_at, source_system, source_id
 )
 SELECT
     $1::uuid,
@@ -70,6 +70,7 @@ SELECT
     r.digg_count,
     r.comment_count,
     r.share_count,
+    r.play_count,
     r.cover_url,
     r.video_url,
     r.stats_collected_at,
@@ -85,6 +86,7 @@ FROM jsonb_to_recordset($3::jsonb) AS r(
     digg_count INTEGER,
     comment_count INTEGER,
     share_count INTEGER,
+    play_count INTEGER,
     cover_url TEXT,
     video_url TEXT,
     stats_collected_at TIMESTAMPTZ,
@@ -519,6 +521,7 @@ SET creator_id = r.creator_id,
     digg_count = r.digg_count,
     comment_count = r.comment_count,
     share_count = r.share_count,
+    play_count = r.play_count,
     cover_url = r.cover_url,
     video_url = r.video_url,
     stats_collected_at = r.stats_collected_at,
@@ -533,6 +536,7 @@ FROM jsonb_to_recordset($2::jsonb) AS r(
     digg_count INTEGER,
     comment_count INTEGER,
     share_count INTEGER,
+    play_count INTEGER,
     cover_url TEXT,
     video_url TEXT,
     stats_collected_at TIMESTAMPTZ
@@ -548,6 +552,7 @@ WHERE v.id = r.id
     OR v.digg_count IS DISTINCT FROM r.digg_count
     OR v.comment_count IS DISTINCT FROM r.comment_count
     OR v.share_count IS DISTINCT FROM r.share_count
+    OR v.play_count IS DISTINCT FROM r.play_count
     OR v.cover_url IS DISTINCT FROM r.cover_url
     OR v.video_url IS DISTINCT FROM r.video_url
     OR v.stats_collected_at IS DISTINCT FROM r.stats_collected_at
