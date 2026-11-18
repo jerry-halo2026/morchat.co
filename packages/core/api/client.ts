@@ -177,6 +177,7 @@ import type {
   CreatorHealthDetailResponse,
   CreatorHealthListFilters,
   CreatorHealthListResponse,
+  CreatorVideoListResponse,
   CreateCreatorRequest,
   UpdateCreatorRequest,
   CreateCreatorPostRequest,
@@ -770,6 +771,8 @@ import {
   EMPTY_CREATOR_HEALTH_LIST_RESPONSE,
   CreatorHealthDetailResponseSchema,
   EMPTY_CREATOR_HEALTH_DETAIL_RESPONSE,
+  CreatorVideoListResponseSchema,
+  EMPTY_CREATOR_VIDEO_LIST_RESPONSE,
   CrmClientSchema,
   CrmClientListResponseSchema,
   EMPTY_CRM_CLIENT,
@@ -4287,6 +4290,7 @@ export class ApiClient {
       `/api/workbench/creators${workbenchSearch({
         kind: filters.kind,
         q: filters.q,
+        sort: filters.sort,
         limit: filters.limit,
         cursor: filters.cursor,
         department_id: filters.department_id,
@@ -4405,6 +4409,22 @@ export class ApiClient {
       EMPTY_CREATOR_HEALTH_DETAIL_RESPONSE,
       { endpoint: "GET /api/workbench/creators/:creatorId/health" },
     );
+  }
+
+  /**
+   * The mirrored works behind a creator's content health, newest first
+   * (WORKBENCH-API §19). The drawer's 最近作品 strip asks for five.
+   */
+  async listCreatorVideos(
+    creatorId: string,
+    limit?: number,
+  ): Promise<CreatorVideoListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/creators/${creatorId}/videos${workbenchSearch({ limit })}`,
+    );
+    return parseWithFallback(raw, CreatorVideoListResponseSchema, EMPTY_CREATOR_VIDEO_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/creators/:creatorId/videos",
+    });
   }
 
   /**

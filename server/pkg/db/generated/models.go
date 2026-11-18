@@ -960,6 +960,8 @@ type CreatorVideo struct {
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 	// Soft delete. The unique key and the metric reads only see live rows.
 	ArchivedAt pgtype.Timestamptz `json:"archived_at"`
+	// 播放量。上游 12449 行里 3047 行有值；契约早期写的「抖音不返回播放量」在爬取链路里不成立，故保留此列（可空，缺就是缺，不写 0）。
+	PlayCount pgtype.Int4 `json:"play_count"`
 }
 
 type CrmBrief struct {

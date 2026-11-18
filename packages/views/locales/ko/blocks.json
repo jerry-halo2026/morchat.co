@@ -590,6 +590,24 @@
       "no_posts": "아직 게시물이 없습니다"
     }
   },
+  "creator_health": {
+    "title": "콘텐츠 건전성",
+    "engagement_rate": "참여율",
+    "hit_rate": "히트율",
+    "posts_last_30d": "30일 업데이트",
+    "posts_value": "{{count}}개",
+    "definition": "참여율 = (평균 좋아요 + 댓글 + 공유) / 팔로워 수, 히트율 = 좋아요가 중앙값의 2배를 넘는 작품 비율",
+    "gap_no_metric": "아직 작품 데이터를 수집하지 않았습니다",
+    "gap_small_sample": "통계가 있는 작품이 10개 미만이라 히트율을 계산하지 않았습니다",
+    "gap_no_fans": "팔로워 수가 없습니다",
+    "no_works": "작품이 없습니다",
+    "recent_works": "최근 작품",
+    "anomaly_note": "업스트림 데이터가 이상할 수 있습니다: 팔로워 수와 작품 통계가 맞지 않습니다",
+    "likes": "좋아요",
+    "comments": "댓글",
+    "shares": "공유",
+    "plays": "재생"
+  },
   "doc_editor": {
     "toolbar": "서식",
     "tools": {

@@ -455,33 +455,134 @@ func (q *Queries) ListCreatorPosts(ctx context.Context, arg ListCreatorPostsPara
 	return items, nil
 }
 
+const listCreatorVideosRecent = `-- name: ListCreatorVideosRecent :many
+SELECT id, workspace_id, creator_id, aweme_id, desc_text, topics, create_time, duration_ms, digg_count, comment_count, share_count, cover_url, video_url, stats_collected_at, source_system, source_id, created_at, updated_at, archived_at, play_count FROM creator_video
+WHERE workspace_id = $1::uuid
+  AND creator_id = $2::uuid
+  AND archived_at IS NULL
+ORDER BY create_time DESC NULLS LAST, id DESC
+LIMIT $3::integer
+`
+
+type ListCreatorVideosRecentParams struct {
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	CreatorID   pgtype.UUID `json:"creator_id"`
+	Limit       int32       `json:"limit"`
+}
+
+// The newest mirrored works of one creator, for the health section of the
+// creator drawer (WORKBENCH-DATA-CONTRACT §2.1). `create_time` is nullable
+// (a work whose publish date was never captured), so the ordering sinks those
+// rows rather than hiding them, and the id keeps it total.
+func (q *Queries) ListCreatorVideosRecent(ctx context.Context, arg ListCreatorVideosRecentParams) ([]CreatorVideo, error) {
+	rows, err := q.db.Query(ctx, listCreatorVideosRecent, arg.WorkspaceID, arg.CreatorID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CreatorVideo{}
+	for rows.Next() {
+		var i CreatorVideo
+		if err := rows.Scan(
+			&i.ID,
+			&i.WorkspaceID,
+			&i.CreatorID,
+			&i.AwemeID,
+			&i.DescText,
+			&i.Topics,
+			&i.CreateTime,
+			&i.DurationMs,
+			&i.DiggCount,
+			&i.CommentCount,
+			&i.ShareCount,
+			&i.CoverUrl,
+			&i.VideoUrl,
+			&i.StatsCollectedAt,
+			&i.SourceSystem,
+			&i.SourceID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ArchivedAt,
+			&i.PlayCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listCreators = `-- name: ListCreators :many
 
-SELECT id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id, sec_uid, douyin_id, dy_uid, fans_display, quote_min, quote_max, cooperation_intent, lead_status, last_dm_at, likes_total, following_count, verify_type, tags, source_type, source_keyword, source_rank, source_system, source_id
-FROM creator
-WHERE workspace_id = $1
-  AND archived_at IS NULL
-  AND ($2::text IS NULL OR kind = $2::text)
+SELECT c.id, c.workspace_id, c.kind, c.display_name, c.platform, c.handle, c.url, c.fans, c.fans_d7, c.avg_play, c.engagement_rate, c.category, c.audience_note, c.region, c.price_note, c.score, c.risk_flag, c.blacklist_reason, c.owner_member_id, c.media_ip_project_id, c.created_by, c.created_at, c.updated_at, c.archived_at, c.media_ip_id, c.sec_uid, c.douyin_id, c.dy_uid, c.fans_display, c.quote_min, c.quote_max, c.cooperation_intent, c.lead_status, c.last_dm_at, c.likes_total, c.following_count, c.verify_type, c.tags, c.source_type, c.source_keyword, c.source_rank, c.source_system, c.source_id,
+    h.engagement_rate,
+    h.hit_rate,
+    h.posts_last_30d,
+    h.videos_with_stats,
+    h.captured_on AS metric_captured_on
+FROM creator c
+LEFT JOIN LATERAL (
+    SELECT
+        cm.captured_on,
+        cm.posts_last_30d,
+        cm.videos_with_stats,
+        cm.engagement_rate,
+        cm.hit_rate
+    FROM creator_metric cm
+    WHERE cm.creator_id = c.id
+      AND cm.workspace_id = c.workspace_id
+    ORDER BY cm.captured_on DESC
+    LIMIT 1
+) h ON TRUE
+CROSS JOIN LATERAL (
+    SELECT CASE $1::text
+        WHEN 'engagement' THEN h.engagement_rate::numeric
+        WHEN 'hit' THEN h.hit_rate::numeric
+        WHEN 'recent' THEN h.posts_last_30d::numeric
+        ELSE c.fans::numeric
+    END AS sort_value
+) sv
+WHERE c.workspace_id = $2
+  AND c.archived_at IS NULL
+  AND ($3::text IS NULL OR c.kind = $3::text)
   AND (
-    $3::text IS NULL
-    OR display_name ILIKE '%' || $3::text || '%'
-    OR handle ILIKE '%' || $3::text || '%'
+    $4::text IS NULL
+    OR c.display_name ILIKE '%' || $4::text || '%'
+    OR c.handle ILIKE '%' || $4::text || '%'
   )
   AND (
-    $4::timestamptz IS NULL
-    OR (created_at, id) < ($4::timestamptz, $5::uuid)
+    $5::uuid IS NULL
+    OR (
+        sv.sort_value IS NOT DISTINCT FROM $6::numeric
+        AND (c.fans, c.id) < ($7::bigint, $5::uuid)
+    )
+    OR sv.sort_value < $6::numeric
   )
-ORDER BY created_at DESC, id DESC
-LIMIT $6
+ORDER BY sv.sort_value DESC NULLS LAST, c.fans DESC NULLS LAST, c.id DESC
+LIMIT $8
 `
 
 type ListCreatorsParams struct {
-	WorkspaceID pgtype.UUID        `json:"workspace_id"`
-	Kind        pgtype.Text        `json:"kind"`
-	Query       pgtype.Text        `json:"query"`
-	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
-	CursorID    pgtype.UUID        `json:"cursor_id"`
-	Limit       int32              `json:"limit"`
+	Sort        string         `json:"sort"`
+	WorkspaceID pgtype.UUID    `json:"workspace_id"`
+	Kind        pgtype.Text    `json:"kind"`
+	Query       pgtype.Text    `json:"query"`
+	CursorID    pgtype.UUID    `json:"cursor_id"`
+	CursorValue pgtype.Numeric `json:"cursor_value"`
+	CursorFans  pgtype.Int8    `json:"cursor_fans"`
+	Limit       int32          `json:"limit"`
+}
+
+type ListCreatorsRow struct {
+	Creator          Creator        `json:"creator"`
+	EngagementRate   pgtype.Numeric `json:"engagement_rate"`
+	HitRate          pgtype.Numeric `json:"hit_rate"`
+	PostsLast30d     pgtype.Int4    `json:"posts_last_30d"`
+	VideosWithStats  pgtype.Int4    `json:"videos_with_stats"`
+	MetricCapturedOn pgtype.Date    `json:"metric_captured_on"`
 }
 
 // Creator commerce ledger (docs/engineering/WORKBENCH-API.md §3). Every read is
@@ -492,70 +593,96 @@ type ListCreatorsParams struct {
 // inserted above it. A cursor that does not resolve in this workspace yields an
 // empty page rather than silently restarting from the top, so a stale page
 // number cannot be mistaken for "fresh data".
-// The cursor is a resolved (created_at, id) pair, not an id the SQL looks up:
-// the handler reads the previous page's last row first, so a cursor from another
-// workspace (or a deleted one) is rejected there instead of silently returning an
-// empty page here.
-func (q *Queries) ListCreators(ctx context.Context, arg ListCreatorsParams) ([]Creator, error) {
+// The creator ledger, each row carrying its latest content-health snapshot
+// (docs/engineering/WORKBENCH-DATA-CONTRACT.md §2.3).
+//
+// The snapshot is a LEFT JOIN LATERAL and not an inner join: a creator with no
+// `creator_metric` row is still a creator someone has to see — "nobody has
+// sampled this person yet" is information — so every joined column is nullable
+// on the wire and a row cannot be filtered out by having no snapshot.
+//
+// `sort` names the ordering the screen asked for: `fans` (the default, and the
+// only ranking that means anything before any work has been sampled),
+// `engagement`, `hit` and `recent` (works posted in the last 30 days). Every one
+// of them keeps `fans DESC` as its second key and the id as its third, so the
+// order is total and a cursor page can neither repeat nor skip a row; a NULL
+// sort value sorts below every value, which is what "never sampled" means.
+//
+// The sort key is projected by its own lateral (`sv`) rather than repeated three
+// times: WHERE and ORDER BY both need it, and an output alias is not visible to
+// WHERE.
+//
+// The cursor is a resolved (sort value, fans, id) triple, not an id the SQL
+// looks up: the handler reads the cursor creator's current numbers first, so a
+// cursor from another workspace (or a deleted one) is rejected there instead of
+// silently returning an empty page here.
+func (q *Queries) ListCreators(ctx context.Context, arg ListCreatorsParams) ([]ListCreatorsRow, error) {
 	rows, err := q.db.Query(ctx, listCreators,
+		arg.Sort,
 		arg.WorkspaceID,
 		arg.Kind,
 		arg.Query,
-		arg.CursorAt,
 		arg.CursorID,
+		arg.CursorValue,
+		arg.CursorFans,
 		arg.Limit,
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Creator{}
+	items := []ListCreatorsRow{}
 	for rows.Next() {
-		var i Creator
+		var i ListCreatorsRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.WorkspaceID,
-			&i.Kind,
-			&i.DisplayName,
-			&i.Platform,
-			&i.Handle,
-			&i.Url,
-			&i.Fans,
-			&i.FansD7,
-			&i.AvgPlay,
+			&i.Creator.ID,
+			&i.Creator.WorkspaceID,
+			&i.Creator.Kind,
+			&i.Creator.DisplayName,
+			&i.Creator.Platform,
+			&i.Creator.Handle,
+			&i.Creator.Url,
+			&i.Creator.Fans,
+			&i.Creator.FansD7,
+			&i.Creator.AvgPlay,
+			&i.Creator.EngagementRate,
+			&i.Creator.Category,
+			&i.Creator.AudienceNote,
+			&i.Creator.Region,
+			&i.Creator.PriceNote,
+			&i.Creator.Score,
+			&i.Creator.RiskFlag,
+			&i.Creator.BlacklistReason,
+			&i.Creator.OwnerMemberID,
+			&i.Creator.MediaIpProjectID,
+			&i.Creator.CreatedBy,
+			&i.Creator.CreatedAt,
+			&i.Creator.UpdatedAt,
+			&i.Creator.ArchivedAt,
+			&i.Creator.MediaIpID,
+			&i.Creator.SecUid,
+			&i.Creator.DouyinID,
+			&i.Creator.DyUid,
+			&i.Creator.FansDisplay,
+			&i.Creator.QuoteMin,
+			&i.Creator.QuoteMax,
+			&i.Creator.CooperationIntent,
+			&i.Creator.LeadStatus,
+			&i.Creator.LastDmAt,
+			&i.Creator.LikesTotal,
+			&i.Creator.FollowingCount,
+			&i.Creator.VerifyType,
+			&i.Creator.Tags,
+			&i.Creator.SourceType,
+			&i.Creator.SourceKeyword,
+			&i.Creator.SourceRank,
+			&i.Creator.SourceSystem,
+			&i.Creator.SourceID,
 			&i.EngagementRate,
-			&i.Category,
-			&i.AudienceNote,
-			&i.Region,
-			&i.PriceNote,
-			&i.Score,
-			&i.RiskFlag,
-			&i.BlacklistReason,
-			&i.OwnerMemberID,
-			&i.MediaIpProjectID,
-			&i.CreatedBy,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.ArchivedAt,
-			&i.MediaIpID,
-			&i.SecUid,
-			&i.DouyinID,
-			&i.DyUid,
-			&i.FansDisplay,
-			&i.QuoteMin,
-			&i.QuoteMax,
-			&i.CooperationIntent,
-			&i.LeadStatus,
-			&i.LastDmAt,
-			&i.LikesTotal,
-			&i.FollowingCount,
-			&i.VerifyType,
-			&i.Tags,
-			&i.SourceType,
-			&i.SourceKeyword,
-			&i.SourceRank,
-			&i.SourceSystem,
-			&i.SourceID,
+			&i.HitRate,
+			&i.PostsLast30d,
+			&i.VideosWithStats,
+			&i.MetricCapturedOn,
 		); err != nil {
 			return nil, err
 		}

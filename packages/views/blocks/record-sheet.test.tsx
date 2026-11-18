@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { hrCandidateListOptions, hrJobListOptions } from "@morechat/core/hr/queries";
 import { departmentListOptions, memberListOptions } from "@morechat/core/workspace/queries";
 import type {
+  Creator,
   Department,
   HrCandidate,
   HrEmployeeProfile,
@@ -13,7 +14,7 @@ import type {
 } from "@morechat/core/types";
 import { renderWithI18n } from "../test/i18n";
 import en from "../locales/en/blocks.json";
-import { RecordSheet, formatMoney, formatStamp, type RecordTarget } from "./record-sheet";
+import { CreatorHealthSection, RecordSheet, formatMoney, formatStamp, type RecordTarget } from "./record-sheet";
 
 // The sheet is the row with every column the contract lists. This suite checks
 // two things only: each of the four entities draws its own fields, and a field
@@ -236,5 +237,109 @@ describe("RecordSheet · empty fields", () => {
     // An empty field is a value, not a missing label.
     expect(screen.getByText("Phone")).toBeInTheDocument();
     expect(screen.getByText("Offer salary")).toBeInTheDocument();
+  });
+});
+
+// ---- the creator drawer's 内容健康度 section --------------------------------
+// The section reads the health fields the creators ledger already joined onto
+// its row, so a test needs no metric query — only a row and a QueryClient for
+// the (disabled, workspace-less) work list.
+
+const CREATOR: Creator = {
+  id: "creator-1-0000-0000-0000-000000000001",
+  workspace_id: WS,
+  kind: "external",
+  display_name: "林小满",
+  platform: "douyin",
+  handle: "@linxiaoman",
+  url: null,
+  fans: 12000,
+  fans_d7: 0,
+  avg_play: 0,
+  engagement_rate: 0.129,
+  category: null,
+  audience_note: null,
+  region: null,
+  price_note: null,
+  score: null,
+  risk_flag: false,
+  blacklist_reason: null,
+  owner_member_id: null,
+  media_ip_project_id: null,
+  created_by: null,
+  created_at: "2026-01-01T09:00:00Z",
+  updated_at: "2026-01-01T09:00:00Z",
+  archived_at: null,
+  sec_uid: null,
+  douyin_id: null,
+  dy_uid: null,
+  fans_display: null,
+  quote_min: null,
+  quote_max: null,
+  cooperation_intent: null,
+  lead_status: null,
+  last_dm_at: null,
+  likes_total: null,
+  following_count: null,
+  verify_type: null,
+  tags: [],
+  source_type: null,
+  source_keyword: null,
+  source_rank: null,
+  source_system: null,
+  source_id: null,
+  hit_rate: 0.47619,
+  posts_last_30d: 4,
+  videos_with_stats: 12,
+  metric_captured_on: "2026-11-18",
+};
+
+function renderHealthSection(creator: Creator) {
+  const qc = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+  });
+  return renderWithI18n(
+    <QueryClientProvider client={qc}>
+      <CreatorHealthSection creator={creator} />
+    </QueryClientProvider>,
+  );
+}
+
+describe("CreatorHealthSection · the drawer's content health", () => {
+  it("draws the three numbers and the line that says what they mean", () => {
+    renderHealthSection(CREATOR);
+
+    expect(screen.getByText(en.creator_health.title)).toBeInTheDocument();
+    // 0.129 → 12.9 %, 0.47619 → 47.6 %, and the 30-day count as a count.
+    expect(screen.getByText("12.9%")).toBeInTheDocument();
+    expect(screen.getByText("47.6%")).toBeInTheDocument();
+    expect(screen.getByText("4 works")).toBeInTheDocument();
+    expect(screen.getByText(en.creator_health.definition)).toBeInTheDocument();
+    // No gap: every number was computable, so nothing explains a missing one.
+    expect(screen.queryByText(en.creator_health.gap_small_sample)).toBeNull();
+    expect(screen.queryByText(en.creator_health.gap_no_metric)).toBeNull();
+  });
+
+  it("explains a sample too small for a hit rate", () => {
+    renderHealthSection({ ...CREATOR, videos_with_stats: 3, hit_rate: null });
+
+    expect(screen.getByText(en.creator_health.gap_small_sample)).toBeInTheDocument();
+    // The missing number is the dash, and the other two are still there.
+    expect(screen.getByText(en.creator_health.definition)).toBeInTheDocument();
+    expect(screen.getByText("12.9%")).toBeInTheDocument();
+  });
+
+  it("says there is no work data at all when no snapshot was joined", () => {
+    renderHealthSection({
+      ...CREATOR,
+      engagement_rate: null,
+      hit_rate: null,
+      posts_last_30d: null,
+      videos_with_stats: null,
+      metric_captured_on: null,
+    });
+
+    expect(screen.getByText(en.creator_health.gap_no_metric)).toBeInTheDocument();
+    expect(screen.getAllByText("—")).toHaveLength(3);
   });
 });

@@ -590,6 +590,24 @@
       "no_posts": "还没有发布记录"
     }
   },
+  "creator_health": {
+    "title": "内容健康度",
+    "engagement_rate": "互动率",
+    "hit_rate": "爆款率",
+    "posts_last_30d": "近30天更新",
+    "posts_value": "{{count}} 条",
+    "definition": "互动率 =（均赞+均评+均分享）/ 粉丝数；爆款率 = 点赞超过作品点赞中位数 2 倍的作品占比",
+    "gap_no_metric": "还没有采集到作品数据",
+    "gap_small_sample": "作品统计不足 10 条，爆款率不计算",
+    "gap_no_fans": "缺少粉丝数",
+    "no_works": "还没有作品",
+    "recent_works": "最近作品",
+    "anomaly_note": "上游数据可能异常：粉丝数与作品统计不匹配",
+    "likes": "点赞",
+    "comments": "评论",
+    "shares": "分享",
+    "plays": "播放"
+  },
   "doc_editor": {
     "toolbar": "格式",
     "tools": {

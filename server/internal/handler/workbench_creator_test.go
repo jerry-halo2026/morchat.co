@@ -334,7 +334,7 @@ func TestListCreatorsPagesByCursor(t *testing.T) {
 		t.Fatalf("page = %d rows, want 1", len(page.Creators))
 	}
 
-	// The exact ordering is by created_at DESC; whichever row came back, the
+	// The ordering is the default `fans DESC`; whichever row came back, the
 	// cursor must move past it.
 	cursor := page.Creators[0].ID
 	req = workbenchRequest(t, "GET", "/api/workbench/creators?limit=10&cursor="+cursor, nil, testUserID)
@@ -351,4 +351,195 @@ func TestListCreatorsPagesByCursor(t *testing.T) {
 	// A cursor that does not resolve is a client bug, not an empty ledger.
 	req = workbenchRequest(t, "GET", "/api/workbench/creators?cursor=00000000-0000-0000-0000-000000000000", nil, testUserID)
 	testutil.Call(t, testHandler.ListCreators, req).Want(http.StatusBadRequest)
+}
+
+// ---- content health on the creator ledger ---------------------------------
+
+// insertCreatorMetric writes one day's snapshot for a fixture creator. The list
+// read joins the newest one, so the tests below need exact values rather than
+// whatever the arithmetic would produce from a set of works.
+func insertCreatorMetric(t *testing.T, workspaceID, creatorID string, engagement, hit *float64, posts, videosWithStats int32) {
+	t.Helper()
+	dbfx.Exec(t, `
+		INSERT INTO creator_metric (
+			workspace_id, creator_id, captured_on, video_count, videos_with_stats,
+			posts_last_30d, engagement_rate, hit_rate
+		)
+		VALUES ($1, $2, '2026-11-18', 12, $3, $4, $5, $6)`,
+		workspaceID, creatorID, videosWithStats, posts, engagement, hit)
+}
+
+// listCreatorPage reads the ledger in one workspace and indexes it by id.
+func listCreatorPage(t *testing.T, workspaceID, query string) ([]CreatorResponse, map[string]CreatorResponse) {
+	t.Helper()
+	req := healthRequest(t, "GET", "/api/workbench/creators"+query, testUserID, workspaceID)
+	var page struct {
+		Creators []CreatorResponse `json:"creators"`
+		Total    int               `json:"total"`
+	}
+	testutil.Call(t, testHandler.ListCreators, req).Want(http.StatusOK).JSON(&page)
+	byID := make(map[string]CreatorResponse, len(page.Creators))
+	for _, row := range page.Creators {
+		byID[row.ID] = row
+	}
+	return page.Creators, byID
+}
+
+// TestListCreatorsCarriesLatestHealth covers the join's two promises: a sampled
+// creator's newest snapshot arrives flattened on the row, and a creator nobody
+// has sampled is still in the list with every health field null — not 0, and not
+// filtered out by the join.
+func TestListCreatorsCarriesLatestHealth(t *testing.T) {
+	workspaceID, _ := healthWorkspace(t)
+	sampled := insertHealthCreator(t, workspaceID, "health-sampled", 12000)
+	unsampled := insertHealthCreator(t, workspaceID, "health-unsampled", 8000)
+	engagement := 0.129
+	hit := 0.47619
+	insertCreatorMetric(t, workspaceID, sampled.String(), &engagement, &hit, 4, 12)
+
+	rows, byID := listCreatorPage(t, workspaceID, "?limit=200")
+	if len(rows) != 2 {
+		t.Fatalf("list returned %d creators, want 2: a creator with no snapshot must not be filtered out", len(rows))
+	}
+
+	got := byID[sampled.String()]
+	if got.EngagementRate == nil || *got.EngagementRate != engagement {
+		t.Fatalf("engagement_rate = %v, want %v", got.EngagementRate, engagement)
+	}
+	if got.HitRate == nil || *got.HitRate != hit {
+		t.Fatalf("hit_rate = %v, want %v", got.HitRate, hit)
+	}
+	if got.PostsLast30D == nil || *got.PostsLast30D != 4 {
+		t.Fatalf("posts_last_30d = %v, want 4", got.PostsLast30D)
+	}
+	if got.VideosWithStats == nil || *got.VideosWithStats != 12 {
+		t.Fatalf("videos_with_stats = %v, want 12", got.VideosWithStats)
+	}
+	if got.MetricCapturedOn == nil || *got.MetricCapturedOn != "2026-11-18" {
+		t.Fatalf("metric_captured_on = %v, want 2026-11-18", got.MetricCapturedOn)
+	}
+
+	empty := byID[unsampled.String()]
+	if empty.EngagementRate != nil || empty.HitRate != nil || empty.PostsLast30D != nil ||
+		empty.VideosWithStats != nil || empty.MetricCapturedOn != nil {
+		t.Fatalf("unsampled creator carries health %v/%v/%v/%v/%v, want every field null",
+			empty.EngagementRate, empty.HitRate, empty.PostsLast30D,
+			empty.VideosWithStats, empty.MetricCapturedOn)
+	}
+}
+
+// TestListCreatorsSortsByEngagement puts the highest rate first and every
+// never-sampled creator after them, which is what NULLS LAST is for.
+func TestListCreatorsSortsByEngagement(t *testing.T) {
+	workspaceID, _ := healthWorkspace(t)
+	high := insertHealthCreator(t, workspaceID, "engagement-high", 1000)
+	low := insertHealthCreator(t, workspaceID, "engagement-low", 2000)
+	none := insertHealthCreator(t, workspaceID, "engagement-none", 3000)
+	highRate := 0.42
+	lowRate := 0.07
+	insertCreatorMetric(t, workspaceID, high.String(), &highRate, nil, 1, 12)
+	insertCreatorMetric(t, workspaceID, low.String(), &lowRate, nil, 1, 12)
+
+	rows, _ := listCreatorPage(t, workspaceID, "?sort=engagement&limit=200")
+	if len(rows) != 3 {
+		t.Fatalf("list returned %d creators, want 3", len(rows))
+	}
+	want := []string{high.String(), low.String(), none.String()}
+	for i, id := range want {
+		if rows[i].ID != id {
+			t.Fatalf("sort=engagement row %d = %s, want %s (order: high, low, unsampled last)", i, rows[i].ID, id)
+		}
+	}
+	if rows[2].EngagementRate != nil {
+		t.Fatalf("last row has engagement_rate %v, want null", *rows[2].EngagementRate)
+	}
+
+	// The cursor has to resume inside the same ordering, not repeat the row it
+	// was built from.
+	req := healthRequest(t, "GET", "/api/workbench/creators?sort=engagement&limit=1&cursor="+high.String(), testUserID, workspaceID)
+	var next struct {
+		Creators []CreatorResponse `json:"creators"`
+	}
+	testutil.Call(t, testHandler.ListCreators, req).Want(http.StatusOK).JSON(&next)
+	if len(next.Creators) != 1 || next.Creators[0].ID != low.String() {
+		t.Fatalf("page after cursor = %v, want the low-rate creator %s", next.Creators, low.String())
+	}
+
+	// An ordering the server does not have is a 400, not the default order
+	// presented as the requested one.
+	req = healthRequest(t, "GET", "/api/workbench/creators?sort=vibes", testUserID, workspaceID)
+	testutil.Call(t, testHandler.ListCreators, req).Want(http.StatusBadRequest)
+}
+
+// TestListCreatorsDefaultSortIsFans keeps the ledger's opening order: biggest
+// audience first, whether `sort` is omitted or named explicitly.
+func TestListCreatorsDefaultSortIsFans(t *testing.T) {
+	workspaceID, _ := healthWorkspace(t)
+	small := insertHealthCreator(t, workspaceID, "fans-small", 100)
+	big := insertHealthCreator(t, workspaceID, "fans-big", 9000)
+	mid := insertHealthCreator(t, workspaceID, "fans-mid", 3000)
+
+	want := []string{big.String(), mid.String(), small.String()}
+	for _, query := range []string{"?limit=200", "?sort=fans&limit=200"} {
+		rows, _ := listCreatorPage(t, workspaceID, query)
+		if len(rows) != 3 {
+			t.Fatalf("%s returned %d creators, want 3", query, len(rows))
+		}
+		for i, id := range want {
+			if rows[i].ID != id {
+				t.Fatalf("%s row %d = %s, want %s", query, i, rows[i].ID, id)
+			}
+		}
+	}
+}
+
+// TestListCreatorVideosNewestFirst covers the drawer's 最近作品 read: newest
+// work first, the requested page size, a play count that stays null when it was
+// never collected, and a creator outside the workspace as a 404.
+func TestListCreatorVideosNewestFirst(t *testing.T) {
+	workspaceID, _ := healthWorkspace(t)
+	creatorID := insertHealthCreator(t, workspaceID, "videos-creator", 1000)
+	newest := insertCreatorVideo(t, workspaceID, creatorID.String(), "aweme-newest", -1)
+	dbfx.Exec(t, `UPDATE creator_video SET digg_count = 120, comment_count = 8, share_count = 3 WHERE id = $1`, newest)
+	insertCreatorVideo(t, workspaceID, creatorID.String(), "aweme-middle", -2)
+	insertCreatorVideo(t, workspaceID, creatorID.String(), "aweme-oldest", -3)
+
+	req := healthRequest(t, "GET", "/api/workbench/creators/"+creatorID.String()+"/videos?limit=2", testUserID, workspaceID)
+	req = withURLParam(req, "creatorId", creatorID.String())
+	var page struct {
+		Videos []CreatorVideoResponse `json:"videos"`
+		Total  int                    `json:"total"`
+	}
+	testutil.Call(t, testHandler.ListCreatorVideos, req).Want(http.StatusOK).JSON(&page)
+	if page.Total != 2 || len(page.Videos) != 2 {
+		t.Fatalf("videos = %d rows, want the 2 asked for", len(page.Videos))
+	}
+	if page.Videos[0].AwemeID != "aweme-newest" {
+		t.Fatalf("first work = %s, want the newest", page.Videos[0].AwemeID)
+	}
+	if page.Videos[0].DiggCount == nil || *page.Videos[0].DiggCount != 120 {
+		t.Fatalf("digg_count = %v, want 120", page.Videos[0].DiggCount)
+	}
+	// The counters nobody collected stay null: "no data" is not "0 plays".
+	if page.Videos[0].PlayCount != nil {
+		t.Fatalf("play_count = %v, want null", *page.Videos[0].PlayCount)
+	}
+
+	req = healthRequest(t, "GET", "/api/workbench/creators/00000000-0000-0000-0000-000000000000/videos", testUserID, workspaceID)
+	req = withURLParam(req, "creatorId", "00000000-0000-0000-0000-000000000000")
+	testutil.Call(t, testHandler.ListCreatorVideos, req).Want(http.StatusNotFound)
+}
+
+// insertCreatorVideo mirrors one work published `daysAgo` days ago.
+func insertCreatorVideo(t *testing.T, workspaceID, creatorID, awemeID string, daysAgo int) string {
+	t.Helper()
+	var id string
+	dbfx.QueryRow(t, `
+		INSERT INTO creator_video (
+			workspace_id, creator_id, aweme_id, desc_text, create_time, source_system, source_id
+		)
+		VALUES ($1, $2, $3, $4, now() + ($5 || ' days')::interval, 'orange', $3)
+		RETURNING id::text`,
+		workspaceID, creatorID, awemeID, "作品 "+awemeID, fmt.Sprintf("%d", daysAgo)).Scan(&id)
+	return id
 }

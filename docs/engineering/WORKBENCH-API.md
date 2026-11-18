@@ -112,7 +112,7 @@ crm_settlement(id PK, workspace_id, collab_id UUID NOT NULL,
 | GET | `/overview?department_id=` | 聚合指标：`{ metrics: { [MetricId]: { value: number \| null, sample_count: number, empty: "zero"\|"insufficient_data" } } }` |
 | GET | `/counts?department_id=` | 侧栏计数：`{ creators, clients, briefs, collabs_open, settlements_pending }` |
 | GET | `/finance?department_id=` | 经营只读聚合：`{ window, signed, collected, gross_margin, receivable_days, cash_floor }`，见 §3.2 |
-| GET/POST | `/creators` | 列表（`?kind=&q=&limit=&cursor=`）/ 新建 |
+| GET/POST | `/creators` | 列表（`?kind=&q=&sort=&limit=&cursor=`，每行带最新内容健康度，见 §19.3）/ 新建 |
 | GET/PATCH/DELETE | `/creators/{creatorId}` | 单条；DELETE = 软删 |
 | GET/POST | `/creator-posts` | 列表（`?creator_id=&from=&to=`）/ 新建 |
 | PATCH/DELETE | `/creator-posts/{postId}` | 单条 |
@@ -134,8 +134,8 @@ crm_settlement(id PK, workspace_id, collab_id UUID NOT NULL,
 | --- | --- |
 | 列表 | `{ <resource>: T[], total: number }`，`resource` 用复数：`creators` / `posts` / `metrics` / `clients` / `briefs` / `collabs` / `settlements`（发布记录用 `posts`，不使用 `creator_posts`） |
 | `total` 语义 | **本页条数**，不是全量总数。权威计数只来自 `/counts`；列表不额外跑 COUNT |
-| 达人列表额外 | `next_cursor: string \| null`（本页满时返回最后一行 id，即 `?cursor=` 接受的取值；只有 creators 分页，其余列表全量返回，服务端硬上限 500 行） |
-| 分页参数 | `?cursor=<上一页最后一行 id>&limit=<n>`，`limit` 默认 50、上限 200；游标解析失败返回 **400**，不静默返回空页 |
+| 达人列表额外 | `next_cursor: string \| null`（本页满时返回最后一行 id，即 `?cursor=` 接受的取值；只有 creators 分页，其余列表全量返回，服务端硬上限 500 行）；每行另带 `engagement_rate` / `hit_rate` / `posts_last_30d` / `videos_with_stats` / `metric_captured_on` 五个可空健康度字段（§19.3） |
+| 分页参数 | `?cursor=<上一页最后一行 id>&limit=<n>`，`limit` 默认 50、上限 200；游标解析失败返回 **400**，不静默返回空页。达人列表的 cursor 按当前 `sort` 重新解析成 `(排序值, fans, id)` 三元组（§19.3） |
 | 单条 / 新建 / 更新 | 直接返回该对象，不包裹 |
 | 删除 | `204`，无 body（软删） |
 | `POST …/metrics` | 返回该日快照行本身 |
@@ -1824,7 +1824,7 @@ word/styles.xml
 
 - 三个计数列可空：**NULL = 还没采到统计，不是 0**（今天 12449 条里 8612 条是 NULL）。
 - `topics` 是派生列（从 `desc_text` 解析），不是上游列。
-- 没有 `play_count`：契约 §2.1 明确不进表。
+- `play_count` 可空：上游 12449 行里 3047 行有值，缺失就是缺失，不写 0（契约 §2.1）。
 
 **`creator_metric`**：`workspace_id`、`creator_id`、`captured_on date`、`video_count`、`videos_with_stats`、`posts_last_30d`、`avg_digg` / `avg_comment` / `avg_share` `numeric(14,2)`、`engagement_rate` `numeric(10,5)`、`hit_rate` `numeric(6,5)`、`sample_note`、`created_at` / `updated_at`。
 
@@ -1864,27 +1864,59 @@ word/styles.xml
 - `recent`：最近 **30 天**（今天 + 前 29 天）的快照，按 `captured_on DESC`。`recent` 永远不是 `null`。
 - 达人不在本工作区（或已归档）→ 404，而不是一条空健康记录。
 
+#### `GET /api/workbench/creators?sort=fans|engagement|hit|recent&kind=&q=&cursor=&limit=`
+
+台账列表（本身见 §3），每行在 creator 列之外多出最新快照的五个可空字段：
+
+| 字段 | 口径 |
+| --- | --- |
+| `engagement_rate` | 最新快照的互动率（0–1，**不 clamp**）。注意：列表接口里这个键来自 `creator_metric`，不再是 `creator.engagement_rate` 那个手工列——台账的「互动率」是内容健康度；`GET /creators/{creatorId}` 仍返回手工列 |
+| `hit_rate` | 最新快照的爆款率 |
+| `posts_last_30d` | 最新快照的近 30 天作品数 |
+| `videos_with_stats` | 最新快照的样本量（带统计的作品条数） |
+| `metric_captured_on` | 该快照的日期 `YYYY-MM-DD`；没有快照时 `null` |
+
+- 实现：`LEFT JOIN LATERAL (SELECT … FROM creator_metric WHERE creator_id = c.id AND workspace_id = c.workspace_id ORDER BY captured_on DESC LIMIT 1) h ON TRUE`（`server/pkg/db/queries/workbench_creator.sql` 的 `ListCreators`）。**没有 metric 行的达人也返回**，五个字段全 `null`——inner join 会让台账悄悄变短，而"这个人还没采到数据"本身是信息。
+- `sort`：`fans`（缺省，`fans DESC`）/ `engagement` / `hit` / `recent`（`posts_last_30d`）。四种都是 `DESC NULLS LAST`，次级 `fans DESC NULLS LAST`，末位 `id DESC`，所以顺序是全序，翻页不会重复或漏行。`sort` 非法 → 400。
+- `cursor` 与健康榜单同一套语义：cursor 是达人 id，服务端按当前 `sort` 重读它的 `(排序值, fans)` 再拼 keyset 条件。
+- 排序在服务端：前端列头只改 `sort` 参数，不做本地重排（625 行台账本地排序会把"这一页的顺序"画成"台账的顺序"）。
+
+#### `GET /api/workbench/creators/{creatorId}/videos?limit=`
+
+```json
+{ "videos": [ { "id": "…", "aweme_id": "…", "desc_text": "…", "topics": ["…"],
+               "create_time": "2026-11-18T09:00:00Z", "digg_count": 120,
+               "comment_count": 8, "share_count": 3, "play_count": null,
+               "cover_url": "…", "stats_collected_at": "…" } ],
+  "total": 5 }
+```
+
+- 该达人镜像作品，`create_time DESC NULLS LAST, id DESC`；`limit` 默认 50、上限 200（健康度抽屉只要 5 条）。
+- 计数列全部可空：NULL = 还没采到，**不是 0**（`play_count` 也一样，缺失时界面画 `—`）。
+- 达人不在本工作区（或已归档）→ 404，而不是一个空列表。
+
 ### 19.4 权限
 
-两个接口都走 `workbenchReadScope`：**任意工作区成员可读**。内容数据不是 ACL，也没有"我的达人/你的达人"之分；写入口是 CLI，没有成员级授权问题。
+三个接口都走 `workbenchReadScope`：**任意工作区成员可读**。内容数据不是 ACL，也没有"我的达人/你的达人"之分；写入口是 CLI，没有成员级授权问题。
 
 ### 19.5 Query key
 
 ```
 ["creator", wsId, "health", filters]
 ["creator", wsId, { id }, "health"]
+["creator", wsId, { id }, "videos"]
 ```
 
-两条都挂在 `creatorKeys.all(wsId)` 下，`creator:changed` 的失效能覆盖到；`packages/core/creator/queries.ts` 导出 `creatorHealthOptions` / `creatorHealthDetailOptions`，`packages/core/creator/index.ts` 统一导出。**没有事件**：写入口是批处理 CLI，不通过 WebSocket 通知（客户端靠刷新/重新拉取看到新快照）。
+三条都挂在 `creatorKeys.all(wsId)` 下，`creator:changed` 的失效能覆盖到；`packages/core/creator/queries.ts` 导出 `creatorHealthOptions` / `creatorHealthDetailOptions` / `creatorVideosOptions`，`packages/core/creator/index.ts` 统一导出。**没有事件**：写入口是批处理 CLI，不通过 WebSocket 通知（客户端靠刷新/重新拉取看到新快照）。
 
 ### 19.6 已知债务与本批未做
 
-- **没有作品（`creator_video`）的读接口**：本批只交付指标读；作品列表/详情（含 `topics`、`cover_url`）留给下一批，`CreatorVideo` 类型已经备好。
+- **作品只有一个"最近 N 条"读**：`/creators/{id}/videos` 够抽屉用，作品级筛选（按时间/话题/播放量分页检索）留给下一批。
 - **没有指标写入接口**：`creator_metric` 只由 CLI 写。手工修正一个达人当天的指标目前要么重跑，要么直接改库。
-- **UI / views 未接入**：`packages/views/**`、`apps/**` 不在写作用域。
 - **`packages/core/metrics/contracts.ts` 未改**：两个指标进指标契约是另一批（本批只保证落库口径与契约 §2.3 逐字一致）。
 - **指标不归档**：`creator_metric` 没有 `archived_at`，历史快照永久保留；达人归档后其历史仍在（这正是快照的意义）。
 - **不做定时任务**：`-videos` 需要外部调度（cron / CI）来每天跑一次。
+- **不做趋势图/导出**：台账三列 + 抽屉一节到此为止，`recent` 的 30 天序列还没有可视化。
 
 ## 9. 完成定义（DoD）
 

@@ -590,6 +590,24 @@
       "no_posts": "まだ投稿がありません"
     }
   },
+  "creator_health": {
+    "title": "コンテンツ健全性",
+    "engagement_rate": "エンゲージ率",
+    "hit_rate": "ヒット率",
+    "posts_last_30d": "30日間の更新",
+    "posts_value": "{{count}} 件",
+    "definition": "エンゲージ率 =（平均いいね + コメント + シェア）/ フォロワー数、ヒット率 = いいねが中央値の2倍を超える作品の割合",
+    "gap_no_metric": "作品データがまだ取得されていません",
+    "gap_small_sample": "統計のある作品が10件未満のため、ヒット率は算出していません",
+    "gap_no_fans": "フォロワー数がありません",
+    "no_works": "作品がありません",
+    "recent_works": "最近の作品",
+    "anomaly_note": "上流データが異常の可能性：フォロワー数と作品統計が一致しません",
+    "likes": "いいね",
+    "comments": "コメント",
+    "shares": "シェア",
+    "plays": "再生"
+  },
   "doc_editor": {
     "toolbar": "書式",
     "tools": {

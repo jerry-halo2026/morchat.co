@@ -55,7 +55,15 @@ export interface Creator {
   fans: number;
   fans_d7: number;
   avg_play: number;
-  /** 0–1 (docs/METRICS.md C3); display multiplies by 100. */
+  /**
+   * Content health: (average likes + comments + shares) / followers, 0–1
+   * (docs/METRICS.md C3), on the *latest snapshot* when the row came from the
+   * list endpoint — the ledger's 互动率 column. `GET /creators/{id}` still
+   * reports the legacy manually entered `creator.engagement_rate` column.
+   *
+   * Never clamped: 45.03 (= 4503 %) is real upstream data and means the follower
+   * count disagrees with the works. Null means "not computable", not 0.
+   */
   engagement_rate: number | null;
   category: string | null;
   audience_note: string | null;
@@ -102,6 +110,18 @@ export interface Creator {
   source_rank: number | null;
   source_system: string | null;
   source_id: string | null;
+
+  /**
+   * The rest of the newest snapshot (WORKBENCH-DATA-CONTRACT §2.3), joined onto
+   * the list response only. Optional so a `GET /creators/{id}` row — and every
+   * fixture written before the ledger carried health — still parses; every one
+   * of them is null for a creator nobody has sampled yet.
+   */
+  hit_rate?: number | null;
+  posts_last_30d?: number | null;
+  videos_with_stats?: number | null;
+  /** Calendar day `YYYY-MM-DD` of the joined snapshot. */
+  metric_captured_on?: string | null;
 }
 
 /**
@@ -173,8 +193,8 @@ export interface CreatorPostMetric {
  * 8612 of the 12449 mirrored works sit in that state, so a UI that treats NULL as
  * zero would invent engagement for two thirds of the library.
  *
- * There is no `play_count`: the contract keeps it out rather than publish a
- * number the platform does not reliably report.
+ * `play_count` is nullable for the same reason: roughly a quarter of the mirrored
+ * rows carry a value, and a missing one is missing rather than zero.
  */
 export interface CreatorVideo {
   id: string;
@@ -190,6 +210,8 @@ export interface CreatorVideo {
   digg_count: number | null;
   comment_count: number | null;
   share_count: number | null;
+  /** Plays, when the platform reported them. Null is "not collected". */
+  play_count: number | null;
   cover_url: string | null;
   video_url: string | null;
   /** When the three counters were read off the platform. */
@@ -536,8 +558,26 @@ export interface CreatorListFilters {
   q?: string;
   limit?: number;
   cursor?: string;
+  /**
+   * The ledger's ordering (WORKBENCH-API §3). `fans` is the default; the three
+   * content sorts put creators with no snapshot last. Everything is descending,
+   * with followers as the second key, so the order is total.
+   */
+  sort?: CreatorListSort;
   /** Aggregate dimension only; never an access boundary. */
   department_id?: string | null;
+}
+
+/**
+ * The creator ledger's `?sort=` values. `fans` is the opening order: the only
+ * ranking that means something before any work has been sampled. `recent` is
+ * works posted in the last 30 days.
+ */
+export type CreatorListSort = "fans" | "engagement" | "hit" | "recent";
+
+export interface CreatorVideoListResponse {
+  videos: CreatorVideo[];
+  total: number;
 }
 
 export interface CreatorPostListFilters {

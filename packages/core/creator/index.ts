@@ -6,6 +6,7 @@ export {
   creatorListOptions,
   creatorPostMetricsOptions,
   creatorPostsOptions,
+  creatorVideosOptions,
 } from "./queries";
 export {
   useCreateCreator,

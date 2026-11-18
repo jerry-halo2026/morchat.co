@@ -26,7 +26,7 @@ import { useCreateCreatorPost } from "@morechat/core/creator/mutations";
 import { creatorPostsOptions } from "@morechat/core/creator/queries";
 import type { Creator } from "@morechat/core/types";
 import { useLocale, useT } from "../i18n";
-import { formatStamp } from "./record-sheet";
+import { CreatorHealthSection, formatStamp } from "./record-sheet";
 
 export interface PublishDialogProps {
   wsId: string;
@@ -304,6 +304,11 @@ export function CreatorSheet({ wsId, creator, open, onOpenChange }: CreatorSheet
               </ul>
             )}
           </section>
+
+          {/* Content health (WORKBENCH-DATA-CONTRACT §2.3): the numbers the
+              ledger ranks this creator on, what they mean, and the works behind
+              them. Read-only — the sync writes those rows. */}
+          <CreatorHealthSection wsId={wsId} creator={creator} open={open} />
         </div>
         <SheetFooter className="flex-row items-center justify-end gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>

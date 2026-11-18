@@ -2427,6 +2427,9 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 						r.Patch("/", h.UpdateCreator)
 						r.Delete("/", h.DeleteCreator)
 						r.Get("/health", h.GetCreatorHealth)
+						// The works behind that health (WORKBENCH-API §19): the
+						// drawer's 最近作品 strip, newest first.
+						r.Get("/videos", h.ListCreatorVideos)
 					})
 				})
 

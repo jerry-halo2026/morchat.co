@@ -118,6 +118,8 @@ import type {
   CreatorHealthDetailResponse,
   CreatorHealthListResponse,
   CreatorMetric,
+  CreatorVideo,
+  CreatorVideoListResponse,
   CrmClient,
   CrmClientListResponse,
   CrmBrief,
@@ -4569,6 +4571,13 @@ export const CreatorSchema = z.object({
   source_rank: workbenchNullableNumber,
   source_system: workbenchNullableString,
   source_id: workbenchNullableString,
+  // The newest content-health snapshot, joined on by the list endpoint only
+  // (WORKBENCH-API §19). Optional rather than defaulted so a `GET /creators/{id}`
+  // response — which returns the row and nothing joined — stays a valid parse.
+  hit_rate: workbenchNullableNumber.optional(),
+  posts_last_30d: workbenchNullableNumber.optional(),
+  videos_with_stats: workbenchNullableNumber.optional(),
+  metric_captured_on: workbenchNullableString.optional(),
 }).loose();
 
 export const EMPTY_CREATOR: Creator = {
@@ -4583,6 +4592,54 @@ export const EMPTY_CREATOR: Creator = {
   last_dm_at: null, likes_total: null, following_count: null, verify_type: null,
   tags: [], source_type: null, source_keyword: null, source_rank: null,
   source_system: null, source_id: null,
+};
+
+/**
+ * One mirrored work (WORKBENCH-DATA-CONTRACT §2.1). Every counter is nullable:
+ * "not collected yet" is NULL, not 0, so the drawer can draw its dash instead of
+ * claiming a video got no plays.
+ */
+export const CreatorVideoSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  creator_id: z.string().default(""),
+  aweme_id: z.string().default(""),
+  desc_text: workbenchNullableString,
+  topics: z.array(z.string()).default([]),
+  create_time: workbenchNullableString,
+  duration_ms: workbenchNullableNumber,
+  digg_count: workbenchNullableNumber,
+  comment_count: workbenchNullableNumber,
+  share_count: workbenchNullableNumber,
+  play_count: workbenchNullableNumber,
+  cover_url: workbenchNullableString,
+  video_url: workbenchNullableString,
+  stats_collected_at: workbenchNullableString,
+  source_system: workbenchNullableString,
+  source_id: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  // Never sent: the read only returns live works. Defaulted so the parsed object
+  // is a `CreatorVideo`.
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CREATOR_VIDEO: CreatorVideo = {
+  id: "", workspace_id: "", creator_id: "", aweme_id: "", desc_text: null,
+  topics: [], create_time: null, duration_ms: null, digg_count: null,
+  comment_count: null, share_count: null, play_count: null, cover_url: null,
+  video_url: null, stats_collected_at: null, source_system: null, source_id: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const CreatorVideoListResponseSchema = z.object({
+  videos: z.array(CreatorVideoSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_CREATOR_VIDEO_LIST_RESPONSE: CreatorVideoListResponse = {
+  videos: [],
+  total: 0,
 };
 
 export const CreatorListResponseSchema = z.object({

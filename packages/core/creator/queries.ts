@@ -43,6 +43,8 @@ export const creatorKeys = {
     [...creatorKeys.all(wsId), "health", filters] as const,
   healthDetail: (wsId: string, id: string) =>
     [...creatorKeys.all(wsId), { id }, "health"] as const,
+  videos: (wsId: string, id: string) =>
+    [...creatorKeys.all(wsId), { id }, "videos"] as const,
 };
 
 /**
@@ -100,6 +102,19 @@ export function creatorHealthDetailOptions(wsId: string, id: string) {
   return queryOptions({
     queryKey: creatorKeys.healthDetail(wsId, id),
     queryFn: () => api.getCreatorHealth(id),
+    enabled: !!wsId && !!id,
+  });
+}
+
+/**
+ * The mirrored works behind one creator's health, newest first (WORKBENCH-API
+ * §19). The drawer's 最近作品 strip asks for five; the list itself is capped by
+ * the ledger's own page size.
+ */
+export function creatorVideosOptions(wsId: string, id: string, limit = 5) {
+  return queryOptions({
+    queryKey: creatorKeys.videos(wsId, id),
+    queryFn: () => api.listCreatorVideos(id, limit),
     enabled: !!wsId && !!id,
   });
 }

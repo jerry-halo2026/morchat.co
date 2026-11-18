@@ -412,6 +412,8 @@ export type {
   CreatorKind,
   CreatorListFilters,
   CreatorListResponse,
+  CreatorListSort,
+  CreatorVideoListResponse,
   CreatorPost,
   CreatorPostListFilters,
   CreatorPostListResponse,

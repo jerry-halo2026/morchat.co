@@ -590,6 +590,24 @@
       "no_posts": "Aucune publication pour l’instant"
     }
   },
+  "creator_health": {
+    "title": "Santé du contenu",
+    "engagement_rate": "Engagement",
+    "hit_rate": "Taux de succès",
+    "posts_last_30d": "Mis à jour (30 j)",
+    "posts_value": "{{count}} publications",
+    "definition": "Engagement = (mentions j'aime + commentaires + partages moyens) / abonnés ; taux de succès = part des publications dépassant le double de la médiane des mentions j'aime.",
+    "gap_no_metric": "Aucune publication collectée pour le moment",
+    "gap_small_sample": "Moins de 10 publications avec statistiques : le taux de succès n'est pas calculé",
+    "gap_no_fans": "Nombre d'abonnés manquant",
+    "no_works": "Aucune publication enregistrée",
+    "recent_works": "Publications récentes",
+    "anomaly_note": "Données amont possiblement erronées : le nombre d'abonnés ne correspond pas aux publications",
+    "likes": "J'aime",
+    "comments": "Commentaires",
+    "shares": "Partages",
+    "plays": "Vues"
+  },
   "doc_editor": {
     "toolbar": "Mise en forme",
     "tools": {

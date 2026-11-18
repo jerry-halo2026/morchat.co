@@ -590,6 +590,24 @@
       "no_posts": "No posts logged yet"
     }
   },
+  "creator_health": {
+    "title": "Content health",
+    "engagement_rate": "Engagement",
+    "hit_rate": "Hit rate",
+    "posts_last_30d": "Updated (30d)",
+    "posts_value": "{{count}} works",
+    "definition": "Engagement = (avg likes + comments + shares) / followers; hit rate = the share of works with more than 2× the median likes.",
+    "gap_no_metric": "No works collected yet",
+    "gap_small_sample": "Fewer than 10 works with statistics, so the hit rate is not computed",
+    "gap_no_fans": "No follower count",
+    "no_works": "No works recorded",
+    "recent_works": "Recent works",
+    "anomaly_note": "Upstream data may be wrong: the follower count does not match the works",
+    "likes": "Likes",
+    "comments": "Comments",
+    "shares": "Shares",
+    "plays": "Plays"
+  },
   "doc_editor": {
     "toolbar": "Formatting",
     "tools": {

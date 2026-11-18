@@ -74,6 +74,25 @@ const CREATOR: Creator = {
   created_at: "2026-01-01T09:00:00Z",
   updated_at: "2026-01-01T09:00:00Z",
   archived_at: null,
+  // A creator typed in by hand: every orange-mirror column is null.
+  sec_uid: null,
+  douyin_id: null,
+  dy_uid: null,
+  fans_display: null,
+  quote_min: null,
+  quote_max: null,
+  cooperation_intent: null,
+  lead_status: null,
+  last_dm_at: null,
+  likes_total: null,
+  following_count: null,
+  verify_type: null,
+  tags: [],
+  source_type: null,
+  source_keyword: null,
+  source_rank: null,
+  source_system: null,
+  source_id: null,
 };
 
 const CLIENT: CrmClient = {

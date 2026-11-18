@@ -2,12 +2,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, screen, within } from "@testing-library/react";
 import { NavigationProvider, type NavigationAdapter } from "../navigation";
 import { renderWithI18n } from "../test/i18n";
+import en from "../locales/en/blocks.json";
 import { LedgerTable } from "./ledger-table";
 import type {
   AffiliateDaily,
   AffiliatePick,
   AffiliateProduct,
   AffiliateSettlement,
+  Creator,
   HrCandidate,
   HrEmployeeProfile,
   HrInterview,
@@ -453,5 +455,110 @@ describe("LedgerTable · cursor paging", () => {
 
     expect(screen.queryByRole("group", { name: "Jobs" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Load more" })).toBeNull();
+  });
+});
+
+// Content health (`WORKBENCH-DATA-CONTRACT` §2.3, `WORKBENCH-API.md` §19). The
+// three numbers come joined onto the ledger row, and a creator nobody has
+// sampled draws the dash — never a 0 nobody measured.
+function creator(overrides: Partial<Creator> & { id: string }): Creator {
+  return {
+    workspace_id: "ws-1",
+    kind: "external",
+    display_name: "林小满",
+    platform: "douyin",
+    handle: "@linxiaoman",
+    url: null,
+    fans: 12000,
+    fans_d7: 0,
+    avg_play: 0,
+    engagement_rate: null,
+    category: null,
+    audience_note: null,
+    region: null,
+    price_note: null,
+    // Set, so the only dashes in these rows are the health ones being asserted.
+    score: 4,
+    risk_flag: false,
+    blacklist_reason: null,
+    owner_member_id: null,
+    media_ip_project_id: null,
+    created_by: null,
+    created_at: "2026-01-01T09:00:00Z",
+    updated_at: "2026-01-01T09:00:00Z",
+    archived_at: null,
+    sec_uid: null,
+    douyin_id: null,
+    dy_uid: null,
+    fans_display: null,
+    quote_min: null,
+    quote_max: null,
+    cooperation_intent: null,
+    lead_status: null,
+    last_dm_at: null,
+    likes_total: null,
+    following_count: null,
+    verify_type: null,
+    tags: [],
+    source_type: null,
+    source_keyword: null,
+    source_rank: null,
+    source_system: null,
+    source_id: null,
+    ...overrides,
+  };
+}
+
+describe("LedgerTable · creator content health", () => {
+  it("draws the three health columns and the dash for an unsampled creator", () => {
+    const sampled = creator({
+      id: "creator-health-1",
+      display_name: "有数据的达人",
+      engagement_rate: 0.129,
+      hit_rate: 0.47619,
+      posts_last_30d: 4,
+      videos_with_stats: 12,
+      metric_captured_on: "2026-11-18",
+    });
+    const unsampled = creator({ id: "creator-health-2", display_name: "没数据的达人" });
+
+    renderWithI18n(
+      <NavigationProvider value={adapter()}>
+        <LedgerTable domain="creators" rows={[sampled, unsampled]} />
+      </NavigationProvider>,
+    );
+
+    const grid = screen.getByRole("grid", { name: "Creators" });
+    for (const header of ["Engagement", "Hit rate", "Updated (30d)"]) {
+      expect(within(grid).getByRole("columnheader", { name: header })).toBeInTheDocument();
+    }
+    // Rates are stored 0–1 and read as percentages, one decimal; the count reads
+    // as a count.
+    expect(within(grid).getByText("12.9%")).toBeInTheDocument();
+    expect(within(grid).getByText("47.6%")).toBeInTheDocument();
+    expect(within(grid).getByText("4 works")).toBeInTheDocument();
+    // One row of three numbers with no snapshot: three dashes, not three zeros.
+    expect(within(grid).getAllByText("—")).toHaveLength(3);
+    expect(within(grid).queryByText("0.0%")).toBeNull();
+  });
+
+  it("shows a rate above 100% as it is, never clamped, and says why on the cell", () => {
+    // 4.503 is 450.3 %; the live data also holds 45.03 (= 4503 %) on a creator
+    // whose follower count disagrees with the works. Both stay as they are.
+    const broken = creator({ id: "creator-health-3", engagement_rate: 4.503, hit_rate: 0.47619 });
+    const liveAnomaly = creator({ id: "creator-health-4", engagement_rate: 45.03 });
+
+    renderWithI18n(
+      <NavigationProvider value={adapter()}>
+        <LedgerTable domain="creators" rows={[broken, liveAnomaly]} />
+      </NavigationProvider>,
+    );
+
+    const grid = screen.getByRole("grid", { name: "Creators" });
+    expect(within(grid).getByText("450.3%")).toBeInTheDocument();
+    expect(within(grid).getByText("4503.0%")).toBeInTheDocument();
+    expect(within(grid).queryByText("100.0%")).toBeNull();
+    // The reason travels with the number, on both anomalous cells.
+    expect(within(grid).getAllByTitle(en.creator_health.anomaly_note)).toHaveLength(2);
   });
 });

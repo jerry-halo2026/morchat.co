@@ -590,6 +590,24 @@
       "no_posts": "Aún no hay publicaciones"
     }
   },
+  "creator_health": {
+    "title": "Salud del contenido",
+    "engagement_rate": "Interacción",
+    "hit_rate": "Tasa de éxitos",
+    "posts_last_30d": "Actualizado (30 d)",
+    "posts_value": "{{count}} obras",
+    "definition": "Interacción = (me gusta + comentarios + compartidos medios) / seguidores; tasa de éxitos = proporción de obras con más del doble de la mediana de me gusta.",
+    "gap_no_metric": "Todavía no se han recopilado obras",
+    "gap_small_sample": "Menos de 10 obras con estadísticas, así que no se calcula la tasa de éxitos",
+    "gap_no_fans": "Falta el número de seguidores",
+    "no_works": "Sin obras registradas",
+    "recent_works": "Obras recientes",
+    "anomaly_note": "Los datos de origen pueden ser incorrectos: el número de seguidores no concuerda con las obras",
+    "likes": "Me gusta",
+    "comments": "Comentarios",
+    "shares": "Compartidos",
+    "plays": "Reproducciones"
+  },
   "doc_editor": {
     "toolbar": "Formato",
     "tools": {
