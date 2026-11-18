@@ -45,3 +45,32 @@ export const api = new Proxy({} as ApiClientType, {
     return typeof value === "function" ? value.bind(_api) : value;
   },
 });
+
+// 千川投放 (WORKBENCH-API §25): zod parses live in `./qianchuan`, the query keys and
+// read options in `./qianchuan-queries`. Two files because the client imports the
+// schemas and the options import the client — one file would be a cycle.
+export {
+  AdsSummarySchema,
+  EMPTY_ADS_SUMMARY,
+  AdsAccountListSchema,
+  EMPTY_ADS_ACCOUNTS,
+  AdsPlanListSchema,
+  EMPTY_ADS_PLANS,
+  AdsMaterialListSchema,
+  EMPTY_ADS_MATERIALS,
+  AdsViolationListSchema,
+  EMPTY_ADS_VIOLATIONS,
+  AdsReconListSchema,
+  EMPTY_ADS_RECON,
+} from "./qianchuan";
+export {
+  adsKeys,
+  adsSummaryOptions,
+  adsAccountListOptions,
+  adsPlanListOptions,
+  adsMaterialListOptions,
+  adsViolationListOptions,
+  adsReconListOptions,
+  ADS_BASIS_OPTIONS,
+  type AdsListFilters,
+} from "./qianchuan-queries";

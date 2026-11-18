@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_workbench_role_template_workspace_title;

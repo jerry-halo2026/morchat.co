@@ -75,7 +75,16 @@ export type MetricSource =
   | "ops_finance_month"
   | "ops_attendance"
   | "knowledge"
-  | "inbox";
+  | "inbox"
+  // 千川投放（WORKBENCH-API §25）：十二张表都是平台数据的投影，只有一个 CLI 写入口，
+  // 所以这些 source 永远只被读——一个指标声明它们，等于声明自己不写任何东西。
+  | "qianchuan_account"
+  | "qianchuan_balance"
+  | "qianchuan_plan"
+  | "qianchuan_daily_overall"
+  | "qianchuan_material"
+  | "qianchuan_violation"
+  | "qianchuan_recon";
 
 export interface MetricThreshold {
   /** Display default. A workspace may override it in settings; the override is
@@ -139,6 +148,12 @@ export const METRIC_IDS = [
   "hr.time_to_hire.median",
   "hr.scorecard.backlog",
   "hr.interview.on_time_rate",
+  // 千川投放（§25.4）。金额指标带 `basis`：1h / 7d / 14d / 30d / 90d 是五个结算窗口，
+  // 不是五个精度；跨窗口求和没有业务含义，所以没有任何一个指标是「总花费」。
+  "qianchuan.spend.day",
+  "qianchuan.gmv.day",
+  "qianchuan.roi",
+  "qianchuan.violation.open",
 ] as const;
 
 export type MetricId = (typeof METRIC_IDS)[number];
@@ -329,6 +344,61 @@ export const WORKBENCH_METRICS: Record<MetricId, MetricContract> = {
     emptyRule: "insufficient_data",
     threshold: { value: 90, unit: "percent", labelKey: "blocks.threshold.on_time" },
     direction: "up",
+  },
+  // 千川投放（WORKBENCH-API §25.4）。三条读法固定在公式里：
+  //
+  //   - 花费与成交是**元**，窗口是自然日，只读 `dim_kind='overall'` 那一层切片
+  //     （`product` / `image` / `live_video` 是同一批钱的分解，加回来就重复了）。
+  //   - ROI 的分子分母同属一次请求，`basis` 不参与除法：结算窗口只改变「结算额」，
+  //     不改变花费和 GMV。把两个 basis 的 ROI 相加没有意义，所以这里没有那样的公式。
+  //   - 违规只看**平台还没关掉的**状态：`TIMEOUT`（逾期未处理）与 `FAILAPPEAL`
+  //     （申诉未通过）都还压在账上，`PASS` 之类不算。
+  "qianchuan.spend.day": {
+    id: "qianchuan.spend.day",
+    labelKey: "blocks.metric.qianchuan_spend_day",
+    scope: "workspace",
+    unit: "money",
+    currency: "CNY",
+    window: { kind: "calendar", span: "today" },
+    formula: "sum(qianchuan_daily_overall.spend) where dim_kind = 'overall' and stat_date = today",
+    source: ["qianchuan_daily_overall"],
+    emptyRule: "insufficient_data",
+    direction: "neutral",
+  },
+  "qianchuan.gmv.day": {
+    id: "qianchuan.gmv.day",
+    labelKey: "blocks.metric.qianchuan_gmv_day",
+    scope: "workspace",
+    unit: "money",
+    currency: "CNY",
+    window: { kind: "calendar", span: "today" },
+    formula: "sum(qianchuan_daily_overall.gmv) where dim_kind = 'overall' and stat_date = today",
+    source: ["qianchuan_daily_overall"],
+    emptyRule: "insufficient_data",
+    direction: "up",
+  },
+  "qianchuan.roi": {
+    id: "qianchuan.roi",
+    labelKey: "blocks.metric.qianchuan_roi",
+    scope: "workspace",
+    unit: "ratio",
+    window: { kind: "calendar", span: "week" },
+    formula:
+      "sum(gmv) / sum(spend) over the requested window — the settlement basis belongs to the settle figure beside it, never to this division (WORKBENCH-API §25.2)",
+    source: ["qianchuan_daily_overall"],
+    emptyRule: "insufficient_data",
+    direction: "up",
+  },
+  "qianchuan.violation.open": {
+    id: "qianchuan.violation.open",
+    labelKey: "blocks.metric.qianchuan_violation_open",
+    scope: "workspace",
+    unit: "count",
+    window: { kind: "calendar", span: "month" },
+    formula: "count(qianchuan_violation where status in ('TIMEOUT', 'FAILAPPEAL'))",
+    source: ["qianchuan_violation"],
+    emptyRule: "zero",
+    direction: "down",
   },
   "crm.pipeline.weighted_amount": {
     id: "crm.pipeline.weighted_amount",
