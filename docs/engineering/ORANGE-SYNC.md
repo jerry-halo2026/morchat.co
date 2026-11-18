@@ -1,3 +1,6 @@
+> **方向已定（2026-11-18）**：morechat 是商务+达人数据的权威源，orange master 按
+> `docs/engineering/WORKBENCH-DATA-CONTRACT.md` 对接。本文档描述的库对库镜像
+> **只作为历史记录与一次性导入工具保留**，不再是长期方案。
 # orange → morechat 达人镜像（O2）
 
 orange 是达人建联（`orange_daren`）的**上游事实源**，morechat 只镜像、不拥有。这份文档说明：镜像了哪些列、口径怎么定、怎么跑、上游哪些值是脏的、以及对账失败时怎么办。
