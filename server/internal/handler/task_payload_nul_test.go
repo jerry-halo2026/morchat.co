@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jerry-halo2026/morchat.co/server/internal/util"
 	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
@@ -256,7 +257,7 @@ func TestPostgresRejectsUnsanitizedTaskPayloads(t *testing.T) {
 		}
 		if _, err := testHandler.Queries.CompleteAgentTask(ctx, db.CompleteAgentTaskParams{
 			ID:     util.MustParseUUID(taskID),
-			Result: raw,
+			Result: pgtype.Text{String: string(raw), Valid: raw != nil},
 		}); err == nil {
 			t.Fatal("PostgreSQL accepted a JSONB payload containing a NUL escape")
 		}
@@ -282,7 +283,7 @@ func TestPostgresRejectsUnsanitizedTaskPayloads(t *testing.T) {
 			TaskID: util.MustParseUUID(taskID),
 			Seq:    99,
 			Type:   "tool_use",
-			Input:  raw,
+			Input:  pgtype.Text{String: string(raw), Valid: raw != nil},
 		}); err == nil {
 			t.Fatal("PostgreSQL accepted nested JSONB containing a NUL escape")
 		}

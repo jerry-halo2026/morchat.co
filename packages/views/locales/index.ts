@@ -28,6 +28,14 @@ import enPresets from "./en/presets.json";
 import enKnowledge from "./en/knowledge.json";
 import enBlocks from "./en/blocks.json";
 import enFinance from "./en/finance.json";
+import enSales from "./en/sales.json";
+import enContent from "./en/content.json";
+import enProduction from "./en/production.json";
+import enPublishing from "./en/publishing.json";
+import enBoss from "./en/boss.json";
+import enBiz from "./en/biz.json";
+import enDiscovery from "./en/discovery.json";
+import enPerformance from "./en/performance.json";
 import zhHansCommon from "./zh-Hans/common.json";
 import zhHansAuth from "./zh-Hans/auth.json";
 import zhHansSettings from "./zh-Hans/settings.json";
@@ -57,6 +65,14 @@ import zhHansPresets from "./zh-Hans/presets.json";
 import zhHansKnowledge from "./zh-Hans/knowledge.json";
 import zhHansBlocks from "./zh-Hans/blocks.json";
 import zhHansFinance from "./zh-Hans/finance.json";
+import zhHansSales from "./zh-Hans/sales.json";
+import zhHansContent from "./zh-Hans/content.json";
+import zhHansProduction from "./zh-Hans/production.json";
+import zhHansPublishing from "./zh-Hans/publishing.json";
+import zhHansBoss from "./zh-Hans/boss.json";
+import zhHansBiz from "./zh-Hans/biz.json";
+import zhHansDiscovery from "./zh-Hans/discovery.json";
+import zhHansPerformance from "./zh-Hans/performance.json";
 import zhHantCommon from "./zh-Hant/common.json";
 import zhHantAuth from "./zh-Hant/auth.json";
 import zhHantSettings from "./zh-Hant/settings.json";
@@ -86,6 +102,14 @@ import zhHantPresets from "./zh-Hant/presets.json";
 import zhHantKnowledge from "./zh-Hant/knowledge.json";
 import zhHantBlocks from "./zh-Hant/blocks.json";
 import zhHantFinance from "./zh-Hant/finance.json";
+import zhHantSales from "./zh-Hant/sales.json";
+import zhHantContent from "./zh-Hant/content.json";
+import zhHantProduction from "./zh-Hant/production.json";
+import zhHantPublishing from "./zh-Hant/publishing.json";
+import zhHantBoss from "./zh-Hant/boss.json";
+import zhHantBiz from "./zh-Hant/biz.json";
+import zhHantDiscovery from "./zh-Hant/discovery.json";
+import zhHantPerformance from "./zh-Hant/performance.json";
 import koCommon from "./ko/common.json";
 import koAuth from "./ko/auth.json";
 import koSettings from "./ko/settings.json";
@@ -115,6 +139,14 @@ import koPresets from "./ko/presets.json";
 import koKnowledge from "./ko/knowledge.json";
 import koBlocks from "./ko/blocks.json";
 import koFinance from "./ko/finance.json";
+import koSales from "./ko/sales.json";
+import koContent from "./ko/content.json";
+import koProduction from "./ko/production.json";
+import koPublishing from "./ko/publishing.json";
+import koBoss from "./ko/boss.json";
+import koBiz from "./ko/biz.json";
+import koDiscovery from "./ko/discovery.json";
+import koPerformance from "./ko/performance.json";
 import jaCommon from "./ja/common.json";
 import jaAuth from "./ja/auth.json";
 import jaSettings from "./ja/settings.json";
@@ -144,6 +176,14 @@ import jaPresets from "./ja/presets.json";
 import jaKnowledge from "./ja/knowledge.json";
 import jaBlocks from "./ja/blocks.json";
 import jaFinance from "./ja/finance.json";
+import jaSales from "./ja/sales.json";
+import jaContent from "./ja/content.json";
+import jaProduction from "./ja/production.json";
+import jaPublishing from "./ja/publishing.json";
+import jaBoss from "./ja/boss.json";
+import jaBiz from "./ja/biz.json";
+import jaDiscovery from "./ja/discovery.json";
+import jaPerformance from "./ja/performance.json";
 import frCommon from "./fr/common.json";
 import frAuth from "./fr/auth.json";
 import frSettings from "./fr/settings.json";
@@ -173,6 +213,14 @@ import frPresets from "./fr/presets.json";
 import frKnowledge from "./fr/knowledge.json";
 import frBlocks from "./fr/blocks.json";
 import frFinance from "./fr/finance.json";
+import frSales from "./fr/sales.json";
+import frContent from "./fr/content.json";
+import frProduction from "./fr/production.json";
+import frPublishing from "./fr/publishing.json";
+import frBoss from "./fr/boss.json";
+import frBiz from "./fr/biz.json";
+import frDiscovery from "./fr/discovery.json";
+import frPerformance from "./fr/performance.json";
 import esCommon from "./es/common.json";
 import esAuth from "./es/auth.json";
 import esSettings from "./es/settings.json";
@@ -202,6 +250,14 @@ import esPresets from "./es/presets.json";
 import esKnowledge from "./es/knowledge.json";
 import esBlocks from "./es/blocks.json";
 import esFinance from "./es/finance.json";
+import esSales from "./es/sales.json";
+import esContent from "./es/content.json";
+import esProduction from "./es/production.json";
+import esPublishing from "./es/publishing.json";
+import esBoss from "./es/boss.json";
+import esBiz from "./es/biz.json";
+import esDiscovery from "./es/discovery.json";
+import esPerformance from "./es/performance.json";
 import ruCommon from "./ru/common.json";
 import ruAuth from "./ru/auth.json";
 import ruSettings from "./ru/settings.json";
@@ -231,6 +287,14 @@ import ruPresets from "./ru/presets.json";
 import ruKnowledge from "./ru/knowledge.json";
 import ruBlocks from "./ru/blocks.json";
 import ruFinance from "./ru/finance.json";
+import ruSales from "./ru/sales.json";
+import ruContent from "./ru/content.json";
+import ruProduction from "./ru/production.json";
+import ruPublishing from "./ru/publishing.json";
+import ruBoss from "./ru/boss.json";
+import ruBiz from "./ru/biz.json";
+import ruDiscovery from "./ru/discovery.json";
+import ruPerformance from "./ru/performance.json";
 
 // Single source of truth for the resource bundle. Both apps (web layout +
 // desktop App.tsx) import from here so adding a locale or namespace happens
@@ -266,6 +330,14 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     knowledge: enKnowledge,
     blocks: enBlocks,
     finance: enFinance,
+    sales: enSales,
+    content: enContent,
+    production: enProduction,
+    publishing: enPublishing,
+    boss: enBoss,
+    biz: enBiz,
+    discovery: enDiscovery,
+    performance: enPerformance,
   },
   "zh-Hans": {
     common: zhHansCommon,
@@ -297,6 +369,14 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     knowledge: zhHansKnowledge,
     blocks: zhHansBlocks,
     finance: zhHansFinance,
+    sales: zhHansSales,
+    content: zhHansContent,
+    production: zhHansProduction,
+    publishing: zhHansPublishing,
+    boss: zhHansBoss,
+    biz: zhHansBiz,
+    discovery: zhHansDiscovery,
+    performance: zhHansPerformance,
   },
   "zh-Hant": {
     common: zhHantCommon,
@@ -328,6 +408,14 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     knowledge: zhHantKnowledge,
     blocks: zhHantBlocks,
     finance: zhHantFinance,
+    sales: zhHantSales,
+    content: zhHantContent,
+    production: zhHantProduction,
+    publishing: zhHantPublishing,
+    boss: zhHantBoss,
+    biz: zhHantBiz,
+    discovery: zhHantDiscovery,
+    performance: zhHantPerformance,
   },
   ko: {
     common: koCommon,
@@ -359,6 +447,14 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     knowledge: koKnowledge,
     blocks: koBlocks,
     finance: koFinance,
+    sales: koSales,
+    content: koContent,
+    production: koProduction,
+    publishing: koPublishing,
+    boss: koBoss,
+    biz: koBiz,
+    discovery: koDiscovery,
+    performance: koPerformance,
   },
   ja: {
     common: jaCommon,
@@ -390,6 +486,14 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     knowledge: jaKnowledge,
     blocks: jaBlocks,
     finance: jaFinance,
+    sales: jaSales,
+    content: jaContent,
+    production: jaProduction,
+    publishing: jaPublishing,
+    boss: jaBoss,
+    biz: jaBiz,
+    discovery: jaDiscovery,
+    performance: jaPerformance,
   },
   fr: {
     common: frCommon,
@@ -421,6 +525,14 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     knowledge: frKnowledge,
     blocks: frBlocks,
     finance: frFinance,
+    sales: frSales,
+    content: frContent,
+    production: frProduction,
+    publishing: frPublishing,
+    boss: frBoss,
+    biz: frBiz,
+    discovery: frDiscovery,
+    performance: frPerformance,
   },
   es: {
     common: esCommon,
@@ -452,6 +564,14 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     knowledge: esKnowledge,
     blocks: esBlocks,
     finance: esFinance,
+    sales: esSales,
+    content: esContent,
+    production: esProduction,
+    publishing: esPublishing,
+    boss: esBoss,
+    biz: esBiz,
+    discovery: esDiscovery,
+    performance: esPerformance,
   },
   ru: {
     common: ruCommon,
@@ -483,5 +603,13 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     knowledge: ruKnowledge,
     blocks: ruBlocks,
     finance: ruFinance,
+    sales: ruSales,
+    content: ruContent,
+    production: ruProduction,
+    publishing: ruPublishing,
+    boss: ruBoss,
+    biz: ruBiz,
+    discovery: ruDiscovery,
+    performance: ruPerformance,
   },
 };

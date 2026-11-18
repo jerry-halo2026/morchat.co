@@ -191,7 +191,7 @@ INSERT INTO autopilot_trigger (
     $1, $2, $3, sqlc.narg('cron_expression'), sqlc.narg('timezone'),
     sqlc.narg('next_run_at'), sqlc.narg('webhook_token'), sqlc.narg('label'),
     COALESCE(sqlc.narg('provider')::text, 'generic'),
-    sqlc.narg('event_filters'),
+    sqlc.narg('event_filters')::text::jsonb,
     sqlc.narg('published_by_type'), sqlc.narg('published_by_id'),
     sqlc.narg('created_by_type'), sqlc.narg('created_by_id')
 ) RETURNING *;
@@ -227,7 +227,7 @@ UPDATE autopilot_trigger SET
     timezone = COALESCE(sqlc.narg('timezone'), timezone),
     next_run_at = sqlc.narg('next_run_at'),
     label = COALESCE(sqlc.narg('label'), label),
-    event_filters = COALESCE(sqlc.narg('event_filters'), event_filters),
+    event_filters = COALESCE(sqlc.narg('event_filters')::text::jsonb, event_filters),
     updated_at = now()
 WHERE id = $1
 RETURNING *;
@@ -320,7 +320,7 @@ INSERT INTO autopilot_run (
     autopilot_id, trigger_id, source, status, trigger_payload, squad_id, planned_at,
     webhook_delivery_id, quota_reservation_id, reason_code, id
 ) VALUES (
-    $1, sqlc.narg('trigger_id'), $2, $3, sqlc.narg('trigger_payload'),
+    $1, sqlc.narg('trigger_id'), $2, $3, sqlc.narg('trigger_payload')::text::jsonb,
     sqlc.narg('squad_id'), sqlc.narg('planned_at'),
     sqlc.narg('webhook_delivery_id'), sqlc.narg('quota_reservation_id'),
     sqlc.narg('reason_code'), COALESCE(sqlc.narg('id')::uuid, gen_random_uuid())
@@ -470,7 +470,7 @@ WITH updated_run AS (
     SET status = @terminal_status::text,
         completed_at = now(),
         result = CASE
-            WHEN @terminal_status::text = 'completed' THEN sqlc.narg('result')::jsonb
+            WHEN @terminal_status::text = 'completed' THEN sqlc.narg('result')::text::jsonb
             ELSE ar.result
         END,
         failure_reason = CASE

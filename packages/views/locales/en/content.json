@@ -1,0 +1,80 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "retry": "Retry",
+    "week": "This week",
+    "status": "Status",
+    "ip": "IP"
+  },
+  "ips": {
+    "new": "New IP",
+    "empty_title": "No content IP yet",
+    "empty_description": "An IP is one persona, its track and its audience. Each platform account hangs off it.",
+    "error_title": "Couldn't load the IPs",
+    "scope_title": "No IP is in scope",
+    "scope_clear": "Show all IPs",
+    "accounts": "Accounts",
+    "accounts_empty": "No platform account is attached yet.",
+    "attach": "Attach",
+    "detach": "Detach",
+    "account_failed": "The account change was refused — an account hangs off one IP at a time.",
+    "search_creator": "Search the creator ledger",
+    "no_match": "No creator matches that search.",
+    "name": "Name",
+    "persona": "Persona",
+    "track": "Track",
+    "audience": "Audience",
+    "color": "Colour",
+    "week_goal": "Posts per week",
+    "name_required": "Give this IP a name.",
+    "save_failed": "The server refused this IP. Nothing was saved.",
+    "delete_title": "Delete this IP?",
+    "delete_description": "“{{name}}” disappears from every list. Its topics and scripts are kept.",
+    "status": {
+      "active": "Active",
+      "paused": "Paused",
+      "ended": "Ended"
+    }
+  },
+  "topics": {
+    "new": "New topic",
+    "empty_title": "The topic pool is empty",
+    "empty_description": "Adopt one from the hot radar or a benchmark, or add one by hand.",
+    "no_ip": "Create a content IP first — a topic belongs to one.",
+    "error_title": "Couldn't load the topics",
+    "all_ips": "All IPs",
+    "from_hot": "From the hot radar",
+    "field_title": "Title",
+    "field_source": "Source",
+    "field_scores": "Scores",
+    "scores_hint": "0–100 per dimension. The higher the five add up, the higher the topic ranks.",
+    "kept_scores": "Kept as stored: {{keys}}",
+    "write_failed": "The server refused the change. Nothing was saved.",
+    "delete_title": "Delete this topic?",
+    "delete_description": "“{{title}}” is archived. Its scripts stay.",
+    "column": {
+      "pool": "Pool",
+      "scripting": "Scripting",
+      "shooting": "Shooting",
+      "publishing": "Publishing",
+      "done": "Done",
+      "dropped": "Dropped"
+    },
+    "source": {
+      "hot": "Hot",
+      "manual": "Manual",
+      "bench": "Benchmark",
+      "ai": "AI"
+    },
+    "dim": {
+      "pain": "Pain",
+      "save": "Save",
+      "debate": "Debate",
+      "susp": "Suspense",
+      "fit": "Fit"
+    }
+  }
+}

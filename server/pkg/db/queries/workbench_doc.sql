@@ -99,7 +99,7 @@ INSERT INTO hr_doc_generation (
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('employee_id'), sqlc.narg('template_id')::uuid,
     sqlc.arg('template_name'), sqlc.arg('format'),
-    sqlc.narg('attachment_id')::uuid, sqlc.arg('values')::jsonb,
+    sqlc.narg('attachment_id')::uuid, sqlc.arg('values')::text::jsonb,
     sqlc.narg('generated_by')::uuid
 )
 RETURNING *;

@@ -45,7 +45,7 @@ func (q *Queries) DeleteAgentBuilderDraftsBySystemRuntimeAgents(ctx context.Cont
 
 const upsertAgentBuilderDraft = `-- name: UpsertAgentBuilderDraft :one
 INSERT INTO agent_builder_draft (chat_session_id, workspace_id, draft)
-VALUES ($1, $2, $3)
+VALUES ($1, $2, $3::text::jsonb)
 ON CONFLICT (chat_session_id) DO UPDATE
 SET draft = EXCLUDED.draft,
     updated_at = now()
@@ -55,7 +55,7 @@ RETURNING chat_session_id, workspace_id, draft, updated_at
 type UpsertAgentBuilderDraftParams struct {
 	ChatSessionID pgtype.UUID `json:"chat_session_id"`
 	WorkspaceID   pgtype.UUID `json:"workspace_id"`
-	Draft         []byte      `json:"draft"`
+	Draft         string      `json:"draft"`
 }
 
 // The current configuration of one creation conversation. Last write wins:

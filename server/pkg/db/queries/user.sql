@@ -58,7 +58,7 @@ RETURNING *;
 -- runtime choice on the user row was reverted; that state now lives in a
 -- frontend Zustand transient store.
 UPDATE "user" SET
-    onboarding_questionnaire = COALESCE(sqlc.narg('questionnaire'), onboarding_questionnaire),
+    onboarding_questionnaire = COALESCE(sqlc.narg('questionnaire')::text::jsonb, onboarding_questionnaire),
     updated_at = now()
 WHERE id = sqlc.arg('id')
 RETURNING *;

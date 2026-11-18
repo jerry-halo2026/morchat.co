@@ -36,14 +36,14 @@ FOR UPDATE;
 INSERT INTO project_resource (
     project_id, workspace_id, resource_type, resource_ref, label, position, created_by
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7
+    $1, $2, $3, sqlc.arg('resource_ref')::text::jsonb, sqlc.narg('label'), sqlc.arg('position'), sqlc.narg('created_by')
 ) RETURNING *;
 
 -- name: UpdateProjectResource :one
 UPDATE project_resource
-SET resource_ref = $2,
-    label        = $3,
-    position     = $4
+SET resource_ref = sqlc.arg('resource_ref')::text::jsonb,
+    label        = sqlc.narg('label'),
+    position     = sqlc.arg('position')
 WHERE id = $1
 RETURNING *;
 

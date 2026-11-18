@@ -1,0 +1,80 @@
+{
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "retry": "Reintentar",
+    "week": "Esta semana",
+    "status": "Estado",
+    "ip": "IP"
+  },
+  "ips": {
+    "new": "Nueva IP",
+    "empty_title": "Todavía no hay ninguna IP de contenido",
+    "empty_description": "Una IP es un personaje, un eje y una audiencia. Cada cuenta de plataforma cuelga de ella.",
+    "error_title": "No se pudieron cargar las IP",
+    "scope_title": "No hay ninguna IP en el ámbito",
+    "scope_clear": "Mostrar todas las IP",
+    "accounts": "Cuentas",
+    "accounts_empty": "Todavía no hay ninguna cuenta de plataforma vinculada.",
+    "attach": "Vincular",
+    "detach": "Desvincular",
+    "account_failed": "El cambio de cuenta se rechazó: una cuenta solo cuelga de una IP a la vez.",
+    "search_creator": "Buscar en el registro de creadores",
+    "no_match": "Ningún creador coincide con esa búsqueda.",
+    "name": "Nombre",
+    "persona": "Personaje",
+    "track": "Eje",
+    "audience": "Audiencia",
+    "color": "Color",
+    "week_goal": "Publicaciones por semana",
+    "name_required": "Ponle un nombre a esta IP.",
+    "save_failed": "El servidor rechazó esta IP. No se guardó nada.",
+    "delete_title": "¿Eliminar esta IP?",
+    "delete_description": "«{{name}}» desaparece de todas las listas. Sus temas y guiones se conservan.",
+    "status": {
+      "active": "Activa",
+      "paused": "En pausa",
+      "ended": "Terminada"
+    }
+  },
+  "topics": {
+    "new": "Nuevo tema",
+    "empty_title": "El fondo de temas está vacío",
+    "empty_description": "Adopta uno del radar de tendencias o de un benchmark, o añade uno a mano.",
+    "no_ip": "Crea primero una IP de contenido: cada tema pertenece a una.",
+    "error_title": "No se pudieron cargar los temas",
+    "all_ips": "Todas las IP",
+    "from_hot": "Desde tendencias",
+    "field_title": "Título",
+    "field_source": "Origen",
+    "field_scores": "Puntuaciones",
+    "scores_hint": "0–100 por dimensión. Cuanto más suman las cinco, más arriba queda el tema.",
+    "kept_scores": "Se conserva tal cual: {{keys}}",
+    "write_failed": "El servidor rechazó el cambio. No se guardó nada.",
+    "delete_title": "¿Eliminar este tema?",
+    "delete_description": "«{{title}}» se archiva. Sus guiones se conservan.",
+    "column": {
+      "pool": "Por evaluar",
+      "scripting": "Guion",
+      "shooting": "Rodaje",
+      "publishing": "Por publicar",
+      "done": "Hecho",
+      "dropped": "Descartado"
+    },
+    "source": {
+      "hot": "Tendencia",
+      "manual": "Manual",
+      "bench": "Benchmark",
+      "ai": "IA"
+    },
+    "dim": {
+      "pain": "Dolor",
+      "save": "Guardado",
+      "debate": "Debate",
+      "susp": "Suspense",
+      "fit": "Encaje"
+    }
+  }
+}

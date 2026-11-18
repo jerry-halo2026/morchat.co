@@ -1,0 +1,80 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "retry": "Réessayer",
+    "week": "Cette semaine",
+    "status": "Statut",
+    "ip": "IP"
+  },
+  "ips": {
+    "new": "Nouvelle IP",
+    "empty_title": "Aucune IP de contenu",
+    "empty_description": "Une IP, c'est un persona, un axe et une audience. Chaque compte de plateforme en dépend.",
+    "error_title": "Impossible de charger les IP",
+    "scope_title": "Aucune IP dans le périmètre",
+    "scope_clear": "Afficher toutes les IP",
+    "accounts": "Comptes",
+    "accounts_empty": "Aucun compte de plateforme n'est encore rattaché.",
+    "attach": "Rattacher",
+    "detach": "Détacher",
+    "account_failed": "Le changement de compte a été refusé : un compte ne dépend que d'une IP à la fois.",
+    "search_creator": "Rechercher dans le registre des créateurs",
+    "no_match": "Aucun créateur ne correspond à cette recherche.",
+    "name": "Nom",
+    "persona": "Persona",
+    "track": "Axe",
+    "audience": "Audience",
+    "color": "Couleur",
+    "week_goal": "Publications par semaine",
+    "name_required": "Donnez un nom à cette IP.",
+    "save_failed": "Le serveur a refusé cette IP. Rien n'a été enregistré.",
+    "delete_title": "Supprimer cette IP ?",
+    "delete_description": "« {{name}} » disparaît de toutes les listes. Ses sujets et scripts sont conservés.",
+    "status": {
+      "active": "Active",
+      "paused": "En pause",
+      "ended": "Terminée"
+    }
+  },
+  "topics": {
+    "new": "Nouveau sujet",
+    "empty_title": "La réserve de sujets est vide",
+    "empty_description": "Adoptez un sujet depuis les tendances ou un benchmark, ou ajoutez-en un à la main.",
+    "no_ip": "Créez d'abord une IP de contenu : un sujet lui appartient.",
+    "error_title": "Impossible de charger les sujets",
+    "all_ips": "Toutes les IP",
+    "from_hot": "Issu des tendances",
+    "field_title": "Titre",
+    "field_source": "Origine",
+    "field_scores": "Scores",
+    "scores_hint": "0–100 par dimension. Plus la somme des cinq est élevée, plus le sujet remonte.",
+    "kept_scores": "Conservé tel quel : {{keys}}",
+    "write_failed": "Le serveur a refusé la modification. Rien n'a été enregistré.",
+    "delete_title": "Supprimer ce sujet ?",
+    "delete_description": "« {{title}} » est archivé. Ses scripts sont conservés.",
+    "column": {
+      "pool": "À évaluer",
+      "scripting": "Rédaction",
+      "shooting": "Tournage",
+      "publishing": "À publier",
+      "done": "Terminé",
+      "dropped": "Abandonné"
+    },
+    "source": {
+      "hot": "Tendance",
+      "manual": "Manuel",
+      "bench": "Benchmark",
+      "ai": "IA"
+    },
+    "dim": {
+      "pain": "Douleur",
+      "save": "Enregistrement",
+      "debate": "Débat",
+      "susp": "Suspense",
+      "fit": "Adéquation"
+    }
+  }
+}

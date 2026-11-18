@@ -262,7 +262,7 @@ type autopilotRunFailure struct {
 func (s *AutopilotService) completeAutopilotRun(ctx context.Context, params autopilotRunCompletion) (db.AutopilotRun, error) {
 	row, err := s.Queries.UpdateAutopilotRunTerminalWithQuota(ctx, db.UpdateAutopilotRunTerminalWithQuotaParams{
 		TerminalStatus: "completed",
-		Result:         params.Result,
+		Result:         jsonbText(params.Result),
 		RunID:          params.ID,
 		Consume:        true,
 	})

@@ -943,7 +943,7 @@ func TestWebhookDelivery_FailedRowDoesNotBlockDedupe(t *testing.T) {
 		Event:           "github.pull_request",
 		SignatureStatus: "not_required",
 		Status:          "failed",
-		SelectedHeaders: []byte("{}"),
+		SelectedHeaders: string([]byte("{}")),
 		DedupeKey:       pgtype.Text{String: "retry-key", Valid: true},
 		DedupeSource:    pgtype.Text{String: "x-github-delivery", Valid: true},
 	})
@@ -962,7 +962,7 @@ func TestWebhookDelivery_FailedRowDoesNotBlockDedupe(t *testing.T) {
 		Event:           "github.pull_request",
 		SignatureStatus: "not_required",
 		Status:          "dispatched",
-		SelectedHeaders: []byte("{}"),
+		SelectedHeaders: "{}",
 		DedupeKey:       pgtype.Text{String: "retry-key", Valid: true},
 		DedupeSource:    pgtype.Text{String: "x-github-delivery", Valid: true},
 	})

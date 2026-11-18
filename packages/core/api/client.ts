@@ -210,6 +210,8 @@ import type {
   BdCampaign,
   BdCampaignListFilters,
   BdCampaignListResponse,
+  BdPerformance,
+  BdPerformanceFilters,
   BdPipeline,
   BdQuote,
   BdQuoteListFilters,
@@ -270,6 +272,18 @@ import type {
   UpdateMediaScriptRequest,
   UpdateMediaShootRequest,
   UpdateMediaTopicRequest,
+  // Hotspot radar / benchmark teardown (docs/engineering/WORKBENCH-API.md §21).
+  AdoptMediaRequest,
+  CreateMediaBenchRequest,
+  CreateMediaHotRequest,
+  MediaBench,
+  MediaBenchListFilters,
+  MediaBenchListResponse,
+  MediaHot,
+  MediaHotListFilters,
+  MediaHotListResponse,
+  UpdateMediaBenchRequest,
+  UpdateMediaHotRequest,
   // General manager workbench (docs/engineering/WORKBENCH-API.md §13).
   AttachGoalIssueRequest,
   ConvertMarketSignalRequest,
@@ -821,6 +835,8 @@ import {
   EMPTY_BD_CAMPAIGN_LIST_RESPONSE,
   BdPipelineSchema,
   EMPTY_BD_PIPELINE,
+  BdPerformanceSchema,
+  EMPTY_BD_PERFORMANCE,
   WorkbenchCountsResponseSchema,
   EMPTY_WORKBENCH_COUNTS_RESPONSE,
   WorkbenchFinanceResponseSchema,
@@ -868,6 +884,15 @@ import {
   MediaShootListResponseSchema,
   EMPTY_MEDIA_SHOOT,
   EMPTY_MEDIA_SHOOT_LIST_RESPONSE,
+  // Hotspot radar / benchmark teardown (§21).
+  MediaHotSchema,
+  MediaHotListResponseSchema,
+  EMPTY_MEDIA_HOT,
+  EMPTY_MEDIA_HOT_LIST_RESPONSE,
+  MediaBenchSchema,
+  MediaBenchListResponseSchema,
+  EMPTY_MEDIA_BENCH,
+  EMPTY_MEDIA_BENCH_LIST_RESPONSE,
   // General manager workbench (§13).
   GoalSchema,
   GoalDetailSchema,
@@ -4816,6 +4841,24 @@ export class ApiClient {
     });
   }
 
+  /**
+   * The windowed report (WORKBENCH-API §22). `from` / `to` are inclusive days and
+   * both are optional — the server defaults to "this month so far" and echoes the
+   * window it used, so the page can label the trend without recomputing it. An
+   * inverted range is a 400, not an empty report.
+   */
+  async getBdPerformance(filters: BdPerformanceFilters = {}): Promise<BdPerformance> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/bd/performance${workbenchSearch({
+        from: filters.from,
+        to: filters.to,
+      })}`,
+    );
+    return parseWithFallback(raw, BdPerformanceSchema, EMPTY_BD_PERFORMANCE, {
+      endpoint: "GET /api/workbench/bd/performance",
+    });
+  }
+
   // Affiliate distribution (docs/engineering/WORKBENCH-API.md §11). Same base and
   // same write scope as the ledgers above: reads are member-wide, writes are gated
   // server-side (owner/admin, or the row's owner; a daily fact inherits its pick's
@@ -5254,6 +5297,136 @@ export class ApiClient {
 
   async deleteMediaShoot(id: string): Promise<void> {
     await this.fetch(`/api/workbench/media/shoots/${id}`, { method: "DELETE" });
+  }
+
+  // Hotspot radar and benchmark teardown (docs/engineering/WORKBENCH-API.md §21).
+  // Two source ledgers behind the topic pool. Same read/write split as the content
+  // chain above; `adopt` is the only write that touches `media_topic`, and it
+  // answers with the new topic rather than with the source row — the caller is
+  // being handed the thing it just created.
+
+  async listMediaHot(filters: MediaHotListFilters = {}): Promise<MediaHotListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/media/hot${workbenchSearch({
+        captured_on: filters.captured_on,
+        category: filters.category,
+        platform: filters.platform,
+        q: filters.q,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, MediaHotListResponseSchema, EMPTY_MEDIA_HOT_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/media/hot",
+    });
+  }
+
+  async createMediaHot(data: CreateMediaHotRequest): Promise<MediaHot> {
+    const raw = await this.fetch<unknown>("/api/workbench/media/hot", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaHotSchema, EMPTY_MEDIA_HOT, {
+      endpoint: "POST /api/workbench/media/hot",
+    });
+  }
+
+  async getMediaHot(id: string): Promise<MediaHot> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/hot/${id}`);
+    return parseWithFallback(raw, MediaHotSchema, EMPTY_MEDIA_HOT, {
+      endpoint: "GET /api/workbench/media/hot/:hotId",
+    });
+  }
+
+  /**
+   * An omitted field keeps its stored value; `rank` / `heat_value` / `url` sent as
+   * `null` clear the column — "the platform published none" is a state the radar
+   * screen can set, not a value it has to leave behind.
+   */
+  async updateMediaHot(id: string, data: UpdateMediaHotRequest): Promise<MediaHot> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/hot/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaHotSchema, EMPTY_MEDIA_HOT, {
+      endpoint: "PATCH /api/workbench/media/hot/:hotId",
+    });
+  }
+
+  async deleteMediaHot(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/media/hot/${id}`, { method: "DELETE" });
+  }
+
+  /**
+   * Copy a hotspot into the topic pool: `source = 'hot'`, `hot_id` = this row,
+   * `scores = {}`. The radar row is only read — adopting twice produces two topics,
+   * which is what "I want it in two personas' pools" means.
+   */
+  async adoptMediaHot(id: string, data: AdoptMediaRequest): Promise<MediaTopic> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/hot/${id}/adopt`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaTopicSchema, EMPTY_MEDIA_TOPIC, {
+      endpoint: "POST /api/workbench/media/hot/:hotId/adopt",
+    });
+  }
+
+  async listMediaBench(filters: MediaBenchListFilters = {}): Promise<MediaBenchListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/media/bench${workbenchSearch({
+        ip_id: filters.ip_id,
+        captured_on: filters.captured_on,
+        platform: filters.platform,
+        q: filters.q,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, MediaBenchListResponseSchema, EMPTY_MEDIA_BENCH_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/media/bench",
+    });
+  }
+
+  async createMediaBench(data: CreateMediaBenchRequest): Promise<MediaBench> {
+    const raw = await this.fetch<unknown>("/api/workbench/media/bench", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaBenchSchema, EMPTY_MEDIA_BENCH, {
+      endpoint: "POST /api/workbench/media/bench",
+    });
+  }
+
+  async getMediaBench(id: string): Promise<MediaBench> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/bench/${id}`);
+    return parseWithFallback(raw, MediaBenchSchema, EMPTY_MEDIA_BENCH, {
+      endpoint: "GET /api/workbench/media/bench/:benchId",
+    });
+  }
+
+  /** `metrics` is written whole: a benchmark card is one artifact, not a patch. */
+  async updateMediaBench(id: string, data: UpdateMediaBenchRequest): Promise<MediaBench> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/bench/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaBenchSchema, EMPTY_MEDIA_BENCH, {
+      endpoint: "PATCH /api/workbench/media/bench/:benchId",
+    });
+  }
+
+  async deleteMediaBench(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/media/bench/${id}`, { method: "DELETE" });
+  }
+
+  /** The same copy from a benchmarked account: `source = 'bench'`. */
+  async adoptMediaBench(id: string, data: AdoptMediaRequest): Promise<MediaTopic> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/bench/${id}/adopt`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaTopicSchema, EMPTY_MEDIA_TOPIC, {
+      endpoint: "POST /api/workbench/media/bench/:benchId/adopt",
+    });
   }
 
   // General manager workbench (docs/engineering/WORKBENCH-API.md §13): OKR goals

@@ -808,7 +808,7 @@ func (h *Handler) persistInboundDelivery(r *http.Request, in persistDeliveryInpu
 		Event:           in.Event,
 		SignatureStatus: in.SignatureStatus,
 		Status:          deliveryStatusQueued,
-		SelectedHeaders: in.SelectedHeaders,
+		SelectedHeaders: string(in.SelectedHeaders),
 		RawBody:         in.RawBody,
 	}
 	if in.DedupeKey != "" {

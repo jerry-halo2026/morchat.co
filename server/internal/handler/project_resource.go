@@ -609,7 +609,7 @@ func (h *Handler) CreateProjectResource(w http.ResponseWriter, r *http.Request) 
 		ProjectID:    project.ID,
 		WorkspaceID:  project.WorkspaceID,
 		ResourceType: req.ResourceType,
-		ResourceRef:  normalizedRef,
+		ResourceRef:  string(normalizedRef),
 		Label:        label,
 		Position:     position,
 		CreatedBy:    creator,
@@ -814,7 +814,7 @@ func (h *Handler) UpdateProjectResource(w http.ResponseWriter, r *http.Request) 
 
 	updated, err := qtx.UpdateProjectResource(r.Context(), db.UpdateProjectResourceParams{
 		ID:          existing.ID,
-		ResourceRef: nextRef,
+		ResourceRef: string(nextRef),
 		Label:       nextLabel,
 		Position:    nextPosition,
 	})

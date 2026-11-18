@@ -71,7 +71,7 @@ func TestHotTableInsertsPersistUUIDv7(t *testing.T) {
 			ActorType:   pgtype.Text{String: "member", Valid: true},
 			ActorID:     parseUUID(testUserID),
 			Action:      "uuidv7_test",
-			Details:     []byte(`{}`),
+			Details:     `{}`,
 		})
 		if err != nil {
 			t.Fatalf("CreateActivity: %v", err)
@@ -90,7 +90,7 @@ func TestHotTableInsertsPersistUUIDv7(t *testing.T) {
 			Severity:      "info",
 			IssueID:       parseUUID(issueID),
 			Title:         "uuidv7 inbox item",
-			Details:       []byte(`{}`),
+			Details:       pgtype.Text{String: `{}`, Valid: true},
 		})
 		if err != nil {
 			t.Fatalf("CreateInboxItem: %v", err)
@@ -190,7 +190,7 @@ func TestUnsetIDFallsBackToTheDatabaseDefault(t *testing.T) {
 		ActorType:   pgtype.Text{String: "member", Valid: true},
 		ActorID:     parseUUID(testUserID),
 		Action:      "uuidv7_fallback_test",
-		Details:     []byte(`{}`),
+		Details:     `{}`,
 	})
 	if err != nil {
 		t.Fatalf("CreateActivity without an id: %v", err)

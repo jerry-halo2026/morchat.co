@@ -109,7 +109,7 @@ INSERT INTO media_topic (
     owner_member_id, created_by
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('ip_id'), sqlc.arg('title'), sqlc.arg('source'),
-    sqlc.arg('scores')::jsonb, sqlc.arg('status'), sqlc.narg('hot_id')::uuid,
+    sqlc.arg('scores')::text::jsonb, sqlc.arg('status'), sqlc.narg('hot_id')::uuid,
     sqlc.narg('note')::text, sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
 )
 RETURNING *;
@@ -119,7 +119,7 @@ UPDATE media_topic
 SET ip_id = sqlc.arg('ip_id'),
     title = sqlc.arg('title'),
     source = sqlc.arg('source'),
-    scores = sqlc.arg('scores')::jsonb,
+    scores = sqlc.arg('scores')::text::jsonb,
     status = sqlc.arg('status'),
     hot_id = sqlc.narg('hot_id')::uuid,
     note = sqlc.narg('note')::text,
@@ -215,7 +215,7 @@ INSERT INTO media_shoot (
     owner_member_id, created_by
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('script_id'), sqlc.arg('shoot_date')::date,
-    sqlc.narg('location')::text, sqlc.arg('shots')::jsonb, sqlc.arg('checklist')::jsonb,
+    sqlc.narg('location')::text, sqlc.arg('shots')::text::jsonb, sqlc.arg('checklist')::text::jsonb,
     sqlc.arg('status'), sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
 )
 RETURNING *;
@@ -229,8 +229,8 @@ UPDATE media_shoot
 SET script_id = sqlc.arg('script_id'),
     shoot_date = sqlc.arg('shoot_date')::date,
     location = sqlc.narg('location')::text,
-    shots = sqlc.arg('shots')::jsonb,
-    checklist = sqlc.arg('checklist')::jsonb,
+    shots = sqlc.arg('shots')::text::jsonb,
+    checklist = sqlc.arg('checklist')::text::jsonb,
     status = sqlc.arg('status'),
     owner_member_id = sqlc.narg('owner_member_id')::uuid,
     updated_at = now()
@@ -239,5 +239,132 @@ RETURNING *;
 
 -- name: ArchiveMediaShoot :execrows
 UPDATE media_shoot
+SET archived_at = now(), updated_at = now()
+WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
+
+-- ---- hotspot radar / benchmark teardown (812–815) --------------------------
+--
+-- Two source ledgers, one shape: a row captured on a day, adopted into a topic
+-- (docs/engineering/WORKBENCH-API.md §21). Neither is a pipeline stage — they are
+-- the raw material `media_topic.source = 'hot' | 'bench'` names — so their lists
+-- sort by the capture day, newest first, and page with `limit` only: a radar list
+-- is read a screen at a time, and a month of captures is a few hundred rows.
+
+-- name: ListMediaHot :many
+-- `captured_on` narrows to one day's list (the radar's read: "what was hot on the
+-- 18th"); `category` / `platform` are the other two facets the screen offers, and
+-- `query` searches the title, which is the row's identity. Ordering is
+-- `captured_on DESC, id DESC`: the newest capture first, total so a page cannot
+-- repeat a row (813 serves it).
+SELECT *
+FROM media_hot
+WHERE workspace_id = sqlc.arg('workspace_id')::uuid
+  AND archived_at IS NULL
+  AND (sqlc.narg('captured_on')::date IS NULL OR captured_on = sqlc.narg('captured_on')::date)
+  AND (sqlc.narg('category')::text IS NULL OR category = sqlc.narg('category')::text)
+  AND (sqlc.narg('platform')::text IS NULL OR platform = sqlc.narg('platform')::text)
+  AND (
+    sqlc.narg('query')::text IS NULL
+    OR title ILIKE '%' || sqlc.narg('query')::text || '%'
+  )
+ORDER BY captured_on DESC, id DESC
+LIMIT sqlc.arg('limit');
+
+-- name: GetMediaHot :one
+SELECT * FROM media_hot
+WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
+
+-- name: CreateMediaHot :one
+INSERT INTO media_hot (
+    workspace_id, title, platform, url, rank, heat_value, category, captured_on,
+    source, note, owner_member_id, created_by
+) VALUES (
+    sqlc.arg('workspace_id')::uuid, sqlc.arg('title')::text, sqlc.arg('platform')::text,
+    sqlc.narg('url')::text, sqlc.narg('rank')::int, sqlc.narg('heat_value')::bigint,
+    sqlc.narg('category')::text, sqlc.arg('captured_on')::date, sqlc.arg('source')::text,
+    sqlc.narg('note')::text, sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
+)
+RETURNING *;
+
+-- name: UpdateMediaHot :one
+-- The handler loads the row, applies the PATCH fields and resends every column, so
+-- an omitted field never silently clears the stored value. `rank` and `heat_value`
+-- stay nullable: clearing them back to "the platform published none" is a real
+-- edit, not an omission.
+UPDATE media_hot
+SET title = sqlc.arg('title')::text,
+    platform = sqlc.arg('platform')::text,
+    url = sqlc.narg('url')::text,
+    rank = sqlc.narg('rank')::int,
+    heat_value = sqlc.narg('heat_value')::bigint,
+    category = sqlc.narg('category')::text,
+    captured_on = sqlc.arg('captured_on')::date,
+    source = sqlc.arg('source')::text,
+    note = sqlc.narg('note')::text,
+    owner_member_id = sqlc.narg('owner_member_id')::uuid,
+    updated_at = now()
+WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL
+RETURNING *;
+
+-- name: ArchiveMediaHot :execrows
+UPDATE media_hot
+SET archived_at = now(), updated_at = now()
+WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
+
+-- name: ListMediaBench :many
+-- The teardown list. `ip_id` is the facet the 对标 screen opens with ("what do the
+-- accounts in this persona's lane look like"); `platform` and `query` (over the
+-- account name) are the other two. There is no `category` facet here because a
+-- benchmark row has no category column — its classification is the IP it is read
+-- against.
+SELECT *
+FROM media_bench
+WHERE workspace_id = sqlc.arg('workspace_id')::uuid
+  AND archived_at IS NULL
+  AND (sqlc.narg('ip_id')::uuid IS NULL OR ip_id = sqlc.narg('ip_id')::uuid)
+  AND (sqlc.narg('captured_on')::date IS NULL OR captured_on = sqlc.narg('captured_on')::date)
+  AND (sqlc.narg('platform')::text IS NULL OR platform = sqlc.narg('platform')::text)
+  AND (
+    sqlc.narg('query')::text IS NULL
+    OR name ILIKE '%' || sqlc.narg('query')::text || '%'
+  )
+ORDER BY captured_on DESC, id DESC
+LIMIT sqlc.arg('limit');
+
+-- name: GetMediaBench :one
+SELECT * FROM media_bench
+WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
+
+-- name: CreateMediaBench :one
+INSERT INTO media_bench (
+    workspace_id, ip_id, platform, name, url, follower_count, metrics, captured_on,
+    note, owner_member_id, created_by
+) VALUES (
+    sqlc.arg('workspace_id')::uuid, sqlc.narg('ip_id')::uuid, sqlc.arg('platform')::text,
+    sqlc.arg('name')::text, sqlc.narg('url')::text, sqlc.narg('follower_count')::bigint,
+    sqlc.arg('metrics')::text::jsonb, sqlc.arg('captured_on')::date, sqlc.narg('note')::text,
+    sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
+)
+RETURNING *;
+
+-- name: UpdateMediaBench :one
+-- `metrics` is written whole (a benchmark card is one artifact); the handler merges
+-- nothing into it, for the same reason a shot list is replaced rather than patched.
+UPDATE media_bench
+SET ip_id = sqlc.narg('ip_id')::uuid,
+    platform = sqlc.arg('platform')::text,
+    name = sqlc.arg('name')::text,
+    url = sqlc.narg('url')::text,
+    follower_count = sqlc.narg('follower_count')::bigint,
+    metrics = sqlc.arg('metrics')::text::jsonb,
+    captured_on = sqlc.arg('captured_on')::date,
+    note = sqlc.narg('note')::text,
+    owner_member_id = sqlc.narg('owner_member_id')::uuid,
+    updated_at = now()
+WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL
+RETURNING *;
+
+-- name: ArchiveMediaBench :execrows
+UPDATE media_bench
 SET archived_at = now(), updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;

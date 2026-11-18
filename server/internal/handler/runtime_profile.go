@@ -196,7 +196,7 @@ func (h *Handler) CreateRuntimeProfile(w http.ResponseWriter, r *http.Request) {
 		RuntimeType:    req.RuntimeType,
 		CommandName:    req.CommandName,
 		Description:    ptrToText(req.Description),
-		FixedArgs:      fixedArgs,
+		FixedArgs:      string(fixedArgs),
 		Visibility:     runtimeProfileDefaultVisibility,
 		CreatedBy:      member.UserID,
 		Enabled:        enabled,
@@ -335,7 +335,7 @@ func (h *Handler) UpdateRuntimeProfile(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		params.FixedArgs = fixedArgs
+		params.FixedArgs = pgtype.Text{String: string(fixedArgs), Valid: fixedArgs != nil}
 	}
 	if req.Enabled != nil {
 		params.Enabled = pgtype.Bool{Bool: *req.Enabled, Valid: true}

@@ -71,6 +71,389 @@ func (q *Queries) ArchiveCreatorQuote(ctx context.Context, arg ArchiveCreatorQuo
 	return result.RowsAffected(), nil
 }
 
+const bdPerformanceAffiliate = `-- name: BdPerformanceAffiliate :one
+WITH bounds AS (
+    SELECT $1::date AS from_day, $2::date AS to_day
+),
+overlapping AS (
+    SELECT s.net_amount, s.settled_to
+    FROM affiliate_settlement s
+    CROSS JOIN bounds b
+    WHERE s.workspace_id = $3::uuid
+      AND s.currency = $4::text
+      AND s.period_start <= b.to_day
+      AND s.period_end >= b.from_day
+),
+paid AS (
+    SELECT s.net_amount
+    FROM affiliate_settlement s
+    CROSS JOIN bounds b
+    WHERE s.workspace_id = $3::uuid
+      AND s.currency = $4::text
+      AND s.paid_at IS NOT NULL
+      AND s.paid_at >= b.from_day
+      AND s.paid_at <= b.to_day
+)
+SELECT
+    coalesce(sum(overlapping.net_amount) FILTER (WHERE overlapping.settled_to = 'agency'), 0)::float8
+        AS agency_amount,
+    (count(*) FILTER (WHERE overlapping.settled_to = 'agency'))::bigint AS agency_samples,
+    coalesce(sum(overlapping.net_amount) FILTER (WHERE overlapping.settled_to = 'creator'), 0)::float8
+        AS creator_amount,
+    (count(*) FILTER (WHERE overlapping.settled_to = 'creator'))::bigint AS creator_samples,
+    coalesce((SELECT sum(net_amount) FROM paid), 0)::float8 AS settled_amount,
+    (SELECT count(*) FROM paid)::bigint AS settled_samples
+FROM overlapping
+`
+
+type BdPerformanceAffiliateParams struct {
+	FromDay     pgtype.Date `json:"from_day"`
+	ToDay       pgtype.Date `json:"to_day"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	Currency    string      `json:"currency"`
+}
+
+type BdPerformanceAffiliateRow struct {
+	AgencyAmount   float64 `json:"agency_amount"`
+	AgencySamples  int64   `json:"agency_samples"`
+	CreatorAmount  float64 `json:"creator_amount"`
+	CreatorSamples int64   `json:"creator_samples"`
+	SettledAmount  float64 `json:"settled_amount"`
+	SettledSamples int64   `json:"settled_samples"`
+}
+
+// The affiliate commission the window is responsible for, split by who received it
+// (727, same reading as §11's summary):
+//
+//	agency   statements `settled_to = 'agency'` — the money landed in our 机构号.
+//	creator  statements `settled_to = 'creator'` — the platform paid the 达人直接.
+//	         Adding the two would count the business twice, which is why they stay
+//	         apart instead of collapsing into one "commission".
+//	settled  statements whose `paid_at` falls inside the window: 已结算 means the
+//	         money arrived on that day. The agency/creator halves window on the
+//	         statement's *period* (it is a report about a span), while this one
+//	         windows on the pay date — two different facts, both asked for.
+func (q *Queries) BdPerformanceAffiliate(ctx context.Context, arg BdPerformanceAffiliateParams) (BdPerformanceAffiliateRow, error) {
+	row := q.db.QueryRow(ctx, bdPerformanceAffiliate,
+		arg.FromDay,
+		arg.ToDay,
+		arg.WorkspaceID,
+		arg.Currency,
+	)
+	var i BdPerformanceAffiliateRow
+	err := row.Scan(
+		&i.AgencyAmount,
+		&i.AgencySamples,
+		&i.CreatorAmount,
+		&i.CreatorSamples,
+		&i.SettledAmount,
+		&i.SettledSamples,
+	)
+	return i, err
+}
+
+const bdPerformanceBuckets = `-- name: BdPerformanceBuckets :many
+WITH bounds AS (
+    SELECT $1::date AS from_day, $2::date AS to_day
+)
+SELECT
+    'signed'::text AS metric,
+    to_char(date_trunc('month', c.confirmed_at), 'YYYY-MM')::text AS month,
+    c.owner_member_id AS member_id,
+    count(*)::bigint AS row_count,
+    coalesce(sum(c.final_amount), 0)::float8 AS amount,
+    (count(c.final_amount))::bigint AS amount_samples
+FROM crm_collab c
+CROSS JOIN bounds b
+WHERE c.workspace_id = $3::uuid
+  AND c.archived_at IS NULL
+  AND c.stage <> 'cancelled'
+  AND c.currency = $4::text
+  AND c.confirmed_at >= b.from_day::timestamptz
+  AND c.confirmed_at < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'delivered'::text,
+    to_char(date_trunc('month', c.published_at), 'YYYY-MM')::text,
+    c.owner_member_id,
+    count(*)::bigint,
+    coalesce(sum(c.final_amount), 0)::float8,
+    (count(c.final_amount))::bigint
+FROM crm_collab c
+CROSS JOIN bounds b
+WHERE c.workspace_id = $3::uuid
+  AND c.archived_at IS NULL
+  AND c.stage <> 'cancelled'
+  AND c.currency = $4::text
+  AND c.published_at >= b.from_day::timestamptz
+  AND c.published_at < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'collected'::text,
+    to_char(date_trunc('month', s.paid_at), 'YYYY-MM')::text,
+    c.owner_member_id,
+    count(*)::bigint,
+    coalesce(sum(s.amount), 0)::float8,
+    (count(s.amount))::bigint
+FROM crm_settlement s
+JOIN crm_collab c ON c.id = s.collab_id AND c.workspace_id = s.workspace_id
+CROSS JOIN bounds b
+WHERE s.workspace_id = $3::uuid
+  AND s.archived_at IS NULL
+  AND s.paid_at IS NOT NULL
+  AND s.currency = $4::text
+  AND s.paid_at >= b.from_day
+  AND s.paid_at <= b.to_day
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'quote_sent'::text,
+    to_char(date_trunc('month', coalesce(q.quoted_at, q.created_at)), 'YYYY-MM')::text,
+    q.owner_member_id,
+    count(*)::bigint,
+    coalesce(sum(q.fee_amount), 0)::float8,
+    (count(q.fee_amount))::bigint
+FROM creator_quote q
+CROSS JOIN bounds b
+WHERE q.workspace_id = $3::uuid
+  AND q.archived_at IS NULL
+  AND q.status <> 'draft'
+  AND q.currency = $4::text
+  AND coalesce(q.quoted_at, q.created_at) >= b.from_day::timestamptz
+  AND coalesce(q.quoted_at, q.created_at) < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'quote_accepted'::text,
+    to_char(date_trunc('month', coalesce(q.quoted_at, q.created_at)), 'YYYY-MM')::text,
+    q.owner_member_id,
+    count(*)::bigint,
+    coalesce(sum(q.fee_amount), 0)::float8,
+    (count(q.fee_amount))::bigint
+FROM creator_quote q
+CROSS JOIN bounds b
+WHERE q.workspace_id = $3::uuid
+  AND q.archived_at IS NULL
+  AND q.status = 'accepted'
+  AND q.currency = $4::text
+  AND coalesce(q.quoted_at, q.created_at) >= b.from_day::timestamptz
+  AND coalesce(q.quoted_at, q.created_at) < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'followup'::text,
+    to_char(date_trunc('month', a.happened_at), 'YYYY-MM')::text,
+    a.owner_member_id,
+    count(*)::bigint,
+    0::float8,
+    0::bigint
+FROM creator_activity a
+CROSS JOIN bounds b
+WHERE a.workspace_id = $3::uuid
+  AND a.archived_at IS NULL
+  AND a.happened_at >= b.from_day::timestamptz
+  AND a.happened_at < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'followup_replied'::text,
+    to_char(date_trunc('month', a.happened_at), 'YYYY-MM')::text,
+    a.owner_member_id,
+    count(*)::bigint,
+    0::float8,
+    0::bigint
+FROM creator_activity a
+CROSS JOIN bounds b
+WHERE a.workspace_id = $3::uuid
+  AND a.archived_at IS NULL
+  AND a.outcome IN ('replied', 'advanced')
+  AND a.happened_at >= b.from_day::timestamptz
+  AND a.happened_at < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'followup_meeting'::text,
+    to_char(date_trunc('month', a.happened_at), 'YYYY-MM')::text,
+    a.owner_member_id,
+    count(*)::bigint,
+    0::float8,
+    0::bigint
+FROM creator_activity a
+CROSS JOIN bounds b
+WHERE a.workspace_id = $3::uuid
+  AND a.archived_at IS NULL
+  AND a.kind = 'meeting'
+  AND a.happened_at >= b.from_day::timestamptz
+  AND a.happened_at < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3
+`
+
+type BdPerformanceBucketsParams struct {
+	FromDay     pgtype.Date `json:"from_day"`
+	ToDay       pgtype.Date `json:"to_day"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	Currency    string      `json:"currency"`
+}
+
+type BdPerformanceBucketsRow struct {
+	Metric        string      `json:"metric"`
+	Month         string      `json:"month"`
+	MemberID      pgtype.UUID `json:"member_id"`
+	RowCount      int64       `json:"row_count"`
+	Amount        float64     `json:"amount"`
+	AmountSamples int64       `json:"amount_samples"`
+}
+
+// Every fact the report shows, in one statement, already grouped by (month,
+// member). The handler pivots these rows into the blocks, `by_member` and
+// `by_month`: a pivot in Go keeps one definition of each bucket instead of three
+// near-identical queries, and the row count is bounded by members × months.
+//
+//	signed          crm_collab confirmed in the window (stage <> cancelled) — the
+//	                money is `final_amount`, what we committed to pay, and a row
+//	                confirmed without an amount still counts.
+//	delivered       crm_collab published in the window: the work went live.
+//	collected       crm_settlement with `paid_at` in the window — money that
+//	                actually moved, read off the settlement, attributed to the
+//	                collaboration's owner. The collaboration itself may be archived
+//	                by now; a payment does not un-happen.
+//	quote_sent      creator_quote with status <> 'draft': a draft was never an
+//	                offer. Money is the 坑位费 quoted.
+//	quote_accepted  the same rows, status = 'accepted'. `win_rate` is
+//	                accepted / sent, computed in the handler (0–1 scale).
+//	followup        creator_activity in the window: 条数.
+//	followup_replied / followup_meeting   the two outcomes worth counting
+//	                separately: a conversation that moved, and a meeting held.
+func (q *Queries) BdPerformanceBuckets(ctx context.Context, arg BdPerformanceBucketsParams) ([]BdPerformanceBucketsRow, error) {
+	rows, err := q.db.Query(ctx, bdPerformanceBuckets,
+		arg.FromDay,
+		arg.ToDay,
+		arg.WorkspaceID,
+		arg.Currency,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []BdPerformanceBucketsRow{}
+	for rows.Next() {
+		var i BdPerformanceBucketsRow
+		if err := rows.Scan(
+			&i.Metric,
+			&i.Month,
+			&i.MemberID,
+			&i.RowCount,
+			&i.Amount,
+			&i.AmountSamples,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const bdPerformanceCurrency = `-- name: BdPerformanceCurrency :one
+
+WITH bounds AS (
+    SELECT $1::date AS from_day, $2::date AS to_day
+),
+money_rows AS (
+    SELECT c.currency::text AS currency
+    FROM crm_collab c
+    CROSS JOIN bounds b
+    WHERE c.workspace_id = $3::uuid
+      AND c.archived_at IS NULL
+      AND c.stage <> 'cancelled'
+      AND (
+        (c.confirmed_at >= b.from_day::timestamptz
+            AND c.confirmed_at < (b.to_day + 1)::timestamptz)
+        OR (c.published_at >= b.from_day::timestamptz
+            AND c.published_at < (b.to_day + 1)::timestamptz)
+      )
+    UNION ALL
+    SELECT q.currency::text
+    FROM creator_quote q
+    CROSS JOIN bounds b
+    WHERE q.workspace_id = $3::uuid
+      AND q.archived_at IS NULL
+      AND q.status <> 'draft'
+      AND coalesce(q.quoted_at, q.created_at) >= b.from_day::timestamptz
+      AND coalesce(q.quoted_at, q.created_at) < (b.to_day + 1)::timestamptz
+    UNION ALL
+    SELECT s.currency::text
+    FROM affiliate_settlement s
+    CROSS JOIN bounds b
+    WHERE s.workspace_id = $3::uuid
+      AND s.period_start <= b.to_day
+      AND s.period_end >= b.from_day
+)
+SELECT coalesce(
+    (SELECT currency FROM money_rows GROUP BY currency ORDER BY count(*) DESC, currency LIMIT 1),
+    'CNY'
+)::text AS currency
+`
+
+type BdPerformanceCurrencyParams struct {
+	FromDay     pgtype.Date `json:"from_day"`
+	ToDay       pgtype.Date `json:"to_day"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+}
+
+// ---- performance over a date range (WORKBENCH-API §22) ---------------------
+//
+// `GET /api/workbench/bd/performance` answers one question the cockpit cannot:
+// "between these two days, what did the team actually produce?" The cockpit
+// (§20.3) is a snapshot of the ledger as it stands today; this is a window.
+//
+// Three rules run through every statement below, and each one is a decision:
+//
+//   - **One currency per window.** `BdPerformanceCurrency` picks the currency the
+//     window's rows are mostly in, and every sum filters on it. Adding CNY to USD
+//     produces a number in neither, so rows in the other currency are excluded —
+//     from the counts too, not just the amounts, because a count and the money
+//     beside it have to describe the same rows (§20.6 does the same per block).
+//
+//   - **Every fact buckets by its own date.** A collaboration is *signed* on
+//     `confirmed_at`, *delivered* on `published_at`; a settlement is *collected* on
+//     `paid_at`; a quote is *sent* on `coalesce(quoted_at, created_at)`; a
+//     follow-up happened on `happened_at`. The same collaboration may therefore
+//     appear in two blocks of one report with two amounts — that is the point of
+//     the report, not double counting: each block answers a different question.
+//
+//   - **Money with no rows is NULL, never 0.** The handler turns an empty sum into
+//     `amount: null, empty: "insufficient_data"`; a count with no rows is a real 0.
+//
+// The window's dominant currency, counted over the rows the report can sum:
+// collaborations touched by the window (signed or delivered), quotes that were
+// actually sent, and settlements whose period overlaps it. Falls back to 'CNY'
+// when the window has no money at all, so the client always has a label.
+func (q *Queries) BdPerformanceCurrency(ctx context.Context, arg BdPerformanceCurrencyParams) (string, error) {
+	row := q.db.QueryRow(ctx, bdPerformanceCurrency, arg.FromDay, arg.ToDay, arg.WorkspaceID)
+	var currency string
+	err := row.Scan(&currency)
+	return currency, err
+}
+
 const bdPipelineCreators = `-- name: BdPipelineCreators :one
 
 WITH live_creators AS (
@@ -484,7 +867,7 @@ INSERT INTO creator_quote (
     $3::uuid, $4::text,
     $5::timestamptz, $6::date,
     $7::numeric, $8::numeric,
-    $9::text, $10::jsonb, $11::text,
+    $9::text, $10::text::jsonb, $11::text,
     $12::uuid, $13::uuid
 )
 RETURNING id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at
@@ -500,7 +883,7 @@ type CreateCreatorQuoteParams struct {
 	FeeAmount      pgtype.Numeric     `json:"fee_amount"`
 	CommissionRate pgtype.Numeric     `json:"commission_rate"`
 	Currency       string             `json:"currency"`
-	Items          []byte             `json:"items"`
+	Items          string             `json:"items"`
 	Note           pgtype.Text        `json:"note"`
 	OwnerMemberID  pgtype.UUID        `json:"owner_member_id"`
 	CreatedBy      pgtype.UUID        `json:"created_by"`
@@ -994,7 +1377,7 @@ SET brief_id = $1::uuid,
     fee_amount = $5::numeric,
     commission_rate = $6::numeric,
     currency = $7::text,
-    items = $8::jsonb,
+    items = $8::text::jsonb,
     note = $9::text,
     owner_member_id = $10::uuid,
     updated_at = now()
@@ -1011,7 +1394,7 @@ type UpdateCreatorQuoteParams struct {
 	FeeAmount      pgtype.Numeric     `json:"fee_amount"`
 	CommissionRate pgtype.Numeric     `json:"commission_rate"`
 	Currency       string             `json:"currency"`
-	Items          []byte             `json:"items"`
+	Items          string             `json:"items"`
 	Note           pgtype.Text        `json:"note"`
 	OwnerMemberID  pgtype.UUID        `json:"owner_member_id"`
 	ID             pgtype.UUID        `json:"id"`

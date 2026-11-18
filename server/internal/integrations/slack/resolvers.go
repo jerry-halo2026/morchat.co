@@ -241,7 +241,7 @@ func (r *identityResolver) ResolveSender(ctx context.Context, inst engine.Resolv
 			InstallationID: inst.ID,
 			ChannelType:    string(TypeSlack),
 			ChannelUserID:  senderID,
-			Config:         []byte(`{}`),
+			Config:         string([]byte(`{}`)),
 		}); err != nil {
 			return engine.ResolvedIdentity{}, fmt.Errorf("materialize reused slack binding: %w", err)
 		}

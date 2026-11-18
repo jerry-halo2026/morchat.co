@@ -124,7 +124,7 @@ INSERT INTO hr_interview_guide (
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.narg('interview_id')::uuid,
     sqlc.arg('candidate_id'), sqlc.narg('job_id')::uuid, sqlc.arg('round'),
-    sqlc.arg('status'), sqlc.arg('items')::jsonb, sqlc.narg('note')::text,
+    sqlc.arg('status'), sqlc.arg('items')::text::jsonb, sqlc.narg('note')::text,
     sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
 )
 RETURNING *;
@@ -139,7 +139,7 @@ SET interview_id = sqlc.narg('interview_id')::uuid,
     job_id = sqlc.narg('job_id')::uuid,
     round = sqlc.arg('round'),
     status = sqlc.arg('status'),
-    items = sqlc.arg('items')::jsonb,
+    items = sqlc.arg('items')::text::jsonb,
     note = sqlc.narg('note')::text,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL

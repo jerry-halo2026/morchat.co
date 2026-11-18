@@ -83,7 +83,7 @@ func TestRegisterBYO_PersistsEncryptedSecretKeyedByAppID(t *testing.T) {
 	}
 
 	var cfg installConfig
-	if err := json.Unmarshal(q.upsertParams.Config, &cfg); err != nil {
+	if err := json.Unmarshal([]byte(q.upsertParams.Config), &cfg); err != nil {
 		t.Fatalf("decode upserted config: %v", err)
 	}
 	// Routing key is the AppKey (== robotCode for a Stream-mode robot).
@@ -299,7 +299,7 @@ func TestRegisterBYO_SameAgentReconnect_UpdatesRowInPlace(t *testing.T) {
 		t.Fatal("same-AppKey reconnect retired the installation identity")
 	}
 	var reconnectConfig map[string]json.RawMessage
-	if err := json.Unmarshal(q.upsertParams.Config, &reconnectConfig); err != nil {
+	if err := json.Unmarshal([]byte(q.upsertParams.Config), &reconnectConfig); err != nil {
 		t.Fatal(err)
 	}
 	for _, key := range []string{"group_titles", "group_bot_names"} {

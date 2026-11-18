@@ -1,0 +1,79 @@
+{
+  "missing": "Non collecté",
+  "common": {
+    "all": "Tous",
+    "cancel": "Annuler",
+    "clear": "Effacer les filtres",
+    "delete": "Supprimer",
+    "retry": "Réessayer",
+    "load_failed": "Impossible de charger cette liste",
+    "write_failed": "Le serveur a refusé cette modification. Rien n'a été enregistré."
+  },
+  "form": {
+    "save": "Enregistrer",
+    "field_title": "Titre",
+    "field_name": "Compte",
+    "field_platform": "Plateforme",
+    "field_url": "Lien",
+    "field_rank": "Rang",
+    "field_heat": "Intensité",
+    "field_category": "Catégorie",
+    "field_day": "Collecté le",
+    "field_note": "Note",
+    "field_ip": "IP",
+    "field_followers": "Abonnés",
+    "field_metrics": "Indicateurs",
+    "metrics_hint": "Une par ligne, au format clé : valeur.",
+    "no_ip": "Aucune IP"
+  },
+  "adopt": {
+    "title": "Adopter comme sujet",
+    "submit": "Ajouter au vivier",
+    "no_ip": "Un sujet appartient à une IP. Créez-en une d'abord.",
+    "failed": "Le serveur a refusé cette adoption. Rien n'a été créé.",
+    "adopted": "Adopté",
+    "open_topic": "Ouvrir le sujet"
+  },
+  "hot": {
+    "new": "Ajouter un sujet chaud",
+    "edit": "Modifier le sujet chaud",
+    "empty_title": "Aucun sujet chaud capturé",
+    "empty_description": "Ajoutez-en un à la main, ou attendez un import.",
+    "filter_day": "Jour",
+    "filter_category": "Catégorie",
+    "filter_platform": "Plateforme",
+    "filter_keyword": "Rechercher un sujet chaud",
+    "no_matches": "Aucun sujet chaud ne correspond à ces filtres",
+    "column_hotspot": "Sujet chaud",
+    "column_rank": "Rang",
+    "column_heat": "Intensité",
+    "adopt": "Adopter comme sujet",
+    "delete_title": "Supprimer ce sujet chaud ?",
+    "delete_description": "« {{title}} » quitte le radar. La ligne est conservée."
+  },
+  "bench": {
+    "new": "Ajouter un benchmark",
+    "edit": "Modifier le benchmark",
+    "empty_title": "Aucun compte de référence",
+    "empty_description": "Enregistrez un compte pour lire ses chiffres face à une IP.",
+    "filter_ip": "IP",
+    "filter_keyword": "Rechercher un compte",
+    "no_matches": "Aucun benchmark ne correspond à ce filtre",
+    "column_account": "Compte",
+    "column_url": "Profil",
+    "column_followers": "Abonnés",
+    "column_metrics": "Indicateurs",
+    "column_captured": "Collecté le",
+    "column_ip": "IP",
+    "adopt": "Adopter comme sujet",
+    "delete_title": "Supprimer ce benchmark ?",
+    "delete_description": "« {{name}} » quitte la liste d'analyse. La ligne est conservée.",
+    "metric": {
+      "plays": "Lectures",
+      "views": "Vues",
+      "likes": "J'aime",
+      "favorites": "Enregistrements",
+      "comments": "Commentaires"
+    }
+  }
+}

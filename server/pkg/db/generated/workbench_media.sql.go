@@ -11,6 +11,44 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const archiveMediaBench = `-- name: ArchiveMediaBench :execrows
+UPDATE media_bench
+SET archived_at = now(), updated_at = now()
+WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
+`
+
+type ArchiveMediaBenchParams struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+}
+
+func (q *Queries) ArchiveMediaBench(ctx context.Context, arg ArchiveMediaBenchParams) (int64, error) {
+	result, err := q.db.Exec(ctx, archiveMediaBench, arg.ID, arg.WorkspaceID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const archiveMediaHot = `-- name: ArchiveMediaHot :execrows
+UPDATE media_hot
+SET archived_at = now(), updated_at = now()
+WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
+`
+
+type ArchiveMediaHotParams struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+}
+
+func (q *Queries) ArchiveMediaHot(ctx context.Context, arg ArchiveMediaHotParams) (int64, error) {
+	result, err := q.db.Exec(ctx, archiveMediaHot, arg.ID, arg.WorkspaceID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const archiveMediaIP = `-- name: ArchiveMediaIP :execrows
 UPDATE media_ip
 SET archived_at = now(), updated_at = now()
@@ -89,6 +127,133 @@ func (q *Queries) ArchiveMediaTopic(ctx context.Context, arg ArchiveMediaTopicPa
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const createMediaBench = `-- name: CreateMediaBench :one
+INSERT INTO media_bench (
+    workspace_id, ip_id, platform, name, url, follower_count, metrics, captured_on,
+    note, owner_member_id, created_by
+) VALUES (
+    $1::uuid, $2::uuid, $3::text,
+    $4::text, $5::text, $6::bigint,
+    $7::text::jsonb, $8::date, $9::text,
+    $10::uuid, $11::uuid
+)
+RETURNING id, workspace_id, ip_id, platform, name, url, follower_count, metrics, captured_on, note, owner_member_id, created_by, created_at, updated_at, archived_at
+`
+
+type CreateMediaBenchParams struct {
+	WorkspaceID   pgtype.UUID `json:"workspace_id"`
+	IpID          pgtype.UUID `json:"ip_id"`
+	Platform      string      `json:"platform"`
+	Name          string      `json:"name"`
+	Url           pgtype.Text `json:"url"`
+	FollowerCount pgtype.Int8 `json:"follower_count"`
+	Metrics       string      `json:"metrics"`
+	CapturedOn    pgtype.Date `json:"captured_on"`
+	Note          pgtype.Text `json:"note"`
+	OwnerMemberID pgtype.UUID `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID `json:"created_by"`
+}
+
+func (q *Queries) CreateMediaBench(ctx context.Context, arg CreateMediaBenchParams) (MediaBench, error) {
+	row := q.db.QueryRow(ctx, createMediaBench,
+		arg.WorkspaceID,
+		arg.IpID,
+		arg.Platform,
+		arg.Name,
+		arg.Url,
+		arg.FollowerCount,
+		arg.Metrics,
+		arg.CapturedOn,
+		arg.Note,
+		arg.OwnerMemberID,
+		arg.CreatedBy,
+	)
+	var i MediaBench
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.IpID,
+		&i.Platform,
+		&i.Name,
+		&i.Url,
+		&i.FollowerCount,
+		&i.Metrics,
+		&i.CapturedOn,
+		&i.Note,
+		&i.OwnerMemberID,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ArchivedAt,
+	)
+	return i, err
+}
+
+const createMediaHot = `-- name: CreateMediaHot :one
+INSERT INTO media_hot (
+    workspace_id, title, platform, url, rank, heat_value, category, captured_on,
+    source, note, owner_member_id, created_by
+) VALUES (
+    $1::uuid, $2::text, $3::text,
+    $4::text, $5::int, $6::bigint,
+    $7::text, $8::date, $9::text,
+    $10::text, $11::uuid, $12::uuid
+)
+RETURNING id, workspace_id, title, platform, url, rank, heat_value, category, captured_on, source, note, owner_member_id, created_by, created_at, updated_at, archived_at
+`
+
+type CreateMediaHotParams struct {
+	WorkspaceID   pgtype.UUID `json:"workspace_id"`
+	Title         string      `json:"title"`
+	Platform      string      `json:"platform"`
+	Url           pgtype.Text `json:"url"`
+	Rank          pgtype.Int4 `json:"rank"`
+	HeatValue     pgtype.Int8 `json:"heat_value"`
+	Category      pgtype.Text `json:"category"`
+	CapturedOn    pgtype.Date `json:"captured_on"`
+	Source        string      `json:"source"`
+	Note          pgtype.Text `json:"note"`
+	OwnerMemberID pgtype.UUID `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID `json:"created_by"`
+}
+
+func (q *Queries) CreateMediaHot(ctx context.Context, arg CreateMediaHotParams) (MediaHot, error) {
+	row := q.db.QueryRow(ctx, createMediaHot,
+		arg.WorkspaceID,
+		arg.Title,
+		arg.Platform,
+		arg.Url,
+		arg.Rank,
+		arg.HeatValue,
+		arg.Category,
+		arg.CapturedOn,
+		arg.Source,
+		arg.Note,
+		arg.OwnerMemberID,
+		arg.CreatedBy,
+	)
+	var i MediaHot
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.Title,
+		&i.Platform,
+		&i.Url,
+		&i.Rank,
+		&i.HeatValue,
+		&i.Category,
+		&i.CapturedOn,
+		&i.Source,
+		&i.Note,
+		&i.OwnerMemberID,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ArchivedAt,
+	)
+	return i, err
 }
 
 const createMediaIP = `-- name: CreateMediaIP :one
@@ -232,7 +397,7 @@ INSERT INTO media_shoot (
     owner_member_id, created_by
 ) VALUES (
     $1, $2, $3::date,
-    $4::text, $5::jsonb, $6::jsonb,
+    $4::text, $5::text::jsonb, $6::text::jsonb,
     $7, $8::uuid, $9::uuid
 )
 RETURNING id, workspace_id, script_id, shoot_date, location, shots, checklist, status, owner_member_id, created_by, created_at, updated_at, archived_at
@@ -243,8 +408,8 @@ type CreateMediaShootParams struct {
 	ScriptID      pgtype.UUID `json:"script_id"`
 	ShootDate     pgtype.Date `json:"shoot_date"`
 	Location      pgtype.Text `json:"location"`
-	Shots         []byte      `json:"shots"`
-	Checklist     []byte      `json:"checklist"`
+	Shots         string      `json:"shots"`
+	Checklist     string      `json:"checklist"`
 	Status        string      `json:"status"`
 	OwnerMemberID pgtype.UUID `json:"owner_member_id"`
 	CreatedBy     pgtype.UUID `json:"created_by"`
@@ -287,7 +452,7 @@ INSERT INTO media_topic (
     owner_member_id, created_by
 ) VALUES (
     $1, $2, $3, $4,
-    $5::jsonb, $6, $7::uuid,
+    $5::text::jsonb, $6, $7::uuid,
     $8::text, $9::uuid, $10::uuid
 )
 RETURNING id, workspace_id, ip_id, title, source, scores, status, hot_id, note, owner_member_id, created_by, created_at, updated_at, archived_at
@@ -298,7 +463,7 @@ type CreateMediaTopicParams struct {
 	IpID          pgtype.UUID `json:"ip_id"`
 	Title         string      `json:"title"`
 	Source        string      `json:"source"`
-	Scores        []byte      `json:"scores"`
+	Scores        string      `json:"scores"`
 	Status        string      `json:"status"`
 	HotID         pgtype.UUID `json:"hot_id"`
 	Note          pgtype.Text `json:"note"`
@@ -329,6 +494,73 @@ func (q *Queries) CreateMediaTopic(ctx context.Context, arg CreateMediaTopicPara
 		&i.Scores,
 		&i.Status,
 		&i.HotID,
+		&i.Note,
+		&i.OwnerMemberID,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ArchivedAt,
+	)
+	return i, err
+}
+
+const getMediaBench = `-- name: GetMediaBench :one
+SELECT id, workspace_id, ip_id, platform, name, url, follower_count, metrics, captured_on, note, owner_member_id, created_by, created_at, updated_at, archived_at FROM media_bench
+WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
+`
+
+type GetMediaBenchParams struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+}
+
+func (q *Queries) GetMediaBench(ctx context.Context, arg GetMediaBenchParams) (MediaBench, error) {
+	row := q.db.QueryRow(ctx, getMediaBench, arg.ID, arg.WorkspaceID)
+	var i MediaBench
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.IpID,
+		&i.Platform,
+		&i.Name,
+		&i.Url,
+		&i.FollowerCount,
+		&i.Metrics,
+		&i.CapturedOn,
+		&i.Note,
+		&i.OwnerMemberID,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ArchivedAt,
+	)
+	return i, err
+}
+
+const getMediaHot = `-- name: GetMediaHot :one
+SELECT id, workspace_id, title, platform, url, rank, heat_value, category, captured_on, source, note, owner_member_id, created_by, created_at, updated_at, archived_at FROM media_hot
+WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
+`
+
+type GetMediaHotParams struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+}
+
+func (q *Queries) GetMediaHot(ctx context.Context, arg GetMediaHotParams) (MediaHot, error) {
+	row := q.db.QueryRow(ctx, getMediaHot, arg.ID, arg.WorkspaceID)
+	var i MediaHot
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.Title,
+		&i.Platform,
+		&i.Url,
+		&i.Rank,
+		&i.HeatValue,
+		&i.Category,
+		&i.CapturedOn,
+		&i.Source,
 		&i.Note,
 		&i.OwnerMemberID,
 		&i.CreatedBy,
@@ -467,6 +699,161 @@ func (q *Queries) GetMediaTopic(ctx context.Context, arg GetMediaTopicParams) (M
 		&i.ArchivedAt,
 	)
 	return i, err
+}
+
+const listMediaBench = `-- name: ListMediaBench :many
+SELECT id, workspace_id, ip_id, platform, name, url, follower_count, metrics, captured_on, note, owner_member_id, created_by, created_at, updated_at, archived_at
+FROM media_bench
+WHERE workspace_id = $1::uuid
+  AND archived_at IS NULL
+  AND ($2::uuid IS NULL OR ip_id = $2::uuid)
+  AND ($3::date IS NULL OR captured_on = $3::date)
+  AND ($4::text IS NULL OR platform = $4::text)
+  AND (
+    $5::text IS NULL
+    OR name ILIKE '%' || $5::text || '%'
+  )
+ORDER BY captured_on DESC, id DESC
+LIMIT $6
+`
+
+type ListMediaBenchParams struct {
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	IpID        pgtype.UUID `json:"ip_id"`
+	CapturedOn  pgtype.Date `json:"captured_on"`
+	Platform    pgtype.Text `json:"platform"`
+	Query       pgtype.Text `json:"query"`
+	Limit       int32       `json:"limit"`
+}
+
+// The teardown list. `ip_id` is the facet the 对标 screen opens with ("what do the
+// accounts in this persona's lane look like"); `platform` and `query` (over the
+// account name) are the other two. There is no `category` facet here because a
+// benchmark row has no category column — its classification is the IP it is read
+// against.
+func (q *Queries) ListMediaBench(ctx context.Context, arg ListMediaBenchParams) ([]MediaBench, error) {
+	rows, err := q.db.Query(ctx, listMediaBench,
+		arg.WorkspaceID,
+		arg.IpID,
+		arg.CapturedOn,
+		arg.Platform,
+		arg.Query,
+		arg.Limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []MediaBench{}
+	for rows.Next() {
+		var i MediaBench
+		if err := rows.Scan(
+			&i.ID,
+			&i.WorkspaceID,
+			&i.IpID,
+			&i.Platform,
+			&i.Name,
+			&i.Url,
+			&i.FollowerCount,
+			&i.Metrics,
+			&i.CapturedOn,
+			&i.Note,
+			&i.OwnerMemberID,
+			&i.CreatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ArchivedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMediaHot = `-- name: ListMediaHot :many
+
+SELECT id, workspace_id, title, platform, url, rank, heat_value, category, captured_on, source, note, owner_member_id, created_by, created_at, updated_at, archived_at
+FROM media_hot
+WHERE workspace_id = $1::uuid
+  AND archived_at IS NULL
+  AND ($2::date IS NULL OR captured_on = $2::date)
+  AND ($3::text IS NULL OR category = $3::text)
+  AND ($4::text IS NULL OR platform = $4::text)
+  AND (
+    $5::text IS NULL
+    OR title ILIKE '%' || $5::text || '%'
+  )
+ORDER BY captured_on DESC, id DESC
+LIMIT $6
+`
+
+type ListMediaHotParams struct {
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	CapturedOn  pgtype.Date `json:"captured_on"`
+	Category    pgtype.Text `json:"category"`
+	Platform    pgtype.Text `json:"platform"`
+	Query       pgtype.Text `json:"query"`
+	Limit       int32       `json:"limit"`
+}
+
+// ---- hotspot radar / benchmark teardown (812–815) --------------------------
+//
+// Two source ledgers, one shape: a row captured on a day, adopted into a topic
+// (docs/engineering/WORKBENCH-API.md §21). Neither is a pipeline stage — they are
+// the raw material `media_topic.source = 'hot' | 'bench'` names — so their lists
+// sort by the capture day, newest first, and page with `limit` only: a radar list
+// is read a screen at a time, and a month of captures is a few hundred rows.
+// `captured_on` narrows to one day's list (the radar's read: "what was hot on the
+// 18th"); `category` / `platform` are the other two facets the screen offers, and
+// `query` searches the title, which is the row's identity. Ordering is
+// `captured_on DESC, id DESC`: the newest capture first, total so a page cannot
+// repeat a row (813 serves it).
+func (q *Queries) ListMediaHot(ctx context.Context, arg ListMediaHotParams) ([]MediaHot, error) {
+	rows, err := q.db.Query(ctx, listMediaHot,
+		arg.WorkspaceID,
+		arg.CapturedOn,
+		arg.Category,
+		arg.Platform,
+		arg.Query,
+		arg.Limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []MediaHot{}
+	for rows.Next() {
+		var i MediaHot
+		if err := rows.Scan(
+			&i.ID,
+			&i.WorkspaceID,
+			&i.Title,
+			&i.Platform,
+			&i.Url,
+			&i.Rank,
+			&i.HeatValue,
+			&i.Category,
+			&i.CapturedOn,
+			&i.Source,
+			&i.Note,
+			&i.OwnerMemberID,
+			&i.CreatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ArchivedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listMediaIPAccounts = `-- name: ListMediaIPAccounts :many
@@ -870,6 +1257,146 @@ func (q *Queries) SetCreatorMediaIP(ctx context.Context, arg SetCreatorMediaIPPa
 	return i, err
 }
 
+const updateMediaBench = `-- name: UpdateMediaBench :one
+UPDATE media_bench
+SET ip_id = $1::uuid,
+    platform = $2::text,
+    name = $3::text,
+    url = $4::text,
+    follower_count = $5::bigint,
+    metrics = $6::text::jsonb,
+    captured_on = $7::date,
+    note = $8::text,
+    owner_member_id = $9::uuid,
+    updated_at = now()
+WHERE id = $10 AND workspace_id = $11 AND archived_at IS NULL
+RETURNING id, workspace_id, ip_id, platform, name, url, follower_count, metrics, captured_on, note, owner_member_id, created_by, created_at, updated_at, archived_at
+`
+
+type UpdateMediaBenchParams struct {
+	IpID          pgtype.UUID `json:"ip_id"`
+	Platform      string      `json:"platform"`
+	Name          string      `json:"name"`
+	Url           pgtype.Text `json:"url"`
+	FollowerCount pgtype.Int8 `json:"follower_count"`
+	Metrics       string      `json:"metrics"`
+	CapturedOn    pgtype.Date `json:"captured_on"`
+	Note          pgtype.Text `json:"note"`
+	OwnerMemberID pgtype.UUID `json:"owner_member_id"`
+	ID            pgtype.UUID `json:"id"`
+	WorkspaceID   pgtype.UUID `json:"workspace_id"`
+}
+
+// `metrics` is written whole (a benchmark card is one artifact); the handler merges
+// nothing into it, for the same reason a shot list is replaced rather than patched.
+func (q *Queries) UpdateMediaBench(ctx context.Context, arg UpdateMediaBenchParams) (MediaBench, error) {
+	row := q.db.QueryRow(ctx, updateMediaBench,
+		arg.IpID,
+		arg.Platform,
+		arg.Name,
+		arg.Url,
+		arg.FollowerCount,
+		arg.Metrics,
+		arg.CapturedOn,
+		arg.Note,
+		arg.OwnerMemberID,
+		arg.ID,
+		arg.WorkspaceID,
+	)
+	var i MediaBench
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.IpID,
+		&i.Platform,
+		&i.Name,
+		&i.Url,
+		&i.FollowerCount,
+		&i.Metrics,
+		&i.CapturedOn,
+		&i.Note,
+		&i.OwnerMemberID,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ArchivedAt,
+	)
+	return i, err
+}
+
+const updateMediaHot = `-- name: UpdateMediaHot :one
+UPDATE media_hot
+SET title = $1::text,
+    platform = $2::text,
+    url = $3::text,
+    rank = $4::int,
+    heat_value = $5::bigint,
+    category = $6::text,
+    captured_on = $7::date,
+    source = $8::text,
+    note = $9::text,
+    owner_member_id = $10::uuid,
+    updated_at = now()
+WHERE id = $11 AND workspace_id = $12 AND archived_at IS NULL
+RETURNING id, workspace_id, title, platform, url, rank, heat_value, category, captured_on, source, note, owner_member_id, created_by, created_at, updated_at, archived_at
+`
+
+type UpdateMediaHotParams struct {
+	Title         string      `json:"title"`
+	Platform      string      `json:"platform"`
+	Url           pgtype.Text `json:"url"`
+	Rank          pgtype.Int4 `json:"rank"`
+	HeatValue     pgtype.Int8 `json:"heat_value"`
+	Category      pgtype.Text `json:"category"`
+	CapturedOn    pgtype.Date `json:"captured_on"`
+	Source        string      `json:"source"`
+	Note          pgtype.Text `json:"note"`
+	OwnerMemberID pgtype.UUID `json:"owner_member_id"`
+	ID            pgtype.UUID `json:"id"`
+	WorkspaceID   pgtype.UUID `json:"workspace_id"`
+}
+
+// The handler loads the row, applies the PATCH fields and resends every column, so
+// an omitted field never silently clears the stored value. `rank` and `heat_value`
+// stay nullable: clearing them back to "the platform published none" is a real
+// edit, not an omission.
+func (q *Queries) UpdateMediaHot(ctx context.Context, arg UpdateMediaHotParams) (MediaHot, error) {
+	row := q.db.QueryRow(ctx, updateMediaHot,
+		arg.Title,
+		arg.Platform,
+		arg.Url,
+		arg.Rank,
+		arg.HeatValue,
+		arg.Category,
+		arg.CapturedOn,
+		arg.Source,
+		arg.Note,
+		arg.OwnerMemberID,
+		arg.ID,
+		arg.WorkspaceID,
+	)
+	var i MediaHot
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.Title,
+		&i.Platform,
+		&i.Url,
+		&i.Rank,
+		&i.HeatValue,
+		&i.Category,
+		&i.CapturedOn,
+		&i.Source,
+		&i.Note,
+		&i.OwnerMemberID,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ArchivedAt,
+	)
+	return i, err
+}
+
 const updateMediaIP = `-- name: UpdateMediaIP :one
 UPDATE media_ip
 SET name = $1,
@@ -1008,8 +1535,8 @@ UPDATE media_shoot
 SET script_id = $1,
     shoot_date = $2::date,
     location = $3::text,
-    shots = $4::jsonb,
-    checklist = $5::jsonb,
+    shots = $4::text::jsonb,
+    checklist = $5::text::jsonb,
     status = $6,
     owner_member_id = $7::uuid,
     updated_at = now()
@@ -1021,8 +1548,8 @@ type UpdateMediaShootParams struct {
 	ScriptID      pgtype.UUID `json:"script_id"`
 	ShootDate     pgtype.Date `json:"shoot_date"`
 	Location      pgtype.Text `json:"location"`
-	Shots         []byte      `json:"shots"`
-	Checklist     []byte      `json:"checklist"`
+	Shots         string      `json:"shots"`
+	Checklist     string      `json:"checklist"`
 	Status        string      `json:"status"`
 	OwnerMemberID pgtype.UUID `json:"owner_member_id"`
 	ID            pgtype.UUID `json:"id"`
@@ -1069,7 +1596,7 @@ UPDATE media_topic
 SET ip_id = $1,
     title = $2,
     source = $3,
-    scores = $4::jsonb,
+    scores = $4::text::jsonb,
     status = $5,
     hot_id = $6::uuid,
     note = $7::text,
@@ -1083,7 +1610,7 @@ type UpdateMediaTopicParams struct {
 	IpID          pgtype.UUID `json:"ip_id"`
 	Title         string      `json:"title"`
 	Source        string      `json:"source"`
-	Scores        []byte      `json:"scores"`
+	Scores        string      `json:"scores"`
 	Status        string      `json:"status"`
 	HotID         pgtype.UUID `json:"hot_id"`
 	Note          pgtype.Text `json:"note"`

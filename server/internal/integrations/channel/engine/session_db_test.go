@@ -66,7 +66,7 @@ func seedSessionPersistenceFixture(t *testing.T, pool *pgxpool.Pool) sessionPers
 	f.channelChatID = "channel-media-" + fmt.Sprint(time.Now().UnixNano())
 	if _, err := db.New(pool).CreateChannelChatSessionBinding(ctx, db.CreateChannelChatSessionBindingParams{
 		ChatSessionID: f.sessionID, InstallationID: f.installationID, ChannelType: "lark",
-		ChannelChatID: f.channelChatID, ChatType: "p2p", Config: []byte("{}"),
+		ChannelChatID: f.channelChatID, ChatType: "p2p", Config: string([]byte("{}")),
 	}); err != nil {
 		t.Fatalf("create channel binding: %v", err)
 	}
@@ -1495,7 +1495,7 @@ func seedIsolatedBindingFixture(t *testing.T, pool *pgxpool.Pool, key func(strin
 	if _, err := db.New(pool).CreateChannelChatSessionBinding(ctx, db.CreateChannelChatSessionBindingParams{
 		ChatSessionID: f.sessionID, InstallationID: f.installationID, ChannelType: "lark",
 		ChannelChatID: f.channelChatID, ChatType: "group",
-		Config: []byte(fmt.Sprintf(configFmt, realChatID)),
+		Config: string([]byte(fmt.Sprintf(configFmt, realChatID))),
 	}); err != nil {
 		t.Fatalf("create channel binding: %v", err)
 	}

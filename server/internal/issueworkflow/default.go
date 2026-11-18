@@ -38,7 +38,7 @@ func EnsureDefault(ctx context.Context, q DefaultStore, workspaceID pgtype.UUID)
 	if err != nil {
 		return db.IssueWorkflow{}, err
 	}
-	created, err := q.CreateDefaultIssueWorkflow(ctx, db.CreateDefaultIssueWorkflowParams{WorkspaceID: workspaceID, Steps: raw})
+	created, err := q.CreateDefaultIssueWorkflow(ctx, db.CreateDefaultIssueWorkflowParams{WorkspaceID: workspaceID, Steps: string(raw)})
 	if err != nil {
 		return db.IssueWorkflow{}, err
 	}
@@ -85,7 +85,7 @@ func AddToDefault(ctx context.Context, q DefaultUpdater, workspaceID pgtype.UUID
 		Name:             row.Name,
 		Description:      row.Description,
 		InitialStatusKey: row.InitialStatusKey,
-		Steps:            raw,
+		Steps:            string(raw),
 	})
 	return err
 }

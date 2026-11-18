@@ -460,7 +460,7 @@ func notifyIssueSubscribers(
 			Body:          util.StrToText(body),
 			ActorType:     util.StrToText(e.ActorType),
 			ActorID:       optionalUUID(e.ActorID),
-			Details:       details,
+			Details:       pgtype.Text{String: string(details), Valid: details != nil},
 		})
 		if err != nil {
 			slog.Error("subscriber notification creation failed",
@@ -529,7 +529,7 @@ func notifyDirect(
 		Body:          util.StrToText(body),
 		ActorType:     util.StrToText(e.ActorType),
 		ActorID:       optionalUUID(e.ActorID),
-		Details:       details,
+		Details:       pgtype.Text{String: string(details), Valid: details != nil},
 	})
 	if err != nil {
 		slog.Error("direct notification creation failed",
@@ -649,7 +649,7 @@ func notifyMentionedMembers(
 			Title:         title,
 			ActorType:     util.StrToText(e.ActorType),
 			ActorID:       optionalUUID(e.ActorID),
-			Details:       details,
+			Details:       pgtype.Text{String: string(details), Valid: details != nil},
 		})
 		if err != nil {
 			slog.Error("mention inbox creation failed", "mentioned_id", id, "error", err)

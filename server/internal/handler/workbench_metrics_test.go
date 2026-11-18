@@ -279,3 +279,70 @@ func TestWorkbenchOverviewRejectsMalformedDepartment(t *testing.T) {
 	req = workbenchRequest(t, "GET", "/api/workbench/counts?department_id=not-a-uuid", nil, testUserID)
 	testutil.Call(t, testHandler.GetWorkbenchCounts, req).Want(http.StatusBadRequest)
 }
+
+// TestWorkbenchCountsTrackContentAndGoalLedgers covers the six counters §21 added
+// to the sidebar (media_scripts / media_shoots / hot / bench / goals / signals).
+// They are asserted as deltas against the shared workspace: the keys must exist and
+// move once per row, and the pre-existing keys must not shift because of it.
+func TestWorkbenchCountsTrackContentAndGoalLedgers(t *testing.T) {
+	before := fetchWorkbenchCounts(t, "", testUserID)
+
+	ip := mediaIPFixture(t, testUserID, "Counts content fixture IP")
+	topic := mediaTopicFixture(t, testUserID, ip.ID, "Counts content fixture topic")
+	script := mediaScriptFixture(t, testUserID, topic.ID, "Counts content fixture body")
+	mediaShootFixture(t, testUserID, script.ID, "2026-11-18")
+	mediaHotFixture(t, testUserID, "Counts hotspot fixture")
+	mediaBenchFixture(t, testUserID, ip.ID, "Counts benchmark fixture")
+
+	goalID := dbfx.Insert(t, "goal_okr", testutil.Cols{
+		"workspace_id":    testWorkspaceID,
+		"cycle":           "2026-Q4",
+		"title":           "Counts fixture goal " + t.Name(),
+		"owner_member_id": testUserID,
+	})
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM goal_okr WHERE id = $1`, goalID) })
+	signalID := dbfx.Insert(t, "market_signal", testutil.Cols{
+		"workspace_id": testWorkspaceID,
+		"title":        "Counts fixture signal " + t.Name(),
+	})
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM market_signal WHERE id = $1`, signalID) })
+
+	after := fetchWorkbenchCounts(t, "", testUserID)
+
+	for _, pair := range []struct {
+		name string
+		got  int64
+		want int64
+	}{
+		{"media_scripts", after.MediaScripts, before.MediaScripts + 1},
+		{"media_shoots", after.MediaShoots, before.MediaShoots + 1},
+		{"hot", after.Hot, before.Hot + 1},
+		{"bench", after.Bench, before.Bench + 1},
+		{"goals", after.Goals, before.Goals + 1},
+		{"signals", after.Signals, before.Signals + 1},
+	} {
+		if pair.got != pair.want {
+			t.Fatalf("%s = %d, want %d", pair.name, pair.got, pair.want)
+		}
+	}
+
+	// The pre-existing keys are untouched by content rows: additive, never repurposed.
+	if after.Creators != before.Creators || after.Clients != before.Clients ||
+		after.Briefs != before.Briefs || after.CollabsOpen != before.CollabsOpen {
+		t.Fatalf("content rows moved a commerce counter: before=%+v after=%+v", before, after)
+	}
+
+	// Archiving takes a row back out of its counter: the count is a live-row count,
+	// not a "rows ever written" count.
+	archived := mediaHotFixture(t, testUserID, "Counts hotspot archived")
+	withArchived := fetchWorkbenchCounts(t, "", testUserID)
+	if withArchived.Hot != after.Hot+1 {
+		t.Fatalf("hot = %d with one more live row, want %d", withArchived.Hot, after.Hot+1)
+	}
+	req := withURLParam(workbenchRequest(t, "DELETE", "/api/workbench/media/hot/"+archived.ID, nil, testUserID), "hotId", archived.ID)
+	testutil.Call(t, testHandler.DeleteMediaHot, req).Want(http.StatusNoContent)
+	final := fetchWorkbenchCounts(t, "", testUserID)
+	if final.Hot != after.Hot {
+		t.Fatalf("hot = %d after archiving, want %d", final.Hot, after.Hot)
+	}
+}

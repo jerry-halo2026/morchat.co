@@ -42,7 +42,7 @@ func (q *Queries) ClearAgentSkillPrimary(ctx context.Context, agentID pgtype.UUI
 
 const createSkill = `-- name: CreateSkill :one
 INSERT INTO skill (workspace_id, name, description, content, config, created_by)
-VALUES ($1, $2, $3, $4, $5, $6)
+VALUES ($1, $2, $3, $4, $5::text::jsonb, $6)
 RETURNING id, workspace_id, name, description, content, config, created_by, created_at, updated_at, plugin_installation_id
 `
 
@@ -51,7 +51,7 @@ type CreateSkillParams struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
 	Content     string      `json:"content"`
-	Config      []byte      `json:"config"`
+	Config      string      `json:"config"`
 	CreatedBy   pgtype.UUID `json:"created_by"`
 }
 
@@ -86,7 +86,7 @@ INSERT INTO skill_version (
     content_hash, source, restored_from_version, created_by, created_at
 )
 VALUES (
-    $1, $2, $3, $4, $5, $6, $7,
+    $1, $2, $3, $4, $5, $6, $7::text::jsonb,
     $8, $9, $10, $11,
     COALESCE($12::timestamptz, now())
 )
@@ -100,7 +100,7 @@ type CreateSkillVersionParams struct {
 	Name                string             `json:"name"`
 	Description         string             `json:"description"`
 	Content             string             `json:"content"`
-	Files               []byte             `json:"files"`
+	Files               string             `json:"files"`
 	ContentHash         string             `json:"content_hash"`
 	Source              string             `json:"source"`
 	RestoredFromVersion pgtype.Int4        `json:"restored_from_version"`
@@ -970,7 +970,7 @@ UPDATE skill SET
     name = COALESCE($2, name),
     description = COALESCE($3, description),
     content = COALESCE($4, content),
-    config = COALESCE($5, config),
+    config = COALESCE($5::text::jsonb, config),
     updated_at = now()
 WHERE id = $1
 RETURNING id, workspace_id, name, description, content, config, created_by, created_at, updated_at, plugin_installation_id
@@ -981,7 +981,7 @@ type UpdateSkillParams struct {
 	Name        pgtype.Text `json:"name"`
 	Description pgtype.Text `json:"description"`
 	Content     pgtype.Text `json:"content"`
-	Config      []byte      `json:"config"`
+	Config      pgtype.Text `json:"config"`
 }
 
 func (q *Queries) UpdateSkill(ctx context.Context, arg UpdateSkillParams) (Skill, error) {

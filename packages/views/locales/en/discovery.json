@@ -1,0 +1,79 @@
+{
+  "missing": "Not collected",
+  "common": {
+    "all": "All",
+    "cancel": "Cancel",
+    "clear": "Clear filters",
+    "delete": "Delete",
+    "retry": "Retry",
+    "load_failed": "Couldn't load this list",
+    "write_failed": "The server refused this change. Nothing was saved."
+  },
+  "form": {
+    "save": "Save",
+    "field_title": "Title",
+    "field_name": "Account",
+    "field_platform": "Platform",
+    "field_url": "Link",
+    "field_rank": "Rank",
+    "field_heat": "Heat",
+    "field_category": "Category",
+    "field_day": "Captured on",
+    "field_note": "Note",
+    "field_ip": "IP",
+    "field_followers": "Followers",
+    "field_metrics": "Metrics",
+    "metrics_hint": "One per line, as key: value.",
+    "no_ip": "No IP"
+  },
+  "adopt": {
+    "title": "Adopt as a topic",
+    "submit": "Add to the pool",
+    "no_ip": "A topic belongs to an IP. Create one first.",
+    "failed": "The server refused the adoption. Nothing was created.",
+    "adopted": "Adopted",
+    "open_topic": "Open the topic"
+  },
+  "hot": {
+    "new": "Add hotspot",
+    "edit": "Edit hotspot",
+    "empty_title": "No hotspot captured yet",
+    "empty_description": "Add one by hand, or wait for an import.",
+    "filter_day": "Day",
+    "filter_category": "Category",
+    "filter_platform": "Platform",
+    "filter_keyword": "Search hotspots",
+    "no_matches": "No hotspot matches these filters",
+    "column_hotspot": "Hotspot",
+    "column_rank": "Rank",
+    "column_heat": "Heat",
+    "adopt": "Adopt as topic",
+    "delete_title": "Delete this hotspot?",
+    "delete_description": "“{{title}}” leaves the radar. The row is kept."
+  },
+  "bench": {
+    "new": "Add benchmark",
+    "edit": "Edit benchmark",
+    "empty_title": "No benchmark account yet",
+    "empty_description": "Record one account to read its numbers against an IP.",
+    "filter_ip": "IP",
+    "filter_keyword": "Search accounts",
+    "no_matches": "No benchmark matches this filter",
+    "column_account": "Account",
+    "column_url": "Profile",
+    "column_followers": "Followers",
+    "column_metrics": "Metrics",
+    "column_captured": "Captured on",
+    "column_ip": "IP",
+    "adopt": "Adopt as topic",
+    "delete_title": "Delete this benchmark?",
+    "delete_description": "“{{name}}” leaves the teardown list. The row is kept.",
+    "metric": {
+      "plays": "Plays",
+      "views": "Views",
+      "likes": "Likes",
+      "favorites": "Saves",
+      "comments": "Comments"
+    }
+  }
+}

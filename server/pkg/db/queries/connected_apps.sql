@@ -118,7 +118,7 @@ INSERT INTO app_action_request (
     workspace_id, kind, task_id, agent_id, issue_id, chat_session_id, approver_user_id,
     account_scope, toolkit_slug, tool_slug, action_class, arguments, summary, expires_at
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, sqlc.arg('arguments')::text::jsonb, sqlc.arg('summary'), sqlc.narg('expires_at')
 )
 RETURNING *;
 
@@ -127,7 +127,7 @@ RETURNING *;
 -- "submitted" answer) reuses the open request instead of stacking another.
 SELECT * FROM app_action_request
 WHERE task_id = $1 AND kind = $2 AND toolkit_slug = $3 AND tool_slug = $4
-  AND arguments = sqlc.arg('arguments')::jsonb AND status = 'pending'
+  AND arguments = sqlc.arg('arguments')::text::jsonb AND status = 'pending'
 ORDER BY created_at DESC
 LIMIT 1;
 
@@ -189,7 +189,7 @@ LIMIT 200;
 -- sweep racing the decision finds no pending row and returns no rows.
 UPDATE app_action_request
 SET status = $3,
-    approved_arguments = sqlc.narg('approved_arguments')::jsonb,
+    approved_arguments = sqlc.narg('approved_arguments')::text::jsonb,
     reason = sqlc.narg('reason')::text,
     decided_by = $4,
     decided_at = now(),
@@ -201,7 +201,7 @@ RETURNING *;
 -- Records what executing an approved request produced. Only moves an approved
 -- request; status becomes 'failed' when execution failed.
 UPDATE app_action_request
-SET status = $3, result = sqlc.narg('result')::jsonb, error = sqlc.narg('error')::text, updated_at = now()
+SET status = $3, result = sqlc.narg('result')::text::jsonb, error = sqlc.narg('error')::text, updated_at = now()
 WHERE id = $1 AND workspace_id = $2 AND status = 'approved'
 RETURNING *;
 

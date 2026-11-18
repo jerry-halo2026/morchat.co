@@ -360,7 +360,7 @@ func TestCompletedTaskRolloutMissingWithholdsAndDisclosesGap(t *testing.T) {
 	// The real terminal write withholds the session and flags the row atomically.
 	done, err := queries.CompleteAgentTask(ctx, db.CompleteAgentTaskParams{
 		ID:                    pgtype.UUID{Bytes: parseUUIDBytes(newerTaskID), Valid: true},
-		Result:                []byte(`{"output":"done"}`),
+		Result:                pgtype.Text{String: `{"output":"done"}`, Valid: true},
 		SessionID:             pgtype.Text{String: "NEW-ROLLOUT-MISSING", Valid: true},
 		WorkDir:               pgtype.Text{String: "/tmp/newer", Valid: true},
 		SessionRolloutMissing: true,

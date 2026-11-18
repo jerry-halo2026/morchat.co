@@ -511,7 +511,7 @@ func (h *Handler) CreateProperty(w http.ResponseWriter, r *http.Request) {
 			Type:        req.Type,
 			Description: sanitizeNullBytes(strings.TrimSpace(req.Description)),
 			Icon:        icon,
-			Config:      configJSON,
+			Config:      string(configJSON),
 		})
 		return err
 	})
@@ -613,7 +613,7 @@ func (h *Handler) UpdateProperty(w http.ResponseWriter, r *http.Request) {
 					return fail(http.StatusConflict, describeOptionsInUse(existing.Config, rows))
 				}
 			}
-			params.Config = configJSON
+			params.Config = pgtype.Text{String: string(configJSON), Valid: configJSON != nil}
 		}
 		if req.Archived != nil {
 			params.ArchivedSet = true
@@ -726,7 +726,7 @@ func (h *Handler) SetIssueProperty(w http.ResponseWriter, r *http.Request) {
 			ID:          issue.ID,
 			WorkspaceID: issue.WorkspaceID,
 			Key:         uuidToString(def.ID),
-			Value:       value,
+			Value:       string(value),
 		})
 		if err != nil {
 			if isCheckViolation(err) {

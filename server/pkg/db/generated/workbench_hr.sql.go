@@ -250,7 +250,7 @@ INSERT INTO hr_employee_profile (
     $1, $2, $3::uuid,
     $4::text, $5::text, $6::date,
     $7::date, $8::date,
-    $9::jsonb, $10::jsonb,
+    $9::text::jsonb, $10::text::jsonb,
     $11::uuid, $12::uuid
 )
 RETURNING id, workspace_id, member_id, department_id, job_title, grade, hire_date, regular_date, contract_end, ability, disc, owner_member_id, created_by, created_at, updated_at, archived_at, leave_date
@@ -265,8 +265,8 @@ type CreateHrEmployeeProfileParams struct {
 	HireDate      pgtype.Date `json:"hire_date"`
 	RegularDate   pgtype.Date `json:"regular_date"`
 	ContractEnd   pgtype.Date `json:"contract_end"`
-	Ability       []byte      `json:"ability"`
-	Disc          []byte      `json:"disc"`
+	Ability       string      `json:"ability"`
+	Disc          string      `json:"disc"`
 	OwnerMemberID pgtype.UUID `json:"owner_member_id"`
 	CreatedBy     pgtype.UUID `json:"created_by"`
 }
@@ -391,7 +391,7 @@ INSERT INTO hr_job (
     $7::numeric, $8::numeric,
     $9::text, $10::text,
     $11::text, $12::text, $13::text,
-    $14::text, $15::boolean, $16::jsonb,
+    $14::text, $15::boolean, $16::text::jsonb,
     $17::uuid, $18::uuid
 )
 RETURNING id, workspace_id, title, department_id, level, headcount, status, salary_min, salary_max, currency, requirements, owner_member_id, created_by, created_at, updated_at, archived_at, edu, years, city, jd, urgent, keywords
@@ -413,7 +413,7 @@ type CreateHrJobParams struct {
 	City          pgtype.Text    `json:"city"`
 	Jd            pgtype.Text    `json:"jd"`
 	Urgent        bool           `json:"urgent"`
-	Keywords      []byte         `json:"keywords"`
+	Keywords      string         `json:"keywords"`
 	OwnerMemberID pgtype.UUID    `json:"owner_member_id"`
 	CreatedBy     pgtype.UUID    `json:"created_by"`
 }
@@ -476,7 +476,7 @@ INSERT INTO hr_scorecard (
     $1, $2, $3::uuid,
     $4::smallint, $5::smallint,
     $6::smallint, $7::smallint,
-    $8::numeric, $9::jsonb,
+    $8::numeric, $9::text::jsonb,
     $10::text, $11::text,
     $12::uuid
 )
@@ -492,7 +492,7 @@ type CreateHrScorecardParams struct {
 	ScoreCulture     pgtype.Int2    `json:"score_culture"`
 	ScorePotential   pgtype.Int2    `json:"score_potential"`
 	WeightedScore    pgtype.Numeric `json:"weighted_score"`
-	Dimensions       []byte         `json:"dimensions"`
+	Dimensions       string         `json:"dimensions"`
 	Verdict          pgtype.Text    `json:"verdict"`
 	Comment          pgtype.Text    `json:"comment"`
 	CreatedBy        pgtype.UUID    `json:"created_by"`
@@ -1327,8 +1327,8 @@ SET department_id = $1::uuid,
     hire_date = $4::date,
     regular_date = $5::date,
     contract_end = $6::date,
-    ability = $7::jsonb,
-    disc = $8::jsonb,
+    ability = $7::text::jsonb,
+    disc = $8::text::jsonb,
     owner_member_id = $9::uuid,
     updated_at = now()
 WHERE id = $10 AND workspace_id = $11 AND archived_at IS NULL
@@ -1342,8 +1342,8 @@ type UpdateHrEmployeeProfileParams struct {
 	HireDate      pgtype.Date `json:"hire_date"`
 	RegularDate   pgtype.Date `json:"regular_date"`
 	ContractEnd   pgtype.Date `json:"contract_end"`
-	Ability       []byte      `json:"ability"`
-	Disc          []byte      `json:"disc"`
+	Ability       string      `json:"ability"`
+	Disc          string      `json:"disc"`
 	OwnerMemberID pgtype.UUID `json:"owner_member_id"`
 	ID            pgtype.UUID `json:"id"`
 	WorkspaceID   pgtype.UUID `json:"workspace_id"`
@@ -1471,7 +1471,7 @@ SET title = $1,
     city = $12::text,
     jd = $13::text,
     urgent = $14::boolean,
-    keywords = $15::jsonb,
+    keywords = $15::text::jsonb,
     owner_member_id = $16::uuid,
     updated_at = now()
 WHERE id = $17 AND workspace_id = $18 AND archived_at IS NULL
@@ -1493,7 +1493,7 @@ type UpdateHrJobParams struct {
 	City          pgtype.Text    `json:"city"`
 	Jd            pgtype.Text    `json:"jd"`
 	Urgent        bool           `json:"urgent"`
-	Keywords      []byte         `json:"keywords"`
+	Keywords      string         `json:"keywords"`
 	OwnerMemberID pgtype.UUID    `json:"owner_member_id"`
 	ID            pgtype.UUID    `json:"id"`
 	WorkspaceID   pgtype.UUID    `json:"workspace_id"`
@@ -1561,7 +1561,7 @@ SET interview_id = $1,
     score_culture = $5::smallint,
     score_potential = $6::smallint,
     weighted_score = $7::numeric,
-    dimensions = $8::jsonb,
+    dimensions = $8::text::jsonb,
     verdict = $9::text,
     comment = $10::text,
     updated_at = now()
@@ -1577,7 +1577,7 @@ type UpdateHrScorecardParams struct {
 	ScoreCulture     pgtype.Int2    `json:"score_culture"`
 	ScorePotential   pgtype.Int2    `json:"score_potential"`
 	WeightedScore    pgtype.Numeric `json:"weighted_score"`
-	Dimensions       []byte         `json:"dimensions"`
+	Dimensions       string         `json:"dimensions"`
 	Verdict          pgtype.Text    `json:"verdict"`
 	Comment          pgtype.Text    `json:"comment"`
 	ID               pgtype.UUID    `json:"id"`

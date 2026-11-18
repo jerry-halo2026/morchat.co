@@ -718,6 +718,6 @@ func recordConditionMet(ctx context.Context, q *db.Queries, w db.IssueWakeup, ob
 		facts["source_task_ids"] = causes
 	}
 	payload, _ := json.Marshal(facts)
-	_, err := q.RecordWakeupReceipt(ctx, db.RecordWakeupReceiptParams{ID: dbid.NewV7(), WakeupID: w.ID, Revision: w.Revision, EventKey: "condition:" + now.UTC().Format(time.RFC3339Nano), EventType: wakeupConditionEventType, Payload: payload})
+	_, err := q.RecordWakeupReceipt(ctx, db.RecordWakeupReceiptParams{ID: dbid.NewV7(), WakeupID: w.ID, Revision: w.Revision, EventKey: "condition:" + now.UTC().Format(time.RFC3339Nano), EventType: wakeupConditionEventType, Payload: string(payload)})
 	return err
 }

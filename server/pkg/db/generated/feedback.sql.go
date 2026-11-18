@@ -25,23 +25,23 @@ func (q *Queries) CountRecentFeedbackByUser(ctx context.Context, userID pgtype.U
 
 const createFeedback = `-- name: CreateFeedback :one
 INSERT INTO feedback (user_id, workspace_id, message, metadata)
-VALUES ($1, $4, $2, $3)
+VALUES ($1, $3, $2, $4::text::jsonb)
 RETURNING id, user_id, workspace_id, message, metadata, created_at
 `
 
 type CreateFeedbackParams struct {
 	UserID      pgtype.UUID `json:"user_id"`
 	Message     string      `json:"message"`
-	Metadata    []byte      `json:"metadata"`
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	Metadata    string      `json:"metadata"`
 }
 
 func (q *Queries) CreateFeedback(ctx context.Context, arg CreateFeedbackParams) (Feedback, error) {
 	row := q.db.QueryRow(ctx, createFeedback,
 		arg.UserID,
 		arg.Message,
-		arg.Metadata,
 		arg.WorkspaceID,
+		arg.Metadata,
 	)
 	var i Feedback
 	err := row.Scan(

@@ -516,14 +516,18 @@ type CreatorPostResponse struct {
 	CreatorID      string  `json:"creator_id"`
 	CollabID       *string `json:"collab_id"`
 	ContentIssueID *string `json:"content_issue_id"`
-	Platform       string  `json:"platform"`
-	Title          *string `json:"title"`
-	URL            string  `json:"url"`
-	PublishedAt    string  `json:"published_at"`
-	Source         string  `json:"source"`
-	CreatedBy      *string `json:"created_by"`
-	CreatedAt      string  `json:"created_at"`
-	UpdatedAt      string  `json:"updated_at"`
+	// The script version this post was published from (733). Null on an unscripted
+	// post — and on every row written before the content workbench existed, which
+	// is why the field is additive rather than required.
+	MediaScriptID *string `json:"media_script_id"`
+	Platform      string  `json:"platform"`
+	Title         *string `json:"title"`
+	URL           string  `json:"url"`
+	PublishedAt   string  `json:"published_at"`
+	Source        string  `json:"source"`
+	CreatedBy     *string `json:"created_by"`
+	CreatedAt     string  `json:"created_at"`
+	UpdatedAt     string  `json:"updated_at"`
 }
 
 func creatorPostToResponse(p db.CreatorPost) CreatorPostResponse {
@@ -533,6 +537,7 @@ func creatorPostToResponse(p db.CreatorPost) CreatorPostResponse {
 		CreatorID:      uuidToString(p.CreatorID),
 		CollabID:       uuidToPtr(p.CollabID),
 		ContentIssueID: uuidToPtr(p.ContentIssueID),
+		MediaScriptID:  uuidToPtr(p.MediaScriptID),
 		Platform:       p.Platform,
 		Title:          textToPtr(p.Title),
 		URL:            p.Url,

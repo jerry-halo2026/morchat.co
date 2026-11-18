@@ -1946,12 +1946,12 @@ func (q *Queries) ClearAgentThinkingLevel(ctx context.Context, id pgtype.UUID) (
 
 const completeAgentTask = `-- name: CompleteAgentTask :one
 UPDATE agent_task_queue
-SET status = 'completed', completed_at = now(), result = $2,
-    session_id = CASE WHEN $5 THEN NULL ELSE $3 END,
-    work_dir = $4,
+SET status = 'completed', completed_at = now(), result = $2::text::jsonb,
+    session_id = CASE WHEN $3 THEN NULL ELSE $4 END,
+    work_dir = $5,
     durable_work_dir = COALESCE($6, durable_work_dir),
     branch_name = COALESCE($7, branch_name),
-    session_rollout_missing = $5,
+    session_rollout_missing = $3,
     retired_session_id = COALESCE($8, retired_session_id),
     prepare_lease_expires_at = NULL
 WHERE id = $1 AND status = 'running'
@@ -1960,10 +1960,10 @@ RETURNING id, agent_id, issue_id, status, priority, dispatched_at, started_at, c
 
 type CompleteAgentTaskParams struct {
 	ID                    pgtype.UUID `json:"id"`
-	Result                []byte      `json:"result"`
-	SessionID             pgtype.Text `json:"session_id"`
-	WorkDir               pgtype.Text `json:"work_dir"`
+	Result                pgtype.Text `json:"result"`
 	SessionRolloutMissing bool        `json:"session_rollout_missing"`
+	SessionID             pgtype.Text `json:"session_i_d"`
+	WorkDir               pgtype.Text `json:"work_dir"`
 	DurableWorkDir        pgtype.Text `json:"durable_work_dir"`
 	BranchName            pgtype.Text `json:"branch_name"`
 	RetiredSessionID      pgtype.Text `json:"retired_session_id"`
@@ -1984,9 +1984,9 @@ func (q *Queries) CompleteAgentTask(ctx context.Context, arg CompleteAgentTaskPa
 	row := q.db.QueryRow(ctx, completeAgentTask,
 		arg.ID,
 		arg.Result,
+		arg.SessionRolloutMissing,
 		arg.SessionID,
 		arg.WorkDir,
-		arg.SessionRolloutMissing,
 		arg.DurableWorkDir,
 		arg.BranchName,
 		arg.RetiredSessionID,
@@ -2099,9 +2099,9 @@ INSERT INTO agent (
     composio_toolkit_allowlist, permission_mode
 ) VALUES (
     $1, $2, $3, $4, $5,
-    $6, $7, $8, $9, $10,
-    $11, $12, $13, $14, $15, $16,
-    $17, COALESCE($18::jsonb, '[]'::jsonb),
+    $6::text::jsonb, $7, $8, $9, $10,
+    $11, $12::text::jsonb, $13::text::jsonb, $14::text::jsonb, $15, $16,
+    $17, COALESCE($18::text, '[]')::jsonb,
     $19::text[],
     COALESCE($20, 'private')
 )
@@ -2114,19 +2114,19 @@ type CreateAgentParams struct {
 	Description              string      `json:"description"`
 	AvatarUrl                pgtype.Text `json:"avatar_url"`
 	RuntimeMode              string      `json:"runtime_mode"`
-	RuntimeConfig            []byte      `json:"runtime_config"`
-	RuntimeID                pgtype.UUID `json:"runtime_id"`
+	RuntimeConfig            string      `json:"runtime_config"`
+	RuntimeID                pgtype.UUID `json:"runtime_i_d"`
 	Visibility               string      `json:"visibility"`
 	MaxConcurrentTasks       int32       `json:"max_concurrent_tasks"`
-	OwnerID                  pgtype.UUID `json:"owner_id"`
+	OwnerID                  pgtype.UUID `json:"owner_i_d"`
 	Instructions             string      `json:"instructions"`
-	CustomEnv                []byte      `json:"custom_env"`
-	CustomArgs               []byte      `json:"custom_args"`
-	McpConfig                []byte      `json:"mcp_config"`
+	CustomEnv                string      `json:"custom_env"`
+	CustomArgs               string      `json:"custom_args"`
+	McpConfig                pgtype.Text `json:"mcp_config"`
 	Model                    pgtype.Text `json:"model"`
 	ThinkingLevel            pgtype.Text `json:"thinking_level"`
 	ServiceTier              pgtype.Text `json:"service_tier"`
-	ConversationStarters     []byte      `json:"conversation_starters"`
+	ConversationStarters     pgtype.Text `json:"conversation_starters"`
 	ComposioToolkitAllowlist []string    `json:"composio_toolkit_allowlist"`
 	PermissionMode           interface{} `json:"permission_mode"`
 }
@@ -2296,8 +2296,8 @@ SELECT
     END, '{}'::jsonb),
     $16,
     $17,
-    $18,
-    $19,
+    $18::text::jsonb,
+    $19::text::jsonb,
     $20,
     $21,
     $22,
@@ -2330,8 +2330,8 @@ type CreateAgentTaskParams struct {
 	WorkflowHandoffRevision pgtype.Int8        `json:"workflow_handoff_revision"`
 	OriginatorUserID        pgtype.UUID        `json:"originator_user_id"`
 	AccountableUserID       pgtype.UUID        `json:"accountable_user_id"`
-	RuntimeMcpOverlay       []byte             `json:"runtime_mcp_overlay"`
-	RuntimeConnectedApps    []byte             `json:"runtime_connected_apps"`
+	RuntimeMcpOverlay       pgtype.Text        `json:"runtime_mcp_overlay"`
+	RuntimeConnectedApps    pgtype.Text        `json:"runtime_connected_apps"`
 	OriginatorSource        pgtype.Text        `json:"originator_source"`
 	DelegatedFromTaskID     pgtype.UUID        `json:"delegated_from_task_id"`
 	RuleVersionID           pgtype.UUID        `json:"rule_version_id"`
@@ -2483,8 +2483,8 @@ SELECT
     )),
     $13,
     $14,
-    $15,
-    $16,
+    $15::text::jsonb,
+    $16::text::jsonb,
     $17,
     $18,
     $19,
@@ -2514,8 +2514,8 @@ type CreateDeferredChannelIssueTaskParams struct {
 	HeadSha              pgtype.Text        `json:"head_sha"`
 	OriginatorUserID     pgtype.UUID        `json:"originator_user_id"`
 	AccountableUserID    pgtype.UUID        `json:"accountable_user_id"`
-	RuntimeMcpOverlay    []byte             `json:"runtime_mcp_overlay"`
-	RuntimeConnectedApps []byte             `json:"runtime_connected_apps"`
+	RuntimeMcpOverlay    pgtype.Text        `json:"runtime_mcp_overlay"`
+	RuntimeConnectedApps pgtype.Text        `json:"runtime_connected_apps"`
 	OriginatorSource     pgtype.Text        `json:"originator_source"`
 	DelegatedFromTaskID  pgtype.UUID        `json:"delegated_from_task_id"`
 	RuleVersionID        pgtype.UUID        `json:"rule_version_id"`
@@ -2638,7 +2638,7 @@ SELECT
     p.agent_id, p.runtime_id, 'queued', p.priority, p.context,
     TRUE, p.is_leader_task, p.squad_id,
     $1, $1,
-    $2, $3,
+    $2::text::jsonb, $3::text::jsonb,
     'direct_human', p.id, $4
 FROM agent_task_queue p
 WHERE p.id = $5
@@ -2652,8 +2652,8 @@ RETURNING id, agent_id, issue_id, status, priority, dispatched_at, started_at, c
 
 type CreateManualQuickCreateRetryTaskParams struct {
 	ActorUserID          pgtype.UUID `json:"actor_user_id"`
-	RuntimeMcpOverlay    []byte      `json:"runtime_mcp_overlay"`
-	RuntimeConnectedApps []byte      `json:"runtime_connected_apps"`
+	RuntimeMcpOverlay    pgtype.Text `json:"runtime_mcp_overlay"`
+	RuntimeConnectedApps pgtype.Text `json:"runtime_connected_apps"`
 	NewTaskID            pgtype.UUID `json:"new_task_id"`
 	SourceTaskID         pgtype.UUID `json:"source_task_id"`
 }
@@ -2749,11 +2749,11 @@ INSERT INTO agent_task_queue (
     id
 )
 SELECT
-    $1, $2, NULL, 'queued', $3, $4,
+    $1, $2, NULL, 'queued', $3, $4::text::jsonb,
     $5,
     $6,
-    $7,
-    $8,
+    $7::text::jsonb,
+    $8::text::jsonb,
     $9,
     $10,
     $11,
@@ -2766,11 +2766,11 @@ type CreateQuickCreateTaskParams struct {
 	AgentID              pgtype.UUID `json:"agent_id"`
 	RuntimeID            pgtype.UUID `json:"runtime_id"`
 	Priority             int32       `json:"priority"`
-	Context              []byte      `json:"context"`
+	Context              pgtype.Text `json:"context"`
 	OriginatorUserID     pgtype.UUID `json:"originator_user_id"`
 	AccountableUserID    pgtype.UUID `json:"accountable_user_id"`
-	RuntimeMcpOverlay    []byte      `json:"runtime_mcp_overlay"`
-	RuntimeConnectedApps []byte      `json:"runtime_connected_apps"`
+	RuntimeMcpOverlay    pgtype.Text `json:"runtime_mcp_overlay"`
+	RuntimeConnectedApps pgtype.Text `json:"runtime_connected_apps"`
 	OriginatorSource     pgtype.Text `json:"originator_source"`
 	TriggerEvidenceKind  pgtype.Text `json:"trigger_evidence_kind"`
 	TriggerEvidenceRefID pgtype.UUID `json:"trigger_evidence_ref_id"`
@@ -2893,8 +2893,8 @@ SELECT
     p.squad_id,
     p.originator_user_id,
     p.accountable_user_id,
-    $4,
-    $5,
+    $4::text::jsonb,
+    $5::text::jsonb,
     p.originator_source, p.delegated_from_task_id, p.rule_version_id,
     p.trigger_evidence_kind, p.trigger_evidence_ref_id, p.id,
     p.chat_input_task_id, $2,
@@ -2919,8 +2919,8 @@ type CreateRetryTaskParams struct {
 	ID                   pgtype.UUID        `json:"id"`
 	FireAt               pgtype.Timestamptz `json:"fire_at"`
 	MaxAttempts          pgtype.Int4        `json:"max_attempts"`
-	RuntimeMcpOverlay    []byte             `json:"runtime_mcp_overlay"`
-	RuntimeConnectedApps []byte             `json:"runtime_connected_apps"`
+	RuntimeMcpOverlay    pgtype.Text        `json:"runtime_mcp_overlay"`
+	RuntimeConnectedApps pgtype.Text        `json:"runtime_connected_apps"`
 	NewTaskID            pgtype.UUID        `json:"new_task_id"`
 }
 
@@ -7222,8 +7222,8 @@ SET coalesced_comment_ids = (
     rule_version_id = $7::uuid,
     trigger_evidence_kind = $8,
     trigger_evidence_ref_id = $9::uuid,
-    runtime_mcp_overlay = $10,
-    runtime_connected_apps = $11
+    runtime_mcp_overlay = $10::text::jsonb,
+    runtime_connected_apps = $11::text::jsonb
 WHERE id = (
     SELECT t.id FROM agent_task_queue t
     WHERE t.context->>'wakeup_id' IS NULL AND t.issue_id = $12
@@ -7258,8 +7258,8 @@ type MergeCommentIntoPendingTaskParams struct {
 	NewRuleVersionID        pgtype.UUID `json:"new_rule_version_id"`
 	NewTriggerEvidenceKind  pgtype.Text `json:"new_trigger_evidence_kind"`
 	NewTriggerEvidenceRefID pgtype.UUID `json:"new_trigger_evidence_ref_id"`
-	NewRuntimeMcpOverlay    []byte      `json:"new_runtime_mcp_overlay"`
-	NewRuntimeConnectedApps []byte      `json:"new_runtime_connected_apps"`
+	NewRuntimeMcpOverlay    pgtype.Text `json:"new_runtime_mcp_overlay"`
+	NewRuntimeConnectedApps pgtype.Text `json:"new_runtime_connected_apps"`
 	IssueID                 pgtype.UUID `json:"issue_id"`
 	AgentID                 pgtype.UUID `json:"agent_id"`
 	HeadSha                 pgtype.Text `json:"head_sha"`
@@ -8752,8 +8752,8 @@ func (q *Queries) SetAgentTaskRetiredSessionIDIfCancelled(ctx context.Context, a
 
 const setDeferredChannelIssueTaskRuntimeOverlay = `-- name: SetDeferredChannelIssueTaskRuntimeOverlay :execrows
 UPDATE agent_task_queue
-SET runtime_mcp_overlay = $1,
-    runtime_connected_apps = $2
+SET runtime_mcp_overlay = $1::text::jsonb,
+    runtime_connected_apps = $2::text::jsonb
 WHERE id = $3
   AND status = 'deferred'
   AND context->>'channel_issue_media_pending' = 'true'
@@ -8762,8 +8762,8 @@ WHERE id = $3
 `
 
 type SetDeferredChannelIssueTaskRuntimeOverlayParams struct {
-	RuntimeMcpOverlay        []byte      `json:"runtime_mcp_overlay"`
-	RuntimeConnectedApps     []byte      `json:"runtime_connected_apps"`
+	RuntimeMcpOverlay        pgtype.Text `json:"runtime_mcp_overlay"`
+	RuntimeConnectedApps     pgtype.Text `json:"runtime_connected_apps"`
 	ID                       pgtype.UUID `json:"id"`
 	ExpectedOriginatorUserID pgtype.UUID `json:"expected_originator_user_id"`
 }
@@ -8833,7 +8833,7 @@ func (q *Queries) SetTaskDeliveredCommentIDs(ctx context.Context, arg SetTaskDel
 
 const setTaskIssueSnapshot = `-- name: SetTaskIssueSnapshot :exec
 UPDATE agent_task_queue
-SET issue_snapshot = $1
+SET issue_snapshot = $1::text::jsonb
 WHERE id = $2
   AND runtime_id = $3
   AND status = 'dispatched'
@@ -8842,7 +8842,7 @@ WHERE id = $2
 `
 
 type SetTaskIssueSnapshotParams struct {
-	IssueSnapshot []byte             `json:"issue_snapshot"`
+	IssueSnapshot pgtype.Text        `json:"issue_snapshot"`
 	TaskID        pgtype.UUID        `json:"task_id"`
 	RuntimeID     pgtype.UUID        `json:"runtime_id"`
 	DispatchedAt  pgtype.Timestamptz `json:"dispatched_at"`
@@ -8950,7 +8950,7 @@ UPDATE agent SET
     name = COALESCE($2, name),
     description = COALESCE($3, description),
     avatar_url = COALESCE($4, avatar_url),
-    runtime_config = COALESCE($5, runtime_config),
+    runtime_config = COALESCE($5::text::jsonb, runtime_config),
     runtime_mode = COALESCE($6, runtime_mode),
     runtime_id = COALESCE($7, runtime_id),
     visibility = COALESCE($8, visibility),
@@ -8958,13 +8958,13 @@ UPDATE agent SET
     status = COALESCE($10, status),
     max_concurrent_tasks = COALESCE($11, max_concurrent_tasks),
     instructions = COALESCE($12, instructions),
-    custom_env = COALESCE($13, custom_env),
-    custom_args = COALESCE($14, custom_args),
-    mcp_config = COALESCE($15, mcp_config),
+    custom_env = COALESCE($13::text::jsonb, custom_env),
+    custom_args = COALESCE($14::text::jsonb, custom_args),
+    mcp_config = COALESCE($15::text::jsonb, mcp_config),
     model = COALESCE($16, model),
     thinking_level = COALESCE($17, thinking_level),
     service_tier = COALESCE($18, service_tier),
-    conversation_starters = COALESCE($19, conversation_starters),
+    conversation_starters = COALESCE($19::text::jsonb, conversation_starters),
     composio_toolkit_allowlist = COALESCE($20::text[], composio_toolkit_allowlist),
     updated_at = now()
 WHERE id = $1
@@ -8976,7 +8976,7 @@ type UpdateAgentParams struct {
 	Name                     pgtype.Text `json:"name"`
 	Description              pgtype.Text `json:"description"`
 	AvatarUrl                pgtype.Text `json:"avatar_url"`
-	RuntimeConfig            []byte      `json:"runtime_config"`
+	RuntimeConfig            pgtype.Text `json:"runtime_config"`
 	RuntimeMode              pgtype.Text `json:"runtime_mode"`
 	RuntimeID                pgtype.UUID `json:"runtime_id"`
 	Visibility               pgtype.Text `json:"visibility"`
@@ -8984,13 +8984,13 @@ type UpdateAgentParams struct {
 	Status                   pgtype.Text `json:"status"`
 	MaxConcurrentTasks       pgtype.Int4 `json:"max_concurrent_tasks"`
 	Instructions             pgtype.Text `json:"instructions"`
-	CustomEnv                []byte      `json:"custom_env"`
-	CustomArgs               []byte      `json:"custom_args"`
-	McpConfig                []byte      `json:"mcp_config"`
+	CustomEnv                pgtype.Text `json:"custom_env"`
+	CustomArgs               pgtype.Text `json:"custom_args"`
+	McpConfig                pgtype.Text `json:"mcp_config"`
 	Model                    pgtype.Text `json:"model"`
 	ThinkingLevel            pgtype.Text `json:"thinking_level"`
 	ServiceTier              pgtype.Text `json:"service_tier"`
-	ConversationStarters     []byte      `json:"conversation_starters"`
+	ConversationStarters     pgtype.Text `json:"conversation_starters"`
 	ComposioToolkitAllowlist []string    `json:"composio_toolkit_allowlist"`
 }
 
@@ -9060,14 +9060,14 @@ func (q *Queries) UpdateAgent(ctx context.Context, arg UpdateAgentParams) (Agent
 
 const updateAgentCustomEnv = `-- name: UpdateAgentCustomEnv :one
 UPDATE agent
-SET custom_env = $2, updated_at = now()
+SET custom_env = $2::text::jsonb, updated_at = now()
 WHERE id = $1
 RETURNING id, workspace_id, name, avatar_url, runtime_mode, runtime_config, visibility, status, max_concurrent_tasks, owner_id, created_at, updated_at, description, runtime_id, instructions, archived_at, archived_by, custom_env, custom_args, mcp_config, model, thinking_level, composio_toolkit_allowlist, permission_mode, kind, system_key, disabled_runtime_skills, service_tier, conversation_starters
 `
 
 type UpdateAgentCustomEnvParams struct {
 	ID        pgtype.UUID `json:"id"`
-	CustomEnv []byte      `json:"custom_env"`
+	CustomEnv string      `json:"custom_env"`
 }
 
 // Replaces an agent's custom_env map wholesale. Used by the dedicated
@@ -9114,14 +9114,14 @@ func (q *Queries) UpdateAgentCustomEnv(ctx context.Context, arg UpdateAgentCusto
 
 const updateAgentDisabledRuntimeSkills = `-- name: UpdateAgentDisabledRuntimeSkills :one
 UPDATE agent
-SET disabled_runtime_skills = $2, updated_at = now()
+SET disabled_runtime_skills = $2::text::jsonb, updated_at = now()
 WHERE id = $1
 RETURNING id, workspace_id, name, avatar_url, runtime_mode, runtime_config, visibility, status, max_concurrent_tasks, owner_id, created_at, updated_at, description, runtime_id, instructions, archived_at, archived_by, custom_env, custom_args, mcp_config, model, thinking_level, composio_toolkit_allowlist, permission_mode, kind, system_key, disabled_runtime_skills, service_tier, conversation_starters
 `
 
 type UpdateAgentDisabledRuntimeSkillsParams struct {
 	ID                    pgtype.UUID `json:"id"`
-	DisabledRuntimeSkills []byte      `json:"disabled_runtime_skills"`
+	DisabledRuntimeSkills string      `json:"disabled_runtime_skills"`
 }
 
 func (q *Queries) UpdateAgentDisabledRuntimeSkills(ctx context.Context, arg UpdateAgentDisabledRuntimeSkillsParams) (Agent, error) {

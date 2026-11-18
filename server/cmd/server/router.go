@@ -2490,6 +2490,10 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 				// second answer to "what did this creator cost us".
 				r.Route("/bd", func(r chi.Router) {
 					r.Get("/pipeline", h.GetBdPipeline)
+					// The windowed counterpart of the cockpit (WORKBENCH-API §22):
+					// one range, every fact bucketed by its own date, per member and
+					// per month.
+					r.Get("/performance", h.GetBdPerformance)
 					r.Route("/activities", func(r chi.Router) {
 						r.Get("/", h.ListBdActivities)
 						r.Post("/", h.CreateBdActivity)
@@ -2602,6 +2606,31 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 							r.Get("/", h.GetMediaShoot)
 							r.Patch("/", h.UpdateMediaShoot)
 							r.Delete("/", h.DeleteMediaShoot)
+						})
+					})
+					// Hotspot radar and benchmark teardown (WORKBENCH-API §21):
+					// the two source ledgers the content pipeline is fed from. Same
+					// read/write split as everything above; `adopt` is the only
+					// write that touches `media_topic`, and it never edits the
+					// source row.
+					r.Route("/hot", func(r chi.Router) {
+						r.Get("/", h.ListMediaHot)
+						r.Post("/", h.CreateMediaHot)
+						r.Route("/{hotId}", func(r chi.Router) {
+							r.Get("/", h.GetMediaHot)
+							r.Patch("/", h.UpdateMediaHot)
+							r.Delete("/", h.DeleteMediaHot)
+							r.Post("/adopt", h.AdoptMediaHot)
+						})
+					})
+					r.Route("/bench", func(r chi.Router) {
+						r.Get("/", h.ListMediaBench)
+						r.Post("/", h.CreateMediaBench)
+						r.Route("/{benchId}", func(r chi.Router) {
+							r.Get("/", h.GetMediaBench)
+							r.Patch("/", h.UpdateMediaBench)
+							r.Delete("/", h.DeleteMediaBench)
+							r.Post("/adopt", h.AdoptMediaBench)
 						})
 					})
 				})

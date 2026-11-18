@@ -921,7 +921,7 @@ func TestAuxiliaryVisibleMutationsAdvanceOwnerRevisionExactlyOnce(t *testing.T) 
 	}
 
 	metadataParams := db.SetIssueMetadataKeyParams{
-		Key: "revision-test", Value: []byte(`"value"`), ID: issueUUID, WorkspaceID: workspaceUUID,
+		Key: "revision-test", Value: `"value"`, ID: issueUUID, WorkspaceID: workspaceUUID,
 	}
 	metadataIssue, err := testHandler.Queries.SetIssueMetadataKey(ctx, metadataParams)
 	if err != nil || metadataIssue.Revision != 9 {
@@ -945,7 +945,7 @@ func TestAuxiliaryVisibleMutationsAdvanceOwnerRevisionExactlyOnce(t *testing.T) 
 	}
 
 	propertyParams := db.SetIssuePropertyValueParams{
-		Key: "revision-test", Value: []byte(`42`), ID: issueUUID, WorkspaceID: workspaceUUID,
+		Key: "revision-test", Value: `42`, ID: issueUUID, WorkspaceID: workspaceUUID,
 	}
 	propertyIssue, err := testHandler.Queries.SetIssuePropertyValue(ctx, propertyParams)
 	if err != nil || propertyIssue.Revision != 11 {

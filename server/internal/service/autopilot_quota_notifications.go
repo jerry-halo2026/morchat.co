@@ -165,7 +165,7 @@ func (s *AutopilotService) createAutopilotQuotaInboxItems(
 			Type: "autopilot_quota_exceeded", Severity: "attention", IssueID: pgtype.UUID{},
 			Title: "Autopilot run limit reached", Body: pgtype.Text{String: body, Valid: true},
 			ActorType: pgtype.Text{String: "system", Valid: true}, ActorID: pgtype.UUID{},
-			Details: details,
+			Details: jsonbText(details),
 		})
 		if err != nil {
 			return nil, fmt.Errorf("create autopilot quota inbox item: %w", err)

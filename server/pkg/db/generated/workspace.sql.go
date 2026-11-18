@@ -516,8 +516,8 @@ UPDATE workspace SET
     name = COALESCE($2, name),
     description = COALESCE($3, description),
     context = COALESCE($4, context),
-    settings = COALESCE($5, settings),
-    repos = COALESCE($6, repos),
+    settings = COALESCE($5::text::jsonb, settings),
+    repos = COALESCE($6::text::jsonb, repos),
     issue_prefix = COALESCE($7, issue_prefix),
     avatar_url = COALESCE($8, avatar_url),
     updated_at = now()
@@ -530,8 +530,8 @@ type UpdateWorkspaceParams struct {
 	Name        pgtype.Text `json:"name"`
 	Description pgtype.Text `json:"description"`
 	Context     pgtype.Text `json:"context"`
-	Settings    []byte      `json:"settings"`
-	Repos       []byte      `json:"repos"`
+	Settings    pgtype.Text `json:"settings"`
+	Repos       pgtype.Text `json:"repos"`
 	IssuePrefix pgtype.Text `json:"issue_prefix"`
 	AvatarUrl   pgtype.Text `json:"avatar_url"`
 }

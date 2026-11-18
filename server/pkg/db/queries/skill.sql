@@ -31,7 +31,7 @@ WHERE workspace_id = $1 AND name = $2;
 
 -- name: CreateSkill :one
 INSERT INTO skill (workspace_id, name, description, content, config, created_by)
-VALUES ($1, $2, $3, $4, $5, $6)
+VALUES ($1, $2, $3, $4, sqlc.arg('config')::text::jsonb, sqlc.narg('created_by'))
 RETURNING *;
 
 -- name: UpdateSkill :one
@@ -39,7 +39,7 @@ UPDATE skill SET
     name = COALESCE(sqlc.narg('name'), name),
     description = COALESCE(sqlc.narg('description'), description),
     content = COALESCE(sqlc.narg('content'), content),
-    config = COALESCE(sqlc.narg('config'), config),
+    config = COALESCE(sqlc.narg('config')::text::jsonb, config),
     updated_at = now()
 WHERE id = $1
 RETURNING *;
@@ -214,7 +214,7 @@ INSERT INTO skill_version (
     content_hash, source, restored_from_version, created_by, created_at
 )
 VALUES (
-    @workspace_id, @skill_id, @version, @name, @description, @content, @files,
+    @workspace_id, @skill_id, @version, @name, @description, @content, sqlc.arg('files')::text::jsonb,
     @content_hash, @source, sqlc.narg('restored_from_version'), sqlc.narg('created_by'),
     COALESCE(sqlc.narg('created_at')::timestamptz, now())
 )

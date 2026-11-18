@@ -79,7 +79,7 @@ func TestDeleteWorkspacePluginDataClearsEveryPluginTable(t *testing.T) {
 		PackageID:   pkg.ID,
 		WorkspaceID: parsedWorkspaceID,
 		Version:     "1.0.0",
-		Manifest:    manifest,
+		Manifest:    string(manifest),
 		Digest:      strings.Repeat("a", 64),
 		SizeBytes:   1,
 	})
@@ -101,8 +101,8 @@ func TestDeleteWorkspacePluginDataClearsEveryPluginTable(t *testing.T) {
 		PluginKey:        fmt.Sprintf("com.example.teardown%d", suffix),
 		PackageVersionID: version.ID,
 		Version:          "1.0.0",
-		Manifest:         manifest,
-		GrantedScopes:    []byte(`["issues:read"]`),
+		Manifest:         string(manifest),
+		GrantedScopes:    `["issues:read"]`,
 	})
 	if err != nil {
 		t.Fatalf("create installation: %v", err)

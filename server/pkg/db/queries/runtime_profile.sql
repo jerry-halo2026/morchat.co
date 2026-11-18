@@ -14,7 +14,7 @@ INSERT INTO runtime_profile (
     created_by,
     enabled,
     runtime_type
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+) VALUES ($1, $2, $3, $4, $5, sqlc.arg('fixed_args')::text::jsonb, sqlc.arg('visibility'), sqlc.narg('created_by'), sqlc.arg('enabled'), sqlc.arg('runtime_type'))
 RETURNING *;
 
 -- name: GetRuntimeProfile :one
@@ -62,7 +62,7 @@ UPDATE runtime_profile
 SET display_name = COALESCE(sqlc.narg('display_name'), display_name),
     command_name = COALESCE(sqlc.narg('command_name'), command_name),
     description  = COALESCE(sqlc.narg('description'), description),
-    fixed_args   = COALESCE(sqlc.narg('fixed_args'), fixed_args),
+    fixed_args   = COALESCE(sqlc.narg('fixed_args')::text::jsonb, fixed_args),
     visibility   = COALESCE(sqlc.narg('visibility'), visibility),
     enabled      = COALESCE(sqlc.narg('enabled'), enabled),
     updated_at   = now()

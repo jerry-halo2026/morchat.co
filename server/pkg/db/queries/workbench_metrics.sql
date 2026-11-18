@@ -87,7 +87,52 @@ SELECT
           AND hep.archived_at IS NULL
           AND (sqlc.narg('department_id')::uuid IS NULL
                OR hep.department_id = sqlc.narg('department_id')::uuid
-               OR hepm.department_id = sqlc.narg('department_id')::uuid))::bigint AS employees;
+               OR hepm.department_id = sqlc.narg('department_id')::uuid))::bigint AS employees,
+    -- Content production and discovery (WORKBENCH-API §12 / §21). One counter per
+    -- ledger the left sidebar lists, so a rail badge is a number the server owns
+    -- rather than a count the client derives from whatever page it happens to hold.
+    -- Department attribution is the same fallback chain as above: the row's owning
+    -- member. It is an aggregate filter, never an access boundary.
+    (SELECT count(*) FROM media_script msc
+        LEFT JOIN member mscm ON mscm.workspace_id = msc.workspace_id AND mscm.user_id = msc.owner_member_id
+        WHERE msc.workspace_id = sqlc.arg('workspace_id')
+          AND msc.archived_at IS NULL
+          AND (sqlc.narg('department_id')::uuid IS NULL
+               OR mscm.department_id = sqlc.narg('department_id')::uuid))::bigint AS media_scripts,
+    (SELECT count(*) FROM media_shoot msh
+        LEFT JOIN member mshm ON mshm.workspace_id = msh.workspace_id AND mshm.user_id = msh.owner_member_id
+        WHERE msh.workspace_id = sqlc.arg('workspace_id')
+          AND msh.archived_at IS NULL
+          AND (sqlc.narg('department_id')::uuid IS NULL
+               OR mshm.department_id = sqlc.narg('department_id')::uuid))::bigint AS media_shoots,
+    (SELECT count(*) FROM media_hot mh
+        LEFT JOIN member mhm ON mhm.workspace_id = mh.workspace_id AND mhm.user_id = mh.owner_member_id
+        WHERE mh.workspace_id = sqlc.arg('workspace_id')
+          AND mh.archived_at IS NULL
+          AND (sqlc.narg('department_id')::uuid IS NULL
+               OR mhm.department_id = sqlc.narg('department_id')::uuid))::bigint AS hot,
+    (SELECT count(*) FROM media_bench mb
+        LEFT JOIN member mbm ON mbm.workspace_id = mb.workspace_id AND mbm.user_id = mb.owner_member_id
+        WHERE mb.workspace_id = sqlc.arg('workspace_id')
+          AND mb.archived_at IS NULL
+          AND (sqlc.narg('department_id')::uuid IS NULL
+               OR mbm.department_id = sqlc.narg('department_id')::uuid))::bigint AS bench,
+    -- General manager ledgers (WORKBENCH-API §13): goals and the radar's signals.
+    -- A goal carries its own `department_id` (748) and falls back to its owner's,
+    -- while a signal has no department column at all — only its owner's.
+    (SELECT count(*) FROM goal_okr g
+        LEFT JOIN member gom ON gom.workspace_id = g.workspace_id AND gom.user_id = g.owner_member_id
+        WHERE g.workspace_id = sqlc.arg('workspace_id')
+          AND g.archived_at IS NULL
+          AND (sqlc.narg('department_id')::uuid IS NULL
+               OR g.department_id = sqlc.narg('department_id')::uuid
+               OR gom.department_id = sqlc.narg('department_id')::uuid))::bigint AS goals,
+    (SELECT count(*) FROM market_signal sg
+        LEFT JOIN member sgm ON sgm.workspace_id = sg.workspace_id AND sgm.user_id = sg.owner_member_id
+        WHERE sg.workspace_id = sqlc.arg('workspace_id')
+          AND sg.archived_at IS NULL
+          AND (sqlc.narg('department_id')::uuid IS NULL
+               OR sgm.department_id = sqlc.narg('department_id')::uuid))::bigint AS signals;
 
 -- name: OverviewWorkCounts :one
 -- The eight `work.*` counts in one pass over the workspace's issues.

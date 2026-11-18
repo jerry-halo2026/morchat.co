@@ -226,7 +226,7 @@ INSERT INTO channel_typing_reaction (
  channel_message_id, installation_snapshot, cleanup_required, quota_slot
 )
 SELECT $1, $2, $3, $4, $5,
- $6, $7, message.channel_typing_settled, slot.value
+ $6, $7::text::jsonb, message.channel_typing_settled, slot.value
 FROM chat_message AS message
 JOIN chat_session AS session ON session.id = message.chat_session_id
 JOIN channel_installation AS installation ON installation.id = $5
@@ -251,7 +251,7 @@ type RegisterChannelTypingReactionParams struct {
 	ChatMessageID        pgtype.UUID `json:"chat_message_id"`
 	InstallationID       pgtype.UUID `json:"installation_id"`
 	ChannelMessageID     string      `json:"channel_message_id"`
-	InstallationSnapshot []byte      `json:"installation_snapshot"`
+	InstallationSnapshot string      `json:"installation_snapshot"`
 }
 
 // Commit the complete external anchor BEFORE issuing Add. A terminal observer

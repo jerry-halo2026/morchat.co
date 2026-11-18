@@ -486,7 +486,7 @@ func (h *Handler) UpdateWorkspace(w http.ResponseWriter, r *http.Request) {
 			reconcilePRMergeSettings(stored, incoming)
 		}
 		s, _ := json.Marshal(req.Settings)
-		params.Settings = s
+		params.Settings = pgtype.Text{String: string(s), Valid: s != nil}
 	}
 	if req.Repos != nil {
 		reposJSON, err := validateAndNormalizeWorkspaceRepos(req.Repos)
@@ -494,7 +494,7 @@ func (h *Handler) UpdateWorkspace(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		params.Repos = reposJSON
+		params.Repos = pgtype.Text{String: string(reposJSON), Valid: reposJSON != nil}
 	}
 	if req.IssuePrefix != nil {
 		prefix, ok := normalizeIssuePrefix(*req.IssuePrefix)

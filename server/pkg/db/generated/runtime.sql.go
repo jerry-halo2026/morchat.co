@@ -1862,14 +1862,14 @@ func (q *Queries) SetAgentRuntimeOffline(ctx context.Context, id pgtype.UUID) er
 const setAgentRuntimeOfflineWithReason = `-- name: SetAgentRuntimeOfflineWithReason :exec
 UPDATE agent_runtime
 SET status = 'offline',
-    metadata = metadata || jsonb_build_object('offline_reason', $2::jsonb),
+    metadata = metadata || jsonb_build_object('offline_reason', $2::text::jsonb),
     updated_at = now()
 WHERE id = $1
 `
 
 type SetAgentRuntimeOfflineWithReasonParams struct {
 	ID            pgtype.UUID `json:"id"`
-	OfflineReason []byte      `json:"offline_reason"`
+	OfflineReason pgtype.Text `json:"offline_reason"`
 }
 
 // Takes a runtime offline and records WHY, for the one class of cause the user
@@ -2319,7 +2319,7 @@ INSERT INTO agent_runtime (
     last_seen_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6,
-    $7, $8, $9, now()
+    $7, $8::text::jsonb, $9, now()
 )
 ON CONFLICT (workspace_id, daemon_id, provider) WHERE profile_id IS NULL
 DO UPDATE SET
@@ -2344,7 +2344,7 @@ type UpsertAgentRuntimeParams struct {
 	Provider        string      `json:"provider"`
 	Status          string      `json:"status"`
 	DeviceInfo      string      `json:"device_info"`
-	Metadata        []byte      `json:"metadata"`
+	Metadata        string      `json:"metadata"`
 	OwnerID         pgtype.UUID `json:"owner_id"`
 	RequiredOwnerID pgtype.UUID `json:"required_owner_id"`
 }
@@ -2441,7 +2441,7 @@ INSERT INTO agent_runtime (
     last_seen_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6,
-    $7, $8, $9, $10, now()
+    $7, $8::text::jsonb, $9, $10, now()
 )
 ON CONFLICT (workspace_id, daemon_id, profile_id) WHERE profile_id IS NOT NULL
 DO UPDATE SET
@@ -2467,7 +2467,7 @@ type UpsertAgentRuntimeWithProfileParams struct {
 	Provider        string      `json:"provider"`
 	Status          string      `json:"status"`
 	DeviceInfo      string      `json:"device_info"`
-	Metadata        []byte      `json:"metadata"`
+	Metadata        string      `json:"metadata"`
 	OwnerID         pgtype.UUID `json:"owner_id"`
 	ProfileID       pgtype.UUID `json:"profile_id"`
 	RequiredOwnerID pgtype.UUID `json:"required_owner_id"`

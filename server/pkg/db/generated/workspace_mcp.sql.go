@@ -66,14 +66,14 @@ func (q *Queries) CountWorkspaceMcpServerAgents(ctx context.Context, workspaceID
 
 const createWorkspaceMcpServer = `-- name: CreateWorkspaceMcpServer :one
 INSERT INTO workspace_mcp_server (workspace_id, name, config, created_by)
-VALUES ($1, $2, $3, $4)
+VALUES ($1, $2, $3::text::jsonb, $4)
 RETURNING id, workspace_id, name, config, created_by, created_at, updated_at
 `
 
 type CreateWorkspaceMcpServerParams struct {
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
 	Name        string      `json:"name"`
-	Config      []byte      `json:"config"`
+	Config      string      `json:"config"`
 	CreatedBy   pgtype.UUID `json:"created_by"`
 }
 
@@ -356,7 +356,7 @@ func (q *Queries) SetAgentMcpServerEnabled(ctx context.Context, arg SetAgentMcpS
 const updateWorkspaceMcpServer = `-- name: UpdateWorkspaceMcpServer :one
 UPDATE workspace_mcp_server SET
     name = COALESCE($3, name),
-    config = COALESCE($4, config),
+    config = COALESCE($4::text::jsonb, config),
     updated_at = now()
 WHERE id = $1 AND workspace_id = $2
 RETURNING id, workspace_id, name, config, created_by, created_at, updated_at
@@ -366,7 +366,7 @@ type UpdateWorkspaceMcpServerParams struct {
 	ID          pgtype.UUID `json:"id"`
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
 	Name        pgtype.Text `json:"name"`
-	Config      []byte      `json:"config"`
+	Config      pgtype.Text `json:"config"`
 }
 
 // Full replace of one entry. The name can change here (unlike the previous

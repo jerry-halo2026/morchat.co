@@ -160,7 +160,7 @@ func (h *Handler) GetAgentEnv(w http.ResponseWriter, r *http.Request) {
 		ActorType:   pgtype.Text{String: "member", Valid: true},
 		ActorID:     parseUUID(uuidToString(member.UserID)),
 		Action:      agentEnvActivityRevealed,
-		Details:     details,
+		Details:     string(details),
 	}); err != nil {
 		slog.Error("agent_env_revealed audit write failed; refusing to serve plaintext",
 			append(logger.RequestAttrs(r), "error", err, "agent_id", uuidToString(agent.ID))...)
@@ -226,7 +226,7 @@ func (h *Handler) UpdateAgentEnv(w http.ResponseWriter, r *http.Request) {
 
 	updated, err := qtx.UpdateAgentCustomEnv(r.Context(), db.UpdateAgentCustomEnvParams{
 		ID:        agent.ID,
-		CustomEnv: envBytes,
+		CustomEnv: string(envBytes),
 	})
 	if err != nil {
 		slog.Warn("update agent custom_env failed",
@@ -251,7 +251,7 @@ func (h *Handler) UpdateAgentEnv(w http.ResponseWriter, r *http.Request) {
 		ActorType:   pgtype.Text{String: "member", Valid: true},
 		ActorID:     parseUUID(uuidToString(member.UserID)),
 		Action:      agentEnvActivityUpdated,
-		Details:     details,
+		Details:     string(details),
 	}); err != nil {
 		slog.Error("agent_env_updated audit write failed; rolling back update",
 			append(logger.RequestAttrs(r), "error", err, "agent_id", uuidToString(agent.ID))...)

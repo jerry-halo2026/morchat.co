@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jerry-halo2026/morchat.co/server/internal/events"
 	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 	"github.com/jerry-halo2026/morchat.co/server/internal/util"
@@ -41,7 +42,7 @@ func TestCreateInboxItem_RecipientWorkspace(t *testing.T) {
 		{"agent ID as member", "member", agent, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			params := db.CreateInboxItemParams{ID: dbid.NewV7(), WorkspaceID: util.MustParseUUID(testWorkspaceID), RecipientType: tc.recipientType, RecipientID: util.MustParseUUID(tc.recipientID), IssueID: util.MustParseUUID(issue), Type: "reaction_added", Severity: "info", Title: "Recipient guard", Details: emptyDetails}
+			params := db.CreateInboxItemParams{ID: dbid.NewV7(), WorkspaceID: util.MustParseUUID(testWorkspaceID), RecipientType: tc.recipientType, RecipientID: util.MustParseUUID(tc.recipientID), IssueID: util.MustParseUUID(issue), Type: "reaction_added", Severity: "info", Title: "Recipient guard", Details: pgtype.Text{String: string(emptyDetails), Valid: emptyDetails != nil}}
 			item, err := queries.CreateInboxItem(context.Background(), params)
 			if tc.allowed {
 				if err != nil {

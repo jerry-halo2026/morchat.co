@@ -972,7 +972,7 @@ func TestProjectResourceLabelConvergence(t *testing.T) {
 	futureRef := json.RawMessage(`{"local_path":"/Users/dev/work/game-client","daemon_id":"daemon-label-convergence","label":"Renamed On Old Desktop","execution_mode":"in_place","future_field":{"keep":"me"}}`)
 	if _, err := testHandler.Queries.UpdateProjectResource(context.Background(), db.UpdateProjectResourceParams{
 		ID:          parseUUID(created.ID),
-		ResourceRef: futureRef,
+		ResourceRef: string(futureRef),
 		Label:       pgtype.Text{String: "Renamed On Old Desktop", Valid: true},
 		Position:    0,
 	}); err != nil {
@@ -1005,7 +1005,7 @@ func TestProjectResourceLabelConvergence(t *testing.T) {
 	// the documented normalize contract for provided refs, not label code.)
 	if _, err := testHandler.Queries.UpdateProjectResource(context.Background(), db.UpdateProjectResourceParams{
 		ID:          parseUUID(created.ID),
-		ResourceRef: json.RawMessage(`{"local_path":"/Users/dev/work/game-client","daemon_id":"daemon-label-convergence","label":"Stale Ref Copy","execution_mode":"in_place"}`),
+		ResourceRef: string(json.RawMessage(`{"local_path":"/Users/dev/work/game-client","daemon_id":"daemon-label-convergence","label":"Stale Ref Copy","execution_mode":"in_place"}`)),
 		Label:       pgtype.Text{String: "Column Rename", Valid: true},
 		Position:    0,
 	}); err != nil {
@@ -1045,7 +1045,7 @@ func TestProjectResourceLabelConvergence(t *testing.T) {
 	// "never set", not "cleared".
 	if _, err := testHandler.Queries.UpdateProjectResource(context.Background(), db.UpdateProjectResourceParams{
 		ID:          parseUUID(created.ID),
-		ResourceRef: json.RawMessage(`{"local_path":"/Users/dev/work/game-client","daemon_id":"daemon-label-convergence","label":"Ref Only Name","execution_mode":"in_place"}`),
+		ResourceRef: string(json.RawMessage(`{"local_path":"/Users/dev/work/game-client","daemon_id":"daemon-label-convergence","label":"Ref Only Name","execution_mode":"in_place"}`)),
 		Label:       pgtype.Text{},
 		Position:    0,
 	}); err != nil {
@@ -1658,7 +1658,7 @@ func TestProjectResourceLegacyRenameSkipsWorktreeGate(t *testing.T) {
 	// correctly) be refused for a daemon with no capable runtime row.
 	if _, err := testHandler.Queries.UpdateProjectResource(context.Background(), db.UpdateProjectResourceParams{
 		ID:          parseUUID(created.ID),
-		ResourceRef: json.RawMessage(`{"local_path":"/Users/dev/work/game-client","daemon_id":"` + daemonID + `","label":"Game Client","execution_mode":"worktree"}`),
+		ResourceRef: string(json.RawMessage(`{"local_path":"/Users/dev/work/game-client","daemon_id":"` + daemonID + `","label":"Game Client","execution_mode":"worktree"}`)),
 		Label:       pgtype.Text{String: "Game Client", Valid: true},
 		Position:    0,
 	}); err != nil {

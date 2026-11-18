@@ -164,12 +164,12 @@ func (q *Queries) CreateCreator(ctx context.Context, arg CreateCreatorParams) (C
 const createCreatorPost = `-- name: CreateCreatorPost :one
 INSERT INTO creator_post (
     workspace_id, creator_id, collab_id, content_issue_id, product_id, pick_id,
-    platform, title, url, published_at, source, created_by
+    media_script_id, platform, title, url, published_at, source, created_by
 ) VALUES (
     $1, $2, $3::uuid,
     $4::uuid, $5::uuid, $6::uuid,
-    $7, $8::text,
-    $9, $10, $11, $12::uuid
+    $7::uuid, $8, $9::text,
+    $10, $11, $12, $13::uuid
 )
 RETURNING id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id, media_script_id
 `
@@ -181,6 +181,7 @@ type CreateCreatorPostParams struct {
 	ContentIssueID pgtype.UUID        `json:"content_issue_id"`
 	ProductID      pgtype.UUID        `json:"product_id"`
 	PickID         pgtype.UUID        `json:"pick_id"`
+	MediaScriptID  pgtype.UUID        `json:"media_script_id"`
 	Platform       string             `json:"platform"`
 	Title          pgtype.Text        `json:"title"`
 	Url            string             `json:"url"`
@@ -189,6 +190,10 @@ type CreateCreatorPostParams struct {
 	CreatedBy      pgtype.UUID        `json:"created_by"`
 }
 
+// `media_script_id` (733) is the publish → plan link the content workbench writes:
+// an operator publishing a scripted post names the version it came from. NULL is
+// the ordinary value for an unscripted post (external 达人, history), so the column
+// stays optional and the handler validates the pointer before it gets here.
 func (q *Queries) CreateCreatorPost(ctx context.Context, arg CreateCreatorPostParams) (CreatorPost, error) {
 	row := q.db.QueryRow(ctx, createCreatorPost,
 		arg.WorkspaceID,
@@ -197,6 +202,7 @@ func (q *Queries) CreateCreatorPost(ctx context.Context, arg CreateCreatorPostPa
 		arg.ContentIssueID,
 		arg.ProductID,
 		arg.PickID,
+		arg.MediaScriptID,
 		arg.Platform,
 		arg.Title,
 		arg.Url,
@@ -823,13 +829,14 @@ SET creator_id = $1,
     content_issue_id = $3::uuid,
     product_id = $4::uuid,
     pick_id = $5::uuid,
-    platform = $6,
-    title = $7::text,
-    url = $8,
-    published_at = $9,
-    source = $10,
+    media_script_id = $6::uuid,
+    platform = $7,
+    title = $8::text,
+    url = $9,
+    published_at = $10,
+    source = $11,
     updated_at = now()
-WHERE id = $11 AND workspace_id = $12 AND archived_at IS NULL
+WHERE id = $12 AND workspace_id = $13 AND archived_at IS NULL
 RETURNING id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id, media_script_id
 `
 
@@ -839,6 +846,7 @@ type UpdateCreatorPostParams struct {
 	ContentIssueID pgtype.UUID        `json:"content_issue_id"`
 	ProductID      pgtype.UUID        `json:"product_id"`
 	PickID         pgtype.UUID        `json:"pick_id"`
+	MediaScriptID  pgtype.UUID        `json:"media_script_id"`
 	Platform       string             `json:"platform"`
 	Title          pgtype.Text        `json:"title"`
 	Url            string             `json:"url"`
@@ -855,6 +863,7 @@ func (q *Queries) UpdateCreatorPost(ctx context.Context, arg UpdateCreatorPostPa
 		arg.ContentIssueID,
 		arg.ProductID,
 		arg.PickID,
+		arg.MediaScriptID,
 		arg.Platform,
 		arg.Title,
 		arg.Url,

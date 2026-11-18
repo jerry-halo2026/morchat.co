@@ -88,7 +88,7 @@ INSERT INTO agent_runtime (
     last_seen_at
 ) VALUES (
     @workspace_id, @daemon_id, @name, @runtime_mode, @provider, @status,
-    @device_info, @metadata, @owner_id, now()
+    @device_info, sqlc.arg('metadata')::text::jsonb, @owner_id, now()
 )
 -- Built-in runtimes carry no profile_id. The arbiter is the partial unique
 -- index from migration 121 (WHERE profile_id IS NULL); the predicate must be
@@ -131,7 +131,7 @@ INSERT INTO agent_runtime (
     last_seen_at
 ) VALUES (
     @workspace_id, @daemon_id, @name, @runtime_mode, @provider, @status,
-    @device_info, @metadata, @owner_id, @profile_id, now()
+    @device_info, sqlc.arg('metadata')::text::jsonb, @owner_id, @profile_id, now()
 )
 ON CONFLICT (workspace_id, daemon_id, profile_id) WHERE profile_id IS NOT NULL
 DO UPDATE SET
@@ -265,7 +265,7 @@ WHERE id = $1;
 -- explanation to clean up and no code path that has to remember to clear it.
 UPDATE agent_runtime
 SET status = 'offline',
-    metadata = metadata || jsonb_build_object('offline_reason', @offline_reason::jsonb),
+    metadata = metadata || jsonb_build_object('offline_reason', sqlc.narg('offline_reason')::text::jsonb),
     updated_at = now()
 WHERE id = $1;
 

@@ -76,7 +76,7 @@ SELECT
     r.stats_collected_at,
     $2::text,
     r.source_id
-FROM jsonb_to_recordset($3::jsonb) AS r(
+FROM jsonb_to_recordset($3::text::jsonb) AS r(
     creator_id UUID,
     aweme_id TEXT,
     desc_text TEXT,
@@ -98,7 +98,7 @@ ON CONFLICT DO NOTHING
 type InsertMirroredCreatorVideosParams struct {
 	WorkspaceID  pgtype.UUID `json:"workspace_id"`
 	SourceSystem string      `json:"source_system"`
-	Rows         []byte      `json:"rows"`
+	Rows         string      `json:"rows"`
 }
 
 // The create half of the video mirror. Rows travel as one jsonb array per
@@ -526,7 +526,7 @@ SET creator_id = r.creator_id,
     video_url = r.video_url,
     stats_collected_at = r.stats_collected_at,
     updated_at = now()
-FROM jsonb_to_recordset($2::jsonb) AS r(
+FROM jsonb_to_recordset($2::text::jsonb) AS r(
     id UUID,
     creator_id UUID,
     desc_text TEXT,
@@ -561,7 +561,7 @@ WHERE v.id = r.id
 
 type UpdateMirroredCreatorVideosParams struct {
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	Rows        []byte      `json:"rows"`
+	Rows        string      `json:"rows"`
 }
 
 // The update half. The WHERE clause is the idempotence contract: a work whose
@@ -600,7 +600,7 @@ SELECT
     r.engagement_rate,
     r.hit_rate,
     r.sample_note
-FROM jsonb_to_recordset($3::jsonb) AS r(
+FROM jsonb_to_recordset($3::text::jsonb) AS r(
     creator_id UUID,
     video_count INTEGER,
     videos_with_stats INTEGER,
@@ -637,7 +637,7 @@ WHERE creator_metric.video_count IS DISTINCT FROM excluded.video_count
 type UpsertCreatorMetricsParams struct {
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
 	CapturedOn  pgtype.Date `json:"captured_on"`
-	Rows        []byte      `json:"rows"`
+	Rows        string      `json:"rows"`
 }
 
 // One day's snapshot per creator, as one batch.

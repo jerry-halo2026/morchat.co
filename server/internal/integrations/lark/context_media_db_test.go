@@ -44,7 +44,7 @@ func TestContextMediaCollisionPreservesBindingDB(t *testing.T) {
 				}))
 				q := db.New(pool)
 				if _, err := q.CreateChannelChatSessionBinding(t.Context(), db.CreateChannelChatSessionBindingParams{
-					ChatSessionID: sessionID, InstallationID: installationID, ChannelType: "lark", ChannelChatID: suffix, ChatType: "group", Config: []byte("{}"),
+					ChatSessionID: sessionID, InstallationID: installationID, ChannelType: "lark", ChannelChatID: suffix, ChatType: "group", Config: "{}",
 				}); err != nil {
 					t.Fatal(err)
 				}

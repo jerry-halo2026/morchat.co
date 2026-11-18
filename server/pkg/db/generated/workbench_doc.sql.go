@@ -62,7 +62,7 @@ INSERT INTO hr_doc_generation (
 ) VALUES (
     $1, $2, $3::uuid,
     $4, $5,
-    $6::uuid, $7::jsonb,
+    $6::uuid, $7::text::jsonb,
     $8::uuid
 )
 RETURNING id, workspace_id, employee_id, template_id, template_name, format, attachment_id, values, generated_by, created_at
@@ -75,7 +75,7 @@ type CreateHrDocGenerationParams struct {
 	TemplateName string      `json:"template_name"`
 	Format       string      `json:"format"`
 	AttachmentID pgtype.UUID `json:"attachment_id"`
-	Values       []byte      `json:"values"`
+	Values       string      `json:"values"`
 	GeneratedBy  pgtype.UUID `json:"generated_by"`
 }
 

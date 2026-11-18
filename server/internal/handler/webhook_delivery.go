@@ -317,7 +317,7 @@ func (h *Handler) ReplayAutopilotDelivery(w http.ResponseWriter, r *http.Request
 		Event:                  envelope.Event,
 		SignatureStatus:        sigStatusNotRequired,
 		Status:                 deliveryStatusQueued,
-		SelectedHeaders:        original.SelectedHeaders,
+		SelectedHeaders:        string(original.SelectedHeaders),
 		ContentType:            pgtype.Text{String: contentType, Valid: contentType != ""},
 		RawBody:                original.RawBody,
 		ReplayedFromDeliveryID: original.ID,

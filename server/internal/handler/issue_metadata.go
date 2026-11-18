@@ -197,7 +197,7 @@ func (h *Handler) SetIssueMetadataKey(w http.ResponseWriter, r *http.Request) {
 			ID:          issue.ID,
 			WorkspaceID: issue.WorkspaceID,
 			Key:         key,
-			Value:       []byte(req.Value),
+			Value:       string([]byte(req.Value)),
 		})
 	})
 	queryDuration := time.Since(queryStarted)

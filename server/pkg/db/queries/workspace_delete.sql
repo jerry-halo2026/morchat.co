@@ -877,6 +877,16 @@ deleted_media_topics AS (
 deleted_media_ips AS (
     DELETE FROM media_ip WHERE media_ip.workspace_id = $1
 ),
+-- Hotspot radar and benchmark teardown (WORKBENCH-API §21, 812–815). They are the
+-- raw material a topic is adopted from, so they go in the same statement as the
+-- topics: `media_topic.hot_id` is a bare pointer with no foreign key behind it, and
+-- nothing else in this graph holds either table alive.
+deleted_media_hot AS (
+    DELETE FROM media_hot WHERE media_hot.workspace_id = $1
+),
+deleted_media_bench AS (
+    DELETE FROM media_bench WHERE media_bench.workspace_id = $1
+),
 -- General manager workbench (WORKBENCH-API §13): a key result and a package name
 -- a goal, and a signal names the goal or the issue it was converted into. No
 -- foreign key sits behind any of them, so each table is cleared explicitly.

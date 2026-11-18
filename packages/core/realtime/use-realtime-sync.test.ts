@@ -7,7 +7,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { setApiInstance } from "../api";
 import type { ApiClient } from "../api/client";
 import { chatKeys } from "../chat/queries";
+import { workbenchKeys } from "../crm/queries";
 import { inboxKeys } from "../inbox/queries";
+import { mediaKeys } from "../media/queries";
 import { issueKeys } from "../issues/queries";
 import { notificationPreferenceKeys } from "../notification-preferences/queries";
 import { workspaceKeys } from "../workspace/queries";
@@ -30,6 +32,7 @@ import {
   applyWorkspaceUpdatedToCache,
   handleInboxNew,
   invalidateChatMessageQueries,
+  invalidateMediaDiscoveryQueries,
   refetchPendingChatAggregate,
   resolveInboxSourceSlug,
 } from "./use-realtime-sync";
@@ -1295,5 +1298,40 @@ describe("applyChatMessageToCache", () => {
     applyChatMessageToCache(qc, messagePayload());
     expect(qc.getQueryData<ChatMessage[]>(messagesKey)).toBeUndefined();
     expect(qc.getQueryData(chatKeys.messagesPage(sessionId))).toBeUndefined();
+  });
+});
+
+// --- Hotspot radar / benchmark teardown patcher (WORKBENCH-API §21) ----------
+//
+// `media_hot:changed` / `media_bench:changed` carry only `{ id }`, so the answer is
+// "re-read that list", not a cache merge. The two things worth pinning down are the
+// prefix the invalidation reaches (both the ledger and the workspace aggregates) and
+// the fact that it is scoped to one resource: a hotspot edit must not blank the
+// script list.
+describe("invalidateMediaDiscoveryQueries", () => {
+  const wsId = "ws-1";
+
+  it("invalidates the changed ledger and the workspace aggregates", () => {
+    const qc = createQueryClient();
+    const invalidate = vi.spyOn(qc, "invalidateQueries").mockResolvedValue(undefined);
+
+    invalidateMediaDiscoveryQueries(qc, wsId, "hot");
+
+    const keys = invalidate.mock.calls.map(([arg]) => (arg as { queryKey?: unknown })?.queryKey);
+    expect(keys).toContainEqual(mediaKeys.resource(wsId, "hot"));
+    expect(keys).toContainEqual(workbenchKeys.all(wsId));
+    expect(keys).not.toContainEqual(mediaKeys.resource(wsId, "bench"));
+  });
+
+  it("keeps the two ledgers apart", () => {
+    const qc = createQueryClient();
+    const invalidate = vi.spyOn(qc, "invalidateQueries").mockResolvedValue(undefined);
+
+    invalidateMediaDiscoveryQueries(qc, wsId, "bench");
+
+    const keys = invalidate.mock.calls.map(([arg]) => (arg as { queryKey?: unknown })?.queryKey);
+    expect(keys).toContainEqual(mediaKeys.resource(wsId, "bench"));
+    expect(keys).toContainEqual(workbenchKeys.all(wsId));
+    expect(keys).not.toContainEqual(mediaKeys.resource(wsId, "hot"));
   });
 });

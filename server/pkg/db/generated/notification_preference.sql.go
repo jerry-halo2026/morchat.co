@@ -72,7 +72,7 @@ func (q *Queries) ListNotificationPreferencesByUsers(ctx context.Context, arg Li
 
 const patchNotificationPreference = `-- name: PatchNotificationPreference :one
 INSERT INTO notification_preference (workspace_id, user_id, preferences)
-VALUES ($1, $2, $3)
+VALUES ($1, $2, $3::text::jsonb)
 ON CONFLICT (workspace_id, user_id)
 DO UPDATE SET
     preferences = notification_preference.preferences || EXCLUDED.preferences,
@@ -83,7 +83,7 @@ RETURNING id, workspace_id, user_id, preferences, updated_at
 type PatchNotificationPreferenceParams struct {
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
 	UserID      pgtype.UUID `json:"user_id"`
-	Preferences []byte      `json:"preferences"`
+	Preferences string      `json:"preferences"`
 }
 
 func (q *Queries) PatchNotificationPreference(ctx context.Context, arg PatchNotificationPreferenceParams) (NotificationPreference, error) {
@@ -101,16 +101,16 @@ func (q *Queries) PatchNotificationPreference(ctx context.Context, arg PatchNoti
 
 const upsertNotificationPreference = `-- name: UpsertNotificationPreference :one
 INSERT INTO notification_preference (workspace_id, user_id, preferences)
-VALUES ($1, $2, $3)
+VALUES ($1, $2, $3::text::jsonb)
 ON CONFLICT (workspace_id, user_id)
-DO UPDATE SET preferences = $3, updated_at = now()
+DO UPDATE SET preferences = $3::text::jsonb, updated_at = now()
 RETURNING id, workspace_id, user_id, preferences, updated_at
 `
 
 type UpsertNotificationPreferenceParams struct {
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
 	UserID      pgtype.UUID `json:"user_id"`
-	Preferences []byte      `json:"preferences"`
+	Preferences string      `json:"preferences"`
 }
 
 func (q *Queries) UpsertNotificationPreference(ctx context.Context, arg UpsertNotificationPreferenceParams) (NotificationPreference, error) {

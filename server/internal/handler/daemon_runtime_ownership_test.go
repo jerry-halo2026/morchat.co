@@ -235,7 +235,7 @@ func TestUpsertAgentRuntime_OwnerFence(t *testing.T) {
 		return db.UpsertAgentRuntimeParams{
 			WorkspaceID: parseUUID(testWorkspaceID), DaemonID: strToText(f.victimDaemon),
 			Name: "claude", RuntimeMode: "local", Provider: "claude", Status: "online",
-			Metadata: []byte(`{}`), OwnerID: owner, RequiredOwnerID: required,
+			Metadata: "{}", OwnerID: owner, RequiredOwnerID: required,
 		}
 	}
 	attacker := parseUUID(f.attackerID)

@@ -249,7 +249,7 @@ func (s *BindingTokenService) RedeemAndBind(ctx context.Context, raw string, mul
 		InstallationID: row.InstallationID,
 		ChannelType:    channelTypeWecom,
 		ChannelUserID:  row.ChannelUserID,
-		Config:         []byte(`{}`),
+		Config:         string([]byte(`{}`)),
 	}); err != nil {
 		// pgx.ErrNoRows means the existing binding points at a different
 		// user — the ON CONFLICT DO UPDATE WHERE multica_user_id=… gating

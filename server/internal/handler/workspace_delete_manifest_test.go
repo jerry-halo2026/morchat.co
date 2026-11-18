@@ -221,6 +221,12 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"media_topic":  workspaceDelete,
 	"media_script": workspaceDelete,
 	"media_shoot":  workspaceDelete,
+	// Hotspot radar and benchmark teardown (WORKBENCH-API §21, 812–815): the two
+	// source ledgers a topic is adopted from. No foreign key behind either, so
+	// DeleteWorkspaceWorkbenchLedger removes them explicitly alongside the topics
+	// whose bare `hot_id` may point at them.
+	"media_hot":   workspaceDelete,
+	"media_bench": workspaceDelete,
 	// General manager workbench (WORKBENCH-API §13): OKR goals, their key results
 	// and department packages, and the radar signals. No foreign key sits behind
 	// any of them, so DeleteWorkspaceWorkbenchLedger removes each explicitly.

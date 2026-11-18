@@ -40,7 +40,7 @@ WHERE id = $1 AND workspace_id = $2;
 
 -- name: CreateWorkspaceMcpServer :one
 INSERT INTO workspace_mcp_server (workspace_id, name, config, created_by)
-VALUES ($1, $2, $3, $4)
+VALUES ($1, $2, sqlc.arg('config')::text::jsonb, sqlc.narg('created_by'))
 RETURNING *;
 
 -- name: UpdateWorkspaceMcpServer :one
@@ -49,7 +49,7 @@ RETURNING *;
 -- the agents that use it.
 UPDATE workspace_mcp_server SET
     name = COALESCE(sqlc.narg('name'), name),
-    config = COALESCE(sqlc.narg('config'), config),
+    config = COALESCE(sqlc.narg('config')::text::jsonb, config),
     updated_at = now()
 WHERE id = $1 AND workspace_id = $2
 RETURNING *;

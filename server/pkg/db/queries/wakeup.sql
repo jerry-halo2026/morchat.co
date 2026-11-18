@@ -144,7 +144,7 @@ WITH batch AS MATERIALIZED (
 DELETE FROM issue_wakeup_receipt r USING batch WHERE r.id=batch.id;
 -- name: RecordWakeupReceipt :one
 INSERT INTO issue_wakeup_receipt(id,wakeup_id,revision,event_key,event_type,payload)
-VALUES(@id,@wakeup_id,@revision,@event_key,@event_type,@payload)
+VALUES(@id,@wakeup_id,@revision,@event_key,@event_type,sqlc.arg('payload')::text::jsonb)
 ON CONFLICT(wakeup_id,revision,event_key) DO UPDATE SET event_key=EXCLUDED.event_key RETURNING *;
 -- name: ConsumeWakeupReceipts :exec
 UPDATE issue_wakeup_receipt SET task_id=sqlc.narg(task_id),processed_at=now() WHERE id=ANY(@ids::uuid[]);
@@ -193,11 +193,11 @@ SELECT
         WHEN COALESCE(sqlc.narg('head_sha')::text, '') <> ''
         THEN jsonb_build_object('head_sha', sqlc.narg('head_sha')::text)
         ELSE '{}'::jsonb
-    END || @wakeup_context::jsonb,
+    END || sqlc.narg('wakeup_context')::text::jsonb,
     sqlc.narg(originator_user_id),
     sqlc.narg(accountable_user_id),
-    sqlc.narg(runtime_mcp_overlay),
-    sqlc.narg(runtime_connected_apps),
+    sqlc.narg(runtime_mcp_overlay)::text::jsonb,
+    sqlc.narg(runtime_connected_apps)::text::jsonb,
     sqlc.narg(originator_source),
     sqlc.narg(delegated_from_task_id),
     sqlc.narg(rule_version_id),
@@ -220,7 +220,7 @@ RETURNING *;
 SELECT * FROM issue_wakeup WHERE id= @id;
 
 -- name: ReplaceWakeupEvidence :one
-UPDATE agent_task_queue SET handoff_note=sqlc.narg(handoff_note), context=COALESCE(context,'{}'::jsonb) || jsonb_build_object('wakeup_evidence', @wakeup_evidence::jsonb) WHERE id= @id AND status='queued' RETURNING *;
+UPDATE agent_task_queue SET handoff_note=sqlc.narg(handoff_note), context=COALESCE(context,'{}'::jsonb) || jsonb_build_object('wakeup_evidence', sqlc.narg('wakeup_evidence')::text::jsonb) WHERE id= @id AND status='queued' RETURNING *;
 -- name: NoteWakeupFailure :exec
 UPDATE issue_wakeup SET last_error=sqlc.narg(last_error),updated_at=clock_timestamp() WHERE id= @id;
 -- name: TouchWakeupDispatch :exec
@@ -316,7 +316,7 @@ UPDATE issue_wakeup_receipt SET task_id=NULL WHERE id=ANY(@ids::uuid[]) AND proc
 
 -- name: SetClaimedTaskContext :one
 -- Only the claim being answered may change its task's context.
-UPDATE agent_task_queue SET context= @context::jsonb
+UPDATE agent_task_queue SET context= sqlc.narg('context')::text::jsonb
 WHERE id= @id AND status='dispatched' AND dispatched_at= @dispatched_at RETURNING *;
 
 -- name: CountActiveIssueRunsOfAgent :one

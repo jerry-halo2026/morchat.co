@@ -77,7 +77,7 @@ SELECT
     r.source_rank,
     sqlc.arg('source_system')::text,
     r.source_id
-FROM jsonb_to_recordset(sqlc.arg('rows')::jsonb) AS r(
+FROM jsonb_to_recordset(sqlc.arg('rows')::text::jsonb) AS r(
     display_name TEXT,
     handle TEXT,
     url TEXT,
@@ -134,7 +134,7 @@ SET display_name = r.display_name,
     source_rank = r.source_rank,
     archived_at = NULL,
     updated_at = now()
-FROM jsonb_to_recordset(sqlc.arg('rows')::jsonb) AS r(
+FROM jsonb_to_recordset(sqlc.arg('rows')::text::jsonb) AS r(
     id UUID,
     display_name TEXT,
     handle TEXT,

@@ -148,7 +148,7 @@ func appendSkillVersion(ctx context.Context, qtx *db.Queries, skill db.Skill, re
 		Name:                skill.Name,
 		Description:         skill.Description,
 		Content:             skill.Content,
-		Files:               filesJSON,
+		Files:               string(filesJSON),
 		ContentHash:         hash,
 		Source:              rec.Source,
 		RestoredFromVersion: rec.RestoredFrom,

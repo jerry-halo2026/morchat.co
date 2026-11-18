@@ -1,0 +1,80 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "retry": "重试",
+    "week": "本周",
+    "status": "状态",
+    "ip": "IP"
+  },
+  "ips": {
+    "new": "新建 IP",
+    "empty_title": "还没有内容 IP",
+    "empty_description": "一个 IP 是一套人设、一条赛道和一群受众；平台账号挂在它下面。",
+    "error_title": "没能读到 IP",
+    "scope_title": "当前筛选的 IP 不在了",
+    "scope_clear": "显示全部 IP",
+    "accounts": "账号",
+    "accounts_empty": "还没有挂上平台账号。",
+    "attach": "挂上",
+    "detach": "摘下",
+    "account_failed": "这次账号变更被拒绝：一个账号只能挂在一个 IP 下。",
+    "search_creator": "在达人台账里搜",
+    "no_match": "没有匹配的达人。",
+    "name": "名称",
+    "persona": "人设",
+    "track": "赛道",
+    "audience": "受众",
+    "color": "代表色",
+    "week_goal": "每周发布目标",
+    "name_required": "给它起个名字。",
+    "save_failed": "服务器拒绝了这次保存，什么都没写进去。",
+    "delete_title": "删除这个 IP？",
+    "delete_description": "「{{name}}」会从所有列表里消失，它下面的选题和脚本会保留。",
+    "status": {
+      "active": "运营中",
+      "paused": "暂停",
+      "ended": "已结束"
+    }
+  },
+  "topics": {
+    "new": "新建选题",
+    "empty_title": "选题池是空的",
+    "empty_description": "从热点或对标采纳一条，或者手工加一条。",
+    "no_ip": "先建一个内容 IP，选题要挂在它下面。",
+    "error_title": "没能读到选题",
+    "all_ips": "全部 IP",
+    "from_hot": "来自热点",
+    "field_title": "标题",
+    "field_source": "来源",
+    "field_scores": "五维打分",
+    "scores_hint": "每维 0–100，五维合计越高排得越前。",
+    "kept_scores": "原样保留：{{keys}}",
+    "write_failed": "服务器拒绝了这次修改，什么都没变。",
+    "delete_title": "删除这个选题？",
+    "delete_description": "「{{title}}」会归档，它的脚本会保留。",
+    "column": {
+      "pool": "待评估",
+      "scripting": "写稿中",
+      "shooting": "拍摄中",
+      "publishing": "待发布",
+      "done": "已完成",
+      "dropped": "已放弃"
+    },
+    "source": {
+      "hot": "热点",
+      "manual": "手动",
+      "bench": "对标",
+      "ai": "AI"
+    },
+    "dim": {
+      "pain": "痛点",
+      "save": "收藏",
+      "debate": "争议",
+      "susp": "悬念",
+      "fit": "契合"
+    }
+  }
+}

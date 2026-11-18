@@ -1,0 +1,79 @@
+{
+  "missing": "未取得",
+  "common": {
+    "all": "すべて",
+    "cancel": "キャンセル",
+    "clear": "絞り込みを解除",
+    "delete": "削除",
+    "retry": "再試行",
+    "load_failed": "この一覧を読み込めませんでした",
+    "write_failed": "サーバーがこの変更を拒否しました。保存されていません。"
+  },
+  "form": {
+    "save": "保存",
+    "field_title": "タイトル",
+    "field_name": "アカウント",
+    "field_platform": "プラットフォーム",
+    "field_url": "リンク",
+    "field_rank": "順位",
+    "field_heat": "熱量",
+    "field_category": "カテゴリ",
+    "field_day": "取得日",
+    "field_note": "メモ",
+    "field_ip": "IP",
+    "field_followers": "フォロワー数",
+    "field_metrics": "指標",
+    "metrics_hint": "1 行に 1 件、キー: 値 の形式で。",
+    "no_ip": "IP なし"
+  },
+  "adopt": {
+    "title": "企画として採用",
+    "submit": "企画プールに入れる",
+    "no_ip": "企画は IP に属します。先に IP を作ってください。",
+    "failed": "サーバーがこの採用を拒否しました。何も作成されていません。",
+    "adopted": "企画に変換済み",
+    "open_topic": "企画を開く"
+  },
+  "hot": {
+    "new": "ホットを記録",
+    "edit": "ホットを編集",
+    "empty_title": "ホットの記録はまだありません",
+    "empty_description": "手入力で 1 件記録するか、取り込みを待ってください。",
+    "filter_day": "日付",
+    "filter_category": "カテゴリ",
+    "filter_platform": "プラットフォーム",
+    "filter_keyword": "ホットを検索",
+    "no_matches": "条件に合うホットはありません",
+    "column_hotspot": "ホット",
+    "column_rank": "順位",
+    "column_heat": "熱量",
+    "adopt": "企画として採用",
+    "delete_title": "このホットを削除しますか？",
+    "delete_description": "「{{title}}」はレーダーから消えます。記録自体は残ります。"
+  },
+  "bench": {
+    "new": "ベンチマークを追加",
+    "edit": "ベンチマークを編集",
+    "empty_title": "ベンチマークのサンプルはまだありません",
+    "empty_description": "まず 1 アカウントを記録し、IP と照らして数字を読みます。",
+    "filter_ip": "IP",
+    "filter_keyword": "アカウントを検索",
+    "no_matches": "条件に合うベンチマークはありません",
+    "column_account": "アカウント",
+    "column_url": "プロフィール",
+    "column_followers": "フォロワー数",
+    "column_metrics": "指標",
+    "column_captured": "取得日",
+    "column_ip": "IP",
+    "adopt": "企画として採用",
+    "delete_title": "このベンチマークを削除しますか？",
+    "delete_description": "「{{name}}」は分解一覧から消えます。記録自体は残ります。",
+    "metric": {
+      "plays": "再生",
+      "views": "表示",
+      "likes": "いいね",
+      "favorites": "保存",
+      "comments": "コメント"
+    }
+  }
+}

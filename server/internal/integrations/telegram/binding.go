@@ -132,7 +132,7 @@ func (s *BindingTokenService) RedeemAndBind(ctx context.Context, raw string, mul
 		InstallationID: row.InstallationID,
 		ChannelType:    string(TypeTelegram),
 		ChannelUserID:  row.ChannelUserID,
-		Config:         []byte(`{}`),
+		Config:         string([]byte(`{}`)),
 	}); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return RedeemedBindingToken{}, ErrBindingAlreadyAssigned

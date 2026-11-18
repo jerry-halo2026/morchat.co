@@ -6,7 +6,7 @@ INSERT INTO channel_typing_reaction (
  channel_message_id, installation_snapshot, cleanup_required, quota_slot
 )
 SELECT @id, @workspace_id, @chat_session_id, @chat_message_id, @installation_id,
- @channel_message_id, @installation_snapshot, message.channel_typing_settled, slot.value
+ @channel_message_id, sqlc.arg('installation_snapshot')::text::jsonb, message.channel_typing_settled, slot.value
 FROM chat_message AS message
 JOIN chat_session AS session ON session.id = message.chat_session_id
 JOIN channel_installation AS installation ON installation.id = @installation_id

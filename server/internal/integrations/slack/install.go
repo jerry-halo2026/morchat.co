@@ -176,7 +176,7 @@ func (s *InstallService) persistInstall(ctx context.Context, p installPersist) (
 		WorkspaceID:     p.wsID,
 		AgentID:         p.agentID,
 		ChannelType:     string(TypeSlack),
-		Config:          p.configJSON,
+		Config:          string(p.configJSON),
 		InstallerUserID: p.installerID,
 	})
 	if err != nil {

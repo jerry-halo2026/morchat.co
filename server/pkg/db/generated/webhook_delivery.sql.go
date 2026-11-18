@@ -249,8 +249,8 @@ INSERT INTO webhook_delivery (
     replayed_from_delivery_id, replay_idempotency_key, reason_code, id
 ) VALUES (
     $1, $2, $3, $4, $5,
-    $9, $10, $6, $7,
-    $8, $11, $12,
+    $8, $9, $6, $7,
+    $10::text::jsonb, $11, $12,
     $13, $14,
     $15, COALESCE($16::uuid, gen_random_uuid())
 ) RETURNING id, workspace_id, autopilot_id, trigger_id, provider, event, dedupe_key, dedupe_source, signature_status, status, attempt_count, selected_headers, content_type, raw_body, response_status, response_body, autopilot_run_id, replayed_from_delivery_id, error, received_at, last_attempt_at, created_at, available_at, lease_token, lease_expires_at, dispatch_attempts, reason_code, replay_idempotency_key
@@ -264,9 +264,9 @@ type CreateWebhookDeliveryParams struct {
 	Event                  string      `json:"event"`
 	SignatureStatus        string      `json:"signature_status"`
 	Status                 string      `json:"status"`
-	SelectedHeaders        []byte      `json:"selected_headers"`
 	DedupeKey              pgtype.Text `json:"dedupe_key"`
 	DedupeSource           pgtype.Text `json:"dedupe_source"`
+	SelectedHeaders        string      `json:"selected_headers"`
 	ContentType            pgtype.Text `json:"content_type"`
 	RawBody                []byte      `json:"raw_body"`
 	ReplayedFromDeliveryID pgtype.UUID `json:"replayed_from_delivery_id"`
@@ -290,9 +290,9 @@ func (q *Queries) CreateWebhookDelivery(ctx context.Context, arg CreateWebhookDe
 		arg.Event,
 		arg.SignatureStatus,
 		arg.Status,
-		arg.SelectedHeaders,
 		arg.DedupeKey,
 		arg.DedupeSource,
+		arg.SelectedHeaders,
 		arg.ContentType,
 		arg.RawBody,
 		arg.ReplayedFromDeliveryID,

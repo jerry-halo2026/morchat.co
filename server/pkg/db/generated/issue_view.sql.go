@@ -33,7 +33,7 @@ INSERT INTO issue_view (
     workspace_id, owner_id, name, scope_type, scope_id, scope_variant,
     visibility, definition_version, query, display
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::text::jsonb, $10::text::jsonb)
 RETURNING id, workspace_id, owner_id, name, scope_type, scope_id, scope_variant, visibility, definition_version, query, display, revision, created_at, updated_at
 `
 
@@ -46,8 +46,8 @@ type CreateIssueViewParams struct {
 	ScopeVariant      pgtype.Text `json:"scope_variant"`
 	Visibility        string      `json:"visibility"`
 	DefinitionVersion int32       `json:"definition_version"`
-	Query             []byte      `json:"query"`
-	Display           []byte      `json:"display"`
+	Query             string      `json:"query"`
+	Display           string      `json:"display"`
 }
 
 func (q *Queries) CreateIssueView(ctx context.Context, arg CreateIssueViewParams) (IssueView, error) {
@@ -331,8 +331,8 @@ UPDATE issue_view SET
     name = $3,
     visibility = $4,
     scope_variant = $5,
-    query = $6,
-    display = $7,
+    query = $6::text::jsonb,
+    display = $7::text::jsonb,
     revision = revision + 1,
     updated_at = now()
 WHERE id = $1 AND workspace_id = $2 AND revision = $8
@@ -345,8 +345,8 @@ type UpdateIssueViewParams struct {
 	Name         string      `json:"name"`
 	Visibility   string      `json:"visibility"`
 	ScopeVariant pgtype.Text `json:"scope_variant"`
-	Query        []byte      `json:"query"`
-	Display      []byte      `json:"display"`
+	Query        string      `json:"query"`
+	Display      string      `json:"display"`
 	Revision     int32       `json:"revision"`
 }
 

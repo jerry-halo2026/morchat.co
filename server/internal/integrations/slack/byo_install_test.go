@@ -129,7 +129,7 @@ func TestRegisterBYO_PersistsEncryptedTokensKeyedByAppID(t *testing.T) {
 	}
 
 	var cfg installConfig
-	if err := json.Unmarshal(q.upsertParams.Config, &cfg); err != nil {
+	if err := json.Unmarshal([]byte(q.upsertParams.Config), &cfg); err != nil {
 		t.Fatalf("decode upserted config: %v", err)
 	}
 	// Keyed by the REAL app id (parsed from the xapp token), NOT the team id —

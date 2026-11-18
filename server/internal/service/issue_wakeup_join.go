@@ -264,7 +264,7 @@ func (s *IssueWakeupService) JoinWaitingWakeups(ctx context.Context, task db.Age
 		values["wakeup_chain"], _ = json.Marshal(chain)
 	}
 	next, _ := json.Marshal(values)
-	updated, err := q.SetClaimedTaskContext(ctx, db.SetClaimedTaskContextParams{Context: next, ID: task.ID, DispatchedAt: task.DispatchedAt})
+	updated, err := q.SetClaimedTaskContext(ctx, db.SetClaimedTaskContextParams{Context: jsonbText(next), ID: task.ID, DispatchedAt: task.DispatchedAt})
 	if errors.Is(err, pgx.ErrNoRows) {
 		// A newer claim of this run answers instead.
 		return task.Context, nil

@@ -387,8 +387,8 @@ func (s *PluginService) InstallPlugin(ctx context.Context, workspaceID, userID p
 			// publish lands under a `+dev.N` suffix, and the settings page has to
 			// name the version that actually exists.
 			Version:       version.Version,
-			Manifest:      canonical,
-			GrantedScopes: scopesJSON,
+			Manifest:      string(canonical),
+			GrantedScopes: string(scopesJSON),
 			InstalledBy:   userID,
 		})
 		if createErr != nil {
@@ -448,9 +448,9 @@ func (s *PluginService) InstallPlugin(ctx context.Context, workspaceID, userID p
 		ID:               existing.ID,
 		PackageVersionID: version.ID,
 		Version:          version.Version,
-		Manifest:         canonical,
-		GrantedScopes:    scopesJSON,
-		Config:           config,
+		Manifest:         string(canonical),
+		GrantedScopes:    string(scopesJSON),
+		Config:           string(config),
 	})
 	if err != nil {
 		return db.PluginInstallation{}, &PluginError{Kind: PluginErrorUnavailable, Message: "upgrade plugin", Err: err}
@@ -619,7 +619,7 @@ func (s *PluginService) SetConfig(ctx context.Context, installation db.PluginIns
 
 	updated, err := queries.UpdatePluginInstallationConfig(ctx, db.UpdatePluginInstallationConfigParams{
 		ID:     installation.ID,
-		Config: encoded,
+		Config: string(encoded),
 	})
 	if err != nil {
 		return db.PluginInstallation{}, &PluginError{Kind: PluginErrorUnavailable, Message: "store plugin config", Err: err}

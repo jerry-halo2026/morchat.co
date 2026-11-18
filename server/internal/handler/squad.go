@@ -1128,7 +1128,7 @@ func (h *Handler) RecordSquadLeaderEvaluation(w http.ResponseWriter, r *http.Req
 		// to carry the task's agent for suppression to find the row at all.
 		ActorID: task.AgentID,
 		Action:  "squad_leader_evaluated",
-		Details: details,
+		Details: string(details),
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to record evaluation")

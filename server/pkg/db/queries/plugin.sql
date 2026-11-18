@@ -48,7 +48,7 @@ DELETE FROM plugin_package WHERE id = $1;
 -- version a conflict instead of a silent overwrite.
 INSERT INTO plugin_package_version (
     package_id, workspace_id, version, manifest, digest, size_bytes, published_by
-) VALUES ($1, $2, $3, $4, $5, $6, $7)
+) VALUES ($1, $2, $3, sqlc.arg('manifest')::text::jsonb, sqlc.arg('digest'), sqlc.arg('size_bytes'), sqlc.narg('published_by'))
 RETURNING *;
 
 -- name: ListPluginPackageVersions :many
@@ -92,7 +92,7 @@ WHERE version_id IN (SELECT id FROM plugin_package_version WHERE package_id = $1
 -- name: CreatePluginInstallation :one
 INSERT INTO plugin_installation (
     workspace_id, plugin_key, package_version_id, version, manifest, granted_scopes, installed_by
-) VALUES ($1, $2, $3, $4, $5, $6, $7)
+) VALUES ($1, $2, $3, $4, sqlc.arg('manifest')::text::jsonb, sqlc.arg('granted_scopes')::text::jsonb, sqlc.narg('installed_by'))
 RETURNING *;
 
 -- name: UpdatePluginInstallationManifest :one
@@ -103,16 +103,16 @@ RETURNING *;
 UPDATE plugin_installation
 SET package_version_id = $2,
     version = $3,
-    manifest = $4,
-    granted_scopes = $5,
-    config = $6,
+    manifest = sqlc.arg('manifest')::text::jsonb,
+    granted_scopes = sqlc.arg('granted_scopes')::text::jsonb,
+    config = sqlc.arg('config')::text::jsonb,
     updated_at = now()
 WHERE id = $1
 RETURNING *;
 
 -- name: UpdatePluginInstallationConfig :one
 UPDATE plugin_installation
-SET config = $2,
+SET config = sqlc.arg('config')::text::jsonb,
     updated_at = now()
 WHERE id = $1
 RETURNING *;
@@ -341,6 +341,6 @@ WHERE plugin_installation_id = $1 AND name <> ALL(@keep_names::text[]);
 
 -- name: SetPluginMCPApprovals :one
 UPDATE plugin_installation
-SET mcp_approvals = $2, updated_at = now()
+SET mcp_approvals = sqlc.arg('mcp_approvals')::text::jsonb, updated_at = now()
 WHERE id = $1
 RETURNING *;

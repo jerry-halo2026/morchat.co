@@ -587,3 +587,168 @@ func TestBdTeardownCoversNewTables(t *testing.T) {
 		t.Fatalf("after teardown %d creator rows remain, want 0", got)
 	}
 }
+
+// TestBdPerformanceWindow covers `GET /bd/performance` (§22): each fact buckets by
+// its own date, the response states the window it used, and a window with no rows
+// answers `insufficient_data` instead of a confident zero.
+//
+// Every number is asserted against a throwaway workspace, never the shared one: the
+// report reads across six tables and "the total is 1 because I put one row there"
+// only holds when nothing else can be in the workspace.
+func TestBdPerformanceWindow(t *testing.T) {
+	workspaceID, ownerUserID := bdScratchWorkspace(t, "BD performance workspace")
+	creator := bdCreateCreator(t, workspaceID, ownerUserID, "Performance creator")
+
+	// A collaboration that is confirmed and published (stage `published` fills both
+	// milestones with "now", which is inside the window this test asks for).
+	collab := bdScratchCollab(t, workspaceID, ownerUserID, creator.ID, "published", 42000)
+
+	// A settlement that cleared inside the window: the money that actually moved.
+	settlementReq := bdRequestIn(t, "POST", "/api/workbench/crm/settlements", workspaceID, map[string]any{
+		"collab_id": collab.ID,
+		"kind":      "final",
+		"amount":    21000,
+		"paid_at":   "2026-11-15",
+	}, ownerUserID)
+	settlement := testutil.Decode[CrmSettlementResponse](t, testHandler.CreateCrmSettlement, settlementReq, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM crm_settlement WHERE id = $1`, settlement.ID) })
+
+	// Two offers sent in the window, one of which was accepted → win rate 0.5.
+	bdCreateQuote(t, workspaceID, ownerUserID, creator.ID, map[string]any{
+		"status": "sent", "quoted_at": "2026-11-05T09:00:00Z", "fee_amount": 5000,
+	})
+	bdCreateQuote(t, workspaceID, ownerUserID, creator.ID, map[string]any{
+		"status": "accepted", "quoted_at": "2026-11-06T09:00:00Z", "fee_amount": 4000,
+	})
+
+	// One follow-up inside the window (with a result) and one outside it.
+	bdCreateActivity(t, workspaceID, ownerUserID, creator.ID, map[string]any{
+		"happened_at": "2026-11-10T09:00:00Z", "outcome": "replied",
+	})
+	bdCreateActivity(t, workspaceID, ownerUserID, creator.ID, map[string]any{
+		"happened_at": "2026-02-10T09:00:00Z", "summary": "去年的旧记录",
+	})
+
+	req := bdRequestIn(t, "GET", "/api/workbench/bd/performance?from=2026-11-01&to=2026-11-30",
+		workspaceID, nil, ownerUserID)
+	report := testutil.Decode[BdPerformanceResponse](t, testHandler.GetBdPerformance, req, http.StatusOK)
+
+	if report.From != "2026-11-01" || report.To != "2026-11-30" {
+		t.Fatalf("window = %s..%s, want the days that were sent", report.From, report.To)
+	}
+	if report.Currency != "CNY" {
+		t.Fatalf("currency = %q, want CNY", report.Currency)
+	}
+	if report.Empty != metricEmptyZero {
+		t.Fatalf("empty = %q, want zero for a window that holds rows", report.Empty)
+	}
+	if got := bdValue(t, "signed.count", report.Signed.Count); got != 1 {
+		t.Fatalf("signed.count = %v, want 1", got)
+	}
+	if report.Signed.Amount.Amount == nil || *report.Signed.Amount.Amount != 42000 {
+		t.Fatalf("signed.amount = %v, want 42000", report.Signed.Amount.Amount)
+	}
+	if got := bdValue(t, "delivered.count", report.Delivered.Count); got != 1 {
+		t.Fatalf("delivered.count = %v, want 1", got)
+	}
+	if got := bdValue(t, "collected.count", report.Collected.Count); got != 1 {
+		t.Fatalf("collected.count = %v, want 1", got)
+	}
+	if report.Collected.Amount.Amount == nil || *report.Collected.Amount.Amount != 21000 {
+		t.Fatalf("collected.amount = %v, want 21000", report.Collected.Amount.Amount)
+	}
+	if got := bdValue(t, "quotes.sent", report.Quotes.Sent); got != 2 {
+		t.Fatalf("quotes.sent = %v, want 2", got)
+	}
+	if got := bdValue(t, "quotes.accepted", report.Quotes.Accepted); got != 1 {
+		t.Fatalf("quotes.accepted = %v, want 1", got)
+	}
+	if got := bdValue(t, "quotes.win_rate", report.Quotes.WinRate); got != 0.5 {
+		t.Fatalf("quotes.win_rate = %v, want 0.5", got)
+	}
+	if report.Quotes.Amount.Amount == nil || *report.Quotes.Amount.Amount != 9000 {
+		t.Fatalf("quotes.amount = %v, want the 9000 of both sent offers", report.Quotes.Amount.Amount)
+	}
+	if got := bdValue(t, "followups.count", report.Followups.Count); got != 1 {
+		t.Fatalf("followups.count = %v, want 1 (the February row is outside the window)", got)
+	}
+	if got := bdValue(t, "followups.replied", report.Followups.Replied); got != 1 {
+		t.Fatalf("followups.replied = %v, want 1", got)
+	}
+	if got := bdValue(t, "followups.meetings", report.Followups.Meetings); got != 0 {
+		t.Fatalf("followups.meetings = %v, want 0", got)
+	}
+	// No affiliate statement in this workspace: the block answers a gap, not 0.00.
+	if report.Affiliate.Agency.Amount != nil || report.Affiliate.Agency.Empty != metricEmptyInsufficientData {
+		t.Fatalf("affiliate.agency = %+v, want an insufficient_data gap", report.Affiliate.Agency)
+	}
+
+	// by_member: one row for the workspace's only member, with the same numbers.
+	if len(report.ByMember) != 1 {
+		t.Fatalf("by_member = %+v, want one row", report.ByMember)
+	}
+	memberRow := report.ByMember[0]
+	if memberRow.MemberID != ownerUserID {
+		t.Fatalf("by_member[0].member_id = %q, want %q", memberRow.MemberID, ownerUserID)
+	}
+	if memberRow.Name == "" {
+		t.Fatalf("by_member[0].name is empty, want the member's display name")
+	}
+	if memberRow.SignedCount != 1 || memberRow.SignedAmount == nil || *memberRow.SignedAmount != 42000 {
+		t.Fatalf("by_member rows = %+v, want one signed row worth 42000", memberRow.BdPerformanceTotals)
+	}
+	if memberRow.CollectedAmount == nil || *memberRow.CollectedAmount != 21000 {
+		t.Fatalf("by_member collected = %v, want 21000", memberRow.CollectedAmount)
+	}
+	if memberRow.WinRate == nil || *memberRow.WinRate != 0.5 {
+		t.Fatalf("by_member win_rate = %v, want 0.5", memberRow.WinRate)
+	}
+	if memberRow.DeliveredCount != 1 || memberRow.Followups != 1 || memberRow.Replied != 1 {
+		t.Fatalf("by_member counts = %+v, want one delivered / one follow-up / one reply", memberRow.BdPerformanceTotals)
+	}
+
+	// by_month: the same facts cut by month, oldest first.
+	if len(report.ByMonth) != 1 || report.ByMonth[0].Month != "2026-11" {
+		t.Fatalf("by_month = %+v, want one 2026-11 row", report.ByMonth)
+	}
+	if report.ByMonth[0].SignedCount != 1 || report.ByMonth[0].QuoteSent != 2 {
+		t.Fatalf("by_month[0] = %+v, want the window's signed and quote counts", report.ByMonth[0])
+	}
+
+	// A window with nothing in it: counts are real zeros, money is a gap, and the
+	// report says so once instead of making every card invent a 0.
+	req = bdRequestIn(t, "GET", "/api/workbench/bd/performance?from=2020-01-01&to=2020-01-31",
+		workspaceID, nil, ownerUserID)
+	blank := testutil.Decode[BdPerformanceResponse](t, testHandler.GetBdPerformance, req, http.StatusOK)
+	if blank.Empty != metricEmptyInsufficientData {
+		t.Fatalf("empty = %q for a window with no rows, want insufficient_data", blank.Empty)
+	}
+	if got := bdValue(t, "signed.count", blank.Signed.Count); got != 0 {
+		t.Fatalf("blank signed.count = %v, want 0", got)
+	}
+	if blank.Signed.Amount.Amount != nil || blank.Signed.Amount.Empty != metricEmptyInsufficientData {
+		t.Fatalf("blank signed.amount = %+v, want a gap", blank.Signed.Amount)
+	}
+	if blank.Quotes.WinRate.Value != nil {
+		t.Fatalf("blank quotes.win_rate = %v, want null: no offer was sent", *blank.Quotes.WinRate.Value)
+	}
+	if len(blank.ByMember) != 0 || len(blank.ByMonth) != 0 {
+		t.Fatalf("blank report = %+v, want no rows", blank)
+	}
+
+	// Defaults: no parameters means "this month so far", and the response echoes the
+	// window it actually used so the page can label the trend without recomputing it.
+	req = bdRequestIn(t, "GET", "/api/workbench/bd/performance", workspaceID, nil, ownerUserID)
+	implicit := testutil.Decode[BdPerformanceResponse](t, testHandler.GetBdPerformance, req, http.StatusOK)
+	now := time.Now().UTC()
+	wantFrom := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC).Format("2006-01-02")
+	if implicit.From != wantFrom || implicit.To != now.Format("2006-01-02") {
+		t.Fatalf("default window = %s..%s, want %s..%s", implicit.From, implicit.To,
+			wantFrom, now.Format("2006-01-02"))
+	}
+
+	// An inverted range is a typo, not an empty report.
+	req = bdRequestIn(t, "GET", "/api/workbench/bd/performance?from=2026-11-30&to=2026-11-01",
+		workspaceID, nil, ownerUserID)
+	testutil.Call(t, testHandler.GetBdPerformance, req).Want(http.StatusBadRequest)
+}

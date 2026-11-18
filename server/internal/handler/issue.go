@@ -1463,8 +1463,8 @@ func (h *Handler) ListIssues(w http.ResponseWriter, r *http.Request) {
 			CreatedByUserID:    createdByUserFilter,
 			ProjectID:          projectFilter,
 			InvolvesUserID:     involvesUserFilter,
-			MetadataFilter:     metadataFilter,
-			PropertiesFilter:   openPropertiesFilter,
+			MetadataFilter:     pgtype.Text{String: string(metadataFilter), Valid: metadataFilter != nil},
+			PropertiesFilter:   pgtype.Text{String: string(openPropertiesFilter), Valid: openPropertiesFilter != nil},
 			HiddenProjectIds:   openHidden.Param(),
 		})
 		if err != nil {

@@ -1,6 +1,6 @@
 -- name: CreateTaskMessage :one
 INSERT INTO task_message (id, task_id, seq, type, tool, content, input, output, output_truncated, call_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+VALUES ($1, $2, $3, $4, $5, $6, sqlc.narg('input')::text::jsonb, sqlc.narg('output'), sqlc.narg('output_truncated'), sqlc.narg('call_i_d'))
 RETURNING *;
 
 -- name: CreateTaskMessages :many

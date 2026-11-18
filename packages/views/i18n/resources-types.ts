@@ -31,6 +31,14 @@ import type presets from "../locales/en/presets.json";
 import type knowledge from "../locales/en/knowledge.json";
 import type blocks from "../locales/en/blocks.json";
 import type finance from "../locales/en/finance.json";
+import type sales from "../locales/en/sales.json";
+import type content from "../locales/en/content.json";
+import type production from "../locales/en/production.json";
+import type publishing from "../locales/en/publishing.json";
+import type boss from "../locales/en/boss.json";
+import type biz from "../locales/en/biz.json";
+import type discovery from "../locales/en/discovery.json";
+import type performance from "../locales/en/performance.json";
 
 // Module augmentation enables i18next v26 selector API across the monorepo:
 // `t($ => $.signin.title)` resolves to the value in en/auth.json.
@@ -76,6 +84,14 @@ declare global {
     knowledge: typeof knowledge;
     blocks: typeof blocks;
     finance: typeof finance;
+    sales: typeof sales;
+    content: typeof content;
+    production: typeof production;
+    publishing: typeof publishing;
+    boss: typeof boss;
+    biz: typeof biz;
+    discovery: typeof discovery;
+    performance: typeof performance;
   }
 }
 

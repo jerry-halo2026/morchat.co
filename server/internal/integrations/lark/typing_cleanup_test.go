@@ -15,7 +15,7 @@ func (f *fakeTypingQueries) RegisterChannelTypingReaction(_ context.Context, p d
 	if f.ledger == nil {
 		f.ledger = make(map[pgtype.UUID]db.ChannelTypingReaction)
 	}
-	r := db.ChannelTypingReaction{ID: p.ID, WorkspaceID: p.WorkspaceID, ChatSessionID: p.ChatSessionID, ChatMessageID: p.ChatMessageID, InstallationID: p.InstallationID, ChannelMessageID: p.ChannelMessageID, InstallationSnapshot: p.InstallationSnapshot}
+	r := db.ChannelTypingReaction{ID: p.ID, WorkspaceID: p.WorkspaceID, ChatSessionID: p.ChatSessionID, ChatMessageID: p.ChatMessageID, InstallationID: p.InstallationID, ChannelMessageID: p.ChannelMessageID, InstallationSnapshot: []byte(p.InstallationSnapshot)}
 	f.ledger[p.ID] = r
 	return r, nil
 }

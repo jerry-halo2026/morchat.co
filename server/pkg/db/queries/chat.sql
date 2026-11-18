@@ -496,7 +496,7 @@ INSERT INTO chat_message (
 VALUES (
     $1, $2, $3, sqlc.narg(task_id), sqlc.narg(failure_reason), sqlc.narg(elapsed_ms),
     COALESCE(sqlc.narg(message_kind)::text, 'message'),
-    COALESCE(sqlc.narg(quick_actions)::jsonb, '[]'::jsonb),
+    COALESCE(sqlc.narg('quick_actions')::text::jsonb, '[]'::jsonb),
     -- The media deadline is DB-clock time: every consumer compares it against
     -- SQL now() (GetChannelMediaPendingUntil, the deferred promote, the
     -- trailing-message guard), so the writer must use the same clock. The
@@ -1151,8 +1151,8 @@ SELECT
     sqlc.narg(originator_user_id),
     sqlc.narg(accountable_user_id),
     COALESCE(sqlc.narg('force_fresh_session')::boolean, FALSE),
-    sqlc.narg(runtime_mcp_overlay),
-    sqlc.narg(runtime_connected_apps),
+    sqlc.narg(runtime_mcp_overlay)::text::jsonb,
+    sqlc.narg(runtime_connected_apps)::text::jsonb,
     sqlc.narg(originator_source),
     sqlc.narg(trigger_evidence_kind),
     sqlc.narg(trigger_evidence_ref_id),
@@ -1713,7 +1713,7 @@ LIMIT 1;
 
 -- name: SetChatMessageQuickActionsByTask :one
 UPDATE chat_message
-SET quick_actions = $2
+SET quick_actions = sqlc.arg('quick_actions')::text::jsonb
 WHERE id = (
     SELECT inner_msg.id FROM chat_message AS inner_msg
     WHERE inner_msg.task_id = $1 AND inner_msg.role = 'assistant'

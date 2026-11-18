@@ -307,7 +307,7 @@ func (s *InstallationService) Upsert(ctx context.Context, p InstallationParams) 
 		WorkspaceID:     p.WorkspaceID,
 		AgentID:         p.AgentID,
 		ChannelType:     channelTypeWecom,
-		Config:          cfg,
+		Config:          string(cfg),
 		InstallerUserID: p.InstallerUserID,
 	})
 	if err != nil {

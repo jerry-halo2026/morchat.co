@@ -14,7 +14,7 @@ INSERT INTO webhook_delivery (
 ) VALUES (
     $1, $2, $3, $4, $5,
     sqlc.narg('dedupe_key'), sqlc.narg('dedupe_source'), $6, $7,
-    $8, sqlc.narg('content_type'), sqlc.narg('raw_body'),
+    sqlc.arg('selected_headers')::text::jsonb, sqlc.narg('content_type'), sqlc.narg('raw_body'),
     sqlc.narg('replayed_from_delivery_id'), sqlc.narg('replay_idempotency_key'),
     sqlc.narg('reason_code'), COALESCE(sqlc.narg('id')::uuid, gen_random_uuid())
 ) RETURNING *;

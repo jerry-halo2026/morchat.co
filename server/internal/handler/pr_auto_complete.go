@@ -660,7 +660,7 @@ func (h *Handler) recordPRAutoCompleteActivity(ctx context.Context, issue db.Iss
 		ActorType:   strToText(actorType),
 		ActorID:     optionalActorUUID(actorID),
 		Action:      "pr_auto_complete_changed",
-		Details:     details,
+		Details:     string(details),
 	})
 	if err != nil {
 		slog.Warn("record pr auto-complete activity failed", "err", err)

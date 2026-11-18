@@ -468,7 +468,7 @@ func insertVideoBatch(ctx context.Context, q *db.Queries, workspaceID uuid.UUID,
 	created, err := q.InsertMirroredCreatorVideos(ctx, db.InsertMirroredCreatorVideosParams{
 		WorkspaceID:  pgUUID(workspaceID),
 		SourceSystem: SourceSystemOrange,
-		Rows:         payload,
+		Rows:         string(payload),
 	})
 	if err != nil {
 		return 0, fmt.Errorf("orange: insert mirrored videos: %w", err)
@@ -485,7 +485,7 @@ func updateVideoBatch(ctx context.Context, q *db.Queries, workspaceID uuid.UUID,
 	// statement's WHERE clause skips the rest.
 	updated, err := q.UpdateMirroredCreatorVideos(ctx, db.UpdateMirroredCreatorVideosParams{
 		WorkspaceID: pgUUID(workspaceID),
-		Rows:        payload,
+		Rows:        string(payload),
 	})
 	if err != nil {
 		return 0, fmt.Errorf("orange: update mirrored videos: %w", err)
@@ -786,7 +786,7 @@ func StoreCreatorHealth(ctx context.Context, deps Deps, opts HealthStoreOptions)
 		computed, err := q.UpsertCreatorMetrics(ctx, db.UpsertCreatorMetricsParams{
 			WorkspaceID: pgUUID(opts.WorkspaceID),
 			CapturedOn:  pgtype.Date{Time: captured, Valid: true},
-			Rows:        payload,
+			Rows:        string(payload),
 		})
 		if err != nil {
 			return HealthStoreResult{}, fmt.Errorf("orange: upsert creator metrics: %w", err)

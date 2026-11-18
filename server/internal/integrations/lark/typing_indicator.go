@@ -119,7 +119,7 @@ func (m *TypingIndicatorManager) Add(ctx context.Context, inst Installation, cha
 	registrationCtx, registrationCancel := context.WithTimeout(context.WithoutCancel(ctx), typingCleanupTimeout)
 	row, err := m.queries.RegisterChannelTypingReaction(registrationCtx, db.RegisterChannelTypingReactionParams{
 		ID: dbid.NewV7(), WorkspaceID: inst.WorkspaceID, ChatSessionID: chatSessionID,
-		ChatMessageID: chatMessageID, InstallationID: inst.ID, ChannelMessageID: messageID, InstallationSnapshot: snapshot,
+		ChatMessageID: chatMessageID, InstallationID: inst.ID, ChannelMessageID: messageID, InstallationSnapshot: string(snapshot),
 	})
 	registrationCancel()
 	if err != nil {

@@ -49,8 +49,8 @@ UPDATE workspace SET
     name = COALESCE(sqlc.narg('name'), name),
     description = COALESCE(sqlc.narg('description'), description),
     context = COALESCE(sqlc.narg('context'), context),
-    settings = COALESCE(sqlc.narg('settings'), settings),
-    repos = COALESCE(sqlc.narg('repos'), repos),
+    settings = COALESCE(sqlc.narg('settings')::text::jsonb, settings),
+    repos = COALESCE(sqlc.narg('repos')::text::jsonb, repos),
     issue_prefix = COALESCE(sqlc.narg('issue_prefix'), issue_prefix),
     avatar_url = COALESCE(sqlc.narg('avatar_url'), avatar_url),
     updated_at = now()

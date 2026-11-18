@@ -136,7 +136,7 @@ func (s *ChannelStore) UpsertLarkInstallation(ctx context.Context, arg UpsertIns
 		WorkspaceID:     arg.WorkspaceID,
 		AgentID:         arg.AgentID,
 		ChannelType:     channelTypeFeishu,
-		Config:          cfg,
+		Config:          string(cfg),
 		InstallerUserID: arg.InstallerUserID,
 	})
 	if err != nil {
@@ -245,7 +245,7 @@ func (s *ChannelStore) CreateLarkUserBinding(ctx context.Context, arg CreateUser
 		InstallationID: arg.InstallationID,
 		ChannelType:    channelTypeFeishu,
 		ChannelUserID:  arg.ChannelUserID,
-		Config:         cfg,
+		Config:         string(cfg),
 	})
 	if err != nil {
 		return UserBinding{}, err
