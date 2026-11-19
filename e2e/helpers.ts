@@ -43,6 +43,12 @@ export async function loginAsDefault(page: Page): Promise<string> {
   );
   await api.markUserOnboarded();
 
+  // The suite's assertions name English labels. The app resolves its locale
+  // from a cookie (then navigator.languages), so pin it here instead of letting
+  // the host's locale decide whether "filter" or 「筛选」 is on screen.
+  await page.context().addCookies([
+    { name: "multica-locale", value: "en", domain: "localhost", path: "/" },
+  ]);
   const token = api.getToken();
   if (!token) {
     throw new Error("E2E login did not return an auth token");

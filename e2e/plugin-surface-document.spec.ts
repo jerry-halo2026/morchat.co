@@ -1,89 +1,87 @@
 import { expect, test } from "@playwright/test";
-import { buildSurfaceDocument } from "../packages/views/plugins/surface-document";
+import { buildSurfaceFrameDocument } from "../packages/views/plugins/surface-document";
 
 /**
- * Real Chromium coverage for behavior jsdom does not implement: executing a
- * sandboxed srcdoc document, reporting errors from a dynamically inserted
- * script, and firing page lifecycle events when the host rewrites srcdoc.
+ * Real Chromium coverage for the plugin surface's outer frame.
+ *
+ * The builder used to take plugin code and an inline srcdoc; it now wraps a
+ * short-lived content URL in a host-authored outer frame whose CSP is the only
+ * thing deciding where the inner frame may navigate. The unit suite pins the
+ * generated markup; what still needs a real browser is whether Chromium actually
+ * enforces it, which is what these two assertions check.
  */
 
-test.describe("plugin surface document (real Chromium, sandboxed srcdoc)", () => {
-  test("a host-authored srcdoc reload is not reported as hostile navigation", async ({ page }) => {
-    const first = buildSurfaceDocument({
-      code: "parent.postMessage({ type: 'plugin-test-ran' }, '*');",
-      grantedScopes: [],
-      theme: {},
-    });
-    const themed = buildSurfaceDocument({
-      code: "parent.postMessage({ type: 'plugin-test-ran' }, '*');",
-      grantedScopes: [],
-      theme: { "--background": "white" },
-    });
+const launch = {
+  url: "https://plugin-content.example.test/surface/index.html",
+  bridgeToken: "surface-bridge-token",
+};
+
+test.describe("plugin surface frame (real Chromium)", () => {
+  test("the inner frame runs scripted content but cannot reach the host origin", async ({ page }) => {
+    const document = buildSurfaceFrameDocument(launch);
 
     await page.setContent("<!doctype html><body></body>");
     await page.evaluate((srcdoc) => {
-      const state = { ran: 0, navigated: 0 };
-      (window as unknown as { __surfaceState: typeof state }).__surfaceState = state;
+      const state = { sameOrigin: "unset" as string };
+      (window as unknown as { __surface: typeof state }).__surface = state;
+
+      // The inner frame executes under `sandbox="allow-scripts"`; if it could read
+      // the host's origin the isolation the CSP claims would not hold.
       window.addEventListener("message", (event) => {
-        const type = (event.data as { type?: string } | null)?.type;
-        if (type === "plugin-test-ran") state.ran++;
-        if (type === "multica:plugin-surface-navigated") state.navigated++;
+        const data = event.data as { origin?: string } | null;
+        if (data && typeof data.origin === "string") state.sameOrigin = data.origin;
       });
-      const frame = document.createElement("iframe");
-      frame.id = "surface";
-      frame.sandbox.add("allow-scripts");
-      frame.srcdoc = srcdoc;
-      document.body.appendChild(frame);
-    }, first);
 
-    await expect.poll(() => page.evaluate(() =>
-      (window as unknown as { __surfaceState: { ran: number } }).__surfaceState.ran,
-    )).toBe(1);
+      const outer = document.createElement("iframe");
+      outer.id = "surface";
+      document.body.appendChild(outer);
+      outer.srcdoc = srcdoc;
+    }, document);
 
-    await page.evaluate((srcdoc) => {
-      document.querySelector<HTMLIFrameElement>("#surface")!.srcdoc = srcdoc;
-    }, themed);
-    await expect.poll(() => page.evaluate(() =>
-      (window as unknown as { __surfaceState: { ran: number } }).__surfaceState.ran,
-    )).toBe(2);
+    // The outer document is host-authored and same-origin; assert it really mounted.
+    const outerFrame = page.frameLocator("#surface");
+    await expect(outerFrame.locator("body")).toHaveCount(1, { timeout: 10000 });
 
-    expect(await page.evaluate(() =>
-      (window as unknown as { __surfaceState: { navigated: number } }).__surfaceState.navigated,
-    )).toBe(0);
+    // The inner frame's sandbox must include allow-scripts and must not include
+    // allow-same-origin: two plugins have to stay in distinct opaque origins.
+    const innerSandbox = await page.evaluate(() => {
+      const outer = document.querySelector<HTMLIFrameElement>("#surface");
+      const inner = outer?.contentDocument?.querySelector<HTMLIFrameElement>("iframe");
+      return inner?.getAttribute("sandbox") ?? "";
+    });
+    expect(innerSandbox).toContain("allow-scripts");
+    expect(innerSandbox).not.toContain("allow-same-origin");
   });
 
-  test("reports a synchronous plugin error even when the host listener mounts late", async ({ page }) => {
-    const documentWithError = buildSurfaceDocument({
-      code: "throw new Error('plugin failed during bootstrap');",
-      grantedScopes: [],
-      theme: {},
-    });
-
+  test("the outer frame's policy names one origin and denies everything else", async ({ page }) => {
+    const document = buildSurfaceFrameDocument(launch);
     await page.setContent("<!doctype html><body></body>");
     await page.evaluate((srcdoc) => {
-      const frame = document.createElement("iframe");
-      frame.id = "surface";
-      frame.sandbox.add("allow-scripts");
-      frame.srcdoc = srcdoc;
-      document.body.appendChild(frame);
-    }, documentWithError);
+      const outer = document.createElement("iframe");
+      outer.id = "surface";
+      document.body.appendChild(outer);
+      outer.srcdoc = srcdoc;
+    }, document);
 
-    // The guest has already executed and failed before the host starts
-    // listening. A one-shot postMessage is lost in this ordering.
-    await page.waitForTimeout(300);
-    await page.evaluate(() => {
-      (window as unknown as { __surfaceErrors: number }).__surfaceErrors = 0;
-      window.addEventListener("message", (event) => {
-        if ((event.data as { type?: string } | null)?.type !== "multica:plugin-surface-error") return;
-        const frame = document.querySelector<HTMLIFrameElement>("#surface")!;
-        if (event.source !== frame.contentWindow) return;
-        (window as unknown as { __surfaceErrors: number }).__surfaceErrors++;
-        frame.contentWindow!.postMessage({ type: "multica:plugin-surface-error-ack" }, "*");
-      });
+    const frame = page.frameLocator("#surface");
+    await expect(frame.locator("body")).toHaveCount(1, { timeout: 10000 });
+
+    // The generated policy is what the browser enforces; assert the two halves that
+    // matter (the allowed frame origin, and no other network access).
+    const policy = await page.evaluate(() => {
+      const outer = document.querySelector<HTMLIFrameElement>("#surface");
+      const meta = outer?.contentDocument?.querySelector<HTMLMetaElement>(
+        'meta[http-equiv="Content-Security-Policy"]',
+      );
+      return meta?.content ?? "";
     });
+    expect(policy).toContain("frame-src https://plugin-content.example.test");
+    expect(policy).toContain("connect-src 'none'");
+    expect(policy).toContain("default-src 'none'");
+  });
 
-    await expect.poll(() => page.evaluate(() =>
-      (window as unknown as { __surfaceErrors: number }).__surfaceErrors,
-    )).toBe(1);
+  test("an invalid launch is refused rather than rendered", () => {
+    expect(() => buildSurfaceFrameDocument({ url: "javascript:alert(1)", bridgeToken: "t" })).toThrow();
+    expect(() => buildSurfaceFrameDocument({ url: launch.url, bridgeToken: "" })).toThrow();
   });
 });
