@@ -795,39 +795,62 @@ func (q *Queries) ListCrmClients(ctx context.Context, arg ListCrmClientsParams) 
 const listCrmCollabs = `-- name: ListCrmCollabs :many
 SELECT id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at, publish_url, settled_on, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 FROM crm_collab
-WHERE workspace_id = $1
-  AND archived_at IS NULL
-  AND ($2::text IS NULL OR stage = $2::text)
-  AND ($3::uuid IS NULL OR brief_id = $3::uuid)
-  AND ($4::uuid IS NULL OR creator_id = $4::uuid)
-  AND ($5::uuid IS NULL OR assignee_id = $5::uuid)
-  AND ($6::text IS NULL OR assignee_type = $6::text)
-  AND ($7::text IS NULL OR review_state = $7::text)
+WHERE crm_collab.workspace_id = $1
+  AND crm_collab.archived_at IS NULL
+  AND ($2::text IS NULL OR crm_collab.stage = $2::text)
+  AND ($3::uuid IS NULL OR crm_collab.brief_id = $3::uuid)
+  AND ($4::uuid IS NULL OR crm_collab.creator_id = $4::uuid)
+  AND ($5::uuid IS NULL OR crm_collab.assignee_id = $5::uuid)
+  AND ($6::text IS NULL OR crm_collab.assignee_type = $6::text)
+  AND ($7::text IS NULL OR crm_collab.review_state = $7::text)
   AND (
-    $8::timestamptz IS NULL
-    OR (created_at, id) < ($8::timestamptz, $9::uuid)
+    NOT $8::boolean
+    OR (
+      $9::uuid IS NOT NULL
+      AND EXISTS (
+        SELECT 1 FROM member m
+        WHERE m.workspace_id = crm_collab.workspace_id
+          AND m.user_id = crm_collab.owner_member_id
+          AND m.department_id = $9::uuid
+      )
+    )
   )
-ORDER BY created_at DESC, id DESC
-LIMIT $10
+  AND (
+    $10::timestamptz IS NULL
+    OR (crm_collab.created_at, crm_collab.id)
+      < ($10::timestamptz, $11::uuid)
+  )
+ORDER BY crm_collab.created_at DESC, crm_collab.id DESC
+LIMIT $12
 `
 
 type ListCrmCollabsParams struct {
-	WorkspaceID  pgtype.UUID        `json:"workspace_id"`
-	Stage        pgtype.Text        `json:"stage"`
-	BriefID      pgtype.UUID        `json:"brief_id"`
-	CreatorID    pgtype.UUID        `json:"creator_id"`
-	AssigneeID   pgtype.UUID        `json:"assignee_id"`
-	AssigneeType pgtype.Text        `json:"assignee_type"`
-	ReviewState  pgtype.Text        `json:"review_state"`
-	CursorAt     pgtype.Timestamptz `json:"cursor_at"`
-	CursorID     pgtype.UUID        `json:"cursor_id"`
-	Limit        int32              `json:"limit"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	Stage            pgtype.Text        `json:"stage"`
+	BriefID          pgtype.UUID        `json:"brief_id"`
+	CreatorID        pgtype.UUID        `json:"creator_id"`
+	AssigneeID       pgtype.UUID        `json:"assignee_id"`
+	AssigneeType     pgtype.Text        `json:"assignee_type"`
+	ReviewState      pgtype.Text        `json:"review_state"`
+	DepartmentScoped bool               `json:"department_scoped"`
+	DepartmentID     pgtype.UUID        `json:"department_id"`
+	CursorAt         pgtype.Timestamptz `json:"cursor_at"`
+	CursorID         pgtype.UUID        `json:"cursor_id"`
+	Limit            int32              `json:"limit"`
 }
 
 // `?assignee=` (B4-2) narrows the list to the rows one person or agent is
 // working on, which is what the cockpit's 我的 queue reads. The id filter is
 // separate from the type because a bare uuid names a row without saying which
 // identity space it came from (COLLAB-MODEL §1).
+//
+// The department predicate (`department_scoped` + `department_id`, WORKBENCH-API
+// §24.4/§24.6) is the read-side half of the visibility switch: with
+// `workbench_visibility=department` a list returns the rows whose *owner* sits in
+// the caller's department. A row with no owner, or an owner with no department,
+// matches neither branch and therefore disappears — this filter never widens into
+// "every department". `department_scoped = false` (the `transparent` default)
+// leaves the query byte-for-byte the workspace-wide read it was.
 func (q *Queries) ListCrmCollabs(ctx context.Context, arg ListCrmCollabsParams) ([]CrmCollab, error) {
 	rows, err := q.db.Query(ctx, listCrmCollabs,
 		arg.WorkspaceID,
@@ -837,6 +860,8 @@ func (q *Queries) ListCrmCollabs(ctx context.Context, arg ListCrmCollabsParams) 
 		arg.AssigneeID,
 		arg.AssigneeType,
 		arg.ReviewState,
+		arg.DepartmentScoped,
+		arg.DepartmentID,
 		arg.CursorAt,
 		arg.CursorID,
 		arg.Limit,
@@ -897,37 +922,75 @@ func (q *Queries) ListCrmCollabs(ctx context.Context, arg ListCrmCollabsParams) 
 const listCrmSettlements = `-- name: ListCrmSettlements :many
 SELECT id, workspace_id, collab_id, kind, amount, currency, due_at, paid_at, invoice_no, note, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 FROM crm_settlement
-WHERE workspace_id = $1
-  AND archived_at IS NULL
-  AND ($2::uuid IS NULL OR collab_id = $2::uuid)
+WHERE crm_settlement.workspace_id = $1
+  AND crm_settlement.archived_at IS NULL
+  AND (
+    $2::uuid IS NULL
+    OR crm_settlement.collab_id = $2::uuid
+  )
   AND (
     $3::boolean IS NULL
-    OR ($3::boolean AND paid_at IS NOT NULL)
-    OR (NOT $3::boolean AND paid_at IS NULL)
+    OR ($3::boolean AND crm_settlement.paid_at IS NOT NULL)
+    OR (NOT $3::boolean AND crm_settlement.paid_at IS NULL)
   )
-  AND ($4::uuid IS NULL OR assignee_id = $4::uuid)
-  AND ($5::text IS NULL OR assignee_type = $5::text)
-  AND ($6::text IS NULL OR review_state = $6::text)
   AND (
-    $7::timestamptz IS NULL
-    OR (created_at, id) < ($7::timestamptz, $8::uuid)
+    $4::uuid IS NULL
+    OR crm_settlement.assignee_id = $4::uuid
   )
-ORDER BY created_at DESC, id DESC
-LIMIT $9
+  AND (
+    $5::text IS NULL
+    OR crm_settlement.assignee_type = $5::text
+  )
+  AND (
+    $6::text IS NULL
+    OR crm_settlement.review_state = $6::text
+  )
+  AND (
+    NOT $7::boolean
+    OR (
+      $8::uuid IS NOT NULL
+      AND EXISTS (
+        SELECT 1
+        FROM crm_collab collab
+        JOIN member m
+          ON m.workspace_id = collab.workspace_id
+         AND m.user_id = collab.owner_member_id
+        WHERE collab.id = crm_settlement.collab_id
+          AND collab.workspace_id = crm_settlement.workspace_id
+          AND m.department_id = $8::uuid
+      )
+    )
+  )
+  AND (
+    $9::timestamptz IS NULL
+    OR (crm_settlement.created_at, crm_settlement.id)
+      < ($9::timestamptz, $10::uuid)
+  )
+ORDER BY crm_settlement.created_at DESC, crm_settlement.id DESC
+LIMIT $11
 `
 
 type ListCrmSettlementsParams struct {
-	WorkspaceID  pgtype.UUID        `json:"workspace_id"`
-	CollabID     pgtype.UUID        `json:"collab_id"`
-	Paid         pgtype.Bool        `json:"paid"`
-	AssigneeID   pgtype.UUID        `json:"assignee_id"`
-	AssigneeType pgtype.Text        `json:"assignee_type"`
-	ReviewState  pgtype.Text        `json:"review_state"`
-	CursorAt     pgtype.Timestamptz `json:"cursor_at"`
-	CursorID     pgtype.UUID        `json:"cursor_id"`
-	Limit        int32              `json:"limit"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	CollabID         pgtype.UUID        `json:"collab_id"`
+	Paid             pgtype.Bool        `json:"paid"`
+	AssigneeID       pgtype.UUID        `json:"assignee_id"`
+	AssigneeType     pgtype.Text        `json:"assignee_type"`
+	ReviewState      pgtype.Text        `json:"review_state"`
+	DepartmentScoped bool               `json:"department_scoped"`
+	DepartmentID     pgtype.UUID        `json:"department_id"`
+	CursorAt         pgtype.Timestamptz `json:"cursor_at"`
+	CursorID         pgtype.UUID        `json:"cursor_id"`
+	Limit            int32              `json:"limit"`
 }
 
+// `crm_settlement` has no `owner_member_id` — its owner is the collaboration's
+// (see `loadCollabForSettlementWrite`). The department predicate therefore goes
+// through `collab_id`: with the visibility switch in `department` mode a settlement
+// is visible only when the collaboration behind it is owned by a member of the
+// caller's department. A settlement whose collaboration has no owner is invisible
+// in that mode, exactly like an ownerless row in the other ledgers, and the
+// `transparent` default (`department_scoped = false`) reads as before.
 func (q *Queries) ListCrmSettlements(ctx context.Context, arg ListCrmSettlementsParams) ([]CrmSettlement, error) {
 	rows, err := q.db.Query(ctx, listCrmSettlements,
 		arg.WorkspaceID,
@@ -936,6 +999,8 @@ func (q *Queries) ListCrmSettlements(ctx context.Context, arg ListCrmSettlements
 		arg.AssigneeID,
 		arg.AssigneeType,
 		arg.ReviewState,
+		arg.DepartmentScoped,
+		arg.DepartmentID,
 		arg.CursorAt,
 		arg.CursorID,
 		arg.Limit,

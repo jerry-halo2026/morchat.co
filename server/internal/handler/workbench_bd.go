@@ -69,6 +69,95 @@ var (
 	bdCampaignKinds = map[string]bool{"search": true, "comment": true, "manual": true}
 )
 
+// bdQuoteSorts is the quote ledger's `?sort=` vocabulary (WORKBENCH-API §20.3).
+//
+// `updated_at` is the default because the 商务 reads the ledger as "what moved
+// last". `quoted_at` keeps the offer-date order the ledger opened on (the offer's
+// own date, falling back to when the row was typed, so a draft does not sink below
+// an older sent quote). `fee_amount` answers "where are the big offers" and sorts an
+// offer with no fee last: "the deal is pure commission" is not "we offered 0", so a
+// NULL fee must not sit between a 4 000 and a 9 000 offer.
+const (
+	bdQuoteSortUpdatedAt = "updated_at"
+	bdQuoteSortQuotedAt  = "quoted_at"
+	bdQuoteSortFeeAmount = "fee_amount"
+)
+
+// bdQuoteSort validates `?sort=`. An unknown value is a 400 rather than a silent
+// fallback: a client that asked for an ordering it did not get would draw unsorted
+// rows as a ranking.
+func bdQuoteSort(w http.ResponseWriter, r *http.Request) (string, bool) {
+	switch sort := strings.TrimSpace(r.URL.Query().Get("sort")); sort {
+	case "", bdQuoteSortUpdatedAt:
+		return bdQuoteSortUpdatedAt, true
+	case bdQuoteSortQuotedAt, bdQuoteSortFeeAmount:
+		return sort, true
+	default:
+		writeError(w, http.StatusBadRequest, "sort must be updated_at, quoted_at or fee_amount")
+		return "", false
+	}
+}
+
+// bdDueFilter reads `?due=` on the follow-up ledger (WORKBENCH-API §20.3).
+//
+// Only `1` / `true` turn it on. Anything else is a 400 instead of "no filter": a
+// queue that silently widens to the whole ledger when its switch is misspelt is the
+// failure mode this check exists for. The predicate behind it is the one the inbox
+// due scan uses (`next_follow_at <= now()`, live rows), so "what the list shows as
+// due" and "what produced a notice yesterday" cannot drift apart.
+func bdDueFilter(w http.ResponseWriter, r *http.Request) (bool, bool) {
+	switch raw := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("due"))); raw {
+	case "", "0", "false":
+		return false, true
+	case "1", "true":
+		return true, true
+	default:
+		writeError(w, http.StatusBadRequest, "due must be 1 or 0")
+		return false, false
+	}
+}
+
+// bdDepartmentFilter resolves the read-side department predicate every workbench
+// ledger list passes to SQL (WORKBENCH-API §24.4/§24.6).
+//
+// Two answers, and the caller needs both:
+//
+//   - `scoped` is false in `transparent` mode — the default — and the list is then
+//     exactly the workspace-wide read it was before §24.4;
+//   - `visible` is false in `department` mode when the caller has no department. That
+//     is not a permission error: it is a read scope that matches nothing, so the
+//     handler answers an empty page rather than a 403. A member without a department
+//     must never fall back to "every department", which is the same fail-closed rule
+//     the by-id read follows with `cross_department`.
+//
+// owner/admin are exempt, exactly as they are on the by-id read
+// (`workbenchCrossDepartment`): the boss can already open every row by id, and a list
+// that showed fewer rows than it can open would be the same bug pointing the other way.
+// The switch exists to keep one 商务 out of another department's ledger, not to lock the
+// owner out of their own workspace.
+func (h *Handler) bdDepartmentFilter(r *http.Request, scope workbenchScope) (departmentID pgtype.UUID, scoped, visible bool) {
+	if scope.Member.Role == "owner" || scope.Member.Role == "admin" {
+		return pgtype.UUID{}, false, true
+	}
+	departmentID, visible = h.workbenchReadDepartment(r.Context(), scope)
+	if !visible {
+		return pgtype.UUID{}, false, false
+	}
+	return departmentID, departmentID.Valid, true
+}
+
+// writeWorkbenchEmptyPage answers a list request whose read scope matches nothing
+// (department mode, caller without a department). The envelope is the normal one with
+// no rows and no next page, so a client draws "nothing here" instead of an error it
+// cannot act on.
+func writeWorkbenchEmptyPage(w http.ResponseWriter, resource string, cursor bool) {
+	payload := map[string]any{resource: []any{}, "total": 0}
+	if cursor {
+		payload["next_cursor"] = nil
+	}
+	writeJSON(w, http.StatusOK, payload)
+}
+
 // ---- request bodies --------------------------------------------------------
 
 // BdActivityRequest is the create/PATCH body for a follow-up.
@@ -983,7 +1072,11 @@ func (h *Handler) publishBdChanged(eventType, workspaceID string, actor workbenc
 
 // ---- follow-ups ------------------------------------------------------------
 
-// ListBdActivities 鈥?GET /api/workbench/bd/activities
+// ListBdActivities — GET /api/workbench/bd/activities
+//
+// Filters: `?creator_id=`, `?kind=`, an inclusive `?from=` / `?to=` window on
+// `happened_at`, `?assignee=` (`me` or an id), `?review_state=`, `?due=1` (scheduled
+// and passed) and `?cursor=` (the previous page's last row, opaque to the client).
 func (h *Handler) ListBdActivities(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -1021,16 +1114,43 @@ func (h *Handler) ListBdActivities(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	dueOnly, ok := bdDueFilter(w, r)
+	if !ok {
+		return
+	}
+	// The timeline is keyset on (happened_at, id), the order it is read in, so the
+	// cursor is resolved from the row the client handed back rather than guessed.
+	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
+		row, err := h.Queries.GetCreatorActivity(r.Context(), db.GetCreatorActivityParams{
+			ID:          id,
+			WorkspaceID: scope.WorkspaceUUID,
+		})
+		return row.HappenedAt, err
+	})
+	if !ok {
+		return
+	}
+	departmentID, departmentScoped, visible := h.bdDepartmentFilter(r, scope)
+	if !visible {
+		writeWorkbenchEmptyPage(w, "activities", true)
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListCreatorActivities(r.Context(), db.ListCreatorActivitiesParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		CreatorID:    creatorID,
-		Kind:         optionalTrimmedText(optionalString(kind)),
-		FromAt:       fromAt,
-		ToAt:         toAt,
-		AssigneeType: assigneeType,
-		AssigneeID:   assigneeID,
-		ReviewState:  reviewState,
-		Limit:        workbenchLimit(r),
+		WorkspaceID:      scope.WorkspaceUUID,
+		CreatorID:        creatorID,
+		Kind:             optionalTrimmedText(optionalString(kind)),
+		FromAt:           fromAt,
+		ToAt:             toAt,
+		AssigneeType:     assigneeType,
+		AssigneeID:       assigneeID,
+		ReviewState:      reviewState,
+		DueOnly:          dueOnly,
+		DepartmentScoped: departmentScoped,
+		DepartmentID:     departmentID,
+		CursorAt:         cursorAt,
+		CursorID:         cursorID,
+		Limit:            limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list follow-ups", err)
@@ -1042,7 +1162,13 @@ func (h *Handler) ListBdActivities(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = bdActivityToResponse(row, actors[uuidToString(row.ID)])
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"activities": resp, "total": len(resp)})
+	// `next_cursor` names the last row of this page, which is also what `?cursor=`
+	// accepts; only a full page can have a successor.
+	payload := map[string]any{"activities": resp, "total": len(resp), "next_cursor": nil}
+	if len(rows) > 0 && int32(len(rows)) == limit {
+		payload["next_cursor"] = uuidToString(rows[len(rows)-1].ID)
+	}
+	writeJSON(w, http.StatusOK, payload)
 }
 
 // optionalString turns a query value into the pointer shape the validators take.
@@ -1424,7 +1550,12 @@ func (h *Handler) DeleteBdActivity(w http.ResponseWriter, r *http.Request) {
 
 // ---- quotes ----------------------------------------------------------------
 
-// ListBdQuotes 鈥?GET /api/workbench/bd/quotes
+// ListBdQuotes — GET /api/workbench/bd/quotes
+//
+// Filters: `?q=` (creator name/handle or the quote's own note), `?creator_id=`,
+// `?status=`, `?assignee=` (`me` or an id), `?review_state=`, `?sort=`
+// (`updated_at` | `quoted_at` | `fee_amount`) and `?cursor=` — the previous page's
+// last row, an opaque string the client must not parse (§20.3).
 func (h *Handler) ListBdQuotes(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -1450,14 +1581,35 @@ func (h *Handler) ListBdQuotes(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	sort, ok := bdQuoteSort(w, r)
+	if !ok {
+		return
+	}
+	cursorID, cursorAt, cursorFee, ok := h.bdQuoteCursor(w, r, scope, sort)
+	if !ok {
+		return
+	}
+	departmentID, departmentScoped, visible := h.bdDepartmentFilter(r, scope)
+	if !visible {
+		writeWorkbenchEmptyPage(w, "quotes", true)
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListCreatorQuotes(r.Context(), db.ListCreatorQuotesParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		CreatorID:    creatorID,
-		Status:       optionalTrimmedText(optionalString(status)),
-		AssigneeType: assigneeType,
-		AssigneeID:   assigneeID,
-		ReviewState:  reviewState,
-		Limit:        workbenchLimit(r),
+		WorkspaceID:      scope.WorkspaceUUID,
+		CreatorID:        creatorID,
+		Status:           optionalTrimmedText(optionalString(status)),
+		AssigneeType:     assigneeType,
+		AssigneeID:       assigneeID,
+		ReviewState:      reviewState,
+		Query:            optionalTrimmedText(optionalString(query.Get("q"))),
+		DepartmentScoped: departmentScoped,
+		DepartmentID:     departmentID,
+		CursorID:         cursorID,
+		Sort:             sort,
+		CursorFee:        cursorFee,
+		CursorAt:         cursorAt,
+		Limit:            limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list quotes", err)
@@ -1477,7 +1629,57 @@ func (h *Handler) ListBdQuotes(w http.ResponseWriter, r *http.Request) {
 			Thread:          threads[uuidToString(row.ID)],
 		}
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"quotes": resp, "total": len(resp)})
+	payload := map[string]any{"quotes": resp, "total": len(resp), "next_cursor": nil}
+	if len(rows) > 0 && int32(len(rows)) == limit {
+		payload["next_cursor"] = uuidToString(rows[len(rows)-1].ID)
+	}
+	writeJSON(w, http.StatusOK, payload)
+}
+
+// bdQuoteCursor resolves `?cursor=` into the (id, date key, fee key) triple the quote
+// ledger's keyset predicate compares against (§20.3).
+//
+// The cursor is the previous page's last row id — the same opaque string form every
+// other workbench list uses — and its sort key is re-read from that row instead of
+// being encoded in the string: the client hands the token back unparsed, and the
+// server decides what it meant from the `sort` this request asked for. That is why a
+// cursor is only valid together with the sort that produced it; the fee key travels as
+// a NULL when the cursor row has no fee, which is exactly the "no fee sorts last" tail
+// of the ordering.
+//
+// A cursor that does not resolve in this workspace is a 400 rather than a silently
+// empty page: an empty page would read as "you have reached the end".
+func (h *Handler) bdQuoteCursor(w http.ResponseWriter, r *http.Request, scope workbenchScope, sort string) (pgtype.UUID, pgtype.Timestamptz, pgtype.Numeric, bool) {
+	raw := strings.TrimSpace(r.URL.Query().Get("cursor"))
+	if raw == "" {
+		return pgtype.UUID{}, pgtype.Timestamptz{}, pgtype.Numeric{}, true
+	}
+	cursorID, ok := parseUUIDOrBadRequest(w, raw, "cursor")
+	if !ok {
+		return pgtype.UUID{}, pgtype.Timestamptz{}, pgtype.Numeric{}, false
+	}
+	quote, err := h.Queries.GetCreatorQuote(r.Context(), db.GetCreatorQuoteParams{
+		ID:          cursorID,
+		WorkspaceID: scope.WorkspaceUUID,
+	})
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "cursor not found")
+		return pgtype.UUID{}, pgtype.Timestamptz{}, pgtype.Numeric{}, false
+	}
+	switch sort {
+	case bdQuoteSortFeeAmount:
+		return cursorID, pgtype.Timestamptz{}, quote.FeeAmount, true
+	case bdQuoteSortQuotedAt:
+		// The same `coalesce(quoted_at, created_at)` the ORDER BY uses: a draft's sort
+		// key is the day it was typed, so the two sides of the comparison agree.
+		at := quote.CreatedAt
+		if quote.QuotedAt.Valid {
+			at = quote.QuotedAt
+		}
+		return cursorID, at, pgtype.Numeric{}, true
+	default:
+		return cursorID, quote.UpdatedAt, pgtype.Numeric{}, true
+	}
 }
 
 // bdQuoteBriefRef validates the optional `brief_id` pointer against this
@@ -1907,7 +2109,12 @@ func (h *Handler) DeleteBdQuote(w http.ResponseWriter, r *http.Request) {
 
 // ---- campaigns -------------------------------------------------------------
 
-// ListBdCampaigns 鈥?GET /api/workbench/bd/campaigns
+// ListBdCampaigns — GET /api/workbench/bd/campaigns
+//
+// Still `limit`-only (§20.3): the order is a start day plus a creation timestamp and
+// a workspace has a handful of batches. The department predicate applies like every
+// other ledger read; a campaign has no assignee column, so there is no `?assignee=`
+// here to keep in step with the follow-up log.
 func (h *Handler) ListBdCampaigns(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -1920,10 +2127,17 @@ func (h *Handler) ListBdCampaigns(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	departmentID, departmentScoped, visible := h.bdDepartmentFilter(r, scope)
+	if !visible {
+		writeWorkbenchEmptyPage(w, "campaigns", false)
+		return
+	}
 	rows, err := h.Queries.ListCreatorCampaigns(r.Context(), db.ListCreatorCampaignsParams{
-		WorkspaceID: scope.WorkspaceUUID,
-		Kind:        optionalTrimmedText(optionalString(kind)),
-		Limit:       workbenchLimit(r),
+		WorkspaceID:      scope.WorkspaceUUID,
+		Kind:             optionalTrimmedText(optionalString(kind)),
+		DepartmentScoped: departmentScoped,
+		DepartmentID:     departmentID,
+		Limit:            workbenchLimit(r),
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list campaigns", err)

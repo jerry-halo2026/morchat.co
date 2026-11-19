@@ -140,11 +140,21 @@ export interface BdActivityListResponse {
   activities: BdActivity[];
   /** This page's row count, not the workspace total. */
   total: number;
+  /**
+   * The cursor that opens the next page, or `null` when this page is the last one.
+   *
+   * Opaque: send it back verbatim as `cursor`, never parse it. It is only valid
+   * together with the same filters, and the server answers 400 for one it cannot
+   * resolve rather than pretending the ledger ended (WORKBENCH-API §20.3).
+   */
+  next_cursor: string | null;
 }
 
 export interface BdQuoteListResponse {
   quotes: BdQuote[];
   total: number;
+  /** See `BdActivityListResponse.next_cursor`: opaque, pass it back unparsed. */
+  next_cursor: string | null;
 }
 
 export interface BdCampaignListResponse {
@@ -160,16 +170,38 @@ export interface BdActivityListFilters {
   to?: string;
   /** `me` or a member/agent id — the queue's "mine" filter (COLLAB-MODEL §4). */
   assignee?: string;
+  /**
+   * `true` keeps only the follow-ups whose scheduled `next_follow_at` has passed and
+   * that are still live — the 到期 tab. A recorded `outcome` does not clear it: a call
+   * that was answered and re-scheduled is still a call somebody owes, the same rule the
+   * inbox due notice follows (WORKBENCH-API §20.3).
+   */
+  due?: boolean;
+  /** The previous page's `next_cursor`, verbatim. */
+  cursor?: string;
   limit?: number;
 }
 
 export interface BdQuoteListFilters {
   creator_id?: string;
   status?: BdQuoteStatus | string;
+  /** Server-side text match over the creator's name/handle and the quote's note. */
+  q?: string;
   /** `me` or a member/agent id — the queue's "mine" filter (COLLAB-MODEL §4). */
   assignee?: string;
+  /** The ledger's ordering; `updated_at` is the default (WORKBENCH-API §20.3). */
+  sort?: BdQuoteListSort;
+  /** The previous page's `next_cursor`, verbatim. */
+  cursor?: string;
   limit?: number;
 }
+
+/**
+ * The quote ledger's `?sort=` values. `updated_at` opens the page ("what moved last"),
+ * `quoted_at` keeps the offer-date order, and `fee_amount` puts the largest slot fee
+ * first with an offer that has no fee last — NULL is "pure commission", not 0.
+ */
+export type BdQuoteListSort = "updated_at" | "quoted_at" | "fee_amount";
 
 export interface BdCampaignListFilters {
   kind?: BdCampaignKind | string;

@@ -1088,20 +1088,45 @@ WHERE workspace_id = $1::uuid
   AND ($6::uuid IS NULL OR assignee_id = $6::uuid)
   AND ($7::text IS NULL OR assignee_type = $7::text)
   AND ($8::text IS NULL OR review_state = $8::text)
+  AND (
+    NOT $9::boolean
+    OR (next_follow_at IS NOT NULL AND next_follow_at <= now())
+  )
+  AND (
+    NOT $10::boolean
+    OR (
+      $11::uuid IS NOT NULL
+      AND EXISTS (
+        SELECT 1 FROM member m
+        WHERE m.workspace_id = creator_activity.workspace_id
+          AND m.user_id = creator_activity.owner_member_id
+          AND m.department_id = $11::uuid
+      )
+    )
+  )
+  AND (
+    $12::uuid IS NULL
+    OR (happened_at, id) < ($13::timestamptz, $12::uuid)
+  )
 ORDER BY happened_at DESC, id DESC
-LIMIT $9::integer
+LIMIT $14::integer
 `
 
 type ListCreatorActivitiesParams struct {
-	WorkspaceID  pgtype.UUID        `json:"workspace_id"`
-	CreatorID    pgtype.UUID        `json:"creator_id"`
-	Kind         pgtype.Text        `json:"kind"`
-	FromAt       pgtype.Timestamptz `json:"from_at"`
-	ToAt         pgtype.Timestamptz `json:"to_at"`
-	AssigneeID   pgtype.UUID        `json:"assignee_id"`
-	AssigneeType pgtype.Text        `json:"assignee_type"`
-	ReviewState  pgtype.Text        `json:"review_state"`
-	Limit        int32              `json:"limit"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	CreatorID        pgtype.UUID        `json:"creator_id"`
+	Kind             pgtype.Text        `json:"kind"`
+	FromAt           pgtype.Timestamptz `json:"from_at"`
+	ToAt             pgtype.Timestamptz `json:"to_at"`
+	AssigneeID       pgtype.UUID        `json:"assignee_id"`
+	AssigneeType     pgtype.Text        `json:"assignee_type"`
+	ReviewState      pgtype.Text        `json:"review_state"`
+	DueOnly          bool               `json:"due_only"`
+	DepartmentScoped bool               `json:"department_scoped"`
+	DepartmentID     pgtype.UUID        `json:"department_id"`
+	CursorID         pgtype.UUID        `json:"cursor_id"`
+	CursorAt         pgtype.Timestamptz `json:"cursor_at"`
+	Limit            int32              `json:"limit"`
 }
 
 // BD pipeline: the three ledgers the 商务驾驶舱 reads (follow-ups, quotes,
@@ -1116,10 +1141,15 @@ type ListCreatorActivitiesParams struct {
 // "cooperation credential" table would be a second source of truth for the same
 // fact (contract §3.3).
 //
-// The lists are `limit`-only rather than keyset-paged: their sort keys are not a
-// single monotonic timestamp (`quoted_at` is nullable, a campaign sorts by start
-// day), and the same choice already exists for the HR change stream. Both ledgers
-// are hundreds of rows per workspace, so the LIMIT is the whole conversation.
+// The follow-up log and the quote ledger page by keyset (`cursor`, the last row of
+// the previous page, resolved by the handler into the sort key it was ordered by);
+// campaigns stay `limit`-only because their order is a start day plus a creation
+// timestamp and the ledger is small. Both paged lists also take the read-side
+// department predicate (`department_scoped` + `department_id`, WORKBENCH-API
+// §24.4/§24.6): when the workspace switch is `department`, a list returns the rows
+// whose *owner* is in a department and in the caller's one. A row with no owner, or
+// an owner with no department, matches neither and therefore disappears — the
+// predicate never widens into "every department".
 // ---- follow-up log (creator_activity) --------------------------------------
 // The BD timeline. `?creator_id=` opens one creator's history, `?kind=` narrows
 // to one channel, and `?from=` / `?to=` are an inclusive `happened_at` window
@@ -1128,6 +1158,16 @@ type ListCreatorActivitiesParams struct {
 // write" — the assignee is resolved by the handler, never by the client.
 // Ordering is `happened_at DESC` — what happened most recently, not what was
 // typed most recently — with the id as the total tiebreak.
+//
+// `?due=1` (B5) is the 只看到期的 tab: rows whose scheduled `next_follow_at` has
+// passed and which are still live. `outcome` is deliberately NOT part of it, for
+// the same reason `CreateDueFollowUpInboxItems` does not filter on it — a follow-up
+// with a recorded result and a passed date is still a call somebody owes. Clearing
+// `next_follow_at` is how a row stops being due.
+//
+// `cursor` is keyset on `(happened_at, id)`: both are NOT NULL, so the predicate is
+// a plain row comparison and a page can neither repeat nor skip a row while newer
+// follow-ups are inserted above it.
 func (q *Queries) ListCreatorActivities(ctx context.Context, arg ListCreatorActivitiesParams) ([]CreatorActivity, error) {
 	rows, err := q.db.Query(ctx, listCreatorActivities,
 		arg.WorkspaceID,
@@ -1138,6 +1178,11 @@ func (q *Queries) ListCreatorActivities(ctx context.Context, arg ListCreatorActi
 		arg.AssigneeID,
 		arg.AssigneeType,
 		arg.ReviewState,
+		arg.DueOnly,
+		arg.DepartmentScoped,
+		arg.DepartmentID,
+		arg.CursorID,
+		arg.CursorAt,
 		arg.Limit,
 	)
 	if err != nil {
@@ -1185,21 +1230,44 @@ FROM creator_campaign
 WHERE workspace_id = $1::uuid
   AND archived_at IS NULL
   AND ($2::text IS NULL OR kind = $2::text)
+  AND (
+    NOT $3::boolean
+    OR (
+      $4::uuid IS NOT NULL
+      AND EXISTS (
+        SELECT 1 FROM member m
+        WHERE m.workspace_id = creator_campaign.workspace_id
+          AND m.user_id = creator_campaign.owner_member_id
+          AND m.department_id = $4::uuid
+      )
+    )
+  )
 ORDER BY coalesce(started_on, created_at::date) DESC, created_at DESC, id DESC
-LIMIT $3::integer
+LIMIT $5::integer
 `
 
 type ListCreatorCampaignsParams struct {
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	Kind        pgtype.Text `json:"kind"`
-	Limit       int32       `json:"limit"`
+	WorkspaceID      pgtype.UUID `json:"workspace_id"`
+	Kind             pgtype.Text `json:"kind"`
+	DepartmentScoped bool        `json:"department_scoped"`
+	DepartmentID     pgtype.UUID `json:"department_id"`
+	Limit            int32       `json:"limit"`
 }
 
 // ---- campaigns (creator_campaign) ------------------------------------------
 // `?kind=` narrows to one collection method. Newest batch first: the start day
-// when it was recorded, otherwise when the row was typed.
+// when it was recorded, otherwise when the row was typed. No cursor: the order is
+// a date plus a creation timestamp and the batch count is small, so the LIMIT is
+// still the whole conversation (§20.3). The department predicate is the same one
+// the other ledgers take (§24.4).
 func (q *Queries) ListCreatorCampaigns(ctx context.Context, arg ListCreatorCampaignsParams) ([]CreatorCampaign, error) {
-	rows, err := q.db.Query(ctx, listCreatorCampaigns, arg.WorkspaceID, arg.Kind, arg.Limit)
+	rows, err := q.db.Query(ctx, listCreatorCampaigns,
+		arg.WorkspaceID,
+		arg.Kind,
+		arg.DepartmentScoped,
+		arg.DepartmentID,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -1246,25 +1314,97 @@ WHERE workspace_id = $1::uuid
   AND ($4::uuid IS NULL OR assignee_id = $4::uuid)
   AND ($5::text IS NULL OR assignee_type = $5::text)
   AND ($6::text IS NULL OR review_state = $6::text)
-ORDER BY coalesce(quoted_at, created_at) DESC, id DESC
-LIMIT $7::integer
+  AND (
+    $7::text IS NULL
+    OR note ILIKE '%' || $7::text || '%'
+    OR EXISTS (
+      SELECT 1 FROM creator c
+      WHERE c.id = creator_quote.creator_id
+        AND c.workspace_id = creator_quote.workspace_id
+        AND (
+          c.display_name ILIKE '%' || $7::text || '%'
+          OR c.handle ILIKE '%' || $7::text || '%'
+        )
+    )
+  )
+  AND (
+    NOT $8::boolean
+    OR (
+      $9::uuid IS NOT NULL
+      AND EXISTS (
+        SELECT 1 FROM member m
+        WHERE m.workspace_id = creator_quote.workspace_id
+          AND m.user_id = creator_quote.owner_member_id
+          AND m.department_id = $9::uuid
+      )
+    )
+  )
+  AND (
+    $10::uuid IS NULL
+    OR CASE $11::text
+      WHEN 'fee_amount' THEN (
+        (fee_amount IS NOT DISTINCT FROM $12::numeric
+          AND id < $10::uuid)
+        OR fee_amount < $12::numeric
+        OR (fee_amount IS NULL AND $12::numeric IS NOT NULL)
+      )
+      WHEN 'quoted_at' THEN (
+        (coalesce(quoted_at, created_at), id)
+          < ($13::timestamptz, $10::uuid)
+      )
+      ELSE (updated_at, id) < ($13::timestamptz, $10::uuid)
+    END
+  )
+ORDER BY
+  CASE WHEN $11::text = 'fee_amount' THEN fee_amount END DESC NULLS LAST,
+  CASE WHEN $11::text = 'quoted_at' THEN coalesce(quoted_at, created_at) END DESC,
+  CASE WHEN $11::text = 'updated_at' THEN updated_at END DESC,
+  id DESC
+LIMIT $14::integer
 `
 
 type ListCreatorQuotesParams struct {
-	WorkspaceID  pgtype.UUID `json:"workspace_id"`
-	CreatorID    pgtype.UUID `json:"creator_id"`
-	Status       pgtype.Text `json:"status"`
-	AssigneeID   pgtype.UUID `json:"assignee_id"`
-	AssigneeType pgtype.Text `json:"assignee_type"`
-	ReviewState  pgtype.Text `json:"review_state"`
-	Limit        int32       `json:"limit"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	CreatorID        pgtype.UUID        `json:"creator_id"`
+	Status           pgtype.Text        `json:"status"`
+	AssigneeID       pgtype.UUID        `json:"assignee_id"`
+	AssigneeType     pgtype.Text        `json:"assignee_type"`
+	ReviewState      pgtype.Text        `json:"review_state"`
+	Query            pgtype.Text        `json:"query"`
+	DepartmentScoped bool               `json:"department_scoped"`
+	DepartmentID     pgtype.UUID        `json:"department_id"`
+	CursorID         pgtype.UUID        `json:"cursor_id"`
+	Sort             string             `json:"sort"`
+	CursorFee        pgtype.Numeric     `json:"cursor_fee"`
+	CursorAt         pgtype.Timestamptz `json:"cursor_at"`
+	Limit            int32              `json:"limit"`
 }
 
 // ---- quotes (creator_quote) ------------------------------------------------
 // `?creator_id=` opens one creator's offers, `?status=` one segment of the quote
-// ledger, and `?assignee=` (B4-2) the ones a person or agent is working on. The
-// read order is the offer's own date, falling back to when the row was typed so a
-// draft (no `quoted_at` yet) does not sort below an older sent quote.
+// ledger, `?assignee=` (B4-2) the ones a person or agent is working on, and `?q=`
+// a text match over the creator's name/handle and the quote's own `note` — the 商务
+// looks a quote up by the person they spoke to, not by its uuid. The creator is
+// matched with an EXISTS rather than a join: this table is the row being returned,
+// and a joined creator must never be able to duplicate it.
+//
+// `?sort=` names the ordering the ledger asked for (WORKBENCH-API §20.3):
+// `updated_at` (the default: whatever moved most recently), `quoted_at` (the
+// offer's own date, falling back to `created_at` so a draft does not sink below an
+// older sent quote) and `fee_amount` (largest slot fee first; an offer with no fee
+// comes last, because "pure commission" is not "we offered 0"). The id is the total
+// tiebreak in all three, so a cursor page can neither repeat nor skip a row.
+//
+// The three orderings are three CASE keys instead of one projected sort value: the
+// keys have different types (timestamptz vs numeric) and a single projection would
+// have to coerce one of them, which is how a sort silently starts comparing text.
+// Only the branch `sort` names is non-NULL, and a key that is NULL for every row
+// does not affect the order.
+//
+// `cursor` is the last row of the previous page, resolved by the handler into
+// `(sort key, id)`: `cursor_at` for the two date orders, `cursor_fee` for the money
+// order, `cursor_id` always. A cursor that does not resolve in this workspace is a
+// 400 there rather than an empty page here.
 func (q *Queries) ListCreatorQuotes(ctx context.Context, arg ListCreatorQuotesParams) ([]CreatorQuote, error) {
 	rows, err := q.db.Query(ctx, listCreatorQuotes,
 		arg.WorkspaceID,
@@ -1273,6 +1413,13 @@ func (q *Queries) ListCreatorQuotes(ctx context.Context, arg ListCreatorQuotesPa
 		arg.AssigneeID,
 		arg.AssigneeType,
 		arg.ReviewState,
+		arg.Query,
+		arg.DepartmentScoped,
+		arg.DepartmentID,
+		arg.CursorID,
+		arg.Sort,
+		arg.CursorFee,
+		arg.CursorAt,
 		arg.Limit,
 	)
 	if err != nil {

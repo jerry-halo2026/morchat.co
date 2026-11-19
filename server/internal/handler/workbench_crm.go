@@ -830,17 +830,27 @@ func (h *Handler) ListCrmCollabs(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	// §24.4's read half (§24.6 recorded the list as the open gap): with
+	// `workbench_visibility=department` the list returns only the rows whose owner is
+	// in the caller's department, and a caller without a department sees none of them.
+	departmentID, departmentScoped, visible := h.bdDepartmentFilter(r, scope)
+	if !visible {
+		writeWorkbenchEmptyPage(w, "collabs", false)
+		return
+	}
 	rows, err := h.Queries.ListCrmCollabs(r.Context(), db.ListCrmCollabsParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		Stage:        strToText(stage),
-		BriefID:      briefID,
-		CreatorID:    creatorID,
-		AssigneeType: assigneeType,
-		AssigneeID:   assigneeID,
-		ReviewState:  reviewState,
-		CursorAt:     cursorAt,
-		CursorID:     cursorID,
-		Limit:        workbenchLimit(r),
+		WorkspaceID:      scope.WorkspaceUUID,
+		Stage:            strToText(stage),
+		BriefID:          briefID,
+		CreatorID:        creatorID,
+		AssigneeType:     assigneeType,
+		AssigneeID:       assigneeID,
+		ReviewState:      reviewState,
+		DepartmentScoped: departmentScoped,
+		DepartmentID:     departmentID,
+		CursorAt:         cursorAt,
+		CursorID:         cursorID,
+		Limit:            workbenchLimit(r),
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list collabs", err)
@@ -1544,16 +1554,25 @@ func (h *Handler) ListCrmSettlements(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	// A settlement has no owner of its own — its owner is the collaboration's — so the
+	// predicate narrows through `collab_id` (§24.4/§24.6).
+	departmentID, departmentScoped, visible := h.bdDepartmentFilter(r, scope)
+	if !visible {
+		writeWorkbenchEmptyPage(w, "settlements", false)
+		return
+	}
 	rows, err := h.Queries.ListCrmSettlements(r.Context(), db.ListCrmSettlementsParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		CollabID:     collabID,
-		Paid:         paid,
-		AssigneeType: assigneeType,
-		AssigneeID:   assigneeID,
-		ReviewState:  reviewState,
-		CursorAt:     cursorAt,
-		CursorID:     cursorID,
-		Limit:        workbenchLimit(r),
+		WorkspaceID:      scope.WorkspaceUUID,
+		CollabID:         collabID,
+		Paid:             paid,
+		AssigneeType:     assigneeType,
+		AssigneeID:       assigneeID,
+		ReviewState:      reviewState,
+		DepartmentScoped: departmentScoped,
+		DepartmentID:     departmentID,
+		CursorAt:         cursorAt,
+		CursorID:         cursorID,
+		Limit:            workbenchLimit(r),
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list settlements", err)

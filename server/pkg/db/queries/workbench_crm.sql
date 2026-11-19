@@ -124,21 +124,42 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archiv
 -- working on, which is what the cockpit's 我的 queue reads. The id filter is
 -- separate from the type because a bare uuid names a row without saying which
 -- identity space it came from (COLLAB-MODEL §1).
+--
+-- The department predicate (`department_scoped` + `department_id`, WORKBENCH-API
+-- §24.4/§24.6) is the read-side half of the visibility switch: with
+-- `workbench_visibility=department` a list returns the rows whose *owner* sits in
+-- the caller's department. A row with no owner, or an owner with no department,
+-- matches neither branch and therefore disappears — this filter never widens into
+-- "every department". `department_scoped = false` (the `transparent` default)
+-- leaves the query byte-for-byte the workspace-wide read it was.
 SELECT *
 FROM crm_collab
-WHERE workspace_id = sqlc.arg('workspace_id')
-  AND archived_at IS NULL
-  AND (sqlc.narg('stage')::text IS NULL OR stage = sqlc.narg('stage')::text)
-  AND (sqlc.narg('brief_id')::uuid IS NULL OR brief_id = sqlc.narg('brief_id')::uuid)
-  AND (sqlc.narg('creator_id')::uuid IS NULL OR creator_id = sqlc.narg('creator_id')::uuid)
-  AND (sqlc.narg('assignee_id')::uuid IS NULL OR assignee_id = sqlc.narg('assignee_id')::uuid)
-  AND (sqlc.narg('assignee_type')::text IS NULL OR assignee_type = sqlc.narg('assignee_type')::text)
-  AND (sqlc.narg('review_state')::text IS NULL OR review_state = sqlc.narg('review_state')::text)
+WHERE crm_collab.workspace_id = sqlc.arg('workspace_id')
+  AND crm_collab.archived_at IS NULL
+  AND (sqlc.narg('stage')::text IS NULL OR crm_collab.stage = sqlc.narg('stage')::text)
+  AND (sqlc.narg('brief_id')::uuid IS NULL OR crm_collab.brief_id = sqlc.narg('brief_id')::uuid)
+  AND (sqlc.narg('creator_id')::uuid IS NULL OR crm_collab.creator_id = sqlc.narg('creator_id')::uuid)
+  AND (sqlc.narg('assignee_id')::uuid IS NULL OR crm_collab.assignee_id = sqlc.narg('assignee_id')::uuid)
+  AND (sqlc.narg('assignee_type')::text IS NULL OR crm_collab.assignee_type = sqlc.narg('assignee_type')::text)
+  AND (sqlc.narg('review_state')::text IS NULL OR crm_collab.review_state = sqlc.narg('review_state')::text)
+  AND (
+    NOT sqlc.arg('department_scoped')::boolean
+    OR (
+      sqlc.narg('department_id')::uuid IS NOT NULL
+      AND EXISTS (
+        SELECT 1 FROM member m
+        WHERE m.workspace_id = crm_collab.workspace_id
+          AND m.user_id = crm_collab.owner_member_id
+          AND m.department_id = sqlc.narg('department_id')::uuid
+      )
+    )
+  )
   AND (
     sqlc.narg('cursor_at')::timestamptz IS NULL
-    OR (created_at, id) < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+    OR (crm_collab.created_at, crm_collab.id)
+      < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
   )
-ORDER BY created_at DESC, id DESC
+ORDER BY crm_collab.created_at DESC, crm_collab.id DESC
 LIMIT sqlc.arg('limit');
 
 -- name: GetCrmCollab :one
@@ -228,24 +249,60 @@ SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
 
 -- name: ListCrmSettlements :many
+-- `crm_settlement` has no `owner_member_id` — its owner is the collaboration's
+-- (see `loadCollabForSettlementWrite`). The department predicate therefore goes
+-- through `collab_id`: with the visibility switch in `department` mode a settlement
+-- is visible only when the collaboration behind it is owned by a member of the
+-- caller's department. A settlement whose collaboration has no owner is invisible
+-- in that mode, exactly like an ownerless row in the other ledgers, and the
+-- `transparent` default (`department_scoped = false`) reads as before.
 SELECT *
 FROM crm_settlement
-WHERE workspace_id = sqlc.arg('workspace_id')
-  AND archived_at IS NULL
-  AND (sqlc.narg('collab_id')::uuid IS NULL OR collab_id = sqlc.narg('collab_id')::uuid)
+WHERE crm_settlement.workspace_id = sqlc.arg('workspace_id')
+  AND crm_settlement.archived_at IS NULL
+  AND (
+    sqlc.narg('collab_id')::uuid IS NULL
+    OR crm_settlement.collab_id = sqlc.narg('collab_id')::uuid
+  )
   AND (
     sqlc.narg('paid')::boolean IS NULL
-    OR (sqlc.narg('paid')::boolean AND paid_at IS NOT NULL)
-    OR (NOT sqlc.narg('paid')::boolean AND paid_at IS NULL)
+    OR (sqlc.narg('paid')::boolean AND crm_settlement.paid_at IS NOT NULL)
+    OR (NOT sqlc.narg('paid')::boolean AND crm_settlement.paid_at IS NULL)
   )
-  AND (sqlc.narg('assignee_id')::uuid IS NULL OR assignee_id = sqlc.narg('assignee_id')::uuid)
-  AND (sqlc.narg('assignee_type')::text IS NULL OR assignee_type = sqlc.narg('assignee_type')::text)
-  AND (sqlc.narg('review_state')::text IS NULL OR review_state = sqlc.narg('review_state')::text)
+  AND (
+    sqlc.narg('assignee_id')::uuid IS NULL
+    OR crm_settlement.assignee_id = sqlc.narg('assignee_id')::uuid
+  )
+  AND (
+    sqlc.narg('assignee_type')::text IS NULL
+    OR crm_settlement.assignee_type = sqlc.narg('assignee_type')::text
+  )
+  AND (
+    sqlc.narg('review_state')::text IS NULL
+    OR crm_settlement.review_state = sqlc.narg('review_state')::text
+  )
+  AND (
+    NOT sqlc.arg('department_scoped')::boolean
+    OR (
+      sqlc.narg('department_id')::uuid IS NOT NULL
+      AND EXISTS (
+        SELECT 1
+        FROM crm_collab collab
+        JOIN member m
+          ON m.workspace_id = collab.workspace_id
+         AND m.user_id = collab.owner_member_id
+        WHERE collab.id = crm_settlement.collab_id
+          AND collab.workspace_id = crm_settlement.workspace_id
+          AND m.department_id = sqlc.narg('department_id')::uuid
+      )
+    )
+  )
   AND (
     sqlc.narg('cursor_at')::timestamptz IS NULL
-    OR (created_at, id) < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+    OR (crm_settlement.created_at, crm_settlement.id)
+      < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
   )
-ORDER BY created_at DESC, id DESC
+ORDER BY crm_settlement.created_at DESC, crm_settlement.id DESC
 LIMIT sqlc.arg('limit');
 
 -- name: GetCrmSettlement :one

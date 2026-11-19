@@ -1686,6 +1686,11 @@ export const IssueSchema = z.object({
   creator_id: z.string(),
   requester_id: z.string().nullable().optional().catch(undefined),
   parent_issue_id: z.string().nullable(),
+  // The OKR objective this issue advances (`issue.goal_id`, 748), or null when
+  // unattached. .default(null) rather than .optional(): a backend that predates
+  // the field omits the key entirely, and the whole-issue parse must not fail
+  // (nor leave a hole) because of one additive pointer.
+  goal_id: z.string().nullable().default(null),
   // Additive pointer (MUL-7349); same disproportionate-failure reasoning as
   // status_name above, and older backends do not send it at all.
   duplicate_of: z
@@ -5066,6 +5071,12 @@ export const EMPTY_CRM_SETTLEMENT_LIST_RESPONSE: CrmSettlementListResponse = {
 //   * a cockpit number carries `empty: "insufficient_data"` with `value: null`
 //     when nothing was summed, so the client can draw a gap instead of 锟?.00.
 
+// The list envelopes' `next_cursor` (WORKBENCH-API §20.3): opaque, and every unusable
+// shape means "this page is the last one". A malformed cursor must never reject the
+// page — the rows are still renderable, and losing them over a token the client could
+// not have validated is worse than stopping the walk at the page it already has.
+const workbenchNextCursor = z.string().nullable().default(null).catch(null);
+
 export const BdActivitySchema = z.object({
   id: z.string(),
   workspace_id: z.string().default(""),
@@ -5096,11 +5107,16 @@ export const EMPTY_BD_ACTIVITY: BdActivity = {
 export const BdActivityListResponseSchema = z.object({
   activities: z.array(BdActivitySchema).default([]),
   total: z.number().default(0),
+  // The keyset cursor (§20.3). Absent, null and "not a string" all read as "no next
+  // page": a page that ends is the safe degradation, since the alternative is a client
+  // asking for the same page forever.
+  next_cursor: workbenchNextCursor,
 }).loose();
 
 export const EMPTY_BD_ACTIVITY_LIST_RESPONSE: BdActivityListResponse = {
   activities: [],
   total: 0,
+  next_cursor: null,
 };
 
 export const BdQuoteSchema = z.object({
@@ -5144,11 +5160,14 @@ export const EMPTY_BD_QUOTE: BdQuote = {
 export const BdQuoteListResponseSchema = z.object({
   quotes: z.array(BdQuoteSchema).default([]),
   total: z.number().default(0),
+  // Same cursor rule as the follow-up list: opaque, and a missing one means "last page".
+  next_cursor: workbenchNextCursor,
 }).loose();
 
 export const EMPTY_BD_QUOTE_LIST_RESPONSE: BdQuoteListResponse = {
   quotes: [],
   total: 0,
+  next_cursor: null,
 };
 
 // --- the review queue (`/api/workbench/review`, WORKBENCH-API §26) ----------
