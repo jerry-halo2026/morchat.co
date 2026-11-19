@@ -1,14 +1,14 @@
 # dev 分支评审（main..dev，118 条 commit）
 
-> 生成于 2026-11-19，对象是 `main(05fcc07bf)..dev(2ba4bc864)`。
+> 生成于 2026-11-19，对象是 `main(05fcc07bf)..dev`（最终 121 条 commit，含本文档）。
 > 这份文档是**合并前的评审记录**，不是发布说明；结论在最后一节。
 
 ## 1. 规模
 
 | 项 | 值 |
 | --- | --- |
-| commit | **118** |
-| 变更文件 | **1,344** |
+| commit | **121** |
+| 变更文件 | **1,346** |
 | 代码行 | 1344 files changed, 216557 insertions(+), 950 deletions(-) |
 | 迁移文件（新增） | **368** 个（其中并发索引构建 109 条，单语句一文件） |
 | 新表 | **53** |
@@ -98,3 +98,45 @@ cd packages/core  && pnpm exec vitest run api                          # 676 通
 1. `git checkout main && git merge --ff-only dev`（main 未动，可快进）
 2. 推送 `main`，用 PR #1 的正文模板（`docs/PR-main-from-dev.md`）作为描述
 3. 若 main 期间被别人推进过：先 `git rebase origin/main`，**按 §4.1 重新编号迁移**，再走同样流程
+
+## 8. 独立评审（2026-11-19）及其处置
+
+另派一个只读评审人抽查了 14 条路由 / 12 个迁移 / 8 个测试文件 / 203 条路由全扫，
+报告 4 条阻断项 + 10 条非阻断。**4 条阻断项本批全部修掉并补了回归用例**。
+
+### 8.1 阻断项（已修）
+
+| # | 问题 | 修法 | 回归用例 |
+| --- | --- | --- | --- |
+| 1 | `reviewForWrite` 丢掉 `current.State`：人改一个**非高价值**字段（如 note）就把 agent 写的 `pending` 行静默改成 `accepted`，且 `review_state` 不在 diff 里，连一条审计都不留 | pending 行保持 pending；`review_state` 加进四张台账的 diff | `TestReviewGateSurvivesAnOrdinaryEdit` |
+| 2 | `/bd/pipeline.orders.paid_amount` 用 `paid_dominant` 求和、却回 `dominant` 当币种 → 回款多为 USD 的工作区把美元数打上 ¥ | 两个金额都用同一 `dominant`，删掉 `paid_dominant` | 既有 `TestBdPipeline*` + 口径统一 |
+| 3 | CSV 批量导入既绕开复核闸门，又**一行审计都不写**（`last_actor` 恒空，覆写率分子分母同时缺块） | 每行同事务写 `.created` 审计；`accepted` 保留但写进 §26.1 作为「导入=已看过 dry-run 预览」的显式例外 | `TestImportLeavesAnAuditTrail` |
+| 4 | PATCH `{"currency": ""}` 落到「缺省=CNY」分支，把 USD 单静默改成 CNY（金额含义被改） | 缺省仍默认 CNY；**传了但是空串 → 400** | `TestPatchCurrencyEmptyIsRefused` |
+
+### 8.2 顺带修掉（非阻断但一行成本）
+
+- `kind='renewal'`：迁移 706 加了、handler 枚举没加、文档说没有——三处不一致，已把枚举补上（706 不再死迁移）。
+- `ArchiveCreatorActivity` / `ArchiveCrmSettlement` 缺 `expected_revision` 守卫，与 COLLAB-MODEL §3 冲突——两处都补上。
+- 迁移 816 的 down 是 `ADD CONSTRAINT ... NOT VALID`，回滚**不会**验证存量行，会留下「每次 UPDATE 都撞 CHECK」的坏状态；改成先探测并对非空结果 `RAISE EXCEPTION`。
+- §24.5 里「`agent.delegate` 未执行」已过时（MCP 面已执行），改成「MCP 已执行 / REST 面未执行」并记进 backlog。
+- `TestHumanWriteStaysAccepted` 原本断言的是**旧 bug**（人改 pending 行会变 accepted），已改成正确语义：带金额创建 → pending、无金额创建 → accepted、人改普通字段仍 accepted。
+
+### 8.3 记入 backlog（未在本批修）
+
+| # | 事项 | 原因 |
+| --- | --- | --- |
+| 1 | REST 面 agent 写没有 `agent.delegate` 与 assignee 限制（MCP 面有） | 两个写入面强度不同；统一要先定「REST 上 agent 能做什么」 |
+| 2 | 部门片段匹配按声明顺序而非 longest-first（「内容运营」命中「内容」而非「运营」）；两份手抄的解析函数 | 会改变现有成员的实际权限，需先定语义 |
+| 3 | 权限模板 / 财务月度录入 / media·goal·hr·affiliate 的全部写都没有审计 | §2 只要求四张核心台账，扩面是独立批次 |
+| 4 | 前端 `receivable()` 自己减钱并 `Math.max(0, …)`：把 `collected=null` 当 0、把「已超收」压成 0 | 服务端没有应收字段，前端算数属过渡；要改得先在契约里定这个数 |
+| 5 | 复核队列批量 accept 用 `Promise.all`，一行 409 就整批报错、没有「部分成功」 | 交互设计问题，不是正确性问题 |
+| 6 | `deep-link.ts` 用全文档 `querySelectorAll('[data-row-id]')`，同页两个台账可能撞同名 id | 当前页面结构不会同页并存两张台账 |
+| 7 | 三个弱测试（`workbench_contract_test.go` 只断言键存在、manifest 测试不碰 handler、`TestAdsSettleExpressionIsOneWindow` 断言字符串） | 有同文件的真行用例兜底，优先级低 |
+| 8 | `AdsViolations` 重复调用同一个 capability 判定两次 | 无害冗余 |
+
+### 8.4 评审人确认没问题的（避免重复查）
+
+203 条路由与矩阵逐字一致且零重复注册 · 109 条并发索引全部单语句且全部登记 · 368 个新迁移
+零 `REFERENCES/ON DELETE` · `expected_revision` 确实在 WHERE 里 · `review.accept` 三层到位 ·
+无 owner 的行读不到也写不了 · agent 金额闸门在 REST 面生效 · 三态没把 NULL 当 0 ·
+`items`/`rows` 信封真的两边都改了 · 409 全链路没吞错。

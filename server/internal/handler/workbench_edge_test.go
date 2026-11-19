@@ -1064,8 +1064,11 @@ func TestWorkbenchEdgeSettlements(t *testing.T) {
 			res, row := patch(t, map[string]any{"kind": value})
 			return res, &row.Kind
 		})
-		// The three values the column's CHECK does not have yet (§3.2 C10).
-		for _, value := range []string{"renewal", "refund", "tax2"} {
+		// `renewal` is in the column's CHECK (migration 706) and in the handler's
+		// enum, so it is accepted; the two values that are in neither are refused.
+		res, _ := patch(t, map[string]any{"kind": "renewal"})
+		edgeWantStatus(t, res, http.StatusOK, "kind = renewal")
+		for _, value := range []string{"refund", "tax2"} {
 			res, _ := patch(t, map[string]any{"kind": value})
 			edgeWantStatus(t, res, http.StatusBadRequest, "kind = "+value)
 		}

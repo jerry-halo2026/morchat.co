@@ -150,6 +150,13 @@ type reviewDecision struct {
 // erase who accepted it. A write that DOES need review clears the old decision:
 // it described values the row no longer holds.
 func reviewForWrite(actor workbenchActor, highValue bool, current reviewDecision) reviewDecision {
+	// A pending row stays pending. Editing a field the reviewer has not looked at
+	// yet must not clear the queue: without this, any member with the domain's
+	// write capability could accept an agent's money row by touching `note`, and
+	// the queue would never show who did it or why.
+	if current.State == reviewPending {
+		return current
+	}
 	if actor.isAgent() || highValue {
 		return reviewDecision{State: reviewPending}
 	}
@@ -461,6 +468,7 @@ func collabChanges(before, after db.CrmCollab) []auditField {
 	d.num("platform_fee", before.PlatformFee, after.PlatformFee)
 	d.str("currency", before.Currency, after.Currency)
 	d.text("settlement_mode", before.SettlementMode, after.SettlementMode)
+	d.str("review_state", before.ReviewState, after.ReviewState)
 	d.num("commission_rate", before.CommissionRate, after.CommissionRate)
 	d.boolean("sample_required", before.SampleRequired, after.SampleRequired)
 	d.boolean("script_required", before.ScriptRequired, after.ScriptRequired)
@@ -500,6 +508,7 @@ func quoteChanges(before, after db.CreatorQuote) []auditField {
 	d.uuid("owner_member_id", before.OwnerMemberID, after.OwnerMemberID)
 	d.text("assignee_type", before.AssigneeType, after.AssigneeType)
 	d.uuid("assignee_id", before.AssigneeID, after.AssigneeID)
+	d.str("review_state", before.ReviewState, after.ReviewState)
 	return d.fields
 }
 
@@ -515,6 +524,7 @@ func activityChanges(before, after db.CreatorActivity) []auditField {
 	d.uuid("owner_member_id", before.OwnerMemberID, after.OwnerMemberID)
 	d.text("assignee_type", before.AssigneeType, after.AssigneeType)
 	d.uuid("assignee_id", before.AssigneeID, after.AssigneeID)
+	d.str("review_state", before.ReviewState, after.ReviewState)
 	return d.fields
 }
 
@@ -530,6 +540,7 @@ func settlementChanges(before, after db.CrmSettlement) []auditField {
 	d.date("paid_at", before.PaidAt, after.PaidAt)
 	d.text("assignee_type", before.AssigneeType, after.AssigneeType)
 	d.uuid("assignee_id", before.AssigneeID, after.AssigneeID)
+	d.str("review_state", before.ReviewState, after.ReviewState)
 	return d.fields
 }
 

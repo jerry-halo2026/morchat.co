@@ -1036,25 +1036,51 @@ func (h *Handler) importCommit(w http.ResponseWriter, r *http.Request, scope wor
 
 	committed := 0
 	createdCollabIDs := make([]string, 0, len(plan.rows))
+	// An import is a write: each row it creates carries a `.created` audit entry in
+	// this same transaction, marked as an import, so `last_actor` is never empty and
+	// §26.3's overwrite attribution has something to attribute. The rows still land
+	// `accepted` — the operator reviewed the dry-run preview (§23), which is what a
+	// review would have checked — and that exception is written down in §26.1.
+	actor := h.workbenchActor(r, scope)
 	for _, row := range plan.rows {
 		if row.action != importActionCreate {
 			continue
 		}
 		switch plan.kind {
 		case importKindQuotes:
-			if _, err := qtx.CreateCreatorQuote(r.Context(), row.quote); err != nil {
+			created, err := qtx.CreateCreatorQuote(r.Context(), row.quote)
+			if err != nil {
 				workbenchInternalError(w, r, "failed to import the quote batch", err)
 				return 0, false
 			}
+			if _, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCreatorQuote, created.ID,
+				subjectCreatorQuote+".created", actor, pgtype.UUID{}, auditCreate,
+				quoteChanges(db.CreatorQuote{}, created)); err != nil {
+				workbenchInternalError(w, r, "failed to record the imported quote", err)
+				return 0, false
+			}
 		case importKindActivities:
-			if _, err := qtx.CreateCreatorActivity(r.Context(), row.activity); err != nil {
+			created, err := qtx.CreateCreatorActivity(r.Context(), row.activity)
+			if err != nil {
 				workbenchInternalError(w, r, "failed to import the follow-up batch", err)
+				return 0, false
+			}
+			if _, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCreatorActivity, created.ID,
+				subjectCreatorActivity+".created", actor, pgtype.UUID{}, auditCreate,
+				activityChanges(db.CreatorActivity{}, created)); err != nil {
+				workbenchInternalError(w, r, "failed to record the imported follow-up", err)
 				return 0, false
 			}
 		case importKindCollabs:
 			created, err := qtx.CreateCrmCollab(r.Context(), row.collab)
 			if err != nil {
 				workbenchInternalError(w, r, "failed to import the collaboration batch", err)
+				return 0, false
+			}
+			if _, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCrmCollab, created.ID,
+				subjectCrmCollab+".created", actor, pgtype.UUID{}, auditCreate,
+				collabChanges(db.CrmCollab{}, created)); err != nil {
+				workbenchInternalError(w, r, "failed to record the imported collaboration", err)
 				return 0, false
 			}
 			createdCollabIDs = append(createdCollabIDs, uuidToString(created.ID))

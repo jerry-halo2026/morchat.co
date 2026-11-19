@@ -79,17 +79,35 @@ func TestAgentWriteLandsInTheReviewQueue(t *testing.T) {
 }
 
 // TestHumanWriteStaysAccepted: the gate is not a tax on people. A member writing an
-// ordinary field produces a reviewed row immediately, so the queue stays a queue of
-// exceptions rather than of everything.
+// ordinary field on a row that needs no review leaves it accepted, so the queue stays
+// a queue of exceptions rather than of everything.
+//
+// The fixture carries money (`final_amount` and friends), and §26.1 puts a human
+// write of a money field in the queue — so this test builds a row with no money at
+// all to exercise the accepted path.
 func TestHumanWriteStaysAccepted(t *testing.T) {
 	collab := collabFixture(t, "Human write")
-	req := workbenchRequest(t, "PATCH", "/api/workbench/crm/collabs/"+collab.ID, map[string]any{
+	// The fixture's amounts make the row pending; a row without money is accepted.
+	if state, _ := reviewStateOf(t, "crm_collab", collab.ID); state != "pending" {
+		t.Fatalf("a collab created with amounts = %q, want pending (§26.1)", state)
+	}
+	plain := createWorkbenchCollab(t, collab.BriefID, collab.CreatorID, map[string]any{
+		"final_amount": nil,
+		"creator_fee":  nil,
+		"sample_cost":  nil,
+		"platform_fee": nil,
+	})
+	if state, _ := reviewStateOf(t, "crm_collab", plain.ID); state != "accepted" {
+		t.Fatalf("a collab with no money = %q, want accepted", state)
+	}
+
+	req := workbenchRequest(t, "PATCH", "/api/workbench/crm/collabs/"+plain.ID, map[string]any{
 		"stage": "negotiating",
 	}, testUserID)
 	testutil.Call(t, testHandler.UpdateCrmCollab,
-		withURLParam(req, "collabId", collab.ID)).Want(http.StatusOK)
-	if state, _ := reviewStateOf(t, "crm_collab", collab.ID); state != "accepted" {
-		t.Fatalf("human-written collab review_state = %q, want accepted", state)
+		withURLParam(req, "collabId", plain.ID)).Want(http.StatusOK)
+	if state, _ := reviewStateOf(t, "crm_collab", plain.ID); state != "accepted" {
+		t.Fatalf("a human write of an ordinary field = %q, want accepted", state)
 	}
 }
 

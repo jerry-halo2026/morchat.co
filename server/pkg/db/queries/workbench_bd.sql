@@ -124,7 +124,8 @@ RETURNING *;
 UPDATE creator_activity
 SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
-  AND archived_at IS NULL;
+  AND archived_at IS NULL
+  AND (sqlc.narg('expected_revision')::int IS NULL OR revision = sqlc.narg('expected_revision')::int);
 
 -- ---- quotes (creator_quote) ------------------------------------------------
 
@@ -494,9 +495,6 @@ paid AS (
     WHERE s.workspace_id = sqlc.arg('workspace_id')::uuid
       AND s.archived_at IS NULL
       AND s.paid_at IS NOT NULL
-),
-paid_dominant AS (
-    SELECT currency FROM paid GROUP BY currency ORDER BY count(*) DESC, currency LIMIT 1
 )
 SELECT
     (count(*) FILTER (WHERE stage IN (
@@ -511,9 +509,11 @@ SELECT
         WHERE stage <> 'cancelled' AND currency = (SELECT currency FROM dominant)
     ))::bigint AS total_sample_count,
     coalesce((SELECT currency FROM dominant), 'CNY')::text AS currency,
+    -- One window, one currency: the same `dominant` the totals use, so the number
+    -- and the currency code in this row always describe the same money.
     coalesce((SELECT sum(amount) FROM paid
-              WHERE currency = (SELECT currency FROM paid_dominant)), 0)::float8 AS paid_amount,
-    (SELECT count(*) FROM paid WHERE currency = (SELECT currency FROM paid_dominant))::bigint
+              WHERE currency = (SELECT currency FROM dominant)), 0)::float8 AS paid_amount,
+    (SELECT count(*) FROM paid WHERE currency = (SELECT currency FROM dominant))::bigint
         AS paid_sample_count
 FROM live;
 

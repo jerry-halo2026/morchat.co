@@ -376,4 +376,5 @@ RETURNING id;
 -- name: ArchiveCrmSettlement :execrows
 UPDATE crm_settlement
 SET archived_at = now(), updated_at = now(), revision = revision + 1
-WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
+WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL
+  AND (sqlc.narg('expected_revision')::int IS NULL OR revision = sqlc.narg('expected_revision')::int);

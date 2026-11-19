@@ -2653,7 +2653,7 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 本批**没做**的（下一批）：
 
 - **复核队列与部门可见性**：`GET /review`（§26.2）把四张台账摊平成一条队列，它还没有接部门谓词——开关 `department` 时复核队列仍按工作区读。要收窄得给那个 UNION 的每个分支各加一次同样的 `EXISTS`，本批只做了四张核心台账的 list 与 `bd/campaigns`。
-- **`agent.delegate` 未执行**：MCP 代写通道还没接，常量与解析已就位。
+- ~~`agent.delegate` 未执行~~ **已执行**：MCP 三个写工具（建报价/记跟进/推阶段）要求 `agent.delegate`，并且只能改「指派给自己」或「委派人的」行（`workbench_agent_write.go`）。**REST 面未执行**：agent 经 REST PATCH 只需 capability，没有 `agent.delegate` 与 assignee 限制——两个写入面强度不同，属已知不一致（记在 backlog）。
 - **`review.accept` 未接复核队列**：§7.2 的 `review_state` 不在本批。
 - **`ads.read`**：千川接口（§25）落地时直接复用同一张表。
 

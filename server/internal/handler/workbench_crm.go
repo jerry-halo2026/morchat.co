@@ -31,7 +31,7 @@ var (
 	crmBriefStatuses   = map[string]bool{"draft": true, "open": true, "matching": true, "closed": true}
 	crmDeliverables    = map[string]bool{"short_video": true, "post": true, "live": true}
 	crmSettlementModes = map[string]bool{"flat": true, "cps": true, "cpa": true, "barter": true}
-	crmSettlementKinds = map[string]bool{"prepay": true, "final": true, "platform_fee": true, "tax": true}
+	crmSettlementKinds = map[string]bool{"prepay": true, "final": true, "platform_fee": true, "tax": true, "renewal": true}
 
 	// collabStageRank orders the funnel so a transition can fill in every
 	// milestone it has passed, including the ones it skipped over.
@@ -264,10 +264,16 @@ func (h *Handler) publishCRMActor(eventType, workspaceID, id string, actor workb
 	h.publish(eventType, workspaceID, actor.Type, actor.idString(), map[string]any{"id": id})
 }
 
-// workbenchCurrency normalises a CHAR(3) currency code, defaulting to CNY.
+// workbenchCurrency normalises a CHAR(3) currency code. An absent value defaults to
+// CNY (a create may leave it out); a present but empty one is a clear of a NOT NULL
+// column, which §3.4 answers with a 400 rather than silently re-denominating the row.
 func workbenchCurrency(w http.ResponseWriter, raw *string) (string, bool) {
-	if raw == nil || strings.TrimSpace(*raw) == "" {
+	if raw == nil {
 		return "CNY", true
+	}
+	if strings.TrimSpace(*raw) == "" {
+		writeError(w, http.StatusBadRequest, "currency is required")
+		return "", false
 	}
 	currency := strings.ToUpper(strings.TrimSpace(*raw))
 	if len(currency) != 3 {

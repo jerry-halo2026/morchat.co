@@ -82,15 +82,17 @@ const archiveCrmSettlement = `-- name: ArchiveCrmSettlement :execrows
 UPDATE crm_settlement
 SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
+  AND ($3::int IS NULL OR revision = $3::int)
 `
 
 type ArchiveCrmSettlementParams struct {
-	ID          pgtype.UUID `json:"id"`
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	ID               pgtype.UUID `json:"id"`
+	WorkspaceID      pgtype.UUID `json:"workspace_id"`
+	ExpectedRevision pgtype.Int4 `json:"expected_revision"`
 }
 
 func (q *Queries) ArchiveCrmSettlement(ctx context.Context, arg ArchiveCrmSettlementParams) (int64, error) {
-	result, err := q.db.Exec(ctx, archiveCrmSettlement, arg.ID, arg.WorkspaceID)
+	result, err := q.db.Exec(ctx, archiveCrmSettlement, arg.ID, arg.WorkspaceID, arg.ExpectedRevision)
 	if err != nil {
 		return 0, err
 	}

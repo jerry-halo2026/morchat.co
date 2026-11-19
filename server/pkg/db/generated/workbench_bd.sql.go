@@ -16,15 +16,17 @@ UPDATE creator_activity
 SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = $1 AND workspace_id = $2::uuid
   AND archived_at IS NULL
+  AND ($3::int IS NULL OR revision = $3::int)
 `
 
 type ArchiveCreatorActivityParams struct {
-	ID          pgtype.UUID `json:"id"`
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	ID               pgtype.UUID `json:"id"`
+	WorkspaceID      pgtype.UUID `json:"workspace_id"`
+	ExpectedRevision pgtype.Int4 `json:"expected_revision"`
 }
 
 func (q *Queries) ArchiveCreatorActivity(ctx context.Context, arg ArchiveCreatorActivityParams) (int64, error) {
-	result, err := q.db.Exec(ctx, archiveCreatorActivity, arg.ID, arg.WorkspaceID)
+	result, err := q.db.Exec(ctx, archiveCreatorActivity, arg.ID, arg.WorkspaceID, arg.ExpectedRevision)
 	if err != nil {
 		return 0, err
 	}
@@ -598,9 +600,6 @@ paid AS (
     WHERE s.workspace_id = $1::uuid
       AND s.archived_at IS NULL
       AND s.paid_at IS NOT NULL
-),
-paid_dominant AS (
-    SELECT currency FROM paid GROUP BY currency ORDER BY count(*) DESC, currency LIMIT 1
 )
 SELECT
     (count(*) FILTER (WHERE stage IN (
@@ -615,9 +614,11 @@ SELECT
         WHERE stage <> 'cancelled' AND currency = (SELECT currency FROM dominant)
     ))::bigint AS total_sample_count,
     coalesce((SELECT currency FROM dominant), 'CNY')::text AS currency,
+    -- One window, one currency: the same ` + "`" + `dominant` + "`" + ` the totals use, so the number
+    -- and the currency code in this row always describe the same money.
     coalesce((SELECT sum(amount) FROM paid
-              WHERE currency = (SELECT currency FROM paid_dominant)), 0)::float8 AS paid_amount,
-    (SELECT count(*) FROM paid WHERE currency = (SELECT currency FROM paid_dominant))::bigint
+              WHERE currency = (SELECT currency FROM dominant)), 0)::float8 AS paid_amount,
+    (SELECT count(*) FROM paid WHERE currency = (SELECT currency FROM dominant))::bigint
         AS paid_sample_count
 FROM live
 `
