@@ -1,15 +1,15 @@
 package handler
 
-// Product-layer capabilities (docs/engineering/WORKBENCH-API.md §24,
-// docs/engineering/COLLAB-MODEL.md §1/§6).
+// Product-layer capabilities (docs/engineering/WORKBENCH-API.md 搂24,
+// docs/engineering/COLLAB-MODEL.md 搂1/搂6).
 //
 // `member.role` stays the platform primitive and this file does not change what it
 // means: owner/admin still write everything. What the product layer needs on top is
-// a vocabulary that can say "a 商务 may quote but may not settle" without inventing
+// a vocabulary that can say "a 鍟嗗姟 may quote but may not settle" without inventing
 // platform roles, so capabilities are **string constants** resolved per request from
-// four sources, in this order (§24.2):
+// four sources, in this order (搂24.2):
 //
-//	1. role owner|admin  → every capability
+//	1. role owner|admin  鈫?every capability
 //	2. workbench_role_template for the member's job title (hr_employee_profile)
 //	3. the department default table below (job function, by department name)
 //	4. fallback: every `*.read`, no `*.write`
@@ -18,12 +18,12 @@ package handler
 //
 //   - it never narrows a *read* below the workspace by itself. Reads stay
 //     workspace-wide unless `workspace.settings.workbench_visibility` is
-//     `department` (§24.4), because a permission system that hides data by default
+//     `department` (搂24.4), because a permission system that hides data by default
 //     turns every page into a support ticket.
 //   - it never replaces the ownership rule. A write needs the capability **and**
-//     (owner/admin, or the row's owner) — "I have crm.write" does not mean "I may
-//     edit your collaboration", which is exactly the mistake COLLAB-MODEL §1 warns
-//     about ("被指派不等于有权改").
+//     (owner/admin, or the row's owner) 鈥?"I have crm.write" does not mean "I may
+//     edit your collaboration", which is exactly the mistake COLLAB-MODEL 搂1 warns
+//     about ("琚寚娲句笉绛変簬鏈夋潈鏀?).
 
 import (
 	"context"
@@ -38,7 +38,7 @@ import (
 	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
-// Capability constants (§24.1). They are the wire values: the client renders entry
+// Capability constants (搂24.1). They are the wire values: the client renders entry
 // points from these strings, so renaming one is a breaking change.
 const (
 	capCRMRead    = "crm.read"
@@ -47,14 +47,15 @@ const (
 	capCRMSettle  = "crm.settle"
 	capMediaRead  = "media.read"
 	capMediaWrite = "media.write"
-	// capMediaPublish is the "this went live" write: publishing a post, or moving a
-	// script into the publish window.
+	// capMediaPublish is the "this went live" write: creating, editing or removing a
+	// creator post (WORKBENCH-API §12.3). The content scripts never "publish" — their
+	// statuses stop at approved, so a script write is media.write.
 	capMediaPublish = "media.publish"
 	capHRRead       = "hr.read"
 	capHRWrite      = "hr.write"
 	capBossRead     = "boss.read"
 	capAdsRead      = "ads.read"
-	// capReviewAccept is the review gate (§7.2 of COLLAB-MODEL): accepting what an
+	// capReviewAccept is the review gate (搂7.2 of COLLAB-MODEL): accepting what an
 	// agent or an import wrote into a high-value field.
 	capReviewAccept = "review.accept"
 	// capAgentDelegate lets an agent write on this member's behalf. An agent never
@@ -63,7 +64,7 @@ const (
 )
 
 // workbenchCapabilityCatalog is every capability this server knows about, in the
-// order §24.1 lists them. Unknown strings arriving from a template are ignored on
+// order 搂24.1 lists them. Unknown strings arriving from a template are ignored on
 // read (a future capability must not lock an older server out of a workspace).
 var workbenchCapabilityCatalog = []string{
 	capCRMRead, capCRMWrite, capCRMAmount, capCRMSettle,
@@ -72,14 +73,14 @@ var workbenchCapabilityCatalog = []string{
 	capReviewAccept, capAgentDelegate,
 }
 
-// workbenchDepartmentDefaults is §24.2 step 3: a job function's default capability
+// workbenchDepartmentDefaults is 搂24.2 step 3: a job function's default capability
 // set, keyed by a normalised fragment of the department's own name.
 //
 // It is a constant table rather than a database one on purpose: this batch has no
 // admin UI for department defaults, and a table nobody can edit would be a worse
 // answer than a documented default that a role template can override per person.
 // Matching is by substring against `lower(department.name)`, longest fragment first,
-// so 销售部 / 商务拓展部 / 电商销售 all land on the same entry.
+// so 閿€鍞儴 / 鍟嗗姟鎷撳睍閮?/ 鐢靛晢閿€鍞?all land on the same entry.
 var workbenchDepartmentDefaults = []struct {
 	fragment     string
 	capabilities []string
@@ -141,9 +142,9 @@ func (s capabilitySet) list() []string {
 	return append(out, extras...)
 }
 
-// fallbackCapabilities is §24.2 step 4: what a member with no role template and no
+// fallbackCapabilities is 搂24.2 step 4: what a member with no role template and no
 // department gets. It is deliberately the set the server granted before capabilities
-// existed — everything `workbenchCanWrite` needed — and nothing that is new:
+// existed 鈥?everything `workbenchCanWrite` needed 鈥?and nothing that is new:
 //
 //	crm.read crm.write crm.amount crm.settle media.read media.write media.publish
 //	hr.read ads.read boss.read
@@ -151,7 +152,7 @@ func (s capabilitySet) list() []string {
 // The fallback must not be narrower than the behaviour it replaces. Most members have
 // neither a job title (an HR profile is rare) nor a department (departments were added
 // later), so a read-only fallback would silently demote the majority of a real
-// workspace from "I can edit my own rows" to "read only" on deploy — a regression
+// workspace from "I can edit my own rows" to "read only" on deploy 鈥?a regression
 // nobody would report as a permissions bug; they would report it as "the product got
 // worse". `hr.write`, `review.accept` and `agent.delegate` are absent on purpose: they
 // are capabilities that did not exist before, so withholding them changes nothing,
@@ -189,8 +190,8 @@ func filterKnownCapabilities(values []string) []string {
 
 // ---- resolution ------------------------------------------------------------
 
-// workbenchCapabilities resolves §scope's capabilities. The order is the contract:
-// role → job-title template → department default → read-only fallback.
+// workbenchCapabilities resolves 搂scope's capabilities. The order is the contract:
+// role 鈫?job-title template 鈫?department default 鈫?read-only fallback.
 //
 // The job title comes from the member's live `hr_employee_profile`; a member with no
 // profile has no title, so step 2 is skipped for them (an HR profile is not a
@@ -236,7 +237,7 @@ func (h *Handler) workbenchCapabilities(ctx context.Context, scope workbenchScop
 }
 
 // requireWorkbenchCapability gates one handler on one capability and writes the 403
-// itself. The response body carries `{capability}` (§24.3) so the client can hide the
+// itself. The response body carries `{capability}` (搂24.3) so the client can hide the
 // entry point rather than render an error it cannot act on.
 func (h *Handler) requireWorkbenchCapability(w http.ResponseWriter, r *http.Request, scope workbenchScope, capability string) bool {
 	if h.workbenchCapabilities(r.Context(), scope).has(capability) {
@@ -247,6 +248,15 @@ func (h *Handler) requireWorkbenchCapability(w http.ResponseWriter, r *http.Requ
 }
 
 // writeCapabilityError is the one place the 403 body is shaped.
+// writeRoleRequiredError is the 403 for routes gated on workspace role rather than
+// on a capability. Naming an unrelated capability in `capability` would make a
+// client that hides entries per capability draw the wrong conclusion.
+func writeRoleRequiredError(w http.ResponseWriter) {
+	writeJSON(w, http.StatusForbidden, map[string]any{
+		"error": "forbidden_role",
+		"role":  "owner",
+	})
+}
 func writeCapabilityError(w http.ResponseWriter, capability string) {
 	writeJSON(w, http.StatusForbidden, map[string]any{
 		"error":      "forbidden_capability",
@@ -256,7 +266,7 @@ func writeCapabilityError(w http.ResponseWriter, capability string) {
 
 // ---- department visibility -------------------------------------------------
 
-// workbenchVisibilitySetting is `workspace.settings.workbench_visibility` (§24.4).
+// workbenchVisibilitySetting is `workspace.settings.workbench_visibility` (搂24.4).
 type workbenchVisibilitySetting string
 
 const (
@@ -287,13 +297,13 @@ func (h *Handler) workbenchVisibility(ctx context.Context, scope workbenchScope)
 // workbenchReadDepartment is the department a *read* list is narrowed to, or an
 // invalid UUID when reads stay workspace-wide:
 //
-//   - `transparent` (the default) → workspace-wide, exactly as before §24.4;
-//   - `department` → the caller's own department;
-//   - `department` with a caller who has no department → nothing at all. "Unknown
+//   - `transparent` (the default) 鈫?workspace-wide, exactly as before 搂24.4;
+//   - `department` 鈫?the caller's own department;
+//   - `department` with a caller who has no department 鈫?nothing at all. "Unknown
 //     department" must never widen into "every department", which is the same
 //     fail-closed rule the department aggregate filter follows.
 //
-// Writes are not narrowed by this: §24.4 says the switch affects reads only.
+// Writes are not narrowed by this: 搂24.4 says the switch affects reads only.
 func (h *Handler) workbenchReadDepartment(ctx context.Context, scope workbenchScope) (filter pgtype.UUID, visible bool) {
 	if h.workbenchVisibility(ctx, scope) != workbenchVisibilityDepartment {
 		return pgtype.UUID{}, true
@@ -307,7 +317,7 @@ func (h *Handler) workbenchReadDepartment(ctx context.Context, scope workbenchSc
 }
 
 // workbenchCrossDepartment reports whether a write would cross a department boundary
-// while the workspace is in `department` mode. It is the write-side half of §24.4:
+// while the workspace is in `department` mode. It is the write-side half of 搂24.4:
 // a member may not change a row owned by someone in another department, and a member
 // with no department may not change rows that belong to one.
 func (h *Handler) workbenchCrossDepartment(ctx context.Context, scope workbenchScope, ownerMemberID pgtype.UUID) bool {
@@ -371,7 +381,7 @@ func roleTemplateToResponse(row db.WorkbenchRoleTemplate) WorkbenchRoleTemplateR
 	}
 }
 
-// WorkbenchCapabilitiesResponse is `GET /api/workbench/capabilities` — what the caller
+// WorkbenchCapabilitiesResponse is `GET /api/workbench/capabilities` 鈥?what the caller
 // may do, so the client can hide entries instead of showing a 403.
 type WorkbenchCapabilitiesResponse struct {
 	Capabilities []string `json:"capabilities"`
@@ -380,12 +390,12 @@ type WorkbenchCapabilitiesResponse struct {
 	// answerable from the browser.
 	Source string `json:"source"`
 	Role   string `json:"role"`
-	// Visibility is the workspace's read scope (§24.4), so a page can say
+	// Visibility is the workspace's read scope (搂24.4), so a page can say
 	// "you are seeing your department" without a second request.
 	Visibility string `json:"visibility"`
 }
 
-// GetWorkbenchCapabilities — GET /api/workbench/capabilities
+// GetWorkbenchCapabilities 鈥?GET /api/workbench/capabilities
 func (h *Handler) GetWorkbenchCapabilities(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -437,7 +447,7 @@ func (h *Handler) workbenchCapabilitiesWithSource(ctx context.Context, scope wor
 	return fallbackCapabilities(), "fallback"
 }
 
-// ListWorkbenchRoleTemplates — GET /api/workbench/role-templates
+// ListWorkbenchRoleTemplates 鈥?GET /api/workbench/role-templates
 func (h *Handler) ListWorkbenchRoleTemplates(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -462,7 +472,7 @@ type WorkbenchRoleTemplateRequest struct {
 	Capabilities []string `json:"capabilities"`
 }
 
-// PutWorkbenchRoleTemplate — PUT /api/workbench/role-templates/{jobTitle}
+// PutWorkbenchRoleTemplate 鈥?PUT /api/workbench/role-templates/{jobTitle}
 //
 // Owner/admin only: handing out capabilities is the one write that can widen everyone
 // else's. The job title is the URL segment (URL-decoded by chi), matched
@@ -473,7 +483,7 @@ func (h *Handler) PutWorkbenchRoleTemplate(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	if scope.Member.Role != "owner" && scope.Member.Role != "admin" {
-		writeCapabilityError(w, capReviewAccept)
+		writeRoleRequiredError(w)
 		return
 	}
 	jobTitle := strings.TrimSpace(chi.URLParam(r, "jobTitle"))
@@ -498,7 +508,7 @@ func (h *Handler) PutWorkbenchRoleTemplate(w http.ResponseWriter, r *http.Reques
 	writeJSON(w, http.StatusOK, roleTemplateToResponse(row))
 }
 
-// DeleteWorkbenchRoleTemplate — DELETE /api/workbench/role-templates/{jobTitle}
+// DeleteWorkbenchRoleTemplate 鈥?DELETE /api/workbench/role-templates/{jobTitle}
 // Removing a template sends its holders back to the next resolution step rather than
 // leaving them with whatever the template last granted.
 func (h *Handler) DeleteWorkbenchRoleTemplate(w http.ResponseWriter, r *http.Request) {
@@ -507,7 +517,7 @@ func (h *Handler) DeleteWorkbenchRoleTemplate(w http.ResponseWriter, r *http.Req
 		return
 	}
 	if scope.Member.Role != "owner" && scope.Member.Role != "admin" {
-		writeCapabilityError(w, capReviewAccept)
+		writeRoleRequiredError(w)
 		return
 	}
 	jobTitle := strings.TrimSpace(chi.URLParam(r, "jobTitle"))

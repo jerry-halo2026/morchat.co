@@ -717,6 +717,15 @@ func (h *Handler) DeleteCreator(w http.ResponseWriter, r *http.Request) {
 }
 
 // ---- posts -----------------------------------------------------------------
+//
+// A post is a *publish*, so the post family is gated by the media capabilities
+// (§24.1), not the ledger's crm ones: reading is `media.read`, filling in a day's
+// numbers is `media.write`, and putting a post live — create, edit, take it down —
+// is `media.publish`. Keeping the ledger vocabulary here would have made
+// `media.publish` decorative: the departments that hold it (内容 / 运营) do not
+// hold `crm.write`, so every publish would still have been refused by the wrong
+// capability. Taking a post down is the same right as putting it up; deleting one
+// is how a bad publish is withdrawn.
 
 // ListCreatorPosts — GET /api/workbench/creator-posts
 func (h *Handler) ListCreatorPosts(w http.ResponseWriter, r *http.Request) {
@@ -724,7 +733,7 @@ func (h *Handler) ListCreatorPosts(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
 		return
 	}
 	creatorID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("creator_id"))), "creator_id")
@@ -777,7 +786,7 @@ func (h *Handler) CreateCreatorPost(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaPublish) {
 		return
 	}
 	var req CreatorPostRequest
@@ -875,7 +884,7 @@ func (h *Handler) UpdateCreatorPost(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaPublish) {
 		return
 	}
 	current, _, ok := h.loadCreatorPostForWrite(w, r, scope)
@@ -1006,7 +1015,9 @@ func (h *Handler) DeleteCreatorPost(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+	// Withdrawing a publish needs the publish right: a member who may put a post
+	// live but not take it down can leave a wrong post standing.
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaPublish) {
 		return
 	}
 	current, _, ok := h.loadCreatorPostForWrite(w, r, scope)
@@ -1038,7 +1049,7 @@ func (h *Handler) ListCreatorPostMetrics(w http.ResponseWriter, r *http.Request)
 	if !ok {
 		return
 	}
-	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
 		return
 	}
 	postID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "postId"), "post id")
@@ -1106,7 +1117,9 @@ func (h *Handler) UpsertCreatorPostMetric(w http.ResponseWriter, r *http.Request
 	if !ok {
 		return
 	}
-	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+	// Recording a day's numbers is not publishing: it stays on `media.write`, so
+	// the person who tracks 复盘 does not need the right to put content live.
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	post, _, ok := h.loadCreatorPostForWrite(w, r, scope)
