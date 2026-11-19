@@ -188,3 +188,27 @@ handler 级覆盖，没有任何证据表明登录后的浏览器能真的打开
 ```
 27 个用例：26 passed · 1 skipped · 0 failed（1.2m）
 ```
+
+### 9.5 桌面端（Electron）端到端：从「没有」到「有」
+
+**此前的状态（如实）**：仓库里**没有**任何 Electron E2E。`apps/desktop` 只有 `vitest run`
+（渲染层组件、主进程工具函数），没有任何东西真的把打包后的应用启动起来。组件测试看不到
+「白屏 / 错误浮层 / 渲染进程崩了」这一类失败。
+
+**本批新增** `e2e/desktop-smoke.spec.ts`，用 Playwright 的 `_electron` 启动真实 `out/main`，
+断言：渲染进程画出真实内容（>40 字符）· 首屏出现可识别标记（登录页或应用外壳都算启动成功）·
+无 `pageerror`、无渲染进程崩溃 · 窗口有标题 · 加载的是 `out/renderer`。
+**实跑：1 passed · 1 skipped（4.6s）。**
+
+踩到并在注释里写死的两个环境坑：
+
+1. `args` 要传**项目目录**（Electron 按 `package.json` 的 `main` 解析入口）；传入口文件会被当作
+   Node 脚本执行，`electron.app` 直接 undefined。
+2. 本机带着 `ELECTRON_RUN_AS_NODE=1`（harness 设的），会把 Electron 变成纯 Node；启动前必须从
+   子进程环境里删掉。
+
+**已登录**的桌面 E2E 标了 `test.fixme`，原因写在代码里：桌面端的 API 基址来自它自己的
+profile / 服务端设置（产品面），而构建里烘的是另一个默认值（实测 bundle 里是 `localhost:8080`）。
+往 localStorage 注入 token 只能走到一个拉不到数据的空壳（渲染层仍会报 `ERR_CONNECTION_REFUSED`）。
+要恢复它，需要一个「把已构建的应用指向自定义服务端」的正式办法，或者把登录表单端到端驱动一遍
+——两者都属于产品面决定，不该由 spec 偷偷绕过。
