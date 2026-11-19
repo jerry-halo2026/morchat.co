@@ -42,6 +42,7 @@ import {
 } from "@morechat/core/crm/mutations";
 import type { CrmBrief, CrmCollab, CrmCollabStage, Creator } from "@morechat/core/types";
 import { useT } from "../../i18n";
+import { OverwriteReasonDialog, isOverwriteReasonRequired, useOverwriteRetry } from "../../review";
 import { useCollabsCopy } from "./copy";
 import {
   COLLAB_STAGES,
@@ -105,6 +106,7 @@ export function CollabSheet({
   const create = useCreateCrmCollab();
   const update = useUpdateCrmCollab();
   const remove = useDeleteCrmCollab();
+  const overwrite = useOverwriteRetry();
 
   const editing = collab !== null;
   const [briefId, setBriefId] = useState("");
@@ -132,6 +134,22 @@ export function CollabSheet({
       else await create.mutateAsync(createCollabRequest(briefId, creatorId, form));
       onClose();
     } catch (error) {
+      // §26.3: the row's last business change was an agent's, so the server wants
+      // to know *why* a person is replacing it. The answer is a second send of
+      // the same body plus `overwrite_reason`; Cancel abandons this save.
+      if (collab && isOverwriteReasonRequired(error)) {
+        overwrite.ask(async (reason) => {
+          try {
+            await update.mutateAsync({ id: collab.id, ...collabFields(form), overwrite_reason: reason });
+            onClose();
+            return true;
+          } catch {
+            setFailure(t(($) => $.collabs.write_failed));
+            return false;
+          }
+        });
+        return;
+      }
       setFailure(
         error instanceof Error && error.message
           ? error.message
@@ -398,7 +416,12 @@ export function CollabSheet({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </SheetContent>
+      <OverwriteReasonDialog
+        open={overwrite.open}
+        pending={overwrite.pending}
+        onPick={(reason) => void overwrite.pick(reason)}
+        onCancel={overwrite.cancel}
+      />      </SheetContent>
     </Sheet>
   );
 }

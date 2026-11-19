@@ -227,6 +227,9 @@ import type {
   CreateBdActivityRequest,
   CreateBdCampaignRequest,
   CreateBdQuoteRequest,
+  RejectReviewRequest,
+  ReviewQueueFilters,
+  ReviewQueueResponse,
   UpdateBdActivityRequest,
   UpdateBdCampaignRequest,
   UpdateBdQuoteRequest,
@@ -850,6 +853,8 @@ import {
   EMPTY_BD_CAMPAIGN_LIST_RESPONSE,
   BdPipelineSchema,
   EMPTY_BD_PIPELINE,
+  ReviewQueueResponseSchema,
+  EMPTY_REVIEW_QUEUE_RESPONSE,
   ImportPreviewResponseSchema,
   EMPTY_IMPORT_PREVIEW_RESPONSE,
   WorkbenchCapabilitiesResponseSchema,
@@ -5030,6 +5035,36 @@ export class ApiClient {
 
   async deleteBdQuote(id: string): Promise<void> {
     await this.fetch(`/api/workbench/bd/quotes/${id}`, { method: "DELETE" });
+  }
+
+  // ---- the review gate (WORKBENCH-API §26) --------------------------------
+  //
+  // One queue across four ledgers, and two verdicts. Both verdicts answer 204 and
+  // bump the row's `revision`; the server writes the `activity_log` entry, so a
+  // client that skipped the queue would be missing from the three rates.
+
+  async listReviewQueue(filters: ReviewQueueFilters = {}): Promise<ReviewQueueResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/review${workbenchSearch({
+        domain: filters.domain,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, ReviewQueueResponseSchema, EMPTY_REVIEW_QUEUE_RESPONSE, {
+      endpoint: "GET /api/workbench/review",
+    });
+  }
+
+  async acceptReview(domain: string, id: string): Promise<void> {
+    await this.fetch(`/api/workbench/review/${domain}/${id}/accept`, { method: "POST" });
+  }
+
+  /** The reason is required by the contract (§26.1) and capped at 500 chars. */
+  async rejectReview(domain: string, id: string, data: RejectReviewRequest): Promise<void> {
+    await this.fetch(`/api/workbench/review/${domain}/${id}/reject`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   }
 
   async listBdCampaigns(

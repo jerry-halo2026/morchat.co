@@ -55,7 +55,10 @@
     "crm_payment_collected_month": "Encaissé ce mois",
     "crm_quote_margin_rate": "Marge par collaboration",
     "crm_collab_roi": "Retour par collaboration",
-    "crm_creator_repeat_rate": "Créateurs récurrents"
+    "crm_creator_repeat_rate": "Créateurs récurrents",
+    "agent_write_overwrite_rate": "Taux d'écrasement agent",
+    "agent_review_reject_rate": "Taux de refus agent",
+    "agent_action_rollback_rate": "Taux d'annulation agent"
   },
   "gap": {
     "needs_hired": "Personne n'a encore été recruté via le registre : pas de date d'embauche à mesurer.",

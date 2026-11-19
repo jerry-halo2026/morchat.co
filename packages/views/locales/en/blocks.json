@@ -55,7 +55,10 @@
     "crm_payment_collected_month": "Collected this month",
     "crm_quote_margin_rate": "Collaboration margin",
     "crm_collab_roi": "Return per collaboration",
-    "crm_creator_repeat_rate": "Repeat creators"
+    "crm_creator_repeat_rate": "Repeat creators",
+    "agent_write_overwrite_rate": "Agent overwrite rate",
+    "agent_review_reject_rate": "Agent reject rate",
+    "agent_action_rollback_rate": "Agent rollback rate"
   },
   "gap": {
     "needs_hired": "Nobody has been hired through the ledger yet, so there is no hire date to measure against.",

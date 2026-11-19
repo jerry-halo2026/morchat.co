@@ -55,7 +55,10 @@
     "crm_payment_collected_month": "이번 달 입금",
     "crm_quote_margin_rate": "협업 마진율",
     "crm_collab_roi": "협업당 ROI",
-    "crm_creator_repeat_rate": "크리에이터 재섭외율"
+    "crm_creator_repeat_rate": "크리에이터 재섭외율",
+    "agent_write_overwrite_rate": "에이전트 덮어쓰기율",
+    "agent_review_reject_rate": "에이전트 반려율",
+    "agent_action_rollback_rate": "에이전트 롤백율"
   },
   "gap": {
     "needs_hired": "아직 장부를 통해 입사한 사람이 없어 기준이 될 입사일이 없습니다.",

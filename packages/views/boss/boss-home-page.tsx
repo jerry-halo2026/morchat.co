@@ -8,6 +8,7 @@ import { PAGE_GUTTER, PageHeader } from "../layout/page-header";
 import { ROUTE_ICON_COMPONENTS } from "../layout/route-icon-components";
 import { BossMoneyBlock } from "./home/money-block";
 import { BossObjectivesBlock } from "./home/objectives-block";
+import { BossQualityBlock } from "./home/quality-block";
 import { BossSignalsBlock } from "./home/signals-block";
 import { BossTeamBlock } from "./home/team-block";
 
@@ -48,6 +49,11 @@ export function BossHomePage() {
               <BossTeamBlock wsId={wsId} />
             </div>
             <BossMoneyBlock wsId={wsId} />
+            {/* The three review rates sit under the money because they are the
+                same kind of statement — "how are we doing" — and because a
+                reader who just saw collected revenue is the one who should see
+                how much of it an agent touched (§26.4). */}
+            <BossQualityBlock wsId={wsId} />
           </div>
         </div>
       </div>

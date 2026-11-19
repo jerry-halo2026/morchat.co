@@ -48,7 +48,8 @@
     "boss_radar": "市场雷达",
     "boss_customers": "客户",
     "boss_biz": "经营",
-    "boss_team": "团队"
+    "boss_team": "团队",
+    "boss_review": "复核队列"
   },
   "hr": {
     "recruit": {

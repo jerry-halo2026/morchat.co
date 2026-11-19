@@ -103,6 +103,8 @@
     "./bd/queries": "./bd/queries.ts",
     "./bd/mutations": "./bd/mutations.ts",
     "./bd/performance": "./bd/performance.ts",
+    "./review": "./review/index.ts",
+    "./review/queries": "./review/queries.ts",
     "./hr": "./hr/index.ts",
     "./hr/queries": "./hr/queries.ts",
     "./hr/mutations": "./hr/mutations.ts",

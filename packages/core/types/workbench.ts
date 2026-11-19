@@ -17,6 +17,12 @@
  * blank the whole ledger row.
  */
 
+// The overwrite attribution (§26.3) belongs to the review module — it is the
+// review gate's vocabulary, not the ledgers' — but a PATCH's body carries it, so
+// the request types name it from there. One-way import: `review.ts` knows nothing
+// about a collaboration.
+import type { OverwriteReason } from "./review";
+
 export type CreatorKind = "owned" | "external";
 
 /** Where a post row came from. `manual` is the only writer today. */
@@ -960,6 +966,12 @@ export type UpdateCrmCollabRequest = Partial<
    * so it sits outside the `Pick`.
    */
   expected_revision?: number;
+  /**
+   * Why a person is replacing an agent's value (§26.3). The server answers 400
+   * `overwrite_reason_required` when the row's last business change was an
+   * agent's; this answer is what makes the overwrite rate mean something.
+   */
+  overwrite_reason?: OverwriteReason;
 };
 
 export type CreateCrmSettlementRequest = Pick<CrmSettlement, "collab_id" | "kind" | "amount"> &
@@ -986,6 +998,8 @@ export type UpdateCrmSettlementRequest = Partial<
 > & {
   /** See `UpdateCrmCollabRequest.expected_revision`. */
   expected_revision?: number;
+  /** See `UpdateCrmCollabRequest.overwrite_reason`. */
+  overwrite_reason?: OverwriteReason;
 };
 
 // --- HR (docs/engineering/WORKBENCH-API.md 搂10) ---------------------------

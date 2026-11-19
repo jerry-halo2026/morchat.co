@@ -37,6 +37,11 @@ type WorkbenchMetricValue struct {
 // WorkbenchOverviewResponse is `GET /api/workbench/overview`.
 type WorkbenchOverviewResponse struct {
 	Metrics map[string]WorkbenchMetricValue `json:"metrics"`
+	// AgentMetrics carries the three verifiability rates per (agent, domain)
+	// (§26.4). They are slices rather than entries in the flat map because a
+	// single number per metric would be exactly the "one score" the contract
+	// forbids.
+	AgentMetrics []AgentMetricSlice `json:"agent_metrics"`
 }
 
 // WorkbenchCountsResponse is `GET /api/workbench/counts` (the sidebar counts).
@@ -96,6 +101,14 @@ var workbenchMetricCatalog = []struct {
 	{"hr.time_to_hire.median", metricEmptyInsufficientData},
 	{"hr.scorecard.backlog", metricEmptyZero},
 	{"hr.interview.on_time_rate", metricEmptyInsufficientData},
+	// Verifiability (WORKBENCH-API §26.4): three rates that only exist as
+	// (agent, domain) slices. The flat map carries the ids so a client that looks
+	// one up finds a state instead of a hole — always a gap, because there is no
+	// such thing as this workspace's single overwrite rate (§26.4: no single
+	// score). The slices ride in `agent_metrics`.
+	{metricAgentOverwriteRate, metricEmptyInsufficientData},
+	{metricAgentRejectRate, metricEmptyInsufficientData},
+	{metricAgentRollbackRate, metricEmptyInsufficientData},
 }
 
 // metricValue builds one entry. `computable` is what decides null: a metric whose
@@ -319,7 +332,15 @@ func (h *Handler) GetWorkbenchOverview(w http.ResponseWriter, r *http.Request) {
 
 	// Every catalog id answers, even one whose query failed to produce a row: a
 	// missing key would render as an undefined metric rather than a gap.
-	response := WorkbenchOverviewResponse{Metrics: make(map[string]WorkbenchMetricValue, len(workbenchMetricCatalog))}
+	agentMetrics, err := h.workbenchAgentMetricSlices(ctx, scope)
+	if err != nil {
+		workbenchInternalError(w, r, "failed to load the agent verifiability metrics", err)
+		return
+	}
+	response := WorkbenchOverviewResponse{
+		Metrics:      make(map[string]WorkbenchMetricValue, len(workbenchMetricCatalog)),
+		AgentMetrics: agentMetrics,
+	}
 	for _, spec := range workbenchMetricCatalog {
 		if value, present := metrics[spec.id]; present {
 			response.Metrics[spec.id] = value

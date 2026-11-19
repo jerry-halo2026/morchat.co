@@ -176,6 +176,7 @@ function workspaceScoped(slug: string) {
       customers: () => `${ws}/boss/customers`,
       biz: () => `${ws}/boss/biz`,
       team: () => `${ws}/boss/team`,
+      review: () => `${ws}/boss/review`,
     } satisfies Record<BossPageKey, () => string>,
   };
 }

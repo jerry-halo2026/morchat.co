@@ -76,6 +76,10 @@ export type MetricSource =
   | "ops_attendance"
   | "knowledge"
   | "inbox"
+  // The audit trail (§26): the review gate's three rates read it, and nothing
+  // else in the workbench does — a metric that could read it without saying so
+  // would make "where did this number come from" unanswerable.
+  | "activity_log"
   // 千川投放（WORKBENCH-API §25）：十二张表都是平台数据的投影，只有一个 CLI 写入口，
   // 所以这些 source 永远只被读——一个指标声明它们，等于声明自己不写任何东西。
   | "qianchuan_account"
@@ -154,6 +158,15 @@ export const METRIC_IDS = [
   "qianchuan.gmv.day",
   "qianchuan.roi",
   "qianchuan.violation.open",
+  // 可验证性（WORKBENCH-API §26.4）。三条都是「agent 写得对不对」的比例，全部按
+  // (agent_id, domain) 切片，**没有单一总分**：一个把金融字段写错的 agent 和一个
+  // 只是语气被判「口味不对」的 agent，不该被平均成一个数。
+  //
+  // 三条的 emptyRule 都是 `insufficient_data`：没有 agent 写过、或被复核的样本
+  // 少于 5，比例就没有意义，页面画缺口而不是 0%。
+  "agent.write.overwrite_rate",
+  "agent.review.reject_rate",
+  "agent.action.rollback_rate",
 ] as const;
 
 export type MetricId = (typeof METRIC_IDS)[number];
@@ -398,6 +411,45 @@ export const WORKBENCH_METRICS: Record<MetricId, MetricContract> = {
     formula: "count(qianchuan_violation where status in ('TIMEOUT', 'FAILAPPEAL'))",
     source: ["qianchuan_violation"],
     emptyRule: "zero",
+    direction: "down",
+  },
+  // 可验证性（§26.4）。`scope: "workspace"` 而不是 `member`：比例本身就按
+  // (agent_id, domain) 切片，页面读的是一条汇总；再按成员求一次比例会把
+  // 「谁的 agent 写坏了」平均掉。三条都 `direction: "down"`：越低越好。
+  "agent.write.overwrite_rate": {
+    id: "agent.write.overwrite_rate",
+    labelKey: "blocks.metric.agent_write_overwrite_rate",
+    scope: "workspace",
+    unit: "percent",
+    window: { kind: "sliding", days: 30 },
+    formula:
+      "count(activity_log where action='<subject>.overwritten' and actor_type='member' and details.delegated_by is not null) / count(activity_log where actor_type='agent')",
+    source: ["activity_log"],
+    emptyRule: "insufficient_data",
+    direction: "down",
+  },
+  "agent.review.reject_rate": {
+    id: "agent.review.reject_rate",
+    labelKey: "blocks.metric.agent_review_reject_rate",
+    scope: "workspace",
+    unit: "percent",
+    window: { kind: "sliding", days: 30 },
+    formula:
+      "count(activity_log where action='<subject>.review_rejected') / count(activity_log where action in ('<subject>.review_accepted','<subject>.review_rejected'))",
+    source: ["activity_log"],
+    emptyRule: "insufficient_data",
+    direction: "down",
+  },
+  "agent.action.rollback_rate": {
+    id: "agent.action.rollback_rate",
+    labelKey: "blocks.metric.agent_action_rollback_rate",
+    scope: "workspace",
+    unit: "percent",
+    window: { kind: "sliding", days: 30 },
+    formula:
+      "count(activity_log where action='<subject>.deleted' and details.undoes_agent_write=true) / count(activity_log where actor_type='agent')",
+    source: ["activity_log"],
+    emptyRule: "insufficient_data",
     direction: "down",
   },
   "crm.pipeline.weighted_amount": {

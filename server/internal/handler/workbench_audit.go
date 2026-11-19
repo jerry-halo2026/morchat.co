@@ -122,6 +122,145 @@ func agentDeleteGate(w http.ResponseWriter, actor workbenchActor) bool {
 	return false
 }
 
+// ---- review gate (§26.1) ---------------------------------------------------
+
+// The three review states, as the column's CHECK spells them.
+const (
+	reviewPending  = "pending"
+	reviewAccepted = "accepted"
+	reviewRejected = "rejected"
+)
+
+// reviewDecision is what a write leaves on a row's review columns. The zero value
+// is "pending with nobody's name on it", which is what a first write produces.
+type reviewDecision struct {
+	State      string
+	ReviewedBy pgtype.UUID
+	ReviewedAt pgtype.Timestamptz
+}
+
+// reviewForWrite is §26.1's matrix in one place:
+//
+//	agent write                      → pending (a machine wrote it; a human looks)
+//	human write of a high-value field → pending (money/settlement/commission/`settled`)
+//	anything else                     → accepted on arrival
+//
+// `current` is the row's existing decision, and its reviewer survives a write that
+// does not need a second look — a human editing an already-accepted row does not
+// erase who accepted it. A write that DOES need review clears the old decision:
+// it described values the row no longer holds.
+func reviewForWrite(actor workbenchActor, highValue bool, current reviewDecision) reviewDecision {
+	if actor.isAgent() || highValue {
+		return reviewDecision{State: reviewPending}
+	}
+	return reviewDecision{State: reviewAccepted, ReviewedBy: current.ReviewedBy, ReviewedAt: current.ReviewedAt}
+}
+
+// currentReview reads a row's decision into the shape above.
+func currentReview(state string, reviewedBy pgtype.UUID, reviewedAt pgtype.Timestamptz) reviewDecision {
+	if strings.TrimSpace(state) == "" {
+		return reviewDecision{State: reviewAccepted, ReviewedBy: reviewedBy, ReviewedAt: reviewedAt}
+	}
+	return reviewDecision{State: state, ReviewedBy: reviewedBy, ReviewedAt: reviewedAt}
+}
+
+// agentMoneyGate refuses an agent's write to a money, settlement or commission
+// field — REST surface included, and independently of capability (§26.5).
+//
+// The capability answers "may this person"; this gate answers "may a machine".
+// An agent whose delegator happens to hold `crm.amount` still may not move an
+// amount: the delegation covers judgement, not the cheque book. The MCP write
+// tools do not declare these fields at all (§7.2), so the two layers agree.
+func agentMoneyGate(w http.ResponseWriter, actor workbenchActor, fields []string) bool {
+	if !actor.isAgent() || len(fields) == 0 {
+		return true
+	}
+	writeJSON(w, http.StatusForbidden, map[string]any{
+		"error":  "forbidden_agent_money",
+		"fields": fields,
+		"detail": "an agent may not write amounts, settlements or commission rates; ask the member who delegated you",
+	})
+	return false
+}
+
+// ---- overwrite attribution (§26.3) -----------------------------------------
+
+// overwriteReasonValues is the closed vocabulary a human picks from when changing
+// a row an agent last touched. Without it "the agent was wrong" and "I prefer it
+// the other way" are the same row in the audit, and the overwrite rate means nothing.
+var overwriteReasonValues = []string{"wrong_fact", "wrong_judgement", "stale", "taste"}
+
+var overwriteReasonSet = func() map[string]bool {
+	set := make(map[string]bool, len(overwriteReasonValues))
+	for _, value := range overwriteReasonValues {
+		set[value] = true
+	}
+	return set
+}()
+
+// workbenchOverwriteReason enforces §26.3 and returns the reason to record.
+//
+// It applies to a human's PATCH of a row whose newest event was an agent's write.
+// The check reads the row's own trail rather than the request, so it cannot be
+// skipped by omitting a field: no reason, no write. A review decision counts as
+// "a human has seen this row", so an edit after an accept/reject needs no reason —
+// the decision already said what a human thought of the agent's work.
+func (h *Handler) workbenchOverwriteReason(
+	w http.ResponseWriter,
+	r *http.Request,
+	scope workbenchScope,
+	actor workbenchActor,
+	subject string,
+	subjectID pgtype.UUID,
+	raw *string,
+) (string, bool) {
+	if actor.isAgent() {
+		return "", true
+	}
+	last := h.lastWorkbenchActor(r.Context(), scope, subject, subjectID)
+	if last == nil || last.Type != "agent" {
+		return "", true
+	}
+	reason := ""
+	if raw != nil {
+		reason = strings.TrimSpace(*raw)
+	}
+	if reason == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]any{
+			"error":   "overwrite_reason_required",
+			"allowed": overwriteReasonValues,
+			"detail":  "this row was last changed by an agent: say why you are changing it (COLLAB-MODEL §7.3)",
+		})
+		return "", false
+	}
+	if !overwriteReasonSet[reason] {
+		writeJSON(w, http.StatusBadRequest, map[string]any{
+			"error":   "invalid_overwrite_reason",
+			"allowed": overwriteReasonValues,
+			"detail":  "overwrite_reason must be one of the four values",
+		})
+		return "", false
+	}
+	return reason, true
+}
+
+// workbenchReviewStateFilter parses `?review_state=` on a ledger list (§26.1).
+// Absent means "every row", which is the pre-batch behaviour: a page that never
+// asked for the filter keeps showing the rows it always showed.
+func workbenchReviewStateFilter(w http.ResponseWriter, r *http.Request) (pgtype.Text, bool) {
+	raw := strings.TrimSpace(r.URL.Query().Get("review_state"))
+	if raw == "" {
+		return pgtype.Text{}, true
+	}
+	switch raw {
+	case reviewPending, reviewAccepted, reviewRejected:
+		return pgtype.Text{String: raw, Valid: true}, true
+	default:
+		writeError(w, http.StatusBadRequest, "review_state must be pending, accepted or rejected")
+		return pgtype.Text{}, false
+	}
+}
+
 // ---- expected_revision -----------------------------------------------------
 
 // workbenchExpectedRevision reads the optional `expected_revision` from a PATCH
@@ -449,11 +588,29 @@ const auditDetailsMaxBytes = 4096
 // a delete event naming the id.
 const workbenchAuditCascadeLimit = 200
 
+// auditExtras is the review-related context an event carries beside the field
+// diff (COLLAB-MODEL §7): why a human overwrote an agent, which agent wrote the
+// row a decision is about, and the reviewer's own reason for rejecting.
+type auditExtras struct {
+	// OverwriteReason is §26.3's closed vocabulary on a human's edit of a row an
+	// agent last wrote.
+	OverwriteReason string
+	// SubjectAgentID is the agent whose row a review decision judged, so
+	// `agent.review.reject_rate` can be sliced per agent without a join back
+	// through the trail (§26.4).
+	SubjectAgentID *string
+	// Reason is a review rejection's reason (§26.2).
+	Reason string
+}
+
 type auditEnvelope struct {
-	Before      map[string]any `json:"before,omitempty"`
-	After       map[string]any `json:"after,omitempty"`
-	DelegatedBy *string        `json:"delegated_by,omitempty"`
-	Truncated   bool           `json:"truncated,omitempty"`
+	Before          map[string]any `json:"before,omitempty"`
+	After           map[string]any `json:"after,omitempty"`
+	DelegatedBy     *string        `json:"delegated_by,omitempty"`
+	OverwriteReason *string        `json:"overwrite_reason,omitempty"`
+	SubjectAgentID  *string        `json:"subject_agent_id,omitempty"`
+	Reason          *string        `json:"reason,omitempty"`
+	Truncated       bool           `json:"truncated,omitempty"`
 }
 
 // auditKind says which half of the envelope a write fills: a create has nothing
@@ -468,9 +625,21 @@ const (
 	auditDelete
 )
 
-func buildAuditDetails(fields []auditField, delegatedBy pgtype.UUID, kind auditKind) (string, error) {
+func buildAuditDetails(fields []auditField, delegatedBy pgtype.UUID, kind auditKind, extras auditExtras) (string, error) {
 	delegator := uuidToPtr(delegatedBy)
-	envelope := auditEnvelope{DelegatedBy: delegator}
+	envelope := auditEnvelope{DelegatedBy: delegator, Truncated: false}
+	if extras.OverwriteReason != "" {
+		reason := extras.OverwriteReason
+		envelope.OverwriteReason = &reason
+	}
+	if extras.SubjectAgentID != nil && *extras.SubjectAgentID != "" {
+		agent := *extras.SubjectAgentID
+		envelope.SubjectAgentID = &agent
+	}
+	if extras.Reason != "" {
+		reason := extras.Reason
+		envelope.Reason = &reason
+	}
 	if kind != auditCreate {
 		envelope.Before = make(map[string]any, len(fields))
 	}
@@ -492,7 +661,8 @@ func buildAuditDetails(fields []auditField, delegatedBy pgtype.UUID, kind auditK
 	if len(encoded) <= auditDetailsMaxBytes {
 		return string(encoded), nil
 	}
-	trimmed := auditEnvelope{DelegatedBy: delegator, Truncated: true}
+	trimmed := envelope
+	trimmed.Truncated = true
 	if envelope.Before != nil {
 		trimmed.Before = make(map[string]any, len(fields))
 	}
@@ -533,7 +703,27 @@ func recordWorkbenchActivity(
 	kind auditKind,
 	fields []auditField,
 ) (db.ActivityLog, error) {
-	details, err := buildAuditDetails(fields, delegatedBy, kind)
+	return recordWorkbenchActivityExtras(ctx, q, scope, subject, subjectID, action, actor, delegatedBy, kind, fields, auditExtras{})
+}
+
+// recordWorkbenchActivityExtras is recordWorkbenchActivity plus the review context
+// of §26: the overwrite reason a human gave, the agent a decision judged, or the
+// reviewer's reason for rejecting. It is an extra entry point rather than an extra
+// parameter so the sites that carry none stay a plain call.
+func recordWorkbenchActivityExtras(
+	ctx context.Context,
+	q *db.Queries,
+	scope workbenchScope,
+	subject string,
+	subjectID pgtype.UUID,
+	action string,
+	actor workbenchActor,
+	delegatedBy pgtype.UUID,
+	kind auditKind,
+	fields []auditField,
+	extras auditExtras,
+) (db.ActivityLog, error) {
+	details, err := buildAuditDetails(fields, delegatedBy, kind, extras)
 	if err != nil {
 		return db.ActivityLog{}, err
 	}

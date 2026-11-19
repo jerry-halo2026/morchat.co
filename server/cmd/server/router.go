@@ -2423,6 +2423,13 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 		// Qianchuan ad delivery (WORKBENCH-API §25). Read-only: the only writer is
 		// `cmd/qianchuan-sync`, which lands the flat CSVs the collector already
 		// produces. Every money figure carries a settle window; none of them add up.
+
+		// The review queue (WORKBENCH-API §26.2): what an agent wrote, or what a
+		// person changed on a money field, waits here until someone with
+		// `review.accept` passes or rejects it.
+		r.Get("/review", h.GetWorkbenchReviewQueue)
+		r.Post("/review/{domain}/{id}/accept", h.AcceptWorkbenchReview)
+		r.Post("/review/{domain}/{id}/reject", h.RejectWorkbenchReview)
 		r.Route("/ads", func(r chi.Router) {
 			r.Get("/summary", h.AdsSummary)
 			r.Get("/accounts", h.AdsAccounts)

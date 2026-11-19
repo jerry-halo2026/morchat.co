@@ -48,7 +48,8 @@
     "boss_radar": "Market radar",
     "boss_customers": "Customers",
     "boss_biz": "Operations",
-    "boss_team": "Team"
+    "boss_team": "Team",
+    "boss_review": "Review queue"
   },
   "hr": {
     "recruit": {

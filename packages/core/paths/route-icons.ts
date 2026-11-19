@@ -101,7 +101,11 @@ export type NavLabelKey =
   | "boss_radar"
   | "boss_customers"
   | "boss_biz"
-  | "boss_team";
+  | "boss_team"
+  // The review queue (§26): the page where a person answers for what an agent
+  // wrote. Flat key like every other nav label, so the tab bar can localize it
+  // through `t(($) => $.nav[navKey])`.
+  | "boss_review";
 
 /** Stable identifier for each workspace navigation page. */
 export type WorkspacePageKey =
@@ -223,7 +227,13 @@ export type BossPageKey =
   | "radar"
   | "customers"
   | "biz"
-  | "team";
+  | "team"
+  /**
+   * 复核队列 (WORKBENCH-API §26). A boss-space page because the verdict is the
+   * owner's: `review.accept` is the capability, and the queue is where somebody
+   * answers for what the agents wrote.
+   */
+  | "review";
 
 /** A navigation page key from any registry. */
 export type NavPageKey = WorkspacePageKey | HrPageKey | SalesPageKey | ContentPageKey | BossPageKey;
@@ -341,6 +351,7 @@ export const BOSS_PAGE_ORDER: readonly BossPageKey[] = [
   "customers",
   "biz",
   "team",
+  "review",
 ];
 
 /** The general manager's pages. `segment` is the path under the slug. */
@@ -354,6 +365,11 @@ export const BOSS_PAGES: Record<BossPageKey, WorkspacePage> = {
   customers: { segment: "boss/customers", icon: "Users", navKey: "boss_customers" },
   biz: { segment: "boss/biz", icon: "BarChart3", navKey: "boss_biz" },
   team: { segment: "boss/team", icon: "Monitor", navKey: "boss_team" },
+  // 复核队列: the icon set the app ships has no check-sheet glyph, so the page
+  // wears the one that means "things waiting for you" — the queue is exactly
+  // that, and reusing `Inbox` inside this space cannot be confused with the
+  // platform inbox, which lives in another column entirely.
+  review: { segment: "boss/review", icon: "Inbox", navKey: "boss_review" },
 };
 
 /**

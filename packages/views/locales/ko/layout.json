@@ -48,7 +48,8 @@
     "boss_radar": "시장 레이더",
     "boss_customers": "고객",
     "boss_biz": "경영",
-    "boss_team": "팀"
+    "boss_team": "팀",
+    "boss_review": "검토 대기열"
   },
   "hr": {
     "recruit": {

@@ -896,6 +896,10 @@ type CreatorActivity struct {
 	AssigneeID   pgtype.UUID `json:"assignee_id"`
 	// Optimistic-concurrency counter (COLLAB-MODEL §3).
 	Revision int32 `json:"revision"`
+	// pending | accepted | rejected — agent writes only; a follow-up carries no high-value field.
+	ReviewState string             `json:"review_state"`
+	ReviewedBy  pgtype.UUID        `json:"reviewed_by"`
+	ReviewedAt  pgtype.Timestamptz `json:"reviewed_at"`
 }
 
 // One collection batch / campaign: where these creators came from and what it cost (WORKBENCH-DATA-CONTRACT §3.4). Soft-deleted, no foreign key.
@@ -1015,6 +1019,10 @@ type CreatorQuote struct {
 	AssigneeID   pgtype.UUID `json:"assignee_id"`
 	// Optimistic-concurrency counter (COLLAB-MODEL §3).
 	Revision int32 `json:"revision"`
+	// pending | accepted | rejected — see crm_collab.review_state.
+	ReviewState string             `json:"review_state"`
+	ReviewedBy  pgtype.UUID        `json:"reviewed_by"`
+	ReviewedAt  pgtype.Timestamptz `json:"reviewed_at"`
 }
 
 // One row per 抖音 aweme, mirrored from orange creator_video (WORKBENCH-DATA-CONTRACT §2.1). Counters are NULL when the platform statistic was never collected — never 0.
@@ -1126,6 +1134,10 @@ type CrmCollab struct {
 	AssigneeID   pgtype.UUID `json:"assignee_id"`
 	// Optimistic-concurrency counter: bumped on every write, compared against PATCH expected_revision (409 stale_write).
 	Revision int32 `json:"revision"`
+	// pending | accepted | rejected — a human must look at agent writes and at high-value fields (WORKBENCH-API §26.1).
+	ReviewState string             `json:"review_state"`
+	ReviewedBy  pgtype.UUID        `json:"reviewed_by"`
+	ReviewedAt  pgtype.Timestamptz `json:"reviewed_at"`
 }
 
 type CrmSettlement struct {
@@ -1148,6 +1160,10 @@ type CrmSettlement struct {
 	AssigneeID   pgtype.UUID `json:"assignee_id"`
 	// Optimistic-concurrency counter (COLLAB-MODEL §3).
 	Revision int32 `json:"revision"`
+	// pending | accepted | rejected — settlement rows are money, so every write that moves an amount is reviewed.
+	ReviewState string             `json:"review_state"`
+	ReviewedBy  pgtype.UUID        `json:"reviewed_by"`
+	ReviewedAt  pgtype.Timestamptz `json:"reviewed_at"`
 }
 
 type DaemonConnection struct {

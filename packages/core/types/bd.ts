@@ -36,6 +36,7 @@
  */
 
 import type { WorkbenchAssigneeType, WorkbenchLastActor, WorkbenchThread } from "./workbench";
+import type { OverwriteReason } from "./review";
 
 /** How the conversation happened. */
 export type BdActivityKind = "dm" | "call" | "meeting" | "email" | "note";
@@ -210,6 +211,12 @@ export interface UpdateBdActivityRequest {
    * current row; omitting it skips the check (old clients).
    */
   expected_revision?: number;
+  /**
+   * Why a person is replacing an agent's value (WORKBENCH-API §26.3). Missing on
+   * a row whose last business change was an agent's is a 400
+   * `overwrite_reason_required`.
+   */
+  overwrite_reason?: OverwriteReason;
 }
 
 /** `POST /bd/quotes`. A quote defaults to `status: "draft"` and currency CNY. */
@@ -247,6 +254,8 @@ export interface UpdateBdQuoteRequest {
   assignee_id?: string | null;
   /** See `UpdateBdActivityRequest.expected_revision`. */
   expected_revision?: number;
+  /** See `UpdateBdActivityRequest.overwrite_reason`. */
+  overwrite_reason?: OverwriteReason;
 }
 
 /** `POST /bd/campaigns`. `name` is required and unique per workspace (409). */

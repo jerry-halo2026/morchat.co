@@ -63,7 +63,7 @@ import {
   BossRadarPage,
   BossTasksPage,
   BossTeamPage,
-} from "@morechat/views/boss";import { AutopilotsPage } from "@morechat/views/autopilots/components";
+} from "@morechat/views/boss";import { BossReviewPage } from "@morechat/views/review";import { AutopilotsPage } from "@morechat/views/autopilots/components";
 import { MyIssuesPage } from "@morechat/views/my-issues";
 import { SkillsPage } from "@morechat/views/skills";
 import { DesktopRuntimesPage } from "./components/desktop-runtimes-page";
@@ -412,6 +412,7 @@ export const appRoutes: RouteObject[] = [
           { path: "boss/customers", element: <BossCustomersPage />, handle: { title: "Customers" } },
           { path: "boss/biz", element: <BossBizPage />, handle: { title: "Operations" } },
           { path: "boss/team", element: <BossTeamPage />, handle: { title: "Team" } },
+          { path: "boss/review", element: <BossReviewPage />, handle: { title: "Review queue" } },
           {
             path: "settings",
             element: <DesktopSettingsRoute />,

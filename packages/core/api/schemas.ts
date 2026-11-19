@@ -149,6 +149,8 @@ import type {
   WorkbenchCapabilitiesResponse,
   WorkbenchRoleTemplate,
   WorkbenchRoleTemplateListResponse,
+  // The review queue (WORKBENCH-API §26).
+  ReviewQueueResponse,
 } from "../types";
 import type { CloudRuntimeNode } from "../runtimes/cloud-runtime";
 import type { CreateFeedbackResponse } from "../feedback/types";
@@ -5146,6 +5148,48 @@ export const BdQuoteListResponseSchema = z.object({
 
 export const EMPTY_BD_QUOTE_LIST_RESPONSE: BdQuoteListResponse = {
   quotes: [],
+  total: 0,
+};
+
+// --- the review queue (`/api/workbench/review`, WORKBENCH-API §26) ----------
+//
+// Four ledgers flattened into one row shape, so the same leniency rules apply:
+// every field degrades rather than rejecting the row. Two of them carry a
+// meaning that must not be flattened into a default:
+//
+//   * `amount: null` is "this ledger has no money on this row" (a follow-up),
+//     not zero — the row renders a dash, not ¥0;
+//   * `changed_fields: []` means the server could not say what moved, which is
+//     a weaker statement than "nothing moved", and the row says so.
+
+export const ReviewQueueRowSchema = z
+  .object({
+    domain: z.string().default(""),
+    id: z.string(),
+    review_state: z.string().default("pending"),
+    actor_type: z.string().default("member"),
+    actor_id: workbenchNullableString,
+    agent_name: workbenchNullableString,
+    actor_name: workbenchNullableString,
+    summary: z.string().default(""),
+    changed_fields: z.array(z.string()).default([]),
+    amount: workbenchNullableNumber,
+    currency: z.string().default("CNY"),
+    revision: z.number().default(1),
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+  })
+  .loose();
+
+export const ReviewQueueResponseSchema = z
+  .object({
+    rows: z.array(ReviewQueueRowSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_REVIEW_QUEUE_RESPONSE: ReviewQueueResponse = {
+  rows: [],
   total: 0,
 };
 

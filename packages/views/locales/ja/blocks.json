@@ -55,7 +55,10 @@
     "crm_payment_collected_month": "今月の入金",
     "crm_quote_margin_rate": "案件粗利率",
     "crm_collab_roi": "案件あたり ROI",
-    "crm_creator_repeat_rate": "クリエイター再登用率"
+    "crm_creator_repeat_rate": "クリエイター再登用率",
+    "agent_write_overwrite_rate": "エージェント上書き率",
+    "agent_review_reject_rate": "エージェント却下率",
+    "agent_action_rollback_rate": "エージェント取り消し率"
   },
   "gap": {
     "needs_hired": "台帳から入社した人がまだいないため、起点となる入社日がありません。",

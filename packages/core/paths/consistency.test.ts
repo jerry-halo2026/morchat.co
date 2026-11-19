@@ -151,6 +151,9 @@ const DEPT_SPACES = [
       ["customers", "boss/customers", "boss_customers"],
       ["biz", "boss/biz", "boss_biz"],
       ["team", "boss/team", "boss_team"],
+      // 复核队列 (§26): the space's one page that is about the work the agents
+      // did rather than about the business itself.
+      ["review", "boss/review", "boss_review"],
     ],
   },
 ] as const;

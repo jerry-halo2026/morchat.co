@@ -55,7 +55,10 @@
     "crm_payment_collected_month": "本月回款",
     "crm_quote_margin_rate": "合作毛利率",
     "crm_collab_roi": "单条合作 ROI",
-    "crm_creator_repeat_rate": "达人复投率"
+    "crm_creator_repeat_rate": "达人复投率",
+    "agent_write_overwrite_rate": "agent 覆写率",
+    "agent_review_reject_rate": "agent 驳回率",
+    "agent_action_rollback_rate": "agent 撤回率"
   },
   "gap": {
     "needs_hired": "还没有人从台账走完入职，缺入职时间作为计算起点。",

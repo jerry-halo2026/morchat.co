@@ -141,6 +141,10 @@ var pgBigmOperatorClass = extensionOperatorClass{
 // interrupted build would otherwise leave a permanently unusable index.
 var concurrentIndexCleanups = map[string]string{
 	// Product layer (B4/C0 + H): each index has its own single-statement file.
+	"830_crm_settlement_review_idx":                        "idx_crm_settlement_pending_review",
+	"829_creator_activity_review_idx":                      "idx_creator_activity_pending_review",
+	"828_creator_quote_review_idx":                         "idx_creator_quote_pending_review",
+	"827_crm_collab_review_idx":                            "idx_crm_collab_pending_review",
 	"825_crm_settlement_assignee_idx":                      "idx_crm_settlement_workspace_assignee",
 	"824_creator_activity_assignee_idx":                    "idx_creator_activity_workspace_assignee",
 	"823_creator_quote_assignee_idx":                       "idx_creator_quote_workspace_assignee",

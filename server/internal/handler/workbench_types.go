@@ -773,6 +773,8 @@ type CrmCollabResponse struct {
 	AssigneeID   *string             `json:"assignee_id"`
 	Revision     int32               `json:"revision"`
 	LastActor    *WorkbenchLastActor `json:"last_actor"`
+	// Review is §26.1's gate as the row carries it: the state, and who decided.
+	Review WorkbenchReview `json:"review"`
 }
 
 func crmCollabToResponse(c db.CrmCollab, last *WorkbenchLastActor) CrmCollabResponse {
@@ -808,6 +810,7 @@ func crmCollabToResponse(c db.CrmCollab, last *WorkbenchLastActor) CrmCollabResp
 		AssigneeID:     uuidToPtr(c.AssigneeID),
 		Revision:       c.Revision,
 		LastActor:      last,
+		Review:         reviewOf(c.ReviewState, c.ReviewedBy, c.ReviewedAt),
 	}
 }
 
@@ -833,6 +836,8 @@ type CrmSettlementResponse struct {
 	AssigneeID   *string             `json:"assignee_id"`
 	Revision     int32               `json:"revision"`
 	LastActor    *WorkbenchLastActor `json:"last_actor"`
+	// Review is §26.1's gate as the row carries it.
+	Review WorkbenchReview `json:"review"`
 }
 
 func crmSettlementToResponse(s db.CrmSettlement, last *WorkbenchLastActor) CrmSettlementResponse {
@@ -854,5 +859,6 @@ func crmSettlementToResponse(s db.CrmSettlement, last *WorkbenchLastActor) CrmSe
 		AssigneeID:   uuidToPtr(s.AssigneeID),
 		Revision:     s.Revision,
 		LastActor:    last,
+		Review:       reviewOf(s.ReviewState, s.ReviewedBy, s.ReviewedAt),
 	}
 }

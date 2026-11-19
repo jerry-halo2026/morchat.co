@@ -27,6 +27,7 @@ import { useWorkspaceId } from "@morechat/core/hooks";
 import { useCreateBdQuote, useUpdateBdQuote } from "@morechat/core/bd/mutations";
 import type { BdQuote } from "@morechat/core/types";
 import { useLocale } from "../../i18n";
+import { OverwriteReasonDialog, isOverwriteReasonRequired, useOverwriteRetry } from "../../review";
 import { useQuotesCopy } from "./copy";
 import { CreatorPicker } from "./creator-picker";
 import {
@@ -89,6 +90,7 @@ export function QuoteSheet({
   const locale = useLocale();
   const create = useCreateBdQuote();
   const update = useUpdateBdQuote();
+  const overwrite = useOverwriteRetry();
 
   const editing = quote !== null;
   // One clock for the whole sheet: the default day, the draft/sent timestamp and
@@ -164,6 +166,23 @@ export function QuoteSheet({
       toast.success(copy(status === "sent" ? "toast_sent" : "toast_saved_draft"));
       onClose();
     } catch (error) {
+      // §26.3: an agent wrote this row last, so a person replacing it says why.
+      if (quote && isOverwriteReasonRequired(error)) {
+        const body = { ...quoteFields(form) };
+        overwrite.ask(async (reason) => {
+          try {
+            await update.mutateAsync({ id: quote.id, status, ...body, overwrite_reason: reason });
+            toast.success(copy(status === "sent" ? "toast_sent" : "toast_saved_draft"));
+            onClose();
+            return true;
+          } catch {
+            setFailure(copy("form_failed"));
+            return false;
+          }
+        });
+        setSaving(null);
+        return;
+      }
       setFailure(error instanceof Error && error.message ? error.message : copy("form_failed"));
     } finally {
       setSaving(null);
@@ -421,7 +440,12 @@ export function QuoteSheet({
             </Button>
           </div>
         </SheetFooter>
-      </SheetContent>
+      <OverwriteReasonDialog
+        open={overwrite.open}
+        pending={overwrite.pending}
+        onPick={(reason) => void overwrite.pick(reason)}
+        onCancel={overwrite.cancel}
+      />      </SheetContent>
     </Sheet>
   );
 }

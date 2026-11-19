@@ -35,8 +35,13 @@ LIMIT 1;
 -- newest row per subject, so a 200-row page costs one query instead of 200.
 -- Callers pass the ids they are about to render; an empty array is a valid input
 -- and answers nothing.
+--
+-- `details` rides along for the review queue (§26.2), which shows which business
+-- fields the write touched and whether the change carries an `overwrite_reason`.
+-- The trail readers that only need the actor ignore it; selecting it here is one
+-- column cheaper than a second per-subject query.
 SELECT DISTINCT ON (subject_id)
-    subject_id, actor_type, actor_id, action, created_at
+    subject_id, actor_type, actor_id, action, details, created_at
 FROM activity_log
 WHERE workspace_id = sqlc.arg('workspace_id')::uuid
   AND subject_type = sqlc.arg('subject_type')::text

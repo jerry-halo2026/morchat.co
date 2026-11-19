@@ -114,6 +114,9 @@ type CrmCollabRequest struct {
 	AssigneeType     *string `json:"assignee_type"`
 	AssigneeID       *string `json:"assignee_id"`
 	ExpectedRevision *int32  `json:"expected_revision"`
+	// OverwriteReason is required when a human edits a row an agent last wrote
+	// (WORKBENCH-API §26.3).
+	OverwriteReason *string `json:"overwrite_reason"`
 }
 
 // CrmSettlementRequest is the create/PATCH body for one settlement row
@@ -131,6 +134,73 @@ type CrmSettlementRequest struct {
 	AssigneeType     *string `json:"assignee_type"`
 	AssigneeID       *string `json:"assignee_id"`
 	ExpectedRevision *int32  `json:"expected_revision"`
+	// OverwriteReason is §26.3's vocabulary: required when a human edits a row an
+	// agent last wrote, so the overwrite rate can tell a wrong answer from a
+	// different preference.
+	OverwriteReason *string `json:"overwrite_reason"`
+}
+
+// collabHighValue reports whether a collaboration write touches money, a
+// settlement, the commission rate, or moves the stage to `settled` — the fields a
+// human's write must send to review and an agent's write may never touch
+// (WORKBENCH-API §26.1/§26.5). The names travel into the 403 so a caller learns
+// which field the rule is about.
+func collabHighValue(req CrmCollabRequest) (bool, []string) {
+	fields := make([]string, 0, 8)
+	if req.QuoteAmount != nil {
+		fields = append(fields, "quote_amount")
+	}
+	if req.FinalAmount != nil {
+		fields = append(fields, "final_amount")
+	}
+	if req.CreatorFee != nil {
+		fields = append(fields, "creator_fee")
+	}
+	if req.SampleCost != nil {
+		fields = append(fields, "sample_cost")
+	}
+	if req.PlatformFee != nil {
+		fields = append(fields, "platform_fee")
+	}
+	if req.CommissionRate != nil {
+		fields = append(fields, "commission_rate")
+	}
+	if req.Currency != nil {
+		fields = append(fields, "currency")
+	}
+	if req.SettlementMode != nil {
+		fields = append(fields, "settlement_mode")
+	}
+	if req.SettledOn != nil {
+		fields = append(fields, "settled_on")
+	}
+	if req.Stage != nil && strings.TrimSpace(*req.Stage) == "settled" {
+		fields = append(fields, "stage")
+	}
+	return len(fields) > 0, fields
+}
+
+// settlementHighValue: a settlement row is money by definition, so any write that
+// touches what it pays — amount, currency, kind, the two days — needs review. A
+// note or an invoice number does not.
+func settlementHighValue(req CrmSettlementRequest) (bool, []string) {
+	fields := make([]string, 0, 5)
+	if req.Amount != nil {
+		fields = append(fields, "amount")
+	}
+	if req.Currency != nil {
+		fields = append(fields, "currency")
+	}
+	if req.Kind != nil {
+		fields = append(fields, "kind")
+	}
+	if req.DueAt != nil {
+		fields = append(fields, "due_at")
+	}
+	if req.PaidAt != nil {
+		fields = append(fields, "paid_at")
+	}
+	return len(fields) > 0, fields
 }
 
 // collabStageMilestones returns the milestones a transition into stage leaves
@@ -738,6 +808,10 @@ func (h *Handler) ListCrmCollabs(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	reviewState, ok := workbenchReviewStateFilter(w, r)
+	if !ok {
+		return
+	}
 	rows, err := h.Queries.ListCrmCollabs(r.Context(), db.ListCrmCollabsParams{
 		WorkspaceID:  scope.WorkspaceUUID,
 		Stage:        strToText(stage),
@@ -745,6 +819,7 @@ func (h *Handler) ListCrmCollabs(w http.ResponseWriter, r *http.Request) {
 		CreatorID:    creatorID,
 		AssigneeType: assigneeType,
 		AssigneeID:   assigneeID,
+		ReviewState:  reviewState,
 		CursorAt:     cursorAt,
 		CursorID:     cursorID,
 		Limit:        workbenchLimit(r),
@@ -777,6 +852,11 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	}
 	var req CrmCollabRequest
 	if !decodeWorkbenchBody(w, r, &req) {
+		return
+	}
+	actor := h.workbenchActor(r, scope)
+	highValue, moneyFields := collabHighValue(req)
+	if !agentMoneyGate(w, actor, moneyFields) {
 		return
 	}
 	// Money and settlement are their own capabilities (—4.1): "may edit a
@@ -844,7 +924,6 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	actor := h.workbenchActor(r, scope)
 	if !agentOwnerGate(w, actor, req.OwnerMemberID) {
 		return
 	}
@@ -894,6 +973,7 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		SettledOn:      settledOn,
 		AssigneeType:   assigneeType,
 		AssigneeID:     assigneeID,
+		ReviewState:    reviewForWrite(actor, highValue, reviewDecision{}).State,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to create collab", err)
@@ -1006,6 +1086,11 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	highValue, moneyFields := collabHighValue(req)
+	if !agentMoneyGate(w, actor, moneyFields) {
+		return
+	}
 	// Money and settlement are their own capabilities (—4.1): "may edit a
 	// collaboration" is not "may change what it pays". The check runs on the
 	// fields the request actually touches, so a title rename stays crm.write.
@@ -1019,6 +1104,10 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		if !h.requireWorkbenchCapability(w, r, scope, capCRMSettle) {
 			return
 		}
+	}
+	overwriteReason, ok := h.workbenchOverwriteReason(w, r, scope, actor, subjectCrmCollab, current.ID, req.OverwriteReason)
+	if !ok {
+		return
 	}
 
 	briefID := current.BriefID
@@ -1110,7 +1199,6 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	actor := h.workbenchActor(r, scope)
 	if !agentOwnerGate(w, actor, req.OwnerMemberID) {
 		return
 	}
@@ -1127,6 +1215,12 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+
+	// The write's review verdict (§26.1): an agent's edit or a human's high-value
+	// edit goes back to the queue; anything else keeps the row's decision (and the
+	// reviewer's name) as it was.
+	decision := reviewForWrite(actor, highValue,
+		currentReview(current.ReviewState, current.ReviewedBy, current.ReviewedAt))
 
 	// One transaction, three statements: the write, the guarded revision check
 	// inside it, and the audit row that says what moved (COLLAB-MODEL §2/§3).
@@ -1167,6 +1261,9 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		SettledOn:      settledOn,
 		AssigneeType:   assigneeType,
 		AssigneeID:     assigneeID,
+		ReviewState:    decision.State,
+		ReviewedBy:     decision.ReviewedBy,
+		ReviewedAt:     decision.ReviewedAt,
 		ExpectedRevision: expectedRevision,
 	})
 	if err != nil {
@@ -1192,8 +1289,9 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	fields := collabChanges(current, updated)
 	var last *WorkbenchLastActor
 	if len(fields) > 0 {
-		event, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCrmCollab, updated.ID,
-			collabAction(fields), actor, actor.delegatedBy(scope), auditUpdate, fields)
+		event, err := recordWorkbenchActivityExtras(r.Context(), qtx, scope, subjectCrmCollab, updated.ID,
+			collabAction(fields), actor, actor.delegatedBy(scope), auditUpdate, fields,
+			auditExtras{OverwriteReason: overwriteReason})
 		if err != nil {
 			workbenchInternalError(w, r, "failed to record the collab's change", err)
 			return
@@ -1369,12 +1467,17 @@ func (h *Handler) ListCrmSettlements(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	reviewState, ok := workbenchReviewStateFilter(w, r)
+	if !ok {
+		return
+	}
 	rows, err := h.Queries.ListCrmSettlements(r.Context(), db.ListCrmSettlementsParams{
 		WorkspaceID:  scope.WorkspaceUUID,
 		CollabID:     collabID,
 		Paid:         paid,
 		AssigneeType: assigneeType,
 		AssigneeID:   assigneeID,
+		ReviewState:  reviewState,
 		CursorAt:     cursorAt,
 		CursorID:     cursorID,
 		Limit:        workbenchLimit(r),
@@ -1428,6 +1531,11 @@ func (h *Handler) CreateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	highValue, moneyFields := settlementHighValue(req)
+	if !agentMoneyGate(w, actor, moneyFields) {
+		return
+	}
 	collabID, ok := workbenchOptionalUUID(w, req.CollabID, "collab_id")
 	if !ok {
 		return
@@ -1461,7 +1569,6 @@ func (h *Handler) CreateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	actor := h.workbenchActor(r, scope)
 	assigneeType, assigneeID, ok := h.workbenchAssigneePatch(w, r, scope,
 		pgtype.Text{}, pgtype.UUID{}, req.AssigneeType, req.AssigneeID)
 	if !ok {
@@ -1493,6 +1600,7 @@ func (h *Handler) CreateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 		CreatedBy:    scope.Member.UserID,
 		AssigneeType: assigneeType,
 		AssigneeID:   assigneeID,
+		ReviewState:  reviewForWrite(actor, highValue, reviewDecision{}).State,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to create settlement", err)
@@ -1556,6 +1664,15 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	highValue, moneyFields := settlementHighValue(req)
+	if !agentMoneyGate(w, actor, moneyFields) {
+		return
+	}
+	overwriteReason, ok := h.workbenchOverwriteReason(w, r, scope, actor, subjectCrmSettlement, current.ID, req.OverwriteReason)
+	if !ok {
+		return
+	}
 
 	collabID := current.CollabID
 	if req.CollabID != nil {
@@ -1596,7 +1713,6 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	actor := h.workbenchActor(r, scope)
 	assigneeType, assigneeID, ok := h.workbenchAssigneePatch(w, r, scope,
 		current.AssigneeType, current.AssigneeID, req.AssigneeType, req.AssigneeID)
 	if !ok {
@@ -1606,6 +1722,8 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	decision := reviewForWrite(actor, highValue,
+		currentReview(current.ReviewState, current.ReviewedBy, current.ReviewedAt))
 
 	tx, err := h.TxStarter.Begin(r.Context())
 	if err != nil {
@@ -1628,6 +1746,9 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 		Note:             applyTextPatch(req.Note, current.Note),
 		AssigneeType:     assigneeType,
 		AssigneeID:       assigneeID,
+		ReviewState:      decision.State,
+		ReviewedBy:       decision.ReviewedBy,
+		ReviewedAt:       decision.ReviewedAt,
 		ExpectedRevision: expectedRevision,
 	})
 	if err != nil {
@@ -1650,8 +1771,9 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	fields := settlementChanges(current, updated)
 	var last *WorkbenchLastActor
 	if len(fields) > 0 {
-		event, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCrmSettlement, updated.ID,
-			settlementAction(fields), actor, actor.delegatedBy(scope), auditUpdate, fields)
+		event, err := recordWorkbenchActivityExtras(r.Context(), qtx, scope, subjectCrmSettlement, updated.ID,
+			settlementAction(fields), actor, actor.delegatedBy(scope), auditUpdate, fields,
+			auditExtras{OverwriteReason: overwriteReason})
 		if err != nil {
 			workbenchInternalError(w, r, "failed to record the settlement's change", err)
 			return

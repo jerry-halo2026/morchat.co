@@ -88,6 +88,9 @@ type BdActivityRequest struct {
 	AssigneeType     *string `json:"assignee_type"`
 	AssigneeID       *string `json:"assignee_id"`
 	ExpectedRevision *int32  `json:"expected_revision"`
+	// OverwriteReason is required when a human edits a row an agent last wrote
+	// (WORKBENCH-API §26.3).
+	OverwriteReason *string `json:"overwrite_reason"`
 }
 
 // BdQuoteRequest is the create/PATCH body for an offer.
@@ -112,6 +115,9 @@ type BdQuoteRequest struct {
 	AssigneeType     *string `json:"assignee_type"`
 	AssigneeID       *string `json:"assignee_id"`
 	ExpectedRevision *int32  `json:"expected_revision"`
+	// OverwriteReason is required when a human edits a row an agent last wrote
+	// (WORKBENCH-API §26.3).
+	OverwriteReason *string `json:"overwrite_reason"`
 }
 
 // BdCampaignRequest is the create/PATCH body for a collection batch.
@@ -152,6 +158,8 @@ type BdActivityResponse struct {
 	AssigneeID   *string             `json:"assignee_id"`
 	Revision     int32               `json:"revision"`
 	LastActor    *WorkbenchLastActor `json:"last_actor"`
+	// Review is §26.1's gate as the row carries it.
+	Review WorkbenchReview `json:"review"`
 }
 
 func bdActivityToResponse(a db.CreatorActivity, last *WorkbenchLastActor) BdActivityResponse {
@@ -172,6 +180,7 @@ func bdActivityToResponse(a db.CreatorActivity, last *WorkbenchLastActor) BdActi
 		AssigneeID:    uuidToPtr(a.AssigneeID),
 		Revision:      a.Revision,
 		LastActor:     last,
+		Review:        reviewOf(a.ReviewState, a.ReviewedBy, a.ReviewedAt),
 	}
 }
 
@@ -201,6 +210,8 @@ type BdQuoteResponse struct {
 	AssigneeID   *string             `json:"assignee_id"`
 	Revision     int32               `json:"revision"`
 	LastActor    *WorkbenchLastActor `json:"last_actor"`
+	// Review is §26.1's gate as the row carries it.
+	Review WorkbenchReview `json:"review"`
 }
 
 func bdQuoteToResponse(q db.CreatorQuote, last *WorkbenchLastActor) BdQuoteResponse {
@@ -225,6 +236,7 @@ func bdQuoteToResponse(q db.CreatorQuote, last *WorkbenchLastActor) BdQuoteRespo
 		AssigneeID:     uuidToPtr(q.AssigneeID),
 		Revision:       q.Revision,
 		LastActor:      last,
+		Review:         reviewOf(q.ReviewState, q.ReviewedBy, q.ReviewedAt),
 	}
 }
 
@@ -978,6 +990,10 @@ func (h *Handler) ListBdActivities(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	reviewState, ok := workbenchReviewStateFilter(w, r)
+	if !ok {
+		return
+	}
 	rows, err := h.Queries.ListCreatorActivities(r.Context(), db.ListCreatorActivitiesParams{
 		WorkspaceID:  scope.WorkspaceUUID,
 		CreatorID:    creatorID,
@@ -986,6 +1002,7 @@ func (h *Handler) ListBdActivities(w http.ResponseWriter, r *http.Request) {
 		ToAt:         toAt,
 		AssigneeType: assigneeType,
 		AssigneeID:   assigneeID,
+		ReviewState:  reviewState,
 		Limit:        workbenchLimit(r),
 	})
 	if err != nil {
@@ -1012,6 +1029,26 @@ func optionalString(raw string) *string {
 	return &value
 }
 
+// quoteHighValue reports whether an offer write touches money: the slot fee, the
+// commission rate, the line-item breakdown (which carries prices) or the currency
+// (WORKBENCH-API §26.1/§26.5). A status change or a note is not high value.
+func quoteHighValue(req BdQuoteRequest) (bool, []string) {
+	fields := make([]string, 0, 4)
+	if req.FeeAmount != nil {
+		fields = append(fields, "fee_amount")
+	}
+	if req.CommissionRate != nil {
+		fields = append(fields, "commission_rate")
+	}
+	if len(req.Items) > 0 {
+		fields = append(fields, "items")
+	}
+	if req.Currency != nil {
+		fields = append(fields, "currency")
+	}
+	return len(fields) > 0, fields
+}
+
 // CreateBdActivity 鈥?POST /api/workbench/bd/activities
 func (h *Handler) CreateBdActivity(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
@@ -1025,6 +1062,9 @@ func (h *Handler) CreateBdActivity(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
+	// A follow-up carries no money field, so the only thing that can send it to
+	// review is the actor being an agent (§26.1).
+	actor := h.workbenchActor(r, scope)
 	creator, ok := h.requireCreatorInWorkspace(r.Context(), w, scope.WorkspaceID, req.CreatorID)
 	if !ok {
 		return
@@ -1062,7 +1102,6 @@ func (h *Handler) CreateBdActivity(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	actor := h.workbenchActor(r, scope)
 	if !agentOwnerGate(w, actor, req.OwnerMemberID) {
 		return
 	}
@@ -1094,6 +1133,7 @@ func (h *Handler) CreateBdActivity(w http.ResponseWriter, r *http.Request) {
 		CreatedBy:     scope.Member.UserID,
 		AssigneeType:  assigneeType,
 		AssigneeID:    assigneeID,
+		ReviewState:   reviewForWrite(actor, false, reviewDecision{}).State,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to record the follow-up", err)
@@ -1176,6 +1216,11 @@ func (h *Handler) UpdateBdActivity(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	overwriteReason, ok := h.workbenchOverwriteReason(w, r, scope, actor, subjectCreatorActivity, current.ID, req.OverwriteReason)
+	if !ok {
+		return
+	}
 	// `creator_id` is not editable: the row is one person's history, and moving
 	// it would rewrite two of them.
 	if req.CreatorID != nil && strings.TrimSpace(*req.CreatorID) != "" {
@@ -1218,7 +1263,6 @@ func (h *Handler) UpdateBdActivity(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	actor := h.workbenchActor(r, scope)
 	if !agentOwnerGate(w, actor, req.OwnerMemberID) {
 		return
 	}
@@ -1235,6 +1279,8 @@ func (h *Handler) UpdateBdActivity(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	decision := reviewForWrite(actor, false,
+		currentReview(current.ReviewState, current.ReviewedBy, current.ReviewedAt))
 
 	tx, err := h.TxStarter.Begin(r.Context())
 	if err != nil {
@@ -1253,6 +1299,9 @@ func (h *Handler) UpdateBdActivity(w http.ResponseWriter, r *http.Request) {
 		OwnerMemberID:    owner,
 		AssigneeType:     assigneeType,
 		AssigneeID:       assigneeID,
+		ReviewState:      decision.State,
+		ReviewedBy:       decision.ReviewedBy,
+		ReviewedAt:       decision.ReviewedAt,
 		ID:               current.ID,
 		WorkspaceID:      scope.WorkspaceUUID,
 		ExpectedRevision: expectedRevision,
@@ -1278,8 +1327,9 @@ func (h *Handler) UpdateBdActivity(w http.ResponseWriter, r *http.Request) {
 	// no business field and therefore leaves no audit row (COLLAB-MODEL §2).
 	var last *WorkbenchLastActor
 	if fields := activityChanges(current, updated); len(fields) > 0 {
-		event, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCreatorActivity, updated.ID,
-			activityAction(), actor, actor.delegatedBy(scope), auditUpdate, fields)
+		event, err := recordWorkbenchActivityExtras(r.Context(), qtx, scope, subjectCreatorActivity, updated.ID,
+			activityAction(), actor, actor.delegatedBy(scope), auditUpdate, fields,
+			auditExtras{OverwriteReason: overwriteReason})
 		if err != nil {
 			workbenchInternalError(w, r, "failed to record the follow-up's change", err)
 			return
@@ -1368,12 +1418,17 @@ func (h *Handler) ListBdQuotes(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	reviewState, ok := workbenchReviewStateFilter(w, r)
+	if !ok {
+		return
+	}
 	rows, err := h.Queries.ListCreatorQuotes(r.Context(), db.ListCreatorQuotesParams{
 		WorkspaceID:  scope.WorkspaceUUID,
 		CreatorID:    creatorID,
 		Status:       optionalTrimmedText(optionalString(status)),
 		AssigneeType: assigneeType,
 		AssigneeID:   assigneeID,
+		ReviewState:  reviewState,
 		Limit:        workbenchLimit(r),
 	})
 	if err != nil {
@@ -1431,6 +1486,11 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	highValue, moneyFields := quoteHighValue(req)
+	if !agentMoneyGate(w, actor, moneyFields) {
+		return
+	}
 	if req.FeeAmount != nil || req.CommissionRate != nil {
 		if !h.requireWorkbenchCapability(w, r, scope, capCRMAmount) {
 			return
@@ -1476,7 +1536,6 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	actor := h.workbenchActor(r, scope)
 	if !agentOwnerGate(w, actor, req.OwnerMemberID) {
 		return
 	}
@@ -1511,6 +1570,7 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 		CreatedBy:      scope.Member.UserID,
 		AssigneeType:   assigneeType,
 		AssigneeID:     assigneeID,
+		ReviewState:    reviewForWrite(actor, highValue, reviewDecision{}).State,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to record the quote", err)
@@ -1602,10 +1662,19 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
+	highValue, moneyFields := quoteHighValue(req)
+	if !agentMoneyGate(w, actor, moneyFields) {
+		return
+	}
 	if req.FeeAmount != nil || req.CommissionRate != nil {
 		if !h.requireWorkbenchCapability(w, r, scope, capCRMAmount) {
 			return
 		}
+	}
+	overwriteReason, ok := h.workbenchOverwriteReason(w, r, scope, actor, subjectCreatorQuote, current.ID, req.OverwriteReason)
+	if !ok {
+		return
 	}
 	if req.CreatorID != nil && strings.TrimSpace(*req.CreatorID) != "" {
 		writeError(w, http.StatusBadRequest,
@@ -1661,7 +1730,6 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	actor := h.workbenchActor(r, scope)
 	if !agentOwnerGate(w, actor, req.OwnerMemberID) {
 		return
 	}
@@ -1678,6 +1746,9 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+
+	decision := reviewForWrite(actor, highValue,
+		currentReview(current.ReviewState, current.ReviewedBy, current.ReviewedAt))
 
 	tx, err := h.TxStarter.Begin(r.Context())
 	if err != nil {
@@ -1700,6 +1771,9 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 		OwnerMemberID:    owner,
 		AssigneeType:     assigneeType,
 		AssigneeID:       assigneeID,
+		ReviewState:      decision.State,
+		ReviewedBy:       decision.ReviewedBy,
+		ReviewedAt:       decision.ReviewedAt,
 		ID:               current.ID,
 		WorkspaceID:      scope.WorkspaceUUID,
 		ExpectedRevision: expectedRevision,
@@ -1725,8 +1799,9 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 	// leaves the trail alone (COLLAB-MODEL §2).
 	var last *WorkbenchLastActor
 	if fields := quoteChanges(current, updated); len(fields) > 0 {
-		event, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCreatorQuote, updated.ID,
-			quoteAction(fields), actor, actor.delegatedBy(scope), auditUpdate, fields)
+		event, err := recordWorkbenchActivityExtras(r.Context(), qtx, scope, subjectCreatorQuote, updated.ID,
+			quoteAction(fields), actor, actor.delegatedBy(scope), auditUpdate, fields,
+			auditExtras{OverwriteReason: overwriteReason})
 		if err != nil {
 			workbenchInternalError(w, r, "failed to record the quote's change", err)
 			return

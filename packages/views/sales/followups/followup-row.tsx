@@ -4,6 +4,7 @@ import { useState, type ComponentProps } from "react";
 import { Badge } from "@morechat/ui/components/ui/badge";
 import { Button } from "@morechat/ui/components/ui/button";
 import { useUpdateBdActivity } from "@morechat/core/bd/mutations";
+import { OverwriteReasonDialog, isOverwriteReasonRequired, useOverwriteRetry } from "../../review";
 import type { BdActivity, BdActivityOutcome } from "@morechat/core/types";
 import { cn } from "@morechat/ui/lib/utils";
 import { useTimeAgo } from "../../i18n";
@@ -68,18 +69,35 @@ export function FollowupRow({
   const [expanded, setExpanded] = useState(false);
   const [skipFailed, setSkipFailed] = useState(false);
   const skip = useUpdateBdActivity();
+  const overwrite = useOverwriteRetry();
   const pending = skip.isPending;
 
   const long = isLongSummary(activity.summary);
 
   const onSkip = async () => {
     setSkipFailed(false);
+    const next = pushToTomorrow(activity.next_follow_at, new Date());
     try {
-      await skip.mutateAsync({
-        id: activity.id,
-        next_follow_at: pushToTomorrow(activity.next_follow_at, new Date()),
-      });
-    } catch {
+      await skip.mutateAsync({ id: activity.id, next_follow_at: next });
+    } catch (error) {
+      // §26.3: this row's last business change was an agent's (a follow-up the
+      // tool logged), so moving its date is an overwrite and needs a reason.
+      if (isOverwriteReasonRequired(error)) {
+        overwrite.ask(async (reason) => {
+          try {
+            await skip.mutateAsync({
+              id: activity.id,
+              next_follow_at: next,
+              overwrite_reason: reason,
+            });
+            return true;
+          } catch {
+            setSkipFailed(true);
+            return false;
+          }
+        });
+        return;
+      }
       setSkipFailed(true);
     }
   };
@@ -177,6 +195,11 @@ export function FollowupRow({
           onCancel={() => setLogging(false)}
         />
       ) : null}
-    </article>
+      <OverwriteReasonDialog
+        open={overwrite.open}
+        pending={overwrite.pending}
+        onPick={(reason) => void overwrite.pick(reason)}
+        onCancel={overwrite.cancel}
+      />    </article>
   );
 }

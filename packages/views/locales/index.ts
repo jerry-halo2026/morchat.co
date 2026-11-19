@@ -37,6 +37,7 @@ import enBiz from "./en/biz.json";
 import enDiscovery from "./en/discovery.json";
 import enPerformance from "./en/performance.json";
 import enAds from "./en/ads.json";
+import enReview from "./en/review.json";
 import zhHansCommon from "./zh-Hans/common.json";
 import zhHansAuth from "./zh-Hans/auth.json";
 import zhHansSettings from "./zh-Hans/settings.json";
@@ -75,6 +76,7 @@ import zhHansBiz from "./zh-Hans/biz.json";
 import zhHansDiscovery from "./zh-Hans/discovery.json";
 import zhHansPerformance from "./zh-Hans/performance.json";
 import zhHansAds from "./zh-Hans/ads.json";
+import zhHansReview from "./zh-Hans/review.json";
 import zhHantCommon from "./zh-Hant/common.json";
 import zhHantAuth from "./zh-Hant/auth.json";
 import zhHantSettings from "./zh-Hant/settings.json";
@@ -113,6 +115,7 @@ import zhHantBiz from "./zh-Hant/biz.json";
 import zhHantDiscovery from "./zh-Hant/discovery.json";
 import zhHantPerformance from "./zh-Hant/performance.json";
 import zhHantAds from "./zh-Hant/ads.json";
+import zhHantReview from "./zh-Hant/review.json";
 import koCommon from "./ko/common.json";
 import koAuth from "./ko/auth.json";
 import koSettings from "./ko/settings.json";
@@ -151,6 +154,7 @@ import koBiz from "./ko/biz.json";
 import koDiscovery from "./ko/discovery.json";
 import koPerformance from "./ko/performance.json";
 import koAds from "./ko/ads.json";
+import koReview from "./ko/review.json";
 import jaCommon from "./ja/common.json";
 import jaAuth from "./ja/auth.json";
 import jaSettings from "./ja/settings.json";
@@ -189,6 +193,7 @@ import jaBiz from "./ja/biz.json";
 import jaDiscovery from "./ja/discovery.json";
 import jaPerformance from "./ja/performance.json";
 import jaAds from "./ja/ads.json";
+import jaReview from "./ja/review.json";
 import frCommon from "./fr/common.json";
 import frAuth from "./fr/auth.json";
 import frSettings from "./fr/settings.json";
@@ -227,6 +232,7 @@ import frBiz from "./fr/biz.json";
 import frDiscovery from "./fr/discovery.json";
 import frPerformance from "./fr/performance.json";
 import frAds from "./fr/ads.json";
+import frReview from "./fr/review.json";
 import esCommon from "./es/common.json";
 import esAuth from "./es/auth.json";
 import esSettings from "./es/settings.json";
@@ -265,6 +271,7 @@ import esBiz from "./es/biz.json";
 import esDiscovery from "./es/discovery.json";
 import esPerformance from "./es/performance.json";
 import esAds from "./es/ads.json";
+import esReview from "./es/review.json";
 import ruCommon from "./ru/common.json";
 import ruAuth from "./ru/auth.json";
 import ruSettings from "./ru/settings.json";
@@ -303,6 +310,7 @@ import ruBiz from "./ru/biz.json";
 import ruDiscovery from "./ru/discovery.json";
 import ruPerformance from "./ru/performance.json";
 import ruAds from "./ru/ads.json";
+import ruReview from "./ru/review.json";
 
 // Single source of truth for the resource bundle. Both apps (web layout +
 // desktop App.tsx) import from here so adding a locale or namespace happens
@@ -347,6 +355,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     discovery: enDiscovery,
     performance: enPerformance,
     ads: enAds,
+    review: enReview,
   },
   "zh-Hans": {
     common: zhHansCommon,
@@ -387,6 +396,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     discovery: zhHansDiscovery,
     performance: zhHansPerformance,
     ads: zhHansAds,
+    review: zhHansReview,
   },
   "zh-Hant": {
     common: zhHantCommon,
@@ -427,6 +437,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     discovery: zhHantDiscovery,
     performance: zhHantPerformance,
     ads: zhHantAds,
+    review: zhHantReview,
   },
   ko: {
     common: koCommon,
@@ -467,6 +478,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     discovery: koDiscovery,
     performance: koPerformance,
     ads: koAds,
+    review: koReview,
   },
   ja: {
     common: jaCommon,
@@ -507,6 +519,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     discovery: jaDiscovery,
     performance: jaPerformance,
     ads: jaAds,
+    review: jaReview,
   },
   fr: {
     common: frCommon,
@@ -547,6 +560,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     discovery: frDiscovery,
     performance: frPerformance,
     ads: frAds,
+    review: frReview,
   },
   es: {
     common: esCommon,
@@ -587,6 +601,7 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     discovery: esDiscovery,
     performance: esPerformance,
     ads: esAds,
+    review: esReview,
   },
   ru: {
     common: ruCommon,
@@ -627,5 +642,6 @@ export const RESOURCES: Record<SupportedLocale, LocaleResources> = {
     discovery: ruDiscovery,
     performance: ruPerformance,
     ads: ruAds,
+    review: ruReview,
   },
 };

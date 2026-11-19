@@ -133,6 +133,7 @@ WHERE workspace_id = sqlc.arg('workspace_id')
   AND (sqlc.narg('creator_id')::uuid IS NULL OR creator_id = sqlc.narg('creator_id')::uuid)
   AND (sqlc.narg('assignee_id')::uuid IS NULL OR assignee_id = sqlc.narg('assignee_id')::uuid)
   AND (sqlc.narg('assignee_type')::text IS NULL OR assignee_type = sqlc.narg('assignee_type')::text)
+  AND (sqlc.narg('review_state')::text IS NULL OR review_state = sqlc.narg('review_state')::text)
   AND (
     sqlc.narg('cursor_at')::timestamptz IS NULL
     OR (created_at, id) < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
@@ -157,7 +158,7 @@ INSERT INTO crm_collab (
     creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate,
     sample_required, script_required, scheduled_at, confirmed_at, published_at,
     accepted_at, issue_id, owner_member_id, created_by, publish_url, settled_on,
-    assignee_type, assignee_id
+    assignee_type, assignee_id, review_state
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('brief_id'), sqlc.arg('creator_id'), sqlc.arg('stage'),
     sqlc.narg('quote_amount')::numeric, sqlc.narg('final_amount')::numeric,
@@ -168,7 +169,8 @@ INSERT INTO crm_collab (
     sqlc.narg('published_at')::timestamptz, sqlc.narg('accepted_at')::timestamptz,
     sqlc.narg('issue_id')::uuid, sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid,
     sqlc.narg('publish_url')::text, sqlc.narg('settled_on')::date,
-    sqlc.narg('assignee_type')::text, sqlc.narg('assignee_id')::uuid
+    sqlc.narg('assignee_type')::text, sqlc.narg('assignee_id')::uuid,
+    sqlc.arg('review_state')::text
 )
 RETURNING *;
 
@@ -209,6 +211,9 @@ SET brief_id = sqlc.arg('brief_id'),
     settled_on = sqlc.narg('settled_on')::date,
     assignee_type = sqlc.narg('assignee_type')::text,
     assignee_id = sqlc.narg('assignee_id')::uuid,
+    review_state = sqlc.arg('review_state')::text,
+    reviewed_by = sqlc.narg('reviewed_by')::uuid,
+    reviewed_at = sqlc.narg('reviewed_at')::timestamptz,
     revision = revision + 1,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL
@@ -235,6 +240,7 @@ WHERE workspace_id = sqlc.arg('workspace_id')
   )
   AND (sqlc.narg('assignee_id')::uuid IS NULL OR assignee_id = sqlc.narg('assignee_id')::uuid)
   AND (sqlc.narg('assignee_type')::text IS NULL OR assignee_type = sqlc.narg('assignee_type')::text)
+  AND (sqlc.narg('review_state')::text IS NULL OR review_state = sqlc.narg('review_state')::text)
   AND (
     sqlc.narg('cursor_at')::timestamptz IS NULL
     OR (created_at, id) < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
@@ -251,12 +257,13 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archiv
 -- may be handed to somebody directly — that is who chases the money.
 INSERT INTO crm_settlement (
     workspace_id, collab_id, kind, amount, currency, due_at, paid_at, invoice_no,
-    note, created_by, assignee_type, assignee_id
+    note, created_by, assignee_type, assignee_id, review_state
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('collab_id'), sqlc.arg('kind'), sqlc.arg('amount')::numeric,
     sqlc.arg('currency'), sqlc.narg('due_at')::date, sqlc.narg('paid_at')::date,
     sqlc.narg('invoice_no')::text, sqlc.narg('note')::text, sqlc.narg('created_by')::uuid,
-    sqlc.narg('assignee_type')::text, sqlc.narg('assignee_id')::uuid
+    sqlc.narg('assignee_type')::text, sqlc.narg('assignee_id')::uuid,
+    sqlc.arg('review_state')::text
 )
 RETURNING *;
 
@@ -274,6 +281,9 @@ SET collab_id = sqlc.arg('collab_id'),
     note = sqlc.narg('note')::text,
     assignee_type = sqlc.narg('assignee_type')::text,
     assignee_id = sqlc.narg('assignee_id')::uuid,
+    review_state = sqlc.arg('review_state')::text,
+    reviewed_by = sqlc.narg('reviewed_by')::uuid,
+    reviewed_at = sqlc.narg('reviewed_at')::timestamptz,
     revision = revision + 1,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL

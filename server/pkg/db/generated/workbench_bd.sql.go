@@ -738,15 +738,16 @@ func (q *Queries) CountCreatorCampaignNameConflicts(ctx context.Context, arg Cou
 const createCreatorActivity = `-- name: CreateCreatorActivity :one
 INSERT INTO creator_activity (
     workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at,
-    owner_member_id, created_by, assignee_type, assignee_id
+    owner_member_id, created_by, assignee_type, assignee_id, review_state
 ) VALUES (
     $1::uuid, $2::uuid, $3::text,
     $4::timestamptz, $5::text,
     $6::text, $7::timestamptz,
     $8::uuid, $9::uuid,
-    $10::text, $11::uuid
+    $10::text, $11::uuid,
+    $12::text
 )
-RETURNING id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision
+RETURNING id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 `
 
 type CreateCreatorActivityParams struct {
@@ -761,6 +762,7 @@ type CreateCreatorActivityParams struct {
 	CreatedBy     pgtype.UUID        `json:"created_by"`
 	AssigneeType  pgtype.Text        `json:"assignee_type"`
 	AssigneeID    pgtype.UUID        `json:"assignee_id"`
+	ReviewState   string             `json:"review_state"`
 }
 
 // `assignee_*` (821): who follows this conversation up. An agent may hold it;
@@ -778,6 +780,7 @@ func (q *Queries) CreateCreatorActivity(ctx context.Context, arg CreateCreatorAc
 		arg.CreatedBy,
 		arg.AssigneeType,
 		arg.AssigneeID,
+		arg.ReviewState,
 	)
 	var i CreatorActivity
 	err := row.Scan(
@@ -797,6 +800,9 @@ func (q *Queries) CreateCreatorActivity(ctx context.Context, arg CreateCreatorAc
 		&i.AssigneeType,
 		&i.AssigneeID,
 		&i.Revision,
+		&i.ReviewState,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }
@@ -872,7 +878,7 @@ const createCreatorQuote = `-- name: CreateCreatorQuote :one
 INSERT INTO creator_quote (
     workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount,
     commission_rate, currency, items, note, owner_member_id, created_by,
-    assignee_type, assignee_id
+    assignee_type, assignee_id, review_state
 ) VALUES (
     $1::uuid, $2::uuid,
     $3::uuid, $4::text,
@@ -880,9 +886,10 @@ INSERT INTO creator_quote (
     $7::numeric, $8::numeric,
     $9::text, $10::text::jsonb, $11::text,
     $12::uuid, $13::uuid,
-    $14::text, $15::uuid
+    $14::text, $15::uuid,
+    $16::text
 )
-RETURNING id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision
+RETURNING id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 `
 
 type CreateCreatorQuoteParams struct {
@@ -901,6 +908,7 @@ type CreateCreatorQuoteParams struct {
 	CreatedBy      pgtype.UUID        `json:"created_by"`
 	AssigneeType   pgtype.Text        `json:"assignee_type"`
 	AssigneeID     pgtype.UUID        `json:"assignee_id"`
+	ReviewState    string             `json:"review_state"`
 }
 
 func (q *Queries) CreateCreatorQuote(ctx context.Context, arg CreateCreatorQuoteParams) (CreatorQuote, error) {
@@ -920,6 +928,7 @@ func (q *Queries) CreateCreatorQuote(ctx context.Context, arg CreateCreatorQuote
 		arg.CreatedBy,
 		arg.AssigneeType,
 		arg.AssigneeID,
+		arg.ReviewState,
 	)
 	var i CreatorQuote
 	err := row.Scan(
@@ -943,12 +952,15 @@ func (q *Queries) CreateCreatorQuote(ctx context.Context, arg CreateCreatorQuote
 		&i.AssigneeType,
 		&i.AssigneeID,
 		&i.Revision,
+		&i.ReviewState,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }
 
 const getCreatorActivity = `-- name: GetCreatorActivity :one
-SELECT id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision FROM creator_activity
+SELECT id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at FROM creator_activity
 WHERE id = $1 AND workspace_id = $2::uuid
   AND archived_at IS NULL
 `
@@ -978,6 +990,9 @@ func (q *Queries) GetCreatorActivity(ctx context.Context, arg GetCreatorActivity
 		&i.AssigneeType,
 		&i.AssigneeID,
 		&i.Revision,
+		&i.ReviewState,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }
@@ -1018,7 +1033,7 @@ func (q *Queries) GetCreatorCampaign(ctx context.Context, arg GetCreatorCampaign
 }
 
 const getCreatorQuote = `-- name: GetCreatorQuote :one
-SELECT id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision FROM creator_quote
+SELECT id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at FROM creator_quote
 WHERE id = $1 AND workspace_id = $2::uuid
   AND archived_at IS NULL
 `
@@ -1052,6 +1067,9 @@ func (q *Queries) GetCreatorQuote(ctx context.Context, arg GetCreatorQuoteParams
 		&i.AssigneeType,
 		&i.AssigneeID,
 		&i.Revision,
+		&i.ReviewState,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }
@@ -1059,7 +1077,7 @@ func (q *Queries) GetCreatorQuote(ctx context.Context, arg GetCreatorQuoteParams
 const listCreatorActivities = `-- name: ListCreatorActivities :many
 
 
-SELECT id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision
+SELECT id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 FROM creator_activity
 WHERE workspace_id = $1::uuid
   AND archived_at IS NULL
@@ -1069,8 +1087,9 @@ WHERE workspace_id = $1::uuid
   AND ($5::timestamptz IS NULL OR happened_at <= $5::timestamptz)
   AND ($6::uuid IS NULL OR assignee_id = $6::uuid)
   AND ($7::text IS NULL OR assignee_type = $7::text)
+  AND ($8::text IS NULL OR review_state = $8::text)
 ORDER BY happened_at DESC, id DESC
-LIMIT $8::integer
+LIMIT $9::integer
 `
 
 type ListCreatorActivitiesParams struct {
@@ -1081,6 +1100,7 @@ type ListCreatorActivitiesParams struct {
 	ToAt         pgtype.Timestamptz `json:"to_at"`
 	AssigneeID   pgtype.UUID        `json:"assignee_id"`
 	AssigneeType pgtype.Text        `json:"assignee_type"`
+	ReviewState  pgtype.Text        `json:"review_state"`
 	Limit        int32              `json:"limit"`
 }
 
@@ -1117,6 +1137,7 @@ func (q *Queries) ListCreatorActivities(ctx context.Context, arg ListCreatorActi
 		arg.ToAt,
 		arg.AssigneeID,
 		arg.AssigneeType,
+		arg.ReviewState,
 		arg.Limit,
 	)
 	if err != nil {
@@ -1143,6 +1164,9 @@ func (q *Queries) ListCreatorActivities(ctx context.Context, arg ListCreatorActi
 			&i.AssigneeType,
 			&i.AssigneeID,
 			&i.Revision,
+			&i.ReviewState,
+			&i.ReviewedBy,
+			&i.ReviewedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -1213,7 +1237,7 @@ func (q *Queries) ListCreatorCampaigns(ctx context.Context, arg ListCreatorCampa
 
 const listCreatorQuotes = `-- name: ListCreatorQuotes :many
 
-SELECT id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision
+SELECT id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 FROM creator_quote
 WHERE workspace_id = $1::uuid
   AND archived_at IS NULL
@@ -1221,8 +1245,9 @@ WHERE workspace_id = $1::uuid
   AND ($3::text IS NULL OR status = $3::text)
   AND ($4::uuid IS NULL OR assignee_id = $4::uuid)
   AND ($5::text IS NULL OR assignee_type = $5::text)
+  AND ($6::text IS NULL OR review_state = $6::text)
 ORDER BY coalesce(quoted_at, created_at) DESC, id DESC
-LIMIT $6::integer
+LIMIT $7::integer
 `
 
 type ListCreatorQuotesParams struct {
@@ -1231,6 +1256,7 @@ type ListCreatorQuotesParams struct {
 	Status       pgtype.Text `json:"status"`
 	AssigneeID   pgtype.UUID `json:"assignee_id"`
 	AssigneeType pgtype.Text `json:"assignee_type"`
+	ReviewState  pgtype.Text `json:"review_state"`
 	Limit        int32       `json:"limit"`
 }
 
@@ -1246,6 +1272,7 @@ func (q *Queries) ListCreatorQuotes(ctx context.Context, arg ListCreatorQuotesPa
 		arg.Status,
 		arg.AssigneeID,
 		arg.AssigneeType,
+		arg.ReviewState,
 		arg.Limit,
 	)
 	if err != nil {
@@ -1276,6 +1303,9 @@ func (q *Queries) ListCreatorQuotes(ctx context.Context, arg ListCreatorQuotesPa
 			&i.AssigneeType,
 			&i.AssigneeID,
 			&i.Revision,
+			&i.ReviewState,
+			&i.ReviewedBy,
+			&i.ReviewedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -1297,12 +1327,15 @@ SET kind = $1::text,
     owner_member_id = $6::uuid,
     assignee_type = $7::text,
     assignee_id = $8::uuid,
+    review_state = $9::text,
+    reviewed_by = $10::uuid,
+    reviewed_at = $11::timestamptz,
     revision = revision + 1,
     updated_at = now()
-WHERE id = $9 AND workspace_id = $10::uuid
+WHERE id = $12 AND workspace_id = $13::uuid
   AND archived_at IS NULL
-  AND ($11::int IS NULL OR revision = $11::int)
-RETURNING id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision
+  AND ($14::int IS NULL OR revision = $14::int)
+RETURNING id, workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 `
 
 type UpdateCreatorActivityParams struct {
@@ -1314,6 +1347,9 @@ type UpdateCreatorActivityParams struct {
 	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
 	AssigneeType     pgtype.Text        `json:"assignee_type"`
 	AssigneeID       pgtype.UUID        `json:"assignee_id"`
+	ReviewState      string             `json:"review_state"`
+	ReviewedBy       pgtype.UUID        `json:"reviewed_by"`
+	ReviewedAt       pgtype.Timestamptz `json:"reviewed_at"`
 	ID               pgtype.UUID        `json:"id"`
 	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
 	ExpectedRevision pgtype.Int4        `json:"expected_revision"`
@@ -1334,6 +1370,9 @@ func (q *Queries) UpdateCreatorActivity(ctx context.Context, arg UpdateCreatorAc
 		arg.OwnerMemberID,
 		arg.AssigneeType,
 		arg.AssigneeID,
+		arg.ReviewState,
+		arg.ReviewedBy,
+		arg.ReviewedAt,
 		arg.ID,
 		arg.WorkspaceID,
 		arg.ExpectedRevision,
@@ -1356,6 +1395,9 @@ func (q *Queries) UpdateCreatorActivity(ctx context.Context, arg UpdateCreatorAc
 		&i.AssigneeType,
 		&i.AssigneeID,
 		&i.Revision,
+		&i.ReviewState,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }
@@ -1444,12 +1486,15 @@ SET brief_id = $1::uuid,
     owner_member_id = $10::uuid,
     assignee_type = $11::text,
     assignee_id = $12::uuid,
+    review_state = $13::text,
+    reviewed_by = $14::uuid,
+    reviewed_at = $15::timestamptz,
     revision = revision + 1,
     updated_at = now()
-WHERE id = $13 AND workspace_id = $14::uuid
+WHERE id = $16 AND workspace_id = $17::uuid
   AND archived_at IS NULL
-  AND ($15::int IS NULL OR revision = $15::int)
-RETURNING id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision
+  AND ($18::int IS NULL OR revision = $18::int)
+RETURNING id, workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount, commission_rate, currency, items, note, owner_member_id, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 `
 
 type UpdateCreatorQuoteParams struct {
@@ -1465,6 +1510,9 @@ type UpdateCreatorQuoteParams struct {
 	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
 	AssigneeType     pgtype.Text        `json:"assignee_type"`
 	AssigneeID       pgtype.UUID        `json:"assignee_id"`
+	ReviewState      string             `json:"review_state"`
+	ReviewedBy       pgtype.UUID        `json:"reviewed_by"`
+	ReviewedAt       pgtype.Timestamptz `json:"reviewed_at"`
 	ID               pgtype.UUID        `json:"id"`
 	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
 	ExpectedRevision pgtype.Int4        `json:"expected_revision"`
@@ -1489,6 +1537,9 @@ func (q *Queries) UpdateCreatorQuote(ctx context.Context, arg UpdateCreatorQuote
 		arg.OwnerMemberID,
 		arg.AssigneeType,
 		arg.AssigneeID,
+		arg.ReviewState,
+		arg.ReviewedBy,
+		arg.ReviewedAt,
 		arg.ID,
 		arg.WorkspaceID,
 		arg.ExpectedRevision,
@@ -1515,6 +1566,9 @@ func (q *Queries) UpdateCreatorQuote(ctx context.Context, arg UpdateCreatorQuote
 		&i.AssigneeType,
 		&i.AssigneeID,
 		&i.Revision,
+		&i.ReviewState,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }

@@ -55,7 +55,10 @@
     "crm_payment_collected_month": "Cobrado este mes",
     "crm_quote_margin_rate": "Margen por colaboración",
     "crm_collab_roi": "Retorno por colaboración",
-    "crm_creator_repeat_rate": "Creadores recurrentes"
+    "crm_creator_repeat_rate": "Creadores recurrentes",
+    "agent_write_overwrite_rate": "Tasa de sobrescritura",
+    "agent_review_reject_rate": "Tasa de rechazo",
+    "agent_action_rollback_rate": "Tasa de reversión"
   },
   "gap": {
     "needs_hired": "Nadie ha sido contratado desde el registro todavía: falta la fecha de alta para medir.",

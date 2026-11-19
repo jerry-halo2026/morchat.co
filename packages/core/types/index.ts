@@ -795,3 +795,21 @@ export type {
   BdPerformanceTotals,
   BdPerformanceVolumeBlock,
 } from "./bd";
+
+// The review gate (WORKBENCH-API §26, COLLAB-MODEL §7). Its own module because
+// it belongs to no single ledger: the queue flattens four tables, and the reason
+// vocabularies are the contract's, not any one handler's.
+export {
+  OVERWRITE_REASONS,
+  REVIEW_DOMAINS,
+  REVIEW_REASON_MAX_LENGTH,
+} from "./review";
+export type {
+  OverwriteReason,
+  RejectReviewRequest,
+  ReviewDomain,
+  ReviewQueueFilters,
+  ReviewQueueResponse,
+  ReviewQueueRow,
+  ReviewState,
+} from "./review";

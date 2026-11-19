@@ -54,6 +54,7 @@
     "./sales": "./sales/index.ts",
     "./content": "./content/index.ts",
     "./boss": "./boss/index.ts",
+    "./review": "./review/index.ts",
     "./blocks": "./blocks/index.ts",
     "./squads": "./squads/index.ts",
     "./squads/components": "./squads/components/index.ts",

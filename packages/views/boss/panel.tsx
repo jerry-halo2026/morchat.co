@@ -38,7 +38,10 @@ type BossPanelGroupKey = "biz" | "market";
  * list and shown only once that list answers.
  */
 const BOSS_PANEL_GROUPS: readonly { label: BossPanelGroupKey; pages: readonly BossPageKey[] }[] = [
-  { label: "biz", pages: ["home", "goals", "tasks", "biz", "team"] },
+  // `review` sits with the business pages rather than under the market group: it
+  // is a verdict on what the team and its agents wrote, not a read of the world
+  // outside (§26).
+  { label: "biz", pages: ["home", "goals", "tasks", "biz", "team", "review"] },
   { label: "market", pages: ["radar", "customers"] },
 ];
 

@@ -107,7 +107,7 @@ func (q *Queries) GetLastWorkbenchActivity(ctx context.Context, arg GetLastWorkb
 
 const listLastWorkbenchActivities = `-- name: ListLastWorkbenchActivities :many
 SELECT DISTINCT ON (subject_id)
-    subject_id, actor_type, actor_id, action, created_at
+    subject_id, actor_type, actor_id, action, details, created_at
 FROM activity_log
 WHERE workspace_id = $1::uuid
   AND subject_type = $2::text
@@ -126,6 +126,7 @@ type ListLastWorkbenchActivitiesRow struct {
 	ActorType pgtype.Text        `json:"actor_type"`
 	ActorID   pgtype.UUID        `json:"actor_id"`
 	Action    string             `json:"action"`
+	Details   []byte             `json:"details"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
@@ -133,6 +134,11 @@ type ListLastWorkbenchActivitiesRow struct {
 // newest row per subject, so a 200-row page costs one query instead of 200.
 // Callers pass the ids they are about to render; an empty array is a valid input
 // and answers nothing.
+//
+// `details` rides along for the review queue (§26.2), which shows which business
+// fields the write touched and whether the change carries an `overwrite_reason`.
+// The trail readers that only need the actor ignore it; selecting it here is one
+// column cheaper than a second per-subject query.
 func (q *Queries) ListLastWorkbenchActivities(ctx context.Context, arg ListLastWorkbenchActivitiesParams) ([]ListLastWorkbenchActivitiesRow, error) {
 	rows, err := q.db.Query(ctx, listLastWorkbenchActivities, arg.WorkspaceID, arg.SubjectType, arg.SubjectIds)
 	if err != nil {
@@ -147,6 +153,7 @@ func (q *Queries) ListLastWorkbenchActivities(ctx context.Context, arg ListLastW
 			&i.ActorType,
 			&i.ActorID,
 			&i.Action,
+			&i.Details,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
