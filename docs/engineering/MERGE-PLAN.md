@@ -77,3 +77,50 @@ git merge --ff-only 2f39e4a71          # W2 边界
 因为 `dev` 是从 `main` 线性长出来的、而 `main` 一直没动，**每一波都是快进**，不产生 merge commit，历史保持线性。
 
 合并顺序固定为 W1 → W2 → … → W8；某波被否时后续波一起等，不要跳波合并。
+
+## 6. W1 实测记录（2026-11-19）
+
+`integrate/w1` = `main + 30 条`，边界 `68e5154f5`，已推 `origin/integrate/w1`。
+
+**关键方法修正**：每波必须对着**本波自己的数据库**跑测试。第一次拿 W1 的代码去打 dev 顶点的库
+（`multica_wb`，迁移到 852）时，`TestWorkspaceDeletionManifestCoversPublicSchema` 报了 52 张
+"未分类"表——那些表在 W1 时还不存在，纯属用新库验旧代码。换成按波建库（`wb_w1`，用 W1 的代码
+`migrate up` 到 727）之后，报的才是真问题。
+
+### 6.1 结果
+
+| 门 | 结果 |
+| --- | --- |
+| `go build ./...` / `go vet ./...` | 干净 |
+| `go test ./internal/handler`（对 `wb_w1`） | 113s，**1 红**：`TestWorkspaceDeletionManifestCoversPublicSchema` |
+| `go test ./cmd/migrate ./internal/migrations` | ok 30.3s / 1.4s |
+| `pnpm typecheck` | 9/9 |
+| `pnpm lint` | 6/6，0 error |
+| `core api` | 657 通过 |
+| `views`（workbench+hr+sales+locales） | 626 通过，**5 红**：`locales/parity` 的 `presets`/`knowledge` 的 ru 缺键 |
+
+### 6.2 两条红都不是 W1 引入的（已在 main 上复现）
+
+| 红 | main 上复现方式 | 结论 |
+| --- | --- | --- |
+| `TestWorkspaceDeletionManifestCoversPublicSchema`：15 张表未分类（`knowledge_*`、`gateway_credentials`、`external_auth_identity`） | 建 `wb_main` 库、用 main 的代码 `migrate up`（到 657）、跑同一条用例 → 同样 15 张表、同样红 | **main 自带**；本分支在 W4 的 `a74e2c047` 修掉 |
+| `locales/parity`：`presets` / `knowledge` 的 ru 缺键（5 条） | 在主 checkout（`D:\dev\morchat.co`，`main`）跑 `vitest run locales/parity.test.ts` → 同样 5 红 | **main 自带**；本分支在 W4 的 `7443f8173` 修掉 |
+
+所以 W1 的判据是「**不比 main 更差**」：新增的 30 条没有引入任何红，两条红是 main 继承下来的，
+且都在 W4 收掉。
+
+### 6.3 一个没做成、也不该做的动作
+
+我试过把 W4 的 `a74e2c047`（补 manifest + 知识库 teardown）cherry-pick 到 W1 上，让 W1 也全绿。
+**放弃了**，两个原因：
+
+1. 它和 W1 的 manifest 排布冲突（三处 `<<<<<<<`），因为中间几波又往同一个 map 里加过条目。
+2. 更根本的：分波合并的前提是**每一波都是 `dev` 的祖先**，这样后面每波还是快进；插一条改造过的
+   commit 会让 `integrate/w1` 偏离 `dev` 的 ancestry，后面全部退化成 merge/rebase。宁可让 W1
+   带着 main 的两条既有红，也不破坏这个不变量。
+
+### 6.4 每一步都要注意的两个坑
+
+- `GOFLAGS=-mod=mod` 会让容器里的 `go build` **改写 `server/go.mod`**（这次加了
+  `golang.org/x/crypto`）。每波跑完 `git checkout -- server/go.mod` 再切分支。
+- 按波建库要清理：`wb_w1`、`wb_main` 用完可 `DROP DATABASE`，别留一堆 `wb_*`。
