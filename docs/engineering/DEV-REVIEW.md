@@ -140,3 +140,37 @@ cd packages/core  && pnpm exec vitest run api                          # 676 通
 零 `REFERENCES/ON DELETE` · `expected_revision` 确实在 WHERE 里 · `review.accept` 三层到位 ·
 无 owner 的行读不到也写不了 · agent 金额闸门在 REST 面生效 · 三态没把 NULL 当 0 ·
 `items`/`rows` 信封真的两边都改了 · 409 全链路没吞错。
+
+## 9. 端到端验收（2026-11-19）
+
+环境：本 worktree 自己的 dev 环境（`workbench_blocks-898`，API :18978 / web :3000 / 独立库
+`multica_workbench_blocks_898`），真实登录、真实 Chromium。
+
+### 9.1 新增：四个部门空间的首个 E2E 冒烟
+
+`e2e/workbench.spec.ts`，11 条：概览 · 销售（含报价/合作单/跟进）· 内容（含投放/选题）·
+总经理（含复核队列）· 招聘。断言与 locale 无关（渲染出足够内容 + 出现该页自己的标签
+（英文或中文任一）+ 全程无 uncaught/console error）。
+
+**结果：11 passed（34.3s）。** 这条覆盖此前完全没有——这些页面只有 Vitest 组件级与 Go
+handler 级覆盖，没有任何证据表明登录后的浏览器能真的打开它们。
+
+### 9.2 平台既有 E2E
+
+| 套件 | 结果 | 归因 |
+| --- | --- | --- |
+| `e2e/auth.spec.ts` + `e2e/issues.spec.ts` | **10 通过 / 1 失败**（`issues › can filter issues by created and updated dates`） | 失败点是 `getByRole("button", { name: /filter/i })` 匹配不到——本环境页面是中文（按钮名「筛选」）。**与本次改动无关**：没改 issues 页，也没改默认 locale；是套件假定英文 UI |
+| 整套 `pnpm exec playwright test` | **跑不起来** | `e2e/plugin-surface-document.spec.ts` 导入 `buildSurfaceDocument`，模块只导出 `buildSurfaceFrameDocument`。不一致在 main 上就有（两个文件本分支都没碰），套件在收集阶段 SyntaxError |
+
+### 9.3 桌面端（Electron）
+
+仓库没有 Electron E2E 套件（`apps/desktop` 只有 `vitest run`）。实跑：
+
+- 本分支：**948 / 949 通过**，2 个文件红 → `scripts/package.test.mjs`（SyntaxError）与
+  `daemon-localization.test.tsx`（zh-Hans 句子结尾断言）。
+- 同一命令在主 checkout（`main`）：**同样这 2 条红**，939 / 940 通过。
+  即两条都是 main 上既有，不是本分支引入；本分支新增的 9 条桌面用例全绿。
+
+**结论（如实说）**：web 的 workbench 页面有 E2E 证据且全绿；web 其余套件有一条 locale 相关
+既有失败、以及一个既有收集期错误挡住整套运行；桌面端没有 E2E，只有单元/组件级——新代码全绿，
+既有 2 条红在 main 上同样红。
