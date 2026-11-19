@@ -10,9 +10,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@morechat/ui/components/ui/sheet";
+import { creatorVideosOptions } from "@morechat/core/creator/queries";
 import { hrCandidateListOptions, hrJobListOptions } from "@morechat/core/hr/queries";
 import { departmentListOptions, memberListOptions } from "@morechat/core/workspace/queries";
 import type {
+  Creator,
   HrCandidate,
   HrEmployeeProfile,
   HrInterview,
@@ -319,6 +321,126 @@ export function RecordSheet(props: RecordSheetProps) {
         </SheetFooter>
       </SheetContent>
     </Sheet>
+  );
+}
+
+/**
+ * The creator drawer's 内容健康度 section.
+ *
+ * Three numbers, the口径 line that says what they mean, one sentence about why a
+ * number is missing, and the newest works behind them.
+ *
+ * The numbers come from the row the drawer was opened with: the creators ledger
+ * already joins the newest snapshot onto every row (WORKBENCH-API §19), so the
+ * section never re-reads the metric. `metric_captured_on` is what tells "no
+ * snapshot at all" apart from "a snapshot with a null metric" — a null rate on a
+ * sampled creator is a measured absence, not a missing row.
+ *
+ * Nothing is clamped: a rate above 1 is real upstream data (45.03 = 4503 %) and
+ * means the follower count disagrees with the works, which is exactly what a
+ * reader needs to see.
+ */
+export function CreatorHealthSection({
+  wsId,
+  creator,
+  open = true,
+}: {
+  /** Optional for the same reason as the sheet's: no workspace, no work list. */
+  wsId?: string;
+  creator: Creator;
+  open?: boolean;
+}) {
+  const { t } = useT("blocks");
+  const locales = useLocale();
+  const empty = t(($) => $.record.empty);
+  const works = useQuery({
+    ...creatorVideosOptions(wsId ?? "", creator.id),
+    enabled: open && !!wsId,
+  });
+  const rows = works.data?.videos ?? [];
+
+  const percent = (rate: number | null | undefined): string => {
+    if (rate === null || rate === undefined) return empty;
+    const value = new Intl.NumberFormat(locales, {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+      useGrouping: false,
+    }).format(rate * 100);
+    return `${value}${t(($) => $.unit.percent)}`;
+  };
+  const count = (value: number | null | undefined): string => {
+    if (value === null || value === undefined) return empty;
+    return new Intl.NumberFormat(locales, { useGrouping: false }).format(value);
+  };
+
+  // Why a number is missing, in the order a reader would ask: no snapshot, then a
+  // sample too small for a hit rate, then no follower count to divide by. The
+  // three are the contract's own preconditions (§2.3).
+  let gap: string | null = null;
+  if (creator.metric_captured_on === null || creator.metric_captured_on === undefined) {
+    gap = t(($) => $.creator_health.gap_no_metric);
+  } else if ((creator.videos_with_stats ?? 0) < 10) {
+    gap = t(($) => $.creator_health.gap_small_sample);
+  } else if (!creator.fans) {
+    gap = t(($) => $.creator_health.gap_no_fans);
+  }
+
+  const cells: { key: "engagement_rate" | "hit_rate" | "posts_last_30d"; value: string }[] = [
+    { key: "engagement_rate", value: percent(creator.engagement_rate) },
+    { key: "hit_rate", value: percent(creator.hit_rate) },
+    {
+      key: "posts_last_30d",
+      value:
+        creator.posts_last_30d === null || creator.posts_last_30d === undefined
+          ? empty
+          : t(($) => $.creator_health.posts_value, { count: creator.posts_last_30d }),
+    },
+  ];
+
+  return (
+    <section className="mt-5 flex flex-col gap-3 border-t pt-4">
+      <h3 className="text-caption font-medium text-muted-foreground">
+        {t(($) => $.creator_health.title)}
+      </h3>
+      <dl className="grid grid-cols-3 gap-3">
+        {cells.map((cell) => (
+          <div key={cell.key} className="flex min-w-0 flex-col gap-0.5">
+            <dt className="text-caption text-muted-foreground">
+              {t(($) => $.creator_health[cell.key])}
+            </dt>
+            <dd className="text-body tabular-nums">{cell.value}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="text-caption text-muted-foreground">{t(($) => $.creator_health.definition)}</p>
+      {gap ? <p className="text-caption text-muted-foreground">{gap}</p> : null}
+
+      <h4 className="mt-1 text-caption font-medium text-muted-foreground">
+        {t(($) => $.creator_health.recent_works)}
+      </h4>
+      {rows.length === 0 ? (
+        <p className="text-caption text-muted-foreground">{t(($) => $.creator_health.no_works)}</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {rows.map((work) => (
+            <li key={work.id} className="flex min-w-0 flex-col gap-0.5">
+              <span className="truncate text-body" title={work.desc_text ?? undefined}>
+                {work.desc_text || work.aweme_id}
+              </span>
+              <span className="text-caption text-muted-foreground">
+                {[
+                  `${t(($) => $.creator_health.likes)} ${count(work.digg_count)}`,
+                  `${t(($) => $.creator_health.comments)} ${count(work.comment_count)}`,
+                  `${t(($) => $.creator_health.shares)} ${count(work.share_count)}`,
+                  `${t(($) => $.creator_health.plays)} ${count(work.play_count)}`,
+                  formatStamp(work.create_time) ?? empty,
+                ].join(" · ")}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

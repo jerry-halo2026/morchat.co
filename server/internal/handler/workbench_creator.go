@@ -11,10 +11,12 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
 	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
@@ -25,6 +27,13 @@ const (
 	creatorKindExternal = "external"
 
 	creatorPostSourceManual = "manual"
+
+	// The ledger's orderings (`?sort=`). `fans` is the default: it is the only
+	// ranking that means something before any work has been sampled.
+	creatorSortFans       = "fans"
+	creatorSortEngagement = "engagement"
+	creatorSortHit        = "hit"
+	creatorSortRecent     = "recent"
 )
 
 // CreatorRequest is both the create body and the PATCH body: every field is
@@ -210,6 +219,80 @@ func (h *Handler) workbenchIssueRef(w http.ResponseWriter, r *http.Request, scop
 
 // ---- creators --------------------------------------------------------------
 
+// workbenchCreatorSort validates `?sort=`. An unknown value is a 400 rather than
+// a silent fallback: a client that asked for an ordering it did not get would
+// draw unsorted rows as a ranking.
+func workbenchCreatorSort(w http.ResponseWriter, r *http.Request) (string, bool) {
+	switch sort := strings.TrimSpace(r.URL.Query().Get("sort")); sort {
+	case "", creatorSortFans:
+		return creatorSortFans, true
+	case creatorSortEngagement, creatorSortHit, creatorSortRecent:
+		return sort, true
+	default:
+		writeError(w, http.StatusBadRequest, "sort must be fans, engagement, hit or recent")
+		return "", false
+	}
+}
+
+// workbenchCreatorCursor resolves `?cursor=` into the (id, followers, sort
+// value) triple the keyset predicate compares against.
+//
+// The numbers are re-read from the cursor creator's current state instead of
+// being encoded in the cursor: the cursor is a creator id, the same opaque form
+// the rest of the ledger uses, and a metric that changed since the previous page
+// should not strand a client on a cursor it cannot interpret. A cursor that
+// resolves to nothing in this workspace is a 400, not a silently empty page.
+func (h *Handler) workbenchCreatorCursor(w http.ResponseWriter, r *http.Request, scope workbenchScope, sort string) (pgtype.UUID, pgtype.Int8, pgtype.Numeric, bool) {
+	raw := strings.TrimSpace(r.URL.Query().Get("cursor"))
+	if raw == "" {
+		return pgtype.UUID{}, pgtype.Int8{}, pgtype.Numeric{}, true
+	}
+	cursorID, ok := parseUUIDOrBadRequest(w, raw, "cursor")
+	if !ok {
+		return pgtype.UUID{}, pgtype.Int8{}, pgtype.Numeric{}, false
+	}
+	creator, err := h.Queries.GetCreator(r.Context(), db.GetCreatorParams{
+		ID:          cursorID,
+		WorkspaceID: scope.WorkspaceUUID,
+	})
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "cursor not found")
+		return pgtype.UUID{}, pgtype.Int8{}, pgtype.Numeric{}, false
+	}
+	cursorFans := pgtype.Int8{Int64: creator.Fans, Valid: true}
+
+	if sort == creatorSortFans {
+		fans := float64(creator.Fans)
+		return cursorID, cursorFans, floatToNumeric(&fans), true
+	}
+
+	metric, err := h.Queries.GetCreatorMetricLatest(r.Context(), db.GetCreatorMetricLatestParams{
+		WorkspaceID: scope.WorkspaceUUID,
+		CreatorID:   cursorID,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			// The cursor creator has no snapshot, so its sort value is NULL and
+			// the NULL branch of the keyset predicate takes over.
+			return cursorID, cursorFans, pgtype.Numeric{}, true
+		}
+		workbenchInternalError(w, r, "failed to read creator metric", err)
+		return pgtype.UUID{}, pgtype.Int8{}, pgtype.Numeric{}, false
+	}
+	switch sort {
+	case creatorSortHit:
+		return cursorID, cursorFans, floatToNumeric(numericToFloatPtr(metric.HitRate)), true
+	case creatorSortRecent:
+		if !metric.PostsLast30d.Valid {
+			return cursorID, cursorFans, pgtype.Numeric{}, true
+		}
+		posts := float64(metric.PostsLast30d.Int32)
+		return cursorID, cursorFans, floatToNumeric(&posts), true
+	default:
+		return cursorID, cursorFans, floatToNumeric(numericToFloatPtr(metric.EngagementRate)), true
+	}
+}
+
 // ListCreators — GET /api/workbench/creators
 func (h *Handler) ListCreators(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
@@ -221,19 +304,22 @@ func (h *Handler) ListCreators(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "kind must be owned or external")
 		return
 	}
-	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
-		row, err := h.Queries.GetCreator(r.Context(), db.GetCreatorParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
-		return row.CreatedAt, err
-	})
+	sort, ok := workbenchCreatorSort(w, r)
+	if !ok {
+		return
+	}
+	cursorID, cursorFans, cursorValue, ok := h.workbenchCreatorCursor(w, r, scope, sort)
 	if !ok {
 		return
 	}
 	rows, err := h.Queries.ListCreators(r.Context(), db.ListCreatorsParams{
+		Sort:        sort,
 		WorkspaceID: scope.WorkspaceUUID,
 		Kind:        strToText(kind),
 		Query:       strToText(strings.TrimSpace(r.URL.Query().Get("q"))),
-		CursorAt:    cursorAt,
 		CursorID:    cursorID,
+		CursorValue: cursorValue,
+		CursorFans:  cursorFans,
 		Limit:       workbenchLimit(r),
 	})
 	if err != nil {
@@ -242,7 +328,7 @@ func (h *Handler) ListCreators(w http.ResponseWriter, r *http.Request) {
 	}
 	resp := make([]CreatorResponse, len(rows))
 	for i, row := range rows {
-		resp[i] = creatorToResponse(row)
+		resp[i] = creatorListRowToResponse(row)
 	}
 	// `next_cursor` names the last id of this page, which is also what `?cursor=`
 	// accepts; only a full page can have a successor. `total` is the row count of
@@ -250,7 +336,7 @@ func (h *Handler) ListCreators(w http.ResponseWriter, r *http.Request) {
 	// per-list COUNT here would double the query count for a footer nobody reads.
 	payload := map[string]any{"creators": resp, "total": len(resp), "next_cursor": nil}
 	if len(rows) > 0 && int32(len(rows)) == workbenchLimit(r) {
-		payload["next_cursor"] = uuidToString(rows[len(rows)-1].ID)
+		payload["next_cursor"] = uuidToString(rows[len(rows)-1].Creator.ID)
 	}
 	writeJSON(w, http.StatusOK, payload)
 }
@@ -357,6 +443,66 @@ func (h *Handler) GetCreator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, creatorToResponse(creator))
+}
+
+// creatorListRowToResponse turns one row of the list query into the ledger's
+// line.
+//
+// `engagement_rate` is the one field the list reports from the *snapshot*, not
+// from the creator row: the ledger's 互动率 column is content health
+// (WORKBENCH-DATA-CONTRACT §2.3 — average likes + comments + shares over
+// followers), while `creator.engagement_rate` is a legacy manually entered
+// number the mirror never writes. `GET /api/workbench/creators/{id}` keeps
+// reporting the column, because that endpoint returns the row and nothing else.
+// A creator without a snapshot gets null here, never 0.
+func creatorListRowToResponse(row db.ListCreatorsRow) CreatorResponse {
+	out := creatorToResponse(row.Creator)
+	out.EngagementRate = numericToFloatPtr(row.EngagementRate)
+	out.HitRate = numericToFloatPtr(row.HitRate)
+	out.PostsLast30D = int4ToPtr(row.PostsLast30d)
+	out.VideosWithStats = int4ToPtr(row.VideosWithStats)
+	out.MetricCapturedOn = dateToPtr(row.MetricCapturedOn)
+	return out
+}
+
+// ListCreatorVideos — GET /api/workbench/creators/{creatorId}/videos
+//
+// The mirrored works behind a creator's content health, newest first. The
+// drawer's 最近作品 strip reads five of them; `?limit=` is honoured up to the
+// ledger's own cap, so the same read serves a wider panel later without a second
+// endpoint. Every counter is nullable ("not collected yet" is not 0).
+func (h *Handler) ListCreatorVideos(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	creatorID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "creatorId"), "creator id")
+	if !ok {
+		return
+	}
+	// A creator this workspace cannot see has no works to show either: the id is
+	// resolved first so a foreign id is a 404 rather than an empty list.
+	if _, err := h.Queries.GetCreator(r.Context(), db.GetCreatorParams{
+		ID:          creatorID,
+		WorkspaceID: scope.WorkspaceUUID,
+	}); err != nil {
+		writeError(w, http.StatusNotFound, "creator not found")
+		return
+	}
+	rows, err := h.Queries.ListCreatorVideosRecent(r.Context(), db.ListCreatorVideosRecentParams{
+		WorkspaceID: scope.WorkspaceUUID,
+		CreatorID:   creatorID,
+		Limit:       workbenchLimit(r),
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to list creator videos", err)
+		return
+	}
+	resp := make([]CreatorVideoResponse, len(rows))
+	for i, row := range rows {
+		resp[i] = creatorVideoToResponse(row)
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"videos": resp, "total": len(resp)})
 }
 
 // UpdateCreator — PATCH /api/workbench/creators/{creatorId}

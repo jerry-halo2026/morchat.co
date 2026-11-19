@@ -2417,12 +2417,19 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 				r.Put("/finance/months", h.UpsertWorkbenchFinanceMonth)
 
 				r.Route("/creators", func(r chi.Router) {
+					// Content health (WORKBENCH-API §19). Registered before the
+					// `{creatorId}` route so `health` is not read as an id.
+					r.Get("/health", h.ListCreatorHealth)
 					r.Get("/", h.ListCreators)
 					r.Post("/", h.CreateCreator)
 					r.Route("/{creatorId}", func(r chi.Router) {
 						r.Get("/", h.GetCreator)
 						r.Patch("/", h.UpdateCreator)
 						r.Delete("/", h.DeleteCreator)
+						r.Get("/health", h.GetCreatorHealth)
+						// The works behind that health (WORKBENCH-API §19): the
+						// drawer's 最近作品 strip, newest first.
+						r.Get("/videos", h.ListCreatorVideos)
 					})
 				})
 
@@ -2471,6 +2478,43 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 						r.Route("/{settlementId}", func(r chi.Router) {
 							r.Patch("/", h.UpdateCrmSettlement)
 							r.Delete("/", h.DeleteCrmSettlement)
+						})
+					})
+				})
+
+				// BD pipeline (docs/engineering/WORKBENCH-API.md §20): the three
+				// ledgers that had no storage — follow-ups, quotes, collection
+				// campaigns — plus the 驾驶舱 aggregate that reads them together with
+				// `crm_collab`. No `orders` route here on purpose: a collaboration
+				// stays `/crm/collabs`, and a second cooperation resource would be a
+				// second answer to "what did this creator cost us".
+				r.Route("/bd", func(r chi.Router) {
+					r.Get("/pipeline", h.GetBdPipeline)
+					r.Route("/activities", func(r chi.Router) {
+						r.Get("/", h.ListBdActivities)
+						r.Post("/", h.CreateBdActivity)
+						r.Route("/{activityId}", func(r chi.Router) {
+							r.Get("/", h.GetBdActivity)
+							r.Patch("/", h.UpdateBdActivity)
+							r.Delete("/", h.DeleteBdActivity)
+						})
+					})
+					r.Route("/quotes", func(r chi.Router) {
+						r.Get("/", h.ListBdQuotes)
+						r.Post("/", h.CreateBdQuote)
+						r.Route("/{quoteId}", func(r chi.Router) {
+							r.Get("/", h.GetBdQuote)
+							r.Patch("/", h.UpdateBdQuote)
+							r.Delete("/", h.DeleteBdQuote)
+						})
+					})
+					r.Route("/campaigns", func(r chi.Router) {
+						r.Get("/", h.ListBdCampaigns)
+						r.Post("/", h.CreateBdCampaign)
+						r.Route("/{campaignId}", func(r chi.Router) {
+							r.Get("/", h.GetBdCampaign)
+							r.Patch("/", h.UpdateBdCampaign)
+							r.Delete("/", h.DeleteBdCampaign)
 						})
 					})
 				})

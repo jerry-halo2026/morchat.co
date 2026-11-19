@@ -12,7 +12,7 @@
  *  - Zero runtime deps means this module is safe in Node (tests) and browsers
  */
 
-import type { HrPageKey } from "./route-icons";
+import type { BossPageKey, ContentPageKey, HrPageKey, SalesPageKey } from "./route-icons";
 
 const encode = (id: string) => encodeURIComponent(id);
 
@@ -143,6 +143,39 @@ function workspaceScoped(slug: string) {
       files: () => `${ws}/hr/files`,
       analysis: () => `${ws}/hr/analysis`,
     } satisfies Record<HrPageKey, () => string>,
+    // The three department spaces beside HR. Same shape as `hr`: one builder
+    // per registered page, `satisfies` keeping the object and the registry in
+    // lockstep. Each space's landing page is the space root itself (`/sales`
+    // is the cockpit), so no page is a bare segment of its own.
+    sales: {
+      dashboard: () => `${ws}/sales`,
+      creators: () => `${ws}/sales/creators`,
+      followups: () => `${ws}/sales/followups`,
+      quotes: () => `${ws}/sales/quotes`,
+      collabs: () => `${ws}/sales/collabs`,
+      campaigns: () => `${ws}/sales/campaigns`,
+      performance: () => `${ws}/sales/performance`,
+    } satisfies Record<SalesPageKey, () => string>,
+    content: {
+      studio: () => `${ws}/content`,
+      ips: () => `${ws}/content/ips`,
+      hot: () => `${ws}/content/hot`,
+      bench: () => `${ws}/content/bench`,
+      topics: () => `${ws}/content/topics`,
+      scripts: () => `${ws}/content/scripts`,
+      shoots: () => `${ws}/content/shoots`,
+      publish: () => `${ws}/content/publish`,
+      data: () => `${ws}/content/data`,
+    } satisfies Record<ContentPageKey, () => string>,
+    boss: {
+      home: () => `${ws}/boss`,
+      goals: () => `${ws}/boss/goals`,
+      tasks: () => `${ws}/boss/tasks`,
+      radar: () => `${ws}/boss/radar`,
+      customers: () => `${ws}/boss/customers`,
+      biz: () => `${ws}/boss/biz`,
+      team: () => `${ws}/boss/team`,
+    } satisfies Record<BossPageKey, () => string>,
   };
 }
 

@@ -470,7 +470,7 @@ func (q *Queries) GetMediaTopic(ctx context.Context, arg GetMediaTopicParams) (M
 }
 
 const listMediaIPAccounts = `-- name: ListMediaIPAccounts :many
-SELECT id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id FROM creator
+SELECT id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id, sec_uid, douyin_id, dy_uid, fans_display, quote_min, quote_max, cooperation_intent, lead_status, last_dm_at, likes_total, following_count, verify_type, tags, source_type, source_keyword, source_rank, source_system, source_id FROM creator
 WHERE workspace_id = $1
   AND media_ip_id = $2
   AND archived_at IS NULL
@@ -519,6 +519,24 @@ func (q *Queries) ListMediaIPAccounts(ctx context.Context, arg ListMediaIPAccoun
 			&i.UpdatedAt,
 			&i.ArchivedAt,
 			&i.MediaIpID,
+			&i.SecUid,
+			&i.DouyinID,
+			&i.DyUid,
+			&i.FansDisplay,
+			&i.QuoteMin,
+			&i.QuoteMax,
+			&i.CooperationIntent,
+			&i.LeadStatus,
+			&i.LastDmAt,
+			&i.LikesTotal,
+			&i.FollowingCount,
+			&i.VerifyType,
+			&i.Tags,
+			&i.SourceType,
+			&i.SourceKeyword,
+			&i.SourceRank,
+			&i.SourceSystem,
+			&i.SourceID,
 		); err != nil {
 			return nil, err
 		}
@@ -789,7 +807,7 @@ UPDATE creator
 SET media_ip_id = $1::uuid,
     updated_at = now()
 WHERE id = $2 AND workspace_id = $3 AND archived_at IS NULL
-RETURNING id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id
+RETURNING id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id, sec_uid, douyin_id, dy_uid, fans_display, quote_min, quote_max, cooperation_intent, lead_status, last_dm_at, likes_total, following_count, verify_type, tags, source_type, source_keyword, source_rank, source_system, source_id
 `
 
 type SetCreatorMediaIPParams struct {
@@ -830,6 +848,24 @@ func (q *Queries) SetCreatorMediaIP(ctx context.Context, arg SetCreatorMediaIPPa
 		&i.UpdatedAt,
 		&i.ArchivedAt,
 		&i.MediaIpID,
+		&i.SecUid,
+		&i.DouyinID,
+		&i.DyUid,
+		&i.FansDisplay,
+		&i.QuoteMin,
+		&i.QuoteMax,
+		&i.CooperationIntent,
+		&i.LeadStatus,
+		&i.LastDmAt,
+		&i.LikesTotal,
+		&i.FollowingCount,
+		&i.VerifyType,
+		&i.Tags,
+		&i.SourceType,
+		&i.SourceKeyword,
+		&i.SourceRank,
+		&i.SourceSystem,
+		&i.SourceID,
 	)
 	return i, err
 }

@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_creator_activity_workspace_next_follow;

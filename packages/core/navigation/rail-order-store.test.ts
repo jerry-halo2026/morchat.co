@@ -3,19 +3,33 @@ import { RAIL_SPACES } from "../paths/spaces";
 import { resolveRailOrder, useRailOrderStore } from "./rail-order-store";
 
 describe("resolveRailOrder", () => {
+  // The default order, written out: a space added to the rail must show up in
+  // this list or it never reaches the rail at all.
+  const DEFAULT_ORDER = [
+    "workbench",
+    "hr",
+    "sales",
+    "content",
+    "boss",
+    "inbox",
+    "work",
+    "team",
+    "chat",
+    "autopilots",
+  ];
+
   it("uses the default order until the user reorders", () => {
     expect(resolveRailOrder(null)).toEqual(RAIL_SPACES);
+    expect(resolveRailOrder(null)).toEqual(DEFAULT_ORDER);
   });
 
   it("keeps a saved order", () => {
-    const saved = ["chat", "inbox", "workbench", "hr", "work", "team", "autopilots"];
+    const saved = [...DEFAULT_ORDER];
     expect(resolveRailOrder(saved)).toEqual(saved);
   });
 
   it("drops unknown and repeated ids", () => {
-    expect(
-      resolveRailOrder(["chat", "settings", 3, "chat", "inbox", "workbench", "hr", "work", "team", "autopilots"]),
-    ).toEqual(["chat", "inbox", "workbench", "hr", "work", "team", "autopilots"]);
+    expect(resolveRailOrder([...DEFAULT_ORDER, "settings", 3, "chat"])).toEqual(DEFAULT_ORDER);
   });
 
   it("puts a space missing from the saved order after its default neighbour", () => {
@@ -25,6 +39,9 @@ describe("resolveRailOrder", () => {
       "autopilots",
       "workbench",
       "hr",
+      "sales",
+      "content",
+      "boss",
       "work",
       "team",
     ]);
@@ -32,6 +49,9 @@ describe("resolveRailOrder", () => {
       "chat",
       "workbench",
       "hr",
+      "sales",
+      "content",
+      "boss",
       "inbox",
       "work",
       "team",
@@ -41,12 +61,15 @@ describe("resolveRailOrder", () => {
 
   // The workbench was added in front of Inbox after users had already saved an
   // order without it. Such an order must absorb it — leading the rail, the way
-  // the default order puts it — instead of dropping the new space. HR, added
-  // after the workbench, is absorbed the same way.
+  // the default order puts it — instead of dropping the new space. HR and the
+  // three department spaces added after the workbench are absorbed the same way.
   it("leads an order saved before the workbench existed with the workbench", () => {
     expect(resolveRailOrder(["inbox", "work", "team", "chat", "autopilots"])).toEqual([
       "workbench",
       "hr",
+      "sales",
+      "content",
+      "boss",
       "inbox",
       "work",
       "team",
@@ -56,6 +79,9 @@ describe("resolveRailOrder", () => {
     expect(resolveRailOrder(["chat", "inbox", "work", "team", "autopilots"])).toEqual([
       "workbench",
       "hr",
+      "sales",
+      "content",
+      "boss",
       "chat",
       "inbox",
       "work",
@@ -68,12 +94,22 @@ describe("resolveRailOrder", () => {
   // the order stays exactly as saved.
   it("keeps the user's arrangement when the workbench is absorbed", () => {
     const saved = ["team", "autopilots", "work", "chat", "inbox"];
-    expect(resolveRailOrder(saved)).toEqual(["workbench", "hr", ...saved]);
+    expect(resolveRailOrder(saved)).toEqual([
+      "workbench",
+      "hr",
+      "sales",
+      "content",
+      "boss",
+      ...saved,
+    ]);
     // And once the user places it themselves, that placement is the order.
-    expect(resolveRailOrder(["inbox", "workbench", "hr", "chat", "work", "team", "autopilots"])).toEqual([
+    expect(resolveRailOrder(["inbox", ...DEFAULT_ORDER.slice(0, 5), "chat", "work", "team", "autopilots"])).toEqual([
       "inbox",
       "workbench",
       "hr",
+      "sales",
+      "content",
+      "boss",
       "chat",
       "work",
       "team",
@@ -88,7 +124,18 @@ describe("useRailOrderStore", () => {
   });
 
   it("saves a custom order", () => {
-    const order = ["chat", "inbox", "workbench", "hr", "work", "team", "autopilots"] as const;
+    const order = [
+      "chat",
+      "inbox",
+      "workbench",
+      "hr",
+      "sales",
+      "content",
+      "boss",
+      "work",
+      "team",
+      "autopilots",
+    ] as const;
     useRailOrderStore.getState().setOrder(order);
     expect(useRailOrderStore.getState().order).toEqual(order);
   });

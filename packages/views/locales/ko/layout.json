@@ -24,7 +24,30 @@
     "hr_employees": "직원 명부",
     "hr_offboard": "퇴사 관리",
     "hr_files": "파일",
-    "hr_analysis": "인사 분석"
+    "hr_analysis": "인사 분석",
+    "sales_dashboard": "콕핏",
+    "sales_creators": "크리에이터",
+    "sales_followups": "팔로업",
+    "sales_quotes": "견적",
+    "sales_collabs": "협업",
+    "sales_campaigns": "캠페인",
+    "sales_performance": "성과",
+    "content_studio": "스튜디오",
+    "content_ips": "IP 및 계정",
+    "content_hot": "핫 레이더",
+    "content_bench": "벤치마크",
+    "content_topics": "주제 풀",
+    "content_scripts": "대본",
+    "content_shoots": "촬영·편집",
+    "content_publish": "발행 일정",
+    "content_data": "데이터 리뷰",
+    "boss_overview": "개요",
+    "boss_goals": "목표",
+    "boss_tasks": "작업",
+    "boss_radar": "시장 레이더",
+    "boss_customers": "고객",
+    "boss_biz": "경영",
+    "boss_team": "팀"
   },
   "hr": {
     "recruit": {
@@ -685,7 +708,10 @@
     "workbench": "워크벤치",
     "work": "작업",
     "team": "팀",
-    "hr": "인사"
+    "hr": "인사",
+    "sales": "세일즈",
+    "content": "콘텐츠",
+    "boss": "총괄"
   },
   "rail": {
     "workbench": "워크벤치",
@@ -705,7 +731,10 @@
     "open_in_other_window": "다른 창에서 열려 있음",
     "in_other_window": "다른 창",
     "all_workspaces_open": "모든 워크스페이스가 이미 창에 열려 있습니다",
-    "hr": "인사"
+    "hr": "인사",
+    "sales": "영업",
+    "content": "콘텐츠",
+    "boss": "총괄"
   },
   "panels": {
     "work": {
@@ -769,6 +798,46 @@
       "all": "전체 오토파일럿",
       "list": "오토파일럿",
       "templates": "템플릿으로 시작"
+    },
+    "recent": {
+      "label": "최근 연 페이지"
+    },
+    "hr": {
+      "group": {
+        "hiring": "채용",
+        "people": "직원",
+        "tools": "도구"
+      }
+    },
+    "sales": {
+      "subtitle": "크리에이터 영업",
+      "group": {
+        "pipeline": "파이프라인",
+        "ops": "운영"
+      },
+      "empty": {
+        "title": "아직 없습니다",
+        "description": "파이프라인은 크리에이터와 첫 팔로업에서 시작합니다. 데이터가 들어오면 이 페이지가 채워집니다."
+      }
+    },
+    "content": {
+      "group": {
+        "production": "콘텐츠 제작"
+      },
+      "empty": {
+        "title": "아직 없습니다",
+        "description": "스튜디오의 결과물은 IP와 그 계정에서 시작합니다. 만들어지면 이 페이지가 채워집니다."
+      }
+    },
+    "boss": {
+      "group": {
+        "biz": "경영",
+        "market": "시장"
+      },
+      "empty": {
+        "title": "아직 없습니다",
+        "description": "여기서는 목표, 장부, 팀을 읽습니다. 만들어지면 이 페이지가 채워집니다."
+      }
     }
   },
   "account": {

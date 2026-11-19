@@ -23,6 +23,7 @@ import {
   hrJobListOptions,
 } from "@morechat/core/hr/queries";
 import { creatorListOptions } from "@morechat/core/creator/queries";
+import type { CreatorListSort } from "@morechat/core/types";
 import { useWorkspaceId } from "@morechat/core/hooks";
 import { useCurrentMember } from "@morechat/core/permissions";
 import {
@@ -508,8 +509,12 @@ function LedgerPane({ wsId, domain }: { wsId: string; domain: LedgerDomain }) {
 }
 
 function CreatorsPane({ wsId }: { wsId: string }) {
+  // The ledger's ordering is the server's (`?sort=`), so the pane owns the one
+  // piece of state a header click changes: switching it switches the query key,
+  // which refetches the page in that order.
+  const [sort, setSort] = useState<CreatorListSort>("fans");
   const query = useQuery({
-    ...creatorListOptions(wsId),
+    ...creatorListOptions(wsId, { sort }),
     select: (response) => response.creators,
   });
   return (
@@ -520,6 +525,8 @@ function CreatorsPane({ wsId }: { wsId: string }) {
       loading={query.isPending}
       isError={query.isError}
       onRetry={() => void query.refetch()}
+      creatorSort={sort}
+      onCreatorSortChange={setSort}
     />
   );
 }

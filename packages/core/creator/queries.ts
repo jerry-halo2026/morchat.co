@@ -1,6 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
 import { api } from "../api";
-import type { CreatorListFilters, CreatorPostListFilters } from "../types";
+import type {
+  CreatorHealthListFilters,
+  CreatorListFilters,
+  CreatorPostListFilters,
+} from "../types";
 
 /**
  * Query keys for the creator ledger (docs/engineering/WORKBENCH-API.md §5).
@@ -19,6 +23,9 @@ import type { CreatorListFilters, CreatorPostListFilters } from "../types";
  *   ["creator", wsId, { id }]                                 (detail)
  *   ["creator", wsId, "posts", { post_id }, "metrics"]        (per-post snapshots)
  *
+ * The content-health keys follow the same rule (§19): the board is a sibling of
+ * the creator list, and one creator's health nests under its detail object.
+ *
  * Filters are the objects the list endpoints accept, passed through as-is: the
  * query key must name exactly what was requested, or two different filter sets
  * would share one cache entry.
@@ -32,6 +39,12 @@ export const creatorKeys = {
     [...creatorKeys.all(wsId), "posts", filters] as const,
   postMetrics: (wsId: string, postId: string) =>
     [...creatorKeys.all(wsId), "posts", { post_id: postId }, "metrics"] as const,
+  health: (wsId: string, filters: CreatorHealthListFilters = {}) =>
+    [...creatorKeys.all(wsId), "health", filters] as const,
+  healthDetail: (wsId: string, id: string) =>
+    [...creatorKeys.all(wsId), { id }, "health"] as const,
+  videos: (wsId: string, id: string) =>
+    [...creatorKeys.all(wsId), { id }, "videos"] as const,
 };
 
 /**
@@ -69,5 +82,39 @@ export function creatorPostMetricsOptions(wsId: string, postId: string) {
     queryKey: creatorKeys.postMetrics(wsId, postId),
     queryFn: () => api.listCreatorPostMetrics(postId),
     enabled: !!wsId && !!postId,
+  });
+}
+
+/**
+ * The content-health board (WORKBENCH-API §19). Rows include creators with no
+ * snapshot, so the absence of a number is something the screen can render.
+ */
+export function creatorHealthOptions(wsId: string, filters: CreatorHealthListFilters = {}) {
+  return queryOptions({
+    queryKey: creatorKeys.health(wsId, filters),
+    queryFn: () => api.listCreatorHealth(filters),
+    enabled: !!wsId,
+  });
+}
+
+/** One creator's health: the newest snapshot plus the 30-day trend. */
+export function creatorHealthDetailOptions(wsId: string, id: string) {
+  return queryOptions({
+    queryKey: creatorKeys.healthDetail(wsId, id),
+    queryFn: () => api.getCreatorHealth(id),
+    enabled: !!wsId && !!id,
+  });
+}
+
+/**
+ * The mirrored works behind one creator's health, newest first (WORKBENCH-API
+ * §19). The drawer's 最近作品 strip asks for five; the list itself is capped by
+ * the ledger's own page size.
+ */
+export function creatorVideosOptions(wsId: string, id: string, limit = 5) {
+  return queryOptions({
+    queryKey: creatorKeys.videos(wsId, id),
+    queryFn: () => api.listCreatorVideos(id, limit),
+    enabled: !!wsId && !!id,
   });
 }

@@ -772,6 +772,13 @@ WHERE workspace_invitation.workspace_id = $1;
 -- scorecard names an interview, an interview names a candidate, a candidate names
 -- a job, a daily fact and a pick name a product, and a pick names a creator.
 WITH
+-- orange account mapping (787): a workspace that mirrored an upstream 达人
+-- account must not leave the claim behind. Deleting it frees the upstream
+-- account for another workspace, which is what "this workspace is gone" means
+-- for a mirror that is not the source of truth.
+deleted_orange_accounts AS (
+    DELETE FROM orange_account WHERE orange_account.workspace_id = $1
+),
 deleted_settlements AS (
     DELETE FROM crm_settlement WHERE crm_settlement.workspace_id = $1
 ),
@@ -789,6 +796,27 @@ deleted_metrics AS (
 ),
 deleted_posts AS (
     DELETE FROM creator_post WHERE creator_post.workspace_id = $1
+),
+-- Content health (WORKBENCH-API §19): a work names a creator and a snapshot names
+-- a creator, with no foreign key behind either, so both are cleared here — before
+-- the creators they describe.
+deleted_creator_videos AS (
+    DELETE FROM creator_video WHERE creator_video.workspace_id = $1
+),
+deleted_creator_metrics AS (
+    DELETE FROM creator_metric WHERE creator_metric.workspace_id = $1
+),
+-- BD pipeline (WORKBENCH-API §20): follow-ups, quotes and collection campaigns
+-- name a creator (and a quote a brief) with no foreign key behind either, so
+-- teardown clears them explicitly before the creators and briefs they describe.
+deleted_creator_activities AS (
+    DELETE FROM creator_activity WHERE creator_activity.workspace_id = $1
+),
+deleted_creator_quotes AS (
+    DELETE FROM creator_quote WHERE creator_quote.workspace_id = $1
+),
+deleted_creator_campaigns AS (
+    DELETE FROM creator_campaign WHERE creator_campaign.workspace_id = $1
 ),
 deleted_creators AS (
     DELETE FROM creator WHERE creator.workspace_id = $1

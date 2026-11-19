@@ -837,6 +837,105 @@ type Creator struct {
 	ArchivedAt       pgtype.Timestamptz `json:"archived_at"`
 	// Content IP this platform account speaks for (media_ip, migration 728). NULL for an account not attached to a persona.
 	MediaIpID pgtype.UUID `json:"media_ip_id"`
+	// orange 抖音 sec_uid; mirror identity together with source_system (785). NULL for a hand-created creator.
+	SecUid   pgtype.Text `json:"sec_uid"`
+	DouyinID pgtype.Text `json:"douyin_id"`
+	DyUid    pgtype.Text `json:"dy_uid"`
+	// Upstream display follower count verbatim ("2.6万"), next to the parsed creator.fans.
+	FansDisplay pgtype.Text    `json:"fans_display"`
+	QuoteMin    pgtype.Numeric `json:"quote_min"`
+	QuoteMax    pgtype.Numeric `json:"quote_max"`
+	// orange outreach stage, verbatim Chinese: 未接触/待发送/已发送/已回复/已报价/寄样中/已成单/已签约/排除.
+	CooperationIntent pgtype.Text `json:"cooperation_intent"`
+	// orange crawl_status funnel state: LEAD_NEW/LEAD_CONTACTED/LEAD_DEAL/LEAD_REJECT.
+	LeadStatus pgtype.Text `json:"lead_status"`
+	// orange dm_time: when the outreach DM was sent.
+	LastDmAt       pgtype.Timestamptz `json:"last_dm_at"`
+	LikesTotal     pgtype.Int8        `json:"likes_total"`
+	FollowingCount pgtype.Int4        `json:"following_count"`
+	VerifyType     pgtype.Text        `json:"verify_type"`
+	// orange tags jsonb array verbatim ([{id, name, color}]), rewritten by every sync.
+	Tags []byte `json:"tags"`
+	// orange source_type: search / comment / manual — how the lead was discovered.
+	SourceType pgtype.Text `json:"source_type"`
+	// orange source_keyword: the search keyword (or comment context) that produced the lead.
+	SourceKeyword pgtype.Text `json:"source_keyword"`
+	// orange source_rank: position in the discovery result the lead came from.
+	SourceRank pgtype.Int4 `json:"source_rank"`
+	// Mirror source system ("orange"); NULL for a hand-created creator.
+	SourceSystem pgtype.Text `json:"source_system"`
+	// Row identity inside source_system (orange: sec_uid).
+	SourceID pgtype.Text `json:"source_id"`
+}
+
+// One BD follow-up: a DM / call / meeting / email / note with a creator (WORKBENCH-DATA-CONTRACT §3.1). Soft-deleted, no foreign key.
+type CreatorActivity struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	CreatorID   pgtype.UUID `json:"creator_id"`
+	Kind        string      `json:"kind"`
+	// When the conversation happened, not when the row was typed; the ledger reads happened_at DESC.
+	HappenedAt pgtype.Timestamptz `json:"happened_at"`
+	// What was said / what was learned. Never empty: the handler rejects a blank summary.
+	Summary string `json:"summary"`
+	// no_reply | replied | declined | advanced. NULL means the row is a note with no result yet, which is not "no reply".
+	Outcome pgtype.Text `json:"outcome"`
+	// When to follow up again. NULL schedules nothing; only a non-NULL value can make a creator due or overdue.
+	NextFollowAt  pgtype.Timestamptz `json:"next_follow_at"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+// One collection batch / campaign: where these creators came from and what it cost (WORKBENCH-DATA-CONTRACT §3.4). Soft-deleted, no foreign key.
+type CreatorCampaign struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	Name        string      `json:"name"`
+	// search | comment | manual — how the batch was collected.
+	Kind string `json:"kind"`
+	// Budget spent or allocated for the batch, NUMERIC(14,2) in `currency`; NULL when no budget was set.
+	BudgetAmount pgtype.Numeric `json:"budget_amount"`
+	Currency     string         `json:"currency"`
+	StartedOn    pgtype.Date    `json:"started_on"`
+	EndedOn      pgtype.Date    `json:"ended_on"`
+	// The keyword a `search` / `comment` batch was collected with; NULL for a hand-made list.
+	SourceKeyword pgtype.Text `json:"source_keyword"`
+	// Cached size of the batch. NOT NULL DEFAULT 0: a new batch has zero creators, which is not the same as "unknown".
+	CreatorCount  int32              `json:"creator_count"`
+	Note          pgtype.Text        `json:"note"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+// One day's content health per creator (WORKBENCH-DATA-CONTRACT §2.2). NULL metrics mean "not computable", and sample_note says why.
+type CreatorMetric struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	CreatorID   pgtype.UUID `json:"creator_id"`
+	CapturedOn  pgtype.Date `json:"captured_on"`
+	// Works on record for this creator, with or without statistics.
+	VideoCount pgtype.Int4 `json:"video_count"`
+	// Works whose digg_count is non-NULL — the sample size behind every metric here.
+	VideosWithStats pgtype.Int4 `json:"videos_with_stats"`
+	// Works published in the 30 days before the capture; a work with no create_time cannot be counted.
+	PostsLast30d pgtype.Int4    `json:"posts_last_30d"`
+	AvgDigg      pgtype.Numeric `json:"avg_digg"`
+	AvgComment   pgtype.Numeric `json:"avg_comment"`
+	AvgShare     pgtype.Numeric `json:"avg_share"`
+	// (avg_digg + avg_comment + avg_share) / fans. Stored 0–1, unclamped: values above 1 are real upstream data (max 45.03021 = 4503 %) and mean the follower count disagrees with the works.
+	EngagementRate pgtype.Numeric `json:"engagement_rate"`
+	// Share of works whose likes exceed 2x the median of the creator's works. NULL below 10 works with statistics.
+	HitRate pgtype.Numeric `json:"hit_rate"`
+	// Why a metric is NULL: no_stats | sample_below_10 | no_followers. NULL when every metric was computable.
+	SampleNote pgtype.Text        `json:"sample_note"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 }
 
 type CreatorPost struct {
@@ -876,6 +975,64 @@ type CreatorPostMetric struct {
 	Source      string             `json:"source"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+// One offer to one creator: 坑位费 + 佣金率 + validity, with the answer (WORKBENCH-DATA-CONTRACT §3.2). Soft-deleted, no foreign key.
+type CreatorQuote struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	CreatorID   pgtype.UUID `json:"creator_id"`
+	// The crm_brief this offer answers. NULL when the quote predates the written brief.
+	BriefID pgtype.UUID `json:"brief_id"`
+	// draft | sent | accepted | rejected | expired. Only a non-draft quote counts as "quoted" in the cockpit (WORKBENCH-API §20.3).
+	Status     string             `json:"status"`
+	QuotedAt   pgtype.Timestamptz `json:"quoted_at"`
+	ValidUntil pgtype.Date        `json:"valid_until"`
+	// 坑位费 in `currency`, NUMERIC(14,2), NULL when the deal is pure commission.
+	FeeAmount pgtype.Numeric `json:"fee_amount"`
+	// Ratio, not a percentage: 20% is 0.20000 (contract §0 rule 1). CHECK keeps it inside 0–1.
+	CommissionRate pgtype.Numeric `json:"commission_rate"`
+	Currency       string         `json:"currency"`
+	// Line-item breakdown (坑位 / 佣金 / 赠品 …) as a JSON array; never NULL, an empty array means "no breakdown yet".
+	Items         []byte             `json:"items"`
+	Note          pgtype.Text        `json:"note"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+// One row per 抖音 aweme, mirrored from orange creator_video (WORKBENCH-DATA-CONTRACT §2.1). Counters are NULL when the platform statistic was never collected — never 0.
+type CreatorVideo struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	// creator.id this work belongs to. No foreign key (repository rule); the sync resolves it from the mirrored sec_uid.
+	CreatorID pgtype.UUID `json:"creator_id"`
+	AwemeID   string      `json:"aweme_id"`
+	DescText  pgtype.Text `json:"desc_text"`
+	// Topics parsed out of desc_text (#话题), de-duplicated, in first-seen order. Derived, not mirrored.
+	Topics []string `json:"topics"`
+	// Publish time. NULL on 265 of 12449 upstream rows — a work without a publish time cannot be counted in posts_last_30d.
+	CreateTime pgtype.Timestamptz `json:"create_time"`
+	DurationMs pgtype.Int4        `json:"duration_ms"`
+	// Likes. NULL = not collected (this is the column the health sample size counts).
+	DiggCount        pgtype.Int4        `json:"digg_count"`
+	CommentCount     pgtype.Int4        `json:"comment_count"`
+	ShareCount       pgtype.Int4        `json:"share_count"`
+	CoverUrl         pgtype.Text        `json:"cover_url"`
+	VideoUrl         pgtype.Text        `json:"video_url"`
+	StatsCollectedAt pgtype.Timestamptz `json:"stats_collected_at"`
+	// Mirror source system ("orange"); NULL for a work entered by hand.
+	SourceSystem pgtype.Text `json:"source_system"`
+	// Row identity inside source_system (orange: aweme_id).
+	SourceID  pgtype.Text        `json:"source_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	// Soft delete. The unique key and the metric reads only see live rows.
+	ArchivedAt pgtype.Timestamptz `json:"archived_at"`
+	// 播放量。上游 12449 行里 3047 行有值；契约早期写的「抖音不返回播放量」在爬取链路里不成立，故保留此列（可空，缺就是缺，不写 0）。
+	PlayCount pgtype.Int4 `json:"play_count"`
 }
 
 type CrmBrief struct {
@@ -946,6 +1103,10 @@ type CrmCollab struct {
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt     pgtype.Timestamptz `json:"archived_at"`
+	// Where the collaboration went live (the published work's link). NULL until something was published.
+	PublishUrl pgtype.Text `json:"publish_url"`
+	// Calendar day the collaboration was settled. NULL while unpaid; the money movements themselves live in crm_settlement.
+	SettledOn pgtype.Date `json:"settled_on"`
 }
 
 type CrmSettlement struct {
@@ -2243,6 +2404,15 @@ type OpsFinanceMonth struct {
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt   pgtype.Timestamptz `json:"archived_at"`
+}
+
+// Which workspace mirrors which orange account (docs/engineering/ORANGE-SYNC.md). account_id is a uuid in the orange database, not a foreign key.
+type OrangeAccount struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	// orange account.id. Unique: one upstream account is mirrored into one workspace only.
+	AccountID pgtype.UUID        `json:"account_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type PersonalAccessToken struct {

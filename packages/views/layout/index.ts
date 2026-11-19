@@ -1,6 +1,14 @@
 export { AppRail } from "./app-rail";
 export { AppShellProvider, useAppShell } from "./app-shell-context";
 export { CompactNavSheet } from "./compact-nav-sheet";
+export {
+  PanelBadge,
+  PanelBrand,
+  PanelFooter,
+  PanelLabel,
+  PanelRecent,
+  type PanelRecentItem,
+} from "./panel-nav";
 export { ShellRouteDataPrefetch } from "./route-data-prefetch";
 export { SpacePanel } from "./space-panel";
 export {

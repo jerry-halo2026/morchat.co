@@ -21,8 +21,12 @@ export function setWorkspaceSlugLookup(next: WorkspaceSlugLookup): () => void {
 const workspaceRoutes = new Set([
   ...Object.values(WORKSPACE_PAGES).map((page) => page.segment),
   // The HR space's pages are nested one level down; the route a reserved-slug
-  // path has to name is the space itself.
+  // path has to name is the space itself. The three department spaces beside it
+  // register the same way: their landing pages live at the bare segment.
   "hr",
+  "sales",
+  "content",
+  "boss",
   "members",
   "attachments",
 ]);

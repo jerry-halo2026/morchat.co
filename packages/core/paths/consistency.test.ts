@@ -1,6 +1,18 @@
 import { describe, it, expect } from "vitest";
 import { paths, isGlobalPath } from "./paths";
-import { HR_PAGES, HR_PAGE_ORDER, hrPageForSegment, navPageKeyForPath, navPageFor } from "./route-icons";
+import {
+  BOSS_PAGES,
+  BOSS_PAGE_ORDER,
+  CONTENT_PAGES,
+  CONTENT_PAGE_ORDER,
+  HR_PAGES,
+  HR_PAGE_ORDER,
+  SALES_PAGES,
+  SALES_PAGE_ORDER,
+  hrPageForSegment,
+  navPageKeyForPath,
+  navPageFor,
+} from "./route-icons";
 import { RESERVED_SLUGS } from "./reserved-slugs";
 
 // C4 — link-handler's WORKSPACE_ROUTE_SEGMENTS must match paths.workspace's
@@ -50,9 +62,9 @@ describe("paths.workspace().hr / HR_PAGES", () => {
   const expectedHrPages: Array<[string, string, string]> = [
     ["recruit", "hr/recruit", "hr_recruit"],
     ["resumes", "hr/resumes", "hr_resumes"],
+    ["guide", "hr/guide", "hr_guide"],
     ["interviews", "hr/interviews", "hr_interviews"],
     ["scores", "hr/scores", "hr_scores"],
-    ["guide", "hr/guide", "hr_guide"],
     ["employees", "hr/employees", "hr_employees"],
     ["offboard", "hr/offboard", "hr_offboard"],
     ["files", "hr/files", "hr_files"],
@@ -91,6 +103,113 @@ describe("paths.workspace().hr / HR_PAGES", () => {
     // Page keys are disjoint from the flat registry's, so a key never resolves
     // to the wrong registry's page.
     expect(navPageFor("issues").segment).toBe("issues");
+  });
+});
+
+// C6 — the department spaces added beside HR. Same contract as the HR block
+// above: `paths.workspace().<space>` builds the URLs, the space's registry
+// holds the same pages' icons and labels, and the left column, the tab bar and
+// the link handler each read one of the two. The three expected tables are
+// written out here because they are the point: each fails when a side gains or
+// loses a page, and the first row of each is the space's own landing page
+// (`/sales` is the cockpit), which the registry addresses as the bare segment.
+const DEPT_SPACES = [
+  {
+    space: "sales",
+    expected: [
+      ["dashboard", "sales", "sales_dashboard"],
+      ["creators", "sales/creators", "sales_creators"],
+      ["followups", "sales/followups", "sales_followups"],
+      ["quotes", "sales/quotes", "sales_quotes"],
+      ["collabs", "sales/collabs", "sales_collabs"],
+      ["campaigns", "sales/campaigns", "sales_campaigns"],
+      ["performance", "sales/performance", "sales_performance"],
+    ],
+  },
+  {
+    space: "content",
+    expected: [
+      ["studio", "content", "content_studio"],
+      ["ips", "content/ips", "content_ips"],
+      ["hot", "content/hot", "content_hot"],
+      ["bench", "content/bench", "content_bench"],
+      ["topics", "content/topics", "content_topics"],
+      ["scripts", "content/scripts", "content_scripts"],
+      ["shoots", "content/shoots", "content_shoots"],
+      ["publish", "content/publish", "content_publish"],
+      ["data", "content/data", "content_data"],
+    ],
+  },
+  {
+    space: "boss",
+    expected: [
+      ["home", "boss", "boss_overview"],
+      ["goals", "boss/goals", "boss_goals"],
+      ["tasks", "boss/tasks", "boss_tasks"],
+      ["radar", "boss/radar", "boss_radar"],
+      ["customers", "boss/customers", "boss_customers"],
+      ["biz", "boss/biz", "boss_biz"],
+      ["team", "boss/team", "boss_team"],
+    ],
+  },
+] as const;
+
+const DEPT_REGISTRY = {
+  sales: { pages: SALES_PAGES, order: SALES_PAGE_ORDER },
+  content: { pages: CONTENT_PAGES, order: CONTENT_PAGE_ORDER },
+  boss: { pages: BOSS_PAGES, order: BOSS_PAGE_ORDER },
+} as const;
+
+describe.each(DEPT_SPACES)("paths.workspace().$space / its page registry", ({ space, expected }) => {
+  const registry = DEPT_REGISTRY[space];
+  const builders = paths.workspace("acme")[space] as unknown as Record<string, () => string>;
+
+  it("emits /{slug}/{segment} for each registered page", () => {
+    for (const [page, segment] of expected) {
+      const build = builders[page];
+      expect(typeof build).toBe("function");
+      expect(build!()).toBe(`/acme/${segment}`);
+    }
+  });
+
+  it("registers the same pages in the same order", () => {
+    expect([...registry.order]).toEqual(expected.map(([page]) => page));
+    expect(Object.keys(builders).sort()).toEqual(expected.map(([page]) => page).sort());
+    for (const [page, segment, navKey] of expected) {
+      const registered = (registry.pages as Record<string, { segment: string; navKey: string }>)[
+        page!
+      ]!;
+      expect(registered.segment).toBe(segment);
+      expect(registered.navKey).toBe(navKey);
+    }
+  });
+
+  it("resolves a page back from its path", () => {
+    for (const [page, segment] of expected) {
+      expect(navPageKeyForPath(`/acme/${segment}`)).toBe(page);
+      expect(navPageFor(page).segment).toBe(segment);
+    }
+    // A sub-route of a nested page (a creator, once those exist) keeps its
+    // page. The landing page has no such child: `/{slug}/sales/x` is not one
+    // of the space's pages, and saying otherwise would invent a route.
+    for (const [page, segment] of expected.slice(1)) {
+      expect(navPageKeyForPath(`/acme/${segment}/detail-1`)).toBe(page);
+    }
+  });
+
+  it("falls back to unknown for a segment the space does not register", () => {
+    expect(navPageKeyForPath(`/acme/${space}/not-a-page`)).toBeNull();
+  });
+});
+
+describe("nested page keys never answer for a flat page", () => {
+  // The registries are merged by key, so a nested key colliding with a flat one
+  // would silently hand the workbench's `overview` to another space. The general
+  // manager's landing page is therefore registered as `home`.
+  it("keeps the workbench overview on its own page", () => {
+    expect(navPageKeyForPath("/acme/overview")).toBe("overview");
+    expect(navPageFor("overview").segment).toBe("overview");
+    expect(navPageFor("home").segment).toBe("boss");
   });
 });
 

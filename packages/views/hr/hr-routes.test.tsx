@@ -10,7 +10,6 @@ import {
 } from "@morechat/core/paths";
 import { renderWithI18n } from "../test/i18n";
 import { NavigationProvider, type NavigationAdapter } from "../navigation";
-import { HrPanel } from "./hr-panel";
 import {
   HrAnalysisPage,
   HrEmployeesPage,
@@ -104,24 +103,9 @@ describe("HR routes", () => {
   });
 });
 
-describe("HR panel", () => {
-  it("lists the nine pages in pipeline order", () => {
-    renderAt(<HrPanel />);
-    expect(screen.getByRole("heading", { level: 2, name: "HR" })).toBeInTheDocument();
-    expect(screen.getAllByRole("link").map((link) => link.getAttribute("href"))).toEqual(
-      HR_PAGE_ORDER.map((page) => `/acme/hr/${page}`),
-    );
-  });
-
-  it("marks the page on screen as current and no other", () => {
-    renderAt(<HrPanel />, "/acme/hr/interviews");
-    expect(screen.getByRole("link", { name: "Interviews" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-    expect(screen.getByRole("link", { name: "Recruiting" })).not.toHaveAttribute("aria-current");
-  });
-});
+// The panel's own column — its three groups, the badges on the screening and
+// interview rows, and its footer — is asserted in `hr-panel.test.tsx`, where the
+// HR queries can be answered with known rows.
 
 describe("HR rail space", () => {
   // AppRail renders RAIL_SPACES in this order (see app-rail's own order test),

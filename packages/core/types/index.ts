@@ -412,6 +412,8 @@ export type {
   CreatorKind,
   CreatorListFilters,
   CreatorListResponse,
+  CreatorListSort,
+  CreatorVideoListResponse,
   CreatorPost,
   CreatorPostListFilters,
   CreatorPostListResponse,
@@ -484,6 +486,16 @@ export type {
   UpdateCrmSettlementRequest,
   UpsertCreatorPostMetricRequest,
   UpsertWorkbenchFinanceMonthRequest,
+  // Content health (WORKBENCH-API §19): the mirrored works, the daily snapshots
+  // and the board row that joins them.
+  CreatorVideo,
+  CreatorMetric,
+  CreatorMetricSampleNote,
+  CreatorHealth,
+  CreatorHealthListFilters,
+  CreatorHealthListResponse,
+  CreatorHealthDetailResponse,
+  CreatorHealthSort,
   WorkbenchCountsResponse,
   WorkbenchFinanceBlock,
   WorkbenchFinanceCostBasis,
@@ -687,3 +699,37 @@ export type {
 } from "./doc";
 
 export type { WorkspaceWakeup, WorkspaceWakeupPage, WorkspaceWakeupFilters, WakeupScope } from "./issue-wakeup";
+
+// BD pipeline (docs/engineering/WORKBENCH-API.md §20). Its own module rather than
+// more of `workbench.ts` for the same reason as §12–§19: three ledgers with their
+// own vocabulary, and the one thing that is *not* here — a `creator_order` — is a
+// decision worth stating where the types are.
+export type {
+  BdActivity,
+  BdActivityKind,
+  BdActivityListFilters,
+  BdActivityListResponse,
+  BdActivityOutcome,
+  BdCampaign,
+  BdCampaignKind,
+  BdCampaignListFilters,
+  BdCampaignListResponse,
+  BdPipeline,
+  BdPipelineCreatorsBlock,
+  BdPipelineEmptyState,
+  BdPipelineFollowupsBlock,
+  BdPipelineMoney,
+  BdPipelineNumber,
+  BdPipelineOrdersBlock,
+  BdPipelineQuotesBlock,
+  BdQuote,
+  BdQuoteListFilters,
+  BdQuoteListResponse,
+  BdQuoteStatus,
+  CreateBdActivityRequest,
+  CreateBdCampaignRequest,
+  CreateBdQuoteRequest,
+  UpdateBdActivityRequest,
+  UpdateBdCampaignRequest,
+  UpdateBdQuoteRequest,
+} from "./bd";

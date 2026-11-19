@@ -55,7 +55,15 @@ export interface Creator {
   fans: number;
   fans_d7: number;
   avg_play: number;
-  /** 0–1 (docs/METRICS.md C3); display multiplies by 100. */
+  /**
+   * Content health: (average likes + comments + shares) / followers, 0–1
+   * (docs/METRICS.md C3), on the *latest snapshot* when the row came from the
+   * list endpoint — the ledger's 互动率 column. `GET /creators/{id}` still
+   * reports the legacy manually entered `creator.engagement_rate` column.
+   *
+   * Never clamped: 45.03 (= 4503 %) is real upstream data and means the follower
+   * count disagrees with the works. Null means "not computable", not 0.
+   */
   engagement_rate: number | null;
   category: string | null;
   audience_note: string | null;
@@ -73,6 +81,58 @@ export interface Creator {
   created_at: string;
   updated_at: string;
   archived_at: string | null;
+
+  /**
+   * Mirrored from the orange 达人 database (docs/engineering/ORANGE-SYNC.md).
+   *
+   * These are upstream-owned: a sync rewrites them, so a local edit is lost.
+   * `sec_uid` doubles as the mirror identity — `source_system` + `source_id`
+   * name the upstream row, and both are null on a creator someone typed in.
+   */
+  sec_uid: string | null;
+  douyin_id: string | null;
+  dy_uid: string | null;
+  /** Upstream display follower count verbatim ("2.6万"), next to the parsed `fans`. */
+  fans_display: string | null;
+  quote_min: number | null;
+  quote_max: number | null;
+  /** orange outreach stage, verbatim Chinese (未接触 … 已成单 / 已签约 / 排除). */
+  cooperation_intent: string | null;
+  /** orange funnel state: LEAD_NEW | LEAD_CONTACTED | LEAD_DEAL | LEAD_REJECT. */
+  lead_status: string | null;
+  last_dm_at: string | null;
+  likes_total: number | null;
+  following_count: number | null;
+  verify_type: string | null;
+  tags: CreatorTag[];
+  source_type: string | null;
+  source_keyword: string | null;
+  source_rank: number | null;
+  source_system: string | null;
+  source_id: string | null;
+
+  /**
+   * The rest of the newest snapshot (WORKBENCH-DATA-CONTRACT §2.3), joined onto
+   * the list response only. Optional so a `GET /creators/{id}` row — and every
+   * fixture written before the ledger carried health — still parses; every one
+   * of them is null for a creator nobody has sampled yet.
+   */
+  hit_rate?: number | null;
+  posts_last_30d?: number | null;
+  videos_with_stats?: number | null;
+  /** Calendar day `YYYY-MM-DD` of the joined snapshot. */
+  metric_captured_on?: string | null;
+}
+
+/**
+ * One upstream creator tag, copied verbatim from orange's `tags` jsonb array.
+ * The vocabulary is orange's: renaming a tag there rewrites it here on the next
+ * sync, so nothing should key off the name.
+ */
+export interface CreatorTag {
+  id: string;
+  name: string;
+  color: string | null;
 }
 
 export interface CreatorPost {
@@ -125,9 +185,101 @@ export interface CreatorPostMetric {
   updated_at: string;
 }
 
-/** A paying client. Creators and clients are different actors (METRICS.md C6). */
-export interface CrmClient {
+/**
+ * One 抖音 work, mirrored from the orange 达人 database
+ * (docs/engineering/WORKBENCH-DATA-CONTRACT.md §2.1). One row per aweme.
+ *
+ * The three counters are nullable, and NULL means "not collected yet" — not 0.
+ * 8612 of the 12449 mirrored works sit in that state, so a UI that treats NULL as
+ * zero would invent engagement for two thirds of the library.
+ *
+ * `play_count` is nullable for the same reason: roughly a quarter of the mirrored
+ * rows carry a value, and a missing one is missing rather than zero.
+ */
+export interface CreatorVideo {
   id: string;
+  workspace_id: string;
+  creator_id: string;
+  aweme_id: string;
+  desc_text: string | null;
+  /** Parsed from `desc_text` (`#话题`), de-duplicated, in first-seen order. */
+  topics: string[];
+  /** Publish time; null on works whose publish date was never captured. */
+  create_time: string | null;
+  duration_ms: number | null;
+  digg_count: number | null;
+  comment_count: number | null;
+  share_count: number | null;
+  /** Plays, when the platform reported them. Null is "not collected". */
+  play_count: number | null;
+  cover_url: string | null;
+  video_url: string | null;
+  /** When the three counters were read off the platform. */
+  stats_collected_at: string | null;
+  source_system: string | null;
+  source_id: string | null;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+/**
+ * Why a snapshot has no value. `no_stats` = not one work carries a likes count;
+ * `sample_below_10` = too few sampled works for a hit rate; `no_followers` = no
+ * follower count to divide by. Null when every metric was computable.
+ */
+export type CreatorMetricSampleNote = "no_stats" | "sample_below_10" | "no_followers";
+
+/**
+ * One day's content health for one creator (WORKBENCH-DATA-CONTRACT §2.2/§2.3).
+ *
+ * `engagement_rate` and `hit_rate` are stored on the 0–1 scale and are NOT
+ * clamped: the live data contains 45.03 (= 4503 %), which means that creator's
+ * follower count disagrees with their works. A reader should see the flag, so the
+ * UI multiplies by 100 for display and leaves the value alone.
+ */
+export interface CreatorMetric {
+  id: string;
+  workspace_id: string;
+  creator_id: string;
+  /** Calendar day `YYYY-MM-DD`. */
+  captured_on: string;
+  video_count: number | null;
+  /** Works whose likes count was collected — the sample behind every metric. */
+  videos_with_stats: number | null;
+  posts_last_30d: number | null;
+  avg_digg: number | null;
+  avg_comment: number | null;
+  avg_share: number | null;
+  engagement_rate: number | null;
+  hit_rate: number | null;
+  /** Null when every metric was computable. */
+  sample_note: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * One row of the health board: a creator and its latest snapshot, flattened.
+ *
+ * The snapshot fields are null for a creator that has never been sampled, and
+ * such a creator is still in the list — "no data yet" is a state the reader has
+ * to be able to see.
+ */
+export interface CreatorHealth {
+  id: string;
+  display_name: string;
+  fans: number;
+  engagement_rate: number | null;
+  hit_rate: number | null;
+  posts_last_30d: number | null;
+  videos_with_stats: number | null;
+  /** The day the snapshot is from; null when there is no snapshot. */
+  captured_on: string | null;
+}
+
+/** A paying client. Creators and clients are different actors (METRICS.md C6). */
+export interface CrmClient {  id: string;
   workspace_id: string;
   name: string;
   brand: string | null;
@@ -198,6 +350,17 @@ export interface CrmCollab {
   created_at: string;
   updated_at: string;
   archived_at: string | null;
+  /**
+   * Where the collaboration went live (WORKBENCH-API §20.2, migration 810).
+   * `null` until something was published — `published_at` says when, this says
+   * where.
+   */
+  publish_url: string | null;
+  /**
+   * Calendar day (`YYYY-MM-DD`) the collaboration was settled. `null` while
+   * unpaid; the individual money movements live in `CrmSettlement`.
+   */
+  settled_on: string | null;
 }
 
 /** One money movement against a collab. `paid_at` null = still owed. */
@@ -362,6 +525,20 @@ export interface CreatorPostMetricListResponse {
   total: number;
 }
 
+/** The health board. `total` is this page's row count, like the creator list. */
+export interface CreatorHealthListResponse {
+  creators: CreatorHealth[];
+  total: number;
+  next_cursor: string | null;
+}
+
+/** One creator's health: the newest snapshot plus the 30-day trend. */
+export interface CreatorHealthDetailResponse {
+  creator_id: string;
+  latest: CreatorMetric | null;
+  recent: CreatorMetric[];
+}
+
 export interface CrmClientListResponse {
   clients: CrmClient[];
   total: number;
@@ -392,8 +569,26 @@ export interface CreatorListFilters {
   q?: string;
   limit?: number;
   cursor?: string;
+  /**
+   * The ledger's ordering (WORKBENCH-API §3). `fans` is the default; the three
+   * content sorts put creators with no snapshot last. Everything is descending,
+   * with followers as the second key, so the order is total.
+   */
+  sort?: CreatorListSort;
   /** Aggregate dimension only; never an access boundary. */
   department_id?: string | null;
+}
+
+/**
+ * The creator ledger's `?sort=` values. `fans` is the opening order: the only
+ * ranking that means something before any work has been sampled. `recent` is
+ * works posted in the last 30 days.
+ */
+export type CreatorListSort = "fans" | "engagement" | "hit" | "recent";
+
+export interface CreatorVideoListResponse {
+  videos: CreatorVideo[];
+  total: number;
 }
 
 export interface CreatorPostListFilters {
@@ -401,6 +596,19 @@ export interface CreatorPostListFilters {
   /** Inclusive calendar day `YYYY-MM-DD`. */
   from?: string;
   to?: string;
+}
+
+/**
+ * The health board's ordering. `fans` (the default) is the only ranking that
+ * means something before any content has been sampled; the two metric sorts put
+ * creators with no snapshot last.
+ */
+export type CreatorHealthSort = "fans" | "engagement" | "hit";
+
+export interface CreatorHealthListFilters {
+  sort?: CreatorHealthSort;
+  limit?: number;
+  cursor?: string;
 }
 
 export interface CrmClientListFilters {
@@ -604,6 +812,10 @@ export type CreateCrmCollabRequest = Pick<CrmCollab, "brief_id" | "creator_id"> 
       | "scheduled_at"
       | "issue_id"
       | "owner_member_id"
+      // Fulfilment (WORKBENCH-API §20.2): the link to what went live, and the
+      // calendar day the money was settled. Both optional on create.
+      | "publish_url"
+      | "settled_on"
     >
   >;
 
@@ -627,6 +839,10 @@ export type UpdateCrmCollabRequest = Partial<
     | "scheduled_at"
     | "issue_id"
     | "owner_member_id"
+    // Fulfilment (WORKBENCH-API §20.2): the link to what went live, and the
+    // calendar day the money was settled.
+    | "publish_url"
+    | "settled_on"
   >
 >;
 

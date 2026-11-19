@@ -24,7 +24,30 @@
     "hr_employees": "従業員名簿",
     "hr_offboard": "退職管理",
     "hr_files": "ファイル",
-    "hr_analysis": "人事分析"
+    "hr_analysis": "人事分析",
+    "sales_dashboard": "コックピット",
+    "sales_creators": "クリエイター",
+    "sales_followups": "フォロー",
+    "sales_quotes": "見積",
+    "sales_collabs": "コラボ",
+    "sales_campaigns": "キャンペーン",
+    "sales_performance": "実績",
+    "content_studio": "スタジオ",
+    "content_ips": "IPとアカウント",
+    "content_hot": "ホットレーダー",
+    "content_bench": "ベンチマーク",
+    "content_topics": "ネタ帳",
+    "content_scripts": "台本",
+    "content_shoots": "撮影・編集",
+    "content_publish": "公開スケジュール",
+    "content_data": "振り返り",
+    "boss_overview": "概要",
+    "boss_goals": "目標",
+    "boss_tasks": "タスク",
+    "boss_radar": "市場レーダー",
+    "boss_customers": "顧客",
+    "boss_biz": "経営",
+    "boss_team": "チーム"
   },
   "hr": {
     "recruit": {
@@ -685,7 +708,10 @@
     "workbench": "ワークベンチ",
     "work": "作業",
     "team": "チーム",
-    "hr": "人事"
+    "hr": "人事",
+    "sales": "セールス",
+    "content": "コンテンツ",
+    "boss": "経営者"
   },
   "rail": {
     "workbench": "ワークベンチ",
@@ -705,7 +731,10 @@
     "open_in_other_window": "別のウィンドウで開いています",
     "in_other_window": "別ウィンドウ",
     "all_workspaces_open": "すべてのワークスペースがすでにウィンドウで開いています",
-    "hr": "人事"
+    "hr": "人事",
+    "sales": "営業",
+    "content": "制作",
+    "boss": "経営"
   },
   "panels": {
     "work": {
@@ -769,6 +798,46 @@
       "all": "すべてのオートパイロット",
       "list": "オートパイロット",
       "templates": "テンプレートから"
+    },
+    "recent": {
+      "label": "最近開いたページ"
+    },
+    "hr": {
+      "group": {
+        "hiring": "採用",
+        "people": "従業員",
+        "tools": "ツール"
+      }
+    },
+    "sales": {
+      "subtitle": "クリエイター営業",
+      "group": {
+        "pipeline": "パイプライン",
+        "ops": "運用"
+      },
+      "empty": {
+        "title": "まだ何もありません",
+        "description": "流れはクリエイターと最初のフォローから始まります。登録するとこのページに表示されます。"
+      }
+    },
+    "content": {
+      "group": {
+        "production": "コンテンツ制作"
+      },
+      "empty": {
+        "title": "まだ何もありません",
+        "description": "スタジオの成果物は IP とそのアカウントから始まります。作成するとこのページに表示されます。"
+      }
+    },
+    "boss": {
+      "group": {
+        "biz": "経営",
+        "market": "市場"
+      },
+      "empty": {
+        "title": "まだ何もありません",
+        "description": "ここでは目標・台帳・チームを読みます。作成するとこのページに表示されます。"
+      }
     }
   },
   "account": {

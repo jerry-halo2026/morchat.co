@@ -24,7 +24,30 @@
     "hr_employees": "员工花名册",
     "hr_offboard": "离职管理",
     "hr_files": "文件柜",
-    "hr_analysis": "人事分析"
+    "hr_analysis": "人事分析",
+    "sales_dashboard": "驾驶舱",
+    "sales_creators": "达人",
+    "sales_followups": "跟进",
+    "sales_quotes": "报价",
+    "sales_collabs": "合作单",
+    "sales_campaigns": "活动",
+    "sales_performance": "业绩",
+    "content_studio": "工作室",
+    "content_ips": "IP 与账号",
+    "content_hot": "热点雷达",
+    "content_bench": "对标账号",
+    "content_topics": "选题池",
+    "content_scripts": "文案工坊",
+    "content_shoots": "拍摄剪辑",
+    "content_publish": "发布排期",
+    "content_data": "数据复盘",
+    "boss_overview": "总览",
+    "boss_goals": "目标",
+    "boss_tasks": "任务",
+    "boss_radar": "市场雷达",
+    "boss_customers": "客户",
+    "boss_biz": "经营",
+    "boss_team": "团队"
   },
   "hr": {
     "recruit": {
@@ -685,7 +708,10 @@
     "workbench": "工作台",
     "work": "工作",
     "team": "团队",
-    "hr": "人事"
+    "hr": "人事",
+    "sales": "商务",
+    "content": "内容",
+    "boss": "总经理"
   },
   "rail": {
     "workbench": "工作台",
@@ -705,7 +731,10 @@
     "open_in_other_window": "已在其他窗口打开",
     "in_other_window": "其他窗口",
     "all_workspaces_open": "所有工作区都已在窗口中打开",
-    "hr": "人事"
+    "hr": "人事",
+    "sales": "商务",
+    "content": "内容",
+    "boss": "总经理"
   },
   "panels": {
     "work": {
@@ -769,6 +798,46 @@
       "all": "全部自动化",
       "list": "自动化",
       "templates": "从模板开始"
+    },
+    "recent": {
+      "label": "最近打开"
+    },
+    "hr": {
+      "group": {
+        "hiring": "招聘",
+        "people": "员工",
+        "tools": "工具"
+      }
+    },
+    "sales": {
+      "subtitle": "达人商务",
+      "group": {
+        "pipeline": "流水线",
+        "ops": "运营"
+      },
+      "empty": {
+        "title": "还没有内容",
+        "description": "流水线从一位达人和一次跟进开始，数据进来后这里就会填满。"
+      }
+    },
+    "content": {
+      "group": {
+        "production": "内容生产"
+      },
+      "empty": {
+        "title": "还没有内容",
+        "description": "工作室的产出从一个 IP 和它的账号开始，有了之后这里就会填满。"
+      }
+    },
+    "boss": {
+      "group": {
+        "biz": "经营",
+        "market": "市场"
+      },
+      "empty": {
+        "title": "还没有内容",
+        "description": "这里读的是目标、台账和团队，有了之后就会填满。"
+      }
     }
   },
   "account": {

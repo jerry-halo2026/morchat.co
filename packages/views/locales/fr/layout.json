@@ -24,7 +24,30 @@
     "hr_employees": "Employés",
     "hr_offboard": "Départs",
     "hr_files": "Fichiers",
-    "hr_analysis": "Analyse RH"
+    "hr_analysis": "Analyse RH",
+    "sales_dashboard": "Cockpit",
+    "sales_creators": "Créateurs",
+    "sales_followups": "Relances",
+    "sales_quotes": "Devis",
+    "sales_collabs": "Collaborations",
+    "sales_campaigns": "Campagnes",
+    "sales_performance": "Performance",
+    "content_studio": "Studio",
+    "content_ips": "IP et comptes",
+    "content_hot": "Radar des tendances",
+    "content_bench": "Comptes de référence",
+    "content_topics": "Réservoir de sujets",
+    "content_scripts": "Scripts",
+    "content_shoots": "Tournage et montage",
+    "content_publish": "Calendrier de publication",
+    "content_data": "Bilan",
+    "boss_overview": "Vue d'ensemble",
+    "boss_goals": "Objectifs",
+    "boss_tasks": "Tâches",
+    "boss_radar": "Radar marché",
+    "boss_customers": "Clients",
+    "boss_biz": "Exploitation",
+    "boss_team": "Équipe"
   },
   "hr": {
     "recruit": {
@@ -686,7 +709,10 @@
     "workbench": "Atelier",
     "work": "Travail",
     "team": "Équipe",
-    "hr": "RH"
+    "hr": "RH",
+    "sales": "Ventes",
+    "content": "Contenu",
+    "boss": "Direction générale"
   },
   "rail": {
     "workbench": "Atelier",
@@ -706,7 +732,10 @@
     "open_in_other_window": "Déjà ouvert dans une autre fenêtre",
     "in_other_window": "Autre fenêtre",
     "all_workspaces_open": "Chaque espace de travail est déjà ouvert dans une fenêtre",
-    "hr": "RH"
+    "hr": "RH",
+    "sales": "Ventes",
+    "content": "Contenu",
+    "boss": "DG"
   },
   "panels": {
     "work": {
@@ -775,6 +804,46 @@
       "all": "Toutes les automatisations",
       "list": "Automatisations",
       "templates": "À partir d’un modèle"
+    },
+    "recent": {
+      "label": "Récents"
+    },
+    "hr": {
+      "group": {
+        "hiring": "Recrutement",
+        "people": "Effectif",
+        "tools": "Outils"
+      }
+    },
+    "sales": {
+      "subtitle": "BD créateurs",
+      "group": {
+        "pipeline": "Pipeline",
+        "ops": "Opérations"
+      },
+      "empty": {
+        "title": "Rien pour l'instant",
+        "description": "Le pipeline commence par un créateur et une première relance. Cette page se remplit dès que les lignes existent."
+      }
+    },
+    "content": {
+      "group": {
+        "production": "Production de contenu"
+      },
+      "empty": {
+        "title": "Rien pour l'instant",
+        "description": "La production du studio commence par une IP et ses comptes. Cette page se remplit dès qu'ils existent."
+      }
+    },
+    "boss": {
+      "group": {
+        "biz": "Activité",
+        "market": "Marché"
+      },
+      "empty": {
+        "title": "Rien pour l'instant",
+        "description": "Cette vue lit les objectifs, le grand livre et l'équipe. Elle se remplit dès qu'ils existent."
+      }
     }
   },
   "account": {

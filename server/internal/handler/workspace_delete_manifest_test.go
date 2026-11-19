@@ -165,6 +165,11 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"creator":             workspaceDelete,
 	"creator_post":        workspaceDelete,
 	"creator_post_metric": workspaceDelete,
+	// Content health (WORKBENCH-API §19, 794–800): a work names a creator and a
+	// daily snapshot names a creator, with no foreign key behind either, so
+	// DeleteWorkspaceWorkbenchLedger clears both before the creators.
+	"creator_video":       workspaceDelete,
+	"creator_metric":      workspaceDelete,
 	"crm_client":          workspaceDelete,
 	"crm_brief":           workspaceDelete,
 	"crm_collab":          workspaceDelete,
@@ -227,6 +232,18 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"market_signal":        workspaceDelete,
 	"workspace_invitation": workspaceDelete,
 	"workspace_share_link": workspaceDelete,
+	// orange 达人 mirror (785–793, docs/engineering/ORANGE-SYNC.md): the
+	// workspace-owned claim on an upstream orange account, deleted by
+	// DeleteWorkspaceWorkbenchLedger. The mirrored `creator` rows it points at
+	// are ordinary workspace rows and are classified above.
+	"orange_account": workspaceDelete,
+	// BD pipeline (WORKBENCH-API §20, 802–809): a follow-up and a quote name a
+	// creator (a quote may also name a brief) with no foreign key behind either,
+	// and a campaign names nothing. DeleteWorkspaceWorkbenchLedger removes all
+	// three before the creators and briefs they describe.
+	"creator_activity": workspaceDelete,
+	"creator_quote":    workspaceDelete,
+	"creator_campaign": workspaceDelete,
 }
 
 func TestWorkspaceDeletionManifestCoversPublicSchema(t *testing.T) {

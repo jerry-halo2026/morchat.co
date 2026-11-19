@@ -15,8 +15,11 @@
  */
 import { isMyAgentsSearch } from "./paths";
 import {
+  bossPageForSegment,
+  contentPageForSegment,
   hrPageForSegment,
   pageForSegment,
+  salesPageForSegment,
   type NavPageKey,
 } from "./route-icons";
 
@@ -111,6 +114,21 @@ export function parseTabSubject(url: string): TabSubject {
       // The HR space nests its pages one level down (`/hr/recruit`), so the
       // page is the second segment. A bare `/hr` names no page.
       const page = hrPageForSegment(id);
+      return page ? { kind: "page", page } : { kind: "unknown" };
+    }
+    // The three department spaces nest the same way, except that a bare
+    // `/{slug}/sales` (and `/content`, `/boss`) is the space's own landing
+    // page, which the resolvers return for an empty segment.
+    case "sales": {
+      const page = salesPageForSegment(id);
+      return page ? { kind: "page", page } : { kind: "unknown" };
+    }
+    case "content": {
+      const page = contentPageForSegment(id);
+      return page ? { kind: "page", page } : { kind: "unknown" };
+    }
+    case "boss": {
+      const page = bossPageForSegment(id);
       return page ? { kind: "page", page } : { kind: "unknown" };
     }
     case "overview":

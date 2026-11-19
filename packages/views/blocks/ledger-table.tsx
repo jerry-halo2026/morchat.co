@@ -37,6 +37,7 @@ import type {
   CrmCollab,
   CrmSettlement,
   Creator,
+  CreatorListSort,
   HrCandidate,
   HrEmployeeProfile,
   HrInterview,
@@ -44,7 +45,11 @@ import type {
 } from "@morechat/core/types";
 import { useLocale, useT } from "../i18n";
 import { CollectionPageState } from "../layout/collection-page";
-import { CollectionList, type CollectionColumn } from "../layout/collection-list";
+import {
+  CollectionList,
+  type CollectionColumn,
+  type CollectionSort,
+} from "../layout/collection-list";
 import { CollectionPager } from "../layout/collection-list/pager";
 import { AiDispatchButton } from "./ai-dispatch";
 import { AffiliateForm } from "./affiliate-form";
@@ -136,6 +141,17 @@ interface LedgerTableCommon {
   loadingMore?: boolean;
   total?: number;
   onLoadMore?: () => void;
+  /**
+   * The creators ledger's server-side ordering (`/api/workbench/creators?sort=`).
+   * The whole column set sorts on the server — a 625-row ledger cannot be
+   * reordered locally without reordering a page of it — so a header click asks
+   * the pane for a new `sort` instead of touching the rows.
+   *
+   * Optional on both sides: a ledger drawn without a handler (a preview, a test)
+   * keeps plain headers rather than clickable ones that do nothing.
+   */
+  creatorSort?: CreatorListSort;
+  onCreatorSortChange?: (sort: CreatorListSort) => void;
 }
 
 /**
@@ -226,6 +242,24 @@ export function LedgerTable(props: LedgerTableProps) {
     return `${percent}${t(($) => $.unit.percent)}`;
   };
 
+  /**
+   * A content-health rate as a percentage: one decimal, no thousands separator.
+   *
+   * Ungrouped on purpose — the live data holds a rate of 45.03 (= 4503 %), and
+   * "4,503.0 %" reads as two numbers in a table cell. Nothing here clamps: the
+   * contract keeps a broken rate visible (`WORKBENCH-DATA-CONTRACT` §2.3), and
+   * the cell says why.
+   */
+  const healthRateText = (rate: number | null | undefined): string => {
+    if (rate === null || rate === undefined) return PLACEHOLDER;
+    const percent = new Intl.NumberFormat(locales, {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+      useGrouping: false,
+    }).format(rate * 100);
+    return `${percent}${t(($) => $.unit.percent)}`;
+  };
+
   const empty = <LedgerEmptyState domain={domain} isError={isError} onRetry={onRetry} />;
   const label = t(($) => $.ledger.domain[domain]);
   // One pager for every ledger: it sits in `CollectionList`'s footer slot, so
@@ -244,6 +278,19 @@ export function LedgerTable(props: LedgerTableProps) {
 
   switch (props.domain) {
     case "creators": {
+      // Every ordering is the server's (`?sort=`): the ledger is 625 rows, and
+      // reordering the loaded page locally would draw a ranking of the page as a
+      // ranking of the ledger. A second click on the active header re-asks for the
+      // same descending order rather than faking an ascending one the API does
+      // not serve.
+      const sortProps: CollectionSort | undefined =
+        props.onCreatorSortChange === undefined
+          ? undefined
+          : {
+              field: props.creatorSort ?? "fans",
+              direction: "desc",
+              onToggle: (field) => props.onCreatorSortChange?.(field as CreatorListSort),
+            };
       const columns: CollectionColumn<Creator>[] = [
         {
           key: "creator",
@@ -267,7 +314,48 @@ export function LedgerTable(props: LedgerTableProps) {
           header: t(($) => $.ledger.column.fans),
           width: 100,
           align: "end",
+          sortKey: "fans",
           cell: (row) => <CompactNumberFlow value={row.fans} locales={locales} />,
+        },
+        // Content health (WORKBENCH-DATA-CONTRACT §2.3): the three numbers the
+        // ledger can rank on. Each is null for a creator nobody has sampled yet,
+        // which draws the dash rather than a 0 nobody measured.
+        {
+          key: "engagement_rate",
+          header: t(($) => $.creator_health.engagement_rate),
+          width: 96,
+          align: "end",
+          sortKey: "engagement",
+          cell: (row) => {
+            const rate = row.engagement_rate;
+            const text = healthRateText(rate);
+            // A rate above 100 % is real upstream data (45.03 = 4503 %), not a
+            // display bug: the cell keeps the number and carries the reason.
+            return rate !== null && rate > 1 ? (
+              <span title={t(($) => $.creator_health.anomaly_note)}>{text}</span>
+            ) : (
+              text
+            );
+          },
+        },
+        {
+          key: "hit_rate",
+          header: t(($) => $.creator_health.hit_rate),
+          width: 96,
+          align: "end",
+          sortKey: "hit",
+          cell: (row) => healthRateText(row.hit_rate),
+        },
+        {
+          key: "posts_last_30d",
+          header: t(($) => $.creator_health.posts_last_30d),
+          width: 104,
+          align: "end",
+          sortKey: "recent",
+          cell: (row) =>
+            row.posts_last_30d === null || row.posts_last_30d === undefined
+              ? PLACEHOLDER
+              : t(($) => $.creator_health.posts_value, { count: row.posts_last_30d }),
         },
         {
           key: "score",
@@ -298,6 +386,7 @@ export function LedgerTable(props: LedgerTableProps) {
             loading={loading}
             empty={empty}
             footer={footer}
+            sort={sortProps}
             embedded
             onRowOpen={(row) => setCreatorDetail(row)}
           />

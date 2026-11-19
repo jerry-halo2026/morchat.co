@@ -472,6 +472,14 @@ type CreatorResponse struct {
 	CreatedBy        *string  `json:"created_by"`
 	CreatedAt        string   `json:"created_at"`
 	UpdatedAt        string   `json:"updated_at"`
+	// Content health from the creator's newest `creator_metric` row
+	// (WORKBENCH-DATA-CONTRACT §2.2/§2.3). Only the list endpoint joins it, so a
+	// single-creator response leaves these empty; on the list every one of them is
+	// null for a creator nobody has sampled yet, which is not the same as 0.
+	HitRate          *float64 `json:"hit_rate"`
+	PostsLast30D     *int32   `json:"posts_last_30d"`
+	VideosWithStats  *int32   `json:"videos_with_stats"`
+	MetricCapturedOn *string  `json:"metric_captured_on"`
 }
 
 func creatorToResponse(c db.Creator) CreatorResponse {
@@ -533,6 +541,61 @@ func creatorPostToResponse(p db.CreatorPost) CreatorPostResponse {
 		CreatedBy:      uuidToPtr(p.CreatedBy),
 		CreatedAt:      timestampToString(p.CreatedAt),
 		UpdatedAt:      timestampToString(p.UpdatedAt),
+	}
+}
+
+// CreatorVideoResponse is one mirrored work (WORKBENCH-DATA-CONTRACT §2.1).
+//
+// Every counter is nullable: a work whose statistics were never collected has
+// NULL, not 0, so the drawer can draw its dash instead of claiming a video got
+// no likes.
+type CreatorVideoResponse struct {
+	ID               string   `json:"id"`
+	WorkspaceID      string   `json:"workspace_id"`
+	CreatorID        string   `json:"creator_id"`
+	AwemeID          string   `json:"aweme_id"`
+	DescText         *string  `json:"desc_text"`
+	Topics           []string `json:"topics"`
+	CreateTime       *string  `json:"create_time"`
+	DurationMs       *int32   `json:"duration_ms"`
+	DiggCount        *int32   `json:"digg_count"`
+	CommentCount     *int32   `json:"comment_count"`
+	ShareCount       *int32   `json:"share_count"`
+	PlayCount        *int32   `json:"play_count"`
+	CoverURL         *string  `json:"cover_url"`
+	VideoURL         *string  `json:"video_url"`
+	StatsCollectedAt *string  `json:"stats_collected_at"`
+	SourceSystem     *string  `json:"source_system"`
+	SourceID         *string  `json:"source_id"`
+	CreatedAt        string   `json:"created_at"`
+	UpdatedAt        string   `json:"updated_at"`
+}
+
+func creatorVideoToResponse(v db.CreatorVideo) CreatorVideoResponse {
+	topics := v.Topics
+	if topics == nil {
+		topics = []string{}
+	}
+	return CreatorVideoResponse{
+		ID:               uuidToString(v.ID),
+		WorkspaceID:      uuidToString(v.WorkspaceID),
+		CreatorID:        uuidToString(v.CreatorID),
+		AwemeID:          v.AwemeID,
+		DescText:         textToPtr(v.DescText),
+		Topics:           topics,
+		CreateTime:       timestampToPtr(v.CreateTime),
+		DurationMs:       int4ToPtr(v.DurationMs),
+		DiggCount:        int4ToPtr(v.DiggCount),
+		CommentCount:     int4ToPtr(v.CommentCount),
+		ShareCount:       int4ToPtr(v.ShareCount),
+		PlayCount:        int4ToPtr(v.PlayCount),
+		CoverURL:         textToPtr(v.CoverUrl),
+		VideoURL:         textToPtr(v.VideoUrl),
+		StatsCollectedAt: timestampToPtr(v.StatsCollectedAt),
+		SourceSystem:     textToPtr(v.SourceSystem),
+		SourceID:         textToPtr(v.SourceID),
+		CreatedAt:        timestampToString(v.CreatedAt),
+		UpdatedAt:        timestampToString(v.UpdatedAt),
 	}
 }
 
@@ -686,6 +749,12 @@ type CrmCollabResponse struct {
 	CreatedBy      *string  `json:"created_by"`
 	CreatedAt      string   `json:"created_at"`
 	UpdatedAt      string   `json:"updated_at"`
+	// Fulfilment (WORKBENCH-API §20.2, migration 810): the link to what went
+	// live, and the calendar day the money was settled. Both nullable — a row
+	// that has not been published or settled has neither, which is not "empty
+	// string" and not "today".
+	PublishURL *string `json:"publish_url"`
+	SettledOn  *string `json:"settled_on"`
 }
 
 func crmCollabToResponse(c db.CrmCollab) CrmCollabResponse {
@@ -715,6 +784,8 @@ func crmCollabToResponse(c db.CrmCollab) CrmCollabResponse {
 		CreatedBy:      uuidToPtr(c.CreatedBy),
 		CreatedAt:      timestampToString(c.CreatedAt),
 		UpdatedAt:      timestampToString(c.UpdatedAt),
+		PublishURL:     textToPtr(c.PublishUrl),
+		SettledOn:      dateToPtr(c.SettledOn),
 	}
 }
 

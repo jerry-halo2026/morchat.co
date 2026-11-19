@@ -139,11 +139,14 @@ SELECT * FROM crm_collab
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
 
 -- name: CreateCrmCollab :one
+-- `publish_url` / `settled_on` (810) are the two fulfilment facts the
+-- collaboration row carries: where the work went live, and the day the money was
+-- settled (WORKBENCH-API §20.2).
 INSERT INTO crm_collab (
     workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob,
     creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate,
     sample_required, script_required, scheduled_at, confirmed_at, published_at,
-    accepted_at, issue_id, owner_member_id, created_by
+    accepted_at, issue_id, owner_member_id, created_by, publish_url, settled_on
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('brief_id'), sqlc.arg('creator_id'), sqlc.arg('stage'),
     sqlc.narg('quote_amount')::numeric, sqlc.narg('final_amount')::numeric,
@@ -152,7 +155,8 @@ INSERT INTO crm_collab (
     sqlc.narg('commission_rate')::numeric, sqlc.arg('sample_required'), sqlc.arg('script_required'),
     sqlc.narg('scheduled_at')::timestamptz, sqlc.narg('confirmed_at')::timestamptz,
     sqlc.narg('published_at')::timestamptz, sqlc.narg('accepted_at')::timestamptz,
-    sqlc.narg('issue_id')::uuid, sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
+    sqlc.narg('issue_id')::uuid, sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid,
+    sqlc.narg('publish_url')::text, sqlc.narg('settled_on')::date
 )
 RETURNING *;
 
@@ -180,6 +184,8 @@ SET brief_id = sqlc.arg('brief_id'),
     accepted_at = sqlc.narg('accepted_at')::timestamptz,
     issue_id = sqlc.narg('issue_id')::uuid,
     owner_member_id = sqlc.narg('owner_member_id')::uuid,
+    publish_url = sqlc.narg('publish_url')::text,
+    settled_on = sqlc.narg('settled_on')::date,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL
 RETURNING *;

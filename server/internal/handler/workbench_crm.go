@@ -100,6 +100,11 @@ type CrmCollabRequest struct {
 	AcceptedAt     *string  `json:"accepted_at"`
 	IssueID        *string  `json:"issue_id"`
 	OwnerMemberID  *string  `json:"owner_member_id"`
+	// Fulfilment (WORKBENCH-API §20.2, migration 810): where the collaboration
+	// went live, and the day it was settled. Both are plain optional fields —
+	// sending `""` clears them, omitting them keeps the stored value.
+	PublishURL *string `json:"publish_url"`
+	SettledOn  *string `json:"settled_on"`
 }
 
 // CrmSettlementRequest is the create/PATCH body for one settlement row
@@ -737,6 +742,10 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	settledOn, ok := workbenchDateValue(w, req.SettledOn, "settled_on")
+	if !ok {
+		return
+	}
 	issueID, ok := workbenchOptionalUUID(w, req.IssueID, "issue_id")
 	if !ok {
 		return
@@ -779,6 +788,8 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		IssueID:        issueID,
 		OwnerMemberID:  owner,
 		CreatedBy:      scope.Member.UserID,
+		PublishUrl:     optionalTrimmedText(req.PublishURL),
+		SettledOn:      settledOn,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to create collab", err)
@@ -907,6 +918,10 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	settledOn, ok := applyDatePatch(req.SettledOn, w, "settled_on", current.SettledOn)
+	if !ok {
+		return
+	}
 	confirmed, ok := applyTimestampPatch(req.ConfirmedAt, w, "confirmed_at", current.ConfirmedAt)
 	if !ok {
 		return
@@ -974,6 +989,8 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		AcceptedAt:     accepted,
 		IssueID:        issueID,
 		OwnerMemberID:  owner,
+		PublishUrl:     applyTextPatch(req.PublishURL, current.PublishUrl),
+		SettledOn:      settledOn,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to update collab", err)

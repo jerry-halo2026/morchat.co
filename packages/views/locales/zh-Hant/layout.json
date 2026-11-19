@@ -24,7 +24,30 @@
     "hr_employees": "員工名冊",
     "hr_offboard": "離職管理",
     "hr_files": "檔案櫃",
-    "hr_analysis": "人事分析"
+    "hr_analysis": "人事分析",
+    "sales_dashboard": "駕駛艙",
+    "sales_creators": "達人",
+    "sales_followups": "跟進",
+    "sales_quotes": "報價",
+    "sales_collabs": "合作單",
+    "sales_campaigns": "活動",
+    "sales_performance": "業績",
+    "content_studio": "工作室",
+    "content_ips": "IP 與帳號",
+    "content_hot": "熱點雷達",
+    "content_bench": "對標帳號",
+    "content_topics": "選題池",
+    "content_scripts": "文案工坊",
+    "content_shoots": "拍攝剪輯",
+    "content_publish": "發布排期",
+    "content_data": "數據復盤",
+    "boss_overview": "總覽",
+    "boss_goals": "目標",
+    "boss_tasks": "任務",
+    "boss_radar": "市場雷達",
+    "boss_customers": "客戶",
+    "boss_biz": "經營",
+    "boss_team": "團隊"
   },
   "hr": {
     "recruit": {
@@ -685,7 +708,10 @@
     "workbench": "工作台",
     "work": "工作",
     "team": "團隊",
-    "hr": "人事"
+    "hr": "人事",
+    "sales": "商務",
+    "content": "內容",
+    "boss": "總經理"
   },
   "rail": {
     "workbench": "工作台",
@@ -705,7 +731,10 @@
     "open_in_other_window": "已在其他視窗開啟",
     "in_other_window": "其他視窗",
     "all_workspaces_open": "所有工作區都已在視窗中開啟",
-    "hr": "人事"
+    "hr": "人事",
+    "sales": "商務",
+    "content": "內容",
+    "boss": "總經理"
   },
   "panels": {
     "work": {
@@ -769,6 +798,46 @@
       "all": "全部自動化",
       "list": "自動化",
       "templates": "從範本開始"
+    },
+    "recent": {
+      "label": "最近開啟"
+    },
+    "hr": {
+      "group": {
+        "hiring": "招聘",
+        "people": "員工",
+        "tools": "工具"
+      }
+    },
+    "sales": {
+      "subtitle": "達人商務",
+      "group": {
+        "pipeline": "流水線",
+        "ops": "營運"
+      },
+      "empty": {
+        "title": "還沒有內容",
+        "description": "流水線從一位達人和一次跟進開始，資料進來後這裡就會填滿。"
+      }
+    },
+    "content": {
+      "group": {
+        "production": "內容生產"
+      },
+      "empty": {
+        "title": "還沒有內容",
+        "description": "工作室的產出從一個 IP 和它的帳號開始，有了之後這裡就會填滿。"
+      }
+    },
+    "boss": {
+      "group": {
+        "biz": "經營",
+        "market": "市場"
+      },
+      "empty": {
+        "title": "還沒有內容",
+        "description": "這裡讀的是目標、台帳和團隊，有了之後就會填滿。"
+      }
     }
   },
   "account": {

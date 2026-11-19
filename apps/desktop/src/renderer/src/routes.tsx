@@ -34,6 +34,9 @@ import {
   HrResumesPage,
   HrScoresPage,
 } from "@morechat/views/hr";
+import { SalesDashboardPage } from "@morechat/views/sales";
+import { ContentStudioPage } from "@morechat/views/content";
+import { BossHomePage } from "@morechat/views/boss";
 import { AutopilotsPage } from "@morechat/views/autopilots/components";
 import { MyIssuesPage } from "@morechat/views/my-issues";
 import { SkillsPage } from "@morechat/views/skills";
@@ -341,6 +344,12 @@ export const appRoutes: RouteObject[] = [
           { path: "hr/offboard", element: <HrOffboardPage />, handle: { title: "HR" } },
           { path: "hr/files", element: <HrFilesPage />, handle: { title: "HR" } },
           { path: "hr/analysis", element: <HrAnalysisPage />, handle: { title: "HR" } },
+          // The three department spaces beside HR. Each entry is its space's
+          // landing page — the one its panel lists first — so opening the space
+          // in a tab names the page instead of resolving to unknown.
+          { path: "sales", element: <SalesDashboardPage />, handle: { title: "Sales" } },
+          { path: "content", element: <ContentStudioPage />, handle: { title: "Content" } },
+          { path: "boss", element: <BossHomePage />, handle: { title: "GM" } },
           {
             path: "settings",
             element: <DesktopSettingsRoute />,
