@@ -124,3 +124,49 @@ git merge --ff-only 2f39e4a71          # W2 边界
 - `GOFLAGS=-mod=mod` 会让容器里的 `go build` **改写 `server/go.mod`**（这次加了
   `golang.org/x/crypto`）。每波跑完 `git checkout -- server/go.mod` 再切分支。
 - 按波建库要清理：`wb_w1`、`wb_main` 用完可 `DROP DATABASE`，别留一堆 `wb_*`。
+## 7. 逐波实测结果（2026-11-19，8 波全部跑完）
+
+方法：每波 `git checkout -B integrate/wN <边界>`，建**本波自己的库** `wb_wN`（用该波代码
+`migrate up`），再跑门。`integrate/w1..w8` 已全部推到 origin。
+
+| 波 | 边界 | handler（整包） | migrate 测试 | typecheck/lint | core | views | 判定 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| W1 | `68e5154f5` | 1 红（manifest） | ok | 9/9 · 6/6 | 657 | 5 红（ru 缺键） | **不比 main 差**：两条红在 main 上同样红 |
+| W2 | `2f39e4a71` | 1 红（同 W1） | ok | 9/9 · 6/6 | 657 | 5 红（同 W1） | 同上 |
+| W3 | `2e7c060f8` | 1 红（同 W1） | ok | 9/9 · 6/6 | 657 | 5 红（同 W1） | 同上 |
+| W4 | `04de92dc3` | **ok 114.8s** | ok | 9/9 · 6/6 | 657 | **1987 全过** | **全绿**（把两条基线红修掉了） |
+| W5 | `fb42b0669` | 3 红 | ok | 9/9 · 6/6 | 657 | 2023 全过 | **比 main 差**：见 §7.1 |
+| W6 | `8544c9b21` | 3 红（同 W5） | ok | 9/9 · 6/6 | 671 | 全过（限并发） | 同上 |
+| W7 | `4d150748a` | **ok 100.5s** | ok | 9/9 · 6/6 | 676 | **2103 全过** | **全绿**（把 W5 的红修掉） |
+| W8 | `a252e4ce2` | **ok 100.1s** | ok | 9/9 · 6/6 | 676 | **2105 全过** | **全绿** |
+
+### 7.1 W5/W6 有一条"红带"，所以它们不能单独作为 PR
+
+W5 引入三处红，全部在 W7 修掉：
+
+| 红 | 起因 | 修在 |
+| --- | --- | --- |
+| `TestWorkspaceDeletionManifestCoversPublicSchema`：12 张 `qianchuan_*` 未分类 | W5 的千川迁移（840–851）建了表但没登记 teardown | W7 `36cf5ce49` |
+| `TestChangeWriteGate` / `TestDocGenerationIsOwnerOrAdmin`：`POST /hr/employees` 409「member already has an employee profile」 | W5 的 capability 种子（`seedWorkbenchMemberCapabilities`）给测试成员插了一条档案，两个 HR 用例又去建第二条 | W7 `418e70cd7` |
+
+**结论：W5 与 W6 不单独成 PR**，与 W7 合成一个单元（末尾全绿）。这不是"挑好的"，是"不能把已知红
+推到主干上"。
+
+### 7.2 两个环境事实（复现过，写下来）
+
+- **views 必须限并发**：这台机器同时跑着 Postgres + API + web，`vitest run` 默认并发会让
+  8–16 个大组件用例 5s 超时（`sales-dashboard`/`content/*`/`hr/*`）。同一条命令加
+  `--maxWorkers=2` 就 1015 全过。**这不是代码红**，门禁要用 `--maxWorkers=2`。
+- **`GOFLAGS=-mod=mod` 会改 `server/go.mod`**（容器里 `go build` 会加依赖）。每波跑完必须
+  `git checkout -- server/go.mod`，否则切分支会被脏文件挡住。
+
+### 7.3 最终合并单元（6 个 PR，顺序固定）
+
+| PR | base ← head | 内容 | 末尾状态 |
+| --- | --- | --- | --- |
+| 1 | `main` ← `integrate/w1` | W1 台账地基（30 条） | 不比 main 差 |
+| 2 | `integrate/w1` ← `integrate/w2` | W2 数据模型 + HR 九页（18 条） | 同上 |
+| 3 | `integrate/w2` ← `integrate/w3` | W3 orange 接入 + 空间壳（10 条） | 同上 |
+| 4 | `integrate/w3` ← `integrate/w4` | W4 四部门页面收尾 + 基线红修复（17 条） | **全绿** |
+| 5 | `integrate/w4` ← `integrate/w7` | W5+W6+W7（52 条，含千川/capability/协作/契约修复） | **全绿** |
+| 6 | `integrate/w7` ← `integrate/w8` | W8 E2E 与文档（8 条） | **全绿** |
