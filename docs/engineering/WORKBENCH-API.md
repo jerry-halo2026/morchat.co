@@ -2576,3 +2576,55 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 ### 25.5 写入口
 
 只有 `cmd/qianchuan-sync`（读 `packages/qianchuan-sync/data/flat/*.csv`）。**不做投放写操作**（建计划、改预算）。
+
+## 26. 可验证性（复核闸门、覆写归因、三条指标）
+
+回答「我怎么知道 agent 错没错」的那一层。规则正文见 `COLLAB-MODEL.md` §7，这里是接口与字段。
+
+### 26.1 复核状态（迁移 826）
+
+四张核心台账（`crm_collab`、`creator_quote`、`creator_activity`、`crm_settlement`）各加：
+
+| 列 | 类型 | 语义 |
+| --- | --- | --- |
+| `review_state` | TEXT NOT NULL DEFAULT `'accepted'` CHECK IN (`pending`,`accepted`,`rejected`) | 待复核 / 已通过 / 已驳回 |
+| `reviewed_by` | UUID NULL | 人的 user id |
+| `reviewed_at` | TIMESTAMPTZ NULL | 判定时刻 |
+
+索引：每表一条 `(workspace_id, updated_at DESC) WHERE review_state = 'pending'`，各自单语句 CONCURRENTLY（827–830）。
+
+**什么进 pending**：agent 写入的行，或**人类写入高价值字段**（金额、结算、佣金率、`stage→settled`）。其余直写即 `accepted`。
+**谁能判**：`review.accept` capability；驳回必须带 `reason`（≤500 字），通过可空。
+
+### 26.2 接口
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/workbench/review?domain=&limit=` | 待复核队列，按 `updated_at DESC`；`domain` ∈ `collabs|quotes|activities|settlements`，省略=全部 |
+| POST | `/api/workbench/review/{domain}/{id}/accept` | 通过，204 |
+| POST | `/api/workbench/review/{domain}/{id}/reject` | 驳回，body `{reason}`，204 |
+
+两条 POST 都写 `activity_log`（`action='<subject>.review_accepted|review_rejected'`，`details.reason`），并 bump `revision`。
+
+### 26.3 覆写归因
+
+人 PATCH 一行、而该行**最近一次业务变更的 actor 是 agent** 时，请求必须带 `overwrite_reason` ∈ `wrong_fact|wrong_judgement|stale|taste`；缺失 400。理由落 `activity_log.details.overwrite_reason`。
+这条是让「覆写率」有意义的前提：否则「人改了」分不清是 agent 错还是人口味变了。
+
+### 26.4 三条指标（`/overview`）
+
+| id | 定义 | emptyRule |
+| --- | --- | --- |
+| `agent.write.overwrite_rate` | 窗口内 agent 写的行，在 7 天内被人类改过的比例 | `insufficient_data`（无 agent 写入样本） |
+| `agent.review.reject_rate` | 复核队列里被驳回的比例 | `insufficient_data`（样本 < 5） |
+| `agent.action.rollback_rate` | 被撤销/回滚的比例（依赖 revision + before/after） | `insufficient_data` |
+
+三条都按 `(agent_id, domain)` 切片，**不做单一总分**。对照指标：`crm.contract.signed_month` 的「agent 参与组 vs 未参与组」由页面并排显示，不进契约。
+
+### 26.5 REST 面的 agent 金额闸门
+
+`actor_type='agent'` 时，四张台账的金额/结算/佣金率字段与 `stage=settled` **一律 403**（`forbidden_agent_money`），不依赖 capability —— capability 回答「这个人能不能」，这个闸门回答「机器能不能」，两条都要过。MCP 写工具（§7.2）本就不声明这些字段，两层一致。
+
+### 26.6 熔断
+
+按 `(agent_id, domain)` 滚动 30 天：`reject_rate > 0.20` 或 `overwrite_rate > 0.30` → 该 agent 在该域的写工具降级为「只能出草稿」（写入落 `review_state='pending'` 且 MCP 返回 `draft_only`），并发一条 `inbox_item` 给 owner。阈值放 workspace settings，可调。
