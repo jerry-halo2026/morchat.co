@@ -128,7 +128,7 @@ crm_settlement(id PK, workspace_id, collab_id UUID NOT NULL,
 | GET/POST | `/crm/settlements` | 列表（`?collab_id=&paid=`）/ 新建 |
 | PATCH/DELETE | `/crm/settlements/{settlementId}` | 单条 |
 
-**权限**：workspace 成员可读；写 = `owner|admin` 全写，`member` 只能改 `owner_member_id = 自己` 的行（新建时自动写入自己）。`department_id` 只做聚合过滤，**不参与鉴权**。
+**权限**：workspace 成员可读；写 = `owner|admin` 全写，`member` 只能改 `owner_member_id = 自己` 的行（新建时自动写入自己）。`department_id` 只做聚合过滤，**不参与鉴权**。发布台账（`/creator-posts` 与它的 `/metrics`）另有一层 capability：读 `media.read`、回填快照 `media.write`、增/改/删 `media.publish`，见 §12.3 与 §24.5。
 
 ### 3.1 响应包裹与序列化（前后端必须逐字一致）
 
@@ -835,6 +835,22 @@ ALTER creator_post ADD COLUMN media_script_id UUID;
 | 拍摄 | **沿 script → topic 的 owner** |
 
 `owner`/`admin` 全写；`member` 只能写自己拥有的行；新建时省略 owner 就是"我自己"，member 指定别人当 owner 直接 **403**。脚本与拍摄的 owner 由 topic 派生，请求里指定成别的值一律 **400**——让两者分叉，就会让"我能改这个脚本"和"我能改这个选题"变成两个答案。
+
+**发布闸门 `media.publish`**（`workbench_creator.go`；下表路径在 `/api/workbench` 下，不是本节基址 `/api/workbench/media`；判定在 `workbenchReadScope` 之后、解析 body 之前）：
+
+| 端点 | capability |
+| --- | --- |
+| `POST /creator-posts` | `media.publish` |
+| `PATCH /creator-posts/{postId}` | `media.publish` |
+| `DELETE /creator-posts/{postId}` | `media.publish` |
+| `GET /creator-posts`、`GET /creator-posts/{postId}/metrics` | `media.read` |
+| `POST /creator-posts/{postId}/metrics` | `media.write` |
+
+- **「发布」= `creator_posts` 的增/改/删**。媒体脚本的状态只有 draft / review / approved / archived，没有「已发布」，所以脚本不是发布；真正投出去排期的行在 `creator_posts`，数据复盘也落在这张表。
+- **撤下与发布同权**：DELETE 是软删，就是撤回一条发错的稿子。只给「能发」不给「能撤」，错稿就得找人代撤。
+- **回填不是发布**：`POST …/metrics` 是填一天的数，走 `media.write`；负责数据复盘的人不需要「把内容投出去」的权利。
+- **为什么是 `media.*` 而不是 `crm.write`**：`内容` / `运营` 两个部门的默认集有 `media.publish` 而没有 `crm.write`（§24.2）。闸门若仍挂在 `crm.write` 上，`media.publish` 对唯一持有它的两个部门依旧是装饰。达人库（`/creators`）保持 `crm.read` / `crm.write`：它是销售台账，不是发布。
+- 无权时 **403 `{"error":"forbidden_capability","capability":"media.publish"}`**（§24.3 同一形状），客户端据此隐藏「发布 / 编辑 / 撤回」而不是弹错。ownership 仍在 capability 之后判定，两者都要过。
 
 ### 12.4 脚本版本化语义
 
@@ -2623,7 +2639,8 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 | 项 | 位置 |
 | --- | --- |
 | capability 常量、解析顺序、403、可见性开关 | `server/internal/handler/workbench_capability.go` |
-| 判定点 | 每个 `workbench_*` handler 的 `workbenchReadScope` 之后一行 `requireWorkbenchCapability`（读 `*.read`、写 `*.write`） |
+| 判定点 | 每个 `workbench_*` handler 的 `workbenchReadScope` 之后一行 `requireWorkbenchCapability`（读 `*.read`、写 `*.write`；发布类写 `media.publish`） |
+| 发布 | `creator_posts` 的增/改/删要 `media.publish`，读要 `media.read`，`POST …/metrics` 回填要 `media.write`（§12.3）；脚本与拍摄仍是 `media.write`——它们的状态里没有「已发布」 |
 | 金额 / 结算 | `crm_collabs` 的 create/patch 在字段层面判定（`quote_amount|final_amount|creator_fee|sample_cost|platform_fee|commission_rate` → `crm.amount`；`stage=settled` → `crm.settle`）；`crm_settlements` 三个写全部 `crm.settle`；`bd/quotes` 的 `fee_amount|commission_rate` → `crm.amount`；CSV 导入按 kind（quotes/collabs 还要 `crm.amount`） |
 | 403 形状 | `403 {"error":"forbidden_capability","capability":"crm.settle"}`；部门越界是 `403 {"error":"cross_department"}` |
 | 模板接口 | `GET/PUT/DELETE /api/workbench/role-templates[/{jobTitle}]`（PUT/DELETE 仅 owner/admin）、`GET /api/workbench/capabilities` |
@@ -2760,7 +2777,7 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 | `/finance` 跨币种求和（CNY 5000 + USD 4000 = 9000）且无币种字段 | 经营数据错，且无法解释 | dominant currency + `window.currency` |
 | `/affiliate/summary` 七个金额块同样跨币种 | GMV/佣金/技术服务费变混合数，`refund_rate` 分母错 | 同上；招商服务费按所属 product 币种过滤；计数类不按币种切 |
 | `/review` 信封 `items` vs 客户端 schema `rows` | **复核队列恒空**，B5 的比率全部「无样本」 | 客户端解析 wire 名并兼容旧 `rows` |
-| `ads.read` / `media.publish` 是死能力 | 权限界面承诺了 API 不守的边界 | `ads.read` 已接六个端点；`media.publish` 待定锚点 |
+| `ads.read` / `media.publish` 是死能力 | 权限界面承诺了 API 不守的边界 | `ads.read` 已接六个端点；`media.publish` 已接 `creator_posts` 的增/改/删（§12.3、§24.5） |
 | `GET /hr/changes` 检查 `crm.read`、三个写端点无 capability | **销售能读全公司人事变动、任何成员能记一条** | 改 hr.read / hr.write |
 | 金额超 `NUMERIC(14,2)`、真实佣金率 438.00、`fee_amount=-1`、`happened_at:""`、1MB 名字 | 全部 **500**（生产上是 5xx 报警） | Go 侧前置校验 → 400，文案点名上限与「0.2 表示 20%」 |
 | `commission_rate=1.00001` / `-0.5` 200 原样落库 | 页面显示 100.001% / -50% | 0–1 之外 400 |
@@ -2796,12 +2813,8 @@ creators_with_archived_at=0                         # 软删一条不漏
 
 ### 27.6 仍未做
 
-1. **指针字段的显式 `null` 仍是静默保留**（`*string/*float64` 无法区分「没传」与「传了 null」）：
-   前端点「清空预算/清空日期」会拿到 200 但旧值还在。要改 `json.RawMessage` 三态解码，先动
-   `workbench_agent_write.go`（它按 `*string` 构造请求）再动四个台账 handler。
-2. **`media.publish` 无落点**：媒体脚本状态只有 draft/review/approved/archived，没有「已发布」。
-   需要产品定义「发布」是哪个动作（倾向 `creator_posts` 的创建/更新 = 发布排期落地），再挂闸门。
-3. **`/overview` 的下一档**：把 16 个聚合合成一条 SQL（一次往返 ≈0.4s，可到 ~1.2s），属 SQL 重构。
-4. `hr/doc-templates` 仍不分页（整集合返回）；`TestWorkspaceTeardown*` 与 reward/change/doc 用例
+1. ~~指针字段的显式 `null` 静默保留~~ **已修**：日期/数值/枚举指针字段全部三态化，`null` 与 `""` 都清空，NOT NULL 列两者都 400（含 `settlement.amount`、`shoot_date` 两个实际 NOT NULL 但此前按可空处理的列）。`media_script` 的 hook/body/cta（版本语义）与其余「只缺 `null`」的文本列留下一批。
+2. **`/overview` 的下一档**：把 16 个聚合合成一条 SQL（一次往返 ≈0.4s，可到 ~1.2s），属 SQL 重构。
+3. `hr/doc-templates` 仍不分页（整集合返回）；`TestWorkspaceTeardown*` 与 reward/change/doc 用例
    混在同一 `-run` 子集时会删掉共享 fixture workspace，套件有顺序脆弱性。
-5. `text_too_long` 需要一个客户端文案 key（import 错误按 reason 查表时），当前只在 wire 上有。
+4. `text_too_long` 需要一个客户端文案 key（import 错误按 reason 查表时），当前只在 wire 上有。
