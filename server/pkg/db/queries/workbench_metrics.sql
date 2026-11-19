@@ -474,8 +474,55 @@ FROM settled;
 -- Department attribution follows the B0 fallback chain (docs/METRICS.md §4): the
 -- collaboration owner's member department, reached from the settlement through
 -- its collaboration. Nothing here is an access boundary.
+--
+-- One currency per window (`dominant`). `crm_collab` and `crm_settlement` both
+-- carry a currency, and adding CNY to USD produces a number in neither: the same
+-- rule `BdPerformanceCurrency` applies to its report. Every sum below filters on
+-- the window's dominant currency and the response names it, so a workspace that
+-- bills in two currencies reads "5000 CNY", never "9000".
 WITH bounds AS (
     SELECT coalesce(sqlc.narg('month_start')::date, date_trunc('month', now())::date) AS month_start
+),
+dominant AS (
+    SELECT coalesce(
+        (
+            SELECT currency
+            FROM (
+                SELECT c.currency::text AS currency
+                FROM crm_collab c CROSS JOIN bounds b
+                WHERE c.workspace_id = sqlc.arg('workspace_id')
+                  AND c.archived_at IS NULL
+                  AND c.stage NOT IN ('inquiry', 'quoted', 'negotiating', 'cancelled')
+                  AND c.confirmed_at >= b.month_start::timestamptz
+                  AND c.confirmed_at < (b.month_start + interval '1 month')::timestamptz
+                UNION ALL
+                SELECT s.currency::text
+                FROM crm_settlement s CROSS JOIN bounds b
+                WHERE s.workspace_id = sqlc.arg('workspace_id')
+                  AND s.archived_at IS NULL
+                  AND s.paid_at >= b.month_start
+                  AND s.paid_at < (b.month_start + interval '1 month')::date
+                UNION ALL
+                SELECT c.currency::text
+                FROM crm_collab c CROSS JOIN bounds b
+                WHERE c.workspace_id = sqlc.arg('workspace_id')
+                  AND c.archived_at IS NULL
+                  AND c.stage = 'settled'
+                  AND c.accepted_at >= b.month_start::timestamptz
+                  AND c.accepted_at < (b.month_start + interval '1 month')::timestamptz
+                UNION ALL
+                SELECT s.currency::text
+                FROM crm_settlement s CROSS JOIN bounds b
+                WHERE s.workspace_id = sqlc.arg('workspace_id')
+                  AND s.archived_at IS NULL
+                  AND s.paid_at IS NULL
+            ) money_rows
+            GROUP BY currency
+            ORDER BY count(*) DESC, currency
+            LIMIT 1
+        ),
+        'CNY'
+    )::text AS currency
 ),
 signed AS (
     SELECT
@@ -488,6 +535,7 @@ signed AS (
     WHERE c.workspace_id = sqlc.arg('workspace_id')
       AND c.archived_at IS NULL
       AND c.stage NOT IN ('inquiry', 'quoted', 'negotiating', 'cancelled')
+      AND c.currency = (SELECT currency FROM dominant)
       AND c.confirmed_at >= b.month_start::timestamptz
       AND c.confirmed_at < (b.month_start + interval '1 month')::timestamptz
       AND (sqlc.narg('department_id')::uuid IS NULL OR m.department_id = sqlc.narg('department_id')::uuid)
@@ -503,6 +551,7 @@ collected AS (
     CROSS JOIN bounds b
     WHERE s.workspace_id = sqlc.arg('workspace_id')
       AND s.archived_at IS NULL
+      AND s.currency = (SELECT currency FROM dominant)
       AND s.paid_at >= b.month_start
       AND s.paid_at < (b.month_start + interval '1 month')::date
       AND (sqlc.narg('department_id')::uuid IS NULL OR m.department_id = sqlc.narg('department_id')::uuid)
@@ -520,6 +569,7 @@ cost AS (
     WHERE c.workspace_id = sqlc.arg('workspace_id')
       AND c.archived_at IS NULL
       AND c.stage = 'settled'
+      AND c.currency = (SELECT currency FROM dominant)
       AND c.accepted_at >= b.month_start::timestamptz
       AND c.accepted_at < (b.month_start + interval '1 month')::timestamptz
       AND (sqlc.narg('department_id')::uuid IS NULL OR m.department_id = sqlc.narg('department_id')::uuid)
@@ -533,11 +583,13 @@ receivable AS (
     LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
     WHERE s.workspace_id = sqlc.arg('workspace_id')
       AND s.archived_at IS NULL
+      AND s.currency = (SELECT currency FROM dominant)
       AND s.paid_at IS NULL
       AND (sqlc.narg('department_id')::uuid IS NULL OR m.department_id = sqlc.narg('department_id')::uuid)
 )
 SELECT
     to_char(b.month_start, 'YYYY-MM') AS month,
+    (SELECT currency FROM dominant) AS currency,
     signed.amount AS signed_amount,
     signed.samples AS signed_samples,
     collected.amount AS collected_amount,

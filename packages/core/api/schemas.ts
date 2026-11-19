@@ -5459,12 +5459,14 @@ const workbenchFinanceCostBlock = WorkbenchFinanceCostBlockSchema.default(
 
 export const WorkbenchFinanceResponseSchema = z
   .object({
-    // The month label is display copy, so a missing one degrades to an empty
-    // string rather than rejecting the figures the server did send.
+    // The month and unit labels are display copy, so a missing one degrades to a
+    // default rather than rejecting the figures the server did send. `currency`
+    // names the unit every amount is in; the server picks the window's dominant
+    // one, and an older server that sends no unit is read as CNY.
     window: z
-      .object({ month: z.string().default("") })
-      .default({ month: "" })
-      .catch({ month: "" }),
+      .object({ month: z.string().default(""), currency: z.string().default("CNY") })
+      .default({ month: "", currency: "CNY" })
+      .catch({ month: "", currency: "CNY" }),
     signed: workbenchFinanceBlock,
     collected: workbenchFinanceBlock,
     gross_margin: workbenchFinanceCostBlock,
@@ -5474,7 +5476,7 @@ export const WorkbenchFinanceResponseSchema = z
   .loose();
 
 export const EMPTY_WORKBENCH_FINANCE_RESPONSE: WorkbenchFinanceResponse = {
-  window: { month: "" },
+  window: { month: "", currency: "CNY" },
   signed: EMPTY_WORKBENCH_FINANCE_BLOCK,
   collected: EMPTY_WORKBENCH_FINANCE_BLOCK,
   gross_margin: EMPTY_WORKBENCH_FINANCE_COST_BLOCK,

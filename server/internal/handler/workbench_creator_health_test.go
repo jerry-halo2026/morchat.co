@@ -310,6 +310,35 @@ func TestCreatorHealthSortPutsNullsLast(t *testing.T) {
 		t.Fatalf("second page = %v, want the second-highest engagement", ids(secondPage.Creators))
 	}
 
+	// The walk has to reach the NULL-sorted tail as well: `big` has no snapshot, so
+	// it sorts after every real rate. The keyset predicate used to drop NULL rows
+	// once the cursor carried a value, which truncated the board at the last
+	// sampled creator (247 of 917 rows on the orange mirror).
+	walk := func(sort string) []string {
+		t.Helper()
+		var out []string
+		cursor := ""
+		for page := 0; page < 10; page++ {
+			path := "/api/workbench/creators/health?sort=" + sort + "&limit=1"
+			if cursor != "" {
+				path += "&cursor=" + cursor
+			}
+			got := get(path)
+			out = append(out, ids(got.Creators)...)
+			if got.NextCursor == nil {
+				break
+			}
+			cursor = *got.NextCursor
+		}
+		return out
+	}
+	if walked := walk("engagement"); fmt.Sprint(walked) != fmt.Sprint(wantEngagement) {
+		t.Fatalf("engagement cursor walk = %v, want %v", walked, wantEngagement)
+	}
+	if walked := walk("hit"); fmt.Sprint(walked) != fmt.Sprint(wantHit) {
+		t.Fatalf("hit cursor walk = %v, want %v", walked, wantHit)
+	}
+
 	// An unknown sort is a 400 rather than a silently unsorted board.
 	req := healthRequest(t, "GET", "/api/workbench/creators/health?sort=vibes", testUserID, workspaceID)
 	testutil.Call(t, testHandler.ListCreatorHealth, req).Want(http.StatusBadRequest)

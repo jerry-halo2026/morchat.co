@@ -70,9 +70,12 @@ type WorkbenchFinanceCostBlock struct {
 // WorkbenchFinanceWindow names the period the figures describe. The month is the
 // server's calendar month (`YYYY-MM`), taken from the same `now()` the SQL window
 // slices with, so the label and the numbers can never disagree about which month
-// they are.
+// they are. `currency` names the unit every amount is in: the window's dominant
+// currency, the same rule `GET /api/workbench/bd/performance` applies, because
+// adding CNY to USD produces a number in neither.
 type WorkbenchFinanceWindow struct {
-	Month string `json:"month"`
+	Month    string `json:"month"`
+	Currency string `json:"currency"`
 }
 
 // WorkbenchFinanceResponse is `GET /api/workbench/finance`.
@@ -208,7 +211,7 @@ func (h *Handler) GetWorkbenchFinance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, WorkbenchFinanceResponse{
-		Window: WorkbenchFinanceWindow{Month: figure.Month},
+		Window: WorkbenchFinanceWindow{Month: figure.Month, Currency: figure.Currency},
 		// Signed and collected answer from an empty ledger with a real zero: "no
 		// money moved" is a fact, not a missing measurement.
 		Signed:         metricValue(figure.SignedAmount, true, figure.SignedSamples, metricEmptyZero),

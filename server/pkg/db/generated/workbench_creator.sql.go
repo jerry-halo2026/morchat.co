@@ -562,10 +562,13 @@ WHERE c.workspace_id = $2
   AND (
     $5::uuid IS NULL
     OR (
+        $6::numeric IS NOT NULL
+        AND (sv.sort_value IS NULL OR sv.sort_value < $6::numeric)
+    )
+    OR (
         sv.sort_value IS NOT DISTINCT FROM $6::numeric
         AND (c.fans, c.id) < ($7::bigint, $5::uuid)
     )
-    OR sv.sort_value < $6::numeric
   )
 ORDER BY sv.sort_value DESC NULLS LAST, c.fans DESC NULLS LAST, c.id DESC
 LIMIT $8

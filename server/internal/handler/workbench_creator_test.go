@@ -96,6 +96,20 @@ func seedWorkbenchMemberCapabilities(t *testing.T, userID string) {
 		DO NOTHING`, testWorkspaceID)
 }
 
+// seededEmployeeProfileID returns the profile `workbenchTestMember` seeds, whose
+// job title is what the capability template resolves. A test that needs a profile
+// this member owns must reuse it: the table allows one profile per member.
+func seededEmployeeProfileID(t *testing.T, userID string) string {
+	t.Helper()
+	var id string
+	if err := testPool.QueryRow(t.Context(),
+		`SELECT id::text FROM hr_employee_profile WHERE workspace_id = $1 AND member_id = $2 AND archived_at IS NULL`,
+		testWorkspaceID, userID).Scan(&id); err != nil {
+		t.Fatalf("read the seeded employee profile: %v", err)
+	}
+	return id
+}
+
 // workbenchRequest builds a request that acts as userID (empty means the
 // workspace owner the suite is set up as).
 func workbenchRequest(t *testing.T, method, path string, body any, userID string) *http.Request {
@@ -493,6 +507,63 @@ func TestListCreatorsSortsByEngagement(t *testing.T) {
 	// presented as the requested one.
 	req = healthRequest(t, "GET", "/api/workbench/creators?sort=vibes", testUserID, workspaceID)
 	testutil.Call(t, testHandler.ListCreators, req).Want(http.StatusBadRequest)
+}
+
+// TestListCreatorsSortWalksPastTheLastSampledRow is the regression for a keyset
+// truncation: `sort=engagement` orders sampled creators first and unsampled ones
+// last (NULLS LAST), so the page after the lowest-rate sampled creator must still
+// contain the unsampled ones. The predicate used to require `sort_value <
+// cursor_value`, which no NULL can satisfy — the walk stopped at the first
+// unsampled row and the tail of the ledger never loaded (680 of 917 creators on
+// the orange mirror).
+func TestListCreatorsSortWalksPastTheLastSampledRow(t *testing.T) {
+	workspaceID, _ := healthWorkspace(t)
+	high := insertHealthCreator(t, workspaceID, "walk-high", 1000)
+	low := insertHealthCreator(t, workspaceID, "walk-low", 2000)
+	none := insertHealthCreator(t, workspaceID, "walk-none", 3000)
+	highRate := 0.42
+	lowRate := 0.07
+	insertCreatorMetric(t, workspaceID, high.String(), &highRate, nil, 1, 12)
+	insertCreatorMetric(t, workspaceID, low.String(), &lowRate, nil, 1, 12)
+
+	walk := func(sort string) []string {
+		t.Helper()
+		var ids []string
+		cursor := ""
+		for page := 0; page < 10; page++ {
+			path := "/api/workbench/creators?sort=" + sort + "&limit=1"
+			if cursor != "" {
+				path += "&cursor=" + cursor
+			}
+			req := healthRequest(t, "GET", path, testUserID, workspaceID)
+			var got struct {
+				Creators   []CreatorResponse `json:"creators"`
+				NextCursor *string           `json:"next_cursor"`
+			}
+			testutil.Call(t, testHandler.ListCreators, req).Want(http.StatusOK).JSON(&got)
+			for _, row := range got.Creators {
+				ids = append(ids, row.ID)
+			}
+			if got.NextCursor == nil {
+				break
+			}
+			cursor = *got.NextCursor
+		}
+		return ids
+	}
+
+	want := func(ids []string, order []string) {
+		t.Helper()
+		if fmt.Sprint(ids) != fmt.Sprint(order) {
+			t.Fatalf("cursor walk = %v, want %v", ids, order)
+		}
+	}
+
+	// Engagement: the two sampled rows by rate, then the unsampled one.
+	want(walk("engagement"), []string{high.String(), low.String(), none.String()})
+	// Hit rate: no sampled hit rate at all, so every row is NULL-sorted and the
+	// walk is the follower order — all three rows, none dropped.
+	want(walk("hit"), []string{none.String(), low.String(), high.String()})
 }
 
 // TestListCreatorsDefaultSortIsFans keeps the ledger's opening order: biggest

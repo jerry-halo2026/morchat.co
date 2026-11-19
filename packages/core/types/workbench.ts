@@ -525,11 +525,17 @@ export interface WorkbenchFinanceCostBlock extends WorkbenchFinanceBlock {
 }
 
 export interface WorkbenchFinanceResponse {
-  /** The calendar month every figure describes, `YYYY-MM`. */
-  window: { month: string };
-  /** Contract value confirmed this month, in CNY. Renewals included (C10). */
+  /**
+   * The calendar month every figure describes, `YYYY-MM`, and the unit they are
+   * in: the window's dominant currency (`bd/performance` applies the same rule,
+   * because adding CNY to USD produces a number in neither). `currency` is
+   * optional so hand-built fixtures stay valid; the server always sends it and
+   * the schema defaults it to `CNY`.
+   */
+  window: { month: string; currency?: string };
+  /** Contract value confirmed this month, in `window.currency`. Renewals included (C10). */
   signed: WorkbenchFinanceBlock;
-  /** Settlement money that actually cleared this month, in CNY. */
+  /** Settlement money that actually cleared this month, in `window.currency`. */
   collected: WorkbenchFinanceBlock;
   /**
    * (collected 鈭?cost) / collected at the 0鈥? storage scale (C3); the UI
@@ -540,8 +546,8 @@ export interface WorkbenchFinanceResponse {
   /** Mean age, in days, of the settlements still unpaid. */
   receivable_days: WorkbenchFinanceBlock;
   /**
-   * Opening cash + collected 鈭?the month's cost, in CNY. Null until the month has
-   * an opening balance, which no ledger row can supply.
+   * Opening cash + collected 鈭?the month's cost, in `window.currency`. Null until
+   * the month has an opening balance, which no ledger row can supply.
    */
   cash_floor: WorkbenchFinanceCostBlock;
 }

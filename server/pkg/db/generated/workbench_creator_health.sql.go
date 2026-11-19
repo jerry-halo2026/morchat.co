@@ -208,21 +208,14 @@ SELECT
 FROM ranked
 WHERE $1::uuid IS NULL
    OR (
-        sort_value IS NOT NULL
+        $2::numeric IS NOT NULL
         AND (
-            sort_value < $2::numeric
-            OR (
-                sort_value = $2::numeric
-                AND (
-                    fans < $3::bigint
-                    OR (fans = $3::bigint AND id < $1::uuid)
-                )
-            )
+            sort_value IS NULL
+            OR sort_value < $2::numeric
         )
    )
    OR (
-        sort_value IS NULL
-        AND $2::numeric IS NULL
+        sort_value IS NOT DISTINCT FROM $2::numeric
         AND (
             fans < $3::bigint
             OR (fans = $3::bigint AND id < $1::uuid)

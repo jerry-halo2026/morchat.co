@@ -69,11 +69,17 @@ WHERE c.workspace_id = sqlc.arg('workspace_id')
   )
   AND (
     sqlc.narg('cursor_id')::uuid IS NULL
+    -- Past a cursor that carries a value, every unsampled row is still ahead:
+    -- NULLS LAST puts them all after the last real value, so dropping them here
+    -- would truncate the walk at the first NULL the cursor landed on.
+    OR (
+        sqlc.narg('cursor_value')::numeric IS NOT NULL
+        AND (sv.sort_value IS NULL OR sv.sort_value < sqlc.narg('cursor_value')::numeric)
+    )
     OR (
         sv.sort_value IS NOT DISTINCT FROM sqlc.narg('cursor_value')::numeric
         AND (c.fans, c.id) < (sqlc.narg('cursor_fans')::bigint, sqlc.narg('cursor_id')::uuid)
     )
-    OR sv.sort_value < sqlc.narg('cursor_value')::numeric
   )
 ORDER BY sv.sort_value DESC NULLS LAST, c.fans DESC NULLS LAST, c.id DESC
 LIMIT sqlc.arg('limit');
