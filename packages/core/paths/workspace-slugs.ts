@@ -20,6 +20,9 @@ export function setWorkspaceSlugLookup(next: WorkspaceSlugLookup): () => void {
 
 const workspaceRoutes = new Set([
   ...Object.values(WORKSPACE_PAGES).map((page) => page.segment),
+  // The HR space's pages are nested one level down; the route a reserved-slug
+  // path has to name is the space itself.
+  "hr",
   "members",
   "attachments",
 ]);

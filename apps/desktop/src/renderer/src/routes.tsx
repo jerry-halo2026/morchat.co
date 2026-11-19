@@ -23,6 +23,17 @@ import { IssuesPage } from "@morechat/views/issues/components";
 import { ProjectsPage } from "@morechat/views/projects/components";
 import { DashboardPage } from "@morechat/views/dashboard";
 import { OverviewPage } from "@morechat/views/workbench";
+import {
+  HrAnalysisPage,
+  HrEmployeesPage,
+  HrFilesPage,
+  HrGuidePage,
+  HrInterviewsPage,
+  HrOffboardPage,
+  HrRecruitPage,
+  HrResumesPage,
+  HrScoresPage,
+} from "@morechat/views/hr";
 import { AutopilotsPage } from "@morechat/views/autopilots/components";
 import { MyIssuesPage } from "@morechat/views/my-issues";
 import { SkillsPage } from "@morechat/views/skills";
@@ -319,6 +330,17 @@ export const appRoutes: RouteObject[] = [
             element: <OverviewPage />,
             handle: { title: "Overview" },
           },
+          // The HR space: nine pages beside the workbench, one route each, so
+          // a tab can name the page it holds instead of resolving to unknown.
+          { path: "hr/recruit", element: <HrRecruitPage />, handle: { title: "HR" } },
+          { path: "hr/resumes", element: <HrResumesPage />, handle: { title: "HR" } },
+          { path: "hr/interviews", element: <HrInterviewsPage />, handle: { title: "HR" } },
+          { path: "hr/scores", element: <HrScoresPage />, handle: { title: "HR" } },
+          { path: "hr/guide", element: <HrGuidePage />, handle: { title: "HR" } },
+          { path: "hr/employees", element: <HrEmployeesPage />, handle: { title: "HR" } },
+          { path: "hr/offboard", element: <HrOffboardPage />, handle: { title: "HR" } },
+          { path: "hr/files", element: <HrFilesPage />, handle: { title: "HR" } },
+          { path: "hr/analysis", element: <HrAnalysisPage />, handle: { title: "HR" } },
           {
             path: "settings",
             element: <DesktopSettingsRoute />,

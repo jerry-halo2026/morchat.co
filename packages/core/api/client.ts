@@ -225,6 +225,97 @@ import type {
   UpdateAffiliateProductRequest,
   UpdateAffiliateSettlementRequest,
   UpsertAffiliateDailyRequest,
+  // Content workbench (docs/engineering/WORKBENCH-API.md §12).
+  AttachMediaIPAccountRequest,
+  CreateMediaIPRequest,
+  CreateMediaScriptRequest,
+  CreateMediaShootRequest,
+  CreateMediaTopicRequest,
+  MediaIP,
+  MediaIPAccount,
+  MediaIPDetail,
+  MediaIPListFilters,
+  MediaIPListResponse,
+  MediaScript,
+  MediaScriptListFilters,
+  MediaScriptListResponse,
+  MediaShoot,
+  MediaShootListFilters,
+  MediaShootListResponse,
+  MediaTopic,
+  MediaTopicListFilters,
+  MediaTopicListResponse,
+  UpdateMediaIPRequest,
+  UpdateMediaScriptRequest,
+  UpdateMediaShootRequest,
+  UpdateMediaTopicRequest,
+  // General manager workbench (docs/engineering/WORKBENCH-API.md §13).
+  AttachGoalIssueRequest,
+  ConvertMarketSignalRequest,
+  CreateGoalKeyResultRequest,
+  CreateGoalPackageRequest,
+  CreateGoalRequest,
+  CreateMarketSignalRequest,
+  Goal,
+  GoalDetail,
+  GoalIssue,
+  GoalKeyResult,
+  GoalListFilters,
+  GoalListResponse,
+  GoalPackage,
+  MarketSignal,
+  MarketSignalConvertResponse,
+  MarketSignalListFilters,
+  MarketSignalListResponse,
+  UpdateGoalKeyResultRequest,
+  UpdateGoalPackageRequest,
+  UpdateGoalRequest,
+  UpdateMarketSignalRequest,
+  // Interview questions and per-round guides (docs/engineering/WORKBENCH-API.md §14).
+  CreateHrInterviewGuideRequest,
+  CreateHrQuestionRequest,
+  HrGuideGenerateRequest,
+  HrGuideGenerateResponse,
+  HrGuideItem,
+  HrGuideListFilters,
+  HrGuideListResponse,
+  HrInterviewGuide,
+  HrQuestion,
+  HrQuestionListFilters,
+  HrQuestionListResponse,
+  UpdateHrGuideItemRequest,
+  UpdateHrInterviewGuideRequest,
+  UpdateHrQuestionRequest,
+  // Offboarding management (docs/engineering/WORKBENCH-API.md §15).
+  CreateHrOffboardingRequest,
+  HrHandoverItem,
+  HrOffboarding,
+  HrOffboardingAdvanceResponse,
+  HrOffboardingListFilters,
+  HrOffboardingListResponse,
+  UpdateHrHandoverItemRequest,
+  UpdateHrOffboardingRequest,
+  // Employee file change stream (docs/engineering/WORKBENCH-API.md §16).
+  CreateHrEmployeeChangeRequest,
+  HrEmployeeChange,
+  HrEmployeeChangeListFilters,
+  HrEmployeeChangeListResponse,
+  UpdateHrEmployeeChangeRequest,
+  // Employee rewards and disciplines (docs/engineering/WORKBENCH-API.md §17).
+  CreateHrEmployeeRewardRequest,
+  HrEmployeeReward,
+  HrEmployeeRewardListFilters,
+  HrEmployeeRewardListResponse,
+  UpdateHrEmployeeRewardRequest,
+  // HR documents (docs/engineering/WORKBENCH-API.md §18).
+  CreateHrDocGenerationRequest,
+  CreateHrDocGenerationResponse,
+  CreateHrDocTemplateRequest,
+  HrDocGenerationListResponse,
+  HrDocTemplate,
+  HrDocTemplateListFilters,
+  HrDocTemplateListResponse,
+  UpdateHrDocTemplateRequest,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -714,6 +805,46 @@ import {
   EMPTY_AFFILIATE_SETTLEMENT_LIST_RESPONSE,
   AffiliateSummaryResponseSchema,
   EMPTY_AFFILIATE_SUMMARY_RESPONSE,
+  // Content workbench (§12).
+  MediaIPSchema,
+  MediaIPListResponseSchema,
+  EMPTY_MEDIA_IP,
+  EMPTY_MEDIA_IP_LIST_RESPONSE,
+  MediaIPDetailSchema,
+  EMPTY_MEDIA_IP_DETAIL,
+  MediaIPAccountSchema,
+  EMPTY_MEDIA_IP_ACCOUNT,
+  MediaTopicSchema,
+  MediaTopicListResponseSchema,
+  EMPTY_MEDIA_TOPIC,
+  EMPTY_MEDIA_TOPIC_LIST_RESPONSE,
+  MediaScriptSchema,
+  MediaScriptListResponseSchema,
+  EMPTY_MEDIA_SCRIPT,
+  EMPTY_MEDIA_SCRIPT_LIST_RESPONSE,
+  MediaShootSchema,
+  MediaShootListResponseSchema,
+  EMPTY_MEDIA_SHOOT,
+  EMPTY_MEDIA_SHOOT_LIST_RESPONSE,
+  // General manager workbench (§13).
+  GoalSchema,
+  GoalDetailSchema,
+  GoalListResponseSchema,
+  GoalKeyResultSchema,
+  GoalPackageSchema,
+  GoalIssueSchema,
+  EMPTY_GOAL,
+  EMPTY_GOAL_DETAIL,
+  EMPTY_GOAL_LIST_RESPONSE,
+  EMPTY_GOAL_KEY_RESULT,
+  EMPTY_GOAL_PACKAGE,
+  EMPTY_GOAL_ISSUE,
+  MarketSignalSchema,
+  MarketSignalListResponseSchema,
+  MarketSignalConvertResponseSchema,
+  EMPTY_MARKET_SIGNAL,
+  EMPTY_MARKET_SIGNAL_LIST_RESPONSE,
+  EMPTY_MARKET_SIGNAL_CONVERT_RESPONSE,
   HrJobSchema,
   HrJobListResponseSchema,
   EMPTY_HR_JOB,
@@ -736,6 +867,40 @@ import {
   EMPTY_HR_EMPLOYEE_PROFILE,
   EMPTY_HR_EMPLOYEE_PROFILE_LIST_RESPONSE,
   EMPTY_HIRE_HR_CANDIDATE_RESPONSE,
+  // Interview questions and per-round guides (§14).
+  HrQuestionSchema,
+  HrQuestionListResponseSchema,
+  EMPTY_HR_QUESTION,
+  EMPTY_HR_QUESTION_LIST_RESPONSE,
+  HrInterviewGuideSchema,
+  HrGuideListResponseSchema,
+  HrGuideGenerateResponseSchema,
+  EMPTY_HR_INTERVIEW_GUIDE,
+  EMPTY_HR_GUIDE_LIST_RESPONSE,
+  EMPTY_HR_GUIDE_GENERATE_RESPONSE,
+  HrOffboardingSchema,
+  HrOffboardingListResponseSchema,
+  HrOffboardingAdvanceResponseSchema,
+  EMPTY_HR_OFFBOARDING,
+  EMPTY_HR_OFFBOARDING_LIST_RESPONSE,
+  EMPTY_HR_OFFBOARDING_ADVANCE_RESPONSE,
+  HrEmployeeChangeSchema,
+  HrEmployeeChangeListResponseSchema,
+  EMPTY_HR_EMPLOYEE_CHANGE,
+  EMPTY_HR_EMPLOYEE_CHANGE_LIST_RESPONSE,
+  HrEmployeeRewardSchema,
+  HrEmployeeRewardListResponseSchema,
+  EMPTY_HR_EMPLOYEE_REWARD,
+  EMPTY_HR_EMPLOYEE_REWARD_LIST_RESPONSE,
+  // HR documents (docs/engineering/WORKBENCH-API.md §18).
+  HrDocTemplateSchema,
+  HrDocTemplateListResponseSchema,
+  EMPTY_HR_DOC_TEMPLATE,
+  EMPTY_HR_DOC_TEMPLATE_LIST_RESPONSE,
+  HrDocGenerationListResponseSchema,
+  HrDocGenerationEnvelopeSchema,
+  EMPTY_HR_DOC_GENERATION_LIST_RESPONSE,
+  EMPTY_HR_DOC_GENERATION_ENVELOPE,
   type IssueView,
   type IssueViewPreference,
   type CreateIssueViewRequest,
@@ -4610,6 +4775,425 @@ export class ApiClient {
     );
   }
 
+  // Content workbench (docs/engineering/WORKBENCH-API.md §12). Base
+  // `/api/workbench/media`, same read/write split as the ledgers above: reads are
+  // member-wide, writes are gated server-side (owner/admin write everything, a
+  // member writes the rows it owns, and a script or shoot is gated through the
+  // topic it came from).
+  //
+  // Two shapes here are not "the row": `GET /ips/:id` answers the IP *with* its
+  // accounts, and `listMediaShoots` filters on `shoot_date` with inclusive days.
+
+  async listMediaIPs(filters: MediaIPListFilters = {}): Promise<MediaIPListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/media/ips${workbenchSearch({
+        status: filters.status,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, MediaIPListResponseSchema, EMPTY_MEDIA_IP_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/media/ips",
+    });
+  }
+
+  async createMediaIP(data: CreateMediaIPRequest): Promise<MediaIP> {
+    const raw = await this.fetch<unknown>("/api/workbench/media/ips", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaIPSchema, EMPTY_MEDIA_IP, {
+      endpoint: "POST /api/workbench/media/ips",
+    });
+  }
+
+  /** The IP plus the platform accounts attached to it (`creator.media_ip_id`). */
+  async getMediaIP(id: string): Promise<MediaIPDetail> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/ips/${id}`);
+    return parseWithFallback(raw, MediaIPDetailSchema, EMPTY_MEDIA_IP_DETAIL, {
+      endpoint: "GET /api/workbench/media/ips/:ipId",
+    });
+  }
+
+  async updateMediaIP(id: string, data: UpdateMediaIPRequest): Promise<MediaIP> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/ips/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaIPSchema, EMPTY_MEDIA_IP, {
+      endpoint: "PATCH /api/workbench/media/ips/:ipId",
+    });
+  }
+
+  /** Soft delete: the IP keeps its rows and stops appearing in lists. */
+  async deleteMediaIP(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/media/ips/${id}`, { method: "DELETE" });
+  }
+
+  /**
+   * Attach a platform account to an IP by writing `creator.media_ip_id`. An
+   * account belongs to at most one IP, so attaching one that already carries a
+   * pointer is a 409 on the server.
+   */
+  async attachMediaIPAccount(ipId: string, data: AttachMediaIPAccountRequest): Promise<MediaIPAccount> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/ips/${ipId}/accounts`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaIPAccountSchema, EMPTY_MEDIA_IP_ACCOUNT, {
+      endpoint: "POST /api/workbench/media/ips/:ipId/accounts",
+    });
+  }
+
+  /** Clear the pointer. The account stays in the creator ledger. */
+  async detachMediaIPAccount(ipId: string, creatorId: string): Promise<void> {
+    await this.fetch(`/api/workbench/media/ips/${ipId}/accounts/${creatorId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async listMediaTopics(filters: MediaTopicListFilters = {}): Promise<MediaTopicListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/media/topics${workbenchSearch({
+        ip_id: filters.ip_id,
+        status: filters.status,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, MediaTopicListResponseSchema, EMPTY_MEDIA_TOPIC_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/media/topics",
+    });
+  }
+
+  async createMediaTopic(data: CreateMediaTopicRequest): Promise<MediaTopic> {
+    const raw = await this.fetch<unknown>("/api/workbench/media/topics", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaTopicSchema, EMPTY_MEDIA_TOPIC, {
+      endpoint: "POST /api/workbench/media/topics",
+    });
+  }
+
+  async getMediaTopic(id: string): Promise<MediaTopic> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/topics/${id}`);
+    return parseWithFallback(raw, MediaTopicSchema, EMPTY_MEDIA_TOPIC, {
+      endpoint: "GET /api/workbench/media/topics/:topicId",
+    });
+  }
+
+  async updateMediaTopic(id: string, data: UpdateMediaTopicRequest): Promise<MediaTopic> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/topics/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaTopicSchema, EMPTY_MEDIA_TOPIC, {
+      endpoint: "PATCH /api/workbench/media/topics/:topicId",
+    });
+  }
+
+  async deleteMediaTopic(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/media/topics/${id}`, { method: "DELETE" });
+  }
+
+  /**
+   * Every version of the topic's script, newest first. There is no "current
+   * version" read: v1 has to stay readable next to v2 for the review screen.
+   */
+  async listMediaScripts(filters: MediaScriptListFilters = {}): Promise<MediaScriptListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/media/scripts${workbenchSearch({
+        topic_id: filters.topic_id,
+        status: filters.status,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, MediaScriptListResponseSchema, EMPTY_MEDIA_SCRIPT_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/media/scripts",
+    });
+  }
+
+  async createMediaScript(data: CreateMediaScriptRequest): Promise<MediaScript> {
+    const raw = await this.fetch<unknown>("/api/workbench/media/scripts", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaScriptSchema, EMPTY_MEDIA_SCRIPT, {
+      endpoint: "POST /api/workbench/media/scripts",
+    });
+  }
+
+  async getMediaScript(id: string): Promise<MediaScript> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/scripts/${id}`);
+    return parseWithFallback(raw, MediaScriptSchema, EMPTY_MEDIA_SCRIPT, {
+      endpoint: "GET /api/workbench/media/scripts/:scriptId",
+    });
+  }
+
+  /**
+   * Rewrite a script. By default a PATCH that touches the copy (hook / body /
+   * cta / cover_note / tags) *creates the next version* and answers with it — the
+   * previous version stays readable under its own id. Pass `inPlace` for a
+   * correction that must not mint a version; a PATCH that only moves `status` or
+   * `publish_at` never does, whatever this flag says.
+   */
+  async updateMediaScript(
+    id: string,
+    data: UpdateMediaScriptRequest,
+    inPlace = false,
+  ): Promise<MediaScript> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/media/scripts/${id}${inPlace ? "?inPlace=1" : ""}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+    );
+    return parseWithFallback(raw, MediaScriptSchema, EMPTY_MEDIA_SCRIPT, {
+      endpoint: "PATCH /api/workbench/media/scripts/:scriptId",
+    });
+  }
+
+  async deleteMediaScript(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/media/scripts/${id}`, { method: "DELETE" });
+  }
+
+  /** The shoot calendar. `from`/`to` are inclusive `YYYY-MM-DD` days. */
+  async listMediaShoots(filters: MediaShootListFilters = {}): Promise<MediaShootListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/media/shoots${workbenchSearch({
+        script_id: filters.script_id,
+        from: filters.from,
+        to: filters.to,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, MediaShootListResponseSchema, EMPTY_MEDIA_SHOOT_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/media/shoots",
+    });
+  }
+
+  async createMediaShoot(data: CreateMediaShootRequest): Promise<MediaShoot> {
+    const raw = await this.fetch<unknown>("/api/workbench/media/shoots", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaShootSchema, EMPTY_MEDIA_SHOOT, {
+      endpoint: "POST /api/workbench/media/shoots",
+    });
+  }
+
+  async getMediaShoot(id: string): Promise<MediaShoot> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/shoots/${id}`);
+    return parseWithFallback(raw, MediaShootSchema, EMPTY_MEDIA_SHOOT, {
+      endpoint: "GET /api/workbench/media/shoots/:shootId",
+    });
+  }
+
+  /** `checklist` merges over the stored ticks; `shots` replaces the document. */
+  async updateMediaShoot(id: string, data: UpdateMediaShootRequest): Promise<MediaShoot> {
+    const raw = await this.fetch<unknown>(`/api/workbench/media/shoots/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MediaShootSchema, EMPTY_MEDIA_SHOOT, {
+      endpoint: "PATCH /api/workbench/media/shoots/:shootId",
+    });
+  }
+
+  async deleteMediaShoot(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/media/shoots/${id}`, { method: "DELETE" });
+  }
+
+  // General manager workbench (docs/engineering/WORKBENCH-API.md §13): OKR goals
+  // with their key results and department packages, and the radar signals that
+  // convert into a goal or an issue. `/api/workbench`, same read/write split as
+  // the ledgers above: reads are member-wide, the write gate is server-side, and a
+  // key result or a package is gated on the owner of the goal it hangs off.
+
+  async listGoals(filters: GoalListFilters = {}): Promise<GoalListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/goals${workbenchSearch({
+        cycle: filters.cycle,
+        status: filters.status,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, GoalListResponseSchema, EMPTY_GOAL_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/goals",
+    });
+  }
+
+  async createGoal(data: CreateGoalRequest): Promise<Goal> {
+    const raw = await this.fetch<unknown>("/api/workbench/goals", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, GoalSchema, EMPTY_GOAL, {
+      endpoint: "POST /api/workbench/goals",
+    });
+  }
+
+  /** The goal plus its key results, its packages and the issues under it. */
+  async getGoal(id: string): Promise<GoalDetail> {
+    const raw = await this.fetch<unknown>(`/api/workbench/goals/${id}`);
+    return parseWithFallback(raw, GoalDetailSchema, EMPTY_GOAL_DETAIL, {
+      endpoint: "GET /api/workbench/goals/:goalId",
+    });
+  }
+
+  async updateGoal(id: string, data: UpdateGoalRequest): Promise<Goal> {
+    const raw = await this.fetch<unknown>(`/api/workbench/goals/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, GoalSchema, EMPTY_GOAL, {
+      endpoint: "PATCH /api/workbench/goals/:goalId",
+    });
+  }
+
+  /** Soft delete; the goal's key results and packages are archived with it. */
+  async deleteGoal(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/goals/${id}`, { method: "DELETE" });
+  }
+
+  async createGoalKeyResult(
+    goalId: string,
+    data: CreateGoalKeyResultRequest,
+  ): Promise<GoalKeyResult> {
+    const raw = await this.fetch<unknown>(`/api/workbench/goals/${goalId}/key-results`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, GoalKeyResultSchema, EMPTY_GOAL_KEY_RESULT, {
+      endpoint: "POST /api/workbench/goals/:goalId/key-results",
+    });
+  }
+
+  /**
+   * Records a key result's figure. `current` may exceed `target`; the server
+   * stores what it is given and never re-derives one from the other.
+   */
+  async updateGoalKeyResult(
+    goalId: string,
+    keyResultId: string,
+    data: UpdateGoalKeyResultRequest,
+  ): Promise<GoalKeyResult> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/goals/${goalId}/key-results/${keyResultId}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+    );
+    return parseWithFallback(raw, GoalKeyResultSchema, EMPTY_GOAL_KEY_RESULT, {
+      endpoint: "PATCH /api/workbench/goals/:goalId/key-results/:keyResultId",
+    });
+  }
+
+  async deleteGoalKeyResult(goalId: string, keyResultId: string): Promise<void> {
+    await this.fetch(`/api/workbench/goals/${goalId}/key-results/${keyResultId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async createGoalPackage(goalId: string, data: CreateGoalPackageRequest): Promise<GoalPackage> {
+    const raw = await this.fetch<unknown>(`/api/workbench/goals/${goalId}/packages`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, GoalPackageSchema, EMPTY_GOAL_PACKAGE, {
+      endpoint: "POST /api/workbench/goals/:goalId/packages",
+    });
+  }
+
+  async updateGoalPackage(
+    goalId: string,
+    packageId: string,
+    data: UpdateGoalPackageRequest,
+  ): Promise<GoalPackage> {
+    const raw = await this.fetch<unknown>(`/api/workbench/goals/${goalId}/packages/${packageId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, GoalPackageSchema, EMPTY_GOAL_PACKAGE, {
+      endpoint: "PATCH /api/workbench/goals/:goalId/packages/:packageId",
+    });
+  }
+
+  async deleteGoalPackage(goalId: string, packageId: string): Promise<void> {
+    await this.fetch(`/api/workbench/goals/${goalId}/packages/${packageId}`, { method: "DELETE" });
+  }
+
+  /** Attaches an existing issue to the goal (`issue.goal_id`); 409 if it has one. */
+  async attachGoalIssue(goalId: string, data: AttachGoalIssueRequest): Promise<GoalIssue> {
+    const raw = await this.fetch<unknown>(`/api/workbench/goals/${goalId}/issues`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, GoalIssueSchema, EMPTY_GOAL_ISSUE, {
+      endpoint: "POST /api/workbench/goals/:goalId/issues",
+    });
+  }
+
+  async detachGoalIssue(goalId: string, issueId: string): Promise<void> {
+    await this.fetch(`/api/workbench/goals/${goalId}/issues/${issueId}`, { method: "DELETE" });
+  }
+
+  async listMarketSignals(filters: MarketSignalListFilters = {}): Promise<MarketSignalListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/signals${workbenchSearch({
+        cut: filters.cut,
+        status: filters.status,
+        category: filters.category,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, MarketSignalListResponseSchema, EMPTY_MARKET_SIGNAL_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/signals",
+    });
+  }
+
+  async createMarketSignal(data: CreateMarketSignalRequest): Promise<MarketSignal> {
+    const raw = await this.fetch<unknown>("/api/workbench/signals", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MarketSignalSchema, EMPTY_MARKET_SIGNAL, {
+      endpoint: "POST /api/workbench/signals",
+    });
+  }
+
+  /** `status: "converted"` is not accepted here — use `convertMarketSignal`. */
+  async updateMarketSignal(id: string, data: UpdateMarketSignalRequest): Promise<MarketSignal> {
+    const raw = await this.fetch<unknown>(`/api/workbench/signals/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, MarketSignalSchema, EMPTY_MARKET_SIGNAL, {
+      endpoint: "PATCH /api/workbench/signals/:signalId",
+    });
+  }
+
+  async deleteMarketSignal(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/signals/${id}`, { method: "DELETE" });
+  }
+
+  /**
+   * Turns a signal into work: a goal or an issue, with the landing pointer written
+   * back onto the signal. A second convert of the same signal is a 409 — the
+   * server answers that, so the client can surface it instead of creating a
+   * duplicate objective.
+   */
+  async convertMarketSignal(
+    id: string,
+    data: ConvertMarketSignalRequest,
+  ): Promise<MarketSignalConvertResponse> {
+    const raw = await this.fetch<unknown>(`/api/workbench/signals/${id}/convert`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(
+      raw,
+      MarketSignalConvertResponseSchema,
+      EMPTY_MARKET_SIGNAL_CONVERT_RESPONSE,
+      { endpoint: "POST /api/workbench/signals/:signalId/convert" },
+    );
+  }
+
   // HR (docs/engineering/WORKBENCH-API.md §10.3). Same base and same write scope
   // as the ledgers above: reads are member-wide, writes are gated server-side.
   // `scorecards` has no single-row GET — a scorecard is read through its
@@ -4847,6 +5431,473 @@ export class ApiClient {
 
   async deleteHrEmployee(id: string): Promise<void> {
     await this.fetch(`/api/workbench/hr/employees/${id}`, { method: "DELETE" });
+  }
+
+  // Interview questions and per-round guides (docs/engineering/WORKBENCH-API.md
+  // §14). Same base and same write scope as the HR ledger above: reads are
+  // member-wide, writes are gated server-side on the question's own owner and on the
+  // candidate a guide belongs to.
+  //
+  // `generate` writes nothing — it answers an unsaved draft that the caller reviews
+  // and then saves through `createHrInterviewGuide`. The item routes answer the whole
+  // updated outline rather than 204, because appending shifts no index but deleting
+  // one renumbers the rest.
+
+  async listHrQuestions(filters: HrQuestionListFilters = {}): Promise<HrQuestionListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/questions${workbenchSearch({
+        job_id: filters.job_id,
+        dimension: filters.dimension,
+        q: filters.q,
+      })}`,
+    );
+    return parseWithFallback(raw, HrQuestionListResponseSchema, EMPTY_HR_QUESTION_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/questions",
+    });
+  }
+
+  async createHrQuestion(data: CreateHrQuestionRequest): Promise<HrQuestion> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/questions", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrQuestionSchema, EMPTY_HR_QUESTION, {
+      endpoint: "POST /api/workbench/hr/questions",
+    });
+  }
+
+  async getHrQuestion(id: string): Promise<HrQuestion> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/questions/${id}`);
+    return parseWithFallback(raw, HrQuestionSchema, EMPTY_HR_QUESTION, {
+      endpoint: "GET /api/workbench/hr/questions/:questionId",
+    });
+  }
+
+  async updateHrQuestion(id: string, data: UpdateHrQuestionRequest): Promise<HrQuestion> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/questions/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrQuestionSchema, EMPTY_HR_QUESTION, {
+      endpoint: "PATCH /api/workbench/hr/questions/:questionId",
+    });
+  }
+
+  async deleteHrQuestion(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/questions/${id}`, { method: "DELETE" });
+  }
+
+  async listHrInterviewGuides(filters: HrGuideListFilters = {}): Promise<HrGuideListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/guides${workbenchSearch({
+        candidate_id: filters.candidate_id,
+        interview_id: filters.interview_id,
+        status: filters.status,
+      })}`,
+    );
+    return parseWithFallback(raw, HrGuideListResponseSchema, EMPTY_HR_GUIDE_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/guides",
+    });
+  }
+
+  async createHrInterviewGuide(data: CreateHrInterviewGuideRequest): Promise<HrInterviewGuide> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/guides", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrInterviewGuideSchema, EMPTY_HR_INTERVIEW_GUIDE, {
+      endpoint: "POST /api/workbench/hr/guides",
+    });
+  }
+
+  async getHrInterviewGuide(id: string): Promise<HrInterviewGuide> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/guides/${id}`);
+    return parseWithFallback(raw, HrInterviewGuideSchema, EMPTY_HR_INTERVIEW_GUIDE, {
+      endpoint: "GET /api/workbench/hr/guides/:guideId",
+    });
+  }
+
+  async updateHrInterviewGuide(
+    id: string,
+    data: UpdateHrInterviewGuideRequest,
+  ): Promise<HrInterviewGuide> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/guides/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrInterviewGuideSchema, EMPTY_HR_INTERVIEW_GUIDE, {
+      endpoint: "PATCH /api/workbench/hr/guides/:guideId",
+    });
+  }
+
+  async deleteHrInterviewGuide(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/guides/${id}`, { method: "DELETE" });
+  }
+
+  /** Append one snapshot entry (usually a picked bank question) to an outline. */
+  async appendHrGuideItem(guideId: string, item: HrGuideItem): Promise<HrInterviewGuide> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/guides/${guideId}/items`, {
+      method: "POST",
+      body: JSON.stringify(item),
+    });
+    return parseWithFallback(raw, HrInterviewGuideSchema, EMPTY_HR_INTERVIEW_GUIDE, {
+      endpoint: "POST /api/workbench/hr/guides/:guideId/items",
+    });
+  }
+
+  /** Tick a question, note the answer, or score it — by position in the snapshot. */
+  async updateHrGuideItem(
+    guideId: string,
+    index: number,
+    data: UpdateHrGuideItemRequest,
+  ): Promise<HrInterviewGuide> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/guides/${guideId}/items/${index}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrInterviewGuideSchema, EMPTY_HR_INTERVIEW_GUIDE, {
+      endpoint: "PATCH /api/workbench/hr/guides/:guideId/items/:index",
+    });
+  }
+
+  /** Remove one snapshot entry. The response is the renumbered outline. */
+  async deleteHrGuideItem(guideId: string, index: number): Promise<HrInterviewGuide> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/guides/${guideId}/items/${index}`, {
+      method: "DELETE",
+    });
+    return parseWithFallback(raw, HrInterviewGuideSchema, EMPTY_HR_INTERVIEW_GUIDE, {
+      endpoint: "DELETE /api/workbench/hr/guides/:guideId/items/:index",
+    });
+  }
+
+  /**
+   * Draft an outline without saving it. `source` in the response says which
+   * generator ran: `template` when the deployment has no model configured, `ai` when
+   * one drafted the questions. Either way the caller gets 6–8 items and decides
+   * whether to save them.
+   */
+  async generateHrInterviewGuide(data: HrGuideGenerateRequest): Promise<HrGuideGenerateResponse> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/guides/generate", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrGuideGenerateResponseSchema, EMPTY_HR_GUIDE_GENERATE_RESPONSE, {
+      endpoint: "POST /api/workbench/hr/guides/generate",
+    });
+  }
+
+  // Offboarding management (docs/engineering/WORKBENCH-API.md §15). Reads are
+  // member-wide; writes are gated server-side on the record's owner, and the two
+  // routes that move the state machine (`advance` / `cancel`) additionally require
+  // owner/admin.
+  //
+  // `advance` carries no body and answers `{ offboarding, employee }` — `employee`
+  // is null until the record reaches `done`, which is when the leave date is
+  // written onto the employee file. The three `handover` routes answer the whole
+  // record rather than 204: deleting an entry renumbers the rest.
+
+  async listHrOffboardings(
+    filters: HrOffboardingListFilters = {},
+  ): Promise<HrOffboardingListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/offboardings${workbenchSearch({
+        status: filters.status,
+        employee_id: filters.employee_id,
+      })}`,
+    );
+    return parseWithFallback(raw, HrOffboardingListResponseSchema, EMPTY_HR_OFFBOARDING_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/offboardings",
+    });
+  }
+
+  async createHrOffboarding(data: CreateHrOffboardingRequest): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/offboardings", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "POST /api/workbench/hr/offboardings",
+    });
+  }
+
+  async getHrOffboarding(id: string): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/offboardings/${id}`);
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "GET /api/workbench/hr/offboardings/:offboardingId",
+    });
+  }
+
+  async updateHrOffboarding(
+    id: string,
+    data: UpdateHrOffboardingRequest,
+  ): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/offboardings/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "PATCH /api/workbench/hr/offboardings/:offboardingId",
+    });
+  }
+
+  async deleteHrOffboarding(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/offboardings/${id}`, { method: "DELETE" });
+  }
+
+  /** apply → handover → done. 409 when the record is already past the step. */
+  async advanceHrOffboarding(id: string): Promise<HrOffboardingAdvanceResponse> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/offboardings/${id}/advance`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    return parseWithFallback(
+      raw,
+      HrOffboardingAdvanceResponseSchema,
+      EMPTY_HR_OFFBOARDING_ADVANCE_RESPONSE,
+      { endpoint: "POST /api/workbench/hr/offboardings/:offboardingId/advance" },
+    );
+  }
+
+  /** The way out: `cancelled` is terminal, and it frees the employee's slot. */
+  async cancelHrOffboarding(id: string): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/offboardings/${id}/cancel`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "POST /api/workbench/hr/offboardings/:offboardingId/cancel",
+    });
+  }
+
+  /** Append one checklist entry; the server assigns `key` when it is absent. */
+  async appendHrOffboardingHandoverItem(
+    id: string,
+    item: Partial<HrHandoverItem> & { label: string },
+  ): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/offboardings/${id}/handover`, {
+      method: "POST",
+      body: JSON.stringify(item),
+    });
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "POST /api/workbench/hr/offboardings/:offboardingId/handover",
+    });
+  }
+
+  /** Tick an entry by position in the checklist, or note what is left to say. */
+  async updateHrOffboardingHandoverItem(
+    id: string,
+    index: number,
+    data: UpdateHrHandoverItemRequest,
+  ): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/offboardings/${id}/handover/${index}`,
+      { method: "PATCH", body: JSON.stringify(data) },
+    );
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "PATCH /api/workbench/hr/offboardings/:offboardingId/handover/:index",
+    });
+  }
+
+  /** Remove one entry. The response is the renumbered checklist. */
+  async deleteHrOffboardingHandoverItem(id: string, index: number): Promise<HrOffboarding> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/offboardings/${id}/handover/${index}`,
+      { method: "DELETE" },
+    );
+    return parseWithFallback(raw, HrOffboardingSchema, EMPTY_HR_OFFBOARDING, {
+      endpoint: "DELETE /api/workbench/hr/offboardings/:offboardingId/handover/:index",
+    });
+  }
+
+  // Employee file change stream (docs/engineering/WORKBENCH-API.md §16). Reads are
+  // member-wide; writes are gated on the employee profile's owner. Most rows are
+  // written by the `PATCH /employees` hook server-side, so the client only creates
+  // the manual entry (a salary adjustment has no profile column) and edits a note.
+  //
+  // `PATCH` accepts `note` and nothing else: the server answers 400 for any other
+  // field, because a stream whose facts can be rewritten cannot answer "what
+  // changed". `DELETE` is a soft delete.
+
+  async listHrEmployeeChanges(
+    filters: HrEmployeeChangeListFilters = {},
+  ): Promise<HrEmployeeChangeListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/changes${workbenchSearch({
+        employee_id: filters.employee_id,
+        kind: filters.kind,
+        from: filters.from,
+        to: filters.to,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      HrEmployeeChangeListResponseSchema,
+      EMPTY_HR_EMPLOYEE_CHANGE_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/hr/changes" },
+    );
+  }
+
+  async createHrEmployeeChange(data: CreateHrEmployeeChangeRequest): Promise<HrEmployeeChange> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/changes", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrEmployeeChangeSchema, EMPTY_HR_EMPLOYEE_CHANGE, {
+      endpoint: "POST /api/workbench/hr/changes",
+    });
+  }
+
+  /** The one editable field. Sending anything else is a 400. */
+  async updateHrEmployeeChange(
+    id: string,
+    data: UpdateHrEmployeeChangeRequest,
+  ): Promise<HrEmployeeChange> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/changes/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrEmployeeChangeSchema, EMPTY_HR_EMPLOYEE_CHANGE, {
+      endpoint: "PATCH /api/workbench/hr/changes/:changeId",
+    });
+  }
+
+  async deleteHrEmployeeChange(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/changes/${id}`, { method: "DELETE" });
+  }
+
+  // Employee rewards and disciplines (docs/engineering/WORKBENCH-API.md §17). Reads
+  // are member-wide; writes are gated on the employee profile's owner — recording
+  // somebody's 奖励 or 处分 is part of editing their file.
+  //
+  // `amount` is always >= 0 and `kind` says which direction, so a fine is a
+  // `discipline` of 500 rather than a bonus of -500. `PATCH` edits the six
+  // descriptive columns and the server answers 400 for `employee_id` / `kind`.
+
+  async listHrEmployeeRewards(
+    filters: HrEmployeeRewardListFilters = {},
+  ): Promise<HrEmployeeRewardListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/rewards${workbenchSearch({
+        employee_id: filters.employee_id,
+        kind: filters.kind,
+        from: filters.from,
+        to: filters.to,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      HrEmployeeRewardListResponseSchema,
+      EMPTY_HR_EMPLOYEE_REWARD_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/hr/rewards" },
+    );
+  }
+
+  async createHrEmployeeReward(data: CreateHrEmployeeRewardRequest): Promise<HrEmployeeReward> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/rewards", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrEmployeeRewardSchema, EMPTY_HR_EMPLOYEE_REWARD, {
+      endpoint: "POST /api/workbench/hr/rewards",
+    });
+  }
+
+  /** The six descriptive columns. `employee_id` / `kind` are a 400. */
+  async updateHrEmployeeReward(
+    id: string,
+    data: UpdateHrEmployeeRewardRequest,
+  ): Promise<HrEmployeeReward> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/rewards/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrEmployeeRewardSchema, EMPTY_HR_EMPLOYEE_REWARD, {
+      endpoint: "PATCH /api/workbench/hr/rewards/:rewardId",
+    });
+  }
+
+  async deleteHrEmployeeReward(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/rewards/${id}`, { method: "DELETE" });
+  }
+
+  // HR documents (docs/engineering/WORKBENCH-API.md §18). Reads are member-wide;
+  // template writes and generation are owner/admin only, because the produced file
+  // is filed in the person's record. `POST .../documents` renders the template,
+  // stores the result as an ordinary attachment and returns the ledger row plus the
+  // renderer's warnings — a warning means the file still contains a literal
+  // `{{...}}`, so it should be looked at before it is printed and stamped.
+
+  async listHrDocTemplates(
+    filters: HrDocTemplateListFilters = {},
+  ): Promise<HrDocTemplateListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/doc-templates${workbenchSearch({ kind: filters.kind })}`,
+    );
+    return parseWithFallback(
+      raw,
+      HrDocTemplateListResponseSchema,
+      EMPTY_HR_DOC_TEMPLATE_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/hr/doc-templates" },
+    );
+  }
+
+  async createHrDocTemplate(data: CreateHrDocTemplateRequest): Promise<HrDocTemplate> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/doc-templates", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrDocTemplateSchema, EMPTY_HR_DOC_TEMPLATE, {
+      endpoint: "POST /api/workbench/hr/doc-templates",
+    });
+  }
+
+  /** `PATCH` is a 400 on a builtin template: the server re-seeds those on every read. */
+  async updateHrDocTemplate(
+    id: string,
+    data: UpdateHrDocTemplateRequest,
+  ): Promise<HrDocTemplate> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/doc-templates/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrDocTemplateSchema, EMPTY_HR_DOC_TEMPLATE, {
+      endpoint: "PATCH /api/workbench/hr/doc-templates/:templateId",
+    });
+  }
+
+  async deleteHrDocTemplate(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/doc-templates/${id}`, { method: "DELETE" });
+  }
+
+  async listHrEmployeeDocuments(employeeId: string): Promise<HrDocGenerationListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/employees/${employeeId}/documents`,
+    );
+    return parseWithFallback(
+      raw,
+      HrDocGenerationListResponseSchema,
+      EMPTY_HR_DOC_GENERATION_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/hr/employees/{id}/documents" },
+    );
+  }
+
+  /** `values` is optional: omitted, every slot is filled from the employee's file. */
+  async createHrEmployeeDocument(
+    employeeId: string,
+    data: CreateHrDocGenerationRequest,
+  ): Promise<CreateHrDocGenerationResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/employees/${employeeId}/documents`,
+      { method: "POST", body: JSON.stringify(data) },
+    );
+    return parseWithFallback(
+      raw,
+      HrDocGenerationEnvelopeSchema,
+      EMPTY_HR_DOC_GENERATION_ENVELOPE,
+      { endpoint: "POST /api/workbench/hr/employees/{id}/documents" },
+    );
   }
 
   async createShareLink(workspaceId: string, data: { role?: string; expires_in?: number; max_uses?: number }): Promise<ShareLink> {

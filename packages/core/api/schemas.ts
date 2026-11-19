@@ -155,6 +155,79 @@ import type {
   AffiliateSettlementListResponse,
   AffiliateSummaryResponse,
 } from "../types/workbench";
+// Content workbench (§12) has its own module (types/media.ts) rather than living
+// in the commerce barrel: the content pipeline is a separate domain with its own
+// frozen artifact contract.
+import type {
+  MediaIP,
+  MediaIPAccount,
+  MediaIPDetail,
+  MediaIPListResponse,
+  MediaScores,
+  MediaScript,
+  MediaScriptListResponse,
+  MediaShoot,
+  MediaShootListResponse,
+  MediaTopic,
+  MediaTopicListResponse,
+} from "../types/media";
+// General manager workbench (§13): its own module (types/goal.ts) for the same
+// reason — OKR and radar are a separate domain, not more commerce rows.
+import type {
+  Goal,
+  GoalDetail,
+  GoalIssue,
+  GoalKeyResult,
+  GoalListResponse,
+  GoalPackage,
+  MarketSignal,
+  MarketSignalConvertResponse,
+  MarketSignalListResponse,
+} from "../types/goal";
+// Interview questions and guides (§14): its own module (types/guide.ts), because a
+// guide's `items` is a snapshot document with rules of its own.
+import type {
+  HrGuideGenerateResponse,
+  HrGuideItem,
+  HrGuideListResponse,
+  HrInterviewGuide,
+  HrQuestion,
+  HrQuestionListResponse,
+} from "../types/guide";
+// Offboarding (§15): its own module (types/offboard.ts), because the record is a
+// state machine — `status` moves through advance/cancel, never through a PATCH —
+// and the `done` step writes the employee's `leave_date`.
+import type {
+  HrHandoverItem,
+  HrOffboarding,
+  HrOffboardingAdvanceResponse,
+  HrOffboardingEmployee,
+  HrOffboardingListResponse,
+} from "../types/offboard";
+// Employee file change stream (§16): its own module (types/change.ts), because an
+// append-only event list is a different contract from the profile it describes —
+// `PATCH` accepts `note` and nothing else.
+import type {
+  HrEmployeeChange,
+  HrEmployeeChangeListResponse,
+} from "../types/change";
+// Rewards and disciplines (§17): its own module (types/reward.ts), because the
+// stored `amount` is always positive and `kind` carries the direction.
+import type {
+  HrEmployeeReward,
+  HrEmployeeRewardListResponse,
+} from "../types/reward";
+// HR documents (§18): its own module (types/doc.ts). The generated file is a
+// different contract from the profile it is about — the values are a snapshot, an
+// unknown placeholder is kept rather than blanked, and a builtin template is
+// read-only.
+import type {
+  CreateHrDocGenerationResponse,
+  HrDocGeneration,
+  HrDocGenerationListResponse,
+  HrDocTemplate,
+  HrDocTemplateListResponse,
+} from "../types/doc";
 
 export const PluginConfigFieldSchema = z.object({
   key: z.string(),
@@ -5113,6 +5186,8 @@ export const HrEmployeeProfileSchema = z.object({
   hire_date: workbenchNullableString,
   regular_date: workbenchNullableString,
   contract_end: workbenchNullableString,
+  // Written when an offboarding reaches done; null until then.
+  leave_date: workbenchNullableString,
   // JSONB NOT NULL DEFAULT '{}': an unassessed profile is an empty matrix.
   ability: hrScoreMap,
   disc: hrScoreMap,
@@ -5125,7 +5200,7 @@ export const HrEmployeeProfileSchema = z.object({
 
 export const EMPTY_HR_EMPLOYEE_PROFILE: HrEmployeeProfile = {
   id: "", workspace_id: "", member_id: "", department_id: null, job_title: null,
-  grade: null, hire_date: null, regular_date: null, contract_end: null,
+  grade: null, hire_date: null, regular_date: null, contract_end: null, leave_date: null,
   ability: {}, disc: {}, owner_member_id: null, created_by: null,
   created_at: "", updated_at: "", archived_at: null,
 };
@@ -5376,4 +5451,900 @@ export const EMPTY_AFFILIATE_SUMMARY_RESPONSE: AffiliateSummaryResponse = {
   tech_fee: EMPTY_WORKBENCH_FINANCE_BLOCK,
   pick_count: EMPTY_WORKBENCH_FINANCE_BLOCK,
   active_creator_count: EMPTY_WORKBENCH_FINANCE_BLOCK,
+};
+
+// --- Content workbench (docs/engineering/WORKBENCH-API.md §12) --------------
+//
+// IP → 选题 → 脚本（按版本）→ 拍摄, plus the two link columns that join the new
+// chain to `creator` (a platform account) and `creator_post` (a publish).
+//
+// The same two leniency rules as the ledgers above apply — enums stay
+// `z.string()`, nullable columns default to null — plus two of its own:
+//
+//   * `scores` is normalised to the five dimensions with 0 defaults. The server
+//     always stores the full card, so a missing dimension means an older payload,
+//     and "no score" is 0 rather than undefined: the radar chart must draw five
+//     axes, not four and a gap.
+//   * `shots` holds a `shotlist.v1` artifact and is passed through as
+//     `z.unknown()` on purpose. Re-validating a frozen contract in zod would give
+//     us a second copy of it to keep in step by hand; the server already rejects a
+//     document that breaks it, and `MediaShotList` in `types/media.ts` is the typed
+//     view the editor uses. `checklist` is the only part parsed: it is a tick map.
+
+export const MediaIPSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    name: z.string().default(""),
+    persona: workbenchNullableString,
+    track: workbenchNullableString,
+    audience: workbenchNullableString,
+    color: workbenchNullableString,
+    week_goal: z.number().default(0),
+    status: z.string().default("active"),
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_MEDIA_IP: MediaIP = {
+  id: "", workspace_id: "", name: "", persona: null, track: null, audience: null,
+  color: null, week_goal: 0, status: "active", owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const MediaIPAccountSchema = z
+  .object({
+    id: z.string(),
+    media_ip_id: z.string().default(""),
+    kind: z.string().default("external"),
+    display_name: z.string().default(""),
+    platform: z.string().default(""),
+    handle: z.string().default(""),
+    url: workbenchNullableString,
+    fans: z.number().default(0),
+    avg_play: z.number().default(0),
+    owner_member_id: workbenchNullableString,
+    created_at: z.string().default(""),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_IP_ACCOUNT: MediaIPAccount = {
+  id: "", media_ip_id: "", kind: "external", display_name: "", platform: "", handle: "",
+  url: null, fans: 0, avg_play: 0, owner_member_id: null, created_at: "",
+};
+
+/**
+ * `GET /media/ips/{id}`. `accounts` defaults to an empty list: an IP whose
+ * account list the server could not read is still a usable IP row, and a rejected
+ * parse would blank the whole detail screen.
+ */
+export const MediaIPDetailSchema = MediaIPSchema.extend({
+  accounts: z.array(MediaIPAccountSchema).default([]),
+}).loose();
+
+export const EMPTY_MEDIA_IP_DETAIL: MediaIPDetail = {
+  ...EMPTY_MEDIA_IP,
+  accounts: [],
+};
+
+export const MediaIPListResponseSchema = z
+  .object({
+    ips: z.array(MediaIPSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_IP_LIST_RESPONSE: MediaIPListResponse = { ips: [], total: 0 };
+
+/** The five dimensions, each 0–100, all present after a parse. */
+export const MediaScoresSchema = z
+  .object({
+    pain: z.number().default(0),
+    save: z.number().default(0),
+    debate: z.number().default(0),
+    susp: z.number().default(0),
+    fit: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_SCORES: MediaScores = { pain: 0, save: 0, debate: 0, susp: 0, fit: 0 };
+
+export const MediaTopicSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    ip_id: z.string().default(""),
+    title: z.string().default(""),
+    source: z.string().default("manual"),
+    scores: MediaScoresSchema.default(EMPTY_MEDIA_SCORES),
+    status: z.string().default("pool"),
+    hot_id: workbenchNullableString,
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_MEDIA_TOPIC: MediaTopic = {
+  id: "", workspace_id: "", ip_id: "", title: "", source: "manual",
+  scores: EMPTY_MEDIA_SCORES, status: "pool", hot_id: null, note: null,
+  owner_member_id: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
+};
+
+export const MediaTopicListResponseSchema = z
+  .object({
+    topics: z.array(MediaTopicSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_TOPIC_LIST_RESPONSE: MediaTopicListResponse = { topics: [], total: 0 };
+
+export const MediaScriptSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    topic_id: z.string().default(""),
+    ip_id: workbenchNullableString,
+    version: z.number().default(1),
+    hook: workbenchNullableString,
+    body: workbenchNullableString,
+    cta: workbenchNullableString,
+    cover_note: workbenchNullableString,
+    tags: z.array(z.string()).default([]),
+    status: z.string().default("draft"),
+    publish_at: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_MEDIA_SCRIPT: MediaScript = {
+  id: "", workspace_id: "", topic_id: "", ip_id: null, version: 1, hook: null,
+  body: null, cta: null, cover_note: null, tags: [], status: "draft", publish_at: null,
+  owner_member_id: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
+};
+
+export const MediaScriptListResponseSchema = z
+  .object({
+    scripts: z.array(MediaScriptSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_SCRIPT_LIST_RESPONSE: MediaScriptListResponse = { scripts: [], total: 0 };
+
+export const MediaShootSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    script_id: z.string().default(""),
+    shoot_date: z.string().default(""),
+    location: workbenchNullableString,
+    // `{}` before the shot list is planned; a `shotlist.v1` document otherwise.
+    // See the block comment above for why this is not re-validated here.
+    shots: z.unknown().default({}),
+    checklist: z.record(z.string(), z.boolean()).default({}),
+    status: z.string().default("planned"),
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_MEDIA_SHOOT: MediaShoot = {
+  id: "", workspace_id: "", script_id: "", shoot_date: "", location: null, shots: {},
+  checklist: {}, status: "planned", owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const MediaShootListResponseSchema = z
+  .object({
+    shoots: z.array(MediaShootSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_SHOOT_LIST_RESPONSE: MediaShootListResponse = { shoots: [], total: 0 };
+
+// --- General manager workbench (docs/engineering/WORKBENCH-API.md §13) ------
+//
+// OKR goals 目标 -> key results -> department packages, and the radar signals that
+// convert into a goal or an issue.
+//
+// The same leniency rules as the ledgers above apply — enums stay `z.string()`,
+// nullable columns default to null — plus two of its own:
+//
+//   * the child lists (`key_results`, `packages`, `issues`) default to empty
+//     arrays. The server always sends them, so a missing one means an older
+//     payload; a goal whose children a rejected parse blanked would render as an
+//     objective with no progress, which is a worse lie than an empty list.
+//   * `target` and `score` stay nullable numbers. A key result with no target is
+//     a row whose number is undecided, and reading it as 0 would claim it is
+//     already missed.
+
+export const GoalKeyResultSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    goal_id: z.string().default(""),
+    title: z.string().default(""),
+    target: z.number().nullable().default(null),
+    current: z.number().default(0),
+    unit: workbenchNullableString,
+    position: z.number().default(0),
+    status: z.string().default("on_track"),
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_GOAL_KEY_RESULT: GoalKeyResult = {
+  id: "", workspace_id: "", goal_id: "", title: "", target: null, current: 0,
+  unit: null, position: 0, status: "on_track", created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const GoalPackageSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    goal_id: z.string().default(""),
+    department_id: z.string().default(""),
+    title: z.string().default(""),
+    owner_member_id: workbenchNullableString,
+    status: z.string().default("draft"),
+    position: z.number().default(0),
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_GOAL_PACKAGE: GoalPackage = {
+  id: "", workspace_id: "", goal_id: "", department_id: "", title: "",
+  owner_member_id: null, status: "draft", position: 0, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const GoalSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    cycle: z.string().default(""),
+    title: z.string().default(""),
+    description: workbenchNullableString,
+    owner_member_id: z.string().default(""),
+    department_id: workbenchNullableString,
+    status: z.string().default("draft"),
+    due_date: workbenchNullableString,
+    priority: z.string().default("P2"),
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+    key_results: z.array(GoalKeyResultSchema).default([]),
+    packages: z.array(GoalPackageSchema).default([]),
+  })
+  .loose();
+
+export const EMPTY_GOAL: Goal = {
+  id: "", workspace_id: "", cycle: "", title: "", description: null,
+  owner_member_id: "", department_id: null, status: "draft", due_date: null,
+  priority: "P2", created_by: null, created_at: "", updated_at: "",
+  archived_at: null, key_results: [], packages: [],
+};
+
+export const GoalIssueSchema = z
+  .object({
+    id: z.string(),
+    number: z.number().default(0),
+    title: z.string().default(""),
+    status: z.string().default(""),
+    goal_id: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_GOAL_ISSUE: GoalIssue = {
+  id: "", number: 0, title: "", status: "todo", goal_id: null,
+};
+
+/**
+ * `GET /goals/{id}`. `issues` defaults to an empty list for the same reason as
+ * the other child lists: an older payload must not blank the task strip.
+ */
+export const GoalDetailSchema = GoalSchema.extend({
+  issues: z.array(GoalIssueSchema).default([]),
+}).loose();
+
+export const EMPTY_GOAL_DETAIL: GoalDetail = {
+  ...EMPTY_GOAL,
+  issues: [],
+};
+
+export const GoalListResponseSchema = z
+  .object({
+    goals: z.array(GoalSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_GOAL_LIST_RESPONSE: GoalListResponse = { goals: [], total: 0 };
+
+export const MarketSignalSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    title: z.string().default(""),
+    category: z.string().default("other"),
+    source: z.string().default("manual"),
+    url: workbenchNullableString,
+    summary: workbenchNullableString,
+    cut: z.string().default("warm"),
+    score: z.number().nullable().default(null),
+    urgency: z.string().default("medium"),
+    status: z.string().default("new"),
+    converted_goal_id: workbenchNullableString,
+    converted_issue_id: workbenchNullableString,
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_MARKET_SIGNAL: MarketSignal = {
+  id: "", workspace_id: "", title: "", category: "other", source: "manual",
+  url: null, summary: null, cut: "warm", score: null, urgency: "medium",
+  status: "new", converted_goal_id: null, converted_issue_id: null, note: null,
+  owner_member_id: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
+};
+
+export const MarketSignalListResponseSchema = z
+  .object({
+    signals: z.array(MarketSignalSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MARKET_SIGNAL_LIST_RESPONSE: MarketSignalListResponse = {
+  signals: [],
+  total: 0,
+};
+
+/**
+ * `POST /signals/{id}/convert`. Exactly one of `goal` / `issue` arrives, chosen
+ * by the `target` that was sent; both are optional here so a client does not have
+ * to branch on the response shape before reading the signal it just converted.
+ */
+export const MarketSignalConvertResponseSchema = z
+  .object({
+    signal: MarketSignalSchema,
+    goal: GoalSchema.optional(),
+    issue: GoalIssueSchema.optional(),
+  })
+  .loose();
+
+export const EMPTY_MARKET_SIGNAL_CONVERT_RESPONSE: MarketSignalConvertResponse = {
+  signal: EMPTY_MARKET_SIGNAL,
+};
+
+// ---- interview questions and guides (WORKBENCH-API §14) --------------------
+//
+// Three rules from the contract's response section show up here:
+//
+//   * `items` is a snapshot array and is always present (`[]`, never null): the
+//     outline panel maps over it, and a null would be a branch for no content.
+//   * `score` stays a nullable number. A question scored 0 and a question nobody
+//     scored are different answers, so 0 must not be the read of "unscored".
+//   * both lists default to empty, so a payload from an older server blanks the
+//     panel instead of the page.
+
+export const HrQuestionSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    // Null = a general question that fits any requisition.
+    job_id: workbenchNullableString,
+    dimension: z.string().default("skill"),
+    question: z.string().default(""),
+    intent: workbenchNullableString,
+    signals: workbenchNullableString,
+    red_flags: workbenchNullableString,
+    source: z.string().default("manual"),
+    tags: z.array(z.string()).default([]),
+    usage_count: z.number().default(0),
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_HR_QUESTION: HrQuestion = {
+  id: "", workspace_id: "", job_id: null, dimension: "skill", question: "",
+  intent: null, signals: null, red_flags: null, source: "manual", tags: [],
+  usage_count: 0, owner_member_id: null, created_by: null, created_at: "",
+  updated_at: "", archived_at: null,
+};
+
+export const HrQuestionListResponseSchema = z
+  .object({
+    questions: z.array(HrQuestionSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_QUESTION_LIST_RESPONSE: HrQuestionListResponse = {
+  questions: [],
+  total: 0,
+};
+
+/**
+ * One guide item. Every text field falls back to "" rather than null: the snapshot
+ * stores strings, and `""` is the honest read of "nothing written down".
+ */
+export const HrGuideItemSchema = z
+  .object({
+    question_id: workbenchNullableString,
+    dimension: z.string().default("skill"),
+    question: z.string().default(""),
+    intent: z.string().default(""),
+    signals: z.string().default(""),
+    red_flags: z.string().default(""),
+    asked: z.boolean().default(false),
+    note: z.string().default(""),
+    score: z.number().nullable().default(null),
+  })
+  .loose();
+
+export const EMPTY_HR_GUIDE_ITEM: HrGuideItem = {
+  question_id: null, dimension: "skill", question: "", intent: "", signals: "",
+  red_flags: "", asked: false, note: "", score: null,
+};
+
+export const HrInterviewGuideSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    // Null until the round is booked — an outline is normally prepared first.
+    interview_id: workbenchNullableString,
+    candidate_id: z.string().default(""),
+    job_id: workbenchNullableString,
+    round: z.number().default(1),
+    status: z.string().default("draft"),
+    items: z.array(HrGuideItemSchema).default([]),
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_HR_INTERVIEW_GUIDE: HrInterviewGuide = {
+  id: "", workspace_id: "", interview_id: null, candidate_id: "", job_id: null,
+  round: 1, status: "draft", items: [], note: null, owner_member_id: null,
+  created_by: null, created_at: "", updated_at: "", archived_at: null,
+};
+
+export const HrGuideListResponseSchema = z
+  .object({
+    guides: z.array(HrInterviewGuideSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_GUIDE_LIST_RESPONSE: HrGuideListResponse = {
+  guides: [],
+  total: 0,
+};
+
+/**
+ * `POST /guides/generate` — an unsaved draft. `source` is kept as a plain string so
+ * a future generator name still parses; the UI reads `template` to label the draft as
+ * the deterministic skeleton.
+ */
+export const HrGuideGenerateResponseSchema = z
+  .object({
+    candidate_id: z.string().default(""),
+    round: z.number().default(1),
+    job_id: workbenchNullableString,
+    source: z.string().default("template"),
+    items: z.array(HrGuideItemSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_GUIDE_GENERATE_RESPONSE: HrGuideGenerateResponse = {
+  candidate_id: "",
+  round: 1,
+  job_id: null,
+  source: "template",
+  items: [],
+  total: 0,
+};
+
+// ---- offboarding (WORKBENCH-API §15) ---------------------------------------
+//
+// Four rules from the contract's response section show up here:
+//
+//   * `handover` is always an array (`[]`, never null): the checklist panel maps
+//     over it, and a null would be a branch for no content.
+//   * `status` and `kind` stay plain strings. An unknown segment must render — the
+//     page shows what the row says — and defaulting an unknown value to `apply`
+//     would show a finished record as just started.
+//   * `last_day` is a calendar day (`YYYY-MM-DD`), the same wire form as every
+//     other HR date.
+//   * the advance answer keeps `employee` nullable: only the `done` step touches
+//     the employee file, so "no profile" is the honest read of the earlier one.
+
+export const HrHandoverItemSchema = z
+  .object({
+    key: z.string().default(""),
+    label: z.string().default(""),
+    done: z.boolean().default(false),
+    note: z.string().default(""),
+  })
+  .loose();
+
+export const EMPTY_HR_HANDOVER_ITEM: HrHandoverItem = {
+  key: "",
+  label: "",
+  done: false,
+  note: "",
+};
+
+export const HrOffboardingSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    employee_id: z.string().default(""),
+    status: z.string().default("apply"),
+    last_day: z.string().default(""),
+    reason: workbenchNullableString,
+    kind: z.string().default("voluntary"),
+    handover: z.array(HrHandoverItemSchema).default([]),
+    cert_done: z.boolean().default(false),
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_HR_OFFBOARDING: HrOffboarding = {
+  id: "",
+  workspace_id: "",
+  employee_id: "",
+  status: "apply",
+  last_day: "",
+  reason: null,
+  kind: "voluntary",
+  handover: [],
+  cert_done: false,
+  note: null,
+  owner_member_id: null,
+  created_by: null,
+  created_at: "",
+  updated_at: "",
+  archived_at: null,
+};
+
+export const HrOffboardingListResponseSchema = z
+  .object({
+    offboardings: z.array(HrOffboardingSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_OFFBOARDING_LIST_RESPONSE: HrOffboardingListResponse = {
+  offboardings: [],
+  total: 0,
+};
+
+/**
+ * The employee file plus the column the `done` transition writes. Built by
+ * extending the profile schema rather than re-listing it, so a field added to the
+ * employee payload cannot silently disappear from this answer.
+ */
+export const HrOffboardingEmployeeSchema = HrEmployeeProfileSchema.extend({
+  leave_date: workbenchNullableString,
+});
+
+export const EMPTY_HR_OFFBOARDING_EMPLOYEE: HrOffboardingEmployee = {
+  ...EMPTY_HR_EMPLOYEE_PROFILE,
+  leave_date: null,
+};
+
+export const HrOffboardingAdvanceResponseSchema = z
+  .object({
+    offboarding: HrOffboardingSchema,
+    // Null until `done`: the earlier step does not move the employee file.
+    employee: HrOffboardingEmployeeSchema.nullish(),
+  })
+  .loose();
+
+export const EMPTY_HR_OFFBOARDING_ADVANCE_RESPONSE: HrOffboardingAdvanceResponse = {
+  offboarding: EMPTY_HR_OFFBOARDING,
+  employee: null,
+};
+
+// ---- employee file change stream (WORKBENCH-API §16) -----------------------
+//
+// Three rules from the contract's response section show up here:
+//
+//   * `kind` stays a plain string. A kind this build does not know must still
+//     render — the 异动 list shows what the row says — and collapsing it to
+//     `other` would relabel a real event.
+//   * every from/to pair is nullable and defaults to null: a change that was not
+//     about a field must not look like it cleared the field.
+//   * amounts are JSON numbers (§3.1) and `effective_on` is a calendar day, the
+//     same wire forms as the rest of HR.
+
+export const HrEmployeeChangeSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    employee_id: z.string().default(""),
+    kind: z.string().default("other"),
+    effective_on: z.string().default(""),
+    from_department_id: workbenchNullableString,
+    to_department_id: workbenchNullableString,
+    from_job_title: workbenchNullableString,
+    to_job_title: workbenchNullableString,
+    from_grade: workbenchNullableString,
+    to_grade: workbenchNullableString,
+    from_contract_end: workbenchNullableString,
+    to_contract_end: workbenchNullableString,
+    from_amount: workbenchNullableNumber,
+    to_amount: workbenchNullableNumber,
+    currency: z.string().default(""),
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_HR_EMPLOYEE_CHANGE: HrEmployeeChange = {
+  id: "",
+  workspace_id: "",
+  employee_id: "",
+  kind: "other",
+  effective_on: "",
+  from_department_id: null,
+  to_department_id: null,
+  from_job_title: null,
+  to_job_title: null,
+  from_grade: null,
+  to_grade: null,
+  from_contract_end: null,
+  to_contract_end: null,
+  from_amount: null,
+  to_amount: null,
+  currency: "",
+  note: null,
+  owner_member_id: null,
+  created_by: null,
+  created_at: "",
+  archived_at: null,
+};
+
+export const HrEmployeeChangeListResponseSchema = z
+  .object({
+    changes: z.array(HrEmployeeChangeSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_EMPLOYEE_CHANGE_LIST_RESPONSE: HrEmployeeChangeListResponse = {
+  changes: [],
+  total: 0,
+};
+
+// ---- employee rewards and disciplines (WORKBENCH-API §17) -------------------
+//
+// Four rules from the contract's response section show up here:
+//
+//   * `kind` stays a plain string: a kind this build does not know must still
+//     render, and folding it into `reward` would relabel somebody's 处分.
+//   * `amount` is a JSON number (§3.1) or null — null is "no money attached",
+//     which is not 0, and is always >= 0 (the sign lives in `kind`).
+//   * `currency` is always a string (the column is NOT NULL, default CNY).
+//   * `decided_on` is a calendar day, the same wire form as the rest of HR.
+
+export const HrEmployeeRewardSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    employee_id: z.string().default(""),
+    kind: z.string().default("reward"),
+    category: workbenchNullableString,
+    reason: z.string().default(""),
+    amount: workbenchNullableNumber,
+    currency: z.string().default("CNY"),
+    decided_on: z.string().default(""),
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_HR_EMPLOYEE_REWARD: HrEmployeeReward = {
+  id: "",
+  workspace_id: "",
+  employee_id: "",
+  kind: "reward",
+  category: null,
+  reason: "",
+  amount: null,
+  currency: "CNY",
+  decided_on: "",
+  note: null,
+  owner_member_id: null,
+  created_by: null,
+  created_at: "",
+  updated_at: "",
+  archived_at: null,
+};
+
+export const HrEmployeeRewardListResponseSchema = z
+  .object({
+    rewards: z.array(HrEmployeeRewardSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_EMPLOYEE_REWARD_LIST_RESPONSE: HrEmployeeRewardListResponse = {
+  rewards: [],
+  total: 0,
+};
+
+// HR documents (docs/engineering/WORKBENCH-API.md §18). The templates and the
+// generation ledger live in their own module (types/doc.ts).
+//
+// Rules from the contract that show up here:
+//
+//   * `kind` stays a plain string: a kind this build does not know must still
+//     render, and folding it into `other` would relabel a real document.
+//   * `placeholders` defaults to `[]` rather than failing: it is derived from
+//     `body` server-side, and a client built before that field existed still gets a
+//     usable template.
+//   * `builtin` defaults to `false` — the safe reading, because the read-only rules
+//     are what a client gates the edit affordance on.
+//   * `values` defaults to `{}` and `url` / `filename` / `template_id` /
+//     `attachment_id` default to null-or-empty: the attachment can be deleted from
+//     the file list, and that must not break the row rendered next to it.
+//   * `format` stays a string for the same reason `kind` does.
+
+export const HrDocTemplateSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    name: z.string().default(""),
+    kind: z.string().default("other"),
+    body: z.string().default(""),
+    builtin: z.boolean().default(false),
+    placeholders: z.array(z.string()).default([]),
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_HR_DOC_TEMPLATE: HrDocTemplate = {
+  id: "",
+  workspace_id: "",
+  name: "",
+  kind: "other",
+  body: "",
+  builtin: false,
+  placeholders: [],
+  owner_member_id: null,
+  created_by: null,
+  created_at: "",
+  updated_at: "",
+  archived_at: null,
+};
+
+export const HrDocTemplateListResponseSchema = z
+  .object({
+    templates: z.array(HrDocTemplateSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_DOC_TEMPLATE_LIST_RESPONSE: HrDocTemplateListResponse = {
+  templates: [],
+  total: 0,
+};
+
+export const HrDocGenerationSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    employee_id: z.string().default(""),
+    template_id: workbenchNullableString,
+    template_name: z.string().default(""),
+    format: z.string().default("docx"),
+    attachment_id: workbenchNullableString,
+    url: z.string().default(""),
+    filename: z.string().default(""),
+    values: z.record(z.string(), z.string()).default({}),
+    generated_by: workbenchNullableString,
+    created_at: z.string().default(""),
+  })
+  .loose();
+
+export const EMPTY_HR_DOC_GENERATION: HrDocGeneration = {
+  id: "",
+  workspace_id: "",
+  employee_id: "",
+  template_id: null,
+  template_name: "",
+  format: "docx",
+  attachment_id: null,
+  url: "",
+  filename: "",
+  values: {},
+  generated_by: null,
+  created_at: "",
+};
+
+export const HrDocGenerationListResponseSchema = z
+  .object({
+    documents: z.array(HrDocGenerationSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_HR_DOC_GENERATION_LIST_RESPONSE: HrDocGenerationListResponse = {
+  documents: [],
+  total: 0,
+};
+
+// `POST .../documents` answers `{ document, warnings }`. A malformed envelope still
+// has to yield a document, because the caller navigates on it; `warnings` defaults
+// to an empty array, which is the "nothing was kept verbatim" reading.
+export const HrDocGenerationEnvelopeSchema = z
+  .object({
+    document: HrDocGenerationSchema,
+    warnings: z.array(z.string()).default([]),
+  })
+  .loose();
+
+export const EMPTY_HR_DOC_GENERATION_ENVELOPE: CreateHrDocGenerationResponse = {
+  document: EMPTY_HR_DOC_GENERATION,
+  warnings: [],
 };

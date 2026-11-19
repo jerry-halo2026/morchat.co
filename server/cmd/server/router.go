@@ -2513,6 +2513,93 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 					})
 				})
 
+				// Content workbench (docs/engineering/WORKBENCH-API.md §12):
+				// IP → topic → script → shoot, plus the account attach that writes
+				// `creator.media_ip_id`. Same read/write split as the commerce
+				// ledgers — reads are member-wide, the write gate is inside each
+				// handler — and the chain decides ownership: a script or a shoot is
+				// gated on the owner of the topic it came through.
+				r.Route("/media", func(r chi.Router) {
+					r.Route("/ips", func(r chi.Router) {
+						r.Get("/", h.ListMediaIPs)
+						r.Post("/", h.CreateMediaIP)
+						r.Route("/{ipId}", func(r chi.Router) {
+							r.Get("/", h.GetMediaIP)
+							r.Patch("/", h.UpdateMediaIP)
+							r.Delete("/", h.DeleteMediaIP)
+							r.Post("/accounts", h.AttachMediaIPAccount)
+							r.Delete("/accounts/{creatorId}", h.DetachMediaIPAccount)
+						})
+					})
+					r.Route("/topics", func(r chi.Router) {
+						r.Get("/", h.ListMediaTopics)
+						r.Post("/", h.CreateMediaTopic)
+						r.Route("/{topicId}", func(r chi.Router) {
+							r.Get("/", h.GetMediaTopic)
+							r.Patch("/", h.UpdateMediaTopic)
+							r.Delete("/", h.DeleteMediaTopic)
+						})
+					})
+					r.Route("/scripts", func(r chi.Router) {
+						r.Get("/", h.ListMediaScripts)
+						r.Post("/", h.CreateMediaScript)
+						r.Route("/{scriptId}", func(r chi.Router) {
+							r.Get("/", h.GetMediaScript)
+							// PATCH versions the copy by default; `?inPlace=1`
+							// overwrites the row instead.
+							r.Patch("/", h.UpdateMediaScript)
+							r.Delete("/", h.DeleteMediaScript)
+						})
+					})
+					r.Route("/shoots", func(r chi.Router) {
+						r.Get("/", h.ListMediaShoots)
+						r.Post("/", h.CreateMediaShoot)
+						r.Route("/{shootId}", func(r chi.Router) {
+							r.Get("/", h.GetMediaShoot)
+							r.Patch("/", h.UpdateMediaShoot)
+							r.Delete("/", h.DeleteMediaShoot)
+						})
+					})
+				})
+
+				// General manager workbench (docs/engineering/WORKBENCH-API.md §13):
+				// OKR goals with their key results and department packages, and the
+				// radar signals that convert into one or the other. Same read/write
+				// split as the ledgers above — reads are member-wide, the write gate
+				// is inside each handler — and a key result or a package is gated on
+				// the owner of the goal it hangs off.
+				r.Route("/goals", func(r chi.Router) {
+					r.Get("/", h.ListGoals)
+					r.Post("/", h.CreateGoal)
+					r.Route("/{goalId}", func(r chi.Router) {
+						r.Get("/", h.GetGoal)
+						r.Patch("/", h.UpdateGoal)
+						r.Delete("/", h.DeleteGoal)
+						// The task side of the goal: `issue.goal_id` (748).
+						r.Post("/issues", h.AttachGoalIssue)
+						r.Delete("/issues/{issueId}", h.DetachGoalIssue)
+						r.Post("/key-results", h.CreateGoalKeyResult)
+						r.Patch("/key-results/{keyResultId}", h.UpdateGoalKeyResult)
+						r.Delete("/key-results/{keyResultId}", h.DeleteGoalKeyResult)
+						r.Post("/packages", h.CreateGoalPackage)
+						r.Patch("/packages/{packageId}", h.UpdateGoalPackage)
+						r.Delete("/packages/{packageId}", h.DeleteGoalPackage)
+					})
+				})
+
+				// Radar signals (docs/engineering/WORKBENCH-API.md §13): the observation
+				// side. `convert` is the only write that creates something else — a goal
+				// or an issue — and it answers 409 once the signal has been converted.
+				r.Route("/signals", func(r chi.Router) {
+					r.Get("/", h.ListMarketSignals)
+					r.Post("/", h.CreateMarketSignal)
+					r.Route("/{signalId}", func(r chi.Router) {
+						r.Patch("/", h.UpdateMarketSignal)
+						r.Delete("/", h.DeleteMarketSignal)
+						r.Post("/convert", h.ConvertMarketSignal)
+					})
+				})
+
 				// HR (docs/engineering/WORKBENCH-API.md §10.3). Same read/write
 				// split as the commerce ledgers; `scorecards` has no standalone
 				// GET because a scorecard is read with its interview, and `hire`
@@ -2561,6 +2648,106 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 							r.Get("/", h.GetHrEmployee)
 							r.Patch("/", h.UpdateHrEmployee)
 							r.Delete("/", h.DeleteHrEmployee)
+							// Generated documents (docs/engineering/WORKBENCH-API.md §18):
+							// the ledger of files produced for this person. Reads are
+							// member-wide; `POST` renders a template, stores the result as an
+							// attachment and records the values it used, and is owner/admin
+							// only because the file is filed in the person's record.
+							r.Route("/documents", func(r chi.Router) {
+								r.Get("/", h.ListHrEmployeeDocuments)
+								r.Post("/", h.CreateHrEmployeeDocument)
+							})
+						})
+					})
+					// Document templates (docs/engineering/WORKBENCH-API.md §18): the
+					// bodies the routes above render. Reads seed the three builtin
+					// templates on first use; writes are owner/admin, and a builtin row
+					// answers 400 to PATCH and DELETE because the next read re-seeds it.
+					r.Route("/doc-templates", func(r chi.Router) {
+						r.Get("/", h.ListHrDocTemplates)
+						r.Post("/", h.CreateHrDocTemplate)
+						r.Route("/{templateId}", func(r chi.Router) {
+							r.Patch("/", h.UpdateHrDocTemplate)
+							r.Delete("/", h.DeleteHrDocTemplate)
+						})
+					})
+					// Employee file change stream (docs/engineering/WORKBENCH-API.md
+					// §16): 入职 / 转正 / 续签 / 调岗 / 职级 / 薪资 / 离职 as an
+					// append-only list per person. Most rows are written by the
+					// `PATCH /employees` hook above, in the same transaction; `POST`
+					// is the manual entry (a salary adjustment has no profile column),
+					// `PATCH` accepts `note` only, and `DELETE` is a soft delete.
+					r.Route("/changes", func(r chi.Router) {
+						r.Get("/", h.ListHrEmployeeChanges)
+						r.Post("/", h.CreateHrEmployeeChange)
+						r.Route("/{changeId}", func(r chi.Router) {
+							r.Patch("/", h.UpdateHrEmployeeChange)
+							r.Delete("/", h.DeleteHrEmployeeChange)
+						})
+					})
+					// Interview questions and per-round guides
+					// (docs/engineering/WORKBENCH-API.md §14). The question bank is a
+					// reusable asset gated on its own owner; a guide is gated on the
+					// candidate it belongs to. `generate` returns an unsaved draft —
+					// nothing is written until POST /guides — and `guides/{guideId}/items`
+					// edits the snapshot in place, so every item route answers the whole
+					// outline rather than 204.
+					r.Route("/questions", func(r chi.Router) {
+						r.Get("/", h.ListHrQuestions)
+						r.Post("/", h.CreateHrQuestion)
+						r.Route("/{questionId}", func(r chi.Router) {
+							r.Get("/", h.GetHrQuestion)
+							r.Patch("/", h.UpdateHrQuestion)
+							r.Delete("/", h.DeleteHrQuestion)
+						})
+					})
+					r.Route("/guides", func(r chi.Router) {
+						r.Get("/", h.ListHrInterviewGuides)
+						r.Post("/", h.CreateHrInterviewGuide)
+						r.Post("/generate", h.GenerateHrInterviewGuide)
+						r.Route("/{guideId}", func(r chi.Router) {
+							r.Get("/", h.GetHrInterviewGuide)
+							r.Patch("/", h.UpdateHrInterviewGuide)
+							r.Delete("/", h.DeleteHrInterviewGuide)
+							r.Post("/items", h.AppendHrGuideItem)
+							r.Patch("/items/{index}", h.UpdateHrGuideItem)
+							r.Delete("/items/{index}", h.DeleteHrGuideItem)
+						})
+					})
+					// Rewards and disciplines (docs/engineering/WORKBENCH-API.md
+					// §17): the roster's 奖惩 tab. Same read/write split as the
+					// rest of HR — reads are member-wide, writes are gated inside
+					// each handler on the owner of the employee profile (a `member`
+					// records only for profiles it owns, and only touches rows it
+					// owns). `PATCH` edits the six descriptive columns and answers
+					// 400 for `employee_id` / `kind`; `DELETE` is a soft delete.
+					r.Route("/rewards", func(r chi.Router) {
+						r.Get("/", h.ListHrEmployeeRewards)
+						r.Post("/", h.CreateHrEmployeeReward)
+						r.Route("/{rewardId}", func(r chi.Router) {
+							r.Patch("/", h.UpdateHrEmployeeReward)
+							r.Delete("/", h.DeleteHrEmployeeReward)
+						})
+					})
+					// Offboarding (docs/engineering/WORKBENCH-API.md §15). The four
+					// segments of the old 离职管理 page as one record: `advance` walks
+					// apply → handover → done (owner/admin only, and `done` writes the
+					// employee's leave date in the same transaction), `cancel` is the way
+					// out, and the three `handover` routes edit the checklist in place —
+					// they answer the whole record rather than 204 because deleting an
+					// entry renumbers the rest.
+					r.Route("/offboardings", func(r chi.Router) {
+						r.Get("/", h.ListHrOffboardings)
+						r.Post("/", h.CreateHrOffboarding)
+						r.Route("/{offboardingId}", func(r chi.Router) {
+							r.Get("/", h.GetHrOffboarding)
+							r.Patch("/", h.UpdateHrOffboarding)
+							r.Delete("/", h.DeleteHrOffboarding)
+							r.Post("/advance", h.AdvanceHrOffboarding)
+							r.Post("/cancel", h.CancelHrOffboarding)
+							r.Post("/handover", h.AppendHrOffboardingHandoverItem)
+							r.Patch("/handover/{index}", h.UpdateHrOffboardingHandoverItem)
+							r.Delete("/handover/{index}", h.DeleteHrOffboardingHandoverItem)
 						})
 					})
 				})

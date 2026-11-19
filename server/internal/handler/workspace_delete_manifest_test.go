@@ -174,6 +174,30 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"hr_interview":        workspaceDelete,
 	"hr_scorecard":        workspaceDelete,
 	"hr_employee_profile": workspaceDelete,
+	// Interview questions and guides (WORKBENCH-API §14): no foreign key either —
+	// a guide's items are snapshots, and both tables are workspace-owned business
+	// rows — so DeleteWorkspaceWorkbenchLedger removes each explicitly.
+	"hr_question":        workspaceDelete,
+	"hr_interview_guide": workspaceDelete,
+	// Offboarding (WORKBENCH-API §15): no foreign key behind it, so
+	// DeleteWorkspaceWorkbenchLedger removes the records explicitly. The
+	// `leave_date` those records wrote sits on `hr_employee_profile`, which the
+	// same teardown already deletes.
+	"hr_offboarding": workspaceDelete,
+	// Employee file change stream (WORKBENCH-API §16): append-only rows naming an
+	// employee profile, no foreign key, so DeleteWorkspaceWorkbenchLedger clears
+	// them explicitly before the profiles they describe.
+	"hr_employee_change": workspaceDelete,
+	// Rewards and disciplines (WORKBENCH-API §17): a row names an employee profile,
+	// no foreign key behind it, so DeleteWorkspaceWorkbenchLedger clears it
+	// explicitly before the profiles it describes.
+	"hr_employee_reward": workspaceDelete,
+	// HR documents (WORKBENCH-API §18): a generation row names an employee profile
+	// and a template, a template is a workspace-owned body, and neither table has a
+	// foreign key behind it. The generated files themselves are ordinary
+	// attachments, which the same teardown already deletes.
+	"hr_doc_generation": workspaceDelete,
+	"hr_doc_template":   workspaceDelete,
 	// Affiliate distribution (WORKBENCH-API §11): the same treatment — no foreign
 	// key, so DeleteWorkspaceWorkbenchLedger removes them explicitly.
 	"affiliate_product":    workspaceDelete,
@@ -182,7 +206,25 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"affiliate_settlement": workspaceDelete,
 	// Finance month entry (707): no foreign key either, so the same teardown has
 	// to name it or a deleted workspace leaves its cost rows behind.
-	"ops_finance_month":    workspaceDelete,
+	"ops_finance_month": workspaceDelete,
+	// Content workbench (WORKBENCH-API §12): IP → topic → script → shoot, the same
+	// treatment — no foreign key sits behind any of them, so
+	// DeleteWorkspaceWorkbenchLedger removes each explicitly. The two link columns
+	// (`creator.media_ip_id`, `creator_post.media_script_id`) sit on tables teardown
+	// already deletes, so they need no entry of their own.
+	"media_ip":     workspaceDelete,
+	"media_topic":  workspaceDelete,
+	"media_script": workspaceDelete,
+	"media_shoot":  workspaceDelete,
+	// General manager workbench (WORKBENCH-API §13): OKR goals, their key results
+	// and department packages, and the radar signals. No foreign key sits behind
+	// any of them, so DeleteWorkspaceWorkbenchLedger removes each explicitly.
+	// `issue.goal_id` (748) needs no entry: it is a column on `issue`, which
+	// teardown already deletes.
+	"goal_okr":             workspaceDelete,
+	"goal_key_result":      workspaceDelete,
+	"goal_package":         workspaceDelete,
+	"market_signal":        workspaceDelete,
 	"workspace_invitation": workspaceDelete,
 	"workspace_share_link": workspaceDelete,
 }

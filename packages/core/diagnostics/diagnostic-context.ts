@@ -84,6 +84,16 @@ const WORKSPACE_ROUTES: readonly RoutePattern[] = [
   ["skills", ":id"],
   ["knowledge"],
   ["presets"],
+  // The HR space's nine pages, one route each.
+  ["hr", "recruit"],
+  ["hr", "resumes"],
+  ["hr", "interviews"],
+  ["hr", "scores"],
+  ["hr", "tests"],
+  ["hr", "employees"],
+  ["hr", "offboard"],
+  ["hr", "files"],
+  ["hr", "analysis"],
   ["settings"],
   ["attachments", ":id", "preview"],
 ];

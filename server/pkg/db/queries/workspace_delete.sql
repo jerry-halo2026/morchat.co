@@ -765,7 +765,7 @@ DELETE FROM workspace_invitation
 WHERE workspace_invitation.workspace_id = $1;
 
 -- name: DeleteWorkspaceWorkbenchLedger :exec
--- Creator commerce, CRM, HR and affiliate ledgers
+-- Creator commerce, CRM, HR, affiliate and content ledgers
 -- (docs/engineering/WORKBENCH-API.md). No foreign key sits behind them
 -- (repository rule), so teardown removes every row explicitly, in dependency
 -- order: a settlement names a collaboration, a post belongs to a creator, a
@@ -819,7 +819,82 @@ deleted_hr_candidates AS (
 deleted_hr_jobs AS (
     DELETE FROM hr_job WHERE hr_job.workspace_id = $1
 ),
+-- Interview questions and guides (WORKBENCH-API §14): a guide names a candidate
+-- and, once booked, an interview; a question may name a requisition. Neither holds
+-- the other alive — a guide carries snapshots (759), not references — so clearing
+-- them needs no reset of any column on another table.
+deleted_hr_guides AS (
+    DELETE FROM hr_interview_guide WHERE hr_interview_guide.workspace_id = $1
+),
+deleted_hr_questions AS (
+    DELETE FROM hr_question WHERE hr_question.workspace_id = $1
+),
 deleted_finance_month AS (
     DELETE FROM ops_finance_month WHERE ops_finance_month.workspace_id = $1
+),
+-- Content workbench (WORKBENCH-API §12): a shoot names a script, a script names a
+-- topic, a topic names an IP, and an IP is the root of the content chain. The two
+-- link columns — `creator.media_ip_id` (729) and `creator_post.media_script_id`
+-- (733) — need no reset of their own: both `creator` and `creator_post` are
+-- deleted in this same statement, so no cross-workspace pointer survives it.
+deleted_media_shoots AS (
+    DELETE FROM media_shoot WHERE media_shoot.workspace_id = $1
+),
+deleted_media_scripts AS (
+    DELETE FROM media_script WHERE media_script.workspace_id = $1
+),
+deleted_media_topics AS (
+    DELETE FROM media_topic WHERE media_topic.workspace_id = $1
+),
+deleted_media_ips AS (
+    DELETE FROM media_ip WHERE media_ip.workspace_id = $1
+),
+-- General manager workbench (WORKBENCH-API §13): a key result and a package name
+-- a goal, and a signal names the goal or the issue it was converted into. No
+-- foreign key sits behind any of them, so each table is cleared explicitly.
+-- The converted pointers need no reset of their own: both the goal and the issue
+-- they can point at are rows of this workspace, deleted by this teardown.
+deleted_goal_key_results AS (
+    DELETE FROM goal_key_result WHERE goal_key_result.workspace_id = $1
+),
+deleted_goal_packages AS (
+    DELETE FROM goal_package WHERE goal_package.workspace_id = $1
+),
+deleted_market_signals AS (
+    DELETE FROM market_signal WHERE market_signal.workspace_id = $1
+),
+deleted_goals AS (
+    DELETE FROM goal_okr WHERE goal_okr.workspace_id = $1
+),
+-- Offboarding (WORKBENCH-API §15): a record names an employee profile, and the
+-- profile names a member. Clearing the exits before the profiles keeps the
+-- dependency order readable; neither holds the other alive (no foreign key), and
+-- the `leave_date` a finished record wrote lives on the profile row this same
+-- statement deletes.
+deleted_hr_offboardings AS (
+    DELETE FROM hr_offboarding WHERE hr_offboarding.workspace_id = $1
+),
+-- Employee file change stream (WORKBENCH-API §16): append-only rows that name an
+-- employee profile. No foreign key, so teardown clears them explicitly, before
+-- the profiles they describe.
+deleted_hr_employee_changes AS (
+    DELETE FROM hr_employee_change WHERE hr_employee_change.workspace_id = $1
+),
+-- Rewards and disciplines (WORKBENCH-API §17): rows that name an employee profile,
+-- with no foreign key behind them, so teardown clears them explicitly before the
+-- profiles they describe.
+deleted_hr_employee_rewards AS (
+    DELETE FROM hr_employee_reward WHERE hr_employee_reward.workspace_id = $1
+),
+-- HR documents (WORKBENCH-API §18): a generation row names an employee profile and
+-- a template; a template is a workspace-owned body. No foreign key behind either, so
+-- teardown clears both explicitly -- the generations first (they point at the
+-- templates), then the templates, before the profiles the generations describe. The
+-- produced files are ordinary attachments, already cleared by this same statement.
+deleted_hr_doc_generations AS (
+    DELETE FROM hr_doc_generation WHERE hr_doc_generation.workspace_id = $1
+),
+deleted_hr_doc_templates AS (
+    DELETE FROM hr_doc_template WHERE hr_doc_template.workspace_id = $1
 )
 DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1;

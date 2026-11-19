@@ -1,0 +1,16 @@
+-- The day a person actually left (docs/engineering/WORKBENCH-API.md §15).
+--
+-- `hire_date` / `regular_date` / `contract_end` describe the employment window
+-- ahead; none of them says "this person is gone". The offboarding record (767)
+-- knows the planned last day (`last_day`), and this column is the fact: it is
+-- written when an offboarding reaches `done`, in the same transaction, so the
+-- roster and the exit record cannot disagree about whether someone still works
+-- here.
+--
+-- Nullable on purpose: an employee who has not left has no leave date, and NULL
+-- is exactly that answer — unlike `contract_end`, where NULL means "open-ended".
+--
+-- No index: the roster filters by department / member, and "who has left" is
+-- answered by `leave_date IS NULL` over a table small enough per workspace that
+-- the existing (workspace_id, …) indexes already carry it.
+ALTER TABLE hr_employee_profile ADD COLUMN leave_date DATE;

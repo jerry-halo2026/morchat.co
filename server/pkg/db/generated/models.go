@@ -810,30 +810,33 @@ type ContactSalesInquiry struct {
 }
 
 type Creator struct {
-	ID               pgtype.UUID        `json:"id"`
-	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
-	Kind             string             `json:"kind"`
-	DisplayName      string             `json:"display_name"`
-	Platform         string             `json:"platform"`
-	Handle           string             `json:"handle"`
-	Url              pgtype.Text        `json:"url"`
-	Fans             int64              `json:"fans"`
-	FansD7           int64              `json:"fans_d7"`
-	AvgPlay          int64              `json:"avg_play"`
-	EngagementRate   pgtype.Numeric     `json:"engagement_rate"`
-	Category         pgtype.Text        `json:"category"`
-	AudienceNote     pgtype.Text        `json:"audience_note"`
-	Region           pgtype.Text        `json:"region"`
-	PriceNote        pgtype.Text        `json:"price_note"`
-	Score            pgtype.Int2        `json:"score"`
-	RiskFlag         bool               `json:"risk_flag"`
-	BlacklistReason  pgtype.Text        `json:"blacklist_reason"`
-	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
+	ID              pgtype.UUID    `json:"id"`
+	WorkspaceID     pgtype.UUID    `json:"workspace_id"`
+	Kind            string         `json:"kind"`
+	DisplayName     string         `json:"display_name"`
+	Platform        string         `json:"platform"`
+	Handle          string         `json:"handle"`
+	Url             pgtype.Text    `json:"url"`
+	Fans            int64          `json:"fans"`
+	FansD7          int64          `json:"fans_d7"`
+	AvgPlay         int64          `json:"avg_play"`
+	EngagementRate  pgtype.Numeric `json:"engagement_rate"`
+	Category        pgtype.Text    `json:"category"`
+	AudienceNote    pgtype.Text    `json:"audience_note"`
+	Region          pgtype.Text    `json:"region"`
+	PriceNote       pgtype.Text    `json:"price_note"`
+	Score           pgtype.Int2    `json:"score"`
+	RiskFlag        bool           `json:"risk_flag"`
+	BlacklistReason pgtype.Text    `json:"blacklist_reason"`
+	OwnerMemberID   pgtype.UUID    `json:"owner_member_id"`
+	// Legacy pointer to a generic project row (660). Not the content IP entity; media_ip_id is. Kept because existing creator metrics join it.
 	MediaIpProjectID pgtype.UUID        `json:"media_ip_project_id"`
 	CreatedBy        pgtype.UUID        `json:"created_by"`
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt       pgtype.Timestamptz `json:"archived_at"`
+	// Content IP this platform account speaks for (media_ip, migration 728). NULL for an account not attached to a persona.
+	MediaIpID pgtype.UUID `json:"media_ip_id"`
 }
 
 type CreatorPost struct {
@@ -853,6 +856,8 @@ type CreatorPost struct {
 	ArchivedAt     pgtype.Timestamptz `json:"archived_at"`
 	ProductID      pgtype.UUID        `json:"product_id"`
 	PickID         pgtype.UUID        `json:"pick_id"`
+	// Script this post was published from (media_script, migration 731). NULL for unscripted or pre-workbench posts.
+	MediaScriptID pgtype.UUID `json:"media_script_id"`
 }
 
 type CreatorPostMetric struct {
@@ -1153,6 +1158,54 @@ type GithubPullRequestCheckSuite struct {
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 }
 
+type GoalKeyResult struct {
+	ID          pgtype.UUID        `json:"id"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	GoalID      pgtype.UUID        `json:"goal_id"`
+	Title       string             `json:"title"`
+	Target      pgtype.Numeric     `json:"target"`
+	Current     pgtype.Numeric     `json:"current"`
+	Unit        pgtype.Text        `json:"unit"`
+	Position    int32              `json:"position"`
+	Status      string             `json:"status"`
+	CreatedBy   pgtype.UUID        `json:"created_by"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt  pgtype.Timestamptz `json:"archived_at"`
+}
+
+type GoalOkr struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	Cycle         string             `json:"cycle"`
+	Title         string             `json:"title"`
+	Description   pgtype.Text        `json:"description"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	DepartmentID  pgtype.UUID        `json:"department_id"`
+	Status        string             `json:"status"`
+	DueDate       pgtype.Date        `json:"due_date"`
+	Priority      string             `json:"priority"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+type GoalPackage struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	GoalID        pgtype.UUID        `json:"goal_id"`
+	DepartmentID  pgtype.UUID        `json:"department_id"`
+	Title         string             `json:"title"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	Status        string             `json:"status"`
+	Position      int32              `json:"position"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
 type HrCandidate struct {
 	ID                 pgtype.UUID        `json:"id"`
 	WorkspaceID        pgtype.UUID        `json:"workspace_id"`
@@ -1182,6 +1235,62 @@ type HrCandidate struct {
 	ResumeText         pgtype.Text        `json:"resume_text"`
 }
 
+// HR document generation ledger, WORKBENCH-API section 18. template_name and values are snapshots taken at generation time; the file lives in attachments. Read ordered by created_at DESC.
+type HrDocGeneration struct {
+	ID           pgtype.UUID `json:"id"`
+	WorkspaceID  pgtype.UUID `json:"workspace_id"`
+	EmployeeID   pgtype.UUID `json:"employee_id"`
+	TemplateID   pgtype.UUID `json:"template_id"`
+	TemplateName string      `json:"template_name"`
+	Format       string      `json:"format"`
+	AttachmentID pgtype.UUID `json:"attachment_id"`
+	// The placeholder map the template was rendered with (input snapshot, not a re-derivation). Unknown placeholders were left verbatim in the file and are absent here.
+	Values      []byte             `json:"values"`
+	GeneratedBy pgtype.UUID        `json:"generated_by"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+// HR document templates, WORKBENCH-API section 18. body is plain text with {{placeholder}} slots; builtin rows are seeded per workspace and read-only. No foreign key; archived_at is the soft delete.
+type HrDocTemplate struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	Name        string      `json:"name"`
+	Kind        string      `json:"kind"`
+	// Plain text with {{placeholder}} slots. Unknown slots are rendered verbatim by the generator, never silently blanked.
+	Body          string             `json:"body"`
+	Builtin       bool               `json:"builtin"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+// Append-only employee file change stream (WORKBENCH-API §16). Never updated or deleted; archived_at is the only soft-delete mark. Read ordered by effective_on DESC.
+type HrEmployeeChange struct {
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	EmployeeID       pgtype.UUID        `json:"employee_id"`
+	Kind             string             `json:"kind"`
+	EffectiveOn      pgtype.Date        `json:"effective_on"`
+	FromDepartmentID pgtype.UUID        `json:"from_department_id"`
+	ToDepartmentID   pgtype.UUID        `json:"to_department_id"`
+	FromJobTitle     pgtype.Text        `json:"from_job_title"`
+	ToJobTitle       pgtype.Text        `json:"to_job_title"`
+	FromGrade        pgtype.Text        `json:"from_grade"`
+	ToGrade          pgtype.Text        `json:"to_grade"`
+	FromContractEnd  pgtype.Date        `json:"from_contract_end"`
+	ToContractEnd    pgtype.Date        `json:"to_contract_end"`
+	FromAmount       pgtype.Numeric     `json:"from_amount"`
+	ToAmount         pgtype.Numeric     `json:"to_amount"`
+	Currency         pgtype.Text        `json:"currency"`
+	Note             pgtype.Text        `json:"note"`
+	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy        pgtype.UUID        `json:"created_by"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	ArchivedAt       pgtype.Timestamptz `json:"archived_at"`
+}
+
 type HrEmployeeProfile struct {
 	ID            pgtype.UUID        `json:"id"`
 	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
@@ -1194,6 +1303,27 @@ type HrEmployeeProfile struct {
 	ContractEnd   pgtype.Date        `json:"contract_end"`
 	Ability       []byte             `json:"ability"`
 	Disc          []byte             `json:"disc"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+	LeaveDate     pgtype.Date        `json:"leave_date"`
+}
+
+// Employee rewards (奖励) and disciplines (处分), WORKBENCH-API §17. amount is nullable and always >= 0 — kind says bonus or fine, never the sign. A record of facts: no aggregate, rollup or cost line reads this table. Read ordered by decided_on DESC.
+type HrEmployeeReward struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	EmployeeID  pgtype.UUID `json:"employee_id"`
+	Kind        string      `json:"kind"`
+	Category    pgtype.Text `json:"category"`
+	Reason      string      `json:"reason"`
+	// Bonus or fine, stored positive; NULL = no money attached. Not a cost line: nothing sums this column.
+	Amount        pgtype.Numeric     `json:"amount"`
+	Currency      string             `json:"currency"`
+	DecidedOn     pgtype.Date        `json:"decided_on"`
+	Note          pgtype.Text        `json:"note"`
 	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
 	CreatedBy     pgtype.UUID        `json:"created_by"`
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
@@ -1220,6 +1350,23 @@ type HrInterview struct {
 	InterviewerName     string             `json:"interviewer_name"`
 }
 
+type HrInterviewGuide struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	InterviewID   pgtype.UUID        `json:"interview_id"`
+	CandidateID   pgtype.UUID        `json:"candidate_id"`
+	JobID         pgtype.UUID        `json:"job_id"`
+	Round         int16              `json:"round"`
+	Status        string             `json:"status"`
+	Items         []byte             `json:"items"`
+	Note          pgtype.Text        `json:"note"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
 type HrJob struct {
 	ID            pgtype.UUID        `json:"id"`
 	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
@@ -1243,6 +1390,43 @@ type HrJob struct {
 	Jd            pgtype.Text        `json:"jd"`
 	Urgent        bool               `json:"urgent"`
 	Keywords      []byte             `json:"keywords"`
+}
+
+type HrOffboarding struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	EmployeeID    pgtype.UUID        `json:"employee_id"`
+	Status        string             `json:"status"`
+	LastDay       pgtype.Date        `json:"last_day"`
+	Reason        pgtype.Text        `json:"reason"`
+	Kind          string             `json:"kind"`
+	Handover      []byte             `json:"handover"`
+	CertDone      bool               `json:"cert_done"`
+	Note          pgtype.Text        `json:"note"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+type HrQuestion struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	JobID         pgtype.UUID        `json:"job_id"`
+	Dimension     string             `json:"dimension"`
+	Question      string             `json:"question"`
+	Intent        pgtype.Text        `json:"intent"`
+	Signals       pgtype.Text        `json:"signals"`
+	RedFlags      pgtype.Text        `json:"red_flags"`
+	Source        string             `json:"source"`
+	Tags          []string           `json:"tags"`
+	UsageCount    int32              `json:"usage_count"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
 }
 
 type HrScorecard struct {
@@ -1327,6 +1511,8 @@ type Issue struct {
 	DuplicateOfIssueID pgtype.UUID        `json:"duplicate_of_issue_id"`
 	RequesterUserID    pgtype.UUID        `json:"requester_user_id"`
 	ClosedAt           pgtype.Timestamptz `json:"closed_at"`
+	// OKR goal this issue advances (goal_okr, migration 744). NULL for work outside any objective. The aggregate is written back to goal_key_result.current by the application, never by a trigger.
+	GoalID pgtype.UUID `json:"goal_id"`
 }
 
 type IssueChildEvent struct {
@@ -1928,6 +2114,98 @@ type MaintenanceJob struct {
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 	CompletedAt    pgtype.Timestamptz `json:"completed_at"`
+}
+
+type MarketSignal struct {
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	Title            string             `json:"title"`
+	Category         string             `json:"category"`
+	Source           string             `json:"source"`
+	Url              pgtype.Text        `json:"url"`
+	Summary          pgtype.Text        `json:"summary"`
+	Cut              string             `json:"cut"`
+	Score            pgtype.Numeric     `json:"score"`
+	Urgency          string             `json:"urgency"`
+	Status           string             `json:"status"`
+	ConvertedGoalID  pgtype.UUID        `json:"converted_goal_id"`
+	ConvertedIssueID pgtype.UUID        `json:"converted_issue_id"`
+	Note             pgtype.Text        `json:"note"`
+	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy        pgtype.UUID        `json:"created_by"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt       pgtype.Timestamptz `json:"archived_at"`
+}
+
+type MediaIp struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	Name          string             `json:"name"`
+	Persona       pgtype.Text        `json:"persona"`
+	Track         pgtype.Text        `json:"track"`
+	Audience      pgtype.Text        `json:"audience"`
+	Color         pgtype.Text        `json:"color"`
+	WeekGoal      int32              `json:"week_goal"`
+	Status        string             `json:"status"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+type MediaScript struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	TopicID       pgtype.UUID        `json:"topic_id"`
+	IpID          pgtype.UUID        `json:"ip_id"`
+	Version       int32              `json:"version"`
+	Hook          pgtype.Text        `json:"hook"`
+	Body          pgtype.Text        `json:"body"`
+	Cta           pgtype.Text        `json:"cta"`
+	CoverNote     pgtype.Text        `json:"cover_note"`
+	Tags          []string           `json:"tags"`
+	Status        string             `json:"status"`
+	PublishAt     pgtype.Timestamptz `json:"publish_at"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+type MediaShoot struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	ScriptID      pgtype.UUID        `json:"script_id"`
+	ShootDate     pgtype.Date        `json:"shoot_date"`
+	Location      pgtype.Text        `json:"location"`
+	Shots         []byte             `json:"shots"`
+	Checklist     []byte             `json:"checklist"`
+	Status        string             `json:"status"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+type MediaTopic struct {
+	ID            pgtype.UUID        `json:"id"`
+	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
+	IpID          pgtype.UUID        `json:"ip_id"`
+	Title         string             `json:"title"`
+	Source        string             `json:"source"`
+	Scores        []byte             `json:"scores"`
+	Status        string             `json:"status"`
+	HotID         pgtype.UUID        `json:"hot_id"`
+	Note          pgtype.Text        `json:"note"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
 }
 
 type Member struct {

@@ -14,13 +14,17 @@
  * source of truth for what a tab has open, including which item.
  */
 import { isMyAgentsSearch } from "./paths";
-import { pageForSegment, type WorkspacePageKey } from "./route-icons";
+import {
+  hrPageForSegment,
+  pageForSegment,
+  type NavPageKey,
+} from "./route-icons";
 
 export type TabActorType = "agent" | "member" | "squad";
 
 export type TabSubject =
   /** A collection or tool page with no specific resource. */
-  | { kind: "page"; page: WorkspacePageKey }
+  | { kind: "page"; page: NavPageKey }
   /** My agents' work: the My issues route's `?scope=agents`. */
   | { kind: "myAgents" }
   /** A single issue detail. */
@@ -103,6 +107,12 @@ export function parseTabSubject(url: string): TabSubject {
         : { kind: "page", page: "squads" };
     case "usage":
       return { kind: "page", page: "usage" };
+    case "hr": {
+      // The HR space nests its pages one level down (`/hr/recruit`), so the
+      // page is the second segment. A bare `/hr` names no page.
+      const page = hrPageForSegment(id);
+      return page ? { kind: "page", page } : { kind: "unknown" };
+    }
     case "overview":
       // The workbench is one page with three tabs; the tab lives in the query
       // string (`?tab=`), so it stays a single page subject like `usage`.

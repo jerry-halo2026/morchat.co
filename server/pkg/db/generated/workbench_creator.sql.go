@@ -63,7 +63,7 @@ INSERT INTO creator (
     $18::uuid, $19::uuid,
     $20::uuid
 )
-RETURNING id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id
 `
 
 type CreateCreatorParams struct {
@@ -138,6 +138,7 @@ func (q *Queries) CreateCreator(ctx context.Context, arg CreateCreatorParams) (C
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.MediaIpID,
 	)
 	return i, err
 }
@@ -152,7 +153,7 @@ INSERT INTO creator_post (
     $7, $8::text,
     $9, $10, $11, $12::uuid
 )
-RETURNING id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id
+RETURNING id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id, media_script_id
 `
 
 type CreateCreatorPostParams struct {
@@ -203,12 +204,13 @@ func (q *Queries) CreateCreatorPost(ctx context.Context, arg CreateCreatorPostPa
 		&i.ArchivedAt,
 		&i.ProductID,
 		&i.PickID,
+		&i.MediaScriptID,
 	)
 	return i, err
 }
 
 const getCreator = `-- name: GetCreator :one
-SELECT id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at FROM creator
+SELECT id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id FROM creator
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -245,12 +247,13 @@ func (q *Queries) GetCreator(ctx context.Context, arg GetCreatorParams) (Creator
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.MediaIpID,
 	)
 	return i, err
 }
 
 const getCreatorPost = `-- name: GetCreatorPost :one
-SELECT id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id FROM creator_post
+SELECT id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id, media_script_id FROM creator_post
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -279,6 +282,7 @@ func (q *Queries) GetCreatorPost(ctx context.Context, arg GetCreatorPostParams) 
 		&i.ArchivedAt,
 		&i.ProductID,
 		&i.PickID,
+		&i.MediaScriptID,
 	)
 	return i, err
 }
@@ -344,7 +348,7 @@ func (q *Queries) ListCreatorPostMetrics(ctx context.Context, arg ListCreatorPos
 }
 
 const listCreatorPosts = `-- name: ListCreatorPosts :many
-SELECT id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id
+SELECT id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id, media_script_id
 FROM creator_post
 WHERE workspace_id = $1
   AND archived_at IS NULL
@@ -403,6 +407,7 @@ func (q *Queries) ListCreatorPosts(ctx context.Context, arg ListCreatorPostsPara
 			&i.ArchivedAt,
 			&i.ProductID,
 			&i.PickID,
+			&i.MediaScriptID,
 		); err != nil {
 			return nil, err
 		}
@@ -416,7 +421,7 @@ func (q *Queries) ListCreatorPosts(ctx context.Context, arg ListCreatorPostsPara
 
 const listCreators = `-- name: ListCreators :many
 
-SELECT id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at
+SELECT id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id
 FROM creator
 WHERE workspace_id = $1
   AND archived_at IS NULL
@@ -496,6 +501,7 @@ func (q *Queries) ListCreators(ctx context.Context, arg ListCreatorsParams) ([]C
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ArchivedAt,
+			&i.MediaIpID,
 		); err != nil {
 			return nil, err
 		}
@@ -529,7 +535,7 @@ SET kind = $1,
     media_ip_project_id = $18::uuid,
     updated_at = now()
 WHERE id = $19 AND workspace_id = $20 AND archived_at IS NULL
-RETURNING id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, kind, display_name, platform, handle, url, fans, fans_d7, avg_play, engagement_rate, category, audience_note, region, price_note, score, risk_flag, blacklist_reason, owner_member_id, media_ip_project_id, created_by, created_at, updated_at, archived_at, media_ip_id
 `
 
 type UpdateCreatorParams struct {
@@ -606,6 +612,7 @@ func (q *Queries) UpdateCreator(ctx context.Context, arg UpdateCreatorParams) (C
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.MediaIpID,
 	)
 	return i, err
 }
@@ -624,7 +631,7 @@ SET creator_id = $1,
     source = $10,
     updated_at = now()
 WHERE id = $11 AND workspace_id = $12 AND archived_at IS NULL
-RETURNING id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id
+RETURNING id, workspace_id, creator_id, collab_id, content_issue_id, platform, title, url, published_at, source, created_by, created_at, updated_at, archived_at, product_id, pick_id, media_script_id
 `
 
 type UpdateCreatorPostParams struct {
@@ -675,6 +682,7 @@ func (q *Queries) UpdateCreatorPost(ctx context.Context, arg UpdateCreatorPostPa
 		&i.ArchivedAt,
 		&i.ProductID,
 		&i.PickID,
+		&i.MediaScriptID,
 	)
 	return i, err
 }

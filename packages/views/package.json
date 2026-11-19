@@ -50,6 +50,7 @@
     "./billing": "./billing/index.ts",
     "./dashboard": "./dashboard/index.ts",
     "./workbench": "./workbench/index.ts",
+    "./hr": "./hr/index.ts",
     "./blocks": "./blocks/index.ts",
     "./squads": "./squads/index.ts",
     "./squads/components": "./squads/components/index.ts",

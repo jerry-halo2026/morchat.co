@@ -12,6 +12,8 @@
  *  - Zero runtime deps means this module is safe in Node (tests) and browsers
  */
 
+import type { HrPageKey } from "./route-icons";
+
 const encode = (id: string) => encodeURIComponent(id);
 
 /**
@@ -124,6 +126,23 @@ function workspaceScoped(slug: string) {
     knowledgeRetrievalTest: () => `${ws}/knowledge/retrieval-test`,
     settings: () => `${ws}/settings`,
     attachmentPreview: (id: string) => `${ws}/attachments/${encode(id)}/preview`,
+    // The HR space's nine pages. One route each rather than tabs on one page:
+    // the space's left column lists them side by side, and a link has to name
+    // the page it opens. `satisfies` keeps this object and `HR_PAGES` (which
+    // owns the same nine segments, icons and labels) in lockstep — a page added
+    // to one and not the other is a compile error, and `consistency.test.ts`
+    // checks the segments agree.
+    hr: {
+      recruit: () => `${ws}/hr/recruit`,
+      resumes: () => `${ws}/hr/resumes`,
+      interviews: () => `${ws}/hr/interviews`,
+      scores: () => `${ws}/hr/scores`,
+      guide: () => `${ws}/hr/guide`,
+      employees: () => `${ws}/hr/employees`,
+      offboard: () => `${ws}/hr/offboard`,
+      files: () => `${ws}/hr/files`,
+      analysis: () => `${ws}/hr/analysis`,
+    } satisfies Record<HrPageKey, () => string>,
   };
 }
 

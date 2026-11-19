@@ -130,7 +130,14 @@ describe("route coverage stays in step with paths.ts", () => {
   const RAW_SECOND_ID = "second-raw-identifier-value";
 
   function buildAll(): string[] {
-    const scoped = paths.workspace(SLUG) as Record<string, (...args: string[]) => string>;
+    // The HR pages are nested one level under their space (`hr/recruit`), so
+    // they are flattened back to sit beside the flat builders: this walk is
+    // about every route the builder emits, whatever its shape.
+    const { hr, ...flat } = paths.workspace(SLUG);
+    const scoped = {
+      ...(flat as unknown as Record<string, (...args: string[]) => string>),
+      ...(hr as unknown as Record<string, (...args: string[]) => string>),
+    };
     const global = {
       login: paths.login,
       newWorkspace: paths.newWorkspace,

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import type { AppSpaceId } from "@morechat/core/paths";
 import { cn } from "@morechat/ui/lib/utils";
 import { useSidebar } from "@morechat/ui/components/ui/sidebar";
+import { HrPanel } from "../hr/hr-panel";
 import { useAppShell } from "./app-shell-context";
 import { PanelResizeHandle } from "./panel-resize-handle";
 import { AutopilotsPanel } from "./panels/autopilots-panel";
@@ -16,6 +17,8 @@ const PANELS: Partial<Record<AppSpaceId, () => React.ReactNode>> = {
   // The workbench keeps the same left column Work shows: its own rows beside
   // the ledgers it summarises. Only the rail treats it as a separate space.
   workbench: () => <WorkPanel space="workbench" />,
+  // HR lists its own nine pages; nothing in it is a row of the Work tree.
+  hr: HrPanel,
   work: WorkPanel,
   team: TeamPanel,
   autopilots: AutopilotsPanel,

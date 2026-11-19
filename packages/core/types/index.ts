@@ -521,4 +521,169 @@ export type {
   UpsertAffiliateDailyRequest,
 } from "./workbench";
 
+// Content workbench (docs/engineering/WORKBENCH-API.md §12). Its own module
+// rather than more of `workbench.ts`: the content pipeline is a separate domain
+// with its own artifact contract (shotlist.v1), and appending to the commerce
+// barrel is what would make that file impossible to read.
+export type {
+  AttachMediaIPAccountRequest,
+  CreateMediaIPRequest,
+  CreateMediaScriptRequest,
+  CreateMediaShootRequest,
+  CreateMediaTopicRequest,
+  MediaIP,
+  MediaIPAccount,
+  MediaIPDetail,
+  MediaIPListFilters,
+  MediaIPListResponse,
+  MediaIPStatus,
+  MediaScoreDimension,
+  MediaScores,
+  MediaScript,
+  MediaScriptListFilters,
+  MediaScriptListResponse,
+  MediaScriptStatus,
+  MediaSellingPoint,
+  MediaShotItem,
+  MediaShotList,
+  MediaShotRhythm,
+  MediaShotScene,
+  MediaShotSize,
+  MediaShoot,
+  MediaShootListFilters,
+  MediaShootListResponse,
+  MediaShootStatus,
+  MediaTopic,
+  MediaTopicListFilters,
+  MediaTopicListResponse,
+  MediaTopicSource,
+  MediaTopicStatus,
+  UpdateMediaIPRequest,
+  UpdateMediaScriptRequest,
+  UpdateMediaShootRequest,
+  UpdateMediaTopicRequest,
+} from "./media";
+
+// General manager workbench (docs/engineering/WORKBENCH-API.md §13): OKR goals,
+// their key results and department packages, and the radar signals that convert
+// into one or the other. Its own module for the same reason as §12 — a separate
+// domain with its own vocabulary, not more rows on the commerce barrel.
+export type {
+  AttachGoalIssueRequest,
+  ConvertMarketSignalRequest,
+  CreateGoalKeyResultRequest,
+  CreateGoalPackageRequest,
+  CreateGoalRequest,
+  CreateMarketSignalRequest,
+  Goal,
+  GoalDetail,
+  GoalIssue,
+  GoalKeyResult,
+  GoalKeyResultStatus,
+  GoalListFilters,
+  GoalListResponse,
+  GoalPackage,
+  GoalPriority,
+  GoalStatus,
+  MarketSignal,
+  MarketSignalCategory,
+  MarketSignalConvertResponse,
+  MarketSignalConvertTarget,
+  MarketSignalCut,
+  MarketSignalListFilters,
+  MarketSignalListResponse,
+  MarketSignalSource,
+  MarketSignalStatus,
+  MarketSignalUrgency,
+  UpdateGoalKeyResultRequest,
+  UpdateGoalPackageRequest,
+  UpdateGoalRequest,
+  UpdateMarketSignalRequest,
+} from "./goal";
+
+// Interview questions and per-round guides (docs/engineering/WORKBENCH-API.md §14).
+// Its own module for the same reason as §12 and §13: "what we will ask, and what we
+// listen for" is a distinct vocabulary, and the guide's snapshot semantics are not
+// something the commerce barrel should have to explain.
+export type {
+  CreateHrInterviewGuideRequest,
+  CreateHrQuestionRequest,
+  HrGuideGenerateRequest,
+  HrGuideGenerateResponse,
+  HrGuideItem,
+  HrGuideListFilters,
+  HrGuideListResponse,
+  HrGuideStatus,
+  HrInterviewGuide,
+  HrQuestion,
+  HrQuestionDimension,
+  HrQuestionListFilters,
+  HrQuestionListResponse,
+  HrQuestionSource,
+  UpdateHrGuideItemRequest,
+  UpdateHrInterviewGuideRequest,
+  UpdateHrQuestionRequest,
+} from "./guide";
+
+// Offboarding management (docs/engineering/WORKBENCH-API.md §15). Its own module
+// for the same reason as §12–§14: an exit record is a state machine whose steps
+// carry side effects (the `done` write-back onto the employee file), and that is
+// not something the commerce barrel should have to explain.
+export type {
+  CreateHrOffboardingRequest,
+  HrHandoverItem,
+  HrOffboarding,
+  HrOffboardingAdvanceResponse,
+  HrOffboardingEmployee,
+  HrOffboardingKind,
+  HrOffboardingListFilters,
+  HrOffboardingListResponse,
+  HrOffboardingStatus,
+  UpdateHrHandoverItemRequest,
+  UpdateHrOffboardingRequest,
+} from "./offboard";
+
+// Employee file change stream (docs/engineering/WORKBENCH-API.md §16). Its own
+// module for the same reason as §12–§15: an append-only event list is a different
+// contract from the records it describes, and `PATCH` accepting one field is the
+// kind of rule that should be stated where the type is.
+export type {
+  CreateHrEmployeeChangeRequest,
+  HrEmployeeChange,
+  HrEmployeeChangeKind,
+  HrEmployeeChangeListFilters,
+  HrEmployeeChangeListResponse,
+  UpdateHrEmployeeChangeRequest,
+} from "./change";
+
+// Employee rewards and disciplines (docs/engineering/WORKBENCH-API.md §17). Its
+// own module for the same reason as §12–§16: `amount` is always positive and
+// `kind` carries the direction, and that rule belongs where the field is.
+export type {
+  CreateHrEmployeeRewardRequest,
+  HrEmployeeReward,
+  HrEmployeeRewardKind,
+  HrEmployeeRewardListFilters,
+  HrEmployeeRewardListResponse,
+  UpdateHrEmployeeRewardRequest,
+} from "./reward";
+
+// HR documents (docs/engineering/WORKBENCH-API.md §18). Its own module for the same
+// reason as §12–§17: a generated file is a different contract from the profile it is
+// about — the values are a snapshot, an unknown placeholder is kept rather than
+// blanked, and the builtin templates are read-only.
+export type {
+  CreateHrDocGenerationRequest,
+  CreateHrDocGenerationResponse,
+  CreateHrDocTemplateRequest,
+  HrDocFormat,
+  HrDocGeneration,
+  HrDocGenerationListResponse,
+  HrDocTemplate,
+  HrDocTemplateKind,
+  HrDocTemplateListFilters,
+  HrDocTemplateListResponse,
+  UpdateHrDocTemplateRequest,
+} from "./doc";
+
 export type { WorkspaceWakeup, WorkspaceWakeupPage, WorkspaceWakeupFilters, WakeupScope } from "./issue-wakeup";

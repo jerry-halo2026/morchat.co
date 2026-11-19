@@ -244,6 +244,15 @@ export function AppRail({
       label: t(($) => $.rail.workbench),
       fullLabel: t(($) => $.spaces.workbench),
     },
+    // HR is its own space beside the workbench: the department that fills in
+    // the people rows the workbench counts. It leads with the first page of
+    // its pipeline, the same one its panel lists first.
+    hr: {
+      href: p.hr.recruit(),
+      icon: routeIconForPath(p.hr.recruit()),
+      label: t(($) => $.rail.hr),
+      fullLabel: t(($) => $.spaces.hr),
+    },
     inbox: {
       href: p.inbox(),
       icon: routeIconForPath(p.inbox()),
