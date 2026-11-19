@@ -273,8 +273,16 @@ func affiliateSettlementToResponse(s db.AffiliateSettlement) AffiliateSettlement
 // AffiliateSummaryWindow names the month the figures describe. The label comes
 // from the SQL's own month bounds, so the label and the numbers can never
 // disagree about which month they are.
+//
+// `currency` names the unit every money block is in: the window's dominant
+// currency, the same caliber `/finance` applies to its figures, because adding
+// CNY to USD produces a number in neither. A month that reported nothing answers
+// `CNY` — the column default of both the daily fact and the statement, so it is
+// the unit an empty ledger would have had — and says so on the money blocks by
+// staying `insufficient_data`.
 type AffiliateSummaryWindow struct {
-	Month string `json:"month"`
+	Month    string `json:"month"`
+	Currency string `json:"currency"`
 }
 
 // AffiliateSummaryResponse is `GET /api/workbench/affiliate/summary`.
@@ -294,6 +302,14 @@ type AffiliateSummaryWindow struct {
 //     to creators — GMV, not income;
 //   - `agency_share_income` is our cut of the internal creators' cleared
 //     commission (`settled_commission × agency_share_rate`).
+//
+// Every money figure is the window's dominant currency only, and `window.currency`
+// names it. `gmv`, `commission_est`, `commission_settled`, `agency_share_income`
+// and both halves of `refund_rate` read the daily facts of that currency;
+// `tech_fee`, `commission_agency` and `commission_creator` read the statements of
+// it, and the 招商服务费 that rides along with `commission_agency` reads the
+// product's own currency. A month with a USD report and a CNY report therefore
+// answers about one of them and names which — never their sum.
 type AffiliateSummaryResponse struct {
 	Window             AffiliateSummaryWindow `json:"window"`
 	GMV                WorkbenchMetricValue   `json:"gmv"`
@@ -1557,11 +1573,12 @@ func (h *Handler) GetAffiliateSummary(w http.ResponseWriter, r *http.Request) {
 	// The refund rate is the one division in this domain; it goes through
 	// `ratioValue` so the 0–1 scale is applied in exactly one place. Its sample
 	// count is the number of days that actually sold something, which is the
-	// denominator the ratio used.
+	// denominator the ratio used. Both halves come from the same currency-filtered
+	// daily set, so a refund in one currency can never divide a GMV in another.
 	refundRate, refundOK := ratioValue(figure.RefundAmount, figure.GmvAmount)
 
 	writeJSON(w, http.StatusOK, AffiliateSummaryResponse{
-		Window:            AffiliateSummaryWindow{Month: figure.MonthLabel},
+		Window:            AffiliateSummaryWindow{Month: figure.MonthLabel, Currency: figure.Currency},
 		GMV:               metricValue(figure.GmvAmount, figure.DailySamples > 0, figure.DailySamples, metricEmptyInsufficientData),
 		CommissionEst:     metricValue(figure.EstCommission, figure.DailySamples > 0, figure.DailySamples, metricEmptyInsufficientData),
 		CommissionSettled: metricValue(figure.SettledCommission, figure.SettledSamples > 0, figure.SettledSamples, metricEmptyInsufficientData),

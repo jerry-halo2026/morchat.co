@@ -1895,8 +1895,15 @@ export type UpdateAffiliateSettlementRequest = Partial<
  * together would report money we never received.
  */
 export interface AffiliateSummaryResponse {
-  /** The calendar month the figures describe, `YYYY-MM`. */
-  window: { month: string };
+  /**
+   * The calendar month the figures describe, `YYYY-MM`, and the unit they are in.
+   *
+   * `currency` is the window's dominant currency: every money block below covers
+   * that currency's rows only, for the same reason `/finance` does — adding CNY
+   * to USD produces a number in neither. An older server that sends no currency is
+   * read as CNY, the unit the affiliate columns default to.
+   */
+  window: { month: string; currency?: string };
   gmv: WorkbenchFinanceBlock;
   commission_est: WorkbenchFinanceBlock;
   commission_settled: WorkbenchFinanceBlock;

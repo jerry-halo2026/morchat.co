@@ -262,6 +262,13 @@ func TestAffiliateSummaryEmptyMonthIsAGap(t *testing.T) {
 	if summary.Window.Month != "1990-01" {
 		t.Fatalf("window.month = %q, want the month the caller asked for", summary.Window.Month)
 	}
+	// A window with no money in it still names a unit: CNY is what both the daily
+	// fact and the statement default their `currency` column to, so it is the unit
+	// an empty ledger would have had. Naming it keeps the strip's label and its
+	// gap cards consistent instead of leaving the client to guess.
+	if summary.Window.Currency != "CNY" {
+		t.Fatalf("window.currency = %q on an empty window, want CNY", summary.Window.Currency)
+	}
 	for _, block := range []struct {
 		id    string
 		entry WorkbenchMetricValue
@@ -874,4 +881,179 @@ func TestAffiliateSummarySplitsIncomeByRecipient(t *testing.T) {
 		"settled_to": "platform",
 	}, testUserID)
 	testutil.Call(t, testHandler.CreateAffiliateSettlement, req).Want(http.StatusBadRequest)
+}
+
+// TestAffiliateSummaryKeepsOneCurrencyPerWindow is the money-caliber guard for
+// this strip. A month that reported 4000 CNY and 500 USD used to answer `gmv:
+// 4500` with no unit anywhere — a number in neither currency, and a refund rate
+// whose denominator mixed the two. The strip now answers about the window's
+// dominant currency only and names it, the same rule `/finance` follows.
+func TestAffiliateSummaryKeepsOneCurrencyPerWindow(t *testing.T) {
+	// A month no other case uses, so the amounts below are this test's alone.
+	const month = "2027-05"
+
+	client := createWorkbenchClient(t, testUserID, "Affiliate currency client")
+
+	cnyProduct := createAffiliateProductAs(t, map[string]any{
+		"client_id":           client.ID,
+		"platform":            "douyin",
+		"platform_product_id": "currency-cny",
+		"title":               "CNY SKU",
+		"currency":            "CNY",
+	})
+	usdProduct := createAffiliateProductAs(t, map[string]any{
+		"client_id":           client.ID,
+		"platform":            "douyin",
+		"platform_product_id": "currency-usd",
+		"title":               "USD SKU",
+		"currency":            "USD",
+	})
+
+	cnyCreator := createWorkbenchCreator(t, testUserID, "Affiliate currency CNY creator")
+	usdCreator := createWorkbenchCreator(t, testUserID, "Affiliate currency USD creator")
+
+	// One pick per currency, both bound this month, both invoicing a 招商服务费 —
+	// so the fee has to be attributed to the product's own currency instead of
+	// landing in whichever currency the window happened to answer in.
+	cnyPick := createAffiliatePickAs(t, map[string]any{
+		"product_id": cnyProduct.ID, "creator_id": cnyCreator.ID,
+		"agency_share_rate": 0.3, "service_fee_amount": 300,
+		"bound_at": month + "-01T02:00:00Z",
+	})
+	usdPick := createAffiliatePickAs(t, map[string]any{
+		"product_id": usdProduct.ID, "creator_id": usdCreator.ID,
+		"service_fee_amount": 500,
+		"bound_at":           month + "-02T02:00:00Z",
+	})
+
+	// CNY carries the window's money: 4000 sold against 500.
+	putAffiliateDaily(t, cnyPick.ID, month+"-05", map[string]any{
+		"gmv_amount": 4000, "refund_amount": 200, "est_commission": 800,
+		"settled_commission": 400, "currency": "CNY",
+	})
+	putAffiliateDaily(t, usdPick.ID, month+"-06", map[string]any{
+		"gmv_amount": 500, "refund_amount": 50, "est_commission": 100,
+		"settled_commission": 60, "currency": "USD",
+	})
+
+	// Statements in both currencies, differing in recipient as well: the CNY one
+	// is ours (agency), the USD one reached the creator.
+	createAffiliateSettlementAs(t, map[string]any{
+		"period_start": month + "-01", "period_end": month + "-15",
+		"gross_commission": 240, "tech_service_fee": 12, "net_amount": 240,
+		"currency": "CNY", "settled_to": "agency",
+	})
+	createAffiliateSettlementAs(t, map[string]any{
+		"period_start": month + "-01", "period_end": month + "-15",
+		"gross_commission": 60, "tech_service_fee": 6, "net_amount": 60,
+		"currency": "USD", "settled_to": "creator",
+	})
+
+	summary := fetchAffiliateSummary(t, "?month="+month, testUserID)
+
+	if summary.Window.Currency != "CNY" {
+		t.Fatalf("window.currency = %q, want CNY (the currency carrying the most money)", summary.Window.Currency)
+	}
+
+	// 4000 CNY, never 4500: the USD day is not in this answer at all.
+	if summary.GMV.Value == nil || math.Abs(*summary.GMV.Value-4000) > 0.01 {
+		t.Fatalf("gmv = %v, want 4000 (the CNY day alone)", summary.GMV.Value)
+	}
+	if summary.GMV.SampleCount != 1 {
+		t.Fatalf("gmv sample_count = %d, want 1 (the one CNY day)", summary.GMV.SampleCount)
+	}
+	if summary.CommissionEst.Value == nil || math.Abs(*summary.CommissionEst.Value-800) > 0.01 {
+		t.Fatalf("commission_est = %v, want 800", summary.CommissionEst.Value)
+	}
+	if summary.CommissionSettled.Value == nil || math.Abs(*summary.CommissionSettled.Value-400) > 0.01 {
+		t.Fatalf("commission_settled = %v, want 400", summary.CommissionSettled.Value)
+	}
+	// 400 cleared × the pick's 0.3 rate; the USD day has no rate and is another
+	// currency anyway.
+	if summary.AgencyShareIncome.Value == nil || math.Abs(*summary.AgencyShareIncome.Value-120) > 0.01 {
+		t.Fatalf("agency_share_income = %v, want 400 × 0.3 = 120", summary.AgencyShareIncome.Value)
+	}
+
+	// Both halves of the rate come from the same currency: 200 / 4000, not
+	// 250 / 4500.
+	if summary.RefundRate.Value == nil || math.Abs(*summary.RefundRate.Value-0.05) > 1e-9 {
+		t.Fatalf("refund_rate = %v, want 0.05 (200 refunded of 4000 CNY sold)", summary.RefundRate.Value)
+	}
+	if summary.RefundRate.SampleCount != 1 {
+		t.Fatalf("refund_rate sample_count = %d, want 1 CNY day with GMV", summary.RefundRate.SampleCount)
+	}
+
+	// Ours: the CNY agency statement (240) plus the CNY product's 招商服务费 (300).
+	// The USD statement and the USD product's fee are not in it.
+	if summary.CommissionAgency.Value == nil || math.Abs(*summary.CommissionAgency.Value-540) > 0.01 {
+		t.Fatalf("commission_agency = %v, want 540 (240 CNY net + 300 CNY fee)",
+			summary.CommissionAgency.Value)
+	}
+	if summary.CommissionAgency.SampleCount != 2 {
+		t.Fatalf("commission_agency sample_count = %d, want 1 CNY statement + 1 CNY fee",
+			summary.CommissionAgency.SampleCount)
+	}
+
+	// The only creator-paid statement this month is denominated in USD, so this
+	// currency has none: a gap, not a zero and certainly not the USD 60.
+	if summary.CommissionCreator.Value != nil || summary.CommissionCreator.Empty != metricEmptyInsufficientData {
+		t.Fatalf("commission_creator = %+v, want a gap (only the USD statement paid a creator)",
+			summary.CommissionCreator)
+	}
+
+	// 12 from the CNY statement; the USD statement's 6 is excluded.
+	if summary.TechFee.Value == nil || math.Abs(*summary.TechFee.Value-12) > 0.01 {
+		t.Fatalf("tech_fee = %v, want 12 (the CNY statement's fee)", summary.TechFee.Value)
+	}
+
+	// The two counts are not money and stay whole: both picks were bound this
+	// month, whichever currency their sales landed in.
+	if summary.PickCount.Value == nil || *summary.PickCount.Value != 2 {
+		t.Fatalf("pick_count = %v, want 2 (both currencies' picks)", summary.PickCount.Value)
+	}
+	if summary.ActiveCreatorCount.Value == nil || *summary.ActiveCreatorCount.Value != 2 {
+		t.Fatalf("active_creator_count = %v, want 2", summary.ActiveCreatorCount.Value)
+	}
+}
+
+// TestAffiliateSummaryReportsTheOnlyCurrencyItHas covers the single-currency case:
+// when every row of the window is in USD, the strip answers USD rather than
+// defaulting the label to CNY and letting the figures disagree with it.
+func TestAffiliateSummaryReportsTheOnlyCurrencyItHas(t *testing.T) {
+	const month = "2027-06"
+
+	client := createWorkbenchClient(t, testUserID, "Affiliate USD-only client")
+	product := createAffiliateProductAs(t, map[string]any{
+		"client_id":           client.ID,
+		"platform":            "tiktok",
+		"platform_product_id": "usd-only-sku",
+		"title":               "USD-only SKU",
+		"currency":            "USD",
+	})
+	creator := createWorkbenchCreator(t, testUserID, "Affiliate USD-only creator")
+	pick := createAffiliatePickAs(t, map[string]any{
+		"product_id": product.ID, "creator_id": creator.ID,
+		"bound_at": month + "-03T02:00:00Z",
+	})
+	putAffiliateDaily(t, pick.ID, month+"-07", map[string]any{
+		"gmv_amount": 700, "est_commission": 140, "settled_commission": 70,
+		"currency": "USD",
+	})
+	createAffiliateSettlementAs(t, map[string]any{
+		"period_start": month + "-01", "period_end": month + "-15",
+		"gross_commission": 70, "tech_service_fee": 7, "net_amount": 70,
+		"currency": "USD", "settled_to": "agency",
+	})
+
+	summary := fetchAffiliateSummary(t, "?month="+month, testUserID)
+
+	if summary.Window.Currency != "USD" {
+		t.Fatalf("window.currency = %q, want USD (the window's only currency)", summary.Window.Currency)
+	}
+	if summary.GMV.Value == nil || math.Abs(*summary.GMV.Value-700) > 0.01 {
+		t.Fatalf("gmv = %v, want 700 USD", summary.GMV.Value)
+	}
+	if summary.TechFee.Value == nil || math.Abs(*summary.TechFee.Value-7) > 0.01 {
+		t.Fatalf("tech_fee = %v, want 7 USD", summary.TechFee.Value)
+	}
 }

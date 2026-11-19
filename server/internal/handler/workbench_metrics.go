@@ -10,7 +10,13 @@ package handler
 // different statement from "0".
 
 import (
+	"context"
+	"errors"
 	"net/http"
+
+	"golang.org/x/sync/errgroup"
+
+	"github.com/jackc/pgx/v5/pgtype"
 
 	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
@@ -19,6 +25,97 @@ const (
 	metricEmptyZero             = "zero"
 	metricEmptyInsufficientData = "insufficient_data"
 )
+
+// workbenchReadConcurrency bounds how many reads of one response are in flight at
+// once.
+//
+// The overview's aggregates have no order to obey: each answers from its own
+// ledger and none feeds another, so awaiting them one by one only pays the round
+// trip twenty-one times. Against the shared pooler a round trip is ~350 ms and the
+// endpoint measured 7.7–8.5 s of pure waiting; the same queries at eight in flight
+// finish in three waves. Eight, not twenty-one, because the pooler's connection
+// budget is shared with every other workspace reading this server — a burst of
+// twenty simultaneous statements queues behind itself and makes the batch slower.
+const workbenchReadConcurrency = 8
+
+// workbenchRead is one independent read of a workbench response: the query, and
+// the message the endpoint's 500 names when that query is the one that failed.
+//
+// `label` is the serial loop's own wording, kept verbatim so that a 500 means the
+// same thing before and after this batch was made concurrent.
+type workbenchRead struct {
+	label string
+	run   func(context.Context) error
+}
+
+// workbenchReadError attributes a batch failure to the read it came from.
+type workbenchReadError struct {
+	label string
+	err   error
+}
+
+func (e *workbenchReadError) Error() string { return e.label + ": " + e.err.Error() }
+
+func (e *workbenchReadError) Unwrap() error { return e.err }
+
+// runWorkbenchReads waits for every read in `reads` and returns the first failure
+// in *declaration* order, not the first to arrive.
+//
+// Declaration order is the serial loop's order, and that is what keeps a failure
+// reportable: with two reads failing at once, "whichever finished first" would
+// make the 500 message depend on scheduling. All reads share one `ctx`, so a
+// client disconnect or a request timeout still ends every one of them.
+//
+// No read is skipped when one fails — the batch has already been dispatched — but
+// nothing is written on failure either: the caller reports one error and the
+// endpoint answers the same 500 shape it always has, never a partial success.
+func runWorkbenchReads(ctx context.Context, reads []workbenchRead) error {
+	return runWorkbenchReadsWithLimit(ctx, reads, workbenchReadConcurrency)
+}
+
+// runWorkbenchReadsWithLimit is the same batch at an explicit width. It exists so
+// a benchmark can replay the pre-change serial loop (`limit` 1) through the exact
+// code path the handler uses.
+func runWorkbenchReadsWithLimit(ctx context.Context, reads []workbenchRead, limit int) error {
+	if len(reads) == 0 {
+		return nil
+	}
+	if limit < 1 {
+		limit = 1
+	}
+	fails := make([]error, len(reads))
+	var group errgroup.Group
+	group.SetLimit(limit)
+	for i := range reads {
+		index := i
+		// The group is used for its limiter, not its error channel: each read
+		// reports into `fails` so the outcome does not depend on arrival order.
+		group.Go(func() error {
+			fails[index] = reads[index].run(ctx)
+			return nil
+		})
+	}
+	// Every goroutine returns nil, so the error is always nil; Wait is what orders
+	// the writes above before this function reads them.
+	_ = group.Wait()
+	for i := range reads {
+		if fails[i] != nil {
+			return &workbenchReadError{label: reads[i].label, err: fails[i]}
+		}
+	}
+	return nil
+}
+
+// workbenchReadFailure reports a failed batch: the read's own message when the
+// failure is attributed, and a general one if it somehow is not.
+func workbenchReadFailure(w http.ResponseWriter, r *http.Request, err error, fallback string) {
+	var failure *workbenchReadError
+	if errors.As(err, &failure) {
+		workbenchInternalError(w, r, failure.label, failure.err)
+		return
+	}
+	workbenchInternalError(w, r, fallback, err)
+}
 
 // WorkbenchMetricValue is one entry of the overview strip.
 type WorkbenchMetricValue struct {
@@ -158,188 +255,74 @@ func (h *Handler) GetWorkbenchOverview(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := r.Context()
 
-	work, err := h.Queries.OverviewWorkCounts(ctx, db.OverviewWorkCountsParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		DepartmentID: department,
-	})
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load work metrics", err)
-		return
-	}
-	cycle, err := h.Queries.OverviewCycleTime(ctx, db.OverviewCycleTimeParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		DepartmentID: department,
-	})
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load cycle time metric", err)
-		return
-	}
-	cross, err := h.Queries.OverviewCrossDepartment(ctx, scope.WorkspaceUUID)
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load cross-department metric", err)
-		return
-	}
-	agentCost, err := h.Queries.OverviewAgentCost(ctx, scope.WorkspaceUUID)
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load agent cost metric", err)
-		return
-	}
-	agentRuns, err := h.Queries.OverviewAgentRuns(ctx, scope.WorkspaceUUID)
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load agent run metric", err)
-		return
-	}
-	knowledge, err := h.Queries.OverviewKnowledgeWeek(ctx, db.OverviewKnowledgeWeekParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		DepartmentID: department,
-	})
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load knowledge metric", err)
-		return
-	}
-	pipeline, err := h.Queries.OverviewCrmPipeline(ctx, db.OverviewCrmPipelineParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		DepartmentID: department,
-	})
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load pipeline metric", err)
-		return
-	}
-	signed, err := h.Queries.OverviewCrmSignedMonth(ctx, db.OverviewCrmSignedMonthParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		DepartmentID: department,
-	})
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load signed metric", err)
-		return
-	}
-	collected, err := h.Queries.OverviewCrmCollectedMonth(ctx, db.OverviewCrmCollectedMonthParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		DepartmentID: department,
-	})
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load collected metric", err)
-		return
-	}
-	margin, err := h.Queries.OverviewCrmMargin(ctx, db.OverviewCrmMarginParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		DepartmentID: department,
-	})
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load margin metric", err)
-		return
-	}
-	roi, err := h.Queries.OverviewCrmRoi(ctx, db.OverviewCrmRoiParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		DepartmentID: department,
-	})
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load roi metric", err)
-		return
-	}
-	repeat, err := h.Queries.OverviewCrmRepeatRate(ctx, db.OverviewCrmRepeatRateParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		DepartmentID: department,
-	})
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load repeat-rate metric", err)
-		return
-	}
-	hrActive, err := h.Queries.OverviewHrActiveCandidates(ctx, db.OverviewHrActiveCandidatesParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		DepartmentID: department,
-	})
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load active-candidate metric", err)
-		return
-	}
-	hrTimeToHire, err := h.Queries.OverviewHrTimeToHire(ctx, db.OverviewHrTimeToHireParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		DepartmentID: department,
-	})
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load time-to-hire metric", err)
-		return
-	}
-	hrBacklog, err := h.Queries.OverviewHrScorecardBacklog(ctx, db.OverviewHrScorecardBacklogParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		DepartmentID: department,
-	})
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load scorecard backlog metric", err)
-		return
-	}
-	hrOnTime, err := h.Queries.OverviewHrInterviewOnTime(ctx, db.OverviewHrInterviewOnTimeParams{
-		WorkspaceID:  scope.WorkspaceUUID,
-		DepartmentID: department,
-	})
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load interview on-time metric", err)
+	// The strip's sixteen aggregates and the three verifiability slices are
+	// independent — each answers from its own ledger — so they are dispatched
+	// together and awaited once. A failure is reported in declaration order, which
+	// is the same query the serial version would have named: `runWorkbenchReads`
+	// explains why ordering, not arrival, decides.
+	var rows workbenchOverviewRows
+	if err := runWorkbenchReads(ctx, h.workbenchOverviewReads(scope, department, &rows)); err != nil {
+		workbenchReadFailure(w, r, err, "failed to load the overview metrics")
 		return
 	}
 
-	onTimeRate, onTimeOK := ratioValue(float64(work.OnTimeHits), float64(work.OnTimeSamples))
-	wipPerMember, wipOK := ratioValue(float64(work.OpenMemberAssigned), float64(work.ActiveMembers))
-	crossRate, crossOK := ratioValue(float64(cross.CrossCount), float64(cross.ResolvedCount))
-	failureRate, failureOK := ratioValue(float64(agentRuns.FailedRuns), float64(agentRuns.FinishedRuns))
-	marginRate, marginOK := ratioValue(margin.Revenue-margin.Cost, margin.Revenue)
-	roiValue, roiOK := ratioValue(roi.AttributedGmv, roi.Cost)
-	repeatRate, repeatOK := ratioValue(float64(repeat.RepeatCreators), float64(repeat.ActiveCreators))
-	hrOnTimeRate, hrOnTimeOK := ratioValue(float64(hrOnTime.OnTimeCount), float64(hrOnTime.ScheduledCount))
+	onTimeRate, onTimeOK := ratioValue(float64(rows.work.OnTimeHits), float64(rows.work.OnTimeSamples))
+	wipPerMember, wipOK := ratioValue(float64(rows.work.OpenMemberAssigned), float64(rows.work.ActiveMembers))
+	crossRate, crossOK := ratioValue(float64(rows.cross.CrossCount), float64(rows.cross.ResolvedCount))
+	failureRate, failureOK := ratioValue(float64(rows.agentRuns.FailedRuns), float64(rows.agentRuns.FinishedRuns))
+	marginRate, marginOK := ratioValue(rows.margin.Revenue-rows.margin.Cost, rows.margin.Revenue)
+	roiValue, roiOK := ratioValue(rows.roi.AttributedGmv, rows.roi.Cost)
+	repeatRate, repeatOK := ratioValue(float64(rows.repeat.RepeatCreators), float64(rows.repeat.ActiveCreators))
+	hrOnTimeRate, hrOnTimeOK := ratioValue(float64(rows.hrOnTime.OnTimeCount), float64(rows.hrOnTime.ScheduledCount))
 
 	metrics := map[string]WorkbenchMetricValue{
 		// Delivery behaviour: these read data the platform already writes, so the
 		// strip is alive on day one (docs/METRICS.md §2).
-		"work.throughput.week": metricValue(float64(work.ThroughputWeek), true, work.ThroughputWeek, metricEmptyZero),
-		"work.cycle_time.median": metricValue(cycle.MedianDays, cycle.SampleCount > 0,
-			cycle.SampleCount, metricEmptyInsufficientData),
-		"work.on_time.rate": metricValue(onTimeRate, onTimeOK, work.OnTimeSamples,
+		"work.throughput.week": metricValue(float64(rows.work.ThroughputWeek), true, rows.work.ThroughputWeek, metricEmptyZero),
+		"work.cycle_time.median": metricValue(rows.cycle.MedianDays, rows.cycle.SampleCount > 0,
+			rows.cycle.SampleCount, metricEmptyInsufficientData),
+		"work.on_time.rate": metricValue(onTimeRate, onTimeOK, rows.work.OnTimeSamples,
 			metricEmptyInsufficientData),
-		"work.overdue.count":      metricValue(float64(work.OverdueCount), true, work.OverdueCount, metricEmptyZero),
-		"work.stalled.count":      metricValue(float64(work.StalledCount), true, work.StalledCount, metricEmptyZero),
-		"work.wip.count":          metricValue(float64(work.WipCount), true, work.WipCount, metricEmptyZero),
-		"work.wip.per_member":     metricValue(wipPerMember, wipOK, work.ActiveMembers, metricEmptyInsufficientData),
-		"work.followup_due.count": metricValue(float64(work.FollowupDueCount), true, work.FollowupDueCount, metricEmptyZero),
-		"collab.cross_department.rate": metricValue(crossRate, crossOK, cross.ResolvedCount,
+		"work.overdue.count":      metricValue(float64(rows.work.OverdueCount), true, rows.work.OverdueCount, metricEmptyZero),
+		"work.stalled.count":      metricValue(float64(rows.work.StalledCount), true, rows.work.StalledCount, metricEmptyZero),
+		"work.wip.count":          metricValue(float64(rows.work.WipCount), true, rows.work.WipCount, metricEmptyZero),
+		"work.wip.per_member":     metricValue(wipPerMember, wipOK, rows.work.ActiveMembers, metricEmptyInsufficientData),
+		"work.followup_due.count": metricValue(float64(rows.work.FollowupDueCount), true, rows.work.FollowupDueCount, metricEmptyZero),
+		"collab.cross_department.rate": metricValue(crossRate, crossOK, rows.cross.ResolvedCount,
 			metricEmptyInsufficientData),
 		// Provider-reported cost is stored in 1e-10 USD ticks.
-		"agent.cost.month":       metricValue(float64(agentCost.CostTicks)/1e10, true, agentCost.UsageRows, metricEmptyZero),
-		"agent.run.failure_rate": metricValue(failureRate, failureOK, agentRuns.FinishedRuns, metricEmptyInsufficientData),
-		"knowledge.created.week": metricValue(float64(knowledge), true, knowledge, metricEmptyZero),
+		"agent.cost.month":       metricValue(float64(rows.agentCost.CostTicks)/1e10, true, rows.agentCost.UsageRows, metricEmptyZero),
+		"agent.run.failure_rate": metricValue(failureRate, failureOK, rows.agentRuns.FinishedRuns, metricEmptyInsufficientData),
+		"knowledge.created.week": metricValue(float64(rows.knowledge), true, rows.knowledge, metricEmptyZero),
 
 		// Creator commerce: `insufficient_data` until the ledger has rows.
-		"crm.pipeline.weighted_amount": metricValue(pipeline.WeightedAmount, pipeline.SampleCount > 0,
-			pipeline.SampleCount, metricEmptyInsufficientData),
-		"crm.contract.signed_month": metricValue(signed.SignedAmount, signed.SampleCount > 0,
-			signed.SampleCount, metricEmptyInsufficientData),
-		"crm.payment.collected_month": metricValue(collected.CollectedAmount, collected.SampleCount > 0,
-			collected.SampleCount, metricEmptyInsufficientData),
-		"crm.quote.margin_rate": metricValue(marginRate, marginOK, margin.SampleCount,
+		"crm.pipeline.weighted_amount": metricValue(rows.pipeline.WeightedAmount, rows.pipeline.SampleCount > 0,
+			rows.pipeline.SampleCount, metricEmptyInsufficientData),
+		"crm.contract.signed_month": metricValue(rows.signed.SignedAmount, rows.signed.SampleCount > 0,
+			rows.signed.SampleCount, metricEmptyInsufficientData),
+		"crm.payment.collected_month": metricValue(rows.collected.CollectedAmount, rows.collected.SampleCount > 0,
+			rows.collected.SampleCount, metricEmptyInsufficientData),
+		"crm.quote.margin_rate": metricValue(marginRate, marginOK, rows.margin.SampleCount,
 			metricEmptyInsufficientData),
-		"crm.collab.roi": metricValue(roiValue, roiOK, roi.SampleCount, metricEmptyInsufficientData),
-		"crm.creator.repeat_rate": metricValue(repeatRate, repeatOK, repeat.ActiveCreators,
+		"crm.collab.roi": metricValue(roiValue, roiOK, rows.roi.SampleCount, metricEmptyInsufficientData),
+		"crm.creator.repeat_rate": metricValue(repeatRate, repeatOK, rows.repeat.ActiveCreators,
 			metricEmptyInsufficientData),
 
 		// HR (docs/METRICS.md §2): the two counts answer from an empty ledger
 		// (a real zero), the two ratios need rows before they mean anything.
-		"hr.candidates.active": metricValue(float64(hrActive), true, hrActive, metricEmptyZero),
-		"hr.time_to_hire.median": metricValue(hrTimeToHire.MedianDays, hrTimeToHire.SampleCount > 0,
-			hrTimeToHire.SampleCount, metricEmptyInsufficientData),
-		"hr.scorecard.backlog": metricValue(float64(hrBacklog), true, hrBacklog, metricEmptyZero),
-		"hr.interview.on_time_rate": metricValue(hrOnTimeRate, hrOnTimeOK, hrOnTime.ScheduledCount,
+		"hr.candidates.active": metricValue(float64(rows.hrActive), true, rows.hrActive, metricEmptyZero),
+		"hr.time_to_hire.median": metricValue(rows.hrTimeToHire.MedianDays, rows.hrTimeToHire.SampleCount > 0,
+			rows.hrTimeToHire.SampleCount, metricEmptyInsufficientData),
+		"hr.scorecard.backlog": metricValue(float64(rows.hrBacklog), true, rows.hrBacklog, metricEmptyZero),
+		"hr.interview.on_time_rate": metricValue(hrOnTimeRate, hrOnTimeOK, rows.hrOnTime.ScheduledCount,
 			metricEmptyInsufficientData),
 	}
 
-	// Every catalog id answers, even one whose query failed to produce a row: a
-	// missing key would render as an undefined metric rather than a gap.
-	agentMetrics, err := h.workbenchAgentMetricSlices(ctx, scope)
-	if err != nil {
-		workbenchInternalError(w, r, "failed to load the agent verifiability metrics", err)
-		return
-	}
+	// Every catalog id answers, even one whose query produced no row: a missing key
+	// would render as an undefined metric rather than a gap.
 	response := WorkbenchOverviewResponse{
 		Metrics:      make(map[string]WorkbenchMetricValue, len(workbenchMetricCatalog)),
-		AgentMetrics: agentMetrics,
+		AgentMetrics: rows.agentMetrics,
 	}
 	for _, spec := range workbenchMetricCatalog {
 		if value, present := metrics[spec.id]; present {
@@ -351,7 +334,178 @@ func (h *Handler) GetWorkbenchOverview(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, response)
 }
 
+// workbenchOverviewRows is what the overview's reads produce, one field per
+// aggregate.
+//
+// It is a struct rather than a handful of locals because the reads are dispatched
+// as one batch: each goroutine writes exactly one field and nothing reads a field
+// until `runWorkbenchReads` has returned, so the batch needs no lock — but it does
+// need a name for "the results", and a closure that writes a local would hide it.
+type workbenchOverviewRows struct {
+	work         db.OverviewWorkCountsRow
+	cycle        db.OverviewCycleTimeRow
+	cross        db.OverviewCrossDepartmentRow
+	agentCost    db.OverviewAgentCostRow
+	agentRuns    db.OverviewAgentRunsRow
+	knowledge    int64
+	pipeline     db.OverviewCrmPipelineRow
+	signed       db.OverviewCrmSignedMonthRow
+	collected    db.OverviewCrmCollectedMonthRow
+	margin       db.OverviewCrmMarginRow
+	roi          db.OverviewCrmRoiRow
+	repeat       db.OverviewCrmRepeatRateRow
+	hrActive     int64
+	hrTimeToHire db.OverviewHrTimeToHireRow
+	hrBacklog    int64
+	hrOnTime     db.OverviewHrInterviewOnTimeRow
+	agentMetrics []AgentMetricSlice
+}
+
+// workbenchOverviewReads is the overview's query set: one read per aggregate, in
+// the order the serial handler used to await them.
+//
+// Every label here is the message that handler reported for the same query, so
+// making the batch concurrent changed how long the reads wait, not what a failure
+// says.
+func (h *Handler) workbenchOverviewReads(scope workbenchScope, department pgtype.UUID, rows *workbenchOverviewRows) []workbenchRead {
+	return []workbenchRead{
+		{"failed to load work metrics", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewWorkCounts(ctx, db.OverviewWorkCountsParams{
+				WorkspaceID:  scope.WorkspaceUUID,
+				DepartmentID: department,
+			})
+			rows.work = row
+			return err
+		}},
+		{"failed to load cycle time metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewCycleTime(ctx, db.OverviewCycleTimeParams{
+				WorkspaceID:  scope.WorkspaceUUID,
+				DepartmentID: department,
+			})
+			rows.cycle = row
+			return err
+		}},
+		{"failed to load cross-department metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewCrossDepartment(ctx, scope.WorkspaceUUID)
+			rows.cross = row
+			return err
+		}},
+		{"failed to load agent cost metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewAgentCost(ctx, scope.WorkspaceUUID)
+			rows.agentCost = row
+			return err
+		}},
+		{"failed to load agent run metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewAgentRuns(ctx, scope.WorkspaceUUID)
+			rows.agentRuns = row
+			return err
+		}},
+		{"failed to load knowledge metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewKnowledgeWeek(ctx, db.OverviewKnowledgeWeekParams{
+				WorkspaceID:  scope.WorkspaceUUID,
+				DepartmentID: department,
+			})
+			rows.knowledge = row
+			return err
+		}},
+		{"failed to load pipeline metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewCrmPipeline(ctx, db.OverviewCrmPipelineParams{
+				WorkspaceID:  scope.WorkspaceUUID,
+				DepartmentID: department,
+			})
+			rows.pipeline = row
+			return err
+		}},
+		{"failed to load signed metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewCrmSignedMonth(ctx, db.OverviewCrmSignedMonthParams{
+				WorkspaceID:  scope.WorkspaceUUID,
+				DepartmentID: department,
+			})
+			rows.signed = row
+			return err
+		}},
+		{"failed to load collected metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewCrmCollectedMonth(ctx, db.OverviewCrmCollectedMonthParams{
+				WorkspaceID:  scope.WorkspaceUUID,
+				DepartmentID: department,
+			})
+			rows.collected = row
+			return err
+		}},
+		{"failed to load margin metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewCrmMargin(ctx, db.OverviewCrmMarginParams{
+				WorkspaceID:  scope.WorkspaceUUID,
+				DepartmentID: department,
+			})
+			rows.margin = row
+			return err
+		}},
+		{"failed to load roi metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewCrmRoi(ctx, db.OverviewCrmRoiParams{
+				WorkspaceID:  scope.WorkspaceUUID,
+				DepartmentID: department,
+			})
+			rows.roi = row
+			return err
+		}},
+		{"failed to load repeat-rate metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewCrmRepeatRate(ctx, db.OverviewCrmRepeatRateParams{
+				WorkspaceID:  scope.WorkspaceUUID,
+				DepartmentID: department,
+			})
+			rows.repeat = row
+			return err
+		}},
+		{"failed to load active-candidate metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewHrActiveCandidates(ctx, db.OverviewHrActiveCandidatesParams{
+				WorkspaceID:  scope.WorkspaceUUID,
+				DepartmentID: department,
+			})
+			rows.hrActive = row
+			return err
+		}},
+		{"failed to load time-to-hire metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewHrTimeToHire(ctx, db.OverviewHrTimeToHireParams{
+				WorkspaceID:  scope.WorkspaceUUID,
+				DepartmentID: department,
+			})
+			rows.hrTimeToHire = row
+			return err
+		}},
+		{"failed to load scorecard backlog metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewHrScorecardBacklog(ctx, db.OverviewHrScorecardBacklogParams{
+				WorkspaceID:  scope.WorkspaceUUID,
+				DepartmentID: department,
+			})
+			rows.hrBacklog = row
+			return err
+		}},
+		{"failed to load interview on-time metric", func(ctx context.Context) error {
+			row, err := h.Queries.OverviewHrInterviewOnTime(ctx, db.OverviewHrInterviewOnTimeParams{
+				WorkspaceID:  scope.WorkspaceUUID,
+				DepartmentID: department,
+			})
+			rows.hrOnTime = row
+			return err
+		}},
+		// The three verifiability slices ride in the same batch: they take no input
+		// the strip computes, and they are the last reads the response needs. They
+		// are three queries of their own, sequential inside the call, so overlapping
+		// them with the strip is where their cost goes to zero.
+		{"failed to load the agent verifiability metrics", func(ctx context.Context) error {
+			slices, err := h.workbenchAgentMetricSlices(ctx, scope)
+			rows.agentMetrics = slices
+			return err
+		}},
+	}
+}
+
 // GetWorkbenchCounts — GET /api/workbench/counts
+//
+// One statement, so there is no batch to widen here: the fifteen counters are
+// scalar subqueries of a single `WorkbenchCounts`, and splitting it into fifteen
+// round trips is what would make it slow. The overview is the opposite case —
+// sixteen separate aggregates — which is why only that handler batches.
 func (h *Handler) GetWorkbenchCounts(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {

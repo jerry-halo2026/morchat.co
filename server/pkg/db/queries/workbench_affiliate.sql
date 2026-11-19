@@ -296,6 +296,23 @@ RETURNING *;
 --     fees that ride along with `commission_agency` are guarded too: a
 --     department-filtered agency figure would be half a total.
 --
+-- One currency per window (`dominant`). `affiliate_daily` and
+-- `affiliate_settlement` both carry a `currency`, and summing CNY into USD
+-- produces a number in neither — the same caliber `OverviewCrmFinance` and
+-- `BdPerformanceCurrency` apply to their windows. Every money block below is
+-- restricted to the window's dominant currency and the response names it, so a
+-- workspace that reports both reads "2000 CNY", never "4000". The two counts are
+-- not money and stay whole: a pick is a pick whichever currency its sales landed
+-- in.
+--
+-- The dominant currency is the one carrying the most money in the window — the
+-- larger sum of `affiliate_daily.gmv_amount` and `affiliate_settlement.net_amount`
+-- over the rows the window covers — with the currency code breaking a tie so two
+-- equally large currencies do not flip between requests. It is decided over the
+-- whole workspace rather than the requested department, the way `/finance`
+-- decides it: a currency is a property of the window, not of a team, and a
+-- per-department unit would let two departments' blocks be added together.
+--
 -- Department attribution follows the B0 fallback chain (docs/METRICS.md §4): the
 -- pick's owner member department. It is an aggregate filter and never an access
 -- boundary.
@@ -305,6 +322,32 @@ WITH bounds AS (
 period AS (
     SELECT month_start, (month_start + interval '1 month')::date AS month_end
     FROM bounds
+),
+dominant AS (
+    SELECT coalesce(
+        (
+            SELECT currency
+            FROM (
+                SELECT d.currency::text AS currency, sum(d.gmv_amount) AS amount
+                FROM affiliate_daily d CROSS JOIN period
+                WHERE d.workspace_id = sqlc.arg('workspace_id')
+                  AND d.stat_date >= period.month_start
+                  AND d.stat_date < period.month_end
+                GROUP BY d.currency
+                UNION ALL
+                SELECT s.currency::text, sum(s.net_amount)
+                FROM affiliate_settlement s CROSS JOIN period
+                WHERE s.workspace_id = sqlc.arg('workspace_id')
+                  AND s.period_start < period.month_end
+                  AND s.period_end >= period.month_start
+                GROUP BY s.currency
+            ) money_rows
+            GROUP BY currency
+            ORDER BY sum(amount) DESC, currency
+            LIMIT 1
+        ),
+        'CNY'
+    )::text AS currency
 ),
 daily AS (
     SELECT d.gmv_amount, d.refund_amount, d.est_commission, d.settled_commission,
@@ -316,6 +359,7 @@ daily AS (
     WHERE d.workspace_id = sqlc.arg('workspace_id')
       AND d.stat_date >= period.month_start
       AND d.stat_date < period.month_end
+      AND d.currency = (SELECT currency FROM dominant)
       AND (
         sqlc.narg('department_id')::uuid IS NULL
         OR m.department_id = sqlc.narg('department_id')::uuid
@@ -372,6 +416,7 @@ settlements AS (
     FROM affiliate_settlement s
     CROSS JOIN period
     WHERE s.workspace_id = sqlc.arg('workspace_id')
+      AND s.currency = (SELECT currency FROM dominant)
       AND s.period_start < period.month_end
       AND s.period_end >= period.month_start
       AND sqlc.narg('department_id')::uuid IS NULL
@@ -380,22 +425,31 @@ settlements AS (
 -- bound this month. Guarded by the department filter for the same reason the
 -- statements above are — the block they add up into cannot answer a
 -- department-scoped question, so it reports a gap instead of a partial total.
+--
+-- The fee has no currency column of its own: it is invoiced against the product
+-- the pick promotes, so the product's list currency is the only unit it can be
+-- in, and that is what it is filtered by. Reading it as "whatever the window's
+-- currency is" without the join is how a USD placement's fee ended up inside a
+-- CNY block.
 agency_fees AS (
     SELECT coalesce(sum(p.service_fee_amount), 0)::float8 AS service_fee_amount,
            (count(*) FILTER (
                WHERE p.service_fee_amount IS NOT NULL AND p.service_fee_amount <> 0
            ))::bigint AS service_fee_samples
     FROM affiliate_pick p
+    JOIN affiliate_product pr ON pr.id = p.product_id AND pr.workspace_id = p.workspace_id
     CROSS JOIN period
     WHERE p.workspace_id = sqlc.arg('workspace_id')
       AND p.archived_at IS NULL
       AND p.bound_at >= period.month_start::timestamptz
       AND p.bound_at < period.month_end::timestamptz
+      AND pr.currency = (SELECT currency FROM dominant)
       AND sqlc.narg('department_id')::uuid IS NULL
 )
 SELECT
     period.month_start::date AS month_start,
     to_char(period.month_start, 'YYYY-MM') AS month_label,
+    (SELECT currency FROM dominant) AS currency,
     totals.gmv_amount,
     totals.daily_samples,
     totals.refund_amount,

@@ -5998,10 +5998,16 @@ export const EMPTY_AFFILIATE_SETTLEMENT_LIST_RESPONSE: AffiliateSettlementListRe
  */
 export const AffiliateSummaryResponseSchema = z
   .object({
+    // The month and unit labels are display copy, so a missing one degrades to a
+    // default rather than rejecting the figures the server did send. `currency`
+    // names the unit every money block is in; the server picks the window's
+    // dominant one, and an older server that sends no unit is read as CNY — the
+    // unit the affiliate columns default to, which is what that server was
+    // summing.
     window: z
-      .object({ month: z.string().default("") })
-      .default({ month: "" })
-      .catch({ month: "" }),
+      .object({ month: z.string().default(""), currency: z.string().default("CNY") })
+      .default({ month: "", currency: "CNY" })
+      .catch({ month: "", currency: "CNY" }),
     gmv: workbenchFinanceBlock,
     commission_est: workbenchFinanceBlock,
     commission_settled: workbenchFinanceBlock,
@@ -6016,7 +6022,7 @@ export const AffiliateSummaryResponseSchema = z
   .loose();
 
 export const EMPTY_AFFILIATE_SUMMARY_RESPONSE: AffiliateSummaryResponse = {
-  window: { month: "" },
+  window: { month: "", currency: "CNY" },
   gmv: EMPTY_WORKBENCH_FINANCE_BLOCK,
   commission_est: EMPTY_WORKBENCH_FINANCE_BLOCK,
   commission_settled: EMPTY_WORKBENCH_FINANCE_BLOCK,

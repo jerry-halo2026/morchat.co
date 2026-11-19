@@ -1,9 +1,16 @@
 package handler
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"net/http"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
@@ -278,6 +285,139 @@ func TestWorkbenchOverviewRejectsMalformedDepartment(t *testing.T) {
 
 	req = workbenchRequest(t, "GET", "/api/workbench/counts?department_id=not-a-uuid", nil, testUserID)
 	testutil.Call(t, testHandler.GetWorkbenchCounts, req).Want(http.StatusBadRequest)
+}
+
+// ---- the concurrent overview batch -----------------------------------------
+//
+// The overview's reads were awaited one after another, which on the shared pooler
+// (a ~350 ms round trip) meant 7.7–8.5 s of waiting for sixteen aggregates that
+// have no order to obey. They are now dispatched as one limited batch. Two
+// properties are what make that a refactor rather than a rewrite, and they are
+// what these cases pin:
+//
+//   - a failure is reported as the read it came from, chosen by declaration order
+//     rather than by whichever query lost the race, so a 500 says the same thing
+//     it said before;
+//   - the batch is bounded, because the pooler's connections are shared with every
+//     other request this server is answering.
+
+// TestRunWorkbenchReadsReportsFirstFailureInDeclarationOrder holds the error shape
+// still: three reads, two failing, the *second* declared one failing slowest so a
+// scheduler-dependent report would name the third.
+func TestRunWorkbenchReadsReportsFirstFailureInDeclarationOrder(t *testing.T) {
+	slowErr := errors.New("second read failed")
+	fastErr := errors.New("third read failed")
+
+	reads := []workbenchRead{
+		{"failed to load the first metric", func(context.Context) error {
+			// Succeeds, and slowly: it must not be mistaken for the failure.
+			time.Sleep(20 * time.Millisecond)
+			return nil
+		}},
+		{"failed to load the second metric", func(context.Context) error {
+			time.Sleep(10 * time.Millisecond)
+			return slowErr
+		}},
+		{"failed to load the third metric", func(context.Context) error { return fastErr }},
+	}
+
+	err := runWorkbenchReads(context.Background(), reads)
+	if err == nil {
+		t.Fatal("the batch returned no error for two failing reads")
+	}
+	var failure *workbenchReadError
+	if !errors.As(err, &failure) {
+		t.Fatalf("error %v is not a workbenchReadError", err)
+	}
+	if failure.label != "failed to load the second metric" {
+		t.Fatalf("reported %q, want the second read (declaration order, not arrival)", failure.label)
+	}
+	// The original error survives, so the 500's log line still carries it.
+	if !errors.Is(err, slowErr) {
+		t.Fatalf("error %v does not wrap the failing read's error", err)
+	}
+}
+
+// TestRunWorkbenchReadsKeepsTheWidthItIsGiven is the limiter guard: twelve reads
+// never put more than `limit` statements in flight, and every one of them still
+// runs.
+func TestRunWorkbenchReadsKeepsTheWidthItIsGiven(t *testing.T) {
+	const (
+		limit = 3
+		total = 12
+	)
+	var (
+		mu        sync.Mutex
+		inFlight  int
+		highWater int
+		started   atomic.Int64
+	)
+
+	reads := make([]workbenchRead, total)
+	for i := range reads {
+		reads[i] = workbenchRead{fmt.Sprintf("read %d", i), func(context.Context) error {
+			started.Add(1)
+			mu.Lock()
+			inFlight++
+			if inFlight > highWater {
+				highWater = inFlight
+			}
+			mu.Unlock()
+
+			time.Sleep(2 * time.Millisecond)
+
+			mu.Lock()
+			inFlight--
+			mu.Unlock()
+			return nil
+		}}
+	}
+
+	if err := runWorkbenchReadsWithLimit(context.Background(), reads, limit); err != nil {
+		t.Fatalf("batch failed: %v", err)
+	}
+	if got := started.Load(); got != total {
+		t.Fatalf("%d reads ran, want all %d", got, total)
+	}
+	// Every read reaches the barrier below, so the observed width is the real one
+	// as long as the batch never exceeds the limit.
+	if highWater > limit {
+		t.Fatalf("%d reads were in flight at once, want at most %d", highWater, limit)
+	}
+	if highWater < 2 {
+		t.Fatalf("%d reads were ever in flight, want the batch to actually overlap", highWater)
+	}
+}
+
+// BenchmarkWorkbenchOverviewReads prices the change against the real database: the
+// same query set at the shipped width and at width 1, which is the serial loop the
+// handler used to run. Run it with
+//
+//	go test ./internal/handler -run '^$' -bench BenchmarkWorkbenchOverviewReads -benchtime 3x
+//
+// against the shared pooler to see the round trips become waves.
+func BenchmarkWorkbenchOverviewReads(b *testing.B) {
+	scope := workbenchScope{WorkspaceID: testWorkspaceID, WorkspaceUUID: parseUUID(testWorkspaceID)}
+	ctx := context.Background()
+
+	for _, width := range []struct {
+		name  string
+		limit int
+	}{
+		{"serial", 1},
+		{"concurrent", workbenchReadConcurrency},
+	} {
+		b.Run(width.name, func(b *testing.B) {
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				var rows workbenchOverviewRows
+				reads := testHandler.workbenchOverviewReads(scope, pgtype.UUID{}, &rows)
+				if err := runWorkbenchReadsWithLimit(ctx, reads, width.limit); err != nil {
+					b.Fatalf("batch failed: %v", err)
+				}
+			}
+		})
+	}
 }
 
 // TestWorkbenchCountsTrackContentAndGoalLedgers covers the six counters §21 added
