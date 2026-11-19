@@ -244,9 +244,16 @@ RETURNING *;
 -- name: ArchiveCrmCollab :execrows
 -- A delete is a write too: the revision moves so an audit trail that reads the
 -- row's revision before and after a delete cannot claim nothing happened.
+--
+-- The optional `expected_revision` gives the delete the same guard a PATCH has
+-- (COLLAB-MODEL §3): absent = no check (old clients), present and stale = zero
+-- rows, which the handler turns into a 409 `stale_write` with the current row.
+-- It has to be part of this statement — a read-then-archive would let two
+-- connections that both read revision 4 delete the row twice.
 UPDATE crm_collab
 SET archived_at = now(), updated_at = now(), revision = revision + 1
-WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
+WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL
+  AND (sqlc.narg('expected_revision')::int IS NULL OR revision = sqlc.narg('expected_revision')::int);
 
 -- name: ListCrmSettlements :many
 -- `crm_settlement` has no `owner_member_id` — its owner is the collaboration's

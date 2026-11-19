@@ -56,15 +56,23 @@ UPDATE creator_quote
 SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = $1 AND workspace_id = $2::uuid
   AND archived_at IS NULL
+  AND ($3::int IS NULL OR revision = $3::int)
 `
 
 type ArchiveCreatorQuoteParams struct {
-	ID          pgtype.UUID `json:"id"`
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	ID               pgtype.UUID `json:"id"`
+	WorkspaceID      pgtype.UUID `json:"workspace_id"`
+	ExpectedRevision pgtype.Int4 `json:"expected_revision"`
 }
 
+// A delete is a write too (COLLAB-MODEL §3): the revision moves, so an audit
+// trail that reads the row before and after a delete cannot claim nothing
+// happened — and the optional `expected_revision` puts the same guard on the
+// delete that `UpdateCreatorQuote` has. The check lives in the WHERE rather than
+// in a read-then-delete, because two connections that both read revision 4 would
+// otherwise both see "unchanged" and both win.
 func (q *Queries) ArchiveCreatorQuote(ctx context.Context, arg ArchiveCreatorQuoteParams) (int64, error) {
-	result, err := q.db.Exec(ctx, archiveCreatorQuote, arg.ID, arg.WorkspaceID)
+	result, err := q.db.Exec(ctx, archiveCreatorQuote, arg.ID, arg.WorkspaceID, arg.ExpectedRevision)
 	if err != nil {
 		return 0, err
 	}

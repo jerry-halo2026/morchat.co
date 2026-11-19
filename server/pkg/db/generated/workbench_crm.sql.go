@@ -53,17 +53,25 @@ const archiveCrmCollab = `-- name: ArchiveCrmCollab :execrows
 UPDATE crm_collab
 SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
+  AND ($3::int IS NULL OR revision = $3::int)
 `
 
 type ArchiveCrmCollabParams struct {
-	ID          pgtype.UUID `json:"id"`
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	ID               pgtype.UUID `json:"id"`
+	WorkspaceID      pgtype.UUID `json:"workspace_id"`
+	ExpectedRevision pgtype.Int4 `json:"expected_revision"`
 }
 
 // A delete is a write too: the revision moves so an audit trail that reads the
 // row's revision before and after a delete cannot claim nothing happened.
+//
+// The optional `expected_revision` gives the delete the same guard a PATCH has
+// (COLLAB-MODEL §3): absent = no check (old clients), present and stale = zero
+// rows, which the handler turns into a 409 `stale_write` with the current row.
+// It has to be part of this statement — a read-then-archive would let two
+// connections that both read revision 4 delete the row twice.
 func (q *Queries) ArchiveCrmCollab(ctx context.Context, arg ArchiveCrmCollabParams) (int64, error) {
-	result, err := q.db.Exec(ctx, archiveCrmCollab, arg.ID, arg.WorkspaceID)
+	result, err := q.db.Exec(ctx, archiveCrmCollab, arg.ID, arg.WorkspaceID, arg.ExpectedRevision)
 	if err != nil {
 		return 0, err
 	}

@@ -493,7 +493,9 @@ describe("SalesQuotesPage · 行内动作 · 并发 (§3)", () => {
 
     await waitFor(() => expect(toast.info).toHaveBeenCalledTimes(1));
     expect(api.deleteBdQuote).toHaveBeenCalledTimes(1);
-    expect(api.deleteBdQuote).toHaveBeenCalledWith("q-1");
+    // The delete names the revision this menu read, in the query string: a DELETE
+    // body is not portable, so the guard travels as `?expected_revision=` (§3).
+    expect(api.deleteBdQuote).toHaveBeenCalledWith("q-1", 2);
     await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
 
     // Nothing left the ledger: the row is still there, reading the server's answer.

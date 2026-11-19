@@ -85,6 +85,30 @@ describe("workbench API paths (contract §3)", () => {
     expect(Object.fromEntries(url.searchParams)).toEqual({ collab_id: "collab-1", paid: "false" });
   });
 
+  it("puts the delete's expected_revision in the query string, not a body", async () => {
+    // A DELETE body is not portable, so the §3 guard travels as a parameter
+    // (WORKBENCH-API §3.5) — and an unguarded delete sends no parameter at all,
+    // which is what the server reads as "do not check" (old clients).
+    const guarded = stubFetch({});
+    await client().deleteCrmCollab("collab-1", 4);
+    const url = new URL(calledUrl(guarded));
+    expect(url.pathname).toBe("/api/workbench/crm/collabs/collab-1");
+    expect(Object.fromEntries(url.searchParams)).toEqual({ expected_revision: "4" });
+    expect(calledInit(guarded)?.method).toBe("DELETE");
+    expect(calledInit(guarded)?.body).toBeUndefined();
+
+    const legacy = stubFetch({});
+    await client().deleteBdQuote("quote-1");
+    const legacyUrl = new URL(calledUrl(legacy));
+    expect(legacyUrl.pathname).toBe("/api/workbench/bd/quotes/quote-1");
+    expect(legacyUrl.search).toBe("");
+    expect(calledInit(legacy)?.method).toBe("DELETE");
+
+    const revisioned = stubFetch({});
+    await client().deleteBdQuote("quote-1", 7);
+    expect(new URL(calledUrl(revisioned)).searchParams.get("expected_revision")).toBe("7");
+  });
+
   it("names every ledger path the contract registers", async () => {
     const cases: Array<[string, string, (c: ApiClient) => Promise<unknown>]> = [
       ["GET", "/api/workbench/creators/creator-1", (c) => c.getCreator("creator-1")],

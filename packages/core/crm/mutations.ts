@@ -122,11 +122,26 @@ export function useUpdateCrmCollab() {
   });
 }
 
+/**
+ * Soft delete, and a §3 write: the caller names the `revision` it read (query
+ * string, because a DELETE body is not portable), and a mismatch answers 409 with
+ * the current row. The row is put into the detail cache and the ledger is reread,
+ * so a drawer that was about to delete an outdated card redraws from the server
+ * rather than pressing the same button again.
+ */
 export function useDeleteCrmCollab() {
   const invalidate = useInvalidateCrm();
+  const qc = useQueryClient();
+  const wsId = useWorkspaceId();
   return useMutation({
-    mutationFn: (id: string) => api.deleteCrmCollab(id),
+    mutationFn: ({ id, expectedRevision }: { id: string; expectedRevision?: number }) =>
+      api.deleteCrmCollab(id, expectedRevision),
     onSuccess: () => invalidate(),
+    onError: (error, variables) => {
+      if (!isStaleWrite<CrmCollab>(error)) return;
+      qc.setQueryData(crmKeys.detail(wsId, "collabs", variables.id), error.current);
+      invalidate("collabs");
+    },
   });
 }
 

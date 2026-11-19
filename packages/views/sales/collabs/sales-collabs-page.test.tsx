@@ -704,7 +704,7 @@ describe("SalesCollabsPage · 撤销合作单", () => {
     let reads = 0;
     api.listCrmCollabs.mockImplementation(async () => {
       reads += 1;
-      const rows = reads === 1 ? [collab({ id: "collab-1" })] : [];
+      const rows = reads === 1 ? [collab({ id: "collab-1", revision: 4 })] : [];
       return { collabs: rows, total: rows.length };
     });
     renderPage();
@@ -725,7 +725,7 @@ describe("SalesCollabsPage · 撤销合作单", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Revoke" }));
 
-    await waitFor(() => expect(api.deleteCrmCollab).toHaveBeenCalledWith("collab-1"));
+    await waitFor(() => expect(api.deleteCrmCollab).toHaveBeenCalledWith("collab-1", 4));
     // The drawer closes on the server's answer, and the ledger is reread.
     await waitFor(() => expect(screen.queryByRole("heading", { name: "Lin Wei" })).toBeNull());
     expect(await screen.findByText("No collaborations yet")).toBeInTheDocument();
@@ -757,6 +757,32 @@ describe("SalesCollabsPage · 撤销合作单", () => {
     // grid is read after closing it.)
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(bodyRows()).toHaveLength(1));
+  });
+
+  it("names the revision it read, and on a 409 keeps the row and shows the server's copy", async () => {
+    serve([collab({ id: "collab-1", revision: 4 })]);
+    // Somebody else moved the card while this drawer was open.
+    const current = collab({ id: "collab-1", revision: 5, final_amount: 12000 });
+    api.deleteCrmCollab.mockRejectedValueOnce(new StaleWriteError("conflict", current));
+    renderPage();
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+
+    fireEvent.click(within(bodyRows()[0]!).getByText("Lin Wei"));
+    await userEvent.click(await screen.findByRole("button", { name: "Revoke collaboration" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Revoke" }));
+
+    // The guard travelled with the delete, and the delete was not sent again.
+    await waitFor(() => expect(api.deleteCrmCollab).toHaveBeenCalledTimes(1));
+    expect(api.deleteCrmCollab).toHaveBeenCalledWith("collab-1", 4);
+    // The drawer says so, holds the server's row, and the confirmation is gone —
+    // a press that was aimed at a row that no longer exists is not offered again.
+    expect(await screen.findByRole("status")).toHaveTextContent(/Someone else just changed this/);
+    expect(screen.queryByText("Revoke this collaboration?")).toBeNull();
+
+    // And the next press carries the revision the refresh brought in.
+    await userEvent.click(screen.getByRole("button", { name: "Revoke collaboration" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Revoke" }));
+    await waitFor(() => expect(api.deleteCrmCollab).toHaveBeenLastCalledWith("collab-1", 5));
   });
 });
 

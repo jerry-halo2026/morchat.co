@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
+	"sync"
 	"testing"
 
 	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
@@ -593,5 +595,202 @@ func TestFollowUpSummaryOnlyPatchLeavesNoAudit(t *testing.T) {
 	}
 	if _, ok := after["summary"]; ok {
 		t.Fatalf("outcome change recorded the summary: %v", after)
+	}
+}
+
+// ---- the delete's own §3 guard --------------------------------------------
+//
+// A delete is a write: it bumps `revision`, so it can also name the revision it
+// read. The guard lives in the archive's WHERE, which is what makes the pair
+// below possible rather than decorative — a read-then-delete would let both
+// requests through.
+
+// bdQuoteFixture creates one quote through the handler and returns it.
+func bdQuoteFixture(t *testing.T, label string) BdQuoteResponse {
+	t.Helper()
+	creator := createWorkbenchCreator(t, testUserID, label+" creator")
+	req := workbenchRequest(t, "POST", "/api/workbench/bd/quotes", map[string]any{
+		"creator_id": creator.ID,
+		"status":     "sent",
+		"fee_amount": 1200,
+	}, testUserID)
+	quote := testutil.Decode[BdQuoteResponse](t, testHandler.CreateBdQuote, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM creator_quote WHERE id = $1`, quote.ID) })
+	cleanupWorkbenchAudit(t, subjectCreatorQuote, quote.ID)
+	return quote
+}
+
+// TestDeletingAQuoteWithAStaleRevisionAnswers409 is the rule §3 gained for
+// deletes: an editor read revision 1, somebody accepted the quote (revision 2),
+// and the press of 删除 that was aimed at the row as it was is refused with the
+// row as it is. Nothing is archived, and the trail gains no `.deleted`.
+func TestDeletingAQuoteWithAStaleRevisionAnswers409(t *testing.T) {
+	quote := bdQuoteFixture(t, "Stale delete")
+
+	req := workbenchRequest(t, "PATCH", "/api/workbench/bd/quotes/"+quote.ID, map[string]any{
+		"status":            "accepted",
+		"expected_revision": 1,
+	}, testUserID)
+	testutil.Decode[BdQuoteResponse](t, testHandler.UpdateBdQuote,
+		withURLParam(req, "quoteId", quote.ID), http.StatusOK)
+
+	// The delete still names revision 1.
+	req = workbenchRequest(t, "DELETE",
+		"/api/workbench/bd/quotes/"+quote.ID+"?expected_revision=1", nil, testUserID)
+	conflict := testutil.Call(t, testHandler.DeleteBdQuote,
+		withURLParam(req, "quoteId", quote.ID)).Want(http.StatusConflict).Map()
+	if conflict["error"] != "stale_write" {
+		t.Fatalf("409 body error = %v, want stale_write", conflict["error"])
+	}
+	current, ok := conflict["current"].(map[string]any)
+	if !ok {
+		t.Fatalf("409 body has no current row: %v", conflict)
+	}
+	if current["revision"] != float64(2) || current["status"] != "accepted" {
+		t.Fatalf("409 current = revision %v status %v, want 2/accepted",
+			current["revision"], current["status"])
+	}
+
+	// The refused delete archived nothing: the row is still there, un-deleted.
+	req = workbenchRequest(t, "GET", "/api/workbench/bd/quotes/"+quote.ID, nil, testUserID)
+	survivor := testutil.Decode[BdQuoteResponse](t, testHandler.GetBdQuote,
+		withURLParam(req, "quoteId", quote.ID), http.StatusOK)
+	if survivor.Revision != 2 {
+		t.Fatalf("revision after the refused delete = %d, want 2", survivor.Revision)
+	}
+	for _, row := range workbenchAuditRows(t, subjectCreatorQuote, quote.ID) {
+		if row.Action == subjectCreatorQuote+".deleted" {
+			t.Fatalf("a refused delete wrote %s", row.Action)
+		}
+	}
+
+	// The same press with the revision it can see now goes through.
+	req = workbenchRequest(t, "DELETE",
+		"/api/workbench/bd/quotes/"+quote.ID+"?expected_revision=2", nil, testUserID)
+	testutil.Call(t, testHandler.DeleteBdQuote,
+		withURLParam(req, "quoteId", quote.ID)).Want(http.StatusNoContent)
+
+	// And a client that never learned about the parameter still deletes: an
+	// absent `expected_revision` is no check at all (§3, old-client compatibility).
+	legacy := bdQuoteFixture(t, "Legacy delete")
+	req = workbenchRequest(t, "DELETE", "/api/workbench/bd/quotes/"+legacy.ID, nil, testUserID)
+	testutil.Call(t, testHandler.DeleteBdQuote,
+		withURLParam(req, "quoteId", legacy.ID)).Want(http.StatusNoContent)
+
+	// A revision below 1 is a typo, not a request to skip the check.
+	other := bdQuoteFixture(t, "Typo delete")
+	req = workbenchRequest(t, "DELETE",
+		"/api/workbench/bd/quotes/"+other.ID+"?expected_revision=0", nil, testUserID)
+	testutil.Call(t, testHandler.DeleteBdQuote,
+		withURLParam(req, "quoteId", other.ID)).Want(http.StatusBadRequest)
+}
+
+// TestDeletingACollabWithAStaleRevisionAnswers409 is the same guard on the CRM
+// ledger, and it holds the cascade with it: the refused delete takes no
+// settlements either.
+func TestDeletingACollabWithAStaleRevisionAnswers409(t *testing.T) {
+	collab := collabFixture(t, "Stale collab delete")
+	req := workbenchRequest(t, "POST", "/api/workbench/crm/settlements", map[string]any{
+		"collab_id": collab.ID,
+		"kind":      "prepay",
+		"amount":    800,
+	}, testUserID)
+	settlement := testutil.Decode[CrmSettlementResponse](t, testHandler.CreateCrmSettlement,
+		req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM crm_settlement WHERE id = $1`, settlement.ID) })
+	cleanupWorkbenchAudit(t, subjectCrmSettlement, settlement.ID)
+
+	req = workbenchRequest(t, "PATCH", "/api/workbench/crm/collabs/"+collab.ID, map[string]any{
+		"stage":             "confirmed",
+		"expected_revision": 1,
+	}, testUserID)
+	testutil.Decode[CrmCollabResponse](t, testHandler.UpdateCrmCollab,
+		withURLParam(req, "collabId", collab.ID), http.StatusOK)
+
+	req = workbenchRequest(t, "DELETE",
+		"/api/workbench/crm/collabs/"+collab.ID+"?expected_revision=1", nil, testUserID)
+	conflict := testutil.Call(t, testHandler.DeleteCrmCollab,
+		withURLParam(req, "collabId", collab.ID)).Want(http.StatusConflict).Map()
+	if conflict["error"] != "stale_write" {
+		t.Fatalf("409 body error = %v, want stale_write", conflict["error"])
+	}
+	current, ok := conflict["current"].(map[string]any)
+	if !ok || current["revision"] != float64(2) || current["stage"] != "confirmed" {
+		t.Fatalf("409 current = %v, want revision 2 confirmed", conflict["current"])
+	}
+
+	// Nothing was archived: not the collab, and not the settlement it would have
+	// taken with it.
+	req = workbenchRequest(t, "GET", "/api/workbench/crm/settlements?collab_id="+collab.ID, nil, testUserID)
+	var list struct {
+		Settlements []CrmSettlementResponse `json:"settlements"`
+		Total       int                     `json:"total"`
+	}
+	testutil.Call(t, testHandler.ListCrmSettlements, req).Want(http.StatusOK).JSON(&list)
+	if list.Total != 1 || list.Settlements[0].ID != settlement.ID {
+		t.Fatalf("settlements after the refused delete = %+v, want the one it was to take", list.Settlements)
+	}
+
+	req = workbenchRequest(t, "DELETE",
+		"/api/workbench/crm/collabs/"+collab.ID+"?expected_revision=2", nil, testUserID)
+	testutil.Call(t, testHandler.DeleteCrmCollab,
+		withURLParam(req, "collabId", collab.ID)).Want(http.StatusNoContent)
+}
+
+// TestDeletingTheSameRowTwiceLeavesOneDeletedEvent is the race the guard makes
+// observable: two deletes sent at once, one of them archived the row and the other
+// is told the row is gone — never a second 204, never a second `.deleted` audit
+// line, and the revision moves once.
+//
+// The loser answers 404 rather than 409 here because by the time it looks the row
+// is archived, and an archived row is not a "current row" to hand back: the two
+// outcomes of a missed guard are "the revision moved" (409, row still live) and
+// "the row is gone" (404). Both mean the same thing to a client — refresh, do not
+// replay — but only one of them can carry a row.
+func TestDeletingTheSameRowTwiceLeavesOneDeletedEvent(t *testing.T) {
+	collab := collabFixture(t, "Double collab delete")
+	statuses := make([]int, 2)
+	var wg sync.WaitGroup
+	for i := range statuses {
+		wg.Add(1)
+		go func(slot int) {
+			defer wg.Done()
+			req := workbenchRequest(t, "DELETE",
+				"/api/workbench/crm/collabs/"+collab.ID+"?expected_revision=1", nil, testUserID)
+			rec := httptest.NewRecorder()
+			testHandler.DeleteCrmCollab(rec, withURLParam(req, "collabId", collab.ID))
+			statuses[slot] = rec.Code
+		}(i)
+	}
+	wg.Wait()
+
+	created, gone := 0, 0
+	for _, code := range statuses {
+		switch code {
+		case http.StatusNoContent:
+			created++
+		case http.StatusNotFound:
+			gone++
+		default:
+			t.Fatalf("concurrent deletes answered %v, want 204 and 404", statuses)
+		}
+	}
+	if created != 1 || gone != 1 {
+		t.Fatalf("concurrent deletes answered %v, want exactly one 204 and one 404", statuses)
+	}
+
+	// One archive means one revision bump and one `.deleted` line, not two.
+	if bump := dbfx.Count(t,
+		`SELECT count(*) FROM crm_collab WHERE id = $1 AND revision = 2`, collab.ID); bump != 1 {
+		t.Fatalf("revision after two deletes is not the create's 1 plus one bump")
+	}
+	deleted := 0
+	for _, row := range workbenchAuditRows(t, subjectCrmCollab, collab.ID) {
+		if row.Action == subjectCrmCollab+".deleted" {
+			deleted++
+		}
+	}
+	if deleted != 1 {
+		t.Fatalf("%d crm_collab.deleted rows for two concurrent deletes, want 1", deleted)
 	}
 }

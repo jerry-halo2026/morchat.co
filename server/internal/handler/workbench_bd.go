@@ -36,6 +36,7 @@ import (
 	"errors"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -2055,7 +2056,38 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, bdQuoteToResponse(updated, last))
 }
 
+// workbenchQueryExpectedRevision reads the optional `?expected_revision=` a
+// DELETE carries (COLLAB-MODEL §3, WORKBENCH-API §3.5).
+//
+// A delete names its revision in the query string rather than in the body
+// because a DELETE body is not portable — proxies and some clients drop it — and
+// the delete endpoint takes no other input. Absent means "do not check", which is
+// what every client written before this batch sends; a value below 1 is a typo,
+// not a request to skip the check. The PATCH-side twin is
+// workbenchExpectedRevision, and this one repeats its wording so the same
+// mistake reads the same way on both verbs.
+//
+// Shared with DeleteCrmCollab in workbench_crm.go: two ledgers, one rule.
+func workbenchQueryExpectedRevision(w http.ResponseWriter, r *http.Request) (pgtype.Int4, bool) {
+	raw := strings.TrimSpace(r.URL.Query().Get("expected_revision"))
+	if raw == "" {
+		return pgtype.Int4{}, true
+	}
+	value, err := strconv.Atoi(raw)
+	if err != nil || value < 1 {
+		writeError(w, http.StatusBadRequest, "expected_revision must be a positive integer")
+		return pgtype.Int4{}, false
+	}
+	return pgtype.Int4{Int32: int32(value), Valid: true}, true
+}
+
 // DeleteBdQuote 鈥?DELETE /api/workbench/bd/quotes/{quoteId}
+//
+// A delete is a §3 write like any PATCH: `?expected_revision=` names the revision
+// this client read, a mismatch answers 409 `stale_write` with the current row, and
+// no parameter means no check (old clients). The guard sits in the archive's
+// WHERE, not in the read above it — two connections that both read revision 4
+// would otherwise both pass a read-then-delete check and both "succeed".
 func (h *Handler) DeleteBdQuote(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -2072,6 +2104,10 @@ func (h *Handler) DeleteBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !agentDeleteGate(w, actor) {
 		return
 	}
+	expectedRevision, ok := workbenchQueryExpectedRevision(w, r)
+	if !ok {
+		return
+	}
 
 	tx, err := h.TxStarter.Begin(r.Context())
 	if err != nil {
@@ -2082,14 +2118,34 @@ func (h *Handler) DeleteBdQuote(w http.ResponseWriter, r *http.Request) {
 	qtx := h.Queries.WithTx(tx)
 
 	archived, err := qtx.ArchiveCreatorQuote(r.Context(), db.ArchiveCreatorQuoteParams{
-		ID:          current.ID,
-		WorkspaceID: scope.WorkspaceUUID,
+		ID:               current.ID,
+		WorkspaceID:      scope.WorkspaceUUID,
+		ExpectedRevision: expectedRevision,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to delete the quote", err)
 		return
 	}
 	if archived == 0 {
+		// Nothing archived: the revision moved under this delete, or somebody else
+		// deleted the quote first. Read the row back to tell the two apart — the
+		// transaction is aborted, so roll it back before reading (same shape as the
+		// PATCH's 409). A row that still exists moved: 409 with it. A row that is
+		// gone (archived) has no current row to hand back: 404, like any delete of
+		// something that is not there.
+		_ = tx.Rollback(r.Context())
+		survivor, readErr := h.Queries.GetCreatorQuote(r.Context(), db.GetCreatorQuoteParams{
+			ID: current.ID, WorkspaceID: scope.WorkspaceUUID,
+		})
+		if readErr != nil {
+			writeError(w, http.StatusNotFound, "quote not found")
+			return
+		}
+		if expectedRevision.Valid && survivor.Revision != expectedRevision.Int32 {
+			writeStaleWrite(w, bdQuoteToResponse(survivor,
+				h.lastWorkbenchActor(r.Context(), scope, subjectCreatorQuote, survivor.ID)))
+			return
+		}
 		writeError(w, http.StatusNotFound, "quote not found")
 		return
 	}

@@ -110,6 +110,23 @@ describe("a 409 stale_write", () => {
     expect(error).toBeInstanceOf(Error);
   });
 
+  it("carries the current row when a guarded delete is refused", async () => {
+    // A delete is a §3 write too: the guard travels as `?expected_revision=`,
+    // and the refusal answers with the row the caller never saw so the page can
+    // refresh instead of pressing 删除 again.
+    const fetchMock = stubResponse({ error: "stale_write", current: currentQuote }, 409);
+
+    const error = await client()
+      .deleteBdQuote("quote-1", 2)
+      .catch((cause: unknown) => cause);
+
+    const url = new URL(String(fetchMock.mock.calls[0]?.[0]));
+    expect(url.searchParams.get("expected_revision")).toBe("2");
+    if (!isStaleWrite<QuoteRow>(error)) throw new Error("expected a StaleWriteError");
+    expect(error.current.revision).toBe(4);
+    expect(error.current.status).toBe("sent");
+  });
+
   it("does not invent a stale write out of a successful PATCH", async () => {
     stubResponse({ ...currentCollab, revision: 3 });
 

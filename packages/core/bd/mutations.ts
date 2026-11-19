@@ -103,11 +103,28 @@ export function useUpdateBdQuote() {
   });
 }
 
+/**
+ * Soft delete: the row leaves every answer, the record that it was written does not.
+ *
+ * The delete carries the `expected_revision` its caller read, like every other §3
+ * write (it travels in the query string — a DELETE body is not portable). Omit it
+ * and the server does not check, which is what an old client does. A 409 puts the
+ * server's row into the detail cache and rereads the ledger, so the page shows
+ * what happened instead of retrying a delete that was aimed at a row that moved.
+ */
 export function useDeleteBdQuote() {
   const invalidate = useInvalidateBd();
+  const qc = useQueryClient();
+  const wsId = useWorkspaceId();
   return useMutation({
-    mutationFn: (id: string) => api.deleteBdQuote(id),
+    mutationFn: ({ id, expectedRevision }: { id: string; expectedRevision?: number }) =>
+      api.deleteBdQuote(id, expectedRevision),
     onSuccess: () => invalidate(),
+    onError: (error, variables) => {
+      if (!isStaleWrite<BdQuote>(error)) return;
+      qc.setQueryData(bdKeys.detail(wsId, "quotes", variables.id), error.current);
+      invalidate();
+    },
   });
 }
 

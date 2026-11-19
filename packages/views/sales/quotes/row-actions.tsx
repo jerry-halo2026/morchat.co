@@ -58,10 +58,10 @@ const DECISIONS: readonly { status: Extract<BdQuoteStatus, "accepted" | "rejecte
  *
  * The rules are read in one order: 409 first, then §26.3's 400, so a stale write
  * can never be mistaken for "say why you overwrote an agent" and a reason dialog
- * can never hide a refresh. The delete has no body to carry a revision in — the
- * endpoint takes the id and nothing else — so its 409 branch is the same rule
- * applied to a refusal: refresh from `current`, close the confirmation, do not
- * delete again.
+ * can never hide a refresh. The delete names its revision in the query string
+ * (`?expected_revision=`, WORKBENCH-API §3.5 — a DELETE body is not portable), so
+ * its 409 means the same thing the two decisions' does: refresh from `current`,
+ * close the confirmation, do not delete again.
  */
 export function QuoteRowActions({ quote, canWrite }: { quote: BdQuote; canWrite: boolean }) {
   const copy = useQuotesCopy();
@@ -153,7 +153,7 @@ export function QuoteRowActions({ quote, canWrite }: { quote: BdQuote; canWrite:
 
   const destroy = async () => {
     try {
-      await remove.mutateAsync(row.id);
+      await remove.mutateAsync({ id: row.id, expectedRevision: row.revision });
       toast.success(copy("toast_deleted"));
       setConfirming(false);
     } catch (error) {

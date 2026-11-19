@@ -262,10 +262,17 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
 RETURNING *;
 
 -- name: ArchiveCreatorQuote :execrows
+-- A delete is a write too (COLLAB-MODEL §3): the revision moves, so an audit
+-- trail that reads the row before and after a delete cannot claim nothing
+-- happened — and the optional `expected_revision` puts the same guard on the
+-- delete that `UpdateCreatorQuote` has. The check lives in the WHERE rather than
+-- in a read-then-delete, because two connections that both read revision 4 would
+-- otherwise both see "unchanged" and both win.
 UPDATE creator_quote
 SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
-  AND archived_at IS NULL;
+  AND archived_at IS NULL
+  AND (sqlc.narg('expected_revision')::int IS NULL OR revision = sqlc.narg('expected_revision')::int);
 
 -- ---- campaigns (creator_campaign) ------------------------------------------
 

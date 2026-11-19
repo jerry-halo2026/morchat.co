@@ -200,20 +200,35 @@ export function CollabSheet({
   /**
    * 撤销合作单 — the one irreversible write on this page.
    *
-   * The confirmation waits for the server before anything closes: a drawer that
-   * vanished on a failed request would leave the reader believing a row and its
-   * settlements were gone. On success the drawer closes and the invalidated
-   * `crmKeys` subtree redraws the list; on failure the dialog stays open with the
-   * reason beside the button that tried.
+   * It is a §3 write like the save above: the `DELETE` names the revision this
+   * drawer read (`?expected_revision=`, WORKBENCH-API §3.5), so a drawer left open
+   * while somebody else moved the card is refused instead of archiving a row its
+   * reader never saw. The confirmation waits for the server before anything
+   * closes: a drawer that vanished on a failed request would leave the reader
+   * believing a row and its settlements were gone. On success the drawer closes
+   * and the invalidated `crmKeys` subtree redraws the list; on failure the dialog
+   * stays open with the reason beside the button that tried.
+   *
+   * A 409 is the one failure that is not "try again": the row moved, the drawer
+   * now holds the server's version, and the press was aimed at a row that no
+   * longer exists. It refreshes from `current` and closes the dialog, exactly like
+   * `save` — nothing is replayed.
    */
   const revoke = async () => {
     if (!collab) return;
     setRevokeFailure(null);
     try {
-      await remove.mutateAsync(collab.id);
+      await remove.mutateAsync({ id: collab.id, expectedRevision: revision });
       setRevoking(false);
       onClose();
     } catch (error) {
+      if (isStaleWrite<CrmCollab>(error)) {
+        setForm(collabForm(error.current));
+        setRevision(error.current.revision);
+        setRefreshed(true);
+        setRevoking(false);
+        return;
+      }
       setRevokeFailure(
         error instanceof Error && error.message
           ? error.message

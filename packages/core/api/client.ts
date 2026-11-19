@@ -4852,8 +4852,25 @@ export class ApiClient {
     });
   }
 
-  async deleteCrmCollab(id: string): Promise<void> {
-    await this.fetch(`/api/workbench/crm/collabs/${id}`, { method: "DELETE" });
+  /**
+   * A delete is a §3 write too: it bumps `revision`, so it can name the one it
+   * read. `expectedRevision` travels as `?expected_revision=` because a DELETE
+   * body is not portable, and an omitted one is no check at all (old clients).
+   * A mismatch throws `StaleWriteError` carrying the current row — the caller's
+   * job is to refresh, never to replay the delete.
+   */
+  async deleteCrmCollab(id: string, expectedRevision?: number): Promise<void> {
+    await this.fetch(
+      `/api/workbench/crm/collabs/${id}${workbenchSearch({ expected_revision: expectedRevision })}`,
+      { method: "DELETE" },
+    ).catch((error: unknown) =>
+      rethrowStaleWrite(
+        error,
+        CrmCollabSchema,
+        EMPTY_CRM_COLLAB,
+        "DELETE /api/workbench/crm/collabs/:collabId",
+      ),
+    );
   }
 
   async listCrmSettlements(
@@ -5043,8 +5060,19 @@ export class ApiClient {
     });
   }
 
-  async deleteBdQuote(id: string): Promise<void> {
-    await this.fetch(`/api/workbench/bd/quotes/${id}`, { method: "DELETE" });
+  /** See `deleteCrmCollab`: the same query-string guard on the quote ledger. */
+  async deleteBdQuote(id: string, expectedRevision?: number): Promise<void> {
+    await this.fetch(
+      `/api/workbench/bd/quotes/${id}${workbenchSearch({ expected_revision: expectedRevision })}`,
+      { method: "DELETE" },
+    ).catch((error: unknown) =>
+      rethrowStaleWrite(
+        error,
+        BdQuoteSchema,
+        EMPTY_BD_QUOTE,
+        "DELETE /api/workbench/bd/quotes/:quoteId",
+      ),
+    );
   }
 
   // ---- the review gate (WORKBENCH-API §26) --------------------------------

@@ -1411,6 +1411,13 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 // rejected because it makes a mis-created collaboration permanent: the operator's only
 // repair would be editing rows the API does not let them edit. A reader who needs the
 // money to stay visible should not delete the collaboration.
+//
+// A delete is a §3 write like any PATCH: `?expected_revision=` names the revision
+// the caller read, a mismatch answers 409 `stale_write` with the current row, and
+// no parameter means no check (old clients). The guard lives in the archive's
+// WHERE rather than in the read above it, so two connections that both read the
+// same revision cannot both archive the row and both write their own `.deleted`
+// audit line.
 func (h *Handler) DeleteCrmCollab(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -1427,6 +1434,10 @@ func (h *Handler) DeleteCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !agentDeleteGate(w, actor) {
 		return
 	}
+	expectedRevision, ok := workbenchQueryExpectedRevision(w, r)
+	if !ok {
+		return
+	}
 
 	// One transaction: a collab archived without its settlements (or the reverse)
 	// is exactly the orphan this endpoint exists to avoid. The audit rows ride in
@@ -1441,14 +1452,34 @@ func (h *Handler) DeleteCrmCollab(w http.ResponseWriter, r *http.Request) {
 	qtx := h.Queries.WithTx(tx)
 
 	deleted, err := qtx.ArchiveCrmCollab(r.Context(), db.ArchiveCrmCollabParams{
-		ID:          current.ID,
-		WorkspaceID: scope.WorkspaceUUID,
+		ID:               current.ID,
+		WorkspaceID:      scope.WorkspaceUUID,
+		ExpectedRevision: expectedRevision,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to delete collab", err)
 		return
 	}
 	if deleted == 0 {
+		// The guard missed, and the two reasons answer differently (§3): the row
+		// moved past the revision this client read — 409 with the current row, the
+		// same shape a PATCH sends — or it is already archived, in which case there
+		// is no current row to hand back and the delete is simply of something that
+		// is not there: 404. Reading after a rollback, because the failed statement
+		// aborted the transaction.
+		_ = tx.Rollback(r.Context())
+		survivor, readErr := h.Queries.GetCrmCollab(r.Context(), db.GetCrmCollabParams{
+			ID: current.ID, WorkspaceID: scope.WorkspaceUUID,
+		})
+		if readErr != nil {
+			writeError(w, http.StatusNotFound, "collab not found")
+			return
+		}
+		if expectedRevision.Valid && survivor.Revision != expectedRevision.Int32 {
+			writeStaleWrite(w, crmCollabToResponse(survivor,
+				h.lastWorkbenchActor(r.Context(), scope, subjectCrmCollab, survivor.ID)))
+			return
+		}
 		writeError(w, http.StatusNotFound, "collab not found")
 		return
 	}
