@@ -364,23 +364,15 @@ func TestChangeWriteGate(t *testing.T) {
 		t.Fatalf("member read %d changes, want 0", got.Total)
 	}
 
-	// A profile the member owns: the entry is accepted, and the member may edit
-	// its own note but still not its facts.
-	req = workbenchRequest(t, "POST", "/api/workbench/hr/employees", map[string]any{
-		"member_id": memberUserID,
-		"job_title": "Recruiter",
-		"grade":     "P4",
-	}, memberUserID)
-	ownProfile := testutil.Decode[HrEmployeeProfileResponse](t, testHandler.CreateHrEmployee, req, http.StatusCreated)
-	t.Cleanup(func() {
-		dbfx.Exec(t, `DELETE FROM hr_employee_change WHERE employee_id = $1`, ownProfile.ID)
-	})
-	t.Cleanup(func() {
-		dbfx.Exec(t, `DELETE FROM hr_employee_profile WHERE id = $1`, ownProfile.ID)
-	})
+	// The seeded profile already belongs to this member (workbenchTestMember seeds
+	// one so the capability template resolves a job title). The table allows one
+	// profile per member, so the test reuses it instead of creating a second — and
+	// hands it to the member, which is the ownership the assertions below are about.
+	ownProfileID := seededEmployeeProfileID(t, memberUserID)
+	dbfx.Exec(t, `UPDATE hr_employee_profile SET owner_member_id = $2 WHERE id = $1`, ownProfileID, memberUserID)
 
 	req = workbenchRequest(t, "POST", "/api/workbench/hr/changes", map[string]any{
-		"employee_id":  ownProfile.ID,
+		"employee_id":  ownProfileID,
 		"kind":         "hire",
 		"effective_on": "2025-09-01",
 		"to_job_title": "Recruiter",

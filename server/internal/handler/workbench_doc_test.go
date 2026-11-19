@@ -68,9 +68,6 @@ func createDocEmployeeFixture(t *testing.T, label string) HrEmployeeProfileRespo
 	t.Cleanup(func() {
 		dbfx.Exec(t, `DELETE FROM hr_doc_generation WHERE employee_id = $1`, profile.ID)
 	})
-	t.Cleanup(func() {
-		dbfx.Exec(t, `DELETE FROM hr_employee_profile WHERE id = $1`, profile.ID)
-	})
 	return profile
 }
 
@@ -356,27 +353,20 @@ func TestDocGenerationIsOwnerOrAdmin(t *testing.T) {
 
 	// The member owns this profile (it created it), which is exactly the case the
 	// stricter gate exists for.
-	req := workbenchRequest(t, "POST", "/api/workbench/hr/employees", map[string]any{
-		"member_id": memberUserID,
-		"job_title": "内容运营",
-	}, memberUserID)
-	profile := testutil.Decode[HrEmployeeProfileResponse](t, testHandler.CreateHrEmployee, req, http.StatusCreated)
+	profileID := seededEmployeeProfileID(t, memberUserID)
 	t.Cleanup(func() {
-		dbfx.Exec(t, `DELETE FROM hr_doc_generation WHERE employee_id = $1`, profile.ID)
-	})
-	t.Cleanup(func() {
-		dbfx.Exec(t, `DELETE FROM hr_employee_profile WHERE id = $1`, profile.ID)
+		dbfx.Exec(t, `DELETE FROM hr_doc_generation WHERE employee_id = $1`, profileID)
 	})
 
 	template := createDocTemplate(t, "越权（测试）", "兹证明 {{员工姓名}}。")
 
-	generateDoc(t, profile.ID, memberUserID, map[string]any{
+	generateDoc(t, profileID, memberUserID, map[string]any{
 		"template_id": template.ID,
 		"format":      "docx",
 	}, http.StatusForbidden)
 
 	// Template writes are the same gate.
-	req = workbenchRequest(t, "POST", "/api/workbench/hr/doc-templates", map[string]any{
+	req := workbenchRequest(t, "POST", "/api/workbench/hr/doc-templates", map[string]any{
 		"name": "member 建的模板",
 		"kind": "other",
 		"body": "正文",
@@ -395,8 +385,8 @@ func TestDocGenerationIsOwnerOrAdmin(t *testing.T) {
 	// Reads are member-wide: the template list and an (empty) document list.
 	req = workbenchRequest(t, "GET", "/api/workbench/hr/doc-templates", nil, memberUserID)
 	testutil.Call(t, testHandler.ListHrDocTemplates, req).Want(http.StatusOK)
-	req = workbenchRequest(t, "GET", "/api/workbench/hr/employees/"+profile.ID+"/documents", nil, memberUserID)
-	req = withURLParam(req, "employeeId", profile.ID)
+	req = workbenchRequest(t, "GET", "/api/workbench/hr/employees/"+profileID+"/documents", nil, memberUserID)
+	req = withURLParam(req, "employeeId", profileID)
 	testutil.Call(t, testHandler.ListHrEmployeeDocuments, req).Want(http.StatusOK)
 }
 

@@ -1393,7 +1393,7 @@ func (h *Handler) UpdateBdActivity(w http.ResponseWriter, r *http.Request) {
 	} else if parsed != "" {
 		kind = parsed
 	}
-	happenedAt, ok := applyTimestampPatch(req.HappenedAt, w, "happened_at", current.HappenedAt)
+	happenedAt, ok := applyRequiredTimestampPatch(req.HappenedAt, w, "happened_at", current.HappenedAt)
 	if !ok {
 		return
 	}
@@ -1603,7 +1603,7 @@ func (h *Handler) ListBdQuotes(w http.ResponseWriter, r *http.Request) {
 		AssigneeType:     assigneeType,
 		AssigneeID:       assigneeID,
 		ReviewState:      reviewState,
-		Query:            optionalTrimmedText(optionalString(query.Get("q"))),
+		Query:            optionalTrimmedText(optionalString(workbenchLikePattern(query.Get("q")))),
 		DepartmentScoped: departmentScoped,
 		DepartmentID:     departmentID,
 		CursorID:         cursorID,
@@ -1744,6 +1744,9 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !bdCommissionRate(w, req.CommissionRate) {
 		return
 	}
+	if !workbenchNonNegativeAmount(w, req.FeeAmount, "fee_amount") {
+		return
+	}
 	currency, ok := workbenchCurrency(w, req.Currency)
 	if !ok {
 		return
@@ -1764,6 +1767,10 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	items, ok := bdQuoteItems(w, req.Items)
+	if !ok {
+		return
+	}
+	feeAmount, ok := workbenchMoneyValue(w, req.FeeAmount, "fee_amount")
 	if !ok {
 		return
 	}
@@ -1796,7 +1803,7 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 		Status:         status,
 		QuotedAt:       quotedAt,
 		ValidUntil:     validUntil,
-		FeeAmount:      floatToNumeric(req.FeeAmount),
+		FeeAmount:      feeAmount,
 		CommissionRate: floatToNumeric(req.CommissionRate),
 		Currency:       currency,
 		Items:          string(items),
@@ -1935,6 +1942,9 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !bdCommissionRate(w, req.CommissionRate) {
 		return
 	}
+	if !workbenchNonNegativeAmount(w, req.FeeAmount, "fee_amount") {
+		return
+	}
 	currency := strings.TrimSpace(current.Currency)
 	if req.Currency != nil {
 		parsed, ok := workbenchCurrency(w, req.Currency)
@@ -1965,6 +1975,10 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		items = parsed
+	}
+	feeAmount, ok := workbenchMoneyPatch(w, req.FeeAmount, "fee_amount", current.FeeAmount)
+	if !ok {
+		return
 	}
 	requestedOwner, ok := workbenchOptionalUUID(w, req.OwnerMemberID, "owner_member_id")
 	if !ok {
@@ -2003,7 +2017,7 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 		Status:           status,
 		QuotedAt:         quotedAt,
 		ValidUntil:       validUntil,
-		FeeAmount:        applyNumericPatch(req.FeeAmount, current.FeeAmount),
+		FeeAmount:        feeAmount,
 		CommissionRate:   applyNumericPatch(req.CommissionRate, current.CommissionRate),
 		Currency:         currency,
 		Items:            string(items),
@@ -2245,11 +2259,21 @@ func (h *Handler) CreateBdCampaign(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "name is required")
 		return
 	}
+	if !workbenchNameValue(w, name, "name") {
+		return
+	}
 	kind := "manual"
 	if parsed, ok := bdEnum(w, req.Kind, bdCampaignKinds, "kind"); !ok {
 		return
 	} else if parsed != "" {
 		kind = parsed
+	}
+	if !workbenchNonNegativeAmount(w, req.BudgetAmount, "budget_amount") {
+		return
+	}
+	budgetAmount, ok := workbenchMoneyValue(w, req.BudgetAmount, "budget_amount")
+	if !ok {
+		return
 	}
 	currency, ok := workbenchCurrency(w, req.Currency)
 	if !ok {
@@ -2286,7 +2310,7 @@ func (h *Handler) CreateBdCampaign(w http.ResponseWriter, r *http.Request) {
 		WorkspaceID:   scope.WorkspaceUUID,
 		Name:          name,
 		Kind:          kind,
-		BudgetAmount:  floatToNumeric(req.BudgetAmount),
+		BudgetAmount:  budgetAmount,
 		Currency:      currency,
 		StartedOn:     startedOn,
 		EndedOn:       endedOn,
@@ -2381,11 +2405,21 @@ func (h *Handler) UpdateBdCampaign(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	if !workbenchNameValue(w, name, "name") {
+		return
+	}
 	kind := current.Kind
 	if parsed, ok := bdEnum(w, req.Kind, bdCampaignKinds, "kind"); !ok {
 		return
 	} else if parsed != "" {
 		kind = parsed
+	}
+	if !workbenchNonNegativeAmount(w, req.BudgetAmount, "budget_amount") {
+		return
+	}
+	budgetAmount, ok := workbenchMoneyPatch(w, req.BudgetAmount, "budget_amount", current.BudgetAmount)
+	if !ok {
+		return
 	}
 	currency := strings.TrimSpace(current.Currency)
 	if req.Currency != nil {
@@ -2429,7 +2463,7 @@ func (h *Handler) UpdateBdCampaign(w http.ResponseWriter, r *http.Request) {
 	updated, err := h.Queries.UpdateCreatorCampaign(r.Context(), db.UpdateCreatorCampaignParams{
 		Name:          name,
 		Kind:          kind,
-		BudgetAmount:  applyNumericPatch(req.BudgetAmount, current.BudgetAmount),
+		BudgetAmount:  budgetAmount,
 		Currency:      currency,
 		StartedOn:     startedOn,
 		EndedOn:       endedOn,

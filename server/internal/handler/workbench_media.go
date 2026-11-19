@@ -957,6 +957,9 @@ func (h *Handler) CreateMediaIP(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "name is required")
 		return
 	}
+	if !workbenchNameValue(w, name, "name") {
+		return
+	}
 	status := mediaIPStatusActive
 	if req.Status != nil {
 		status = strings.TrimSpace(*req.Status)
@@ -1063,6 +1066,9 @@ func (h *Handler) UpdateMediaIP(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusBadRequest, "name is required")
 			return
 		}
+	}
+	if !workbenchNameValue(w, name, "name") {
+		return
 	}
 	status := current.Status
 	if req.Status != nil {
@@ -2259,7 +2265,7 @@ func (h *Handler) ListMediaHot(w http.ResponseWriter, r *http.Request) {
 		CapturedOn:  capturedOn,
 		Category:    strToText(strings.TrimSpace(r.URL.Query().Get("category"))),
 		Platform:    strToText(strings.TrimSpace(r.URL.Query().Get("platform"))),
-		Query:       strToText(strings.TrimSpace(r.URL.Query().Get("q"))),
+		Query:       strToText(workbenchLikePattern(r.URL.Query().Get("q"))),
 		Limit:       workbenchLimit(r),
 	})
 	if err != nil {
@@ -2512,7 +2518,7 @@ func (h *Handler) ListMediaBench(w http.ResponseWriter, r *http.Request) {
 		IpID:        ipID,
 		CapturedOn:  capturedOn,
 		Platform:    strToText(strings.TrimSpace(r.URL.Query().Get("platform"))),
-		Query:       strToText(strings.TrimSpace(r.URL.Query().Get("q"))),
+		Query:       strToText(workbenchLikePattern(r.URL.Query().Get("q"))),
 		Limit:       workbenchLimit(r),
 	})
 	if err != nil {

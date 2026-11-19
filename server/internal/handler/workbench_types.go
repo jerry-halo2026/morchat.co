@@ -23,12 +23,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/jackc/pgx/v5/pgtype"
 
@@ -244,6 +247,105 @@ func floatToNumeric(v *float64) pgtype.Numeric {
 	return n
 }
 
+// workbenchAmountMax is the widest value NUMERIC(14,2) can hold: twelve integer
+// digits and two decimals.
+//
+// The bound is checked in Go because PostgreSQL's answer to a value outside it is
+// SQLSTATE 22003 ("numeric field overflow"), which the handlers can only report as
+// a 500 — a response that tells the caller the ledger is broken instead of telling
+// them which number does not fit. 1234567890123456 is exactly the shape a
+// spreadsheet produces when a column loses its decimal point, so it is not a
+// theoretical input.
+const workbenchAmountMax = 99999999999.99
+
+// workbenchAmountMessage is the one wording every amount rejection uses.
+const workbenchAmountMessage = "must be between -99999999999.99 and 99999999999.99 (NUMERIC(14,2))"
+
+// workbenchAmountFits reports whether PostgreSQL can store the value in a
+// NUMERIC(14,2) column.
+func workbenchAmountFits(v *float64) bool {
+	if v == nil {
+		return true
+	}
+	if math.IsNaN(*v) || math.IsInf(*v, 0) {
+		return false
+	}
+	return math.Abs(*v) <= workbenchAmountMax
+}
+
+// workbenchMoneyValue resolves an optional display amount for a create body. A
+// value the column cannot hold is a 400 naming the field, never a 500.
+func workbenchMoneyValue(w http.ResponseWriter, raw *float64, fieldName string) (pgtype.Numeric, bool) {
+	if !workbenchAmountFits(raw) {
+		writeError(w, http.StatusBadRequest, fieldName+" "+workbenchAmountMessage)
+		return pgtype.Numeric{}, false
+	}
+	return floatToNumeric(raw), true
+}
+
+// workbenchMoneyPatch is applyNumericPatch with the same bound: absent keeps the
+// stored amount, and a value outside the column is refused before it reaches SQL.
+func workbenchMoneyPatch(w http.ResponseWriter, raw *float64, fieldName string, current pgtype.Numeric) (pgtype.Numeric, bool) {
+	if raw == nil {
+		return current, true
+	}
+	if !workbenchAmountFits(raw) {
+		writeError(w, http.StatusBadRequest, fieldName+" "+workbenchAmountMessage)
+		return pgtype.Numeric{}, false
+	}
+	return floatToNumeric(raw), true
+}
+
+// workbenchNonNegativeAmount rejects the amounts whose columns carry a
+// `CHECK (… >= 0)`: the CHECK is the backstop, the handler is the answer the
+// caller can act on (the same split migration 805 spells out for `fee_amount`).
+func workbenchNonNegativeAmount(w http.ResponseWriter, raw *float64, fieldName string) bool {
+	if raw != nil && *raw < 0 {
+		writeError(w, http.StatusBadRequest, fieldName+" must not be negative")
+		return false
+	}
+	return true
+}
+
+// workbenchNameLimit is the rune cap for the identifying TEXT columns that carry a
+// unique index (`creator_campaign.name`, `media_ip.name`).
+//
+// A btree index entry cannot exceed about 2.7 KB, so a pasted megabyte fails inside
+// the index with SQLSTATE 54000 and surfaces as a 500 that blames the server for a
+// bad input. 512 runes stays well under the limit even when every rune is four
+// bytes, and is far more than a campaign or persona name needs.
+const workbenchNameLimit = 512
+
+// workbenchNameTooLong reports whether a name would overflow its unique index.
+func workbenchNameTooLong(name string) bool {
+	return utf8.RuneCountInString(name) > workbenchNameLimit
+}
+
+// workbenchNameValue validates a name that is written into a unique index.
+func workbenchNameValue(w http.ResponseWriter, name, fieldName string) bool {
+	if workbenchNameTooLong(name) {
+		writeError(w, http.StatusBadRequest,
+			fmt.Sprintf("%s must be at most %d characters", fieldName, workbenchNameLimit))
+		return false
+	}
+	return true
+}
+
+// workbenchLikePattern escapes the metacharacters of a LIKE pattern.
+//
+// `?q=` is pasted into `ILIKE '%' || $1 || '%'`, so an unescaped `%` widens the
+// search to the whole ledger and `_` matches any single character — a filter that
+// silently answers a different question than the one asked. PostgreSQL's default
+// LIKE escape character is the backslash, so escaping here is enough and needs no
+// change in the query text.
+func workbenchLikePattern(raw string) string {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return ""
+	}
+	return strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(trimmed)
+}
+
 // numericToFloatPtr renders a stored NUMERIC for JSON. Amounts are display
 // values on the way out; the stored value stays exact.
 func numericToFloatPtr(n pgtype.Numeric) *float64 {
@@ -457,6 +559,21 @@ func applyTimestampPatch(patched *string, w http.ResponseWriter, fieldName strin
 	return workbenchTimestampValue(w, patched, fieldName)
 }
 
+// applyRequiredTimestampPatch is the NOT NULL counterpart of applyTimestampPatch.
+// A NOT NULL TIMESTAMPTZ has no "cleared" state, so an empty value is a 400 that
+// names the field instead of an UPDATE that fails on the constraint and surfaces
+// as a 500 (`creator_activity.happened_at`, migration 802).
+func applyRequiredTimestampPatch(patched *string, w http.ResponseWriter, fieldName string, current pgtype.Timestamptz) (pgtype.Timestamptz, bool) {
+	if patched == nil {
+		return current, true
+	}
+	if strings.TrimSpace(*patched) == "" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return pgtype.Timestamptz{}, false
+	}
+	return workbenchTimestampValue(w, patched, fieldName)
+}
+
 // ---- clearing nullable columns (§3.4) --------------------------------------
 //
 // A nullable column has three request states, and `*string` / `*float64` can only
@@ -585,6 +702,10 @@ func applyNumericClearPatch(raw json.RawMessage, w http.ResponseWriter, fieldNam
 			return pgtype.Numeric{}, true
 		}
 		writeError(w, http.StatusBadRequest, fieldName+" must be a number or null")
+		return pgtype.Numeric{}, false
+	}
+	if !workbenchAmountFits(&value) {
+		writeError(w, http.StatusBadRequest, fieldName+" "+workbenchAmountMessage)
 		return pgtype.Numeric{}, false
 	}
 	return floatToNumeric(&value), true

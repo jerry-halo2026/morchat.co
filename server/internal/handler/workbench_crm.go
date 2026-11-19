@@ -279,6 +279,25 @@ func workbenchProbability(w http.ResponseWriter, raw *float64) bool {
 	return true
 }
 
+// workbenchCommissionRate validates a collaboration's commission ratio. It is the
+// same rule, and the same wording, as `bdCommissionRate` on the quote ledger:
+// METRICS §3 C3 stores the ratio 0–1 and displays ×100, so 20 % is 0.2 and never
+// 20. The column is NUMERIC(6,5), which cannot even represent 438.00 — without
+// this check such a value reaches PostgreSQL as SQLSTATE 22003 and comes back as a
+// 500 that names no field. Clamping was rejected for the same reason it is
+// rejected on quotes: a quietly rewritten rate is a wrong number nobody can see.
+func workbenchCommissionRate(w http.ResponseWriter, raw *float64) bool {
+	if raw == nil {
+		return true
+	}
+	if *raw < 0 || *raw > 1 {
+		writeError(w, http.StatusBadRequest,
+			"commission_rate must be between 0 and 1: send 0.2 for 20%, not 20")
+		return false
+	}
+	return true
+}
+
 // ---- clients ---------------------------------------------------------------
 
 // ListCrmClients — GET /api/workbench/crm/clients
@@ -299,7 +318,7 @@ func (h *Handler) ListCrmClients(w http.ResponseWriter, r *http.Request) {
 	}
 	rows, err := h.Queries.ListCrmClients(r.Context(), db.ListCrmClientsParams{
 		WorkspaceID: scope.WorkspaceUUID,
-		Query:       strToText(strings.TrimSpace(r.URL.Query().Get("q"))),
+		Query:       strToText(workbenchLikePattern(r.URL.Query().Get("q"))),
 		CursorAt:    cursorAt,
 		CursorID:    cursorID,
 		Limit:       workbenchLimit(r),
@@ -596,21 +615,33 @@ func (h *Handler) CreateCrmBrief(w http.ResponseWriter, r *http.Request) {
 	if req.Platforms != nil && *req.Platforms != nil {
 		platforms = *req.Platforms
 	}
+	budgetMin, ok := workbenchMoneyValue(w, req.BudgetMinAmount, "budget_min_amount")
+	if !ok {
+		return
+	}
+	budgetMax, ok := workbenchMoneyValue(w, req.BudgetMaxAmount, "budget_max_amount")
+	if !ok {
+		return
+	}
+	kpiGMV, ok := workbenchMoneyValue(w, req.KPIGMVAmount, "kpi_gmv_amount")
+	if !ok {
+		return
+	}
 
 	brief, err := h.Queries.CreateCrmBrief(r.Context(), db.CreateCrmBriefParams{
 		WorkspaceID:     scope.WorkspaceUUID,
 		ClientID:        clientID,
 		Title:           title,
 		Category:        optionalTrimmedText(req.Category),
-		BudgetMinAmount: floatToNumeric(req.BudgetMinAmount),
-		BudgetMaxAmount: floatToNumeric(req.BudgetMaxAmount),
+		BudgetMinAmount: budgetMin,
+		BudgetMaxAmount: budgetMax,
 		TargetAudience:  optionalTrimmedText(req.TargetAudience),
 		DeliverableType: optionalTrimmedText(req.DeliverableType),
 		Platforms:       platforms,
 		ScheduleFrom:    scheduleFrom,
 		ScheduleTo:      scheduleTo,
 		KpiPlay:         int8Value(req.KPIPlay),
-		KpiGmvAmount:    floatToNumeric(req.KPIGMVAmount),
+		KpiGmvAmount:    kpiGMV,
 		Status:          status,
 		OwnerMemberID:   owner,
 		CreatedBy:       scope.Member.UserID,
@@ -733,6 +764,18 @@ func (h *Handler) UpdateCrmBrief(w http.ResponseWriter, r *http.Request) {
 	if req.Platforms != nil && *req.Platforms != nil {
 		platforms = *req.Platforms
 	}
+	budgetMin, ok := workbenchMoneyPatch(w, req.BudgetMinAmount, "budget_min_amount", current.BudgetMinAmount)
+	if !ok {
+		return
+	}
+	budgetMax, ok := workbenchMoneyPatch(w, req.BudgetMaxAmount, "budget_max_amount", current.BudgetMaxAmount)
+	if !ok {
+		return
+	}
+	kpiGMV, ok := workbenchMoneyPatch(w, req.KPIGMVAmount, "kpi_gmv_amount", current.KpiGmvAmount)
+	if !ok {
+		return
+	}
 
 	updated, err := h.Queries.UpdateCrmBrief(r.Context(), db.UpdateCrmBriefParams{
 		ID:              current.ID,
@@ -740,15 +783,15 @@ func (h *Handler) UpdateCrmBrief(w http.ResponseWriter, r *http.Request) {
 		ClientID:        clientID,
 		Title:           title,
 		Category:        applyTextPatch(req.Category, current.Category),
-		BudgetMinAmount: applyNumericPatch(req.BudgetMinAmount, current.BudgetMinAmount),
-		BudgetMaxAmount: applyNumericPatch(req.BudgetMaxAmount, current.BudgetMaxAmount),
+		BudgetMinAmount: budgetMin,
+		BudgetMaxAmount: budgetMax,
 		TargetAudience:  applyTextPatch(req.TargetAudience, current.TargetAudience),
 		DeliverableType: deliverable,
 		Platforms:       platforms,
 		ScheduleFrom:    scheduleFrom,
 		ScheduleTo:      scheduleTo,
 		KpiPlay:         applyInt8Patch(req.KPIPlay, current.KpiPlay),
-		KpiGmvAmount:    applyNumericPatch(req.KPIGMVAmount, current.KpiGmvAmount),
+		KpiGmvAmount:    kpiGMV,
 		Status:          status,
 		OwnerMemberID:   owner,
 	})
@@ -920,6 +963,9 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !workbenchProbability(w, req.Prob) {
+		return
+	}
+	if !workbenchCommissionRate(w, req.CommissionRate) {
 		return
 	}
 	currency, ok := workbenchCurrency(w, req.Currency)
@@ -1191,6 +1237,9 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if !workbenchProbability(w, req.Prob) {
+		return
+	}
+	if !workbenchCommissionRate(w, req.CommissionRate) {
 		return
 	}
 	currency := current.Currency
@@ -1681,6 +1730,10 @@ func (h *Handler) CreateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "amount is required")
 		return
 	}
+	if !workbenchAmountFits(req.Amount) {
+		writeError(w, http.StatusBadRequest, "amount "+workbenchAmountMessage)
+		return
+	}
 	currency, ok := workbenchCurrency(w, req.Currency)
 	if !ok {
 		return
@@ -1846,6 +1899,10 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	amount, ok := workbenchMoneyPatch(w, req.Amount, "amount", current.Amount)
+	if !ok {
+		return
+	}
 	invoiceNo, ok := applyTextClearPatch(req.InvoiceNo, w, "invoice_no", current.InvoiceNo)
 	if !ok {
 		return
@@ -1879,7 +1936,7 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 		WorkspaceID:      scope.WorkspaceUUID,
 		CollabID:         collabID,
 		Kind:             kind,
-		Amount:           applyNumericPatch(req.Amount, current.Amount),
+		Amount:           amount,
 		Currency:         currency,
 		DueAt:            dueAt,
 		PaidAt:           paidAt,
