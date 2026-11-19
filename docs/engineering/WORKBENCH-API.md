@@ -2737,3 +2737,55 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 ### 26.6 熔断
 
 按 `(agent_id, domain)` 滚动 30 天：`reject_rate > 0.20` 或 `overwrite_rate > 0.30` → 该 agent 在该域的写工具降级为「只能出草稿」（写入落 `review_state='pending'` 且 MCP 返回 `draft_only`），并发一条 `inbox_item` 给 owner。阈值放 workspace settings，可调。
+
+## 27. 契约实测与修复记录（2026-11-19）
+
+这一节不是新契约，是把 §1–§26 的承诺**在真实数据上验过一遍**之后的结果。矩阵见
+`WORKBENCH-CONTRACT.md`（203 条路由逐条），这里只记「验了什么、改了什么、还欠什么」。
+
+### 27.1 验证方式
+
+- **真实数据**：orange 库镜像到本机 scratch（917 达人在册 / 13916 作品 / 532 指标，
+  再归档 162 条复现生产软删口径 → 755 live），起独立 API 打真数，**不写共享库**。
+- **写路径边界值**：11 条写路径 × 7 类边界（金额极值/精度、比率、时区与不存在日期、
+  1MB 文本、UUID 变体、枚举垃圾值、revision 旧值/未来值/0），判据是**往返逐字相等**。
+- **路由面**：从 `router.go` 程序化导出 203 条（GET 77 / POST 51 / DELETE 37 / PATCH 35 /
+  PUT 3），校验 handler 存在、无重复注册、全部落在 `RequireWorkspaceMember` 组内。
+
+### 27.2 已修（都会在生产上出错）
+
+| 症状 | 后果 | 修法 |
+| --- | --- | --- |
+| `/creators`、`/creators/health` 的 keyset 在第一个 NULL 排序值处截断 | **680 个达人永远不出现**，且返回 `next_cursor:null` 让人以为到底 | 谓词补 NULL 分支，越过 NULL 段 |
+| `/finance` 跨币种求和（CNY 5000 + USD 4000 = 9000）且无币种字段 | 经营数据错，且无法解释 | dominant currency + `window.currency` |
+| `/affiliate/summary` 七个金额块同样跨币种 | GMV/佣金/技术服务费变混合数，`refund_rate` 分母错 | 同上；招商服务费按所属 product 币种过滤；计数类不按币种切 |
+| `/review` 信封 `items` vs 客户端 schema `rows` | **复核队列恒空**，B5 的比率全部「无样本」 | 客户端解析 wire 名并兼容旧 `rows` |
+| `ads.read` / `media.publish` 是死能力 | 权限界面承诺了 API 不守的边界 | `ads.read` 已接六个端点；`media.publish` 待定锚点 |
+| `GET /hr/changes` 检查 `crm.read`、三个写端点无 capability | **销售能读全公司人事变动、任何成员能记一条** | 改 hr.read / hr.write |
+| 金额超 `NUMERIC(14,2)`、真实佣金率 438.00、`fee_amount=-1`、`happened_at:""`、1MB 名字 | 全部 **500**（生产上是 5xx 报警） | Go 侧前置校验 → 400，文案点名上限与「0.2 表示 20%」 |
+| `commission_rate=1.00001` / `-0.5` 200 原样落库 | 页面显示 100.001% / -50% | 0–1 之外 400 |
+| `?q=%` 未转义 LIKE 元字符 | 搜索框失效（返回整本台账） | 转义（creator/hr/guides 三处仍待） |
+| 12 张千川表未登记 teardown | **删工作区留下孤儿数据**（本仓库禁 FK） | 12 条 query + 编排 + manifest + 只删自己的用例 |
+| `/overview` 19 条 SQL 串行、`/bd/pipeline` 4 条串行 | pooler 上 **8.2s / 1.9s** | 受限并发（宽度 8），响应体逐字节不变 → 2.36s / ~0.4s |
+
+### 27.3 真实数据上的验收数字（本机镜像，实时复跑）
+
+```
+creators walked=755 pages=4 last_cursor=False      # 与 /counts.creators 相等，无截断
+engagement top3=45.02988,13.23446,11.60745          # 不 clamp
+finance    currency=CNY signed=5000                 # 不再 9000
+affiliate  currency=CNY gmv=insufficient_data       # 空窗口仍是「数据不足」，不是 0
+review     items 键存在 total=0                     # 客户端能解析
+creators_with_archived_at=0                         # 软删一条不漏
+```
+
+### 27.4 仍未做（按建议顺序）
+
+1. `/review` 的行只发 `label/detail`；客户端类型声明了 `actor_name/summary/changed_fields/amount/currency`，
+   界面因此有空列（判定信息不全）。
+2. 19 个列表收 `cursor`，只有 4 个回 `next_cursor` —— 真实数据过 50 行翻不动。
+3. 指针字段（`*string/*float64`）的显式 `null` 仍是静默保留；要改 `json.RawMessage`，
+   会波及 agent write 通道。
+4. `media.publish` 无落点（脚本状态没有 published）；TEXT 列除名字外无长度上限。
+5. `/creators`、`/hr`、`/hr/guides` 的 `?q=` 未转义；删除以外的写仍未全部接 `expected_revision`。
+6. `/overview` 的下一档优化是把 16 个聚合合成一条 SQL（~1.2s），属 SQL 层重构。
