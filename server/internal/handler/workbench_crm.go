@@ -14,6 +14,7 @@ package handler
 // they would have to reconstruct.
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -80,33 +81,44 @@ type CrmBriefRequest struct {
 	OwnerMemberID   *string   `json:"owner_member_id"`
 }
 
-// CrmCollabRequest is the create/PATCH body for a collaboration (合作单)。
+// CrmCollabRequest is the create/PATCH body for a collaboration (合作单).
+//
+// Seven of its nullable columns follow WORKBENCH-API §3.4's clearing rule (omitted
+// keeps, `null` clears, `""` clears for older clients), so they are decoded raw:
+// a `*string` / `*float64` cannot tell "not sent" from "sent as null". The two
+// amounts are in that set because the sales drawer sends `null` for an emptied
+// field (`collabFields`); leaving them as pointers would make those two the only
+// two fields where emptying the box silently kept the old number.
+//
+// `omitempty` is load-bearing on those fields, not cosmetic: the agent write channel
+// marshals this struct back into a body (`workbenchAgentWriteReplay`), and a nil
+// `json.RawMessage` would otherwise be encoded as an explicit `null` — a clear the
+// tool never asked for. Omitted means omitted.
 type CrmCollabRequest struct {
-	BriefID        *string  `json:"brief_id"`
-	CreatorID      *string  `json:"creator_id"`
-	Stage          *string  `json:"stage"`
-	QuoteAmount    *float64 `json:"quote_amount"`
-	FinalAmount    *float64 `json:"final_amount"`
-	Prob           *float64 `json:"prob"`
-	CreatorFee     *float64 `json:"creator_fee"`
-	SampleCost     *float64 `json:"sample_cost"`
-	PlatformFee    *float64 `json:"platform_fee"`
-	Currency       *string  `json:"currency"`
-	SettlementMode *string  `json:"settlement_mode"`
-	CommissionRate *float64 `json:"commission_rate"`
-	SampleRequired *bool    `json:"sample_required"`
-	ScriptRequired *bool    `json:"script_required"`
-	ScheduledAt    *string  `json:"scheduled_at"`
-	ConfirmedAt    *string  `json:"confirmed_at"`
-	PublishedAt    *string  `json:"published_at"`
-	AcceptedAt     *string  `json:"accepted_at"`
-	IssueID        *string  `json:"issue_id"`
-	OwnerMemberID  *string  `json:"owner_member_id"`
+	BriefID        *string         `json:"brief_id"`
+	CreatorID      *string         `json:"creator_id"`
+	Stage          *string         `json:"stage"`
+	QuoteAmount    json.RawMessage `json:"quote_amount,omitempty"`
+	FinalAmount    json.RawMessage `json:"final_amount,omitempty"`
+	Prob           *float64        `json:"prob"`
+	CreatorFee     json.RawMessage `json:"creator_fee,omitempty"`
+	SampleCost     json.RawMessage `json:"sample_cost,omitempty"`
+	PlatformFee    json.RawMessage `json:"platform_fee,omitempty"`
+	Currency       *string         `json:"currency"`
+	SettlementMode *string         `json:"settlement_mode"`
+	CommissionRate *float64        `json:"commission_rate"`
+	SampleRequired *bool           `json:"sample_required"`
+	ScriptRequired *bool           `json:"script_required"`
+	ScheduledAt    *string         `json:"scheduled_at"`
+	ConfirmedAt    *string         `json:"confirmed_at"`
+	PublishedAt    *string         `json:"published_at"`
+	AcceptedAt     *string         `json:"accepted_at"`
+	IssueID        *string         `json:"issue_id"`
+	OwnerMemberID  *string         `json:"owner_member_id"`
 	// Fulfilment (WORKBENCH-API §20.2, migration 810): where the collaboration
-	// went live, and the day it was settled. Both are plain optional fields —
-	// sending `""` clears them, omitting them keeps the stored value.
-	PublishURL *string `json:"publish_url"`
-	SettledOn  *string `json:"settled_on"`
+	// went live, and the day it was settled.
+	PublishURL json.RawMessage `json:"publish_url,omitempty"`
+	SettledOn  json.RawMessage `json:"settled_on,omitempty"`
 	// Assignment and concurrency (COLLAB-MODEL §1/§3, migration 821):
 	// `assignee_*` is who is doing the work (member or agent); `expected_revision`
 	// is the revision this reader last saw — mismatched is a 409 `stale_write`,
@@ -120,16 +132,17 @@ type CrmCollabRequest struct {
 }
 
 // CrmSettlementRequest is the create/PATCH body for one settlement row
-// (结算流水).
+// (结算流水). `paid_at`, `invoice_no` and `note` are clearable (§3.4) and are
+// decoded raw for the same reason as the collaboration's nullable columns.
 type CrmSettlementRequest struct {
-	CollabID  *string  `json:"collab_id"`
-	Kind      *string  `json:"kind"`
-	Amount    *float64 `json:"amount"`
-	Currency  *string  `json:"currency"`
-	DueAt     *string  `json:"due_at"`
-	PaidAt    *string  `json:"paid_at"`
-	InvoiceNo *string  `json:"invoice_no"`
-	Note      *string  `json:"note"`
+	CollabID  *string         `json:"collab_id"`
+	Kind      *string         `json:"kind"`
+	Amount    *float64        `json:"amount"`
+	Currency  *string         `json:"currency"`
+	DueAt     *string         `json:"due_at"`
+	PaidAt    json.RawMessage `json:"paid_at,omitempty"`
+	InvoiceNo json.RawMessage `json:"invoice_no,omitempty"`
+	Note      json.RawMessage `json:"note,omitempty"`
 	// Assignment and concurrency, same contract as the collaboration.
 	AssigneeType     *string `json:"assignee_type"`
 	AssigneeID       *string `json:"assignee_id"`
@@ -145,21 +158,25 @@ type CrmSettlementRequest struct {
 // human's write must send to review and an agent's write may never touch
 // (WORKBENCH-API §26.1/§26.5). The names travel into the 403 so a caller learns
 // which field the rule is about.
-func collabHighValue(req CrmCollabRequest) (bool, []string) {
+//
+// `patch` is whether this body is a PATCH: clearing a field with `null` counts as
+// touching it only there, because a create has nothing to clear and a form that
+// sends every key as `null` must not turn into a money write.
+func collabHighValue(req CrmCollabRequest, patch bool) (bool, []string) {
 	fields := make([]string, 0, 8)
-	if req.QuoteAmount != nil {
+	if patchTouches(req.QuoteAmount, patch) {
 		fields = append(fields, "quote_amount")
 	}
-	if req.FinalAmount != nil {
+	if patchTouches(req.FinalAmount, patch) {
 		fields = append(fields, "final_amount")
 	}
-	if req.CreatorFee != nil {
+	if patchTouches(req.CreatorFee, patch) {
 		fields = append(fields, "creator_fee")
 	}
-	if req.SampleCost != nil {
+	if patchTouches(req.SampleCost, patch) {
 		fields = append(fields, "sample_cost")
 	}
-	if req.PlatformFee != nil {
+	if patchTouches(req.PlatformFee, patch) {
 		fields = append(fields, "platform_fee")
 	}
 	if req.CommissionRate != nil {
@@ -171,7 +188,7 @@ func collabHighValue(req CrmCollabRequest) (bool, []string) {
 	if req.SettlementMode != nil {
 		fields = append(fields, "settlement_mode")
 	}
-	if req.SettledOn != nil {
+	if patchTouches(req.SettledOn, patch) {
 		fields = append(fields, "settled_on")
 	}
 	if req.Stage != nil && strings.TrimSpace(*req.Stage) == "settled" {
@@ -182,8 +199,9 @@ func collabHighValue(req CrmCollabRequest) (bool, []string) {
 
 // settlementHighValue: a settlement row is money by definition, so any write that
 // touches what it pays — amount, currency, kind, the two days — needs review. A
-// note or an invoice number does not.
-func settlementHighValue(req CrmSettlementRequest) (bool, []string) {
+// note or an invoice number does not. As above, `patch` decides whether a `null`
+// counts: only a PATCH can clear.
+func settlementHighValue(req CrmSettlementRequest, patch bool) (bool, []string) {
 	fields := make([]string, 0, 5)
 	if req.Amount != nil {
 		fields = append(fields, "amount")
@@ -197,7 +215,7 @@ func settlementHighValue(req CrmSettlementRequest) (bool, []string) {
 	if req.DueAt != nil {
 		fields = append(fields, "due_at")
 	}
-	if req.PaidAt != nil {
+	if patchTouches(req.PaidAt, patch) {
 		fields = append(fields, "paid_at")
 	}
 	return len(fields) > 0, fields
@@ -855,15 +873,17 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	actor := h.workbenchActor(r, scope)
-	highValue, moneyFields := collabHighValue(req)
+	// A create cannot clear anything, so an explicit `null` here is just "no value".
+	patch := false
+	highValue, moneyFields := collabHighValue(req, patch)
 	if !agentMoneyGate(w, actor, moneyFields) {
 		return
 	}
 	// Money and settlement are their own capabilities (—4.1): "may edit a
 	// collaboration" is not "may change what it pays". The check runs on the
 	// fields the request actually touches, so a title rename stays crm.write.
-	if req.QuoteAmount != nil || req.FinalAmount != nil || req.CreatorFee != nil ||
-		req.SampleCost != nil || req.PlatformFee != nil || req.CommissionRate != nil {
+	if patchTouches(req.QuoteAmount, patch) || patchTouches(req.FinalAmount, patch) || patchTouches(req.CreatorFee, patch) ||
+		patchTouches(req.SampleCost, patch) || patchTouches(req.PlatformFee, patch) || req.CommissionRate != nil {
 		if !h.requireWorkbenchCapability(w, r, scope, capCRMAmount) {
 			return
 		}
@@ -904,7 +924,31 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	settledOn, ok := workbenchDateValue(w, req.SettledOn, "settled_on")
+	settledOn, ok := applyDateClearPatch(req.SettledOn, w, "settled_on", pgtype.Date{})
+	if !ok {
+		return
+	}
+	publishURL, ok := applyTextClearPatch(req.PublishURL, w, "publish_url", pgtype.Text{})
+	if !ok {
+		return
+	}
+	quoteAmount, ok := applyNumericClearPatch(req.QuoteAmount, w, "quote_amount", pgtype.Numeric{})
+	if !ok {
+		return
+	}
+	finalAmount, ok := applyNumericClearPatch(req.FinalAmount, w, "final_amount", pgtype.Numeric{})
+	if !ok {
+		return
+	}
+	creatorFee, ok := applyNumericClearPatch(req.CreatorFee, w, "creator_fee", pgtype.Numeric{})
+	if !ok {
+		return
+	}
+	sampleCost, ok := applyNumericClearPatch(req.SampleCost, w, "sample_cost", pgtype.Numeric{})
+	if !ok {
+		return
+	}
+	platformFee, ok := applyNumericClearPatch(req.PlatformFee, w, "platform_fee", pgtype.Numeric{})
 	if !ok {
 		return
 	}
@@ -951,12 +995,12 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		BriefID:        brief.ID,
 		CreatorID:      creator.ID,
 		Stage:          stage,
-		QuoteAmount:    floatToNumeric(req.QuoteAmount),
-		FinalAmount:    floatToNumeric(req.FinalAmount),
+		QuoteAmount:    quoteAmount,
+		FinalAmount:    finalAmount,
 		Prob:           floatToNumeric(req.Prob),
-		CreatorFee:     floatToNumeric(req.CreatorFee),
-		SampleCost:     floatToNumeric(req.SampleCost),
-		PlatformFee:    floatToNumeric(req.PlatformFee),
+		CreatorFee:     creatorFee,
+		SampleCost:     sampleCost,
+		PlatformFee:    platformFee,
 		Currency:       currency,
 		SettlementMode: optionalTrimmedText(req.SettlementMode),
 		CommissionRate: floatToNumeric(req.CommissionRate),
@@ -969,7 +1013,7 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		IssueID:        issueID,
 		OwnerMemberID:  owner,
 		CreatedBy:      scope.Member.UserID,
-		PublishUrl:     optionalTrimmedText(req.PublishURL),
+		PublishUrl:     publishURL,
 		SettledOn:      settledOn,
 		AssigneeType:   assigneeType,
 		AssigneeID:     assigneeID,
@@ -1087,15 +1131,17 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	actor := h.workbenchActor(r, scope)
-	highValue, moneyFields := collabHighValue(req)
+	// A PATCH can clear, so a `null` here counts as a write to the field.
+	patch := true
+	highValue, moneyFields := collabHighValue(req, patch)
 	if !agentMoneyGate(w, actor, moneyFields) {
 		return
 	}
 	// Money and settlement are their own capabilities (—4.1): "may edit a
 	// collaboration" is not "may change what it pays". The check runs on the
 	// fields the request actually touches, so a title rename stays crm.write.
-	if req.QuoteAmount != nil || req.FinalAmount != nil || req.CreatorFee != nil ||
-		req.SampleCost != nil || req.PlatformFee != nil || req.CommissionRate != nil {
+	if patchTouches(req.QuoteAmount, patch) || patchTouches(req.FinalAmount, patch) || patchTouches(req.CreatorFee, patch) ||
+		patchTouches(req.SampleCost, patch) || patchTouches(req.PlatformFee, patch) || req.CommissionRate != nil {
 		if !h.requireWorkbenchCapability(w, r, scope, capCRMAmount) {
 			return
 		}
@@ -1156,7 +1202,7 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	settledOn, ok := applyDatePatch(req.SettledOn, w, "settled_on", current.SettledOn)
+	settledOn, ok := applyDateClearPatch(req.SettledOn, w, "settled_on", current.SettledOn)
 	if !ok {
 		return
 	}
@@ -1169,6 +1215,33 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	accepted, ok := applyTimestampPatch(req.AcceptedAt, w, "accepted_at", current.AcceptedAt)
+	if !ok {
+		return
+	}
+	// §3.4: the two amounts, the fulfilment link, the settlement day and the three
+	// costs are the fields a PATCH can clear, so they resolve through the tri-state
+	// helpers.
+	publishURL, ok := applyTextClearPatch(req.PublishURL, w, "publish_url", current.PublishUrl)
+	if !ok {
+		return
+	}
+	quoteAmount, ok := applyNumericClearPatch(req.QuoteAmount, w, "quote_amount", current.QuoteAmount)
+	if !ok {
+		return
+	}
+	finalAmount, ok := applyNumericClearPatch(req.FinalAmount, w, "final_amount", current.FinalAmount)
+	if !ok {
+		return
+	}
+	creatorFee, ok := applyNumericClearPatch(req.CreatorFee, w, "creator_fee", current.CreatorFee)
+	if !ok {
+		return
+	}
+	sampleCost, ok := applyNumericClearPatch(req.SampleCost, w, "sample_cost", current.SampleCost)
+	if !ok {
+		return
+	}
+	platformFee, ok := applyNumericClearPatch(req.PlatformFee, w, "platform_fee", current.PlatformFee)
 	if !ok {
 		return
 	}
@@ -1235,35 +1308,35 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	qtx := h.Queries.WithTx(tx)
 
 	updated, err := qtx.UpdateCrmCollab(r.Context(), db.UpdateCrmCollabParams{
-		ID:             current.ID,
-		WorkspaceID:    scope.WorkspaceUUID,
-		BriefID:        briefID,
-		CreatorID:      creatorID,
-		Stage:          stage,
-		QuoteAmount:    applyNumericPatch(req.QuoteAmount, current.QuoteAmount),
-		FinalAmount:    applyNumericPatch(req.FinalAmount, current.FinalAmount),
-		Prob:           applyNumericPatch(req.Prob, current.Prob),
-		CreatorFee:     applyNumericPatch(req.CreatorFee, current.CreatorFee),
-		SampleCost:     applyNumericPatch(req.SampleCost, current.SampleCost),
-		PlatformFee:    applyNumericPatch(req.PlatformFee, current.PlatformFee),
-		Currency:       currency,
-		SettlementMode: applyTextPatch(req.SettlementMode, current.SettlementMode),
-		CommissionRate: applyNumericPatch(req.CommissionRate, current.CommissionRate),
-		SampleRequired: applyBoolPatch(req.SampleRequired, current.SampleRequired),
-		ScriptRequired: applyBoolPatch(req.ScriptRequired, current.ScriptRequired),
-		ScheduledAt:    scheduledAt,
-		ConfirmedAt:    confirmed,
-		PublishedAt:    published,
-		AcceptedAt:     accepted,
-		IssueID:        issueID,
-		OwnerMemberID:  owner,
-		PublishUrl:     applyTextPatch(req.PublishURL, current.PublishUrl),
-		SettledOn:      settledOn,
-		AssigneeType:   assigneeType,
-		AssigneeID:     assigneeID,
-		ReviewState:    decision.State,
-		ReviewedBy:     decision.ReviewedBy,
-		ReviewedAt:     decision.ReviewedAt,
+		ID:               current.ID,
+		WorkspaceID:      scope.WorkspaceUUID,
+		BriefID:          briefID,
+		CreatorID:        creatorID,
+		Stage:            stage,
+		QuoteAmount:      quoteAmount,
+		FinalAmount:      finalAmount,
+		Prob:             applyNumericPatch(req.Prob, current.Prob),
+		CreatorFee:       creatorFee,
+		SampleCost:       sampleCost,
+		PlatformFee:      platformFee,
+		Currency:         currency,
+		SettlementMode:   applyTextPatch(req.SettlementMode, current.SettlementMode),
+		CommissionRate:   applyNumericPatch(req.CommissionRate, current.CommissionRate),
+		SampleRequired:   applyBoolPatch(req.SampleRequired, current.SampleRequired),
+		ScriptRequired:   applyBoolPatch(req.ScriptRequired, current.ScriptRequired),
+		ScheduledAt:      scheduledAt,
+		ConfirmedAt:      confirmed,
+		PublishedAt:      published,
+		AcceptedAt:       accepted,
+		IssueID:          issueID,
+		OwnerMemberID:    owner,
+		PublishUrl:       publishURL,
+		SettledOn:        settledOn,
+		AssigneeType:     assigneeType,
+		AssigneeID:       assigneeID,
+		ReviewState:      decision.State,
+		ReviewedBy:       decision.ReviewedBy,
+		ReviewedAt:       decision.ReviewedAt,
 		ExpectedRevision: expectedRevision,
 	})
 	if err != nil {
@@ -1532,7 +1605,8 @@ func (h *Handler) CreateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	actor := h.workbenchActor(r, scope)
-	highValue, moneyFields := settlementHighValue(req)
+	// A create cannot clear anything, so an explicit `null` here is just "no value".
+	highValue, moneyFields := settlementHighValue(req, false)
 	if !agentMoneyGate(w, actor, moneyFields) {
 		return
 	}
@@ -1565,7 +1639,15 @@ func (h *Handler) CreateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	paidAt, ok := workbenchDateValue(w, req.PaidAt, "paid_at")
+	paidAt, ok := applyDateClearPatch(req.PaidAt, w, "paid_at", pgtype.Date{})
+	if !ok {
+		return
+	}
+	invoiceNo, ok := applyTextClearPatch(req.InvoiceNo, w, "invoice_no", pgtype.Text{})
+	if !ok {
+		return
+	}
+	note, ok := applyTextClearPatch(req.Note, w, "note", pgtype.Text{})
 	if !ok {
 		return
 	}
@@ -1595,8 +1677,8 @@ func (h *Handler) CreateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 		Currency:     currency,
 		DueAt:        dueAt,
 		PaidAt:       paidAt,
-		InvoiceNo:    optionalTrimmedText(req.InvoiceNo),
-		Note:         optionalTrimmedText(req.Note),
+		InvoiceNo:    invoiceNo,
+		Note:         note,
 		CreatedBy:    scope.Member.UserID,
 		AssigneeType: assigneeType,
 		AssigneeID:   assigneeID,
@@ -1665,7 +1747,8 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	actor := h.workbenchActor(r, scope)
-	highValue, moneyFields := settlementHighValue(req)
+	// A PATCH can clear, so a `null` paid_at counts as a write to the money field.
+	highValue, moneyFields := settlementHighValue(req, true)
 	if !agentMoneyGate(w, actor, moneyFields) {
 		return
 	}
@@ -1709,7 +1792,15 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	paidAt, ok := applyDatePatch(req.PaidAt, w, "paid_at", current.PaidAt)
+	paidAt, ok := applyDateClearPatch(req.PaidAt, w, "paid_at", current.PaidAt)
+	if !ok {
+		return
+	}
+	invoiceNo, ok := applyTextClearPatch(req.InvoiceNo, w, "invoice_no", current.InvoiceNo)
+	if !ok {
+		return
+	}
+	note, ok := applyTextClearPatch(req.Note, w, "note", current.Note)
 	if !ok {
 		return
 	}
@@ -1742,8 +1833,8 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 		Currency:         currency,
 		DueAt:            dueAt,
 		PaidAt:           paidAt,
-		InvoiceNo:        applyTextPatch(req.InvoiceNo, current.InvoiceNo),
-		Note:             applyTextPatch(req.Note, current.Note),
+		InvoiceNo:        invoiceNo,
+		Note:             note,
 		AssigneeType:     assigneeType,
 		AssigneeID:       assigneeID,
 		ReviewState:      decision.State,

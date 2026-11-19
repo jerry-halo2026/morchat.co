@@ -931,8 +931,16 @@ export type CreateCrmCollabRequest = Pick<CrmCollab, "brief_id" | "creator_id"> 
     >
   >;
 
-/** Stage changes also write `confirmed_at` / `published_at` / `accepted_at`
- *  server-side, so those timestamps are not client-writable. */
+/**
+ * Stage changes also write `confirmed_at` / `published_at` / `accepted_at`
+ * server-side, so those timestamps are not client-writable.
+ *
+ * Clearing (WORKBENCH-API §3.4): `publish_url`, `settled_on`, `creator_fee`,
+ * `sample_cost` and `platform_fee` keep the stored value when omitted, clear it to
+ * NULL on `null`, and also clear on `""` — the latter only for clients written
+ * before that section. A `null` still counts as touching the field, so it needs
+ * `crm.amount` and an agent is refused it (`forbidden_agent_money`).
+ */
 export type UpdateCrmCollabRequest = Partial<
   Pick<
     CrmCollab,
@@ -982,6 +990,12 @@ export type CreateCrmSettlementRequest = Pick<CrmSettlement, "collab_id" | "kind
     >
   >;
 
+/**
+ * `paid_at`, `note` and `invoice_no` follow WORKBENCH-API §3.4: omitted keeps the
+ * stored value, `null` clears it to NULL (`""` clears too, for older clients only).
+ * `paid_at` is what decides whether a row counts as collected, so a PATCH that
+ * meant to undo an arrival must send `null` — omitting it is a no-op.
+ */
 export type UpdateCrmSettlementRequest = Partial<
   Pick<
     CrmSettlement,

@@ -1354,7 +1354,7 @@ func (h *Handler) CreateMediaTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.publishMediaTopicChanged(scope, uuidToString(topic.ID))
+	h.publishMediaTopicChanged(r, scope, uuidToString(topic.ID))
 	writeJSON(w, http.StatusCreated, mediaTopicToResponse(topic))
 }
 
@@ -1468,7 +1468,7 @@ func (h *Handler) UpdateMediaTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.publishMediaTopicChanged(scope, uuidToString(updated.ID))
+	h.publishMediaTopicChanged(r, scope, uuidToString(updated.ID))
 	writeJSON(w, http.StatusOK, mediaTopicToResponse(updated))
 }
 
@@ -1496,7 +1496,7 @@ func (h *Handler) DeleteMediaTopic(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "topic not found")
 		return
 	}
-	h.publishMediaTopicChanged(scope, uuidToString(current.ID))
+	h.publishMediaTopicChanged(r, scope, uuidToString(current.ID))
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -2837,7 +2837,7 @@ func (h *Handler) adoptIntoMediaTopic(w http.ResponseWriter, r *http.Request, sc
 		return
 	}
 
-	h.publishMediaTopicChanged(scope, uuidToString(topic.ID))
+	h.publishMediaTopicChanged(r, scope, uuidToString(topic.ID))
 	writeJSON(w, http.StatusCreated, mediaTopicToResponse(topic))
 }
 
@@ -2848,8 +2848,13 @@ func (h *Handler) publishMediaIPChanged(scope workbenchScope, ipID string) {
 		map[string]any{"id": ipID})
 }
 
-func (h *Handler) publishMediaTopicChanged(scope workbenchScope, topicID string) {
-	h.publish(eventMediaTopicChanged, scope.WorkspaceID, "member", uuidToString(scope.Member.UserID),
+// publishMediaTopicChanged announces a topic write. The four content events were
+// server-only for a while; the client now registers them (§12.6), and the actor is
+// the request's resolved one so an agent-driven write does not read as its
+// delegator's (COLLAB-MODEL §2/§6).
+func (h *Handler) publishMediaTopicChanged(r *http.Request, scope workbenchScope, topicID string) {
+	actor := h.workbenchActor(r, scope)
+	h.publish(eventMediaTopicChanged, scope.WorkspaceID, actor.Type, actor.idString(),
 		map[string]any{"id": topicID})
 }
 

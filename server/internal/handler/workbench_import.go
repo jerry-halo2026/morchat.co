@@ -782,7 +782,13 @@ func (h *Handler) importRow(scope workbenchScope, kind string, index map[string]
 		if briefID.Valid {
 			row.preview["brief_id"] = uuidToString(briefID)
 		}
+			// A bulk import is a reviewed act: the operator saw the dry-run
+			// preview and confirmed the batch (§23), so its rows arrive accepted
+			// rather than filling the review queue with a hundred pending rows.
+			// The review gate stays for the per-row writes an agent or a person
+			// makes one at a time.
 		row.quote = db.CreateCreatorQuoteParams{
+			ReviewState:    reviewAccepted,
 			WorkspaceID:    scope.WorkspaceUUID,
 			CreatorID:      parseUUID(creatorID),
 			BriefID:        briefID,
@@ -847,7 +853,13 @@ func (h *Handler) importRow(scope workbenchScope, kind string, index map[string]
 		if nextFollowAt.Valid {
 			row.preview["next_follow_at"] = timestampToString(nextFollowAt)
 		}
+			// A bulk import is a reviewed act: the operator saw the dry-run
+			// preview and confirmed the batch (§23), so its rows arrive accepted
+			// rather than filling the review queue with a hundred pending rows.
+			// The review gate stays for the per-row writes an agent or a person
+			// makes one at a time.
 		row.activity = db.CreateCreatorActivityParams{
+			ReviewState:   reviewAccepted,
 			WorkspaceID:   scope.WorkspaceUUID,
 			CreatorID:     parseUUID(creatorID),
 			Kind:          activityKind,
@@ -925,7 +937,13 @@ func (h *Handler) importRow(scope workbenchScope, kind string, index map[string]
 			row.preview["publish_url"] = url
 		}
 		row.preview["currency"] = currency
+			// A bulk import is a reviewed act: the operator saw the dry-run
+			// preview and confirmed the batch (§23), so its rows arrive accepted
+			// rather than filling the review queue with a hundred pending rows.
+			// The review gate stays for the per-row writes an agent or a person
+			// makes one at a time.
 		row.collab = db.CreateCrmCollabParams{
+			ReviewState:    reviewAccepted,
 			WorkspaceID:    scope.WorkspaceUUID,
 			BriefID:        briefID,
 			CreatorID:      parseUUID(creatorID),

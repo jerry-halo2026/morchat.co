@@ -194,7 +194,14 @@ export interface CreateBdActivityRequest {
   assignee_id?: string | null;
 }
 
-/** `PATCH /bd/activities/{id}` — `creator_id` is absent: the server 400s it. */
+/**
+ * `PATCH /bd/activities/{id}` — `creator_id` is absent: the server 400s it.
+ *
+ * Clearing (WORKBENCH-API §3.4): an omitted key keeps the stored value, `null`
+ * clears it, and `""` also clears it — the latter only for clients written before
+ * that section, new code sends `null`. `summary` is NOT NULL: `null` / `""` answer
+ * 400 rather than pretending to clear.
+ */
 export interface UpdateBdActivityRequest {
   kind?: BdActivityKind;
   happened_at?: string;
@@ -238,7 +245,9 @@ export interface CreateBdQuoteRequest {
   assignee_id?: string | null;
 }
 
-/** `PATCH /bd/quotes/{id}` — `creator_id` is absent: the server 400s it. */
+/** `PATCH /bd/quotes/{id}` — `creator_id` is absent: the server 400s it.
+ *  `valid_until` / `note` clear on `null` (or `""`, for older clients) and keep the
+ *  stored value when omitted (WORKBENCH-API §3.4). */
 export interface UpdateBdQuoteRequest {
   brief_id?: string | null;
   status?: BdQuoteStatus;

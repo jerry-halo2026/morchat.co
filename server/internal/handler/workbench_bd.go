@@ -26,9 +26,10 @@ package handler
 // a personal note, and handing it to whoever owns the creator would let a member's
 // account notes be edited by somebody else's reassignment.
 //
-// No `:changed` event: this batch ships the data layer only, and the event
-// vocabulary lives in `packages/core/types/events.ts`, which is outside it. The
-// debt is recorded in WORKBENCH-API 搂20.6 rather than silently half-wired.
+// No `:changed` event was the debt this batch closed: the three ledgers below now
+// publish `creator_activity:changed` / `creator_quote:changed` /
+// `creator_campaign:changed` on create, update and delete (see publishBdChanged),
+// so a second client's list and the cockpit both refresh (WORKBENCH-API §4).
 
 import (
 	"encoding/json"
@@ -75,14 +76,21 @@ var (
 // `creator_id` is create-only: `PATCH` answers 400 for it, because a follow-up
 // that stops being about the same person is a different record, and moving it
 // would rewrite two creators' histories at once.
+//
+// `outcome` and `next_follow_at` are nullable columns a PATCH can clear, so they
+// are decoded raw (WORKBENCH-API §3.4): omitted keeps, `null` clears, `""`
+// clears for older clients. `summary` is NOT NULL, so there `null` / `""` answer
+// 400 rather than pretending to clear. The `omitempty` tags matter for the agent
+// write channel: it marshals this struct back into a body, and a nil raw field
+// would otherwise become an explicit `null` the tool never asked for.
 type BdActivityRequest struct {
-	CreatorID     *string `json:"creator_id"`
-	Kind          *string `json:"kind"`
-	HappenedAt    *string `json:"happened_at"`
-	Summary       *string `json:"summary"`
-	Outcome       *string `json:"outcome"`
-	NextFollowAt  *string `json:"next_follow_at"`
-	OwnerMemberID *string `json:"owner_member_id"`
+	CreatorID     *string         `json:"creator_id"`
+	Kind          *string         `json:"kind"`
+	HappenedAt    *string         `json:"happened_at"`
+	Summary       json.RawMessage `json:"summary,omitempty"`
+	Outcome       json.RawMessage `json:"outcome,omitempty"`
+	NextFollowAt  json.RawMessage `json:"next_follow_at,omitempty"`
+	OwnerMemberID *string         `json:"owner_member_id"`
 	// Who follows it up, and the revision this reader last saw
 	// (COLLAB-MODEL §1/§3): mismatched is a 409 `stale_write`.
 	AssigneeType     *string `json:"assignee_type"`
@@ -97,18 +105,20 @@ type BdActivityRequest struct {
 //
 // `commission_rate` is a ratio: 20% is 0.2 (contract 搂0 rule 1). `items` is the
 // line-item breakdown as a JSON array; absent keeps the stored array on a PATCH
-// and means "no breakdown yet" on a create.
+// and means "no breakdown yet" on a create. `valid_until` and `note` are
+// clearable columns, so they carry the raw JSON (§3.4); `omitempty` keeps an unset
+// field absent when the agent write channel re-marshals this body.
 type BdQuoteRequest struct {
 	CreatorID      *string         `json:"creator_id"`
 	BriefID        *string         `json:"brief_id"`
 	Status         *string         `json:"status"`
 	QuotedAt       *string         `json:"quoted_at"`
-	ValidUntil     *string         `json:"valid_until"`
+	ValidUntil     json.RawMessage `json:"valid_until,omitempty"`
 	FeeAmount      *float64        `json:"fee_amount"`
 	CommissionRate *float64        `json:"commission_rate"`
 	Currency       *string         `json:"currency"`
-	Items          json.RawMessage `json:"items"`
-	Note           *string         `json:"note"`
+	Items          json.RawMessage `json:"items,omitempty"`
+	Note           json.RawMessage `json:"note,omitempty"`
 	OwnerMemberID  *string         `json:"owner_member_id"`
 	// Who is working the offer, and the revision this reader last saw
 	// (COLLAB-MODEL §1/§3): mismatched is a 409 `stale_write`.
@@ -933,9 +943,13 @@ func bdCampaignWindowOK(w http.ResponseWriter, startedOn, endedOn pgtype.Date) b
 }
 
 // bdQuoteItems parses the line-item breakdown into the JSONB value the column
-// stores. Absent means "no breakdown yet" on create and "unchanged" on PATCH 鈥?// which is `[]` here, because the column's default is an empty array.
+// stores. Absent means "no breakdown yet" on create and "unchanged" on PATCH —
+// which is `[]` here, because the column's default is an empty array. An explicit
+// `null` is read the same way as absent: the column is NOT NULL and `[]` is how a
+// caller empties it, so `null` must not silently wipe a stored breakdown.
 func bdQuoteItems(w http.ResponseWriter, raw json.RawMessage) ([]byte, bool) {
-	if len(raw) == 0 {
+	trimmedText := strings.TrimSpace(string(raw))
+	if trimmedText == "" || trimmedText == "null" {
 		return []byte("[]"), true
 	}
 	var items []json.RawMessage
@@ -952,6 +966,19 @@ func bdQuoteItems(w http.ResponseWriter, raw json.RawMessage) ([]byte, bool) {
 		return nil, false
 	}
 	return encoded, true
+}
+
+// ---- events ----------------------------------------------------------------
+
+// publishBdChanged is the three BD ledgers' `:changed` event: a workspace
+// broadcast whose payload names the row (§4). The actor is the request's resolved
+// one, so an agent's follow-up reaches other clients as the agent's rather than as
+// the member whose identity the tool ran under (COLLAB-MODEL §2/§6).
+//
+// Invalidation, not a cache merge: the cockpit's counters and the ledger list both
+// move on a single write, and a row is too wide to patch field by field.
+func (h *Handler) publishBdChanged(eventType, workspaceID string, actor workbenchActor, id string) {
+	h.publish(eventType, workspaceID, actor.Type, actor.idString(), map[string]any{"id": id})
 }
 
 // ---- follow-ups ------------------------------------------------------------
@@ -1040,7 +1067,7 @@ func quoteHighValue(req BdQuoteRequest) (bool, []string) {
 	if req.CommissionRate != nil {
 		fields = append(fields, "commission_rate")
 	}
-	if len(req.Items) > 0 {
+	if patchSends(req.Items) && !patchIsNull(req.Items) {
 		fields = append(fields, "items")
 	}
 	if req.Currency != nil {
@@ -1077,7 +1104,7 @@ func (h *Handler) CreateBdActivity(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "kind is required")
 		return
 	}
-	outcome, ok := bdEnum(w, req.Outcome, bdActivityOutcomes, "outcome")
+	outcome, ok := applyEnumClearPatch(req.Outcome, w, "outcome", bdActivityOutcomes, pgtype.Text{})
 	if !ok {
 		return
 	}
@@ -1089,12 +1116,15 @@ func (h *Handler) CreateBdActivity(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	summary := strings.TrimSpace(valueOrEmpty(req.Summary))
+	summary, ok := applyRequiredTextPatch(req.Summary, w, "summary", "")
+	if !ok {
+		return
+	}
 	if summary == "" {
 		writeError(w, http.StatusBadRequest, "summary is required")
 		return
 	}
-	nextFollowAt, ok := workbenchTimestampValue(w, req.NextFollowAt, "next_follow_at")
+	nextFollowAt, ok := applyTimestampClearPatch(req.NextFollowAt, w, "next_follow_at", pgtype.Timestamptz{})
 	if !ok {
 		return
 	}
@@ -1127,7 +1157,7 @@ func (h *Handler) CreateBdActivity(w http.ResponseWriter, r *http.Request) {
 		Kind:          kind,
 		HappenedAt:    happenedAt,
 		Summary:       summary,
-		Outcome:       optionalTrimmedText(optionalString(outcome)),
+		Outcome:       outcome,
 		NextFollowAt:  nextFollowAt,
 		OwnerMemberID: owner,
 		CreatedBy:     scope.Member.UserID,
@@ -1150,6 +1180,7 @@ func (h *Handler) CreateBdActivity(w http.ResponseWriter, r *http.Request) {
 		workbenchInternalError(w, r, "failed to record the follow-up", err)
 		return
 	}
+	h.publishBdChanged(eventBdActivityChanged, scope.WorkspaceID, actor, uuidToString(created.ID))
 	writeJSON(w, http.StatusCreated, bdActivityToResponse(created, lastActorFromActivity(event)))
 }
 
@@ -1239,23 +1270,18 @@ func (h *Handler) UpdateBdActivity(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	summary := current.Summary
-	if req.Summary != nil {
-		summary = strings.TrimSpace(*req.Summary)
-		if summary == "" {
-			writeError(w, http.StatusBadRequest, "summary is required")
-			return
-		}
+	// `summary` is NOT NULL: §3.4's clearing rule answers 400 here instead of
+	// keeping the stored text, because a client that sends `null` believes it
+	// emptied the field.
+	summary, ok := applyRequiredTextPatch(req.Summary, w, "summary", current.Summary)
+	if !ok {
+		return
 	}
-	outcome := current.Outcome
-	if req.Outcome != nil {
-		parsed, ok := bdEnum(w, req.Outcome, bdActivityOutcomes, "outcome")
-		if !ok {
-			return
-		}
-		outcome = optionalTrimmedText(optionalString(parsed))
+	outcome, ok := applyEnumClearPatch(req.Outcome, w, "outcome", bdActivityOutcomes, current.Outcome)
+	if !ok {
+		return
 	}
-	nextFollowAt, ok := applyTimestampPatch(req.NextFollowAt, w, "next_follow_at", current.NextFollowAt)
+	nextFollowAt, ok := applyTimestampClearPatch(req.NextFollowAt, w, "next_follow_at", current.NextFollowAt)
 	if !ok {
 		return
 	}
@@ -1340,6 +1366,7 @@ func (h *Handler) UpdateBdActivity(w http.ResponseWriter, r *http.Request) {
 		workbenchInternalError(w, r, "failed to update the follow-up", err)
 		return
 	}
+	h.publishBdChanged(eventBdActivityChanged, scope.WorkspaceID, actor, uuidToString(updated.ID))
 	writeJSON(w, http.StatusOK, bdActivityToResponse(updated, last))
 }
 
@@ -1391,6 +1418,7 @@ func (h *Handler) DeleteBdActivity(w http.ResponseWriter, r *http.Request) {
 		workbenchInternalError(w, r, "failed to delete the follow-up", err)
 		return
 	}
+	h.publishBdChanged(eventBdActivityChanged, scope.WorkspaceID, actor, uuidToString(current.ID))
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -1521,7 +1549,11 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	validUntil, ok := workbenchDateValue(w, req.ValidUntil, "valid_until")
+	validUntil, ok := applyDateClearPatch(req.ValidUntil, w, "valid_until", pgtype.Date{})
+	if !ok {
+		return
+	}
+	note, ok := applyTextClearPatch(req.Note, w, "note", pgtype.Text{})
 	if !ok {
 		return
 	}
@@ -1565,7 +1597,7 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 		CommissionRate: floatToNumeric(req.CommissionRate),
 		Currency:       currency,
 		Items:          string(items),
-		Note:           optionalTrimmedText(req.Note),
+		Note:           note,
 		OwnerMemberID:  owner,
 		CreatedBy:      scope.Member.UserID,
 		AssigneeType:   assigneeType,
@@ -1587,6 +1619,7 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 		workbenchInternalError(w, r, "failed to record the quote", err)
 		return
 	}
+	h.publishBdChanged(eventBdQuoteChanged, scope.WorkspaceID, actor, uuidToString(created.ID))
 	writeJSON(w, http.StatusCreated, bdQuoteToResponse(created, lastActorFromActivity(event)))
 }
 
@@ -1711,7 +1744,11 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	validUntil, ok := applyDatePatch(req.ValidUntil, w, "valid_until", current.ValidUntil)
+	validUntil, ok := applyDateClearPatch(req.ValidUntil, w, "valid_until", current.ValidUntil)
+	if !ok {
+		return
+	}
+	note, ok := applyTextClearPatch(req.Note, w, "note", current.Note)
 	if !ok {
 		return
 	}
@@ -1719,7 +1756,7 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	items := current.Items
-	if len(req.Items) > 0 {
+	if patchSends(req.Items) && !patchIsNull(req.Items) {
 		parsed, ok := bdQuoteItems(w, req.Items)
 		if !ok {
 			return
@@ -1767,7 +1804,7 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 		CommissionRate:   applyNumericPatch(req.CommissionRate, current.CommissionRate),
 		Currency:         currency,
 		Items:            string(items),
-		Note:             applyTextPatch(req.Note, current.Note),
+		Note:             note,
 		OwnerMemberID:    owner,
 		AssigneeType:     assigneeType,
 		AssigneeID:       assigneeID,
@@ -1812,6 +1849,7 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 		workbenchInternalError(w, r, "failed to update the quote", err)
 		return
 	}
+	h.publishBdChanged(eventBdQuoteChanged, scope.WorkspaceID, actor, uuidToString(updated.ID))
 	writeJSON(w, http.StatusOK, bdQuoteToResponse(updated, last))
 }
 
@@ -1863,6 +1901,7 @@ func (h *Handler) DeleteBdQuote(w http.ResponseWriter, r *http.Request) {
 		workbenchInternalError(w, r, "failed to delete the quote", err)
 		return
 	}
+	h.publishBdChanged(eventBdQuoteChanged, scope.WorkspaceID, actor, uuidToString(current.ID))
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -1930,6 +1969,7 @@ func (h *Handler) CreateBdCampaign(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
 	name := strings.TrimSpace(valueOrEmpty(req.Name))
 	if name == "" {
 		writeError(w, http.StatusBadRequest, "name is required")
@@ -1996,6 +2036,7 @@ func (h *Handler) CreateBdCampaign(w http.ResponseWriter, r *http.Request) {
 		workbenchInternalError(w, r, "failed to create the campaign", err)
 		return
 	}
+	h.publishBdChanged(eventBdCampaignChanged, scope.WorkspaceID, actor, uuidToString(created.ID))
 	writeJSON(w, http.StatusCreated, bdCampaignToResponse(created))
 }
 
@@ -2061,6 +2102,7 @@ func (h *Handler) UpdateBdCampaign(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
 	name := current.Name
 	if req.Name != nil {
 		name = strings.TrimSpace(*req.Name)
@@ -2136,6 +2178,7 @@ func (h *Handler) UpdateBdCampaign(w http.ResponseWriter, r *http.Request) {
 		workbenchInternalError(w, r, "failed to update the campaign", err)
 		return
 	}
+	h.publishBdChanged(eventBdCampaignChanged, scope.WorkspaceID, actor, uuidToString(updated.ID))
 	writeJSON(w, http.StatusOK, bdCampaignToResponse(updated))
 }
 
@@ -2152,6 +2195,7 @@ func (h *Handler) DeleteBdCampaign(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	actor := h.workbenchActor(r, scope)
 	archived, err := h.Queries.ArchiveCreatorCampaign(r.Context(), db.ArchiveCreatorCampaignParams{
 		ID:          current.ID,
 		WorkspaceID: scope.WorkspaceUUID,
@@ -2164,5 +2208,6 @@ func (h *Handler) DeleteBdCampaign(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "campaign not found")
 		return
 	}
+	h.publishBdChanged(eventBdCampaignChanged, scope.WorkspaceID, actor, uuidToString(current.ID))
 	w.WriteHeader(http.StatusNoContent)
 }

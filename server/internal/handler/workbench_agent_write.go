@@ -304,8 +304,8 @@ func (h *Handler) workbenchMCPCreateQuote(r *http.Request, raw json.RawMessage) 
 		BriefID:    optionalString(args.BriefID),
 		Status:     optionalString(args.Status),
 		QuotedAt:   optionalString(args.QuotedAt),
-		ValidUntil: optionalString(args.ValidUntil),
-		Note:       optionalString(args.Note),
+		ValidUntil: rawOptionalString(args.ValidUntil),
+		Note:       rawOptionalString(args.Note),
 	}
 	return h.workbenchAgentWriteReplay(r, http.MethodPost, workbenchPathBdQuotes, nil, body, h.CreateBdQuote, http.StatusCreated)
 }
@@ -334,9 +334,9 @@ func (h *Handler) workbenchMCPLogActivity(r *http.Request, raw json.RawMessage) 
 		CreatorID:    optionalString(args.CreatorID),
 		Kind:         optionalString(args.Kind),
 		HappenedAt:   optionalString(args.HappenedAt),
-		Summary:      optionalString(args.Summary),
-		Outcome:      optionalString(args.Outcome),
-		NextFollowAt: optionalString(args.NextFollowAt),
+		Summary:      rawOptionalString(args.Summary),
+		Outcome:      rawOptionalString(args.Outcome),
+		NextFollowAt: rawOptionalString(args.NextFollowAt),
 	}
 	return h.workbenchAgentWriteReplay(r, http.MethodPost, workbenchPathBdActivity, nil, body, h.CreateBdActivity, http.StatusCreated)
 }

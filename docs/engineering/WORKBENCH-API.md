@@ -215,21 +215,59 @@ GET /api/workbench/finance?month=2026-09[&department_id=]
 **handler 命名**（router.go 已按此注册，函数名不可改）：
 `GetWorkbenchOverview` `GetWorkbenchCounts` `ListCreators` `CreateCreator` `GetCreator` `UpdateCreator` `DeleteCreator` `ListCreatorPosts` `CreateCreatorPost` `UpdateCreatorPost` `DeleteCreatorPost` `ListCreatorPostMetrics` `UpsertCreatorPostMetric` `ListCrmClients` `CreateCrmClient` `GetCrmClient` `UpdateCrmClient` `DeleteCrmClient` `ListCrmBriefs` `CreateCrmBrief` `GetCrmBrief` `UpdateCrmBrief` `DeleteCrmBrief` `ListCrmCollabs` `CreateCrmCollab` `GetCrmCollab` `UpdateCrmCollab` `DeleteCrmCollab` `ListCrmSettlements` `CreateCrmSettlement` `UpdateCrmSettlement` `DeleteCrmSettlement`
 
+### 3.4 PATCH 的清空语义（三态）
+
+PATCH body 的一个可空字段有三种状态，`*string` / `*float64` 只能表达两种：Go 的 `json.Unmarshal` 把「没传这个 key」和「key 是 `null`」都解成 nil 指针，于是 `{"paid_at": null}` 曾经是**静默保留**（唯一能清空的写法是空串 `""`，而那不是任何一种 JSON API 的常规拼法）。现在统一为：
+
+| 请求里怎么写 | 结果 |
+| --- | --- |
+| 省略该 key | **保留**库里已有的值 |
+| `null` | **清空**该列 → SQL `NULL` |
+| `""` | **清空**该列 → SQL `NULL`（过渡兼容，见下） |
+| 有值 | 按该字段的类型解析后写入 |
+
+- **新代码一律发 `null`**。`""` 只是兼容：`packages/views/sales/collabs/model.ts` 的 `receiptPatch` 现在发的就是 `{"paid_at": ""}`，改成 `null` 之前它必须继续能清空。
+- **清空落 NULL，不落空串**。空串与 NULL 在界面上都渲染成空，但对读者是两个答案：回款/应收、`/finance` 的 `IS NULL` 过滤、跟进到期扫描都只认 NULL。
+- **实现**：这些字段在请求结构体里是 `json.RawMessage`（三态解析，见 `workbench_types.go` 的 `apply*ClearPatch`）。`§21` 的 `media_hot.rank/heat_value/url` 早就是这套写法，本批把它推广到四张核心台账。
+
+覆盖字段（每个字段都按上表三态处理，用例见 `workbench_clearing_test.go`）：
+
+| 台账 | 字段 | 列类型 |
+| --- | --- | --- |
+| `crm_collab` | `publish_url` / `settled_on` / `creator_fee` / `sample_cost` / `platform_fee` | TEXT / DATE / NUMERIC×3 |
+| `creator_quote` | `valid_until` / `note` | DATE / TEXT |
+| `creator_activity` | `outcome` / `next_follow_at` | TEXT（枚举）/ TIMESTAMPTZ |
+| `crm_settlement` | `paid_at` / `note` / `invoice_no` | DATE / TEXT / TEXT |
+
+**例外：NOT NULL 的列不能清空**。`creator_activity.summary` 是 `TEXT NOT NULL`（802 的注释写明「Never empty」），所以 `null` / `""` / 纯空白一律 **400 `summary is required`**——既不保留旧值假装成功，也不落一个空串。`crm_settlement.amount`、各表的 `kind` / `currency` 同理：它们是列的非空身份，不是可清空的备注。`creator_quote.items` 是 `NOT NULL DEFAULT '[]'` 的 JSONB，**清空就是传 `[]`**；`null` 在这里等同「没传」（不抹掉已存明细），因为它没有 NULL 这个状态可用。
+
+**和 §26 的闸门的关系**：判定「这个 PATCH 动了金额/结算字段」看的是**有没有写这个字段**，不是值非 nil。所以 `{"creator_fee": null}` 仍然需要 `crm.amount`、agent 发它仍然 403 `forbidden_agent_money`、人发它仍然进 `review_state='pending'`。否则清空金额就成了绕开金额闸门的写法。**create 上不适用**：新建一行没有「旧值」可清，`null` 只是「没给值」，因此不算动过金额——否则一个把每个键都填 `null` 的表单会让 `POST` 也要求 `crm.amount`。
+
+清空是一次业务变更：`activity_log` 的 `details.before/after` 会记下「旧值 → null」（§2），`revision` 照常 +1（§3）。
+
 ## 4. 事件
 
-`packages/core/types/events.ts` 的 `WSEventType` 追加，payload 进同名映射表：
+`packages/core/types/events.ts` 的 `WSEventType` 追加，payload 进同名映射表。四条台账/内容事件（`creator_activity` / `creator_quote` / `creator_campaign` / `media_topic`）在 W5 补上，服务端 create / update / delete 各发一条，payload 只有 `{ id }`：
 
-| 事件 | payload |
-| --- | --- |
-| `creator:changed` | `{ id: string }` |
-| `creator_post:changed` | `{ id: string; creator_id: string }` |
-| `crm_client:changed` | `{ id: string }` |
-| `crm_brief:changed` | `{ id: string }` |
-| `crm_collab:changed` | `{ id: string }` |
-| `crm_collab:stage_changed` | `{ id: string; from: string; to: string }` |
-| `crm_settlement:changed` | `{ id: string }` |
+| 事件 | payload | 失效范围（`use-realtime-sync.ts`） |
+| --- | --- | --- |
+| `creator:changed` | `{ id: string }` | `["creator", wsId]` + `["workbench", wsId]` |
+| `creator_post:changed` | `{ id: string; creator_id: string }` | 同上 |
+| `crm_client:changed` | `{ id: string }` | `["crm", wsId]` + `["workbench", wsId]` |
+| `crm_brief:changed` | `{ id: string }` | 同上 |
+| `crm_collab:changed` | `{ id: string }` | 同上 |
+| `crm_collab:stage_changed` | `{ id: string; from: string; to: string }` | 同上（与 `crm_collab:changed` 同时到达，React Query 合并成一次重取） |
+| `crm_settlement:changed` | `{ id: string }` | 同上 |
+| `creator_activity:changed` | `{ id: string }` | `["bd", wsId, "activities"]` + `["bd", wsId, "pipeline"]` + `["workbench", wsId]` |
+| `creator_quote:changed` | `{ id: string }` | `["bd", wsId, "quotes"]` + `["bd", wsId, "pipeline"]` + `["workbench", wsId]` |
+| `creator_campaign:changed` | `{ id: string }` | `["bd", wsId, "campaigns"]` + `["workbench", wsId]`（驾驶舱不读活动批次，不失效 `pipeline`） |
+| `media_topic:changed` | `{ id: string }` | `["media", wsId, "topics"]` + `["workbench", wsId]` |
 
-patcher 一律"invalidate 该域列表 + 失效 overview/counts"，不做字段级 patch（台账行字段多，patch 成本高于重取）。
+patcher 一律"invalidate 该域列表 + 失效 overview/counts"，不做字段级 patch（台账行字段多，patch 成本高于重取）。列表键是前缀，所以详情读（`[... , resource, { id }]`）跟着一起失效。
+
+- **actor**：工作区广播，`actor_type` / `actor_id` 取该请求的 `resolveActor` 结果（`workbench_actor`），不是席位主人——agent 写的行到别人屏幕上必须还是 agent。
+- **`media_topic`**：CRUD 与 `/adopt` 都发（此前只有 `/adopt` 一条路径发过，客户端也没登记，等于静默）。
+- **`creator_campaign` 不失效驾驶舱**：`/bd/pipeline` 的四块都不读活动批次（§20.3），失效它只是多一次没人消费的重取。
 
 ## 5. Query key
 
@@ -813,6 +851,8 @@ ALTER creator_post ADD COLUMN media_script_id UUID;
 
 事件（`workbench_media.go` 内定义，写成功后发出）：`media_ip:changed` / `media_topic:changed` / `media_script:changed` / `media_shoot:changed`，payload `{ "id": "<row id>" }`；账号挂载/摘除额外发既有的 `creator:changed`（改的是 `creator` 行）。
 
+`media_topic:changed` 现在两端都接上了：服务端的 CRUD 与 `/adopt` 都发，客户端在 §4 的表里登记并失效 `["media", wsId, "topics"]` + `["workbench", wsId]`。其余三个内容事件仍是服务端单向发出（客户端靠自己的 mutation 失效刷新）。
+
 ```
 ["media", wsId, resource, filters]     // resource ∈ ips|topics|scripts|shoots
 ["media", wsId, resource, { id }]      // 详情（含 ips 的 accounts）
@@ -823,7 +863,7 @@ ALTER creator_post ADD COLUMN media_script_id UUID;
 ### 12.7 已知债务与本批未做
 
 - **UI / views 未接入**：本批只到迁移、SQL、handler、core 类型/zod/client；`packages/views/**`、`apps/**` 不在写作用域。
-- **前端实时 patcher 未注册**：`packages/core/types/events.ts` 不在本批作用域，四个 `media_*:changed` 目前只有服务端发出，客户端靠 mutation 失效刷新；接实时时按 §12.6 的 payload 加 patcher 即可。
+- **前端实时 patcher**：`media_topic:changed` 已登记（§4）；`media_ip` / `media_script` / `media_shoot` 三个仍只有服务端发出，客户端靠 mutation 失效刷新——接实时时按 §12.6 的 payload 加 patcher 即可。
 - **`creator_post.media_script_id` 暂时没有写入路径**：`workbench_creator.go` 不在本批作用域、行为未改，所以 `POST/PATCH /creator-posts` 既不接收也不返回该列，新发的行恒为 NULL。接线时要：请求结构体加字段、写入前校验脚本在本工作区、响应回显。
 - **`GET /creators` 不返回 `media_ip_id`**：同一原因（B0 handler 不在写作用域），`CreatorResponse` 没有这个字段；当前要从 IP 侧读账号（`GET /media/ips/{id}` 的 `accounts[]`）。接线时给 `CreatorResponse` 加字段即可，不会破坏旧客户端（新字段缺省即 null）。
 - **`/counts`、`/overview` 不含内容侧**：侧栏计数与指标条未扩展，本批不做聚合端点；列表 `total` 因此就是本页条数。
@@ -2094,11 +2134,12 @@ word/styles.xml
 
 全部挂在 `bdKeys.all(wsId)` 下，所以一次失效能同时刷新驾驶舱和它旁边那张台账；详情读和列表共用 resource 前缀。`packages/core/bd/index.ts` 统一导出，`package.json` 声明 `./bd`、`./bd/queries`、`./bd/mutations`。
 
-**没有事件**：本批只交付数据层，事件词表在 `packages/core/types/events.ts`，不在本批写作用域内。三个台账的变更靠写入后的 invalidate 与重新拉取体现。
+**事件**：三个台账的 create / update / delete 各发一条 `<subject>:changed`（payload `{ id }`），工作区广播，actor 取请求的 `resolveActor` 结果；词表与失效范围见 §4。客户端因此不需要靠"自己写入后再 invalidate"才能看到别人的改动。
+
+**清空语义**：`creator_activity.outcome` / `next_follow_at`、`creator_quote.valid_until` / `note` 按 §3.4 的三态规则（省略保留 / `null` 清空 / `""` 清空）；`summary` 是 NOT NULL，清空请求 → 400。
 
 ### 20.6 已知债务与本批未做
 
-- **没有 `:changed` 事件**：`creator_activity` / `creator_quote` / `creator_campaign` 的写入不发 WebSocket 事件，另一个客户端的台账不会自动刷新（见 §20.5）。
 - **混合币种只读主币种**：`quotes.total_fee` / `orders.total_amount` / `orders.paid_amount` 只汇总本工作区行数最多的那个币种，并按币种给出总量是下一批的事。今天全库只有 CNY。
 - **没有分页 cursor**：三个台账 limit-only（见 §20.3）。达人侧的 `?creator_id=` 已经把一条时间线限到几十行。
 - **`creator_order` 的四个状态没有对应物**：`crm_collab.stage` 有 11 个阶段，驾驶舱只把它们折叠成 open / delivered / settled 三档（口径见 §20.3）；`signed` 这个中间态没有独立计数。

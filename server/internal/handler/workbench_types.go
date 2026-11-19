@@ -20,6 +20,7 @@ package handler
 //     patchers on the client invalidate the domain list plus overview/counts.
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
@@ -48,6 +49,12 @@ const (
 	eventCRMCollabChanged     = "crm_collab:changed"
 	eventCRMCollabStageChange = "crm_collab:stage_changed"
 	eventCRMSettlementChanged = "crm_settlement:changed"
+	// BD pipeline ledgers (§20), the debt §20.6 recorded until this batch: the
+	// three tables below had no `:changed` event, so a second client's ledger
+	// never refreshed until it refetched on its own.
+	eventBdActivityChanged = "creator_activity:changed"
+	eventBdQuoteChanged    = "creator_quote:changed"
+	eventBdCampaignChanged = "creator_campaign:changed"
 )
 
 // workbenchScope is one request's resolved workspace, caller and optional
@@ -448,6 +455,191 @@ func applyTimestampPatch(patched *string, w http.ResponseWriter, fieldName strin
 		return current, true
 	}
 	return workbenchTimestampValue(w, patched, fieldName)
+}
+
+// ---- clearing nullable columns (§3.4) --------------------------------------
+//
+// A nullable column has three request states, and `*string` / `*float64` can only
+// carry two of them: `json.Unmarshal` turns both "the key is absent" and "the key
+// is null" into a nil pointer. That is why `{"paid_at": null}` used to be a silent
+// no-op — the only way to clear a column was an empty string, a spelling no other
+// JSON API uses.
+//
+// The fields below are therefore decoded as `json.RawMessage` and read here:
+//
+//	key absent        → keep the stored value
+//	key is null       → clear the column (SQL NULL)
+//	key is ""         → clear the column (older clients; kept for compatibility)
+//	key is a value    → parse it exactly like the typed field it replaces
+//
+// New clients send `null`; `""` survives only so a client written before this
+// section keeps working. Nothing below ever stores an empty string: "cleared" is
+// NULL everywhere, which is what the reads and the aggregates test for.
+
+// rawOptionalString renders an optional string argument as the raw JSON a request
+// body carries, so a field the caller did not send stays absent instead of
+// becoming an explicit `null` — the two mean different things to §3.4.
+func rawOptionalString(value string) json.RawMessage {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return nil
+	}
+	encoded, err := json.Marshal(trimmed)
+	if err != nil {
+		return nil
+	}
+	return encoded
+}
+
+// patchSends reports whether a request body carried the field at all, `null`
+// included. It answers "did the caller mention this", which is what the state
+// readers above need; for the money gates see `patchTouches`.
+func patchSends(raw json.RawMessage) bool {
+	return len(bytes.TrimSpace(raw)) > 0
+}
+
+// patchIsNull reports whether the body carried an explicit JSON `null`.
+func patchIsNull(raw json.RawMessage) bool {
+	return string(bytes.TrimSpace(raw)) == "null"
+}
+
+// patchTouches reports whether a request wrote a nullable field at all: any value
+// counts, and an explicit `null` counts only on a PATCH. On a create there is
+// nothing to clear, so `null` is just "no value" — a generated form that sends every
+// key must not turn a create into a money write (§26.1/§26.5).
+func patchTouches(raw json.RawMessage, patch bool) bool {
+	if !patchSends(raw) {
+		return false
+	}
+	return !patchIsNull(raw) || patch
+}
+
+// applyTextClearPatch resolves a nullable TEXT column for a create or a PATCH.
+func applyTextClearPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Text) (pgtype.Text, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		return pgtype.Text{}, true
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a string or null")
+		return pgtype.Text{}, false
+	}
+	// optionalTrimmedText already folds "" into NULL, which is the compatibility
+	// spelling this batch keeps.
+	return optionalTrimmedText(&value), true
+}
+
+// applyDateClearPatch is applyTextClearPatch for a nullable DATE column.
+func applyDateClearPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Date) (pgtype.Date, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		return pgtype.Date{}, true
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a date string or null")
+		return pgtype.Date{}, false
+	}
+	return workbenchDateValue(w, &value, fieldName)
+}
+
+// applyTimestampClearPatch is applyTextClearPatch for a nullable TIMESTAMPTZ.
+func applyTimestampClearPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Timestamptz) (pgtype.Timestamptz, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		return pgtype.Timestamptz{}, true
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a timestamp or null")
+		return pgtype.Timestamptz{}, false
+	}
+	return workbenchTimestampValue(w, &value, fieldName)
+}
+
+// applyNumericClearPatch is applyTextClearPatch for a nullable NUMERIC column. An
+// amount is cleared with `null`; `""` is accepted because it was the only spelling
+// that worked before this batch, but it is not a documented shape.
+func applyNumericClearPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Numeric) (pgtype.Numeric, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		return pgtype.Numeric{}, true
+	}
+	var value float64
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		var text string
+		if textErr := json.Unmarshal(trimmed, &text); textErr == nil && strings.TrimSpace(text) == "" {
+			return pgtype.Numeric{}, true
+		}
+		writeError(w, http.StatusBadRequest, fieldName+" must be a number or null")
+		return pgtype.Numeric{}, false
+	}
+	return floatToNumeric(&value), true
+}
+
+// applyEnumClearPatch is applyTextClearPatch for a nullable enum column: `null`
+// and `""` clear it (the enum has no empty member), and any other value must be
+// one of `allowed`.
+func applyEnumClearPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, allowed map[string]bool, current pgtype.Text) (pgtype.Text, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		return pgtype.Text{}, true
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a string or null")
+		return pgtype.Text{}, false
+	}
+	parsed := strings.TrimSpace(value)
+	if parsed == "" {
+		return pgtype.Text{}, true
+	}
+	if !allowed[parsed] {
+		writeError(w, http.StatusBadRequest, "invalid "+fieldName)
+		return pgtype.Text{}, false
+	}
+	return pgtype.Text{String: parsed, Valid: true}, true
+}
+
+// applyRequiredTextPatch is the NOT-NULL counterpart: the column cannot be
+// cleared, so `null` and `""` answer 400 instead of quietly keeping the old
+// value — a client that sends them believes it cleared something.
+func applyRequiredTextPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current string) (string, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a string")
+		return current, false
+	}
+	parsed := strings.TrimSpace(value)
+	if parsed == "" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	return parsed, true
 }
 
 // ---- responses -------------------------------------------------------------
