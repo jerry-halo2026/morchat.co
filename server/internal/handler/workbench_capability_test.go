@@ -1,7 +1,7 @@
-package handler
+﻿package handler
 
-// Product-layer capability tests (docs/engineering/WORKBENCH-API.md §24,
-// docs/engineering/COLLAB-MODEL.md §1/§6).
+// Product-layer capability tests (docs/engineering/WORKBENCH-API.md 搂24,
+// docs/engineering/COLLAB-MODEL.md 搂1/搂6).
 //
 // The five resolution steps and the two "narrower than ownership" capabilities are
 // each pinned once here, because every one of them is a rule that would silently
@@ -103,8 +103,8 @@ func TestWorkbenchCapabilitiesFromJobTitleTemplate(t *testing.T) {
 	// A department whose default would grant writes, plus a title whose template
 	// deliberately grants only reads: the template must win.
 	departmentID := capabilityDepartment(t, "销售部")
-	userID := capabilityMember(t, "template", departmentID, "只读会计")
-	seedRoleTemplate(t, "只读会计", "{crm.read}")
+	userID := capabilityMember(t, "template", departmentID, "鍙浼氳")
+	seedRoleTemplate(t, "鍙浼氳", "{crm.read}")
 
 	response := fetchCapabilities(t, userID)
 	if response.Source != "template" {
@@ -135,17 +135,16 @@ func TestWorkbenchCapabilitiesFromDepartmentDefault(t *testing.T) {
 		t.Fatalf("source = %q, want department", response.Source)
 	}
 	if !hasCapability(response, capCRMWrite) || !hasCapability(response, capCRMAmount) {
-		t.Fatalf("capabilities = %v, want the 销售 department defaults", response.Capabilities)
+		t.Fatalf("capabilities = %v, want the 销售部 department defaults", response.Capabilities)
 	}
 	if hasCapability(response, capHRWrite) {
-		t.Fatalf("capabilities = %v, a 销售 default must not include hr.write", response.Capabilities)
+		t.Fatalf("capabilities = %v, a 销售部 default must not include hr.write", response.Capabilities)
 	}
 }
 
 // TestWorkbenchFallbackKeepsPreCapabilityBehavior is the no-silent-regression case:
-// a member with no department and no HR profile — the ordinary shape of a real
-// workspace, where departments and job titles were added long after people joined —
-// must still be able to do everything `workbenchCanWrite` allowed before capabilities
+// a member with no department and no HR profile 鈥?the ordinary shape of a real
+// workspace, where departments and job titles were added long after people joined 鈥?// must still be able to do everything `workbenchCanWrite` allowed before capabilities
 // existed. The fallback is the *old* behaviour, not a read-only lockdown.
 func TestWorkbenchFallbackKeepsPreCapabilityBehavior(t *testing.T) {
 	// Its own workspace: the rows this case writes would otherwise move the
@@ -160,12 +159,12 @@ func TestWorkbenchFallbackKeepsPreCapabilityBehavior(t *testing.T) {
 	}
 	for _, capability := range []string{capCRMWrite, capCRMAmount, capCRMSettle, capMediaWrite, capMediaPublish, capHRRead, capBossRead} {
 		if !hasCapability(response, capability) {
-			t.Fatalf("fallback is missing %s 鈥?the default must equal the pre-capability behaviour", capability)
+			t.Fatalf("fallback is missing %s 閳?the default must equal the pre-capability behaviour", capability)
 		}
 	}
 
-	// The whole money chain, as the member itself: client 鈫?brief 鈫?creator 鈫?collab
-	// with amounts 鈫?settlement 鈫?stage settled.
+	// The whole money chain, as the member itself: client 閳?brief 閳?creator 閳?collab
+	// with amounts 閳?settlement 閳?stage settled.
 	req := bdRequestIn(t, "POST", "/api/workbench/creators", workspaceID, map[string]any{
 		"kind": "external", "display_name": "Fallback creator", "platform": "douyin", "handle": "cap-fallback-creator",
 	}, memberUserID)
@@ -207,8 +206,8 @@ func TestWorkbenchFallbackKeepsPreCapabilityBehavior(t *testing.T) {
 
 // TestWorkbenchFallbackLacksNewCapabilities is the other half of the same decision:
 // the fallback grants what existed before and **nothing that is new**. These three
-// capabilities did not exist prior to §24, so withholding them changes no existing
-// behaviour — while granting them by default would hand out rights no owner approved.
+// capabilities did not exist prior to 搂24, so withholding them changes no existing
+// behaviour 鈥?while granting them by default would hand out rights no owner approved.
 func TestWorkbenchFallbackLacksNewCapabilities(t *testing.T) {
 	memberUserID := capabilityMember(t, "newcaps", "", "")
 
@@ -230,17 +229,19 @@ func TestWorkbenchFallbackLacksNewCapabilities(t *testing.T) {
 		t.Fatalf("hr 403 body = %v, want capability hr.write", body)
 	}
 
-	// review.accept gates handing out capabilities: a member editing a template is
-	// exactly the escalation this capability exists to stop.
+	// Handing out capabilities is an owner/admin act: a member editing a template is
+	// exactly the escalation this gate exists to stop. The 403 names the role rule
+	// rather than a capability 鈥?a client that hides entries per capability must not
+	// read it as "review.accept missing" and offer to grant it.
 	req = withURLParam(workbenchRequest(t, "PUT", "/api/workbench/role-templates/商务", map[string]any{
 		"capabilities": []string{capCRMWrite},
 	}, memberUserID), "jobTitle", "商务")
 	testutil.Call(t, testHandler.PutWorkbenchRoleTemplate, req).Want(http.StatusForbidden).JSON(&body)
-	if body["capability"] != capReviewAccept {
-		t.Fatalf("template 403 body = %v, want capability review.accept", body)
+	if body["error"] != "forbidden_role" || body["role"] != "owner" {
+		t.Fatalf("template 403 body = %v, want forbidden_role/owner", body)
 	}
 
-	// agent.delegate has no HTTP write path yet (agents write through MCP, §6), so its
+	// agent.delegate has no HTTP write path yet (agents write through MCP, 搂6), so its
 	// absence is asserted on the resolved set, which is the only place it can appear.
 	for _, capability := range response.Capabilities {
 		if capability == capAgentDelegate {
@@ -251,12 +252,12 @@ func TestWorkbenchFallbackLacksNewCapabilities(t *testing.T) {
 
 // TestWorkbenchAmountAndSettleNeedTheirCapability covers the two capabilities that are
 // narrower than "may write": a member who may edit a collaboration may still not move
-// its money or record a settlement (COLLAB-MODEL §1: 被指派不等于有权改).
+// its money or record a settlement (COLLAB-MODEL 搂1: 琚寚娲句笉绛変簬鏈夋潈鏀?.
 func TestWorkbenchAmountAndSettleNeedTheirCapability(t *testing.T) {
 	// A title whose template grants the write but neither crm.amount nor crm.settle:
 	// the baseline fixture template grants both, so the narrowing needs its own row.
-	seedRoleTemplate(t, "只写商务", "{crm.read,crm.write}")
-	memberUserID := capabilityMember(t, "amount", "", "只写商务")
+	seedRoleTemplate(t, "鍙啓商务", "{crm.read,crm.write}")
+	memberUserID := capabilityMember(t, "amount", "", "鍙啓商务")
 	client := createWorkbenchClient(t, memberUserID, "Capability amount client")
 	brief := createWorkbenchBrief(t, client.ID, "Capability amount brief")
 	creator := createWorkbenchCreator(t, memberUserID, "Capability amount creator")
@@ -295,7 +296,7 @@ func TestWorkbenchAmountAndSettleNeedTheirCapability(t *testing.T) {
 	testutil.Call(t, testHandler.UpdateCrmCollab, req).Want(http.StatusOK)
 }
 
-// TestWorkbenchDepartmentVisibilityIsolatesWrites covers §24.4's write half: with
+// TestWorkbenchDepartmentVisibilityIsolatesWrites covers 搂24.4's write half: with
 // `workbench_visibility=department`, a member may not change a row owned by someone in
 // another department, and the same write is allowed once the switch is back to
 // `transparent`.
@@ -308,8 +309,8 @@ func TestWorkbenchDepartmentVisibilityIsolatesWrites(t *testing.T) {
 	client := createWorkbenchClient(t, ownerUserID, "Visibility client")
 	brief := createWorkbenchBrief(t, client.ID, "Visibility brief")
 	creator := createWorkbenchCreator(t, ownerUserID, "Visibility creator")
-	// Owned by the member of the 销售 department, so the cross-department check is what
-	// must refuse — not ownership.
+	// Owned by the member of the 销售部 department, so the cross-department check is what
+	// must refuse 鈥?not ownership.
 	collab := createWorkbenchCollab(t, brief.ID, creator.ID, map[string]any{"stage": "negotiating", "owner_member_id": ownerUserID})
 
 	// Restore the workspace's setting when the case ends: the suite shares one row.
@@ -334,7 +335,7 @@ func TestWorkbenchDepartmentVisibilityIsolatesWrites(t *testing.T) {
 		t.Fatalf("visibility = %q, want department", response.Visibility)
 	}
 
-	// §24.4 is a read switch (writes keep their own gates): the by-id read of another
+	// 搂24.4 is a read switch (writes keep their own gates): the by-id read of another
 	// department's collaboration is refused instead of leaking the row.
 	req = withURLParam(workbenchRequest(t, "GET", "/api/workbench/crm/collabs/"+collab.ID, nil, otherUserID), "collabId", collab.ID)
 	var body map[string]any
@@ -352,16 +353,16 @@ func TestWorkbenchDepartmentVisibilityIsolatesWrites(t *testing.T) {
 func TestWorkbenchRoleTemplateEndpoints(t *testing.T) {
 	memberUserID := workbenchTestMember(t)
 
-	req := workbenchRequest(t, "PUT", "/api/workbench/role-templates/"+"设计师", map[string]any{
+	req := workbenchRequest(t, "PUT", "/api/workbench/role-templates/"+"设计部", map[string]any{
 		"capabilities": []string{capMediaRead, capMediaWrite, "not.a.capability"},
 	}, testUserID)
-	req = withURLParam(req, "jobTitle", "设计师")
+	req = withURLParam(req, "jobTitle", "设计部")
 	saved := testutil.Decode[WorkbenchRoleTemplateResponse](t, testHandler.PutWorkbenchRoleTemplate, req, http.StatusOK)
 	if len(saved.Capabilities) != 2 || saved.Capabilities[0] != capMediaRead || saved.Capabilities[1] != capMediaWrite {
 		t.Fatalf("saved capabilities = %v, want the two known ones in order", saved.Capabilities)
 	}
 	t.Cleanup(func() {
-		dbfx.Exec(t, `DELETE FROM workbench_role_template WHERE workspace_id = $1 AND lower(job_title) = '设计师'`, testWorkspaceID)
+		dbfx.Exec(t, `DELETE FROM workbench_role_template WHERE workspace_id = $1 AND lower(job_title) = '设计部'`, testWorkspaceID)
 	})
 
 	req = workbenchRequest(t, "GET", "/api/workbench/role-templates", nil, memberUserID)
@@ -375,10 +376,10 @@ func TestWorkbenchRoleTemplateEndpoints(t *testing.T) {
 	}
 
 	// A member cannot hand out capabilities.
-	req = workbenchRequest(t, "PUT", "/api/workbench/role-templates/设计师", map[string]any{
+	req = workbenchRequest(t, "PUT", "/api/workbench/role-templates/设计部", map[string]any{
 		"capabilities": []string{capCRMWrite},
 	}, memberUserID)
-	req = withURLParam(req, "jobTitle", "设计师")
+	req = withURLParam(req, "jobTitle", "设计部")
 	testutil.Call(t, testHandler.PutWorkbenchRoleTemplate, req).Want(http.StatusForbidden)
 
 	// Deleting a template that does not exist is a 404, not a silent success.
