@@ -603,6 +603,99 @@ describe("SalesCollabsPage · 结算到账", () => {
   });
 });
 
+describe("SalesCollabsPage · 结算到账 · 并发 (§3)", () => {
+  /** Open the one collaboration's sheet. */
+  async function openSheet() {
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+    fireEvent.click(within(bodyRows()[0]!).getByText("Lin Wei"));
+  }
+
+  it("marks received with the revision it read, and takes the server's row on a 409", async () => {
+    serve(
+      [collab({ id: "collab-1" })],
+      [settlement({ id: "s-1", kind: "prepay", amount: 3000, paid_at: null, revision: 2 })],
+    );
+    // Somebody else booked the arrival two days earlier, while this sheet was open.
+    const current = settlement({
+      id: "s-1",
+      kind: "prepay",
+      amount: 3000,
+      paid_at: new Date(2026, 10, 16, 9).toISOString(),
+      revision: 3,
+    });
+    api.updateCrmSettlement.mockImplementationOnce(async () => {
+      setSettlements([current]);
+      throw new StaleWriteError("conflict", current);
+    });
+    renderPage();
+    await openSheet();
+    await userEvent.click(await screen.findByRole("button", { name: "Mark received" }));
+
+    // The guard travelled with the write, and the write was not sent again.
+    await waitFor(() =>
+      expect(api.updateCrmSettlement).toHaveBeenCalledWith("s-1", {
+        paid_at: new Date(2026, 10, 18, 12).toISOString(),
+        expected_revision: 2,
+      }),
+    );
+    expect(api.updateCrmSettlement).toHaveBeenCalledTimes(1);
+    // 别人刚改过，已为你刷新 — and the row reads their day, not ours.
+    expect(await screen.findByText(/Someone else just changed this/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(document.querySelector('[data-received="yes"]')).toHaveTextContent(
+        "Received · 2026-11-16",
+      ),
+    );
+    expect(api.updateCrmSettlement).toHaveBeenCalledTimes(1);
+  });
+
+  it("undoes with the revision it read, and on a 409 keeps the server's arrival", async () => {
+    serve(
+      [collab({ id: "collab-1" })],
+      [
+        settlement({
+          id: "s-1",
+          kind: "prepay",
+          amount: 3000,
+          paid_at: new Date(2026, 10, 10, 9).toISOString(),
+          revision: 2,
+        }),
+      ],
+    );
+    // The other writer moved the arrival date; this sheet is undoing an older day.
+    const current = settlement({
+      id: "s-1",
+      kind: "prepay",
+      amount: 3000,
+      paid_at: new Date(2026, 10, 15, 9).toISOString(),
+      revision: 3,
+    });
+    api.updateCrmSettlement.mockImplementationOnce(async () => {
+      setSettlements([current]);
+      throw new StaleWriteError("conflict", current);
+    });
+    renderPage();
+    await openSheet();
+    await userEvent.click(await screen.findByRole("button", { name: "Undo receipt" }));
+
+    await waitFor(() =>
+      expect(api.updateCrmSettlement).toHaveBeenCalledWith("s-1", {
+        paid_at: "",
+        expected_revision: 2,
+      }),
+    );
+    expect(api.updateCrmSettlement).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText(/Someone else just changed this/)).toBeInTheDocument();
+    // The undo was dropped: the row still reads received, on the server's day.
+    await waitFor(() =>
+      expect(document.querySelector('[data-received="yes"]')).toHaveTextContent(
+        "Received · 2026-11-15",
+      ),
+    );
+    expect(document.querySelector('[data-received="no"]')).toBeNull();
+  });
+});
+
 describe("SalesCollabsPage · 撤销合作单", () => {
   it("asks once, names the settlements it takes with it, then deletes the row", async () => {
     serve([]);

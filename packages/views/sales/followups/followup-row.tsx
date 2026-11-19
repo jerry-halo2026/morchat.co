@@ -10,7 +10,7 @@ import type { BdActivity, BdActivityOutcome } from "@morechat/core/types";
 import { cn } from "@morechat/ui/lib/utils";
 import { useTimeAgo } from "../../i18n";
 import { useActivityLabels } from "../dashboard/copy";
-import { ROW_FLASH_CLASS, expectedRevisionPatch, useLedgerCopy } from "../quotes/deep-link";
+import { ROW_FLASH_CLASS, expectedRevisionPatch, useLedgerCopy } from "../deep-link";
 import { useFollowupsCopy } from "./copy";
 import { LogFollowupForm } from "./log-followup-form";
 import { isLongSummary, pushToTomorrow } from "./model";

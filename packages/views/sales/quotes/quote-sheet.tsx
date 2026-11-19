@@ -46,7 +46,7 @@ import {
   type QuoteFormValues,
   type QuoteLine,
 } from "./model";
-import { useLedgerCopy, expectedRevisionPatch } from "./deep-link";
+import { useLedgerCopy, expectedRevisionPatch } from "../deep-link";
 
 const CURRENCIES = ["CNY", "USD", "EUR"] as const;
 

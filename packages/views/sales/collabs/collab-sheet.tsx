@@ -44,7 +44,7 @@ import {
 import type { CrmBrief, CrmCollab, CrmCollabStage, Creator } from "@morechat/core/types";
 import { useT } from "../../i18n";
 import { OverwriteReasonDialog, isOverwriteReasonRequired, useOverwriteRetry } from "../../review";
-import { expectedRevisionPatch, useLedgerCopy } from "../quotes/deep-link";
+import { expectedRevisionPatch, useLedgerCopy } from "../deep-link";
 import { useCollabsCopy } from "./copy";
 import {
   COLLAB_STAGES,

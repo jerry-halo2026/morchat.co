@@ -40,7 +40,7 @@ import {
 import { PAGE_GUTTER } from "../layout/page-header";
 import { ROUTE_ICON_COMPONENTS } from "../layout/route-icon-components";
 import { ImportCsvButton } from "./import/import-dialog";
-import { useLedgerCopy, useRowFocus } from "./quotes/deep-link";
+import { useLedgerCopy, useRowFocus } from "./deep-link";
 import { SORT_KEYS, STATUS_KEYS, useQuotesCopy, type QuotesCopyKey } from "./quotes/copy";
 import {
   QUOTE_STATUSES,
@@ -109,7 +109,7 @@ const STATUS_TONE: Readonly<Record<BdQuoteStatus, string>> = {
  * `?quote=<id>` is how an inbox notice or 我的队列 hands one offer over: the row
  * is scrolled to and marked for a moment, and a link whose row is not in what
  * this page is showing says so above the grid instead of landing on a list
- * (`quotes/deep-link.ts`). The parameter is in the URL, so the address stays
+ * (`deep-link.ts`). The parameter is in the URL, so the address stays
  * shareable.
  *
  * What this page does not do: print the offer (no PDF), keep quote templates, run

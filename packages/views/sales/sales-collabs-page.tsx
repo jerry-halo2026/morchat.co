@@ -37,7 +37,7 @@ import { useCollabColumns } from "./collabs/collab-columns";
 import { CollabSheet } from "./collabs/collab-sheet";
 import { useCollabsCopy } from "./collabs/copy";
 import { ImportCsvButton } from "./import/import-dialog";
-import { useLedgerCopy, useRowFocus } from "./quotes/deep-link";
+import { useLedgerCopy, useRowFocus } from "./deep-link";
 import {
   COLLAB_STAGES,
   filterByWindow,

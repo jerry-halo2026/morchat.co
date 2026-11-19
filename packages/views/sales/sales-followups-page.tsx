@@ -19,7 +19,7 @@ import { AppLink } from "../navigation";
 import { useFollowupsCopy } from "./followups/copy";
 import { FollowupRow } from "./followups/followup-row";
 import { LogFollowupForm } from "./followups/log-followup-form";
-import { useLedgerCopy, useRowFocus } from "./quotes/deep-link";
+import { useLedgerCopy, useRowFocus } from "./deep-link";
 import {
   ACTIVITY_WINDOW,
   newestIds,

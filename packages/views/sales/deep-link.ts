@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useT } from "../../i18n";
-import { useNavigation } from "../../navigation";
+import { useT } from "../i18n";
+import { useNavigation } from "../navigation";
 
 /**
  * The four behaviours the three ledgers share, in one place.
@@ -17,11 +17,12 @@ import { useNavigation } from "../../navigation";
  *   3. **`expected_revision`** — the §3 guard travels with any PATCH of a ledger
  *      row, counted from the revision this reader last saw.
  *   4. **`409 stale_write`** — its sentence (`stale_write.refreshed`), shared by
- *      the three drawers so they cannot drift into three wordings.
+ *      the three drawers and the inline row actions so they cannot drift into
+ *      three wordings.
  *
- * It lives here, under `quotes/`, because the quote ledger is where the parameter
- * first landed; the collaboration and follow-up pages import from this module the
- * same way they already import `quotes/model` (money, days, ratios).
+ * It sits at the root of `sales/` because all three ledgers read it: the quote,
+ * collaboration and follow-up pages and their drawers, and the row actions
+ * inside them.
  */
 
 /**

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { isStaleWrite } from "@morechat/core/api";
 import { Button } from "@morechat/ui/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@morechat/ui/components/ui/field";
 import { Input } from "@morechat/ui/components/ui/input";
@@ -15,9 +16,15 @@ import {
 import { Spinner } from "@morechat/ui/components/ui/spinner";
 import { cn } from "@morechat/ui/lib/utils";
 import { useCreateCrmSettlement, useUpdateCrmSettlement } from "@morechat/core/crm/mutations";
-import { crmSettlementListOptions } from "@morechat/core/crm/queries";
-import type { CrmCollab, CrmSettlement, CrmSettlementKind } from "@morechat/core/types";
+import { crmKeys, crmSettlementListOptions } from "@morechat/core/crm/queries";
+import type {
+  CrmCollab,
+  CrmSettlement,
+  CrmSettlementKind,
+  CrmSettlementListResponse,
+} from "@morechat/core/types";
 import { useLocale } from "../../i18n";
+import { expectedRevisionPatch, useLedgerCopy } from "../deep-link";
 import { localDayOf } from "../quotes/model";
 import { useCollabsCopy } from "./copy";
 import {
@@ -48,21 +55,42 @@ import {
  *
  * The section is only drawn for a row that exists: a settlement needs a
  * `collab_id`, so there is nothing to settle on a collaboration being created.
+ *
+ * 标记已到账 / 撤销到账 are §3 writes. Each carries the `revision` this section read
+ * (when the row has one — a pre-821 server omits it and the PATCH is then
+ * unguarded, the way an old client's is). A `409 stale_write` means somebody else
+ * moved the money first: the row the section shows becomes the server's `current`
+ * row, the sentence above the list says so, and the click is **not** replayed —
+ * writing this reader's day over the other writer's arrival is what the counter
+ * exists to prevent (COLLAB-MODEL §3).
  */
 export function SettlementsSection({ wsId, collab }: { wsId: string; collab: CrmCollab }) {
   const copy = useCollabsCopy();
   const { t } = copy;
   const locale = useLocale();
+  const ledger = useLedgerCopy();
+  const qc = useQueryClient();
   const settled = useQuery(crmSettlementListOptions(wsId, { collab_id: collab.id }));
   const create = useCreateCrmSettlement();
   const update = useUpdateCrmSettlement();
 
   const [form, setForm] = useState<SettlementForm>(EMPTY_SETTLEMENT_FORM);
   const [failure, setFailure] = useState<string | null>(null);
+  /** Set by a 409: the list below now shows the server's row, and says so. */
+  const [stale, setStale] = useState(false);
   /** The row whose arrival is being written, so only that row shows a spinner. */
   const [busyRow, setBusyRow] = useState<string | null>(null);
+  /**
+   * The server's row from a 409, and the row it replaced. Held as a pair so the
+   * override is dropped as soon as the reread hands this row a newer object.
+   */
+  const [replaced, setReplaced] = useState<{
+    from: CrmSettlement;
+    current: CrmSettlement;
+  } | null>(null);
 
-  const rows = settled.data?.settlements ?? [];
+  const served = settled.data?.settlements ?? [];
+  const rows = served.map((row) => (replaced && replaced.from === row ? replaced.current : row));
   const totals = settlementTotals(rows, collab.currency);
   const empty = t(($) => $.collabs.settlement_empty);
 
@@ -90,15 +118,41 @@ export function SettlementsSection({ wsId, collab }: { wsId: string; collab: Crm
    * the settlement subtree, the section rereads it, and `settlementTotals` adds the
    * new split from the rows the server now returns. A predicted total would be a
    * second source for the same money.
+   *
+   * A `409` is answered by taking the server's row — into this section's list and
+   * into the query cache the totals read — and never by sending this day again.
    */
   const toggleReceived = async (row: CrmSettlement) => {
     setFailure(null);
+    setStale(false);
     const patch = receiptPatch(isReceived(row) ? null : localDayOf(new Date()));
     if (patch === null) return;
     setBusyRow(row.id);
     try {
-      await update.mutateAsync({ id: row.id, ...patch });
+      await update.mutateAsync({
+        id: row.id,
+        ...patch,
+        ...expectedRevisionPatch(row.revision),
+      });
     } catch (error) {
+      if (isStaleWrite<CrmSettlement>(error)) {
+        const current = error.current;
+        setReplaced({ from: row, current });
+        qc.setQueryData<CrmSettlementListResponse>(
+          crmKeys.list(wsId, "settlements", { collab_id: collab.id }),
+          (previous) =>
+            previous
+              ? {
+                  ...previous,
+                  settlements: previous.settlements.map((entry) =>
+                    entry.id === current.id ? current : entry,
+                  ),
+                }
+              : previous,
+        );
+        setStale(true);
+        return;
+      }
       setFailure(
         error instanceof Error && error.message
           ? error.message
@@ -134,6 +188,16 @@ export function SettlementsSection({ wsId, collab }: { wsId: string; collab: Crm
           </span>
         </span>
       </div>
+
+      {stale ? (
+        <p
+          role="status"
+          data-slot="settlement-stale"
+          className="text-caption text-muted-foreground"
+        >
+          {ledger.staleWrite}
+        </p>
+      ) : null}
 
       {settled.isError ? (
         <div role="alert" className="flex items-center gap-2 text-caption text-destructive">

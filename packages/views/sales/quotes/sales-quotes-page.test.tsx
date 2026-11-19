@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { BdQuote, Creator } from "@morechat/core/types";
 import { NavigationProvider, type NavigationAdapter } from "../../navigation";
 import { renderWithI18n } from "../../test/i18n";
@@ -42,7 +43,7 @@ vi.mock("@morechat/core/api", async (importOriginal) => ({
   api,
 }));
 vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
-vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() } }));
 
 // Who the reader is: the one input that decides whether the page writes at all.
 const viewer = vi.hoisted(() => ({
@@ -146,6 +147,8 @@ function renderPage(params?: Record<string, string>) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
+  // The page's own cache, so a test can read the row a 409 wrote into it.
+  queryClient = client;
   return renderWithI18n(
     <QueryClientProvider client={client}>
       <NavigationProvider value={adapter(params)}>
@@ -154,6 +157,9 @@ function renderPage(params?: Record<string, string>) {
     </QueryClientProvider>,
   );
 }
+
+/** The QueryClient of the last rendered page. */
+let queryClient: QueryClient;
 
 /** The rows of the grid, without the sticky header row. */
 function bodyRows(): HTMLElement[] {
@@ -166,8 +172,23 @@ async function pickCreator(name: RegExp) {
   await userEvent.click(await screen.findByRole("option", { name }));
 }
 
+/**
+ * What the ledger answers *now*. A row action writes through the server, so a
+ * `409`'s reread has to see the other writer's row, not the one the page first
+ * read; the page never patches the list itself.
+ */
+let servedQuotes: BdQuote[] = [];
+
+function setServed(next: readonly BdQuote[]) {
+  servedQuotes = [...next];
+}
+
 function serve(rows: readonly BdQuote[], creators: readonly Creator[]) {
-  api.listBdQuotes.mockResolvedValue({ quotes: [...rows], total: rows.length });
+  setServed(rows);
+  api.listBdQuotes.mockImplementation(async () => ({
+    quotes: [...servedQuotes],
+    total: servedQuotes.length,
+  }));
   api.listCreators.mockResolvedValue({
     creators: [...creators],
     total: creators.length,
@@ -383,6 +404,102 @@ describe("SalesQuotesPage · 行内动作", () => {
     await waitFor(() =>
       expect(api.updateBdQuote).toHaveBeenCalledWith("q-1", { status: "accepted" }),
     );
+  });
+});
+
+describe("SalesQuotesPage · 行内动作 · 并发 (§3)", () => {
+  /** Open the one row's menu and press one of its items. */
+  async function press(label: string) {
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+    await userEvent.click(within(bodyRows()[0]!).getByRole("button", { name: "Quote actions" }));
+    await userEvent.click(await screen.findByRole("menuitem", { name: label }));
+  }
+
+  /** The row the page's cache holds for `id` — what a 409 wrote or the reread brought. */
+  function cachedQuote(id: string): BdQuote | undefined {
+    return queryClient
+      .getQueriesData<{ quotes: BdQuote[] }>({ queryKey: ["bd", WS, "quotes"] })
+      .flatMap(([, data]) => data?.quotes ?? [])
+      .find((row) => row.id === id);
+  }
+
+  it("marks accepted with the revision it read, and takes the server's row on a 409", async () => {
+    serve([quote({ id: "q-1", status: "sent", revision: 3 })], [creator("c-1", "Lin Wei")]);
+    // Somebody else answered the offer while this menu was open.
+    const current = quote({ id: "q-1", status: "rejected", revision: 4 });
+    api.updateBdQuote.mockImplementationOnce(async () => {
+      setServed([current]);
+      throw new StaleWriteError("conflict", current);
+    });
+    renderPage();
+    await press("Mark accepted");
+
+    // 别人刚改过，已为你刷新.
+    await waitFor(() =>
+      expect(toast.info).toHaveBeenCalledWith(expect.stringMatching(/Someone else just changed this/)),
+    );
+    // The guard travelled with the write, and the write was not sent again.
+    expect(api.updateBdQuote).toHaveBeenCalledTimes(1);
+    expect(api.updateBdQuote.mock.calls[0]![1]).toEqual({
+      status: "accepted",
+      expected_revision: 3,
+    });
+    // The server's row is what the page holds and draws now.
+    expect(cachedQuote("q-1")).toMatchObject({ status: "rejected", revision: 4 });
+    await waitFor(() =>
+      expect(document.querySelector('[data-status="rejected"]')).not.toBeNull(),
+    );
+
+    // An answered quote offers no second decision: the row state moved with the refresh.
+    await userEvent.click(within(bodyRows()[0]!).getByRole("button", { name: "Quote actions" }));
+    expect(await screen.findByRole("menuitem", { name: "Delete" })).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "Mark accepted" })).toBeNull();
+  });
+
+  it("marks rejected with the revision it read, and takes the server's row on a 409", async () => {
+    serve([quote({ id: "q-1", status: "sent", revision: 7 })], [creator("c-1", "Lin Wei")]);
+    const current = quote({ id: "q-1", status: "accepted", revision: 8 });
+    api.updateBdQuote.mockImplementationOnce(async () => {
+      setServed([current]);
+      throw new StaleWriteError("conflict", current);
+    });
+    renderPage();
+    await press("Mark rejected");
+
+    await waitFor(() => expect(toast.info).toHaveBeenCalledTimes(1));
+    expect(api.updateBdQuote).toHaveBeenCalledTimes(1);
+    expect(api.updateBdQuote.mock.calls[0]![1]).toEqual({
+      status: "rejected",
+      expected_revision: 7,
+    });
+    expect(cachedQuote("q-1")).toMatchObject({ status: "accepted", revision: 8 });
+    await waitFor(() =>
+      expect(document.querySelector('[data-status="accepted"]')).not.toBeNull(),
+    );
+  });
+
+  it("deletes once, and on a 409 keeps the row and shows the server's copy", async () => {
+    serve([quote({ id: "q-1", status: "sent", revision: 2 })], [creator("c-1", "Lin Wei")]);
+    const current = quote({ id: "q-1", status: "accepted", revision: 3 });
+    api.deleteBdQuote.mockImplementationOnce(async () => {
+      setServed([current]);
+      throw new StaleWriteError("conflict", current);
+    });
+    renderPage();
+    await press("Delete");
+    // The confirmation asks once; a refusal closes it rather than leaving the same
+    // click loaded for a second press.
+    await userEvent.click(screen.getByRole("button", { name: "Delete" }));
+
+    await waitFor(() => expect(toast.info).toHaveBeenCalledTimes(1));
+    expect(api.deleteBdQuote).toHaveBeenCalledTimes(1);
+    expect(api.deleteBdQuote).toHaveBeenCalledWith("q-1");
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+
+    // Nothing left the ledger: the row is still there, reading the server's answer.
+    expect(bodyRows()).toHaveLength(1);
+    expect(cachedQuote("q-1")).toMatchObject({ status: "accepted", revision: 3 });
+    expect(document.querySelector('[data-status="accepted"]')).not.toBeNull();
   });
 });
 
