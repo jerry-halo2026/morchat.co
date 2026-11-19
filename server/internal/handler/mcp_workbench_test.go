@@ -30,7 +30,11 @@ import (
 // as the router does, with the caller's identity in the headers that middleware
 // reads. A caller who is not a member of workspaceID never reaches the handler,
 // which is what the cross-workspace case asserts.
-func workbenchMCPPost(t *testing.T, body any, userID, workspaceID string) (int, mcpFrame) {
+//
+// `extraHeaders` is a flat key/value list appended to the request: the agent write
+// cases need `X-Agent-ID` + `X-Task-ID` on top of the member identity, because
+// `resolveActor` (handler.go) only answers "agent" when both are present and bound.
+func workbenchMCPPost(t *testing.T, body any, userID, workspaceID string, extraHeaders ...string) (int, mcpFrame) {
 	t.Helper()
 	if userID == "" {
 		userID = testUserID
@@ -38,8 +42,9 @@ func workbenchMCPPost(t *testing.T, body any, userID, workspaceID string) (int, 
 	if workspaceID == "" {
 		workspaceID = testWorkspaceID
 	}
+	headers := append([]string{"X-User-ID", userID, "X-Workspace-ID", workspaceID}, extraHeaders...)
 	req := testutil.WithHeaders(testutil.JSONRequest(http.MethodPost, "/api/mcp/workbench", body),
-		"X-User-ID", userID, "X-Workspace-ID", workspaceID)
+		headers...)
 	rec := httptest.NewRecorder()
 	middleware.RequireWorkspaceMember(testHandler.Queries)(http.HandlerFunc(testHandler.WorkbenchMCP)).ServeHTTP(rec, req)
 
@@ -133,9 +138,9 @@ func workbenchMCPRestRequest(t *testing.T, path, userID, workspaceID string) *ht
 	return req
 }
 
-// TestWorkbenchMCPToolsList pins the surface a model is shown: the four tool
-// names, a description that says the surface is read-only, and the schemas that
-// go with them.
+// TestWorkbenchMCPToolsList pins the surface a model is shown: the seven tool
+// names — four reads and the three §6 writes — the descriptions that say which is
+// which, and the schemas that go with them.
 func TestWorkbenchMCPToolsList(t *testing.T) {
 	if testPool == nil {
 		t.Skip("handler tests require a reachable DATABASE_URL")
@@ -157,14 +162,19 @@ func TestWorkbenchMCPToolsList(t *testing.T) {
 		t.Fatalf("decode tools/list result %s: %v", frame.Result, err)
 	}
 
-	want := []string{
+	readTools := []string{
 		workbenchToolOverview,
 		workbenchToolCounts,
 		workbenchToolLedger,
 		workbenchToolFinance,
 	}
-	if len(result.Tools) != len(want) {
-		t.Fatalf("tools = %d, want %d: %s", len(result.Tools), len(want), frame.Result)
+	writeTools := []string{
+		workbenchToolCreateQuote,
+		workbenchToolLogActivity,
+		workbenchToolAdvanceStage,
+	}
+	if len(result.Tools) != len(readTools)+len(writeTools) {
+		t.Fatalf("tools = %d, want %d: %s", len(result.Tools), len(readTools)+len(writeTools), frame.Result)
 	}
 
 	type schema struct {
@@ -176,10 +186,6 @@ func TestWorkbenchMCPToolsList(t *testing.T) {
 		if strings.TrimSpace(tool.Description) == "" {
 			t.Fatalf("tool %q has no description", tool.Name)
 		}
-		// The one property every agent must be told: this surface cannot write.
-		if !strings.Contains(strings.ToLower(tool.Description), "read-only") {
-			t.Fatalf("tool %q description does not say it is read-only: %s", tool.Name, tool.Description)
-		}
 		var parsed schema
 		if err := json.Unmarshal(tool.InputSchema, &parsed); err != nil {
 			t.Fatalf("tool %q inputSchema is not an object: %v", tool.Name, err)
@@ -189,9 +195,38 @@ func TestWorkbenchMCPToolsList(t *testing.T) {
 		}
 		declared[tool.Name] = parsed
 	}
-	for _, name := range want {
-		if _, ok := declared[name]; !ok {
-			t.Fatalf("tools/list is missing %q: %v", name, declared)
+
+	// The one property every agent must be told about a read: it cannot write.
+	for _, name := range readTools {
+		tool := declared[name]
+		if tool.Properties == nil {
+			t.Fatalf("read tool %q is missing", name)
+		}
+		description := toolDescription(t, result.Tools, name)
+		if !strings.Contains(strings.ToLower(description), "read-only") {
+			t.Fatalf("read tool %q description does not say it is read-only: %s", name, description)
+		}
+	}
+
+	// The three writes say so, and never claim to be read-only: a model that reads
+	// "read-only" on a write will call it on data it should not touch.
+	for _, name := range writeTools {
+		description := toolDescription(t, result.Tools, name)
+		lower := strings.ToLower(description)
+		if strings.Contains(lower, "read-only") {
+			t.Fatalf("write tool %q claims to be read-only: %s", name, description)
+		}
+		if !strings.Contains(lower, "write") {
+			t.Fatalf("write tool %q does not say it writes: %s", name, description)
+		}
+		// No money, ownership or settlement field is declarable, let alone required.
+		for _, forbidden := range workbenchAgentForbiddenArguments {
+			if _, ok := declared[name].Properties[forbidden.key]; ok {
+				t.Fatalf("write tool %q declares %q, which §6 forbids", name, forbidden.key)
+			}
+		}
+		if _, ok := declared[name].Properties["stage"]; ok && name != workbenchToolAdvanceStage {
+			t.Fatalf("%q declares a stage outside the stage tool", name)
 		}
 	}
 
@@ -241,14 +276,46 @@ func TestWorkbenchMCPToolsList(t *testing.T) {
 		t.Fatalf("limit maximum = %v, want %d", limit.Maximum, workbenchMCPMaxLimit)
 	}
 
+	// And the §6 whitelist, spelled out: the three writes, no delete anywhere.
+	if _, ok := declared[workbenchToolCreateQuote]; !ok {
+		t.Fatalf("tools/list is missing %q", workbenchToolCreateQuote)
+	}
+	if _, ok := declared[workbenchToolLogActivity]; !ok {
+		t.Fatalf("tools/list is missing %q", workbenchToolLogActivity)
+	}
+	if _, ok := declared[workbenchToolAdvanceStage]; !ok {
+		t.Fatalf("tools/list is missing %q", workbenchToolAdvanceStage)
+	}
+	for _, tool := range result.Tools {
+		if strings.Contains(tool.Name, "delete") {
+			t.Fatalf("the surface advertises %q; §6 has no delete", tool.Name)
+		}
+	}
+
 	// Every advertised name is answerable: asking for each one is never a
 	// "unknown tool", whatever the tool then decides about its arguments.
-	for _, name := range want {
+	for _, name := range append(append([]string{}, readTools...), writeTools...) {
 		_, call := workbenchMCPCall(t, name, map[string]any{}, "", "")
 		if call.Error != nil {
 			t.Fatalf("%s is advertised but not dispatchable: %d %s", name, call.Error.Code, call.Error.Message)
 		}
 	}
+}
+
+// toolDescription finds one advertised tool's description.
+func toolDescription(t *testing.T, tools []struct {
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	InputSchema json.RawMessage `json:"inputSchema"`
+}, name string) string {
+	t.Helper()
+	for _, tool := range tools {
+		if tool.Name == name {
+			return tool.Description
+		}
+	}
+	t.Fatalf("tool %q is not advertised", name)
+	return ""
 }
 
 // TestWorkbenchMCPOverviewInEmptyWorkspace is the three-state contract on the MCP
