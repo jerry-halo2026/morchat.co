@@ -323,6 +323,9 @@ func (h *Handler) AdsSummary(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capAdsRead) {
+		return
+	}
 	query := r.URL.Query()
 	basis, ok := adsParseBasis(w, query.Get("basis"))
 	if !ok {
@@ -403,6 +406,9 @@ func (h *Handler) AdsAccounts(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capAdsRead) {
+		return
+	}
 	rows, err := h.Queries.AdsAccounts(r.Context(), scope.WorkspaceUUID)
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list qianchuan accounts", err)
@@ -431,6 +437,9 @@ func (h *Handler) AdsAccounts(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AdsPlans(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capAdsRead) {
 		return
 	}
 	query := r.URL.Query()
@@ -473,6 +482,9 @@ func (h *Handler) AdsPlans(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AdsMaterials(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capAdsRead) {
 		return
 	}
 	query := r.URL.Query()
@@ -524,6 +536,9 @@ func (h *Handler) AdsViolations(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capAdsRead) {
+		return
+	}
 	query := r.URL.Query()
 	rows, err := h.Queries.AdsViolations(r.Context(), db.AdsViolationsParams{
 		WorkspaceID: scope.WorkspaceUUID,
@@ -562,6 +577,9 @@ func (h *Handler) AdsViolations(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AdsRecon(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capAdsRead) {
 		return
 	}
 	query := r.URL.Query()

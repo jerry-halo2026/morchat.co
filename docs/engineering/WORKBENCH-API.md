@@ -8,6 +8,8 @@ related: [docs/METRICS.md, docs/engineering/ORG-MODEL.md]
 
 # 达人商务 B0 契约（并行施工的唯一接口约定）
 
+> 逐条可核对的版本在 [WORKBENCH-CONTRACT.md](./WORKBENCH-CONTRACT.md)：203 条 `/api/workbench/**` 路由的入参/出参/错误/空语义/权限矩阵与缺口清单；两者冲突时以代码为准，差异记在该文 §3。
+
 三个并行代理共用本文件。**任何与本文件不一致的实现都算错**；要改先改本文件。
 
 ## 1. 迁移号段

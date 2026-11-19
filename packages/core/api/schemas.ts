@@ -5202,10 +5202,18 @@ export const ReviewQueueRowSchema = z
 
 export const ReviewQueueResponseSchema = z
   .object({
-    rows: z.array(ReviewQueueRowSchema).default([]),
+    // The server's envelope key is `items` (WorkbenchReviewQueueResponse); the
+    // views read `rows`. Parse the wire name and hand them the name they read, so
+    // a real response is not quietly replaced by the empty fallback.
+    items: z.array(ReviewQueueRowSchema).default([]),
+    rows: z.array(ReviewQueueRowSchema).optional(),
     total: z.number().default(0),
   })
-  .loose();
+  .loose()
+  .transform((value) => ({
+    rows: value.items.length > 0 ? value.items : (value.rows ?? []),
+    total: value.total,
+  }));
 
 export const EMPTY_REVIEW_QUEUE_RESPONSE: ReviewQueueResponse = {
   rows: [],

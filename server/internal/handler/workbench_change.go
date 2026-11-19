@@ -396,7 +396,7 @@ func (h *Handler) ListHrEmployeeChanges(w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		return
 	}
-	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
 		return
 	}
 	query := r.URL.Query()
@@ -450,6 +450,9 @@ func (h *Handler) ListHrEmployeeChanges(w http.ResponseWriter, r *http.Request) 
 func (h *Handler) CreateHrEmployeeChange(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	var req HrEmployeeChangeRequest
@@ -533,6 +536,9 @@ func (h *Handler) UpdateHrEmployeeChange(w http.ResponseWriter, r *http.Request)
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
+		return
+	}
 	current, ok := h.loadHrEmployeeChangeForWrite(w, r, scope)
 	if !ok {
 		return
@@ -579,6 +585,9 @@ func (h *Handler) UpdateHrEmployeeChange(w http.ResponseWriter, r *http.Request)
 func (h *Handler) DeleteHrEmployeeChange(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrEmployeeChangeForWrite(w, r, scope)
