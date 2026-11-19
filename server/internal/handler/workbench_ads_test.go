@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -196,6 +197,57 @@ func TestAdsSummaryThreeStatesOverRealRows(t *testing.T) {
 	}
 }
 
+// TestAdsEachBasisReadsOneWindow is the endpoint-level proof that the SQL `CASE`
+// and the Go mapping still name the same window. The row carries a different figure
+// in each of the five settlement windows, so a basis that reads the wrong column —
+// or a CASE and an expression that drifted apart — answers another window's number
+// instead of a plausible one. The expected value is derived from
+// `adsSettleExpression`, so the two lists cannot silently diverge.
+func TestAdsEachBasisReadsOneWindow(t *testing.T) {
+	if testHandler == nil || testPool == nil {
+		t.Skip("handler suite has no database")
+	}
+	workspaceID, userID := adsScratchWorkspace(t, "千川结算列")
+	insertAdsSettleWindows(t, workspaceID, "2026-11-05")
+
+	figures := []struct{ token, want string }{
+		{"settle_amount_1h", "101"},
+		{"settle_amount_7d", "107"},
+		{"for_roi2_14d", "114"},
+		{"for_roi2_30d", "130"},
+		{"for_roi2_90d", "190"},
+	}
+	for _, basis := range []string{adsBasis1h, adsBasis7d, adsBasis14d, adsBasis30d, adsBasis90d} {
+		expression, ok := adsSettleExpression(basis)
+		if !ok {
+			t.Fatalf("basis %q has no expression", basis)
+		}
+		want := ""
+		for _, figure := range figures {
+			if strings.Contains(expression, figure.token) {
+				want = figure.want
+			}
+		}
+		if want == "" {
+			t.Fatalf("basis %q names no known settlement window: %q", basis, expression)
+		}
+
+		body := testutil.Decode[adsSummaryResponse](t, testHandler.AdsSummary,
+			adsRequestIn(t, http.MethodGet,
+				"/api/workbench/ads/summary?from=2026-11-01&to=2026-11-30&basis="+basis, workspaceID, userID),
+			http.StatusOK)
+		if body.Totals.Settle.Amount == nil {
+			t.Fatalf("basis %q summed to null, want the %s window", basis, want)
+		}
+		if got := strconv.FormatFloat(*body.Totals.Settle.Amount, 'f', -1, 64); got != want {
+			t.Fatalf("basis %q settle = %s, want %s (expression %q)", basis, got, want, expression)
+		}
+		if body.Totals.Settle.SampleCount != 1 {
+			t.Fatalf("basis %q settle samples = %d, want 1", basis, body.Totals.Settle.SampleCount)
+		}
+	}
+}
+
 // --- fixtures ---------------------------------------------------------------
 
 // ptrTo is the one-line way to pass a nullable test value.
@@ -238,6 +290,29 @@ SET spend = excluded.spend, gmv = excluded.gmv, refund_amount = excluded.refund_
     order_count = excluded.order_count, settle_amount_1h = excluded.settle_amount_1h,
     settle_amount_7d = excluded.settle_amount_7d, updated_at = now()`,
 		workspaceID, statDate, spend, gmv, refund, orders, settle1h, settle7d)
+}
+
+// insertAdsSettleWindows writes one daily row whose five settlement windows hold
+// five different figures, so a basis that reads the wrong window answers another
+// window's number instead of a plausible one.
+func insertAdsSettleWindows(t *testing.T, workspaceID, statDate string) {
+	t.Helper()
+	dbfx.Exec(t, `
+INSERT INTO qianchuan_daily_overall
+    (workspace_id, stat_date, account_id, dim_kind, dim_id,
+     spend, gmv, refund_amount, order_count, settle_amount_1h, settle_amount_7d,
+     metrics, source_version, captured_at)
+VALUES ($1::uuid, $2::date, 'acct-1', 'overall', 'plan-1',
+        10, 100, 0, 2, 101, 107,
+        '{"total_order_settle_amount_for_roi2_14d": 114,
+          "total_order_settle_amount_for_roi2_30d": 130,
+          "total_order_settle_amount_for_roi2_90d": 190}'::jsonb,
+        'test', now())
+ON CONFLICT (workspace_id, stat_date, account_id, dim_kind, dim_id) DO UPDATE
+SET settle_amount_1h = excluded.settle_amount_1h,
+    settle_amount_7d = excluded.settle_amount_7d,
+    metrics = excluded.metrics, updated_at = now()`,
+		workspaceID, statDate)
 }
 
 // mustDate parses a day the test wrote itself; a typo is a broken test, not a case.

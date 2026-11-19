@@ -6,12 +6,20 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
+
+	"github.com/jerry-halo2026/morchat.co/server/internal/util"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // 千川投放的只读接口（WORKBENCH-API §25）。
 //
 // 六条端点，全部只读：写入口只有 `cmd/qianchuan-sync`（§25.5），本文件里没有
 // 一条 INSERT / UPDATE / DELETE，也没有可以变成写入口的开关。
+//
+// SQL 在 `server/pkg/db/queries/qianchuan.sql`（sqlc 生成），本文件只做参数校验、
+// 形状拼装和三态。查询里的 `AdsWindowTotals` 用一条 `CASE` 只挑一个结算窗口列，
+// 所以「跨窗口求和」在 SQL 与 Go 两层都写不出来；Go 这侧的同一份映射是
+// `adsSettleExpression`，两侧由 `TestAdsEachBasisReadsOneWindow` 对齐。
 //
 // # 结算口径不许相加
 //
@@ -50,12 +58,17 @@ const (
 // adsBasisDefault 是 §25.2 的默认展示口径。
 const adsBasisDefault = adsBasis7d
 
-// adsSettleExpression 把 basis 翻成一个**列表达式**，供 summary 的 SUM 使用。
+// adsSettleExpression 把 basis 翻成一个**列表达式**：这就是「一个 basis = 一个窗口」
+// 的契约本身，也是 `AdsWindowTotals` 里那条 `CASE` 的评审依据。
 //
 // 只有这五条常量能出去：1h / 7d 是结构化列（sync 把它们从 CSV 拍进 `settle_amount_*`），
 // 14d / 30d / 90d 留在 `metrics` 里（官方列名原样）。任何其它输入在调用点就被
 // `adsParseBasis` 拒掉，这个函数拿不到它们，因此**不存在**「把两个窗口拼进一条
 // SUM」的写法。
+//
+// sqlc 不能把列名当下发参数，所以 SQL 侧用一条 `CASE`（分支与这里一一对应）挑列；
+// 两侧是否还一致由 `TestAdsEachBasisReadsOneWindow` 用真行比对，改了一边而忘了
+// 另一边会先红。
 func adsSettleExpression(basis string) (string, bool) {
 	switch basis {
 	case adsBasis1h:
@@ -302,9 +315,9 @@ func adsDayRange(w http.ResponseWriter, rawFrom, rawTo string) (pgtype.Date, pgt
 // AdsSummary — GET /api/workbench/ads/summary?from=&to=&basis=
 //
 // One window, one basis, five figures, plus the window immediately before it for the
-// 环比. The settle figure comes from exactly one column expression (adsSettleExpression),
-// so this endpoint cannot answer a sum across settlement windows — there is no
-// parameter and no field that would carry one.
+// 环比. The settle figure comes from exactly one CASE branch (adsSettleExpression
+// names the same five branches), so this endpoint cannot answer a sum across
+// settlement windows — there is no parameter and no field that would carry one.
 func (h *Handler) AdsSummary(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -315,22 +328,17 @@ func (h *Handler) AdsSummary(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	settleExpr, ok := adsSettleExpression(basis)
-	if !ok {
-		writeError(w, http.StatusBadRequest, "invalid basis")
-		return
-	}
 	from, to, ok := adsDayRange(w, query.Get("from"), query.Get("to"))
 	if !ok {
 		return
 	}
 
-	totals, rows, err := h.adsWindowTotals(r, scope.WorkspaceUUID, from, to, settleExpr)
+	totals, rows, err := h.adsWindowTotals(r, scope.WorkspaceUUID, from, to, basis)
 	if err != nil {
 		workbenchInternalError(w, r, "failed to sum qianchuan window", err)
 		return
 	}
-	previous, _, err := h.adsWindowTotals(r, scope.WorkspaceUUID, adsPreviousWindow(from, to), to, settleExpr)
+	previous, _, err := h.adsWindowTotals(r, scope.WorkspaceUUID, adsPreviousWindow(from, to), to, basis)
 	if err != nil {
 		workbenchInternalError(w, r, "failed to sum the previous qianchuan window", err)
 		return
@@ -358,41 +366,29 @@ func adsPreviousWindow(from, to pgtype.Date) pgtype.Date {
 //
 // 空值处理是这里的重点：`sum()` 在没有行时返回 NULL，`count(col)` 说这一格有
 // 多少行真的带了数。两者一起才能区分「这窗口没有花费」和「这窗口根本没有行」。
+// 只有 basis 这个已校验过的枚举会进 SQL；列名由查询里的 CASE 决定。
 func (h *Handler) adsWindowTotals(
 	r *http.Request,
 	workspace pgtype.UUID,
 	from, to pgtype.Date,
-	settleExpr string,
+	basis string,
 ) (adsTotals, int64, error) {
-	// The settle expression is one of five constants (adsSettleExpression); nothing
-	// from the request reaches the SQL text.
-	sql := `
-SELECT
-    sum(spend),            count(spend),
-    sum(gmv),              count(gmv),
-    sum(refund_amount),    count(refund_amount),
-    sum(` + settleExpr + `), count(` + settleExpr + `),
-    coalesce(sum(order_count), 0), count(*)
-FROM qianchuan_daily_overall
-WHERE workspace_id = $1 AND dim_kind = 'overall' AND stat_date BETWEEN $2 AND $3`
-
-	var spend, gmv, refund, settle *float64
-	var spendN, gmvN, refundN, settleN pgtype.Int8
-	var orders int64
-	var rows int64
-	err := h.DB.QueryRow(r.Context(), sql, workspace, from, to).Scan(
-		&spend, &spendN, &gmv, &gmvN, &refund, &refundN, &settle, &settleN, &orders, &rows,
-	)
+	row, err := h.Queries.AdsWindowTotals(r.Context(), db.AdsWindowTotalsParams{
+		WorkspaceID: workspace,
+		FromDate:    from,
+		ToDate:      to,
+		Basis:       basis,
+	})
 	if err != nil {
 		return adsTotals{}, 0, err
 	}
 	return adsTotals{
-		Spend:  adsMoneyOf(spend, spendN.Int64),
-		GMV:    adsMoneyOf(gmv, gmvN.Int64),
-		Refund: adsMoneyOf(refund, refundN.Int64),
-		Settle: adsMoneyOf(settle, settleN.Int64),
-		Orders: adsCountOf(orders),
-	}, rows, nil
+		Spend:  adsMoneyOf(numericToFloatPtr(row.SpendSum), row.SpendSamples),
+		GMV:    adsMoneyOf(numericToFloatPtr(row.GmvSum), row.GmvSamples),
+		Refund: adsMoneyOf(numericToFloatPtr(row.RefundSum), row.RefundSamples),
+		Settle: adsMoneyOf(numericToFloatPtr(row.SettleSum), row.SettleSamples),
+		Orders: adsCountOf(row.OrderCount),
+	}, row.RowCount, nil
 }
 
 // --- GET /api/workbench/ads/accounts --------------------------------------
@@ -407,57 +403,25 @@ func (h *Handler) AdsAccounts(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	const sql = `
-WITH latest AS (
-    SELECT DISTINCT ON (account_id)
-           account_id, account_name, balance, cash, valid_grant, captured_at
-    FROM qianchuan_balance
-    WHERE workspace_id = $1
-    ORDER BY account_id, captured_at DESC
-), spend AS (
-    SELECT account_id, sum(spend) AS total
-    FROM qianchuan_daily_overall
-    WHERE workspace_id = $1 AND dim_kind = 'overall'
-    GROUP BY account_id
-)
-SELECT a.account_id,
-       coalesce(nullif(l.account_name, ''), a.account_name),
-       l.balance, l.cash, l.valid_grant, l.captured_at,
-       s.total
-FROM qianchuan_account a
-LEFT JOIN latest l ON l.account_id = a.account_id
-LEFT JOIN spend  s ON s.account_id = a.account_id
-WHERE a.workspace_id = $1
-ORDER BY a.account_id`
-	rows, err := h.DB.Query(r.Context(), sql, scope.WorkspaceUUID)
+	rows, err := h.Queries.AdsAccounts(r.Context(), scope.WorkspaceUUID)
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list qianchuan accounts", err)
 		return
 	}
-	defer rows.Close()
 
-	resp := make([]adsAccountResponse, 0, 16)
-	for rows.Next() {
-		var item adsAccountResponse
-		var balance, cash, validGrant, spent *float64
-		var capturedAt pgtype.Timestamptz
-		if err := rows.Scan(&item.AccountID, &item.AccountName, &balance, &cash, &validGrant,
-			&capturedAt, &spent); err != nil {
-			workbenchInternalError(w, r, "failed to read qianchuan accounts", err)
-			return
-		}
-		item.Currency = adsCurrency
-		item.Unit = "fen"
-		item.Balance = balance
-		item.Cash = cash
-		item.ValidGrant = validGrant
-		item.CapturedAt = adsTimestampText(capturedAt)
-		item.SpendToDate = spent
-		resp = append(resp, item)
-	}
-	if err := rows.Err(); err != nil {
-		workbenchInternalError(w, r, "failed to read qianchuan accounts", err)
-		return
+	resp := make([]adsAccountResponse, 0, len(rows))
+	for _, row := range rows {
+		resp = append(resp, adsAccountResponse{
+			AccountID:   row.AccountID,
+			AccountName: row.AccountName.String,
+			Currency:    adsCurrency,
+			Unit:        "fen",
+			Balance:     numericToFloatPtr(row.Balance),
+			Cash:        numericToFloatPtr(row.Cash),
+			ValidGrant:  numericToFloatPtr(row.ValidGrant),
+			CapturedAt:  adsTimestampText(row.CapturedAt),
+			SpendToDate: numericToFloatPtr(row.SpendToDate),
+		})
 	}
 	writeJSON(w, http.StatusOK, adsAccountListResponse{Accounts: resp, Total: len(resp)})
 }
@@ -470,45 +434,36 @@ func (h *Handler) AdsPlans(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	query := r.URL.Query()
-	const sql = `
-SELECT plan_id, account_id, account_name, name, marketing_goal, status, opt_status,
-       budget, budget_mode, roi2_goal, smart_bid_type, updated_at
-FROM qianchuan_plan
-WHERE workspace_id = $1
-  AND ($2 = '' OR account_id = $2)
-  AND ($3 = '' OR status = $3)
-ORDER BY create_time DESC NULLS LAST, plan_id
-LIMIT $4`
-	rows, err := h.DB.Query(r.Context(), sql, scope.WorkspaceUUID,
-		strings.TrimSpace(query.Get("account_id")), strings.TrimSpace(query.Get("status")),
-		workbenchLimit(r))
+	rows, err := h.Queries.AdsPlans(r.Context(), db.AdsPlansParams{
+		WorkspaceID: scope.WorkspaceUUID,
+		AccountID:   strings.TrimSpace(query.Get("account_id")),
+		Status:      strings.TrimSpace(query.Get("status")),
+		Limit:       workbenchLimit(r),
+	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list qianchuan plans", err)
 		return
 	}
-	defer rows.Close()
 
-	resp := make([]adsPlanResponse, 0, 32)
-	for rows.Next() {
-		var item adsPlanResponse
-		var budget, roi *float64
-		var updatedAt pgtype.Timestamptz
-		if err := rows.Scan(&item.PlanID, &item.AccountID, &item.AccountName, &item.Name,
-			&item.MarketingGoal, &item.Status, &item.OptStatus, &budget, &item.BudgetMode,
-			&roi, &item.SmartBidType, &updatedAt); err != nil {
-			workbenchInternalError(w, r, "failed to read qianchuan plans", err)
-			return
+	resp := make([]adsPlanResponse, 0, len(rows))
+	for _, row := range rows {
+		item := adsPlanResponse{
+			PlanID:        row.PlanID,
+			AccountID:     row.AccountID,
+			AccountName:   row.AccountName.String,
+			Name:          row.Name.String,
+			MarketingGoal: util.TextToPtr(row.MarketingGoal),
+			Status:        util.TextToPtr(row.Status),
+			OptStatus:     util.TextToPtr(row.OptStatus),
+			Budget:        numericToFloatPtr(row.Budget),
+			BudgetMode:    util.TextToPtr(row.BudgetMode),
+			ROI2Goal:      numericToFloatPtr(row.Roi2Goal),
+			SmartBidType:  util.TextToPtr(row.SmartBidType),
 		}
-		item.Budget = budget
-		item.ROI2Goal = roi
-		if text := adsTimestampText(updatedAt); text != nil {
+		if text := adsTimestampText(row.UpdatedAt); text != nil {
 			item.UpdatedAt = *text
 		}
 		resp = append(resp, item)
-	}
-	if err := rows.Err(); err != nil {
-		workbenchInternalError(w, r, "failed to read qianchuan plans", err)
-		return
 	}
 	writeJSON(w, http.StatusOK, adsPlanListResponse{Plans: resp, Total: len(resp)})
 }
@@ -526,54 +481,38 @@ func (h *Handler) AdsMaterials(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	const sql = `
-SELECT kind, material_id, account_id, account_name, filename, video_id, image_id,
-       duration, size_bytes, is_ai_create, is_inefficient, is_original, media_script_id,
-       captured_at
-FROM qianchuan_material
-WHERE workspace_id = $1
-  AND ($2 = '' OR account_id = $2)
-  AND ($3 = '' OR kind = $3)
-ORDER BY create_time DESC NULLS LAST, material_id
-LIMIT $4`
-	rows, err := h.DB.Query(r.Context(), sql, scope.WorkspaceUUID,
-		strings.TrimSpace(query.Get("account_id")), kind, workbenchLimit(r))
+	rows, err := h.Queries.AdsMaterials(r.Context(), db.AdsMaterialsParams{
+		WorkspaceID: scope.WorkspaceUUID,
+		AccountID:   strings.TrimSpace(query.Get("account_id")),
+		Kind:        kind,
+		Limit:       workbenchLimit(r),
+	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list qianchuan materials", err)
 		return
 	}
-	defer rows.Close()
 
-	resp := make([]adsMaterialResponse, 0, 32)
-	for rows.Next() {
-		var item adsMaterialResponse
-		var duration pgtype.Int4
-		var size pgtype.Int8
-		var capturedAt pgtype.Timestamptz
-		var scriptID pgtype.Text
-		if err := rows.Scan(&item.Kind, &item.MaterialID, &item.AccountID, &item.AccountName,
-			&item.Filename, &item.VideoID, &item.ImageID, &duration, &size,
-			&item.IsAICreate, &item.IsInefficient, &item.IsOriginal, &scriptID, &capturedAt); err != nil {
-			workbenchInternalError(w, r, "failed to read qianchuan materials", err)
-			return
+	resp := make([]adsMaterialResponse, 0, len(rows))
+	for _, row := range rows {
+		item := adsMaterialResponse{
+			Kind:          row.Kind,
+			MaterialID:    row.MaterialID,
+			AccountID:     row.AccountID.String,
+			AccountName:   row.AccountName.String,
+			Filename:      util.TextToPtr(row.Filename),
+			VideoID:       util.TextToPtr(row.VideoID),
+			ImageID:       util.TextToPtr(row.ImageID),
+			Duration:      util.Int4ToPtr(row.Duration),
+			SizeBytes:     util.Int8ToPtr(row.SizeBytes),
+			IsAICreate:    util.BoolToPtr(row.IsAiCreate),
+			IsInefficient: util.BoolToPtr(row.IsInefficient),
+			IsOriginal:    util.BoolToPtr(row.IsOriginal),
+			MediaScriptID: util.UUIDToPtr(row.MediaScriptID),
 		}
-		if duration.Valid {
-			item.Duration = &duration.Int32
-		}
-		if size.Valid {
-			item.SizeBytes = &size.Int64
-		}
-		if scriptID.Valid {
-			item.MediaScriptID = &scriptID.String
-		}
-		if text := adsTimestampText(capturedAt); text != nil {
+		if text := adsTimestampText(row.CapturedAt); text != nil {
 			item.CapturedAt = *text
 		}
 		resp = append(resp, item)
-	}
-	if err := rows.Err(); err != nil {
-		workbenchInternalError(w, r, "failed to read qianchuan materials", err)
-		return
 	}
 	writeJSON(w, http.StatusOK, adsMaterialListResponse{Materials: resp, Total: len(resp)})
 }
@@ -586,40 +525,29 @@ func (h *Handler) AdsViolations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	query := r.URL.Query()
-	const sql = `
-SELECT event_id, account_id, account_name, ad_id, create_time, illegal_type, score,
-       status, reject_reason
-FROM qianchuan_violation
-WHERE workspace_id = $1 AND ($2 = '' OR status = $2)
-ORDER BY create_time DESC NULLS LAST, event_id
-LIMIT $3`
-	rows, err := h.DB.Query(r.Context(), sql, scope.WorkspaceUUID,
-		strings.TrimSpace(query.Get("status")), workbenchLimit(r))
+	rows, err := h.Queries.AdsViolations(r.Context(), db.AdsViolationsParams{
+		WorkspaceID: scope.WorkspaceUUID,
+		Status:      strings.TrimSpace(query.Get("status")),
+		Limit:       workbenchLimit(r),
+	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list qianchuan violations", err)
 		return
 	}
-	defer rows.Close()
 
-	resp := make([]adsViolationResponse, 0, 16)
-	for rows.Next() {
-		var item adsViolationResponse
-		var createTime pgtype.Timestamptz
-		var score pgtype.Int4
-		if err := rows.Scan(&item.EventID, &item.AccountID, &item.AccountName, &item.AdID,
-			&createTime, &item.IllegalType, &score, &item.Status, &item.RejectReason); err != nil {
-			workbenchInternalError(w, r, "failed to read qianchuan violations", err)
-			return
-		}
-		if score.Valid {
-			item.Score = &score.Int32
-		}
-		item.CreateTime = adsTimestampText(createTime)
-		resp = append(resp, item)
-	}
-	if err := rows.Err(); err != nil {
-		workbenchInternalError(w, r, "failed to read qianchuan violations", err)
-		return
+	resp := make([]adsViolationResponse, 0, len(rows))
+	for _, row := range rows {
+		resp = append(resp, adsViolationResponse{
+			EventID:      row.EventID,
+			AccountID:    row.AccountID.String,
+			AccountName:  row.AccountName.String,
+			AdID:         util.TextToPtr(row.AdID),
+			CreateTime:   adsTimestampText(row.CreateTime),
+			IllegalType:  util.TextToPtr(row.IllegalType),
+			Score:        util.Int4ToPtr(row.Score),
+			Status:       util.TextToPtr(row.Status),
+			RejectReason: util.TextToPtr(row.RejectReason),
+		})
 	}
 	writeJSON(w, http.StatusOK, adsViolationListResponse{Violations: resp, Total: len(resp)})
 }
@@ -637,69 +565,44 @@ func (h *Handler) AdsRecon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	query := r.URL.Query()
-	const sql = `
-WITH snap AS (
-    SELECT DISTINCT ON (account_id, goal)
-           account_id, account_name, goal, acct_cost, acct_gmv, acct_orders, captured_at
-    FROM qianchuan_recon
-    WHERE workspace_id = $1 AND ($2 = '' OR account_id = $2)
-    ORDER BY account_id, goal, captured_at DESC
-), ledger AS (
-    SELECT d.account_id, s.goal,
-           sum(d.spend) AS cost, sum(d.gmv) AS gmv, coalesce(sum(d.order_count), 0) AS orders
-    FROM qianchuan_daily_overall d
-    JOIN snap s ON s.account_id = d.account_id AND d.stat_date = s.captured_at::date
-    WHERE d.workspace_id = $1 AND d.dim_kind = 'overall'
-    GROUP BY d.account_id, s.goal
-)
-SELECT s.account_id, s.goal, s.account_name, s.acct_cost, s.acct_gmv, coalesce(s.acct_orders, 0),
-       s.captured_at, l.cost, l.gmv, coalesce(l.orders, 0)
-FROM snap s
-LEFT JOIN ledger l ON l.account_id = s.account_id AND l.goal = s.goal
-ORDER BY s.account_id, s.goal`
-	rows, err := h.DB.Query(r.Context(), sql, scope.WorkspaceUUID,
-		strings.TrimSpace(query.Get("account_id")))
+	rows, err := h.Queries.AdsRecon(r.Context(), db.AdsReconParams{
+		WorkspaceID: scope.WorkspaceUUID,
+		AccountID:   strings.TrimSpace(query.Get("account_id")),
+	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to read qianchuan recon", err)
 		return
 	}
-	defer rows.Close()
 
-	resp := make([]adsReconResponse, 0, 16)
-	for rows.Next() {
-		var item adsReconResponse
-		var cost, gmv *float64
-		var platformOrders int64
-		var ledgerCost, ledgerGMV *float64
-		var ledgerOrders int64
-		var capturedAt pgtype.Timestamptz
-		if err := rows.Scan(&item.AccountID, &item.Goal, &item.AccountName, &cost, &gmv,
-			&platformOrders, &capturedAt, &ledgerCost, &ledgerGMV, &ledgerOrders); err != nil {
-			workbenchInternalError(w, r, "failed to read qianchuan recon", err)
-			return
+	resp := make([]adsReconResponse, 0, len(rows))
+	for _, row := range rows {
+		item := adsReconResponse{
+			AccountID:   row.AccountID,
+			Goal:        row.Goal,
+			AccountName: row.AccountName.String,
+			Currency:    adsCurrency,
+			CapturedAt:  adsTimestampText(row.CapturedAt),
 		}
-		item.Currency = adsCurrency
+		platformCost := numericToFloatPtr(row.AcctCost)
+		platformGMV := numericToFloatPtr(row.AcctGmv)
+		ledgerCost := numericToFloatPtr(row.LedgerCost)
+		ledgerGMV := numericToFloatPtr(row.LedgerGmv)
 		// 平台侧的行数用 1（一行快照就是一份合计），台账侧用当日有花费的日报行数。
 		item.Platform = adsTotals{
-			Spend:  adsMoneyOf(cost, countOf(cost)),
-			GMV:    adsMoneyOf(gmv, countOf(gmv)),
-			Orders: adsCountOf(platformOrders),
+			Spend:  adsMoneyOf(platformCost, countOf(platformCost)),
+			GMV:    adsMoneyOf(platformGMV, countOf(platformGMV)),
+			Orders: adsCountOf(row.AcctOrders),
 		}
 		item.Ledger = adsTotals{
 			Spend:  adsMoneyOf(ledgerCost, countOf(ledgerCost)),
 			GMV:    adsMoneyOf(ledgerGMV, countOf(ledgerGMV)),
-			Orders: adsCountOf(ledgerOrders),
+			Orders: adsCountOf(row.LedgerOrders),
 		}
-		item.DiffCost = adsDiff(cost, ledgerCost)
-		item.DiffGMV = adsDiff(gmv, ledgerGMV)
-		orders := float64(platformOrders - ledgerOrders)
+		item.DiffCost = adsDiff(platformCost, ledgerCost)
+		item.DiffGMV = adsDiff(platformGMV, ledgerGMV)
+		orders := float64(row.AcctOrders - row.LedgerOrders)
 		item.DiffOrders = &orders
-		item.CapturedAt = adsTimestampText(capturedAt)
 		resp = append(resp, item)
-	}
-	if err := rows.Err(); err != nil {
-		workbenchInternalError(w, r, "failed to read qianchuan recon", err)
-		return
 	}
 	writeJSON(w, http.StatusOK, adsReconListResponse{Recon: resp, Total: len(resp)})
 }
