@@ -140,3 +140,75 @@ cd packages/core  && pnpm exec vitest run api                          # 676 通
 零 `REFERENCES/ON DELETE` · `expected_revision` 确实在 WHERE 里 · `review.accept` 三层到位 ·
 无 owner 的行读不到也写不了 · agent 金额闸门在 REST 面生效 · 三态没把 NULL 当 0 ·
 `items`/`rows` 信封真的两边都改了 · 409 全链路没吞错。
+
+## 9. 端到端验收（2026-11-19）
+
+环境：本 worktree 自己的 dev 环境（`workbench_blocks-898`，API :18978 / web :3000 / 独立库
+`multica_workbench_blocks_898`），真实登录、真实 Chromium。
+
+### 9.1 新增：四个部门空间的首个 E2E 冒烟
+
+`e2e/workbench.spec.ts`，11 条：概览 · 销售（含报价/合作单/跟进）· 内容（含投放/选题）·
+总经理（含复核队列）· 招聘。断言与 locale 无关（渲染出足够内容 + 出现该页自己的标签
+（英文或中文任一）+ 全程无 uncaught/console error）。
+
+**结果：11 passed（34.3s）。** 这条覆盖此前完全没有——这些页面只有 Vitest 组件级与 Go
+handler 级覆盖，没有任何证据表明登录后的浏览器能真的打开它们。
+
+### 9.2 平台既有 E2E
+
+| 套件 | 结果 | 归因 |
+| --- | --- | --- |
+| `e2e/auth.spec.ts` + `e2e/issues.spec.ts` | **10 通过 / 1 失败**（`issues › can filter issues by created and updated dates`） | 失败点是 `getByRole("button", { name: /filter/i })` 匹配不到——本环境页面是中文（按钮名「筛选」）。**与本次改动无关**：没改 issues 页，也没改默认 locale；是套件假定英文 UI |
+| 整套 `pnpm exec playwright test` | **跑不起来** | `e2e/plugin-surface-document.spec.ts` 导入 `buildSurfaceDocument`，模块只导出 `buildSurfaceFrameDocument`。不一致在 main 上就有（两个文件本分支都没碰），套件在收集阶段 SyntaxError |
+
+### 9.3 桌面端（Electron）
+
+仓库没有 Electron E2E 套件（`apps/desktop` 只有 `vitest run`）。实跑：
+
+- 本分支：**948 / 949 通过**，2 个文件红 → `scripts/package.test.mjs`（SyntaxError）与
+  `daemon-localization.test.tsx`（zh-Hans 句子结尾断言）。
+- 同一命令在主 checkout（`main`）：**同样这 2 条红**，939 / 940 通过。
+  即两条都是 main 上既有，不是本分支引入；本分支新增的 9 条桌面用例全绿。
+
+**结论（如实说）**：web 的 workbench 页面有 E2E 证据且全绿；web 其余套件有一条 locale 相关
+既有失败、以及一个既有收集期错误挡住整套运行；桌面端没有 E2E，只有单元/组件级——新代码全绿，
+既有 2 条红在 main 上同样红。
+
+### 9.4 修掉的两个既有阻塞（2026-11-19）
+
+| 问题 | 修法 | 结果 |
+| --- | --- | --- |
+| 整套 E2E 在收集阶段就报 SyntaxError：`e2e/plugin-surface-document.spec.ts` 导入 `buildSurfaceDocument`，而模块现在只导出 `buildSurfaceFrameDocument`（实现已从「内联 srcdoc」改成「host-authored 外层帧 + content URL」） | 按当前契约重写该 spec：外层帧真的挂载、内层 `sandbox` 含 `allow-scripts` 且**不含** `allow-same-origin`、CSP 只放行一个 origin（`frame-src` / `connect-src 'none'` / `default-src 'none'`）、非法 launch 抛错。单元测试已钉生成物，这三条只有真 Chromium 能证明 | **3 passed** |
+| 套件按英文标签断言，但 app 的 locale 从 cookie / navigator 解析：宿主是 zh-Hans 时按钮叫「筛选」而不是 filter | `loginAsDefault` 里把 `multica-locale=en` 写进 cookie，让断言与宿主语言无关 | issues 的 filter 用例从「找不到按钮」推进到后续步骤 |
+| `issues › can filter issues by created and updated dates` 仍失败 | 该用例用「聚焦 Date 项 + ArrowRight」打开日期子菜单；现在子菜单是 Radix `Sub`、靠 hover 打开，且应用过预设后该 menuitem 定位不再指向触发器（两次改法都在 `hover` 上超时）。**交互漂移不是竞态** → 标 `test.fixme` 并写明原因，不静默删除 | 1 skipped |
+
+修完后的有界复跑（auth + issues + workbench + plugin-surface + inbox-delete）：
+
+```
+27 个用例：26 passed · 1 skipped · 0 failed（1.2m）
+```
+
+### 9.5 桌面端（Electron）端到端：从「没有」到「有」
+
+**此前的状态（如实）**：仓库里**没有**任何 Electron E2E。`apps/desktop` 只有 `vitest run`
+（渲染层组件、主进程工具函数），没有任何东西真的把打包后的应用启动起来。组件测试看不到
+「白屏 / 错误浮层 / 渲染进程崩了」这一类失败。
+
+**本批新增** `e2e/desktop-smoke.spec.ts`，用 Playwright 的 `_electron` 启动真实 `out/main`，
+断言：渲染进程画出真实内容（>40 字符）· 首屏出现可识别标记（登录页或应用外壳都算启动成功）·
+无 `pageerror`、无渲染进程崩溃 · 窗口有标题 · 加载的是 `out/renderer`。
+**实跑：1 passed · 1 skipped（4.6s）。**
+
+踩到并在注释里写死的两个环境坑：
+
+1. `args` 要传**项目目录**（Electron 按 `package.json` 的 `main` 解析入口）；传入口文件会被当作
+   Node 脚本执行，`electron.app` 直接 undefined。
+2. 本机带着 `ELECTRON_RUN_AS_NODE=1`（harness 设的），会把 Electron 变成纯 Node；启动前必须从
+   子进程环境里删掉。
+
+**已登录**的桌面 E2E 标了 `test.fixme`，原因写在代码里：桌面端的 API 基址来自它自己的
+profile / 服务端设置（产品面），而构建里烘的是另一个默认值（实测 bundle 里是 `localhost:8080`）。
+往 localStorage 注入 token 只能走到一个拉不到数据的空壳（渲染层仍会报 `ERR_CONNECTION_REFUSED`）。
+要恢复它，需要一个「把已构建的应用指向自定义服务端」的正式办法，或者把登录表单端到端驱动一遍
+——两者都属于产品面决定，不该由 spec 偷偷绕过。
