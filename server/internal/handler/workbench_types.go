@@ -28,6 +28,7 @@ import (
 	"log/slog"
 	"math"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -331,6 +332,124 @@ func workbenchNameValue(w http.ResponseWriter, name, fieldName string) bool {
 	return true
 }
 
+// ---- free-text caps --------------------------------------------------------
+//
+// A TEXT column carries no length of its own, so a pasted megabyte is stored and
+// then handed back by every list request that selects the row: `limit=200` turns
+// one bad paste into hundreds of megabytes of JSON for the client's zod schema to
+// parse. The caps below are the handler's answer, in the same shape as
+// workbenchNameLimit but chosen per column class rather than per name.
+const (
+	// workbenchTitleLimit is a heading: a brief, a topic, a post, a job title.
+	workbenchTitleLimit = 512
+	// workbenchNoteLimit is a note or a body: a settlement note, a script body, a
+	// follow-up summary. 20000 characters is one long document.
+	workbenchNoteLimit = 20000
+	// workbenchURLLimit is a link. Far under the ~2.7 KB a btree entry can hold,
+	// which matters for `creator_post.url` — that column carries a unique index.
+	workbenchURLLimit = 2048
+	// workbenchInvoiceLimit is an invoice number: an identifier, not prose.
+	workbenchInvoiceLimit = 128
+	// workbenchColorLimit is a hex colour or a token name.
+	workbenchColorLimit = 64
+)
+
+// workbenchTextLimits maps a request field name to the rune cap of the TEXT column
+// it is written into.
+//
+// The name is the JSON spelling, so one table covers both decode shapes the
+// workbench requests use: `*string` fields (checked in decodeWorkbenchBody) and
+// the raw-JSON ones that follow §3.4's clearing rule (checked where they are
+// parsed). Every column that holds one of these names is the same class of value —
+// a `title` is a heading in the brief ledger, the topic board and the job board
+// alike — so the table is keyed by name rather than by table.
+var workbenchTextLimits = map[string]int{
+	"title":          workbenchTitleLimit,
+	"brand":          workbenchTitleLimit,
+	"persona":        workbenchTitleLimit,
+	"source_keyword": workbenchTitleLimit,
+	"summary":        workbenchNoteLimit,
+	"note":           workbenchNoteLimit,
+	"body":           workbenchNoteLimit,
+	"cta":            workbenchNoteLimit,
+	"url":            workbenchURLLimit,
+	"publish_url":    workbenchURLLimit,
+	"invoice_no":     workbenchInvoiceLimit,
+	"color":          workbenchColorLimit,
+}
+
+// workbenchTextLimit returns the cap for a field, or 0 when the field is not one
+// of the capped columns.
+func workbenchTextLimit(fieldName string) int {
+	return workbenchTextLimits[fieldName]
+}
+
+// workbenchTextValue validates one free-text field against its column's cap.
+//
+// Like workbenchNameValue it answers the 400 itself and names the field and the
+// limit, because "which box was too long" is the only part of the answer a client
+// can act on.
+func workbenchTextValue(w http.ResponseWriter, value, fieldName string) bool {
+	limit := workbenchTextLimit(fieldName)
+	if limit == 0 || utf8.RuneCountInString(value) <= limit {
+		return true
+	}
+	writeError(w, http.StatusBadRequest,
+		fmt.Sprintf("%s must be at most %d characters", fieldName, limit))
+	return false
+}
+
+// workbenchTextFieldsValue applies workbenchTextValue to every capped field of a
+// decoded request body.
+//
+// Capping here rather than at each call site is what keeps the rule from being
+// re-derived per handler: `optionalTrimmedText` has no field name to look up, and a
+// request struct is the last place both are known. Only `string` / `*string`
+// fields are read — a `json.RawMessage` field is capped where it is parsed, in
+// applyTextClearPatch / applyRequiredTextPatch.
+func workbenchTextFieldsValue(w http.ResponseWriter, body any) bool {
+	value := reflect.ValueOf(body)
+	if value.Kind() != reflect.Pointer || value.IsNil() {
+		return true
+	}
+	value = value.Elem()
+	if value.Kind() != reflect.Struct {
+		return true
+	}
+	typ := value.Type()
+	for i := 0; i < typ.NumField(); i++ {
+		field := typ.Field(i)
+		if !field.IsExported() {
+			continue
+		}
+		name, _, _ := strings.Cut(field.Tag.Get("json"), ",")
+		if name == "" || name == "-" {
+			continue
+		}
+		text, ok := workbenchRequestText(value.Field(i))
+		if !ok {
+			continue
+		}
+		if !workbenchTextValue(w, text, name) {
+			return false
+		}
+	}
+	return true
+}
+
+// workbenchRequestText reads the string behind a `string` / `*string` field.
+func workbenchRequestText(field reflect.Value) (string, bool) {
+	switch field.Kind() {
+	case reflect.String:
+		return field.String(), true
+	case reflect.Pointer:
+		if field.Type().Elem().Kind() == reflect.String && !field.IsNil() {
+			return field.Elem().String(), true
+		}
+	}
+	return "", false
+}
+
 // workbenchLikePattern escapes the metacharacters of a LIKE pattern.
 //
 // `?q=` is pasted into `ILIKE '%' || $1 || '%'`, so an unescaped `%` widens the
@@ -423,6 +542,10 @@ func workbenchTimestampValue(w http.ResponseWriter, raw *string, fieldName strin
 // decodeWorkbenchBody decodes a JSON request body, rejecting a malformed one.
 // An empty body is a valid empty object so a PATCH that only carries query
 // parameters does not 400.
+//
+// It also enforces the free-text caps of the decoded `string` / `*string` fields
+// (workbenchTextLimits): every workbench write body passes through here, which is
+// what makes one table enough.
 func decodeWorkbenchBody(w http.ResponseWriter, r *http.Request, dest any) bool {
 	if r.Body == nil {
 		return true
@@ -434,7 +557,7 @@ func decodeWorkbenchBody(w http.ResponseWriter, r *http.Request, dest any) bool 
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return false
 	}
-	return true
+	return workbenchTextFieldsValue(w, dest)
 }
 
 // workbenchInternalError logs the cause and answers with a stable message. The
@@ -645,6 +768,9 @@ func applyTextClearPatch(raw json.RawMessage, w http.ResponseWriter, fieldName s
 		writeError(w, http.StatusBadRequest, fieldName+" must be a string or null")
 		return pgtype.Text{}, false
 	}
+	if !workbenchTextValue(w, value, fieldName) {
+		return pgtype.Text{}, false
+	}
 	// optionalTrimmedText already folds "" into NULL, which is the compatibility
 	// spelling this batch keeps.
 	return optionalTrimmedText(&value), true
@@ -758,6 +884,9 @@ func applyRequiredTextPatch(raw json.RawMessage, w http.ResponseWriter, fieldNam
 	parsed := strings.TrimSpace(value)
 	if parsed == "" {
 		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	if !workbenchTextValue(w, parsed, fieldName) {
 		return current, false
 	}
 	return parsed, true

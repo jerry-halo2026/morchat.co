@@ -268,6 +268,93 @@ func TestImportAllOrNothing(t *testing.T) {
 	}
 }
 
+// TestImportTextCapsAreRowErrors covers the caps an import has to apply itself.
+//
+// The import writes TEXT columns straight into the ledger, so no cell ever passes
+// through the request-body caps in workbenchTextLimits: a note the REST create
+// refuses at 20001 characters would otherwise be stored by a spreadsheet. The answer
+// is a row error with its own reason — `text_too_long` — which the dry run reports
+// too, so an operator sees it before committing. The batch stays atomic (§23 rule 2),
+// so `committed` is 0 rather than a half-applied file; what must not happen is a 500,
+// and the rest of the file is still previewed row by row.
+//
+// The boundary is pinned from both sides: exactly the cap imports, one character
+// more does not.
+func TestImportTextCapsAreRowErrors(t *testing.T) {
+	handle := "import-caps-" + strings.ToLower(strings.ReplaceAll(t.Name(), "_", "-"))
+	creator := importPrefixedCreator(t, testUserID, handle)
+	client := createWorkbenchClient(t, testUserID, "Import caps client")
+	brief := createWorkbenchBrief(t, client.ID, "Import caps brief")
+
+	overNote := strings.Repeat("名", workbenchNoteLimit+1)
+	csv := "creator_handle,fee_amount,note\n" +
+		handle + ",3000,short\n" +
+		handle + ",4500," + overNote + "\n"
+
+	preview := importRun(t, "?kind=quotes", csv)
+	if preview.Parsed != 2 || preview.Accepted != 1 || preview.Committed != 0 {
+		t.Fatalf("preview = %+v, want 2 parsed / 1 accepted / 0 committed", preview)
+	}
+	want := ImportRowError{Line: 3, Column: "note", Reason: importReasonTextTooLong}
+	if len(preview.Errors) != 1 || preview.Errors[0] != want {
+		t.Fatalf("errors = %+v, want exactly %+v", preview.Errors, want)
+	}
+
+	// The real import answers the same preview instead of failing the request: one bad
+	// cell is a row error, and rule 2 keeps the valid rows from landing alone.
+	commit := importRun(t, "?kind=quotes&dry_run=0", csv)
+	if commit.Committed != 0 || importReasonCount(commit, importReasonTextTooLong) != 1 {
+		t.Fatalf("commit = %+v, want 0 committed and one text_too_long", commit)
+	}
+	if count := dbfx.Count(t, `SELECT count(*) FROM creator_quote WHERE workspace_id = $1 AND creator_id = $2`, testWorkspaceID, creator.ID); count != 0 {
+		t.Fatalf("a rejected batch wrote %d quotes", count)
+	}
+
+	// Exactly the cap is legal, and the stored note is the whole note.
+	atCap := strings.Repeat("名", workbenchNoteLimit)
+	boundary := "creator_handle,fee_amount,note\n" + handle + ",5200," + atCap + "\n"
+	preview = importRun(t, "?kind=quotes", boundary)
+	if preview.Accepted != 1 || len(preview.Errors) != 0 {
+		t.Fatalf("at-cap preview = %+v, want the row accepted", preview)
+	}
+	commit = importRun(t, "?kind=quotes&dry_run=0", boundary)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM creator_quote WHERE creator_id = $1`, creator.ID) })
+	if commit.Committed != 1 {
+		t.Fatalf("at-cap commit = %+v, want 1", commit)
+	}
+	if count := dbfx.Count(t, `SELECT count(*) FROM creator_quote WHERE creator_id = $1 AND length(note) = $2`, creator.ID, workbenchNoteLimit); count != 1 {
+		t.Fatalf("%d quotes stored the full %d-character note, want 1", count, workbenchNoteLimit)
+	}
+
+	// The other two kinds' capped columns: a follow-up's summary and a
+	// collaboration's publish_url.
+	activities := "creator_id,kind,happened_at,summary\n" +
+		creator.ID + ",dm,2026-11-10," + overNote + "\n"
+	preview = importRun(t, "?kind=activities", activities)
+	summaryProblem := ImportRowError{Line: 2, Column: "summary", Reason: importReasonTextTooLong}
+	if len(preview.Errors) != 1 || preview.Errors[0] != summaryProblem {
+		t.Fatalf("activities errors = %+v, want exactly %+v", preview.Errors, summaryProblem)
+	}
+
+	const prefix = "https://example.test/"
+	collabs := "creator_id,brief_id,publish_url\n" +
+		creator.ID + "," + brief.ID + "," + prefix + strings.Repeat("u", workbenchURLLimit) + "\n"
+	preview = importRun(t, "?kind=collabs", collabs)
+	urlProblem := ImportRowError{Line: 2, Column: "publish_url", Reason: importReasonTextTooLong}
+	if len(preview.Errors) != 1 || preview.Errors[0] != urlProblem {
+		t.Fatalf("collabs errors = %+v, want exactly %+v", preview.Errors, urlProblem)
+	}
+
+	// A publish_url at exactly the cap imports.
+	boundary = "creator_id,brief_id,publish_url\n" +
+		creator.ID + "," + brief.ID + "," + prefix + strings.Repeat("u", workbenchURLLimit-len(prefix)) + "\n"
+	commit = importRun(t, "?kind=collabs&dry_run=0", boundary)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM crm_collab WHERE creator_id = $1`, creator.ID) })
+	if commit.Committed != 1 || len(commit.Errors) != 0 {
+		t.Fatalf("publish_url at-cap commit = %+v, want 1 committed", commit)
+	}
+}
+
 // TestImportLimits covers the two ceilings and the request-shape guards.
 func TestImportLimits(t *testing.T) {
 	handle := "import-limits-" + strings.ToLower(strings.ReplaceAll(t.Name(), "_", "-"))

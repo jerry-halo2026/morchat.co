@@ -22,9 +22,11 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/jackc/pgx/v5/pgtype"
 
@@ -549,6 +551,64 @@ func TestAgentWriteGatesRefuseWithFourOhThree(t *testing.T) {
 	// Everything else passes it: the gate speaks only about the fields it knows.
 	if err := workbenchAgentArgumentGate(json.RawMessage(`{"creator_id": "x", "note": "y"}`)); err != nil {
 		t.Fatalf("argument gate refused a whitelisted argument: %v", err)
+	}
+}
+
+// TestAgentWriteEnforcesTextCaps pins the free-text caps on the MCP write channel.
+//
+// The three tools do not insert rows themselves: they synthesise the REST request and
+// replay the handler (`workbenchAgentWriteReplay`), so `decodeWorkbenchBody` — and with
+// it `workbenchTextLimits` — runs exactly as it does over HTTP. This proves that rather
+// than assuming it: an over-long note or summary is refused with the handler's own
+// sentence (as `isError`, the shape every tool refusal uses), nothing is written, and a
+// value at the cap still lands.
+func TestAgentWriteEnforcesTextCaps(t *testing.T) {
+	if testPool == nil {
+		t.Skip("handler tests require a reachable DATABASE_URL")
+	}
+
+	creator := createWorkbenchCreator(t, testUserID, "Agent text cap quote creator")
+	agentID, taskID := agentWriteFixture(t)
+	overNote := strings.Repeat("名", workbenchNoteLimit+1)
+
+	_, refused := agentWriteCall(t, workbenchToolCreateQuote, map[string]any{
+		"creator_id": creator.ID,
+		"note":       overNote,
+	}, testUserID, agentID, taskID)
+	workbenchMCPRejected(t, refused, fmt.Sprintf("note must be at most %d characters", workbenchNoteLimit))
+
+	_, refused = agentWriteCall(t, workbenchToolLogActivity, map[string]any{
+		"creator_id":  creator.ID,
+		"kind":        "dm",
+		"happened_at": "2026-11-18T09:00:00Z",
+		"summary":     overNote,
+	}, testUserID, agentID, taskID)
+	workbenchMCPRejected(t, refused, fmt.Sprintf("summary must be at most %d characters", workbenchNoteLimit))
+
+	// Both refusals happen before the ledger runs: the cap is not a post-write trim.
+	if count := dbfx.Count(t, `SELECT count(*) FROM creator_quote WHERE creator_id = $1`, creator.ID); count != 0 {
+		t.Fatalf("a refused agent write created %d quotes", count)
+	}
+	if count := dbfx.Count(t, `SELECT count(*) FROM creator_activity WHERE creator_id = $1`, creator.ID); count != 0 {
+		t.Fatalf("a refused agent write created %d follow-ups", count)
+	}
+
+	// Exactly the cap is not an off-by-one: the note is written whole.
+	atCap := strings.Repeat("名", workbenchNoteLimit)
+	_, accepted := agentWriteCall(t, workbenchToolCreateQuote, map[string]any{
+		"creator_id": creator.ID,
+		"note":       atCap,
+	}, testUserID, agentID, taskID)
+	var quote BdQuoteResponse
+	workbenchMCPOK(t, accepted, &quote)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM creator_quote WHERE id = $1`, quote.ID) })
+	cleanupWorkbenchAudit(t, subjectCreatorQuote, quote.ID)
+	if quote.Note == nil || utf8.RuneCountInString(*quote.Note) != workbenchNoteLimit {
+		stored := 0
+		if quote.Note != nil {
+			stored = utf8.RuneCountInString(*quote.Note)
+		}
+		t.Fatalf("stored note = %d runes, want the %d-character note that was sent", stored, workbenchNoteLimit)
 	}
 }
 

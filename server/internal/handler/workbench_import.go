@@ -43,6 +43,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/jackc/pgx/v5/pgtype"
 
@@ -90,6 +91,10 @@ const (
 	importReasonInvalidTime     = "invalid_timestamp"
 	importReasonInvalidEnum     = "invalid_enum"
 	importReasonInvalidCurrency = "invalid_currency"
+	// importReasonTextTooLong is the per-cell answer to a TEXT cell over the cap its
+	// column carries in workbenchTextLimits. It is a row error, not a file error:
+	// the operator fixes that one cell, the rest of the preview stays valid.
+	importReasonTextTooLong = "text_too_long"
 )
 
 // ImportRow is one parsed row of the file. `Preview` is the row as it would be
@@ -184,6 +189,20 @@ var importSpecs = map[string]importKindSpec{
 			{"currency", []string{"currency", "币种", "货币"}},
 		},
 	},
+}
+
+// importCappedColumns names, per kind, the cells that land in a TEXT column
+// `workbenchTextLimits` caps.
+//
+// An import is the second door into the same ledgers: its rows are written straight
+// into the params structs, so nothing here passes through `decodeWorkbenchBody` and
+// its caps — a 500 KB note would otherwise be stored by a spreadsheet while the REST
+// create refuses it. The table is the import's side of that one cap table, so a
+// column that gains a cap there has exactly one place to be listed here.
+var importCappedColumns = map[string][]string{
+	importKindQuotes:     {"note"},
+	importKindActivities: {"summary"},
+	importKindCollabs:    {"publish_url"},
 }
 
 // importNormaliseHeader folds a header cell to its comparison form: lower case, no
@@ -739,6 +758,22 @@ func (h *Handler) importRow(scope workbenchScope, kind string, index map[string]
 		return value, true
 	}
 
+	// The caps of workbenchTextLimits, re-applied to the cells this file writes
+	// directly. The comparison is on the trimmed value, which is what the row stores
+	// (`optionalTrimmedText`), so a cell that differs from the cap only by padding
+	// before or after it is still accepted. Every kind's branch below returns before
+	// planning a row while `problems` is non-empty, so an over-long cell never
+	// reaches a params struct.
+	for _, column := range importCappedColumns[kind] {
+		limit := workbenchTextLimit(column)
+		if limit == 0 {
+			continue
+		}
+		if utf8.RuneCountInString(strings.TrimSpace(importCell(record, index, column))) > limit {
+			fail(column, importReasonTextTooLong)
+		}
+	}
+
 	switch kind {
 	case importKindQuotes:
 		fee, ok := requireCell("fee_amount")
@@ -782,11 +817,11 @@ func (h *Handler) importRow(scope workbenchScope, kind string, index map[string]
 		if briefID.Valid {
 			row.preview["brief_id"] = uuidToString(briefID)
 		}
-			// A bulk import is a reviewed act: the operator saw the dry-run
-			// preview and confirmed the batch (§23), so its rows arrive accepted
-			// rather than filling the review queue with a hundred pending rows.
-			// The review gate stays for the per-row writes an agent or a person
-			// makes one at a time.
+		// A bulk import is a reviewed act: the operator saw the dry-run
+		// preview and confirmed the batch (§23), so its rows arrive accepted
+		// rather than filling the review queue with a hundred pending rows.
+		// The review gate stays for the per-row writes an agent or a person
+		// makes one at a time.
 		row.quote = db.CreateCreatorQuoteParams{
 			ReviewState:    reviewAccepted,
 			WorkspaceID:    scope.WorkspaceUUID,
@@ -853,11 +888,11 @@ func (h *Handler) importRow(scope workbenchScope, kind string, index map[string]
 		if nextFollowAt.Valid {
 			row.preview["next_follow_at"] = timestampToString(nextFollowAt)
 		}
-			// A bulk import is a reviewed act: the operator saw the dry-run
-			// preview and confirmed the batch (§23), so its rows arrive accepted
-			// rather than filling the review queue with a hundred pending rows.
-			// The review gate stays for the per-row writes an agent or a person
-			// makes one at a time.
+		// A bulk import is a reviewed act: the operator saw the dry-run
+		// preview and confirmed the batch (§23), so its rows arrive accepted
+		// rather than filling the review queue with a hundred pending rows.
+		// The review gate stays for the per-row writes an agent or a person
+		// makes one at a time.
 		row.activity = db.CreateCreatorActivityParams{
 			ReviewState:   reviewAccepted,
 			WorkspaceID:   scope.WorkspaceUUID,
@@ -937,11 +972,11 @@ func (h *Handler) importRow(scope workbenchScope, kind string, index map[string]
 			row.preview["publish_url"] = url
 		}
 		row.preview["currency"] = currency
-			// A bulk import is a reviewed act: the operator saw the dry-run
-			// preview and confirmed the batch (§23), so its rows arrive accepted
-			// rather than filling the review queue with a hundred pending rows.
-			// The review gate stays for the per-row writes an agent or a person
-			// makes one at a time.
+		// A bulk import is a reviewed act: the operator saw the dry-run
+		// preview and confirmed the batch (§23), so its rows arrive accepted
+		// rather than filling the review queue with a hundred pending rows.
+		// The review gate stays for the per-row writes an agent or a person
+		// makes one at a time.
 		row.collab = db.CreateCrmCollabParams{
 			ReviewState:    reviewAccepted,
 			WorkspaceID:    scope.WorkspaceUUID,

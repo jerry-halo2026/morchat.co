@@ -115,9 +115,10 @@ func edgeWantEqualText(t *testing.T, got *string, want, what string) {
 	}
 }
 
-// edgeLongText is the 1 MB probe, built on whole runes. No workbench TEXT column
-// declares a length (the two unique-indexed names are capped by the handler), so
-// this cell answers "is there an upper bound at all".
+// edgeLongText is the 1 MB probe, built on whole runes. The TEXT columns it is
+// aimed at do not declare a length in the schema; the handler caps the ones a list
+// payload carries (workbenchTextLimits in workbench_types.go), so this cell
+// answers "is the paste refused before it lands in a column".
 func edgeLongText() string {
 	const target = 1024 * 1024
 	unit := "边界值abc😀"
@@ -407,8 +408,9 @@ func edgeTimestampMatrix(t *testing.T, field string, emptying edgeEmptying, writ
 
 // edgeTextMatrix runs the text matrix over one TEXT column: emptying, the 1 MB
 // probe, and the characters that have to survive byte for byte. `longTextWant` is
-// the status a 1 MB value must answer — 200 where the column has no length rule,
-// 400 on the two names whose unique index cannot hold one.
+// the status a 1 MB value must answer — 400 on every column the handler caps
+// (workbenchTextLimits; the two unique-indexed names are capped as well) and 200
+// only where no rule exists.
 func edgeTextMatrix(t *testing.T, field string, emptying edgeEmptying, longTextWant int, write func(t *testing.T, value any) (edgeResult, *string)) {
 	t.Helper()
 
@@ -555,7 +557,7 @@ func TestWorkbenchEdgeClients(t *testing.T) {
 		})
 	})
 	t.Run("text: brand", func(t *testing.T) {
-		edgeTextMatrix(t, "brand", edgeClearsEmptyKeepsNull(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "brand", edgeClearsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			return patchField(t, "brand", value)
 		})
 	})
@@ -715,7 +717,7 @@ func TestWorkbenchEdgeBriefs(t *testing.T) {
 	})
 
 	t.Run("text: title", func(t *testing.T) {
-		edgeTextMatrix(t, "title", edgeRejectsEmptyKeepsNull(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "title", edgeRejectsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"title": value})
 			return res, &row.Title
 		})
@@ -871,7 +873,7 @@ func TestWorkbenchEdgeCollabs(t *testing.T) {
 		})
 	})
 	t.Run("text: publish_url", func(t *testing.T) {
-		edgeTextMatrix(t, "publish_url", edgeClearsRaw(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "publish_url", edgeClearsRaw(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"publish_url": value})
 			return res, row.PublishURL
 		})
@@ -1041,13 +1043,13 @@ func TestWorkbenchEdgeSettlements(t *testing.T) {
 	})
 
 	t.Run("text: note", func(t *testing.T) {
-		edgeTextMatrix(t, "note", edgeClearsRaw(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "note", edgeClearsRaw(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"note": value})
 			return res, row.Note
 		})
 	})
 	t.Run("text: invoice_no", func(t *testing.T) {
-		edgeTextMatrix(t, "invoice_no", edgeClearsRaw(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "invoice_no", edgeClearsRaw(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"invoice_no": value})
 			return res, row.InvoiceNo
 		})
@@ -1157,7 +1159,7 @@ func TestWorkbenchEdgeQuotes(t *testing.T) {
 	})
 
 	t.Run("text: note", func(t *testing.T) {
-		edgeTextMatrix(t, "note", edgeClearsRaw(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "note", edgeClearsRaw(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"note": value})
 			return res, row.Note
 		})
@@ -1279,7 +1281,7 @@ func TestWorkbenchEdgeActivities(t *testing.T) {
 		})
 	})
 	t.Run("text: summary is NOT NULL", func(t *testing.T) {
-		edgeTextMatrix(t, "summary", edgeRejectsBoth(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "summary", edgeRejectsBoth(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"summary": value})
 			return res, &row.Summary
 		})
@@ -1376,7 +1378,7 @@ func TestWorkbenchEdgeCampaigns(t *testing.T) {
 		edgeWantStatus(t, res, http.StatusConflict, "case-insensitive duplicate name")
 	})
 	t.Run("text: source_keyword", func(t *testing.T) {
-		edgeTextMatrix(t, "source_keyword", edgeClearsEmptyKeepsNull(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "source_keyword", edgeClearsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"source_keyword": value})
 			return res, row.SourceKeyword
 		})
@@ -1462,13 +1464,13 @@ func TestWorkbenchEdgeTopics(t *testing.T) {
 	})
 
 	t.Run("text: title", func(t *testing.T) {
-		edgeTextMatrix(t, "title", edgeRejectsEmptyKeepsNull(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "title", edgeRejectsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"title": value})
 			return res, &row.Title
 		})
 	})
 	t.Run("text: note", func(t *testing.T) {
-		edgeTextMatrix(t, "note", edgeClearsEmptyKeepsNull(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "note", edgeClearsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"note": value})
 			return res, row.Note
 		})
@@ -1531,13 +1533,13 @@ func TestWorkbenchEdgeScripts(t *testing.T) {
 		})
 	})
 	t.Run("text: body", func(t *testing.T) {
-		edgeTextMatrix(t, "body", edgeClearsEmptyKeepsNull(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "body", edgeClearsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"body": value})
 			return res, row.Body
 		})
 	})
 	t.Run("text: cta", func(t *testing.T) {
-		edgeTextMatrix(t, "cta", edgeClearsEmptyKeepsNull(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "cta", edgeClearsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"cta": value})
 			return res, row.CTA
 		})
@@ -1661,13 +1663,13 @@ func TestWorkbenchEdgeIPs(t *testing.T) {
 		})
 	})
 	t.Run("text: persona", func(t *testing.T) {
-		edgeTextMatrix(t, "persona", edgeClearsEmptyKeepsNull(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "persona", edgeClearsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"persona": value})
 			return res, row.Persona
 		})
 	})
 	t.Run("text: color", func(t *testing.T) {
-		edgeTextMatrix(t, "color", edgeClearsEmptyKeepsNull(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "color", edgeClearsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"color": value})
 			return res, row.Color
 		})
