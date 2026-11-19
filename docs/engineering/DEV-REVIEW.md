@@ -78,8 +78,15 @@ cd packages/core  && pnpm exec vitest run api                          # 676 通
 2. `/overview` 还剩两档：批外的 auth/scope 预检 ~0.8s、verifier 链 3 条串行 ~0.98s。
 3. `media_script` 的 hook/body/cta 与若干文本列仍只支持 `""` 清空（`null` 未接，涉及版本语义）。
 4. `apps/web` 有 17 条**分支之前就存在**的失败（marketing 路由扫描路径、`text-foreground/80`），与本分支无关。
-5. `codex/round1-continuous`、`sync/cli-rename`、`sync/0.8.2` 是三条独立支线，与本分支无交集；
-   合并不需要它们，也不应顺带带上。
+5. **三条旁支与本分支的实际关系**（已核，别照直觉合并）：
+
+   | 分支 | 相对 dev | 合并基 | 结论 |
+   | --- | --- | --- | --- |
+   | `sync/cli-rename` | dev 独有 151 / 分支独有 0 | 就是分支头 | **完全落后于 dev**，dev 已包含它；无需动作 |
+   | `sync/0.8.2` | dev 独有 373 / 分支独有 0 | 就是分支头 | 同上，已包含 |
+   | `codex/round1-continuous` | dev 独有 632 / **分支独有 45** | `62aa38076` | **它是 11-11 的老叉**：缺 main 之后约 510 条主干提交，另有 45 条自己的未合并工作。与本 PR 无关，但**合并进 main 时要留意**——那 45 条如果也是要进主干的，谁后合谁负责解决冲突 |
+
+   一句话：`sync/*` 是 dev 的子集（因为 dev 从 main 出发且含主干），`codex/*` 是独立老叉。
 
 ## 7. 结论
 
