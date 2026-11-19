@@ -1,4 +1,22 @@
 {
+  "queue": {
+    "title": "Mi cola",
+    "tab_followups": "Seguimientos",
+    "tab_quotes": "Presupuestos",
+    "tab_collabs": "Colaboraciones",
+    "empty": "Aquí no tienes nada asignado.",
+    "loading": "Leyendo tu cola…",
+    "error": "No se pudo leer tu cola",
+    "retry": "Reintentar",
+    "due_on": "Vence {{date}}",
+    "expires_on": "Hasta {{date}}",
+    "settles_on": "Liquida {{date}}",
+    "no_date": "Sin fecha",
+    "start_thread": "Abrir una discusión",
+    "thread_count": "{{count}} respuestas",
+    "thread_archived": "Discusión archivada",
+    "open_ledger": "Abrir el registro"
+  },
   "collabs": {
     "new": "Nueva colaboración",
     "empty_title": "Todavía no hay colaboraciones",

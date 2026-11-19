@@ -974,13 +974,19 @@ func (h *Handler) ListBdActivities(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "to must not be before from")
 		return
 	}
+	assigneeType, assigneeID, ok := h.workbenchAssigneeFilter(w, r, scope)
+	if !ok {
+		return
+	}
 	rows, err := h.Queries.ListCreatorActivities(r.Context(), db.ListCreatorActivitiesParams{
-		WorkspaceID: scope.WorkspaceUUID,
-		CreatorID:   creatorID,
-		Kind:        optionalTrimmedText(optionalString(kind)),
-		FromAt:      fromAt,
-		ToAt:        toAt,
-		Limit:       workbenchLimit(r),
+		WorkspaceID:  scope.WorkspaceUUID,
+		CreatorID:    creatorID,
+		Kind:         optionalTrimmedText(optionalString(kind)),
+		FromAt:       fromAt,
+		ToAt:         toAt,
+		AssigneeType: assigneeType,
+		AssigneeID:   assigneeID,
+		Limit:        workbenchLimit(r),
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list follow-ups", err)
@@ -1358,21 +1364,35 @@ func (h *Handler) ListBdQuotes(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	assigneeType, assigneeID, ok := h.workbenchAssigneeFilter(w, r, scope)
+	if !ok {
+		return
+	}
 	rows, err := h.Queries.ListCreatorQuotes(r.Context(), db.ListCreatorQuotesParams{
-		WorkspaceID: scope.WorkspaceUUID,
-		CreatorID:   creatorID,
-		Status:      optionalTrimmedText(optionalString(status)),
-		Limit:       workbenchLimit(r),
+		WorkspaceID:  scope.WorkspaceUUID,
+		CreatorID:    creatorID,
+		Status:       optionalTrimmedText(optionalString(status)),
+		AssigneeType: assigneeType,
+		AssigneeID:   assigneeID,
+		Limit:        workbenchLimit(r),
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list quotes", err)
 		return
 	}
-	resp := make([]BdQuoteResponse, len(rows))
+	resp := make([]BdQuoteWithThread, len(rows))
 	actors := h.lastWorkbenchActors(r.Context(), scope, subjectCreatorQuote,
 		subjectIDs(rows, func(row db.CreatorQuote) pgtype.UUID { return row.ID }))
+	// A quote carries no `issue_id` column (COLLAB-MODEL §5), so its discussions are
+	// found by the origin pair the thread stamped on the issue — one lookup for the
+	// whole page, keyed by quote id.
+	threads := h.workbenchThreadsByOrigin(r.Context(), scope, subjectCreatorQuote,
+		subjectIDs(rows, func(row db.CreatorQuote) pgtype.UUID { return row.ID }))
 	for i, row := range rows {
-		resp[i] = bdQuoteToResponse(row, actors[uuidToString(row.ID)])
+		resp[i] = BdQuoteWithThread{
+			BdQuoteResponse: bdQuoteToResponse(row, actors[uuidToString(row.ID)]),
+			Thread:          threads[uuidToString(row.ID)],
+		}
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"quotes": resp, "total": len(resp)})
 }
@@ -1552,8 +1572,13 @@ func (h *Handler) GetBdQuote(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "quote not found")
 		return
 	}
-	writeJSON(w, http.StatusOK, bdQuoteToResponse(quote,
-		h.lastWorkbenchActor(r.Context(), scope, subjectCreatorQuote, quote.ID)))
+	writerResponse := BdQuoteWithThread{
+		BdQuoteResponse: bdQuoteToResponse(quote,
+			h.lastWorkbenchActor(r.Context(), scope, subjectCreatorQuote, quote.ID)),
+		Thread: h.workbenchThreadsByOrigin(r.Context(), scope, subjectCreatorQuote,
+			[]pgtype.UUID{quote.ID})[uuidToString(quote.ID)],
+	}
+	writeJSON(w, http.StatusOK, writerResponse)
 }
 
 // UpdateBdQuote 鈥?PATCH /api/workbench/bd/quotes/{quoteId}

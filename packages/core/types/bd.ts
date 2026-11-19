@@ -35,7 +35,7 @@
  *     and the money block already follow (docs/METRICS.md §1 rule 3).
  */
 
-import type { WorkbenchAssigneeType, WorkbenchLastActor } from "./workbench";
+import type { WorkbenchAssigneeType, WorkbenchLastActor, WorkbenchThread } from "./workbench";
 
 /** How the conversation happened. */
 export type BdActivityKind = "dm" | "call" | "meeting" | "email" | "note";
@@ -106,6 +106,13 @@ export interface BdQuote {
   assignee_id?: string | null;
   revision?: number;
   last_actor?: WorkbenchLastActor | null;
+  /**
+   * This quote's discussion (COLLAB-MODEL §5). `creator_quote` carries no
+   * `issue_id` column, so the server finds the thread by the origin stamp it put on
+   * the issue; the field looks the same to a client either way. Absent on a server
+   * that predates B4-3, `null` when nobody opened one.
+   */
+  thread?: WorkbenchThread | null;
 }
 
 /** One collection batch. */
@@ -150,12 +157,16 @@ export interface BdActivityListFilters {
   /** Inclusive `happened_at` window, RFC 3339 or `YYYY-MM-DD`. */
   from?: string;
   to?: string;
+  /** `me` or a member/agent id — the queue's "mine" filter (COLLAB-MODEL §4). */
+  assignee?: string;
   limit?: number;
 }
 
 export interface BdQuoteListFilters {
   creator_id?: string;
   status?: BdQuoteStatus | string;
+  /** `me` or a member/agent id — the queue's "mine" filter (COLLAB-MODEL §4). */
+  assignee?: string;
   limit?: number;
 }
 

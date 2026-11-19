@@ -22,6 +22,7 @@ export {
   useDeleteCrmClient,
   useDeleteCrmCollab,
   useDeleteCrmSettlement,
+  useOpenCrmCollabThread,
   useUpdateCrmBrief,
   useUpdateCrmClient,
   useUpdateCrmCollab,

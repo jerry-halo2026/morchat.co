@@ -1,4 +1,22 @@
 {
+  "queue": {
+    "title": "我的隊列",
+    "tab_followups": "跟進",
+    "tab_quotes": "報價",
+    "tab_collabs": "合作單",
+    "empty": "這裡暫時沒有指派給你的行。",
+    "loading": "正在讀取你的隊列…",
+    "error": "沒能讀取你的隊列",
+    "retry": "重試",
+    "due_on": "{{date}} 到期",
+    "expires_on": "有效至 {{date}}",
+    "settles_on": "{{date}} 結算",
+    "no_date": "沒有日期",
+    "start_thread": "開個討論",
+    "thread_count": "{{count}} 條回覆",
+    "thread_archived": "討論已歸檔",
+    "open_ledger": "開啟台賬"
+  },
   "collabs": {
     "new": "新建合作單",
     "empty_title": "還沒有合作單",

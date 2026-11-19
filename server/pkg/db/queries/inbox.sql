@@ -116,12 +116,19 @@ WHERE id = $1 AND workspace_id = $2;
 -- name: CreateInboxItem :one
 -- A missing recipient is a quiet skip (pgx.ErrNoRows), not a delivery failure.
 -- Check the insertion snapshot without adding recipient row locks.
+--
+-- `section` (607) is the inbox tab the notification was routed to at write time.
+-- It stayed unwritten until B4-2, because every notification before that was
+-- classified by type on read; the workbench's due notices are the first rows with
+-- a section of their own (`workbench`), and NULL keeps meaning "classify by type"
+-- for every older caller.
 INSERT INTO inbox_item (
     workspace_id, recipient_type, recipient_id,
     type, severity, issue_id, title, body,
-    actor_type, actor_id, details, id
+    actor_type, actor_id, details, id, section
 )
-SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, sqlc.narg('details')::text::jsonb, COALESCE(sqlc.narg('id')::uuid, gen_random_uuid())
+SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, sqlc.narg('details')::text::jsonb,
+       COALESCE(sqlc.narg('id')::uuid, gen_random_uuid()), sqlc.narg('section')::text
 WHERE (($2::text = 'member' AND EXISTS (
     SELECT 1 FROM member WHERE workspace_id = $1 AND user_id = $3
 )) OR ($2::text = 'agent' AND EXISTS (

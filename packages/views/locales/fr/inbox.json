@@ -100,7 +100,14 @@
     "app_action_requested": "Confirmation requise",
     "app_action_reminder": "Confirmation bientôt expirée",
     "app_connect_requested": "Connecter une app",
+    "workbench_followup_due": "Relance due",
+    "workbench_quote_expiring": "Devis expirant",
+    "workbench_settlement_overdue": "Règlement en retard",
     "app_action_result": "Résultat d'action d'app"
+  },
+  "workbench": {
+    "group": "Espace de travail",
+    "open_ledger": "Ouvrir la ligne du registre"
   },
   "labels": {
     "set_status_to": "Statut défini sur",

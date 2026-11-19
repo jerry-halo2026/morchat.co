@@ -114,6 +114,7 @@ import {
 } from "./inbox-display";
 import { AutopilotQuotaNotice } from "./autopilot-quota-notice";
 import { InboxAppRequest } from "../../common/app-requests";
+import { WorkbenchNoticeLink, isWorkbenchNotice } from "./workbench-notice";
 import { useT } from "../../i18n";
 import { useIssueLimitUpgradePrompt } from "../../modals/use-issue-limit-upgrade-prompt";
 
@@ -951,6 +952,11 @@ export function InboxPage() {
           requestId={detailItem.details.request_id}
           chatSessionId={detailItem.details.chat_session_id}
         />
+      )}
+      {isWorkbenchNotice(detailItem.type) && (
+        <div className="mt-4">
+          <WorkbenchNoticeLink item={detailItem} />
+        </div>
       )}
       {isQuickCreateOutcome(detailItem.type) && detailItem.details?.original_prompt && (
         <div className="mt-4 rounded-md border bg-muted/40 p-3">

@@ -2497,6 +2497,9 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 							r.Get("/", h.GetCrmCollab)
 							r.Patch("/", h.UpdateCrmCollab)
 							r.Delete("/", h.DeleteCrmCollab)
+			// One discussion per row (COLLAB-MODEL §5): the issue is created on
+			// first call and found again by `origin_type`/`origin_id` after that.
+			r.Post("/thread", h.CreateCrmCollabThread)
 						})
 					})
 					r.Route("/settlements", func(r chi.Router) {
@@ -2537,6 +2540,7 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 							r.Get("/", h.GetBdQuote)
 							r.Patch("/", h.UpdateBdQuote)
 							r.Delete("/", h.DeleteBdQuote)
+			r.Post("/thread", h.CreateBdQuoteThread)
 						})
 					})
 					r.Route("/campaigns", func(r chi.Router) {

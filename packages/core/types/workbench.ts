@@ -348,6 +348,27 @@ export interface WorkbenchLastActor {
   at: string;
 }
 
+/**
+ * A ledger row's discussion (COLLAB-MODEL §5). The discussion is an issue —
+ * `POST /api/workbench/{ledger}/{id}/thread` mints it once and answers the same one
+ * afterwards — and this is what a list row knows about it: how big it is, what the
+ * newest line says, and whether it is still there.
+ *
+ * `state: "gone"` is the one case a reader must not turn into a 404: the issue was
+ * deleted and the ledger row still points at it. The row is still a row (its money,
+ * its stage), so the screen says 讨论已归档 and keeps going.
+ */
+export interface WorkbenchThread {
+  issue_id: string;
+  number: number;
+  title: string;
+  status: string;
+  state: "linked" | "gone";
+  comment_count: number;
+  last_comment_at: string | null;
+  last_comment_preview: string | null;
+}
+
 /** One brief matched to one creator, with its own funnel position and money. */
 export interface CrmCollab {
   id: string;
@@ -404,6 +425,11 @@ export interface CrmCollab {
   revision?: number;
   /** The newest audit event about this row; absent before its first audited write. */
   last_actor?: WorkbenchLastActor | null;
+  /**
+   * This collaboration's discussion, when it has one. Absent on a server that
+   * predates B4-3, and `null` on a row nobody has opened a thread on.
+   */
+  thread?: WorkbenchThread | null;
 }
 
 /** One money movement against a collab. `paid_at` null = still owed. */
@@ -682,12 +708,21 @@ export interface CrmCollabListFilters {
   stage?: CrmCollabStage;
   brief_id?: string;
   creator_id?: string;
+  /**
+   * `?assignee=` (COLLAB-MODEL §4): `me` for the caller's own queue — resolved by
+   * the server against the *actor*, which may be an agent — or a member/agent id.
+   * A member id and an agent id are both uuids, so a concrete id filters on the id
+   * alone; `me` is the only form that also fixes the type.
+   */
+  assignee?: string;
 }
 
 export interface CrmSettlementListFilters {
   collab_id?: string;
   /** `true` = only paid rows, `false` = only unpaid. */
   paid?: boolean;
+  /** See `CrmCollabListFilters.assignee`. */
+  assignee?: string;
 }
 
 // --- Write requests -------------------------------------------------------

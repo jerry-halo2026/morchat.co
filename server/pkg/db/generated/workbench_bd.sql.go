@@ -1067,17 +1067,21 @@ WHERE workspace_id = $1::uuid
   AND ($3::text IS NULL OR kind = $3::text)
   AND ($4::timestamptz IS NULL OR happened_at >= $4::timestamptz)
   AND ($5::timestamptz IS NULL OR happened_at <= $5::timestamptz)
+  AND ($6::uuid IS NULL OR assignee_id = $6::uuid)
+  AND ($7::text IS NULL OR assignee_type = $7::text)
 ORDER BY happened_at DESC, id DESC
-LIMIT $6::integer
+LIMIT $8::integer
 `
 
 type ListCreatorActivitiesParams struct {
-	WorkspaceID pgtype.UUID        `json:"workspace_id"`
-	CreatorID   pgtype.UUID        `json:"creator_id"`
-	Kind        pgtype.Text        `json:"kind"`
-	FromAt      pgtype.Timestamptz `json:"from_at"`
-	ToAt        pgtype.Timestamptz `json:"to_at"`
-	Limit       int32              `json:"limit"`
+	WorkspaceID  pgtype.UUID        `json:"workspace_id"`
+	CreatorID    pgtype.UUID        `json:"creator_id"`
+	Kind         pgtype.Text        `json:"kind"`
+	FromAt       pgtype.Timestamptz `json:"from_at"`
+	ToAt         pgtype.Timestamptz `json:"to_at"`
+	AssigneeID   pgtype.UUID        `json:"assignee_id"`
+	AssigneeType pgtype.Text        `json:"assignee_type"`
+	Limit        int32              `json:"limit"`
 }
 
 // BD pipeline: the three ledgers the 商务驾驶舱 reads (follow-ups, quotes,
@@ -1099,8 +1103,11 @@ type ListCreatorActivitiesParams struct {
 // ---- follow-up log (creator_activity) --------------------------------------
 // The BD timeline. `?creator_id=` opens one creator's history, `?kind=` narrows
 // to one channel, and `?from=` / `?to=` are an inclusive `happened_at` window
-// (contract §3.1). Ordering is `happened_at DESC` — what happened most recently,
-// not what was typed most recently — with the id as the total tiebreak.
+// (contract §3.1). `?assignee=` (B4-2) is the cockpit's 我的 queue: the rows one
+// person or agent is following up, which is a narrower question than "mine to
+// write" — the assignee is resolved by the handler, never by the client.
+// Ordering is `happened_at DESC` — what happened most recently, not what was
+// typed most recently — with the id as the total tiebreak.
 func (q *Queries) ListCreatorActivities(ctx context.Context, arg ListCreatorActivitiesParams) ([]CreatorActivity, error) {
 	rows, err := q.db.Query(ctx, listCreatorActivities,
 		arg.WorkspaceID,
@@ -1108,6 +1115,8 @@ func (q *Queries) ListCreatorActivities(ctx context.Context, arg ListCreatorActi
 		arg.Kind,
 		arg.FromAt,
 		arg.ToAt,
+		arg.AssigneeID,
+		arg.AssigneeType,
 		arg.Limit,
 	)
 	if err != nil {
@@ -1210,27 +1219,33 @@ WHERE workspace_id = $1::uuid
   AND archived_at IS NULL
   AND ($2::uuid IS NULL OR creator_id = $2::uuid)
   AND ($3::text IS NULL OR status = $3::text)
+  AND ($4::uuid IS NULL OR assignee_id = $4::uuid)
+  AND ($5::text IS NULL OR assignee_type = $5::text)
 ORDER BY coalesce(quoted_at, created_at) DESC, id DESC
-LIMIT $4::integer
+LIMIT $6::integer
 `
 
 type ListCreatorQuotesParams struct {
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	CreatorID   pgtype.UUID `json:"creator_id"`
-	Status      pgtype.Text `json:"status"`
-	Limit       int32       `json:"limit"`
+	WorkspaceID  pgtype.UUID `json:"workspace_id"`
+	CreatorID    pgtype.UUID `json:"creator_id"`
+	Status       pgtype.Text `json:"status"`
+	AssigneeID   pgtype.UUID `json:"assignee_id"`
+	AssigneeType pgtype.Text `json:"assignee_type"`
+	Limit        int32       `json:"limit"`
 }
 
 // ---- quotes (creator_quote) ------------------------------------------------
 // `?creator_id=` opens one creator's offers, `?status=` one segment of the quote
-// ledger. The read order is the offer's own date, falling back to when the row
-// was typed so a draft (no `quoted_at` yet) does not sort below an older sent
-// quote.
+// ledger, and `?assignee=` (B4-2) the ones a person or agent is working on. The
+// read order is the offer's own date, falling back to when the row was typed so a
+// draft (no `quoted_at` yet) does not sort below an older sent quote.
 func (q *Queries) ListCreatorQuotes(ctx context.Context, arg ListCreatorQuotesParams) ([]CreatorQuote, error) {
 	rows, err := q.db.Query(ctx, listCreatorQuotes,
 		arg.WorkspaceID,
 		arg.CreatorID,
 		arg.Status,
+		arg.AssigneeID,
+		arg.AssigneeType,
 		arg.Limit,
 	)
 	if err != nil {

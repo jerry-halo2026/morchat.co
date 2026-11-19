@@ -1,4 +1,22 @@
 {
+  "queue": {
+    "title": "我的队列",
+    "tab_followups": "跟进",
+    "tab_quotes": "报价",
+    "tab_collabs": "合作单",
+    "empty": "这里暂时没有指派给你的行。",
+    "loading": "正在读取你的队列…",
+    "error": "没能读取你的队列",
+    "retry": "重试",
+    "due_on": "{{date}} 到期",
+    "expires_on": "有效至 {{date}}",
+    "settles_on": "{{date}} 结算",
+    "no_date": "没有日期",
+    "start_thread": "开个讨论",
+    "thread_count": "{{count}} 条回复",
+    "thread_archived": "讨论已归档",
+    "open_ledger": "打开台账"
+  },
   "collabs": {
     "new": "新建合作单",
     "empty_title": "还没有合作单",

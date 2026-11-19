@@ -139,6 +139,7 @@ import type {
   BdQuote,
   BdQuoteListResponse,
   WorkbenchCountsResponse,
+  WorkbenchThread,
   WorkbenchFinanceMonth,
   WorkbenchFinanceMonthListResponse,
   WorkbenchFinanceResponse,
@@ -4918,6 +4919,35 @@ export const WorkbenchLastActorSchema = z
 /** `member | agent`; free text on the wire like every workbench enum. */
 export const workbenchAssigneeType = z.string().nullable().default(null);
 
+/**
+ * A ledger row's discussion (COLLAB-MODEL §5). Degrades to null like the trail
+ * above: a row on a server that predates B4-3 has no thread, and `null` also covers
+ * "nobody opened one yet" — both render as "no discussion", never as an error.
+ *
+ * `state` is free text on the wire (`linked | gone`); anything unrecognised is
+ * treated as `gone` by the renderer rather than assumed linkable, because a link to
+ * an issue this client cannot describe is worse than saying the discussion is
+ * archived.
+ */
+export const WorkbenchThreadSchema = z
+  .object({
+    issue_id: z.string().default(""),
+    number: z.number().default(0),
+    title: z.string().default(""),
+    status: z.string().default(""),
+    state: z.string().default("gone"),
+    comment_count: z.number().default(0),
+    last_comment_at: workbenchNullableString,
+    last_comment_preview: workbenchNullableString,
+  })
+  .nullable()
+  .default(null);
+
+export const EMPTY_WORKBENCH_THREAD: WorkbenchThread = {
+  issue_id: "", number: 0, title: "", status: "", state: "gone",
+  comment_count: 0, last_comment_at: null, last_comment_preview: null,
+};
+
 export const CrmCollabSchema = z.object({
   id: z.string(),
   workspace_id: z.string().default(""),
@@ -4957,6 +4987,8 @@ export const CrmCollabSchema = z.object({
   assignee_id: workbenchNullableString,
   revision: z.number().default(1),
   last_actor: WorkbenchLastActorSchema,
+  // The row's discussion (COLLAB-MODEL §5, B4-3). Null when nobody opened one.
+  thread: WorkbenchThreadSchema,
 }).loose();
 
 export const EMPTY_CRM_COLLAB: CrmCollab = {
@@ -4967,7 +4999,7 @@ export const EMPTY_CRM_COLLAB: CrmCollab = {
   scheduled_at: null, confirmed_at: null, published_at: null, accepted_at: null,
   issue_id: null, owner_member_id: null, created_by: null, created_at: "",
   updated_at: "", archived_at: null, publish_url: null, settled_on: null,
-  assignee_type: null, assignee_id: null, revision: 1, last_actor: null,
+  assignee_type: null, assignee_id: null, revision: 1, last_actor: null, thread: null,
 };
 
 export const CrmCollabListResponseSchema = z.object({
@@ -5095,6 +5127,8 @@ export const BdQuoteSchema = z.object({
   assignee_id: workbenchNullableString,
   revision: z.number().default(1),
   last_actor: WorkbenchLastActorSchema,
+  // The quote's discussion, found by its origin stamp (COLLAB-MODEL §5, B4-3).
+  thread: WorkbenchThreadSchema,
 }).loose();
 
 export const EMPTY_BD_QUOTE: BdQuote = {
@@ -5102,7 +5136,7 @@ export const EMPTY_BD_QUOTE: BdQuote = {
   quoted_at: null, valid_until: null, fee_amount: null, commission_rate: null,
   currency: "CNY", items: [], note: null, owner_member_id: null, created_by: null,
   created_at: "", updated_at: "",
-  assignee_type: null, assignee_id: null, revision: 1, last_actor: null,
+  assignee_type: null, assignee_id: null, revision: 1, last_actor: null, thread: null,
 };
 
 export const BdQuoteListResponseSchema = z.object({

@@ -37,7 +37,13 @@ export type InboxItemType =
   | "app_action_requested"
   | "app_action_reminder"
   | "app_connect_requested"
-  | "app_action_result";
+  | "app_action_result"
+  // The workbench's due notices (COLLAB-MODEL §4). Issue-less by design: what they
+  // are about is a ledger row (`details.subject_type` / `details.subject_id`), and
+  // `details.route` is the path other clients open it at.
+  | "workbench.followup_due"
+  | "workbench.quote_expiring"
+  | "workbench.settlement_overdue";
 
 /**
  * One workspace's unread inbox count in the cross-workspace summary

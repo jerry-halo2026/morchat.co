@@ -100,7 +100,14 @@
     "app_action_requested": "Necesita tu confirmación",
     "app_action_reminder": "La confirmación caduca pronto",
     "app_connect_requested": "Conectar una aplicación",
+    "workbench_followup_due": "Seguimiento vencido",
+    "workbench_quote_expiring": "Presupuesto por vencer",
+    "workbench_settlement_overdue": "Liquidación vencida",
     "app_action_result": "Resultado de la acción de la aplicación"
+  },
+  "workbench": {
+    "group": "Espacio de trabajo",
+    "open_ledger": "Abrir la fila del registro"
   },
   "labels": {
     "set_status_to": "Establecer estado en",

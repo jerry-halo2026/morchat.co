@@ -162,3 +162,20 @@ export function useDeleteCrmSettlement() {
     onSuccess: () => invalidate(),
   });
 }
+
+/**
+ * Open (or read back) a collaboration's discussion (COLLAB-MODEL §5).
+ *
+ * A mutation rather than a query because the first call *writes*: it mints the
+ * issue and back-fills the row's `issue_id`. Every later call answers the same
+ * issue, so a double click is harmless — that is the server's idempotency, not a
+ * guard this hook adds. The list is invalidated because the row now carries a
+ * thread count it did not have before.
+ */
+export function useOpenCrmCollabThread() {
+  const invalidate = useInvalidateCrm();
+  return useMutation({
+    mutationFn: (id: string) => api.openCrmCollabThread(id),
+    onSuccess: () => invalidate("collabs"),
+  });
+}

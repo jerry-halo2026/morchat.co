@@ -1,4 +1,22 @@
 {
+  "queue": {
+    "title": "自分のキュー",
+    "tab_followups": "フォロー",
+    "tab_quotes": "見積",
+    "tab_collabs": "案件",
+    "empty": "あなたに割り当てられた行はありません。",
+    "loading": "キューを読み込んでいます…",
+    "error": "キューを読み込めませんでした",
+    "retry": "再試行",
+    "due_on": "{{date}} 期限",
+    "expires_on": "{{date}} まで有効",
+    "settles_on": "{{date}} 精算",
+    "no_date": "日付なし",
+    "start_thread": "ディスカッションを開始",
+    "thread_count": "{{count}} 件の返信",
+    "thread_archived": "ディスカッションはアーカイブ済み",
+    "open_ledger": "台帳を開く"
+  },
   "collabs": {
     "new": "コラボを追加",
     "empty_title": "コラボはまだありません",

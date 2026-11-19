@@ -136,3 +136,19 @@ export function useDeleteBdCampaign() {
     onSuccess: () => invalidate(),
   });
 }
+
+/**
+ * Open (or read back) a quote's discussion (COLLAB-MODEL §5).
+ *
+ * The quote ledger has no `issue_id` column, so the server answers this from the
+ * origin stamp it put on the issue: the second call finds the first call's thread
+ * without any pointer on the row. Idempotent for the same reason, invalidated for
+ * the same reason — the row's thread count changed.
+ */
+export function useOpenBdQuoteThread() {
+  const invalidate = useInvalidateBd();
+  return useMutation({
+    mutationFn: (id: string) => api.openBdQuoteThread(id),
+    onSuccess: () => invalidate("quotes"),
+  });
+}

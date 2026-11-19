@@ -734,24 +734,34 @@ func (h *Handler) ListCrmCollabs(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	assigneeType, assigneeID, ok := h.workbenchAssigneeFilter(w, r, scope)
+	if !ok {
+		return
+	}
 	rows, err := h.Queries.ListCrmCollabs(r.Context(), db.ListCrmCollabsParams{
-		WorkspaceID: scope.WorkspaceUUID,
-		Stage:       strToText(stage),
-		BriefID:     briefID,
-		CreatorID:   creatorID,
-		CursorAt:    cursorAt,
-		CursorID:    cursorID,
-		Limit:       workbenchLimit(r),
+		WorkspaceID:  scope.WorkspaceUUID,
+		Stage:        strToText(stage),
+		BriefID:      briefID,
+		CreatorID:    creatorID,
+		AssigneeType: assigneeType,
+		AssigneeID:   assigneeID,
+		CursorAt:     cursorAt,
+		CursorID:     cursorID,
+		Limit:        workbenchLimit(r),
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list collabs", err)
 		return
 	}
-	resp := make([]CrmCollabResponse, len(rows))
+	resp := make([]CrmCollabWithThread, len(rows))
 	actors := h.lastWorkbenchActors(r.Context(), scope, subjectCrmCollab,
 		subjectIDs(rows, func(row db.CrmCollab) pgtype.UUID { return row.ID }))
+	threads := h.workbenchThreads(r.Context(), scope, collabIssueIDs(rows))
 	for i, row := range rows {
-		resp[i] = crmCollabToResponse(row, actors[uuidToString(row.ID)])
+		resp[i] = CrmCollabWithThread{
+			CrmCollabResponse: crmCollabToResponse(row, actors[uuidToString(row.ID)]),
+			Thread:            threads[uuidToString(row.IssueID)],
+		}
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"collabs": resp, "total": len(resp)})
 }
@@ -968,8 +978,11 @@ func (h *Handler) GetCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !h.workbenchCrossDepartmentGate(w, r, scope, collab.OwnerMemberID) {
 		return
 	}
-	writeJSON(w, http.StatusOK, crmCollabToResponse(collab,
-		h.lastWorkbenchActor(r.Context(), scope, subjectCrmCollab, collab.ID)))
+	writeJSON(w, http.StatusOK, CrmCollabWithThread{
+		CrmCollabResponse: crmCollabToResponse(collab,
+			h.lastWorkbenchActor(r.Context(), scope, subjectCrmCollab, collab.ID)),
+		Thread: h.workbenchThread(r.Context(), scope, collab.IssueID),
+	})
 }
 
 // UpdateCrmCollab — PATCH /api/workbench/crm/collabs/{collabId}
@@ -1352,13 +1365,19 @@ func (h *Handler) ListCrmSettlements(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	assigneeType, assigneeID, ok := h.workbenchAssigneeFilter(w, r, scope)
+	if !ok {
+		return
+	}
 	rows, err := h.Queries.ListCrmSettlements(r.Context(), db.ListCrmSettlementsParams{
-		WorkspaceID: scope.WorkspaceUUID,
-		CollabID:    collabID,
-		Paid:        paid,
-		CursorAt:    cursorAt,
-		CursorID:    cursorID,
-		Limit:       workbenchLimit(r),
+		WorkspaceID:  scope.WorkspaceUUID,
+		CollabID:     collabID,
+		Paid:         paid,
+		AssigneeType: assigneeType,
+		AssigneeID:   assigneeID,
+		CursorAt:     cursorAt,
+		CursorID:     cursorID,
+		Limit:        workbenchLimit(r),
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list settlements", err)

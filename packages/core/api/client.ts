@@ -231,6 +231,7 @@ import type {
   UpdateBdCampaignRequest,
   UpdateBdQuoteRequest,
   WorkbenchCountsResponse,
+  WorkbenchThread,
   WorkbenchFinanceResponse,
   // Batch CSV import (WORKBENCH-API §23).
   ImportKind,
@@ -861,6 +862,8 @@ import {
   EMPTY_BD_PERFORMANCE,
   WorkbenchCountsResponseSchema,
   EMPTY_WORKBENCH_COUNTS_RESPONSE,
+  EMPTY_WORKBENCH_THREAD,
+  WorkbenchThreadSchema,
   WorkbenchFinanceResponseSchema,
   EMPTY_WORKBENCH_FINANCE_RESPONSE,
   WorkbenchFinanceMonthSchema,
@@ -4780,6 +4783,7 @@ export class ApiClient {
         stage: filters.stage,
         brief_id: filters.brief_id,
         creator_id: filters.creator_id,
+        assignee: filters.assignee,
       })}`,
     );
     return parseWithFallback(raw, CrmCollabListResponseSchema, EMPTY_CRM_COLLAB_LIST_RESPONSE, {
@@ -4801,6 +4805,23 @@ export class ApiClient {
     const raw = await this.fetch<unknown>(`/api/workbench/crm/collabs/${id}`);
     return parseWithFallback(raw, CrmCollabSchema, EMPTY_CRM_COLLAB, {
       endpoint: "GET /api/workbench/crm/collabs/:collabId",
+    });
+  }
+
+  /**
+   * The collaboration's discussion (COLLAB-MODEL §5).
+   *
+   * Idempotent by contract, not by convention: the first call mints the issue and
+   * stamps it with `origin_type=crm_collab`, every call after it answers that same
+   * issue, so a double click cannot produce two threads. The row's `thread` field
+   * (and this response) is where the UI reads the count and the newest line.
+   */
+  async openCrmCollabThread(id: string): Promise<WorkbenchThread> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/collabs/${id}/thread`, {
+      method: "POST",
+    });
+    return parseWithFallback(raw, WorkbenchThreadSchema, EMPTY_WORKBENCH_THREAD, {
+      endpoint: "POST /api/workbench/crm/collabs/:collabId/thread",
     });
   }
 
@@ -4834,6 +4855,7 @@ export class ApiClient {
       `/api/workbench/crm/settlements${workbenchSearch({
         collab_id: filters.collab_id,
         paid: filters.paid,
+        assignee: filters.assignee,
       })}`,
     );
     return parseWithFallback(
@@ -4895,6 +4917,7 @@ export class ApiClient {
         kind: filters.kind,
         from: filters.from,
         to: filters.to,
+        assignee: filters.assignee,
         limit: filters.limit,
       })}`,
     );
@@ -4950,6 +4973,7 @@ export class ApiClient {
       `/api/workbench/bd/quotes${workbenchSearch({
         creator_id: filters.creator_id,
         status: filters.status,
+        assignee: filters.assignee,
         limit: filters.limit,
       })}`,
     );
@@ -4972,6 +4996,20 @@ export class ApiClient {
     const raw = await this.fetch<unknown>(`/api/workbench/bd/quotes/${id}`);
     return parseWithFallback(raw, BdQuoteSchema, EMPTY_BD_QUOTE, {
       endpoint: "GET /api/workbench/bd/quotes/:quoteId",
+    });
+  }
+
+  /**
+   * The quote's discussion (COLLAB-MODEL §5). `creator_quote` has no pointer
+   * column, so the server answers this one from the origin stamp on the issue —
+   * same idempotency, same answer, from a different place.
+   */
+  async openBdQuoteThread(id: string): Promise<WorkbenchThread> {
+    const raw = await this.fetch<unknown>(`/api/workbench/bd/quotes/${id}/thread`, {
+      method: "POST",
+    });
+    return parseWithFallback(raw, WorkbenchThreadSchema, EMPTY_WORKBENCH_THREAD, {
+      endpoint: "POST /api/workbench/bd/quotes/:quoteId/thread",
     });
   }
 

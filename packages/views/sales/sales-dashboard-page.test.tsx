@@ -71,6 +71,12 @@ vi.mock("@morechat/core/bd/mutations", () => ({
   }),
 }));
 
+// The my-queue block reads its own three ledgers; it has a dedicated suite
+// (dashboard/my-queue.test.tsx), so this page test mounts a stub instead of
+// teaching every page test another three query mocks.
+vi.mock("./dashboard/my-queue", () => ({
+  MyWorkbenchQueue: () => <div data-testid="my-workbench-queue" />,
+}));
 vi.mock("../navigation", () => ({
   AppLink: ({
     children,

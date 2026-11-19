@@ -1,4 +1,22 @@
 {
+  "queue": {
+    "title": "내 대기열",
+    "tab_followups": "팔로업",
+    "tab_quotes": "견적",
+    "tab_collabs": "협업",
+    "empty": "여기에 배정된 행이 없습니다.",
+    "loading": "대기열을 읽는 중…",
+    "error": "대기열을 읽지 못했습니다",
+    "retry": "다시 시도",
+    "due_on": "{{date}} 마감",
+    "expires_on": "{{date}}까지 유효",
+    "settles_on": "{{date}} 정산",
+    "no_date": "날짜 없음",
+    "start_thread": "논의 시작",
+    "thread_count": "댓글 {{count}}개",
+    "thread_archived": "논의 보관됨",
+    "open_ledger": "원장 열기"
+  },
   "collabs": {
     "new": "새 콜라보",
     "empty_title": "아직 콜라보가 없습니다",

@@ -20,8 +20,11 @@
 -- name: ListCreatorActivities :many
 -- The BD timeline. `?creator_id=` opens one creator's history, `?kind=` narrows
 -- to one channel, and `?from=` / `?to=` are an inclusive `happened_at` window
--- (contract §3.1). Ordering is `happened_at DESC` — what happened most recently,
--- not what was typed most recently — with the id as the total tiebreak.
+-- (contract §3.1). `?assignee=` (B4-2) is the cockpit's 我的 queue: the rows one
+-- person or agent is following up, which is a narrower question than "mine to
+-- write" — the assignee is resolved by the handler, never by the client.
+-- Ordering is `happened_at DESC` — what happened most recently, not what was
+-- typed most recently — with the id as the total tiebreak.
 SELECT *
 FROM creator_activity
 WHERE workspace_id = sqlc.arg('workspace_id')::uuid
@@ -30,6 +33,8 @@ WHERE workspace_id = sqlc.arg('workspace_id')::uuid
   AND (sqlc.narg('kind')::text IS NULL OR kind = sqlc.narg('kind')::text)
   AND (sqlc.narg('from_at')::timestamptz IS NULL OR happened_at >= sqlc.narg('from_at')::timestamptz)
   AND (sqlc.narg('to_at')::timestamptz IS NULL OR happened_at <= sqlc.narg('to_at')::timestamptz)
+  AND (sqlc.narg('assignee_id')::uuid IS NULL OR assignee_id = sqlc.narg('assignee_id')::uuid)
+  AND (sqlc.narg('assignee_type')::text IS NULL OR assignee_type = sqlc.narg('assignee_type')::text)
 ORDER BY happened_at DESC, id DESC
 LIMIT sqlc.arg('limit')::integer;
 
@@ -85,15 +90,17 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
 
 -- name: ListCreatorQuotes :many
 -- `?creator_id=` opens one creator's offers, `?status=` one segment of the quote
--- ledger. The read order is the offer's own date, falling back to when the row
--- was typed so a draft (no `quoted_at` yet) does not sort below an older sent
--- quote.
+-- ledger, and `?assignee=` (B4-2) the ones a person or agent is working on. The
+-- read order is the offer's own date, falling back to when the row was typed so a
+-- draft (no `quoted_at` yet) does not sort below an older sent quote.
 SELECT *
 FROM creator_quote
 WHERE workspace_id = sqlc.arg('workspace_id')::uuid
   AND archived_at IS NULL
   AND (sqlc.narg('creator_id')::uuid IS NULL OR creator_id = sqlc.narg('creator_id')::uuid)
   AND (sqlc.narg('status')::text IS NULL OR status = sqlc.narg('status')::text)
+  AND (sqlc.narg('assignee_id')::uuid IS NULL OR assignee_id = sqlc.narg('assignee_id')::uuid)
+  AND (sqlc.narg('assignee_type')::text IS NULL OR assignee_type = sqlc.narg('assignee_type')::text)
 ORDER BY coalesce(quoted_at, created_at) DESC, id DESC
 LIMIT sqlc.arg('limit')::integer;
 

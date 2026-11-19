@@ -104,7 +104,14 @@
     "app_action_requested": "Требуется ваше подтверждение",
     "app_action_reminder": "Срок подтверждения скоро истечёт",
     "app_connect_requested": "Подключить приложение",
+    "workbench_followup_due": "Срок напоминания",
+    "workbench_quote_expiring": "Срок предложения истекает",
+    "workbench_settlement_overdue": "Расчёт просрочен",
     "app_action_result": "Результат действия приложения"
+  },
+  "workbench": {
+    "group": "Рабочее пространство",
+    "open_ledger": "Открыть строку реестра"
   },
   "labels": {
     "set_status_to": "Установлен статус",

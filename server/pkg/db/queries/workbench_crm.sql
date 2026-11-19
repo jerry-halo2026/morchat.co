@@ -120,6 +120,10 @@ SET archived_at = now(), updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
 
 -- name: ListCrmCollabs :many
+-- `?assignee=` (B4-2) narrows the list to the rows one person or agent is
+-- working on, which is what the cockpit's 我的 queue reads. The id filter is
+-- separate from the type because a bare uuid names a row without saying which
+-- identity space it came from (COLLAB-MODEL §1).
 SELECT *
 FROM crm_collab
 WHERE workspace_id = sqlc.arg('workspace_id')
@@ -127,6 +131,8 @@ WHERE workspace_id = sqlc.arg('workspace_id')
   AND (sqlc.narg('stage')::text IS NULL OR stage = sqlc.narg('stage')::text)
   AND (sqlc.narg('brief_id')::uuid IS NULL OR brief_id = sqlc.narg('brief_id')::uuid)
   AND (sqlc.narg('creator_id')::uuid IS NULL OR creator_id = sqlc.narg('creator_id')::uuid)
+  AND (sqlc.narg('assignee_id')::uuid IS NULL OR assignee_id = sqlc.narg('assignee_id')::uuid)
+  AND (sqlc.narg('assignee_type')::text IS NULL OR assignee_type = sqlc.narg('assignee_type')::text)
   AND (
     sqlc.narg('cursor_at')::timestamptz IS NULL
     OR (created_at, id) < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
@@ -227,6 +233,8 @@ WHERE workspace_id = sqlc.arg('workspace_id')
     OR (sqlc.narg('paid')::boolean AND paid_at IS NOT NULL)
     OR (NOT sqlc.narg('paid')::boolean AND paid_at IS NULL)
   )
+  AND (sqlc.narg('assignee_id')::uuid IS NULL OR assignee_id = sqlc.narg('assignee_id')::uuid)
+  AND (sqlc.narg('assignee_type')::text IS NULL OR assignee_type = sqlc.narg('assignee_type')::text)
   AND (
     sqlc.narg('cursor_at')::timestamptz IS NULL
     OR (created_at, id) < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)

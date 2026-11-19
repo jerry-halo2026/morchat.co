@@ -497,6 +497,7 @@ export type {
   CreatorHealthDetailResponse,
   CreatorHealthSort,
   WorkbenchCountsResponse,
+  WorkbenchThread,
   WorkbenchFinanceBlock,
   WorkbenchFinanceCostBasis,
   WorkbenchFinanceCostBlock,

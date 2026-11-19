@@ -782,30 +782,40 @@ WHERE workspace_id = $1
   AND ($2::text IS NULL OR stage = $2::text)
   AND ($3::uuid IS NULL OR brief_id = $3::uuid)
   AND ($4::uuid IS NULL OR creator_id = $4::uuid)
+  AND ($5::uuid IS NULL OR assignee_id = $5::uuid)
+  AND ($6::text IS NULL OR assignee_type = $6::text)
   AND (
-    $5::timestamptz IS NULL
-    OR (created_at, id) < ($5::timestamptz, $6::uuid)
+    $7::timestamptz IS NULL
+    OR (created_at, id) < ($7::timestamptz, $8::uuid)
   )
 ORDER BY created_at DESC, id DESC
-LIMIT $7
+LIMIT $9
 `
 
 type ListCrmCollabsParams struct {
-	WorkspaceID pgtype.UUID        `json:"workspace_id"`
-	Stage       pgtype.Text        `json:"stage"`
-	BriefID     pgtype.UUID        `json:"brief_id"`
-	CreatorID   pgtype.UUID        `json:"creator_id"`
-	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
-	CursorID    pgtype.UUID        `json:"cursor_id"`
-	Limit       int32              `json:"limit"`
+	WorkspaceID  pgtype.UUID        `json:"workspace_id"`
+	Stage        pgtype.Text        `json:"stage"`
+	BriefID      pgtype.UUID        `json:"brief_id"`
+	CreatorID    pgtype.UUID        `json:"creator_id"`
+	AssigneeID   pgtype.UUID        `json:"assignee_id"`
+	AssigneeType pgtype.Text        `json:"assignee_type"`
+	CursorAt     pgtype.Timestamptz `json:"cursor_at"`
+	CursorID     pgtype.UUID        `json:"cursor_id"`
+	Limit        int32              `json:"limit"`
 }
 
+// `?assignee=` (B4-2) narrows the list to the rows one person or agent is
+// working on, which is what the cockpit's 我的 queue reads. The id filter is
+// separate from the type because a bare uuid names a row without saying which
+// identity space it came from (COLLAB-MODEL §1).
 func (q *Queries) ListCrmCollabs(ctx context.Context, arg ListCrmCollabsParams) ([]CrmCollab, error) {
 	rows, err := q.db.Query(ctx, listCrmCollabs,
 		arg.WorkspaceID,
 		arg.Stage,
 		arg.BriefID,
 		arg.CreatorID,
+		arg.AssigneeID,
+		arg.AssigneeType,
 		arg.CursorAt,
 		arg.CursorID,
 		arg.Limit,
@@ -871,21 +881,25 @@ WHERE workspace_id = $1
     OR ($3::boolean AND paid_at IS NOT NULL)
     OR (NOT $3::boolean AND paid_at IS NULL)
   )
+  AND ($4::uuid IS NULL OR assignee_id = $4::uuid)
+  AND ($5::text IS NULL OR assignee_type = $5::text)
   AND (
-    $4::timestamptz IS NULL
-    OR (created_at, id) < ($4::timestamptz, $5::uuid)
+    $6::timestamptz IS NULL
+    OR (created_at, id) < ($6::timestamptz, $7::uuid)
   )
 ORDER BY created_at DESC, id DESC
-LIMIT $6
+LIMIT $8
 `
 
 type ListCrmSettlementsParams struct {
-	WorkspaceID pgtype.UUID        `json:"workspace_id"`
-	CollabID    pgtype.UUID        `json:"collab_id"`
-	Paid        pgtype.Bool        `json:"paid"`
-	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
-	CursorID    pgtype.UUID        `json:"cursor_id"`
-	Limit       int32              `json:"limit"`
+	WorkspaceID  pgtype.UUID        `json:"workspace_id"`
+	CollabID     pgtype.UUID        `json:"collab_id"`
+	Paid         pgtype.Bool        `json:"paid"`
+	AssigneeID   pgtype.UUID        `json:"assignee_id"`
+	AssigneeType pgtype.Text        `json:"assignee_type"`
+	CursorAt     pgtype.Timestamptz `json:"cursor_at"`
+	CursorID     pgtype.UUID        `json:"cursor_id"`
+	Limit        int32              `json:"limit"`
 }
 
 func (q *Queries) ListCrmSettlements(ctx context.Context, arg ListCrmSettlementsParams) ([]CrmSettlement, error) {
@@ -893,6 +907,8 @@ func (q *Queries) ListCrmSettlements(ctx context.Context, arg ListCrmSettlements
 		arg.WorkspaceID,
 		arg.CollabID,
 		arg.Paid,
+		arg.AssigneeID,
+		arg.AssigneeType,
 		arg.CursorAt,
 		arg.CursorID,
 		arg.Limit,

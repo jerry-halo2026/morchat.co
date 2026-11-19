@@ -1,4 +1,22 @@
 {
+  "queue": {
+    "title": "My queue",
+    "tab_followups": "Follow-ups",
+    "tab_quotes": "Quotes",
+    "tab_collabs": "Collaborations",
+    "empty": "Nothing is assigned to you here.",
+    "loading": "Reading your queue…",
+    "error": "Couldn't read your queue",
+    "retry": "Retry",
+    "due_on": "Due {{date}}",
+    "expires_on": "Until {{date}}",
+    "settles_on": "Settles {{date}}",
+    "no_date": "No date",
+    "start_thread": "Start a discussion",
+    "thread_count": "{{count}} replies",
+    "thread_archived": "Discussion archived",
+    "open_ledger": "Open the ledger"
+  },
   "collabs": {
     "new": "New collaboration",
     "empty_title": "No collaborations yet",
