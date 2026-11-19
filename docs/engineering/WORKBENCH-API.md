@@ -2783,7 +2783,7 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 | `commission_rate=1.00001` / `-0.5` 200 原样落库 | 页面显示 100.001% / -50% | 0–1 之外 400 |
 | `?q=%` 未转义 LIKE 元字符 | 搜索框失效（返回整本台账） | 转义（creator/hr/guides 三处仍待） |
 | 12 张千川表未登记 teardown | **删工作区留下孤儿数据**（本仓库禁 FK） | 12 条 query + 编排 + manifest + 只删自己的用例 |
-| `/overview` 19 条 SQL 串行、`/bd/pipeline` 4 条串行 | pooler 上 **8.2s / 1.9s** | 受限并发（宽度 8），响应体逐字节不变 → 2.36s / ~0.4s |
+| `/overview` 19 条 SQL、`/bd/pipeline` 4 条 | pooler 上 **8.2s / 1.9s** | `/bd/pipeline` 受限并发（宽度 8）；`/overview` 更进一步把 16 个聚合合成一条 SQL：**6.7s → 1.78s**，A/B 为 SHA256 相同（不是「看起来一样」）；代价是 strip 失败只剩一条 label |
 
 ### 27.3 真实数据上的验收数字（本机镜像，实时复跑）
 
@@ -2814,7 +2814,7 @@ creators_with_archived_at=0                         # 软删一条不漏
 ### 27.6 仍未做
 
 1. ~~指针字段的显式 `null` 静默保留~~ **已修**：日期/数值/枚举指针字段全部三态化，`null` 与 `""` 都清空，NOT NULL 列两者都 400（含 `settlement.amount`、`shoot_date` 两个实际 NOT NULL 但此前按可空处理的列）。`media_script` 的 hook/body/cta（版本语义）与其余「只缺 `null`」的文本列留下一批。
-2. **`/overview` 的下一档**：把 16 个聚合合成一条 SQL（一次往返 ≈0.4s，可到 ~1.2s），属 SQL 重构。
+2. ~~`/overview` 的下一档~~ **已做**：16 个聚合合成一条 SQL（往返 19 → 4，pooler 上 6703ms → 1782ms，响应 SHA256 相同）。剩余瓶颈是 batch 之外的两轮 auth/scope 预检（~0.8s）与 verifier 链的 3 条串行（~0.98s，在 `workbench_review.go`）；两块都动完端点可到 ~1.2s。
 3. `hr/doc-templates` 仍不分页（整集合返回）；`TestWorkspaceTeardown*` 与 reward/change/doc 用例
    混在同一 `-run` 子集时会删掉共享 fixture workspace，套件有顺序脆弱性。
 4. `text_too_long` 需要一个客户端文案 key（import 错误按 reason 查表时），当前只在 wire 上有。
