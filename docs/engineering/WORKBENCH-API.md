@@ -122,7 +122,7 @@ crm_settlement(id PK, workspace_id, collab_id UUID NOT NULL,
 | GET/POST | `/crm/briefs` | 列表（`?status=&client_id=`）/ 新建 |
 | GET/PATCH/DELETE | `/crm/briefs/{briefId}` | 单条 |
 | GET/POST | `/crm/collabs` | 列表（`?stage=&brief_id=&creator_id=`）/ 新建 |
-| GET/PATCH/DELETE | `/crm/collabs/{collabId}` | 单条；PATCH 改 `stage` 时写 `confirmed_at` 等时间戳；DELETE 连带归档该合作单的结算（见 §20.1） |
+| GET/PATCH/DELETE | `/crm/collabs/{collabId}` | 单条；PATCH 改 `stage` 时写 `confirmed_at` 等时间戳；DELETE 连带归档该合作单的结算（见 §20.1），可带 `?expected_revision=`（§3.5） |
 | GET/POST | `/crm/settlements` | 列表（`?collab_id=&paid=`）/ 新建 |
 | PATCH/DELETE | `/crm/settlements/{settlementId}` | 单条 |
 
@@ -244,6 +244,30 @@ PATCH body 的一个可空字段有三种状态，`*string` / `*float64` 只能�
 **和 §26 的闸门的关系**：判定「这个 PATCH 动了金额/结算字段」看的是**有没有写这个字段**，不是值非 nil。所以 `{"creator_fee": null}` 仍然需要 `crm.amount`、agent 发它仍然 403 `forbidden_agent_money`、人发它仍然进 `review_state='pending'`。否则清空金额就成了绕开金额闸门的写法。**create 上不适用**：新建一行没有「旧值」可清，`null` 只是「没给值」，因此不算动过金额——否则一个把每个键都填 `null` 的表单会让 `POST` 也要求 `crm.amount`。
 
 清空是一次业务变更：`activity_log` 的 `details.before/after` 会记下「旧值 → null」（§2），`revision` 照常 +1（§3）。
+
+### 3.5 删除的并发守卫（`?expected_revision=`）
+
+删除也是写：它把 `revision + 1`，所以它同样可以带着「我读到的那一版」发出来。守卫走 **query 参数**，不走 body —— `DELETE` 带 body 不被代理和部分客户端转发，而删除没有别的入参：
+
+```
+DELETE /api/workbench/bd/quotes/{quoteId}?expected_revision=4
+DELETE /api/workbench/crm/collabs/{collabId}?expected_revision=4
+```
+
+| 请求 | 结果 |
+| --- | --- |
+| 不带参数 | **不做检查**（旧客户端行为，逐字等于本批之前） |
+| `expected_revision=N`，与库里一致 | 正常删除，`204` |
+| `expected_revision=N`，行还在但已经不同 | `409 {"error":"stale_write","current":{…}}`，`current` 与 PATCH 的 409 **同形状**（含 `revision`） |
+| `expected_revision=0` 或非整数 | `400 expected_revision must be a positive integer` |
+| 行已被删除 | `404`：没有「当前行」可回 |
+
+- 守卫写在归档语句的 `WHERE` 里（`ArchiveCreatorQuote` / `ArchiveCrmCollab` 的 `($n::int IS NULL OR revision = $n::int)`），**不是**先读后删。两个连接同时读到 `revision 4` 时，「先读再删」两边都会认为没变，于是都往下走、都写一条 `.deleted`；写进 `WHERE` 才有唯一的赢家。
+- `archived_at IS NULL` 与守卫是同一个谓词，所以并发的两次删除**只有一次** `204`：输的那一次要么在读取阶段就 `404`（赢家已经归档），要么在守卫处打不中。两次删除不会留下两条 `.deleted` 审计行，也不会把 `revision` 推两次。
+- 打不中时读回来分辨原因：**行还在、版本变了** → `409` 带当前行（客户端刷新）；**行已经归档** → `404`（没有当前行可回）。两种情况客户端动作一致：刷新，不重放。
+- 适用范围：本批只焊这两条（报价、合作单——即 §3 与 §20.3 里带撤销/删除的台账）。跟进活动的删除、结算、客户、brief 的删除仍是 `204`，不带这个守卫。
+- 语境：`COLLAB-MODEL.md` §3 原文只管 PATCH；这里把同一条规则延伸到 DELETE，响应形状不变，前端已有的 409 分支直接复用。
+- 客户端接线：`api.deleteBdQuote(id, expectedRevision?)` / `api.deleteCrmCollab(id, expectedRevision?)`（`packages/core/api/client.ts`，用 `workbenchSearch` 拼参数，缺省不发）；409 抛 `StaleWriteError`（`current` 已按台账 schema 解析）；`useDeleteBdQuote` / `useDeleteCrmCollab` 把 `current` 写回 detail 缓存并失效台账；`sales/quotes/row-actions.tsx` 的删除与 `sales/collabs/collab-sheet.tsx` 的撤销都带上行上的 `revision`。
 
 ## 4. 事件
 
@@ -2059,7 +2083,7 @@ word/styles.xml
 | POST | `/quotes` | `creator_id` 必填；`status` 缺省 `draft`；`currency` 缺省 `CNY` |
 | GET | `/quotes/{quoteId}` | 单条 |
 | PATCH | `/quotes/{quoteId}` | `creator_id` 传非空 → 400 |
-| DELETE | `/quotes/{quoteId}` | 软删（204） |
+| DELETE | `/quotes/{quoteId}?expected_revision=` | 软删（204）；带 `expected_revision` 时版本不符 → 409 `stale_write` + `current`（§3.5） |
 
 #### 活动 / 采集批次
 
@@ -2655,6 +2679,10 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 ### 25.5 写入口
 
 只有 `cmd/qianchuan-sync`（读 `packages/qianchuan-sync/data/flat/*.csv`）。**不做投放写操作**（建计划、改预算）。
+
+### 25.6 读侧已归 sqlc
+
+六条只读查询都在 `server/pkg/db/queries/qianchuan.sql`，由 `make sqlc` 生成到 `server/pkg/db/generated`；handler 不再手拼 SQL。`AdsWindowTotals` 用一条 `CASE` 只挑一个结算窗口列（1h/7d 是结构化列，14d/30d/90d 在 `metrics`），`basis` 仍是下发参数而不是列名，所以「跨窗口求和」在 SQL 层依旧写不出来；Go 侧同一份五分支映射是 `adsSettleExpression`，两侧由 `TestAdsEachBasisReadsOneWindow` 比对。
 
 ## 26. 可验证性（复核闸门、覆写归因、三条指标）
 

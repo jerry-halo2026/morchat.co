@@ -30,6 +30,9 @@ morechat 的台账（达人、合作单、报价、跟进、选题、脚本、�
 
 ## 3. 并发：`revision` + `expected_revision` → 409
 
+- **删除同规则**：`DELETE …?expected_revision=N`（query 参数，因为 DELETE 带 body 不通用）；
+  不带=不检查，行在但版本不同 → 409 `stale_write` 带当前行，行已删 → 404。先读再删挡不住
+  racing，守卫同样写在归档语句的 WHERE 里（WORKBENCH-API §3.5）。
 - 四张核心台账（`crm_collab`、`creator_quote`、`creator_activity`、`crm_settlement`）加 `revision INTEGER NOT NULL DEFAULT 1`；每次写 `revision + 1`。
 - PATCH 可带 `expected_revision`：不匹配 → **409 `stale_write`**，响应带当前行；不带则不做乐观检查（旧客户端兼容，文档写明）。
 - 前端收到 409：提示「别人刚改过，已为你刷新」并强制重读，**不得重放到覆盖**。
