@@ -68,6 +68,9 @@ go test ./internal/handler/ -run TestWorkspaceDeletionManifestCoversPublicSchema
 | 2026-11-19 | W1-C0 权限 capability | iam | 通过（含一次返工） | 解析顺序 4 级 + 194 处判定；兜底按裁决改为「等于上线前行为」并补 2 条用例；迁移 817/818；manifest 绿 |
 | 2026-11-19 | W1-H 千川入仓 | ads | 通过（含一次返工） | 12 表 + sync（177,773 行，read=inserted+duplicate）+ 6 端点 + 4 指标；修复 simple_protocol 下 map 参数无 encode plan |
 | 2026-11-19 | W2-ADS-UI 千川看板 | ads-ui | 通过 | `/content/ads` 六块 + basis 切换 + 三态；22 用例；content 43 files/1116 绿；注册 `Target` 图标（完备映射编译期校验）；core 新增 qianchuan-queries 导出 |
+| 2026-11-19 | W3-B4-4 agent 写 | gate | 通过 | `workbench_agent_write.go` 三工具合成原请求 in-process 重放（capability/所有权/revision/审计只跑一遍）；四道门禁；8 组用例 + -race |
+| 2026-11-19 | W3-B4-2/3 队列与锚点 | flow | 通过 | `?assignee=me` ×4、到期扫描（SQL 内 NOT EXISTS 幂等、15min）、inbox section=workbench、`/thread` 幂等双路 + advisory lock；4 条 DB 用例 + 前端 11 条 |
+| 2026-11-19 | Lead 收口 W3 | lead | 通过 | 挂两条 `/thread` 路由；`classifyOrigin` 认识四个业务来源；`MyWorkbenchQueue` 挂进驾驶舱；驾驶舱页面测试改 stub 后 927 用例全绿 |
 | 2026-11-19 | W2-B4-1 审计与并发 | collab | 通过（一次环境返工） | 迁移 819–825；`workbench_audit.go`（resolveActor/diff/action 词表/≤4KB/同事务）；409 stale_write 守卫写在 UPDATE WHERE；8 条用例 + core 5 条；首次跑红因测试库未迁，迁后全绿 |
 | 2026-11-19 | Lead 审计与合并 | lead | 通过 | 共享库 head 852 + 819–825 均 applied，8 条索引 indisvalid=t；typecheck 9/9、lint 6/6；顺带修复 workbench_crm.go 注释被洗成 ??? 的破折号（仅注释，build 后复验） |
 | 2026-11-19 | Lead 合并与真库 | lead | 通过 | router/migrate 共用文件挂载；共享库迁移 816–852（psql 分事务 + 并发索引，一次 INVALID 已重建）；/capabilities、/search、/ads/* 全 200；账号 45 行导入→校验→清理 |

@@ -111,3 +111,10 @@ POST /api/workbench/import        Content-Type: text/csv; charset=utf-8
 | --- | --- | --- |
 | 28 | **PATCH 清空字段的语义不统一** | `scores` 是「省略=保留、`null`=清空」（B3 §21 定的），但结算的 `paid_at` 走 `applyTimestampPatch`：JSON `null` 解码成 nil 指针 = 「没传」→ 静默保留，唯一能落成 SQL NULL 的是空串 `""`。前端因此发 `{"paid_at": ""}`。要统一成「显式 null 清空」需要 `json.RawMessage` 三态解码，涉及 4 个台账 handler + core schema + 三个页面的 model；**在统一之前，别把 `""` 当临时补丁删掉**。 |
 | 29 | **经营页趋势是 6 次并发月读** | `/finance` 一次只答一个月，趋势块按 6 个月各读一次（首屏约 8 个请求）。后端若给 `/finance/months?from=&to=` 返回每月 `signed/collected/cash_floor`，前端把 `useQueries` 换成一次读即可。 |
+
+### 2026-11-19 W3 之后新增（两条）
+
+| # | 事项 | 说明 |
+| --- | --- | --- |
+| 30 | **REST 面 agent 仍可改金额** | agent 写通道（MCP）已封死金额/结算/归属/删除；但 REST PATCH 用的是 capability（`crm.amount`/`crm.settle`），而销售/商务部门默认带这些。要一刀切需在 `workbench_bd.go` / `workbench_crm.go` 加 `agentAmountGate`（actor=agent ⇒ 金额/结算字段 403）。 |
+| 31 | **深链参数没有消费方** | inbox 与「我的队列」链到 `/sales/{quotes,collabs,followups}?quote=|collab=|followup=<id>`，三个列表页还不读这个参数（落进列表但不聚焦行）。 |
