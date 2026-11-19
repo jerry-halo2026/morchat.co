@@ -157,17 +157,24 @@ function QueueBody({ wsId }: { wsId: string }) {
 function QueueRowShell({
   name,
   detail,
+  href,
   children,
 }: {
   name: string;
   detail: string;
+  /**
+   * Where this row lives in its ledger, as `?quote=|?collab=|?followup=<id>`.
+   * The ledger pages read it and focus the row (deep-link), so "my queue" can
+   * hand the reader the exact record instead of the top of a list.
+   */
+  href: string;
   children?: React.ReactNode;
 }) {
   return (
     <li className="flex flex-wrap items-center gap-2 py-2 text-body">
-      <span className="min-w-0 flex-1 truncate" title={name}>
+      <a className="min-w-0 flex-1 truncate underline-offset-2 hover:underline" title={name} href={href}>
         {name}
-      </span>
+      </a>
       <span className="shrink-0 text-caption tabular-nums text-muted-foreground">{detail}</span>
       {children}
     </li>
@@ -175,21 +182,23 @@ function QueueRowShell({
 }
 
 function ActivityQueueRow({ row, name }: { row: BdActivity; name: string }) {
+  const p = useWorkspacePaths();
   const { t } = useT("sales");
   const detail = row.next_follow_at
     ? t(($) => $.queue.due_on, { date: row.next_follow_at.slice(0, 10) })
     : t(($) => $.queue.no_date);
-  return <QueueRowShell name={name} detail={detail} />;
+  return <QueueRowShell name={name} href={`${p.sales.followups()}?followup=${row.id}`} detail={detail} />;
 }
 
 function QuoteQueueRow({ row, name }: { row: BdQuote; name: string }) {
+  const p = useWorkspacePaths();
   const { t } = useT("sales");
   const open = useOpenBdQuoteThread();
   const detail = row.valid_until
     ? t(($) => $.queue.expires_on, { date: row.valid_until.slice(0, 10) })
     : t(($) => $.queue.no_date);
   return (
-    <QueueRowShell name={name} detail={detail}>
+    <QueueRowShell name={name} href={`${p.sales.quotes()}?quote=${row.id}`} detail={detail}>
       <ThreadChip
         thread={row.thread ?? null}
         busy={open.isPending}
@@ -200,13 +209,14 @@ function QuoteQueueRow({ row, name }: { row: BdQuote; name: string }) {
 }
 
 function CollabQueueRow({ row, name }: { row: CrmCollab; name: string }) {
+  const p = useWorkspacePaths();
   const { t } = useT("sales");
   const open = useOpenCrmCollabThread();
   const detail = row.settled_on
     ? t(($) => $.queue.settles_on, { date: row.settled_on.slice(0, 10) })
     : t(($) => $.queue.no_date);
   return (
-    <QueueRowShell name={name} detail={detail}>
+    <QueueRowShell name={name} href={`${p.sales.collabs()}?collab=${row.id}`} detail={detail}>
       <ThreadChip
         thread={row.thread ?? null}
         busy={open.isPending}

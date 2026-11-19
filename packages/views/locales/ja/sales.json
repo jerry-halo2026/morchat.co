@@ -79,6 +79,12 @@
     "settlement_mark_received": "入金済みにする",
     "settlement_undo_received": "入金を取り消す"
   },
+  "deep_link": {
+    "missing": "この行は現在の結果にありません。フィルターか検索を解除して探してください。"
+  },
+  "stale_write": {
+    "refreshed": "他の人が変更したため、最新の内容に更新しました。確認してから保存してください。"
+  },
   "campaigns": {
     "new": "バッチを追加",
     "empty_title": "収集バッチはまだありません",

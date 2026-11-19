@@ -79,6 +79,12 @@
     "settlement_mark_received": "Mark received",
     "settlement_undo_received": "Undo receipt"
   },
+  "deep_link": {
+    "missing": "That row isn't in the current results. Clear a filter or the search to find it."
+  },
+  "stale_write": {
+    "refreshed": "Someone else just changed this, so it has been refreshed with their version. Check it, then save again."
+  },
   "campaigns": {
     "new": "New batch",
     "empty_title": "No collection batches yet",

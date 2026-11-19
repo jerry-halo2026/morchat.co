@@ -79,6 +79,12 @@
     "settlement_mark_received": "입금 완료로 표시",
     "settlement_undo_received": "입금 취소"
   },
+  "deep_link": {
+    "missing": "이 행은 현재 결과에 없습니다. 필터나 검색을 해제한 뒤 다시 찾아보세요."
+  },
+  "stale_write": {
+    "refreshed": "다른 사람이 방금 수정했습니다. 최신 내용으로 새로 고쳤으니 확인 후 다시 저장하세요."
+  },
   "campaigns": {
     "new": "새 배치",
     "empty_title": "아직 수집 배치가 없습니다",

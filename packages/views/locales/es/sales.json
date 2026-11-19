@@ -79,6 +79,12 @@
     "settlement_mark_received": "Marcar como cobrado",
     "settlement_undo_received": "Deshacer el cobro"
   },
+  "deep_link": {
+    "missing": "Esa fila no está en los resultados actuales. Quita un filtro o la búsqueda para encontrarla."
+  },
+  "stale_write": {
+    "refreshed": "Otra persona acaba de cambiarlo, así que se ha actualizado con su versión. Revísala y vuelve a guardar."
+  },
   "campaigns": {
     "new": "Nuevo lote",
     "empty_title": "Todavía no hay lotes de captación",

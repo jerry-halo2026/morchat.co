@@ -31,12 +31,13 @@ import {
   CollectionPageState,
 } from "../layout/collection-page";
 import { CollectionList, type CollectionGroup } from "../layout/collection-list";
-import { PAGE_TOOLBAR } from "../layout/page-header";
+import { PAGE_GUTTER, PAGE_TOOLBAR } from "../layout/page-header";
 import { ROUTE_ICON_COMPONENTS } from "../layout/route-icon-components";
 import { useCollabColumns } from "./collabs/collab-columns";
 import { CollabSheet } from "./collabs/collab-sheet";
 import { useCollabsCopy } from "./collabs/copy";
 import { ImportCsvButton } from "./import/import-dialog";
+import { useLedgerCopy, useRowFocus } from "./quotes/deep-link";
 import {
   COLLAB_STAGES,
   filterByWindow,
@@ -140,6 +141,16 @@ function CollabsBody({ wsId }: { wsId: string }) {
     [rows, updatedWithin, today],
   );
   const bands = useMemo(() => groupByStage(visible), [visible]);
+  const visibleIds = useMemo(() => visible.map((row) => row.id), [visible]);
+
+  /**
+   * `?collab=<id>` — the inbox's workbench notice and 我的队列 link at one
+   * collaboration. Matched against the rows this page draws: the stage and creator
+   * filters ran on the server and the window over the page it returned, so a row
+   * outside them is reported as missing rather than silently ignored.
+   */
+  const focus = useRowFocus("collab", visibleIds, !collabs.isPending);
+  const ledger = useLedgerCopy();
 
   const groups: CollectionGroup<CrmCollab>[] = bands.map((band) => {
     const total = sumText(band.total, locale);
@@ -254,16 +265,33 @@ function CollabsBody({ wsId }: { wsId: string }) {
 
   const firstRun = !collabs.isPending && rows.length === 0 && !filtered;
 
+  /**
+   * A `?collab=` that matches nothing says so above the board — including in the
+   * empty-ledger branch, where an empty ledger is simply one more way to miss.
+   */
+  const missingNotice = focus.missing ? (
+    <p
+      role="status"
+      data-slot="collab-focus-missing"
+      className={cn(PAGE_GUTTER, "shrink-0 pb-2 text-caption text-muted-foreground")}
+    >
+      {ledger.rowMissing}
+    </p>
+  ) : null;
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {header}
 
       {firstRun ? (
-        <CollectionPageState
-          icon={Icon}
-          title={t(($) => $.collabs.empty_title)}
-          description={t(($) => $.collabs.empty_description)}
-        />
+        <>
+          {missingNotice}
+          <CollectionPageState
+            icon={Icon}
+            title={t(($) => $.collabs.empty_title)}
+            description={t(($) => $.collabs.empty_description)}
+          />
+        </>
       ) : (
         <>
           <div className={cn(PAGE_TOOLBAR, "justify-start gap-2")}>
@@ -346,12 +374,15 @@ function CollabsBody({ wsId }: { wsId: string }) {
             ) : null}
           </div>
 
+          {missingNotice}
+
           <CollectionList
             label={tLayout(($) => $.nav[SALES_PAGES.collabs.navKey])}
             columns={columns}
             groups={groups}
             loading={collabs.isPending}
             getRowId={(row) => row.id}
+            getRowClassName={(row) => focus.classNameOf(row.id)}
             onRowOpen={canWrite ? (row) => setSheet({ collab: row }) : undefined}
             empty={
               <CollectionNoMatches

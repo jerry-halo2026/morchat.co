@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { BdQuote, Creator } from "@morechat/core/types";
 import { NavigationProvider, type NavigationAdapter } from "../../navigation";
 import { renderWithI18n } from "../../test/i18n";
+import { ApiError, StaleWriteError } from "@morechat/core/api";
 import { SalesQuotesPage } from "../sales-quotes-page";
 
 /**
@@ -33,7 +34,13 @@ const api = vi.hoisted(() => ({
   deleteBdQuote: vi.fn(),
 }));
 
-vi.mock("@morechat/core/api", () => ({ api }));
+// The real module is kept for `StaleWriteError` / `isStaleWrite`: the mutation
+// hooks in `@morechat/core/bd` judge a 409 with the same function this page does,
+// so replacing the whole module would replace the rule under test.
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/api")>()),
+  api,
+}));
 vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
@@ -123,25 +130,25 @@ function quote(overrides: Partial<BdQuote> = {}): BdQuote {
   };
 }
 
-function adapter(): NavigationAdapter {
+function adapter(params: Record<string, string> = {}): NavigationAdapter {
   return {
     push: () => {},
     replace: () => {},
     back: () => {},
     pathname: "/acme/sales/quotes",
-    searchParams: new URLSearchParams(),
+    searchParams: new URLSearchParams(params),
     hash: "",
     getShareableUrl: (path) => `https://app.test${path}`,
   };
 }
 
-function renderPage() {
+function renderPage(params?: Record<string, string>) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
   return renderWithI18n(
     <QueryClientProvider client={client}>
-      <NavigationProvider value={adapter()}>
+      <NavigationProvider value={adapter(params)}>
         <SalesQuotesPage />
       </NavigationProvider>
     </QueryClientProvider>,
@@ -430,5 +437,132 @@ describe("SalesQuotesPage · 无写权限", () => {
     // The batch import is a write too, and goes with it.
     expect(screen.queryByRole("button", { name: "Import CSV" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Quote actions" })).toBeNull();
+  });
+});
+
+describe("SalesQuotesPage · 深链 ?quote=", () => {
+  it("scrolls to the linked row and marks it, so the notice lands somewhere", async () => {
+    serve(
+      [
+        quote({ id: "q-new", created_at: "2026-11-11T02:00:00Z" }),
+        quote({ id: "q-old", creator_id: "c-2", created_at: "2026-11-10T02:00:00Z" }),
+      ],
+      [creator("c-1", "Lin Wei"), creator("c-2", "Zhang Yu")],
+    );
+    // jsdom has no layout; the row that is scrolled is the fact under test.
+    const scrolled: Element[] = [];
+    const scrollIntoView = vi
+      .spyOn(Element.prototype, "scrollIntoView")
+      .mockImplementation(function (this: Element) {
+        scrolled.push(this);
+      });
+
+    renderPage({ quote: "q-old" });
+
+    await waitFor(() => expect(bodyRows()).toHaveLength(2));
+    const target = bodyRows().find((row) => row.getAttribute("data-row-id") === "q-old")!;
+    await waitFor(() => expect(target).toHaveClass("ring-ring/50"));
+    expect(scrolled).toContain(target);
+    // The other row is not marked: one link, one row.
+    const other = bodyRows().find((row) => row.getAttribute("data-row-id") === "q-new")!;
+    expect(other).not.toHaveClass("ring-ring/50");
+
+    scrollIntoView.mockRestore();
+  });
+
+  it("says the linked row is not in the current results instead of staying silent", async () => {
+    serve([quote({ id: "q-1" })], [creator("c-1", "Lin Wei")]);
+    renderPage({ quote: "q-elsewhere" });
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      /That row isn't in the current results/,
+    );
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+    expect(bodyRows()[0]).not.toHaveClass("ring-ring/50");
+  });
+});
+
+describe("SalesQuotesPage · 并发 (§3)", () => {
+  /** Open the edit drawer on the one row the test served. */
+  async function openDrawer() {
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+    fireEvent.click(within(bodyRows()[0]!).getByText("Lin Wei"));
+    await screen.findByRole("heading", { name: "Edit quote" });
+  }
+
+  it("sends the revision it read with the edit", async () => {
+    serve([quote({ id: "q-1", revision: 4, fee_amount: 8000 })], [creator("c-1", "Lin Wei")]);
+    renderPage();
+    await openDrawer();
+
+    fireEvent.change(screen.getByLabelText("Slot fee"), { target: { value: "9000" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save as draft" }));
+
+    await waitFor(() => expect(api.updateBdQuote).toHaveBeenCalledTimes(1));
+    const [id, body] = api.updateBdQuote.mock.calls[0]!;
+    expect(id).toBe("q-1");
+    // The row this drawer opened on says revision 4; the PATCH says the same.
+    expect(body.expected_revision).toBe(4);
+    expect(body.fee_amount).toBe(9000);
+  });
+
+  it("shows the server's row on a 409 instead of resending its own body", async () => {
+    serve([quote({ id: "q-1", revision: 4, fee_amount: 8000 })], [creator("c-1", "Lin Wei")]);
+    // Somebody else raised the fee while this drawer was open.
+    const current = quote({
+      id: "q-1",
+      revision: 5,
+      fee_amount: 5000,
+      note: "the other writer's note",
+    });
+    api.updateBdQuote.mockRejectedValueOnce(new StaleWriteError("conflict", current));
+    renderPage();
+    await openDrawer();
+
+    fireEvent.change(screen.getByLabelText("Slot fee"), { target: { value: "9000" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save as draft" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      /Someone else just changed this/,
+    );
+    // The form is the server's row now — not 9000, not a replay.
+    expect(screen.getByLabelText("Slot fee")).toHaveValue("5000");
+    expect(screen.getByLabelText("Note")).toHaveValue("the other writer's note");
+    expect(api.updateBdQuote).toHaveBeenCalledTimes(1);
+
+    // And the next save is guarded by the revision the refresh brought in.
+    await userEvent.click(screen.getByRole("button", { name: "Save as draft" }));
+    await waitFor(() => expect(api.updateBdQuote).toHaveBeenCalledTimes(2));
+    expect(api.updateBdQuote.mock.calls[1]![1].expected_revision).toBe(5);
+  });
+
+  it("judges the stale write before the overwrite reason", async () => {
+    serve([quote({ id: "q-1", revision: 4 })], [creator("c-1", "Lin Wei")]);
+    api.updateBdQuote.mockRejectedValueOnce(
+      new StaleWriteError("conflict", quote({ id: "q-1", revision: 5, fee_amount: 5000 })),
+    );
+    renderPage();
+    await openDrawer();
+
+    fireEvent.change(screen.getByLabelText("Slot fee"), { target: { value: "9000" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save as draft" }));
+
+    // A 409 is a refresh, never §26.3's question.
+    await screen.findByRole("status");
+    expect(screen.queryByText("Why are you changing this?")).toBeNull();
+
+    // …and a 400 that does ask the question refreshes nothing: the figure the
+    // reader typed is still theirs, and the refresh notice is gone.
+    api.updateBdQuote.mockRejectedValueOnce(
+      new ApiError("overwrite_reason_required", 400, "Bad Request", {
+        error: "overwrite_reason_required",
+      }),
+    );
+    fireEvent.change(screen.getByLabelText("Slot fee"), { target: { value: "7000" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save as draft" }));
+
+    expect(await screen.findByText("Why are you changing this?")).toBeInTheDocument();
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByLabelText("Slot fee")).toHaveValue("7000");
   });
 });

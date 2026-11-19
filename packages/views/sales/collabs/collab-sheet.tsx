@@ -35,6 +35,7 @@ import {
   SheetTitle,
 } from "@morechat/ui/components/ui/sheet";
 import { Spinner } from "@morechat/ui/components/ui/spinner";
+import { isStaleWrite } from "@morechat/core/api";
 import {
   useCreateCrmCollab,
   useDeleteCrmCollab,
@@ -43,6 +44,7 @@ import {
 import type { CrmBrief, CrmCollab, CrmCollabStage, Creator } from "@morechat/core/types";
 import { useT } from "../../i18n";
 import { OverwriteReasonDialog, isOverwriteReasonRequired, useOverwriteRetry } from "../../review";
+import { expectedRevisionPatch, useLedgerCopy } from "../quotes/deep-link";
 import { useCollabsCopy } from "./copy";
 import {
   COLLAB_STAGES,
@@ -59,7 +61,7 @@ import { SettlementsSection } from "./settlements-section";
 /**
  * 一张合作单 — the drawer, and the only write surface this page has.
  *
- * Four things it deliberately does:
+ * Five things it deliberately does:
  *
  *   - **It moves the stage, and the server stamps the rest.** `PATCH /crm/collabs`
  *     writes `confirmed_at` / `published_at` / `accepted_at` from the new stage
@@ -81,6 +83,11 @@ import { SettlementsSection } from "./settlements-section";
  *     the server; the drawer asks once, in words that name that consequence, and
  *     then lets the invalidated list say what is left. Deleting them here would be
  *     a second transaction racing the first.
+ *   - **Every save carries the revision it read** (`COLLAB-MODEL` §3), and a
+ *     `409 stale_write` is answered by showing the server's row and saying so —
+ *     never by resending this drawer's fields over somebody else's edit. §3 is
+ *     judged before §26.3's 400, so a stale write cannot open the overwrite-reason
+ *     dialog and a reason dialog cannot hide a refresh.
  *
  * The create half is here rather than on a brief page because this page is the
  * one place a collaboration is asked for; a collaboration is a brief **and** a
@@ -103,6 +110,7 @@ export function CollabSheet({
   const copy = useCollabsCopy();
   const { t } = copy;
   const { t: tCommon } = useT("common");
+  const ledger = useLedgerCopy();
   const create = useCreateCrmCollab();
   const update = useUpdateCrmCollab();
   const remove = useDeleteCrmCollab();
@@ -112,6 +120,14 @@ export function CollabSheet({
   const [briefId, setBriefId] = useState("");
   const [creatorId, setCreatorId] = useState("");
   const [form, setForm] = useState<CollabForm>(collab ? collabForm(collab) : EMPTY_COLLAB_FORM);
+  /**
+   * The revision this drawer last saw, sent as `expected_revision`
+   * (COLLAB-MODEL §3). It moves forward on a refresh: carrying the stale number
+   * into the next save would only earn a second 409.
+   */
+  const [revision, setRevision] = useState<number | undefined>(collab?.revision);
+  /** Set by a 409: the form now holds somebody else's row, and says so. */
+  const [refreshed, setRefreshed] = useState(false);
   const [amountError, setAmountError] = useState<string | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [revoking, setRevoking] = useState(false);
@@ -125,22 +141,45 @@ export function CollabSheet({
   const save = async () => {
     setAmountError(null);
     setFailure(null);
+    setRefreshed(false);
     if (invalidAmounts(form)) {
       setAmountError(t(($) => $.collabs.form_amount_error));
       return;
     }
+    const fields = collabFields(form);
     try {
-      if (collab) await update.mutateAsync({ id: collab.id, ...collabFields(form) });
-      else await create.mutateAsync(createCollabRequest(briefId, creatorId, form));
+      if (collab) {
+        await update.mutateAsync({
+          id: collab.id,
+          ...fields,
+          ...expectedRevisionPatch(revision),
+        });
+      } else {
+        await create.mutateAsync(createCollabRequest(briefId, creatorId, form));
+      }
       onClose();
     } catch (error) {
+      // §3 first: somebody else saved this row. Show *their* row and stop — the
+      // drawer never replays its own body over another writer's edit.
+      if (collab && isStaleWrite<CrmCollab>(error)) {
+        const current = error.current;
+        setForm(collabForm(current));
+        setRevision(current.revision);
+        setRefreshed(true);
+        return;
+      }
       // §26.3: the row's last business change was an agent's, so the server wants
       // to know *why* a person is replacing it. The answer is a second send of
       // the same body plus `overwrite_reason`; Cancel abandons this save.
       if (collab && isOverwriteReasonRequired(error)) {
         overwrite.ask(async (reason) => {
           try {
-            await update.mutateAsync({ id: collab.id, ...collabFields(form), overwrite_reason: reason });
+            await update.mutateAsync({
+              id: collab.id,
+              ...fields,
+              ...expectedRevisionPatch(revision),
+              overwrite_reason: reason,
+            });
             onClose();
             return true;
           } catch {
@@ -347,6 +386,11 @@ export function CollabSheet({
         </div>
 
         <SheetFooter className="mt-0 border-t">
+          {refreshed ? (
+            <p role="status" data-slot="collab-stale" className="text-caption text-muted-foreground">
+              {ledger.staleWrite}
+            </p>
+          ) : null}
           {failure ? (
             <p role="alert" className="text-caption text-destructive">
               {failure}

@@ -79,6 +79,12 @@
     "settlement_mark_received": "标记已到账",
     "settlement_undo_received": "撤销到账"
   },
+  "deep_link": {
+    "missing": "这条不在当前结果里。清掉筛选或搜索条件后再找。"
+  },
+  "stale_write": {
+    "refreshed": "别人刚改过，已为你刷新。请核对后再保存。"
+  },
   "campaigns": {
     "new": "新建批次",
     "empty_title": "还没有采集批次",

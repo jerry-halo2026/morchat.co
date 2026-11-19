@@ -79,6 +79,12 @@
     "settlement_mark_received": "Marquer comme encaissé",
     "settlement_undo_received": "Annuler l’encaissement"
   },
+  "deep_link": {
+    "missing": "Cette ligne n'est pas dans les résultats actuels. Retirez un filtre ou la recherche pour la retrouver."
+  },
+  "stale_write": {
+    "refreshed": "Quelqu'un vient de modifier cette ligne : elle a été actualisée avec sa version. Vérifiez-la, puis enregistrez."
+  },
   "campaigns": {
     "new": "Nouveau lot",
     "empty_title": "Aucun lot de collecte pour le moment",

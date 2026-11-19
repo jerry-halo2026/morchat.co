@@ -79,6 +79,12 @@
     "settlement_mark_received": "標記已到帳",
     "settlement_undo_received": "撤銷到帳"
   },
+  "deep_link": {
+    "missing": "這條不在目前結果裡。清掉篩選或搜尋條件後再找。"
+  },
+  "stale_write": {
+    "refreshed": "別人剛改過，已為你重新整理。請核對後再儲存。"
+  },
   "campaigns": {
     "new": "新建批次",
     "empty_title": "還沒有採集批次",

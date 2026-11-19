@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WorkspaceSlugProvider } from "@morechat/core/paths";
+import { ApiError, StaleWriteError } from "@morechat/core/api";
 import type { BdActivity, CreateBdActivityRequest, Creator } from "@morechat/core/types";
 import { renderWithI18n } from "../../test/i18n";
 import { SalesFollowupsPage } from "../sales-followups-page";
@@ -36,7 +37,15 @@ const state = vi.hoisted(() => ({
   role: "admin" as "owner" | "admin" | "member" | null,
 }));
 
-vi.mock("@morechat/core/api", () => ({ api }));
+/** What `?followup=` carries in this test — set before `renderPage`. */
+const nav = vi.hoisted(() => ({ params: new URLSearchParams() }));
+
+// The real module is kept for `StaleWriteError` / `isStaleWrite`: the mutation
+// hooks in `@morechat/core/bd` judge a 409 with the same function this page does.
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/api")>()),
+  api,
+}));
 
 vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
 
@@ -60,7 +69,7 @@ vi.mock("../../navigation", () => ({
       {children}
     </a>
   ),
-  useNavigation: () => ({ pathname: "/acme/sales/followups" }),
+  useNavigation: () => ({ pathname: "/acme/sales/followups", searchParams: nav.params }),
 }));
 
 function creator(id: string, displayName: string): Creator {
@@ -138,7 +147,8 @@ function activity(
   };
 }
 
-function renderPage() {
+function renderPage(params: Record<string, string> = {}) {
+  nav.params = new URLSearchParams(params);
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
@@ -414,5 +424,134 @@ describe("SalesFollowupsPage", () => {
     await waitFor(() =>
       expect(screen.getByText("Nobody to follow up today")).toBeInTheDocument(),
     );
+  });
+});
+
+/** The one row carrying `id`, whichever tab is drawn. */
+function rowById(id: string): HTMLElement | undefined {
+  return within(list())
+    .getAllByRole("article")
+    .find((row) => row.getAttribute("data-row-id") === id);
+}
+
+describe("SalesFollowupsPage · 深链 ?followup=", () => {
+  it("scrolls to the linked row and marks it", async () => {
+    state.activities = [
+      activity("creator-a", 0, { id: "a-today" }),
+      activity("creator-b", 0, { id: "b-today" }),
+    ];
+    // jsdom has no layout; the row that is scrolled is the fact under test.
+    const scrolled: Element[] = [];
+    const scrollIntoView = vi
+      .spyOn(Element.prototype, "scrollIntoView")
+      .mockImplementation(function (this: Element) {
+        scrolled.push(this);
+      });
+
+    renderPage({ followup: "b-today" });
+
+    await waitFor(() => expect(rowNames()).toEqual(["Alice", "Bella"]));
+    const target = rowById("b-today")!;
+    await waitFor(() => expect(target).toHaveClass("ring-ring/50"));
+    expect(scrolled).toContain(target);
+    expect(rowById("a-today")).not.toHaveClass("ring-ring/50");
+
+    scrollIntoView.mockRestore();
+  });
+
+  it("says the linked row is not in this queue", async () => {
+    // The row exists in 全部记录 only, so the default 今天到期 tab cannot draw it.
+    state.activities = [activity("creator-c", 0, { id: "c-note", next_follow_at: null })];
+    renderPage({ followup: "c-note" });
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      /That row isn't in the current results/,
+    );
+    // …and switching to the tab that holds it focuses it, like any deep link.
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "All records" }));
+    await waitFor(() => expect(rowNames()).toEqual(["Cara"]));
+    await waitFor(() => expect(rowById("c-note")).toHaveClass("ring-ring/50"));
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+});
+
+describe("SalesFollowupsPage · 并发 (§3)", () => {
+  const SKIP = "Push Alice’s follow-up to tomorrow";
+
+  it("sends the revision it read with 跳过", async () => {
+    const user = userEvent.setup();
+    state.activities = [activity("creator-a", -2, { id: "a-late", revision: 2 })];
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: "Overdue" }));
+    await waitFor(() => expect(rowNames()).toEqual(["Alice"]));
+    await user.click(screen.getByRole("button", { name: SKIP }));
+
+    await waitFor(() => expect(api.updateBdActivity).toHaveBeenCalledTimes(1));
+    expect(api.updateBdActivity.mock.calls[0]![1]).toEqual({
+      next_follow_at: new Date(2026, 10, 19, 10, 0, 0).toISOString(),
+      expected_revision: 2,
+    });
+  });
+
+  it("takes the server's row on a 409 and moves its date next time", async () => {
+    const user = userEvent.setup();
+    state.activities = [activity("creator-a", -2, { id: "a-late", revision: 2 })];
+    // Somebody else already pushed it to today, 09:00.
+    const current = activity("creator-a", -2, {
+      id: "a-late",
+      revision: 5,
+      next_follow_at: new Date(2026, 10, 18, 9, 0, 0).toISOString(),
+    });
+    api.updateBdActivity.mockRejectedValueOnce(new StaleWriteError("conflict", current));
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: "Overdue" }));
+    await waitFor(() => expect(rowNames()).toEqual(["Alice"]));
+    await user.click(screen.getByRole("button", { name: SKIP }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      /Someone else just changed this/,
+    );
+    // Nothing was replayed: one request, one 409.
+    expect(api.updateBdActivity).toHaveBeenCalledTimes(1);
+
+    // The next press moves the date the *server* holds — tomorrow at their hour —
+    // and is guarded by their revision.
+    await user.click(screen.getByRole("button", { name: SKIP }));
+    await waitFor(() => expect(api.updateBdActivity).toHaveBeenCalledTimes(2));
+    expect(api.updateBdActivity.mock.calls[1]![1]).toEqual({
+      next_follow_at: new Date(2026, 10, 19, 9, 0, 0).toISOString(),
+      expected_revision: 5,
+    });
+  });
+
+  it("judges the stale write before the overwrite reason", async () => {
+    const user = userEvent.setup();
+    state.activities = [activity("creator-a", -2, { id: "a-late", revision: 2 })];
+    api.updateBdActivity.mockRejectedValueOnce(
+      new StaleWriteError("conflict", activity("creator-a", -2, { id: "a-late", revision: 5 })),
+    );
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: "Overdue" }));
+    await waitFor(() => expect(rowNames()).toEqual(["Alice"]));
+    await user.click(screen.getByRole("button", { name: SKIP }));
+
+    // A 409 is a refresh, never §26.3's question.
+    await screen.findByRole("status");
+    expect(screen.queryByText("Why are you changing this?")).toBeNull();
+
+    // The 400 that does ask it opens the dialog and drops the refresh notice.
+    api.updateBdActivity.mockRejectedValueOnce(
+      new ApiError("overwrite_reason_required", 400, "Bad Request", {
+        error: "overwrite_reason_required",
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: SKIP }));
+
+    expect(await screen.findByText("Why are you changing this?")).toBeInTheDocument();
+    expect(screen.queryByRole("status")).toBeNull();
   });
 });

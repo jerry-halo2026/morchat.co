@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import type { CrmBrief, CrmClient, CrmCollab, CrmSettlement, Creator } from "@morechat/core/types";
+import { ApiError, StaleWriteError } from "@morechat/core/api";
 import { renderWithI18n } from "../../test/i18n";
 import { SalesCollabsPage } from "../sales-collabs-page";
 
@@ -42,7 +43,15 @@ const viewer = vi.hoisted(() => ({
   role: "admin" as "owner" | "admin" | "member" | null,
 }));
 
-vi.mock("@morechat/core/api", () => ({ api }));
+/** What `?collab=` carries in this test — set before `renderPage`. */
+const nav = vi.hoisted(() => ({ params: new URLSearchParams() }));
+
+// The real module is kept for `StaleWriteError` / `isStaleWrite`: the mutation
+// hooks in `@morechat/core/crm` judge a 409 with the same function this page does.
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/api")>()),
+  api,
+}));
 vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
 vi.mock("@morechat/core/permissions", () => ({
   useCurrentMember: () => ({ userId: "user-1", role: viewer.role, member: null, isLoading: false }),
@@ -60,6 +69,7 @@ vi.mock("../../navigation", () => ({
   useNavigation: () => ({
     pathname: "/acme/sales/collabs",
     push: () => {},
+    searchParams: nav.params,
     getShareableUrl: (href: string) => href,
   }),
   useIntentNavigate: () => () => {},
@@ -253,7 +263,8 @@ function serve(rows: readonly CrmCollab[], settlements: readonly CrmSettlement[]
   });
 }
 
-function renderPage() {
+function renderPage(params: Record<string, string> = {}) {
+  nav.params = new URLSearchParams(params);
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
@@ -683,5 +694,126 @@ describe("SalesCollabsPage · 错误", () => {
     serve([collab({ id: "collab-1" })]);
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
     await waitFor(() => expect(bodyRows()).toHaveLength(1));
+  });
+});
+
+describe("SalesCollabsPage · 深链 ?collab=", () => {
+  it("scrolls to the linked row and marks it", async () => {
+    serve([
+      collab({ id: "collab-a", creator_id: "creator-1", stage: "inquiry" }),
+      collab({ id: "collab-b", creator_id: "creator-2", stage: "settled" }),
+    ]);
+    // jsdom has no layout; the row that is scrolled is the fact under test.
+    const scrolled: Element[] = [];
+    const scrollIntoView = vi
+      .spyOn(Element.prototype, "scrollIntoView")
+      .mockImplementation(function (this: Element) {
+        scrolled.push(this);
+      });
+
+    renderPage({ collab: "collab-b" });
+
+    await waitFor(() => expect(bodyRows()).toHaveLength(2));
+    const target = bodyRows().find((row) => row.getAttribute("data-row-id") === "collab-b")!;
+    await waitFor(() => expect(target).toHaveClass("ring-ring/50"));
+    expect(scrolled).toContain(target);
+    const other = bodyRows().find((row) => row.getAttribute("data-row-id") === "collab-a")!;
+    expect(other).not.toHaveClass("ring-ring/50");
+
+    scrollIntoView.mockRestore();
+  });
+
+  it("says the linked row is not in the current results", async () => {
+    serve([collab({ id: "collab-1" })]);
+    renderPage({ collab: "collab-elsewhere" });
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      /That row isn't in the current results/,
+    );
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+    expect(bodyRows()[0]).not.toHaveClass("ring-ring/50");
+  });
+});
+
+describe("SalesCollabsPage · 并发 (§3)", () => {
+  /** Open the drawer on the one row the test served. */
+  async function openDrawer() {
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+    fireEvent.click(within(bodyRows()[0]!).getByText("Lin Wei"));
+    await screen.findByRole("heading", { name: "Lin Wei" });
+  }
+
+  it("sends the revision it read with the edit", async () => {
+    serve([collab({ id: "collab-1", revision: 3, quote_amount: 8000 })]);
+    renderPage();
+    await openDrawer();
+
+    fireEvent.change(screen.getByLabelText("Closed amount"), { target: { value: "9500" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(api.updateCrmCollab).toHaveBeenCalledTimes(1));
+    const [id, body] = api.updateCrmCollab.mock.calls[0]!;
+    expect(id).toBe("collab-1");
+    expect(body.expected_revision).toBe(3);
+    expect(body.final_amount).toBe(9500);
+  });
+
+  it("shows the server's row on a 409 instead of resending its own body", async () => {
+    serve([collab({ id: "collab-1", revision: 3, final_amount: null })]);
+    const current = collab({
+      id: "collab-1",
+      revision: 6,
+      stage: "settled",
+      final_amount: 1200,
+      settled_on: "2026-11-17",
+    });
+    api.updateCrmCollab.mockRejectedValueOnce(new StaleWriteError("conflict", current));
+    renderPage();
+    await openDrawer();
+
+    fireEvent.change(screen.getByLabelText("Closed amount"), { target: { value: "9500" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      /Someone else just changed this/,
+    );
+    // The drawer is the server's row now: their amount, their stage, their day.
+    expect(screen.getByLabelText("Closed amount")).toHaveValue("1200");
+    expect(screen.getByLabelText("Settled on")).toHaveValue("2026-11-17");
+    expect(api.updateCrmCollab).toHaveBeenCalledTimes(1);
+
+    // The next save is guarded by the revision the refresh brought in.
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(api.updateCrmCollab).toHaveBeenCalledTimes(2));
+    expect(api.updateCrmCollab.mock.calls[1]![1].expected_revision).toBe(6);
+  });
+
+  it("judges the stale write before the overwrite reason", async () => {
+    serve([collab({ id: "collab-1", revision: 3 })]);
+    api.updateCrmCollab.mockRejectedValueOnce(
+      new StaleWriteError("conflict", collab({ id: "collab-1", revision: 4, final_amount: 1200 })),
+    );
+    renderPage();
+    await openDrawer();
+
+    fireEvent.change(screen.getByLabelText("Closed amount"), { target: { value: "9500" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    // A 409 is a refresh, never §26.3's question.
+    await screen.findByRole("status");
+    expect(screen.queryByText("Why are you changing this?")).toBeNull();
+
+    // …and the 400 that does ask it leaves the drawer's fields alone.
+    api.updateCrmCollab.mockRejectedValueOnce(
+      new ApiError("overwrite_reason_required", 400, "Bad Request", {
+        error: "overwrite_reason_required",
+      }),
+    );
+    fireEvent.change(screen.getByLabelText("Closed amount"), { target: { value: "7000" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("Why are you changing this?")).toBeInTheDocument();
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByLabelText("Closed amount")).toHaveValue("7000");
   });
 });

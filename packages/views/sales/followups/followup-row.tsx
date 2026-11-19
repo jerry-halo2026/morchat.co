@@ -3,12 +3,14 @@
 import { useState, type ComponentProps } from "react";
 import { Badge } from "@morechat/ui/components/ui/badge";
 import { Button } from "@morechat/ui/components/ui/button";
+import { isStaleWrite } from "@morechat/core/api";
 import { useUpdateBdActivity } from "@morechat/core/bd/mutations";
 import { OverwriteReasonDialog, isOverwriteReasonRequired, useOverwriteRetry } from "../../review";
 import type { BdActivity, BdActivityOutcome } from "@morechat/core/types";
 import { cn } from "@morechat/ui/lib/utils";
 import { useTimeAgo } from "../../i18n";
 import { useActivityLabels } from "../dashboard/copy";
+import { ROW_FLASH_CLASS, expectedRevisionPatch, useLedgerCopy } from "../quotes/deep-link";
 import { useFollowupsCopy } from "./copy";
 import { LogFollowupForm } from "./log-followup-form";
 import { isLongSummary, pushToTomorrow } from "./model";
@@ -39,6 +41,8 @@ export interface FollowupRowProps {
   canWrite: boolean;
   /** 「跳过」只挂在该达人的最新一条上：推旧记录的日期不改变任何人的义务。 */
   canSkip: boolean;
+  /** `?followup=` landed on this row: it carries the list's brief emphasis. */
+  focused?: boolean;
 }
 
 /**
@@ -54,6 +58,11 @@ export interface FollowupRowProps {
  * 「跳过」是把这条的 `next_follow_at` 推到明天，summary 一个字不动——今天不问
  * 不等于没发生过，改掉记录等于篡改历史。没有写权限时两个按钮都不渲染：每行一个
  * 灰掉的按钮是把同一条规则说十遍。
+ *
+ * 「跳过」是这一页唯一的 PATCH，所以它是这一页唯一要守 §3 的地方：请求带
+ * `expected_revision`，`409 stale_write` 时**不重发自己的日期**——把服务端的当前
+ * 行接过来（下一个「跳过」从它的 `next_follow_at` 起算）并说一句「别人刚改过」。
+ * 409 判在 §26.3 的 400 之前，两者不会互相吞掉。
  */
 export function FollowupRow({
   activity,
@@ -61,33 +70,61 @@ export function FollowupRow({
   dueDays,
   canWrite,
   canSkip,
+  focused = false,
 }: FollowupRowProps) {
   const copy = useFollowupsCopy();
+  const ledger = useLedgerCopy();
   const labels = useActivityLabels();
   const timeAgo = useTimeAgo();
   const [logging, setLogging] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [skipFailed, setSkipFailed] = useState(false);
+  const [skipStale, setSkipStale] = useState(false);
+  /**
+   * The server's row from a 409, and the prop it replaced. Held as a pair so the
+   * override is dropped the moment the list hands this row a newer row itself —
+   * otherwise a refetched row would be shown behind a stale snapshot.
+   */
+  const [replaced, setReplaced] = useState<{
+    from: BdActivity;
+    current: BdActivity;
+  } | null>(null);
   const skip = useUpdateBdActivity();
   const overwrite = useOverwriteRetry();
   const pending = skip.isPending;
 
-  const long = isLongSummary(activity.summary);
+  const row = replaced && replaced.from === activity ? replaced.current : activity;
+  const revision = row.revision;
+
+  const long = isLongSummary(row.summary);
 
   const onSkip = async () => {
     setSkipFailed(false);
-    const next = pushToTomorrow(activity.next_follow_at, new Date());
+    setSkipStale(false);
+    const next = pushToTomorrow(row.next_follow_at, new Date());
     try {
-      await skip.mutateAsync({ id: activity.id, next_follow_at: next });
+      await skip.mutateAsync({
+        id: row.id,
+        next_follow_at: next,
+        ...expectedRevisionPatch(revision),
+      });
     } catch (error) {
+      // §3 first: another writer moved this row, so take theirs — the date this
+      // press computed is computed from a row that no longer exists.
+      if (isStaleWrite<BdActivity>(error)) {
+        setReplaced({ from: activity, current: error.current });
+        setSkipStale(true);
+        return;
+      }
       // §26.3: this row's last business change was an agent's (a follow-up the
       // tool logged), so moving its date is an overwrite and needs a reason.
       if (isOverwriteReasonRequired(error)) {
         overwrite.ask(async (reason) => {
           try {
             await skip.mutateAsync({
-              id: activity.id,
+              id: row.id,
               next_follow_at: next,
+              ...expectedRevisionPatch(revision),
               overwrite_reason: reason,
             });
             return true;
@@ -105,7 +142,11 @@ export function FollowupRow({
   return (
     <article
       aria-label={name}
-      className="flex flex-col gap-1.5 rounded-lg border border-border px-3 py-2.5"
+      data-row-id={row.id}
+      className={cn(
+        "flex flex-col gap-1.5 rounded-lg border border-border px-3 py-2.5",
+        focused && ROW_FLASH_CLASS,
+      )}
     >
       <div className="flex min-w-0 items-center gap-2">
         <span className="min-w-0 flex-1 truncate text-label font-medium">{name}</span>
@@ -127,7 +168,7 @@ export function FollowupRow({
           !expanded && "line-clamp-2",
         )}
       >
-        {activity.summary}
+        {row.summary}
       </p>
       {long ? (
         <Button
@@ -143,14 +184,14 @@ export function FollowupRow({
       ) : null}
 
       <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-        <Badge variant="outline">{labels.kind[activity.kind]}</Badge>
-        {activity.outcome ? (
-          <Badge variant={OUTCOME_VARIANT[activity.outcome]}>
-            {labels.outcome[activity.outcome]}
+        <Badge variant="outline">{labels.kind[row.kind]}</Badge>
+        {row.outcome ? (
+          <Badge variant={OUTCOME_VARIANT[row.outcome]}>
+            {labels.outcome[row.outcome]}
           </Badge>
         ) : null}
         <span className="text-caption text-muted-foreground">
-          {timeAgo(activity.happened_at)}
+          {timeAgo(row.happened_at)}
         </span>
         {canWrite && !logging ? (
           <div className="ml-auto flex items-center gap-1">
@@ -182,6 +223,12 @@ export function FollowupRow({
         ) : null}
       </div>
 
+      {skipStale ? (
+        <p role="status" data-slot="followup-stale" className="text-caption text-muted-foreground">
+          {ledger.staleWrite}
+        </p>
+      ) : null}
+
       {skipFailed ? (
         <p role="alert" className="text-caption text-destructive">
           {copy("skip_failed")}
@@ -190,7 +237,7 @@ export function FollowupRow({
 
       {canWrite && logging ? (
         <LogFollowupForm
-          creatorId={activity.creator_id}
+          creatorId={row.creator_id}
           onSaved={() => setLogging(false)}
           onCancel={() => setLogging(false)}
         />
