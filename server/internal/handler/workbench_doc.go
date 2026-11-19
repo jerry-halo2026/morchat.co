@@ -316,9 +316,16 @@ func (h *Handler) ensureBuiltinDocTemplates(w http.ResponseWriter, r *http.Reque
 
 // ListHrDocTemplates — GET /api/workbench/hr/doc-templates
 //
-// The workspace's templates, builtin first. `?kind=` narrows to one document type.
-// The read seeds the builtin rows, so a workspace created a minute ago answers with
-// the same three templates an old one has.
+// The workspace's templates, most recently edited first, paged by the shared cursor
+// convention (§3.3): `?cursor=` is the previous page's last row id, `next_cursor` is
+// present only on a full page, and a cursor that resolves to nothing is a 400. The
+// ordering is `updated_at DESC, id DESC` like every other list, so the endpoint
+// behaves the way a client written against the rest of the workbench expects even
+// though a workspace has few templates.
+//
+// `?kind=` narrows to one document type. The read seeds the builtin rows, so a
+// workspace created a minute ago answers with the same three templates an old one
+// has.
 func (h *Handler) ListHrDocTemplates(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -336,9 +343,23 @@ func (h *Handler) ListHrDocTemplates(w http.ResponseWriter, r *http.Request) {
 	if !h.ensureBuiltinDocTemplates(w, r, scope) {
 		return
 	}
+	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
+		row, err := h.Queries.GetHrDocTemplate(r.Context(), db.GetHrDocTemplateParams{
+			ID:          id,
+			WorkspaceID: scope.WorkspaceUUID,
+		})
+		return row.UpdatedAt, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListHrDocTemplates(r.Context(), db.ListHrDocTemplatesParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		Kind:        optionalTrimmedText(stringPtr(kind)),
+		CursorAt:    cursorAt,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list doc templates", err)
@@ -348,7 +369,11 @@ func (h *Handler) ListHrDocTemplates(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrDocTemplateToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"templates": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"templates": resp, "total": len(resp)},
+		rows, limit, func(row db.HrDocTemplate) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrDocTemplate — POST /api/workbench/hr/doc-templates (owner/admin)

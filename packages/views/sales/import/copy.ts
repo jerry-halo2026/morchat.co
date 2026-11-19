@@ -6,7 +6,7 @@ import { useT } from "../../i18n";
  * The import dialog's copy surface, and the one place a server **reason code**
  * becomes a sentence.
  *
- * The list is `WORKBENCH-API` §23.5 verbatim — the fourteen codes the endpoint
+ * The list is `WORKBENCH-API` §23.5 verbatim — the fifteen codes the endpoint
  * emits, each with the column it names. It is a lookup with a deliberate hole: a
  * code this client does not know is printed **as itself**, in its own monospace
  * cell, because the schema keeps `reason` a plain string to tolerate new codes
@@ -28,6 +28,9 @@ const REASONS = [
   { token: "invalid_timestamp", key: "reason_invalid_timestamp" },
   { token: "invalid_enum", key: "reason_invalid_enum" },
   { token: "invalid_currency", key: "reason_invalid_currency" },
+  // A cell over the column's TEXT cap (`workbenchTextLimits`): a row error, not a
+  // file error, so it is fixed in the spreadsheet and re-sent like any other.
+  { token: "text_too_long", key: "reason_text_too_long" },
 ] as const;
 
 export function useImportCopy() {

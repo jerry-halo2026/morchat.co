@@ -56,8 +56,8 @@ func TestWorkspaceDeleteQianchuanRemovesOnlyItsOwnRows(t *testing.T) {
 		return id
 	}
 
-	doomed := newWorkspace("doomed")
-	bystander := newWorkspace("bystander")
+	doomed := workspaceDeleteScratch(t, newWorkspace("doomed"))
+	bystander := workspaceDeleteScratch(t, newWorkspace("bystander"))
 
 	// Every row these tables hold is a sync-written snapshot: the only NOT NULL
 	// columns without a default are the natural key, the provenance pair and

@@ -26,6 +26,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
 
@@ -35,6 +37,15 @@ import (
 type docTemplateListResponse struct {
 	Templates []HrDocTemplateResponse `json:"templates"`
 	Total     int                     `json:"total"`
+}
+
+// docTemplateCursorPage is one page of the paged template list: the envelope above
+// plus the shared `next_cursor` (§3.3), which the plain list struct does not carry
+// because the unfiltered shape predates the cursor.
+type docTemplateCursorPage struct {
+	Templates  []HrDocTemplateResponse `json:"templates"`
+	Total      int                     `json:"total"`
+	NextCursor *string                 `json:"next_cursor"`
 }
 
 type docGenerationListResponse struct {
@@ -488,4 +499,130 @@ func TestDocTeardownCoversNewTables(t *testing.T) {
 	if got := dbfx.Count(t, templateCount, template.ID); got != 0 {
 		t.Fatalf("after teardown %d template rows remain, want 0", got)
 	}
+}
+
+// docTemplatePageIn reads one page of the template list from a specific workspace.
+// It is a scratch workspace rather than the shared one for the same reason the
+// aggregate cases use one: the walk asserts what the whole list contains, and the
+// shared workspace holds templates other cases put there.
+func docTemplatePageIn(t *testing.T, workspaceID, ownerUserID, query string) docTemplateCursorPage {
+	t.Helper()
+	req := bdRequestIn(t, "GET", "/api/workbench/hr/doc-templates"+query, workspaceID, nil, ownerUserID)
+	res := testutil.Call(t, testHandler.ListHrDocTemplates, req).Want(http.StatusOK)
+
+	// `next_cursor` must be *present*, null included: a client reads a missing key
+	// and a null the same way only by accident.
+	var keys map[string]any
+	res.JSON(&keys)
+	if _, present := keys["next_cursor"]; !present {
+		t.Fatalf("doc-templates page has no next_cursor key: %s", res.Text())
+	}
+	var page docTemplateCursorPage
+	res.JSON(&page)
+	return page
+}
+
+// TestDocTemplateListPagesByCursor covers §3.3 for the template list, the one
+// workbench list that used to answer its whole collection: `limit+1` templates plus
+// the three seeded builtins, walked through `next_cursor`, must come back with no row
+// repeated and none missing; a full page always names a successor and a short page
+// never does; and a cursor that resolves to nothing -- or to another workspace's
+// template -- is a 400 rather than an empty page.
+func TestDocTemplateListPagesByCursor(t *testing.T) {
+	workspaceID, ownerUserID := bdScratchWorkspace(t, "Doc template cursor workspace")
+
+	create := func(name string) string {
+		req := bdRequestIn(t, "POST", "/api/workbench/hr/doc-templates", workspaceID, map[string]any{
+			"name": name,
+			"kind": "other",
+			"body": "正文 {{员工姓名}}",
+		}, ownerUserID)
+		return testutil.Decode[HrDocTemplateResponse](t, testHandler.CreateHrDocTemplate, req,
+			http.StatusCreated).ID
+	}
+	const limit = 3
+	created := make([]string, 0, limit+1)
+	for i := 0; i <= limit; i++ {
+		created = append(created, create(fmt.Sprintf("游标模板 %d", i)))
+	}
+
+	// The first read seeds the three builtin templates, so the walk covers
+	// `limit+1` own rows plus those three: 8 rows, three pages of 3/3/2.
+	const builtinCount = 3
+	var (
+		order    []string
+		builtins int
+		cursor   string
+	)
+	seen := map[string]int{}
+	for page := 1; ; page++ {
+		if page > 10 {
+			t.Fatalf("the walk never ended: %d pages, %v", page, order)
+		}
+		query := fmt.Sprintf("?limit=%d", limit)
+		if cursor != "" {
+			query += "&cursor=" + cursor
+		}
+		got := docTemplatePageIn(t, workspaceID, ownerUserID, query)
+		if got.Total != len(got.Templates) {
+			t.Fatalf("page %d: total = %d for %d rows, want this page's own count",
+				page, got.Total, len(got.Templates))
+		}
+		full := len(got.Templates) == limit
+		if full && got.NextCursor == nil {
+			t.Fatalf("page %d: %d rows (a full page) with next_cursor null", page, len(got.Templates))
+		}
+		if !full && got.NextCursor != nil {
+			t.Fatalf("page %d: a short page (%d rows) named a successor", page, len(got.Templates))
+		}
+		for _, row := range got.Templates {
+			seen[row.ID]++
+			if seen[row.ID] > 1 {
+				t.Fatalf("page %d: template %s repeated across pages", page, row.ID)
+			}
+			order = append(order, row.ID)
+			if row.Builtin {
+				builtins++
+			}
+		}
+		if got.NextCursor == nil {
+			break
+		}
+		cursor = *got.NextCursor
+	}
+
+	if len(order) != limit+1+builtinCount {
+		t.Fatalf("the walk reached %d templates, want %d: %v",
+			len(order), limit+1+builtinCount, order)
+	}
+	if builtins != builtinCount {
+		t.Fatalf("the walk reached %d builtin templates, want %d", builtins, builtinCount)
+	}
+	for _, id := range created {
+		if seen[id] != 1 {
+			t.Fatalf("template %s appeared %d times in the walk, want exactly 1", id, seen[id])
+		}
+	}
+	// Newest edit first, id breaking ties: the seeded builtins lead (they were
+	// written by the first read) and the created rows follow in reverse creation
+	// order, which is the order a reader who just made them expects.
+	wantOrder(t, "doc-templates", order, created[limit], created[1], created[0])
+
+	// A cursor that resolves to nothing is a 400 -- not an empty page, which a client
+	// would draw as "no templates".
+	bad := bdRequestIn(t, "GET",
+		fmt.Sprintf("/api/workbench/hr/doc-templates?limit=%d&cursor=%s", limit, uuid.NewString()),
+		workspaceID, nil, ownerUserID)
+	res := testutil.Call(t, testHandler.ListHrDocTemplates, bad).Want(http.StatusBadRequest)
+	if !strings.Contains(res.Text(), "cursor not found") {
+		t.Fatalf("bad cursor answered %q, want `cursor not found`", res.Text())
+	}
+
+	// A cursor naming a template of another workspace is the same 400: the loader is
+	// workspace-scoped, so a foreign id cannot be used to page this list.
+	foreign := createDocTemplate(t, "跨空间游标（测试）", "正文 {{员工姓名}}")
+	foreignCursor := bdRequestIn(t, "GET",
+		fmt.Sprintf("/api/workbench/hr/doc-templates?limit=%d&cursor=%s", limit, foreign.ID),
+		workspaceID, nil, ownerUserID)
+	testutil.Call(t, testHandler.ListHrDocTemplates, foreignCursor).Want(http.StatusBadRequest)
 }

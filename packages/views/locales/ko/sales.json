@@ -155,6 +155,7 @@
     "reason_invalid_rate": "커미션율은 0에서 1입니다(20%는 0.2).",
     "reason_invalid_timestamp": "날짜와 시간이 아닙니다.",
     "reason_invalid_enum": "허용된 값이 아닙니다.",
-    "reason_invalid_currency": "통화는 CNY처럼 세 글자입니다."
+    "reason_invalid_currency": "통화는 CNY처럼 세 글자입니다.",
+    "reason_text_too_long": "이 열의 길이 제한을 넘었습니다."
   }
 }

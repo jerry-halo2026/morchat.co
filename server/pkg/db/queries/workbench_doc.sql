@@ -17,15 +17,25 @@
 -- is simply a NULL column instead of two copies of a stale URL.
 
 -- name: ListHrDocTemplates :many
--- The template list: builtin rows first (they are the ones a new workspace has),
--- then the workspace's own, alphabetically. `?kind=` narrows to one document type
--- and matches idx_hr_doc_template_workspace_kind (782).
+-- The template list, most recently edited first. `?kind=` narrows to one document
+-- type and matches idx_hr_doc_template_workspace_kind (782).
+--
+-- The order is the shared keyset of §3.3 — `(updated_at, id)` descending — so
+-- `?cursor=` is the previous page's last row id and the handler resolves it with
+-- GetHrDocTemplate. Templates arrive out of order anyway (the builtin rows are
+-- seeded once and never edited), so "newest edit first" is the one order a reader
+-- can predict without knowing which rows are seeded.
 SELECT *
 FROM hr_doc_template
 WHERE workspace_id = sqlc.arg('workspace_id')
   AND archived_at IS NULL
   AND (sqlc.narg('kind')::text IS NULL OR kind = sqlc.narg('kind')::text)
-ORDER BY builtin DESC, lower(name) ASC, created_at DESC;
+  AND (
+    sqlc.narg('cursor_at')::timestamptz IS NULL
+    OR (updated_at, id) < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+  )
+ORDER BY updated_at DESC, id DESC
+LIMIT sqlc.arg('limit');
 
 -- name: GetHrDocTemplate :one
 SELECT * FROM hr_doc_template

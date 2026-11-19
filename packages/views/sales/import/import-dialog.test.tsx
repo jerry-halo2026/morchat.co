@@ -158,6 +158,28 @@ describe("ImportCsvButton · 错误行", () => {
     expect(within(panel).getByText("creator_handle")).toBeInTheDocument();
   });
 
+  it("explains an over-long cell instead of printing text_too_long", async () => {
+    // `text_too_long` is a column cap the server enforces on one cell (§23.3): the
+    // reader has to be told what to shorten, and the token itself says nothing.
+    api.importWorkbenchCsv.mockResolvedValue(
+      preview({
+        parsed: 1,
+        accepted: 0,
+        rows: [],
+        errors: [{ line: 4, column: "note", reason: "text_too_long" }],
+      }),
+    );
+    renderButton();
+    await openWithCsv();
+    await userEvent.click(screen.getByRole("button", { name: "Preview" }));
+
+    const panel = await screen.findByLabelText("Preview", { selector: "section" });
+    expect(within(panel).getByText("Too long for this column.")).toBeInTheDocument();
+    expect(within(panel).queryByText("text_too_long")).toBeNull();
+    // The column it names is the one they have to shorten.
+    expect(within(panel).getByText("note")).toBeInTheDocument();
+  });
+
   it("shows a duplicate as 已存在/跳过 rather than as an error", async () => {
     api.importWorkbenchCsv.mockResolvedValue(
       preview({

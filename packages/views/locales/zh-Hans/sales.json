@@ -155,6 +155,7 @@
     "reason_invalid_rate": "佣金率是 0 到 1（20% 写 0.2）。",
     "reason_invalid_timestamp": "这不是一个日期时间。",
     "reason_invalid_enum": "这个值不在允许的取值里。",
-    "reason_invalid_currency": "币种是三个字母，比如 CNY。"
+    "reason_invalid_currency": "币种是三个字母，比如 CNY。",
+    "reason_text_too_long": "内容太长，超出该列上限。"
   }
 }

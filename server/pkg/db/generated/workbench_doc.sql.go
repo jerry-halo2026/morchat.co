@@ -298,12 +298,20 @@ FROM hr_doc_template
 WHERE workspace_id = $1
   AND archived_at IS NULL
   AND ($2::text IS NULL OR kind = $2::text)
-ORDER BY builtin DESC, lower(name) ASC, created_at DESC
+  AND (
+    $3::timestamptz IS NULL
+    OR (updated_at, id) < ($3::timestamptz, $4::uuid)
+  )
+ORDER BY updated_at DESC, id DESC
+LIMIT $5
 `
 
 type ListHrDocTemplatesParams struct {
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	Kind        pgtype.Text `json:"kind"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	Kind        pgtype.Text        `json:"kind"`
+	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
+	CursorID    pgtype.UUID        `json:"cursor_id"`
+	Limit       int32              `json:"limit"`
 }
 
 // HR documents: templates and the generation ledger
@@ -323,11 +331,22 @@ type ListHrDocTemplatesParams struct {
 // **The generated file is an ordinary attachment.** The list joins it for `url` and
 // `filename` rather than duplicating either in this table, so a deleted attachment
 // is simply a NULL column instead of two copies of a stale URL.
-// The template list: builtin rows first (they are the ones a new workspace has),
-// then the workspace's own, alphabetically. `?kind=` narrows to one document type
-// and matches idx_hr_doc_template_workspace_kind (782).
+// The template list, most recently edited first. `?kind=` narrows to one document
+// type and matches idx_hr_doc_template_workspace_kind (782).
+//
+// The order is the shared keyset of §3.3 — `(updated_at, id)` descending — so
+// `?cursor=` is the previous page's last row id and the handler resolves it with
+// GetHrDocTemplate. Templates arrive out of order anyway (the builtin rows are
+// seeded once and never edited), so "newest edit first" is the one order a reader
+// can predict without knowing which rows are seeded.
 func (q *Queries) ListHrDocTemplates(ctx context.Context, arg ListHrDocTemplatesParams) ([]HrDocTemplate, error) {
-	rows, err := q.db.Query(ctx, listHrDocTemplates, arg.WorkspaceID, arg.Kind)
+	rows, err := q.db.Query(ctx, listHrDocTemplates,
+		arg.WorkspaceID,
+		arg.Kind,
+		arg.CursorAt,
+		arg.CursorID,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}

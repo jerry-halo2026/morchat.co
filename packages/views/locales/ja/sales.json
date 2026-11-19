@@ -155,6 +155,7 @@
     "reason_invalid_rate": "コミッション率は 0〜1 です（20% は 0.2）。",
     "reason_invalid_timestamp": "日時ではありません。",
     "reason_invalid_enum": "許可された値ではありません。",
-    "reason_invalid_currency": "通貨は CNY のような 3 文字です。"
+    "reason_invalid_currency": "通貨は CNY のような 3 文字です。",
+    "reason_text_too_long": "この列の上限を超えています。"
   }
 }
