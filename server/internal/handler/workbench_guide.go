@@ -564,7 +564,7 @@ func (h *Handler) ListHrQuestions(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "dimension must be skill, experience, culture, potential or risk")
 		return
 	}
-	query := strings.TrimSpace(r.URL.Query().Get("q"))
+	query := workbenchLikePattern(r.URL.Query().Get("q"))
 	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
 		row, err := h.Queries.GetHrQuestion(r.Context(), db.GetHrQuestionParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
 		return row.CreatedAt, err
@@ -589,7 +589,11 @@ func (h *Handler) ListHrQuestions(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrQuestionToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"questions": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"questions": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrQuestion) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrQuestion — POST /api/workbench/hr/questions
@@ -895,7 +899,11 @@ func (h *Handler) ListHrInterviewGuides(w http.ResponseWriter, r *http.Request) 
 	for i, row := range rows {
 		resp[i] = hrGuideToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"guides": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"guides": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrInterviewGuide) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrInterviewGuide — POST /api/workbench/hr/guides

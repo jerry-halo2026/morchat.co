@@ -422,13 +422,21 @@ func (h *Handler) ListHrEmployeeChanges(w http.ResponseWriter, r *http.Request) 
 		writeError(w, http.StatusBadRequest, "to must not be before from")
 		return
 	}
+	cursorOn, cursorAt, cursorID, ok := h.hrEmployeeChangeCursor(w, r, scope)
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListHrEmployeeChanges(r.Context(), db.ListHrEmployeeChangesParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		EmployeeID:  employeeID,
 		Kind:        optionalTrimmedText(stringPtr(kind)),
 		FromOn:      fromOn,
 		ToOn:        toOn,
-		Limit:       workbenchLimit(r),
+		CursorOn:    cursorOn,
+		CursorAt:    cursorAt,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list changes", err)
@@ -438,7 +446,35 @@ func (h *Handler) ListHrEmployeeChanges(w http.ResponseWriter, r *http.Request) 
 	for i, row := range rows {
 		resp[i] = hrEmployeeChangeToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"changes": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"changes": resp, "total": len(resp)},
+		rows, limit, func(row db.HrEmployeeChange) pgtype.UUID { return row.ID },
+	))
+}
+
+// hrEmployeeChangeCursor resolves `?cursor=` into the (effective_on, created_at, id)
+// triple the change stream pages on. Two rows recorded in one batch share a day and
+// a timestamp, so the id is what keeps the walk total; an id that resolves to
+// nothing in this workspace is a 400 rather than an empty page.
+func (h *Handler) hrEmployeeChangeCursor(w http.ResponseWriter, r *http.Request, scope workbenchScope) (pgtype.Date, pgtype.Timestamptz, pgtype.UUID, bool) {
+	raw := strings.TrimSpace(r.URL.Query().Get("cursor"))
+	if raw == "" {
+		return pgtype.Date{}, pgtype.Timestamptz{}, pgtype.UUID{}, true
+	}
+	cursorID, ok := parseUUIDOrBadRequest(w, raw, "cursor")
+	if !ok {
+		return pgtype.Date{}, pgtype.Timestamptz{}, pgtype.UUID{}, false
+	}
+	row, err := h.Queries.GetHrEmployeeChange(r.Context(), db.GetHrEmployeeChangeParams{
+		ID:          cursorID,
+		WorkspaceID: scope.WorkspaceUUID,
+	})
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "cursor not found")
+		return pgtype.Date{}, pgtype.Timestamptz{}, pgtype.UUID{}, false
+	}
+	return row.EffectiveOn, row.CreatedAt, cursorID, true
 }
 
 // CreateHrEmployeeChange — POST /api/workbench/hr/changes

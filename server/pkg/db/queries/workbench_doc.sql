@@ -81,14 +81,25 @@ DO NOTHING;
 -- name: ListHrDocGenerations :many
 -- The employee's documents, newest first, with the attachment joined for the
 -- download URL and the filename the browser would save. Ordering matches
--- idx_hr_doc_generation_workspace_employee (784).
+-- idx_hr_doc_generation_workspace_employee (784), and the cursor pages on that
+-- same (created_at, id) pair: the cursor is the previous page's last row id.
 SELECT g.*, a.url AS attachment_url, a.filename AS attachment_filename
 FROM hr_doc_generation g
 LEFT JOIN attachment a ON a.id = g.attachment_id
 WHERE g.workspace_id = sqlc.arg('workspace_id')
   AND (sqlc.narg('employee_id')::uuid IS NULL OR g.employee_id = sqlc.narg('employee_id')::uuid)
+  AND (
+    sqlc.narg('cursor_at')::timestamptz IS NULL
+    OR (g.created_at, g.id) < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+  )
 ORDER BY g.created_at DESC, g.id DESC
 LIMIT sqlc.arg('limit');
+
+-- name: GetHrDocGeneration :one
+-- The cursor's row read back for its creation time; a row of another workspace is
+-- a 400 in the handler, not an empty page here.
+SELECT * FROM hr_doc_generation
+WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id');
 
 -- name: CreateHrDocGeneration :one
 -- Every column is written, `NULL` included: a generation row is a fact about one

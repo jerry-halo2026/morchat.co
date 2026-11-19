@@ -18,7 +18,9 @@
 -- absent, filtered by kind and by an inclusive `effective_on` window. Ordering is
 -- the contract's read order and matches idx_hr_employee_change_workspace_employee
 -- (773) and its kind companion (774); `created_at`/`id` break ties between rows
--- recorded in one batch (a PATCH that moves two fields, or a backfilled import).
+-- recorded in one batch (a PATCH that moves two fields, or a backfilled import),
+-- which is also the keyset the cursor pages on: the cursor is the previous page's
+-- last row id and the handler re-reads its two sort keys.
 SELECT *
 FROM hr_employee_change
 WHERE workspace_id = sqlc.arg('workspace_id')
@@ -27,6 +29,11 @@ WHERE workspace_id = sqlc.arg('workspace_id')
   AND (sqlc.narg('kind')::text IS NULL OR kind = sqlc.narg('kind')::text)
   AND (sqlc.narg('from_on')::date IS NULL OR effective_on >= sqlc.narg('from_on')::date)
   AND (sqlc.narg('to_on')::date IS NULL OR effective_on <= sqlc.narg('to_on')::date)
+  AND (
+    sqlc.narg('cursor_id')::uuid IS NULL
+    OR (effective_on, created_at, id)
+      < (sqlc.narg('cursor_on')::date, sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+  )
 ORDER BY effective_on DESC, created_at DESC, id DESC
 LIMIT sqlc.arg('limit');
 

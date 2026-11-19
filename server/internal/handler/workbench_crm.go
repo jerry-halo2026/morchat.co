@@ -331,7 +331,11 @@ func (h *Handler) ListCrmClients(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = crmClientToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"clients": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"clients": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.CrmClient) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateCrmClient — POST /api/workbench/crm/clients
@@ -542,7 +546,11 @@ func (h *Handler) ListCrmBriefs(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = crmBriefToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"briefs": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"briefs": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.CrmBrief) pgtype.UUID { return row.ID },
+	))
 }
 
 // workbenchClientRef validates the brief's required client pointer.
@@ -878,7 +886,7 @@ func (h *Handler) ListCrmCollabs(w http.ResponseWriter, r *http.Request) {
 	// in the caller's department, and a caller without a department sees none of them.
 	departmentID, departmentScoped, visible := h.bdDepartmentFilter(r, scope)
 	if !visible {
-		writeWorkbenchEmptyPage(w, "collabs", false)
+		writeWorkbenchEmptyPage(w, "collabs")
 		return
 	}
 	rows, err := h.Queries.ListCrmCollabs(r.Context(), db.ListCrmCollabsParams{
@@ -909,7 +917,10 @@ func (h *Handler) ListCrmCollabs(w http.ResponseWriter, r *http.Request) {
 			Thread:            threads[uuidToString(row.IssueID)],
 		}
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"collabs": resp, "total": len(resp)})
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"collabs": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.CrmCollab) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateCrmCollab — POST /api/workbench/crm/collabs
@@ -1638,7 +1649,7 @@ func (h *Handler) ListCrmSettlements(w http.ResponseWriter, r *http.Request) {
 	// predicate narrows through `collab_id` (§24.4/§24.6).
 	departmentID, departmentScoped, visible := h.bdDepartmentFilter(r, scope)
 	if !visible {
-		writeWorkbenchEmptyPage(w, "settlements", false)
+		writeWorkbenchEmptyPage(w, "settlements")
 		return
 	}
 	rows, err := h.Queries.ListCrmSettlements(r.Context(), db.ListCrmSettlementsParams{
@@ -1664,7 +1675,10 @@ func (h *Handler) ListCrmSettlements(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = crmSettlementToResponse(row, actors[uuidToString(row.ID)])
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"settlements": resp, "total": len(resp)})
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"settlements": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.CrmSettlement) pgtype.UUID { return row.ID },
+	))
 }
 
 // loadCollabForSettlementWrite resolves the collaboration a settlement belongs

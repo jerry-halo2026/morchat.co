@@ -152,11 +152,8 @@ func (h *Handler) bdDepartmentFilter(r *http.Request, scope workbenchScope) (dep
 // (department mode, caller without a department). The envelope is the normal one with
 // no rows and no next page, so a client draws "nothing here" instead of an error it
 // cannot act on.
-func writeWorkbenchEmptyPage(w http.ResponseWriter, resource string, cursor bool) {
-	payload := map[string]any{resource: []any{}, "total": 0}
-	if cursor {
-		payload["next_cursor"] = nil
-	}
+func writeWorkbenchEmptyPage(w http.ResponseWriter, resource string) {
+	payload := map[string]any{resource: []any{}, "total": 0, "next_cursor": nil}
 	writeJSON(w, http.StatusOK, payload)
 }
 
@@ -1150,7 +1147,7 @@ func (h *Handler) ListBdActivities(w http.ResponseWriter, r *http.Request) {
 	}
 	departmentID, departmentScoped, visible := h.bdDepartmentFilter(r, scope)
 	if !visible {
-		writeWorkbenchEmptyPage(w, "activities", true)
+		writeWorkbenchEmptyPage(w, "activities")
 		return
 	}
 	limit := workbenchLimit(r)
@@ -1182,11 +1179,10 @@ func (h *Handler) ListBdActivities(w http.ResponseWriter, r *http.Request) {
 	}
 	// `next_cursor` names the last row of this page, which is also what `?cursor=`
 	// accepts; only a full page can have a successor.
-	payload := map[string]any{"activities": resp, "total": len(resp), "next_cursor": nil}
-	if len(rows) > 0 && int32(len(rows)) == limit {
-		payload["next_cursor"] = uuidToString(rows[len(rows)-1].ID)
-	}
-	writeJSON(w, http.StatusOK, payload)
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"activities": resp, "total": len(resp)},
+		rows, limit, func(row db.CreatorActivity) pgtype.UUID { return row.ID },
+	))
 }
 
 // optionalString turns a query value into the pointer shape the validators take.
@@ -1609,7 +1605,7 @@ func (h *Handler) ListBdQuotes(w http.ResponseWriter, r *http.Request) {
 	}
 	departmentID, departmentScoped, visible := h.bdDepartmentFilter(r, scope)
 	if !visible {
-		writeWorkbenchEmptyPage(w, "quotes", true)
+		writeWorkbenchEmptyPage(w, "quotes")
 		return
 	}
 	limit := workbenchLimit(r)
@@ -1647,11 +1643,12 @@ func (h *Handler) ListBdQuotes(w http.ResponseWriter, r *http.Request) {
 			Thread:          threads[uuidToString(row.ID)],
 		}
 	}
-	payload := map[string]any{"quotes": resp, "total": len(resp), "next_cursor": nil}
-	if len(rows) > 0 && int32(len(rows)) == limit {
-		payload["next_cursor"] = uuidToString(rows[len(rows)-1].ID)
-	}
-	writeJSON(w, http.StatusOK, payload)
+	// `next_cursor` names the last row of this page, which is also what `?cursor=`
+	// accepts; only a full page can have a successor.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"quotes": resp, "total": len(resp)},
+		rows, limit, func(row db.CreatorQuote) pgtype.UUID { return row.ID },
+	))
 }
 
 // bdQuoteCursor resolves `?cursor=` into the (id, date key, fee key) triple the quote
@@ -2198,10 +2195,10 @@ func (h *Handler) DeleteBdQuote(w http.ResponseWriter, r *http.Request) {
 
 // ListBdCampaigns — GET /api/workbench/bd/campaigns
 //
-// Still `limit`-only (§20.3): the order is a start day plus a creation timestamp and
-// a workspace has a handful of batches. The department predicate applies like every
-// other ledger read; a campaign has no assignee column, so there is no `?assignee=`
-// here to keep in step with the follow-up log.
+// Filters: `?kind=`, `?cursor=` (the previous page's last row, opaque to the
+// client) and the department predicate every other ledger read applies. A campaign
+// has no assignee column, so there is no `?assignee=` here to keep in step with the
+// follow-up log.
 func (h *Handler) ListBdCampaigns(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -2214,17 +2211,25 @@ func (h *Handler) ListBdCampaigns(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	departmentID, departmentScoped, visible := h.bdDepartmentFilter(r, scope)
-	if !visible {
-		writeWorkbenchEmptyPage(w, "campaigns", false)
+	cursorDay, cursorAt, cursorID, ok := h.bdCampaignCursor(w, r, scope)
+	if !ok {
 		return
 	}
+	departmentID, departmentScoped, visible := h.bdDepartmentFilter(r, scope)
+	if !visible {
+		writeWorkbenchEmptyPage(w, "campaigns")
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListCreatorCampaigns(r.Context(), db.ListCreatorCampaignsParams{
 		WorkspaceID:      scope.WorkspaceUUID,
 		Kind:             optionalTrimmedText(optionalString(kind)),
 		DepartmentScoped: departmentScoped,
 		DepartmentID:     departmentID,
-		Limit:            workbenchLimit(r),
+		CursorDay:        cursorDay,
+		CursorAt:         cursorAt,
+		CursorID:         cursorID,
+		Limit:            limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list campaigns", err)
@@ -2234,7 +2239,41 @@ func (h *Handler) ListBdCampaigns(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = bdCampaignToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"campaigns": resp, "total": len(resp)})
+	// `next_cursor` names the last row of this page, which is also what `?cursor=`
+	// accepts; only a full page can have a successor.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"campaigns": resp, "total": len(resp)},
+		rows, limit, func(row db.CreatorCampaign) pgtype.UUID { return row.ID },
+	))
+}
+
+// bdCampaignCursor resolves `?cursor=` into the (start day, created_at, id) triple
+// the campaign list pages on. The day is the same coalesce the ordering uses — a
+// batch recorded without a start day is filed under the UTC day it was typed — so
+// it is read back from the row instead of being encoded in the cursor, and a cursor
+// that resolves to nothing in this workspace is a 400 rather than an empty page.
+func (h *Handler) bdCampaignCursor(w http.ResponseWriter, r *http.Request, scope workbenchScope) (pgtype.Date, pgtype.Timestamptz, pgtype.UUID, bool) {
+	raw := strings.TrimSpace(r.URL.Query().Get("cursor"))
+	if raw == "" {
+		return pgtype.Date{}, pgtype.Timestamptz{}, pgtype.UUID{}, true
+	}
+	cursorID, ok := parseUUIDOrBadRequest(w, raw, "cursor")
+	if !ok {
+		return pgtype.Date{}, pgtype.Timestamptz{}, pgtype.UUID{}, false
+	}
+	row, err := h.Queries.GetCreatorCampaign(r.Context(), db.GetCreatorCampaignParams{
+		ID:          cursorID,
+		WorkspaceID: scope.WorkspaceUUID,
+	})
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "cursor not found")
+		return pgtype.Date{}, pgtype.Timestamptz{}, pgtype.UUID{}, false
+	}
+	day := pgtype.Date{Time: row.CreatedAt.Time.UTC(), Valid: true}
+	if row.StartedOn.Valid {
+		day = row.StartedOn
+	}
+	return day, row.CreatedAt, cursorID, true
 }
 
 // bdCampaignConflicts answers "this name is taken" before the insert or update.

@@ -152,6 +152,36 @@ func (q *Queries) CreateHrDocTemplate(ctx context.Context, arg CreateHrDocTempla
 	return i, err
 }
 
+const getHrDocGeneration = `-- name: GetHrDocGeneration :one
+SELECT id, workspace_id, employee_id, template_id, template_name, format, attachment_id, values, generated_by, created_at FROM hr_doc_generation
+WHERE id = $1 AND workspace_id = $2
+`
+
+type GetHrDocGenerationParams struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+}
+
+// The cursor's row read back for its creation time; a row of another workspace is
+// a 400 in the handler, not an empty page here.
+func (q *Queries) GetHrDocGeneration(ctx context.Context, arg GetHrDocGenerationParams) (HrDocGeneration, error) {
+	row := q.db.QueryRow(ctx, getHrDocGeneration, arg.ID, arg.WorkspaceID)
+	var i HrDocGeneration
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.EmployeeID,
+		&i.TemplateID,
+		&i.TemplateName,
+		&i.Format,
+		&i.AttachmentID,
+		&i.Values,
+		&i.GeneratedBy,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getHrDocTemplate = `-- name: GetHrDocTemplate :one
 SELECT id, workspace_id, name, kind, body, builtin, owner_member_id, created_by, created_at, updated_at, archived_at FROM hr_doc_template
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
@@ -187,14 +217,20 @@ FROM hr_doc_generation g
 LEFT JOIN attachment a ON a.id = g.attachment_id
 WHERE g.workspace_id = $1
   AND ($2::uuid IS NULL OR g.employee_id = $2::uuid)
+  AND (
+    $3::timestamptz IS NULL
+    OR (g.created_at, g.id) < ($3::timestamptz, $4::uuid)
+  )
 ORDER BY g.created_at DESC, g.id DESC
-LIMIT $3
+LIMIT $5
 `
 
 type ListHrDocGenerationsParams struct {
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	EmployeeID  pgtype.UUID `json:"employee_id"`
-	Limit       int32       `json:"limit"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	EmployeeID  pgtype.UUID        `json:"employee_id"`
+	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
+	CursorID    pgtype.UUID        `json:"cursor_id"`
+	Limit       int32              `json:"limit"`
 }
 
 type ListHrDocGenerationsRow struct {
@@ -214,9 +250,16 @@ type ListHrDocGenerationsRow struct {
 
 // The employee's documents, newest first, with the attachment joined for the
 // download URL and the filename the browser would save. Ordering matches
-// idx_hr_doc_generation_workspace_employee (784).
+// idx_hr_doc_generation_workspace_employee (784), and the cursor pages on that
+// same (created_at, id) pair: the cursor is the previous page's last row id.
 func (q *Queries) ListHrDocGenerations(ctx context.Context, arg ListHrDocGenerationsParams) ([]ListHrDocGenerationsRow, error) {
-	rows, err := q.db.Query(ctx, listHrDocGenerations, arg.WorkspaceID, arg.EmployeeID, arg.Limit)
+	rows, err := q.db.Query(ctx, listHrDocGenerations,
+		arg.WorkspaceID,
+		arg.EmployeeID,
+		arg.CursorAt,
+		arg.CursorID,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}

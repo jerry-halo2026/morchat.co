@@ -278,10 +278,17 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
 
 -- name: ListCreatorCampaigns :many
 -- `?kind=` narrows to one collection method. Newest batch first: the start day
--- when it was recorded, otherwise when the row was typed. No cursor: the order is
--- a date plus a creation timestamp and the batch count is small, so the LIMIT is
--- still the whole conversation (§20.3). The department predicate is the same one
--- the other ledgers take (§24.4).
+-- when it was recorded, otherwise when the row was typed.
+--
+-- Paging is keyset on `(start day, created_at, id)`: the day is the ordering key
+-- and `created_at`/`id` break ties between batches typed in one go, so the order
+-- is total and a cursor page can neither repeat nor skip a row. The cursor is the
+-- previous page's last row id; the handler re-reads its two sort keys.
+--
+-- The day is `created_at` cast at UTC rather than at the session's time zone: the
+-- handler rebuilds the same value in Go for the cursor, and a server whose
+-- `TimeZone` differs must not disagree with the row it just read.
+-- The department predicate is the same one the other ledgers take (§24.4).
 SELECT *
 FROM creator_campaign
 WHERE workspace_id = sqlc.arg('workspace_id')::uuid
@@ -299,7 +306,22 @@ WHERE workspace_id = sqlc.arg('workspace_id')::uuid
       )
     )
   )
-ORDER BY coalesce(started_on, created_at::date) DESC, created_at DESC, id DESC
+  AND (
+    sqlc.narg('cursor_id')::uuid IS NULL
+    OR (
+      (
+        coalesce(started_on, (created_at AT TIME ZONE 'UTC')::date),
+        created_at,
+        id
+      )
+        < (
+          sqlc.narg('cursor_day')::date,
+          sqlc.narg('cursor_at')::timestamptz,
+          sqlc.narg('cursor_id')::uuid
+        )
+    )
+  )
+ORDER BY coalesce(started_on, (created_at AT TIME ZONE 'UTC')::date) DESC, created_at DESC, id DESC
 LIMIT sqlc.arg('limit')::integer;
 
 -- name: GetCreatorCampaign :one

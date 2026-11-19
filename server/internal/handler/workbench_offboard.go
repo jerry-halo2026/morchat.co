@@ -463,7 +463,11 @@ func (h *Handler) ListHrOffboardings(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrOffboardingToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"offboardings": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"offboardings": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrOffboarding) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrOffboarding — POST /api/workbench/hr/offboardings

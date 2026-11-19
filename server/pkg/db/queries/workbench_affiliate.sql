@@ -151,14 +151,32 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archiv
 -- name: ListAffiliateDaily :many
 -- Newest day first. A day identifies itself through its pick, so the tiebreak is
 -- the pick id and the ordering is stable across re-reads.
+--
+-- The order is mixed — `stat_date DESC, pick_id ASC` — so the keyset predicate is
+-- spelled out instead of a row comparison: past the cursor day every older day is
+-- ahead, and on the cursor day itself the picks after the cursor pick are.
 SELECT *
 FROM affiliate_daily
 WHERE workspace_id = sqlc.arg('workspace_id')
   AND (sqlc.narg('pick_id')::uuid IS NULL OR pick_id = sqlc.narg('pick_id')::uuid)
   AND (sqlc.narg('stat_from')::date IS NULL OR stat_date >= sqlc.narg('stat_from')::date)
   AND (sqlc.narg('stat_to')::date IS NULL OR stat_date <= sqlc.narg('stat_to')::date)
+  AND (
+    sqlc.narg('cursor_id')::uuid IS NULL
+    OR stat_date < sqlc.narg('cursor_date')::date
+    OR (
+      stat_date = sqlc.narg('cursor_date')::date
+      AND pick_id > sqlc.narg('cursor_pick')::uuid
+    )
+  )
 ORDER BY stat_date DESC, pick_id
 LIMIT sqlc.arg('limit');
+
+-- name: GetAffiliateDaily :one
+-- The cursor's row read back for its (stat_date, pick_id) pair. A row from another
+-- workspace is a 400 in the handler, not an empty page here.
+SELECT * FROM affiliate_daily
+WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id');
 
 -- name: UpsertAffiliateDaily :one
 -- `PUT /api/workbench/affiliate/daily` — one row per (pick, day). The body
@@ -190,15 +208,19 @@ RETURNING *;
 -- containment one: a statement that straddles the boundary of what the reader
 -- asked for is still a statement about it.
 --
--- No keyset cursor: a settlement statement is issued once per settlement cycle,
--- so one workspace has tens of them, not tens of thousands, and the sort key is
--- the period rather than the row's own insertion time.
+-- No keyset on the period alone: the id is the second key, so two statements that
+-- open on the same day still page without repeating one. The cursor is the
+-- previous page's last row id; the handler re-reads its `period_start`.
 SELECT *
 FROM affiliate_settlement
 WHERE workspace_id = sqlc.arg('workspace_id')
   AND (sqlc.narg('status')::text IS NULL OR status = sqlc.narg('status')::text)
   AND (sqlc.narg('period_from')::date IS NULL OR period_end >= sqlc.narg('period_from')::date)
   AND (sqlc.narg('period_to')::date IS NULL OR period_start <= sqlc.narg('period_to')::date)
+  AND (
+    sqlc.narg('cursor_at')::date IS NULL
+    OR (period_start, id) < (sqlc.narg('cursor_at')::date, sqlc.narg('cursor_id')::uuid)
+  )
 ORDER BY period_start DESC, id DESC
 LIMIT sqlc.arg('limit');
 

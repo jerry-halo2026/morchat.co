@@ -544,6 +544,39 @@ func (q *Queries) CreateAffiliateSettlement(ctx context.Context, arg CreateAffil
 	return i, err
 }
 
+const getAffiliateDaily = `-- name: GetAffiliateDaily :one
+SELECT id, workspace_id, pick_id, stat_date, gmv_amount, order_count, refund_amount, est_commission, settled_commission, currency, created_by, created_at, updated_at FROM affiliate_daily
+WHERE id = $1 AND workspace_id = $2
+`
+
+type GetAffiliateDailyParams struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+}
+
+// The cursor's row read back for its (stat_date, pick_id) pair. A row from another
+// workspace is a 400 in the handler, not an empty page here.
+func (q *Queries) GetAffiliateDaily(ctx context.Context, arg GetAffiliateDailyParams) (AffiliateDaily, error) {
+	row := q.db.QueryRow(ctx, getAffiliateDaily, arg.ID, arg.WorkspaceID)
+	var i AffiliateDaily
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.PickID,
+		&i.StatDate,
+		&i.GmvAmount,
+		&i.OrderCount,
+		&i.RefundAmount,
+		&i.EstCommission,
+		&i.SettledCommission,
+		&i.Currency,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getAffiliatePick = `-- name: GetAffiliatePick :one
 SELECT id, workspace_id, product_id, creator_id, commission_rate, bound_at, status, note, owner_member_id, created_by, created_at, updated_at, archived_at, agency_share_rate, service_fee_amount FROM affiliate_pick
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
@@ -655,8 +688,16 @@ WHERE workspace_id = $1
   AND ($2::uuid IS NULL OR pick_id = $2::uuid)
   AND ($3::date IS NULL OR stat_date >= $3::date)
   AND ($4::date IS NULL OR stat_date <= $4::date)
+  AND (
+    $5::uuid IS NULL
+    OR stat_date < $6::date
+    OR (
+      stat_date = $6::date
+      AND pick_id > $7::uuid
+    )
+  )
 ORDER BY stat_date DESC, pick_id
-LIMIT $5
+LIMIT $8
 `
 
 type ListAffiliateDailyParams struct {
@@ -664,17 +705,27 @@ type ListAffiliateDailyParams struct {
 	PickID      pgtype.UUID `json:"pick_id"`
 	StatFrom    pgtype.Date `json:"stat_from"`
 	StatTo      pgtype.Date `json:"stat_to"`
+	CursorID    pgtype.UUID `json:"cursor_id"`
+	CursorDate  pgtype.Date `json:"cursor_date"`
+	CursorPick  pgtype.UUID `json:"cursor_pick"`
 	Limit       int32       `json:"limit"`
 }
 
 // Newest day first. A day identifies itself through its pick, so the tiebreak is
 // the pick id and the ordering is stable across re-reads.
+//
+// The order is mixed — `stat_date DESC, pick_id ASC` — so the keyset predicate is
+// spelled out instead of a row comparison: past the cursor day every older day is
+// ahead, and on the cursor day itself the picks after the cursor pick are.
 func (q *Queries) ListAffiliateDaily(ctx context.Context, arg ListAffiliateDailyParams) ([]AffiliateDaily, error) {
 	rows, err := q.db.Query(ctx, listAffiliateDaily,
 		arg.WorkspaceID,
 		arg.PickID,
 		arg.StatFrom,
 		arg.StatTo,
+		arg.CursorID,
+		arg.CursorDate,
+		arg.CursorPick,
 		arg.Limit,
 	)
 	if err != nil {
@@ -900,8 +951,12 @@ WHERE workspace_id = $1
   AND ($2::text IS NULL OR status = $2::text)
   AND ($3::date IS NULL OR period_end >= $3::date)
   AND ($4::date IS NULL OR period_start <= $4::date)
+  AND (
+    $5::date IS NULL
+    OR (period_start, id) < ($5::date, $6::uuid)
+  )
 ORDER BY period_start DESC, id DESC
-LIMIT $5
+LIMIT $7
 `
 
 type ListAffiliateSettlementsParams struct {
@@ -909,6 +964,8 @@ type ListAffiliateSettlementsParams struct {
 	Status      pgtype.Text `json:"status"`
 	PeriodFrom  pgtype.Date `json:"period_from"`
 	PeriodTo    pgtype.Date `json:"period_to"`
+	CursorAt    pgtype.Date `json:"cursor_at"`
+	CursorID    pgtype.UUID `json:"cursor_id"`
 	Limit       int32       `json:"limit"`
 }
 
@@ -916,15 +973,17 @@ type ListAffiliateSettlementsParams struct {
 // containment one: a statement that straddles the boundary of what the reader
 // asked for is still a statement about it.
 //
-// No keyset cursor: a settlement statement is issued once per settlement cycle,
-// so one workspace has tens of them, not tens of thousands, and the sort key is
-// the period rather than the row's own insertion time.
+// No keyset on the period alone: the id is the second key, so two statements that
+// open on the same day still page without repeating one. The cursor is the
+// previous page's last row id; the handler re-reads its `period_start`.
 func (q *Queries) ListAffiliateSettlements(ctx context.Context, arg ListAffiliateSettlementsParams) ([]AffiliateSettlement, error) {
 	rows, err := q.db.Query(ctx, listAffiliateSettlements,
 		arg.WorkspaceID,
 		arg.Status,
 		arg.PeriodFrom,
 		arg.PeriodTo,
+		arg.CursorAt,
+		arg.CursorID,
 		arg.Limit,
 	)
 	if err != nil {

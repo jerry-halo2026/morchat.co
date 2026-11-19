@@ -921,10 +921,20 @@ func (h *Handler) ListMediaIPs(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "status must be active, paused or ended")
 		return
 	}
+	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
+		row, err := h.Queries.GetMediaIP(r.Context(), db.GetMediaIPParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
+		return row.CreatedAt, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListMediaIPs(r.Context(), db.ListMediaIPsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		Status:      strToText(status),
-		Limit:       workbenchLimit(r),
+		CursorAt:    cursorAt,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list content IPs", err)
@@ -936,7 +946,11 @@ func (h *Handler) ListMediaIPs(w http.ResponseWriter, r *http.Request) {
 	}
 	// `total` is this page's row count, like every other workbench list; the
 	// authoritative workspace-wide numbers do not exist for the content side yet.
-	writeJSON(w, http.StatusOK, map[string]any{"ips": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"ips": resp, "total": len(resp)},
+		rows, limit, func(row db.MediaIp) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateMediaIP 鈥?POST /api/workbench/media/ips
@@ -1271,11 +1285,21 @@ func (h *Handler) ListMediaTopics(w http.ResponseWriter, r *http.Request) {
 			"status must be pool, scripting, shooting, publishing, done or dropped")
 		return
 	}
+	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
+		row, err := h.Queries.GetMediaTopic(r.Context(), db.GetMediaTopicParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
+		return row.CreatedAt, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListMediaTopics(r.Context(), db.ListMediaTopicsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		IpID:        ipID,
 		Status:      strToText(status),
-		Limit:       workbenchLimit(r),
+		CursorAt:    cursorAt,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list topics", err)
@@ -1285,7 +1309,11 @@ func (h *Handler) ListMediaTopics(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = mediaTopicToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"topics": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"topics": resp, "total": len(resp)},
+		rows, limit, func(row db.MediaTopic) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateMediaTopic 鈥?POST /api/workbench/media/topics
@@ -1529,11 +1557,21 @@ func (h *Handler) ListMediaScripts(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "status must be draft, review, approved or archived")
 		return
 	}
+	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
+		row, err := h.Queries.GetMediaScript(r.Context(), db.GetMediaScriptParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
+		return row.CreatedAt, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListMediaScripts(r.Context(), db.ListMediaScriptsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		TopicID:     topicID,
 		Status:      strToText(status),
-		Limit:       workbenchLimit(r),
+		CursorAt:    cursorAt,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list scripts", err)
@@ -1543,7 +1581,11 @@ func (h *Handler) ListMediaScripts(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = mediaScriptToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"scripts": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"scripts": resp, "total": len(resp)},
+		rows, limit, func(row db.MediaScript) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateMediaScript 鈥?POST /api/workbench/media/scripts
@@ -1859,12 +1901,24 @@ func (h *Handler) ListMediaShoots(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "to must not be before from")
 		return
 	}
+	// The calendar reads forward, so its cursor is the last day shown and the
+	// predicate takes every row after it; the id breaks ties inside a day.
+	cursorDay, cursorID, ok := h.workbenchCursorDay(w, r, func(id pgtype.UUID) (pgtype.Date, error) {
+		row, err := h.Queries.GetMediaShoot(r.Context(), db.GetMediaShootParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
+		return row.ShootDate, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListMediaShoots(r.Context(), db.ListMediaShootsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		ScriptID:    scriptID,
 		FromDate:    from,
 		ToDate:      to,
-		Limit:       workbenchLimit(r),
+		CursorDay:   cursorDay,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list shoots", err)
@@ -1874,7 +1928,11 @@ func (h *Handler) ListMediaShoots(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = mediaShootToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"shoots": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"shoots": resp, "total": len(resp)},
+		rows, limit, func(row db.MediaShoot) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateMediaShoot 鈥?POST /api/workbench/media/shoots
@@ -2260,13 +2318,23 @@ func (h *Handler) ListMediaHot(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	cursorDay, cursorID, ok := h.workbenchCursorDay(w, r, func(id pgtype.UUID) (pgtype.Date, error) {
+		row, err := h.Queries.GetMediaHot(r.Context(), db.GetMediaHotParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
+		return row.CapturedOn, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListMediaHot(r.Context(), db.ListMediaHotParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		CapturedOn:  capturedOn,
 		Category:    strToText(strings.TrimSpace(r.URL.Query().Get("category"))),
 		Platform:    strToText(strings.TrimSpace(r.URL.Query().Get("platform"))),
 		Query:       strToText(workbenchLikePattern(r.URL.Query().Get("q"))),
-		Limit:       workbenchLimit(r),
+		CursorDay:   cursorDay,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list hotspots", err)
@@ -2276,7 +2344,11 @@ func (h *Handler) ListMediaHot(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = mediaHotToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"hot": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"hot": resp, "total": len(resp)},
+		rows, limit, func(row db.MediaHot) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateMediaHot — POST /api/workbench/media/hot
@@ -2513,13 +2585,23 @@ func (h *Handler) ListMediaBench(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	cursorDay, cursorID, ok := h.workbenchCursorDay(w, r, func(id pgtype.UUID) (pgtype.Date, error) {
+		row, err := h.Queries.GetMediaBench(r.Context(), db.GetMediaBenchParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
+		return row.CapturedOn, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListMediaBench(r.Context(), db.ListMediaBenchParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		IpID:        ipID,
 		CapturedOn:  capturedOn,
 		Platform:    strToText(strings.TrimSpace(r.URL.Query().Get("platform"))),
 		Query:       strToText(workbenchLikePattern(r.URL.Query().Get("q"))),
-		Limit:       workbenchLimit(r),
+		CursorDay:   cursorDay,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list benchmarks", err)
@@ -2529,7 +2611,11 @@ func (h *Handler) ListMediaBench(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = mediaBenchToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"bench": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"bench": resp, "total": len(resp)},
+		rows, limit, func(row db.MediaBench) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateMediaBench — POST /api/workbench/media/bench

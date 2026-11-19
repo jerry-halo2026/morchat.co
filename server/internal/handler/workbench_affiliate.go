@@ -481,7 +481,11 @@ func (h *Handler) ListAffiliateProducts(w http.ResponseWriter, r *http.Request) 
 	for i, row := range rows {
 		resp[i] = affiliateProductToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"products": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"products": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.AffiliateProduct) pgtype.UUID { return row.ID },
+	))
 }
 
 // affiliateClientRef resolves a client pointer inside the workspace. No foreign
@@ -874,7 +878,11 @@ func (h *Handler) ListAffiliatePicks(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = affiliatePickToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"picks": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"picks": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.AffiliatePick) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateAffiliatePick — POST /api/workbench/affiliate/picks
@@ -1163,11 +1171,18 @@ func (h *Handler) ListAffiliateDaily(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	cursorDate, cursorPick, cursorID, ok := h.affiliateDailyCursor(w, r, scope)
+	if !ok {
+		return
+	}
 	rows, err := h.Queries.ListAffiliateDaily(r.Context(), db.ListAffiliateDailyParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		PickID:      pickID,
 		StatFrom:    statFrom,
 		StatTo:      statTo,
+		CursorDate:  cursorDate,
+		CursorPick:  cursorPick,
+		CursorID:    cursorID,
 		Limit:       workbenchLimit(r),
 	})
 	if err != nil {
@@ -1178,11 +1193,39 @@ func (h *Handler) ListAffiliateDaily(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = affiliateDailyToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"daily": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"daily": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.AffiliateDaily) pgtype.UUID { return row.ID },
+	))
+}
+
+// affiliateDailyCursor resolves `?cursor=` into the (day, pick, id) triple the daily
+// fact list pages on. The order is mixed — newest day first, then the pick id — so
+// both keys travel: past the cursor day every older day is ahead, and inside the
+// cursor day the picks after the cursor pick are. A cursor that resolves to nothing
+// in this workspace is a 400 rather than an empty page.
+func (h *Handler) affiliateDailyCursor(w http.ResponseWriter, r *http.Request, scope workbenchScope) (pgtype.Date, pgtype.UUID, pgtype.UUID, bool) {
+	raw := strings.TrimSpace(r.URL.Query().Get("cursor"))
+	if raw == "" {
+		return pgtype.Date{}, pgtype.UUID{}, pgtype.UUID{}, true
+	}
+	cursorID, ok := parseUUIDOrBadRequest(w, raw, "cursor")
+	if !ok {
+		return pgtype.Date{}, pgtype.UUID{}, pgtype.UUID{}, false
+	}
+	row, err := h.Queries.GetAffiliateDaily(r.Context(), db.GetAffiliateDailyParams{
+		ID:          cursorID,
+		WorkspaceID: scope.WorkspaceUUID,
+	})
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "cursor not found")
+		return pgtype.Date{}, pgtype.UUID{}, pgtype.UUID{}, false
+	}
+	return row.StatDate, row.PickID, cursorID, true
 }
 
 // UpsertAffiliateDaily — PUT /api/workbench/affiliate/daily
-//
 // One row per (pick, day): the body replaces that day, so a corrected report
 // overwrites the previous value instead of merging into it. The write gate reads
 // the pick's owner — a daily fact has no owner column of its own, and giving it
@@ -1291,12 +1334,27 @@ func (h *Handler) ListAffiliateSettlements(w http.ResponseWriter, r *http.Reques
 	if !ok {
 		return
 	}
+	// Keyset on (period_start, id): the cursor's period is re-read from its own row
+	// so a cursor from another workspace is a 400 instead of an empty page.
+	cursorStart, cursorID, ok := h.workbenchCursorDay(w, r, func(id pgtype.UUID) (pgtype.Date, error) {
+		row, err := h.Queries.GetAffiliateSettlement(r.Context(), db.GetAffiliateSettlementParams{
+			ID:          id,
+			WorkspaceID: scope.WorkspaceUUID,
+		})
+		return row.PeriodStart, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListAffiliateSettlements(r.Context(), db.ListAffiliateSettlementsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		Status:      strToText(status),
 		PeriodFrom:  periodFrom,
 		PeriodTo:    periodTo,
-		Limit:       workbenchLimit(r),
+		CursorAt:    cursorStart,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list affiliate settlements", err)
@@ -1306,7 +1364,11 @@ func (h *Handler) ListAffiliateSettlements(w http.ResponseWriter, r *http.Reques
 	for i, row := range rows {
 		resp[i] = affiliateSettlementToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"settlements": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"settlements": resp, "total": len(resp)},
+		rows, limit, func(row db.AffiliateSettlement) pgtype.UUID { return row.ID },
+	))
 }
 
 // affiliateSettlementWriteAllowed gates the settlement writes. A statement covers

@@ -914,7 +914,7 @@ func (h *Handler) ListHrJobs(w http.ResponseWriter, r *http.Request) {
 		WorkspaceID:  scope.WorkspaceUUID,
 		Status:       strToText(status),
 		DepartmentID: departmentID,
-		Query:        strToText(strings.TrimSpace(r.URL.Query().Get("q"))),
+		Query:        strToText(workbenchLikePattern(r.URL.Query().Get("q"))),
 		CursorAt:     cursorAt,
 		CursorID:     cursorID,
 		Limit:        workbenchLimit(r),
@@ -927,7 +927,11 @@ func (h *Handler) ListHrJobs(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrJobToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"jobs": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"jobs": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrJob) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrJob — POST /api/workbench/hr/jobs
@@ -1216,7 +1220,11 @@ func (h *Handler) ListHrCandidates(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrCandidateToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"candidates": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"candidates": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrCandidate) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrCandidate — POST /api/workbench/hr/candidates
@@ -1720,7 +1728,11 @@ func (h *Handler) ListHrInterviews(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrInterviewToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"interviews": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"interviews": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrInterview) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrInterview — POST /api/workbench/hr/interviews
@@ -2013,7 +2025,11 @@ func (h *Handler) ListHrScorecards(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrScorecardToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"scorecards": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"scorecards": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrScorecard) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrScorecard — POST /api/workbench/hr/scorecards
@@ -2262,7 +2278,11 @@ func (h *Handler) ListHrEmployees(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrEmployeeProfileToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"employees": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"employees": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrEmployeeProfile) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrEmployee — POST /api/workbench/hr/employees

@@ -224,10 +224,8 @@ func (h *Handler) ListCreatorHealth(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	payload := CreatorHealthListResponse{Creators: creators, Total: len(creators)}
-	if len(rows) > 0 && int32(len(rows)) == workbenchLimit(r) {
-		next := uuidToString(rows[len(rows)-1].ID)
-		payload.NextCursor = &next
-	}
+	// The same rule every other list uses: only a full page names a successor.
+	payload.NextCursor = workbenchNextCursor(rows, workbenchLimit(r), func(row db.ListCreatorHealthRow) pgtype.UUID { return row.ID })
 	writeJSON(w, http.StatusOK, payload)
 }
 

@@ -786,15 +786,23 @@ WHERE workspace_id = $1
   AND archived_at IS NULL
   AND ($2::text IS NULL OR cycle = $2::text)
   AND ($3::text IS NULL OR status = $3::text)
+  AND (
+    $4::uuid IS NULL
+    OR (cycle, created_at, id)
+      < ($5::text, $6::timestamptz, $4::uuid)
+  )
 ORDER BY cycle DESC, created_at DESC, id DESC
-LIMIT $4
+LIMIT $7
 `
 
 type ListGoalsParams struct {
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	Cycle       pgtype.Text `json:"cycle"`
-	Status      pgtype.Text `json:"status"`
-	Limit       int32       `json:"limit"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	Cycle       pgtype.Text        `json:"cycle"`
+	Status      pgtype.Text        `json:"status"`
+	CursorID    pgtype.UUID        `json:"cursor_id"`
+	CursorCycle pgtype.Text        `json:"cursor_cycle"`
+	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
+	Limit       int32              `json:"limit"`
 }
 
 // OKR goals and the radar signals that feed them (docs/engineering/WORKBENCH-API.md
@@ -818,11 +826,18 @@ type ListGoalsParams struct {
 //   - a signal converts at most once: `ConvertMarketSignal` refuses a row that is
 //     already `converted`, which is what turns a second click into a 409 instead
 //     of a second goal.
+//
+// Keyset on `(cycle, created_at, id)`: the cycle is the ranking the screen reads,
+// and creation plus id break ties inside it, so the order is total. The cursor is
+// the previous page's last row id; the handler re-reads its two sort keys.
 func (q *Queries) ListGoals(ctx context.Context, arg ListGoalsParams) ([]GoalOkr, error) {
 	rows, err := q.db.Query(ctx, listGoals,
 		arg.WorkspaceID,
 		arg.Cycle,
 		arg.Status,
+		arg.CursorID,
+		arg.CursorCycle,
+		arg.CursorAt,
 		arg.Limit,
 	)
 	if err != nil {
@@ -866,28 +881,59 @@ WHERE workspace_id = $1
   AND ($2::text IS NULL OR cut = $2::text)
   AND ($3::text IS NULL OR status = $3::text)
   AND ($4::text IS NULL OR category = $4::text)
+  AND (
+    $5::uuid IS NULL
+    OR (CASE cut WHEN 'hot' THEN 0 WHEN 'warm' THEN 1 ELSE 2 END) > $6::int
+    OR (
+      (CASE cut WHEN 'hot' THEN 0 WHEN 'warm' THEN 1 ELSE 2 END) = $6::int
+      AND (
+        (
+          $7::numeric IS NOT NULL
+          AND (score IS NULL OR score < $7::numeric)
+        )
+        OR (
+          score IS NOT DISTINCT FROM $7::numeric
+          AND (created_at, id)
+            < ($8::timestamptz, $5::uuid)
+        )
+      )
+    )
+  )
 ORDER BY
     CASE cut WHEN 'hot' THEN 0 WHEN 'warm' THEN 1 ELSE 2 END,
     score DESC NULLS LAST,
     created_at DESC,
     id DESC
-LIMIT $5
+LIMIT $9
 `
 
 type ListMarketSignalsParams struct {
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	Cut         pgtype.Text `json:"cut"`
-	Status      pgtype.Text `json:"status"`
-	Category    pgtype.Text `json:"category"`
-	Limit       int32       `json:"limit"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	Cut         pgtype.Text        `json:"cut"`
+	Status      pgtype.Text        `json:"status"`
+	Category    pgtype.Text        `json:"category"`
+	CursorID    pgtype.UUID        `json:"cursor_id"`
+	CursorRank  pgtype.Int4        `json:"cursor_rank"`
+	CursorScore pgtype.Numeric     `json:"cursor_score"`
+	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
+	Limit       int32              `json:"limit"`
 }
 
+// The radar reads cut first, then score, then age. That order mixes directions
+// (cut rank ascending, score descending with NULLs last), so the keyset predicate
+// is spelled out instead of a row comparison: past the cursor's cut every hotter
+// cut is ahead, and inside one cut a NULL score or a lower score is ahead, with
+// `(created_at, id)` breaking the tie.
 func (q *Queries) ListMarketSignals(ctx context.Context, arg ListMarketSignalsParams) ([]MarketSignal, error) {
 	rows, err := q.db.Query(ctx, listMarketSignals,
 		arg.WorkspaceID,
 		arg.Cut,
 		arg.Status,
 		arg.Category,
+		arg.CursorID,
+		arg.CursorRank,
+		arg.CursorScore,
+		arg.CursorAt,
 		arg.Limit,
 	)
 	if err != nil {

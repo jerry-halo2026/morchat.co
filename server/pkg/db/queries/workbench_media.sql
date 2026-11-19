@@ -21,11 +21,17 @@
 --     could leave `creator` and the IP disagreeing.
 
 -- name: ListMediaIPs :many
+-- Paging is keyset on (created_at, id) — the order the board reads — so the cursor
+-- is the previous page's last row id and the handler re-reads its creation time.
 SELECT *
 FROM media_ip
 WHERE workspace_id = sqlc.arg('workspace_id')
   AND archived_at IS NULL
   AND (sqlc.narg('status')::text IS NULL OR status = sqlc.narg('status')::text)
+  AND (
+    sqlc.narg('cursor_at')::timestamptz IS NULL
+    OR (created_at, id) < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+  )
 ORDER BY created_at DESC, id DESC
 LIMIT sqlc.arg('limit');
 
@@ -90,12 +96,17 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archiv
 RETURNING *;
 
 -- name: ListMediaTopics :many
+-- Keyset on (created_at, id); the cursor is the previous page's last row id.
 SELECT *
 FROM media_topic
 WHERE workspace_id = sqlc.arg('workspace_id')
   AND archived_at IS NULL
   AND (sqlc.narg('ip_id')::uuid IS NULL OR ip_id = sqlc.narg('ip_id')::uuid)
   AND (sqlc.narg('status')::text IS NULL OR status = sqlc.narg('status')::text)
+  AND (
+    sqlc.narg('cursor_at')::timestamptz IS NULL
+    OR (created_at, id) < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+  )
 ORDER BY created_at DESC, id DESC
 LIMIT sqlc.arg('limit');
 
@@ -134,12 +145,17 @@ SET archived_at = now(), updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
 
 -- name: ListMediaScripts :many
+-- Keyset on (created_at, id); the cursor is the previous page's last row id.
 SELECT *
 FROM media_script
 WHERE workspace_id = sqlc.arg('workspace_id')
   AND archived_at IS NULL
   AND (sqlc.narg('topic_id')::uuid IS NULL OR topic_id = sqlc.narg('topic_id')::uuid)
   AND (sqlc.narg('status')::text IS NULL OR status = sqlc.narg('status')::text)
+  AND (
+    sqlc.narg('cursor_at')::timestamptz IS NULL
+    OR (created_at, id) < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+  )
 ORDER BY created_at DESC, id DESC
 LIMIT sqlc.arg('limit');
 
@@ -195,6 +211,9 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archiv
 -- name: ListMediaShoots :many
 -- The shoot calendar, filtered on the date it sorts by. `from`/`to` are inclusive
 -- calendar days.
+--
+-- The calendar reads oldest first, so its keyset walks forward:
+-- `(shoot_date, id) > (cursor_day, cursor_id)`.
 SELECT *
 FROM media_shoot
 WHERE workspace_id = sqlc.arg('workspace_id')
@@ -202,6 +221,10 @@ WHERE workspace_id = sqlc.arg('workspace_id')
   AND (sqlc.narg('script_id')::uuid IS NULL OR script_id = sqlc.narg('script_id')::uuid)
   AND (sqlc.narg('from_date')::date IS NULL OR shoot_date >= sqlc.narg('from_date')::date)
   AND (sqlc.narg('to_date')::date IS NULL OR shoot_date <= sqlc.narg('to_date')::date)
+  AND (
+    sqlc.narg('cursor_day')::date IS NULL
+    OR (shoot_date, id) > (sqlc.narg('cursor_day')::date, sqlc.narg('cursor_id')::uuid)
+  )
 ORDER BY shoot_date ASC, id ASC
 LIMIT sqlc.arg('limit');
 
@@ -255,7 +278,8 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archiv
 -- 18th"); `category` / `platform` are the other two facets the screen offers, and
 -- `query` searches the title, which is the row's identity. Ordering is
 -- `captured_on DESC, id DESC`: the newest capture first, total so a page cannot
--- repeat a row (813 serves it).
+-- repeat a row (813 serves it). Keyset on that pair; the cursor is the previous
+-- page's last row id.
 SELECT *
 FROM media_hot
 WHERE workspace_id = sqlc.arg('workspace_id')::uuid
@@ -266,6 +290,10 @@ WHERE workspace_id = sqlc.arg('workspace_id')::uuid
   AND (
     sqlc.narg('query')::text IS NULL
     OR title ILIKE '%' || sqlc.narg('query')::text || '%'
+  )
+  AND (
+    sqlc.narg('cursor_day')::date IS NULL
+    OR (captured_on, id) < (sqlc.narg('cursor_day')::date, sqlc.narg('cursor_id')::uuid)
   )
 ORDER BY captured_on DESC, id DESC
 LIMIT sqlc.arg('limit');
@@ -327,6 +355,10 @@ WHERE workspace_id = sqlc.arg('workspace_id')::uuid
   AND (
     sqlc.narg('query')::text IS NULL
     OR name ILIKE '%' || sqlc.narg('query')::text || '%'
+  )
+  AND (
+    sqlc.narg('cursor_day')::date IS NULL
+    OR (captured_on, id) < (sqlc.narg('cursor_day')::date, sqlc.narg('cursor_id')::uuid)
   )
 ORDER BY captured_on DESC, id DESC
 LIMIT sqlc.arg('limit');

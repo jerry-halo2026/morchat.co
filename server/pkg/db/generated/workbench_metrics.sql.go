@@ -95,7 +95,6 @@ func (q *Queries) OverviewCrmCollectedMonth(ctx context.Context, arg OverviewCrm
 }
 
 const overviewCrmFinance = `-- name: OverviewCrmFinance :one
-
 WITH bounds AS (
     SELECT coalesce($1::date, date_trunc('month', now())::date) AS month_start
 ),
@@ -271,6 +270,12 @@ type OverviewCrmFinanceRow struct {
 // Department attribution follows the B0 fallback chain (docs/METRICS.md §4): the
 // collaboration owner's member department, reached from the settlement through
 // its collaboration. Nothing here is an access boundary.
+//
+// One currency per window (`dominant`). `crm_collab` and `crm_settlement` both
+// carry a currency, and adding CNY to USD produces a number in neither: the same
+// rule `BdPerformanceCurrency` applies to its report. Every sum below filters on
+// the window's dominant currency and the response names it, so a workspace that
+// bills in two currencies reads "5000 CNY", never "9000".
 func (q *Queries) OverviewCrmFinance(ctx context.Context, arg OverviewCrmFinanceParams) (OverviewCrmFinanceRow, error) {
 	row := q.db.QueryRow(ctx, overviewCrmFinance, arg.MonthStart, arg.WorkspaceID, arg.DepartmentID)
 	var i OverviewCrmFinanceRow

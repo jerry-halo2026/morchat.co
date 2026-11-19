@@ -1250,30 +1250,50 @@ WHERE workspace_id = $1::uuid
       )
     )
   )
+  AND (
+    $5::uuid IS NULL
+    OR (
+      (coalesce(started_on, created_at::date), created_at, id)
+        < (
+          $6::date,
+          $7::timestamptz,
+          $5::uuid
+        )
+    )
+  )
 ORDER BY coalesce(started_on, created_at::date) DESC, created_at DESC, id DESC
-LIMIT $5::integer
+LIMIT $8::integer
 `
 
 type ListCreatorCampaignsParams struct {
-	WorkspaceID      pgtype.UUID `json:"workspace_id"`
-	Kind             pgtype.Text `json:"kind"`
-	DepartmentScoped bool        `json:"department_scoped"`
-	DepartmentID     pgtype.UUID `json:"department_id"`
-	Limit            int32       `json:"limit"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	Kind             pgtype.Text        `json:"kind"`
+	DepartmentScoped bool               `json:"department_scoped"`
+	DepartmentID     pgtype.UUID        `json:"department_id"`
+	CursorID         pgtype.UUID        `json:"cursor_id"`
+	CursorDay        pgtype.Date        `json:"cursor_day"`
+	CursorAt         pgtype.Timestamptz `json:"cursor_at"`
+	Limit            int32              `json:"limit"`
 }
 
 // ---- campaigns (creator_campaign) ------------------------------------------
 // `?kind=` narrows to one collection method. Newest batch first: the start day
-// when it was recorded, otherwise when the row was typed. No cursor: the order is
-// a date plus a creation timestamp and the batch count is small, so the LIMIT is
-// still the whole conversation (§20.3). The department predicate is the same one
-// the other ledgers take (§24.4).
+// when it was recorded, otherwise when the row was typed.
+//
+// Paging is keyset on `(start day, created_at, id)`: the day is the ordering key
+// and `created_at`/`id` break ties between batches typed in one go, so the order
+// is total and a cursor page can neither repeat nor skip a row. The cursor is the
+// previous page's last row id; the handler re-reads its two sort keys.
+// The department predicate is the same one the other ledgers take (§24.4).
 func (q *Queries) ListCreatorCampaigns(ctx context.Context, arg ListCreatorCampaignsParams) ([]CreatorCampaign, error) {
 	rows, err := q.db.Query(ctx, listCreatorCampaigns,
 		arg.WorkspaceID,
 		arg.Kind,
 		arg.DepartmentScoped,
 		arg.DepartmentID,
+		arg.CursorID,
+		arg.CursorDay,
+		arg.CursorAt,
 		arg.Limit,
 	)
 	if err != nil {

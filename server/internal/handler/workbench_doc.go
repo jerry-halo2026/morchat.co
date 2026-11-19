@@ -573,10 +573,23 @@ func (h *Handler) ListHrEmployeeDocuments(w http.ResponseWriter, r *http.Request
 	if !ok {
 		return
 	}
+	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
+		row, err := h.Queries.GetHrDocGeneration(r.Context(), db.GetHrDocGenerationParams{
+			ID:          id,
+			WorkspaceID: scope.WorkspaceUUID,
+		})
+		return row.CreatedAt, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListHrDocGenerations(r.Context(), db.ListHrDocGenerationsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		EmployeeID:  employee.ID,
-		Limit:       workbenchLimit(r),
+		CursorAt:    cursorAt,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list generated documents", err)
@@ -604,7 +617,11 @@ func (h *Handler) ListHrEmployeeDocuments(w http.ResponseWriter, r *http.Request
 			CreatedAt:    row.CreatedAt,
 		}, url, filename)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"documents": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"documents": resp, "total": len(resp)},
+		rows, limit, func(row db.ListHrDocGenerationsRow) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrEmployeeDocument — POST /api/workbench/hr/employees/{employeeId}/documents

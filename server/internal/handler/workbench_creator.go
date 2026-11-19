@@ -354,7 +354,7 @@ func (h *Handler) ListCreators(w http.ResponseWriter, r *http.Request) {
 		Sort:        sort,
 		WorkspaceID: scope.WorkspaceUUID,
 		Kind:        strToText(kind),
-		Query:       strToText(strings.TrimSpace(r.URL.Query().Get("q"))),
+		Query:       strToText(workbenchLikePattern(r.URL.Query().Get("q"))),
 		CursorID:    cursorID,
 		CursorValue: cursorValue,
 		CursorFans:  cursorFans,
@@ -369,14 +369,11 @@ func (h *Handler) ListCreators(w http.ResponseWriter, r *http.Request) {
 		resp[i] = creatorListRowToResponse(row)
 	}
 	// `next_cursor` names the last id of this page, which is also what `?cursor=`
-	// accepts; only a full page can have a successor. `total` is the row count of
-	// this page — the authoritative workspace-wide numbers are `/counts`, and a
-	// per-list COUNT here would double the query count for a footer nobody reads.
-	payload := map[string]any{"creators": resp, "total": len(resp), "next_cursor": nil}
-	if len(rows) > 0 && int32(len(rows)) == workbenchLimit(r) {
-		payload["next_cursor"] = uuidToString(rows[len(rows)-1].Creator.ID)
-	}
-	writeJSON(w, http.StatusOK, payload)
+	// accepts; only a full page can have a successor. See `workbenchPage`.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"creators": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.ListCreatorsRow) pgtype.UUID { return row.Creator.ID },
+	))
 }
 
 // CreateCreator — POST /api/workbench/creators
@@ -536,10 +533,27 @@ func (h *Handler) ListCreatorVideos(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "creator not found")
 		return
 	}
+	// The strip is keyset on (create_time, id), the order it reads. A work whose
+	// publish date was never captured has a NULL key and sorts last, so the
+	// predicate keeps the NULL tail reachable instead of stopping at it.
+	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
+		row, err := h.Queries.GetCreatorVideo(r.Context(), db.GetCreatorVideoParams{
+			ID:          id,
+			WorkspaceID: scope.WorkspaceUUID,
+			CreatorID:   creatorID,
+		})
+		return row.CreateTime, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListCreatorVideosRecent(r.Context(), db.ListCreatorVideosRecentParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		CreatorID:   creatorID,
-		Limit:       workbenchLimit(r),
+		CursorID:    cursorID,
+		CursorAt:    cursorAt,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list creator videos", err)
@@ -549,7 +563,12 @@ func (h *Handler) ListCreatorVideos(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = creatorVideoToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"videos": resp, "total": len(resp)})
+	// `next_cursor` names the last row of this page, which is also what `?cursor=`
+	// accepts; only a full page can have a successor.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"videos": resp, "total": len(resp)},
+		rows, limit, func(row db.CreatorVideo) pgtype.UUID { return row.ID },
+	))
 }
 
 // UpdateCreator — PATCH /api/workbench/creators/{creatorId}
@@ -744,7 +763,12 @@ func (h *Handler) ListCreatorPosts(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = creatorPostToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"posts": resp, "total": len(resp)})
+	// `next_cursor` names the last row of this page, which is also what `?cursor=`
+	// accepts; only a full page can have a successor.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"posts": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.CreatorPost) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateCreatorPost — POST /api/workbench/creator-posts
@@ -1036,12 +1060,29 @@ func (h *Handler) ListCreatorPostMetrics(w http.ResponseWriter, r *http.Request)
 	if !ok {
 		return
 	}
+	// Keyset on (captured_on, id): the cursor is a snapshot id, re-read here for its
+	// day so a cursor from another post or workspace is a 400 rather than an empty
+	// page.
+	cursorOn, cursorID, ok := h.workbenchCursorDay(w, r, func(id pgtype.UUID) (pgtype.Date, error) {
+		row, err := h.Queries.GetCreatorPostMetric(r.Context(), db.GetCreatorPostMetricParams{
+			ID:          id,
+			WorkspaceID: scope.WorkspaceUUID,
+			PostID:      postID,
+		})
+		return row.CapturedOn, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListCreatorPostMetrics(r.Context(), db.ListCreatorPostMetricsParams{
 		WorkspaceID:  scope.WorkspaceUUID,
 		PostID:       postID,
 		CapturedFrom: capturedFrom,
 		CapturedTo:   capturedTo,
-		Limit:        workbenchLimit(r),
+		CursorAt:     cursorOn,
+		CursorID:     cursorID,
+		Limit:        limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list post metrics", err)
@@ -1051,7 +1092,12 @@ func (h *Handler) ListCreatorPostMetrics(w http.ResponseWriter, r *http.Request)
 	for i, row := range rows {
 		resp[i] = creatorPostMetricToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"metrics": resp, "total": len(resp)})
+	// `next_cursor` names the last row of this page, which is also what `?cursor=`
+	// accepts; only a full page can have a successor.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"metrics": resp, "total": len(resp)},
+		rows, limit, func(row db.CreatorPostMetric) pgtype.UUID { return row.ID },
+	))
 }
 
 // UpsertCreatorPostMetric — POST /api/workbench/creator-posts/{postId}/metrics

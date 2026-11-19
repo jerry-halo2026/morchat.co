@@ -21,12 +21,20 @@
 --     of a second goal.
 
 -- name: ListGoals :many
+-- Keyset on `(cycle, created_at, id)`: the cycle is the ranking the screen reads,
+-- and creation plus id break ties inside it, so the order is total. The cursor is
+-- the previous page's last row id; the handler re-reads its two sort keys.
 SELECT *
 FROM goal_okr
 WHERE workspace_id = sqlc.arg('workspace_id')
   AND archived_at IS NULL
   AND (sqlc.narg('cycle')::text IS NULL OR cycle = sqlc.narg('cycle')::text)
   AND (sqlc.narg('status')::text IS NULL OR status = sqlc.narg('status')::text)
+  AND (
+    sqlc.narg('cursor_id')::uuid IS NULL
+    OR (cycle, created_at, id)
+      < (sqlc.narg('cursor_cycle')::text, sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+  )
 ORDER BY cycle DESC, created_at DESC, id DESC
 LIMIT sqlc.arg('limit');
 
@@ -198,6 +206,11 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')
 RETURNING id, number, title, status, goal_id;
 
 -- name: ListMarketSignals :many
+-- The radar reads cut first, then score, then age. That order mixes directions
+-- (cut rank ascending, score descending with NULLs last), so the keyset predicate
+-- is spelled out instead of a row comparison: past the cursor's cut every hotter
+-- cut is ahead, and inside one cut a NULL score or a lower score is ahead, with
+-- `(created_at, id)` breaking the tie.
 SELECT *
 FROM market_signal
 WHERE workspace_id = sqlc.arg('workspace_id')
@@ -205,6 +218,24 @@ WHERE workspace_id = sqlc.arg('workspace_id')
   AND (sqlc.narg('cut')::text IS NULL OR cut = sqlc.narg('cut')::text)
   AND (sqlc.narg('status')::text IS NULL OR status = sqlc.narg('status')::text)
   AND (sqlc.narg('category')::text IS NULL OR category = sqlc.narg('category')::text)
+  AND (
+    sqlc.narg('cursor_id')::uuid IS NULL
+    OR (CASE cut WHEN 'hot' THEN 0 WHEN 'warm' THEN 1 ELSE 2 END) > sqlc.narg('cursor_rank')::int
+    OR (
+      (CASE cut WHEN 'hot' THEN 0 WHEN 'warm' THEN 1 ELSE 2 END) = sqlc.narg('cursor_rank')::int
+      AND (
+        (
+          sqlc.narg('cursor_score')::numeric IS NOT NULL
+          AND (score IS NULL OR score < sqlc.narg('cursor_score')::numeric)
+        )
+        OR (
+          score IS NOT DISTINCT FROM sqlc.narg('cursor_score')::numeric
+          AND (created_at, id)
+            < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+        )
+      )
+    )
+  )
 ORDER BY
     CASE cut WHEN 'hot' THEN 0 WHEN 'warm' THEN 1 ELSE 2 END,
     score DESC NULLS LAST,
