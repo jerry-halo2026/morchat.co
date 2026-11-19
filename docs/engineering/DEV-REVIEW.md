@@ -174,3 +174,17 @@ handler 级覆盖，没有任何证据表明登录后的浏览器能真的打开
 **结论（如实说）**：web 的 workbench 页面有 E2E 证据且全绿；web 其余套件有一条 locale 相关
 既有失败、以及一个既有收集期错误挡住整套运行；桌面端没有 E2E，只有单元/组件级——新代码全绿，
 既有 2 条红在 main 上同样红。
+
+### 9.4 修掉的两个既有阻塞（2026-11-19）
+
+| 问题 | 修法 | 结果 |
+| --- | --- | --- |
+| 整套 E2E 在收集阶段就报 SyntaxError：`e2e/plugin-surface-document.spec.ts` 导入 `buildSurfaceDocument`，而模块现在只导出 `buildSurfaceFrameDocument`（实现已从「内联 srcdoc」改成「host-authored 外层帧 + content URL」） | 按当前契约重写该 spec：外层帧真的挂载、内层 `sandbox` 含 `allow-scripts` 且**不含** `allow-same-origin`、CSP 只放行一个 origin（`frame-src` / `connect-src 'none'` / `default-src 'none'`）、非法 launch 抛错。单元测试已钉生成物，这三条只有真 Chromium 能证明 | **3 passed** |
+| 套件按英文标签断言，但 app 的 locale 从 cookie / navigator 解析：宿主是 zh-Hans 时按钮叫「筛选」而不是 filter | `loginAsDefault` 里把 `multica-locale=en` 写进 cookie，让断言与宿主语言无关 | issues 的 filter 用例从「找不到按钮」推进到后续步骤 |
+| `issues › can filter issues by created and updated dates` 仍失败 | 该用例用「聚焦 Date 项 + ArrowRight」打开日期子菜单；现在子菜单是 Radix `Sub`、靠 hover 打开，且应用过预设后该 menuitem 定位不再指向触发器（两次改法都在 `hover` 上超时）。**交互漂移不是竞态** → 标 `test.fixme` 并写明原因，不静默删除 | 1 skipped |
+
+修完后的有界复跑（auth + issues + workbench + plugin-surface + inbox-delete）：
+
+```
+27 个用例：26 passed · 1 skipped · 0 failed（1.2m）
+```
