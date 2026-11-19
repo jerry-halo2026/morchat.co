@@ -21,7 +21,7 @@ WHERE i.workspace_id = $1
   -- MUL-8472: private projects the caller cannot see.
   AND (sqlc.narg('hidden_project_ids')::uuid[] IS NULL OR i.project_id IS NULL OR NOT (i.project_id = ANY(sqlc.narg('hidden_project_ids')::uuid[])))
   AND (sqlc.narg('scheduled')::bool IS NULL OR (i.start_date IS NOT NULL OR i.due_date IS NOT NULL))
-  AND (sqlc.narg('metadata_filter')::jsonb IS NULL OR i.metadata @> sqlc.narg('metadata_filter')::jsonb)
+  AND (sqlc.narg('metadata_filter')::text::jsonb IS NULL OR i.metadata @> sqlc.narg('metadata_filter')::text::jsonb)
   AND (
     sqlc.narg('involves_user_id')::uuid IS NULL
     -- (1) assignee is an agent owned by the user
@@ -188,7 +188,7 @@ INSERT INTO issue (
     stage, properties, last_activity_at, id
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-    sqlc.narg('stage'), COALESCE(sqlc.narg('properties')::jsonb, '{}'::jsonb), now(), COALESCE(sqlc.narg('id')::uuid, gen_random_uuid())
+    sqlc.narg('stage'), COALESCE(sqlc.narg('properties')::text, '{}')::jsonb, now(), COALESCE(sqlc.narg('id')::uuid, gen_random_uuid())
 ) RETURNING *;
 
 -- name: GetIssueByNumber :one
@@ -416,7 +416,7 @@ INSERT INTO issue (
     origin_type, origin_id, stage, properties, last_activity_at, id, requester_user_id
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-    sqlc.narg('origin_type'), sqlc.narg('origin_id'), sqlc.narg('stage'), COALESCE(sqlc.narg('properties')::jsonb, '{}'::jsonb), now(), COALESCE(sqlc.narg('id')::uuid, gen_random_uuid()), sqlc.narg('requester_user_id')
+    sqlc.narg('origin_type'), sqlc.narg('origin_id'), sqlc.narg('stage'), COALESCE(sqlc.narg('properties')::text, '{}')::jsonb, now(), COALESCE(sqlc.narg('id')::uuid, gen_random_uuid()), sqlc.narg('requester_user_id')
 ) RETURNING *;
 
 -- name: LockIssueDuplicateKey :exec
@@ -532,7 +532,7 @@ WHERE i.workspace_id = $1
   AND (sqlc.narg('project_id')::uuid IS NULL OR i.project_id = sqlc.narg('project_id'))
   -- MUL-8472: private projects the caller cannot see.
   AND (sqlc.narg('hidden_project_ids')::uuid[] IS NULL OR i.project_id IS NULL OR NOT (i.project_id = ANY(sqlc.narg('hidden_project_ids')::uuid[])))
-  AND (sqlc.narg('metadata_filter')::jsonb IS NULL OR i.metadata @> sqlc.narg('metadata_filter')::jsonb)
+  AND (sqlc.narg('metadata_filter')::text::jsonb IS NULL OR i.metadata @> sqlc.narg('metadata_filter')::text::jsonb)
   -- properties_filter is a jsonb array of groups, each group an array of
   -- patterns (built by parsePropertiesFilterParam): the issue must match at
   -- least one pattern from EVERY group (AND of ORs). Three pattern shapes:
@@ -550,10 +550,10 @@ WHERE i.workspace_id = $1
   -- terminal-status predicate intentionally remains a filter rather than a
   -- positive index narrowing so unknown legacy status keys stay visible.
   AND (
-    sqlc.narg('properties_filter')::jsonb IS NULL
+    sqlc.narg('properties_filter')::text::jsonb IS NULL
     OR NOT EXISTS (
       SELECT 1
-      FROM jsonb_array_elements(sqlc.narg('properties_filter')::jsonb) AS pf(alternatives)
+      FROM jsonb_array_elements(sqlc.narg('properties_filter')::text::jsonb) AS pf(alternatives)
       WHERE NOT EXISTS (
         SELECT 1
         FROM jsonb_array_elements(pf.alternatives) AS alt(pattern)
@@ -638,7 +638,7 @@ WHERE i.workspace_id = $1
   -- MUL-8472: private projects the caller cannot see.
   AND (sqlc.narg('hidden_project_ids')::uuid[] IS NULL OR i.project_id IS NULL OR NOT (i.project_id = ANY(sqlc.narg('hidden_project_ids')::uuid[])))
   AND (sqlc.narg('scheduled')::bool IS NULL OR (i.start_date IS NOT NULL OR i.due_date IS NOT NULL))
-  AND (sqlc.narg('metadata_filter')::jsonb IS NULL OR i.metadata @> sqlc.narg('metadata_filter')::jsonb)
+  AND (sqlc.narg('metadata_filter')::text::jsonb IS NULL OR i.metadata @> sqlc.narg('metadata_filter')::text::jsonb)
   AND (
     sqlc.narg('involves_user_id')::uuid IS NULL
     OR (i.assignee_type = 'agent' AND i.assignee_id IN (
@@ -742,12 +742,12 @@ GROUP BY parent_issue_id;
 -- a workspace mismatch returns no rows; callers that must distinguish those
 -- cases need a separate workspace-scoped read.
 UPDATE issue SET
-    metadata = jsonb_set(metadata, ARRAY[sqlc.arg('key')::text], sqlc.arg('value')::jsonb),
+    metadata = jsonb_set(metadata, ARRAY[sqlc.arg('key')::text], sqlc.arg('value')::text::jsonb),
     revision = revision + 1,
     last_activity_at = GREATEST(COALESCE(last_activity_at, updated_at), now()),
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')
-  AND metadata -> sqlc.arg('key')::text IS DISTINCT FROM sqlc.arg('value')::jsonb
+  AND metadata -> sqlc.arg('key')::text IS DISTINCT FROM sqlc.arg('value')::text::jsonb
 RETURNING id, workspace_id, metadata, revision;
 
 -- name: DeleteIssueMetadataKey :one

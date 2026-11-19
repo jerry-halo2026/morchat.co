@@ -90,7 +90,7 @@ func (s *IssueWakeupService) Trigger(ctx context.Context, issueID, id, member pg
 	key := "manual:" + util.UUIDToString(dbid.NewV7())
 	payload, _ := json.Marshal(map[string]any{"event_id": key, "requested_at": now.UTC().Format(time.RFC3339),
 		"actor_type": "member", "actor_id": util.UUIDToString(member)})
-	if _, err = q.RecordWakeupReceipt(ctx, db.RecordWakeupReceiptParams{ID: dbid.NewV7(), WakeupID: w.ID, Revision: w.Revision, EventKey: key, EventType: wakeupManualEventType, Payload: payload}); err != nil {
+	if _, err = q.RecordWakeupReceipt(ctx, db.RecordWakeupReceiptParams{ID: dbid.NewV7(), WakeupID: w.ID, Revision: w.Revision, EventKey: key, EventType: wakeupManualEventType, Payload: string(payload)}); err != nil {
 		return err
 	}
 	if err = tx.Commit(ctx); err != nil {

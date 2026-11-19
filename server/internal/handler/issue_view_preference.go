@@ -145,7 +145,7 @@ func (h *Handler) PutIssueViewPreference(w http.ResponseWriter, r *http.Request)
 		UserID:      parseUUID(userID),
 		ScopeType:   req.ScopeType,
 		ScopeID:     scopeID,
-		Prefs:       req.Prefs,
+		Prefs:       string(req.Prefs),
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to save preference")

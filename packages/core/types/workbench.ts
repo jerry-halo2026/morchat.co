@@ -1,10 +1,10 @@
-/**
- * Workbench wire types (docs/engineering/WORKBENCH-API.md §2 and §10).
+﻿/**
+ * Workbench wire types (docs/engineering/WORKBENCH-API.md 搂2 and 搂10).
  *
- * B0's seven ledger tables — creators (the supply side), their posts and per-day
- * post snapshots (the evidence side), and the four CRM ledgers (client → brief →
- * collab → settlement) — plus B1's five HR records (job → candidate → interview
- * → scorecard, and the employee profile a hire creates). Every field here is
+ * B0's seven ledger tables 鈥?creators (the supply side), their posts and per-day
+ * post snapshots (the evidence side), and the four CRM ledgers (client 鈫?brief 鈫?
+ * collab 鈫?settlement) 鈥?plus B1's five HR records (job 鈫?candidate 鈫?interview
+ * 鈫?scorecard, and the employee profile a hire creates). Every field here is
  * what the server puts on the wire, snake_case and flat; nothing is denormalized,
  * because the ledger screens read rows and resolve labels at render time.
  *
@@ -56,9 +56,9 @@ export interface Creator {
   fans_d7: number;
   avg_play: number;
   /**
-   * Content health: (average likes + comments + shares) / followers, 0–1
+   * Content health: (average likes + comments + shares) / followers, 0鈥?
    * (docs/METRICS.md C3), on the *latest snapshot* when the row came from the
-   * list endpoint — the ledger's 互动率 column. `GET /creators/{id}` still
+   * list endpoint 鈥?the ledger's 浜掑姩鐜?column. `GET /creators/{id}` still
    * reports the legacy manually entered `creator.engagement_rate` column.
    *
    * Never clamped: 45.03 (= 4503 %) is real upstream data and means the follower
@@ -69,7 +69,7 @@ export interface Creator {
   audience_note: string | null;
   region: string | null;
   price_note: string | null;
-  /** Manual 1–5 rating; null until someone sets one. */
+  /** Manual 1鈥? rating; null until someone sets one. */
   score: number | null;
   risk_flag: boolean;
   blacklist_reason: string | null;
@@ -83,20 +83,20 @@ export interface Creator {
   archived_at: string | null;
 
   /**
-   * Mirrored from the orange 达人 database (docs/engineering/ORANGE-SYNC.md).
+   * Mirrored from the orange 杈句汉 database (docs/engineering/ORANGE-SYNC.md).
    *
    * These are upstream-owned: a sync rewrites them, so a local edit is lost.
-   * `sec_uid` doubles as the mirror identity — `source_system` + `source_id`
+   * `sec_uid` doubles as the mirror identity 鈥?`source_system` + `source_id`
    * name the upstream row, and both are null on a creator someone typed in.
    */
   sec_uid: string | null;
   douyin_id: string | null;
   dy_uid: string | null;
-  /** Upstream display follower count verbatim ("2.6万"), next to the parsed `fans`. */
+  /** Upstream display follower count verbatim ("2.6涓?), next to the parsed `fans`. */
   fans_display: string | null;
   quote_min: number | null;
   quote_max: number | null;
-  /** orange outreach stage, verbatim Chinese (未接触 … 已成单 / 已签约 / 排除). */
+  /** orange outreach stage, verbatim Chinese (鏈帴瑙?鈥?宸叉垚鍗?/ 宸茬绾?/ 鎺掗櫎). */
   cooperation_intent: string | null;
   /** orange funnel state: LEAD_NEW | LEAD_CONTACTED | LEAD_DEAL | LEAD_REJECT. */
   lead_status: string | null;
@@ -112,9 +112,9 @@ export interface Creator {
   source_id: string | null;
 
   /**
-   * The rest of the newest snapshot (WORKBENCH-DATA-CONTRACT §2.3), joined onto
-   * the list response only. Optional so a `GET /creators/{id}` row — and every
-   * fixture written before the ledger carried health — still parses; every one
+   * The rest of the newest snapshot (WORKBENCH-DATA-CONTRACT 搂2.3), joined onto
+   * the list response only. Optional so a `GET /creators/{id}` row 鈥?and every
+   * fixture written before the ledger carried health 鈥?still parses; every one
    * of them is null for a creator nobody has sampled yet.
    */
   hit_rate?: number | null;
@@ -142,13 +142,19 @@ export interface CreatorPost {
   collab_id: string | null;
   content_issue_id: string | null;
   /**
-   * The affiliate product this post promoted, when it ran a 小黄车
-   * (docs/engineering/WORKBENCH-API.md §11). Null for a post that was not a
+   * The affiliate product this post promoted, when it ran a 灏忛粍杞?
+   * (docs/engineering/WORKBENCH-API.md 搂11). Null for a post that was not a
    * product placement, and for rows imported before the column existed.
    */
   product_id: string | null;
-  /** The pick (product × creator plan) the post belongs to, when known. */
+  /** The pick (product 脳 creator plan) the post belongs to, when known. */
   pick_id: string | null;
+  /**
+   * The script version this post was published from (migration 733,
+   * docs/engineering/WORKBENCH-API.md 搂12). Null for a post that ran no plan,
+   * and for rows published before the link existed.
+   */
+  media_script_id: string | null;
   platform: string;
   title: string | null;
   url: string;
@@ -186,10 +192,10 @@ export interface CreatorPostMetric {
 }
 
 /**
- * One 抖音 work, mirrored from the orange 达人 database
- * (docs/engineering/WORKBENCH-DATA-CONTRACT.md §2.1). One row per aweme.
+ * One 鎶栭煶 work, mirrored from the orange 杈句汉 database
+ * (docs/engineering/WORKBENCH-DATA-CONTRACT.md 搂2.1). One row per aweme.
  *
- * The three counters are nullable, and NULL means "not collected yet" — not 0.
+ * The three counters are nullable, and NULL means "not collected yet" 鈥?not 0.
  * 8612 of the 12449 mirrored works sit in that state, so a UI that treats NULL as
  * zero would invent engagement for two thirds of the library.
  *
@@ -202,7 +208,7 @@ export interface CreatorVideo {
   creator_id: string;
   aweme_id: string;
   desc_text: string | null;
-  /** Parsed from `desc_text` (`#话题`), de-duplicated, in first-seen order. */
+  /** Parsed from `desc_text` (`#璇濋`), de-duplicated, in first-seen order. */
   topics: string[];
   /** Publish time; null on works whose publish date was never captured. */
   create_time: string | null;
@@ -231,9 +237,9 @@ export interface CreatorVideo {
 export type CreatorMetricSampleNote = "no_stats" | "sample_below_10" | "no_followers";
 
 /**
- * One day's content health for one creator (WORKBENCH-DATA-CONTRACT §2.2/§2.3).
+ * One day's content health for one creator (WORKBENCH-DATA-CONTRACT 搂2.2/搂2.3).
  *
- * `engagement_rate` and `hit_rate` are stored on the 0–1 scale and are NOT
+ * `engagement_rate` and `hit_rate` are stored on the 0鈥? scale and are NOT
  * clamped: the live data contains 45.03 (= 4503 %), which means that creator's
  * follower count disagrees with their works. A reader should see the flag, so the
  * UI multiplies by 100 for display and leaves the value alone.
@@ -245,7 +251,7 @@ export interface CreatorMetric {
   /** Calendar day `YYYY-MM-DD`. */
   captured_on: string;
   video_count: number | null;
-  /** Works whose likes count was collected — the sample behind every metric. */
+  /** Works whose likes count was collected 鈥?the sample behind every metric. */
   videos_with_stats: number | null;
   posts_last_30d: number | null;
   avg_digg: number | null;
@@ -263,7 +269,7 @@ export interface CreatorMetric {
  * One row of the health board: a creator and its latest snapshot, flattened.
  *
  * The snapshot fields are null for a creator that has never been sampled, and
- * such a creator is still in the list — "no data yet" is a state the reader has
+ * such a creator is still in the list 鈥?"no data yet" is a state the reader has
  * to be able to see.
  */
 export interface CreatorHealth {
@@ -330,7 +336,7 @@ export interface CrmCollab {
   stage: CrmCollabStage;
   quote_amount: number | null;
   final_amount: number | null;
-  /** 0–1 success probability; null means "use the stage default". */
+  /** 0鈥? success probability; null means "use the stage default". */
   prob: number | null;
   creator_fee: number | null;
   sample_cost: number | null;
@@ -351,8 +357,8 @@ export interface CrmCollab {
   updated_at: string;
   archived_at: string | null;
   /**
-   * Where the collaboration went live (WORKBENCH-API §20.2, migration 810).
-   * `null` until something was published — `published_at` says when, this says
+   * Where the collaboration went live (WORKBENCH-API 搂20.2, migration 810).
+   * `null` until something was published 鈥?`published_at` says when, this says
    * where.
    */
   publish_url: string | null;
@@ -392,7 +398,7 @@ export interface WorkbenchCountsResponse {
   /**
    * Recruiting ledgers. Optional because a server that predates B1 omits them,
    * and a missing count must render as "no number yet" rather than a confident
-   * zero — the same rule `emptyRule` applies to metrics.
+   * zero 鈥?the same rule `emptyRule` applies to metrics.
    */
   jobs?: number;
   candidates?: number;
@@ -404,11 +410,11 @@ export interface WorkbenchCountsResponse {
 //
 // Five figures for one calendar month over the ledgers above, plus the month
 // entry that supplies the two inputs the ledgers cannot (migration 707)
-// (docs/engineering/WORKBENCH-API.md §3, docs/METRICS.md §2). Each figure travels
+// (docs/engineering/WORKBENCH-API.md 搂3, docs/METRICS.md 搂2). Each figure travels
 // in the same three-state shape the metric strip uses, so the client renders "not
 // measurable" the same way on both surfaces: `value: null` says the rows behind
 // the figure are missing, which is a different statement from a zero
-// (docs/METRICS.md §1 rule 3). The two figures with a cost side also say which
+// (docs/METRICS.md 搂1 rule 3). The two figures with a cost side also say which
 // cost set they used, so a hint can name it instead of implying one.
 
 /** Which contract outcome a block's `empty` names. */
@@ -417,9 +423,9 @@ export type WorkbenchFinanceEmptyState = "zero" | "insufficient_data";
 /**
  * Which cost side a money figure was computed against.
  *
- * `entered` — the month's own entry (`ops_finance_month`, migration 707) carries
- * the cost; `settled_collabs` — no entry, so the fees of the collaborations
- * settled this month are the fallback; `none` — neither exists, so the figure has
+ * `entered` 鈥?the month's own entry (`ops_finance_month`, migration 707) carries
+ * the cost; `settled_collabs` 鈥?no entry, so the fees of the collaborations
+ * settled this month are the fallback; `none` 鈥?neither exists, so the figure has
  * no cost side at all and the client says so instead of naming a number.
  */
 export type WorkbenchFinanceCostBasis = "entered" | "settled_collabs" | "none";
@@ -428,7 +434,7 @@ export interface WorkbenchFinanceBlock {
   value: number | null;
   /**
    * Rows the figure was computed from (for a ratio: the denominator). `0` next to
-   * `value: 0` is a true zero — no money moved — not a missing measurement.
+   * `value: 0` is a true zero 鈥?no money moved 鈥?not a missing measurement.
    */
   sample_count: number;
   empty: WorkbenchFinanceEmptyState;
@@ -447,29 +453,34 @@ export interface WorkbenchFinanceResponse {
   /** Settlement money that actually cleared this month, in CNY. */
   collected: WorkbenchFinanceBlock;
   /**
-   * (collected − cost) / collected at the 0–1 storage scale (C3); the UI
-   * multiplies by 100. Null until both sides of the division exist — `basis` says
+   * (collected 鈭?cost) / collected at the 0鈥? storage scale (C3); the UI
+   * multiplies by 100. Null until both sides of the division exist 鈥?`basis` says
    * which cost side was used.
    */
   gross_margin: WorkbenchFinanceCostBlock;
   /** Mean age, in days, of the settlements still unpaid. */
   receivable_days: WorkbenchFinanceBlock;
   /**
-   * Opening cash + collected − the month's cost, in CNY. Null until the month has
+   * Opening cash + collected 鈭?the month's cost, in CNY. Null until the month has
    * an opening balance, which no ledger row can supply.
    */
   cash_floor: WorkbenchFinanceCostBlock;
 }
 
 export interface WorkbenchFinanceFilters {
-  /** Aggregate dimension only; never an access boundary (§3). */
+  /** Aggregate dimension only; never an access boundary (搂3). */
   department_id?: string | null;
+  /**
+   * The calendar month (`YYYY-MM`) to aggregate; omitted means the current
+   * month. A month with no rows answers `insufficient_data`, never 0.
+   */
+  month?: string;
 }
 
 /**
  * One month's own money entry (`ops_finance_month`, migration 707): the inputs
  * the money block cannot derive from the ledgers. A null amount is "not
- * recorded", which the UI renders as `—`, never as 0.
+ * recorded", which the UI renders as `鈥擿, never as 0.
  */
 export interface WorkbenchFinanceMonth {
   id: string;
@@ -485,7 +496,7 @@ export interface WorkbenchFinanceMonth {
   updated_at: string;
 }
 
-/** `GET /api/workbench/finance/months` — every entered month, newest first. */
+/** `GET /api/workbench/finance/months` 鈥?every entered month, newest first. */
 export interface WorkbenchFinanceMonthListResponse {
   months: WorkbenchFinanceMonth[];
   total: number;
@@ -570,7 +581,7 @@ export interface CreatorListFilters {
   limit?: number;
   cursor?: string;
   /**
-   * The ledger's ordering (WORKBENCH-API §3). `fans` is the default; the three
+   * The ledger's ordering (WORKBENCH-API 搂3). `fans` is the default; the three
    * content sorts put creators with no snapshot last. Everything is descending,
    * with followers as the second key, so the order is total.
    */
@@ -689,7 +700,16 @@ export type CreateCreatorPostRequest = Pick<
   "creator_id" | "platform" | "url" | "published_at"
 > &
   Partial<
-    Pick<CreatorPost, "collab_id" | "content_issue_id" | "title" | "source" | "product_id" | "pick_id">
+    Pick<
+    CreatorPost,
+    | "collab_id"
+    | "content_issue_id"
+    | "title"
+    | "source"
+    | "product_id"
+    | "pick_id"
+    | "media_script_id"
+  >
   >;
 
 export type UpdateCreatorPostRequest = Partial<
@@ -812,7 +832,7 @@ export type CreateCrmCollabRequest = Pick<CrmCollab, "brief_id" | "creator_id"> 
       | "scheduled_at"
       | "issue_id"
       | "owner_member_id"
-      // Fulfilment (WORKBENCH-API §20.2): the link to what went live, and the
+      // Fulfilment (WORKBENCH-API 搂20.2): the link to what went live, and the
       // calendar day the money was settled. Both optional on create.
       | "publish_url"
       | "settled_on"
@@ -839,7 +859,7 @@ export type UpdateCrmCollabRequest = Partial<
     | "scheduled_at"
     | "issue_id"
     | "owner_member_id"
-    // Fulfilment (WORKBENCH-API §20.2): the link to what went live, and the
+    // Fulfilment (WORKBENCH-API 搂20.2): the link to what went live, and the
     // calendar day the money was settled.
     | "publish_url"
     | "settled_on"
@@ -858,17 +878,17 @@ export type UpdateCrmSettlementRequest = Partial<
   >
 >;
 
-// --- HR (docs/engineering/WORKBENCH-API.md §10) ---------------------------
+// --- HR (docs/engineering/WORKBENCH-API.md 搂10) ---------------------------
 //
 // Five personnel records, same wire rules as the ledgers above: flat snake_case,
 // money as a JSON number with `currency` beside it, soft delete via
-// `archived_at`. The chain is job → candidate → interview → scorecard, plus the
+// `archived_at`. The chain is job 鈫?candidate 鈫?interview 鈫?scorecard, plus the
 // employee profile a hire creates.
 //
 // Exceptions to "everything is a column": `ability` (6 dimensions), `disc`
 // (four axes), the scorecard's `dimensions` and the requisition's `keywords`
 // are JSONB, because they are only displayed, fed to the AI context, or scored
-// against — never joined on or used as a constraint key (§10.2). Everything a
+// against 鈥?never joined on or used as a constraint key (搂10.2). Everything a
 // metric needs is a real column.
 
 export type HrJobStatus = "draft" | "open" | "paused" | "closed";
@@ -890,8 +910,8 @@ export type HrInterviewStatus = "scheduled" | "done" | "cancelled" | "no_show";
 export type HrScorecardVerdict = "strong_yes" | "yes" | "no" | "strong_no";
 
 /**
- * Ability matrix and DISC profile as they travel: dimension name → score.
- * `ability` is the 1–10 six-dimension matrix, `disc` the 0–10 d/i/s/c axes.
+ * Ability matrix and DISC profile as they travel: dimension name 鈫?score.
+ * `ability` is the 1鈥?0 six-dimension matrix, `disc` the 0鈥?0 d/i/s/c axes.
  * Both are open maps, not closed unions, because the dimension set is a product
  * decision the server can extend without a client release.
  */
@@ -900,10 +920,10 @@ export type HrAbilityScores = Record<string, number>;
 export type HrDiscScores = Record<string, number>;
 
 /**
- * One scorecard's per-dimension scores: dimension name → 0–5. An open map
+ * One scorecard's per-dimension scores: dimension name 鈫?0鈥?. An open map
  * because the dimension set comes from the template the AI generates for the
- * role, not from a fixed column list (§10.2). A dimension the reviewer did not
- * rate is simply absent — different from a stored 0.
+ * role, not from a fixed column list (搂10.2). A dimension the reviewer did not
+ * rate is simply absent 鈥?different from a stored 0.
  */
 export type HrScorecardDimensions = Record<string, number>;
 
@@ -912,14 +932,14 @@ export type HrScorecardDimensions = Record<string, number>;
  *
  * `edu` / `years` / `city` / `keywords` are what `match_score` is computed
  * against, and `jd` is the prompt the AI drafts the posting and interview
- * questions from — both are free text on purpose: "3-5 年" and "本科以上" are
+ * questions from 鈥?both are free text on purpose: "3-5 骞? and "鏈浠ヤ笂" are
  * what a recruiter typed, not a vocabulary the schema can constrain.
  */
 export interface HrJob {
   id: string;
   workspace_id: string;
   title: string;
-  /** Aggregate dimension only, never an access boundary (same as §3). */
+  /** Aggregate dimension only, never an access boundary (same as 搂3). */
   department_id: string | null;
   level: string | null;
   headcount: number;
@@ -928,14 +948,14 @@ export interface HrJob {
   salary_max: number | null;
   currency: string;
   requirements: string | null;
-  /** Required education, free text ("本科", "硕士或同等经验"). */
+  /** Required education, free text ("鏈", "纭曞＋鎴栧悓绛夌粡楠?). */
   edu: string | null;
-  /** Required experience, free text ("3-5 年"). */
+  /** Required experience, free text ("3-5 骞?). */
   years: string | null;
   city: string | null;
   /** Long-form description; the AI generation input. */
   jd: string | null;
-  /** The 急招 flag the funnel pins. */
+  /** The 鎬ユ嫑 flag the funnel pins. */
   urgent: boolean;
   /** JSONB string array; always present, possibly empty. */
   keywords: string[];
@@ -947,8 +967,8 @@ export interface HrJob {
 }
 
 /**
- * A person in the pipeline for one job. One candidate row belongs to one job —
- * the same person applying twice is two rows (§10.2 `UNIQUE (workspace_id,
+ * A person in the pipeline for one job. One candidate row belongs to one job 鈥?
+ * the same person applying twice is two rows (搂10.2 `UNIQUE (workspace_id,
  * job_id, lower(name), coalesce(phone,''))`).
  */
 export interface HrCandidate {
@@ -961,9 +981,9 @@ export interface HrCandidate {
   phone: string | null;
   email: string | null;
   resume_attachment_id: string | null;
-  /** SMALLINT 0–100; null = never scored. */
+  /** SMALLINT 0鈥?00; null = never scored. */
   match_score: number | null;
-  /** NUMERIC(5,2) 0–100 subscores for the three screening rounds. */
+  /** NUMERIC(5,2) 0鈥?00 subscores for the three screening rounds. */
   score_resume: number | null;
   score_test: number | null;
   score_interview: number | null;
@@ -973,7 +993,7 @@ export interface HrCandidate {
   owner_member_id: string | null;
   /**
    * The candidate's own education, free text and the same vocabulary as
-   * `HrJob.edu` ("本科", "硕士"): the education dimension of the match score is a
+   * `HrJob.edu` ("鏈", "纭曞＋"): the education dimension of the match score is a
    * normalised comparison against what the requisition asks for, not a ladder.
    */
   edu: string | null;
@@ -981,8 +1001,8 @@ export interface HrCandidate {
    *  compares it against the range parsed out of `HrJob.years`. */
   years_experience: number | null;
   /**
-   * The résumé body — pasted, or produced by the attachment parser. `null` means
-   * "no résumé on file", which is a different answer from an empty string: the
+   * The r茅sum茅 body 鈥?pasted, or produced by the attachment parser. `null` means
+   * "no r茅sum茅 on file", which is a different answer from an empty string: the
    * keyword dimension skips on `null` and scores 0 on text that matches nothing.
    */
   resume_text: string | null;
@@ -1015,7 +1035,7 @@ export interface HrInterview {
   /** Null while nobody has picked a channel; the column allows NULL. */
   mode: HrInterviewMode | null;
   status: HrInterviewStatus;
-  /** Bumped by the server on every reschedule (§10.3). */
+  /** Bumped by the server on every reschedule (搂10.3). */
   rescheduled_count: number;
   note: string | null;
   created_by: string | null;
@@ -1034,17 +1054,17 @@ export interface HrScorecard {
   workspace_id: string;
   interview_id: string;
   reviewer_member_id: string | null;
-  /** Legacy columns: 0–5 per dimension, read-only. New code writes `dimensions`. */
+  /** Legacy columns: 0鈥? per dimension, read-only. New code writes `dimensions`. */
   score_skill: number | null;
   score_experience: number | null;
   score_culture: number | null;
   score_potential: number | null;
   /**
-   * NUMERIC(5,2) on the dimension scale (0–5). The server fills it with the mean
+   * NUMERIC(5,2) on the dimension scale (0鈥?). The server fills it with the mean
    * of `dimensions` when the client sends the map without a total.
    */
   weighted_score: number | null;
-  /** The current shape: dimension name → 0–5. Always an object, possibly empty. */
+  /** The current shape: dimension name 鈫?0鈥?. Always an object, possibly empty. */
   dimensions: HrScorecardDimensions;
   verdict: HrScorecardVerdict | null;
   comment: string | null;
@@ -1055,7 +1075,7 @@ export interface HrScorecard {
 }
 
 /**
- * The HR file of a workspace member: one row per member (§10.2 `UNIQUE
+ * The HR file of a workspace member: one row per member (搂10.2 `UNIQUE
  * (workspace_id, member_id)`). Created or updated by the hire transition.
  */
 export interface HrEmployeeProfile {
@@ -1080,7 +1100,7 @@ export interface HrEmployeeProfile {
   archived_at: string | null;
 }
 
-// --- HR list envelopes (§3.1 applies to §10.3 unchanged) -------------------
+// --- HR list envelopes (搂3.1 applies to 搂10.3 unchanged) -------------------
 // `total` is the page's row count, not a workspace-wide count.
 
 export interface HrJobListResponse {
@@ -1109,8 +1129,8 @@ export interface HrEmployeeProfileListResponse {
 }
 
 // --- HR filters -----------------------------------------------------------
-// §10.3 names the routes but not their query strings, so these carry only what
-// §10.2 makes filterable on real columns (the foreign keys, plus the status /
+// 搂10.3 names the routes but not their query strings, so these carry only what
+// 搂10.2 makes filterable on real columns (the foreign keys, plus the status /
 // stage enums the boards group by). List endpoints ignore keys they do not
 // know, so an unchanged key set never narrows a page to nothing.
 
@@ -1236,8 +1256,8 @@ export type UpdateHrCandidateRequest = Partial<
 
 /** `rescheduled_count` is server-managed: a PATCH that moves `scheduled_at`
  *  increments it, and a client-supplied value would overwrite the audit count.
- *  `interviewer_name` is optional on the wire — a body that carries only
- *  `interviewer_member_id` has the name filled in from that member — but the
+ *  `interviewer_name` is optional on the wire 鈥?a body that carries only
+ *  `interviewer_member_id` has the name filled in from that member 鈥?but the
  *  server answers 400 when neither is present. */
 export type CreateHrInterviewRequest = Pick<HrInterview, "candidate_id" | "scheduled_at"> &
   Partial<
@@ -1341,7 +1361,7 @@ export type HireHrCandidateRequest = CreateHrEmployeeProfileRequest;
 
 /**
  * What hiring returns: the updated candidate and the profile the same
- * transaction created or updated. Both halves are needed — the caller routes to
+ * transaction created or updated. Both halves are needed 鈥?the caller routes to
  * the employee record, and the candidate row alone cannot name it.
  */
 export interface HireHrCandidateResponse {
@@ -1349,19 +1369,19 @@ export interface HireHrCandidateResponse {
   employee_profile: HrEmployeeProfile;
 }
 
-// --- Affiliate distribution (docs/engineering/WORKBENCH-API.md §11) --------
+// --- Affiliate distribution (docs/engineering/WORKBENCH-API.md 搂11) --------
 //
-// 精选联盟 分销, a different business shape from the CRM ledgers above: the fact
-// is 商品 × 达人 × 日期, and the money arrives as a periodic platform statement.
+// 绮鹃€夎仈鐩?鍒嗛攢, a different business shape from the CRM ledgers above: the fact
+// is 鍟嗗搧 脳 杈句汉 脳 鏃ユ湡, and the money arrives as a periodic platform statement.
 // Four records:
 //
-//   - `AffiliateProduct` — a SKU a client lists, with the commission it pays;
-//   - `AffiliatePick` — a creator promoting that SKU (the platform's 推广计划);
-//   - `AffiliateDaily` — the platform report's numbers for one pick on one day;
-//   - `AffiliateSettlement` — the statement the platform issues for a period.
+//   - `AffiliateProduct` 鈥?a SKU a client lists, with the commission it pays;
+//   - `AffiliatePick` 鈥?a creator promoting that SKU (the platform's 鎺ㄥ箍璁″垝);
+//   - `AffiliateDaily` 鈥?the platform report's numbers for one pick on one day;
+//   - `AffiliateSettlement` 鈥?the statement the platform issues for a period.
 //
 // Same wire rules as the rest of this file: flat snake_case, money as JSON
-// numbers with `currency` beside them, and rates at the 0–1 storage scale (C3) —
+// numbers with `currency` beside them, and rates at the 0鈥? storage scale (C3) 鈥?
 // `commission_rate` 0.2 is 20 %, and `refund_rate` in the summary is 0.05 for
 // 5 %. Schemas stay lenient on the enums so a new platform state degrades one
 // row's presentation instead of blanking the ledger.
@@ -1376,9 +1396,9 @@ export type AffiliateProductStatus = "on_shelf" | "off_shelf" | "ended";
 /**
  * Whose SKU a product is (725).
  *
- * `own_brand` — 自营品牌商品: ours, no client, and the commission it pays is our
- * revenue. `client_brand` — 代卖: a client's SKU, the commission is that client's
- * cost and our income is the 招商服务费 on the pick. 毛利 is only meaningful
+ * `own_brand` 鈥?鑷惀鍝佺墝鍟嗗搧: ours, no client, and the commission it pays is our
+ * revenue. `client_brand` 鈥?浠ｅ崠: a client's SKU, the commission is that client's
+ * cost and our income is the 鎷涘晢鏈嶅姟璐?on the pick. 姣涘埄 is only meaningful
  * inside one of the two, so the label travels with every product row.
  */
 export type AffiliateOwnership = "own_brand" | "client_brand";
@@ -1388,8 +1408,8 @@ export type AffiliatePickStatus = "active" | "paused" | "ended";
 /**
  * Whose pocket a statement's commission reached (727).
  *
- * `agency` — it landed in our 机构号, so it is revenue we received (and out of
- * which a 自有达人's split is paid). `creator` — the platform paid the creator
+ * `agency` 鈥?it landed in our 鏈烘瀯鍙? so it is revenue we received (and out of
+ * which a 鑷湁杈句汉's split is paid). `creator` 鈥?the platform paid the creator
  * directly, so the GMV is ours to count but the commission is not our income.
  * The two are never added together.
  */
@@ -1397,18 +1417,18 @@ export type AffiliateSettlementRecipient = "agency" | "creator";
 
 export type AffiliateSettlementStatus = "pending" | "paid" | "failed";
 
-/** A 联盟商品: the SKU, its shelf price and the commission it pays. */
+/** A 鑱旂洘鍟嗗搧: the SKU, its shelf price and the commission it pays. */
 export interface AffiliateProduct {
   id: string;
   workspace_id: string;
   /** Whose SKU it is: `own_brand` (ours) or `client_brand` (a client's). */
   ownership: AffiliateOwnership;
   /**
-   * The seller — a `CrmClient` — for a `client_brand` product, and null for an
+   * The seller 鈥?a `CrmClient` 鈥?for a `client_brand` product, and null for an
    * `own_brand` one (we list our own SKU, so there is nobody to charge).
    */
   client_id: string | null;
-  /** `douyin`, `kuaishou`, … Free text; the first half of the product identity. */
+  /** `douyin`, `kuaishou`, 鈥?Free text; the first half of the product identity. */
   platform: string;
   /** The platform's own product id; unique per platform while the row is live. */
   platform_product_id: string;
@@ -1417,9 +1437,9 @@ export interface AffiliateProduct {
   /** On-shelf price, CNY. Null when the platform did not report one. */
   price: number | null;
   currency: string;
-  /** 0–1 (C3): 0.2 is a 20 % commission. Null means "not set yet". */
+  /** 0鈥? (C3): 0.2 is a 20 % commission. Null means "not set yet". */
   commission_rate: number | null;
-  /** The 活动佣金 this rate belongs to; null is the plain plan, not "unnamed". */
+  /** The 娲诲姩浣ｉ噾 this rate belongs to; null is the plain plan, not "unnamed". */
   activity: string | null;
   status: AffiliateProductStatus;
   /** The row's owner; a `member` may edit only the rows it owns. */
@@ -1431,7 +1451,7 @@ export interface AffiliateProduct {
 }
 
 /**
- * A 选品: one creator promoting one product. This is the row the platform
+ * A 閫夊搧: one creator promoting one product. This is the row the platform
  * attributes orders to, and the parent of every daily fact.
  */
 export interface AffiliatePick {
@@ -1440,20 +1460,20 @@ export interface AffiliatePick {
   product_id: string;
   creator_id: string;
   /**
-   * The pick's own rate (定向计划). Null means the product's default applies —
+   * The pick's own rate (瀹氬悜璁″垝). Null means the product's default applies 鈥?
    * which is a different statement from an agreed zero.
    */
   commission_rate: number | null;
   /**
-   * 0–1 (C3): our cut of the commission for a 自有达人 whose settlement runs
-   * through our 机构号. Null means "not an internal split" — an 外部达人 the
-   * platform pays directly — so it is also the marker the summary reads.
+   * 0鈥? (C3): our cut of the commission for a 鑷湁杈句汉 whose settlement runs
+   * through our 鏈烘瀯鍙? Null means "not an internal split" 鈥?an 澶栭儴杈句汉 the
+   * platform pays directly 鈥?so it is also the marker the summary reads.
    *
    * It is NOT `commission_rate`: that one is the platform's cut of the GMV, this
    * one is our cut of that commission.
    */
   agency_share_rate: number | null;
-  /** 招商服务费 / 坑位费 we invoice for the placement, CNY. Null = no fee. */
+  /** 鎷涘晢鏈嶅姟璐?/ 鍧戜綅璐?we invoice for the placement, CNY. Null = no fee. */
   service_fee_amount: number | null;
   /** When the creator added the product to their plan (ISO timestamp). */
   bound_at: string;
@@ -1492,9 +1512,9 @@ export interface AffiliateDaily {
 
 /**
  * One platform settlement statement for a period. `net_amount` is the platform's
- * own arithmetic (`gross − tech_service_fee − refund_deduction`), stored as sent
+ * own arithmetic (`gross 鈭?tech_service_fee 鈭?refund_deduction`), stored as sent
  * and never recomputed: a server that "fixed" it would hide the discrepancy the
- * operator needs to see. There is no delete route — a wrong statement is
+ * operator needs to see. There is no delete route 鈥?a wrong statement is
  * corrected by PATCH.
  */
 export interface AffiliateSettlement {
@@ -1504,7 +1524,7 @@ export interface AffiliateSettlement {
   period_start: string;
   period_end: string;
   gross_commission: number;
-  /** 技术服务费, the platform's cut (~10 %). */
+  /** 鎶€鏈湇鍔¤垂, the platform's cut (~10 %). */
   tech_service_fee: number;
   refund_deduction: number;
   net_amount: number;
@@ -1521,7 +1541,7 @@ export interface AffiliateSettlement {
   updated_at: string;
 }
 
-/** `GET /api/workbench/affiliate/products` — `total` is the page's row count. */
+/** `GET /api/workbench/affiliate/products` 鈥?`total` is the page's row count. */
 export interface AffiliateProductListResponse {
   products: AffiliateProduct[];
   total: number;
@@ -1587,10 +1607,10 @@ export interface AffiliateSettlementListFilters {
 /**
  * `POST /api/workbench/affiliate/products`.
  *
- * `client_id` is optional because a 自营 SKU has no seller; `ownership` defaults
+ * `client_id` is optional because a 鑷惀 SKU has no seller; `ownership` defaults
  * to `client_brand` server-side, which is what every product created before 725
- * meant. The two must agree — a client-brand product names a client, an
- * own-brand one does not — and the server refuses the mismatch with a 400.
+ * meant. The two must agree 鈥?a client-brand product names a client, an
+ * own-brand one does not 鈥?and the server refuses the mismatch with a 400.
  */
 export type CreateAffiliateProductRequest = Pick<
   AffiliateProduct,
@@ -1659,7 +1679,7 @@ export type UpdateAffiliatePickRequest = Partial<
 >;
 
 /**
- * `PUT /api/workbench/affiliate/daily` — the whole reported day, keyed by
+ * `PUT /api/workbench/affiliate/daily` 鈥?the whole reported day, keyed by
  * `(pick_id, stat_date)`. The body replaces the day: an omitted measure is
  * stored as 0, not merged with the previous value.
  */
@@ -1715,18 +1735,18 @@ export type UpdateAffiliateSettlementRequest = Partial<
 >;
 
 /**
- * `GET /api/workbench/affiliate/summary` — one month of the affiliate ledger.
+ * `GET /api/workbench/affiliate/summary` 鈥?one month of the affiliate ledger.
  *
  * Every entry is the same three-state block the metric strip uses, so
  * `value: null` + `empty: "insufficient_data"` reads as "no report was imported"
  * on this surface too, never as a zero. The two counts are true zeros on an
- * empty month; the money blocks are gaps. `refund_rate` is 0–1 (C3).
+ * empty month; the money blocks are gaps. `refund_rate` is 0鈥? (C3).
  *
  * The income side is three blocks, not one, because the business has two pockets
- * (725–727). `gmv` counts every pick whatever happened to the commission;
+ * (725鈥?27). `gmv` counts every pick whatever happened to the commission;
  * `commission_agency` is what actually reached us (agency-settled commission plus
- * the 招商服务费 we invoiced); `commission_creator` is what the platform paid
- * creators directly — real GMV, not our revenue; `agency_share_income` is our cut
+ * the 鎷涘晢鏈嶅姟璐?we invoiced); `commission_creator` is what the platform paid
+ * creators directly 鈥?real GMV, not our revenue; `agency_share_income` is our cut
  * of the internal creators' cleared commission. Adding the first two incomes
  * together would report money we never received.
  */
@@ -1736,11 +1756,11 @@ export interface AffiliateSummaryResponse {
   gmv: WorkbenchFinanceBlock;
   commission_est: WorkbenchFinanceBlock;
   commission_settled: WorkbenchFinanceBlock;
-  /** Commission that reached our 机构号 + 招商服务费 — money we received. */
+  /** Commission that reached our 鏈烘瀯鍙?+ 鎷涘晢鏈嶅姟璐?鈥?money we received. */
   commission_agency: WorkbenchFinanceBlock;
-  /** Commission the platform paid creators directly — GMV, not our income. */
+  /** Commission the platform paid creators directly 鈥?GMV, not our income. */
   commission_creator: WorkbenchFinanceBlock;
-  /** Our cut of internal creators' cleared commission (0–1 rate × settled). */
+  /** Our cut of internal creators' cleared commission (0鈥? rate 脳 settled). */
   agency_share_income: WorkbenchFinanceBlock;
   refund_rate: WorkbenchFinanceBlock;
   tech_fee: WorkbenchFinanceBlock;
@@ -1751,6 +1771,55 @@ export interface AffiliateSummaryResponse {
 export interface AffiliateSummaryFilters {
   /** `YYYY-MM`; the server's current month when omitted. */
   month?: string | null;
-  /** Aggregate dimension only; never an access boundary (§3). */
+  /** Aggregate dimension only; never an access boundary (搂3). */
   department_id?: string | null;
+}
+
+// --- Batch CSV import (`POST /api/workbench/import`, WORKBENCH-API §23) ------
+//
+// One endpoint, three kinds. The request body is the CSV text itself and the query
+// carries `kind` plus `dry_run` (default 1 = preview). The response shape is the
+// same for a preview and a real import; only `committed` differs, which is what
+// makes the preview trustworthy: the server validates both paths with one code path.
+//
+//   - `rows[].action` is `create` for a row that would be (or was) written and
+//     `skip` for a duplicate already in the ledger — a duplicate is not an error.
+//   - `errors[]` names the line, the column and a stable reason code; the file is
+//     rejected whole when any row errors (`committed: 0`), so the list is complete.
+//   - `preview` holds the values the server derived (resolved creator id, parsed
+//     amounts, normalised currency), not a copy of the file's cells.
+
+export type ImportKind = "quotes" | "activities" | "collabs";
+
+export type ImportRowAction = "create" | "skip";
+
+/** One parsed row: where it came from, what the server would do, and with what. */
+export interface ImportRow {
+  /** 1-based line in the file, header included (`2` is the first data row). */
+  line: number;
+  action: ImportRowAction;
+  preview: Record<string, unknown>;
+}
+
+/**
+ * One row that cannot be imported. `column` is the canonical column name (empty for
+ * a whole-row problem such as a wrong cell count), `reason` a stable code — see
+ * WORKBENCH-API §23.3 for the list.
+ */
+export interface ImportError {
+  line: number;
+  column: string;
+  reason: string;
+}
+
+export interface ImportPreviewResponse {
+  kind: ImportKind;
+  /** Data rows read (header excluded), including the ones that errored. */
+  parsed: number;
+  /** Rows that would be written: `create` rows, duplicates excluded. */
+  accepted: number;
+  /** Rows actually written — always 0 on a dry run and on a rejected batch. */
+  committed: number;
+  rows: ImportRow[];
+  errors: ImportError[];
 }

@@ -449,7 +449,7 @@ func (s *IssueService) createOnce(ctx context.Context, p IssueCreateParams, opts
 			OriginID:        p.OriginID,
 			RequesterUserID: requester,
 			Stage:           p.Stage,
-			Properties:      properties,
+			Properties:      jsonbText(properties),
 		})
 	} else {
 		issue, err = qtx.CreateIssue(ctx, db.CreateIssueParams{
@@ -470,7 +470,7 @@ func (s *IssueService) createOnce(ctx context.Context, p IssueCreateParams, opts
 			Number:        issueNumber,
 			ProjectID:     projectID,
 			Stage:         p.Stage,
-			Properties:    properties,
+			Properties:    jsonbText(properties),
 		})
 	}
 	if err != nil {

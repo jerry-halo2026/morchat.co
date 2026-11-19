@@ -110,7 +110,7 @@ func TestIssueMetadataWaitingNoopReturnsCommittedSnapshot(t *testing.T) {
 		ID:          parseUUID(issueID),
 		WorkspaceID: parseUUID(testWorkspaceID),
 		Key:         "state",
-		Value:       []byte(`"committed"`),
+		Value:       `"committed"`,
 	}); err != nil {
 		t.Fatalf("set metadata in holder transaction: %v", err)
 	}

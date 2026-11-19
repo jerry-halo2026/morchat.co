@@ -21,7 +21,7 @@ VALUES (
     'Default',
     '',
     'todo',
-    sqlc.arg('steps')::jsonb,
+    sqlc.arg('steps')::text::jsonb,
     true
 )
 ON CONFLICT (workspace_id) WHERE is_default DO NOTHING
@@ -64,7 +64,7 @@ VALUES (
     sqlc.arg('name')::text,
     sqlc.arg('description')::text,
     sqlc.arg('initial_status_key')::text,
-    sqlc.arg('steps')::jsonb,
+    sqlc.arg('steps')::text::jsonb,
     sqlc.arg('owner_id')::uuid
 )
 RETURNING *;
@@ -74,7 +74,7 @@ UPDATE issue_workflow SET
     name = sqlc.arg('name')::text,
     description = sqlc.arg('description')::text,
     initial_status_key = sqlc.arg('initial_status_key')::text,
-    steps = sqlc.arg('steps')::jsonb,
+    steps = sqlc.arg('steps')::text::jsonb,
     updated_at = now()
 WHERE id = sqlc.arg('id')::uuid
   AND workspace_id = sqlc.arg('workspace_id')::uuid

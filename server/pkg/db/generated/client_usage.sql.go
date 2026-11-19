@@ -41,7 +41,7 @@ INSERT INTO client_usage_daily (
     CASE WHEN $7::boolean THEN CURRENT_TIMESTAMP ELSE NULL END,
     $8,
     $9,
-    $10,
+    $10::text::jsonb,
     $11,
     $12
 )
@@ -70,7 +70,7 @@ type UpsertClientUsageDailyParams struct {
 	HasRuntimeProbe bool        `json:"has_runtime_probe"`
 	ProbeResult     pgtype.Text `json:"probe_result"`
 	RuntimeCount    pgtype.Int4 `json:"runtime_count"`
-	ProviderSummary []byte      `json:"provider_summary"`
+	ProviderSummary pgtype.Text `json:"provider_summary"`
 	OnlineCount     pgtype.Int4 `json:"online_count"`
 	OfflineCount    pgtype.Int4 `json:"offline_count"`
 }

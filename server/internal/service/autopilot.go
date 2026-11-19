@@ -92,7 +92,7 @@ func RecordAutopilotRuleVersion(ctx context.Context, q *db.Queries, ap db.Autopi
 		WorkspaceID:     ap.WorkspaceID,
 		PublishedByType: publishedByType,
 		PublishedByID:   publishedByID,
-		ConfigSummary:   summary,
+		ConfigSummary:   jsonbText(summary),
 	}); err != nil {
 		return fmt.Errorf("create autopilot rule version: %w", err)
 	}
@@ -237,7 +237,7 @@ func (s *AutopilotService) AdmitAutopilotWebhookDelivery(
 		TriggerID:         triggerID,
 		Source:            "webhook",
 		Status:            initialStatus,
-		TriggerPayload:    payload,
+		TriggerPayload:    jsonbText(payload),
 		SquadID:           autopilotSquadAttribution(autopilot),
 		WebhookDeliveryID: deliveryID,
 	})
@@ -584,7 +584,7 @@ func (s *AutopilotService) dispatchAutopilot(
 		TriggerID:         triggerID,
 		Source:            source,
 		Status:            initialStatus,
-		TriggerPayload:    payload,
+		TriggerPayload:    jsonbText(payload),
 		SquadID:           autopilotSquadAttribution(autopilot),
 		PlannedAt:         plannedAt,
 		WebhookDeliveryID: webhookDeliveryID,
@@ -972,7 +972,7 @@ func (s *AutopilotService) notifyAutopilotSubscribersOnCreate(
 			Body:          pgtype.Text{},
 			ActorType:     pgtype.Text{String: "agent", Valid: true},
 			ActorID:       leaderID,
-			Details:       details,
+			Details:       jsonbText(details),
 		})
 		if err != nil {
 			slog.Error("autopilot subscriber inbox write failed",
@@ -1803,7 +1803,7 @@ func (s *AutopilotService) recordSkippedRun(
 		TriggerID:         triggerID,
 		Source:            source,
 		Status:            "skipped",
-		TriggerPayload:    payload,
+		TriggerPayload:    jsonbText(payload),
 		SquadID:           autopilotSquadAttribution(autopilot),
 		PlannedAt:         plannedAt,
 		WebhookDeliveryID: webhookDeliveryID,

@@ -255,7 +255,7 @@ func (h *Handler) PatchOnboarding(w http.ResponseWriter, r *http.Request) {
 
 	params := db.PatchUserOnboardingParams{ID: parseUUID(userID)}
 	if req.Questionnaire != nil {
-		params.Questionnaire = []byte(*req.Questionnaire)
+		params.Questionnaire = pgtype.Text{String: string([]byte(*req.Questionnaire)), Valid: []byte(*req.Questionnaire) != nil}
 	}
 	user, err := h.Queries.PatchUserOnboarding(r.Context(), params)
 	if err != nil {

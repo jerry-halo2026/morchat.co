@@ -194,7 +194,7 @@ func (h *Handler) CreateWorkspaceMcpServer(w http.ResponseWriter, r *http.Reques
 	server, err := qtx.CreateWorkspaceMcpServer(r.Context(), db.CreateWorkspaceMcpServerParams{
 		WorkspaceID: idUUID,
 		Name:        name,
-		Config:      append([]byte(nil), req.Config...),
+		Config:      string(append([]byte(nil), req.Config...)),
 		CreatedBy:   parseUUID(requestUserID(r)),
 	})
 	if err != nil {
@@ -251,7 +251,7 @@ func (h *Handler) UpdateWorkspaceMcpServer(w http.ResponseWriter, r *http.Reques
 			writeError(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		params.Config = append([]byte(nil), req.Config...)
+		params.Config = pgtype.Text{String: string(append([]byte(nil), req.Config...)), Valid: append([]byte(nil), req.Config...) != nil}
 	}
 
 	server, err := h.Queries.UpdateWorkspaceMcpServer(r.Context(), params)

@@ -161,13 +161,17 @@ SELECT * FROM creator_post
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
 
 -- name: CreateCreatorPost :one
+-- `media_script_id` (733) is the publish → plan link the content workbench writes:
+-- an operator publishing a scripted post names the version it came from. NULL is
+-- the ordinary value for an unscripted post (external 达人, history), so the column
+-- stays optional and the handler validates the pointer before it gets here.
 INSERT INTO creator_post (
     workspace_id, creator_id, collab_id, content_issue_id, product_id, pick_id,
-    platform, title, url, published_at, source, created_by
+    media_script_id, platform, title, url, published_at, source, created_by
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('creator_id'), sqlc.narg('collab_id')::uuid,
     sqlc.narg('content_issue_id')::uuid, sqlc.narg('product_id')::uuid, sqlc.narg('pick_id')::uuid,
-    sqlc.arg('platform'), sqlc.narg('title')::text,
+    sqlc.narg('media_script_id')::uuid, sqlc.arg('platform'), sqlc.narg('title')::text,
     sqlc.arg('url'), sqlc.arg('published_at'), sqlc.arg('source'), sqlc.narg('created_by')::uuid
 )
 RETURNING *;
@@ -179,6 +183,7 @@ SET creator_id = sqlc.arg('creator_id'),
     content_issue_id = sqlc.narg('content_issue_id')::uuid,
     product_id = sqlc.narg('product_id')::uuid,
     pick_id = sqlc.narg('pick_id')::uuid,
+    media_script_id = sqlc.narg('media_script_id')::uuid,
     platform = sqlc.arg('platform'),
     title = sqlc.narg('title')::text,
     url = sqlc.arg('url'),

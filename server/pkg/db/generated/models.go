@@ -845,7 +845,7 @@ type Creator struct {
 	FansDisplay pgtype.Text    `json:"fans_display"`
 	QuoteMin    pgtype.Numeric `json:"quote_min"`
 	QuoteMax    pgtype.Numeric `json:"quote_max"`
-	// orange outreach stage, verbatim Chinese: 未接触/待发送/已发送/已回复/已报价/寄样中/已成单/已签约/排除.
+	// 合作意向（机器值）：not_contacted/pending_send/sent/replied/quoted/sampling/signed/deal/excluded。界面文案在 i18n，不入库。
 	CooperationIntent pgtype.Text `json:"cooperation_intent"`
 	// orange crawl_status funnel state: LEAD_NEW/LEAD_CONTACTED/LEAD_DEAL/LEAD_REJECT.
 	LeadStatus pgtype.Text `json:"lead_status"`
@@ -2297,6 +2297,53 @@ type MarketSignal struct {
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 	ArchivedAt       pgtype.Timestamptz `json:"archived_at"`
+}
+
+// One benchmarked peer account for one day (WORKBENCH-API §21). Soft-deleted, no foreign key.
+type MediaBench struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	// The own IP this benchmark is read against; NULL for an industry-wide benchmark. Validated in the handler.
+	IpID     pgtype.UUID `json:"ip_id"`
+	Platform string      `json:"platform"`
+	Name     string      `json:"name"`
+	Url      pgtype.Text `json:"url"`
+	// Followers at capture time. NULL when not collected — never 0, which would claim the account has no audience.
+	FollowerCount pgtype.Int8 `json:"follower_count"`
+	// Platform metrics copied off the account, as a JSON object; {} means nothing measured yet. Written whole.
+	Metrics []byte `json:"metrics"`
+	// The day these numbers were read. DATE: a leaderboard snapshot has no hour.
+	CapturedOn    pgtype.Date        `json:"captured_on"`
+	Note          pgtype.Text        `json:"note"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
+}
+
+// One hotspot captured from a platform radar list on one day (WORKBENCH-API §21). Soft-deleted, no foreign key.
+type MediaHot struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	Title       string      `json:"title"`
+	Platform    string      `json:"platform"`
+	Url         pgtype.Text `json:"url"`
+	// Position on the platform list that day; NULL when the sweep captured no position. Not 0 — 0 is not a rank.
+	Rank pgtype.Int4 `json:"rank"`
+	// Platform heat figure as served (播放/热度/指数), BIGINT. NULL means the platform published none, which is not 0.
+	HeatValue pgtype.Int8 `json:"heat_value"`
+	Category  pgtype.Text `json:"category"`
+	// The day this list was read. DATE: a hotspot has no cross-platform hour.
+	CapturedOn pgtype.Date `json:"captured_on"`
+	// How the row was captured: manual | crawl | api.
+	Source        string             `json:"source"`
+	Note          pgtype.Text        `json:"note"`
+	OwnerMemberID pgtype.UUID        `json:"owner_member_id"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	ArchivedAt    pgtype.Timestamptz `json:"archived_at"`
 }
 
 type MediaIp struct {

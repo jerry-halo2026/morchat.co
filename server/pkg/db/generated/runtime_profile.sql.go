@@ -24,7 +24,7 @@ INSERT INTO runtime_profile (
     created_by,
     enabled,
     runtime_type
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+) VALUES ($1, $2, $3, $4, $5, $6::text::jsonb, $7, $8, $9, $10)
 RETURNING id, workspace_id, display_name, protocol_family, command_name, description, fixed_args, visibility, created_by, enabled, created_at, updated_at, runtime_type
 `
 
@@ -34,7 +34,7 @@ type CreateRuntimeProfileParams struct {
 	ProtocolFamily string      `json:"protocol_family"`
 	CommandName    string      `json:"command_name"`
 	Description    pgtype.Text `json:"description"`
-	FixedArgs      []byte      `json:"fixed_args"`
+	FixedArgs      string      `json:"fixed_args"`
 	Visibility     string      `json:"visibility"`
 	CreatedBy      pgtype.UUID `json:"created_by"`
 	Enabled        bool        `json:"enabled"`
@@ -529,7 +529,7 @@ UPDATE runtime_profile
 SET display_name = COALESCE($1, display_name),
     command_name = COALESCE($2, command_name),
     description  = COALESCE($3, description),
-    fixed_args   = COALESCE($4, fixed_args),
+    fixed_args   = COALESCE($4::text::jsonb, fixed_args),
     visibility   = COALESCE($5, visibility),
     enabled      = COALESCE($6, enabled),
     updated_at   = now()
@@ -541,7 +541,7 @@ type UpdateRuntimeProfileParams struct {
 	DisplayName pgtype.Text `json:"display_name"`
 	CommandName pgtype.Text `json:"command_name"`
 	Description pgtype.Text `json:"description"`
-	FixedArgs   []byte      `json:"fixed_args"`
+	FixedArgs   pgtype.Text `json:"fixed_args"`
 	Visibility  pgtype.Text `json:"visibility"`
 	Enabled     pgtype.Bool `json:"enabled"`
 	ID          pgtype.UUID `json:"id"`

@@ -64,8 +64,8 @@ func (s *TaskService) EnqueueAppDecisionRun(ctx context.Context, issueID, agentI
 		OriginatorSource:     pgtype.Text{String: string(attribution.SourceDirectHuman), Valid: true},
 		TriggerEvidenceKind:  pgtype.Text{String: "app_action_request", Valid: true},
 		TriggerEvidenceRefID: requestID,
-		RuntimeMcpOverlay:    overlay.Overlay,
-		RuntimeConnectedApps: overlay.ConnectedApps,
+		RuntimeMcpOverlay:    jsonbRaw(overlay.Overlay),
+		RuntimeConnectedApps: jsonbRaw(overlay.ConnectedApps),
 	})
 	if err != nil {
 		return fmt.Errorf("create decision run: %w", err)

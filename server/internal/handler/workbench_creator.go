@@ -61,12 +61,19 @@ type CreatorRequest struct {
 }
 
 // CreatorPostRequest is the create/PATCH body for a tracked post.
+//
+// `MediaScriptID` (733) is the publish → plan link: the script version this post
+// came from. It is optional in both directions — an external 达人's post, or a post
+// tracked before the content workbench existed, has none — and an absent field on a
+// PATCH keeps whatever the row already had, so a client that has never heard of the
+// column keeps working unchanged.
 type CreatorPostRequest struct {
 	CreatorID      *string `json:"creator_id"`
 	CollabID       *string `json:"collab_id"`
 	ContentIssueID *string `json:"content_issue_id"`
 	ProductID      *string `json:"product_id"`
 	PickID         *string `json:"pick_id"`
+	MediaScriptID  *string `json:"media_script_id"`
 	Platform       *string `json:"platform"`
 	Title          *string `json:"title"`
 	URL            *string `json:"url"`
@@ -218,6 +225,31 @@ func (h *Handler) workbenchIssueRef(w http.ResponseWriter, r *http.Request, scop
 }
 
 // ---- creators --------------------------------------------------------------
+
+// workbenchMediaScriptRef validates an optional publish → plan pointer (733).
+//
+// The relationship has no foreign key behind it (repository rule), so this is the
+// only place "this post came from that script" is checked: the script must be a
+// live row of *this* workspace. An archived or foreign script is a 400 rather than
+// a stored dangling pointer, because the pointer exists to reconcile a script's
+// `publish_at` with a real publish — a pointer nobody can resolve answers nothing.
+func (h *Handler) workbenchMediaScriptRef(w http.ResponseWriter, r *http.Request, scope workbenchScope, raw *string) (pgtype.UUID, bool) {
+	scriptID, ok := workbenchOptionalUUID(w, raw, "media_script_id")
+	if !ok {
+		return pgtype.UUID{}, false
+	}
+	if !scriptID.Valid {
+		return pgtype.UUID{}, true
+	}
+	if _, err := h.Queries.GetMediaScript(r.Context(), db.GetMediaScriptParams{
+		ID:          scriptID,
+		WorkspaceID: scope.WorkspaceUUID,
+	}); err != nil {
+		writeError(w, http.StatusBadRequest, "media_script_id is not a script in this workspace")
+		return pgtype.UUID{}, false
+	}
+	return scriptID, true
+}
 
 // workbenchCreatorSort validates `?sort=`. An unknown value is a 400 rather than
 // a silent fallback: a client that asked for an ordering it did not get would
@@ -741,6 +773,13 @@ func (h *Handler) CreateCreatorPost(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	// The publish → plan link (§12.4/§21). Nullable: an unscripted post is the
+	// ordinary case, and the pointer is what lets the 发布 page reconcile a script's
+	// `publish_at` with the fact that it went live.
+	mediaScriptID, ok := h.workbenchMediaScriptRef(w, r, scope, req.MediaScriptID)
+	if !ok {
+		return
+	}
 
 	source := creatorPostSourceManual
 	if req.Source != nil {
@@ -758,6 +797,7 @@ func (h *Handler) CreateCreatorPost(w http.ResponseWriter, r *http.Request) {
 		ContentIssueID: contentIssueID,
 		ProductID:      productID,
 		PickID:         pickID,
+		MediaScriptID:  mediaScriptID,
 		Platform:       platform,
 		Title:          optionalTrimmedText(req.Title),
 		Url:            url,
@@ -861,6 +901,14 @@ func (h *Handler) UpdateCreatorPost(w http.ResponseWriter, r *http.Request) {
 		}
 		pickID = parsed
 	}
+	mediaScriptID := current.MediaScriptID
+	if req.MediaScriptID != nil {
+		parsed, ok := h.workbenchMediaScriptRef(w, r, scope, req.MediaScriptID)
+		if !ok {
+			return
+		}
+		mediaScriptID = parsed
+	}
 	source := current.Source
 	if req.Source != nil {
 		source = strings.TrimSpace(*req.Source)
@@ -878,6 +926,7 @@ func (h *Handler) UpdateCreatorPost(w http.ResponseWriter, r *http.Request) {
 		ContentIssueID: contentIssueID,
 		ProductID:      productID,
 		PickID:         pickID,
+		MediaScriptID:  mediaScriptID,
 		Platform:       platform,
 		Title:          applyTextPatch(req.Title, current.Title),
 		Url:            url,

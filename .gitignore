@@ -75,6 +75,9 @@ data/
 # captured runtime output, not for source. Re-include that one directory.
 !packages/views/knowledge/data/
 !packages/views/knowledge/data/**
+# Same exception for the publishing screens' review page.
+!packages/views/content/data/
+!packages/views/content/data/**
 .kilo
 .idea
 .gstack/

@@ -47,7 +47,7 @@ INSERT INTO hr_offboarding (
 ) VALUES (
     sqlc.arg('workspace_id'), sqlc.arg('employee_id'), sqlc.arg('status'),
     sqlc.arg('last_day')::date, sqlc.narg('reason')::text, sqlc.arg('kind'),
-    sqlc.arg('handover')::jsonb, sqlc.arg('cert_done'), sqlc.narg('note')::text,
+    sqlc.arg('handover')::text::jsonb, sqlc.arg('cert_done'), sqlc.narg('note')::text,
     sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
 )
 RETURNING *;
@@ -61,7 +61,7 @@ UPDATE hr_offboarding
 SET last_day = sqlc.arg('last_day')::date,
     reason = sqlc.narg('reason')::text,
     kind = sqlc.arg('kind'),
-    handover = sqlc.arg('handover')::jsonb,
+    handover = sqlc.arg('handover')::text::jsonb,
     cert_done = sqlc.arg('cert_done'),
     note = sqlc.narg('note')::text,
     owner_member_id = sqlc.narg('owner_member_id')::uuid,

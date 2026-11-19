@@ -557,7 +557,7 @@ func (h *Handler) CreateIssueWorkflow(w http.ResponseWriter, r *http.Request) {
 		Name:             name,
 		Description:      description,
 		InitialStatusKey: issueworkflow.StartStatus,
-		Steps:            raw,
+		Steps:            string(raw),
 		OwnerID:          member.UserID,
 	})
 	if err != nil {
@@ -791,7 +791,7 @@ func (h *Handler) UpdateIssueWorkflow(w http.ResponseWriter, r *http.Request) {
 		Name:             name,
 		Description:      description,
 		InitialStatusKey: issueworkflow.StartStatus,
-		Steps:            raw,
+		Steps:            string(raw),
 	})
 	if err != nil {
 		if isUniqueViolation(err) {
@@ -1173,7 +1173,7 @@ func (h *Handler) SetIssueWorkflowHandoff(w http.ResponseWriter, r *http.Request
 		Name:             current.Name,
 		Description:      current.Description,
 		InitialStatusKey: issueworkflow.StartStatus,
-		Steps:            raw,
+		Steps:            string(raw),
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to save handoff")
@@ -1225,7 +1225,7 @@ func (h *Handler) saveHandoffOnProjectCopy(w http.ResponseWriter, r *http.Reques
 		Name:             projectCopyName(source.Name, project.Title, taken),
 		Description:      source.Description,
 		InitialStatusKey: issueworkflow.StartStatus,
-		Steps:            steps,
+		Steps:            string(steps),
 		OwnerID:          member.UserID,
 	})
 	if err != nil {

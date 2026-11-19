@@ -812,7 +812,10 @@
       "add_dialog_cancel": "Отмена",
       "add_failed_toast": "Не удалось добавить навык",
       "add_dialog_confirm_few": "Добавить навыков: {{count}}",
-      "add_dialog_confirm_many": "Добавить навыков: {{count}}"
+      "add_dialog_confirm_many": "Добавить навыков: {{count}}",
+      "primary_badge": "Ключевой навык",
+      "primary_aria": "Сделать «{{name}}» ключевым навыком",
+      "primary_failed_toast": "Не удалось изменить ключевой навык."
     },
     "integrations": {
       "members_note": "Управлять этим подключением могут только владельцы и администраторы рабочего пространства. Просмотреть подключённых ботов можно в настройках → Интеграции."

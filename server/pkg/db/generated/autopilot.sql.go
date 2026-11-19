@@ -161,7 +161,7 @@ INSERT INTO autopilot_rule_version (
 )
 VALUES (
     $1, $2, $3, $4,
-    COALESCE($5, '{}'::jsonb)
+    COALESCE($5::text, '{}')::jsonb
 )
 RETURNING id, autopilot_id, workspace_id, published_by_type, published_by_id, config_summary, created_at
 `
@@ -171,7 +171,7 @@ type CreateAutopilotRuleVersionParams struct {
 	WorkspaceID     pgtype.UUID `json:"workspace_id"`
 	PublishedByType string      `json:"published_by_type"`
 	PublishedByID   pgtype.UUID `json:"published_by_id"`
-	ConfigSummary   interface{} `json:"config_summary"`
+	ConfigSummary   pgtype.Text `json:"config_summary"`
 }
 
 // =====================
@@ -209,7 +209,7 @@ INSERT INTO autopilot_run (
     autopilot_id, trigger_id, source, status, trigger_payload, squad_id, planned_at,
     webhook_delivery_id, quota_reservation_id, reason_code, id
 ) VALUES (
-    $1, $4, $2, $3, $5,
+    $1, $4, $2, $3, $5::text::jsonb,
     $6, $7,
     $8, $9,
     $10, COALESCE($11::uuid, gen_random_uuid())
@@ -221,7 +221,7 @@ type CreateAutopilotRunParams struct {
 	Source             string             `json:"source"`
 	Status             string             `json:"status"`
 	TriggerID          pgtype.UUID        `json:"trigger_id"`
-	TriggerPayload     []byte             `json:"trigger_payload"`
+	TriggerPayload     pgtype.Text        `json:"trigger_payload"`
 	SquadID            pgtype.UUID        `json:"squad_id"`
 	PlannedAt          pgtype.Timestamptz `json:"planned_at"`
 	WebhookDeliveryID  pgtype.UUID        `json:"webhook_delivery_id"`
@@ -428,7 +428,7 @@ INSERT INTO autopilot_trigger (
     $1, $2, $3, $4, $5,
     $6, $7, $8,
     COALESCE($9::text, 'generic'),
-    $10,
+    $10::text::jsonb,
     $11, $12,
     $13, $14
 ) RETURNING id, autopilot_id, kind, enabled, cron_expression, timezone, next_run_at, webhook_token, label, last_fired_at, created_at, updated_at, provider, signing_secret, event_filters, published_by_type, published_by_id, created_by_type, created_by_id
@@ -444,7 +444,7 @@ type CreateAutopilotTriggerParams struct {
 	WebhookToken    pgtype.Text        `json:"webhook_token"`
 	Label           pgtype.Text        `json:"label"`
 	Provider        pgtype.Text        `json:"provider"`
-	EventFilters    []byte             `json:"event_filters"`
+	EventFilters    pgtype.Text        `json:"event_filters"`
 	PublishedByType pgtype.Text        `json:"published_by_type"`
 	PublishedByID   pgtype.UUID        `json:"published_by_id"`
 	CreatedByType   pgtype.Text        `json:"created_by_type"`
@@ -2397,7 +2397,7 @@ WITH updated_run AS (
     SET status = $1::text,
         completed_at = now(),
         result = CASE
-            WHEN $1::text = 'completed' THEN $2::jsonb
+            WHEN $1::text = 'completed' THEN $2::text::jsonb
             ELSE ar.result
         END,
         failure_reason = CASE
@@ -2445,7 +2445,7 @@ SELECT id, autopilot_id, trigger_id, source, status, issue_id, task_id, triggere
 
 type UpdateAutopilotRunTerminalWithQuotaParams struct {
 	TerminalStatus string      `json:"terminal_status"`
-	Result         []byte      `json:"result"`
+	Result         pgtype.Text `json:"result"`
 	FailureReason  pgtype.Text `json:"failure_reason"`
 	ReasonCode     pgtype.Text `json:"reason_code"`
 	RunID          pgtype.UUID `json:"run_id"`
@@ -2521,7 +2521,7 @@ UPDATE autopilot_trigger SET
     timezone = COALESCE($4, timezone),
     next_run_at = $5,
     label = COALESCE($6, label),
-    event_filters = COALESCE($7, event_filters),
+    event_filters = COALESCE($7::text::jsonb, event_filters),
     updated_at = now()
 WHERE id = $1
 RETURNING id, autopilot_id, kind, enabled, cron_expression, timezone, next_run_at, webhook_token, label, last_fired_at, created_at, updated_at, provider, signing_secret, event_filters, published_by_type, published_by_id, created_by_type, created_by_id
@@ -2534,7 +2534,7 @@ type UpdateAutopilotTriggerParams struct {
 	Timezone       pgtype.Text        `json:"timezone"`
 	NextRunAt      pgtype.Timestamptz `json:"next_run_at"`
 	Label          pgtype.Text        `json:"label"`
-	EventFilters   []byte             `json:"event_filters"`
+	EventFilters   pgtype.Text        `json:"event_filters"`
 }
 
 func (q *Queries) UpdateAutopilotTrigger(ctx context.Context, arg UpdateAutopilotTriggerParams) (AutopilotTrigger, error) {

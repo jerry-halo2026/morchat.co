@@ -312,3 +312,136 @@ export interface CreateMediaShootRequest {
 }
 
 export type UpdateMediaShootRequest = Partial<CreateMediaShootRequest>;
+
+// --- hotspot radar / benchmark teardown (WORKBENCH-API §21) -----------------
+//
+// Two source ledgers feed the topic pool. A `MediaHot` is one capture of a
+// platform's trending list on one day; a `MediaBench` is one capture of a peer
+// account's numbers. Neither is a pipeline stage: `/adopt` copies a row into a
+// `MediaTopic` (`source` = `hot` | `bench`, `hot_id` = the source row) and leaves
+// the capture untouched.
+
+/** How a radar row was captured — its provenance, not its pipeline source. */
+export type MediaHotSource = "manual" | "crawl" | "api";
+
+export interface MediaHot {
+  id: string;
+  workspace_id: string;
+  title: string;
+  /** `douyin`, `xiaohongshu`, … (free text, like `creator.platform`). */
+  platform: string;
+  url: string | null;
+  /**
+   * Position on the platform list that day. **null means the capture carried no
+   * position**, which is not rank 0 — the contract's "unknown is NULL, never 0".
+   */
+  rank: number | null;
+  /** Platform heat figure as served. null when the platform published none. */
+  heat_value: number | null;
+  category: string | null;
+  /** `YYYY-MM-DD`: the day this list was read. */
+  captured_on: string;
+  source: MediaHotSource;
+  note: string | null;
+  owner_member_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+export interface MediaHotListResponse {
+  hot: MediaHot[];
+  /** This page's row count, not the workspace total. */
+  total: number;
+}
+
+export interface MediaHotListFilters {
+  /** `YYYY-MM-DD`: one day's list. */
+  captured_on?: string;
+  category?: string;
+  platform?: string;
+  /** Substring search over the title. */
+  q?: string;
+  limit?: number;
+}
+
+export interface CreateMediaHotRequest {
+  title: string;
+  platform: string;
+  url?: string | null;
+  rank?: number | null;
+  heat_value?: number | null;
+  category?: string;
+  /** Defaults to today (UTC) on the server when omitted. */
+  captured_on?: string;
+  source?: MediaHotSource;
+  note?: string;
+  owner_member_id?: string;
+}
+
+/** Every field optional; an omitted one keeps its stored value. */
+export type UpdateMediaHotRequest = Partial<CreateMediaHotRequest>;
+
+/**
+ * A benchmarked peer account: the numbers we copied off someone else's profile,
+ * read against one of our IPs. `metrics` is a free-form object because the metric
+ * set differs per platform (播放中位数 / 互动率 / 爆款率…), and `{}` means "nothing
+ * measured yet".
+ */
+export interface MediaBench {
+  id: string;
+  workspace_id: string;
+  /** The own IP this benchmark is read against; null for an industry-wide one. */
+  ip_id: string | null;
+  platform: string;
+  name: string;
+  url: string | null;
+  /** null when not collected — never 0, which would claim no audience. */
+  follower_count: number | null;
+  metrics: Record<string, unknown>;
+  /** `YYYY-MM-DD`. */
+  captured_on: string;
+  note: string | null;
+  owner_member_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+export interface MediaBenchListResponse {
+  bench: MediaBench[];
+  total: number;
+}
+
+export interface MediaBenchListFilters {
+  ip_id?: string;
+  captured_on?: string;
+  platform?: string;
+  /** Substring search over the account name. */
+  q?: string;
+  limit?: number;
+}
+
+export interface CreateMediaBenchRequest {
+  platform: string;
+  name: string;
+  ip_id?: string;
+  url?: string | null;
+  follower_count?: number | null;
+  metrics?: Record<string, unknown>;
+  captured_on?: string;
+  note?: string;
+  owner_member_id?: string;
+}
+
+export type UpdateMediaBenchRequest = Partial<CreateMediaBenchRequest>;
+
+/** `POST /media/hot/{id}/adopt` and `POST /media/bench/{id}/adopt`. */
+export interface AdoptMediaRequest {
+  /** Required: the live content IP the new topic belongs to. */
+  ip_id: string;
+  /** Defaults to the source row's title / account name. */
+  title?: string;
+}

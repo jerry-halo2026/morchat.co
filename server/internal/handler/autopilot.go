@@ -1768,7 +1768,7 @@ func (h *Handler) createWebhookTriggerWithMintedToken(
 			Label:        label,
 			WebhookToken: pgtype.Text{String: token, Valid: true},
 			Provider:     pgtype.Text{String: provider, Valid: provider != ""},
-			EventFilters: eventFilters,
+			EventFilters: pgtype.Text{String: string(eventFilters), Valid: eventFilters != nil},
 			// published_by records CONFIG responsibility only: seeded to the creator,
 			// re-stamped to a later substantive editor (MUL-4302). It has no bearing
 			// on the runs this trigger fires (MUL-6951).
@@ -1993,7 +1993,7 @@ func (h *Handler) UpdateAutopilotTrigger(w http.ResponseWriter, r *http.Request)
 			writeError(w, http.StatusInternalServerError, "failed to encode event_filters")
 			return
 		}
-		params.EventFilters = encoded
+		params.EventFilters = pgtype.Text{String: string(encoded), Valid: encoded != nil}
 	}
 
 	// Recompute next_run_at if cron or timezone changed.

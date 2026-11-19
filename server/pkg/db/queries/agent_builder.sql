@@ -4,7 +4,7 @@
 -- the client autosaves the whole object, so a partial merge would only be able
 -- to reconstruct a state the user never saw.
 INSERT INTO agent_builder_draft (chat_session_id, workspace_id, draft)
-VALUES (@chat_session_id, @workspace_id, @draft)
+VALUES (@chat_session_id, @workspace_id, sqlc.arg('draft')::text::jsonb)
 ON CONFLICT (chat_session_id) DO UPDATE
 SET draft = EXCLUDED.draft,
     updated_at = now()

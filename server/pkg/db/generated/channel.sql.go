@@ -717,7 +717,7 @@ INSERT INTO channel_chat_session_binding (
     chat_session_id, installation_id, channel_type, channel_chat_id, chat_type,
     config, route_revision
 )
-SELECT $1, $2, $3, $4, $5, $6, next_route.route_revision
+SELECT $1, $2, $3, $4, $5, $6::text::jsonb, next_route.route_revision
 FROM next_route
 RETURNING id, chat_session_id, installation_id, channel_type, channel_chat_id, chat_type, last_message_id, last_thread_id, config, created_at, pending_fresh, context_revision, route_revision, retired_at, history_start_message_id, history_end_message_id, history_boundary_pending
 ), generation AS (
@@ -733,7 +733,7 @@ type CreateChannelChatSessionBindingParams struct {
 	ChannelType    string      `json:"channel_type"`
 	ChannelChatID  string      `json:"channel_chat_id"`
 	ChatType       string      `json:"chat_type"`
-	Config         []byte      `json:"config"`
+	Config         string      `json:"config"`
 }
 
 type CreateChannelChatSessionBindingRow struct {
@@ -812,7 +812,7 @@ INSERT INTO channel_chat_session_binding (
     config, route_revision, history_start_message_id, history_boundary_pending
 ) SELECT
     $4, $2, $5, $3, $6,
-    $7, next_route.route_revision, $8, $9
+    $7::text::jsonb, next_route.route_revision, $8, $9
 FROM next_route
 RETURNING id, chat_session_id, installation_id, channel_type, channel_chat_id, chat_type, last_message_id, last_thread_id, config, created_at, pending_fresh, context_revision, route_revision, retired_at, history_start_message_id, history_end_message_id, history_boundary_pending
 ), generation AS (
@@ -832,7 +832,7 @@ type CreateChannelChatSessionBindingGenerationParams struct {
 	ChatSessionID          pgtype.UUID `json:"chat_session_id"`
 	ChannelType            string      `json:"channel_type"`
 	ChatType               string      `json:"chat_type"`
-	Config                 []byte      `json:"config"`
+	Config                 string      `json:"config"`
 	HistoryStartMessageID  pgtype.Text `json:"history_start_message_id"`
 	HistoryBoundaryPending bool        `json:"history_boundary_pending"`
 }
@@ -1040,7 +1040,7 @@ INSERT INTO channel_user_binding (
     workspace_id, multica_user_id, installation_id,
     channel_type, channel_user_id, config
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5, $6::text::jsonb
 )
 ON CONFLICT (installation_id, channel_user_id) DO UPDATE SET
     -- jsonb_strip_nulls(EXCLUDED.config) preserves the old lark semantics
@@ -1059,7 +1059,7 @@ type CreateChannelUserBindingParams struct {
 	InstallationID pgtype.UUID `json:"installation_id"`
 	ChannelType    string      `json:"channel_type"`
 	ChannelUserID  string      `json:"channel_user_id"`
-	Config         []byte      `json:"config"`
+	Config         string      `json:"config"`
 }
 
 // =====================
@@ -3254,13 +3254,13 @@ func (q *Queries) SetChannelChatContextReplyTarget(ctx context.Context, arg SetC
 
 const setChannelInstallationConfig = `-- name: SetChannelInstallationConfig :exec
 UPDATE channel_installation
-SET config = $2, updated_at = now()
+SET config = $2::text::jsonb, updated_at = now()
 WHERE id = $1
 `
 
 type SetChannelInstallationConfigParams struct {
 	ID     pgtype.UUID `json:"id"`
-	Config []byte      `json:"config"`
+	Config string      `json:"config"`
 }
 
 // Replaces the whole config blob for one installation. Prefer field-level
@@ -3433,7 +3433,7 @@ const upsertChannelInstallation = `-- name: UpsertChannelInstallation :one
 INSERT INTO channel_installation (
     workspace_id, agent_id, channel_type, config, installer_user_id
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4::text::jsonb, $5
 )
 ON CONFLICT (workspace_id, agent_id, channel_type) DO UPDATE SET
     channel_type      = EXCLUDED.channel_type,
@@ -3449,8 +3449,8 @@ type UpsertChannelInstallationParams struct {
 	WorkspaceID     pgtype.UUID `json:"workspace_id"`
 	AgentID         pgtype.UUID `json:"agent_id"`
 	ChannelType     string      `json:"channel_type"`
-	Config          []byte      `json:"config"`
-	InstallerUserID pgtype.UUID `json:"installer_user_id"`
+	Config          string      `json:"config"`
+	InstallerUserID pgtype.UUID `json:"installer_user_i_d"`
 }
 
 // Platform-agnostic inbound channel queries (MUL-3515). These operate on
@@ -3506,7 +3506,7 @@ const upsertChannelInstallationByAppID = `-- name: UpsertChannelInstallationByAp
 INSERT INTO channel_installation (
     workspace_id, agent_id, channel_type, config, installer_user_id
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4::text::jsonb, $5
 )
 ON CONFLICT (channel_type, (config ->> 'app_id')) DO UPDATE SET
     agent_id          = EXCLUDED.agent_id,
@@ -3523,8 +3523,8 @@ type UpsertChannelInstallationByAppIDParams struct {
 	WorkspaceID     pgtype.UUID `json:"workspace_id"`
 	AgentID         pgtype.UUID `json:"agent_id"`
 	ChannelType     string      `json:"channel_type"`
-	Config          []byte      `json:"config"`
-	InstallerUserID pgtype.UUID `json:"installer_user_id"`
+	Config          string      `json:"config"`
+	InstallerUserID pgtype.UUID `json:"installer_user_i_d"`
 }
 
 // Team-keyed install / re-install for channels whose natural identity is the

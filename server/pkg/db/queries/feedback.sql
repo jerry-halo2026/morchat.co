@@ -1,6 +1,6 @@
 -- name: CreateFeedback :one
 INSERT INTO feedback (user_id, workspace_id, message, metadata)
-VALUES ($1, sqlc.narg(workspace_id), $2, $3)
+VALUES ($1, sqlc.narg(workspace_id), $2, sqlc.arg('metadata')::text::jsonb)
 RETURNING *;
 
 -- name: CountRecentFeedbackByUser :one

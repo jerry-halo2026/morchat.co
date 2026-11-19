@@ -356,7 +356,7 @@ func (h *Handler) transferMemberDepartment(w http.ResponseWriter, r *http.Reques
 		ActorType:   pgtype.Text{String: "member", Valid: true},
 		ActorID:     requester.UserID,
 		Action:      departmentTransferActivity,
-		Details:     details,
+		Details:     string(details),
 	}); err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to record department change")
 		return nil, nil, false

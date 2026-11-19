@@ -92,7 +92,7 @@ func recordWakeupActivity(ctx context.Context, q *db.Queries, w db.IssueWakeup, 
 	row, err := q.CreateActivity(ctx, db.CreateActivityParams{
 		ID: dbid.NewV7(), WorkspaceID: w.WorkspaceID, IssueID: w.IssueID,
 		ActorType: pgtype.Text{String: actorType, Valid: true}, ActorID: actorID,
-		Action: action, Details: raw,
+		Action: action, Details: string(raw),
 	})
 	if err != nil {
 		return wakeupActivity{}, err

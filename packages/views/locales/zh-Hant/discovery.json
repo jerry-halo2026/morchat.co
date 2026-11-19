@@ -1,0 +1,79 @@
+{
+  "missing": "未採集",
+  "common": {
+    "all": "全部",
+    "cancel": "取消",
+    "clear": "清除篩選",
+    "delete": "刪除",
+    "retry": "重試",
+    "load_failed": "這個清單沒能載入",
+    "write_failed": "伺服器拒絕了這次修改，沒有儲存。"
+  },
+  "form": {
+    "save": "儲存",
+    "field_title": "標題",
+    "field_name": "帳號",
+    "field_platform": "平台",
+    "field_url": "連結",
+    "field_rank": "排名",
+    "field_heat": "熱度",
+    "field_category": "分類",
+    "field_day": "採集日期",
+    "field_note": "備註",
+    "field_ip": "IP",
+    "field_followers": "粉絲數",
+    "field_metrics": "指標",
+    "metrics_hint": "每行一條，寫成 鍵: 值。",
+    "no_ip": "不歸屬 IP"
+  },
+  "adopt": {
+    "title": "採納成選題",
+    "submit": "放進選題池",
+    "no_ip": "選題要歸屬一個 IP，先建一個。",
+    "failed": "伺服器拒絕了這次採納，沒有建立選題。",
+    "adopted": "已轉成選題",
+    "open_topic": "開啟選題"
+  },
+  "hot": {
+    "new": "登錄熱點",
+    "edit": "編輯熱點",
+    "empty_title": "還沒有熱點記錄",
+    "empty_description": "可以手動登錄一筆，或者等匯入。",
+    "filter_day": "日期",
+    "filter_category": "分類",
+    "filter_platform": "平台",
+    "filter_keyword": "搜尋熱點",
+    "no_matches": "沒有符合篩選的熱點",
+    "column_hotspot": "熱點",
+    "column_rank": "排名",
+    "column_heat": "熱度",
+    "adopt": "採納成選題",
+    "delete_title": "刪除這筆熱點？",
+    "delete_description": "「{{title}}」會從雷達裡消失，記錄本身留著。"
+  },
+  "bench": {
+    "new": "新增對標",
+    "edit": "編輯對標",
+    "empty_title": "還沒有對標樣本",
+    "empty_description": "先登錄一個對標帳號，再對著 IP 讀它的數字。",
+    "filter_ip": "IP",
+    "filter_keyword": "搜尋帳號",
+    "no_matches": "沒有符合條件的對標",
+    "column_account": "帳號",
+    "column_url": "主頁",
+    "column_followers": "粉絲數",
+    "column_metrics": "指標",
+    "column_captured": "採集日期",
+    "column_ip": "IP",
+    "adopt": "採納成選題",
+    "delete_title": "刪除這個對標？",
+    "delete_description": "「{{name}}」會從拆解清單裡消失，記錄本身留著。",
+    "metric": {
+      "plays": "播放",
+      "views": "瀏覽",
+      "likes": "按讚",
+      "favorites": "收藏",
+      "comments": "留言"
+    }
+  }
+}

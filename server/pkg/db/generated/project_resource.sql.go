@@ -26,7 +26,7 @@ const createProjectResource = `-- name: CreateProjectResource :one
 INSERT INTO project_resource (
     project_id, workspace_id, resource_type, resource_ref, label, position, created_by
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7
+    $1, $2, $3, $4::text::jsonb, $5, $6, $7
 ) RETURNING id, project_id, workspace_id, resource_type, resource_ref, label, position, created_at, created_by
 `
 
@@ -34,7 +34,7 @@ type CreateProjectResourceParams struct {
 	ProjectID    pgtype.UUID `json:"project_id"`
 	WorkspaceID  pgtype.UUID `json:"workspace_id"`
 	ResourceType string      `json:"resource_type"`
-	ResourceRef  []byte      `json:"resource_ref"`
+	ResourceRef  string      `json:"resource_ref"`
 	Label        pgtype.Text `json:"label"`
 	Position     int32       `json:"position"`
 	CreatedBy    pgtype.UUID `json:"created_by"`
@@ -304,7 +304,7 @@ func (q *Queries) ListProjectResourcesInWorkspace(ctx context.Context, arg ListP
 
 const updateProjectResource = `-- name: UpdateProjectResource :one
 UPDATE project_resource
-SET resource_ref = $2,
+SET resource_ref = $2::text::jsonb,
     label        = $3,
     position     = $4
 WHERE id = $1
@@ -313,7 +313,7 @@ RETURNING id, project_id, workspace_id, resource_type, resource_ref, label, posi
 
 type UpdateProjectResourceParams struct {
 	ID          pgtype.UUID `json:"id"`
-	ResourceRef []byte      `json:"resource_ref"`
+	ResourceRef string      `json:"resource_ref"`
 	Label       pgtype.Text `json:"label"`
 	Position    int32       `json:"position"`
 }

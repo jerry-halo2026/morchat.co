@@ -124,7 +124,7 @@ func (f *fakeInstallQueries) UpsertChannelInstallation(_ context.Context, arg db
 		WorkspaceID:     arg.WorkspaceID,
 		AgentID:         arg.AgentID,
 		ChannelType:     arg.ChannelType,
-		Config:          arg.Config,
+		Config:          []byte(arg.Config),
 		InstallerUserID: arg.InstallerUserID,
 		Status:          "active",
 	}, nil

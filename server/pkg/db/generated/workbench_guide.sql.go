@@ -116,7 +116,7 @@ INSERT INTO hr_interview_guide (
 ) VALUES (
     $1, $2::uuid,
     $3, $4::uuid, $5,
-    $6, $7::jsonb, $8::text,
+    $6, $7::text::jsonb, $8::text,
     $9::uuid, $10::uuid
 )
 RETURNING id, workspace_id, interview_id, candidate_id, job_id, round, status, items, note, owner_member_id, created_by, created_at, updated_at, archived_at
@@ -129,7 +129,7 @@ type CreateHrInterviewGuideParams struct {
 	JobID         pgtype.UUID `json:"job_id"`
 	Round         int16       `json:"round"`
 	Status        string      `json:"status"`
-	Items         []byte      `json:"items"`
+	Items         string      `json:"items"`
 	Note          pgtype.Text `json:"note"`
 	OwnerMemberID pgtype.UUID `json:"owner_member_id"`
 	CreatedBy     pgtype.UUID `json:"created_by"`
@@ -489,7 +489,7 @@ SET interview_id = $1::uuid,
     job_id = $2::uuid,
     round = $3,
     status = $4,
-    items = $5::jsonb,
+    items = $5::text::jsonb,
     note = $6::text,
     updated_at = now()
 WHERE id = $7 AND workspace_id = $8 AND archived_at IS NULL
@@ -501,7 +501,7 @@ type UpdateHrInterviewGuideParams struct {
 	JobID       pgtype.UUID `json:"job_id"`
 	Round       int16       `json:"round"`
 	Status      string      `json:"status"`
-	Items       []byte      `json:"items"`
+	Items       string      `json:"items"`
 	Note        pgtype.Text `json:"note"`
 	ID          pgtype.UUID `json:"id"`
 	WorkspaceID pgtype.UUID `json:"workspace_id"`

@@ -127,7 +127,7 @@ func (s *PluginService) ApproveMCPHookTools(ctx context.Context, installation db
 	}
 	updated, err := s.Queries.SetPluginMCPApprovals(ctx, db.SetPluginMCPApprovalsParams{
 		ID:           installation.ID,
-		McpApprovals: encoded,
+		McpApprovals: string(encoded),
 	})
 	if err != nil {
 		return db.PluginInstallation{}, &PluginError{Kind: PluginErrorUnavailable, Message: "store approvals", Err: err}

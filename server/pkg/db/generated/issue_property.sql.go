@@ -74,7 +74,7 @@ SELECT $1::uuid,
        $3::text,
        $4::text,
        $5::text,
-       $6::jsonb,
+       $6::text::jsonb,
        COALESCE((SELECT MAX(position) FROM issue_property WHERE workspace_id = $1::uuid), 0) + 1
 RETURNING id, workspace_id, name, type, description, config, position, archived_at, created_at, updated_at, icon
 `
@@ -85,7 +85,7 @@ type CreateIssuePropertyParams struct {
 	Type        string      `json:"type"`
 	Description string      `json:"description"`
 	Icon        string      `json:"icon"`
-	Config      []byte      `json:"config"`
+	Config      string      `json:"config"`
 }
 
 // New definitions append to the end of the catalog: position = max + 1.
@@ -276,21 +276,21 @@ func (q *Queries) ListIssueProperties(ctx context.Context, arg ListIssueProperti
 
 const setIssuePropertyValue = `-- name: SetIssuePropertyValue :one
 UPDATE issue
-SET properties = jsonb_set(properties, ARRAY[$1::text], $2::jsonb, true),
-    revision = revision + CASE WHEN properties -> $1::text IS DISTINCT FROM $2::jsonb THEN 1 ELSE 0 END,
+SET properties = jsonb_set(properties, ARRAY[$1::text], $2::text::jsonb, true),
+    revision = revision + CASE WHEN properties -> $1::text IS DISTINCT FROM $2::text::jsonb THEN 1 ELSE 0 END,
     last_activity_at = CASE
-        WHEN properties -> $1::text IS DISTINCT FROM $2::jsonb
+        WHEN properties -> $1::text IS DISTINCT FROM $2::text::jsonb
         THEN GREATEST(COALESCE(last_activity_at, updated_at), now())
         ELSE last_activity_at
     END,
-    updated_at = CASE WHEN properties -> $1::text IS DISTINCT FROM $2::jsonb THEN now() ELSE updated_at END
+    updated_at = CASE WHEN properties -> $1::text IS DISTINCT FROM $2::text::jsonb THEN now() ELSE updated_at END
 WHERE id = $3::uuid AND workspace_id = $4::uuid
 RETURNING id, workspace_id, title, description, status, priority, assignee_type, assignee_id, creator_type, creator_id, parent_issue_id, acceptance_criteria, context_refs, position, due_date, created_at, updated_at, number, project_id, origin_type, origin_id, first_executed_at, start_date, metadata, stage, properties, revision, last_activity_at, triage_state, duplicate_of_issue_id, requester_user_id, closed_at, goal_id
 `
 
 type SetIssuePropertyValueParams struct {
 	Key         string      `json:"key"`
-	Value       []byte      `json:"value"`
+	Value       string      `json:"value"`
 	ID          pgtype.UUID `json:"id"`
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
 }
@@ -349,7 +349,7 @@ UPDATE issue_property SET
     name = COALESCE($3, name),
     description = COALESCE($4, description),
     icon = COALESCE($5, icon),
-    config = COALESCE($6, config),
+    config = COALESCE($6::text::jsonb, config),
     archived_at = CASE WHEN $7::bool THEN $8 ELSE archived_at END,
     updated_at = now()
 WHERE id = $1 AND workspace_id = $2
@@ -362,7 +362,7 @@ type UpdateIssuePropertyParams struct {
 	Name        pgtype.Text        `json:"name"`
 	Description pgtype.Text        `json:"description"`
 	Icon        pgtype.Text        `json:"icon"`
-	Config      []byte             `json:"config"`
+	Config      pgtype.Text        `json:"config"`
 	ArchivedSet bool               `json:"archived_set"`
 	ArchivedAt  pgtype.Timestamptz `json:"archived_at"`
 }

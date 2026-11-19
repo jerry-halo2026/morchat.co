@@ -1203,8 +1203,8 @@ func (s *TaskService) hydrateDeferredChannelIssueTaskOverlay(ctx context.Context
 	}
 	updated, err := s.Queries.SetDeferredChannelIssueTaskRuntimeOverlay(ctx, db.SetDeferredChannelIssueTaskRuntimeOverlayParams{
 		ID:                       task.ID,
-		RuntimeMcpOverlay:        overlay.Overlay,
-		RuntimeConnectedApps:     overlay.ConnectedApps,
+		RuntimeMcpOverlay:        jsonbRaw(overlay.Overlay),
+		RuntimeConnectedApps:     jsonbRaw(overlay.ConnectedApps),
 		ExpectedOriginatorUserID: task.OriginatorUserID,
 	})
 	if err != nil {
@@ -1340,8 +1340,8 @@ func (s *TaskService) enqueueIssueTaskWithCommentPlan(ctx context.Context, issue
 		RuleVersionID:        attr.RuleVersionID,
 		RerunOfTaskID:        rerunOfTaskID,
 		FreshRerun:           pgtype.Bool{Bool: freshRerun, Valid: true},
-		RuntimeMcpOverlay:    runtimeMCPOverlay.Overlay,
-		RuntimeConnectedApps: runtimeMCPOverlay.ConnectedApps,
+		RuntimeMcpOverlay:    jsonbRaw(runtimeMCPOverlay.Overlay),
+		RuntimeConnectedApps: jsonbRaw(runtimeMCPOverlay.ConnectedApps),
 		OriginatorSource:     attrSource,
 		DelegatedFromTaskID:  attrDelegatedFrom,
 		TriggerEvidenceKind:  attrEvidenceKind,
@@ -1518,8 +1518,8 @@ func (s *TaskService) enqueueMentionTaskWithCommentPlan(ctx context.Context, iss
 		RuleVersionID:        attr.RuleVersionID,
 		RerunOfTaskID:        rerunOfTaskID,
 		FreshRerun:           pgtype.Bool{Bool: freshRerun, Valid: true},
-		RuntimeMcpOverlay:    runtimeMCPOverlay.Overlay,
-		RuntimeConnectedApps: runtimeMCPOverlay.ConnectedApps,
+		RuntimeMcpOverlay:    jsonbRaw(runtimeMCPOverlay.Overlay),
+		RuntimeConnectedApps: jsonbRaw(runtimeMCPOverlay.ConnectedApps),
 		OriginatorSource:     attrSource,
 		DelegatedFromTaskID:  attrDelegatedFrom,
 		TriggerEvidenceKind:  attrEvidenceKind,
@@ -1712,11 +1712,11 @@ func (s *TaskService) enqueueQuickCreateTask(ctx context.Context, workspaceID, r
 		AgentID:              agentID,
 		RuntimeID:            agent.RuntimeID,
 		Priority:             priorityToInt("high"),
-		Context:              contextJSON,
+		Context:              jsonbText(contextJSON),
 		OriginatorUserID:     requesterID,
 		AccountableUserID:    attr.AccountableUserID,
-		RuntimeMcpOverlay:    runtimeMCPOverlay.Overlay,
-		RuntimeConnectedApps: runtimeMCPOverlay.ConnectedApps,
+		RuntimeMcpOverlay:    jsonbRaw(runtimeMCPOverlay.Overlay),
+		RuntimeConnectedApps: jsonbRaw(runtimeMCPOverlay.ConnectedApps),
 		OriginatorSource:     attrSource,
 		TriggerEvidenceKind:  attrEvidenceKind,
 		TriggerEvidenceRefID: attrEvidenceRef,
@@ -1835,8 +1835,8 @@ func (s *TaskService) RetrySourceContextQuickCreate(ctx context.Context, workspa
 	}
 	child, err := qtx.CreateManualQuickCreateRetryTask(ctx, db.CreateManualQuickCreateRetryTaskParams{
 		ActorUserID:          requesterID,
-		RuntimeMcpOverlay:    overlay.Overlay,
-		RuntimeConnectedApps: overlay.ConnectedApps,
+		RuntimeMcpOverlay:    jsonbRaw(overlay.Overlay),
+		RuntimeConnectedApps: jsonbRaw(overlay.ConnectedApps),
 		NewTaskID:            dbid.NewV7(),
 		SourceTaskID:         sourceTaskID,
 	})
@@ -2158,8 +2158,8 @@ func (s *TaskService) enqueueChatTaskTx(
 		OriginatorUserID:     initiatorUserID,
 		AccountableUserID:    prepared.accountableUser,
 		ForceFreshSession:    pgtype.Bool{Bool: forceFreshSession, Valid: true},
-		RuntimeMcpOverlay:    prepared.runtimeOverlay.Overlay,
-		RuntimeConnectedApps: prepared.runtimeOverlay.ConnectedApps,
+		RuntimeMcpOverlay:    jsonbRaw(prepared.runtimeOverlay.Overlay),
+		RuntimeConnectedApps: jsonbRaw(prepared.runtimeOverlay.ConnectedApps),
 		OriginatorSource:     prepared.attrSource,
 		TriggerEvidenceKind:  prepared.attrEvidenceKind,
 		TriggerEvidenceRefID: chatSession.ID,
@@ -2469,8 +2469,8 @@ func (s *TaskService) SendDirectChatMessage(
 			OriginatorUserID:     attr.UserID,
 			AccountableUserID:    attr.AccountableUserID,
 			ForceFreshSession:    pgtype.Bool{Bool: false, Valid: true},
-			RuntimeMcpOverlay:    overlay.Overlay,
-			RuntimeConnectedApps: overlay.ConnectedApps,
+			RuntimeMcpOverlay:    jsonbRaw(overlay.Overlay),
+			RuntimeConnectedApps: jsonbRaw(overlay.ConnectedApps),
 			OriginatorSource:     attrSource,
 			TriggerEvidenceKind:  attrEvidenceKind,
 			TriggerEvidenceRefID: attrEvidenceRef,
@@ -4051,7 +4051,7 @@ func (s *TaskService) FinalizeTaskClaim(
 			// claim generation is no longer current, and the newer one records
 			// its own snapshot.
 			if err := qtx.SetTaskIssueSnapshot(ctx, db.SetTaskIssueSnapshotParams{
-				IssueSnapshot: issueSnapshot,
+				IssueSnapshot: jsonbText(issueSnapshot),
 				TaskID:        task.ID,
 				RuntimeID:     task.RuntimeID,
 				DispatchedAt:  task.DispatchedAt,
@@ -4683,7 +4683,7 @@ func (s *TaskService) CompleteTaskWithTransition(ctx context.Context, taskID pgt
 		}
 		t, err := qtx.CompleteAgentTask(ctx, db.CompleteAgentTaskParams{
 			ID:                    taskID,
-			Result:                result,
+			Result:                jsonbText(result),
 			SessionID:             pgtype.Text{String: sessionID, Valid: sessionID != ""},
 			WorkDir:               pgtype.Text{String: workDir, Valid: workDir != ""},
 			DurableWorkDir:        pgtype.Text{String: durableWorkDir, Valid: durableWorkDir != ""},
@@ -5316,8 +5316,8 @@ func (s *TaskService) FailTaskWithTransition(ctx context.Context, taskID pgtype.
 				ID:                   taskID,
 				FireAt:               retryFireAt,
 				MaxAttempts:          retryMaxAttempts,
-				RuntimeMcpOverlay:    retryOverlay.Overlay,
-				RuntimeConnectedApps: retryOverlay.ConnectedApps,
+				RuntimeMcpOverlay:    jsonbRaw(retryOverlay.Overlay),
+				RuntimeConnectedApps: jsonbRaw(retryOverlay.ConnectedApps),
 			})
 			switch {
 			case cerr == nil:
@@ -5804,8 +5804,8 @@ func (s *TaskService) MaybeRetryFailedTask(ctx context.Context, parent db.AgentT
 		ID:                   parent.ID,
 		FireAt:               retryFireAt,
 		MaxAttempts:          pgtype.Int4{Int32: retryAttemptCeiling(reason, parent.MaxAttempts), Valid: true},
-		RuntimeMcpOverlay:    runtimeMCPOverlay.Overlay,
-		RuntimeConnectedApps: runtimeMCPOverlay.ConnectedApps,
+		RuntimeMcpOverlay:    jsonbRaw(runtimeMCPOverlay.Overlay),
+		RuntimeConnectedApps: jsonbRaw(runtimeMCPOverlay.ConnectedApps),
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
 		// Workspace torn down, or the pending slot was taken between the check
@@ -6826,7 +6826,7 @@ func (s *TaskService) exhaustDelegatedFailureRecovery(ctx context.Context, targe
 				Body:          pgtype.Text{String: exhaustedComment.Content, Valid: true},
 				ActorType:     pgtype.Text{String: "system", Valid: true},
 				ActorID:       pgtype.UUID{},
-				Details:       details,
+				Details:       jsonbText(details),
 			})
 			if err != nil {
 				return fmt.Errorf("create delegated failure exhaustion inbox item: %w", err)
@@ -6984,8 +6984,8 @@ func (s *TaskService) dispatchDelegatedFailureRecovery(ctx context.Context, targ
 			SquadID:              target.source.SquadID,
 			OriginatorUserID:     originator,
 			AccountableUserID:    accountable,
-			RuntimeMcpOverlay:    overlay.Overlay,
-			RuntimeConnectedApps: overlay.ConnectedApps,
+			RuntimeMcpOverlay:    jsonbRaw(overlay.Overlay),
+			RuntimeConnectedApps: jsonbRaw(overlay.ConnectedApps),
 			OriginatorSource:     pgtype.Text{String: string(source), Valid: true},
 			DelegatedFromTaskID:  target.failed.ID,
 			RuleVersionID:        ruleVersionID,
@@ -8293,7 +8293,7 @@ func (s *TaskService) notifyQuickCreateCompleted(ctx context.Context, task db.Ag
 		Body:          pgtype.Text{},
 		ActorType:     pgtype.Text{String: "agent", Valid: true},
 		ActorID:       task.AgentID,
-		Details:       details,
+		Details:       jsonbText(details),
 	})
 	if err != nil {
 		slog.Error("quick-create completion: inbox write failed", "task_id", util.UUIDToString(task.ID), "error", err)
@@ -8397,7 +8397,7 @@ func (s *TaskService) writeQuickCreateOutcomeInbox(ctx context.Context, task db.
 		Body:          pgtype.Text{String: redact.Text(errMsg), Valid: true},
 		ActorType:     pgtype.Text{String: "agent", Valid: true},
 		ActorID:       task.AgentID,
-		Details:       details,
+		Details:       jsonbText(details),
 	})
 	if err != nil {
 		slog.Error("quick-create failure: inbox write failed", "task_id", util.UUIDToString(task.ID), "error", err)

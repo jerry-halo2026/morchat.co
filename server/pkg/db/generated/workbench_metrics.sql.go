@@ -95,18 +95,23 @@ func (q *Queries) OverviewCrmCollectedMonth(ctx context.Context, arg OverviewCrm
 }
 
 const overviewCrmFinance = `-- name: OverviewCrmFinance :one
-WITH signed AS (
+WITH bounds AS (
+    SELECT coalesce($1::date, date_trunc('month', now())::date) AS month_start
+),
+signed AS (
     SELECT
         coalesce(sum(c.final_amount), 0)::float8 AS amount,
         (count(*) FILTER (WHERE c.final_amount IS NOT NULL))::bigint AS samples
     FROM crm_collab c
     LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
-    WHERE c.workspace_id = $1
+
+    CROSS JOIN bounds b
+    WHERE c.workspace_id = $2
       AND c.archived_at IS NULL
       AND c.stage NOT IN ('inquiry', 'quoted', 'negotiating', 'cancelled')
-      AND c.confirmed_at >= date_trunc('month', now())
-      AND c.confirmed_at < date_trunc('month', now()) + interval '1 month'
-      AND ($2::uuid IS NULL OR m.department_id = $2::uuid)
+      AND c.confirmed_at >= b.month_start::timestamptz
+      AND c.confirmed_at < (b.month_start + interval '1 month')::timestamptz
+      AND ($3::uuid IS NULL OR m.department_id = $3::uuid)
 ),
 collected AS (
     SELECT
@@ -115,11 +120,13 @@ collected AS (
     FROM crm_settlement s
     JOIN crm_collab c ON c.id = s.collab_id AND c.workspace_id = s.workspace_id
     LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
-    WHERE s.workspace_id = $1
+
+    CROSS JOIN bounds b
+    WHERE s.workspace_id = $2
       AND s.archived_at IS NULL
-      AND s.paid_at >= date_trunc('month', current_date)::date
-      AND s.paid_at < (date_trunc('month', current_date) + interval '1 month')::date
-      AND ($2::uuid IS NULL OR m.department_id = $2::uuid)
+      AND s.paid_at >= b.month_start
+      AND s.paid_at < (b.month_start + interval '1 month')::date
+      AND ($3::uuid IS NULL OR m.department_id = $3::uuid)
 ),
 cost AS (
     SELECT
@@ -129,12 +136,14 @@ cost AS (
         (count(*))::bigint AS samples
     FROM crm_collab c
     LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
-    WHERE c.workspace_id = $1
+
+    CROSS JOIN bounds b
+    WHERE c.workspace_id = $2
       AND c.archived_at IS NULL
       AND c.stage = 'settled'
-      AND c.accepted_at >= date_trunc('month', now())
-      AND c.accepted_at < date_trunc('month', now()) + interval '1 month'
-      AND ($2::uuid IS NULL OR m.department_id = $2::uuid)
+      AND c.accepted_at >= b.month_start::timestamptz
+      AND c.accepted_at < (b.month_start + interval '1 month')::timestamptz
+      AND ($3::uuid IS NULL OR m.department_id = $3::uuid)
 ),
 receivable AS (
     SELECT
@@ -143,13 +152,13 @@ receivable AS (
     FROM crm_settlement s
     JOIN crm_collab c ON c.id = s.collab_id AND c.workspace_id = s.workspace_id
     LEFT JOIN member m ON m.workspace_id = c.workspace_id AND m.user_id = c.owner_member_id
-    WHERE s.workspace_id = $1
+    WHERE s.workspace_id = $2
       AND s.archived_at IS NULL
       AND s.paid_at IS NULL
-      AND ($2::uuid IS NULL OR m.department_id = $2::uuid)
+      AND ($3::uuid IS NULL OR m.department_id = $3::uuid)
 )
 SELECT
-    to_char(date_trunc('month', now()), 'YYYY-MM') AS month,
+    to_char(b.month_start, 'YYYY-MM') AS month,
     signed.amount AS signed_amount,
     signed.samples AS signed_samples,
     collected.amount AS collected_amount,
@@ -159,9 +168,12 @@ SELECT
     receivable.avg_days AS receivable_days,
     receivable.samples AS receivable_samples
 FROM signed, collected, cost, receivable
+
+CROSS JOIN bounds b
 `
 
 type OverviewCrmFinanceParams struct {
+	MonthStart   pgtype.Date `json:"month_start"`
 	WorkspaceID  pgtype.UUID `json:"workspace_id"`
 	DepartmentID pgtype.UUID `json:"department_id"`
 }
@@ -212,7 +224,7 @@ type OverviewCrmFinanceRow struct {
 // collaboration owner's member department, reached from the settlement through
 // its collaboration. Nothing here is an access boundary.
 func (q *Queries) OverviewCrmFinance(ctx context.Context, arg OverviewCrmFinanceParams) (OverviewCrmFinanceRow, error) {
-	row := q.db.QueryRow(ctx, overviewCrmFinance, arg.WorkspaceID, arg.DepartmentID)
+	row := q.db.QueryRow(ctx, overviewCrmFinance, arg.MonthStart, arg.WorkspaceID, arg.DepartmentID)
 	var i OverviewCrmFinanceRow
 	err := row.Scan(
 		&i.Month,
@@ -799,7 +811,52 @@ SELECT
           AND hep.archived_at IS NULL
           AND ($2::uuid IS NULL
                OR hep.department_id = $2::uuid
-               OR hepm.department_id = $2::uuid))::bigint AS employees
+               OR hepm.department_id = $2::uuid))::bigint AS employees,
+    -- Content production and discovery (WORKBENCH-API §12 / §21). One counter per
+    -- ledger the left sidebar lists, so a rail badge is a number the server owns
+    -- rather than a count the client derives from whatever page it happens to hold.
+    -- Department attribution is the same fallback chain as above: the row's owning
+    -- member. It is an aggregate filter, never an access boundary.
+    (SELECT count(*) FROM media_script msc
+        LEFT JOIN member mscm ON mscm.workspace_id = msc.workspace_id AND mscm.user_id = msc.owner_member_id
+        WHERE msc.workspace_id = $1
+          AND msc.archived_at IS NULL
+          AND ($2::uuid IS NULL
+               OR mscm.department_id = $2::uuid))::bigint AS media_scripts,
+    (SELECT count(*) FROM media_shoot msh
+        LEFT JOIN member mshm ON mshm.workspace_id = msh.workspace_id AND mshm.user_id = msh.owner_member_id
+        WHERE msh.workspace_id = $1
+          AND msh.archived_at IS NULL
+          AND ($2::uuid IS NULL
+               OR mshm.department_id = $2::uuid))::bigint AS media_shoots,
+    (SELECT count(*) FROM media_hot mh
+        LEFT JOIN member mhm ON mhm.workspace_id = mh.workspace_id AND mhm.user_id = mh.owner_member_id
+        WHERE mh.workspace_id = $1
+          AND mh.archived_at IS NULL
+          AND ($2::uuid IS NULL
+               OR mhm.department_id = $2::uuid))::bigint AS hot,
+    (SELECT count(*) FROM media_bench mb
+        LEFT JOIN member mbm ON mbm.workspace_id = mb.workspace_id AND mbm.user_id = mb.owner_member_id
+        WHERE mb.workspace_id = $1
+          AND mb.archived_at IS NULL
+          AND ($2::uuid IS NULL
+               OR mbm.department_id = $2::uuid))::bigint AS bench,
+    -- General manager ledgers (WORKBENCH-API §13): goals and the radar's signals.
+    -- A goal carries its own ` + "`" + `department_id` + "`" + ` (748) and falls back to its owner's,
+    -- while a signal has no department column at all — only its owner's.
+    (SELECT count(*) FROM goal_okr g
+        LEFT JOIN member gom ON gom.workspace_id = g.workspace_id AND gom.user_id = g.owner_member_id
+        WHERE g.workspace_id = $1
+          AND g.archived_at IS NULL
+          AND ($2::uuid IS NULL
+               OR g.department_id = $2::uuid
+               OR gom.department_id = $2::uuid))::bigint AS goals,
+    (SELECT count(*) FROM market_signal sg
+        LEFT JOIN member sgm ON sgm.workspace_id = sg.workspace_id AND sgm.user_id = sg.owner_member_id
+        WHERE sg.workspace_id = $1
+          AND sg.archived_at IS NULL
+          AND ($2::uuid IS NULL
+               OR sgm.department_id = $2::uuid))::bigint AS signals
 `
 
 type WorkbenchCountsParams struct {
@@ -817,6 +874,12 @@ type WorkbenchCountsRow struct {
 	Candidates         int64 `json:"candidates"`
 	Interviews         int64 `json:"interviews"`
 	Employees          int64 `json:"employees"`
+	MediaScripts       int64 `json:"media_scripts"`
+	MediaShoots        int64 `json:"media_shoots"`
+	Hot                int64 `json:"hot"`
+	Bench              int64 `json:"bench"`
+	Goals              int64 `json:"goals"`
+	Signals            int64 `json:"signals"`
 }
 
 // Workbench aggregates (docs/METRICS.md §2, docs/engineering/WORKBENCH-API.md §3
@@ -851,6 +914,12 @@ func (q *Queries) WorkbenchCounts(ctx context.Context, arg WorkbenchCountsParams
 		&i.Candidates,
 		&i.Interviews,
 		&i.Employees,
+		&i.MediaScripts,
+		&i.MediaShoots,
+		&i.Hot,
+		&i.Bench,
+		&i.Goals,
+		&i.Signals,
 	)
 	return i, err
 }

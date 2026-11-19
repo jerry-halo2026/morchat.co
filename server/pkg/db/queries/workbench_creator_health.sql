@@ -194,7 +194,7 @@ SELECT
     r.stats_collected_at,
     sqlc.arg('source_system')::text,
     r.source_id
-FROM jsonb_to_recordset(sqlc.arg('rows')::jsonb) AS r(
+FROM jsonb_to_recordset(sqlc.arg('rows')::text::jsonb) AS r(
     creator_id UUID,
     aweme_id TEXT,
     desc_text TEXT,
@@ -236,7 +236,7 @@ SET creator_id = r.creator_id,
     video_url = r.video_url,
     stats_collected_at = r.stats_collected_at,
     updated_at = now()
-FROM jsonb_to_recordset(sqlc.arg('rows')::jsonb) AS r(
+FROM jsonb_to_recordset(sqlc.arg('rows')::text::jsonb) AS r(
     id UUID,
     creator_id UUID,
     desc_text TEXT,
@@ -306,7 +306,7 @@ SELECT
     r.engagement_rate,
     r.hit_rate,
     r.sample_note
-FROM jsonb_to_recordset(sqlc.arg('rows')::jsonb) AS r(
+FROM jsonb_to_recordset(sqlc.arg('rows')::text::jsonb) AS r(
     creator_id UUID,
     video_count INTEGER,
     videos_with_stats INTEGER,

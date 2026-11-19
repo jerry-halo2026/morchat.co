@@ -1,0 +1,80 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "edit": "編集",
+    "retry": "再試行",
+    "week": "今週",
+    "status": "ステータス",
+    "ip": "IP"
+  },
+  "ips": {
+    "new": "IP を作成",
+    "empty_title": "コンテンツ IP はまだありません",
+    "empty_description": "IP とは、ひとつのペルソナ・ジャンル・オーディエンスのまとまりです。各プラットフォームのアカウントはその下にぶら下がります。",
+    "error_title": "IP を読み込めませんでした",
+    "scope_title": "対象の IP がありません",
+    "scope_clear": "すべての IP を表示",
+    "accounts": "アカウント",
+    "accounts_empty": "プラットフォームのアカウントはまだ紐づいていません。",
+    "attach": "紐づける",
+    "detach": "紐づけを解除",
+    "account_failed": "アカウントの変更は拒否されました。アカウントは同時にひとつの IP にしか紐づきません。",
+    "search_creator": "クリエイター台帳を検索",
+    "no_match": "該当するクリエイターがいません。",
+    "name": "名前",
+    "persona": "ペルソナ",
+    "track": "ジャンル",
+    "audience": "オーディエンス",
+    "color": "カラー",
+    "week_goal": "週あたりの投稿数",
+    "name_required": "名前を入力してください。",
+    "save_failed": "サーバーがこの IP を拒否しました。保存されていません。",
+    "delete_title": "この IP を削除しますか？",
+    "delete_description": "「{{name}}」はすべての一覧から消えます。配下のトピックと台本は残ります。",
+    "status": {
+      "active": "運用中",
+      "paused": "一時停止",
+      "ended": "終了"
+    }
+  },
+  "topics": {
+    "new": "トピックを作成",
+    "empty_title": "トピックプールは空です",
+    "empty_description": "ホットから、またはベンチマークから採用するか、手動で追加してください。",
+    "no_ip": "先にコンテンツ IP を作成してください。トピックは IP に属します。",
+    "error_title": "トピックを読み込めませんでした",
+    "all_ips": "すべての IP",
+    "from_hot": "ホットから",
+    "field_title": "タイトル",
+    "field_source": "出所",
+    "field_scores": "5 軸スコア",
+    "scores_hint": "各軸 0–100。5 軸の合計が高いほど上に並びます。",
+    "kept_scores": "保存されたまま保持：{{keys}}",
+    "write_failed": "サーバーがこの変更を拒否しました。何も保存されていません。",
+    "delete_title": "このトピックを削除しますか？",
+    "delete_description": "「{{title}}」はアーカイブされます。台本は残ります。",
+    "column": {
+      "pool": "未評価",
+      "scripting": "執筆中",
+      "shooting": "撮影中",
+      "publishing": "公開待ち",
+      "done": "完了",
+      "dropped": "却下"
+    },
+    "source": {
+      "hot": "ホット",
+      "manual": "手動",
+      "bench": "ベンチマーク",
+      "ai": "AI"
+    },
+    "dim": {
+      "pain": "痛点",
+      "save": "保存数",
+      "debate": "議論",
+      "susp": "意外性",
+      "fit": "適合度"
+    }
+  }
+}

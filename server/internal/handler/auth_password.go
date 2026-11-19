@@ -357,7 +357,7 @@ func (h *Handler) recordAuthActivity(ctx context.Context, workspaceID, actorID p
 		ActorType:   strToText("member"),
 		ActorID:     actorID,
 		Action:      action,
-		Details:     payload,
+		Details:     string(payload),
 	}); err != nil {
 		slog.Warn("auth audit write failed", "action", action, "error", err)
 	}

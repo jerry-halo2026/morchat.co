@@ -276,8 +276,8 @@ func TestSchedulePulseExampleManifestDrivesDurableRetry(t *testing.T) {
 		PluginKey:        manifest.Key,
 		PackageVersionID: pgtype.UUID{Bytes: uuid.New(), Valid: true},
 		Version:          manifest.Version,
-		Manifest:         canonical,
-		GrantedScopes:    grantedScopes,
+		Manifest:         string(canonical),
+		GrantedScopes:    string(grantedScopes),
 		InstalledBy:      parseUUID(testUserID),
 	})
 	if err != nil {

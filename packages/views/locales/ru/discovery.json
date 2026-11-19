@@ -1,0 +1,79 @@
+{
+  "missing": "Не собрано",
+  "common": {
+    "all": "Все",
+    "cancel": "Отмена",
+    "clear": "Сбросить фильтры",
+    "delete": "Удалить",
+    "retry": "Повторить",
+    "load_failed": "Не удалось загрузить список",
+    "write_failed": "Сервер отклонил изменение. Ничего не сохранено."
+  },
+  "form": {
+    "save": "Сохранить",
+    "field_title": "Заголовок",
+    "field_name": "Аккаунт",
+    "field_platform": "Платформа",
+    "field_url": "Ссылка",
+    "field_rank": "Место",
+    "field_heat": "Активность",
+    "field_category": "Категория",
+    "field_day": "Дата сбора",
+    "field_note": "Заметка",
+    "field_ip": "IP",
+    "field_followers": "Подписчики",
+    "field_metrics": "Метрики",
+    "metrics_hint": "По одной в строке, в виде ключ: значение.",
+    "no_ip": "Без IP"
+  },
+  "adopt": {
+    "title": "Принять как тему",
+    "submit": "Добавить в пул",
+    "no_ip": "Тема принадлежит IP. Сначала создайте его.",
+    "failed": "Сервер отклонил принятие. Ничего не создано.",
+    "adopted": "Принято",
+    "open_topic": "Открыть тему"
+  },
+  "hot": {
+    "new": "Добавить тренд",
+    "edit": "Изменить тренд",
+    "empty_title": "Собранных трендов пока нет",
+    "empty_description": "Добавьте один вручную или дождитесь импорта.",
+    "filter_day": "День",
+    "filter_category": "Категория",
+    "filter_platform": "Платформа",
+    "filter_keyword": "Поиск трендов",
+    "no_matches": "Ни один тренд не подходит под фильтры",
+    "column_hotspot": "Тренд",
+    "column_rank": "Место",
+    "column_heat": "Активность",
+    "adopt": "Принять как тему",
+    "delete_title": "Удалить этот тренд?",
+    "delete_description": "«{{title}}» исчезнет с радара. Сама запись останется."
+  },
+  "bench": {
+    "new": "Добавить ориентир",
+    "edit": "Изменить ориентир",
+    "empty_title": "Ориентиров пока нет",
+    "empty_description": "Запишите аккаунт, чтобы читать его цифры относительно IP.",
+    "filter_ip": "IP",
+    "filter_keyword": "Поиск аккаунтов",
+    "no_matches": "Ни один ориентир не подходит под фильтр",
+    "column_account": "Аккаунт",
+    "column_url": "Профиль",
+    "column_followers": "Подписчики",
+    "column_metrics": "Метрики",
+    "column_captured": "Дата сбора",
+    "column_ip": "IP",
+    "adopt": "Принять как тему",
+    "delete_title": "Удалить этот ориентир?",
+    "delete_description": "«{{name}}» исчезнет из списка разбора. Сама запись останется.",
+    "metric": {
+      "plays": "Просмотры видео",
+      "views": "Показы",
+      "likes": "Лайки",
+      "favorites": "Сохранения",
+      "comments": "Комментарии"
+    }
+  }
+}

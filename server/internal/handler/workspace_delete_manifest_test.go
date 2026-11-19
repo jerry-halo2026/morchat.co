@@ -1,4 +1,4 @@
-package handler
+﻿package handler
 
 import (
 	"context"
@@ -165,7 +165,7 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"creator":             workspaceDelete,
 	"creator_post":        workspaceDelete,
 	"creator_post_metric": workspaceDelete,
-	// Content health (WORKBENCH-API §19, 794–800): a work names a creator and a
+	// Content health (WORKBENCH-API 搂19, 794鈥?00): a work names a creator and a
 	// daily snapshot names a creator, with no foreign key behind either, so
 	// DeleteWorkspaceWorkbenchLedger clears both before the creators.
 	"creator_video":       workspaceDelete,
@@ -179,31 +179,31 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"hr_interview":        workspaceDelete,
 	"hr_scorecard":        workspaceDelete,
 	"hr_employee_profile": workspaceDelete,
-	// Interview questions and guides (WORKBENCH-API §14): no foreign key either —
+	// Interview questions and guides (WORKBENCH-API 搂14): no foreign key either 鈥?
 	// a guide's items are snapshots, and both tables are workspace-owned business
-	// rows — so DeleteWorkspaceWorkbenchLedger removes each explicitly.
+	// rows 鈥?so DeleteWorkspaceWorkbenchLedger removes each explicitly.
 	"hr_question":        workspaceDelete,
 	"hr_interview_guide": workspaceDelete,
-	// Offboarding (WORKBENCH-API §15): no foreign key behind it, so
+	// Offboarding (WORKBENCH-API 搂15): no foreign key behind it, so
 	// DeleteWorkspaceWorkbenchLedger removes the records explicitly. The
 	// `leave_date` those records wrote sits on `hr_employee_profile`, which the
 	// same teardown already deletes.
 	"hr_offboarding": workspaceDelete,
-	// Employee file change stream (WORKBENCH-API §16): append-only rows naming an
+	// Employee file change stream (WORKBENCH-API 搂16): append-only rows naming an
 	// employee profile, no foreign key, so DeleteWorkspaceWorkbenchLedger clears
 	// them explicitly before the profiles they describe.
 	"hr_employee_change": workspaceDelete,
-	// Rewards and disciplines (WORKBENCH-API §17): a row names an employee profile,
+	// Rewards and disciplines (WORKBENCH-API 搂17): a row names an employee profile,
 	// no foreign key behind it, so DeleteWorkspaceWorkbenchLedger clears it
 	// explicitly before the profiles it describes.
 	"hr_employee_reward": workspaceDelete,
-	// HR documents (WORKBENCH-API §18): a generation row names an employee profile
+	// HR documents (WORKBENCH-API 搂18): a generation row names an employee profile
 	// and a template, a template is a workspace-owned body, and neither table has a
 	// foreign key behind it. The generated files themselves are ordinary
 	// attachments, which the same teardown already deletes.
 	"hr_doc_generation": workspaceDelete,
 	"hr_doc_template":   workspaceDelete,
-	// Affiliate distribution (WORKBENCH-API §11): the same treatment — no foreign
+	// Affiliate distribution (WORKBENCH-API 搂11): the same treatment 鈥?no foreign
 	// key, so DeleteWorkspaceWorkbenchLedger removes them explicitly.
 	"affiliate_product":    workspaceDelete,
 	"affiliate_pick":       workspaceDelete,
@@ -212,8 +212,8 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	// Finance month entry (707): no foreign key either, so the same teardown has
 	// to name it or a deleted workspace leaves its cost rows behind.
 	"ops_finance_month": workspaceDelete,
-	// Content workbench (WORKBENCH-API §12): IP → topic → script → shoot, the same
-	// treatment — no foreign key sits behind any of them, so
+	// Content workbench (WORKBENCH-API 搂12): IP 鈫?topic 鈫?script 鈫?shoot, the same
+	// treatment 鈥?no foreign key sits behind any of them, so
 	// DeleteWorkspaceWorkbenchLedger removes each explicitly. The two link columns
 	// (`creator.media_ip_id`, `creator_post.media_script_id`) sit on tables teardown
 	// already deletes, so they need no entry of their own.
@@ -221,7 +221,13 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"media_topic":  workspaceDelete,
 	"media_script": workspaceDelete,
 	"media_shoot":  workspaceDelete,
-	// General manager workbench (WORKBENCH-API §13): OKR goals, their key results
+	// Hotspot radar and benchmark teardown (WORKBENCH-API 搂21, 812鈥?15): the two
+	// source ledgers a topic is adopted from. No foreign key behind either, so
+	// DeleteWorkspaceWorkbenchLedger removes them explicitly alongside the topics
+	// whose bare `hot_id` may point at them.
+	"media_hot":   workspaceDelete,
+	"media_bench": workspaceDelete,
+	// General manager workbench (WORKBENCH-API 搂13): OKR goals, their key results
 	// and department packages, and the radar signals. No foreign key sits behind
 	// any of them, so DeleteWorkspaceWorkbenchLedger removes each explicitly.
 	// `issue.goal_id` (748) needs no entry: it is a column on `issue`, which
@@ -232,18 +238,38 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"market_signal":        workspaceDelete,
 	"workspace_invitation": workspaceDelete,
 	"workspace_share_link": workspaceDelete,
-	// orange 达人 mirror (785–793, docs/engineering/ORANGE-SYNC.md): the
+	// orange 杈句汉 mirror (785鈥?93, docs/engineering/ORANGE-SYNC.md): the
 	// workspace-owned claim on an upstream orange account, deleted by
 	// DeleteWorkspaceWorkbenchLedger. The mirrored `creator` rows it points at
 	// are ordinary workspace rows and are classified above.
 	"orange_account": workspaceDelete,
-	// BD pipeline (WORKBENCH-API §20, 802–809): a follow-up and a quote name a
+	// BD pipeline (WORKBENCH-API 搂20, 802鈥?09): a follow-up and a quote name a
 	// creator (a quote may also name a brief) with no foreign key behind either,
 	// and a campaign names nothing. DeleteWorkspaceWorkbenchLedger removes all
 	// three before the creators and briefs they describe.
 	"creator_activity": workspaceDelete,
 	"creator_quote":    workspaceDelete,
 	"creator_campaign": workspaceDelete,
+	// knowledge family: migrations 637-651 predate the no-FK rule and still
+	// reference workspace/issue/project, so the domain is swept in
+	// `deleteWorkspaceKnowledge` (children → parents, before issues/projects).
+	"knowledge_chunks":                      workspaceDelete,
+	"knowledge_distillation_cursors":        workspaceDelete,
+	"knowledge_distillation_runs":           workspaceDelete,
+	"knowledge_distillation_work_items":     workspaceDelete,
+	"knowledge_documents":                   workspaceDelete,
+	"knowledge_import_tasks":                workspaceDelete,
+	"knowledge_instances":                   workspaceDelete,
+	"knowledge_items":                       workspaceDelete,
+	"knowledge_page_backlinks":              workspaceDelete,
+	"knowledge_page_revisions":              workspaceDelete,
+	"knowledge_pages":                       workspaceDelete,
+	"knowledge_sources":                     workspaceDelete,
+	"knowledge_spaces":                      workspaceDelete,
+	// Workspace-owned secrets; the row also carries user_id but belongs to the workspace.
+	"gateway_credentials":                   workspaceDelete,
+	// Identity link between a local user and an external IdP: user-scoped, no workspace_id.
+	"external_auth_identity":                workspaceDeleteKeep,
 }
 
 func TestWorkspaceDeletionManifestCoversPublicSchema(t *testing.T) {

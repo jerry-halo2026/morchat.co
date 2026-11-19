@@ -28,7 +28,7 @@ INSERT INTO client_usage_daily (
     CASE WHEN sqlc.arg('has_runtime_probe')::boolean THEN CURRENT_TIMESTAMP ELSE NULL END,
     sqlc.narg('probe_result'),
     sqlc.narg('runtime_count'),
-    sqlc.narg('provider_summary'),
+    sqlc.narg('provider_summary')::text::jsonb,
     sqlc.narg('online_count'),
     sqlc.narg('offline_count')
 )

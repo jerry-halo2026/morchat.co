@@ -347,7 +347,7 @@ INSERT INTO app_action_request (
     workspace_id, kind, task_id, agent_id, issue_id, chat_session_id, approver_user_id,
     account_scope, toolkit_slug, tool_slug, action_class, arguments, summary, expires_at
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::text::jsonb, $13, $14
 )
 RETURNING id, workspace_id, kind, status, task_id, agent_id, issue_id, chat_session_id, approver_user_id, account_scope, toolkit_slug, tool_slug, action_class, arguments, summary, approved_arguments, result, error, reason, expires_at, reminded_at, decided_by, decided_at, created_at, updated_at
 `
@@ -364,7 +364,7 @@ type CreateAppActionRequestParams struct {
 	ToolkitSlug    string             `json:"toolkit_slug"`
 	ToolSlug       string             `json:"tool_slug"`
 	ActionClass    string             `json:"action_class"`
-	Arguments      []byte             `json:"arguments"`
+	Arguments      string             `json:"arguments"`
 	Summary        string             `json:"summary"`
 	ExpiresAt      pgtype.Timestamptz `json:"expires_at"`
 }
@@ -420,7 +420,7 @@ func (q *Queries) CreateAppActionRequest(ctx context.Context, arg CreateAppActio
 const decideAppActionRequest = `-- name: DecideAppActionRequest :one
 UPDATE app_action_request
 SET status = $3,
-    approved_arguments = $5::jsonb,
+    approved_arguments = $5::text::jsonb,
     reason = $6::text,
     decided_by = $4,
     decided_at = now(),
@@ -434,7 +434,7 @@ type DecideAppActionRequestParams struct {
 	WorkspaceID       pgtype.UUID `json:"workspace_id"`
 	Status            string      `json:"status"`
 	DecidedBy         pgtype.UUID `json:"decided_by"`
-	ApprovedArguments []byte      `json:"approved_arguments"`
+	ApprovedArguments pgtype.Text `json:"approved_arguments"`
 	Reason            pgtype.Text `json:"reason"`
 }
 
@@ -573,7 +573,7 @@ func (q *Queries) ExpireDueAppActionRequests(ctx context.Context) ([]AppActionRe
 const findPendingAppActionRequest = `-- name: FindPendingAppActionRequest :one
 SELECT id, workspace_id, kind, status, task_id, agent_id, issue_id, chat_session_id, approver_user_id, account_scope, toolkit_slug, tool_slug, action_class, arguments, summary, approved_arguments, result, error, reason, expires_at, reminded_at, decided_by, decided_at, created_at, updated_at FROM app_action_request
 WHERE task_id = $1 AND kind = $2 AND toolkit_slug = $3 AND tool_slug = $4
-  AND arguments = $5::jsonb AND status = 'pending'
+  AND arguments = $5::text::jsonb AND status = 'pending'
 ORDER BY created_at DESC
 LIMIT 1
 `
@@ -583,7 +583,7 @@ type FindPendingAppActionRequestParams struct {
 	Kind        string      `json:"kind"`
 	ToolkitSlug string      `json:"toolkit_slug"`
 	ToolSlug    string      `json:"tool_slug"`
-	Arguments   []byte      `json:"arguments"`
+	Arguments   string      `json:"arguments"`
 }
 
 // The same run asking for the same call again (an agent retrying after a
@@ -1682,7 +1682,7 @@ func (q *Queries) SetAgentComposioToolkitAllowlist(ctx context.Context, arg SetA
 
 const setAppActionRequestOutcome = `-- name: SetAppActionRequestOutcome :one
 UPDATE app_action_request
-SET status = $3, result = $4::jsonb, error = $5::text, updated_at = now()
+SET status = $3, result = $4::text::jsonb, error = $5::text, updated_at = now()
 WHERE id = $1 AND workspace_id = $2 AND status = 'approved'
 RETURNING id, workspace_id, kind, status, task_id, agent_id, issue_id, chat_session_id, approver_user_id, account_scope, toolkit_slug, tool_slug, action_class, arguments, summary, approved_arguments, result, error, reason, expires_at, reminded_at, decided_by, decided_at, created_at, updated_at
 `
@@ -1691,7 +1691,7 @@ type SetAppActionRequestOutcomeParams struct {
 	ID          pgtype.UUID `json:"id"`
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
 	Status      string      `json:"status"`
-	Result      []byte      `json:"result"`
+	Result      pgtype.Text `json:"result"`
 	Error       pgtype.Text `json:"error"`
 }
 

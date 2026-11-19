@@ -34,7 +34,7 @@ WHERE w.workspace_id= @workspace_id AND w.system_rule= @system_rule AND w.custom
  AND NOT EXISTS(SELECT 1 FROM issue_status s WHERE s.workspace_id=i.workspace_id AND s.key=i.status AND s.category IN ('done','closed'));
 
 -- name: MergeWorkspaceSettings :exec
-UPDATE workspace SET settings=COALESCE(settings,'{}'::jsonb) || @patch::jsonb,updated_at=now() WHERE id= @id;
+UPDATE workspace SET settings=COALESCE(settings,'{}'::jsonb) || sqlc.arg('patch')::text::jsonb,updated_at=now() WHERE id= @id;
 
 -- name: ListParentsWithoutSystemWakeup :many
 -- Open parents that predate their rule, for the one-time backfill.

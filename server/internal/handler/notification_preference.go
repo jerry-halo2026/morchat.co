@@ -135,7 +135,7 @@ func (h *Handler) UpdateNotificationPreferences(w http.ResponseWriter, r *http.R
 	pref, err := h.Queries.UpsertNotificationPreference(r.Context(), db.UpsertNotificationPreferenceParams{
 		WorkspaceID: parseUUID(workspaceID),
 		UserID:      parseUUID(userID),
-		Preferences: prefsJSON,
+		Preferences: string(prefsJSON),
 	})
 	if err != nil {
 		slog.Warn("UpsertNotificationPreference failed", append(logger.RequestAttrs(r), "error", err)...)
@@ -161,7 +161,7 @@ func (h *Handler) PatchNotificationPreferences(w http.ResponseWriter, r *http.Re
 	pref, err := h.Queries.PatchNotificationPreference(r.Context(), db.PatchNotificationPreferenceParams{
 		WorkspaceID: parseUUID(workspaceID),
 		UserID:      parseUUID(userID),
-		Preferences: prefsJSON,
+		Preferences: string(prefsJSON),
 	})
 	if err != nil {
 		slog.Warn("PatchNotificationPreference failed", append(logger.RequestAttrs(r), "error", err)...)

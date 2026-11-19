@@ -122,7 +122,7 @@ crm_settlement(id PK, workspace_id, collab_id UUID NOT NULL,
 | GET/POST | `/crm/briefs` | 列表（`?status=&client_id=`）/ 新建 |
 | GET/PATCH/DELETE | `/crm/briefs/{briefId}` | 单条 |
 | GET/POST | `/crm/collabs` | 列表（`?stage=&brief_id=&creator_id=`）/ 新建 |
-| GET/PATCH/DELETE | `/crm/collabs/{collabId}` | 单条；PATCH 改 `stage` 时写 `confirmed_at` 等时间戳 |
+| GET/PATCH/DELETE | `/crm/collabs/{collabId}` | 单条；PATCH 改 `stage` 时写 `confirmed_at` 等时间戳；DELETE 连带归档该合作单的结算（见 §20.1） |
 | GET/POST | `/crm/settlements` | 列表（`?collab_id=&paid=`）/ 新建 |
 | PATCH/DELETE | `/crm/settlements/{settlementId}` | 单条 |
 
@@ -175,6 +175,21 @@ handler：`GetWorkbenchFinance`（`server/internal/handler/workbench_finance.go`
 - C10：签约口径**含续费**；续费单列在 `crm_settlement.kind`。⚠️ 现有 CHECK 只允许 `prepay|final|platform_fee|tax`，**没有 `renewal`**，所以 B0 阶段续费只能记成一条普通结算行 —— 它只会在真正回款后进 `collected`，不会重复计入 `signed`。加 `renewal` 需要一条改 CHECK 的迁移，未在本次范围内。
 - 每块形状与 `/overview` 的 `{value, sample_count, empty}` 完全一致（Go 侧 `WorkbenchFinanceBlock` 是 `WorkbenchMetricValue` 的类型别名），`empty` 同样只发 `zero` / `insufficient_data`。
 - 部门过滤沿用 B0 回退链：结算单 → 其合作单 → `owner_member_id` 的 `member.department_id`；不参与鉴权。
+
+**按月份读取（`?month=YYYY-MM`）**
+
+```
+GET /api/workbench/finance?month=2026-09[&department_id=]
+```
+
+- **省略 `month` = 服务器当前自然月**，与参数出现之前的行为逐字相同（`window.month` 由 SQL 的 `now()` 推出）。
+- 给了 `month` 就返回**那个自然月**：窗口是绑定参数 `month_start`（`coalesce(narg('month_start')::date, date_trunc('month', now())::date)`），上表的五条口径**一个字都没改**，只是把 `now()` 换成这个月初 —— signed 仍按 `confirmed_at`、collected 仍按 `crm_settlement.paid_at`、成本侧仍按该月 `ops_finance_month`（或该月 `accepted_at` 落月内的 settled 单费用）。
+- 只接受 `YYYY-MM`（本端点也接受 `YYYY-MM-DD` 且必须是月初）；其它形状 **400**，不会静默退回当月。
+- **没有数据的历史月与未来月都是允许的**，按三态回答：`signed` / `collected` 是 `zero`（真零），`gross_margin` / `cash_floor` / `receivable_days` 是 `insufficient_data`。未来月份因此不会 400 —— 「这个月还没发生」是数据状态，不是请求错误。
+- `window.month` 回显**被请求的那个月**（不是当月），客户端据此给趋势图配标签。
+- `receivable_days` 与月份无关（它问的是「此刻还有多少钱没回来」），换月份不会让它变；它只受 department 过滤影响。
+- 客户端：`api.getWorkbenchFinance({ month })`（`packages/core/api/client.ts`），query key 不变（`workbenchKeys` 下按 filters 拼），一次失效同时刷新当月与历史月。
+- 已知边界：一次请求只算一个月，没有区间聚合 —— 趋势图由客户端按需连点若干次（老板页一次最多 6 个月），服务端没有跨月合计是**有意**的，跨月求和会重新引入「哪个月的币种/口径」问题。
 
 ### 3.3 月度成本与现金录入
 
@@ -1930,6 +1945,9 @@ word/styles.xml
 
 - **合作单继续用 `crm_collab`**，只补两列：`publish_url`（履约链接）、`settled_on`（结算日期）；
 - **结算继续用 `crm_settlement`**（预付款 / 尾款 / 平台费 / 税，`paid_at` 非空即已到账）；
+- **撤销合作单连带归档它的结算**：`DELETE /crm/collabs/{id}` 在同一事务里归档该合作单 **和** `collab_id` 指向它的未归档结算行，仍 204、仍软删，并分别发 `crm_collab:changed` 与该批结算的 `crm_settlement:changed`。
+  - **已到账（`paid_at` 非空）的结算也归档，不拦**。理由：`paid_at` 记的是「这笔钱确实走过一次」，归档不会把它变回没付；行只是从台账里退出（和所有软删一样）。反过来在有到账行时返回 409 会让「建错的单」永久无法撤销 —— 运营能修的手段只剩下 API 不给改的结算行。要保住这笔钱可见，正确答案是**别撤销这张单**，而不是让撤销半途而废。
+  - 撤销之前结算行是活的、合作单已归档，会让 `orders.paid_amount` 和应收清单继续算着一条「合作单已经不在任何屏幕上」的钱；这也正是前端此前不敢放删除入口的原因（一点就造孤儿）。
 - 本批只建真正缺的三张：`creator_activity` / `creator_quote` / `creator_campaign`；
 - **没有 `/bd/orders` 路由**。驱动盘的 `orders` 块读 `crm_collab` + `crm_settlement`，写入口仍是 `/crm/collabs`。
 
@@ -2088,6 +2106,452 @@ word/styles.xml
 - **`creator_campaign` 与 `creator` 还没有关联**：本批只落批次自身（名字 / 预算 / 窗口 / 缓存人数），`creator.source_*` 仍是达人的来源事实；「这个批次包含哪些达人」是下一批的多对多。
 - **不做审批流、不做寄样记录表、不做发票、不做 UI、不动指标契约**（`packages/core/metrics/contracts.ts` 本批未改）。
 
+## 21. 热点雷达与对标拆解契约（两张来源台账 + adopt）
+
+§12 的流水线是「IP → 选题 → 脚本 → 拍摄 → 发布」。选题从哪来？原稿给了两个来源页——media 的「热点雷达」和「对标拆解」——但库里没有落点：`media_topic.hot_id` 从 730 起就是一个**裸指针**（§12.7 已记为债务：读写都不校验存在性），因为热点表当时不在范围内。
+
+本节补上这两个来源台账，并把 `hot_id` 接上：
+
+```
+媒体平台热点榜 ──media_hot──┐
+                            ├─ adopt ─→ media_topic(source='hot'|'bench', hot_id=来源行, scores={})
+同行账号数据 ──media_bench──┘                  └─→ 后续照 §12 走脚本 / 拍摄 / 发布
+```
+
+**两张表都不是流水线阶段**：它们是「事实」——某天这个平台上什么在热、某个同行账号那天什么数据——adopt 才把它们变成计划。所以它们各自有自己的 CRUD、自己的软删、自己的事件，而 adopt 是唯一一条通向 `media_topic` 的边，且只读来源行。
+
+### 21.1 迁移号段
+
+| 号 | 文件 | 内容 |
+| --- | --- | --- |
+| 812 | `812_media_hot.up/down.sql` | 表 `media_hot` |
+| 813 | `813_media_hot_captured_idx.up/down.sql` | `media_hot (workspace_id, captured_on DESC, id DESC)` |
+| 814 | `814_media_bench.up/down.sql` | 表 `media_bench` |
+| 815 | `815_media_bench_captured_idx.up/down.sql` | `media_bench (workspace_id, captured_on DESC, id DESC)` |
+
+**为什么 bench 表是 814 而不是 813**：仓库硬规则要求每个 `CREATE INDEX CONCURRENTLY` 独占一个单语句迁移文件，而两张表的二级索引都要建。号段只能顺延：表 812 → 索引 813 → 表 814 → 索引 815。计划文档 §2 写的「812 media_hot / 813 media_bench」是两张表的编号意图，落成文件时按规则插入了 813。**不跳号**。
+
+813、815 都在 `server/cmd/migrate/main.go` 的 `concurrentIndexCleanups` 里登记（up 方向要能清掉中断构建留下的 INVALID 索引）。down 方向只有 `DROP INDEX CONCURRENTLY IF EXISTS`，不重建索引，所以不进 `concurrentDownIndexCleanups`——与 §12.1、§20.2 同一处理。
+
+两张表都不进新的一批 teardown 语句：`DeleteWorkspaceWorkbenchLedger` 里各加一条 `DELETE`，`workspace_delete_manifest_test.go` 里各加一条 `workspaceDelete` 分类（否则 manifest 漂移测试会报未分类表）。
+
+### 21.2 表
+
+```sql
+-- 812
+media_hot(
+  id UUID PK, workspace_id UUID NOT NULL,
+  title TEXT NOT NULL, platform TEXT NOT NULL, url TEXT,
+  rank INTEGER, heat_value BIGINT, category TEXT,
+  captured_on DATE NOT NULL,
+  source TEXT NOT NULL DEFAULT 'manual' CHECK (source IN ('manual','crawl','api')),
+  note TEXT, owner_member_id UUID, created_by UUID,
+  created_at, updated_at, archived_at)
+
+-- 814
+media_bench(
+  id UUID PK, workspace_id UUID NOT NULL,
+  ip_id UUID,                       -- 对标的是我们哪个 IP；行业盘为 NULL
+  platform TEXT NOT NULL, name TEXT NOT NULL, url TEXT,
+  follower_count BIGINT,
+  metrics JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(metrics) = 'object'),
+  captured_on DATE NOT NULL,
+  note TEXT, owner_member_id UUID, created_by UUID,
+  created_at, updated_at, archived_at)
+```
+
+口径要点（与 `WORKBENCH-DATA-CONTRACT.md` §0 五条一致）：
+
+| 列 | 为什么这样定 |
+| --- | --- |
+| `media_hot.rank` / `heat_value` | **可空**。抓取只拿到标题、没拿到名次/热度是常态；`rank = 0` 不是「没名次」，是「第 0 名」，所以未知写 NULL（契约 §0 规则 2） |
+| `captured_on DATE` | 雷达问的是「18 号那天什么在热」，热点跨平台没有共同的「小时」。排期（`media_shoot.shoot_date`）同理 |
+| `media_hot.source` | 这行**怎么进来的**（人工 / 爬 / 上游 API），不是它进哪条流水线——那是 `media_topic.source` |
+| `media_bench.ip_id` | **可空**：行业盘对标不属于任何一个 IP。有值时 handler 校验它必须是本工作区未归档的 `media_ip`（无外键，规则在应用层） |
+| `media_bench.follower_count` | **可空**。没采到粉丝数与「0 粉丝」是两件事（契约 §0 规则 2） |
+| `media_bench.metrics` | JSONB 对象，**不是列**：指标集随平台变（播放中位数 / 互动率 / 爆款率 / 完播率…），拆列等于每加一个指标走一次迁移。`{}` = 还没测；**整份写**，不做键合并——对标卡片是一件artifact，不是可增量 patch 的表单 |
+
+### 21.3 REST（基址 `/api/workbench/media`）
+
+两个台账形状对称，读写五件套 + adopt：
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/hot?captured_on=&category=&platform=&q=&limit=` | 雷达列表，读序 `captured_on DESC, id DESC` |
+| POST | `/hot` | 新建一行抓取 |
+| GET/PATCH/DELETE | `/hot/{hotId}` | 单条 / 改 / 软删（204） |
+| POST | `/hot/{hotId}/adopt` | 采纳为选题，**201** 返回新 `media_topic` |
+| GET | `/bench?ip_id=&captured_on=&platform=&q=&limit=` | 对标列表，同一读序 |
+| POST | `/bench` | 新建一行对标 |
+| GET/PATCH/DELETE | `/bench/{benchId}` | 单条 / 改 / 软删（204） |
+| POST | `/bench/{benchId}/adopt` | 采纳为选题，**201** 返回新 `media_topic` |
+
+包裹与序列化沿用 §3.1：列表 `{ hot: T[], total }` / `{ bench: T[], total }`，`total` = **本页条数**；单条不包裹；删除 204。`limit` 默认 50、上限 200（`workbenchLimit`），**没有 cursor**：雷达与对标都是「一个屏幕的量」，一个月几百行（§21.6 记为债务）。
+
+筛选口径：
+
+| 参数 | 作用 |
+| --- | --- |
+| `captured_on` | `YYYY-MM-DD`（也接受 RFC 3339 截断到日），**精确到那一天**。格式错是 400，不是「不过滤」 |
+| `category` | `media_hot` 专有（`media_bench` 没有这一列，也就没有这个筛选——对标的分类就是它挂在哪个 `ip_id` 下） |
+| `platform` | 两边都有，精确匹配（`douyin` / `xiaohongshu` / …，与 `creator.platform` 同一套自由值） |
+| `q` | 模糊匹配标题：hot 匹配 `title`，bench 匹配账号 `name`（`ILIKE`） |
+| `ip_id` | `media_bench` 专有，精确匹配；格式错 400 |
+
+写入口径（`MediaHotRequest` / `MediaBenchRequest` 同时是 create 与 PATCH 的 body）：
+
+| 规则 | 结果 |
+| --- | --- |
+| `title`（hot）/ `name` + `platform`（两者）为空 | **400** |
+| `media_hot.source` 不在 `manual / crawl / api` | **400** |
+| `rank` / `heat_value` / `follower_count` 为负 | **400**（812 / 814 的 CHECK 是兜底，handler 先答，避免 500） |
+| `metrics` 不是 JSON 对象 | **400**（列是 `jsonb_typeof = 'object'`，存进去就是 500） |
+| `ip_id` 指向不存在 / 已归档 / 别的工作区的 IP | **400**（`requireMediaIP`，无外键所以只在写时校验） |
+| `captured_on` 省略 | 默认**今天（UTC）**。雷达行就是读的那天录的，没日期的抓取也无法排进列表 |
+| `rank` / `heat_value` / `url` 在 PATCH 里传 `null` | **清空该列**；字段省略 = 保留原值。这三种列是「平台没给」的合法状态，`*int64` 表达不了「没发」与「清空」的区别，所以 body 用 `json.RawMessage` 三态解析 |
+
+### 21.4 adopt 语义
+
+```
+POST /hot/{hotId}/adopt   { "ip_id": "<uuid>", "title": "可选" }
+POST /bench/{benchId}/adopt  { "ip_id": "<uuid>", "title": "可选" }
+→ 201  MediaTopic
+```
+
+生成的行：
+
+| 列 | 值 | 说明 |
+| --- | --- | --- |
+| `ip_id` | 请求里的 `ip_id` | **必填**；必须是本工作区**未归档**的 `media_ip`，否则 400（选题没有 IP 就没有归属，也没有周目标可算） |
+| `title` | 请求的 `title`，否则 hot 的 `title` / bench 的 `name` | 运营常要改角度，所以允许覆盖 |
+| `source` | `'hot'` / `'bench'` | 与 §12.2 的枚举一致 |
+| `hot_id` | **来源行 id**（hot 或 bench） | 见 §21.6 债务一：一列两源 |
+| `scores` | `{}` | 还没被判断过。五维全是 0 会假装「判过且都不行」，所以存空对象，读取时由 handler 归一成五维 0 |
+| `status` | `'pool'` | 采纳即进池 |
+| `owner_member_id` | **调用者** | 选题归采纳它的人，不归抓取它的人——抓取的人可能只是想留个记录 |
+| 来源行 | **不改** | adopt 只读。同一条热点被采纳两次 = 两个选题（「两个 IP 都要跟这个热点」是真实意图，硬造幂等键等于猜） |
+
+adopt 成功后发 `media_topic:changed`（新行）；**不**发 `media_hot:changed`——来源行没变。
+
+### 21.5 权限与 query key
+
+**权限**：两个台账都走 `workbenchReadScope`——**任意成员可读**；写入口是 `workbenchCanWrite` + `workbenchOwnerForCreate/Update`：owner/admin 可写任意行，`member` 只能写 `owner_member_id` 是自己的行，新建时省略 owner 就是「我自己」，指定别人 → **403**。
+
+**adopt 不额外加写闸门**：它读来源行（本来就是成员可读）并**新建**一个归自己的选题，所以普通成员也能采纳别人抓的热点；来源行不会被改。
+
+**query key**（`packages/core/media/{hot,bench}.ts`，并从 `@morechat/core/media` 再导出）：
+
+```
+["media", wsId, "hot",   filters]      // filters: captured_on/category/platform/q/limit
+["media", wsId, "hot",   { id }]
+["media", wsId, "bench", filters]      // filters: ip_id/captured_on/platform/q/limit
+["media", wsId, "bench", { id }]
+```
+
+两者都挂在 `mediaKeys.all(wsId)` 下（`MediaResource` 已扩到 `hot | bench`）：adopt 写的是 topic，一次 `["media", wsId]` 失效要同时覆盖来源列表和选题池。mutation 另外失效 `workbenchKeys.all(wsId)`——`/counts` 数这两张表。
+
+客户端面：`packages/core/types/media.ts`（类型）、`packages/core/api/schemas.ts`（zod + `EMPTY_*`，由 client 的 `parseWithFallback` 使用）、`packages/core/api/client.ts`（`listMediaHot` / `createMediaHot` / `getMediaHot` / `updateMediaHot` / `deleteMediaHot` / `adoptMediaHot` 与 bench 同名一套）、`packages/core/media/{hot,bench}.ts`（keys + `queryOptions` + `useMutation`）。`package.json` 声明 `./media/hot`、`./media/bench`。
+
+**事件**：`media_hot:changed` / `media_bench:changed`，payload `{ "id": "<row id>" }`，工作区广播（`publishHrChanged` 同一形状）。`packages/core/types/events.ts` 已登记（union + `WSEventPayloadMap`），`packages/core/realtime/use-realtime-sync.ts` 用 `invalidateMediaDiscoveryQueries(qc, wsId, "hot"|"bench")` 失效 `["media", wsId, resource]` + `["workbench", wsId]`；payload 只带 id，不做字段级合并（一行抓取有 rank / heat / 自由格式 metrics，猜哪一列变了不如重读）。
+
+### 21.6 已知债务与本批未做
+
+- **`hot_id` 一列两源**：`media_topic.hot_id`（730）比 `media_bench` 早，bench 采纳时也只能把行 id 写进这一列。`source` 是区分依据（`'hot'` → `media_hot`，`'bench'` → `media_bench`），所以读侧要按 `source` 决定 join 哪张表；拆成两个列或一张统一的「来源」表是下一批的事。**读侧本批不 join**：选题响应只回 `hot_id`，来源详情由页面按 `source` 另行读取。
+- **`media_topic:changed` 客户端仍未接**（§12.7 原样）：§12 的四个 `media_*` 事件只有服务端发出，本批只把 `hot` / `bench` 两个接进了事件表与 patcher。所以 adopt 在**别的客户端**不会即时出现——本批自己的台账写入会即时生效。
+- **没有分页 cursor**：两个列表都是 `limit`-only（与 §16 / §20 的先例一致）。雷达一个月几百行，超出上限靠筛选（`captured_on` / `platform`）。
+- **没有来源去重**：同一平台、同一天、同一个标题可以被录入两次；没有 `(workspace_id, platform, lower(title), captured_on)` 唯一索引。抓取脚本重复跑是常态，去重规则要先定「标题归一化」的口径，本批不猜。
+- **`metrics` 不校验形状**：只要是对象就存。指标键是运营自己的词表（与 `media_shoot.checklist` 同理），服务端不为它建 schema。
+- **bench 没有 `category`**：对标行的分类就是它挂在哪个 IP 下；需要赛道维度时先补列再做筛选，不在 handler 里造。
+- **`/counts` 只加键，`/overview` 没加指标**：侧栏能显示 `hot` / `bench` / `media_scripts` / `media_shoots` / `goals` / `signals` 六个新计数，指标条没有新增 contract id（`packages/core/metrics/contracts.ts` 未改）。
+- **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举没有 `media_hot` / `media_bench`。
+- **不做**：热点自动抓取（本批只落库与接口）、对标数据的平台 API 对接、AI 生成选题（`media_topic.source='ai'` 仍是枚举里没有写入路径的值）。
+
+## 22. 业绩聚合契约（`GET /api/workbench/bd/performance`）
+
+§20 的驾驶舱回答「**现在**这些台账处在什么状态」——一个快照。业绩页问的是另一个问题：**「这段时间里，团队到底产出了什么」**。所以这是一个带窗口的端点，而不是给驾驶舱加参数。
+
+### 22.1 窗口
+
+```
+GET /api/workbench/bd/performance?from=2026-11-01&to=2026-11-30
+```
+
+- `from` / `to` 都是**闭区间**的自然日（`YYYY-MM-DD`，也接受 RFC 3339 截断到日）。
+- 都可省略：只给 `to` → `from` = 那个月的 1 号；只给 `from` → `to` = 今天；都不给 → **本月至今**。响应回显**实际使用的** `from` / `to`，页面据此标注趋势，不必自己重算。
+- `to < from` 是 **400**（与 §12 的拍摄窗口同一规则：倒置区间是录入错误，不是「空报表」）。
+
+### 22.2 字段树
+
+```json
+{
+  "from": "2026-11-01",
+  "to": "2026-11-30",
+  "currency": "CNY",
+  "empty": "zero",
+  "signed":    { "count": NUMBER, "amount": MONEY },
+  "delivered": { "count": NUMBER, "amount": MONEY },
+  "collected": { "count": NUMBER, "amount": MONEY },
+  "quotes":    { "sent": NUMBER, "accepted": NUMBER, "win_rate": NUMBER, "amount": MONEY },
+  "followups": { "count": NUMBER, "replied": NUMBER, "meetings": NUMBER },
+  "affiliate": { "agency": MONEY, "creator": MONEY, "settled": MONEY },
+  "by_member": [ {
+    "member_id": "…", "name": "…", "win_rate": 0.5,
+    "signed_count": 1, "signed_amount": 42000,
+    "delivered_count": 1,
+    "collected_count": 1, "collected_amount": 21000,
+    "quote_sent": 2, "quote_accepted": 1, "quote_amount": 9000,
+    "followups": 1, "replied": 1, "meetings": 0
+  } ],
+  "by_month": [ { "month": "2026-11", "win_rate": 0.5, "signed_count": 1, "…": "同 by_member 的字段集" } ]
+}
+```
+
+`NUMBER` = 计数器 `{ value, sample_count, empty }`（`value` 永远是数字，空库就是 0 + `empty: "zero"`）。
+`MONEY` = `{ amount, currency, sample_count, empty }`；**`amount: null` + `empty: "insufficient_data"` 表示这个格里没有可加的行**，不是 0 元。行内金额（`signed_amount` / `collected_amount` / `quote_amount`）用裸 `number | null`：`null` 同理，`currency` 在响应顶层统一给。
+
+### 22.3 口径（逐字段）
+
+每条事实按**它自己的日期**落桶，所以同一张合作单可能同时出现在 `signed` 和 `delivered` 两个格里、带着两个金额。这不是重复计数：两格回答的是两个问题。
+
+| 字段 | 口径 |
+| --- | --- |
+| `signed.count` / `.amount` | `crm_collab` 中 `confirmed_at` 落在窗口内、`stage <> 'cancelled'` 的行数与 Σ`final_amount`（我们承诺付的钱，不是报价） |
+| `delivered.count` / `.amount` | 同上，但看 `published_at` 落在窗口内——「作品上线了」 |
+| `collected.count` / `.amount` | `crm_settlement` 中 `paid_at`（DATE）落在窗口内的行数与 Σ`amount`。**钱真的走了多少**，与「我们把哪些单标成已结算」无关；分桶归到合作单的 `owner_member_id`（结算本身没有 owner） |
+| `quotes.sent` | `creator_quote` 中 `coalesce(quoted_at, created_at)` 落在窗口且 `status <> 'draft'` 的行数（草稿从未成为报价） |
+| `quotes.accepted` | 同一日期口径下 `status = 'accepted'` 的行数 |
+| `quotes.win_rate` | `accepted / sent`（**0–1 比率**，展示层 ×100）。`sent = 0` → `value: null` + `insufficient_data`：没发过报价不是「全丢了」 |
+| `quotes.amount` | 窗口内**发出**的报价的 Σ`fee_amount`（坑位费）。已中标子集的钱在 `signed.amount` 里另一格，不在这格重复 |
+| `followups.count` | `creator_activity` 中 `happened_at` 落在窗口内的行数（条数） |
+| `followups.replied` | 其中 `outcome IN ('replied','advanced')` 的行数 |
+| `followups.meetings` | 其中 `kind = 'meeting'` 的行数 |
+| `affiliate.agency` | `affiliate_settlement` 中 `settled_to = 'agency'` 的 Σ`net_amount`：钱进了我们的机构号 |
+| `affiliate.creator` | 同表 `settled_to = 'creator'` 的 Σ`net_amount`：平台直接付给达人，是 GMV 不是我们的收入。**两格不能相加**（会重复记一次生意，同 §11 / §20.6） |
+| `affiliate.settled` | `paid_at` 落在窗口内的对账单 Σ`net_amount` + 行数：**到账**，不是承诺 |
+| `by_member[]` | 上述事实按 `owner_member_id` 聚合（回款按合作单的 owner）。按 `signed_count` 降序、`member_id` 升序；只列窗口内有事实的成员。`name` 取 `user.name`，成员行不在了就空串（身份是 id） |
+| `by_month[]` | 同一批事实按 `date_trunc('month', …)` 聚合，`YYYY-MM` 升序 |
+| `empty` | **窗口自身的状态**：窗口内至少有一条事实 → `zero`；一条都没有 → `insufficient_data`（页面画空态而不是一条 0 的趋势线） |
+
+两处的窗口规则不一样，写清楚免得对不上：
+
+- `affiliate.agency` / `.creator` 用**对账周期与窗口相交**（`period_start <= to AND period_end >= from`）——对账单描述的是一个区间，不是某一天。
+- `affiliate.settled` 用**到账日落在窗口内**（`paid_at`）。「这段时间该分我们多少」和「这段时间到账多少」是两个问题，两个都给了。
+
+### 22.4 币种：一个窗口只加一种钱
+
+`currency` 是窗口内的**主币种**（在合作单、已发报价、与窗口相交的对账单三类行里，行数最多的那个），响应里**每一个金额**都是这个币种。
+
+其他币种的行**连计数一起排除**：一格里的 `count` 和它旁边的 `amount` 必须描述同一批行，否则「3 单、42000 元」会变成三张单里有一张是美元。混币种的按币种拆分是下一批的事（§20.6 同一债务）；今天全库只有 CNY。
+
+### 22.5 已知债务与本批未做
+
+- **混合币种只读主币种**：见 §22.4。另一个币种的行不出现在任何一格，响应也不报告「被排除了多少行」。
+- **`by_member` 没有部门/角色维度**：只有人。部门维度的业绩（`department_id` 过滤）不在本批，`department_id` 在这里也不作过滤参数——业绩页读的是「谁产出了什么」，不是组织切片。
+- **`delivered` 没有金额分母**：`delivered.amount` 是同一批已发布单的 Σ`final_amount`，语义上等于「交付额」，但它和 `signed.amount` 会因为「上月签、本月交付」而不同；没有「按期交付率」这类比率（需要排期口径，`crm_collab.scheduled_at` 与 `published_at` 的差，本批不算）。
+- **`by_month` 没有补齐空月**：窗口里没有事实的月份不出现（不返回 `signed_count: 0` 的行）。画趋势时前端要自己补空月，或者按返回的月份画点。
+- **没有缓存**：每次请求六条聚合（币种、桶、佣金各一条 + 成员名单）。当前数据量（百行级台账）够用；数据涨起来要加成物化视图或按窗口缓存，本批不做。
+- **没有 `:changed` 事件**：业绩是读出来的，写入用的是 §20 的事件（`creator:changed` / `creator_post:changed` / `crm_*:changed` / 本批的 `media_hot:changed` 等）。业绩页的刷新靠这些事件失效 `["bd", wsId]` 前缀（`bdKeys.all` 已覆盖 `performance`）。
+- **不做目标对比**：`goal_okr` 的关键结果（`target/current`）与业绩窗口的自动比对不在本批——那会引入「业绩算出来的数字 vs 手动填的进度」两个真相源，跟 §2 的裁决（不建 `revenue_target`）同一理由。
+
+## 23. 批量导入契约（CSV → 报价 / 跟进 / 合作单）
+
+真实业务第一批就是几十条报价、跟进和合作单，一条一条点不成立。本节是唯一入口：**一个端点、三种 kind、CSV 文本即请求体**。语义按 `dry_run` 分两段，但校验代码**只有一份**——预览说能过、正式导入却报错，是最坏的结果。
+
+### 23.1 端点
+
+```
+POST /api/workbench/import?kind=quotes|activities|collabs&dry_run=1|0
+Content-Type: text/csv; charset=utf-8
+
+creator_handle,fee_amount,commission_rate,valid_until,currency,note
+umi,3000,0.2,2026-12-31,CNY,首轮报价
+…
+```
+
+| 项 | 规则 |
+| --- | --- |
+| `kind` | 必填，`quotes` / `activities` / `collabs`；其它值 **400** |
+| `dry_run` | 省略或 `1`/`true` = 预览（**默认**）；`0`/`false` = 正式导入；其它值 **400** |
+| 请求体 | UTF-8 CSV 文本，首行表头。Excel 写的 BOM 会被剥掉 |
+| 体积上限 | **1 MiB**，超出 **413** |
+| 行数上限 | **2000 数据行**（不含表头），超出 **413** |
+| Content-Type | `text/csv`；`text/plain` 与空值也接受（shell 的 curl 常常不带）；其它 **415** |
+| 空文件 | 没有表头或没有数据行 → 400（`parsed: 0` 的正常空批没有意义，用户是选错文件了） |
+
+响应（**dry_run 与正式导入同形**，只有 `committed` 不同）：
+
+```json
+{
+  "kind": "quotes", "parsed": 42, "accepted": 40, "committed": 0,
+  "rows":   [{ "line": 2, "action": "create", "preview": { "creator_id": "…", "fee_amount": 3000, "currency": "CNY" } }],
+  "errors": [{ "line": 7, "column": "creator_handle", "reason": "creator_not_found" }]
+}
+```
+
+- `parsed`：读到的数据行数（含出错行）。
+- `accepted`：会被写入的行数 = `action: "create"` 的行（重复行是 `skip`，不算）。
+- `committed`：真正写入的行数。**预览恒 0；有错的正式导入也恒 0**。
+- `rows[].line` 是**文件行号**（表头是第 1 行，第一条数据是第 2 行），前端据此标红。
+- `preview` 是服务器**推导后**的值（解析好的达人 id、金额、币种），不是把用户的单元格抄回来——预览的意义是让他确认将要写进库的东西。
+- `rows` / `errors` 按行号升序；`errors` 同一行内按列名升序。
+
+### 23.2 列定义（表头接受中英别名，大小写 / 空格 / 下划线 / 连字符不敏感）
+
+| kind | 必填 | 可选 |
+| --- | --- | --- |
+| `quotes` | `creator_handle` \| `creator_id`、`fee_amount` | `brief_id`、`commission_rate`（0–1）、`valid_until`、`currency`、`note` |
+| `activities` | `creator_handle` \| `creator_id`、`kind`（`dm/call/meeting/email/note`）、`happened_at`、`summary` | `outcome`（`no_reply/replied/declined/advanced`）、`next_follow_at` |
+| `collabs` | `creator_handle` \| `creator_id`、`brief_id` | `stage`、`quote_amount`、`final_amount`、`creator_fee`、`sample_cost`、`platform_fee`、`commission_rate`、`publish_url`、`settled_on`、`currency` |
+
+三种 kind 都额外接受一个可选列 **`platform`**：`creator_handle` 的匹配键是 `(platform, handle)`（§23.3 规则 1），给了 `platform` 就按精确键匹配；**不给**则在整个工作区的 handle 里找，找到多个就是 `ambiguous_handle`——同名两个平台账号时不能替用户猜。
+
+中英别名（截选，实现是 `workbench_import.go` 的 `importSpecs` 表）：`creator_handle`=`达人账号/账号/达人`、`fee_amount`=`坑位费/报价/金额`、`happened_at`=`跟进时间/时间`、`summary`=`内容/摘要`、`stage`=`阶段`、`settled_on`=`结算日期`、`publish_url`=`发布链接/履约链接`。表里没有的列**忽略**（导出文件常带多余列）；同一个列出现两次是 `duplicate_column`（不玩「后者覆盖」）。
+
+导入行的默认值（都不在 CSV 里，写死在 handler）：
+
+| kind | 默认 |
+| --- | --- |
+| `quotes` | `status='sent'`（批量补录的是**已经发出去**的报价；`draft` 是界面上还没发的草稿）、`quoted_at=NULL`（合同草案没有这一列，列表按 `created_at` 排序）、`items=[]` |
+| `activities` | 无额外默认（`kind`/`happened_at`/`summary` 必填） |
+| `collabs` | `stage='inquiry'`；阶段里程碑按 `collabStageMilestones` 与手工建单一致（`confirmed/published/accepted` 由 stage 推进补齐），`sample_required`/`script_required=false` |
+| 三者 | `owner_member_id` = **导入者**（谁导入谁负责），`created_by` = 导入者 |
+
+### 23.3 三条硬规则
+
+1. **不自动建达人。** `creator_handle` 按 `(platform, handle)` 在本工作区**未归档**达人中匹配；`creator_id` 必须是本工作区未归档达人。匹配不到 → 错误行 `creator_not_found`，`creator_id` 形状不对 → `invalid_uuid`。达人档案是上游客体 + 人工维护，导入界面不该成为第三个写入源——否则 623 行的基线会变成「基线 + 表格里写了什么」。
+2. **全或全不。** `dry_run=0` 时整批在一个事务里。**校验先跑完**：只要有任何一行出错，就整批不写（`committed: 0`）并把同样的错误清单返回。半批导入没人能对账——「42 条里进了 30 条」是最难查的状态。
+3. **`dry_run=1` 什么都不写**：不分配 id、不发事件、不触碰序列；但**校验逐字相同**（两条路径共用 `importPlanFor`，唯一差别是 `importCommit` 是否被调用）。预览里能过、正式导入却失败，是不允许出现的行为。
+
+**重复导入不产生重复行**（见 §23.4），重复行是 `action: "skip"`，不是错误、不计入 `accepted`、不写入。
+
+### 23.4 重复检测（不加唯一索引）
+
+同一份文件再导一次是**幂等**的：重复行被识别成 `skip`。判定按 kind 的自然键，且**批内去重 + 与库内已有行比对**：
+
+| kind | 重复键 | 为什么是它 |
+| --- | --- | --- |
+| `quotes` | `(creator_id, fee_amount, valid_until, currency)`（金额按两位小数、`valid_until` 的 NULL 归一成空串） | 合同草案没有 `quoted_at` 列，一份报价的「同一性」就是谁、多少钱、什么币种、有效期到哪天 |
+| `activities` | `(creator_id, happened_at, kind, summary)` | 跟进记录的同一性就是谁、什么时候、怎么联系、说了什么 |
+| `collabs` | `(brief_id, creator_id)` | 合作单是「一位达人 × 一张需求单」（§20.1），这一对就是它 |
+
+**为什么不加唯一索引**：`quotes` 的键含可空列（`valid_until`）与金额，`activities` 的键含自由文本（`summary`）——部分唯一索引只能覆盖 `collabs` 的 `(brief_id, creator_id)`，而那一条对已有数据的假设（现网/共享库里可能本来就存在同一对的多行）无法在迁移里安全验证，失败方式是**迁移直接中断**。所以本批用**应用层重复检测**：不新增表、不新增索引、不回填数据，代价是「并发同时导同一份文件」仍可能各写一份（两份内容完全相同，去重是防误操作，不是并发保护）。要升级成硬约束时，先跑一遍 `SELECT (workspace_id, brief_id, creator_id) ... HAVING count(*) > 1` 清掉历史重复，再加 `CREATE UNIQUE INDEX CONCURRENTLY`（单语句文件 + `concurrentIndexCleanups` 登记）。
+
+批内：同一文件里两行键相同，第二行也是 `skip`（不是两行都写）。
+
+### 23.5 错误码与列
+
+`errors[].reason` 是**稳定字符串**，前端按键渲染（未知码原样显示）：
+
+| reason | 何时 | `column` |
+| --- | --- | --- |
+| `missing_column` | 表头缺必填列（含 `creator_handle` 与 `creator_id` 都没有的情况） | 缺的那列；`line: 1` |
+| `duplicate_column` | 表头里同一列出现两次 | 该列；`line: 1` |
+| `column_count_mismatch` | 该行的单元格数量与表头不一致 | `""` |
+| `missing_value` | 必填单元格为空 | 该列 |
+| `creator_not_found` | handle / id 在本工作区未归档达人里找不到 | `creator_handle` 或 `creator_id` |
+| `ambiguous_handle` | 没给 `platform`，handle 命中多个达人 | `creator_handle` |
+| `invalid_uuid` | `creator_id` / `brief_id` 不是 UUID | 该列 |
+| `brief_not_found` | `brief_id` 不是本工作区未归档需求单 | `brief_id` |
+| `invalid_amount` | 金额不是数字、为负或超过 1e12 | 该金额列 |
+| `invalid_rate` | `commission_rate` 不在 0–1（`20` 不换算成 `0.2`，直接拒——猜单位就是把 2000% 写进库） | `commission_rate` |
+| `invalid_date` | `valid_until` / `settled_on` 不是 `YYYY-MM-DD`（也接受 RFC 3339 取其日期） | 该列 |
+| `invalid_timestamp` | `happened_at` / `next_follow_at` 解析不了（接受 RFC 3339、`YYYY-MM-DD HH:MM:SS`、纯日期） | 该列 |
+| `invalid_enum` | `kind` / `outcome` / `stage` 不在枚举内 | 该列 |
+| `invalid_currency` | 不是 3 个字母 | `currency` |
+
+**同一行只报第一处致命问题**：`creator` 解析不出来就只报那条（后面的字段在这个前提下没有意义），其余字段各自独立校验、各自报错。表头级错误（`missing_column` / `duplicate_column`）会让整个文件不进入行校验（`rows: []`，`parsed` 仍报读到的行数）。
+
+### 23.6 事件与 query key
+
+- 正式导入后按行发事件，**只发已有的事件词**：`collabs` → 每行一条 `crm_collab:changed`。`quotes` / `activities` 没有 `:changed` 事件（§20.5 的既有债务），导入完由客户端用本次响应的 `committed > 0` 自行失效 `["bd", wsId]`。
+- `dry_run=1` **不发任何事件**（规则 3）。
+- query key 不新增：导入是 mutation，失效 `bdKeys.all(wsId)` + `workbenchKeys.all(wsId)`（报价/跟进/合作单三张列表 + 驾驶舱 + `/counts`）。
+
+### 23.7 客户端面
+
+- 类型：`packages/core/types/workbench.ts` 的 `ImportKind` / `ImportRow` / `ImportRowAction` / `ImportError` / `ImportPreviewResponse`（字段名与 §23.1 的 JSON 逐字一致；`ImportError` 就是 `errors[]` 的元素，命名为兼容草案）。
+- zod：`packages/core/api/schemas.ts` 的 `ImportPreviewResponseSchema` + `EMPTY_IMPORT_PREVIEW_RESPONSE`（`rows`/`errors` 默认空数组，`reason`/`action` 保持字符串以容忍未来新增码）。
+- 方法：`api.importWorkbenchCsv({ kind, csv, dryRun })` —— 走 `fetchRaw`，`Content-Type: text/csv; charset=utf-8`，query 里带 `kind` 与 `dry_run`（`dryRun === false` 才发 0）。
+- **有错的文件是 200**，不是异常：`committed: 0` + `errors[]`。只有请求本身不合法（`kind` 错、Content-Type 错、超限）才抛 `ApiError`。
+
+### 23.8 已知债务与本批未做
+
+- **并发同导不互斥**：两个客户端同时导同一份文件会各写一份（§23.4）。去重是防误操作，不是并发保护；要硬保证得加唯一的自然键索引，前置条件是先清历史重复。
+- **`quotes` 的重复键偏弱**：同一达人同一天发两份**完全相同**的报价（同金额、同有效期）会被判成重复而跳过。真实业务里这种「一模一样的两条」通常就是重复录入；如果确实需要两条，日期/备注任一不同即可区分。
+- **没有部分导入 / 断点续传**：全或全不（规则 2）。几千行的文件要靠 2000 行上限分成多个文件，这是有意的取舍。
+- **`activities` 没有 `currency` 列**（草案里曾列过）：`creator_activity` 没有金额，也就没有币种。
+- **`quotes` 不写 `quoted_at`**：草案没有这一列，导入行按 `created_at` 排序；要补历史报价日期需要加一列并定义「空 = 未知」，本批不做。
+- **不做 xlsx**：只吃 CSV。前端让用户「另存为 CSV」比在服务端解析 xlsx 便宜得多。
+
 ## 9. 完成定义（DoD）
 
 一个域算完成，当且仅当：迁移可 up/down 往返、`make sqlc` 无脏 diff、handler 有权限用例、事件发出、zod 覆盖响应、`useRealtimeSync` 有 patcher、`/overview` 里对应指标从 `insufficient_data` 变为有值、页面能读能写。
+
+## 24. 产品层权限（capability）
+
+工作区角色（`member.role`）是平台原语，本产品不改它的语义；产品层需要更细的判定，于是引入 **capability**。规则正文见 `docs/engineering/COLLAB-MODEL.md` §1/§6，这里只写接口与解析顺序。
+
+### 24.1 capability 清单
+
+`crm.read` `crm.write` `crm.amount`（改金额）`crm.settle`（结算）`media.read` `media.write` `media.publish`
+`hr.read` `hr.write` `boss.read` `ads.read` `review.accept`（复核闸门）`agent.delegate`（允许 agent 代写）
+
+### 24.2 解析顺序（先命中先返回）
+
+1. `member.role = owner|admin` → 全部 capability。
+2. `workbench_role_template`(workspace_id, job_title) 命中 → 用模板集合（`hr_employee_profile.job_title`，未归档）。
+3. `member.department_id` 命中的部门默认集（本批内置一张常量表，不建表）。
+4. 兜底：`*.read` 全给，`*.write` 不给。
+
+### 24.3 接口
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/workbench/role-templates` | 列出本工作区的职位模板 |
+| PUT | `/api/workbench/role-templates/{jobTitle}` | 覆盖一个职位的能力集合（owner/admin） |
+
+无权时返回 **403 `forbidden_capability`**，body 带 `{capability}`，前端据此隐藏入口而不是弹错。
+
+### 24.4 部门可见性
+
+`workspace.settings.workbench_visibility`：`transparent`（默认，工作区级读）| `department`（读路径按 `department_id` 过滤）。
+切换只影响读，不影响已有写权限。
+
+### 24.5 迁移
+
+`817_workbench_role_template`（表）+ `818_workbench_role_template_unique`（唯一索引，单语句 CONCURRENTLY，登记 `concurrentIndexCleanups`）。
+
+## 25. 千川投放（数据源已在 `packages/qianchuan-sync`）
+
+### 25.1 表
+
+`qianchuan_account` `qianchuan_anchor` `qianchuan_plan` `qianchuan_balance` `qianchuan_daily_overall`
+`qianchuan_daily_uni_live` `qianchuan_daily_uni_video` `qianchuan_product` `qianchuan_material`
+`qianchuan_violation` `qianchuan_oplog` `qianchuan_recon`
+
+约定：核心列结构化（`stat_date`/`account_id`/`dim_id`/花费/GMV/订单/退款 + 1h/7d 结算额），其余列原样进 `metrics jsonb`；
+每行带 `source_version`（对应 `data/raw` 版本号）与 `captured_at`，以支持「历史某天当时看到的数」。
+
+### 25.2 口径（不许相加）
+
+结算窗口 `settle_1h|settle_7d|settle_14d|settle_30d|settle_90d`。**任何跨窗口求和都是 bug**，金额指标必须带 `basis`。
+默认展示 `settle_7d`；切换必须显式。
+
+### 25.3 接口
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/workbench/ads/summary?from=&to=&basis=` | 账户级汇总 + 环比 |
+| GET | `/api/workbench/ads/accounts` | 账户与余额 |
+| GET | `/api/workbench/ads/plans?account_id=&status=` | 计划表 |
+| GET | `/api/workbench/ads/materials?account_id=&type=` | 素材（可挂 `media_script_id`）|
+| GET | `/api/workbench/ads/violations?status=` | 违规 |
+| GET | `/api/workbench/ads/recon?account_id=` | 对账（账面 vs 平台）|
+
+### 25.4 指标
+
+`qianchuan.spend.day`、`qianchuan.gmv.day`、`qianchuan.roi`（带 `basis`）、`qianchuan.violation.open`。三态沿用 `contracts.ts`。
+
+### 25.5 写入口
+
+只有 `cmd/qianchuan-sync`（读 `packages/qianchuan-sync/data/flat/*.csv`）。**不做投放写操作**（建计划、改预算）。

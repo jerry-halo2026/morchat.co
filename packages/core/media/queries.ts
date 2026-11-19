@@ -8,20 +8,24 @@ import type {
 } from "../types";
 
 /**
- * Query keys for the content workbench (docs/engineering/WORKBENCH-API.md §12).
+ * Query keys for the content workbench (docs/engineering/WORKBENCH-API.md §12, §21).
  *
  * Shape, verbatim:
  *   ["media", wsId, resource, filters]
  *   ["media", wsId, resource, { id }]
  *
- * `resource ∈ ips|topics|scripts|shoots`. `wsId` is in position 1 like every other
- * workspace-scoped key, and the detail read nests under the same resource
+ * `resource ∈ ips|topics|scripts|shoots` for the pipeline, plus `hot|bench` for the
+ * two source ledgers the pool is fed from (§21). `wsId` is in position 1 like every
+ * other workspace-scoped key, and the detail read nests under the same resource
  * prefix so one invalidation refreshes a list and the rows it opened.
+ *
+ * The two source ledgers share this prefix on purpose: adopting a hotspot writes a
+ * topic, so a single `["media", wsId]` invalidation has to reach both sides.
  *
  * There is no summary key: the content side has no aggregate endpoint yet, and a
  * key nobody fetches would be a hook that looks supported and returns nothing.
  */
-export type MediaResource = "ips" | "topics" | "scripts" | "shoots";
+export type MediaResource = "ips" | "topics" | "scripts" | "shoots" | "hot" | "bench";
 
 export const mediaKeys = {
   all: (wsId: string) => ["media", wsId] as const,

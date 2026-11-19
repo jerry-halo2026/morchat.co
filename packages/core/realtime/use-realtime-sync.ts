@@ -17,6 +17,7 @@ import { refreshSubscribedIssues, subscribedIssueKeys } from "../issues/subscrib
 import { projectKeys } from "../projects/queries";
 import { creatorKeys } from "../creator/queries";
 import { crmKeys, workbenchKeys } from "../crm/queries";
+import { mediaKeys } from "../media/queries";
 import { hrKeys } from "../hr/queries";
 import { pinKeys } from "../pins/queries";
 import { autopilotKeys } from "../autopilots/queries";
@@ -778,11 +779,28 @@ function invalidateSquadMemberStatusQueries(qc: QueryClient, wsId: string): void
   });
 }
 
-export interface RealtimeSyncStores {
-  authStore: UseBoundStore<StoreApi<AuthState>>;
+/**
+ * Re-read the radar / teardown ledger a `media_hot:changed` or
+ * `media_bench:changed` event names (docs/engineering/WORKBENCH-API.md §21).
+ *
+ * Invalidation, not a cache merge: the event carries only `{ id }`, because a
+ * capture row (rank, heat, category, a free-form metrics object) has no field the
+ * client could patch without guessing which one moved. The workspace aggregates are
+ * invalidated with it — `/counts` counts these rows, and adopting one adds a topic
+ * to the pool under the same `["media", wsId]` prefix.
+ */
+export function invalidateMediaDiscoveryQueries(
+  qc: QueryClient,
+  wsId: string,
+  resource: "hot" | "bench",
+): void {
+  void qc.invalidateQueries({ queryKey: mediaKeys.resource(wsId, resource) });
+  void qc.invalidateQueries({ queryKey: workbenchKeys.all(wsId) });
 }
 
-/**
+export interface RealtimeSyncStores {
+  authStore: UseBoundStore<StoreApi<AuthState>>;
+}/**
  * Centralized WS -> store sync. Called once from WSProvider.
  *
  * Uses the "WS as invalidation signal + refetch" pattern:
@@ -1135,6 +1153,10 @@ export function useRealtimeSync(
       // generic prefix path knows nothing about `["hr", wsId, …]`.
       "hr_job:changed", "hr_candidate:changed", "hr_candidate:stage_changed",
       "hr_interview:changed", "hr_scorecard:changed", "hr_employee_profile:changed",
+      // The radar / teardown ledgers (WORKBENCH-API §21) have dedicated handlers
+      // below for the same reason: the generic prefix path knows nothing about
+      // `["media", wsId, "hot" | "bench", …]`.
+      "media_hot:changed", "media_bench:changed",
       // task:completed / task:failed deliberately NOT here. They reach both
       // onAny (task-prefix invalidation and bounded activity refresh) and the
       // chat-specific ws.on() handlers below through independent subscriptions.
@@ -2058,6 +2080,29 @@ export function useRealtimeSync(
       invalidateWorkbenchLedger(workbenchKeys.all(wsId));
     });
 
+    // --- Hotspot radar / benchmark teardown (docs/engineering/WORKBENCH-API.md §21) ---
+    //
+    // Same shape as the ledgers above, one domain over: each event re-reads its own
+    // resource (`["media", wsId, "hot" | "bench"]`) plus the aggregates, because a
+    // new capture moves `/counts` and — once adopted — the topic pool.
+    //
+    // The payload's `id` is deliberately unused: §21 names the row, it does not
+    // describe the change, and a capture row is wide enough (rank, heat, a
+    // free-form metrics object) that merging it into a cached list would be
+    // guessing which field moved. `invalidateMediaDiscoveryQueries` is exported so
+    // that rule has one testable definition rather than living only inside the hook.
+    const unsubMediaHotChanged = ws.on("media_hot:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateMediaDiscoveryQueries(qc, wsId, "hot");
+    });
+
+    const unsubMediaBenchChanged = ws.on("media_bench:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateMediaDiscoveryQueries(qc, wsId, "bench");
+    });
+
     return () => {
       unsubAny();
       unsubIssueUpdated();
@@ -2119,6 +2164,8 @@ export function useRealtimeSync(
       unsubHrInterviewChanged();
       unsubHrScorecardChanged();
       unsubHrEmployeeProfileChanged();
+      unsubMediaHotChanged();
+      unsubMediaBenchChanged();
       if (taskMessageFlushTimer) clearTimeout(taskMessageFlushTimer);
       if (aggregateRefreshTimer) clearTimeout(aggregateRefreshTimer);
       timers.forEach(clearTimeout);

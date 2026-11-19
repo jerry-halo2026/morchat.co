@@ -820,7 +820,7 @@ func (h *Handler) DaemonRegister(w http.ResponseWriter, r *http.Request) {
 						Provider:    agent.ProfileRuntimeType(profile.RuntimeType, profile.ProtocolFamily),
 						Status:      status,
 						DeviceInfo:  deviceInfo,
-						Metadata:    metadata,
+						Metadata:    string(metadata),
 						OwnerID:     ownerID,
 						ProfileID:   profileUUID,
 						// Ownership fence: zero (no fence) on the daemon-token
@@ -886,7 +886,7 @@ func (h *Handler) DaemonRegister(w http.ResponseWriter, r *http.Request) {
 				Provider:    provider,
 				Status:      status,
 				DeviceInfo:  deviceInfo,
-				Metadata:    metadata,
+				Metadata:    string(metadata),
 				OwnerID:     ownerID,
 				// See the profile branch: the SQL fence that backs the
 				// pre-check against a concurrent registration.
@@ -1047,7 +1047,7 @@ func (h *Handler) DaemonRegister(w http.ResponseWriter, r *http.Request) {
 					Provider:        agent.ProfileRuntimeType(profile.RuntimeType, profile.ProtocolFamily),
 					Status:          "offline",
 					DeviceInfo:      strings.TrimSpace(req.DeviceName),
-					Metadata:        metadata,
+					Metadata:        string(metadata),
 					OwnerID:         ownerID,
 					ProfileID:       profileUUID,
 					RequiredOwnerID: ownerID,
@@ -1322,7 +1322,7 @@ func (h *Handler) setRuntimeOffline(ctx context.Context, runtimeID pgtype.UUID, 
 	if len(reason) > 0 && json.Valid(reason) {
 		return h.Queries.SetAgentRuntimeOfflineWithReason(ctx, db.SetAgentRuntimeOfflineWithReasonParams{
 			ID:            runtimeID,
-			OfflineReason: reason,
+			OfflineReason: pgtype.Text{String: string(reason), Valid: reason != nil},
 		})
 	}
 	return h.Queries.SetAgentRuntimeOffline(ctx, runtimeID)

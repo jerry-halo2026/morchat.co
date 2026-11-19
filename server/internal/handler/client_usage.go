@@ -154,7 +154,7 @@ func (h *Handler) UpsertClientUsage(w http.ResponseWriter, r *http.Request) {
 		HasRuntimeProbe: req.Runtime != nil,
 		ProbeResult:     runtime.Result,
 		RuntimeCount:    runtime.RuntimeCount,
-		ProviderSummary: runtime.ProviderSummary,
+		ProviderSummary: pgtype.Text{String: string(runtime.ProviderSummary), Valid: runtime.ProviderSummary != nil},
 		OnlineCount:     runtime.OnlineCount,
 		OfflineCount:    runtime.OfflineCount,
 	}); err != nil {

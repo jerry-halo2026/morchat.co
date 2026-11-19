@@ -654,7 +654,7 @@ func (h *Handler) UpdateSkill(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.Config != nil {
 		config, _ := json.Marshal(req.Config)
-		params.Config = config
+		params.Config = pgtype.Text{String: string(config), Valid: config != nil}
 	}
 
 	skill, err = qtx.UpdateSkill(r.Context(), params)

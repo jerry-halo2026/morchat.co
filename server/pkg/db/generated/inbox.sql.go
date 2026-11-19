@@ -292,7 +292,7 @@ INSERT INTO inbox_item (
     type, severity, issue_id, title, body,
     actor_type, actor_id, details, id
 )
-SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, COALESCE($12::uuid, gen_random_uuid())
+SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::text::jsonb, COALESCE($12::uuid, gen_random_uuid())
 WHERE (($2::text = 'member' AND EXISTS (
     SELECT 1 FROM member WHERE workspace_id = $1 AND user_id = $3
 )) OR ($2::text = 'agent' AND EXISTS (
@@ -327,7 +327,7 @@ type CreateInboxItemParams struct {
 	Body          pgtype.Text `json:"body"`
 	ActorType     pgtype.Text `json:"actor_type"`
 	ActorID       pgtype.UUID `json:"actor_id"`
-	Details       []byte      `json:"details"`
+	Details       pgtype.Text `json:"details"`
 	ID            pgtype.UUID `json:"id"`
 }
 

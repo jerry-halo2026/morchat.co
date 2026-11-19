@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -324,7 +325,7 @@ func compile(cols Cols) (names []string, placeholders []string, args []any) {
 			placeholders = append(placeholders, string(raw))
 			continue
 		}
-		args = append(args, cols[name])
+		args = append(args, bindable(cols[name]))
 		placeholders = append(placeholders, fmt.Sprintf("$%d", len(args)))
 	}
 	for i, name := range names {
@@ -332,6 +333,35 @@ func compile(cols Cols) (names []string, placeholders []string, args []any) {
 	}
 	return names, placeholders, args
 }
+
+// bindable keeps fixtures working under both pgx parameter encodings.
+//
+// A JSON document handed to a jsonb column must arrive as a Go `string`: under
+// simple_protocol (the only mode a transaction-pooling proxy such as Supabase's
+// survives) pgx sends []byte as bytea hex (`\x7b7d`) and PostgreSQL rejects it with
+// "invalid input syntax for type json". The application layer passes strings for the
+// same reason — see docs/engineering/DB.md, "为什么 jsonb 参数必须是 string".
+//
+// Only valid JSON is converted: a []byte fixture for a real bytea column
+// (plugin_package_file.content, plugin_secret.ciphertext, webhook_delivery.raw_body)
+// is arbitrary binary and stays []byte.
+func bindable(value any) any {
+	switch typed := value.(type) {
+	case []byte:
+		if json.Valid(typed) {
+			return string(typed)
+		}
+		return typed
+	case json.RawMessage:
+		if json.Valid(typed) {
+			return string(typed)
+		}
+		return []byte(typed)
+	default:
+		return value
+	}
+}
+
 
 func merge(base Cols, over []Cols) Cols {
 	out := make(Cols, len(base))

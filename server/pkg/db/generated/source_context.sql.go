@@ -129,7 +129,7 @@ INSERT INTO issue_source_context (
     $1, $2, $3,
     $4, $5,
     $6, $7,
-    $8, $9, $10,
+    $8, $9::text::jsonb, $10,
     $11, $12, $13
 )
 RETURNING id, workspace_id, issue_id, origin_task_id, source_issue_id, anchor_comment_id, captured_by_user_id, snapshot_version, snapshot, capture_digest, state, captured_at, attached_at
@@ -144,7 +144,7 @@ type CreateIssueSourceContextParams struct {
 	AnchorCommentID  pgtype.UUID        `json:"anchor_comment_id"`
 	CapturedByUserID pgtype.UUID        `json:"captured_by_user_id"`
 	SnapshotVersion  int16              `json:"snapshot_version"`
-	Snapshot         []byte             `json:"snapshot"`
+	Snapshot         string             `json:"snapshot"`
 	CaptureDigest    string             `json:"capture_digest"`
 	State            string             `json:"state"`
 	CapturedAt       pgtype.Timestamptz `json:"captured_at"`

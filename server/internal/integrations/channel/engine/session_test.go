@@ -93,7 +93,7 @@ type fakeSessionQueries struct {
 	contextReplyTargets   int
 	lastContextReply      db.SetChannelChatContextReplyTargetParams
 	lockedWorkspace       int    // count of LockWorkspaceForChatSessionCreate calls
-	lastConfig            []byte // config of the most recent CreateChannelChatSessionBinding
+	lastConfig            string // config of the most recent CreateChannelChatSessionBinding
 	attachments           []db.CreateAttachmentParams
 	linked                db.LinkAttachmentsToChatMessageParams
 	mediaCleared          int

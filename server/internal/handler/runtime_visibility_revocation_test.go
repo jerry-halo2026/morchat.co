@@ -430,7 +430,7 @@ func TestRevokeRuntimeWorkspaceAccess(t *testing.T) {
 	// task: CompleteAgentTask only transitions a still-running row.
 	_, err := testHandler.Queries.CompleteAgentTask(ctx, db.CompleteAgentTaskParams{
 		ID:                    mustTestUUID(t, memberTaskID),
-		Result:                []byte(`{"late":true}`),
+		Result:                pgtype.Text{String: `{"late":true}`, Valid: true},
 		SessionRolloutMissing: false,
 	})
 	if !errors.Is(err, pgx.ErrNoRows) {

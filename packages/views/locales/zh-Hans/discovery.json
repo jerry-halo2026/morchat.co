@@ -1,0 +1,79 @@
+{
+  "missing": "未采集",
+  "common": {
+    "all": "全部",
+    "cancel": "取消",
+    "clear": "清除筛选",
+    "delete": "删除",
+    "retry": "重试",
+    "load_failed": "这个列表没能加载",
+    "write_failed": "服务器拒绝了这次修改，没有保存。"
+  },
+  "form": {
+    "save": "保存",
+    "field_title": "标题",
+    "field_name": "账号",
+    "field_platform": "平台",
+    "field_url": "链接",
+    "field_rank": "排名",
+    "field_heat": "热度",
+    "field_category": "分类",
+    "field_day": "采集日期",
+    "field_note": "备注",
+    "field_ip": "IP",
+    "field_followers": "粉丝数",
+    "field_metrics": "指标",
+    "metrics_hint": "每行一条，写成 键: 值。",
+    "no_ip": "不归属 IP"
+  },
+  "adopt": {
+    "title": "采纳成选题",
+    "submit": "放进选题池",
+    "no_ip": "选题要归属一个 IP，先建一个。",
+    "failed": "服务器拒绝了这次采纳，没有创建选题。",
+    "adopted": "已转成选题",
+    "open_topic": "打开选题"
+  },
+  "hot": {
+    "new": "录入热点",
+    "edit": "编辑热点",
+    "empty_title": "还没有热点记录",
+    "empty_description": "可以手工录一条，或者等导入。",
+    "filter_day": "日期",
+    "filter_category": "分类",
+    "filter_platform": "平台",
+    "filter_keyword": "搜索热点",
+    "no_matches": "没有符合筛选的热点",
+    "column_hotspot": "热点",
+    "column_rank": "排名",
+    "column_heat": "热度",
+    "adopt": "采纳成选题",
+    "delete_title": "删除这条热点？",
+    "delete_description": "「{{title}}」会从雷达里消失，记录本身留着。"
+  },
+  "bench": {
+    "new": "添加对标",
+    "edit": "编辑对标",
+    "empty_title": "还没有对标样本",
+    "empty_description": "先录一个对标账号，再对着 IP 读它的数字。",
+    "filter_ip": "IP",
+    "filter_keyword": "搜索账号",
+    "no_matches": "没有符合条件的对标",
+    "column_account": "账号",
+    "column_url": "主页",
+    "column_followers": "粉丝数",
+    "column_metrics": "指标",
+    "column_captured": "采集日期",
+    "column_ip": "IP",
+    "adopt": "采纳成选题",
+    "delete_title": "删除这个对标？",
+    "delete_description": "「{{name}}」会从拆解列表里消失，记录本身留着。",
+    "metric": {
+      "plays": "播放",
+      "views": "浏览",
+      "likes": "点赞",
+      "favorites": "收藏",
+      "comments": "评论"
+    }
+  }
+}

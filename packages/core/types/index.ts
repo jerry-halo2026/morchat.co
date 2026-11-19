@@ -505,6 +505,12 @@ export type {
   WorkbenchFinanceMonth,
   WorkbenchFinanceMonthListResponse,
   WorkbenchFinanceResponse,
+  // Batch CSV import (WORKBENCH-API §23).
+  ImportError,
+  ImportKind,
+  ImportPreviewResponse,
+  ImportRow,
+  ImportRowAction,
   AffiliateDaily,
   AffiliateDailyListFilters,
   AffiliateDailyListResponse,
@@ -574,6 +580,19 @@ export type {
   UpdateMediaScriptRequest,
   UpdateMediaShootRequest,
   UpdateMediaTopicRequest,
+  // Hotspot radar / benchmark teardown (WORKBENCH-API §21).
+  AdoptMediaRequest,
+  CreateMediaBenchRequest,
+  CreateMediaHotRequest,
+  MediaBench,
+  MediaBenchListFilters,
+  MediaBenchListResponse,
+  MediaHot,
+  MediaHotListFilters,
+  MediaHotListResponse,
+  MediaHotSource,
+  UpdateMediaBenchRequest,
+  UpdateMediaHotRequest,
 } from "./media";
 
 // General manager workbench (docs/engineering/WORKBENCH-API.md §13): OKR goals,
@@ -732,4 +751,15 @@ export type {
   UpdateBdActivityRequest,
   UpdateBdCampaignRequest,
   UpdateBdQuoteRequest,
+  // Performance over a range (WORKBENCH-API §22).
+  BdPerformance,
+  BdPerformanceAffiliateBlock,
+  BdPerformanceFilters,
+  BdPerformanceFollowupsBlock,
+  BdPerformanceMemberRow,
+  BdPerformanceMonthRow,
+  BdPerformanceQuotesBlock,
+  BdPerformanceSignedBlock,
+  BdPerformanceTotals,
+  BdPerformanceVolumeBlock,
 } from "./bd";

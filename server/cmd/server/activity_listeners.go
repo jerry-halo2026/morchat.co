@@ -40,7 +40,7 @@ func registerActivityListeners(bus *events.Bus, queries *db.Queries) {
 			ActorType:   util.StrToText(e.ActorType),
 			ActorID:     optionalUUID(e.ActorID),
 			Action:      "created",
-			Details:     []byte("{}"),
+			Details:     string([]byte("{}")),
 		})
 		if err != nil {
 			slog.Error("activity: failed to record issue created",
@@ -109,7 +109,7 @@ func registerActivityListeners(bus *events.Bus, queries *db.Queries) {
 				ActorType:   util.StrToText(e.ActorType),
 				ActorID:     optionalUUID(e.ActorID),
 				Action:      "status_changed",
-				Details:     details,
+				Details:     string(details),
 			})
 			if err != nil {
 				slog.Error("activity: failed to record status change",
@@ -132,7 +132,7 @@ func registerActivityListeners(bus *events.Bus, queries *db.Queries) {
 				ActorType:   util.StrToText(e.ActorType),
 				ActorID:     optionalUUID(e.ActorID),
 				Action:      "priority_changed",
-				Details:     details,
+				Details:     string(details),
 			})
 			if err != nil {
 				slog.Error("activity: failed to record priority change",
@@ -168,7 +168,7 @@ func registerActivityListeners(bus *events.Bus, queries *db.Queries) {
 				ActorType:   util.StrToText(e.ActorType),
 				ActorID:     optionalUUID(e.ActorID),
 				Action:      "assignee_changed",
-				Details:     details,
+				Details:     string(details),
 			})
 			if err != nil {
 				slog.Error("activity: failed to record assignee change",
@@ -198,7 +198,7 @@ func registerActivityListeners(bus *events.Bus, queries *db.Queries) {
 				ActorType:   util.StrToText(e.ActorType),
 				ActorID:     optionalUUID(e.ActorID),
 				Action:      "start_date_changed",
-				Details:     details,
+				Details:     string(details),
 			})
 			if err != nil {
 				slog.Error("activity: failed to record start date change",
@@ -228,7 +228,7 @@ func registerActivityListeners(bus *events.Bus, queries *db.Queries) {
 				ActorType:   util.StrToText(e.ActorType),
 				ActorID:     optionalUUID(e.ActorID),
 				Action:      "due_date_changed",
-				Details:     details,
+				Details:     string(details),
 			})
 			if err != nil {
 				slog.Error("activity: failed to record due date change",
@@ -251,7 +251,7 @@ func registerActivityListeners(bus *events.Bus, queries *db.Queries) {
 				ActorType:   util.StrToText(e.ActorType),
 				ActorID:     optionalUUID(e.ActorID),
 				Action:      "title_changed",
-				Details:     details,
+				Details:     string(details),
 			})
 			if err != nil {
 				slog.Error("activity: failed to record title change",
@@ -269,7 +269,7 @@ func registerActivityListeners(bus *events.Bus, queries *db.Queries) {
 				ActorType:   util.StrToText(e.ActorType),
 				ActorID:     optionalUUID(e.ActorID),
 				Action:      "description_updated",
-				Details:     []byte("{}"),
+				Details:     string([]byte("{}")),
 			})
 			if err != nil {
 				slog.Error("activity: failed to record description change",
@@ -318,7 +318,7 @@ func handleTaskActivity(ctx context.Context, bus *events.Bus, queries *db.Querie
 		ActorType:   util.StrToText("agent"),
 		ActorID:     parseUUID(agentID),
 		Action:      action,
-		Details:     []byte("{}"),
+		Details:     string([]byte("{}")),
 	})
 	if err != nil {
 		slog.Error("activity: failed to record task activity",
@@ -380,7 +380,7 @@ func recordDuplicateMarkActivities(ctx context.Context, bus *events.Bus, queries
 			ActorType:   util.StrToText(e.ActorType),
 			ActorID:     optionalUUID(e.ActorID),
 			Action:      action,
-			Details:     body,
+			Details:     string(body),
 		})
 		if err != nil {
 			slog.Error("activity: failed to record duplicate mark change",

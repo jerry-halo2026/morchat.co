@@ -543,3 +543,72 @@ func insertCreatorVideo(t *testing.T, workspaceID, creatorID, awemeID string, da
 		workspaceID, creatorID, awemeID, "作品 "+awemeID, fmt.Sprintf("%d", daysAgo)).Scan(&id)
 	return id
 }
+
+// TestCreatorPostMediaScriptLink covers the publish → plan pointer §12.7 listed as
+// debt and §21 closes: `POST`/`PATCH /creator-posts` accept `media_script_id`, the
+// response echoes it, the pointer must resolve inside this workspace, and a client
+// that never sends the field keeps whatever the row had.
+func TestCreatorPostMediaScriptLink(t *testing.T) {
+	creator := createWorkbenchCreator(t, testUserID, "Post script link fixture")
+	ip := mediaIPFixture(t, testUserID, "Post script link IP")
+	topic := mediaTopicFixture(t, testUserID, ip.ID, "Post script link topic")
+	script := mediaScriptFixture(t, testUserID, topic.ID, "发布用脚本正文")
+
+	req := workbenchRequest(t, "POST", "/api/workbench/creator-posts", map[string]any{
+		"creator_id":      creator.ID,
+		"platform":        "douyin",
+		"url":             "https://example.test/post/scripted",
+		"published_at":    "2026-11-12T09:00:00Z",
+		"media_script_id": script.ID,
+	}, testUserID)
+	post := testutil.Decode[CreatorPostResponse](t, testHandler.CreateCreatorPost, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM creator_post WHERE id = $1`, post.ID) })
+	if post.MediaScriptID == nil || *post.MediaScriptID != script.ID {
+		t.Fatalf("media_script_id = %v, want the script that was sent (%s)", post.MediaScriptID, script.ID)
+	}
+
+	// An old client: no field at all. The post is still accepted and the column
+	// stays NULL — the link is optional, not a new required input.
+	req = workbenchRequest(t, "POST", "/api/workbench/creator-posts", map[string]any{
+		"creator_id":   creator.ID,
+		"platform":     "douyin",
+		"url":          "https://example.test/post/unscripted",
+		"published_at": "2026-11-13T09:00:00Z",
+	}, testUserID)
+	legacy := testutil.Decode[CreatorPostResponse](t, testHandler.CreateCreatorPost, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM creator_post WHERE id = $1`, legacy.ID) })
+	if legacy.MediaScriptID != nil {
+		t.Fatalf("media_script_id = %v on a body without the field, want null", *legacy.MediaScriptID)
+	}
+
+	// A PATCH that does not mention the field keeps the stored link.
+	req = withURLParam(workbenchRequest(t, "PATCH", "/api/workbench/creator-posts/"+post.ID,
+		map[string]any{"title": "补一个标题"}, testUserID), "postId", post.ID)
+	patched := testutil.Decode[CreatorPostResponse](t, testHandler.UpdateCreatorPost, req, http.StatusOK)
+	if patched.MediaScriptID == nil || *patched.MediaScriptID != script.ID {
+		t.Fatalf("media_script_id = %v after an unrelated PATCH, want it kept", patched.MediaScriptID)
+	}
+
+	// A pointer that does not resolve in this workspace is a 400, not a stored
+	// dangling id: no foreign key does this check for us.
+	req = withURLParam(workbenchRequest(t, "PATCH", "/api/workbench/creator-posts/"+post.ID,
+		map[string]any{"media_script_id": "00000000-0000-0000-0000-000000000000"}, testUserID), "postId", post.ID)
+	testutil.Call(t, testHandler.UpdateCreatorPost, req).Want(http.StatusBadRequest)
+
+	req = workbenchRequest(t, "POST", "/api/workbench/creator-posts", map[string]any{
+		"creator_id":      creator.ID,
+		"platform":        "douyin",
+		"url":             "https://example.test/post/broken-link",
+		"published_at":    "2026-11-14T09:00:00Z",
+		"media_script_id": "00000000-0000-0000-0000-000000000000",
+	}, testUserID)
+	testutil.Call(t, testHandler.CreateCreatorPost, req).Want(http.StatusBadRequest)
+
+	// An archived script is no longer a valid source: the review screen must not be
+	// able to attach a post to a version that was withdrawn.
+	req = withURLParam(workbenchRequest(t, "DELETE", "/api/workbench/media/scripts/"+script.ID, nil, testUserID), "scriptId", script.ID)
+	testutil.Call(t, testHandler.DeleteMediaScript, req).Want(http.StatusNoContent)
+	req = withURLParam(workbenchRequest(t, "PATCH", "/api/workbench/creator-posts/"+post.ID,
+		map[string]any{"media_script_id": script.ID}, testUserID), "postId", post.ID)
+	testutil.Call(t, testHandler.UpdateCreatorPost, req).Want(http.StatusBadRequest)
+}

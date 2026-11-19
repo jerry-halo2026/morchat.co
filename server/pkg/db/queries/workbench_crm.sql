@@ -242,6 +242,25 @@ SET collab_id = sqlc.arg('collab_id'),
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL
 RETURNING *;
 
+-- name: ArchiveCrmSettlementsByCollab :many
+-- Deleting a collaboration archives the settlements that name it in the same
+-- transaction (WORKBENCH-API §20.1, §20.3). Without this a withdrawn collaboration
+-- left its settlement rows live: they kept counting toward orders.paid_amount
+-- and the receivable list while their collaboration had vanished, and the delete
+-- endpoint was unusable because a single click would have manufactured orphans.
+--
+-- Paid rows are included on purpose: paid_at records that money moved once, and
+-- archiving the row does not un-pay it — it removes the row from the ledgers the
+-- way every other workbench delete does (§20.2). The statement returns the ids so
+-- the handler can publish one crm_settlement:changed per archived row; a client
+-- that only treated it as a collab edit would keep the vanished settlements in its
+-- list cache.
+UPDATE crm_settlement
+SET archived_at = now(), updated_at = now()
+WHERE workspace_id = sqlc.arg('workspace_id')::uuid
+  AND collab_id = sqlc.arg('collab_id')::uuid
+  AND archived_at IS NULL
+RETURNING id;
 -- name: ArchiveCrmSettlement :execrows
 UPDATE crm_settlement
 SET archived_at = now(), updated_at = now()

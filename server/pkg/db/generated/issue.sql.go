@@ -189,7 +189,7 @@ WHERE i.workspace_id = $1
   -- MUL-8472: private projects the caller cannot see.
   AND ($9::uuid[] IS NULL OR i.project_id IS NULL OR NOT (i.project_id = ANY($9::uuid[])))
   AND ($10::bool IS NULL OR (i.start_date IS NOT NULL OR i.due_date IS NOT NULL))
-  AND ($11::jsonb IS NULL OR i.metadata @> $11::jsonb)
+  AND ($11::text::jsonb IS NULL OR i.metadata @> $11::text::jsonb)
   AND (
     $12::uuid IS NULL
     OR (i.assignee_type = 'agent' AND i.assignee_id IN (
@@ -235,7 +235,7 @@ type CountIssuesParams struct {
 	ProjectID        pgtype.UUID   `json:"project_id"`
 	HiddenProjectIds []pgtype.UUID `json:"hidden_project_ids"`
 	Scheduled        pgtype.Bool   `json:"scheduled"`
-	MetadataFilter   []byte        `json:"metadata_filter"`
+	MetadataFilter   pgtype.Text   `json:"metadata_filter"`
 	InvolvesUserID   pgtype.UUID   `json:"involves_user_id"`
 }
 
@@ -314,7 +314,7 @@ INSERT INTO issue (
     stage, properties, last_activity_at, id
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-    $16, COALESCE($17::jsonb, '{}'::jsonb), now(), COALESCE($18::uuid, gen_random_uuid())
+    $16, COALESCE($17::text, '{}')::jsonb, now(), COALESCE($18::uuid, gen_random_uuid())
 ) RETURNING id, workspace_id, title, description, status, priority, assignee_type, assignee_id, creator_type, creator_id, parent_issue_id, acceptance_criteria, context_refs, position, due_date, created_at, updated_at, number, project_id, origin_type, origin_id, first_executed_at, start_date, metadata, stage, properties, revision, last_activity_at, triage_state, duplicate_of_issue_id, requester_user_id, closed_at, goal_id
 `
 
@@ -335,7 +335,7 @@ type CreateIssueParams struct {
 	Number        int32       `json:"number"`
 	ProjectID     pgtype.UUID `json:"project_id"`
 	Stage         pgtype.Int4 `json:"stage"`
-	Properties    []byte      `json:"properties"`
+	Properties    pgtype.Text `json:"properties"`
 	ID            pgtype.UUID `json:"id"`
 }
 
@@ -407,7 +407,7 @@ INSERT INTO issue (
     origin_type, origin_id, stage, properties, last_activity_at, id, requester_user_id
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-    $16, $17, $18, COALESCE($19::jsonb, '{}'::jsonb), now(), COALESCE($20::uuid, gen_random_uuid()), $21
+    $16, $17, $18, COALESCE($19::text, '{}')::jsonb, now(), COALESCE($20::uuid, gen_random_uuid()), $21
 ) RETURNING id, workspace_id, title, description, status, priority, assignee_type, assignee_id, creator_type, creator_id, parent_issue_id, acceptance_criteria, context_refs, position, due_date, created_at, updated_at, number, project_id, origin_type, origin_id, first_executed_at, start_date, metadata, stage, properties, revision, last_activity_at, triage_state, duplicate_of_issue_id, requester_user_id, closed_at, goal_id
 `
 
@@ -430,7 +430,7 @@ type CreateIssueWithOriginParams struct {
 	OriginType      pgtype.Text `json:"origin_type"`
 	OriginID        pgtype.UUID `json:"origin_id"`
 	Stage           pgtype.Int4 `json:"stage"`
-	Properties      []byte      `json:"properties"`
+	Properties      pgtype.Text `json:"properties"`
 	ID              pgtype.UUID `json:"id"`
 	RequesterUserID pgtype.UUID `json:"requester_user_id"`
 }
@@ -1454,7 +1454,7 @@ WHERE i.workspace_id = $1
   -- MUL-8472: private projects the caller cannot see.
   AND ($11::uuid[] IS NULL OR i.project_id IS NULL OR NOT (i.project_id = ANY($11::uuid[])))
   AND ($12::bool IS NULL OR (i.start_date IS NOT NULL OR i.due_date IS NOT NULL))
-  AND ($13::jsonb IS NULL OR i.metadata @> $13::jsonb)
+  AND ($13::text::jsonb IS NULL OR i.metadata @> $13::text::jsonb)
   AND (
     $14::uuid IS NULL
     -- (1) assignee is an agent owned by the user
@@ -1512,7 +1512,7 @@ type ListIssuesParams struct {
 	ProjectID        pgtype.UUID   `json:"project_id"`
 	HiddenProjectIds []pgtype.UUID `json:"hidden_project_ids"`
 	Scheduled        pgtype.Bool   `json:"scheduled"`
-	MetadataFilter   []byte        `json:"metadata_filter"`
+	MetadataFilter   pgtype.Text   `json:"metadata_filter"`
 	InvolvesUserID   pgtype.UUID   `json:"involves_user_id"`
 }
 
@@ -1628,7 +1628,7 @@ WHERE i.workspace_id = $1
   AND ($8::uuid IS NULL OR i.project_id = $8)
   -- MUL-8472: private projects the caller cannot see.
   AND ($9::uuid[] IS NULL OR i.project_id IS NULL OR NOT (i.project_id = ANY($9::uuid[])))
-  AND ($10::jsonb IS NULL OR i.metadata @> $10::jsonb)
+  AND ($10::text::jsonb IS NULL OR i.metadata @> $10::text::jsonb)
   -- properties_filter is a jsonb array of groups, each group an array of
   -- patterns (built by parsePropertiesFilterParam): the issue must match at
   -- least one pattern from EVERY group (AND of ORs). Three pattern shapes:
@@ -1646,10 +1646,10 @@ WHERE i.workspace_id = $1
   -- terminal-status predicate intentionally remains a filter rather than a
   -- positive index narrowing so unknown legacy status keys stay visible.
   AND (
-    $11::jsonb IS NULL
+    $11::text::jsonb IS NULL
     OR NOT EXISTS (
       SELECT 1
-      FROM jsonb_array_elements($11::jsonb) AS pf(alternatives)
+      FROM jsonb_array_elements($11::text::jsonb) AS pf(alternatives)
       WHERE NOT EXISTS (
         SELECT 1
         FROM jsonb_array_elements(pf.alternatives) AS alt(pattern)
@@ -1731,8 +1731,8 @@ type ListOpenIssuesParams struct {
 	CreatedByUserID    pgtype.UUID   `json:"created_by_user_id"`
 	ProjectID          pgtype.UUID   `json:"project_id"`
 	HiddenProjectIds   []pgtype.UUID `json:"hidden_project_ids"`
-	MetadataFilter     []byte        `json:"metadata_filter"`
-	PropertiesFilter   []byte        `json:"properties_filter"`
+	MetadataFilter     pgtype.Text   `json:"metadata_filter"`
+	PropertiesFilter   pgtype.Text   `json:"properties_filter"`
 	InvolvesUserID     pgtype.UUID   `json:"involves_user_id"`
 }
 
@@ -2155,18 +2155,18 @@ func (q *Queries) ResolveIssueRequester(ctx context.Context, arg ResolveIssueReq
 const setIssueMetadataKey = `-- name: SetIssueMetadataKey :one
 
 UPDATE issue SET
-    metadata = jsonb_set(metadata, ARRAY[$1::text], $2::jsonb),
+    metadata = jsonb_set(metadata, ARRAY[$1::text], $2::text::jsonb),
     revision = revision + 1,
     last_activity_at = GREATEST(COALESCE(last_activity_at, updated_at), now()),
     updated_at = now()
 WHERE id = $3 AND workspace_id = $4
-  AND metadata -> $1::text IS DISTINCT FROM $2::jsonb
+  AND metadata -> $1::text IS DISTINCT FROM $2::text::jsonb
 RETURNING id, workspace_id, metadata, revision
 `
 
 type SetIssueMetadataKeyParams struct {
 	Key         string      `json:"key"`
-	Value       []byte      `json:"value"`
+	Value       string      `json:"value"`
 	ID          pgtype.UUID `json:"id"`
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
 }

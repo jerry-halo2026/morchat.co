@@ -101,7 +101,7 @@ INSERT INTO creator_quote (
     sqlc.narg('brief_id')::uuid, sqlc.arg('status')::text,
     sqlc.narg('quoted_at')::timestamptz, sqlc.narg('valid_until')::date,
     sqlc.narg('fee_amount')::numeric, sqlc.narg('commission_rate')::numeric,
-    sqlc.arg('currency')::text, sqlc.arg('items')::jsonb, sqlc.narg('note')::text,
+    sqlc.arg('currency')::text, sqlc.arg('items')::text::jsonb, sqlc.narg('note')::text,
     sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
 )
 RETURNING *;
@@ -117,7 +117,7 @@ SET brief_id = sqlc.narg('brief_id')::uuid,
     fee_amount = sqlc.narg('fee_amount')::numeric,
     commission_rate = sqlc.narg('commission_rate')::numeric,
     currency = sqlc.arg('currency')::text,
-    items = sqlc.arg('items')::jsonb,
+    items = sqlc.arg('items')::text::jsonb,
     note = sqlc.narg('note')::text,
     owner_member_id = sqlc.narg('owner_member_id')::uuid,
     updated_at = now()
@@ -363,3 +363,286 @@ SELECT
     ))::bigint AS due_today,
     (count(*) FILTER (WHERE next_follow_at < now()))::bigint AS overdue
 FROM newest;
+
+-- ---- performance over a date range (WORKBENCH-API §22) ---------------------
+--
+-- `GET /api/workbench/bd/performance` answers one question the cockpit cannot:
+-- "between these two days, what did the team actually produce?" The cockpit
+-- (§20.3) is a snapshot of the ledger as it stands today; this is a window.
+--
+-- Three rules run through every statement below, and each one is a decision:
+--
+--   * **One currency per window.** `BdPerformanceCurrency` picks the currency the
+--     window's rows are mostly in, and every sum filters on it. Adding CNY to USD
+--     produces a number in neither, so rows in the other currency are excluded —
+--     from the counts too, not just the amounts, because a count and the money
+--     beside it have to describe the same rows (§20.6 does the same per block).
+--
+--   * **Every fact buckets by its own date.** A collaboration is *signed* on
+--     `confirmed_at`, *delivered* on `published_at`; a settlement is *collected* on
+--     `paid_at`; a quote is *sent* on `coalesce(quoted_at, created_at)`; a
+--     follow-up happened on `happened_at`. The same collaboration may therefore
+--     appear in two blocks of one report with two amounts — that is the point of
+--     the report, not double counting: each block answers a different question.
+--
+--   * **Money with no rows is NULL, never 0.** The handler turns an empty sum into
+--     `amount: null, empty: "insufficient_data"`; a count with no rows is a real 0.
+
+-- name: BdPerformanceCurrency :one
+-- The window's dominant currency, counted over the rows the report can sum:
+-- collaborations touched by the window (signed or delivered), quotes that were
+-- actually sent, and settlements whose period overlaps it. Falls back to 'CNY'
+-- when the window has no money at all, so the client always has a label.
+WITH bounds AS (
+    SELECT sqlc.arg('from_day')::date AS from_day, sqlc.arg('to_day')::date AS to_day
+),
+money_rows AS (
+    SELECT c.currency::text AS currency
+    FROM crm_collab c
+    CROSS JOIN bounds b
+    WHERE c.workspace_id = sqlc.arg('workspace_id')::uuid
+      AND c.archived_at IS NULL
+      AND c.stage <> 'cancelled'
+      AND (
+        (c.confirmed_at >= b.from_day::timestamptz
+            AND c.confirmed_at < (b.to_day + 1)::timestamptz)
+        OR (c.published_at >= b.from_day::timestamptz
+            AND c.published_at < (b.to_day + 1)::timestamptz)
+      )
+    UNION ALL
+    SELECT q.currency::text
+    FROM creator_quote q
+    CROSS JOIN bounds b
+    WHERE q.workspace_id = sqlc.arg('workspace_id')::uuid
+      AND q.archived_at IS NULL
+      AND q.status <> 'draft'
+      AND coalesce(q.quoted_at, q.created_at) >= b.from_day::timestamptz
+      AND coalesce(q.quoted_at, q.created_at) < (b.to_day + 1)::timestamptz
+    UNION ALL
+    SELECT s.currency::text
+    FROM affiliate_settlement s
+    CROSS JOIN bounds b
+    WHERE s.workspace_id = sqlc.arg('workspace_id')::uuid
+      AND s.period_start <= b.to_day
+      AND s.period_end >= b.from_day
+)
+SELECT coalesce(
+    (SELECT currency FROM money_rows GROUP BY currency ORDER BY count(*) DESC, currency LIMIT 1),
+    'CNY'
+)::text AS currency;
+
+-- name: BdPerformanceBuckets :many
+-- Every fact the report shows, in one statement, already grouped by (month,
+-- member). The handler pivots these rows into the blocks, `by_member` and
+-- `by_month`: a pivot in Go keeps one definition of each bucket instead of three
+-- near-identical queries, and the row count is bounded by members × months.
+--
+--   signed          crm_collab confirmed in the window (stage <> cancelled) — the
+--                   money is `final_amount`, what we committed to pay, and a row
+--                   confirmed without an amount still counts.
+--   delivered       crm_collab published in the window: the work went live.
+--   collected       crm_settlement with `paid_at` in the window — money that
+--                   actually moved, read off the settlement, attributed to the
+--                   collaboration's owner. The collaboration itself may be archived
+--                   by now; a payment does not un-happen.
+--   quote_sent      creator_quote with status <> 'draft': a draft was never an
+--                   offer. Money is the 坑位费 quoted.
+--   quote_accepted  the same rows, status = 'accepted'. `win_rate` is
+--                   accepted / sent, computed in the handler (0–1 scale).
+--   followup        creator_activity in the window: 条数.
+--   followup_replied / followup_meeting   the two outcomes worth counting
+--                   separately: a conversation that moved, and a meeting held.
+WITH bounds AS (
+    SELECT sqlc.arg('from_day')::date AS from_day, sqlc.arg('to_day')::date AS to_day
+)
+SELECT
+    'signed'::text AS metric,
+    to_char(date_trunc('month', c.confirmed_at), 'YYYY-MM')::text AS month,
+    c.owner_member_id AS member_id,
+    count(*)::bigint AS row_count,
+    coalesce(sum(c.final_amount), 0)::float8 AS amount,
+    (count(c.final_amount))::bigint AS amount_samples
+FROM crm_collab c
+CROSS JOIN bounds b
+WHERE c.workspace_id = sqlc.arg('workspace_id')::uuid
+  AND c.archived_at IS NULL
+  AND c.stage <> 'cancelled'
+  AND c.currency = sqlc.arg('currency')::text
+  AND c.confirmed_at >= b.from_day::timestamptz
+  AND c.confirmed_at < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'delivered'::text,
+    to_char(date_trunc('month', c.published_at), 'YYYY-MM')::text,
+    c.owner_member_id,
+    count(*)::bigint,
+    coalesce(sum(c.final_amount), 0)::float8,
+    (count(c.final_amount))::bigint
+FROM crm_collab c
+CROSS JOIN bounds b
+WHERE c.workspace_id = sqlc.arg('workspace_id')::uuid
+  AND c.archived_at IS NULL
+  AND c.stage <> 'cancelled'
+  AND c.currency = sqlc.arg('currency')::text
+  AND c.published_at >= b.from_day::timestamptz
+  AND c.published_at < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'collected'::text,
+    to_char(date_trunc('month', s.paid_at), 'YYYY-MM')::text,
+    c.owner_member_id,
+    count(*)::bigint,
+    coalesce(sum(s.amount), 0)::float8,
+    (count(s.amount))::bigint
+FROM crm_settlement s
+JOIN crm_collab c ON c.id = s.collab_id AND c.workspace_id = s.workspace_id
+CROSS JOIN bounds b
+WHERE s.workspace_id = sqlc.arg('workspace_id')::uuid
+  AND s.archived_at IS NULL
+  AND s.paid_at IS NOT NULL
+  AND s.currency = sqlc.arg('currency')::text
+  AND s.paid_at >= b.from_day
+  AND s.paid_at <= b.to_day
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'quote_sent'::text,
+    to_char(date_trunc('month', coalesce(q.quoted_at, q.created_at)), 'YYYY-MM')::text,
+    q.owner_member_id,
+    count(*)::bigint,
+    coalesce(sum(q.fee_amount), 0)::float8,
+    (count(q.fee_amount))::bigint
+FROM creator_quote q
+CROSS JOIN bounds b
+WHERE q.workspace_id = sqlc.arg('workspace_id')::uuid
+  AND q.archived_at IS NULL
+  AND q.status <> 'draft'
+  AND q.currency = sqlc.arg('currency')::text
+  AND coalesce(q.quoted_at, q.created_at) >= b.from_day::timestamptz
+  AND coalesce(q.quoted_at, q.created_at) < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'quote_accepted'::text,
+    to_char(date_trunc('month', coalesce(q.quoted_at, q.created_at)), 'YYYY-MM')::text,
+    q.owner_member_id,
+    count(*)::bigint,
+    coalesce(sum(q.fee_amount), 0)::float8,
+    (count(q.fee_amount))::bigint
+FROM creator_quote q
+CROSS JOIN bounds b
+WHERE q.workspace_id = sqlc.arg('workspace_id')::uuid
+  AND q.archived_at IS NULL
+  AND q.status = 'accepted'
+  AND q.currency = sqlc.arg('currency')::text
+  AND coalesce(q.quoted_at, q.created_at) >= b.from_day::timestamptz
+  AND coalesce(q.quoted_at, q.created_at) < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'followup'::text,
+    to_char(date_trunc('month', a.happened_at), 'YYYY-MM')::text,
+    a.owner_member_id,
+    count(*)::bigint,
+    0::float8,
+    0::bigint
+FROM creator_activity a
+CROSS JOIN bounds b
+WHERE a.workspace_id = sqlc.arg('workspace_id')::uuid
+  AND a.archived_at IS NULL
+  AND a.happened_at >= b.from_day::timestamptz
+  AND a.happened_at < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'followup_replied'::text,
+    to_char(date_trunc('month', a.happened_at), 'YYYY-MM')::text,
+    a.owner_member_id,
+    count(*)::bigint,
+    0::float8,
+    0::bigint
+FROM creator_activity a
+CROSS JOIN bounds b
+WHERE a.workspace_id = sqlc.arg('workspace_id')::uuid
+  AND a.archived_at IS NULL
+  AND a.outcome IN ('replied', 'advanced')
+  AND a.happened_at >= b.from_day::timestamptz
+  AND a.happened_at < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3
+
+UNION ALL
+
+SELECT
+    'followup_meeting'::text,
+    to_char(date_trunc('month', a.happened_at), 'YYYY-MM')::text,
+    a.owner_member_id,
+    count(*)::bigint,
+    0::float8,
+    0::bigint
+FROM creator_activity a
+CROSS JOIN bounds b
+WHERE a.workspace_id = sqlc.arg('workspace_id')::uuid
+  AND a.archived_at IS NULL
+  AND a.kind = 'meeting'
+  AND a.happened_at >= b.from_day::timestamptz
+  AND a.happened_at < (b.to_day + 1)::timestamptz
+GROUP BY 2, 3;
+
+-- name: BdPerformanceAffiliate :one
+-- The affiliate commission the window is responsible for, split by who received it
+-- (727, same reading as §11's summary):
+--
+--   agency   statements `settled_to = 'agency'` — the money landed in our 机构号.
+--   creator  statements `settled_to = 'creator'` — the platform paid the 达人直接.
+--            Adding the two would count the business twice, which is why they stay
+--            apart instead of collapsing into one "commission".
+--   settled  statements whose `paid_at` falls inside the window: 已结算 means the
+--            money arrived on that day. The agency/creator halves window on the
+--            statement's *period* (it is a report about a span), while this one
+--            windows on the pay date — two different facts, both asked for.
+WITH bounds AS (
+    SELECT sqlc.arg('from_day')::date AS from_day, sqlc.arg('to_day')::date AS to_day
+),
+overlapping AS (
+    SELECT s.net_amount, s.settled_to
+    FROM affiliate_settlement s
+    CROSS JOIN bounds b
+    WHERE s.workspace_id = sqlc.arg('workspace_id')::uuid
+      AND s.currency = sqlc.arg('currency')::text
+      AND s.period_start <= b.to_day
+      AND s.period_end >= b.from_day
+),
+paid AS (
+    SELECT s.net_amount
+    FROM affiliate_settlement s
+    CROSS JOIN bounds b
+    WHERE s.workspace_id = sqlc.arg('workspace_id')::uuid
+      AND s.currency = sqlc.arg('currency')::text
+      AND s.paid_at IS NOT NULL
+      AND s.paid_at >= b.from_day
+      AND s.paid_at <= b.to_day
+)
+SELECT
+    coalesce(sum(overlapping.net_amount) FILTER (WHERE overlapping.settled_to = 'agency'), 0)::float8
+        AS agency_amount,
+    (count(*) FILTER (WHERE overlapping.settled_to = 'agency'))::bigint AS agency_samples,
+    coalesce(sum(overlapping.net_amount) FILTER (WHERE overlapping.settled_to = 'creator'), 0)::float8
+        AS creator_amount,
+    (count(*) FILTER (WHERE overlapping.settled_to = 'creator'))::bigint AS creator_samples,
+    coalesce((SELECT sum(net_amount) FROM paid), 0)::float8 AS settled_amount,
+    (SELECT count(*) FROM paid)::bigint AS settled_samples
+FROM overlapping;

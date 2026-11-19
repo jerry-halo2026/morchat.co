@@ -128,12 +128,13 @@ import type {
   CrmCollabListResponse,
   CrmSettlement,
   CrmSettlementListResponse,
-  // BD pipeline (WORKBENCH-API §20): follow-ups, quotes, campaigns and the
-  // 驾驶舱 aggregate.
+  // BD pipeline (WORKBENCH-API 搂20): follow-ups, quotes, campaigns and the
+  // 椹鹃┒鑸?aggregate. 搂22 adds the windowed performance report.
   BdActivity,
   BdActivityListResponse,
   BdCampaign,
   BdCampaignListResponse,
+  BdPerformance,
   BdPipeline,
   BdQuote,
   BdQuoteListResponse,
@@ -141,6 +142,8 @@ import type {
   WorkbenchFinanceMonth,
   WorkbenchFinanceMonthListResponse,
   WorkbenchFinanceResponse,
+  // Batch CSV import (WORKBENCH-API §23).
+  ImportPreviewResponse,
 } from "../types";
 import type { CloudRuntimeNode } from "../runtimes/cloud-runtime";
 import type { CreateFeedbackResponse } from "../feedback/types";
@@ -158,7 +161,7 @@ import type {
   HrScorecard,
   HrScorecardListResponse,
 } from "../types/workbench";
-// The affiliate block (§11) comes from the same module, for the same reason.
+// The affiliate block (搂11) comes from the same module, for the same reason.
 import type {
   AffiliateDaily,
   AffiliateDailyListResponse,
@@ -170,10 +173,14 @@ import type {
   AffiliateSettlementListResponse,
   AffiliateSummaryResponse,
 } from "../types/workbench";
-// Content workbench (§12) has its own module (types/media.ts) rather than living
+// Content workbench (搂12) has its own module (types/media.ts) rather than living
 // in the commerce barrel: the content pipeline is a separate domain with its own
 // frozen artifact contract.
 import type {
+  MediaBench,
+  MediaBenchListResponse,
+  MediaHot,
+  MediaHotListResponse,
   MediaIP,
   MediaIPAccount,
   MediaIPDetail,
@@ -186,8 +193,8 @@ import type {
   MediaTopic,
   MediaTopicListResponse,
 } from "../types/media";
-// General manager workbench (§13): its own module (types/goal.ts) for the same
-// reason — OKR and radar are a separate domain, not more commerce rows.
+// General manager workbench (搂13): its own module (types/goal.ts) for the same
+// reason 鈥?OKR and radar are a separate domain, not more commerce rows.
 import type {
   Goal,
   GoalDetail,
@@ -199,7 +206,7 @@ import type {
   MarketSignalConvertResponse,
   MarketSignalListResponse,
 } from "../types/goal";
-// Interview questions and guides (§14): its own module (types/guide.ts), because a
+// Interview questions and guides (搂14): its own module (types/guide.ts), because a
 // guide's `items` is a snapshot document with rules of its own.
 import type {
   HrGuideGenerateResponse,
@@ -209,8 +216,8 @@ import type {
   HrQuestion,
   HrQuestionListResponse,
 } from "../types/guide";
-// Offboarding (§15): its own module (types/offboard.ts), because the record is a
-// state machine — `status` moves through advance/cancel, never through a PATCH —
+// Offboarding (搂15): its own module (types/offboard.ts), because the record is a
+// state machine 鈥?`status` moves through advance/cancel, never through a PATCH 鈥?
 // and the `done` step writes the employee's `leave_date`.
 import type {
   HrHandoverItem,
@@ -219,21 +226,21 @@ import type {
   HrOffboardingEmployee,
   HrOffboardingListResponse,
 } from "../types/offboard";
-// Employee file change stream (§16): its own module (types/change.ts), because an
-// append-only event list is a different contract from the profile it describes —
+// Employee file change stream (搂16): its own module (types/change.ts), because an
+// append-only event list is a different contract from the profile it describes 鈥?
 // `PATCH` accepts `note` and nothing else.
 import type {
   HrEmployeeChange,
   HrEmployeeChangeListResponse,
 } from "../types/change";
-// Rewards and disciplines (§17): its own module (types/reward.ts), because the
+// Rewards and disciplines (搂17): its own module (types/reward.ts), because the
 // stored `amount` is always positive and `kind` carries the direction.
 import type {
   HrEmployeeReward,
   HrEmployeeRewardListResponse,
 } from "../types/reward";
-// HR documents (§18): its own module (types/doc.ts). The generated file is a
-// different contract from the profile it is about — the values are a snapshot, an
+// HR documents (搂18): its own module (types/doc.ts). The generated file is a
+// different contract from the profile it is about 鈥?the values are a snapshot, an
 // unknown placeholder is kept rather than blanked, and a builtin template is
 // read-only.
 import type {
@@ -859,7 +866,7 @@ export const EMPTY_RESOURCE_LABELS_RESPONSE: ResourceLabelsResponse = {
 };
 
 // Saved issue views (MUL-4796). `query`/`display` are opaque definition
-// blobs interpreted client-side per `definition_version` — keep them as
+// blobs interpreted client-side per `definition_version` 鈥?keep them as
 // loose records so newer servers can add fields freely. `scope_type` /
 // `visibility` stay lenient strings; downstream code uses explicit `===`
 // comparisons and default branches per the API-compat rules.
@@ -1046,7 +1053,7 @@ export const EMPTY_LIST_PROPERTIES_RESPONSE: ListPropertiesResponse = {
 
 // Value bag: keyed by definition UUID; values are primitives or string
 // arrays (multi_select). The preprocess step drops entries with unknown
-// shapes BEFORE validation — a newer server shipping an object-shaped value
+// shapes BEFORE validation 鈥?a newer server shipping an object-shaped value
 // (future actor/relation types) must degrade to "that one property missing",
 // never fail the whole IssueSchema and blank the list via parseWithFallback.
 export const IssuePropertyValuesSchema = z.preprocess(
@@ -1079,7 +1086,7 @@ export interface AppConfigResponse {
   cdn_domain: string;
   attachment_public_url?: string;
   // True when the CDN domain serves private content via time-bounded signed
-  // URLs (CloudFront signing) — raw storage URLs on that domain are NOT
+  // URLs (CloudFront signing) 鈥?raw storage URLs on that domain are NOT
   // publicly fetchable and must not be used as native media sources
   // (MUL-3254). Older servers omit the field; treat that as false.
   cdn_signed?: boolean;
@@ -1094,13 +1101,13 @@ export interface AppConfigResponse {
   workspace_creation_disabled?: boolean;
   /** Whether this deployment offers the self-hosted Git provider integration
    * (self-host only; off on the managed cloud). Absent/false hides the whole
-   * Settings → Integrations "Git providers" section. */
+   * Settings 鈫?Integrations "Git providers" section. */
   vcs_integration_available?: boolean;
   feature_flags?: Record<string, boolean>;
   /** Whether this server understands local_directory `execution_mode` and
    * gates worktree mode at save time. Absent on every server that predates this
    * capability signal, which includes the ones that silently DROPPED an unknown
-   * `execution_mode` and answered 201 — the resource then ran in place while
+   * `execution_mode` and answered 201 鈥?the resource then ran in place while
    * the user was promised isolation (#7113). Servers between that fix and this
    * signal do validate but cannot say so, and are treated as unable: the client
    * has no way to tell them apart, and only one of the two answers is safe. */
@@ -1118,7 +1125,7 @@ export interface AppConfigResponse {
   server_version?: string;
 }
 
-// Schemas for the highest-risk API endpoints — those whose responses drive
+// Schemas for the highest-risk API endpoints 鈥?those whose responses drive
 // the issue detail page (timeline, comments, subscribers) and the issues
 // list. These are the surfaces that white-screened in #2143 / #2147 / #2192.
 //
@@ -1133,13 +1140,13 @@ export interface AppConfigResponse {
 //   - Every object schema ends with `.loose()` so unknown server-side
 //     fields pass through unchanged. zod 4's `.object()` defaults to STRIP,
 //     which would silently delete fields the schema didn't explicitly list
-//     — fine while the TS type doesn't claim them, but the moment a future
+//     鈥?fine while the TS type doesn't claim them, but the moment a future
 //     PR adds a TS field without updating the schema, the cast `as T` lies
 //     and the field shows up as `undefined` at runtime. `.loose()` removes
 //     that synchronisation hazard.
 //
 // These schemas are deliberately not typed as `z.ZodType<TimelineEntry>` /
-// `z.ZodType<Issue>` etc. — the strict TS types narrow string fields to
+// `z.ZodType<Issue>` etc. 鈥?the strict TS types narrow string fields to
 // literal unions, which would defeat the leniency above. `parseWithFallback`
 // returns the parsed value cast to the caller-supplied `T`, so the strict
 // type still flows out at the call site; the schema only guards shape.
@@ -1206,7 +1213,7 @@ export const ChatMessagesPageSchema = z.object({
 
 // Standalone attachment lookup (`GET /api/attachments/{id}`) is the source of
 // truth for click-time download URLs. The two fields the download flow opens
-// in a new tab — `download_url` and `url` — must be strings, otherwise we'd
+// in a new tab 鈥?`download_url` and `url` 鈥?must be strings, otherwise we'd
 // happily `window.open(undefined)`. `filename` gates the toast/title and is
 // also enforced so a missing value falls back to the empty record below.
 //
@@ -1220,7 +1227,7 @@ export const AttachmentResponseSchema = z.object({
   id: z.string(),
   url: z.string(),
   download_url: z.string(),
-  // Forced-attachment ("download button") URL — credential-free and, unlike
+  // Forced-attachment ("download button") URL 鈥?credential-free and, unlike
   // `download_url`, always Content-Disposition: attachment across every storage
   // mode. Optional: a server older than this field omits it, and callers fall
   // back to `download_url` / the stable endpoint. Never persisted (short-lived).
@@ -1257,7 +1264,7 @@ export const EMPTY_ATTACHMENT: Attachment = {
 // silently drop new fields and surface as a "field neither showed up in
 // the UI" mystery the next time the TS type adopted them but the schema
 // wasn't updated in lock-step. `.loose()` removes that synchronisation
-// hazard — the schema validates the shape it knows about and leaves the
+// hazard 鈥?the schema validates the shape it knows about and leaves the
 // rest alone.
 // One receipt per running turn a comment steered. A malformed receipt is
 // dropped on its own rather than failing the whole comment.
@@ -1305,7 +1312,7 @@ const TimelineEntrySchema = z.object({
 }).loose();
 
 // /timeline returns a flat array of TimelineEntry, oldest first. The
-// previously cursor-paginated wrapper was removed (#1929) — at observed data
+// previously cursor-paginated wrapper was removed (#1929) 鈥?at observed data
 // sizes (p99 ~30 entries per issue) paged delivery only created bugs.
 export const TimelineEntriesSchema = z.array(TimelineEntrySchema);
 
@@ -1331,14 +1338,14 @@ const FeatureFlagsSchema = z.preprocess(
 );
 
 /**
- * POST /api/auth/refresh — sliding session renewal (MUL-7436).
+ * POST /api/auth/refresh 鈥?sliding session renewal (MUL-7436).
  *
  * `token` is present only for clients that carry the session as a string
  * (Desktop, mobile). A cookie-authenticated browser gets the renewed session
  * as a Set-Cookie and must never be handed a readable JWT, so the field is
  * absent there rather than empty.
  *
- * `renewed: false` is the normal answer to asking early, not an error —
+ * `renewed: false` is the normal answer to asking early, not an error 鈥?
  * clients poll on a cadence and most calls land outside the renewal window.
  * `check_again_in_seconds` is that cadence: the server derives it from the
  * deployment's configured TTL, so no client hardcodes one.
@@ -1460,7 +1467,7 @@ export const CommentSchema = z.object({
 export const CommentsListSchema = z.array(CommentSchema);
 
 // Degraded placeholder for a comment response that failed schema validation.
-// The empty id is the caller's signal that nothing usable came back — the run
+// The empty id is the caller's signal that nothing usable came back 鈥?the run
 // UI treats it as "could not read the result" rather than a successful run.
 export const EMPTY_COMMENT: Comment = {
   id: "",
@@ -1487,7 +1494,7 @@ const CommentTriggerPreviewAgentSchema = z.object({
   reason: z.string().default(""),
 }).loose();
 
-// Per-target outcome of an explicit @agent / @squad mention (MUL-4525 §2).
+// Per-target outcome of an explicit @agent / @squad mention (MUL-4525 搂2).
 // target_id is required to correlate with the client's rendered mention; a
 // malformed entry (missing id) is dropped rather than failing the whole payload.
 export const CommentTriggerOutcomeSchema = z.object({
@@ -1647,7 +1654,7 @@ export const IssueSchema = z.object({
   title: z.string(),
   description: z.string().nullable(),
   status: z.string(),
-  // The canonical status whose platform behavior `status` carries — equal to
+  // The canonical status whose platform behavior `status` carries 鈥?equal to
   // `status` for the 7 built-ins, and the inherited category for a custom
   // status. Optional because only endpoints that resolve it emit it, so
   // consumers must fall back to `status` rather than treat "" as a category.
@@ -1662,8 +1669,8 @@ export const IssueSchema = z.object({
   // takes the whole response through parseWithFallback to EMPTY_LIST_ISSUES_RESPONSE,
   // so one malformed name from a mixed-version deploy would blank an entire
   // issue list. Same treatment as source_context and labels above. Nothing reads
-  // this field to make a decision — useStatusLabel resolves the label from the
-  // catalog — so dropping it costs a fallback to the key. (MUL-6749)
+  // this field to make a decision 鈥?useStatusLabel resolves the label from the
+  // catalog 鈥?so dropping it costs a fallback to the key. (MUL-6749)
   status_name: z.string().optional().catch(undefined),
   priority: z.string(),
   assignee_type: z.string().nullable(),
@@ -1716,9 +1723,9 @@ export const ListIssuesResponseSchema = z.object({
 //     id here routes an id-less body to that same failure path.
 //   - `labels` is the backend-compatibility signal the create modal reads to
 //     decide whether the backend attached labels in the create transaction
-//     (present) or predates that (absent → fall back to per-label attach).
+//     (present) or predates that (absent 鈫?fall back to per-label attach).
 //     Validate it strictly as Label[] and degrade a malformed value to
-//     `undefined` — the same as an absent field — so a wrong shape (null,
+//     `undefined` 鈥?the same as an absent field 鈥?so a wrong shape (null,
 //     object, a garbage array) can never masquerade as "handled" and suppress
 //     the fallback. Unlike the loose IssueSchema.labels (z.array(z.unknown())),
 //     the elements are fully validated. See packages/views/modals/create-issue.tsx.
@@ -1763,7 +1770,7 @@ export const ProjectSchema = z.object({
   creator_id: z.string().nullable().default(null).catch(null),
   // .default(null) so a project from an older backend (frontend deploys before
   // backend) that omits these keys parses to null instead of failing the whole
-  // object — which would degrade a search/list batch to the empty fallback.
+  // object 鈥?which would degrade a search/list batch to the empty fallback.
   start_date: z.string().nullable().default(null),
   due_date: z.string().nullable().default(null),
   created_at: z.string(),
@@ -2110,7 +2117,7 @@ export const EMPTY_CLOUD_RUNTIME_NODE: CloudRuntimeNode = {
 // Workspace dashboard schemas
 //
 // The dashboard hits three independent rollup endpoints. Each returns a flat
-// array, and every field is consumed by chart / KPI math — a missing number
+// array, and every field is consumed by chart / KPI math 鈥?a missing number
 // silently degrades to NaN downstream, so we coerce missing numbers to 0.
 // String fields default to "" (no enum narrowing) to survive future model /
 // agent ID drift, and so a single null from tz-aware SQL bucketing fails
@@ -2125,7 +2132,7 @@ export const EMPTY_CLOUD_RUNTIME_NODE: CloudRuntimeNode = {
 // `.default(0)`: a backend that predates them sends nothing, and defaulting
 // those rows to "0 tokens left to estimate" would silently zero their cost.
 // `undefined` means "this backend doesn't split", and the consumer falls back
-// to the full token counts — i.e. exactly the old behaviour. A real 0 from a
+// to the full token counts 鈥?i.e. exactly the old behaviour. A real 0 from a
 // current backend means "everything here is already priced", which is a
 // different thing and must stay distinguishable.
 const CostSplitShape = {
@@ -2188,13 +2195,13 @@ const DashboardRunTimeDailySchema = z.object({
 
 export const DashboardRunTimeDailyListSchema = z.array(DashboardRunTimeDailySchema);
 
-// Failure rollups. `failure_reason` is an open string on purpose — it carries
+// Failure rollups. `failure_reason` is an open string on purpose 鈥?it carries
 // the backend's canonical taxonomy, which grows as new classifier rules land
 // (server/pkg/taskfailure). Pinning it to a z.enum would make an installed
 // desktop client drop rows for a reason its build predates; the client folds
 // unrecognised reasons into an "other" display class instead. The empty
 // string is the succeeded bucket, so `.default("")` is a meaningful default
-// only for a row that already lost its reason — such a row lands in the
+// only for a row that already lost its reason 鈥?such a row lands in the
 // denominator rather than inventing a failure that never happened.
 const DashboardFailureDailySchema = z.object({
   date: z.string().default(""),
@@ -2214,7 +2221,7 @@ export const DashboardFailureByAgentListSchema = z.array(
   DashboardFailureByAgentSchema,
 );
 
-// Runtime usage schemas — the runtime-detail page's four usage endpoints
+// Runtime usage schemas 鈥?the runtime-detail page's four usage endpoints
 // (`/api/runtimes/:id/usage*`). Same leniency rules as the dashboard
 // schemas above: numbers default to 0, strings to "", `.loose()` passes
 // unknown fields.
@@ -2270,7 +2277,7 @@ export const RuntimeUsageByHourListSchema = z.array(RuntimeUsageByHourSchema);
 // Agent task responses. The base object stays loose so daemon/runtime fields
 // can drift while task-list consumers still validate the fields they render.
 
-// Human attribution (MUL-4302 §9): who an agent run is accountable to, and how
+// Human attribution (MUL-4302 搂9): who an agent run is accountable to, and how
 // that human was resolved. Every field is defensive so a departed member, an
 // autopilot run (no originator), or an older backend degrades to a partial
 // object instead of a parse failure.
@@ -2401,7 +2408,7 @@ export const AgentTaskPageSchema = z.object({
 // the UI makes about a tool's output, so it stays `.optional()` with no
 // default: a server that does not send it means "unknown", and defaulting it
 // to false would turn a missing field into an assertion that the record is
-// complete. `.catch(undefined)` keeps a malformed value that far too — without
+// complete. `.catch(undefined)` keeps a malformed value that far too 鈥?without
 // it a single bad boolean fails its row, the array fails with it, and
 // `parseWithFallback` hands the viewer an empty transcript. Degrading one
 // field to "unknown" is the correct loss; deleting the run is not. Every other
@@ -2499,7 +2506,7 @@ export const EMPTY_CHAT_SESSION_LIST: ChatSession[] = [];
 // (`GET /api/chat/sessions/{id}/draft-restores`, #5219) feed the composer
 // directly: `content` becomes the draft text, `attachments` re-bind on
 // re-send, and `id` is the consume key. A malformed response falls back to
-// an empty list — the durable row stays pending server-side, so nothing is
+// an empty list 鈥?the durable row stays pending server-side, so nothing is
 // lost by skipping a fetch.
 const ChatDraftRestoreSchema = z.object({
   id: z.string(),
@@ -2552,7 +2559,7 @@ export const SendChatMessageResponseSchema: z.ZodType<SendChatMessageResponse> =
 }).loose();
 
 // `started` is the only field the flow branches on, and a malformed response
-// must not be read as "the opening landed" — parseWithFallback's fallback says
+// must not be read as "the opening landed" 鈥?parseWithFallback's fallback says
 // it did not, which leaves the flow's own retry as the recovery path.
 export const StartMikaOnboardingResponseSchema: z.ZodType<StartMikaOnboardingResponse> = z.object({
   started: z.boolean(),
@@ -2668,7 +2675,7 @@ export const AgentBuilderRuntimeSwitchSchema = z.object({
 // runtime the caller asked for; anything else is a thrown error and no commit.
 // So the safe fallback for an unparseable SUCCESS body is the requested id, not
 // an empty one: the rebind did happen, and reporting "unknown" would leave the
-// picker showing a runtime that is no longer executing — the exact split this
+// picker showing a runtime that is no longer executing 鈥?the exact split this
 // endpoint exists to close.
 export const agentBuilderRuntimeSwitchFallback = (
   requestedRuntimeID: string,
@@ -2721,7 +2728,7 @@ export const EMPTY_SQUAD: Squad = {
   member_preview: [],
 };
 
-// Squad member status — backs the Squad detail page's Members tab. status
+// Squad member status 鈥?backs the Squad detail page's Members tab. status
 // is `string | null` (not the narrow `SquadMemberStatusValue` union) so a
 // new server-side status doesn't fail the parse; the UI defaults to a
 // neutral pill for unknown values.
@@ -2746,7 +2753,7 @@ export const SquadMemberStatusListResponseSchema = z.object({
 
 export const EMPTY_SQUAD_MEMBER_STATUS_LIST = { members: [] };
 
-// Structured error body — POST /api/workspaces/:wsId/issues 409 conflict.
+// Structured error body 鈥?POST /api/workspaces/:wsId/issues 409 conflict.
 //
 // When the server detects an active issue with the same title in the same
 // workspace, it returns `{ code: "active_duplicate_issue", error, issue }`
@@ -2756,7 +2763,7 @@ export const EMPTY_SQUAD_MEMBER_STATUS_LIST = { members: [] };
 //
 // Strict guarantees:
 //   - `code` is a literal so a future server rename (e.g. `duplicate_issue`)
-//     fails the parse and falls back to a normal error toast — drift never
+//     fails the parse and falls back to a normal error toast 鈥?drift never
 //     ships as a broken duplicate UI.
 //   - `issue` is required; without an id/identifier/title the "view existing"
 //     button has nothing to point at, so we'd rather fall back than guess.
@@ -2797,7 +2804,7 @@ export interface DuplicateIssueErrorBody {
   };
 }
 
-// Webhook delivery schemas — backing the Autopilot Deliveries section. Enums
+// Webhook delivery schemas 鈥?backing the Autopilot Deliveries section. Enums
 // (`status`, `signature_status`, `provider`) are kept as `z.string()` so a
 // future server-side value (e.g. a Stripe provider, a new dedupe state)
 // degrades to a generic UI fallback rather than collapsing the list into
@@ -2853,7 +2860,7 @@ export const EMPTY_LIST_WEBHOOK_DELIVERIES_RESPONSE: ListWebhookDeliveriesRespon
 // `last_run_status`) stay `z.string()` so future server-side values degrade
 // to a generic UI fallback. The three derived fields (trigger_kinds /
 // next_run_at / last_run_status) are list-endpoint-only and absent on older
-// servers — optional by contract, the list renders "—" without them.
+// servers 鈥?optional by contract, the list renders "鈥? without them.
 
 const AutopilotListItemSchema = z.object({
   id: z.string(),
@@ -2945,7 +2952,7 @@ export const FALLBACK_AUTOPILOT_RUN: AutopilotRun = {
 };
 
 // Cron preview: the server is the authority on the next occurrences. No
-// `.default([])` here — a missing or reshaped field must fail validation so it
+// `.default([])` here 鈥?a missing or reshaped field must fail validation so it
 // degrades to the `next_runs: null` fallback ("preview unreadable") instead of
 // masquerading as a valid empty list ("this expression never fires").
 export const CronPreviewResponseSchema = z.object({
@@ -2982,13 +2989,13 @@ export const EMPTY_WEBHOOK_DELIVERY: WebhookDelivery = {
   created_at: "",
 };
 
-// User (`/api/me` GET + PATCH). The auth store and Settings → Account both
-// trust this shape — a drift here would knock both surfaces out. Kept
+// User (`/api/me` GET + PATCH). The auth store and Settings 鈫?Account both
+// trust this shape 鈥?a drift here would knock both surfaces out. Kept
 // lenient by the same rules as IssueSchema: enums stay `z.string()`,
 // nullable fields are unioned with `null`, unknown server fields pass
 // through via `.loose()`. `profile_description` is the field added in
 // MUL-2406; the server emits `""` when unset (NOT NULL DEFAULT ''), so
-// the schema defaults to `""` too — keeps the type tight without
+// the schema defaults to `""` too 鈥?keeps the type tight without
 // breaking older backends that don't return the column yet.
 
 export const UserSchema = z.object({
@@ -3029,7 +3036,7 @@ export const EMPTY_USER: User = {
 // Cross-workspace unread inbox summary (`/api/inbox/unread-summary` GET).
 // One entry per workspace the user belongs to that has unread items; the
 // sidebar derives the workspace-switcher dot from it. Lenient per the usual
-// rules so a future field addition can't blank the dot — on malformed JSON
+// rules so a future field addition can't blank the dot 鈥?on malformed JSON
 // parseWithFallback returns the empty list, which simply hides the dot.
 
 export const InboxUnreadSummarySchema = z.array(
@@ -3087,8 +3094,8 @@ export const InboxDeleteSchema = z
 
 // The viewer's subscribed issue ids (`/api/issues/subscribed` GET), behind the
 // "subscribed" relation filter on client-filtered surfaces. A non-string entry
-// is dropped; a body without the list has no safe fallback — an empty set
-// would hide every row under the filter — so the client fails the request.
+// is dropped; a body without the list has no safe fallback 鈥?an empty set
+// would hide every row under the filter 鈥?so the client fails the request.
 export const SubscribedIssueIdsSchema = z
   .object({
     issue_ids: z
@@ -3103,7 +3110,7 @@ export const SubscribedIssueIdsSchema = z
 // parses and renders (the UI's type-label lookup already tolerates unknown
 // kinds). Nullable optional fields are declared optional as well, since older
 // rows can omit them entirely. On malformed JSON parseWithFallback returns the
-// empty list — the affected view then reads as empty rather than white-
+// empty list 鈥?the affected view then reads as empty rather than white-
 // screening the inbox. Both endpoints share this boundary because they return
 // the same row shape and both feed the status/priority filter UI.
 
@@ -3165,7 +3172,7 @@ export const EMPTY_INBOX_ITEMS: InboxItem[] = [];
 
 // Billing schemas (cloud-billing proxy surface)
 //
-// All billing JSON we receive comes from multica-cloud verbatim — we proxy
+// All billing JSON we receive comes from multica-cloud verbatim 鈥?we proxy
 // the bytes without re-shaping. These schemas use `loose()` so a future
 // non-breaking field addition on the cloud side doesn't crash us; required
 // fields are still strictly enforced. EMPTY_* constants supply the
@@ -3257,7 +3264,7 @@ export const BillingTopupSchema = z.object({
   status: z.string(),
   tier_id: z.string().default(""),
   stripe_checkout_id: z.string().default(""),
-  // Only set after status reaches `credited` — leave optional rather
+  // Only set after status reaches `credited` 鈥?leave optional rather
   // than coerce to "" so a UI can branch on existence.
   purchase_batch_id: z.string().optional(),
   created_at: z.string(),
@@ -3338,7 +3345,7 @@ export const EMPTY_CREATE_BILLING_PORTAL_SESSION_RESPONSE: CreateBillingPortalSe
 // hold for all of them:
 //
 //  1. There is no fallback value. Callers get `null` on any parse failure and
-//     must render "unavailable" — never a synthetic Free plan, because that
+//     must render "unavailable" 鈥?never a synthetic Free plan, because that
 //     turns an upstream outage or an older cloud into a silent downgrade of a
 //     paying workspace.
 //  2. `.loose()` keeps unknown keys, so a cloud that adds fields does not break
@@ -3349,7 +3356,7 @@ export const EMPTY_CREATE_BILLING_PORTAL_SESSION_RESPONSE: CreateBillingPortalSe
 const WorkspaceSubscriptionIntervalSchema = z.enum(["month", "year"]);
 
 // Stripe hosts Checkout and Portal, so those URLs leave the app. `z.string()
-// .url()` is not enough on its own — `new URL("javascript:...")` parses — and
+// .url()` is not enough on its own 鈥?`new URL("javascript:...")` parses 鈥?and
 // the caller hands this value to location.assign, so the scheme is pinned here.
 const StripeHostedURLSchema = z.string().url().refine(
   (value) => value.startsWith("https://"),
@@ -3508,7 +3515,7 @@ const WorkspaceSubscriptionPriceSchema = (
       unit_amount: z.number().int().positive(),
       // Pinned to the slot it arrived in. Cloud validates this too, but a
       // schema that accepted a yearly Price under `month` would let the UI
-      // quote a yearly amount as a monthly one — the schema is an independent
+      // quote a yearly amount as a monthly one 鈥?the schema is an independent
       // boundary, so it checks the correspondence itself.
       interval: z.literal(expected),
       interval_count: z.literal(1),
@@ -3660,8 +3667,8 @@ const RuntimeModelServiceTierSchema = z.object({
   description: z.string().optional(),
 }).loose();
 
-// A model entry with no `id` is unselectable — `onChange(m.id)` would persist
-// an empty model — so `id` is required and a malformed entry drops the whole
+// A model entry with no `id` is unselectable 鈥?`onChange(m.id)` would persist
+// an empty model 鈥?so `id` is required and a malformed entry drops the whole
 // response to the fallback rather than rendering a dead row.
 const RuntimeModelSchema = z.object({
   id: z.string(),
@@ -3676,7 +3683,7 @@ const RuntimeModelSchema = z.object({
 
 // A row the runtime named but will not run (MUL-6961). Parsed from its own
 // top-level list, never from `models`, so nothing here can become a selectable
-// value. `id` is required for the same reason it is on RuntimeModelSchema — a
+// value. `id` is required for the same reason it is on RuntimeModelSchema 鈥?a
 // row without one cannot even be keyed in a list.
 const RuntimeUnavailableModelSchema = z.object({
   id: z.string(),
@@ -3792,9 +3799,9 @@ export const EMPTY_REDEEM_DINGTALK_BINDING_TOKEN_RESPONSE: RedeemDingTalkBinding
   dingtalk_user_id: "",
 };
 
-// WeCom smart-bot ("智能机器人" / aibot) installation responses. `.loose()` so a
+// WeCom smart-bot ("鏅鸿兘鏈哄櫒浜? / aibot) installation responses. `.loose()` so a
 // newer backend field never fails the parse on an older desktop build (see
-// CLAUDE.md → API Compatibility). Defaults are chosen so a malformed response
+// CLAUDE.md 鈫?API Compatibility). Defaults are chosen so a malformed response
 // degrades safely: `configured` defaults false (renders the "ask your operator"
 // state rather than a Connect dialog whose submit is guaranteed to fail), and a
 // missing `status` defaults to "revoked" rather than "active" so a broken read
@@ -4044,7 +4051,7 @@ export const SkillImportExistingSkillSchema = z.object({
  * `status` stays a plain string (not an enum) so a status added by a newer
  * backend still parses and its `reason` survives to the user. `z.enum` here
  * would fail the whole envelope on an unknown value, drop the server's reason
- * and leave only a generic "Import failed" — the server field is a bare
+ * and leave only a generic "Import failed" 鈥?the server field is a bare
  * `string`, so it is free to grow. `skillFromImportResult` has the default
  * branch: anything outside created/updated is treated as a failure.
  */
@@ -4065,13 +4072,13 @@ export const EMPTY_SKILL_IMPORT_RESULT: SkillImportResult = {
  *
  * This is the ONLY schema in this file that must not be `.loose()`. Everywhere
  * else, keeping unknown fields is forward-compatibility; here it would be a
- * hole in the write-only boundary — a server that regressed to returning the
+ * hole in the write-only boundary 鈥?a server that regressed to returning the
  * stored entry (or a `url` / `headers` on the summary) would have it land in
  * the parsed object and in the query cache. zod strips unknown keys by
  * default, so the client only ever holds the safe summary.
  *
  * `transport` stays a plain string (not an enum) so an unknown value from a
- * newer backend still parses — the UI has a default branch for it.
+ * newer backend still parses 鈥?the UI has a default branch for it.
  */
 export const WorkspaceMcpServerSchema = z.object({
   id: z.string().default(""),
@@ -4509,7 +4516,7 @@ export const WorkspacePinnedSchema = z.object({
   pinned_at: z.iso.datetime({ offset: true }).nullable().catch(null),
 });
 
-// --- Workbench ledgers (docs/engineering/WORKBENCH-API.md §2/§3) -----------
+// --- Workbench ledgers (docs/engineering/WORKBENCH-API.md 搂2/搂3) -----------
 //
 // Seven ledger records. Two rules shape every schema below:
 //
@@ -4521,7 +4528,7 @@ export const WorkspacePinnedSchema = z.object({
 //    so a row written before a column existed parses instead of failing the page.
 //
 // Money arrives as a JSON number (the server converts NUMERIC(14,2)); `currency`
-// travels beside it, and the amount fields never default to 0 — null means
+// travels beside it, and the amount fields never default to 0 鈥?null means
 // "not quoted yet", which the UI renders differently from a quoted zero.
 
 const workbenchNullableString = z.string().nullable().default(null);
@@ -4581,8 +4588,8 @@ export const CreatorSchema = z.object({
   source_system: workbenchNullableString,
   source_id: workbenchNullableString,
   // The newest content-health snapshot, joined on by the list endpoint only
-  // (WORKBENCH-API §19). Optional rather than defaulted so a `GET /creators/{id}`
-  // response — which returns the row and nothing joined — stays a valid parse.
+  // (WORKBENCH-API 搂19). Optional rather than defaulted so a `GET /creators/{id}`
+  // response 鈥?which returns the row and nothing joined 鈥?stays a valid parse.
   hit_rate: workbenchNullableNumber.optional(),
   posts_last_30d: workbenchNullableNumber.optional(),
   videos_with_stats: workbenchNullableNumber.optional(),
@@ -4604,7 +4611,7 @@ export const EMPTY_CREATOR: Creator = {
 };
 
 /**
- * One mirrored work (WORKBENCH-DATA-CONTRACT §2.1). Every counter is nullable:
+ * One mirrored work (WORKBENCH-DATA-CONTRACT 搂2.1). Every counter is nullable:
  * "not collected yet" is NULL, not 0, so the drawer can draw its dash instead of
  * claiming a video got no plays.
  */
@@ -4670,10 +4677,12 @@ export const CreatorPostSchema = z.object({
   creator_id: z.string().default(""),
   collab_id: workbenchNullableString,
   content_issue_id: workbenchNullableString,
-  // 713: the affiliate pointers a product placement carries (§11). Null for a
-  // post that ran no 小黄车 and for rows imported before the columns existed.
+  // 713: the affiliate pointers a product placement carries (搂11). Null for a
+  // post that ran no 灏忛粍杞?and for rows imported before the columns existed.
   product_id: workbenchNullableString,
   pick_id: workbenchNullableString,
+  // 733: the script version this post was published from (section 12).
+  media_script_id: workbenchNullableString,
   platform: z.string().default(""),
   title: workbenchNullableString,
   url: z.string().default(""),
@@ -4687,7 +4696,7 @@ export const CreatorPostSchema = z.object({
 
 export const EMPTY_CREATOR_POST: CreatorPost = {
   id: "", workspace_id: "", creator_id: "", collab_id: null,
-  content_issue_id: null, product_id: null, pick_id: null, platform: "", title: null,
+  content_issue_id: null, product_id: null, pick_id: null, media_script_id: null, platform: "", title: null,
   url: "", published_at: "", source: "manual", created_by: null, created_at: "",
   updated_at: "", archived_at: null,
 };
@@ -4738,8 +4747,8 @@ export const EMPTY_CREATOR_POST_METRIC_LIST_RESPONSE: CreatorPostMetricListRespo
   total: 0,
 };
 
-// Content health (WORKBENCH-API §19, WORKBENCH-DATA-CONTRACT §2.2). Every measure
-// is nullable because NULL is the contract's "not computable" — a zero here would
+// Content health (WORKBENCH-API 搂19, WORKBENCH-DATA-CONTRACT 搂2.2). Every measure
+// is nullable because NULL is the contract's "not computable" 鈥?a zero here would
 // be a claim about the creator, and `sample_note` carries the reason instead.
 export const CreatorMetricSchema = z.object({
   id: z.string(),
@@ -4914,7 +4923,7 @@ export const CrmCollabSchema = z.object({
   created_at: z.string().default(""),
   updated_at: z.string().default(""),
   archived_at: workbenchNullableString,
-  // Fulfilment (WORKBENCH-API §20.2, migration 810). Absent on a server that
+  // Fulfilment (WORKBENCH-API 搂20.2, migration 810). Absent on a server that
   // predates them; null means "not published / not settled", not "empty string".
   publish_url: workbenchNullableString,
   settled_on: workbenchNullableString,
@@ -4974,7 +4983,7 @@ export const EMPTY_CRM_SETTLEMENT_LIST_RESPONSE: CrmSettlementListResponse = {
   total: 0,
 };
 
-// --- BD pipeline (`/api/workbench/bd`, WORKBENCH-API §20) -------------------
+// --- BD pipeline (`/api/workbench/bd`, WORKBENCH-API 搂20) -------------------
 //
 // Three ledgers plus one aggregate. Same leniency rules as the CRM block above:
 // every field degrades rather than rejecting the row, because a renamed or missing
@@ -4984,7 +4993,7 @@ export const EMPTY_CRM_SETTLEMENT_LIST_RESPONSE: CrmSettlementListResponse = {
 //   * `null` means "not recorded" (a note with no outcome, a draft with no
 //     `quoted_at`), which is not an empty string and not a zero;
 //   * a cockpit number carries `empty: "insufficient_data"` with `value: null`
-//     when nothing was summed, so the client can draw a gap instead of ￥0.00.
+//     when nothing was summed, so the client can draw a gap instead of 锟?.00.
 
 export const BdActivitySchema = z.object({
   id: z.string(),
@@ -5026,7 +5035,7 @@ export const BdQuoteSchema = z.object({
   quoted_at: workbenchNullableString,
   valid_until: workbenchNullableString,
   fee_amount: workbenchNullableNumber,
-  // 0–1. A server that sent 20 would be a contract bug; the number is kept as it
+  // 0鈥?. A server that sent 20 would be a contract bug; the number is kept as it
   // arrived so the display layer can show what the server actually said.
   commission_rate: workbenchNullableNumber,
   currency: z.string().default("CNY"),
@@ -5241,7 +5250,7 @@ export const EMPTY_WORKBENCH_COUNTS_RESPONSE: WorkbenchCountsResponse = {
 //    a tile, not the money tab.
 //
 // `value` stays `number | null`; money is never a string on the wire
-// (§3.1), so a string here is drift and belongs in the degradation path.
+// (搂3.1), so a string here is drift and belongs in the degradation path.
 
 const workbenchFinanceEmptyState = z
   .enum(["zero", "insufficient_data"])
@@ -5249,7 +5258,7 @@ const workbenchFinanceEmptyState = z
 
 /**
  * Which cost set a figure used (the server's `basis`). An unknown value is drift
- * and degrades to `none` — the "no cost side" reading — because naming a cost set
+ * and degrades to `none` 鈥?the "no cost side" reading 鈥?because naming a cost set
  * the client does not understand would make the card claim a number it cannot
  * explain.
  */
@@ -5282,8 +5291,8 @@ const EMPTY_WORKBENCH_FINANCE_COST_BLOCK: z.output<typeof WorkbenchFinanceCostBl
 };
 
 /**
- * One block, with both guards applied: absent → the gap block (`.default`), and
- * malformed → the gap block (`.catch`). The order matters — a missing key never
+ * One block, with both guards applied: absent 鈫?the gap block (`.default`), and
+ * malformed 鈫?the gap block (`.catch`). The order matters 鈥?a missing key never
  * reaches the inner schema, so the default has to sit on the outside.
  */
 const workbenchFinanceBlock = WorkbenchFinanceBlockSchema.default(
@@ -5322,7 +5331,7 @@ export const EMPTY_WORKBENCH_FINANCE_RESPONSE: WorkbenchFinanceResponse = {
 // --- Month entry (`/api/workbench/finance/months`, migration 707) -----------
 //
 // The inputs the money block cannot derive: opening cash and the month's own cost
-// bill. Same leniency rules as the ledgers above — every field degrades instead of
+// bill. Same leniency rules as the ledgers above 鈥?every field degrades instead of
 // rejecting the row, and a null amount stays null, because "not recorded" is what
 // keeps the figures on the gap card.
 
@@ -5368,18 +5377,18 @@ export const EMPTY_WORKBENCH_FINANCE_MONTH_LIST: WorkbenchFinanceMonthListRespon
   total: 0,
 };
 
-// --- HR (docs/engineering/WORKBENCH-API.md §10) ----------------------------
+// --- HR (docs/engineering/WORKBENCH-API.md 搂10) ----------------------------
 //
 // Same leniency rules as the ledgers above, plus three that are specific to this
 // block:
 //
 // 1. Every enum is a plain `z.string()` with the column's default. `stage`,
-//    `status`, `verdict` and `mode` are the four values §10.2 constrains today;
+//    `status`, `verdict` and `mode` are the four values 搂10.2 constrains today;
 //    a server that adds a stage (say `background_check`) must still parse, or a
 //    candidate would vanish from the board instead of landing in its "other"
 //    column.
 // 2. `mode` and `verdict` are nullable columns. A missing channel or an
-//    unrecorded verdict is `null`, not a fabricated default — the UI renders
+//    unrecorded verdict is `null`, not a fabricated default 鈥?the UI renders
 //    "not chosen" differently from "phone".
 // 3. `ability` and `disc` are JSONB open maps. A row whose JSONB drifted into a
 //    string must still parse as an empty matrix: these two fields are never
@@ -5403,7 +5412,7 @@ const hrScoreMap = z.record(z.string(), z.number()).default({}).catch({});
 const hrKeywordArray = z.array(z.string()).default([]).catch([]);
 
 /**
- * A column that has a DEFAULT but no NOT NULL (§10.2 writes `status TEXT CHECK
+ * A column that has a DEFAULT but no NOT NULL (搂10.2 writes `status TEXT CHECK
  * (...)`, `currency CHAR(3) DEFAULT 'CNY'`): an API-written row always has a
  * value, an imported one can be NULL. `catch` keeps such a row instead of
  * failing the page over a presentation default.
@@ -5556,7 +5565,7 @@ export const HrScorecardSchema = z.object({
   score_culture: hrNullableNumber,
   score_potential: hrNullableNumber,
   weighted_score: hrNullableNumber,
-  // Migration 703: the current shape, dimension name → 0–5. The four score_*
+  // Migration 703: the current shape, dimension name 鈫?0鈥?. The four score_*
   // numbers above are read-only legacy; a card that predates the map still
   // parses, an unscored one is `{}`.
   dimensions: hrScoreMap,
@@ -5644,22 +5653,22 @@ export const EMPTY_HIRE_HR_CANDIDATE_RESPONSE = {
   employee_profile: null,
 };
 
-// --- Affiliate distribution (docs/engineering/WORKBENCH-API.md §11) --------
+// --- Affiliate distribution (docs/engineering/WORKBENCH-API.md 搂11) --------
 //
-// 精选联盟 分销. The same two leniency rules as the ledgers above (enums stay
+// 绮鹃€夎仈鐩?鍒嗛攢. The same two leniency rules as the ledgers above (enums stay
 // `z.string()`, nullable columns default to null) plus one of its own: the money
 // columns of `affiliate_daily` and `affiliate_settlement` are NOT NULL on the
 // server, so a missing one is drift and degrades to 0 rather than blanking the
-// row — an unreported day is a row of zeros, not a row of nulls.
+// row 鈥?an unreported day is a row of zeros, not a row of nulls.
 //
-// `commission_rate` and the summary's `refund_rate` travel at the 0–1 scale
-// (docs/METRICS.md §3 C3) and are never rescaled here: the display layer
+// `commission_rate` and the summary's `refund_rate` travel at the 0鈥? scale
+// (docs/METRICS.md 搂3 C3) and are never rescaled here: the display layer
 // multiplies by 100, and a schema that did it would apply the scale twice.
 //
-// The three labels 725–727 add (`ownership`, `settled_to`, and the pick's
+// The three labels 725鈥?27 add (`ownership`, `settled_to`, and the pick's
 // `agency_share_rate`) are the two-value enums the ledger's income split rests
 // on. They follow the lenient-enum rule above: a value we do not know degrades to
-// the default the server would have applied — `client_brand`, `agency` — because
+// the default the server would have applied 鈥?`client_brand`, `agency` 鈥?because
 // those are also the readings every row created before the migrations had, so an
 // old client renders an old row exactly as it did.
 
@@ -5823,12 +5832,12 @@ export const EMPTY_AFFILIATE_SETTLEMENT_LIST_RESPONSE: AffiliateSettlementListRe
 /**
  * `GET /api/workbench/affiliate/summary`: one month, ten three-state blocks.
  *
- * Same guards as the money block above — absent degrades to the gap block,
- * malformed degrades to the gap block — because a rejected summary would cost
+ * Same guards as the money block above 鈥?absent degrades to the gap block,
+ * malformed degrades to the gap block 鈥?because a rejected summary would cost
  * the whole strip while a single drifted figure should cost one tile.
  *
  * `commission_agency`, `commission_creator` and `agency_share_income` are the
- * income split (725–727). A server that predates them simply omits the keys, and
+ * income split (725鈥?27). A server that predates them simply omits the keys, and
  * each degrades to the same gap block as the money it would have carried.
  */
 export const AffiliateSummaryResponseSchema = z
@@ -5864,13 +5873,13 @@ export const EMPTY_AFFILIATE_SUMMARY_RESPONSE: AffiliateSummaryResponse = {
   active_creator_count: EMPTY_WORKBENCH_FINANCE_BLOCK,
 };
 
-// --- Content workbench (docs/engineering/WORKBENCH-API.md §12) --------------
+// --- Content workbench (docs/engineering/WORKBENCH-API.md 搂12) --------------
 //
-// IP → 选题 → 脚本（按版本）→ 拍摄, plus the two link columns that join the new
+// IP 鈫?閫夐 鈫?鑴氭湰锛堟寜鐗堟湰锛夆啋 鎷嶆憚, plus the two link columns that join the new
 // chain to `creator` (a platform account) and `creator_post` (a publish).
 //
-// The same two leniency rules as the ledgers above apply — enums stay
-// `z.string()`, nullable columns default to null — plus two of its own:
+// The same two leniency rules as the ledgers above apply 鈥?enums stay
+// `z.string()`, nullable columns default to null 鈥?plus two of its own:
 //
 //   * `scores` is normalised to the five dimensions with 0 defaults. The server
 //     always stores the full card, so a missing dimension means an older payload,
@@ -5951,7 +5960,7 @@ export const MediaIPListResponseSchema = z
 
 export const EMPTY_MEDIA_IP_LIST_RESPONSE: MediaIPListResponse = { ips: [], total: 0 };
 
-/** The five dimensions, each 0–100, all present after a parse. */
+/** The five dimensions, each 0鈥?00, all present after a parse. */
 export const MediaScoresSchema = z
   .object({
     pain: z.number().default(0),
@@ -6072,13 +6081,13 @@ export const MediaShootListResponseSchema = z
 
 export const EMPTY_MEDIA_SHOOT_LIST_RESPONSE: MediaShootListResponse = { shoots: [], total: 0 };
 
-// --- General manager workbench (docs/engineering/WORKBENCH-API.md §13) ------
+// --- General manager workbench (docs/engineering/WORKBENCH-API.md 搂13) ------
 //
-// OKR goals 目标 -> key results -> department packages, and the radar signals that
+// OKR goals 鐩爣 -> key results -> department packages, and the radar signals that
 // convert into a goal or an issue.
 //
-// The same leniency rules as the ledgers above apply — enums stay `z.string()`,
-// nullable columns default to null — plus two of its own:
+// The same leniency rules as the ledgers above apply 鈥?enums stay `z.string()`,
+// nullable columns default to null 鈥?plus two of its own:
 //
 //   * the child lists (`key_results`, `packages`, `issues`) default to empty
 //     arrays. The server always sends them, so a missing one means an older
@@ -6260,7 +6269,7 @@ export const EMPTY_MARKET_SIGNAL_CONVERT_RESPONSE: MarketSignalConvertResponse =
   signal: EMPTY_MARKET_SIGNAL,
 };
 
-// ---- interview questions and guides (WORKBENCH-API §14) --------------------
+// ---- interview questions and guides (WORKBENCH-API 搂14) --------------------
 //
 // Three rules from the contract's response section show up here:
 //
@@ -6339,7 +6348,7 @@ export const HrInterviewGuideSchema = z
   .object({
     id: z.string(),
     workspace_id: z.string().default(""),
-    // Null until the round is booked — an outline is normally prepared first.
+    // Null until the round is booked 鈥?an outline is normally prepared first.
     interview_id: workbenchNullableString,
     candidate_id: z.string().default(""),
     job_id: workbenchNullableString,
@@ -6374,7 +6383,7 @@ export const EMPTY_HR_GUIDE_LIST_RESPONSE: HrGuideListResponse = {
 };
 
 /**
- * `POST /guides/generate` — an unsaved draft. `source` is kept as a plain string so
+ * `POST /guides/generate` 鈥?an unsaved draft. `source` is kept as a plain string so
  * a future generator name still parses; the UI reads `template` to label the draft as
  * the deterministic skeleton.
  */
@@ -6398,14 +6407,14 @@ export const EMPTY_HR_GUIDE_GENERATE_RESPONSE: HrGuideGenerateResponse = {
   total: 0,
 };
 
-// ---- offboarding (WORKBENCH-API §15) ---------------------------------------
+// ---- offboarding (WORKBENCH-API 搂15) ---------------------------------------
 //
 // Four rules from the contract's response section show up here:
 //
 //   * `handover` is always an array (`[]`, never null): the checklist panel maps
 //     over it, and a null would be a branch for no content.
-//   * `status` and `kind` stay plain strings. An unknown segment must render — the
-//     page shows what the row says — and defaulting an unknown value to `apply`
+//   * `status` and `kind` stay plain strings. An unknown segment must render 鈥?the
+//     page shows what the row says 鈥?and defaulting an unknown value to `apply`
 //     would show a finished record as just started.
 //   * `last_day` is a calendar day (`YYYY-MM-DD`), the same wire form as every
 //     other HR date.
@@ -6505,16 +6514,16 @@ export const EMPTY_HR_OFFBOARDING_ADVANCE_RESPONSE: HrOffboardingAdvanceResponse
   employee: null,
 };
 
-// ---- employee file change stream (WORKBENCH-API §16) -----------------------
+// ---- employee file change stream (WORKBENCH-API 搂16) -----------------------
 //
 // Three rules from the contract's response section show up here:
 //
 //   * `kind` stays a plain string. A kind this build does not know must still
-//     render — the 异动 list shows what the row says — and collapsing it to
+//     render 鈥?the 寮傚姩 list shows what the row says 鈥?and collapsing it to
 //     `other` would relabel a real event.
 //   * every from/to pair is nullable and defaults to null: a change that was not
 //     about a field must not look like it cleared the field.
-//   * amounts are JSON numbers (§3.1) and `effective_on` is a calendar day, the
+//   * amounts are JSON numbers (搂3.1) and `effective_on` is a calendar day, the
 //     same wire forms as the rest of HR.
 
 export const HrEmployeeChangeSchema = z
@@ -6579,13 +6588,13 @@ export const EMPTY_HR_EMPLOYEE_CHANGE_LIST_RESPONSE: HrEmployeeChangeListRespons
   total: 0,
 };
 
-// ---- employee rewards and disciplines (WORKBENCH-API §17) -------------------
+// ---- employee rewards and disciplines (WORKBENCH-API 搂17) -------------------
 //
 // Four rules from the contract's response section show up here:
 //
 //   * `kind` stays a plain string: a kind this build does not know must still
-//     render, and folding it into `reward` would relabel somebody's 处分.
-//   * `amount` is a JSON number (§3.1) or null — null is "no money attached",
+//     render, and folding it into `reward` would relabel somebody's 澶勫垎.
+//   * `amount` is a JSON number (搂3.1) or null 鈥?null is "no money attached",
 //     which is not 0, and is always >= 0 (the sign lives in `kind`).
 //   * `currency` is always a string (the column is NOT NULL, default CNY).
 //   * `decided_on` is a calendar day, the same wire form as the rest of HR.
@@ -6640,7 +6649,7 @@ export const EMPTY_HR_EMPLOYEE_REWARD_LIST_RESPONSE: HrEmployeeRewardListRespons
   total: 0,
 };
 
-// HR documents (docs/engineering/WORKBENCH-API.md §18). The templates and the
+// HR documents (docs/engineering/WORKBENCH-API.md 搂18). The templates and the
 // generation ledger live in their own module (types/doc.ts).
 //
 // Rules from the contract that show up here:
@@ -6650,7 +6659,7 @@ export const EMPTY_HR_EMPLOYEE_REWARD_LIST_RESPONSE: HrEmployeeRewardListRespons
 //   * `placeholders` defaults to `[]` rather than failing: it is derived from
 //     `body` server-side, and a client built before that field existed still gets a
 //     usable template.
-//   * `builtin` defaults to `false` — the safe reading, because the read-only rules
+//   * `builtin` defaults to `false` 鈥?the safe reading, because the read-only rules
 //     are what a client gates the edit affordance on.
 //   * `values` defaults to `{}` and `url` / `filename` / `template_id` /
 //     `attachment_id` default to null-or-empty: the attachment can be deleted from
@@ -6758,4 +6767,256 @@ export const HrDocGenerationEnvelopeSchema = z
 export const EMPTY_HR_DOC_GENERATION_ENVELOPE: CreateHrDocGenerationResponse = {
   document: EMPTY_HR_DOC_GENERATION,
   warnings: [],
+};
+
+// --- Hotspot radar / benchmark teardown (docs/engineering/WORKBENCH-API.md 搂21)
+//
+// Two source ledgers, one shape: a row captured on a day. The leniency rules of
+// the content block above apply (`z.string()` enums, nullable columns default to
+// null, `.loose()` for forward compatibility), plus two of its own:
+//
+//   * `rank` and `heat_value` stay nullable numbers. A capture without a position
+//     or a heat figure is an ordinary row 鈥?defaulting them to 0 would claim a
+//     rank nobody was given.
+//   * `metrics` is `z.record(z.string(), z.unknown())`. The metric set is per
+//     platform and it is the operator's, not a schema's; re-validating it here
+//     would reject a card some future platform fields.
+
+export const MediaHotSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    title: z.string().default(""),
+    platform: z.string().default(""),
+    url: workbenchNullableString,
+    rank: workbenchNullableNumber,
+    heat_value: workbenchNullableNumber,
+    category: workbenchNullableString,
+    captured_on: z.string().default(""),
+    source: z.string().default("manual"),
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_MEDIA_HOT: MediaHot = {
+  id: "", workspace_id: "", title: "", platform: "", url: null, rank: null,
+  heat_value: null, category: null, captured_on: "", source: "manual", note: null,
+  owner_member_id: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
+};
+
+export const MediaHotListResponseSchema = z
+  .object({
+    hot: z.array(MediaHotSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_HOT_LIST_RESPONSE: MediaHotListResponse = { hot: [], total: 0 };
+
+export const MediaBenchSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    ip_id: workbenchNullableString,
+    platform: z.string().default(""),
+    name: z.string().default(""),
+    url: workbenchNullableString,
+    follower_count: workbenchNullableNumber,
+    metrics: z.record(z.string(), z.unknown()).default({}),
+    captured_on: z.string().default(""),
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_MEDIA_BENCH: MediaBench = {
+  id: "", workspace_id: "", ip_id: null, platform: "", name: "", url: null,
+  follower_count: null, metrics: {}, captured_on: "", note: null,
+  owner_member_id: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
+};
+
+export const MediaBenchListResponseSchema = z
+  .object({
+    bench: z.array(MediaBenchSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_MEDIA_BENCH_LIST_RESPONSE: MediaBenchListResponse = { bench: [], total: 0 };
+
+// --- Performance over a date range (docs/engineering/WORKBENCH-API.md 搂22) ---
+//
+// The windowed counterpart of the cockpit (搂20). Same three-state numbers
+// (`bdPipelineNumber` / `bdPipelineMoney`, the default+catch wrappers), so a
+// surface renders a gap the same way in both places.
+//
+// Two leniencies worth stating:
+//   * `by_member` / `by_month` default to empty arrays. The report always sends
+//     them; a missing list means an older payload, and an empty trend is a better
+//     rendering than a rejected one.
+//   * `empty` stays `z.string()` (not an enum) so a future state renders as itself
+//     instead of failing the whole report.
+
+const BdPerformanceTotalsShape = {
+  signed_count: z.number().default(0),
+  signed_amount: workbenchNullableNumber,
+  delivered_count: z.number().default(0),
+  collected_count: z.number().default(0),
+  collected_amount: workbenchNullableNumber,
+  quote_sent: z.number().default(0),
+  quote_accepted: z.number().default(0),
+  quote_amount: workbenchNullableNumber,
+  followups: z.number().default(0),
+  replied: z.number().default(0),
+  meetings: z.number().default(0),
+};
+
+export const BdPerformanceMemberRowSchema = z
+  .object({
+    member_id: z.string().default(""),
+    name: z.string().default(""),
+    win_rate: workbenchNullableNumber,
+    ...BdPerformanceTotalsShape,
+  })
+  .loose();
+
+export const BdPerformanceMonthRowSchema = z
+  .object({
+    month: z.string().default(""),
+    win_rate: workbenchNullableNumber,
+    ...BdPerformanceTotalsShape,
+  })
+  .loose();
+
+export const BdPerformanceSchema = z
+  .object({
+    from: z.string().default(""),
+    to: z.string().default(""),
+    currency: z.string().default("CNY"),
+    empty: z.string().default("insufficient_data"),
+    signed: z
+      .object({
+        count: bdPipelineNumber,
+        amount: bdPipelineMoney,
+      })
+      .loose(),
+    delivered: z
+      .object({ count: bdPipelineNumber, amount: bdPipelineMoney })
+      .loose(),
+    collected: z
+      .object({ count: bdPipelineNumber, amount: bdPipelineMoney })
+      .loose(),
+    quotes: z
+      .object({
+        sent: bdPipelineNumber,
+        accepted: bdPipelineNumber,
+        win_rate: bdPipelineNumber,
+        amount: bdPipelineMoney,
+      })
+      .loose(),
+    followups: z
+      .object({
+        count: bdPipelineNumber,
+        replied: bdPipelineNumber,
+        meetings: bdPipelineNumber,
+      })
+      .loose(),
+    affiliate: z
+      .object({
+        agency: bdPipelineMoney,
+        creator: bdPipelineMoney,
+        settled: bdPipelineMoney,
+      })
+      .loose(),
+    by_member: z.array(BdPerformanceMemberRowSchema).default([]),
+    by_month: z.array(BdPerformanceMonthRowSchema).default([]),
+  })
+  .loose();
+
+export const EMPTY_BD_PERFORMANCE: BdPerformance = {
+  from: "", to: "", currency: "CNY", empty: "insufficient_data",
+  signed: { count: EMPTY_BD_PIPELINE_NUMBER, amount: EMPTY_BD_PIPELINE_MONEY },
+  delivered: { count: EMPTY_BD_PIPELINE_NUMBER, amount: EMPTY_BD_PIPELINE_MONEY },
+  collected: { count: EMPTY_BD_PIPELINE_NUMBER, amount: EMPTY_BD_PIPELINE_MONEY },
+  quotes: {
+    sent: EMPTY_BD_PIPELINE_NUMBER,
+    accepted: EMPTY_BD_PIPELINE_NUMBER,
+    win_rate: EMPTY_BD_PIPELINE_NUMBER,
+    amount: EMPTY_BD_PIPELINE_MONEY,
+  },
+  followups: {
+    count: EMPTY_BD_PIPELINE_NUMBER,
+    replied: EMPTY_BD_PIPELINE_NUMBER,
+    meetings: EMPTY_BD_PIPELINE_NUMBER,
+  },
+  affiliate: {
+    agency: EMPTY_BD_PIPELINE_MONEY,
+    creator: EMPTY_BD_PIPELINE_MONEY,
+    settled: EMPTY_BD_PIPELINE_MONEY,
+  },
+  by_member: [],
+  by_month: [],
+};
+
+// --- Batch CSV import (docs/engineering/WORKBENCH-API.md §23) ---------------
+//
+// Same shape for a preview and a real import. The leniencies follow the workbench
+// block above:
+//
+//   * `rows` / `errors` default to empty arrays — a rejected file has no rows and a
+//     clean file has no errors, and neither should blank the response.
+//   * `reason` and `action` stay `z.string()`: the client renders unknown codes as
+//     themselves instead of dropping the row, and the reason list is expected to
+//     grow (§23.3 records what exists today).
+//   * `preview` is an open record: what a row carries differs per kind, and the
+//     server, not this schema, is the authority on those fields.
+export const ImportPreviewResponseSchema = z
+  .object({
+    kind: z.string().default("quotes"),
+    parsed: z.number().default(0),
+    accepted: z.number().default(0),
+    committed: z.number().default(0),
+    rows: z
+      .array(
+        z
+          .object({
+            line: z.number().default(0),
+            action: z.string().default("create"),
+            preview: z.record(z.string(), z.unknown()).default({}),
+          })
+          .loose(),
+      )
+      .default([]),
+    errors: z
+      .array(
+        z
+          .object({
+            line: z.number().default(0),
+            column: z.string().default(""),
+            reason: z.string().default(""),
+          })
+          .loose(),
+      )
+      .default([]),
+  })
+  .loose();
+
+export const EMPTY_IMPORT_PREVIEW_RESPONSE: ImportPreviewResponse = {
+  kind: "quotes",
+  parsed: 0,
+  accepted: 0,
+  committed: 0,
+  rows: [],
+  errors: [],
 };

@@ -40,6 +40,12 @@ type WorkbenchOverviewResponse struct {
 }
 
 // WorkbenchCountsResponse is `GET /api/workbench/counts` (the sidebar counts).
+//
+// Every key is one ledger the left rail lists, and the shape is additive-only: a
+// client that predates `media_scripts` simply never reads it, and a client that
+// asks for a key the server has not shipped yet falls back to 0 through its own
+// schema. Nothing here is ever renamed — a count is a badge, and a badge that
+// disappears is a list that looks empty.
 type WorkbenchCountsResponse struct {
 	Creators           int64 `json:"creators"`
 	Clients            int64 `json:"clients"`
@@ -50,6 +56,14 @@ type WorkbenchCountsResponse struct {
 	Candidates         int64 `json:"candidates"`
 	Interviews         int64 `json:"interviews"`
 	Employees          int64 `json:"employees"`
+	// Content production and discovery (WORKBENCH-API §12 / §21).
+	MediaScripts int64 `json:"media_scripts"`
+	MediaShoots  int64 `json:"media_shoots"`
+	Hot          int64 `json:"hot"`
+	Bench        int64 `json:"bench"`
+	// General manager ledgers (WORKBENCH-API §13).
+	Goals   int64 `json:"goals"`
+	Signals int64 `json:"signals"`
 }
 
 // workbenchMetricCatalog mirrors the metric ids and empty rules of
@@ -341,5 +355,11 @@ func (h *Handler) GetWorkbenchCounts(w http.ResponseWriter, r *http.Request) {
 		Candidates:         counts.Candidates,
 		Interviews:         counts.Interviews,
 		Employees:          counts.Employees,
+		MediaScripts:       counts.MediaScripts,
+		MediaShoots:        counts.MediaShoots,
+		Hot:                counts.Hot,
+		Bench:              counts.Bench,
+		Goals:              counts.Goals,
+		Signals:            counts.Signals,
 	})
 }

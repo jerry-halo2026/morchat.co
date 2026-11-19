@@ -65,7 +65,7 @@ INSERT INTO hr_offboarding (
 ) VALUES (
     $1, $2, $3,
     $4::date, $5::text, $6,
-    $7::jsonb, $8, $9::text,
+    $7::text::jsonb, $8, $9::text,
     $10::uuid, $11::uuid
 )
 RETURNING id, workspace_id, employee_id, status, last_day, reason, kind, handover, cert_done, note, owner_member_id, created_by, created_at, updated_at, archived_at
@@ -78,7 +78,7 @@ type CreateHrOffboardingParams struct {
 	LastDay       pgtype.Date `json:"last_day"`
 	Reason        pgtype.Text `json:"reason"`
 	Kind          string      `json:"kind"`
-	Handover      []byte      `json:"handover"`
+	Handover      string      `json:"handover"`
 	CertDone      bool        `json:"cert_done"`
 	Note          pgtype.Text `json:"note"`
 	OwnerMemberID pgtype.UUID `json:"owner_member_id"`
@@ -344,7 +344,7 @@ UPDATE hr_offboarding
 SET last_day = $1::date,
     reason = $2::text,
     kind = $3,
-    handover = $4::jsonb,
+    handover = $4::text::jsonb,
     cert_done = $5,
     note = $6::text,
     owner_member_id = $7::uuid,
@@ -357,7 +357,7 @@ type UpdateHrOffboardingParams struct {
 	LastDay       pgtype.Date `json:"last_day"`
 	Reason        pgtype.Text `json:"reason"`
 	Kind          string      `json:"kind"`
-	Handover      []byte      `json:"handover"`
+	Handover      string      `json:"handover"`
 	CertDone      bool        `json:"cert_done"`
 	Note          pgtype.Text `json:"note"`
 	OwnerMemberID pgtype.UUID `json:"owner_member_id"`

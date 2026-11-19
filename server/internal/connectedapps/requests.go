@@ -48,7 +48,7 @@ func (s *Service) createRequest(ctx context.Context, rn *run, kind string, app d
 	}
 	slug := NormalizeSlug(app.ToolkitSlug)
 	if existing, err := s.q.FindPendingAppActionRequest(ctx, db.FindPendingAppActionRequestParams{
-		TaskID: rn.task.ID, Kind: kind, ToolkitSlug: slug, ToolSlug: toolSlug, Arguments: raw,
+		TaskID: rn.task.ID, Kind: kind, ToolkitSlug: slug, ToolSlug: toolSlug, Arguments: string(raw),
 	}); err == nil {
 		return existing, nil
 	} else if !isNoRows(err) {
@@ -69,7 +69,7 @@ func (s *Service) createRequest(ctx context.Context, rn *run, kind string, app d
 		ToolkitSlug:    slug,
 		ToolSlug:       toolSlug,
 		ActionClass:    class,
-		Arguments:      raw,
+		Arguments:      string(raw),
 		Summary:        truncate(summary, 500),
 		ExpiresAt:      pgtype.Timestamptz{Time: s.now().Add(requestTTL(kind)), Valid: true},
 	})
@@ -113,7 +113,7 @@ func (s *Service) Approve(ctx context.Context, workspaceID, actorID, requestID p
 	}
 	decided, err := s.q.DecideAppActionRequest(ctx, db.DecideAppActionRequestParams{
 		ID: requestID, WorkspaceID: workspaceID, Status: "approved", DecidedBy: actorID,
-		ApprovedArguments: approvedArgs,
+		ApprovedArguments: pgtype.Text{String: string(approvedArgs), Valid: approvedArgs != nil},
 	})
 	if isNoRows(err) {
 		return db.AppActionRequest{}, ErrNotPending
@@ -282,7 +282,7 @@ func (s *Service) executeApproved(ctx context.Context, req db.AppActionRequest) 
 	call.outcome = "approved"
 	s.recordCall(ctx, call)
 	row, err := s.q.SetAppActionRequestOutcome(ctx, db.SetAppActionRequestOutcomeParams{
-		ID: req.ID, WorkspaceID: req.WorkspaceID, Status: "approved", Result: result,
+		ID: req.ID, WorkspaceID: req.WorkspaceID, Status: "approved", Result: pgtype.Text{String: string(result), Valid: true},
 	})
 	if err != nil {
 		row = req
@@ -472,7 +472,7 @@ func (s *Service) notify(ctx context.Context, req db.AppActionRequest, notifType
 		Body:          pgtype.Text{String: body, Valid: true},
 		ActorType:     actorType,
 		ActorID:       req.AgentID,
-		Details:       details,
+		Details:       pgtype.Text{String: string(details), Valid: details != nil},
 	})
 	if err != nil {
 		slog.Warn("connectedapps: create inbox item failed", "request_id", util.UUIDToString(req.ID), "error", err)

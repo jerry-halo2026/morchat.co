@@ -44,7 +44,7 @@ func (q *Queries) GetIssueViewPreference(ctx context.Context, arg GetIssueViewPr
 
 const upsertIssueViewPreference = `-- name: UpsertIssueViewPreference :one
 INSERT INTO issue_view_preference (workspace_id, user_id, scope_type, scope_id, prefs)
-VALUES ($1, $2, $3, $4, $5)
+VALUES ($1, $2, $3, $4, $5::text::jsonb)
 ON CONFLICT (workspace_id, user_id, scope_type, scope_id)
 DO UPDATE SET prefs = EXCLUDED.prefs, updated_at = now()
 RETURNING workspace_id, user_id, scope_type, scope_id, prefs, updated_at
@@ -55,7 +55,7 @@ type UpsertIssueViewPreferenceParams struct {
 	UserID      pgtype.UUID `json:"user_id"`
 	ScopeType   string      `json:"scope_type"`
 	ScopeID     pgtype.UUID `json:"scope_id"`
-	Prefs       []byte      `json:"prefs"`
+	Prefs       string      `json:"prefs"`
 }
 
 // Whole-document replace: single-user data, last-write-wins.

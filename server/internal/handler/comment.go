@@ -2458,8 +2458,8 @@ func (h *Handler) mergeCommentIntoPendingTask(ctx context.Context, issue db.Issu
 		NewTriggerEvidenceKind:  pgtype.Text{String: string(attr.EvidenceKind), Valid: attr.EvidenceKind != ""},
 		NewTriggerEvidenceRefID: attr.EvidenceRefID,
 		NewTriggerSummary:       h.TaskService.BuildCommentTriggerSummary(ctx, issue.WorkspaceID, newTriggerCommentID),
-		NewRuntimeMcpOverlay:    overlay,
-		NewRuntimeConnectedApps: connectedApps,
+		NewRuntimeMcpOverlay:    pgtype.Text{String: string(overlay), Valid: overlay != nil},
+		NewRuntimeConnectedApps: pgtype.Text{String: string(connectedApps), Valid: connectedApps != nil},
 		HeadSha:                 headSha,
 	})
 	if err != nil {

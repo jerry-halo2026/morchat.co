@@ -143,7 +143,7 @@ func (s *PluginService) publish(ctx context.Context, workspaceID, userID pgtype.
 		PackageID:   pkg.ID,
 		WorkspaceID: workspaceID,
 		Version:     version,
-		Manifest:    bundle.Canonical,
+		Manifest:    string(bundle.Canonical),
 		Digest:      BundleDigest(bundle),
 		SizeBytes:   int64(bundle.TotalSize()),
 		PublishedBy: userID,

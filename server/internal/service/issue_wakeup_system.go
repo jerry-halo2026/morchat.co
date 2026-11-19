@@ -228,7 +228,7 @@ func (s *IssueWakeupService) processChildEvents(ctx context.Context, parentID pg
 	payload, _ := json.Marshal(hint)
 	key := "children:" + util.UUIDToString(events[len(events)-1].ID)
 	for _, w := range rules {
-		if _, err = q.RecordWakeupReceipt(ctx, db.RecordWakeupReceiptParams{ID: dbid.NewV7(), WakeupID: w.ID, Revision: w.Revision, EventKey: key, EventType: childChangeHint, Payload: payload}); err != nil {
+		if _, err = q.RecordWakeupReceipt(ctx, db.RecordWakeupReceiptParams{ID: dbid.NewV7(), WakeupID: w.ID, Revision: w.Revision, EventKey: key, EventType: childChangeHint, Payload: string(payload)}); err != nil {
 			return err
 		}
 	}
@@ -564,7 +564,7 @@ func (s *IssueWakeupService) dispatchSystem(ctx context.Context, prev db.IssueWa
 			item, inserted, err := inboxwriter.CreateIfEligible(ctx, q, db.CreateInboxItemParams{
 				ID: dbid.NewV7(), WorkspaceID: issue.WorkspaceID, RecipientType: "member", RecipientID: current.ID,
 				Type: "children_done", Severity: "info", IssueID: issue.ID, Title: issue.Title,
-				ActorType: pgtype.Text{String: "system", Valid: true}, Details: details,
+				ActorType: pgtype.Text{String: "system", Valid: true}, Details: jsonbText(details),
 			})
 			if err != nil {
 				return err
@@ -601,7 +601,7 @@ func (s *IssueWakeupService) dispatchSystem(ctx context.Context, prev db.IssueWa
 	}
 	noteText, evidence := mergeWakeupEvidence(instruction, task, receipts)
 	if taskExists {
-		task, err = q.ReplaceWakeupEvidence(ctx, db.ReplaceWakeupEvidenceParams{ID: task.ID, HandoffNote: pgtype.Text{String: noteText, Valid: true}, WakeupEvidence: evidence})
+		task, err = q.ReplaceWakeupEvidence(ctx, db.ReplaceWakeupEvidenceParams{ID: task.ID, HandoffNote: pgtype.Text{String: noteText, Valid: true}, WakeupEvidence: jsonbText(evidence)})
 		if err != nil {
 			return err
 		}
@@ -680,7 +680,7 @@ func (s *IssueWakeupService) dispatchSystem(ctx context.Context, prev db.IssueWa
 		IsLeaderTask: pgtype.Bool{Bool: current.Type == "squad", Valid: current.Type == "squad"}, SquadID: current.SquadID,
 		OriginatorUserID: attr.UserID, AccountableUserID: attr.AccountableUserID, OriginatorSource: source, DelegatedFromTaskID: delegatedFrom,
 		RuleVersionID: attr.RuleVersionID, TriggerEvidenceKind: pgtype.Text{String: "issue_wakeup", Valid: true}, TriggerEvidenceRefID: w.ID,
-		HeadSha: headSHA, WakeupContext: contextJSON, RuntimeMcpOverlay: overlay.Overlay, RuntimeConnectedApps: overlay.ConnectedApps,
+		HeadSha: headSHA, WakeupContext: jsonbText(contextJSON), RuntimeMcpOverlay: jsonbRaw(overlay.Overlay), RuntimeConnectedApps: jsonbRaw(overlay.ConnectedApps),
 	})
 	if err != nil {
 		return err
@@ -812,7 +812,7 @@ func (s *IssueWakeupService) SetChildDoneDefault(ctx context.Context, workspaceI
 	}
 	defer tx.Rollback(ctx)
 	q := s.Tasks.Queries.WithTx(tx)
-	if err = q.MergeWorkspaceSettings(ctx, db.MergeWorkspaceSettingsParams{ID: workspaceID, Patch: raw}); err != nil {
+	if err = q.MergeWorkspaceSettings(ctx, db.MergeWorkspaceSettingsParams{ID: workspaceID, Patch: string(raw)}); err != nil {
 		return 0, err
 	}
 	var changed []db.IssueWakeup

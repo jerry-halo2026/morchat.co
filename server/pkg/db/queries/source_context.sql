@@ -7,7 +7,7 @@ INSERT INTO issue_source_context (
     sqlc.arg(id), sqlc.arg(workspace_id), sqlc.narg(issue_id),
     sqlc.narg(origin_task_id), sqlc.arg(source_issue_id),
     sqlc.arg(anchor_comment_id), sqlc.arg(captured_by_user_id),
-    sqlc.arg(snapshot_version), sqlc.arg(snapshot), sqlc.arg(capture_digest),
+    sqlc.arg(snapshot_version), sqlc.arg(snapshot)::text::jsonb, sqlc.arg(capture_digest),
     sqlc.arg(state), sqlc.arg(captured_at), sqlc.narg(attached_at)
 )
 RETURNING *;

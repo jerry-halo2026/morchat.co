@@ -61,9 +61,9 @@ INSERT INTO agent (
     composio_toolkit_allowlist, permission_mode
 ) VALUES (
     $1, $2, $3, $4, $5,
-    $6, $7, $8, $9, $10,
-    $11, $12, $13, $14, $15, $16,
-    $17, COALESCE(sqlc.narg('conversation_starters')::jsonb, '[]'::jsonb),
+    sqlc.arg('runtime_config')::text::jsonb, sqlc.narg('runtime_i_d'), sqlc.arg('visibility'), sqlc.arg('max_concurrent_tasks'), sqlc.narg('owner_i_d'),
+    sqlc.arg('instructions'), sqlc.arg('custom_env')::text::jsonb, sqlc.arg('custom_args')::text::jsonb, sqlc.narg('mcp_config')::text::jsonb, sqlc.narg('model'), sqlc.narg('thinking_level'),
+    sqlc.narg('service_tier'), COALESCE(sqlc.narg('conversation_starters')::text, '[]')::jsonb,
     sqlc.narg('composio_toolkit_allowlist')::text[],
     COALESCE(sqlc.narg('permission_mode'), 'private')
 )
@@ -128,7 +128,7 @@ UPDATE agent SET
     name = COALESCE(sqlc.narg('name'), name),
     description = COALESCE(sqlc.narg('description'), description),
     avatar_url = COALESCE(sqlc.narg('avatar_url'), avatar_url),
-    runtime_config = COALESCE(sqlc.narg('runtime_config'), runtime_config),
+    runtime_config = COALESCE(sqlc.narg('runtime_config')::text::jsonb, runtime_config),
     runtime_mode = COALESCE(sqlc.narg('runtime_mode'), runtime_mode),
     runtime_id = COALESCE(sqlc.narg('runtime_id'), runtime_id),
     visibility = COALESCE(sqlc.narg('visibility'), visibility),
@@ -136,13 +136,13 @@ UPDATE agent SET
     status = COALESCE(sqlc.narg('status'), status),
     max_concurrent_tasks = COALESCE(sqlc.narg('max_concurrent_tasks'), max_concurrent_tasks),
     instructions = COALESCE(sqlc.narg('instructions'), instructions),
-    custom_env = COALESCE(sqlc.narg('custom_env'), custom_env),
-    custom_args = COALESCE(sqlc.narg('custom_args'), custom_args),
-    mcp_config = COALESCE(sqlc.narg('mcp_config'), mcp_config),
+    custom_env = COALESCE(sqlc.narg('custom_env')::text::jsonb, custom_env),
+    custom_args = COALESCE(sqlc.narg('custom_args')::text::jsonb, custom_args),
+    mcp_config = COALESCE(sqlc.narg('mcp_config')::text::jsonb, mcp_config),
     model = COALESCE(sqlc.narg('model'), model),
     thinking_level = COALESCE(sqlc.narg('thinking_level'), thinking_level),
     service_tier = COALESCE(sqlc.narg('service_tier'), service_tier),
-    conversation_starters = COALESCE(sqlc.narg('conversation_starters'), conversation_starters),
+    conversation_starters = COALESCE(sqlc.narg('conversation_starters')::text::jsonb, conversation_starters),
     composio_toolkit_allowlist = COALESCE(sqlc.narg('composio_toolkit_allowlist')::text[], composio_toolkit_allowlist),
     updated_at = now()
 WHERE id = $1
@@ -186,13 +186,13 @@ RETURNING *;
 -- of custom_env handling so all env mutations flow through here and the
 -- handler's audit-log + **** sentinel guard.
 UPDATE agent
-SET custom_env = $2, updated_at = now()
+SET custom_env = sqlc.arg('custom_env')::text::jsonb, updated_at = now()
 WHERE id = $1
 RETURNING *;
 
 -- name: UpdateAgentDisabledRuntimeSkills :one
 UPDATE agent
-SET disabled_runtime_skills = $2, updated_at = now()
+SET disabled_runtime_skills = sqlc.arg('disabled_runtime_skills')::text::jsonb, updated_at = now()
 WHERE id = $1
 RETURNING *;
 
@@ -371,8 +371,8 @@ SELECT
     END, '{}'::jsonb),
     sqlc.narg(originator_user_id),
     sqlc.narg(accountable_user_id),
-    sqlc.narg(runtime_mcp_overlay),
-    sqlc.narg(runtime_connected_apps),
+    sqlc.narg(runtime_mcp_overlay)::text::jsonb,
+    sqlc.narg(runtime_connected_apps)::text::jsonb,
     sqlc.narg(originator_source),
     sqlc.narg(delegated_from_task_id),
     sqlc.narg(rule_version_id),
@@ -416,8 +416,8 @@ SELECT
     )),
     sqlc.narg(originator_user_id),
     sqlc.narg(accountable_user_id),
-    sqlc.narg(runtime_mcp_overlay),
-    sqlc.narg(runtime_connected_apps),
+    sqlc.narg(runtime_mcp_overlay)::text::jsonb,
+    sqlc.narg(runtime_connected_apps)::text::jsonb,
     sqlc.narg(originator_source),
     sqlc.narg(delegated_from_task_id),
     sqlc.narg(rule_version_id),
@@ -444,8 +444,8 @@ RETURNING *;
 -- external overlay is built. Only hydrate the untouched original plan: a comment
 -- merge may already have replaced the trigger, attribution, and matching overlay.
 UPDATE agent_task_queue
-SET runtime_mcp_overlay = sqlc.narg(runtime_mcp_overlay),
-    runtime_connected_apps = sqlc.narg(runtime_connected_apps)
+SET runtime_mcp_overlay = sqlc.narg(runtime_mcp_overlay)::text::jsonb,
+    runtime_connected_apps = sqlc.narg(runtime_connected_apps)::text::jsonb
 WHERE id = @id
   AND status = 'deferred'
   AND context->>'channel_issue_media_pending' = 'true'
@@ -470,11 +470,11 @@ INSERT INTO agent_task_queue (
     id
 )
 SELECT
-    $1, $2, NULL, 'queued', $3, $4,
+    $1, $2, NULL, 'queued', $3, sqlc.narg('context')::text::jsonb,
     sqlc.narg(originator_user_id),
     sqlc.narg(accountable_user_id),
-    sqlc.narg(runtime_mcp_overlay),
-    sqlc.narg(runtime_connected_apps),
+    sqlc.narg(runtime_mcp_overlay)::text::jsonb,
+    sqlc.narg(runtime_connected_apps)::text::jsonb,
     sqlc.narg(originator_source),
     sqlc.narg(trigger_evidence_kind),
     sqlc.narg(trigger_evidence_ref_id),
@@ -538,8 +538,8 @@ SELECT
     p.squad_id,
     p.originator_user_id,
     p.accountable_user_id,
-    sqlc.narg(runtime_mcp_overlay),
-    sqlc.narg(runtime_connected_apps),
+    sqlc.narg(runtime_mcp_overlay)::text::jsonb,
+    sqlc.narg(runtime_connected_apps)::text::jsonb,
     p.originator_source, p.delegated_from_task_id, p.rule_version_id,
     p.trigger_evidence_kind, p.trigger_evidence_ref_id, p.id,
     p.chat_input_task_id, sqlc.narg(fire_at),
@@ -585,7 +585,7 @@ SELECT
     p.agent_id, p.runtime_id, 'queued', p.priority, p.context,
     TRUE, p.is_leader_task, p.squad_id,
     sqlc.arg(actor_user_id), sqlc.arg(actor_user_id),
-    sqlc.narg(runtime_mcp_overlay), sqlc.narg(runtime_connected_apps),
+    sqlc.narg(runtime_mcp_overlay)::text::jsonb, sqlc.narg(runtime_connected_apps)::text::jsonb,
     'direct_human', p.id, sqlc.arg(new_task_id)
 FROM agent_task_queue p
 WHERE p.id = sqlc.arg(source_task_id)
@@ -864,7 +864,7 @@ RETURNING delivered_comment_ids;
 -- Same CAS as SetTaskDeliveredCommentIDs so a stale handler cannot overwrite a
 -- newer reclaim's snapshot, or write one after execution has started.
 UPDATE agent_task_queue
-SET issue_snapshot = @issue_snapshot
+SET issue_snapshot = sqlc.narg('issue_snapshot')::text::jsonb
 WHERE id = @task_id
   AND runtime_id = @runtime_id
   AND status = 'dispatched'
@@ -1038,9 +1038,9 @@ RETURNING *;
 -- to retire the transcript it retried away from, or an older completed row
 -- pointing at the same id resurrects it on the next run.
 UPDATE agent_task_queue
-SET status = 'completed', completed_at = now(), result = $2,
-    session_id = CASE WHEN sqlc.arg('session_rollout_missing') THEN NULL ELSE $3 END,
-    work_dir = $4,
+SET status = 'completed', completed_at = now(), result = sqlc.narg('result')::text::jsonb,
+    session_id = CASE WHEN sqlc.arg('session_rollout_missing') THEN NULL ELSE sqlc.narg('session_i_d') END,
+    work_dir = sqlc.narg('work_dir'),
     durable_work_dir = COALESCE(sqlc.narg('durable_work_dir'), durable_work_dir),
     branch_name = COALESCE(sqlc.narg('branch_name'), branch_name),
     session_rollout_missing = sqlc.arg('session_rollout_missing'),
@@ -1838,8 +1838,8 @@ SET coalesced_comment_ids = (
     rule_version_id = sqlc.narg('new_rule_version_id')::uuid,
     trigger_evidence_kind = sqlc.narg('new_trigger_evidence_kind'),
     trigger_evidence_ref_id = sqlc.narg('new_trigger_evidence_ref_id')::uuid,
-    runtime_mcp_overlay = sqlc.narg('new_runtime_mcp_overlay'),
-    runtime_connected_apps = sqlc.narg('new_runtime_connected_apps')
+    runtime_mcp_overlay = sqlc.narg('new_runtime_mcp_overlay')::text::jsonb,
+    runtime_connected_apps = sqlc.narg('new_runtime_connected_apps')::text::jsonb
 WHERE id = (
     SELECT t.id FROM agent_task_queue t
     WHERE t.context->>'wakeup_id' IS NULL AND t.issue_id = @issue_id

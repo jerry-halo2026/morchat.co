@@ -498,7 +498,7 @@ func TestHydrateDeferredChannelIssueTaskOverlayDoesNotOverwriteMergedCommentPlan
 		NewTriggerCommentID:     commentID,
 		NewOriginatorUserID:     userUUID,
 		NewAccountableUserID:    userUUID,
-		NewRuntimeMcpOverlay:    mergedOverlay,
+		NewRuntimeMcpOverlay:    jsonbRaw(mergedOverlay),
 		NewOriginatorSource:     pgtype.Text{String: "direct_human", Valid: true},
 		NewTriggerEvidenceKind:  pgtype.Text{String: "comment", Valid: true},
 		NewTriggerEvidenceRefID: commentID,

@@ -1,5 +1,4 @@
-export { BossPageShell } from "./page-shell";
-export { BossPanel } from "./panel";
+﻿export { BossPanel } from "./panel";
 export { BossHomePage } from "./boss-home-page";
 export { BossGoalsPage } from "./boss-goals-page";
 export { BossTasksPage } from "./boss-tasks-page";

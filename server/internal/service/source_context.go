@@ -616,7 +616,7 @@ func PersistSourceContext(ctx context.Context, q *db.Queries, capture SourceCont
 		ID: capture.ID, WorkspaceID: capture.WorkspaceID, IssueID: issueID, OriginTaskID: taskID,
 		SourceIssueID: capture.SourceIssueID, AnchorCommentID: capture.AnchorCommentID,
 		CapturedByUserID: capture.CapturedByUserID, SnapshotVersion: SourceContextVersion,
-		Snapshot: snapshotJSON, CaptureDigest: capture.Digest, State: state,
+		Snapshot: string(snapshotJSON), CaptureDigest: capture.Digest, State: state,
 		CapturedAt: pgtype.Timestamptz{Time: capture.CapturedAt, Valid: true}, AttachedAt: attachedAt,
 	})
 	if err != nil {

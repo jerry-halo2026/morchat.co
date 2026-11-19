@@ -174,7 +174,7 @@ func (h *Handler) SetAgentRuntimeSkillEnabled(w http.ResponseWriter, r *http.Req
 	}
 	if _, err := qtx.UpdateAgentDisabledRuntimeSkills(r.Context(), db.UpdateAgentDisabledRuntimeSkillsParams{
 		ID:                    locked.ID,
-		DisabledRuntimeSkills: payload,
+		DisabledRuntimeSkills: string(payload),
 	}); err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to update runtime skill")
 		return

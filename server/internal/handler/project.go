@@ -588,7 +588,7 @@ func (h *Handler) CreateProject(w http.ResponseWriter, r *http.Request) {
 			ProjectID:    project.ID,
 			WorkspaceID:  project.WorkspaceID,
 			ResourceType: res.ResourceType,
-			ResourceRef:  normalizedRefs[i],
+			ResourceRef:  string(normalizedRefs[i]),
 			Label:        label,
 			Position:     position,
 			CreatedBy:    creator,

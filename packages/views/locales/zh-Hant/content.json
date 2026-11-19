@@ -1,0 +1,80 @@
+{
+  "common": {
+    "save": "儲存",
+    "cancel": "取消",
+    "delete": "刪除",
+    "edit": "編輯",
+    "retry": "重試",
+    "week": "本週",
+    "status": "狀態",
+    "ip": "IP"
+  },
+  "ips": {
+    "new": "新增 IP",
+    "empty_title": "還沒有內容 IP",
+    "empty_description": "一個 IP 是一套人設、一條賽道和一組受眾；平台帳號掛在它下面。",
+    "error_title": "沒能讀到 IP",
+    "scope_title": "目前篩選的 IP 不在了",
+    "scope_clear": "顯示全部 IP",
+    "accounts": "帳號",
+    "accounts_empty": "還沒有掛上平台帳號。",
+    "attach": "掛上",
+    "detach": "摘下",
+    "account_failed": "這次帳號變更被拒絕：一個帳號只能掛在一個 IP 下。",
+    "search_creator": "在達人名冊裡搜",
+    "no_match": "沒有符合的達人。",
+    "name": "名稱",
+    "persona": "人設",
+    "track": "賽道",
+    "audience": "受眾",
+    "color": "代表色",
+    "week_goal": "每週發佈目標",
+    "name_required": "給它起個名字。",
+    "save_failed": "伺服器拒絕了這次儲存，什麼都沒寫進去。",
+    "delete_title": "刪除這個 IP？",
+    "delete_description": "「{{name}}」會從所有列表裡消失，它下面的選題和腳本會保留。",
+    "status": {
+      "active": "營運中",
+      "paused": "暫停",
+      "ended": "已結束"
+    }
+  },
+  "topics": {
+    "new": "新增選題",
+    "empty_title": "選題池是空的",
+    "empty_description": "從熱點或對標採納一條，或者手動加一條。",
+    "no_ip": "先建一個內容 IP，選題要掛在它下面。",
+    "error_title": "沒能讀到選題",
+    "all_ips": "全部 IP",
+    "from_hot": "來自熱點",
+    "field_title": "標題",
+    "field_source": "來源",
+    "field_scores": "五維評分",
+    "scores_hint": "每維 0–100，五維合計越高排得越前。",
+    "kept_scores": "原樣保留：{{keys}}",
+    "write_failed": "伺服器拒絕了這次修改，什麼都沒變。",
+    "delete_title": "刪除這個選題？",
+    "delete_description": "「{{title}}」會歸檔，它的腳本會保留。",
+    "column": {
+      "pool": "待評估",
+      "scripting": "撰稿中",
+      "shooting": "拍攝中",
+      "publishing": "待發佈",
+      "done": "已完成",
+      "dropped": "已放棄"
+    },
+    "source": {
+      "hot": "熱點",
+      "manual": "手動",
+      "bench": "對標",
+      "ai": "AI"
+    },
+    "dim": {
+      "pain": "痛點",
+      "save": "收藏",
+      "debate": "爭議",
+      "susp": "懸念",
+      "fit": "契合"
+    }
+  }
+}

@@ -987,7 +987,7 @@ func (h *Handler) CreateHrJob(w http.ResponseWriter, r *http.Request) {
 		City:          optionalTrimmedText(req.City),
 		Jd:            optionalTrimmedText(req.Jd),
 		Urgent:        boolValue(req.Urgent),
-		Keywords:      applyJSONPatch(hrKeywordsColumn(req.Keywords), []byte("[]")),
+		Keywords:      string(applyJSONPatch(hrKeywordsColumn(req.Keywords), []byte("[]"))),
 		OwnerMemberID: owner,
 		CreatedBy:     scope.Member.UserID,
 	})
@@ -1091,7 +1091,7 @@ func (h *Handler) UpdateHrJob(w http.ResponseWriter, r *http.Request) {
 		City:          applyTextPatch(req.City, current.City),
 		Jd:            applyTextPatch(req.Jd, current.Jd),
 		Urgent:        applyBoolPatch(req.Urgent, current.Urgent),
-		Keywords:      applyJSONPatch(hrKeywordsColumn(req.Keywords), current.Keywords),
+		Keywords:      string(applyJSONPatch(hrKeywordsColumn(req.Keywords), current.Keywords)),
 		OwnerMemberID: owner,
 	})
 	if err != nil {
@@ -1559,8 +1559,8 @@ func (h *Handler) HireHrCandidate(w http.ResponseWriter, r *http.Request) {
 			HireDate:      firstValidDate(hireDate, pgtypeDateToday()),
 			RegularDate:   regularDate,
 			ContractEnd:   contractEnd,
-			Ability:       applyJSONPatch(ability, hrEmptyJSONObject),
-			Disc:          applyJSONPatch(disc, hrEmptyJSONObject),
+			Ability:       string(applyJSONPatch(ability, hrEmptyJSONObject)),
+			Disc:          string(applyJSONPatch(disc, hrEmptyJSONObject)),
 			OwnerMemberID: owner,
 			CreatedBy:     scope.Member.UserID,
 		})
@@ -1577,8 +1577,8 @@ func (h *Handler) HireHrCandidate(w http.ResponseWriter, r *http.Request) {
 			HireDate:      firstValidDate(hireDate, existing.HireDate),
 			RegularDate:   firstValidDate(regularDate, existing.RegularDate),
 			ContractEnd:   firstValidDate(contractEnd, existing.ContractEnd),
-			Ability:       applyJSONPatch(ability, existing.Ability),
-			Disc:          applyJSONPatch(disc, existing.Disc),
+			Ability:       string(applyJSONPatch(ability, existing.Ability)),
+			Disc:          string(applyJSONPatch(disc, existing.Disc)),
 			OwnerMemberID: existing.OwnerMemberID,
 		})
 	}
@@ -2022,7 +2022,7 @@ func (h *Handler) CreateHrScorecard(w http.ResponseWriter, r *http.Request) {
 		ScoreCulture:     applyInt2Patch(req.ScoreCulture, pgtype.Int2{}),
 		ScorePotential:   applyInt2Patch(req.ScorePotential, pgtype.Int2{}),
 		WeightedScore:    floatToNumeric(weightedScore),
-		Dimensions:       applyJSONPatch(hrDimensionColumn(req.Dimensions), hrEmptyJSONObject),
+		Dimensions:       string(applyJSONPatch(hrDimensionColumn(req.Dimensions), hrEmptyJSONObject)),
 		Verdict:          optionalTrimmedText(req.Verdict),
 		Comment:          optionalTrimmedText(req.Comment),
 		CreatedBy:        scope.Member.UserID,
@@ -2105,7 +2105,7 @@ func (h *Handler) UpdateHrScorecard(w http.ResponseWriter, r *http.Request) {
 		ScoreCulture:     applyInt2Patch(req.ScoreCulture, current.ScoreCulture),
 		ScorePotential:   applyInt2Patch(req.ScorePotential, current.ScorePotential),
 		WeightedScore:    weightedScore,
-		Dimensions:       applyJSONPatch(hrDimensionColumn(req.Dimensions), current.Dimensions),
+		Dimensions:       string(applyJSONPatch(hrDimensionColumn(req.Dimensions), current.Dimensions)),
 		Verdict:          applyTextPatch(req.Verdict, current.Verdict),
 		Comment:          applyTextPatch(req.Comment, current.Comment),
 	})
@@ -2262,8 +2262,8 @@ func (h *Handler) CreateHrEmployee(w http.ResponseWriter, r *http.Request) {
 		HireDate:      hireDate,
 		RegularDate:   regularDate,
 		ContractEnd:   contractEnd,
-		Ability:       applyJSONPatch(ability, hrEmptyJSONObject),
-		Disc:          applyJSONPatch(disc, hrEmptyJSONObject),
+		Ability:       string(applyJSONPatch(ability, hrEmptyJSONObject)),
+		Disc:          string(applyJSONPatch(disc, hrEmptyJSONObject)),
 		OwnerMemberID: owner,
 		CreatedBy:     scope.Member.UserID,
 	})
@@ -2370,8 +2370,8 @@ func (h *Handler) UpdateHrEmployee(w http.ResponseWriter, r *http.Request) {
 		HireDate:      hireDate,
 		RegularDate:   regularDate,
 		ContractEnd:   contractEnd,
-		Ability:       applyJSONPatch(ability, current.Ability),
-		Disc:          applyJSONPatch(disc, current.Disc),
+		Ability:       string(applyJSONPatch(ability, current.Ability)),
+		Disc:          string(applyJSONPatch(disc, current.Disc)),
 		OwnerMemberID: owner,
 	}
 

@@ -1696,19 +1696,19 @@ func (h *Handler) CreateAgent(w http.ResponseWriter, r *http.Request) {
 		Instructions:             req.Instructions,
 		AvatarUrl:                avatarURL,
 		RuntimeMode:              runtime.RuntimeMode,
-		RuntimeConfig:            rc,
+		RuntimeConfig:            string(rc),
 		RuntimeID:                runtime.ID,
 		Visibility:               perm.legacyVisibility(),
 		PermissionMode:           perm.mode,
 		MaxConcurrentTasks:       req.MaxConcurrentTasks,
 		OwnerID:                  parseUUID(ownerID),
-		CustomEnv:                ce,
-		CustomArgs:               ca,
-		McpConfig:                mc,
+		CustomEnv:                string(ce),
+		CustomArgs:               string(ca),
+		McpConfig:                pgtype.Text{String: string(mc), Valid: mc != nil},
 		Model:                    newAgentModel(runtime.Provider, req.Model),
 		ThinkingLevel:            pgtype.Text{String: req.ThinkingLevel, Valid: req.ThinkingLevel != ""},
 		ServiceTier:              pgtype.Text{String: req.ServiceTier, Valid: req.ServiceTier != ""},
-		ConversationStarters:     sp,
+		ConversationStarters:     pgtype.Text{String: string(sp), Valid: sp != nil},
 		ComposioToolkitAllowlist: allowlist,
 	})
 	if err != nil {
@@ -2066,7 +2066,7 @@ func (h *Handler) UpdateAgent(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		encoded, _ := json.Marshal(conversationStarters)
-		params.ConversationStarters = encoded
+		params.ConversationStarters = pgtype.Text{String: string(encoded), Valid: encoded != nil}
 	}
 	if req.AvatarURL != nil {
 		avatarURL, ok := h.acceptAvatarURL(w, r, *req.AvatarURL, existing.AvatarUrl.String)
@@ -2082,16 +2082,16 @@ func (h *Handler) UpdateAgent(w http.ResponseWriter, r *http.Request) {
 		// and silently destroys the real secret (issue #3260).
 		preserveMaskedGatewayToken(req.RuntimeConfig, existing.RuntimeConfig)
 		rc, _ := json.Marshal(req.RuntimeConfig)
-		params.RuntimeConfig = rc
+		params.RuntimeConfig = pgtype.Text{String: string(rc), Valid: rc != nil}
 	}
 	if req.CustomArgs != nil {
 		ca, _ := json.Marshal(*req.CustomArgs)
-		params.CustomArgs = ca
+		params.CustomArgs = pgtype.Text{String: string(ca), Valid: ca != nil}
 	}
 	rawMcpConfig, hasMcpConfig := rawFields["mcp_config"]
 	shouldClearMcpConfig := hasMcpConfig && bytes.Equal(bytes.TrimSpace(rawMcpConfig), []byte("null"))
 	if hasMcpConfig && !shouldClearMcpConfig {
-		params.McpConfig = append([]byte(nil), rawMcpConfig...)
+		params.McpConfig = pgtype.Text{String: string(append([]byte(nil), rawMcpConfig...)), Valid: append([]byte(nil), rawMcpConfig...) != nil}
 	}
 
 	// Resolve the runtime that will be in force after this update so the

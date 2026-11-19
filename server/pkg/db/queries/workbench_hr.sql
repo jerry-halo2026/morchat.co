@@ -52,7 +52,7 @@ INSERT INTO hr_job (
     sqlc.narg('salary_min')::numeric, sqlc.narg('salary_max')::numeric,
     sqlc.narg('currency')::text, sqlc.narg('requirements')::text,
     sqlc.narg('edu')::text, sqlc.narg('years')::text, sqlc.narg('city')::text,
-    sqlc.narg('jd')::text, sqlc.arg('urgent')::boolean, sqlc.arg('keywords')::jsonb,
+    sqlc.narg('jd')::text, sqlc.arg('urgent')::boolean, sqlc.arg('keywords')::text::jsonb,
     sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
 )
 RETURNING *;
@@ -77,7 +77,7 @@ SET title = sqlc.arg('title'),
     city = sqlc.narg('city')::text,
     jd = sqlc.narg('jd')::text,
     urgent = sqlc.arg('urgent')::boolean,
-    keywords = sqlc.arg('keywords')::jsonb,
+    keywords = sqlc.arg('keywords')::text::jsonb,
     owner_member_id = sqlc.narg('owner_member_id')::uuid,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL
@@ -274,7 +274,7 @@ INSERT INTO hr_scorecard (
     sqlc.arg('workspace_id'), sqlc.arg('interview_id'), sqlc.narg('reviewer_member_id')::uuid,
     sqlc.narg('score_skill')::smallint, sqlc.narg('score_experience')::smallint,
     sqlc.narg('score_culture')::smallint, sqlc.narg('score_potential')::smallint,
-    sqlc.narg('weighted_score')::numeric, sqlc.arg('dimensions')::jsonb,
+    sqlc.narg('weighted_score')::numeric, sqlc.arg('dimensions')::text::jsonb,
     sqlc.narg('verdict')::text, sqlc.narg('comment')::text,
     sqlc.narg('created_by')::uuid
 )
@@ -289,7 +289,7 @@ SET interview_id = sqlc.arg('interview_id'),
     score_culture = sqlc.narg('score_culture')::smallint,
     score_potential = sqlc.narg('score_potential')::smallint,
     weighted_score = sqlc.narg('weighted_score')::numeric,
-    dimensions = sqlc.arg('dimensions')::jsonb,
+    dimensions = sqlc.arg('dimensions')::text::jsonb,
     verdict = sqlc.narg('verdict')::text,
     comment = sqlc.narg('comment')::text,
     updated_at = now()
@@ -336,7 +336,7 @@ INSERT INTO hr_employee_profile (
     sqlc.arg('workspace_id'), sqlc.arg('member_id'), sqlc.narg('department_id')::uuid,
     sqlc.narg('job_title')::text, sqlc.narg('grade')::text, sqlc.narg('hire_date')::date,
     sqlc.narg('regular_date')::date, sqlc.narg('contract_end')::date,
-    sqlc.arg('ability')::jsonb, sqlc.arg('disc')::jsonb,
+    sqlc.arg('ability')::text::jsonb, sqlc.arg('disc')::text::jsonb,
     sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
 )
 RETURNING *;
@@ -349,8 +349,8 @@ SET department_id = sqlc.narg('department_id')::uuid,
     hire_date = sqlc.narg('hire_date')::date,
     regular_date = sqlc.narg('regular_date')::date,
     contract_end = sqlc.narg('contract_end')::date,
-    ability = sqlc.arg('ability')::jsonb,
-    disc = sqlc.arg('disc')::jsonb,
+    ability = sqlc.arg('ability')::text::jsonb,
+    disc = sqlc.arg('disc')::text::jsonb,
     owner_member_id = sqlc.narg('owner_member_id')::uuid,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL

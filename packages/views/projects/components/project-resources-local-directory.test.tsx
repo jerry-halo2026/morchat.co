@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 
 import { describe, it, expect, vi } from "vitest";
 import { screen } from "@testing-library/react";
@@ -51,6 +51,8 @@ vi.mock("@morechat/core/runtimes", () => ({
 }));
 vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "workspace-1" }));
 vi.mock("@morechat/core/paths", () => ({
+  useWorkspaceSlug: () => "ws",
+  paths: { workspace: () => ({ knowledgePage: (s: string, p: string) => `/ws/knowledge/${s}/${p}` }) },
   useCurrentWorkspace: () => ({ id: "workspace-1", slug: "ws", repos: [] }),
 }));
 vi.mock("../../platform/local-directory", () => ({
@@ -67,7 +69,7 @@ import { ProjectResourcesSection } from "./project-resources-section";
 
 const strings = en.resources;
 
-describe("ProjectResourcesSection — local directory row", () => {
+describe("ProjectResourcesSection 鈥?local directory row", () => {
   // The read-order matrix lives in local-directory-label.test.ts; this pins
   // the row to that helper so a label set through the API is what people see.
   it("names the row from the top-level label, not the copy inside the ref", () => {

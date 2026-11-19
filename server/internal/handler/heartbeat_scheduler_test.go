@@ -86,7 +86,7 @@ func TestBatchedHeartbeatScheduler_ExplicitDeregisterReceiptStaysOffline(t *test
 	reason := []byte(`{"code":"provider_removed"}`)
 	if err := testHandler.Queries.SetAgentRuntimeOfflineWithReason(context.Background(), db.SetAgentRuntimeOfflineWithReasonParams{
 		ID:            rt.ID,
-		OfflineReason: reason,
+		OfflineReason: pgtype.Text{String: string(reason), Valid: reason != nil},
 	}); err != nil {
 		t.Fatalf("SetAgentRuntimeOfflineWithReason: %v", err)
 	}

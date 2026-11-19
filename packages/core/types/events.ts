@@ -115,6 +115,9 @@ export type WSEventType =
   | "hr_interview:changed"
   | "hr_scorecard:changed"
   | "hr_employee_profile:changed"
+  // Hotspot radar / benchmark teardown (docs/engineering/WORKBENCH-API.md §21).
+  | "media_hot:changed"
+  | "media_bench:changed"
   | "environment:changed";
 
 export interface WSMessage<T = unknown> {
@@ -710,6 +713,26 @@ export interface HrEmployeeProfileChangedPayload {
 }
 
 /**
+ * Hotspot radar / benchmark teardown events (docs/engineering/WORKBENCH-API.md
+ * §21). Same contract as the ledger events above: the payload names the row, and a
+ * handler's answer is "re-read that list". A capture row is wide enough (heat, rank,
+ * category, a free-form metrics object) that a field-level patch would have to guess,
+ * so nothing here is mergeable.
+ *
+ * `media_topic:changed` is not among them and never was: the four content-pipeline
+ * events still only reach the server's own write path (§12.7), so a client learns
+ * about a script or a shoot through its own mutation. The two events below are the
+ * ones this batch wired end to end.
+ */
+export interface MediaHotChangedPayload {
+  id: string;
+}
+
+export interface MediaBenchChangedPayload {
+  id: string;
+}
+
+/**
  * Maps every WSEventType to its payload interface. Events whose payload
  * shape isn't formally typed (server emits an object the client doesn't
  * meaningfully consume yet) fall back to `unknown` — callers must narrow
@@ -825,6 +848,8 @@ export interface WSEventPayloadMap {
   "hr_interview:changed": HrInterviewChangedPayload;
   "hr_scorecard:changed": HrScorecardChangedPayload;
   "hr_employee_profile:changed": HrEmployeeProfileChangedPayload;
+  "media_hot:changed": MediaHotChangedPayload;
+  "media_bench:changed": MediaBenchChangedPayload;
   "environment:changed": { issue_id: string };
 }
 

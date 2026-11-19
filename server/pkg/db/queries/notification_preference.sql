@@ -4,14 +4,14 @@ WHERE workspace_id = $1 AND user_id = $2;
 
 -- name: UpsertNotificationPreference :one
 INSERT INTO notification_preference (workspace_id, user_id, preferences)
-VALUES ($1, $2, $3)
+VALUES ($1, $2, sqlc.arg('preferences')::text::jsonb)
 ON CONFLICT (workspace_id, user_id)
-DO UPDATE SET preferences = $3, updated_at = now()
+DO UPDATE SET preferences = sqlc.arg('preferences')::text::jsonb, updated_at = now()
 RETURNING *;
 
 -- name: PatchNotificationPreference :one
 INSERT INTO notification_preference (workspace_id, user_id, preferences)
-VALUES ($1, $2, $3)
+VALUES ($1, $2, sqlc.arg('preferences')::text::jsonb)
 ON CONFLICT (workspace_id, user_id)
 DO UPDATE SET
     preferences = notification_preference.preferences || EXCLUDED.preferences,

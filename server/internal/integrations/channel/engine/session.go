@@ -351,7 +351,7 @@ func (s *ChatSession) createSessionAndBinding(ctx context.Context, in EnsureSess
 		ChannelType:    string(s.channelType),
 		ChannelChatID:  in.BindingKey,
 		ChatType:       string(in.ChatType),
-		Config:         bindingConfig,
+		Config:         string(bindingConfig),
 	}); err != nil {
 		return pgtype.UUID{}, err
 	}
@@ -514,7 +514,7 @@ func (s *ChatSession) StartSession(ctx context.Context, in StartSessionInput) (S
 	binding, err := qtx.CreateChannelChatSessionBindingGeneration(ctx, db.CreateChannelChatSessionBindingGenerationParams{
 		ChatSessionID: session.ID, InstallationID: in.InstallationID,
 		ChannelType: string(s.channelType), ChannelChatID: in.BindingKey,
-		ChatType: string(in.ChatType), Config: config, RouteRevision: nextRevision,
+		ChatType: string(in.ChatType), Config: string(config), RouteRevision: nextRevision,
 		HistoryStartMessageID:  startMessageID,
 		HistoryBoundaryPending: in.HistoryBoundaryPending && in.MessageID == "",
 	})

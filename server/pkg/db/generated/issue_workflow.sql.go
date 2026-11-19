@@ -59,7 +59,7 @@ VALUES (
     'Default',
     '',
     'todo',
-    $2::jsonb,
+    $2::text::jsonb,
     true
 )
 ON CONFLICT (workspace_id) WHERE is_default DO NOTHING
@@ -68,7 +68,7 @@ RETURNING id, workspace_id, name, description, initial_status_key, steps, create
 
 type CreateDefaultIssueWorkflowParams struct {
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	Steps       []byte      `json:"steps"`
+	Steps       string      `json:"steps"`
 }
 
 // Returns no row when another request created the Default first.
@@ -110,7 +110,7 @@ VALUES (
     $2::text,
     $3::text,
     $4::text,
-    $5::jsonb,
+    $5::text::jsonb,
     $6::uuid
 )
 RETURNING id, workspace_id, name, description, initial_status_key, steps, created_at, updated_at, is_default, owner_id
@@ -121,7 +121,7 @@ type CreateIssueWorkflowParams struct {
 	Name             string      `json:"name"`
 	Description      string      `json:"description"`
 	InitialStatusKey string      `json:"initial_status_key"`
-	Steps            []byte      `json:"steps"`
+	Steps            string      `json:"steps"`
 	OwnerID          pgtype.UUID `json:"owner_id"`
 }
 
@@ -639,7 +639,7 @@ UPDATE issue_workflow SET
     name = $1::text,
     description = $2::text,
     initial_status_key = $3::text,
-    steps = $4::jsonb,
+    steps = $4::text::jsonb,
     updated_at = now()
 WHERE id = $5::uuid
   AND workspace_id = $6::uuid
@@ -650,7 +650,7 @@ type UpdateIssueWorkflowParams struct {
 	Name             string      `json:"name"`
 	Description      string      `json:"description"`
 	InitialStatusKey string      `json:"initial_status_key"`
-	Steps            []byte      `json:"steps"`
+	Steps            string      `json:"steps"`
 	ID               pgtype.UUID `json:"id"`
 	WorkspaceID      pgtype.UUID `json:"workspace_id"`
 }

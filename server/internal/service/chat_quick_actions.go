@@ -257,7 +257,7 @@ func (s *TaskService) SupplementChatQuickActions(ctx context.Context, task db.Ag
 		}
 		msg, err = s.Queries.SetChatMessageQuickActionsByTask(ctx, db.SetChatMessageQuickActionsByTaskParams{
 			TaskID:       task.ID,
-			QuickActions: encoded,
+			QuickActions: string(encoded),
 		})
 	} else {
 		msg, err = s.Queries.GetChatMessageByTaskAssistant(ctx, task.ID)

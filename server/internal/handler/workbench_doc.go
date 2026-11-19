@@ -724,7 +724,7 @@ func (h *Handler) CreateHrEmployeeDocument(w http.ResponseWriter, r *http.Reques
 		TemplateName: template.Name,
 		Format:       format,
 		AttachmentID: attachment.ID,
-		Values:       snapshot,
+		Values:       string(snapshot),
 		GeneratedBy:  scope.Member.UserID,
 	})
 	if err != nil {

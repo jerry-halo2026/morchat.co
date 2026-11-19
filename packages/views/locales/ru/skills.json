@@ -51,7 +51,9 @@
     "source_runtime_unknown": "Из среды выполнения",
     "source_clawhub": "Из ClawHub",
     "source_skills_sh": "Из Skills.sh",
-    "source_github": "Из GitHub"
+    "source_github": "Из GitHub",
+    "manual_group": "Создано вручную",
+    "primary_badge": "Ключевой навык"
   },
   "actions": {
     "row_menu": "Действия",

@@ -1009,7 +1009,20 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, crmCollabToResponse(updated))
 }
 
-// DeleteCrmCollab — DELETE /api/workbench/crm/collabs/{collabId}
+// DeleteCrmCollab 鈥?DELETE /api/workbench/crm/collabs/{collabId} (soft delete)
+//
+// Archiving a collaboration archives the settlements that name it, in the same
+// transaction (搂20.1). The alternative 鈥?archive the collab and leave its money 鈥?// produced two lies at once: `orders.paid_amount` and the receivable list kept
+// counting settlements whose collaboration had left every screen, and the UI had to
+// hide the delete affordance entirely because one click manufactured orphans. A
+// collaboration is the vertex of that pair, so deleting it takes its money with it.
+//
+// Paid settlements are archived too, deliberately: `paid_at` records that money moved
+// once, and archiving the row does not un-pay it 鈥?the row leaves the ledgers like
+// every other workbench delete. Refusing with a 409 while anything has cleared was
+// rejected because it makes a mis-created collaboration permanent: the operator's only
+// repair would be editing rows the API does not let them edit. A reader who needs the
+// money to stay visible should not delete the collaboration.
 func (h *Handler) DeleteCrmCollab(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -1019,7 +1032,18 @@ func (h *Handler) DeleteCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	deleted, err := h.Queries.ArchiveCrmCollab(r.Context(), db.ArchiveCrmCollabParams{
+
+	// One transaction: a collab archived without its settlements (or the reverse)
+	// is exactly the orphan this endpoint exists to avoid.
+	tx, err := h.TxStarter.Begin(r.Context())
+	if err != nil {
+		workbenchInternalError(w, r, "failed to delete collab", err)
+		return
+	}
+	defer tx.Rollback(r.Context())
+	qtx := h.Queries.WithTx(tx)
+
+	deleted, err := qtx.ArchiveCrmCollab(r.Context(), db.ArchiveCrmCollabParams{
 		ID:          current.ID,
 		WorkspaceID: scope.WorkspaceUUID,
 	})
@@ -1031,7 +1055,26 @@ func (h *Handler) DeleteCrmCollab(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "collab not found")
 		return
 	}
+	settlementIDs, err := qtx.ArchiveCrmSettlementsByCollab(r.Context(), db.ArchiveCrmSettlementsByCollabParams{
+		WorkspaceID: scope.WorkspaceUUID,
+		CollabID:    current.ID,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to delete the collab's settlements", err)
+		return
+	}
+	if err := tx.Commit(r.Context()); err != nil {
+		workbenchInternalError(w, r, "failed to delete collab", err)
+		return
+	}
+
 	h.publishCRMChanged(eventCRMCollabChanged, scope.WorkspaceID, uuidToString(current.ID), uuidToString(scope.Member.UserID))
+	// One event per archived settlement: another client's settlement list and the
+	// cockpit's `paid_amount` both read these rows, and a collab-only event would
+	// leave them showing money whose collaboration no longer exists.
+	for _, settlementID := range settlementIDs {
+		h.publishCRMChanged(eventCRMSettlementChanged, scope.WorkspaceID, uuidToString(settlementID), uuidToString(scope.Member.UserID))
+	}
 	w.WriteHeader(http.StatusNoContent)
 }
 

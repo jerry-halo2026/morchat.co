@@ -3,7 +3,7 @@ INSERT INTO issue_view (
     workspace_id, owner_id, name, scope_type, scope_id, scope_variant,
     visibility, definition_version, query, display
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, sqlc.arg('query')::text::jsonb, sqlc.arg('display')::text::jsonb)
 RETURNING *;
 
 -- name: ListIssueViewsForUser :many
@@ -48,11 +48,11 @@ UPDATE issue_view SET
     name = $3,
     visibility = $4,
     scope_variant = $5,
-    query = $6,
-    display = $7,
+    query = sqlc.arg('query')::text::jsonb,
+    display = sqlc.arg('display')::text::jsonb,
     revision = revision + 1,
     updated_at = now()
-WHERE id = $1 AND workspace_id = $2 AND revision = $8
+WHERE id = $1 AND workspace_id = $2 AND revision = sqlc.arg('revision')
 RETURNING *;
 
 -- name: DeleteIssueView :one

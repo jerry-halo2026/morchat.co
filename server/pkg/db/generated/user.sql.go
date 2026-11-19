@@ -441,14 +441,14 @@ func (q *Queries) MarkUserOnboarded(ctx context.Context, id pgtype.UUID) (User, 
 
 const patchUserOnboarding = `-- name: PatchUserOnboarding :one
 UPDATE "user" SET
-    onboarding_questionnaire = COALESCE($1, onboarding_questionnaire),
+    onboarding_questionnaire = COALESCE($1::text::jsonb, onboarding_questionnaire),
     updated_at = now()
 WHERE id = $2
 RETURNING id, name, email, avatar_url, created_at, updated_at, onboarded_at, onboarding_questionnaire, cloud_waitlist_email, cloud_waitlist_reason, starter_content_state, language, profile_description, timezone, whats_new_seen_version, star_prompt_shown_count, star_prompt_last_shown_at, star_prompt_starred_at, password_hash, password_updated_at, must_change_password
 `
 
 type PatchUserOnboardingParams struct {
-	Questionnaire []byte      `json:"questionnaire"`
+	Questionnaire pgtype.Text `json:"questionnaire"`
 	ID            pgtype.UUID `json:"id"`
 }
 

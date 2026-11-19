@@ -389,11 +389,11 @@ SELECT
         WHEN COALESCE($12::text, '') <> ''
         THEN jsonb_build_object('head_sha', $12::text)
         ELSE '{}'::jsonb
-    END || $13::jsonb,
+    END || $13::text::jsonb,
     $14,
     $15,
-    $16,
-    $17,
+    $16::text::jsonb,
+    $17::text::jsonb,
     $18,
     $19,
     $20,
@@ -426,11 +426,11 @@ type CreateWakeupTaskParams struct {
 	HandoffNote          pgtype.Text   `json:"handoff_note"`
 	SquadID              pgtype.UUID   `json:"squad_id"`
 	HeadSha              pgtype.Text   `json:"head_sha"`
-	WakeupContext        []byte        `json:"wakeup_context"`
+	WakeupContext        pgtype.Text   `json:"wakeup_context"`
 	OriginatorUserID     pgtype.UUID   `json:"originator_user_id"`
 	AccountableUserID    pgtype.UUID   `json:"accountable_user_id"`
-	RuntimeMcpOverlay    []byte        `json:"runtime_mcp_overlay"`
-	RuntimeConnectedApps []byte        `json:"runtime_connected_apps"`
+	RuntimeMcpOverlay    pgtype.Text   `json:"runtime_mcp_overlay"`
+	RuntimeConnectedApps pgtype.Text   `json:"runtime_connected_apps"`
 	OriginatorSource     pgtype.Text   `json:"originator_source"`
 	DelegatedFromTaskID  pgtype.UUID   `json:"delegated_from_task_id"`
 	RuleVersionID        pgtype.UUID   `json:"rule_version_id"`
@@ -1729,7 +1729,7 @@ func (q *Queries) PauseIssueWakeup(ctx context.Context, arg PauseIssueWakeupPara
 
 const recordWakeupReceipt = `-- name: RecordWakeupReceipt :one
 INSERT INTO issue_wakeup_receipt(id,wakeup_id,revision,event_key,event_type,payload)
-VALUES($1,$2,$3,$4,$5,$6)
+VALUES($1,$2,$3,$4,$5,$6::text::jsonb)
 ON CONFLICT(wakeup_id,revision,event_key) DO UPDATE SET event_key=EXCLUDED.event_key RETURNING id, wakeup_id, revision, event_key, event_type, payload, task_id, processed_at, created_at, coalesce_key
 `
 
@@ -1739,7 +1739,7 @@ type RecordWakeupReceiptParams struct {
 	Revision  int64       `json:"revision"`
 	EventKey  string      `json:"event_key"`
 	EventType string      `json:"event_type"`
-	Payload   []byte      `json:"payload"`
+	Payload   string      `json:"payload"`
 }
 
 func (q *Queries) RecordWakeupReceipt(ctx context.Context, arg RecordWakeupReceiptParams) (IssueWakeupReceipt, error) {
@@ -1777,12 +1777,12 @@ func (q *Queries) ReleaseWakeupReceipts(ctx context.Context, ids []pgtype.UUID) 
 }
 
 const replaceWakeupEvidence = `-- name: ReplaceWakeupEvidence :one
-UPDATE agent_task_queue SET handoff_note=$1, context=COALESCE(context,'{}'::jsonb) || jsonb_build_object('wakeup_evidence', $2::jsonb) WHERE id= $3 AND status='queued' RETURNING id, agent_id, issue_id, status, priority, dispatched_at, started_at, completed_at, result, error, created_at, context, runtime_id, session_id, work_dir, trigger_comment_id, chat_session_id, autopilot_run_id, attempt, max_attempts, parent_task_id, failure_reason, trigger_summary, force_fresh_session, is_leader_task, wait_reason, initiator_user_id, handoff_note, prepare_lease_expires_at, squad_id, runtime_mcp_overlay, escalation_for_task_id, fire_at, originator_user_id, runtime_connected_apps, coalesced_comment_ids, delivered_comment_ids, chat_input_task_id, chat_finalize_deferred_at, originator_source, delegated_from_task_id, retry_of_task_id, rerun_of_task_id, rule_version_id, trigger_evidence_kind, trigger_evidence_ref_id, accountable_user_id, session_rollout_missing, retired_session_id, quick_actions_disabled, regenerate_quick_actions_for, branch_name, durable_work_dir, channel_context_revision, comment_thread_id, cancelled_by_type, cancelled_by_id, cancelled_by_name, issue_snapshot, workflow_step
+UPDATE agent_task_queue SET handoff_note=$1, context=COALESCE(context,'{}'::jsonb) || jsonb_build_object('wakeup_evidence', $2::text::jsonb) WHERE id= $3 AND status='queued' RETURNING id, agent_id, issue_id, status, priority, dispatched_at, started_at, completed_at, result, error, created_at, context, runtime_id, session_id, work_dir, trigger_comment_id, chat_session_id, autopilot_run_id, attempt, max_attempts, parent_task_id, failure_reason, trigger_summary, force_fresh_session, is_leader_task, wait_reason, initiator_user_id, handoff_note, prepare_lease_expires_at, squad_id, runtime_mcp_overlay, escalation_for_task_id, fire_at, originator_user_id, runtime_connected_apps, coalesced_comment_ids, delivered_comment_ids, chat_input_task_id, chat_finalize_deferred_at, originator_source, delegated_from_task_id, retry_of_task_id, rerun_of_task_id, rule_version_id, trigger_evidence_kind, trigger_evidence_ref_id, accountable_user_id, session_rollout_missing, retired_session_id, quick_actions_disabled, regenerate_quick_actions_for, branch_name, durable_work_dir, channel_context_revision, comment_thread_id, cancelled_by_type, cancelled_by_id, cancelled_by_name, issue_snapshot, workflow_step
 `
 
 type ReplaceWakeupEvidenceParams struct {
 	HandoffNote    pgtype.Text `json:"handoff_note"`
-	WakeupEvidence []byte      `json:"wakeup_evidence"`
+	WakeupEvidence pgtype.Text `json:"wakeup_evidence"`
 	ID             pgtype.UUID `json:"id"`
 }
 
@@ -1871,12 +1871,12 @@ func (q *Queries) ReserveWakeupReceipts(ctx context.Context, arg ReserveWakeupRe
 }
 
 const setClaimedTaskContext = `-- name: SetClaimedTaskContext :one
-UPDATE agent_task_queue SET context= $1::jsonb
+UPDATE agent_task_queue SET context= $1::text::jsonb
 WHERE id= $2 AND status='dispatched' AND dispatched_at= $3 RETURNING id, agent_id, issue_id, status, priority, dispatched_at, started_at, completed_at, result, error, created_at, context, runtime_id, session_id, work_dir, trigger_comment_id, chat_session_id, autopilot_run_id, attempt, max_attempts, parent_task_id, failure_reason, trigger_summary, force_fresh_session, is_leader_task, wait_reason, initiator_user_id, handoff_note, prepare_lease_expires_at, squad_id, runtime_mcp_overlay, escalation_for_task_id, fire_at, originator_user_id, runtime_connected_apps, coalesced_comment_ids, delivered_comment_ids, chat_input_task_id, chat_finalize_deferred_at, originator_source, delegated_from_task_id, retry_of_task_id, rerun_of_task_id, rule_version_id, trigger_evidence_kind, trigger_evidence_ref_id, accountable_user_id, session_rollout_missing, retired_session_id, quick_actions_disabled, regenerate_quick_actions_for, branch_name, durable_work_dir, channel_context_revision, comment_thread_id, cancelled_by_type, cancelled_by_id, cancelled_by_name, issue_snapshot, workflow_step
 `
 
 type SetClaimedTaskContextParams struct {
-	Context      []byte             `json:"context"`
+	Context      pgtype.Text        `json:"context"`
 	ID           pgtype.UUID        `json:"id"`
 	DispatchedAt pgtype.Timestamptz `json:"dispatched_at"`
 }

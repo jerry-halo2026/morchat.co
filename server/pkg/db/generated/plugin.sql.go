@@ -116,7 +116,7 @@ func (q *Queries) CreatePluginHookSchedule(ctx context.Context, arg CreatePlugin
 const createPluginInstallation = `-- name: CreatePluginInstallation :one
 INSERT INTO plugin_installation (
     workspace_id, plugin_key, package_version_id, version, manifest, granted_scopes, installed_by
-) VALUES ($1, $2, $3, $4, $5, $6, $7)
+) VALUES ($1, $2, $3, $4, $5::text::jsonb, $6::text::jsonb, $7)
 RETURNING id, workspace_id, plugin_key, version, manifest, granted_scopes, config, enabled, installed_by, created_at, updated_at, token_hash, token_rotated_at, mcp_approvals, package_version_id
 `
 
@@ -125,8 +125,8 @@ type CreatePluginInstallationParams struct {
 	PluginKey        string      `json:"plugin_key"`
 	PackageVersionID pgtype.UUID `json:"package_version_id"`
 	Version          string      `json:"version"`
-	Manifest         []byte      `json:"manifest"`
-	GrantedScopes    []byte      `json:"granted_scopes"`
+	Manifest         string      `json:"manifest"`
+	GrantedScopes    string      `json:"granted_scopes"`
 	InstalledBy      pgtype.UUID `json:"installed_by"`
 }
 
@@ -282,7 +282,7 @@ func (q *Queries) CreatePluginPackageFile(ctx context.Context, arg CreatePluginP
 const createPluginPackageVersion = `-- name: CreatePluginPackageVersion :one
 INSERT INTO plugin_package_version (
     package_id, workspace_id, version, manifest, digest, size_bytes, published_by
-) VALUES ($1, $2, $3, $4, $5, $6, $7)
+) VALUES ($1, $2, $3, $4::text::jsonb, $5, $6, $7)
 RETURNING id, package_id, workspace_id, version, manifest, digest, size_bytes, published_by, created_at
 `
 
@@ -290,7 +290,7 @@ type CreatePluginPackageVersionParams struct {
 	PackageID   pgtype.UUID `json:"package_id"`
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
 	Version     string      `json:"version"`
-	Manifest    []byte      `json:"manifest"`
+	Manifest    string      `json:"manifest"`
 	Digest      string      `json:"digest"`
 	SizeBytes   int64       `json:"size_bytes"`
 	PublishedBy pgtype.UUID `json:"published_by"`
@@ -1328,14 +1328,14 @@ func (q *Queries) SetPluginInstallationToken(ctx context.Context, arg SetPluginI
 
 const setPluginMCPApprovals = `-- name: SetPluginMCPApprovals :one
 UPDATE plugin_installation
-SET mcp_approvals = $2, updated_at = now()
+SET mcp_approvals = $2::text::jsonb, updated_at = now()
 WHERE id = $1
 RETURNING id, workspace_id, plugin_key, version, manifest, granted_scopes, config, enabled, installed_by, created_at, updated_at, token_hash, token_rotated_at, mcp_approvals, package_version_id
 `
 
 type SetPluginMCPApprovalsParams struct {
 	ID           pgtype.UUID `json:"id"`
-	McpApprovals []byte      `json:"mcp_approvals"`
+	McpApprovals string      `json:"mcp_approvals"`
 }
 
 func (q *Queries) SetPluginMCPApprovals(ctx context.Context, arg SetPluginMCPApprovalsParams) (PluginInstallation, error) {
@@ -1432,7 +1432,7 @@ func (q *Queries) UpdatePluginHookScheduleNextRun(ctx context.Context, arg Updat
 
 const updatePluginInstallationConfig = `-- name: UpdatePluginInstallationConfig :one
 UPDATE plugin_installation
-SET config = $2,
+SET config = $2::text::jsonb,
     updated_at = now()
 WHERE id = $1
 RETURNING id, workspace_id, plugin_key, version, manifest, granted_scopes, config, enabled, installed_by, created_at, updated_at, token_hash, token_rotated_at, mcp_approvals, package_version_id
@@ -1440,7 +1440,7 @@ RETURNING id, workspace_id, plugin_key, version, manifest, granted_scopes, confi
 
 type UpdatePluginInstallationConfigParams struct {
 	ID     pgtype.UUID `json:"id"`
-	Config []byte      `json:"config"`
+	Config string      `json:"config"`
 }
 
 func (q *Queries) UpdatePluginInstallationConfig(ctx context.Context, arg UpdatePluginInstallationConfigParams) (PluginInstallation, error) {
@@ -1470,9 +1470,9 @@ const updatePluginInstallationManifest = `-- name: UpdatePluginInstallationManif
 UPDATE plugin_installation
 SET package_version_id = $2,
     version = $3,
-    manifest = $4,
-    granted_scopes = $5,
-    config = $6,
+    manifest = $4::text::jsonb,
+    granted_scopes = $5::text::jsonb,
+    config = $6::text::jsonb,
     updated_at = now()
 WHERE id = $1
 RETURNING id, workspace_id, plugin_key, version, manifest, granted_scopes, config, enabled, installed_by, created_at, updated_at, token_hash, token_rotated_at, mcp_approvals, package_version_id
@@ -1482,9 +1482,9 @@ type UpdatePluginInstallationManifestParams struct {
 	ID               pgtype.UUID `json:"id"`
 	PackageVersionID pgtype.UUID `json:"package_version_id"`
 	Version          string      `json:"version"`
-	Manifest         []byte      `json:"manifest"`
-	GrantedScopes    []byte      `json:"granted_scopes"`
-	Config           []byte      `json:"config"`
+	Manifest         string      `json:"manifest"`
+	GrantedScopes    string      `json:"granted_scopes"`
+	Config           string      `json:"config"`
 }
 
 // Upgrade path: the installation is re-pointed at another published version and

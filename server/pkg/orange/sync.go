@@ -389,7 +389,7 @@ func (c *Client) mirror(
 			Kind:         CreatorKindExternal,
 			Platform:     PlatformDouyin,
 			SourceSystem: SourceSystemOrange,
-			Rows:         payload,
+			Rows:         string(payload),
 		})
 		if err != nil {
 			return SyncResult{}, fmt.Errorf("orange: insert mirrored creators: %w", err)
@@ -403,7 +403,7 @@ func (c *Client) mirror(
 			return SyncResult{}, err
 		}
 		updated, err := q.UpdateMirroredCreators(ctx, db.UpdateMirroredCreatorsParams{
-			Rows:        payload,
+			Rows:        string(payload),
 			WorkspaceID: pgUUID(opts.WorkspaceID),
 		})
 		if err != nil {

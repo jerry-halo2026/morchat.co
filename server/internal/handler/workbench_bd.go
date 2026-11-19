@@ -1,13 +1,13 @@
 package handler
 
 // BD pipeline: follow-ups, quotes, campaigns and the cockpit aggregate
-// (docs/engineering/WORKBENCH-API.md §20,
-// docs/engineering/WORKBENCH-DATA-CONTRACT.md §3).
+// (docs/engineering/WORKBENCH-API.md 搂20,
+// docs/engineering/WORKBENCH-DATA-CONTRACT.md 搂3).
 //
 // **Three ledgers, not four.** The contract originally listed a `creator_order`
-// table beside these three. A collaboration is already `crm_collab` — one creator
-// × one brief, carrying `stage` / `quote_amount` / `final_amount` / `creator_fee`
-// / `commission_rate` / `issue_id` — so a second row type for the same fact would
+// table beside these three. A collaboration is already `crm_collab` 鈥?one creator
+// 脳 one brief, carrying `stage` / `quote_amount` / `final_amount` / `creator_fee`
+// / `commission_rate` / `issue_id` 鈥?so a second row type for the same fact would
 // give the project two answers to "what did this creator cost us", which is the
 // failure mode it has already had once (two definition of gross margin). The two
 // facts `crm_collab` was missing are columns on it: `publish_url` (810) and
@@ -15,10 +15,10 @@ package handler
 //
 // What this file owns, then, is the three things that genuinely had no storage:
 //
-//	creator_activity — who talked to this creator, when, what came of it, and
+//	creator_activity 鈥?who talked to this creator, when, what came of it, and
 //	                   when to talk again
-//	creator_quote    — what we offered (坑位费 + 佣金率) and whether they took it
-//	creator_campaign — where this batch of creators came from and what it cost
+//	creator_quote    鈥?what we offered (鍧戜綅璐?+ 浣ｉ噾鐜? and whether they took it
+//	creator_campaign 鈥?where this batch of creators came from and what it cost
 //
 // Permissions are the workbench's usual split: any member reads, `owner`/`admin`
 // write everything, a `member` writes only the rows it owns. Ownership is read off
@@ -28,11 +28,12 @@ package handler
 //
 // No `:changed` event: this batch ships the data layer only, and the event
 // vocabulary lives in `packages/core/types/events.ts`, which is outside it. The
-// debt is recorded in WORKBENCH-API §20.6 rather than silently half-wired.
+// debt is recorded in WORKBENCH-API 搂20.6 rather than silently half-wired.
 
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -56,7 +57,7 @@ var (
 	}
 
 	// bdQuoteStatuses is the offer's lifecycle. Only a quote that left `draft`
-	// counts as "quoted" in the cockpit (§20.3).
+	// counts as "quoted" in the cockpit (搂20.3).
 	bdQuoteStatuses = map[string]bool{
 		"draft": true, "sent": true, "accepted": true, "rejected": true, "expired": true,
 	}
@@ -84,7 +85,7 @@ type BdActivityRequest struct {
 
 // BdQuoteRequest is the create/PATCH body for an offer.
 //
-// `commission_rate` is a ratio: 20% is 0.2 (contract §0 rule 1). `items` is the
+// `commission_rate` is a ratio: 20% is 0.2 (contract 搂0 rule 1). `items` is the
 // line-item breakdown as a JSON array; absent keeps the stored array on a PATCH
 // and means "no breakdown yet" on a create.
 type BdQuoteRequest struct {
@@ -281,7 +282,7 @@ type BdPipelineQuotesBlock struct {
 }
 
 // BdPipelineOrdersBlock is the fulfilment side, read off `crm_collab` and
-// `crm_settlement` (§20.3 for the stage definitions).
+// `crm_settlement` (搂20.3 for the stage definitions).
 type BdPipelineOrdersBlock struct {
 	Open        WorkbenchMetricValue `json:"open"`
 	Delivered   WorkbenchMetricValue `json:"delivered"`
@@ -305,14 +306,14 @@ type BdPipelineResponse struct {
 	Followups BdPipelineFollowupsBlock `json:"followups"`
 }
 
-// bdCount renders a counter. A count is always computable — zero rows really are
-// zero — so it never answers `null`; `metricValue` keeps the three-state shape
+// bdCount renders a counter. A count is always computable 鈥?zero rows really are
+// zero 鈥?so it never answers `null`; `metricValue` keeps the three-state shape
 // identical to `/overview`.
 func bdCount(n int64) WorkbenchMetricValue {
 	return metricValue(float64(n), true, n, metricEmptyZero)
 }
 
-// bdMoney renders a summed amount. No rows → no amount: the empty rule is
+// bdMoney renders a summed amount. No rows 鈫?no amount: the empty rule is
 // `insufficient_data` and `sample_count` says how many rows were behind it, so
 // the client draws a gap card instead of a confident 0.00.
 func bdMoney(amount float64, currency string, sampleCount int64) BdPipelineMoney {
@@ -332,7 +333,7 @@ func bdMoney(amount float64, currency string, sampleCount int64) BdPipelineMoney
 	return entry
 }
 
-// GetBdPipeline — GET /api/workbench/bd/pipeline
+// GetBdPipeline 鈥?GET /api/workbench/bd/pipeline
 //
 // One request, four blocks, four statements. They are separate because each one
 // aggregates a different grain (creators, quotes, collaborations, follow-ups) and
@@ -395,11 +396,425 @@ func (h *Handler) GetBdPipeline(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// ---- performance over a range ----------------------------------------------
+
+// BdPerformanceTotals is the fact set one bucket (a member, a month, the whole
+// window) carries. Counts are always numbers 鈥?a bucket with no rows really is
+// zero. Amounts are pointers: `null` means "no rows to sum in the report's
+// currency", which is not the same statement as a settled 0.00 (搂22).
+//
+// `quote_amount` is the 鍧戜綅璐?of the offers that were *sent* in that bucket, not of
+// the accepted ones: the accepted subset's money is what `signed` reports once the
+// collaboration exists, and counting it twice under two names would make the
+// page's columns add up to more than the business.
+type BdPerformanceTotals struct {
+	SignedCount     int64    `json:"signed_count"`
+	SignedAmount    *float64 `json:"signed_amount"`
+	DeliveredCount  int64    `json:"delivered_count"`
+	CollectedCount  int64    `json:"collected_count"`
+	CollectedAmount *float64 `json:"collected_amount"`
+	QuoteSent       int64    `json:"quote_sent"`
+	QuoteAccepted   int64    `json:"quote_accepted"`
+	QuoteAmount     *float64 `json:"quote_amount"`
+	Followups       int64    `json:"followups"`
+	Replied         int64    `json:"replied"`
+	Meetings        int64    `json:"meetings"`
+}
+
+// BdPerformanceMemberRow is one person's contribution inside the window.
+type BdPerformanceMemberRow struct {
+	MemberID string `json:"member_id"`
+	// Name falls back to the empty string when the member row is gone; the id is
+	// the identity, the name is a convenience for the table.
+	Name string `json:"name"`
+	// WinRate is accepted / sent over this member's offers in the window, on the
+	// 0鈥? storage scale. Null when the member sent no offer.
+	WinRate *float64 `json:"win_rate"`
+	BdPerformanceTotals
+}
+
+// BdPerformanceMonthRow is the same fact set cut by calendar month, so the page can
+// draw a trend from one response.
+type BdPerformanceMonthRow struct {
+	// `YYYY-MM`, in the session's time zone (UTC in production).
+	Month   string   `json:"month"`
+	WinRate *float64 `json:"win_rate"`
+	BdPerformanceTotals
+}
+
+// BdPerformanceSignedBlock is 绛剧害: collaborations confirmed in the window.
+type BdPerformanceSignedBlock struct {
+	Count  WorkbenchMetricValue `json:"count"`
+	Amount BdPipelineMoney      `json:"amount"`
+}
+
+// BdPerformanceVolumeBlock is a count + amount pair (浜や粯 / 鍥炴).
+type BdPerformanceVolumeBlock struct {
+	Count  WorkbenchMetricValue `json:"count"`
+	Amount BdPipelineMoney      `json:"amount"`
+}
+
+// BdPerformanceQuotesBlock is the offer side of the window.
+type BdPerformanceQuotesBlock struct {
+	Sent     WorkbenchMetricValue `json:"sent"`
+	Accepted WorkbenchMetricValue `json:"accepted"`
+	// WinRate is accepted / sent (0鈥?). It answers null 鈥?`insufficient_data` 鈥?when
+	// the window holds no sent offer at all, rather than a confident 0 %.
+	WinRate WorkbenchMetricValue `json:"win_rate"`
+	Amount  BdPipelineMoney      `json:"amount"`
+}
+
+// BdPerformanceFollowupsBlock is what the team did, not what closed.
+type BdPerformanceFollowupsBlock struct {
+	Count    WorkbenchMetricValue `json:"count"`
+	Replied  WorkbenchMetricValue `json:"replied"`
+	Meetings WorkbenchMetricValue `json:"meetings"`
+}
+
+// BdPerformanceAffiliateBlock is the 绮鹃€夎仈鐩?commission the window is responsible
+// for, split by who received it (see `BdPerformanceAffiliate` in
+// workbench_bd.sql for the two windows involved).
+type BdPerformanceAffiliateBlock struct {
+	Agency  BdPipelineMoney `json:"agency"`
+	Creator BdPipelineMoney `json:"creator"`
+	Settled BdPipelineMoney `json:"settled"`
+}
+
+// BdPerformanceResponse is `GET /api/workbench/bd/performance` (搂22).
+type BdPerformanceResponse struct {
+	// From/To are the window that was actually used, after defaults 鈥?a client that
+	// sent neither can label the report without recomputing "this month".
+	From string `json:"from"`
+	To   string `json:"to"`
+	// Currency is the one currency every amount in the response is in: the window's
+	// dominant one. Rows in another currency are excluded from the counts too, so a
+	// count and the money beside it always describe the same rows.
+	Currency string `json:"currency"`
+	// Empty is the window's own state: `zero` when it contains at least one fact,
+	// `insufficient_data` when it contains none (the page then draws the
+	// no-data state rather than a flat zero trend).
+	Empty     string                      `json:"empty"`
+	Signed    BdPerformanceSignedBlock    `json:"signed"`
+	Delivered BdPerformanceVolumeBlock    `json:"delivered"`
+	Collected BdPerformanceVolumeBlock    `json:"collected"`
+	Quotes    BdPerformanceQuotesBlock    `json:"quotes"`
+	Followups BdPerformanceFollowupsBlock `json:"followups"`
+	Affiliate BdPerformanceAffiliateBlock `json:"affiliate"`
+	ByMember  []BdPerformanceMemberRow    `json:"by_member"`
+	ByMonth   []BdPerformanceMonthRow     `json:"by_month"`
+}
+
+// bdPerformanceBucket is one pivot cell: a (metric, month, member) row's counts and
+// money, or the answer for "this cell has no rows".
+type bdPerformanceBucket struct {
+	count   int64
+	amount  float64
+	samples int64
+}
+
+func (b *bdPerformanceBucket) add(count int64, amount float64, samples int64) {
+	b.count += count
+	b.amount += amount
+	b.samples += samples
+}
+
+// bdPerformanceMoney renders a summed amount with the window's currency. Same
+// three states as the cockpit: no contributing row 鈫?`amount: null`,
+// `empty: insufficient_data`.
+func bdPerformanceMoney(bucket bdPerformanceBucket, currency string) BdPipelineMoney {
+	return bdMoney(bucket.amount, currency, bucket.samples)
+}
+
+// bdPerformanceWinRate is accepted / sent over the window, on the 0鈥? scale. With
+// no sent offer the rate is not computable and answers `value: null` +
+// `insufficient_data` 鈥?never a confident 0 %, which would read as "we lost every
+// offer we never made".
+func bdPerformanceWinRate(sent, accepted bdPerformanceBucket) WorkbenchMetricValue {
+	if sent.count == 0 {
+		return metricValue(0, false, 0, metricEmptyInsufficientData)
+	}
+	rate, ok := ratioValue(float64(accepted.count), float64(sent.count))
+	return metricValue(rate, ok, sent.count, metricEmptyInsufficientData)
+}
+
+// GetBdPerformance 鈥?GET /api/workbench/bd/performance?from=&to=
+//
+// One window, one currency, every fact bucketed by its own date (搂22). The
+// statement returns (month, member) cells; this handler pivots them three ways 鈥?// the blocks, `by_member`, `by_month` 鈥?so each number has exactly one definition
+// in SQL and the sub-totals cannot drift from the totals.
+func (h *Handler) GetBdPerformance(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	from, to, ok := workbenchPerformanceWindow(w, r)
+	if !ok {
+		return
+	}
+	ctx := r.Context()
+
+	currency, err := h.Queries.BdPerformanceCurrency(ctx, db.BdPerformanceCurrencyParams{
+		FromDay:     from,
+		ToDay:       to,
+		WorkspaceID: scope.WorkspaceUUID,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to resolve the report currency", err)
+		return
+	}
+	rows, err := h.Queries.BdPerformanceBuckets(ctx, db.BdPerformanceBucketsParams{
+		FromDay:     from,
+		ToDay:       to,
+		WorkspaceID: scope.WorkspaceUUID,
+		Currency:    currency,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to aggregate the performance window", err)
+		return
+	}
+	affiliate, err := h.Queries.BdPerformanceAffiliate(ctx, db.BdPerformanceAffiliateParams{
+		FromDay:     from,
+		ToDay:       to,
+		WorkspaceID: scope.WorkspaceUUID,
+		Currency:    currency,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to aggregate affiliate commission", err)
+		return
+	}
+	members, err := h.Queries.ListMembersWithUser(ctx, scope.WorkspaceUUID)
+	if err != nil {
+		workbenchInternalError(w, r, "failed to load member names", err)
+		return
+	}
+	memberNames := make(map[string]string, len(members))
+	for _, member := range members {
+		memberNames[uuidToString(member.UserID)] = member.UserName
+	}
+
+	// Three pivots over the same cells. `totals` is the whole window; the other two
+	// key by member and by month. A cell whose metric is unknown (a future addition
+	// this handler predates) is ignored rather than half-counted.
+	const (
+		metricSigned          = "signed"
+		metricDelivered       = "delivered"
+		metricCollected       = "collected"
+		metricQuoteSent       = "quote_sent"
+		metricQuoteAccepted   = "quote_accepted"
+		metricFollowup        = "followup"
+		metricFollowupReplied = "followup_replied"
+		metricFollowupMeeting = "followup_meeting"
+	)
+	totals := map[string]*bdPerformanceBucket{}
+	byMember := map[string]map[string]*bdPerformanceBucket{}
+	byMonth := map[string]map[string]*bdPerformanceBucket{}
+	facts := int64(0)
+
+	cell := func(target map[string]*bdPerformanceBucket, metric string) *bdPerformanceBucket {
+		if bucket, present := target[metric]; present {
+			return bucket
+		}
+		bucket := &bdPerformanceBucket{}
+		target[metric] = bucket
+		return bucket
+	}
+
+	for _, row := range rows {
+		switch row.Metric {
+		case metricSigned, metricDelivered, metricCollected, metricQuoteSent,
+			metricQuoteAccepted, metricFollowup, metricFollowupReplied, metricFollowupMeeting:
+		default:
+			continue
+		}
+		facts += row.RowCount
+		cell(totals, row.Metric).add(row.RowCount, row.Amount, row.AmountSamples)
+
+		monthKey := row.Month
+		if _, present := byMonth[monthKey]; !present {
+			byMonth[monthKey] = map[string]*bdPerformanceBucket{}
+		}
+		cell(byMonth[monthKey], row.Metric).add(row.RowCount, row.Amount, row.AmountSamples)
+
+		if row.MemberID.Valid {
+			memberKey := uuidToString(row.MemberID)
+			if _, present := byMember[memberKey]; !present {
+				byMember[memberKey] = map[string]*bdPerformanceBucket{}
+			}
+			cell(byMember[memberKey], row.Metric).add(row.RowCount, row.Amount, row.AmountSamples)
+		}
+	}
+
+	empty := metricEmptyInsufficientData
+	if facts > 0 {
+		empty = metricEmptyZero
+	}
+
+	response := BdPerformanceResponse{
+		From:     dateToString(from),
+		To:       dateToString(to),
+		Currency: strings.TrimSpace(currency),
+		Empty:    empty,
+		ByMember: make([]BdPerformanceMemberRow, 0, len(byMember)),
+		ByMonth:  make([]BdPerformanceMonthRow, 0, len(byMonth)),
+		Signed: BdPerformanceSignedBlock{
+			Count:  bdCount(totals[metricSigned].countOrZero()),
+			Amount: bdPerformanceMoney(bucketOrZero(totals, metricSigned), responseCurrency(currency)),
+		},
+		Delivered: BdPerformanceVolumeBlock{
+			Count:  bdCount(totals[metricDelivered].countOrZero()),
+			Amount: bdPerformanceMoney(bucketOrZero(totals, metricDelivered), responseCurrency(currency)),
+		},
+		Collected: BdPerformanceVolumeBlock{
+			Count:  bdCount(totals[metricCollected].countOrZero()),
+			Amount: bdPerformanceMoney(bucketOrZero(totals, metricCollected), responseCurrency(currency)),
+		},
+		Quotes: BdPerformanceQuotesBlock{
+			Sent:     bdCount(totals[metricQuoteSent].countOrZero()),
+			Accepted: bdCount(totals[metricQuoteAccepted].countOrZero()),
+			WinRate:  bdPerformanceWinRate(bucketOrZero(totals, metricQuoteSent), bucketOrZero(totals, metricQuoteAccepted)),
+			Amount:   bdPerformanceMoney(bucketOrZero(totals, metricQuoteSent), responseCurrency(currency)),
+		},
+		Followups: BdPerformanceFollowupsBlock{
+			Count:    bdCount(totals[metricFollowup].countOrZero()),
+			Replied:  bdCount(totals[metricFollowupReplied].countOrZero()),
+			Meetings: bdCount(totals[metricFollowupMeeting].countOrZero()),
+		},
+		Affiliate: BdPerformanceAffiliateBlock{
+			Agency:  bdMoney(affiliate.AgencyAmount, responseCurrency(currency), affiliate.AgencySamples),
+			Creator: bdMoney(affiliate.CreatorAmount, responseCurrency(currency), affiliate.CreatorSamples),
+			Settled: bdMoney(affiliate.SettledAmount, responseCurrency(currency), affiliate.SettledSamples),
+		},
+	}
+
+	for memberID, metrics := range byMember {
+		response.ByMember = append(response.ByMember, BdPerformanceMemberRow{
+			MemberID:            memberID,
+			Name:                memberNames[memberID],
+			WinRate:             bdPerformanceRowWinRate(metrics),
+			BdPerformanceTotals: bdPerformanceTotalsOf(metrics),
+		})
+	}
+	for month, metrics := range byMonth {
+		response.ByMonth = append(response.ByMonth, BdPerformanceMonthRow{
+			Month:               month,
+			WinRate:             bdPerformanceRowWinRate(metrics),
+			BdPerformanceTotals: bdPerformanceTotalsOf(metrics),
+		})
+	}
+	sort.Slice(response.ByMember, func(i, j int) bool {
+		if response.ByMember[i].SignedCount != response.ByMember[j].SignedCount {
+			return response.ByMember[i].SignedCount > response.ByMember[j].SignedCount
+		}
+		return response.ByMember[i].MemberID < response.ByMember[j].MemberID
+	})
+	sort.Slice(response.ByMonth, func(i, j int) bool {
+		return response.ByMonth[i].Month < response.ByMonth[j].Month
+	})
+
+	writeJSON(w, http.StatusOK, response)
+}
+
+// responseCurrency normalises the report's currency label for the money blocks.
+func responseCurrency(currency string) string {
+	trimmed := strings.TrimSpace(currency)
+	if trimmed == "" {
+		return "CNY"
+	}
+	return trimmed
+}
+
+// bucketOrZero reads a metric's totals, answering the empty bucket for a metric the
+// window has no row for.
+func bucketOrZero(buckets map[string]*bdPerformanceBucket, metric string) bdPerformanceBucket {
+	if bucket, present := buckets[metric]; present {
+		return *bucket
+	}
+	return bdPerformanceBucket{}
+}
+
+// countOrZero renders one metric's row count, with nil-safe access to the map.
+func (b *bdPerformanceBucket) countOrZero() int64 {
+	if b == nil {
+		return 0
+	}
+	return b.count
+}
+
+// bdPerformanceRowWinRate is one row's accepted / sent, on the 0鈥? scale, or nil
+// when the bucket holds no sent offer.
+func bdPerformanceRowWinRate(metrics map[string]*bdPerformanceBucket) *float64 {
+	sent := bucketOrZero(metrics, "quote_sent").count
+	if sent == 0 {
+		return nil
+	}
+	accepted := float64(bucketOrZero(metrics, "quote_accepted").count)
+	rate, ok := ratioValue(accepted, float64(sent))
+	if !ok {
+		return nil
+	}
+	return &rate
+}
+
+// bdPerformanceTotalsOf flattens one bucket's metric map into the wire row. An
+// amount with no contributing row stays nil 鈥?never 0 鈥?for the same reason the
+// blocks do: the row's currency is the response's `currency`.
+func bdPerformanceTotalsOf(metrics map[string]*bdPerformanceBucket) BdPerformanceTotals {
+	amountOf := func(metric string) *float64 {
+		bucket := bucketOrZero(metrics, metric)
+		if bucket.samples == 0 {
+			return nil
+		}
+		value := bucket.amount
+		return &value
+	}
+	return BdPerformanceTotals{
+		SignedCount:     bucketOrZero(metrics, "signed").count,
+		SignedAmount:    amountOf("signed"),
+		DeliveredCount:  bucketOrZero(metrics, "delivered").count,
+		CollectedCount:  bucketOrZero(metrics, "collected").count,
+		CollectedAmount: amountOf("collected"),
+		QuoteSent:       bucketOrZero(metrics, "quote_sent").count,
+		QuoteAccepted:   bucketOrZero(metrics, "quote_accepted").count,
+		QuoteAmount:     amountOf("quote_sent"),
+		Followups:       bucketOrZero(metrics, "followup").count,
+		Replied:         bucketOrZero(metrics, "followup_replied").count,
+		Meetings:        bucketOrZero(metrics, "followup_meeting").count,
+	}
+}
+
+// workbenchPerformanceWindow resolves `?from=&to=`. Days are inclusive; both are
+// optional and default to "this month so far", because that is the window the 涓氱哗
+// page opens on. A range that ends before it starts is a 400 鈥?the same rule the
+// shoot calendar applies, and for the same reason: an inverted window is a typo,
+// not an empty report.
+func workbenchPerformanceWindow(w http.ResponseWriter, r *http.Request) (pgtype.Date, pgtype.Date, bool) {
+	from, ok := workbenchDateValue(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("from"))), "from")
+	if !ok {
+		return pgtype.Date{}, pgtype.Date{}, false
+	}
+	to, ok := workbenchDateValue(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("to"))), "to")
+	if !ok {
+		return pgtype.Date{}, pgtype.Date{}, false
+	}
+	today := pgtypeDateToday()
+	if !to.Valid {
+		to = today
+	}
+	if !from.Valid {
+		from = pgtype.Date{Time: time.Date(to.Time.Year(), to.Time.Month(), 1, 0, 0, 0, 0, time.UTC), Valid: true}
+	}
+	if to.Time.Before(from.Time) {
+		writeError(w, http.StatusBadRequest, "to must not be before from")
+		return pgtype.Date{}, pgtype.Date{}, false
+	}
+	return from, to, true
+}
+
 // ---- validation helpers ----------------------------------------------------
 
 // bdEnum validates an optional enum field and reports the trimmed value (`""`
 // when absent). An empty string counts as absent, so `{"kind": ""}` is not a
-// silent third state: the caller decides what an absent value means — a default
+// silent third state: the caller decides what an absent value means 鈥?a default
 // on the create path, "keep the stored one" on a PATCH.
 func bdEnum(w http.ResponseWriter, raw *string, allowed map[string]bool, field string) (string, bool) {
 	if raw == nil || strings.TrimSpace(*raw) == "" {
@@ -413,7 +828,7 @@ func bdEnum(w http.ResponseWriter, raw *string, allowed map[string]bool, field s
 	return value, true
 }
 
-// bdCommissionRate validates the 0–1 commission ratio (contract §0 rule 1).
+// bdCommissionRate validates the 0鈥? commission ratio (contract 搂0 rule 1).
 //
 // The message names the unit because this is the field people get wrong: 20 means
 // 2000%, and the contract's whole "percentages live in the display layer" rule
@@ -430,13 +845,13 @@ func bdCommissionRate(w http.ResponseWriter, raw *float64) bool {
 	return true
 }
 
-// bdQuoteWindowOK rejects an offer that expired before it was made (§20.4).
+// bdQuoteWindowOK rejects an offer that expired before it was made (搂20.4).
 //
 // Why a 400 and not a stored-but-flagged row: `valid_until` is the only column
 // that answers "could this offer still be accepted on day X", and every reader
 // (the quote ledger, the cockpit's `open` counter, any future expiry sweep) takes
 // it at face value. A row with `valid_until < quoted_at` is not a business state
-// that a warning can make usable — it is a typo, and the moment it is stored the
+// that a warning can make usable 鈥?it is a typo, and the moment it is stored the
 // answer to "what was open on the 12th" silently changes. A warning field would
 // also have to be echoed by every read that touches the quote, which is a second
 // copy of the same rule in every consumer.
@@ -468,8 +883,7 @@ func bdCampaignWindowOK(w http.ResponseWriter, startedOn, endedOn pgtype.Date) b
 }
 
 // bdQuoteItems parses the line-item breakdown into the JSONB value the column
-// stores. Absent means "no breakdown yet" on create and "unchanged" on PATCH —
-// which is `[]` here, because the column's default is an empty array.
+// stores. Absent means "no breakdown yet" on create and "unchanged" on PATCH 鈥?// which is `[]` here, because the column's default is an empty array.
 func bdQuoteItems(w http.ResponseWriter, raw json.RawMessage) ([]byte, bool) {
 	if len(raw) == 0 {
 		return []byte("[]"), true
@@ -492,7 +906,7 @@ func bdQuoteItems(w http.ResponseWriter, raw json.RawMessage) ([]byte, bool) {
 
 // ---- follow-ups ------------------------------------------------------------
 
-// ListBdActivities — GET /api/workbench/bd/activities
+// ListBdActivities 鈥?GET /api/workbench/bd/activities
 func (h *Handler) ListBdActivities(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -549,7 +963,7 @@ func optionalString(raw string) *string {
 	return &value
 }
 
-// CreateBdActivity — POST /api/workbench/bd/activities
+// CreateBdActivity 鈥?POST /api/workbench/bd/activities
 func (h *Handler) CreateBdActivity(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -636,7 +1050,7 @@ func (h *Handler) loadBdActivityForWrite(w http.ResponseWriter, r *http.Request,
 	return activity, true
 }
 
-// GetBdActivity — GET /api/workbench/bd/activities/{activityId}
+// GetBdActivity 鈥?GET /api/workbench/bd/activities/{activityId}
 func (h *Handler) GetBdActivity(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -657,7 +1071,7 @@ func (h *Handler) GetBdActivity(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, bdActivityToResponse(activity))
 }
 
-// UpdateBdActivity — PATCH /api/workbench/bd/activities/{activityId}
+// UpdateBdActivity 鈥?PATCH /api/workbench/bd/activities/{activityId}
 func (h *Handler) UpdateBdActivity(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -735,7 +1149,7 @@ func (h *Handler) UpdateBdActivity(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, bdActivityToResponse(updated))
 }
 
-// DeleteBdActivity — DELETE /api/workbench/bd/activities/{activityId}
+// DeleteBdActivity 鈥?DELETE /api/workbench/bd/activities/{activityId}
 func (h *Handler) DeleteBdActivity(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -762,7 +1176,7 @@ func (h *Handler) DeleteBdActivity(w http.ResponseWriter, r *http.Request) {
 
 // ---- quotes ----------------------------------------------------------------
 
-// ListBdQuotes — GET /api/workbench/bd/quotes
+// ListBdQuotes 鈥?GET /api/workbench/bd/quotes
 func (h *Handler) ListBdQuotes(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -796,7 +1210,7 @@ func (h *Handler) ListBdQuotes(w http.ResponseWriter, r *http.Request) {
 
 // bdQuoteBriefRef validates the optional `brief_id` pointer against this
 // workspace. No foreign key sits behind it (repository rule), and a foreign brief
-// would make the quote's `creator × brief` credential point at another tenant.
+// would make the quote's `creator 脳 brief` credential point at another tenant.
 func (h *Handler) bdQuoteBriefRef(w http.ResponseWriter, r *http.Request, scope workbenchScope, raw *string) (pgtype.UUID, bool) {
 	briefID, ok := workbenchOptionalUUID(w, raw, "brief_id")
 	if !ok {
@@ -815,7 +1229,7 @@ func (h *Handler) bdQuoteBriefRef(w http.ResponseWriter, r *http.Request, scope 
 	return briefID, true
 }
 
-// CreateBdQuote — POST /api/workbench/bd/quotes
+// CreateBdQuote 鈥?POST /api/workbench/bd/quotes
 func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -876,7 +1290,7 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 		FeeAmount:      floatToNumeric(req.FeeAmount),
 		CommissionRate: floatToNumeric(req.CommissionRate),
 		Currency:       currency,
-		Items:          items,
+		Items:          string(items),
 		Note:           optionalTrimmedText(req.Note),
 		OwnerMemberID:  owner,
 		CreatedBy:      scope.Member.UserID,
@@ -909,7 +1323,7 @@ func (h *Handler) loadBdQuoteForWrite(w http.ResponseWriter, r *http.Request, sc
 	return quote, true
 }
 
-// GetBdQuote — GET /api/workbench/bd/quotes/{quoteId}
+// GetBdQuote 鈥?GET /api/workbench/bd/quotes/{quoteId}
 func (h *Handler) GetBdQuote(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -930,7 +1344,7 @@ func (h *Handler) GetBdQuote(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, bdQuoteToResponse(quote))
 }
 
-// UpdateBdQuote — PATCH /api/workbench/bd/quotes/{quoteId}
+// UpdateBdQuote 鈥?PATCH /api/workbench/bd/quotes/{quoteId}
 //
 // The window check re-runs against the merged row, not the request body: moving
 // `quoted_at` past an existing `valid_until` is the same typo as sending both at
@@ -1015,7 +1429,7 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 		FeeAmount:      applyNumericPatch(req.FeeAmount, current.FeeAmount),
 		CommissionRate: applyNumericPatch(req.CommissionRate, current.CommissionRate),
 		Currency:       currency,
-		Items:          items,
+		Items:          string(items),
 		Note:           applyTextPatch(req.Note, current.Note),
 		OwnerMemberID:  owner,
 		ID:             current.ID,
@@ -1028,7 +1442,7 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, bdQuoteToResponse(updated))
 }
 
-// DeleteBdQuote — DELETE /api/workbench/bd/quotes/{quoteId}
+// DeleteBdQuote 鈥?DELETE /api/workbench/bd/quotes/{quoteId}
 func (h *Handler) DeleteBdQuote(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -1055,7 +1469,7 @@ func (h *Handler) DeleteBdQuote(w http.ResponseWriter, r *http.Request) {
 
 // ---- campaigns -------------------------------------------------------------
 
-// ListBdCampaigns — GET /api/workbench/bd/campaigns
+// ListBdCampaigns 鈥?GET /api/workbench/bd/campaigns
 func (h *Handler) ListBdCampaigns(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -1101,7 +1515,7 @@ func (h *Handler) bdCampaignConflicts(w http.ResponseWriter, r *http.Request, sc
 	return true
 }
 
-// CreateBdCampaign — POST /api/workbench/bd/campaigns
+// CreateBdCampaign 鈥?POST /api/workbench/bd/campaigns
 func (h *Handler) CreateBdCampaign(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -1201,7 +1615,7 @@ func (h *Handler) loadBdCampaignForWrite(w http.ResponseWriter, r *http.Request,
 	return campaign, true
 }
 
-// GetBdCampaign — GET /api/workbench/bd/campaigns/{campaignId}
+// GetBdCampaign 鈥?GET /api/workbench/bd/campaigns/{campaignId}
 func (h *Handler) GetBdCampaign(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -1222,7 +1636,7 @@ func (h *Handler) GetBdCampaign(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, bdCampaignToResponse(campaign))
 }
 
-// UpdateBdCampaign — PATCH /api/workbench/bd/campaigns/{campaignId}
+// UpdateBdCampaign 鈥?PATCH /api/workbench/bd/campaigns/{campaignId}
 func (h *Handler) UpdateBdCampaign(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -1314,7 +1728,7 @@ func (h *Handler) UpdateBdCampaign(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, bdCampaignToResponse(updated))
 }
 
-// DeleteBdCampaign — DELETE /api/workbench/bd/campaigns/{campaignId}
+// DeleteBdCampaign 鈥?DELETE /api/workbench/bd/campaigns/{campaignId}
 func (h *Handler) DeleteBdCampaign(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {

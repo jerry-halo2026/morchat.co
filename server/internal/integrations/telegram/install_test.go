@@ -44,7 +44,7 @@ func (f *fakeTelegramInstallQueries) UpsertChannelInstallation(_ context.Context
 	if f.appIDTaken {
 		return db.ChannelInstallation{}, &pgconn.PgError{Code: pgUniqueViolation}
 	}
-	return db.ChannelInstallation{ID: f.rowID, WorkspaceID: p.WorkspaceID, AgentID: p.AgentID, ChannelType: p.ChannelType, Config: p.Config, InstallerUserID: p.InstallerUserID, Status: "active"}, nil
+	return db.ChannelInstallation{ID: f.rowID, WorkspaceID: p.WorkspaceID, AgentID: p.AgentID, ChannelType: p.ChannelType, Config: []byte(p.Config), InstallerUserID: p.InstallerUserID, Status: "active"}, nil
 }
 func (f *fakeTelegramInstallQueries) GetChannelInstallationOwnerByAppID(context.Context, db.GetChannelInstallationOwnerByAppIDParams) (db.GetChannelInstallationOwnerByAppIDRow, error) {
 	return f.owner, f.ownerErr
@@ -126,7 +126,7 @@ func TestRegisterValidatesAndEncryptsBotToken(t *testing.T) {
 		t.Fatalf("persisted row = %+v params = %+v", row, q.upsert)
 	}
 	var cfg installConfig
-	if err := json.Unmarshal(q.upsert.Config, &cfg); err != nil {
+	if err := json.Unmarshal([]byte(q.upsert.Config), &cfg); err != nil {
 		t.Fatal(err)
 	}
 	if cfg.AppID != "12345" || cfg.BotUsername != "multica_test_bot" || strings.Contains(cfg.BotTokenEncrypted, "secret") {

@@ -346,7 +346,7 @@ func TestDispatchAutopilotForPlanRecoversPartialRun(t *testing.T) {
 				TriggerID:      trigger.ID,
 				Source:         "schedule",
 				Status:         initialStatus,
-				TriggerPayload: nil,
+				TriggerPayload: pgtype.Text{},
 				PlannedAt:      plannedTS,
 			})
 			if err != nil {

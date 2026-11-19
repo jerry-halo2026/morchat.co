@@ -13,7 +13,7 @@ import (
 
 const createTaskMessage = `-- name: CreateTaskMessage :one
 INSERT INTO task_message (id, task_id, seq, type, tool, content, input, output, output_truncated, call_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+VALUES ($1, $2, $3, $4, $5, $6, $7::text::jsonb, $8, $9, $10)
 RETURNING id, task_id, seq, type, tool, content, input, output, created_at, output_truncated, call_id
 `
 
@@ -24,10 +24,10 @@ type CreateTaskMessageParams struct {
 	Type            string      `json:"type"`
 	Tool            pgtype.Text `json:"tool"`
 	Content         pgtype.Text `json:"content"`
-	Input           []byte      `json:"input"`
+	Input           pgtype.Text `json:"input"`
 	Output          pgtype.Text `json:"output"`
 	OutputTruncated pgtype.Bool `json:"output_truncated"`
-	CallID          pgtype.Text `json:"call_id"`
+	CallID          pgtype.Text `json:"call_i_d"`
 }
 
 func (q *Queries) CreateTaskMessage(ctx context.Context, arg CreateTaskMessageParams) (TaskMessage, error) {

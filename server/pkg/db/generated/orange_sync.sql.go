@@ -98,7 +98,7 @@ SELECT
     r.source_rank,
     $4::text,
     r.source_id
-FROM jsonb_to_recordset($5::jsonb) AS r(
+FROM jsonb_to_recordset($5::text::jsonb) AS r(
     display_name TEXT,
     handle TEXT,
     url TEXT,
@@ -129,7 +129,7 @@ type InsertMirroredCreatorsParams struct {
 	Kind         string      `json:"kind"`
 	Platform     string      `json:"platform"`
 	SourceSystem string      `json:"source_system"`
-	Rows         []byte      `json:"rows"`
+	Rows         string      `json:"rows"`
 }
 
 // The create half. `kind`/`platform` are constants of the mirror (orange only
@@ -270,7 +270,7 @@ SET display_name = r.display_name,
     source_rank = r.source_rank,
     archived_at = NULL,
     updated_at = now()
-FROM jsonb_to_recordset($2::jsonb) AS r(
+FROM jsonb_to_recordset($2::text::jsonb) AS r(
     id UUID,
     display_name TEXT,
     handle TEXT,
@@ -325,7 +325,7 @@ WHERE c.id = r.id
 
 type UpdateMirroredCreatorsParams struct {
 	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	Rows        []byte      `json:"rows"`
+	Rows        string      `json:"rows"`
 }
 
 // The update half. The WHERE clause is the idempotence contract: a row whose

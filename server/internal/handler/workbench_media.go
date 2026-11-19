@@ -25,6 +25,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"strings"
 	"unicode/utf8"
@@ -43,6 +44,12 @@ const (
 	eventMediaTopicChanged  = "media_topic:changed"
 	eventMediaScriptChanged = "media_script:changed"
 	eventMediaShootChanged  = "media_shoot:changed"
+	// Discovery sources (WORKBENCH-API §21): a hotspot or a benchmark row changed.
+	// They get their own events rather than riding `media_topic:changed`, because a
+	// radar list is a cached query of its own and the topic pool is not affected by
+	// a row nobody has adopted yet.
+	eventMediaHotChanged   = "media_hot:changed"
+	eventMediaBenchChanged = "media_bench:changed"
 )
 
 // Enum vocabularies. The database CHECK constraints are the authority; these
@@ -54,6 +61,9 @@ var (
 	mediaTopicStatuses  = []string{"pool", "scripting", "shooting", "publishing", "done", "dropped"}
 	mediaScriptStatuses = []string{"draft", "review", "approved", "archived"}
 	mediaShootStatuses  = []string{"planned", "shooting", "editing", "done", "cancelled"}
+	// mediaHotSources is how a radar row was captured, not which pipeline it feeds
+	// (`media_topic.source` answers that one).
+	mediaHotSources = []string{"manual", "crawl", "api"}
 )
 
 // The defaults a create body falls back to, which are also the values the
@@ -64,6 +74,11 @@ const (
 	mediaTopicSourceManual  = "manual"
 	mediaScriptStatusDraft  = "draft"
 	mediaShootStatusPlanned = "planned"
+	// The two `media_topic.source` values an adopted row produces (§21), and the
+	// default provenance of a hand-entered radar row (812).
+	mediaTopicSourceHot   = "hot"
+	mediaTopicSourceBench = "bench"
+	mediaHotSourceManual  = "manual"
 )
 
 // mediaScoreDimensions is the five-dimension decision card, in display order.
@@ -142,6 +157,49 @@ type MediaShootRequest struct {
 	Checklist     map[string]bool `json:"checklist"`
 	Status        *string         `json:"status"`
 	OwnerMemberID *string         `json:"owner_member_id"`
+}
+
+// MediaHotRequest is both the create and the PATCH body for a radar row.
+//
+// `Rank`, `HeatValue` and `Url` are raw so the three states stay distinct on a
+// PATCH: omitted keeps the stored value, an explicit `null` clears it back to "the
+// platform published none", and a number/text sets it. A `*int32` would collapse
+// "not sent" and "clear" into one case, and a rank that cannot be cleared is a rank
+// the operator is stuck with.
+type MediaHotRequest struct {
+	Title         *string         `json:"title"`
+	Platform      *string         `json:"platform"`
+	URL           json.RawMessage `json:"url"`
+	Rank          json.RawMessage `json:"rank"`
+	HeatValue     json.RawMessage `json:"heat_value"`
+	Category      *string         `json:"category"`
+	CapturedOn    *string         `json:"captured_on"`
+	Source        *string         `json:"source"`
+	Note          *string         `json:"note"`
+	OwnerMemberID *string         `json:"owner_member_id"`
+}
+
+// MediaBenchRequest is both the create and the PATCH body for a benchmarked
+// account. `Metrics` is written whole (a benchmark card is one artifact, like a
+// shot list), so it is not merged key by key.
+type MediaBenchRequest struct {
+	IPID          *string         `json:"ip_id"`
+	Platform      *string         `json:"platform"`
+	Name          *string         `json:"name"`
+	URL           json.RawMessage `json:"url"`
+	FollowerCount json.RawMessage `json:"follower_count"`
+	Metrics       json.RawMessage `json:"metrics"`
+	CapturedOn    *string         `json:"captured_on"`
+	Note          *string         `json:"note"`
+	OwnerMemberID *string         `json:"owner_member_id"`
+}
+
+// MediaAdoptRequest is the body of both `/adopt` routes: which of our IPs the new
+// topic belongs to, and an optional override of its title (the row's own title /
+// account name is the default).
+type MediaAdoptRequest struct {
+	IPID  *string `json:"ip_id"`
+	Title *string `json:"title"`
 }
 
 // ---- responses -------------------------------------------------------------
@@ -333,6 +391,90 @@ func mediaShootToResponse(shoot db.MediaShoot) MediaShootResponse {
 		CreatedAt:     timestampToString(shoot.CreatedAt),
 		UpdatedAt:     timestampToString(shoot.UpdatedAt),
 		ArchivedAt:    timestampToPtr(shoot.ArchivedAt),
+	}
+}
+
+// MediaHotResponse is one radar row. `rank` and `heat_value` are pointers because
+// NULL is a real state for both — "the platform did not publish a position" is not
+// position 0.
+type MediaHotResponse struct {
+	ID            string  `json:"id"`
+	WorkspaceID   string  `json:"workspace_id"`
+	Title         string  `json:"title"`
+	Platform      string  `json:"platform"`
+	URL           *string `json:"url"`
+	Rank          *int32  `json:"rank"`
+	HeatValue     *int64  `json:"heat_value"`
+	Category      *string `json:"category"`
+	CapturedOn    string  `json:"captured_on"`
+	Source        string  `json:"source"`
+	Note          *string `json:"note"`
+	OwnerMemberID *string `json:"owner_member_id"`
+	CreatedBy     *string `json:"created_by"`
+	CreatedAt     string  `json:"created_at"`
+	UpdatedAt     string  `json:"updated_at"`
+	ArchivedAt    *string `json:"archived_at"`
+}
+
+func mediaHotToResponse(row db.MediaHot) MediaHotResponse {
+	return MediaHotResponse{
+		ID:            uuidToString(row.ID),
+		WorkspaceID:   uuidToString(row.WorkspaceID),
+		Title:         row.Title,
+		Platform:      row.Platform,
+		URL:           textToPtr(row.Url),
+		Rank:          int4ToPtr(row.Rank),
+		HeatValue:     int8ToPtr(row.HeatValue),
+		Category:      textToPtr(row.Category),
+		CapturedOn:    dateToString(row.CapturedOn),
+		Source:        row.Source,
+		Note:          textToPtr(row.Note),
+		OwnerMemberID: uuidToPtr(row.OwnerMemberID),
+		CreatedBy:     uuidToPtr(row.CreatedBy),
+		CreatedAt:     timestampToString(row.CreatedAt),
+		UpdatedAt:     timestampToString(row.UpdatedAt),
+		ArchivedAt:    timestampToPtr(row.ArchivedAt),
+	}
+}
+
+// MediaBenchResponse is one benchmarked account. `metrics` is the stored JSON
+// object, passed through as sent: the server never invents a metric, and `{}` is
+// "nothing measured yet".
+type MediaBenchResponse struct {
+	ID            string          `json:"id"`
+	WorkspaceID   string          `json:"workspace_id"`
+	IPID          *string         `json:"ip_id"`
+	Platform      string          `json:"platform"`
+	Name          string          `json:"name"`
+	URL           *string         `json:"url"`
+	FollowerCount *int64          `json:"follower_count"`
+	Metrics       json.RawMessage `json:"metrics"`
+	CapturedOn    string          `json:"captured_on"`
+	Note          *string         `json:"note"`
+	OwnerMemberID *string         `json:"owner_member_id"`
+	CreatedBy     *string         `json:"created_by"`
+	CreatedAt     string          `json:"created_at"`
+	UpdatedAt     string          `json:"updated_at"`
+	ArchivedAt    *string         `json:"archived_at"`
+}
+
+func mediaBenchToResponse(row db.MediaBench) MediaBenchResponse {
+	return MediaBenchResponse{
+		ID:            uuidToString(row.ID),
+		WorkspaceID:   uuidToString(row.WorkspaceID),
+		IPID:          uuidToPtr(row.IpID),
+		Platform:      row.Platform,
+		Name:          row.Name,
+		URL:           textToPtr(row.Url),
+		FollowerCount: int8ToPtr(row.FollowerCount),
+		Metrics:       mediaRawJSON(row.Metrics),
+		CapturedOn:    dateToString(row.CapturedOn),
+		Note:          textToPtr(row.Note),
+		OwnerMemberID: uuidToPtr(row.OwnerMemberID),
+		CreatedBy:     uuidToPtr(row.CreatedBy),
+		CreatedAt:     timestampToString(row.CreatedAt),
+		UpdatedAt:     timestampToString(row.UpdatedAt),
+		ArchivedAt:    timestampToPtr(row.ArchivedAt),
 	}
 }
 
@@ -1173,7 +1315,7 @@ func (h *Handler) CreateMediaTopic(w http.ResponseWriter, r *http.Request) {
 		IpID:          ip.ID,
 		Title:         title,
 		Source:        source,
-		Scores:        scores,
+		Scores:        string(scores),
 		Status:        status,
 		HotID:         hotID,
 		Note:          optionalTrimmedText(req.Note),
@@ -1282,7 +1424,7 @@ func (h *Handler) UpdateMediaTopic(w http.ResponseWriter, r *http.Request) {
 		IpID:          ipID,
 		Title:         title,
 		Source:        source,
-		Scores:        scores,
+		Scores:        string(scores),
 		Status:        status,
 		HotID:         hotID,
 		Note:          mediaTextPatch(req.Note, current.Note),
@@ -1742,8 +1884,8 @@ func (h *Handler) CreateMediaShoot(w http.ResponseWriter, r *http.Request) {
 		ScriptID:      scriptID,
 		ShootDate:     shootDate,
 		Location:      optionalTrimmedText(req.Location),
-		Shots:         shots,
-		Checklist:     checklist,
+		Shots:         string(shots),
+		Checklist:     string(checklist),
 		Status:        status,
 		OwnerMemberID: topic.OwnerMemberID,
 		CreatedBy:     scope.Member.UserID,
@@ -1848,8 +1990,8 @@ func (h *Handler) UpdateMediaShoot(w http.ResponseWriter, r *http.Request) {
 		ScriptID:      scriptID,
 		ShootDate:     shootDate,
 		Location:      mediaTextPatch(req.Location, current.Location),
-		Shots:         shots,
-		Checklist:     checklist,
+		Shots:         string(shots),
+		Checklist:     string(checklist),
 		Status:        status,
 		OwnerMemberID: current.OwnerMemberID,
 	})
@@ -1887,6 +2029,716 @@ func (h *Handler) DeleteMediaShoot(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// ---- hotspot radar ---------------------------------------------------------
+//
+// §21. A hotspot row is a *source*: a platform was showing this on that day. Its
+// own CRUD is deliberately flat (list / create / read / patch / soft delete), and
+// the only action that touches the pipeline is `/adopt`, which copies the row into
+// a `media_topic` and leaves the radar row untouched — the same hotspot may feed
+// two personas, and re-adopting is a second topic, not an edit.
+
+// mediaInt8Patch reads a nullable BIGINT field tri-state: omitted keeps `current`,
+// `null` clears the column, and a number must be at least `minValue`. The raw
+// message is what makes "not sent" distinguishable from "clear" — a `*int64`
+// cannot express both.
+func mediaInt8Patch(w http.ResponseWriter, raw json.RawMessage, fieldName string, current pgtype.Int8, minValue int64) (pgtype.Int8, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		return pgtype.Int8{}, true
+	}
+	var value int64
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be an integer or null")
+		return pgtype.Int8{}, false
+	}
+	if value < minValue {
+		writeError(w, http.StatusBadRequest, fmt.Sprintf("%s must be at least %d", fieldName, minValue))
+		return pgtype.Int8{}, false
+	}
+	return pgtype.Int8{Int64: value, Valid: true}, true
+}
+
+// mediaInt4Patch is mediaInt8Patch for an INTEGER column (`media_hot.rank`).
+func mediaInt4Patch(w http.ResponseWriter, raw json.RawMessage, fieldName string, current pgtype.Int4, minValue int32) (pgtype.Int4, bool) {
+	asInt8, ok := mediaInt8Patch(w, raw, fieldName, pgtype.Int8{Int64: int64(current.Int32), Valid: current.Valid}, int64(minValue))
+	if !ok {
+		return pgtype.Int4{}, false
+	}
+	if !asInt8.Valid {
+		return pgtype.Int4{}, true
+	}
+	if asInt8.Int64 > math.MaxInt32 {
+		writeError(w, http.StatusBadRequest, fieldName+" is out of range")
+		return pgtype.Int4{}, false
+	}
+	return pgtype.Int4{Int32: int32(asInt8.Int64), Valid: true}, true
+}
+
+// mediaNullableTextPatch is the tri-state version of `applyTextPatch` for the
+// optional URL columns: omitted keeps, `null` clears, a string is trimmed (and an
+// empty string therefore means "no url" rather than "no change").
+func mediaNullableTextPatch(raw json.RawMessage, current pgtype.Text) (pgtype.Text, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		return pgtype.Text{}, true
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		return pgtype.Text{}, false
+	}
+	normalised := strings.TrimSpace(value)
+	if normalised == "" {
+		return pgtype.Text{}, true
+	}
+	return pgtype.Text{String: normalised, Valid: true}, true
+}
+
+// mediaJSONObjectValue validates a JSONB object column (`media_bench.metrics`).
+// Omitted keeps the stored object; anything that is not an object is a 400, because
+// the column's CHECK would turn it into a 500 and the caller would never learn
+// which field was wrong.
+func mediaJSONObjectValue(w http.ResponseWriter, raw json.RawMessage, fieldName string, current []byte) ([]byte, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return mediaRawJSON(current), true
+	}
+	var object map[string]json.RawMessage
+	if err := json.Unmarshal(trimmed, &object); err != nil || object == nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a JSON object")
+		return nil, false
+	}
+	encoded, err := json.Marshal(object)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a JSON object")
+		return nil, false
+	}
+	return encoded, true
+}
+
+// bdCaptureDay resolves `captured_on` for a create: the day the row was captured,
+// defaulting to today (UTC) because a radar row is entered the day it is read and
+// an undated capture cannot be placed on the list at all.
+func mediaCaptureDay(w http.ResponseWriter, raw *string, fieldName string) (pgtype.Date, bool) {
+	if raw == nil || strings.TrimSpace(*raw) == "" {
+		return pgtypeDateToday(), true
+	}
+	capturedOn, ok := workbenchDateValue(w, raw, fieldName)
+	if !ok {
+		return pgtype.Date{}, false
+	}
+	if !capturedOn.Valid {
+		return pgtypeDateToday(), true
+	}
+	return capturedOn, true
+}
+
+// loadMediaHotForWrite resolves {hotId} inside the workspace and checks the write
+// gate. On any failure it has already written the response.
+func (h *Handler) loadMediaHotForWrite(w http.ResponseWriter, r *http.Request, scope workbenchScope) (db.MediaHot, bool) {
+	hotID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "hotId"), "hot id")
+	if !ok {
+		return db.MediaHot{}, false
+	}
+	row, err := h.Queries.GetMediaHot(r.Context(), db.GetMediaHotParams{ID: hotID, WorkspaceID: scope.WorkspaceUUID})
+	if err != nil {
+		writeError(w, http.StatusNotFound, "hotspot not found")
+		return db.MediaHot{}, false
+	}
+	if !workbenchCanWrite(scope.Member, row.OwnerMemberID) {
+		writeError(w, http.StatusForbidden, "you can only change hotspots you own")
+		return db.MediaHot{}, false
+	}
+	return row, true
+}
+
+// loadMediaBenchForWrite resolves {benchId} and applies the same gate.
+func (h *Handler) loadMediaBenchForWrite(w http.ResponseWriter, r *http.Request, scope workbenchScope) (db.MediaBench, bool) {
+	benchID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "benchId"), "bench id")
+	if !ok {
+		return db.MediaBench{}, false
+	}
+	row, err := h.Queries.GetMediaBench(r.Context(), db.GetMediaBenchParams{ID: benchID, WorkspaceID: scope.WorkspaceUUID})
+	if err != nil {
+		writeError(w, http.StatusNotFound, "benchmark not found")
+		return db.MediaBench{}, false
+	}
+	if !workbenchCanWrite(scope.Member, row.OwnerMemberID) {
+		writeError(w, http.StatusForbidden, "you can only change benchmarks you own")
+		return db.MediaBench{}, false
+	}
+	return row, true
+}
+
+// ListMediaHot — GET /api/workbench/media/hot
+func (h *Handler) ListMediaHot(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	capturedOn, ok := workbenchDateValue(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("captured_on"))), "captured_on")
+	if !ok {
+		return
+	}
+	rows, err := h.Queries.ListMediaHot(r.Context(), db.ListMediaHotParams{
+		WorkspaceID: scope.WorkspaceUUID,
+		CapturedOn:  capturedOn,
+		Category:    strToText(strings.TrimSpace(r.URL.Query().Get("category"))),
+		Platform:    strToText(strings.TrimSpace(r.URL.Query().Get("platform"))),
+		Query:       strToText(strings.TrimSpace(r.URL.Query().Get("q"))),
+		Limit:       workbenchLimit(r),
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to list hotspots", err)
+		return
+	}
+	resp := make([]MediaHotResponse, len(rows))
+	for i, row := range rows {
+		resp[i] = mediaHotToResponse(row)
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"hot": resp, "total": len(resp)})
+}
+
+// CreateMediaHot — POST /api/workbench/media/hot
+func (h *Handler) CreateMediaHot(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	var req MediaHotRequest
+	if !decodeWorkbenchBody(w, r, &req) {
+		return
+	}
+	title := strings.TrimSpace(valueOrEmpty(req.Title))
+	platform := strings.TrimSpace(valueOrEmpty(req.Platform))
+	if title == "" || platform == "" {
+		writeError(w, http.StatusBadRequest, "title and platform are required")
+		return
+	}
+	source := mediaHotSourceManual
+	if req.Source != nil {
+		source = strings.TrimSpace(*req.Source)
+	}
+	if mediaEnumInvalid(source, mediaHotSources) {
+		writeError(w, http.StatusBadRequest, "source must be manual, crawl or api")
+		return
+	}
+	capturedOn, ok := mediaCaptureDay(w, req.CapturedOn, "captured_on")
+	if !ok {
+		return
+	}
+	url, ok := mediaNullableTextPatch(req.URL, pgtype.Text{})
+	if !ok {
+		writeError(w, http.StatusBadRequest, "url must be a string or null")
+		return
+	}
+	rank, ok := mediaInt4Patch(w, req.Rank, "rank", pgtype.Int4{}, 0)
+	if !ok {
+		return
+	}
+	heatValue, ok := mediaInt8Patch(w, req.HeatValue, "heat_value", pgtype.Int8{}, 0)
+	if !ok {
+		return
+	}
+	owner, ok := h.workbenchOwnerForCreate(w, r, scope, req.OwnerMemberID)
+	if !ok {
+		return
+	}
+
+	row, err := h.Queries.CreateMediaHot(r.Context(), db.CreateMediaHotParams{
+		WorkspaceID:   scope.WorkspaceUUID,
+		Title:         title,
+		Platform:      platform,
+		Url:           url,
+		Rank:          rank,
+		HeatValue:     heatValue,
+		Category:      optionalTrimmedText(req.Category),
+		CapturedOn:    capturedOn,
+		Source:        source,
+		Note:          optionalTrimmedText(req.Note),
+		OwnerMemberID: owner,
+		CreatedBy:     scope.Member.UserID,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to create hotspot", err)
+		return
+	}
+
+	h.publishMediaHotChanged(scope, uuidToString(row.ID))
+	writeJSON(w, http.StatusCreated, mediaHotToResponse(row))
+}
+
+// GetMediaHot — GET /api/workbench/media/hot/{hotId}
+func (h *Handler) GetMediaHot(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	hotID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "hotId"), "hot id")
+	if !ok {
+		return
+	}
+	row, err := h.Queries.GetMediaHot(r.Context(), db.GetMediaHotParams{ID: hotID, WorkspaceID: scope.WorkspaceUUID})
+	if err != nil {
+		writeError(w, http.StatusNotFound, "hotspot not found")
+		return
+	}
+	writeJSON(w, http.StatusOK, mediaHotToResponse(row))
+}
+
+// UpdateMediaHot — PATCH /api/workbench/media/hot/{hotId}
+func (h *Handler) UpdateMediaHot(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	current, ok := h.loadMediaHotForWrite(w, r, scope)
+	if !ok {
+		return
+	}
+	var req MediaHotRequest
+	if !decodeWorkbenchBody(w, r, &req) {
+		return
+	}
+	title := current.Title
+	if req.Title != nil {
+		title = strings.TrimSpace(*req.Title)
+		if title == "" {
+			writeError(w, http.StatusBadRequest, "title is required")
+			return
+		}
+	}
+	platform := current.Platform
+	if req.Platform != nil {
+		platform = strings.TrimSpace(*req.Platform)
+		if platform == "" {
+			writeError(w, http.StatusBadRequest, "platform is required")
+			return
+		}
+	}
+	source := current.Source
+	if req.Source != nil {
+		source = strings.TrimSpace(*req.Source)
+		if mediaEnumInvalid(source, mediaHotSources) {
+			writeError(w, http.StatusBadRequest, "source must be manual, crawl or api")
+			return
+		}
+	}
+	capturedOn := current.CapturedOn
+	if req.CapturedOn != nil {
+		parsed, ok := mediaCaptureDay(w, req.CapturedOn, "captured_on")
+		if !ok {
+			return
+		}
+		capturedOn = parsed
+	}
+	url, ok := mediaNullableTextPatch(req.URL, current.Url)
+	if !ok {
+		writeError(w, http.StatusBadRequest, "url must be a string or null")
+		return
+	}
+	rank, ok := mediaInt4Patch(w, req.Rank, "rank", current.Rank, 0)
+	if !ok {
+		return
+	}
+	heatValue, ok := mediaInt8Patch(w, req.HeatValue, "heat_value", current.HeatValue, 0)
+	if !ok {
+		return
+	}
+	requestedOwner, ok := workbenchOptionalUUID(w, req.OwnerMemberID, "owner_member_id")
+	if !ok {
+		return
+	}
+	owner, ok := h.workbenchOwnerForUpdate(w, r, scope, current.OwnerMemberID, requestedOwner)
+	if !ok {
+		return
+	}
+
+	updated, err := h.Queries.UpdateMediaHot(r.Context(), db.UpdateMediaHotParams{
+		ID:            current.ID,
+		WorkspaceID:   scope.WorkspaceUUID,
+		Title:         title,
+		Platform:      platform,
+		Url:           url,
+		Rank:          rank,
+		HeatValue:     heatValue,
+		Category:      mediaTextPatch(req.Category, current.Category),
+		CapturedOn:    capturedOn,
+		Source:        source,
+		Note:          mediaTextPatch(req.Note, current.Note),
+		OwnerMemberID: owner,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to update hotspot", err)
+		return
+	}
+
+	h.publishMediaHotChanged(scope, uuidToString(updated.ID))
+	writeJSON(w, http.StatusOK, mediaHotToResponse(updated))
+}
+
+// DeleteMediaHot — DELETE /api/workbench/media/hot/{hotId} (soft delete)
+func (h *Handler) DeleteMediaHot(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	current, ok := h.loadMediaHotForWrite(w, r, scope)
+	if !ok {
+		return
+	}
+	deleted, err := h.Queries.ArchiveMediaHot(r.Context(), db.ArchiveMediaHotParams{
+		ID: current.ID, WorkspaceID: scope.WorkspaceUUID,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to delete hotspot", err)
+		return
+	}
+	if deleted == 0 {
+		writeError(w, http.StatusNotFound, "hotspot not found")
+		return
+	}
+	h.publishMediaHotChanged(scope, uuidToString(current.ID))
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// ---- benchmark teardown ----------------------------------------------------
+
+// ListMediaBench — GET /api/workbench/media/bench
+func (h *Handler) ListMediaBench(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	ipID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("ip_id"))), "ip_id")
+	if !ok {
+		return
+	}
+	capturedOn, ok := workbenchDateValue(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("captured_on"))), "captured_on")
+	if !ok {
+		return
+	}
+	rows, err := h.Queries.ListMediaBench(r.Context(), db.ListMediaBenchParams{
+		WorkspaceID: scope.WorkspaceUUID,
+		IpID:        ipID,
+		CapturedOn:  capturedOn,
+		Platform:    strToText(strings.TrimSpace(r.URL.Query().Get("platform"))),
+		Query:       strToText(strings.TrimSpace(r.URL.Query().Get("q"))),
+		Limit:       workbenchLimit(r),
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to list benchmarks", err)
+		return
+	}
+	resp := make([]MediaBenchResponse, len(rows))
+	for i, row := range rows {
+		resp[i] = mediaBenchToResponse(row)
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"bench": resp, "total": len(resp)})
+}
+
+// CreateMediaBench — POST /api/workbench/media/bench
+func (h *Handler) CreateMediaBench(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	var req MediaBenchRequest
+	if !decodeWorkbenchBody(w, r, &req) {
+		return
+	}
+	name := strings.TrimSpace(valueOrEmpty(req.Name))
+	platform := strings.TrimSpace(valueOrEmpty(req.Platform))
+	if name == "" || platform == "" {
+		writeError(w, http.StatusBadRequest, "name and platform are required")
+		return
+	}
+	ip, ok := h.requireMediaIP(r.Context(), w, scope, req.IPID, false)
+	if !ok {
+		return
+	}
+	capturedOn, ok := mediaCaptureDay(w, req.CapturedOn, "captured_on")
+	if !ok {
+		return
+	}
+	url, ok := mediaNullableTextPatch(req.URL, pgtype.Text{})
+	if !ok {
+		writeError(w, http.StatusBadRequest, "url must be a string or null")
+		return
+	}
+	followerCount, ok := mediaInt8Patch(w, req.FollowerCount, "follower_count", pgtype.Int8{}, 0)
+	if !ok {
+		return
+	}
+	metrics, ok := mediaJSONObjectValue(w, req.Metrics, "metrics", nil)
+	if !ok {
+		return
+	}
+	owner, ok := h.workbenchOwnerForCreate(w, r, scope, req.OwnerMemberID)
+	if !ok {
+		return
+	}
+
+	row, err := h.Queries.CreateMediaBench(r.Context(), db.CreateMediaBenchParams{
+		WorkspaceID:   scope.WorkspaceUUID,
+		IpID:          ip.ID,
+		Platform:      platform,
+		Name:          name,
+		Url:           url,
+		FollowerCount: followerCount,
+		Metrics:       string(metrics),
+		CapturedOn:    capturedOn,
+		Note:          optionalTrimmedText(req.Note),
+		OwnerMemberID: owner,
+		CreatedBy:     scope.Member.UserID,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to create benchmark", err)
+		return
+	}
+
+	h.publishMediaBenchChanged(scope, uuidToString(row.ID))
+	writeJSON(w, http.StatusCreated, mediaBenchToResponse(row))
+}
+
+// GetMediaBench — GET /api/workbench/media/bench/{benchId}
+func (h *Handler) GetMediaBench(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	benchID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "benchId"), "bench id")
+	if !ok {
+		return
+	}
+	row, err := h.Queries.GetMediaBench(r.Context(), db.GetMediaBenchParams{ID: benchID, WorkspaceID: scope.WorkspaceUUID})
+	if err != nil {
+		writeError(w, http.StatusNotFound, "benchmark not found")
+		return
+	}
+	writeJSON(w, http.StatusOK, mediaBenchToResponse(row))
+}
+
+// UpdateMediaBench — PATCH /api/workbench/media/bench/{benchId}
+func (h *Handler) UpdateMediaBench(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	current, ok := h.loadMediaBenchForWrite(w, r, scope)
+	if !ok {
+		return
+	}
+	var req MediaBenchRequest
+	if !decodeWorkbenchBody(w, r, &req) {
+		return
+	}
+	name := current.Name
+	if req.Name != nil {
+		name = strings.TrimSpace(*req.Name)
+		if name == "" {
+			writeError(w, http.StatusBadRequest, "name is required")
+			return
+		}
+	}
+	platform := current.Platform
+	if req.Platform != nil {
+		platform = strings.TrimSpace(*req.Platform)
+		if platform == "" {
+			writeError(w, http.StatusBadRequest, "platform is required")
+			return
+		}
+	}
+	ipID := current.IpID
+	if req.IPID != nil {
+		ip, ok := h.requireMediaIP(r.Context(), w, scope, req.IPID, false)
+		if !ok {
+			return
+		}
+		ipID = ip.ID
+	}
+	capturedOn := current.CapturedOn
+	if req.CapturedOn != nil {
+		parsed, ok := mediaCaptureDay(w, req.CapturedOn, "captured_on")
+		if !ok {
+			return
+		}
+		capturedOn = parsed
+	}
+	url, ok := mediaNullableTextPatch(req.URL, current.Url)
+	if !ok {
+		writeError(w, http.StatusBadRequest, "url must be a string or null")
+		return
+	}
+	followerCount, ok := mediaInt8Patch(w, req.FollowerCount, "follower_count", current.FollowerCount, 0)
+	if !ok {
+		return
+	}
+	metrics, ok := mediaJSONObjectValue(w, req.Metrics, "metrics", current.Metrics)
+	if !ok {
+		return
+	}
+	requestedOwner, ok := workbenchOptionalUUID(w, req.OwnerMemberID, "owner_member_id")
+	if !ok {
+		return
+	}
+	owner, ok := h.workbenchOwnerForUpdate(w, r, scope, current.OwnerMemberID, requestedOwner)
+	if !ok {
+		return
+	}
+
+	updated, err := h.Queries.UpdateMediaBench(r.Context(), db.UpdateMediaBenchParams{
+		ID:            current.ID,
+		WorkspaceID:   scope.WorkspaceUUID,
+		IpID:          ipID,
+		Platform:      platform,
+		Name:          name,
+		Url:           url,
+		FollowerCount: followerCount,
+		Metrics:       string(metrics),
+		CapturedOn:    capturedOn,
+		Note:          mediaTextPatch(req.Note, current.Note),
+		OwnerMemberID: owner,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to update benchmark", err)
+		return
+	}
+
+	h.publishMediaBenchChanged(scope, uuidToString(updated.ID))
+	writeJSON(w, http.StatusOK, mediaBenchToResponse(updated))
+}
+
+// DeleteMediaBench — DELETE /api/workbench/media/bench/{benchId} (soft delete)
+func (h *Handler) DeleteMediaBench(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	current, ok := h.loadMediaBenchForWrite(w, r, scope)
+	if !ok {
+		return
+	}
+	deleted, err := h.Queries.ArchiveMediaBench(r.Context(), db.ArchiveMediaBenchParams{
+		ID: current.ID, WorkspaceID: scope.WorkspaceUUID,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to delete benchmark", err)
+		return
+	}
+	if deleted == 0 {
+		writeError(w, http.StatusNotFound, "benchmark not found")
+		return
+	}
+	h.publishMediaBenchChanged(scope, uuidToString(current.ID))
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// ---- adopt (source row → topic) --------------------------------------------
+
+// AdoptMediaHot — POST /api/workbench/media/hot/{hotId}/adopt
+//
+// Turns a radar row into a topic in the pool: `source = 'hot'`, `hot_id` = the row,
+// `scores = {}` (nobody has judged it yet), owner = the caller (the topic belongs to
+// whoever adopted it, not to whoever captured the hotspot). The radar row is only
+// read — adopting twice is allowed and produces two topics, because "I want this in
+// two personas' pools" is a legitimate intent and inventing an idempotency key for
+// it would be guessing.
+func (h *Handler) AdoptMediaHot(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	hotID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "hotId"), "hot id")
+	if !ok {
+		return
+	}
+	source, err := h.Queries.GetMediaHot(r.Context(), db.GetMediaHotParams{ID: hotID, WorkspaceID: scope.WorkspaceUUID})
+	if err != nil {
+		writeError(w, http.StatusNotFound, "hotspot not found")
+		return
+	}
+	h.adoptIntoMediaTopic(w, r, scope, source.Title, mediaTopicSourceHot, source.ID)
+}
+
+// AdoptMediaBench — POST /api/workbench/media/bench/{benchId}/adopt
+//
+// The same copy for a benchmarked account: the topic's title defaults to the
+// account's name and `hot_id` carries the bench row (the column predates this
+// table; §21 records that as known debt).
+func (h *Handler) AdoptMediaBench(w http.ResponseWriter, r *http.Request) {
+	scope, ok := h.workbenchReadScope(w, r)
+	if !ok {
+		return
+	}
+	benchID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "benchId"), "bench id")
+	if !ok {
+		return
+	}
+	source, err := h.Queries.GetMediaBench(r.Context(), db.GetMediaBenchParams{ID: benchID, WorkspaceID: scope.WorkspaceUUID})
+	if err != nil {
+		writeError(w, http.StatusNotFound, "benchmark not found")
+		return
+	}
+	h.adoptIntoMediaTopic(w, r, scope, source.Name, mediaTopicSourceBench, source.ID)
+}
+
+// adoptIntoMediaTopic is the shared tail of both adopt routes: resolve the target
+// IP, decide the title, insert the topic, publish its event.
+//
+// `ip_id` is required and must be a live content IP in this workspace — a topic
+// whose persona is archived has nowhere to go, and the 400 says so instead of
+// storing a pointer the pool would show under no IP.
+func (h *Handler) adoptIntoMediaTopic(w http.ResponseWriter, r *http.Request, scope workbenchScope, defaultTitle, source string, sourceID pgtype.UUID) {
+	var req MediaAdoptRequest
+	if !decodeWorkbenchBody(w, r, &req) {
+		return
+	}
+	if req.IPID == nil || strings.TrimSpace(*req.IPID) == "" {
+		writeError(w, http.StatusBadRequest, "ip_id is required")
+		return
+	}
+	ip, ok := h.requireMediaIP(r.Context(), w, scope, req.IPID, true)
+	if !ok {
+		return
+	}
+	title := strings.TrimSpace(valueOrEmpty(req.Title))
+	if title == "" {
+		title = strings.TrimSpace(defaultTitle)
+	}
+	if title == "" {
+		writeError(w, http.StatusBadRequest, "title is required")
+		return
+	}
+
+	topic, err := h.Queries.CreateMediaTopic(r.Context(), db.CreateMediaTopicParams{
+		WorkspaceID: scope.WorkspaceUUID,
+		IpID:        ip.ID,
+		Title:       title,
+		Source:      source,
+		// An adopted topic has not been judged yet: the five dimensions are the
+		// decision card a person fills in afterwards, and pre-filling them with
+		// zeros (or with the source's heat) would claim a judgement nobody made.
+		Scores:        string([]byte("{}")),
+		Status:        mediaTopicStatusPool,
+		HotID:         sourceID,
+		OwnerMemberID: scope.Member.UserID,
+		CreatedBy:     scope.Member.UserID,
+	})
+	if err != nil {
+		workbenchInternalError(w, r, "failed to adopt into a topic", err)
+		return
+	}
+
+	h.publishMediaTopicChanged(scope, uuidToString(topic.ID))
+	writeJSON(w, http.StatusCreated, mediaTopicToResponse(topic))
+}
+
 // ---- events ----------------------------------------------------------------
 
 func (h *Handler) publishMediaIPChanged(scope workbenchScope, ipID string) {
@@ -1907,4 +2759,14 @@ func (h *Handler) publishMediaScriptChanged(scope workbenchScope, scriptID strin
 func (h *Handler) publishMediaShootChanged(scope workbenchScope, shootID string) {
 	h.publish(eventMediaShootChanged, scope.WorkspaceID, "member", uuidToString(scope.Member.UserID),
 		map[string]any{"id": shootID})
+}
+
+func (h *Handler) publishMediaHotChanged(scope workbenchScope, hotID string) {
+	h.publish(eventMediaHotChanged, scope.WorkspaceID, "member", uuidToString(scope.Member.UserID),
+		map[string]any{"id": hotID})
+}
+
+func (h *Handler) publishMediaBenchChanged(scope workbenchScope, benchID string) {
+	h.publish(eventMediaBenchChanged, scope.WorkspaceID, "member", uuidToString(scope.Member.UserID),
+		map[string]any{"id": benchID})
 }

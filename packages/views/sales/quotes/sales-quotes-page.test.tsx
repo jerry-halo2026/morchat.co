@@ -192,6 +192,8 @@ describe("SalesQuotesPage · 空", () => {
     expect(screen.queryByRole("grid")).toBeNull();
     // The way out is the header's one action, not a second button in the state.
     expect(screen.getByRole("button", { name: "New quote" })).toBeInTheDocument();
+    // A batch of quotes is how the desk starts a month, so the import is here too.
+    expect(screen.getByRole("button", { name: "Import CSV" })).toBeInTheDocument();
   });
 });
 
@@ -425,6 +427,8 @@ describe("SalesQuotesPage · 无写权限", () => {
 
     expect(await screen.findByText("Lin Wei")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "New quote" })).toBeNull();
+    // The batch import is a write too, and goes with it.
+    expect(screen.queryByRole("button", { name: "Import CSV" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Quote actions" })).toBeNull();
   });
 });

@@ -247,7 +247,7 @@ func (f *appsFixture) legacyRequest(t *testing.T, scope, slug, tool, class strin
 		WorkspaceID: parseUUID(testWorkspaceID), Kind: connectedapps.KindAction,
 		TaskID: parseUUID(f.taskID), AgentID: parseUUID(f.agentID), IssueID: parseUUID(f.issueID),
 		ApproverUserID: parseUUID(testUserID), AccountScope: scope, ToolkitSlug: slug,
-		ToolSlug: tool, ActionClass: class, Arguments: raw, Summary: summary,
+		ToolSlug: tool, ActionClass: class, Arguments: string(raw), Summary: summary,
 		ExpiresAt: pgtype.Timestamptz{Time: time.Now().Add(connectedapps.RequestTTL), Valid: true},
 	})
 	if err != nil {

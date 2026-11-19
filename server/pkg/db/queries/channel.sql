@@ -27,7 +27,7 @@
 INSERT INTO channel_installation (
     workspace_id, agent_id, channel_type, config, installer_user_id
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, sqlc.arg('config')::text::jsonb, sqlc.narg('installer_user_i_d')
 )
 ON CONFLICT (workspace_id, agent_id, channel_type) DO UPDATE SET
     channel_type      = EXCLUDED.channel_type,
@@ -61,7 +61,7 @@ RETURNING *;
 INSERT INTO channel_installation (
     workspace_id, agent_id, channel_type, config, installer_user_id
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, sqlc.arg('config')::text::jsonb, sqlc.narg('installer_user_i_d')
 )
 ON CONFLICT (channel_type, (config ->> 'app_id')) DO UPDATE SET
     agent_id          = EXCLUDED.agent_id,
@@ -469,7 +469,7 @@ WHERE id = $1;
 -- Replaces the whole config blob for one installation. Prefer field-level
 -- patches for metadata that can change concurrently with receipt evidence.
 UPDATE channel_installation
-SET config = $2, updated_at = now()
+SET config = sqlc.arg('config')::text::jsonb, updated_at = now()
 WHERE id = $1;
 
 -- name: BackfillChannelInstallationRegionToFeishuLark :execrows
@@ -524,7 +524,7 @@ INSERT INTO channel_user_binding (
     workspace_id, multica_user_id, installation_id,
     channel_type, channel_user_id, config
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
+    $1, $2, $3, $4, $5, sqlc.arg('config')::text::jsonb
 )
 ON CONFLICT (installation_id, channel_user_id) DO UPDATE SET
     -- jsonb_strip_nulls(EXCLUDED.config) preserves the old lark semantics
@@ -659,7 +659,7 @@ INSERT INTO channel_chat_session_binding (
     chat_session_id, installation_id, channel_type, channel_chat_id, chat_type,
     config, route_revision
 )
-SELECT $1, $2, $3, $4, $5, $6, next_route.route_revision
+SELECT $1, $2, $3, $4, $5, sqlc.arg('config')::text::jsonb, next_route.route_revision
 FROM next_route
 RETURNING *
 ), generation AS (
@@ -683,7 +683,7 @@ INSERT INTO channel_chat_session_binding (
     config, route_revision, history_start_message_id, history_boundary_pending
 ) SELECT
     @chat_session_id, @installation_id, @channel_type, @channel_chat_id, @chat_type,
-    @config, next_route.route_revision, sqlc.narg('history_start_message_id'), @history_boundary_pending
+    sqlc.arg('config')::text::jsonb, next_route.route_revision, sqlc.narg('history_start_message_id'), @history_boundary_pending
 FROM next_route
 RETURNING *
 ), generation AS (

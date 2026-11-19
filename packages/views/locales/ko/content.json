@@ -1,0 +1,80 @@
+{
+  "common": {
+    "save": "저장",
+    "cancel": "취소",
+    "delete": "삭제",
+    "edit": "편집",
+    "retry": "다시 시도",
+    "week": "이번 주",
+    "status": "상태",
+    "ip": "IP"
+  },
+  "ips": {
+    "new": "IP 만들기",
+    "empty_title": "아직 콘텐츠 IP가 없습니다",
+    "empty_description": "IP는 하나의 페르소나, 트랙, 오디언스 묶음입니다. 각 플랫폼 계정은 그 아래에 붙습니다.",
+    "error_title": "IP를 불러오지 못했습니다",
+    "scope_title": "선택한 IP가 없습니다",
+    "scope_clear": "모든 IP 보기",
+    "accounts": "계정",
+    "accounts_empty": "아직 연결된 플랫폼 계정이 없습니다.",
+    "attach": "연결",
+    "detach": "연결 해제",
+    "account_failed": "계정 변경이 거부되었습니다. 계정은 한 번에 하나의 IP에만 붙습니다.",
+    "search_creator": "크리에이터 장부에서 검색",
+    "no_match": "일치하는 크리에이터가 없습니다.",
+    "name": "이름",
+    "persona": "페르소나",
+    "track": "트랙",
+    "audience": "오디언스",
+    "color": "색상",
+    "week_goal": "주당 게시 수",
+    "name_required": "이 IP에 이름을 붙여 주세요.",
+    "save_failed": "서버가 이 IP를 거부했습니다. 저장된 내용은 없습니다.",
+    "delete_title": "이 IP를 삭제할까요?",
+    "delete_description": "“{{name}}”은 모든 목록에서 사라집니다. 하위 주제와 스크립트는 남습니다.",
+    "status": {
+      "active": "운영 중",
+      "paused": "일시 정지",
+      "ended": "종료"
+    }
+  },
+  "topics": {
+    "new": "주제 만들기",
+    "empty_title": "주제 풀이 비어 있습니다",
+    "empty_description": "핫 이슈나 벤치마크에서 하나를 채택하거나 직접 추가하세요.",
+    "no_ip": "먼저 콘텐츠 IP를 만드세요. 주제는 반드시 하나의 IP에 속합니다.",
+    "error_title": "주제를 불러오지 못했습니다",
+    "all_ips": "모든 IP",
+    "from_hot": "핫 이슈에서",
+    "field_title": "제목",
+    "field_source": "출처",
+    "field_scores": "5축 점수",
+    "scores_hint": "축마다 0–100. 다섯 축의 합이 클수록 위에 정렬됩니다.",
+    "kept_scores": "저장된 그대로 유지: {{keys}}",
+    "write_failed": "서버가 변경을 거부했습니다. 아무것도 저장되지 않았습니다.",
+    "delete_title": "이 주제를 삭제할까요?",
+    "delete_description": "“{{title}}”은 보관 처리됩니다. 스크립트는 남습니다.",
+    "column": {
+      "pool": "미평가",
+      "scripting": "집필 중",
+      "shooting": "촬영 중",
+      "publishing": "게시 대기",
+      "done": "완료",
+      "dropped": "포기"
+    },
+    "source": {
+      "hot": "핫",
+      "manual": "수동",
+      "bench": "벤치마크",
+      "ai": "AI"
+    },
+    "dim": {
+      "pain": "페인",
+      "save": "저장",
+      "debate": "논쟁",
+      "susp": "궁금증",
+      "fit": "적합도"
+    }
+  }
+}

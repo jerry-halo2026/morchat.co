@@ -134,7 +134,7 @@ func (h *Handler) CreateFeedback(w http.ResponseWriter, r *http.Request) {
 	fb, err := h.Queries.CreateFeedback(r.Context(), db.CreateFeedbackParams{
 		UserID:      parseUUID(userID),
 		Message:     message,
-		Metadata:    metaBytes,
+		Metadata:    string(metaBytes),
 		WorkspaceID: workspaceID,
 	})
 	if err != nil {

@@ -319,3 +319,124 @@ export interface BdPipeline {
   orders: BdPipelineOrdersBlock;
   followups: BdPipelineFollowupsBlock;
 }
+
+// --- Performance over a range (`GET /api/workbench/bd/performance`) ---------
+//
+// §22. Where the cockpit answers "where do the ledgers stand today", this answers
+// "what did the window produce": every fact buckets by its own date (a
+// collaboration is signed on `confirmed_at` and delivered on `published_at`), so
+// the same collaboration can appear in two blocks with two amounts. That is the
+// report, not double counting.
+//
+// Three rules the types encode:
+//
+//   - **One currency per response.** `currency` names the currency every amount
+//     is in (the window's dominant one); rows in another currency are excluded from
+//     the counts too, so a count and the money beside it describe the same rows.
+//   - **Money with no rows is null.** `amount: null` + `empty: "insufficient_data"`
+//     — never a confident 0.00. Counts are always numbers.
+//   - **`empty` is the window's own state**: `zero` when the interval holds at
+//     least one fact, `insufficient_data` when it holds none.
+
+/** The fact set one bucket (a member, a month, the whole window) carries. */
+export interface BdPerformanceTotals {
+  signed_count: number;
+  /** Σ `final_amount` of the collaborations confirmed in the bucket; null when none. */
+  signed_amount: number | null;
+  /** Collaborations published in the bucket. */
+  delivered_count: number;
+  /** Settlements whose `paid_at` falls in the bucket. */
+  collected_count: number;
+  /** Σ settlement money that actually moved in the bucket; null when none. */
+  collected_amount: number | null;
+  /** Offers sent in the bucket (`status <> 'draft'`). */
+  quote_sent: number;
+  quote_accepted: number;
+  /** Σ 坑位费 of the offers *sent* in the bucket; null when none. */
+  quote_amount: number | null;
+  followups: number;
+  replied: number;
+  meetings: number;
+}
+
+export interface BdPerformanceMemberRow extends BdPerformanceTotals {
+  member_id: string;
+  /** Display name; empty when the member row is gone (the id is the identity). */
+  name: string;
+  /** `quote_accepted / quote_sent` on the 0–1 scale; null when nothing was sent. */
+  win_rate: number | null;
+}
+
+export interface BdPerformanceMonthRow extends BdPerformanceTotals {
+  /** `YYYY-MM`, in the session's time zone (UTC in production). */
+  month: string;
+  win_rate: number | null;
+}
+
+export interface BdPerformanceSignedBlock {
+  count: BdPipelineNumber;
+  amount: BdPipelineMoney;
+}
+
+/** A count + amount pair: 交付 and 回款. */
+export interface BdPerformanceVolumeBlock {
+  count: BdPipelineNumber;
+  amount: BdPipelineMoney;
+}
+
+export interface BdPerformanceQuotesBlock {
+  sent: BdPipelineNumber;
+  accepted: BdPipelineNumber;
+  /** `accepted / sent` (0–1); null when the window holds no sent offer. */
+  win_rate: BdPipelineNumber;
+  /** Σ 坑位费 of the sent offers. */
+  amount: BdPipelineMoney;
+}
+
+export interface BdPerformanceFollowupsBlock {
+  /** Follow-ups logged in the window (条数). */
+  count: BdPipelineNumber;
+  /** Their `outcome` is `replied` / `advanced`. */
+  replied: BdPipelineNumber;
+  /** Their `kind` is `meeting`. */
+  meetings: BdPipelineNumber;
+}
+
+/**
+ * 精选联盟 commission, split by who received it: `agency` landed in our 机构号,
+ * `creator` was paid by the platform straight to the 达人. Adding the two would
+ * count the business twice. `settled` is the part whose `paid_at` falls inside the
+ * window — money that arrived, not money a statement promised.
+ */
+export interface BdPerformanceAffiliateBlock {
+  agency: BdPipelineMoney;
+  creator: BdPipelineMoney;
+  settled: BdPipelineMoney;
+}
+
+export interface BdPerformance {
+  /** The window actually used, after the server applied its defaults. */
+  from: string;
+  to: string;
+  /** The one currency every amount is in (the window's dominant one). */
+  currency: string;
+  /** The window's own state: `zero` with facts, `insufficient_data` without. */
+  empty: BdPipelineEmptyState;
+  signed: BdPerformanceSignedBlock;
+  delivered: BdPerformanceVolumeBlock;
+  collected: BdPerformanceVolumeBlock;
+  quotes: BdPerformanceQuotesBlock;
+  followups: BdPerformanceFollowupsBlock;
+  affiliate: BdPerformanceAffiliateBlock;
+  /** One row per member with facts in the window, most signed first. */
+  by_member: BdPerformanceMemberRow[];
+  /** One row per month present in the window, oldest first. */
+  by_month: BdPerformanceMonthRow[];
+}
+
+export interface BdPerformanceFilters {
+  /** Inclusive `YYYY-MM-DD`; defaults to the first of the month `to` falls in. */
+  from?: string;
+  /** Inclusive `YYYY-MM-DD`; defaults to today. */
+  to?: string;
+}

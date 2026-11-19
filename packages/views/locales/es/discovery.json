@@ -1,0 +1,79 @@
+{
+  "missing": "Sin recoger",
+  "common": {
+    "all": "Todas",
+    "cancel": "Cancelar",
+    "clear": "Quitar filtros",
+    "delete": "Eliminar",
+    "retry": "Reintentar",
+    "load_failed": "No se pudo cargar esta lista",
+    "write_failed": "El servidor rechazó este cambio. No se guardó nada."
+  },
+  "form": {
+    "save": "Guardar",
+    "field_title": "Título",
+    "field_name": "Cuenta",
+    "field_platform": "Plataforma",
+    "field_url": "Enlace",
+    "field_rank": "Puesto",
+    "field_heat": "Intensidad",
+    "field_category": "Categoría",
+    "field_day": "Recogido el",
+    "field_note": "Nota",
+    "field_ip": "IP",
+    "field_followers": "Seguidores",
+    "field_metrics": "Métricas",
+    "metrics_hint": "Una por línea, con el formato clave: valor.",
+    "no_ip": "Sin IP"
+  },
+  "adopt": {
+    "title": "Adoptar como tema",
+    "submit": "Añadir al fondo",
+    "no_ip": "Un tema pertenece a una IP. Crea una primero.",
+    "failed": "El servidor rechazó esta adopción. No se creó nada.",
+    "adopted": "Adoptado",
+    "open_topic": "Abrir el tema"
+  },
+  "hot": {
+    "new": "Añadir tendencia",
+    "edit": "Editar tendencia",
+    "empty_title": "Aún no hay tendencias recogidas",
+    "empty_description": "Añade una a mano o espera una importación.",
+    "filter_day": "Día",
+    "filter_category": "Categoría",
+    "filter_platform": "Plataforma",
+    "filter_keyword": "Buscar tendencias",
+    "no_matches": "Ninguna tendencia coincide con estos filtros",
+    "column_hotspot": "Tendencia",
+    "column_rank": "Puesto",
+    "column_heat": "Intensidad",
+    "adopt": "Adoptar como tema",
+    "delete_title": "¿Eliminar esta tendencia?",
+    "delete_description": "«{{title}}» sale del radar. La fila se conserva."
+  },
+  "bench": {
+    "new": "Añadir referencia",
+    "edit": "Editar referencia",
+    "empty_title": "Aún no hay cuentas de referencia",
+    "empty_description": "Registra una cuenta para leer sus cifras frente a una IP.",
+    "filter_ip": "IP",
+    "filter_keyword": "Buscar cuentas",
+    "no_matches": "Ninguna referencia coincide con este filtro",
+    "column_account": "Cuenta",
+    "column_url": "Perfil",
+    "column_followers": "Seguidores",
+    "column_metrics": "Métricas",
+    "column_captured": "Recogido el",
+    "column_ip": "IP",
+    "adopt": "Adoptar como tema",
+    "delete_title": "¿Eliminar esta referencia?",
+    "delete_description": "«{{name}}» sale de la lista de análisis. La fila se conserva.",
+    "metric": {
+      "plays": "Reproducciones",
+      "views": "Vistas",
+      "likes": "Me gusta",
+      "favorites": "Guardados",
+      "comments": "Comentarios"
+    }
+  }
+}

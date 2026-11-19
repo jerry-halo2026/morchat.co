@@ -946,7 +946,7 @@ func (h *Handler) CreateHrInterviewGuide(w http.ResponseWriter, r *http.Request)
 		JobID:         jobID,
 		Round:         round,
 		Status:        status,
-		Items:         hrGuideItemsColumn(items),
+		Items:         string(hrGuideItemsColumn(items)),
 		Note:          optionalTrimmedText(req.Note),
 		OwnerMemberID: ownerID,
 		CreatedBy:     scope.Member.UserID,
@@ -1081,7 +1081,7 @@ func (h *Handler) UpdateHrInterviewGuide(w http.ResponseWriter, r *http.Request)
 		JobID:       jobID,
 		Round:       round,
 		Status:      status,
-		Items:       hrGuideItemsColumn(items),
+		Items:       string(hrGuideItemsColumn(items)),
 		Note:        applyTextPatch(req.Note, current.Note),
 	})
 	if err != nil {
@@ -1266,7 +1266,7 @@ func (h *Handler) saveHrGuideItems(w http.ResponseWriter, r *http.Request, scope
 		JobID:       guide.JobID,
 		Round:       guide.Round,
 		Status:      guide.Status,
-		Items:       hrGuideItemsColumn(items),
+		Items:       string(hrGuideItemsColumn(items)),
 		Note:        guide.Note,
 	})
 	if err != nil {

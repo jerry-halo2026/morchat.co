@@ -44,7 +44,7 @@ func createSkillWithFilesInTx(ctx context.Context, qtx *db.Queries, input skillC
 		Name:        sanitizeNullBytes(input.Name),
 		Description: sanitizeNullBytes(input.Description),
 		Content:     sanitizeNullBytes(input.Content),
-		Config:      config,
+		Config:      string(config),
 		CreatedBy:   input.CreatorID,
 	})
 	if err != nil {
@@ -215,7 +215,7 @@ func (h *Handler) overwriteSkillWithFiles(ctx context.Context, input skillOverwr
 		Name:        newName,
 		Description: pgtype.Text{String: sanitizeNullBytes(input.Description), Valid: true},
 		Content:     pgtype.Text{String: sanitizeNullBytes(input.Content), Valid: true},
-		Config:      config,
+		Config:      pgtype.Text{String: string(config), Valid: config != nil},
 	})
 	if err != nil {
 		// A committed concurrent DELETE can land between the read above and this

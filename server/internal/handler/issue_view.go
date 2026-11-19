@@ -241,8 +241,8 @@ func (h *Handler) CreateIssueView(w http.ResponseWriter, r *http.Request) {
 		ScopeVariant:      scopeVariant,
 		Visibility:        req.Visibility,
 		DefinitionVersion: req.DefinitionVersion,
-		Query:             req.Query,
-		Display:           req.Display,
+		Query:             string(req.Query),
+		Display:           string(req.Display),
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to create view")
@@ -461,8 +461,8 @@ func (h *Handler) UpdateIssueView(w http.ResponseWriter, r *http.Request) {
 		Name:         name,
 		Visibility:   visibility,
 		ScopeVariant: scopeVariant,
-		Query:        query,
-		Display:      display,
+		Query:        string(query),
+		Display:      string(display),
 		Revision:     req.ExpectedRevision,
 	})
 	if err != nil {

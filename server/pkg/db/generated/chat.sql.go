@@ -249,7 +249,7 @@ INSERT INTO chat_message (
 VALUES (
     $1, $2, $3, $4, $5, $6,
     COALESCE($7::text, 'message'),
-    COALESCE($8::jsonb, '[]'::jsonb),
+    COALESCE($8::text::jsonb, '[]'::jsonb),
     -- The media deadline is DB-clock time: every consumer compares it against
     -- SQL now() (GetChannelMediaPendingUntil, the deferred promote, the
     -- trailing-message guard), so the writer must use the same clock. The
@@ -273,7 +273,7 @@ type CreateChatMessageParams struct {
 	FailureReason           pgtype.Text   `json:"failure_reason"`
 	ElapsedMs               pgtype.Int8   `json:"elapsed_ms"`
 	MessageKind             pgtype.Text   `json:"message_kind"`
-	QuickActions            []byte        `json:"quick_actions"`
+	QuickActions            pgtype.Text   `json:"quick_actions"`
 	ChannelMediaPendingSecs pgtype.Float8 `json:"channel_media_pending_secs"`
 	ChannelIngested         pgtype.Bool   `json:"channel_ingested"`
 	ChannelContextRevision  pgtype.Int8   `json:"channel_context_revision"`
@@ -385,8 +385,8 @@ SELECT
     $7,
     $8,
     COALESCE($9::boolean, FALSE),
-    $10,
-    $11,
+    $10::text::jsonb,
+    $11::text::jsonb,
     $12,
     $13,
     $14,
@@ -407,8 +407,8 @@ type CreateChatTaskParams struct {
 	OriginatorUserID       pgtype.UUID        `json:"originator_user_id"`
 	AccountableUserID      pgtype.UUID        `json:"accountable_user_id"`
 	ForceFreshSession      pgtype.Bool        `json:"force_fresh_session"`
-	RuntimeMcpOverlay      []byte             `json:"runtime_mcp_overlay"`
-	RuntimeConnectedApps   []byte             `json:"runtime_connected_apps"`
+	RuntimeMcpOverlay      pgtype.Text        `json:"runtime_mcp_overlay"`
+	RuntimeConnectedApps   pgtype.Text        `json:"runtime_connected_apps"`
 	OriginatorSource       pgtype.Text        `json:"originator_source"`
 	TriggerEvidenceKind    pgtype.Text        `json:"trigger_evidence_kind"`
 	TriggerEvidenceRefID   pgtype.UUID        `json:"trigger_evidence_ref_id"`
@@ -3406,7 +3406,7 @@ func (q *Queries) SetChatMessageChannelOutboundProvenanceByTask(ctx context.Cont
 
 const setChatMessageQuickActionsByTask = `-- name: SetChatMessageQuickActionsByTask :one
 UPDATE chat_message
-SET quick_actions = $2
+SET quick_actions = $2::text::jsonb
 WHERE id = (
     SELECT inner_msg.id FROM chat_message AS inner_msg
     WHERE inner_msg.task_id = $1 AND inner_msg.role = 'assistant'
@@ -3418,7 +3418,7 @@ RETURNING id, chat_session_id, role, content, task_id, created_at, failure_reaso
 
 type SetChatMessageQuickActionsByTaskParams struct {
 	TaskID       pgtype.UUID `json:"task_id"`
-	QuickActions []byte      `json:"quick_actions"`
+	QuickActions string      `json:"quick_actions"`
 }
 
 func (q *Queries) SetChatMessageQuickActionsByTask(ctx context.Context, arg SetChatMessageQuickActionsByTaskParams) (ChatMessage, error) {

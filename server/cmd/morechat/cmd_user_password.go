@@ -400,7 +400,7 @@ func recordImportAudit(ctx context.Context, queries *db.Queries, workspaceID pgt
 		WorkspaceID: workspaceID,
 		ActorType:   pgText("system"),
 		Action:      "user_imported",
-		Details:     details,
+		Details:     string(details),
 	})
 	return err
 }

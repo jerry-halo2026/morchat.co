@@ -342,7 +342,7 @@ func (h *Handler) SaveAgentBuilderDraft(w http.ResponseWriter, r *http.Request) 
 	if _, err := qtx.UpsertAgentBuilderDraft(r.Context(), db.UpsertAgentBuilderDraftParams{
 		ChatSessionID: locked.ID,
 		WorkspaceID:   locked.WorkspaceID,
-		Draft:         req.Draft,
+		Draft:         string(req.Draft),
 	}); err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to save agent builder draft")
 		return
