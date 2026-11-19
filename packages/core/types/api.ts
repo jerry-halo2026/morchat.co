@@ -177,6 +177,12 @@ export interface ListIssuesParams {
   creator_id?: string;
   created_by_user_id?: string;
   project_id?: string;
+  /**
+   * Exact match on `issue.goal_id`: the tasks attached to one OKR objective.
+   * Omit for "no restriction"; a malformed id is a 400 server-side rather than
+   * an empty window. Works on the `open_only` branch too.
+   */
+  goal_id?: string;
   /** Actor-aware table facets. OR within each field. */
   assignee_filters?: IssueActorRef[];
   include_no_assignee?: boolean;

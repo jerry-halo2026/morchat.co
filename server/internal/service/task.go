@@ -8078,6 +8078,11 @@ func IssueToMap(issue db.Issue, issuePrefix string) map[string]any {
 		"requester_id":    util.UUIDToPtr(issue.RequesterUserID),
 		"creator_id":      util.UUIDToString(issue.CreatorID),
 		"parent_issue_id": util.UUIDToPtr(issue.ParentIssueID),
+		// Mirrors handler.IssueResponse.GoalID: the OKR objective this issue
+		// advances (`issue.goal_id`, 748), null when unattached. Emitted on
+		// every rendering so a client that patches its cache from a broadcast
+		// cannot lose the goal a task is attached to.
+		"goal_id": util.UUIDToPtr(issue.GoalID),
 		// Mirrors handler.IssueResponse.DuplicateOf. Null is only true for a
 		// row with no live mark; IssueToMapResolved resolves it for the rest.
 		"duplicate_of":     nil,

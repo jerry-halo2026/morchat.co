@@ -2528,3 +2528,23 @@ describe("Issue requester compatibility", () => {
     expect(IssueSchema.parse({ ...baseIssue, requester_id: 42 }).requester_id).toBeUndefined();
   });
 });
+
+describe("Issue goal_id (issue.goal_id, 748)", () => {
+  it("carries the goal a task is attached to", () => {
+    expect(IssueSchema.parse({ ...baseIssue, goal_id: "goal-1" }).goal_id).toBe("goal-1");
+  });
+
+  it("reads an unattached task as null", () => {
+    expect(IssueSchema.parse({ ...baseIssue, goal_id: null }).goal_id).toBeNull();
+  });
+
+  // A backend that predates the column omits the key. Defaulting it to null
+  // keeps the whole issue — and therefore the list — parseable, instead of
+  // degrading every row to the fallback stub.
+  it("parses a list from a server that does not send goal_id", () => {
+    const parsed = ListIssuesResponseSchema.parse({ issues: [baseIssue], total: 1 });
+    expect(parsed.issues).toHaveLength(1);
+    expect(parsed.issues[0]?.id).toBe(baseIssue.id);
+    expect(parsed.issues[0]?.goal_id).toBeNull();
+  });
+});

@@ -1860,6 +1860,9 @@ export class ApiClient {
     if (params?.creator_id) search.set("creator_id", params.creator_id);
     if (params?.created_by_user_id) search.set("created_by_user_id", params.created_by_user_id);
     if (params?.project_id) search.set("project_id", params.project_id);
+    // Exact match on issue.goal_id (OKR objective); also reachable through the
+    // POST twin, which forwards the same key/value pairs.
+    if (params?.goal_id) search.set("goal_id", params.goal_id);
     if (params?.assignee_filters?.length) {
       search.set("assignee_filters", params.assignee_filters.map((f) => `${f.type}:${f.id}`).join(","));
     }
@@ -4923,6 +4926,10 @@ export class ApiClient {
         from: filters.from,
         to: filters.to,
         assignee: filters.assignee,
+        // `due` is a switch, not a value: `true` keeps the 到期 tab, and the server
+        // treats a misspelt one as a 400 rather than "no filter" (§20.3).
+        due: filters.due ? 1 : undefined,
+        cursor: filters.cursor,
         limit: filters.limit,
       })}`,
     );
@@ -4978,7 +4985,10 @@ export class ApiClient {
       `/api/workbench/bd/quotes${workbenchSearch({
         creator_id: filters.creator_id,
         status: filters.status,
+        q: filters.q,
         assignee: filters.assignee,
+        sort: filters.sort,
+        cursor: filters.cursor,
         limit: filters.limit,
       })}`,
     );

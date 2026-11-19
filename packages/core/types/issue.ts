@@ -214,6 +214,16 @@ export interface Issue {
   requester_id?: string | null;
   parent_issue_id: string | null;
   /**
+   * The OKR objective this issue advances (`issue.goal_id`, migration 748), or
+   * null when it is not attached to one — which lets a client group tasks by
+   * goal from the issue list instead of reading `GET /goals/{id}` per goal.
+   *
+   * Optional only for compatibility: a server that predates the field omits it,
+   * and IssueSchema defaults the missing key to null, so reading this is
+   * `issue.goal_id ?? null` rather than a nil-guarded lookup.
+   */
+  goal_id?: string | null;
+  /**
    * The original this issue duplicates (MUL-7349): present only while the
    * issue is cancelled and the original still exists, resolved by the server.
    * Absent when connected to an older backend.

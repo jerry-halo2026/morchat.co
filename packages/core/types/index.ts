@@ -776,6 +776,7 @@ export type {
   BdQuote,
   BdQuoteListFilters,
   BdQuoteListResponse,
+  BdQuoteListSort,
   BdQuoteStatus,
   CreateBdActivityRequest,
   CreateBdCampaignRequest,
