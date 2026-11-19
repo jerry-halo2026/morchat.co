@@ -148,6 +148,130 @@ func (q *Queries) DeleteKnowledgeSpacesForWorkspace(ctx context.Context, workspa
 	return err
 }
 
+const deleteQianchuanAccountsForWorkspace = `-- name: DeleteQianchuanAccountsForWorkspace :exec
+DELETE FROM qianchuan_account WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteQianchuanAccountsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteQianchuanAccountsForWorkspace, workspaceID)
+	return err
+}
+
+const deleteQianchuanAnchorsForWorkspace = `-- name: DeleteQianchuanAnchorsForWorkspace :exec
+DELETE FROM qianchuan_anchor WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteQianchuanAnchorsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteQianchuanAnchorsForWorkspace, workspaceID)
+	return err
+}
+
+const deleteQianchuanBalancesForWorkspace = `-- name: DeleteQianchuanBalancesForWorkspace :exec
+DELETE FROM qianchuan_balance WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteQianchuanBalancesForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteQianchuanBalancesForWorkspace, workspaceID)
+	return err
+}
+
+const deleteQianchuanDailyOverallForWorkspace = `-- name: DeleteQianchuanDailyOverallForWorkspace :exec
+DELETE FROM qianchuan_daily_overall WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteQianchuanDailyOverallForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteQianchuanDailyOverallForWorkspace, workspaceID)
+	return err
+}
+
+const deleteQianchuanDailyUniLiveForWorkspace = `-- name: DeleteQianchuanDailyUniLiveForWorkspace :exec
+
+DELETE FROM qianchuan_daily_uni_live WHERE workspace_id = $1
+`
+
+// ---- qianchuan ads ledgers (migrations 840-852) ----------------------------
+// Twelve workspace-owned snapshot tables written by cmd/qianchuan-sync and read
+// by the ads endpoints (WORKBENCH-API §25). None of them carries a foreign key
+// (repository rule), so nothing else would ever clean a deleted workspace's
+// rows: they are removed here, one statement per table, detail -> summary ->
+// master data, before `workspace` goes.
+//
+// One statement per table rather than a single multi-CTE query, for the reason
+// deleteWorkspaceKnowledge documents: data-modifying CTEs share one snapshot
+// with no defined order, and a reader of this plan should not have to reason
+// about that. The order below is documentation, not a dependency: with no
+// foreign key between them, every table is independent.
+func (q *Queries) DeleteQianchuanDailyUniLiveForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteQianchuanDailyUniLiveForWorkspace, workspaceID)
+	return err
+}
+
+const deleteQianchuanDailyUniVideoForWorkspace = `-- name: DeleteQianchuanDailyUniVideoForWorkspace :exec
+DELETE FROM qianchuan_daily_uni_video WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteQianchuanDailyUniVideoForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteQianchuanDailyUniVideoForWorkspace, workspaceID)
+	return err
+}
+
+const deleteQianchuanMaterialsForWorkspace = `-- name: DeleteQianchuanMaterialsForWorkspace :exec
+DELETE FROM qianchuan_material WHERE workspace_id = $1
+`
+
+// `media_script_id` is a bare pointer into the content workbench (§25.3); no
+// reset is needed because the row that holds it is deleted here, and
+// `media_script` is swept by DeleteWorkspaceWorkbenchLedger.
+func (q *Queries) DeleteQianchuanMaterialsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteQianchuanMaterialsForWorkspace, workspaceID)
+	return err
+}
+
+const deleteQianchuanOplogsForWorkspace = `-- name: DeleteQianchuanOplogsForWorkspace :exec
+DELETE FROM qianchuan_oplog WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteQianchuanOplogsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteQianchuanOplogsForWorkspace, workspaceID)
+	return err
+}
+
+const deleteQianchuanPlansForWorkspace = `-- name: DeleteQianchuanPlansForWorkspace :exec
+DELETE FROM qianchuan_plan WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteQianchuanPlansForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteQianchuanPlansForWorkspace, workspaceID)
+	return err
+}
+
+const deleteQianchuanProductsForWorkspace = `-- name: DeleteQianchuanProductsForWorkspace :exec
+DELETE FROM qianchuan_product WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteQianchuanProductsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteQianchuanProductsForWorkspace, workspaceID)
+	return err
+}
+
+const deleteQianchuanReconsForWorkspace = `-- name: DeleteQianchuanReconsForWorkspace :exec
+DELETE FROM qianchuan_recon WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteQianchuanReconsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteQianchuanReconsForWorkspace, workspaceID)
+	return err
+}
+
+const deleteQianchuanViolationsForWorkspace = `-- name: DeleteQianchuanViolationsForWorkspace :exec
+DELETE FROM qianchuan_violation WHERE workspace_id = $1
+`
+
+func (q *Queries) DeleteQianchuanViolationsForWorkspace(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteQianchuanViolationsForWorkspace, workspaceID)
+	return err
+}
+
 const deleteTaskBatch = `-- name: DeleteTaskBatch :exec
 WITH
 batch AS MATERIALIZED (

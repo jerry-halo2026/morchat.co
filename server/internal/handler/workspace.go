@@ -1001,6 +1001,46 @@ func deleteWorkspaceKnowledge(ctx context.Context, qtx *db.Queries, workspaceID 
 	return nil
 }
 
+// deleteWorkspaceQianchuan sweeps the twelve Qianchuan ads ledgers
+// (WORKBENCH-API §25, migrations 840–852).
+//
+// They are workspace-owned snapshot rows written by cmd/qianchuan-sync and read
+// by the ads endpoints. None of them carries a foreign key (repository rule), so
+// without this step a deleted workspace's rows would stay behind with nothing in
+// the schema to notice: an orphan of exactly the kind the manifest test exists to
+// prevent.
+//
+// Order is detail → summary → master data, which is how the files behind them
+// relate (`daily_uni_*` and `daily_overall` are measures, `balance`/`product`/
+// `material`/`violation` are archives, `plan`/`anchor`/`account` are the master
+// ids those rows name). It is documentation rather than a constraint: no foreign
+// key ties any two of these tables together, so each statement stands alone.
+func deleteWorkspaceQianchuan(ctx context.Context, qtx *db.Queries, workspaceID pgtype.UUID) error {
+	steps := []struct {
+		name string
+		run  func(context.Context, pgtype.UUID) error
+	}{
+		{"daily uni live", qtx.DeleteQianchuanDailyUniLiveForWorkspace},
+		{"daily uni video", qtx.DeleteQianchuanDailyUniVideoForWorkspace},
+		{"daily overall", qtx.DeleteQianchuanDailyOverallForWorkspace},
+		{"balances", qtx.DeleteQianchuanBalancesForWorkspace},
+		{"products", qtx.DeleteQianchuanProductsForWorkspace},
+		{"materials", qtx.DeleteQianchuanMaterialsForWorkspace},
+		{"violations", qtx.DeleteQianchuanViolationsForWorkspace},
+		{"plans", qtx.DeleteQianchuanPlansForWorkspace},
+		{"anchors", qtx.DeleteQianchuanAnchorsForWorkspace},
+		{"accounts", qtx.DeleteQianchuanAccountsForWorkspace},
+		{"oplogs", qtx.DeleteQianchuanOplogsForWorkspace},
+		{"recons", qtx.DeleteQianchuanReconsForWorkspace},
+	}
+	for _, step := range steps {
+		if err := step.run(ctx, workspaceID); err != nil {
+			return fmt.Errorf("delete qianchuan %s: %w", step.name, err)
+		}
+	}
+	return nil
+}
+
 func deleteWorkspaceTasks(ctx context.Context, qtx *db.Queries, workspaceID pgtype.UUID) error {
 	ownerKinds := []struct {
 		label          string
@@ -1488,6 +1528,15 @@ func (h *Handler) DeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 			// before `member`, which every row attributes its owner to.
 			name: "delete workbench ledgers",
 			run:  func() error { return qtx.DeleteWorkspaceWorkbenchLedger(ctx, requester.WorkspaceID) },
+		},
+		{
+			// The Qianchuan ads ledgers (§25) are the same shape of surface: no
+			// foreign key, workspace-owned rows written by cmd/qianchuan-sync.
+			// They carry no reference into `member`, so their position relative
+			// to administration data is free; they are swept here so the
+			// workbench domains stay together.
+			name: "delete qianchuan ledgers",
+			run:  func() error { return deleteWorkspaceQianchuan(ctx, qtx, requester.WorkspaceID) },
 		},
 		{
 			name: "delete administration data",

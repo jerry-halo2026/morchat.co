@@ -994,3 +994,54 @@ DELETE FROM knowledge_instances WHERE workspace_id = $1;
 
 -- name: DeleteGatewayCredentialsForWorkspace :exec
 DELETE FROM gateway_credentials WHERE workspace_id = $1;
+-- ---- qianchuan ads ledgers (migrations 840-852) ----------------------------
+-- Twelve workspace-owned snapshot tables written by cmd/qianchuan-sync and read
+-- by the ads endpoints (WORKBENCH-API §25). None of them carries a foreign key
+-- (repository rule), so nothing else would ever clean a deleted workspace's
+-- rows: they are removed here, one statement per table, detail -> summary ->
+-- master data, before `workspace` goes.
+--
+-- One statement per table rather than a single multi-CTE query, for the reason
+-- deleteWorkspaceKnowledge documents: data-modifying CTEs share one snapshot
+-- with no defined order, and a reader of this plan should not have to reason
+-- about that. The order below is documentation, not a dependency: with no
+-- foreign key between them, every table is independent.
+
+-- name: DeleteQianchuanDailyUniLiveForWorkspace :exec
+DELETE FROM qianchuan_daily_uni_live WHERE workspace_id = $1;
+
+-- name: DeleteQianchuanDailyUniVideoForWorkspace :exec
+DELETE FROM qianchuan_daily_uni_video WHERE workspace_id = $1;
+
+-- name: DeleteQianchuanDailyOverallForWorkspace :exec
+DELETE FROM qianchuan_daily_overall WHERE workspace_id = $1;
+
+-- name: DeleteQianchuanBalancesForWorkspace :exec
+DELETE FROM qianchuan_balance WHERE workspace_id = $1;
+
+-- name: DeleteQianchuanProductsForWorkspace :exec
+DELETE FROM qianchuan_product WHERE workspace_id = $1;
+
+-- name: DeleteQianchuanMaterialsForWorkspace :exec
+-- `media_script_id` is a bare pointer into the content workbench (§25.3); no
+-- reset is needed because the row that holds it is deleted here, and
+-- `media_script` is swept by DeleteWorkspaceWorkbenchLedger.
+DELETE FROM qianchuan_material WHERE workspace_id = $1;
+
+-- name: DeleteQianchuanViolationsForWorkspace :exec
+DELETE FROM qianchuan_violation WHERE workspace_id = $1;
+
+-- name: DeleteQianchuanPlansForWorkspace :exec
+DELETE FROM qianchuan_plan WHERE workspace_id = $1;
+
+-- name: DeleteQianchuanAnchorsForWorkspace :exec
+DELETE FROM qianchuan_anchor WHERE workspace_id = $1;
+
+-- name: DeleteQianchuanAccountsForWorkspace :exec
+DELETE FROM qianchuan_account WHERE workspace_id = $1;
+
+-- name: DeleteQianchuanOplogsForWorkspace :exec
+DELETE FROM qianchuan_oplog WHERE workspace_id = $1;
+
+-- name: DeleteQianchuanReconsForWorkspace :exec
+DELETE FROM qianchuan_recon WHERE workspace_id = $1;

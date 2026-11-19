@@ -273,6 +273,22 @@ var workspaceDeletionManifest = map[string]workspaceDeleteAction{
 	"gateway_credentials":                   workspaceDelete,
 	// Identity link between a local user and an external IdP: user-scoped, no workspace_id.
 	"external_auth_identity":                workspaceDeleteKeep,
+	// Qianchuan ads ledgers (WORKBENCH-API §25, migrations 840–852): twelve
+	// workspace-owned snapshot tables written by cmd/qianchuan-sync. No foreign
+	// key sits behind any of them, so DeleteWorkspaceQianchuanLedger removes each
+	// explicitly; nothing else in the schema would ever clear them.
+	"qianchuan_account":         workspaceDelete,
+	"qianchuan_anchor":          workspaceDelete,
+	"qianchuan_balance":         workspaceDelete,
+	"qianchuan_daily_overall":   workspaceDelete,
+	"qianchuan_daily_uni_live":  workspaceDelete,
+	"qianchuan_daily_uni_video": workspaceDelete,
+	"qianchuan_material":        workspaceDelete,
+	"qianchuan_oplog":           workspaceDelete,
+	"qianchuan_plan":            workspaceDelete,
+	"qianchuan_product":         workspaceDelete,
+	"qianchuan_recon":           workspaceDelete,
+	"qianchuan_violation":       workspaceDelete,
 }
 
 func TestWorkspaceDeletionManifestCoversPublicSchema(t *testing.T) {
