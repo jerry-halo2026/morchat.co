@@ -497,6 +497,7 @@ export type {
   CreatorHealthDetailResponse,
   CreatorHealthSort,
   WorkbenchCountsResponse,
+  WorkbenchThread,
   WorkbenchFinanceBlock,
   WorkbenchFinanceCostBasis,
   WorkbenchFinanceCostBlock,
@@ -511,6 +512,12 @@ export type {
   ImportPreviewResponse,
   ImportRow,
   ImportRowAction,
+  WorkbenchCapabilitiesResponse,
+  WorkbenchCapability,
+  WorkbenchCapabilitySource,
+  WorkbenchRoleTemplate,
+  WorkbenchRoleTemplateListResponse,
+  WorkbenchVisibility,
   AffiliateDaily,
   AffiliateDailyListFilters,
   AffiliateDailyListResponse,
@@ -538,6 +545,31 @@ export type {
   UpdateAffiliateSettlementRequest,
   UpsertAffiliateDailyRequest,
 } from "./workbench";
+
+// 千川投放（WORKBENCH-API §25）。独立的模块而不是继续堆进 `workbench.ts`：
+// 这十二张表是平台数据的投影，只有一个 CLI 写入口，与商务台账的写路径不共享任何
+// 东西；类型放在一起也就不会有人以为这里能 `POST` 一张计划出来。
+export type {
+  AdsAccount,
+  AdsAccountListResponse,
+  AdsBasis,
+  AdsEmptyState,
+  AdsMaterial,
+  AdsMaterialKind,
+  AdsMaterialListResponse,
+  AdsMoney,
+  AdsNumber,
+  AdsPlan,
+  AdsPlanListResponse,
+  AdsReconListResponse,
+  AdsReconRow,
+  AdsSummary,
+  AdsSummaryFilters,
+  AdsTotals,
+  AdsViolation,
+  AdsViolationListResponse,
+} from "./qianchuan";
+export { ADS_BASES, ADS_DEFAULT_BASIS } from "./qianchuan";
 
 // Content workbench (docs/engineering/WORKBENCH-API.md §12). Its own module
 // rather than more of `workbench.ts`: the content pipeline is a separate domain
@@ -744,6 +776,7 @@ export type {
   BdQuote,
   BdQuoteListFilters,
   BdQuoteListResponse,
+  BdQuoteListSort,
   BdQuoteStatus,
   CreateBdActivityRequest,
   CreateBdCampaignRequest,
@@ -763,3 +796,21 @@ export type {
   BdPerformanceTotals,
   BdPerformanceVolumeBlock,
 } from "./bd";
+
+// The review gate (WORKBENCH-API §26, COLLAB-MODEL §7). Its own module because
+// it belongs to no single ledger: the queue flattens four tables, and the reason
+// vocabularies are the contract's, not any one handler's.
+export {
+  OVERWRITE_REASONS,
+  REVIEW_DOMAINS,
+  REVIEW_REASON_MAX_LENGTH,
+} from "./review";
+export type {
+  OverwriteReason,
+  RejectReviewRequest,
+  ReviewDomain,
+  ReviewQueueFilters,
+  ReviewQueueResponse,
+  ReviewQueueRow,
+  ReviewState,
+} from "./review";

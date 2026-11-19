@@ -19,6 +19,7 @@ import { AppLink } from "../navigation";
 import { useFollowupsCopy } from "./followups/copy";
 import { FollowupRow } from "./followups/followup-row";
 import { LogFollowupForm } from "./followups/log-followup-form";
+import { useLedgerCopy, useRowFocus } from "./deep-link";
 import {
   ACTIVITY_WINDOW,
   newestIds,
@@ -109,6 +110,21 @@ function FollowupsBody({ wsId }: { wsId: string }) {
     [rows, directory.names, copy],
   );
 
+  const visible: QueueRow[] = tab === "due" ? due : tab === "overdue" ? overdue : records;
+  const visibleIds = useMemo(
+    () => visible.map((row) => row.activity.id),
+    [visible],
+  );
+
+  /**
+   * `?followup=<id>` — the inbox's workbench notice and 我的队列 link at one
+   * follow-up. Matched against the tab this page is drawing, so a row in another
+   * queue is reported as missing instead of silently ignored; switching tabs then
+   * brings it into view like any other deep link.
+   */
+  const focus = useRowFocus("followup", visibleIds, !activities.isPending);
+  const ledger = useLedgerCopy();
+
   const header = (
     <CollectionPageHeader
       icon={Icon}
@@ -171,8 +187,6 @@ function FollowupsBody({ wsId }: { wsId: string }) {
     );
   }
 
-  const visible: QueueRow[] = tab === "due" ? due : tab === "overdue" ? overdue : records;
-
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {header}
@@ -189,6 +203,21 @@ function FollowupsBody({ wsId }: { wsId: string }) {
               onChange={setTab}
             />
           </div>
+
+          {/*
+            A deep link that matches nothing in this tab says so here, above
+            whichever of the three states is drawn: the row itself is not on
+            screen, so it cannot carry the message.
+          */}
+          {focus.missing ? (
+            <p
+              role="status"
+              data-slot="followup-focus-missing"
+              className="text-caption text-muted-foreground"
+            >
+              {ledger.rowMissing}
+            </p>
+          ) : null}
 
           {canWrite && composerOpen ? (
             <LogFollowupForm
@@ -221,6 +250,7 @@ function FollowupsBody({ wsId }: { wsId: string }) {
                     dueDays={tab === "all" ? null : row.dueDays}
                     canWrite={canWrite}
                     canSkip={carrying.has(row.activity.id)}
+                    focused={focus.classNameOf(row.activity.id) !== undefined}
                   />
                 </li>
               ))}

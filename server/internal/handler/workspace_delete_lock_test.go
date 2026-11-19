@@ -82,6 +82,7 @@ RETURNING id
 	t.Cleanup(func() {
 		_, _ = testPool.Exec(context.Background(), `DELETE FROM workspace WHERE id = $1`, wsID)
 	})
+	workspaceDeleteScratch(t, wsID)
 
 	if _, err := testPool.Exec(ctx, `
 INSERT INTO member (workspace_id, user_id, role)
@@ -152,6 +153,7 @@ RETURNING id
 	t.Cleanup(func() {
 		_, _ = testPool.Exec(context.Background(), `DELETE FROM workspace WHERE id = $1`, wsID)
 	})
+	workspaceDeleteScratch(t, wsID)
 
 	if _, err := testPool.Exec(ctx, `
 INSERT INTO member (workspace_id, user_id, role)

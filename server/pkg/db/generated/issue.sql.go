@@ -1441,7 +1441,7 @@ const listIssues = `-- name: ListIssues :many
 SELECT i.id, i.workspace_id, i.title, i.description, i.status, i.priority,
        i.assignee_type, i.assignee_id, i.creator_type, i.creator_id, i.requester_user_id,
        i.parent_issue_id, i.position, i.start_date, i.due_date, i.created_at, i.updated_at, i.last_activity_at, i.number, i.project_id, i.metadata, i.stage, i.properties,
-       i.revision, i.duplicate_of_issue_id
+       i.revision, i.duplicate_of_issue_id, i.goal_id
 FROM issue i
 WHERE i.workspace_id = $1
   AND ($4::text IS NULL OR i.status = $4)
@@ -1542,6 +1542,7 @@ type ListIssuesRow struct {
 	Properties         []byte             `json:"properties"`
 	Revision           int64              `json:"revision"`
 	DuplicateOfIssueID pgtype.UUID        `json:"duplicate_of_issue_id"`
+	GoalID             pgtype.UUID        `json:"goal_id"`
 }
 
 // involves_user_id widens the assignee filter to surface issues where the user
@@ -1600,6 +1601,7 @@ func (q *Queries) ListIssues(ctx context.Context, arg ListIssuesParams) ([]ListI
 			&i.Properties,
 			&i.Revision,
 			&i.DuplicateOfIssueID,
+			&i.GoalID,
 		); err != nil {
 			return nil, err
 		}
@@ -1615,20 +1617,23 @@ const listOpenIssues = `-- name: ListOpenIssues :many
 SELECT i.id, i.workspace_id, i.title, i.description, i.status, i.priority,
        i.assignee_type, i.assignee_id, i.creator_type, i.creator_id, i.requester_user_id,
        i.parent_issue_id, i.position, i.start_date, i.due_date, i.created_at, i.updated_at, i.last_activity_at, i.number, i.project_id, i.metadata, i.stage, i.properties,
-       i.revision, i.duplicate_of_issue_id
+       i.revision, i.duplicate_of_issue_id, i.goal_id
 FROM issue i
 WHERE i.workspace_id = $1
+  -- goal_id narrows the scan to one OKR objective's tasks (the boss task page
+  -- reads one goal at a time). NULL = no filter. (748)
+  AND ($2::uuid IS NULL OR i.goal_id = $2)
   -- Negate only known terminal keys so an unknown legacy key remains visible.
-  AND NOT (i.status = ANY($2::text[]))
-  AND ($3::text IS NULL OR i.priority = $3)
-  AND ($4::uuid IS NULL OR i.assignee_id = $4)
-  AND ($5::uuid[] IS NULL OR i.assignee_id = ANY($5::uuid[]))
-  AND ($6::uuid IS NULL OR i.creator_id = $6)
-  AND ($7::uuid IS NULL OR (i.creator_type = 'member' AND i.creator_id = $7) OR i.requester_user_id = $7)
-  AND ($8::uuid IS NULL OR i.project_id = $8)
+  AND NOT (i.status = ANY($3::text[]))
+  AND ($4::text IS NULL OR i.priority = $4)
+  AND ($5::uuid IS NULL OR i.assignee_id = $5)
+  AND ($6::uuid[] IS NULL OR i.assignee_id = ANY($6::uuid[]))
+  AND ($7::uuid IS NULL OR i.creator_id = $7)
+  AND ($8::uuid IS NULL OR (i.creator_type = 'member' AND i.creator_id = $8) OR i.requester_user_id = $8)
+  AND ($9::uuid IS NULL OR i.project_id = $9)
   -- MUL-8472: private projects the caller cannot see.
-  AND ($9::uuid[] IS NULL OR i.project_id IS NULL OR NOT (i.project_id = ANY($9::uuid[])))
-  AND ($10::text::jsonb IS NULL OR i.metadata @> $10::text::jsonb)
+  AND ($10::uuid[] IS NULL OR i.project_id IS NULL OR NOT (i.project_id = ANY($10::uuid[])))
+  AND ($11::text::jsonb IS NULL OR i.metadata @> $11::text::jsonb)
   -- properties_filter is a jsonb array of groups, each group an array of
   -- patterns (built by parsePropertiesFilterParam): the issue must match at
   -- least one pattern from EVERY group (AND of ORs). Three pattern shapes:
@@ -1646,10 +1651,10 @@ WHERE i.workspace_id = $1
   -- terminal-status predicate intentionally remains a filter rather than a
   -- positive index narrowing so unknown legacy status keys stay visible.
   AND (
-    $11::text::jsonb IS NULL
+    $12::text::jsonb IS NULL
     OR NOT EXISTS (
       SELECT 1
-      FROM jsonb_array_elements($11::text::jsonb) AS pf(alternatives)
+      FROM jsonb_array_elements($12::text::jsonb) AS pf(alternatives)
       WHERE NOT EXISTS (
         SELECT 1
         FROM jsonb_array_elements(pf.alternatives) AS alt(pattern)
@@ -1687,11 +1692,11 @@ WHERE i.workspace_id = $1
     )
   )
   AND (
-    $12::uuid IS NULL
+    $13::uuid IS NULL
     OR (i.assignee_type = 'agent' AND i.assignee_id IN (
           SELECT a.id FROM agent a
            WHERE a.workspace_id = $1
-             AND a.owner_id     = $12::uuid
+             AND a.owner_id     = $13::uuid
     ))
     OR (i.assignee_type = 'squad' AND i.assignee_id IN (
           SELECT sm.squad_id
@@ -1699,14 +1704,14 @@ WHERE i.workspace_id = $1
             JOIN squad s ON s.id = sm.squad_id
            WHERE s.workspace_id = $1
              AND sm.member_type = 'member'
-             AND sm.member_id   = $12::uuid
+             AND sm.member_id   = $13::uuid
           UNION
           SELECT s.id
             FROM squad s
             JOIN agent a ON a.id = s.leader_id
            WHERE s.workspace_id = $1
              AND a.workspace_id = $1
-             AND a.owner_id     = $12::uuid
+             AND a.owner_id     = $13::uuid
           UNION
           SELECT sm.squad_id
             FROM squad_member sm
@@ -1715,7 +1720,7 @@ WHERE i.workspace_id = $1
            WHERE s.workspace_id = $1
              AND sm.member_type = 'agent'
              AND a.workspace_id = $1
-             AND a.owner_id     = $12::uuid
+             AND a.owner_id     = $13::uuid
     ))
   )
 ORDER BY i.position ASC, i.created_at DESC
@@ -1723,6 +1728,7 @@ ORDER BY i.position ASC, i.created_at DESC
 
 type ListOpenIssuesParams struct {
 	WorkspaceID        pgtype.UUID   `json:"workspace_id"`
+	GoalID             pgtype.UUID   `json:"goal_id"`
 	TerminalStatusKeys []string      `json:"terminal_status_keys"`
 	Priority           pgtype.Text   `json:"priority"`
 	AssigneeID         pgtype.UUID   `json:"assignee_id"`
@@ -1762,6 +1768,7 @@ type ListOpenIssuesRow struct {
 	Properties         []byte             `json:"properties"`
 	Revision           int64              `json:"revision"`
 	DuplicateOfIssueID pgtype.UUID        `json:"duplicate_of_issue_id"`
+	GoalID             pgtype.UUID        `json:"goal_id"`
 }
 
 // See ListIssues for the semantics of involves_user_id (mirrors the 4-branch
@@ -1769,6 +1776,7 @@ type ListOpenIssuesRow struct {
 func (q *Queries) ListOpenIssues(ctx context.Context, arg ListOpenIssuesParams) ([]ListOpenIssuesRow, error) {
 	rows, err := q.db.Query(ctx, listOpenIssues,
 		arg.WorkspaceID,
+		arg.GoalID,
 		arg.TerminalStatusKeys,
 		arg.Priority,
 		arg.AssigneeID,
@@ -1814,6 +1822,7 @@ func (q *Queries) ListOpenIssues(ctx context.Context, arg ListOpenIssuesParams) 
 			&i.Properties,
 			&i.Revision,
 			&i.DuplicateOfIssueID,
+			&i.GoalID,
 		); err != nil {
 			return nil, err
 		}

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Workbench wire types (docs/engineering/WORKBENCH-API.md 搂2 and 搂10).
  *
  * B0's seven ledger tables 鈥?creators (the supply side), their posts and per-day
@@ -16,6 +16,12 @@
  * still parses: an unknown value must degrade to a default case in the UI, never
  * blank the whole ledger row.
  */
+
+// The overwrite attribution (§26.3) belongs to the review module — it is the
+// review gate's vocabulary, not the ledgers' — but a PATCH's body carries it, so
+// the request types name it from there. One-way import: `review.ts` knows nothing
+// about a collaboration.
+import type { OverwriteReason } from "./review";
 
 export type CreatorKind = "owned" | "external";
 
@@ -327,6 +333,48 @@ export interface CrmBrief {
   archived_at: string | null;
 }
 
+/**
+ * Who is doing a workbench row (docs/engineering/COLLAB-MODEL.md §1, migration
+ * 821). `member` is a human seat, `agent` is an agent; it is **not** the owner —
+ * `owner_member_id` is always a human and answers "who is accountable for the
+ * deal", not "who is on it".
+ */
+export type WorkbenchAssigneeType = "member" | "agent";
+
+/**
+ * The newest audit event about one ledger row, folded into the row a GET
+ * returns (COLLAB-MODEL §2). `action` is the dot-separated verb the trail uses
+ * (`crm_collab.stage_changed`), `type` is `member | agent | system`, and `at` is
+ * when it happened — not when the row was last written, which a note edit moves.
+ */
+export interface WorkbenchLastActor {
+  type: string;
+  id: string | null;
+  action: string;
+  at: string;
+}
+
+/**
+ * A ledger row's discussion (COLLAB-MODEL §5). The discussion is an issue —
+ * `POST /api/workbench/{ledger}/{id}/thread` mints it once and answers the same one
+ * afterwards — and this is what a list row knows about it: how big it is, what the
+ * newest line says, and whether it is still there.
+ *
+ * `state: "gone"` is the one case a reader must not turn into a 404: the issue was
+ * deleted and the ledger row still points at it. The row is still a row (its money,
+ * its stage), so the screen says 讨论已归档 and keeps going.
+ */
+export interface WorkbenchThread {
+  issue_id: string;
+  number: number;
+  title: string;
+  status: string;
+  state: "linked" | "gone";
+  comment_count: number;
+  last_comment_at: string | null;
+  last_comment_preview: string | null;
+}
+
 /** One brief matched to one creator, with its own funnel position and money. */
 export interface CrmCollab {
   id: string;
@@ -367,6 +415,27 @@ export interface CrmCollab {
    * unpaid; the individual money movements live in `CrmSettlement`.
    */
   settled_on: string | null;
+  /**
+   * Who is doing the work (a member or an agent); `null` = unassigned. Optional
+   * because a server that predates migration 821 omits the pair — absence means
+   * the same thing the column's NULL does, not "unknown".
+   */
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
+  /**
+   * Optimistic-concurrency counter: bumped on every write. A PATCH that names a
+   * different `expected_revision` answers `409 stale_write` with the current row
+   * instead of overwriting it. Absent on a pre-821 server, where every write is
+   * unguarded.
+   */
+  revision?: number;
+  /** The newest audit event about this row; absent before its first audited write. */
+  last_actor?: WorkbenchLastActor | null;
+  /**
+   * This collaboration's discussion, when it has one. Absent on a server that
+   * predates B4-3, and `null` on a row nobody has opened a thread on.
+   */
+  thread?: WorkbenchThread | null;
 }
 
 /** One money movement against a collab. `paid_at` null = still owed. */
@@ -385,6 +454,16 @@ export interface CrmSettlement {
   created_at: string;
   updated_at: string;
   archived_at: string | null;
+  /**
+   * Who is chasing the money. A settlement has no owner column of its own — its
+   * owner is the collaboration's — so this pair is the only "whose is this" it
+   * carries. Optional for the same reason as `CrmCollab.assignee_type`.
+   */
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
+  /** See `CrmCollab.revision`. */
+  revision?: number;
+  last_actor?: WorkbenchLastActor | null;
 }
 
 /** Sidebar counts. `collabs_open` excludes settled/cancelled, matching the
@@ -446,11 +525,17 @@ export interface WorkbenchFinanceCostBlock extends WorkbenchFinanceBlock {
 }
 
 export interface WorkbenchFinanceResponse {
-  /** The calendar month every figure describes, `YYYY-MM`. */
-  window: { month: string };
-  /** Contract value confirmed this month, in CNY. Renewals included (C10). */
+  /**
+   * The calendar month every figure describes, `YYYY-MM`, and the unit they are
+   * in: the window's dominant currency (`bd/performance` applies the same rule,
+   * because adding CNY to USD produces a number in neither). `currency` is
+   * optional so hand-built fixtures stay valid; the server always sends it and
+   * the schema defaults it to `CNY`.
+   */
+  window: { month: string; currency?: string };
+  /** Contract value confirmed this month, in `window.currency`. Renewals included (C10). */
   signed: WorkbenchFinanceBlock;
-  /** Settlement money that actually cleared this month, in CNY. */
+  /** Settlement money that actually cleared this month, in `window.currency`. */
   collected: WorkbenchFinanceBlock;
   /**
    * (collected 鈭?cost) / collected at the 0鈥? storage scale (C3); the UI
@@ -461,8 +546,8 @@ export interface WorkbenchFinanceResponse {
   /** Mean age, in days, of the settlements still unpaid. */
   receivable_days: WorkbenchFinanceBlock;
   /**
-   * Opening cash + collected 鈭?the month's cost, in CNY. Null until the month has
-   * an opening balance, which no ledger row can supply.
+   * Opening cash + collected 鈭?the month's cost, in `window.currency`. Null until
+   * the month has an opening balance, which no ledger row can supply.
    */
   cash_floor: WorkbenchFinanceCostBlock;
 }
@@ -635,12 +720,21 @@ export interface CrmCollabListFilters {
   stage?: CrmCollabStage;
   brief_id?: string;
   creator_id?: string;
+  /**
+   * `?assignee=` (COLLAB-MODEL §4): `me` for the caller's own queue — resolved by
+   * the server against the *actor*, which may be an agent — or a member/agent id.
+   * A member id and an agent id are both uuids, so a concrete id filters on the id
+   * alone; `me` is the only form that also fixes the type.
+   */
+  assignee?: string;
 }
 
 export interface CrmSettlementListFilters {
   collab_id?: string;
   /** `true` = only paid rows, `false` = only unpaid. */
   paid?: boolean;
+  /** See `CrmCollabListFilters.assignee`. */
+  assignee?: string;
 }
 
 // --- Write requests -------------------------------------------------------
@@ -836,11 +930,23 @@ export type CreateCrmCollabRequest = Pick<CrmCollab, "brief_id" | "creator_id"> 
       // calendar day the money was settled. Both optional on create.
       | "publish_url"
       | "settled_on"
+      // Assignment (COLLAB-MODEL §1): omitted = the owner, which is what the
+      // server's default does.
+      | "assignee_type"
+      | "assignee_id"
     >
   >;
 
-/** Stage changes also write `confirmed_at` / `published_at` / `accepted_at`
- *  server-side, so those timestamps are not client-writable. */
+/**
+ * Stage changes also write `confirmed_at` / `published_at` / `accepted_at`
+ * server-side, so those timestamps are not client-writable.
+ *
+ * Clearing (WORKBENCH-API §3.4): `publish_url`, `settled_on`, `creator_fee`,
+ * `sample_cost` and `platform_fee` keep the stored value when omitted, clear it to
+ * NULL on `null`, and also clear on `""` — the latter only for clients written
+ * before that section. A `null` still counts as touching the field, so it needs
+ * `crm.amount` and an agent is refused it (`forbidden_agent_money`).
+ */
 export type UpdateCrmCollabRequest = Partial<
   Pick<
     CrmCollab,
@@ -863,20 +969,58 @@ export type UpdateCrmCollabRequest = Partial<
     // calendar day the money was settled.
     | "publish_url"
     | "settled_on"
+    // Assignment and concurrency (COLLAB-MODEL §1/§3).
+    | "assignee_type"
+    | "assignee_id"
   >
->;
+> & {
+  /**
+   * The revision this reader last saw. A mismatch is `409 stale_write` with the
+   * current row; omitting it skips the check (old clients). It is not a column,
+   * so it sits outside the `Pick`.
+   */
+  expected_revision?: number;
+  /**
+   * Why a person is replacing an agent's value (§26.3). The server answers 400
+   * `overwrite_reason_required` when the row's last business change was an
+   * agent's; this answer is what makes the overwrite rate mean something.
+   */
+  overwrite_reason?: OverwriteReason;
+};
 
 export type CreateCrmSettlementRequest = Pick<CrmSettlement, "collab_id" | "kind" | "amount"> &
   Partial<
-    Pick<CrmSettlement, "currency" | "due_at" | "paid_at" | "invoice_no" | "note">
+    Pick<
+      CrmSettlement,
+      "currency" | "due_at" | "paid_at" | "invoice_no" | "note" | "assignee_type" | "assignee_id"
+    >
   >;
 
+/**
+ * `paid_at`, `note` and `invoice_no` follow WORKBENCH-API §3.4: omitted keeps the
+ * stored value, `null` clears it to NULL (`""` clears too, for older clients only).
+ * `paid_at` is what decides whether a row counts as collected, so a PATCH that
+ * meant to undo an arrival must send `null` — omitting it is a no-op.
+ */
 export type UpdateCrmSettlementRequest = Partial<
   Pick<
     CrmSettlement,
-    "kind" | "amount" | "currency" | "due_at" | "paid_at" | "invoice_no" | "note"
+    | "kind"
+    | "amount"
+    | "currency"
+    | "due_at"
+    | "paid_at"
+    | "invoice_no"
+    | "note"
+    | "assignee_type"
+    | "assignee_id"
   >
->;
+> & {
+  /** See `UpdateCrmCollabRequest.expected_revision`. */
+  expected_revision?: number;
+  /** See `UpdateCrmCollabRequest.overwrite_reason`. */
+  overwrite_reason?: OverwriteReason;
+};
 
 // --- HR (docs/engineering/WORKBENCH-API.md 搂10) ---------------------------
 //
@@ -1751,8 +1895,15 @@ export type UpdateAffiliateSettlementRequest = Partial<
  * together would report money we never received.
  */
 export interface AffiliateSummaryResponse {
-  /** The calendar month the figures describe, `YYYY-MM`. */
-  window: { month: string };
+  /**
+   * The calendar month the figures describe, `YYYY-MM`, and the unit they are in.
+   *
+   * `currency` is the window's dominant currency: every money block below covers
+   * that currency's rows only, for the same reason `/finance` does — adding CNY
+   * to USD produces a number in neither. An older server that sends no currency is
+   * read as CNY, the unit the affiliate columns default to.
+   */
+  window: { month: string; currency?: string };
   gmv: WorkbenchFinanceBlock;
   commission_est: WorkbenchFinanceBlock;
   commission_settled: WorkbenchFinanceBlock;
@@ -1822,4 +1973,64 @@ export interface ImportPreviewResponse {
   committed: number;
   rows: ImportRow[];
   errors: ImportError[];
+}
+
+// --- Capabilities (`GET /api/workbench/capabilities`, WORKBENCH-API §24) -----
+//
+// The product layer's own vocabulary, resolved server-side from role → job-title
+// template → department default → read-only fallback. The client does not compute
+// this; it reads the set and hides what it cannot do. The strings are the wire values
+// (§24.1), so a typo here is a capability that never matches.
+
+export type WorkbenchCapability =
+  | "crm.read"
+  | "crm.write"
+  | "crm.amount"
+  | "crm.settle"
+  | "media.read"
+  | "media.write"
+  | "media.publish"
+  | "hr.read"
+  | "hr.write"
+  | "boss.read"
+  | "ads.read"
+  | "review.accept"
+  | "agent.delegate";
+
+/**
+ * Which resolution step answered, for diagnostics: `role` (owner/admin), `template`
+ * (the member's job title), `department` (the built-in default for their department)
+ * or `fallback` (reads only). It is what makes "why can't I edit this?" answerable
+ * without reading the server logs.
+ */
+export type WorkbenchCapabilitySource = "role" | "template" | "department" | "fallback";
+
+/** `workspace.settings.workbench_visibility` (§24.4). */
+export type WorkbenchVisibility = "transparent" | "department";
+
+export interface WorkbenchCapabilitiesResponse {
+  capabilities: WorkbenchCapability[];
+  source: WorkbenchCapabilitySource;
+  /** The caller's platform role — `member | admin | owner`, verbatim. */
+  role: string;
+  visibility: WorkbenchVisibility;
+}
+
+/**
+ * One job title's capability set. `PUT /role-templates/{jobTitle}` replaces the whole
+ * set; unknown capability strings are dropped server-side, so a response never
+ * carries one this build cannot render.
+ */
+export interface WorkbenchRoleTemplate {
+  id: string;
+  workspace_id: string;
+  job_title: string;
+  capabilities: WorkbenchCapability[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkbenchRoleTemplateListResponse {
+  templates: WorkbenchRoleTemplate[];
+  total: number;
 }

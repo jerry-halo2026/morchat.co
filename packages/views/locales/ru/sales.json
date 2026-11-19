@@ -1,4 +1,22 @@
 {
+  "queue": {
+    "title": "Моя очередь",
+    "tab_followups": "Напоминания",
+    "tab_quotes": "Предложения",
+    "tab_collabs": "Сотрудничества",
+    "empty": "Здесь вам ничего не назначено.",
+    "loading": "Читаем вашу очередь…",
+    "error": "Не удалось прочитать очередь",
+    "retry": "Повторить",
+    "due_on": "Срок {{date}}",
+    "expires_on": "Действует до {{date}}",
+    "settles_on": "Расчёт {{date}}",
+    "no_date": "Без даты",
+    "start_thread": "Открыть обсуждение",
+    "thread_count": "Ответов: {{count}}",
+    "thread_archived": "Обсуждение в архиве",
+    "open_ledger": "Открыть реестр"
+  },
   "collabs": {
     "new": "Новая коллаборация",
     "empty_title": "Коллабораций пока нет",
@@ -60,6 +78,12 @@
     "revoke_confirm": "Отменить",
     "settlement_mark_received": "Отметить получение",
     "settlement_undo_received": "Отменить получение"
+  },
+  "deep_link": {
+    "missing": "Этой строки нет в текущих результатах. Снимите фильтр или очистите поиск."
+  },
+  "stale_write": {
+    "refreshed": "Кто-то только что изменил эту запись, поэтому она обновлена его версией. Проверьте и сохраните снова."
   },
   "campaigns": {
     "new": "Новый пакет",
@@ -131,6 +155,7 @@
     "reason_invalid_rate": "Комиссия задаётся от 0 до 1 (20 % — это 0.2).",
     "reason_invalid_timestamp": "Это не дата и время.",
     "reason_invalid_enum": "Это значение не разрешено.",
-    "reason_invalid_currency": "Валюта — три буквы, например CNY."
+    "reason_invalid_currency": "Валюта — три буквы, например CNY.",
+    "reason_text_too_long": "Слишком длинно для этого столбца."
   }
 }

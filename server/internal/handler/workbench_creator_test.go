@@ -64,12 +64,50 @@ func (c *workbenchEvents) last(eventType string) map[string]any {
 
 // workbenchTestMember joins a fresh user to the test workspace with the `member`
 // role — the role that is allowed to read everything and write only its own rows.
+//
+// Since §24 a write also needs a capability, so the fixture gives the member a job
+// title (`商务`) covered by a role template seeded once per test workspace. The
+// template deliberately grants the writes the existing cases exercise and **not**
+// `crm.amount` / `crm.settle`: those two are what the capability cases assert a 403
+// on, and a fixture that granted them would make every such assertion vacuous.
+// Ownership is untouched, so "a member cannot change someone else's row" still holds.
 func workbenchTestMember(t *testing.T) string {
 	t.Helper()
 	suffix := strings.NewReplacer("_", "-", "/", "-").Replace(strings.ToLower(t.Name()))
 	userID := dbfx.User(t, "Workbench Member", fmt.Sprintf("wb-member-%s@multica.ai", suffix))
 	dbfx.Member(t, testWorkspaceID, userID, "member")
+	seedWorkbenchMemberCapabilities(t, userID)
 	return userID
+}
+
+// seedWorkbenchMemberCapabilities gives one test member the baseline job title and,
+// once per workspace, the template that title resolves to.
+func seedWorkbenchMemberCapabilities(t *testing.T, userID string) {
+	t.Helper()
+	dbfx.Insert(t, "hr_employee_profile", testutil.Cols{
+		"workspace_id": testWorkspaceID,
+		"member_id":    userID,
+		"job_title":    "商务",
+	})
+	dbfx.Exec(t, `
+		INSERT INTO workbench_role_template (workspace_id, job_title, capabilities)
+		VALUES ($1, '商务', ARRAY['crm.read','crm.write','crm.amount','crm.settle','media.read','media.write','media.publish','hr.read','hr.write','boss.read','ads.read']::text[])
+		ON CONFLICT (workspace_id, lower(job_title)) WHERE archived_at IS NULL
+		DO NOTHING`, testWorkspaceID)
+}
+
+// seededEmployeeProfileID returns the profile `workbenchTestMember` seeds, whose
+// job title is what the capability template resolves. A test that needs a profile
+// this member owns must reuse it: the table allows one profile per member.
+func seededEmployeeProfileID(t *testing.T, userID string) string {
+	t.Helper()
+	var id string
+	if err := testPool.QueryRow(t.Context(),
+		`SELECT id::text FROM hr_employee_profile WHERE workspace_id = $1 AND member_id = $2 AND archived_at IS NULL`,
+		testWorkspaceID, userID).Scan(&id); err != nil {
+		t.Fatalf("read the seeded employee profile: %v", err)
+	}
+	return id
 }
 
 // workbenchRequest builds a request that acts as userID (empty means the
@@ -469,6 +507,63 @@ func TestListCreatorsSortsByEngagement(t *testing.T) {
 	// presented as the requested one.
 	req = healthRequest(t, "GET", "/api/workbench/creators?sort=vibes", testUserID, workspaceID)
 	testutil.Call(t, testHandler.ListCreators, req).Want(http.StatusBadRequest)
+}
+
+// TestListCreatorsSortWalksPastTheLastSampledRow is the regression for a keyset
+// truncation: `sort=engagement` orders sampled creators first and unsampled ones
+// last (NULLS LAST), so the page after the lowest-rate sampled creator must still
+// contain the unsampled ones. The predicate used to require `sort_value <
+// cursor_value`, which no NULL can satisfy — the walk stopped at the first
+// unsampled row and the tail of the ledger never loaded (680 of 917 creators on
+// the orange mirror).
+func TestListCreatorsSortWalksPastTheLastSampledRow(t *testing.T) {
+	workspaceID, _ := healthWorkspace(t)
+	high := insertHealthCreator(t, workspaceID, "walk-high", 1000)
+	low := insertHealthCreator(t, workspaceID, "walk-low", 2000)
+	none := insertHealthCreator(t, workspaceID, "walk-none", 3000)
+	highRate := 0.42
+	lowRate := 0.07
+	insertCreatorMetric(t, workspaceID, high.String(), &highRate, nil, 1, 12)
+	insertCreatorMetric(t, workspaceID, low.String(), &lowRate, nil, 1, 12)
+
+	walk := func(sort string) []string {
+		t.Helper()
+		var ids []string
+		cursor := ""
+		for page := 0; page < 10; page++ {
+			path := "/api/workbench/creators?sort=" + sort + "&limit=1"
+			if cursor != "" {
+				path += "&cursor=" + cursor
+			}
+			req := healthRequest(t, "GET", path, testUserID, workspaceID)
+			var got struct {
+				Creators   []CreatorResponse `json:"creators"`
+				NextCursor *string           `json:"next_cursor"`
+			}
+			testutil.Call(t, testHandler.ListCreators, req).Want(http.StatusOK).JSON(&got)
+			for _, row := range got.Creators {
+				ids = append(ids, row.ID)
+			}
+			if got.NextCursor == nil {
+				break
+			}
+			cursor = *got.NextCursor
+		}
+		return ids
+	}
+
+	want := func(ids []string, order []string) {
+		t.Helper()
+		if fmt.Sprint(ids) != fmt.Sprint(order) {
+			t.Fatalf("cursor walk = %v, want %v", ids, order)
+		}
+	}
+
+	// Engagement: the two sampled rows by rate, then the unsampled one.
+	want(walk("engagement"), []string{high.String(), low.String(), none.String()})
+	// Hit rate: no sampled hit rate at all, so every row is NULL-sorted and the
+	// walk is the follower order — all three rows, none dropped.
+	want(walk("hit"), []string{none.String(), low.String(), high.String()})
 }
 
 // TestListCreatorsDefaultSortIsFans keeps the ledger's opening order: biggest

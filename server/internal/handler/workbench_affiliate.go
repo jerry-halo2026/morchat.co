@@ -273,8 +273,16 @@ func affiliateSettlementToResponse(s db.AffiliateSettlement) AffiliateSettlement
 // AffiliateSummaryWindow names the month the figures describe. The label comes
 // from the SQL's own month bounds, so the label and the numbers can never
 // disagree about which month they are.
+//
+// `currency` names the unit every money block is in: the window's dominant
+// currency, the same caliber `/finance` applies to its figures, because adding
+// CNY to USD produces a number in neither. A month that reported nothing answers
+// `CNY` — the column default of both the daily fact and the statement, so it is
+// the unit an empty ledger would have had — and says so on the money blocks by
+// staying `insufficient_data`.
 type AffiliateSummaryWindow struct {
-	Month string `json:"month"`
+	Month    string `json:"month"`
+	Currency string `json:"currency"`
 }
 
 // AffiliateSummaryResponse is `GET /api/workbench/affiliate/summary`.
@@ -294,6 +302,14 @@ type AffiliateSummaryWindow struct {
 //     to creators — GMV, not income;
 //   - `agency_share_income` is our cut of the internal creators' cleared
 //     commission (`settled_commission × agency_share_rate`).
+//
+// Every money figure is the window's dominant currency only, and `window.currency`
+// names it. `gmv`, `commission_est`, `commission_settled`, `agency_share_income`
+// and both halves of `refund_rate` read the daily facts of that currency;
+// `tech_fee`, `commission_agency` and `commission_creator` read the statements of
+// it, and the 招商服务费 that rides along with `commission_agency` reads the
+// product's own currency. A month with a USD report and a CNY report therefore
+// answers about one of them and names which — never their sum.
 type AffiliateSummaryResponse struct {
 	Window             AffiliateSummaryWindow `json:"window"`
 	GMV                WorkbenchMetricValue   `json:"gmv"`
@@ -425,6 +441,9 @@ func (h *Handler) ListAffiliateProducts(w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	clientID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("client_id"))), "client_id")
 	if !ok {
 		return
@@ -462,7 +481,11 @@ func (h *Handler) ListAffiliateProducts(w http.ResponseWriter, r *http.Request) 
 	for i, row := range rows {
 		resp[i] = affiliateProductToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"products": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"products": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.AffiliateProduct) pgtype.UUID { return row.ID },
+	))
 }
 
 // affiliateClientRef resolves a client pointer inside the workspace. No foreign
@@ -512,6 +535,9 @@ func (h *Handler) affiliateProductRef(w http.ResponseWriter, r *http.Request, sc
 func (h *Handler) CreateAffiliateProduct(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	var req AffiliateProductRequest
@@ -618,6 +644,9 @@ func (h *Handler) GetAffiliateProduct(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	productID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "productId"), "product id")
 	if !ok {
 		return
@@ -637,6 +666,9 @@ func (h *Handler) GetAffiliateProduct(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateAffiliateProduct(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	current, ok := h.loadAffiliateProductForWrite(w, r, scope)
@@ -773,6 +805,9 @@ func (h *Handler) DeleteAffiliateProduct(w http.ResponseWriter, r *http.Request)
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, ok := h.loadAffiliateProductForWrite(w, r, scope)
 	if !ok {
 		return
@@ -798,6 +833,9 @@ func (h *Handler) DeleteAffiliateProduct(w http.ResponseWriter, r *http.Request)
 func (h *Handler) ListAffiliatePicks(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	productID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("product_id"))), "product_id")
@@ -840,7 +878,11 @@ func (h *Handler) ListAffiliatePicks(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = affiliatePickToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"picks": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"picks": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.AffiliatePick) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateAffiliatePick — POST /api/workbench/affiliate/picks
@@ -852,6 +894,9 @@ func (h *Handler) ListAffiliatePicks(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateAffiliatePick(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	var req AffiliatePickRequest
@@ -958,6 +1003,9 @@ func (h *Handler) GetAffiliatePick(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	pickID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "pickId"), "pick id")
 	if !ok {
 		return
@@ -977,6 +1025,9 @@ func (h *Handler) GetAffiliatePick(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateAffiliatePick(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	current, ok := h.loadAffiliatePickForWrite(w, r, scope)
@@ -1075,6 +1126,9 @@ func (h *Handler) DeleteAffiliatePick(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, ok := h.loadAffiliatePickForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1102,6 +1156,9 @@ func (h *Handler) ListAffiliateDaily(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	pickID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("pick_id"))), "pick_id")
 	if !ok {
 		return
@@ -1114,11 +1171,18 @@ func (h *Handler) ListAffiliateDaily(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	cursorDate, cursorPick, cursorID, ok := h.affiliateDailyCursor(w, r, scope)
+	if !ok {
+		return
+	}
 	rows, err := h.Queries.ListAffiliateDaily(r.Context(), db.ListAffiliateDailyParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		PickID:      pickID,
 		StatFrom:    statFrom,
 		StatTo:      statTo,
+		CursorDate:  cursorDate,
+		CursorPick:  cursorPick,
+		CursorID:    cursorID,
 		Limit:       workbenchLimit(r),
 	})
 	if err != nil {
@@ -1129,11 +1193,39 @@ func (h *Handler) ListAffiliateDaily(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = affiliateDailyToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"daily": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"daily": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.AffiliateDaily) pgtype.UUID { return row.ID },
+	))
+}
+
+// affiliateDailyCursor resolves `?cursor=` into the (day, pick, id) triple the daily
+// fact list pages on. The order is mixed — newest day first, then the pick id — so
+// both keys travel: past the cursor day every older day is ahead, and inside the
+// cursor day the picks after the cursor pick are. A cursor that resolves to nothing
+// in this workspace is a 400 rather than an empty page.
+func (h *Handler) affiliateDailyCursor(w http.ResponseWriter, r *http.Request, scope workbenchScope) (pgtype.Date, pgtype.UUID, pgtype.UUID, bool) {
+	raw := strings.TrimSpace(r.URL.Query().Get("cursor"))
+	if raw == "" {
+		return pgtype.Date{}, pgtype.UUID{}, pgtype.UUID{}, true
+	}
+	cursorID, ok := parseUUIDOrBadRequest(w, raw, "cursor")
+	if !ok {
+		return pgtype.Date{}, pgtype.UUID{}, pgtype.UUID{}, false
+	}
+	row, err := h.Queries.GetAffiliateDaily(r.Context(), db.GetAffiliateDailyParams{
+		ID:          cursorID,
+		WorkspaceID: scope.WorkspaceUUID,
+	})
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "cursor not found")
+		return pgtype.Date{}, pgtype.UUID{}, pgtype.UUID{}, false
+	}
+	return row.StatDate, row.PickID, cursorID, true
 }
 
 // UpsertAffiliateDaily — PUT /api/workbench/affiliate/daily
-//
 // One row per (pick, day): the body replaces that day, so a corrected report
 // overwrites the previous value instead of merging into it. The write gate reads
 // the pick's owner — a daily fact has no owner column of its own, and giving it
@@ -1141,6 +1233,9 @@ func (h *Handler) ListAffiliateDaily(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpsertAffiliateDaily(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	var req AffiliateDailyRequest
@@ -1223,6 +1318,9 @@ func (h *Handler) ListAffiliateSettlements(w http.ResponseWriter, r *http.Reques
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	status := strings.TrimSpace(r.URL.Query().Get("status"))
 	if status != "" && !affiliateSettlementStatuses[status] {
 		writeError(w, http.StatusBadRequest, "invalid status")
@@ -1236,12 +1334,27 @@ func (h *Handler) ListAffiliateSettlements(w http.ResponseWriter, r *http.Reques
 	if !ok {
 		return
 	}
+	// Keyset on (period_start, id): the cursor's period is re-read from its own row
+	// so a cursor from another workspace is a 400 instead of an empty page.
+	cursorStart, cursorID, ok := h.workbenchCursorDay(w, r, func(id pgtype.UUID) (pgtype.Date, error) {
+		row, err := h.Queries.GetAffiliateSettlement(r.Context(), db.GetAffiliateSettlementParams{
+			ID:          id,
+			WorkspaceID: scope.WorkspaceUUID,
+		})
+		return row.PeriodStart, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListAffiliateSettlements(r.Context(), db.ListAffiliateSettlementsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		Status:      strToText(status),
 		PeriodFrom:  periodFrom,
 		PeriodTo:    periodTo,
-		Limit:       workbenchLimit(r),
+		CursorAt:    cursorStart,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list affiliate settlements", err)
@@ -1251,7 +1364,11 @@ func (h *Handler) ListAffiliateSettlements(w http.ResponseWriter, r *http.Reques
 	for i, row := range rows {
 		resp[i] = affiliateSettlementToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"settlements": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"settlements": resp, "total": len(resp)},
+		rows, limit, func(row db.AffiliateSettlement) pgtype.UUID { return row.ID },
+	))
 }
 
 // affiliateSettlementWriteAllowed gates the settlement writes. A statement covers
@@ -1270,6 +1387,9 @@ func affiliateSettlementWriteAllowed(member db.Member) bool {
 func (h *Handler) CreateAffiliateSettlement(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	if !affiliateSettlementWriteAllowed(scope.Member) {
@@ -1371,6 +1491,9 @@ func (h *Handler) CreateAffiliateSettlement(w http.ResponseWriter, r *http.Reque
 func (h *Handler) UpdateAffiliateSettlement(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	if !affiliateSettlementWriteAllowed(scope.Member) {
@@ -1487,6 +1610,9 @@ func (h *Handler) GetAffiliateSummary(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	department, ok := workbenchDepartmentFilter(w, r)
 	if !ok {
 		return
@@ -1509,11 +1635,12 @@ func (h *Handler) GetAffiliateSummary(w http.ResponseWriter, r *http.Request) {
 	// The refund rate is the one division in this domain; it goes through
 	// `ratioValue` so the 0–1 scale is applied in exactly one place. Its sample
 	// count is the number of days that actually sold something, which is the
-	// denominator the ratio used.
+	// denominator the ratio used. Both halves come from the same currency-filtered
+	// daily set, so a refund in one currency can never divide a GMV in another.
 	refundRate, refundOK := ratioValue(figure.RefundAmount, figure.GmvAmount)
 
 	writeJSON(w, http.StatusOK, AffiliateSummaryResponse{
-		Window:            AffiliateSummaryWindow{Month: figure.MonthLabel},
+		Window:            AffiliateSummaryWindow{Month: figure.MonthLabel, Currency: figure.Currency},
 		GMV:               metricValue(figure.GmvAmount, figure.DailySamples > 0, figure.DailySamples, metricEmptyInsufficientData),
 		CommissionEst:     metricValue(figure.EstCommission, figure.DailySamples > 0, figure.DailySamples, metricEmptyInsufficientData),
 		CommissionSettled: metricValue(figure.SettledCommission, figure.SettledSamples > 0, figure.SettledSamples, metricEmptyInsufficientData),

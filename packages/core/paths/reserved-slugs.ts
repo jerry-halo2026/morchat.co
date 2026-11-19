@@ -80,7 +80,10 @@ export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   // Reserving each segment name prevents `/{slug}/{view}` from being visually
   // ambiguous (e.g. a workspace named `issues` would make `/issues/abc` mean two
   // things). `workspaces` covers the global `/workspaces/new` workspace-creation
-  // page; `teams` is reserved for future team management.
+  // page; `teams` is reserved for future team management. The four department
+  // spaces (`hr`, `sales`, `content`, `boss`) are first-level segments too: a
+  // workspace slugged `sales` would make `/sales/creators` address two different
+  // things.
   "issues",
   "projects",
   "autopilots",
@@ -95,6 +98,10 @@ export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   "settings",
   "workspaces",
   "teams",
+  "hr",
+  "sales",
+  "content",
+  "boss",
 
   // API / integration prefixes
   // `api` above already covers `/api/*`; these guard against future top-level

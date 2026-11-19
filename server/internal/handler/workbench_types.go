@@ -20,14 +20,19 @@ package handler
 //     patchers on the client invalidate the domain list plus overview/counts.
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
+	"math"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/jackc/pgx/v5/pgtype"
 
@@ -48,6 +53,12 @@ const (
 	eventCRMCollabChanged     = "crm_collab:changed"
 	eventCRMCollabStageChange = "crm_collab:stage_changed"
 	eventCRMSettlementChanged = "crm_settlement:changed"
+	// BD pipeline ledgers (§20), the debt §20.6 recorded until this batch: the
+	// three tables below had no `:changed` event, so a second client's ledger
+	// never refreshed until it refetched on its own.
+	eventBdActivityChanged = "creator_activity:changed"
+	eventBdQuoteChanged    = "creator_quote:changed"
+	eventBdCampaignChanged = "creator_campaign:changed"
 )
 
 // workbenchScope is one request's resolved workspace, caller and optional
@@ -59,6 +70,10 @@ type workbenchScope struct {
 	// Department is the aggregate filter from `?department_id=`; the zero value
 	// means "every department".
 	Department pgtype.UUID
+	// Capabilities caches one request's resolved capability set (§24.2). Nil until
+	// the first lookup; a scope is per-request, so the cache never outlives the
+	// membership it was resolved from.
+	Capabilities capabilitySet
 }
 
 // workbenchReadScope resolves the workspace and the caller's membership. It
@@ -233,6 +248,223 @@ func floatToNumeric(v *float64) pgtype.Numeric {
 	return n
 }
 
+// workbenchAmountMax is the widest value NUMERIC(14,2) can hold: twelve integer
+// digits and two decimals.
+//
+// The bound is checked in Go because PostgreSQL's answer to a value outside it is
+// SQLSTATE 22003 ("numeric field overflow"), which the handlers can only report as
+// a 500 — a response that tells the caller the ledger is broken instead of telling
+// them which number does not fit. 1234567890123456 is exactly the shape a
+// spreadsheet produces when a column loses its decimal point, so it is not a
+// theoretical input.
+const workbenchAmountMax = 99999999999.99
+
+// workbenchAmountMessage is the one wording every amount rejection uses.
+const workbenchAmountMessage = "must be between -99999999999.99 and 99999999999.99 (NUMERIC(14,2))"
+
+// workbenchAmountFits reports whether PostgreSQL can store the value in a
+// NUMERIC(14,2) column.
+func workbenchAmountFits(v *float64) bool {
+	if v == nil {
+		return true
+	}
+	if math.IsNaN(*v) || math.IsInf(*v, 0) {
+		return false
+	}
+	return math.Abs(*v) <= workbenchAmountMax
+}
+
+// workbenchMoneyValue resolves an optional display amount for a create body. A
+// value the column cannot hold is a 400 naming the field, never a 500.
+func workbenchMoneyValue(w http.ResponseWriter, raw *float64, fieldName string) (pgtype.Numeric, bool) {
+	if !workbenchAmountFits(raw) {
+		writeError(w, http.StatusBadRequest, fieldName+" "+workbenchAmountMessage)
+		return pgtype.Numeric{}, false
+	}
+	return floatToNumeric(raw), true
+}
+
+// workbenchMoneyPatch is applyNumericPatch with the same bound: absent keeps the
+// stored amount, and a value outside the column is refused before it reaches SQL.
+func workbenchMoneyPatch(w http.ResponseWriter, raw *float64, fieldName string, current pgtype.Numeric) (pgtype.Numeric, bool) {
+	if raw == nil {
+		return current, true
+	}
+	if !workbenchAmountFits(raw) {
+		writeError(w, http.StatusBadRequest, fieldName+" "+workbenchAmountMessage)
+		return pgtype.Numeric{}, false
+	}
+	return floatToNumeric(raw), true
+}
+
+// workbenchNonNegativeAmount rejects the amounts whose columns carry a
+// `CHECK (… >= 0)`: the CHECK is the backstop, the handler is the answer the
+// caller can act on (the same split migration 805 spells out for `fee_amount`).
+func workbenchNonNegativeAmount(w http.ResponseWriter, raw *float64, fieldName string) bool {
+	if raw != nil && *raw < 0 {
+		writeError(w, http.StatusBadRequest, fieldName+" must not be negative")
+		return false
+	}
+	return true
+}
+
+// workbenchNameLimit is the rune cap for the identifying TEXT columns that carry a
+// unique index (`creator_campaign.name`, `media_ip.name`).
+//
+// A btree index entry cannot exceed about 2.7 KB, so a pasted megabyte fails inside
+// the index with SQLSTATE 54000 and surfaces as a 500 that blames the server for a
+// bad input. 512 runes stays well under the limit even when every rune is four
+// bytes, and is far more than a campaign or persona name needs.
+const workbenchNameLimit = 512
+
+// workbenchNameTooLong reports whether a name would overflow its unique index.
+func workbenchNameTooLong(name string) bool {
+	return utf8.RuneCountInString(name) > workbenchNameLimit
+}
+
+// workbenchNameValue validates a name that is written into a unique index.
+func workbenchNameValue(w http.ResponseWriter, name, fieldName string) bool {
+	if workbenchNameTooLong(name) {
+		writeError(w, http.StatusBadRequest,
+			fmt.Sprintf("%s must be at most %d characters", fieldName, workbenchNameLimit))
+		return false
+	}
+	return true
+}
+
+// ---- free-text caps --------------------------------------------------------
+//
+// A TEXT column carries no length of its own, so a pasted megabyte is stored and
+// then handed back by every list request that selects the row: `limit=200` turns
+// one bad paste into hundreds of megabytes of JSON for the client's zod schema to
+// parse. The caps below are the handler's answer, in the same shape as
+// workbenchNameLimit but chosen per column class rather than per name.
+const (
+	// workbenchTitleLimit is a heading: a brief, a topic, a post, a job title.
+	workbenchTitleLimit = 512
+	// workbenchNoteLimit is a note or a body: a settlement note, a script body, a
+	// follow-up summary. 20000 characters is one long document.
+	workbenchNoteLimit = 20000
+	// workbenchURLLimit is a link. Far under the ~2.7 KB a btree entry can hold,
+	// which matters for `creator_post.url` — that column carries a unique index.
+	workbenchURLLimit = 2048
+	// workbenchInvoiceLimit is an invoice number: an identifier, not prose.
+	workbenchInvoiceLimit = 128
+	// workbenchColorLimit is a hex colour or a token name.
+	workbenchColorLimit = 64
+)
+
+// workbenchTextLimits maps a request field name to the rune cap of the TEXT column
+// it is written into.
+//
+// The name is the JSON spelling, so one table covers both decode shapes the
+// workbench requests use: `*string` fields (checked in decodeWorkbenchBody) and
+// the raw-JSON ones that follow §3.4's clearing rule (checked where they are
+// parsed). Every column that holds one of these names is the same class of value —
+// a `title` is a heading in the brief ledger, the topic board and the job board
+// alike — so the table is keyed by name rather than by table.
+var workbenchTextLimits = map[string]int{
+	"title":          workbenchTitleLimit,
+	"brand":          workbenchTitleLimit,
+	"persona":        workbenchTitleLimit,
+	"source_keyword": workbenchTitleLimit,
+	"summary":        workbenchNoteLimit,
+	"note":           workbenchNoteLimit,
+	"body":           workbenchNoteLimit,
+	"cta":            workbenchNoteLimit,
+	"url":            workbenchURLLimit,
+	"publish_url":    workbenchURLLimit,
+	"invoice_no":     workbenchInvoiceLimit,
+	"color":          workbenchColorLimit,
+}
+
+// workbenchTextLimit returns the cap for a field, or 0 when the field is not one
+// of the capped columns.
+func workbenchTextLimit(fieldName string) int {
+	return workbenchTextLimits[fieldName]
+}
+
+// workbenchTextValue validates one free-text field against its column's cap.
+//
+// Like workbenchNameValue it answers the 400 itself and names the field and the
+// limit, because "which box was too long" is the only part of the answer a client
+// can act on.
+func workbenchTextValue(w http.ResponseWriter, value, fieldName string) bool {
+	limit := workbenchTextLimit(fieldName)
+	if limit == 0 || utf8.RuneCountInString(value) <= limit {
+		return true
+	}
+	writeError(w, http.StatusBadRequest,
+		fmt.Sprintf("%s must be at most %d characters", fieldName, limit))
+	return false
+}
+
+// workbenchTextFieldsValue applies workbenchTextValue to every capped field of a
+// decoded request body.
+//
+// Capping here rather than at each call site is what keeps the rule from being
+// re-derived per handler: `optionalTrimmedText` has no field name to look up, and a
+// request struct is the last place both are known. Only `string` / `*string`
+// fields are read — a `json.RawMessage` field is capped where it is parsed, in
+// applyTextClearPatch / applyRequiredTextPatch.
+func workbenchTextFieldsValue(w http.ResponseWriter, body any) bool {
+	value := reflect.ValueOf(body)
+	if value.Kind() != reflect.Pointer || value.IsNil() {
+		return true
+	}
+	value = value.Elem()
+	if value.Kind() != reflect.Struct {
+		return true
+	}
+	typ := value.Type()
+	for i := 0; i < typ.NumField(); i++ {
+		field := typ.Field(i)
+		if !field.IsExported() {
+			continue
+		}
+		name, _, _ := strings.Cut(field.Tag.Get("json"), ",")
+		if name == "" || name == "-" {
+			continue
+		}
+		text, ok := workbenchRequestText(value.Field(i))
+		if !ok {
+			continue
+		}
+		if !workbenchTextValue(w, text, name) {
+			return false
+		}
+	}
+	return true
+}
+
+// workbenchRequestText reads the string behind a `string` / `*string` field.
+func workbenchRequestText(field reflect.Value) (string, bool) {
+	switch field.Kind() {
+	case reflect.String:
+		return field.String(), true
+	case reflect.Pointer:
+		if field.Type().Elem().Kind() == reflect.String && !field.IsNil() {
+			return field.Elem().String(), true
+		}
+	}
+	return "", false
+}
+
+// workbenchLikePattern escapes the metacharacters of a LIKE pattern.
+//
+// `?q=` is pasted into `ILIKE '%' || $1 || '%'`, so an unescaped `%` widens the
+// search to the whole ledger and `_` matches any single character — a filter that
+// silently answers a different question than the one asked. PostgreSQL's default
+// LIKE escape character is the backslash, so escaping here is enough and needs no
+// change in the query text.
+func workbenchLikePattern(raw string) string {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return ""
+	}
+	return strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(trimmed)
+}
+
 // numericToFloatPtr renders a stored NUMERIC for JSON. Amounts are display
 // values on the way out; the stored value stays exact.
 func numericToFloatPtr(n pgtype.Numeric) *float64 {
@@ -310,6 +542,10 @@ func workbenchTimestampValue(w http.ResponseWriter, raw *string, fieldName strin
 // decodeWorkbenchBody decodes a JSON request body, rejecting a malformed one.
 // An empty body is a valid empty object so a PATCH that only carries query
 // parameters does not 400.
+//
+// It also enforces the free-text caps of the decoded `string` / `*string` fields
+// (workbenchTextLimits): every workbench write body passes through here, which is
+// what makes one table enough.
 func decodeWorkbenchBody(w http.ResponseWriter, r *http.Request, dest any) bool {
 	if r.Body == nil {
 		return true
@@ -321,7 +557,7 @@ func decodeWorkbenchBody(w http.ResponseWriter, r *http.Request, dest any) bool 
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return false
 	}
-	return true
+	return workbenchTextFieldsValue(w, dest)
 }
 
 // workbenchInternalError logs the cause and answers with a stable message. The
@@ -439,11 +675,280 @@ func applyDatePatch(patched *string, w http.ResponseWriter, fieldName string, cu
 	return workbenchDateValue(w, patched, fieldName)
 }
 
-func applyTimestampPatch(patched *string, w http.ResponseWriter, fieldName string, current pgtype.Timestamptz) (pgtype.Timestamptz, bool) {
-	if patched == nil {
+// ---- clearing nullable columns (§3.4) --------------------------------------
+//
+// A nullable column has three request states, and `*string` / `*float64` can only
+// carry two of them: `json.Unmarshal` turns both "the key is absent" and "the key
+// is null" into a nil pointer. That is why `{"paid_at": null}` used to be a silent
+// no-op — the only way to clear a column was an empty string, a spelling no other
+// JSON API uses.
+//
+// The fields below are therefore decoded as `json.RawMessage` and read here:
+//
+//	key absent        → keep the stored value
+//	key is null       → clear the column (SQL NULL)
+//	key is ""         → clear the column (older clients; kept for compatibility)
+//	key is a value    → parse it exactly like the typed field it replaces
+//
+// New clients send `null`; `""` survives only so a client written before this
+// section keeps working. Nothing below ever stores an empty string: "cleared" is
+// NULL everywhere, which is what the reads and the aggregates test for.
+
+// rawOptionalString renders an optional string argument as the raw JSON a request
+// body carries, so a field the caller did not send stays absent instead of
+// becoming an explicit `null` — the two mean different things to §3.4.
+func rawOptionalString(value string) json.RawMessage {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return nil
+	}
+	encoded, err := json.Marshal(trimmed)
+	if err != nil {
+		return nil
+	}
+	return encoded
+}
+
+// patchSends reports whether a request body carried the field at all, `null`
+// included. It answers "did the caller mention this", which is what the state
+// readers above need; for the money gates see `patchTouches`.
+func patchSends(raw json.RawMessage) bool {
+	return len(bytes.TrimSpace(raw)) > 0
+}
+
+// patchIsNull reports whether the body carried an explicit JSON `null`.
+func patchIsNull(raw json.RawMessage) bool {
+	return string(bytes.TrimSpace(raw)) == "null"
+}
+
+// patchTouches reports whether a request wrote a nullable field at all: any value
+// counts, and an explicit `null` counts only on a PATCH. On a create there is
+// nothing to clear, so `null` is just "no value" — a generated form that sends every
+// key must not turn a create into a money write (§26.1/§26.5).
+func patchTouches(raw json.RawMessage, patch bool) bool {
+	if !patchSends(raw) {
+		return false
+	}
+	return !patchIsNull(raw) || patch
+}
+
+// applyTextClearPatch resolves a nullable TEXT column for a create or a PATCH.
+func applyTextClearPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Text) (pgtype.Text, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
 		return current, true
 	}
-	return workbenchTimestampValue(w, patched, fieldName)
+	if string(trimmed) == "null" {
+		return pgtype.Text{}, true
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a string or null")
+		return pgtype.Text{}, false
+	}
+	if !workbenchTextValue(w, value, fieldName) {
+		return pgtype.Text{}, false
+	}
+	// optionalTrimmedText already folds "" into NULL, which is the compatibility
+	// spelling this batch keeps.
+	return optionalTrimmedText(&value), true
+}
+
+// applyDateClearPatch is applyTextClearPatch for a nullable DATE column.
+func applyDateClearPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Date) (pgtype.Date, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		return pgtype.Date{}, true
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a date string or null")
+		return pgtype.Date{}, false
+	}
+	return workbenchDateValue(w, &value, fieldName)
+}
+
+// applyTimestampClearPatch is applyTextClearPatch for a nullable TIMESTAMPTZ.
+func applyTimestampClearPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Timestamptz) (pgtype.Timestamptz, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		return pgtype.Timestamptz{}, true
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a timestamp or null")
+		return pgtype.Timestamptz{}, false
+	}
+	return workbenchTimestampValue(w, &value, fieldName)
+}
+
+// applyNumericClearPatch is applyTextClearPatch for a nullable NUMERIC column. An
+// amount is cleared with `null`; `""` is accepted because it was the only spelling
+// that worked before this batch, but it is not a documented shape.
+func applyNumericClearPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Numeric) (pgtype.Numeric, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		return pgtype.Numeric{}, true
+	}
+	var value float64
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		var text string
+		if textErr := json.Unmarshal(trimmed, &text); textErr == nil && strings.TrimSpace(text) == "" {
+			return pgtype.Numeric{}, true
+		}
+		writeError(w, http.StatusBadRequest, fieldName+" must be a number or null")
+		return pgtype.Numeric{}, false
+	}
+	if !workbenchAmountFits(&value) {
+		writeError(w, http.StatusBadRequest, fieldName+" "+workbenchAmountMessage)
+		return pgtype.Numeric{}, false
+	}
+	return floatToNumeric(&value), true
+}
+
+// applyEnumClearPatch is applyTextClearPatch for a nullable enum column: `null`
+// and `""` clear it (the enum has no empty member), and any other value must be
+// one of `allowed`.
+func applyEnumClearPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, allowed map[string]bool, current pgtype.Text) (pgtype.Text, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		return pgtype.Text{}, true
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a string or null")
+		return pgtype.Text{}, false
+	}
+	parsed := strings.TrimSpace(value)
+	if parsed == "" {
+		return pgtype.Text{}, true
+	}
+	if !allowed[parsed] {
+		writeError(w, http.StatusBadRequest, "invalid "+fieldName)
+		return pgtype.Text{}, false
+	}
+	return pgtype.Text{String: parsed, Valid: true}, true
+}
+
+// applyRequiredTextPatch is the NOT-NULL counterpart: the column cannot be
+// cleared, so `null` and `""` answer 400 instead of quietly keeping the old
+// value — a client that sends them believes it cleared something.
+func applyRequiredTextPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current string) (string, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a string")
+		return current, false
+	}
+	parsed := strings.TrimSpace(value)
+	if parsed == "" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	if !workbenchTextValue(w, parsed, fieldName) {
+		return current, false
+	}
+	return parsed, true
+}
+
+// applyRequiredTimestampPatch is the NOT NULL counterpart of
+// applyTimestampClearPatch: a NOT NULL TIMESTAMPTZ has no "cleared" state, so
+// `null` and `""` are a 400 that names the field instead of an UPDATE that fails
+// on the constraint and surfaces as a 500 (`creator_activity.happened_at`,
+// migration 802). Absent still keeps the stored instant.
+func applyRequiredTimestampPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Timestamptz) (pgtype.Timestamptz, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a timestamp")
+		return current, false
+	}
+	if strings.TrimSpace(value) == "" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	return workbenchTimestampValue(w, &value, fieldName)
+}
+
+// applyRequiredDatePatch is applyRequiredTimestampPatch for a NOT NULL DATE
+// column (`media_shoot.shoot_date`): nothing can be cleared, so `null` and `""`
+// answer 400 rather than keeping a day the caller believes it removed.
+func applyRequiredDatePatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Date) (pgtype.Date, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a date string")
+		return current, false
+	}
+	if strings.TrimSpace(value) == "" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	return workbenchDateValue(w, &value, fieldName)
+}
+
+// applyRequiredNumericPatch is applyRequiredTimestampPatch for a NOT NULL
+// NUMERIC column (`crm_settlement.amount`). An absent amount keeps the stored
+// one, which is how a create answers 400 from its own "amount is required" check
+// on the zero value; `null` and `""` are refused here, because a caller that
+// sends them believes it emptied the field and a NOT NULL column cannot.
+func applyRequiredNumericPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Numeric) (pgtype.Numeric, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	var value float64
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		var text string
+		if textErr := json.Unmarshal(trimmed, &text); textErr == nil && strings.TrimSpace(text) == "" {
+			writeError(w, http.StatusBadRequest, fieldName+" is required")
+			return current, false
+		}
+		writeError(w, http.StatusBadRequest, fieldName+" must be a number")
+		return current, false
+	}
+	if !workbenchAmountFits(&value) {
+		writeError(w, http.StatusBadRequest, fieldName+" "+workbenchAmountMessage)
+		return current, false
+	}
+	return floatToNumeric(&value), true
 }
 
 // ---- responses -------------------------------------------------------------
@@ -760,9 +1265,20 @@ type CrmCollabResponse struct {
 	// string" and not "today".
 	PublishURL *string `json:"publish_url"`
 	SettledOn  *string `json:"settled_on"`
+	// Collaboration identity (COLLAB-MODEL §1/§3, migration 821):
+	// `assignee_*` is who is doing the work — an agent may hold it, unlike
+	// `owner_member_id`; `revision` is the counter a PATCH compares against; and
+	// `last_actor` is the newest audit event, folded (nil for a row whose trail
+	// predates this batch).
+	AssigneeType *string             `json:"assignee_type"`
+	AssigneeID   *string             `json:"assignee_id"`
+	Revision     int32               `json:"revision"`
+	LastActor    *WorkbenchLastActor `json:"last_actor"`
+	// Review is §26.1's gate as the row carries it: the state, and who decided.
+	Review WorkbenchReview `json:"review"`
 }
 
-func crmCollabToResponse(c db.CrmCollab) CrmCollabResponse {
+func crmCollabToResponse(c db.CrmCollab, last *WorkbenchLastActor) CrmCollabResponse {
 	return CrmCollabResponse{
 		ID:             uuidToString(c.ID),
 		WorkspaceID:    uuidToString(c.WorkspaceID),
@@ -791,6 +1307,11 @@ func crmCollabToResponse(c db.CrmCollab) CrmCollabResponse {
 		UpdatedAt:      timestampToString(c.UpdatedAt),
 		PublishURL:     textToPtr(c.PublishUrl),
 		SettledOn:      dateToPtr(c.SettledOn),
+		AssigneeType:   textToPtr(c.AssigneeType),
+		AssigneeID:     uuidToPtr(c.AssigneeID),
+		Revision:       c.Revision,
+		LastActor:      last,
+		Review:         reviewOf(c.ReviewState, c.ReviewedBy, c.ReviewedAt),
 	}
 }
 
@@ -808,22 +1329,37 @@ type CrmSettlementResponse struct {
 	CreatedBy   *string `json:"created_by"`
 	CreatedAt   string  `json:"created_at"`
 	UpdatedAt   string  `json:"updated_at"`
+	// Same three fields as the collaboration (COLLAB-MODEL §1/§3): who is
+	// chasing the money, the concurrency counter, and the newest audit event.
+	// A settlement has no owner column of its own — its owner is the
+	// collaboration's — so `assignee_*` is the only "whose is this" it carries.
+	AssigneeType *string             `json:"assignee_type"`
+	AssigneeID   *string             `json:"assignee_id"`
+	Revision     int32               `json:"revision"`
+	LastActor    *WorkbenchLastActor `json:"last_actor"`
+	// Review is §26.1's gate as the row carries it.
+	Review WorkbenchReview `json:"review"`
 }
 
-func crmSettlementToResponse(s db.CrmSettlement) CrmSettlementResponse {
+func crmSettlementToResponse(s db.CrmSettlement, last *WorkbenchLastActor) CrmSettlementResponse {
 	return CrmSettlementResponse{
-		ID:          uuidToString(s.ID),
-		WorkspaceID: uuidToString(s.WorkspaceID),
-		CollabID:    uuidToString(s.CollabID),
-		Kind:        s.Kind,
-		Amount:      numericToFloat(s.Amount),
-		Currency:    s.Currency,
-		DueAt:       dateToPtr(s.DueAt),
-		PaidAt:      dateToPtr(s.PaidAt),
-		InvoiceNo:   textToPtr(s.InvoiceNo),
-		Note:        textToPtr(s.Note),
-		CreatedBy:   uuidToPtr(s.CreatedBy),
-		CreatedAt:   timestampToString(s.CreatedAt),
-		UpdatedAt:   timestampToString(s.UpdatedAt),
+		ID:           uuidToString(s.ID),
+		WorkspaceID:  uuidToString(s.WorkspaceID),
+		CollabID:     uuidToString(s.CollabID),
+		Kind:         s.Kind,
+		Amount:       numericToFloat(s.Amount),
+		Currency:     s.Currency,
+		DueAt:        dateToPtr(s.DueAt),
+		PaidAt:       dateToPtr(s.PaidAt),
+		InvoiceNo:    textToPtr(s.InvoiceNo),
+		Note:         textToPtr(s.Note),
+		CreatedBy:    uuidToPtr(s.CreatedBy),
+		CreatedAt:    timestampToString(s.CreatedAt),
+		UpdatedAt:    timestampToString(s.UpdatedAt),
+		AssigneeType: textToPtr(s.AssigneeType),
+		AssigneeID:   uuidToPtr(s.AssigneeID),
+		Revision:     s.Revision,
+		LastActor:    last,
+		Review:       reviewOf(s.ReviewState, s.ReviewedBy, s.ReviewedAt),
 	}
 }

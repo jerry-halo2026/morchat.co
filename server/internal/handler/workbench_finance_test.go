@@ -231,6 +231,78 @@ func TestWorkbenchFinanceReadsTheLedgers(t *testing.T) {
 	assertCostGap(t, "cash_floor", figure.CashFloor)
 }
 
+// TestWorkbenchFinanceKeepsOneCurrencyPerWindow is the money-caliber guard: a
+// collaboration billed in USD and one billed in CNY must not add up. The block
+// follows `bd/performance` and answers in the window's dominant currency — the
+// sum covers that currency's rows only, and `window.currency` names which one.
+// Before this rule the same two rows reported `signed: 9000` with no unit at all.
+func TestWorkbenchFinanceKeepsOneCurrencyPerWindow(t *testing.T) {
+	departmentID := financeDepartment(t, "currency")
+	ownerUserID := workbenchTestMember(t)
+	dbfx.Exec(t,
+		`UPDATE member SET department_id = $1 WHERE workspace_id = $2 AND user_id = $3`,
+		departmentID, testWorkspaceID, ownerUserID)
+
+	client := createWorkbenchClient(t, ownerUserID, "Finance currency client")
+	brief := createWorkbenchBrief(t, client.ID, "Finance currency brief")
+	creator := createWorkbenchCreator(t, ownerUserID, "Finance currency creator")
+
+	createCollab := func(amount float64, currency string) CrmCollabResponse {
+		t.Helper()
+		req := workbenchRequest(t, "POST", "/api/workbench/crm/collabs", mergeCollabPayload(brief.ID, creator.ID, map[string]any{
+			"stage":        "confirmed",
+			"final_amount": amount,
+			"currency":     currency,
+			"creator_fee":  0,
+			"sample_cost":  0,
+			"platform_fee": 0,
+		}), ownerUserID)
+		collab := testutil.Decode[CrmCollabResponse](t, testHandler.CreateCrmCollab, req, http.StatusCreated)
+		t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM crm_collab WHERE id = $1`, collab.ID) })
+		return collab
+	}
+
+	// CNY twice, USD once: the dominant currency is CNY, so the block answers
+	// 4000 + 1000 and leaves the 7000 USD collaboration out of the total.
+	cnyA := createCollab(4000, "CNY")
+	cnyB := createCollab(1000, "CNY")
+	createCollab(7000, "USD")
+
+	today := time.Now().Format("2006-01-02")
+	for _, collab := range []CrmCollabResponse{cnyA, cnyB} {
+		req := workbenchRequest(t, "POST", "/api/workbench/crm/settlements", map[string]any{
+			"collab_id": collab.ID,
+			"kind":      "final",
+			"amount":    100,
+			"currency":  "CNY",
+			"paid_at":   today,
+		}, ownerUserID)
+		paid := testutil.Decode[CrmSettlementResponse](t, testHandler.CreateCrmSettlement, req, http.StatusCreated)
+		t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM crm_settlement WHERE id = $1`, paid.ID) })
+	}
+
+	figure := fetchWorkbenchFinance(t, "?department_id="+departmentID, testUserID)
+
+	if figure.Window.Currency != "CNY" {
+		t.Fatalf("window.currency = %q, want CNY (the window's dominant currency)", figure.Window.Currency)
+	}
+	if figure.Signed.Value == nil {
+		t.Fatal("signed = null, want the CNY collaborations' total")
+	}
+	if got := *figure.Signed.Value; got != 5000 {
+		t.Fatalf("signed = %v, want 5000 (CNY rows only: 4000 + 1000)", got)
+	}
+	if figure.Signed.SampleCount != 2 {
+		t.Fatalf("signed sample_count = %d, want 2 (the two CNY collaborations)", figure.Signed.SampleCount)
+	}
+	if figure.Collected.Value == nil {
+		t.Fatal("collected = null, want the two CNY settlements' total")
+	}
+	if got := *figure.Collected.Value; got != 200 {
+		t.Fatalf("collected = %v, want 200 (the two CNY settlements)", got)
+	}
+}
+
 // TestWorkbenchFinanceDepartmentFilterIsolatesRows proves the filter narrows the
 // aggregate: the same request against another department answers with zeros and
 // gaps, so one department's money never shows up in another's block.

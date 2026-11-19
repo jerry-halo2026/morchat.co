@@ -40,6 +40,7 @@
     "content_scripts": "文案工坊",
     "content_shoots": "拍摄剪辑",
     "content_publish": "发布排期",
+    "content_ads": "投放",
     "content_data": "数据复盘",
     "boss_overview": "总览",
     "boss_goals": "目标",
@@ -47,7 +48,8 @@
     "boss_radar": "市场雷达",
     "boss_customers": "客户",
     "boss_biz": "经营",
-    "boss_team": "团队"
+    "boss_team": "团队",
+    "boss_review": "复核队列"
   },
   "hr": {
     "recruit": {

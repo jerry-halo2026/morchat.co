@@ -257,6 +257,9 @@ func (h *Handler) ListHrEmployeeRewards(w http.ResponseWriter, r *http.Request) 
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	query := r.URL.Query()
 	kind := strings.TrimSpace(query.Get("kind"))
 	if kind != "" && !hrEmployeeRewardKinds[kind] {
@@ -279,13 +282,21 @@ func (h *Handler) ListHrEmployeeRewards(w http.ResponseWriter, r *http.Request) 
 		writeError(w, http.StatusBadRequest, "to must not be before from")
 		return
 	}
+	cursorOn, cursorAt, cursorID, ok := h.hrEmployeeRewardCursor(w, r, scope)
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListHrEmployeeRewards(r.Context(), db.ListHrEmployeeRewardsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		EmployeeID:  employeeID,
 		Kind:        optionalTrimmedText(stringPtr(kind)),
 		FromOn:      fromOn,
 		ToOn:        toOn,
-		Limit:       workbenchLimit(r),
+		CursorOn:    cursorOn,
+		CursorAt:    cursorAt,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list rewards", err)
@@ -295,7 +306,35 @@ func (h *Handler) ListHrEmployeeRewards(w http.ResponseWriter, r *http.Request) 
 	for i, row := range rows {
 		resp[i] = hrEmployeeRewardToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"rewards": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"rewards": resp, "total": len(resp)},
+		rows, limit, func(row db.HrEmployeeReward) pgtype.UUID { return row.ID },
+	))
+}
+
+// hrEmployeeRewardCursor resolves `?cursor=` into the (decided_on, created_at, id)
+// triple the 奖惩 tab pages on: rows entered in one batch share a decision day, so
+// creation and id keep the walk total. An id that resolves to nothing in this
+// workspace is a 400 rather than an empty page.
+func (h *Handler) hrEmployeeRewardCursor(w http.ResponseWriter, r *http.Request, scope workbenchScope) (pgtype.Date, pgtype.Timestamptz, pgtype.UUID, bool) {
+	raw := strings.TrimSpace(r.URL.Query().Get("cursor"))
+	if raw == "" {
+		return pgtype.Date{}, pgtype.Timestamptz{}, pgtype.UUID{}, true
+	}
+	cursorID, ok := parseUUIDOrBadRequest(w, raw, "cursor")
+	if !ok {
+		return pgtype.Date{}, pgtype.Timestamptz{}, pgtype.UUID{}, false
+	}
+	row, err := h.Queries.GetHrEmployeeReward(r.Context(), db.GetHrEmployeeRewardParams{
+		ID:          cursorID,
+		WorkspaceID: scope.WorkspaceUUID,
+	})
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "cursor not found")
+		return pgtype.Date{}, pgtype.Timestamptz{}, pgtype.UUID{}, false
+	}
+	return row.DecidedOn, row.CreatedAt, cursorID, true
 }
 
 // CreateHrEmployeeReward — POST /api/workbench/hr/rewards
@@ -306,6 +345,9 @@ func (h *Handler) ListHrEmployeeRewards(w http.ResponseWriter, r *http.Request) 
 func (h *Handler) CreateHrEmployeeReward(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	var req HrEmployeeRewardRequest
@@ -374,6 +416,9 @@ func (h *Handler) CreateHrEmployeeReward(w http.ResponseWriter, r *http.Request)
 func (h *Handler) UpdateHrEmployeeReward(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrEmployeeRewardForWrite(w, r, scope)
@@ -471,6 +516,9 @@ func (h *Handler) UpdateHrEmployeeReward(w http.ResponseWriter, r *http.Request)
 func (h *Handler) DeleteHrEmployeeReward(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrEmployeeRewardForWrite(w, r, scope)

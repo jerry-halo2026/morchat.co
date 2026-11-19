@@ -1,4 +1,22 @@
 {
+  "queue": {
+    "title": "自分のキュー",
+    "tab_followups": "フォロー",
+    "tab_quotes": "見積",
+    "tab_collabs": "案件",
+    "empty": "あなたに割り当てられた行はありません。",
+    "loading": "キューを読み込んでいます…",
+    "error": "キューを読み込めませんでした",
+    "retry": "再試行",
+    "due_on": "{{date}} 期限",
+    "expires_on": "{{date}} まで有効",
+    "settles_on": "{{date}} 精算",
+    "no_date": "日付なし",
+    "start_thread": "ディスカッションを開始",
+    "thread_count": "{{count}} 件の返信",
+    "thread_archived": "ディスカッションはアーカイブ済み",
+    "open_ledger": "台帳を開く"
+  },
   "collabs": {
     "new": "コラボを追加",
     "empty_title": "コラボはまだありません",
@@ -60,6 +78,12 @@
     "revoke_confirm": "取り消す",
     "settlement_mark_received": "入金済みにする",
     "settlement_undo_received": "入金を取り消す"
+  },
+  "deep_link": {
+    "missing": "この行は現在の結果にありません。フィルターか検索を解除して探してください。"
+  },
+  "stale_write": {
+    "refreshed": "他の人が変更したため、最新の内容に更新しました。確認してから保存してください。"
   },
   "campaigns": {
     "new": "バッチを追加",
@@ -131,6 +155,7 @@
     "reason_invalid_rate": "コミッション率は 0〜1 です（20% は 0.2）。",
     "reason_invalid_timestamp": "日時ではありません。",
     "reason_invalid_enum": "許可された値ではありません。",
-    "reason_invalid_currency": "通貨は CNY のような 3 文字です。"
+    "reason_invalid_currency": "通貨は CNY のような 3 文字です。",
+    "reason_text_too_long": "この列の上限を超えています。"
   }
 }

@@ -99,15 +99,18 @@ func emptyMediaScores() mediaScores {
 // ---- requests --------------------------------------------------------------
 
 // MediaIPRequest is both the create and the PATCH body.
+//
+// `name` is NOT NULL, so it decodes raw (§3.4): `null` and `""` answer a 400 that
+// names the field instead of keeping the stored persona's name.
 type MediaIPRequest struct {
-	Name          *string `json:"name"`
-	Persona       *string `json:"persona"`
-	Track         *string `json:"track"`
-	Audience      *string `json:"audience"`
-	Color         *string `json:"color"`
-	WeekGoal      *int32  `json:"week_goal"`
-	Status        *string `json:"status"`
-	OwnerMemberID *string `json:"owner_member_id"`
+	Name          json.RawMessage `json:"name"`
+	Persona       *string         `json:"persona"`
+	Track         *string         `json:"track"`
+	Audience      *string         `json:"audience"`
+	Color         *string         `json:"color"`
+	WeekGoal      *int32          `json:"week_goal"`
+	Status        *string         `json:"status"`
+	OwnerMemberID *string         `json:"owner_member_id"`
 }
 
 // MediaAccountRequest attaches a platform account to an IP. The account itself is
@@ -118,10 +121,11 @@ type MediaAccountRequest struct {
 
 // MediaTopicRequest is both the create and the PATCH body. `Scores` is raw so the
 // handler can tell "not sent" (keep the stored card) from "sent" (merge the five
-// dimensions) 鈥?a `map` cannot express that difference.
+// dimensions) 鈥?a `map` cannot express that difference. `Title` is NOT NULL and raw
+// for the other half of §3.4: `null` and `""` are a 400, not a silent keep.
 type MediaTopicRequest struct {
 	IPID          *string         `json:"ip_id"`
-	Title         *string         `json:"title"`
+	Title         json.RawMessage `json:"title"`
 	Source        *string         `json:"source"`
 	Scores        json.RawMessage `json:"scores"`
 	Status        *string         `json:"status"`
@@ -131,27 +135,29 @@ type MediaTopicRequest struct {
 }
 
 // MediaScriptRequest is both the create and the PATCH body. `Tags` is a pointer so
-// an empty array means "clear the tags" rather than "not sent".
+// an empty array means "clear the tags" rather than "not sent". `PublishAt` is a
+// nullable instant a PATCH can clear, so it carries raw JSON (§3.4).
 type MediaScriptRequest struct {
-	TopicID       *string   `json:"topic_id"`
-	IPID          *string   `json:"ip_id"`
-	Hook          *string   `json:"hook"`
-	Body          *string   `json:"body"`
-	CTA           *string   `json:"cta"`
-	CoverNote     *string   `json:"cover_note"`
-	Tags          *[]string `json:"tags"`
-	Status        *string   `json:"status"`
-	PublishAt     *string   `json:"publish_at"`
-	OwnerMemberID *string   `json:"owner_member_id"`
+	TopicID       *string         `json:"topic_id"`
+	IPID          *string         `json:"ip_id"`
+	Hook          *string         `json:"hook"`
+	Body          *string         `json:"body"`
+	CTA           *string         `json:"cta"`
+	CoverNote     *string         `json:"cover_note"`
+	Tags          *[]string       `json:"tags"`
+	Status        *string         `json:"status"`
+	PublishAt     json.RawMessage `json:"publish_at"`
+	OwnerMemberID *string         `json:"owner_member_id"`
 }
 
 // MediaShootRequest is both the create and the PATCH body. `Shots` is raw because
 // the column holds a `shotlist.v1` artifact (see mediaShotsValue); `Checklist` is
 // merged over the stored tick state, so a PATCH that ticks one box cannot clear
-// the rest.
+// the rest. `ShootDate` is NOT NULL: raw JSON lets `null` / `""` answer a 400 that
+// names the field instead of keeping a day the caller believes it removed.
 type MediaShootRequest struct {
 	ScriptID      *string         `json:"script_id"`
-	ShootDate     *string         `json:"shoot_date"`
+	ShootDate     json.RawMessage `json:"shoot_date"`
 	Location      *string         `json:"location"`
 	Shots         json.RawMessage `json:"shots"`
 	Checklist     map[string]bool `json:"checklist"`
@@ -913,15 +919,28 @@ func (h *Handler) ListMediaIPs(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	status := strings.TrimSpace(r.URL.Query().Get("status"))
 	if status != "" && mediaEnumInvalid(status, mediaIPStatuses) {
 		writeError(w, http.StatusBadRequest, "status must be active, paused or ended")
 		return
 	}
+	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
+		row, err := h.Queries.GetMediaIP(r.Context(), db.GetMediaIPParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
+		return row.CreatedAt, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListMediaIPs(r.Context(), db.ListMediaIPsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		Status:      strToText(status),
-		Limit:       workbenchLimit(r),
+		CursorAt:    cursorAt,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list content IPs", err)
@@ -933,7 +952,11 @@ func (h *Handler) ListMediaIPs(w http.ResponseWriter, r *http.Request) {
 	}
 	// `total` is this page's row count, like every other workbench list; the
 	// authoritative workspace-wide numbers do not exist for the content side yet.
-	writeJSON(w, http.StatusOK, map[string]any{"ips": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"ips": resp, "total": len(resp)},
+		rows, limit, func(row db.MediaIp) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateMediaIP 鈥?POST /api/workbench/media/ips
@@ -942,13 +965,22 @@ func (h *Handler) CreateMediaIP(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	var req MediaIPRequest
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
-	name := strings.TrimSpace(valueOrEmpty(req.Name))
+	name, ok := applyRequiredTextPatch(req.Name, w, "name", "")
+	if !ok {
+		return
+	}
 	if name == "" {
 		writeError(w, http.StatusBadRequest, "name is required")
+		return
+	}
+	if !workbenchNameValue(w, name, "name") {
 		return
 	}
 	status := mediaIPStatusActive
@@ -1003,6 +1035,9 @@ func (h *Handler) GetMediaIP(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	ipID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "ipId"), "ip id")
 	if !ok {
 		return
@@ -1036,6 +1071,9 @@ func (h *Handler) UpdateMediaIP(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	current, ok := h.loadMediaIPForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1044,13 +1082,12 @@ func (h *Handler) UpdateMediaIP(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
-	name := current.Name
-	if req.Name != nil {
-		name = strings.TrimSpace(*req.Name)
-		if name == "" {
-			writeError(w, http.StatusBadRequest, "name is required")
-			return
-		}
+	name, ok := applyRequiredTextPatch(req.Name, w, "name", current.Name)
+	if !ok {
+		return
+	}
+	if !workbenchNameValue(w, name, "name") {
+		return
 	}
 	status := current.Status
 	if req.Status != nil {
@@ -1108,6 +1145,9 @@ func (h *Handler) DeleteMediaIP(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	current, ok := h.loadMediaIPForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1136,6 +1176,9 @@ func (h *Handler) DeleteMediaIP(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AttachMediaIPAccount(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	ip, ok := h.loadMediaIPForWrite(w, r, scope)
@@ -1190,6 +1233,9 @@ func (h *Handler) DetachMediaIPAccount(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	ip, ok := h.loadMediaIPForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1231,6 +1277,9 @@ func (h *Handler) ListMediaTopics(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	ipID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("ip_id"))), "ip_id")
 	if !ok {
 		return
@@ -1241,11 +1290,21 @@ func (h *Handler) ListMediaTopics(w http.ResponseWriter, r *http.Request) {
 			"status must be pool, scripting, shooting, publishing, done or dropped")
 		return
 	}
+	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
+		row, err := h.Queries.GetMediaTopic(r.Context(), db.GetMediaTopicParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
+		return row.CreatedAt, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListMediaTopics(r.Context(), db.ListMediaTopicsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		IpID:        ipID,
 		Status:      strToText(status),
-		Limit:       workbenchLimit(r),
+		CursorAt:    cursorAt,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list topics", err)
@@ -1255,13 +1314,20 @@ func (h *Handler) ListMediaTopics(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = mediaTopicToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"topics": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"topics": resp, "total": len(resp)},
+		rows, limit, func(row db.MediaTopic) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateMediaTopic 鈥?POST /api/workbench/media/topics
 func (h *Handler) CreateMediaTopic(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	var req MediaTopicRequest
@@ -1272,7 +1338,10 @@ func (h *Handler) CreateMediaTopic(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	title := strings.TrimSpace(valueOrEmpty(req.Title))
+	title, ok := applyRequiredTextPatch(req.Title, w, "title", "")
+	if !ok {
+		return
+	}
 	if title == "" {
 		writeError(w, http.StatusBadRequest, "title is required")
 		return
@@ -1327,7 +1396,7 @@ func (h *Handler) CreateMediaTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.publishMediaTopicChanged(scope, uuidToString(topic.ID))
+	h.publishMediaTopicChanged(r, scope, uuidToString(topic.ID))
 	writeJSON(w, http.StatusCreated, mediaTopicToResponse(topic))
 }
 
@@ -1335,6 +1404,9 @@ func (h *Handler) CreateMediaTopic(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetMediaTopic(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
 		return
 	}
 	topicID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "topicId"), "topic id")
@@ -1357,6 +1429,9 @@ func (h *Handler) UpdateMediaTopic(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	current, ok := h.loadMediaTopicForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1373,13 +1448,9 @@ func (h *Handler) UpdateMediaTopic(w http.ResponseWriter, r *http.Request) {
 		}
 		ipID = ip.ID
 	}
-	title := current.Title
-	if req.Title != nil {
-		title = strings.TrimSpace(*req.Title)
-		if title == "" {
-			writeError(w, http.StatusBadRequest, "title is required")
-			return
-		}
+	title, ok := applyRequiredTextPatch(req.Title, w, "title", current.Title)
+	if !ok {
+		return
 	}
 	source := current.Source
 	if req.Source != nil {
@@ -1435,7 +1506,7 @@ func (h *Handler) UpdateMediaTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.publishMediaTopicChanged(scope, uuidToString(updated.ID))
+	h.publishMediaTopicChanged(r, scope, uuidToString(updated.ID))
 	writeJSON(w, http.StatusOK, mediaTopicToResponse(updated))
 }
 
@@ -1443,6 +1514,9 @@ func (h *Handler) UpdateMediaTopic(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) DeleteMediaTopic(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	current, ok := h.loadMediaTopicForWrite(w, r, scope)
@@ -1460,7 +1534,7 @@ func (h *Handler) DeleteMediaTopic(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "topic not found")
 		return
 	}
-	h.publishMediaTopicChanged(scope, uuidToString(current.ID))
+	h.publishMediaTopicChanged(r, scope, uuidToString(current.ID))
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -1475,6 +1549,9 @@ func (h *Handler) ListMediaScripts(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	topicID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("topic_id"))), "topic_id")
 	if !ok {
 		return
@@ -1484,11 +1561,21 @@ func (h *Handler) ListMediaScripts(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "status must be draft, review, approved or archived")
 		return
 	}
+	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
+		row, err := h.Queries.GetMediaScript(r.Context(), db.GetMediaScriptParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
+		return row.CreatedAt, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListMediaScripts(r.Context(), db.ListMediaScriptsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		TopicID:     topicID,
 		Status:      strToText(status),
-		Limit:       workbenchLimit(r),
+		CursorAt:    cursorAt,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list scripts", err)
@@ -1498,7 +1585,11 @@ func (h *Handler) ListMediaScripts(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = mediaScriptToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"scripts": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"scripts": resp, "total": len(resp)},
+		rows, limit, func(row db.MediaScript) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateMediaScript 鈥?POST /api/workbench/media/scripts
@@ -1510,6 +1601,9 @@ func (h *Handler) ListMediaScripts(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateMediaScript(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	var req MediaScriptRequest
@@ -1561,7 +1655,7 @@ func (h *Handler) CreateMediaScript(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	publishAt, ok := workbenchTimestampValue(w, req.PublishAt, "publish_at")
+	publishAt, ok := applyTimestampClearPatch(req.PublishAt, w, "publish_at", pgtype.Timestamptz{})
 	if !ok {
 		return
 	}
@@ -1599,6 +1693,9 @@ func (h *Handler) GetMediaScript(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	scriptID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "scriptId"), "script id")
 	if !ok {
 		return
@@ -1627,6 +1724,9 @@ func (h *Handler) UpdateMediaScript(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	current, _, ok := h.loadMediaScriptForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1653,12 +1753,9 @@ func (h *Handler) UpdateMediaScript(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	publishAt := current.PublishAt
-	if req.PublishAt != nil {
-		publishAt, ok = workbenchTimestampValue(w, req.PublishAt, "publish_at")
-		if !ok {
-			return
-		}
+	publishAt, ok := applyTimestampClearPatch(req.PublishAt, w, "publish_at", current.PublishAt)
+	if !ok {
+		return
 	}
 	ipID := current.IpID
 	if req.IPID != nil {
@@ -1753,6 +1850,9 @@ func (h *Handler) DeleteMediaScript(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	current, _, ok := h.loadMediaScriptForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1783,6 +1883,9 @@ func (h *Handler) ListMediaShoots(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	scriptID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("script_id"))), "script_id")
 	if !ok {
 		return
@@ -1799,12 +1902,24 @@ func (h *Handler) ListMediaShoots(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "to must not be before from")
 		return
 	}
+	// The calendar reads forward, so its cursor is the last day shown and the
+	// predicate takes every row after it; the id breaks ties inside a day.
+	cursorDay, cursorID, ok := h.workbenchCursorDay(w, r, func(id pgtype.UUID) (pgtype.Date, error) {
+		row, err := h.Queries.GetMediaShoot(r.Context(), db.GetMediaShootParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
+		return row.ShootDate, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListMediaShoots(r.Context(), db.ListMediaShootsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		ScriptID:    scriptID,
 		FromDate:    from,
 		ToDate:      to,
-		Limit:       workbenchLimit(r),
+		CursorDay:   cursorDay,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list shoots", err)
@@ -1814,13 +1929,20 @@ func (h *Handler) ListMediaShoots(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = mediaShootToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"shoots": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"shoots": resp, "total": len(resp)},
+		rows, limit, func(row db.MediaShoot) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateMediaShoot 鈥?POST /api/workbench/media/shoots
 func (h *Handler) CreateMediaShoot(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	var req MediaShootRequest
@@ -1843,7 +1965,7 @@ func (h *Handler) CreateMediaShoot(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusForbidden, "you can only schedule shoots for topics you own")
 		return
 	}
-	shootDate, ok := workbenchDateValue(w, req.ShootDate, "shoot_date")
+	shootDate, ok := applyRequiredDatePatch(req.ShootDate, w, "shoot_date", pgtype.Date{})
 	if !ok {
 		return
 	}
@@ -1905,6 +2027,9 @@ func (h *Handler) GetMediaShoot(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	shootID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "shootId"), "shoot id")
 	if !ok {
 		return
@@ -1927,6 +2052,9 @@ func (h *Handler) GetMediaShoot(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateMediaShoot(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	current, _, topic, ok := h.loadMediaShootForWrite(w, r, scope)
@@ -1955,16 +2083,9 @@ func (h *Handler) UpdateMediaShoot(w http.ResponseWriter, r *http.Request) {
 		}
 		scriptID = requested
 	}
-	shootDate := current.ShootDate
-	if req.ShootDate != nil {
-		shootDate, ok = workbenchDateValue(w, req.ShootDate, "shoot_date")
-		if !ok {
-			return
-		}
-		if !shootDate.Valid {
-			writeError(w, http.StatusBadRequest, "shoot_date is required")
-			return
-		}
+	shootDate, ok := applyRequiredDatePatch(req.ShootDate, w, "shoot_date", current.ShootDate)
+	if !ok {
+		return
 	}
 	status := current.Status
 	if req.Status != nil {
@@ -2008,6 +2129,9 @@ func (h *Handler) UpdateMediaShoot(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) DeleteMediaShoot(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	current, _, _, ok := h.loadMediaShootForWrite(w, r, scope)
@@ -2181,17 +2305,30 @@ func (h *Handler) ListMediaHot(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	capturedOn, ok := workbenchDateValue(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("captured_on"))), "captured_on")
 	if !ok {
 		return
 	}
+	cursorDay, cursorID, ok := h.workbenchCursorDay(w, r, func(id pgtype.UUID) (pgtype.Date, error) {
+		row, err := h.Queries.GetMediaHot(r.Context(), db.GetMediaHotParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
+		return row.CapturedOn, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListMediaHot(r.Context(), db.ListMediaHotParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		CapturedOn:  capturedOn,
 		Category:    strToText(strings.TrimSpace(r.URL.Query().Get("category"))),
 		Platform:    strToText(strings.TrimSpace(r.URL.Query().Get("platform"))),
-		Query:       strToText(strings.TrimSpace(r.URL.Query().Get("q"))),
-		Limit:       workbenchLimit(r),
+		Query:       strToText(workbenchLikePattern(r.URL.Query().Get("q"))),
+		CursorDay:   cursorDay,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list hotspots", err)
@@ -2201,13 +2338,20 @@ func (h *Handler) ListMediaHot(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = mediaHotToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"hot": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"hot": resp, "total": len(resp)},
+		rows, limit, func(row db.MediaHot) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateMediaHot — POST /api/workbench/media/hot
 func (h *Handler) CreateMediaHot(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	var req MediaHotRequest
@@ -2279,6 +2423,9 @@ func (h *Handler) GetMediaHot(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	hotID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "hotId"), "hot id")
 	if !ok {
 		return
@@ -2295,6 +2442,9 @@ func (h *Handler) GetMediaHot(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateMediaHot(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	current, ok := h.loadMediaHotForWrite(w, r, scope)
@@ -2388,6 +2538,9 @@ func (h *Handler) DeleteMediaHot(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	current, ok := h.loadMediaHotForWrite(w, r, scope)
 	if !ok {
 		return
@@ -2415,6 +2568,9 @@ func (h *Handler) ListMediaBench(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	ipID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("ip_id"))), "ip_id")
 	if !ok {
 		return
@@ -2423,13 +2579,23 @@ func (h *Handler) ListMediaBench(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	cursorDay, cursorID, ok := h.workbenchCursorDay(w, r, func(id pgtype.UUID) (pgtype.Date, error) {
+		row, err := h.Queries.GetMediaBench(r.Context(), db.GetMediaBenchParams{ID: id, WorkspaceID: scope.WorkspaceUUID})
+		return row.CapturedOn, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListMediaBench(r.Context(), db.ListMediaBenchParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		IpID:        ipID,
 		CapturedOn:  capturedOn,
 		Platform:    strToText(strings.TrimSpace(r.URL.Query().Get("platform"))),
-		Query:       strToText(strings.TrimSpace(r.URL.Query().Get("q"))),
-		Limit:       workbenchLimit(r),
+		Query:       strToText(workbenchLikePattern(r.URL.Query().Get("q"))),
+		CursorDay:   cursorDay,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list benchmarks", err)
@@ -2439,13 +2605,20 @@ func (h *Handler) ListMediaBench(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = mediaBenchToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"bench": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"bench": resp, "total": len(resp)},
+		rows, limit, func(row db.MediaBench) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateMediaBench — POST /api/workbench/media/bench
 func (h *Handler) CreateMediaBench(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	var req MediaBenchRequest
@@ -2512,6 +2685,9 @@ func (h *Handler) GetMediaBench(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	benchID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "benchId"), "bench id")
 	if !ok {
 		return
@@ -2528,6 +2704,9 @@ func (h *Handler) GetMediaBench(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateMediaBench(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	current, ok := h.loadMediaBenchForWrite(w, r, scope)
@@ -2620,6 +2799,9 @@ func (h *Handler) DeleteMediaBench(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	current, ok := h.loadMediaBenchForWrite(w, r, scope)
 	if !ok {
 		return
@@ -2654,6 +2836,9 @@ func (h *Handler) AdoptMediaHot(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
+		return
+	}
 	hotID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "hotId"), "hot id")
 	if !ok {
 		return
@@ -2674,6 +2859,9 @@ func (h *Handler) AdoptMediaHot(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AdoptMediaBench(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	benchID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "benchId"), "bench id")
@@ -2735,7 +2923,7 @@ func (h *Handler) adoptIntoMediaTopic(w http.ResponseWriter, r *http.Request, sc
 		return
 	}
 
-	h.publishMediaTopicChanged(scope, uuidToString(topic.ID))
+	h.publishMediaTopicChanged(r, scope, uuidToString(topic.ID))
 	writeJSON(w, http.StatusCreated, mediaTopicToResponse(topic))
 }
 
@@ -2746,8 +2934,13 @@ func (h *Handler) publishMediaIPChanged(scope workbenchScope, ipID string) {
 		map[string]any{"id": ipID})
 }
 
-func (h *Handler) publishMediaTopicChanged(scope workbenchScope, topicID string) {
-	h.publish(eventMediaTopicChanged, scope.WorkspaceID, "member", uuidToString(scope.Member.UserID),
+// publishMediaTopicChanged announces a topic write. The four content events were
+// server-only for a while; the client now registers them (§12.6), and the actor is
+// the request's resolved one so an agent-driven write does not read as its
+// delegator's (COLLAB-MODEL §2/§6).
+func (h *Handler) publishMediaTopicChanged(r *http.Request, scope workbenchScope, topicID string) {
+	actor := h.workbenchActor(r, scope)
+	h.publish(eventMediaTopicChanged, scope.WorkspaceID, actor.Type, actor.idString(),
 		map[string]any{"id": topicID})
 }
 

@@ -40,6 +40,7 @@
     "content_scripts": "Scripts",
     "content_shoots": "Shooting & editing",
     "content_publish": "Publishing",
+    "content_ads": "Ads",
     "content_data": "Review",
     "boss_overview": "Overview",
     "boss_goals": "Goals",
@@ -47,7 +48,8 @@
     "boss_radar": "Market radar",
     "boss_customers": "Customers",
     "boss_biz": "Operations",
-    "boss_team": "Team"
+    "boss_team": "Team",
+    "boss_review": "Review queue"
   },
   "hr": {
     "recruit": {

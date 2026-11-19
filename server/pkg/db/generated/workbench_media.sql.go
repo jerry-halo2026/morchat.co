@@ -713,8 +713,12 @@ WHERE workspace_id = $1::uuid
     $5::text IS NULL
     OR name ILIKE '%' || $5::text || '%'
   )
+  AND (
+    $6::date IS NULL
+    OR (captured_on, id) < ($6::date, $7::uuid)
+  )
 ORDER BY captured_on DESC, id DESC
-LIMIT $6
+LIMIT $8
 `
 
 type ListMediaBenchParams struct {
@@ -723,6 +727,8 @@ type ListMediaBenchParams struct {
 	CapturedOn  pgtype.Date `json:"captured_on"`
 	Platform    pgtype.Text `json:"platform"`
 	Query       pgtype.Text `json:"query"`
+	CursorDay   pgtype.Date `json:"cursor_day"`
+	CursorID    pgtype.UUID `json:"cursor_id"`
 	Limit       int32       `json:"limit"`
 }
 
@@ -738,6 +744,8 @@ func (q *Queries) ListMediaBench(ctx context.Context, arg ListMediaBenchParams) 
 		arg.CapturedOn,
 		arg.Platform,
 		arg.Query,
+		arg.CursorDay,
+		arg.CursorID,
 		arg.Limit,
 	)
 	if err != nil {
@@ -787,8 +795,12 @@ WHERE workspace_id = $1::uuid
     $5::text IS NULL
     OR title ILIKE '%' || $5::text || '%'
   )
+  AND (
+    $6::date IS NULL
+    OR (captured_on, id) < ($6::date, $7::uuid)
+  )
 ORDER BY captured_on DESC, id DESC
-LIMIT $6
+LIMIT $8
 `
 
 type ListMediaHotParams struct {
@@ -797,6 +809,8 @@ type ListMediaHotParams struct {
 	Category    pgtype.Text `json:"category"`
 	Platform    pgtype.Text `json:"platform"`
 	Query       pgtype.Text `json:"query"`
+	CursorDay   pgtype.Date `json:"cursor_day"`
+	CursorID    pgtype.UUID `json:"cursor_id"`
 	Limit       int32       `json:"limit"`
 }
 
@@ -811,7 +825,8 @@ type ListMediaHotParams struct {
 // 18th"); `category` / `platform` are the other two facets the screen offers, and
 // `query` searches the title, which is the row's identity. Ordering is
 // `captured_on DESC, id DESC`: the newest capture first, total so a page cannot
-// repeat a row (813 serves it).
+// repeat a row (813 serves it). Keyset on that pair; the cursor is the previous
+// page's last row id.
 func (q *Queries) ListMediaHot(ctx context.Context, arg ListMediaHotParams) ([]MediaHot, error) {
 	rows, err := q.db.Query(ctx, listMediaHot,
 		arg.WorkspaceID,
@@ -819,6 +834,8 @@ func (q *Queries) ListMediaHot(ctx context.Context, arg ListMediaHotParams) ([]M
 		arg.Category,
 		arg.Platform,
 		arg.Query,
+		arg.CursorDay,
+		arg.CursorID,
 		arg.Limit,
 	)
 	if err != nil {
@@ -942,14 +959,20 @@ FROM media_ip
 WHERE workspace_id = $1
   AND archived_at IS NULL
   AND ($2::text IS NULL OR status = $2::text)
+  AND (
+    $3::timestamptz IS NULL
+    OR (created_at, id) < ($3::timestamptz, $4::uuid)
+  )
 ORDER BY created_at DESC, id DESC
-LIMIT $3
+LIMIT $5
 `
 
 type ListMediaIPsParams struct {
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	Status      pgtype.Text `json:"status"`
-	Limit       int32       `json:"limit"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	Status      pgtype.Text        `json:"status"`
+	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
+	CursorID    pgtype.UUID        `json:"cursor_id"`
+	Limit       int32              `json:"limit"`
 }
 
 // Content workbench read/write paths (docs/engineering/WORKBENCH-API.md §12):
@@ -973,8 +996,17 @@ type ListMediaIPsParams struct {
 //   - an account attaches to an IP only through `SetCreatorMediaIP`, which is
 //     also the detach (a NULL `media_ip_id`) — there is no second write path that
 //     could leave `creator` and the IP disagreeing.
+//
+// Paging is keyset on (created_at, id) — the order the board reads — so the cursor
+// is the previous page's last row id and the handler re-reads its creation time.
 func (q *Queries) ListMediaIPs(ctx context.Context, arg ListMediaIPsParams) ([]MediaIp, error) {
-	rows, err := q.db.Query(ctx, listMediaIPs, arg.WorkspaceID, arg.Status, arg.Limit)
+	rows, err := q.db.Query(ctx, listMediaIPs,
+		arg.WorkspaceID,
+		arg.Status,
+		arg.CursorAt,
+		arg.CursorID,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -1015,22 +1047,31 @@ WHERE workspace_id = $1
   AND archived_at IS NULL
   AND ($2::uuid IS NULL OR topic_id = $2::uuid)
   AND ($3::text IS NULL OR status = $3::text)
+  AND (
+    $4::timestamptz IS NULL
+    OR (created_at, id) < ($4::timestamptz, $5::uuid)
+  )
 ORDER BY created_at DESC, id DESC
-LIMIT $4
+LIMIT $6
 `
 
 type ListMediaScriptsParams struct {
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	TopicID     pgtype.UUID `json:"topic_id"`
-	Status      pgtype.Text `json:"status"`
-	Limit       int32       `json:"limit"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	TopicID     pgtype.UUID        `json:"topic_id"`
+	Status      pgtype.Text        `json:"status"`
+	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
+	CursorID    pgtype.UUID        `json:"cursor_id"`
+	Limit       int32              `json:"limit"`
 }
 
+// Keyset on (created_at, id); the cursor is the previous page's last row id.
 func (q *Queries) ListMediaScripts(ctx context.Context, arg ListMediaScriptsParams) ([]MediaScript, error) {
 	rows, err := q.db.Query(ctx, listMediaScripts,
 		arg.WorkspaceID,
 		arg.TopicID,
 		arg.Status,
+		arg.CursorAt,
+		arg.CursorID,
 		arg.Limit,
 	)
 	if err != nil {
@@ -1077,8 +1118,12 @@ WHERE workspace_id = $1
   AND ($2::uuid IS NULL OR script_id = $2::uuid)
   AND ($3::date IS NULL OR shoot_date >= $3::date)
   AND ($4::date IS NULL OR shoot_date <= $4::date)
+  AND (
+    $5::date IS NULL
+    OR (shoot_date, id) > ($5::date, $6::uuid)
+  )
 ORDER BY shoot_date ASC, id ASC
-LIMIT $5
+LIMIT $7
 `
 
 type ListMediaShootsParams struct {
@@ -1086,17 +1131,24 @@ type ListMediaShootsParams struct {
 	ScriptID    pgtype.UUID `json:"script_id"`
 	FromDate    pgtype.Date `json:"from_date"`
 	ToDate      pgtype.Date `json:"to_date"`
+	CursorDay   pgtype.Date `json:"cursor_day"`
+	CursorID    pgtype.UUID `json:"cursor_id"`
 	Limit       int32       `json:"limit"`
 }
 
 // The shoot calendar, filtered on the date it sorts by. `from`/`to` are inclusive
 // calendar days.
+//
+// The calendar reads oldest first, so its keyset walks forward:
+// `(shoot_date, id) > (cursor_day, cursor_id)`.
 func (q *Queries) ListMediaShoots(ctx context.Context, arg ListMediaShootsParams) ([]MediaShoot, error) {
 	rows, err := q.db.Query(ctx, listMediaShoots,
 		arg.WorkspaceID,
 		arg.ScriptID,
 		arg.FromDate,
 		arg.ToDate,
+		arg.CursorDay,
+		arg.CursorID,
 		arg.Limit,
 	)
 	if err != nil {
@@ -1138,22 +1190,31 @@ WHERE workspace_id = $1
   AND archived_at IS NULL
   AND ($2::uuid IS NULL OR ip_id = $2::uuid)
   AND ($3::text IS NULL OR status = $3::text)
+  AND (
+    $4::timestamptz IS NULL
+    OR (created_at, id) < ($4::timestamptz, $5::uuid)
+  )
 ORDER BY created_at DESC, id DESC
-LIMIT $4
+LIMIT $6
 `
 
 type ListMediaTopicsParams struct {
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	IpID        pgtype.UUID `json:"ip_id"`
-	Status      pgtype.Text `json:"status"`
-	Limit       int32       `json:"limit"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	IpID        pgtype.UUID        `json:"ip_id"`
+	Status      pgtype.Text        `json:"status"`
+	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
+	CursorID    pgtype.UUID        `json:"cursor_id"`
+	Limit       int32              `json:"limit"`
 }
 
+// Keyset on (created_at, id); the cursor is the previous page's last row id.
 func (q *Queries) ListMediaTopics(ctx context.Context, arg ListMediaTopicsParams) ([]MediaTopic, error) {
 	rows, err := q.db.Query(ctx, listMediaTopics,
 		arg.WorkspaceID,
 		arg.IpID,
 		arg.Status,
+		arg.CursorAt,
+		arg.CursorID,
 		arg.Limit,
 	)
 	if err != nil {

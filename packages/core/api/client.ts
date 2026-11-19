@@ -212,6 +212,14 @@ import type {
   BdCampaignListResponse,
   BdPerformance,
   BdPerformanceFilters,
+  // 千川投放 (§25) — reads only; `cmd/qianchuan-sync` is the writer.
+  AdsAccountListResponse,
+  AdsMaterialListResponse,
+  AdsPlanListResponse,
+  AdsReconListResponse,
+  AdsSummary,
+  AdsSummaryFilters,
+  AdsViolationListResponse,
   BdPipeline,
   BdQuote,
   BdQuoteListFilters,
@@ -219,13 +227,20 @@ import type {
   CreateBdActivityRequest,
   CreateBdCampaignRequest,
   CreateBdQuoteRequest,
+  RejectReviewRequest,
+  ReviewQueueFilters,
+  ReviewQueueResponse,
   UpdateBdActivityRequest,
   UpdateBdCampaignRequest,
   UpdateBdQuoteRequest,
   WorkbenchCountsResponse,
+  WorkbenchThread,
   WorkbenchFinanceResponse,
   // Batch CSV import (WORKBENCH-API §23).
   ImportKind,
+  WorkbenchCapabilitiesResponse,
+  WorkbenchRoleTemplate,
+  WorkbenchRoleTemplateListResponse,
   ImportPreviewResponse,
   WorkbenchFinanceMonth,
   WorkbenchFinanceMonthListResponse,
@@ -838,12 +853,22 @@ import {
   EMPTY_BD_CAMPAIGN_LIST_RESPONSE,
   BdPipelineSchema,
   EMPTY_BD_PIPELINE,
+  ReviewQueueResponseSchema,
+  EMPTY_REVIEW_QUEUE_RESPONSE,
   ImportPreviewResponseSchema,
   EMPTY_IMPORT_PREVIEW_RESPONSE,
+  WorkbenchCapabilitiesResponseSchema,
+  EMPTY_WORKBENCH_CAPABILITIES_RESPONSE,
+  WorkbenchRoleTemplateSchema,
+  EMPTY_WORKBENCH_ROLE_TEMPLATE,
+  WorkbenchRoleTemplateListResponseSchema,
+  EMPTY_WORKBENCH_ROLE_TEMPLATE_LIST_RESPONSE,
   BdPerformanceSchema,
   EMPTY_BD_PERFORMANCE,
   WorkbenchCountsResponseSchema,
   EMPTY_WORKBENCH_COUNTS_RESPONSE,
+  EMPTY_WORKBENCH_THREAD,
+  WorkbenchThreadSchema,
   WorkbenchFinanceResponseSchema,
   EMPTY_WORKBENCH_FINANCE_RESPONSE,
   WorkbenchFinanceMonthSchema,
@@ -978,6 +1003,23 @@ import {
   type CreateIssueViewRequest,
 } from "./schemas";
 
+// 千川投放的响应解析器（WORKBENCH-API §25）。单独一个模块，因为它只有读：
+// 写入口是 `cmd/qianchuan-sync`，这里没有对应的 mutation 要一起放。
+import {
+  AdsSummarySchema,
+  EMPTY_ADS_SUMMARY,
+  AdsAccountListSchema,
+  EMPTY_ADS_ACCOUNTS,
+  AdsPlanListSchema,
+  EMPTY_ADS_PLANS,
+  AdsMaterialListSchema,
+  EMPTY_ADS_MATERIALS,
+  AdsViolationListSchema,
+  EMPTY_ADS_VIOLATIONS,
+  AdsReconListSchema,
+  EMPTY_ADS_RECON,
+} from "./qianchuan";
+
 /** Identifies the calling client to the server.
  *  Sent on every HTTP request as X-Client-Platform / X-Client-Version /
  *  X-Client-OS so the backend can log, gate, or split metrics by client.
@@ -1093,6 +1135,68 @@ export class ApiError extends Error {
     this.statusText = statusText;
     this.body = body;
   }
+}
+
+/**
+ * The `409 stale_write` a guarded workbench PATCH answers
+ * (docs/engineering/COLLAB-MODEL.md §3).
+ *
+ * `current` is the row the server holds, already parsed: the caller's job is to
+ * *show* it — "somebody changed this, here is what it says now" — not to replay
+ * its own body over the other writer's edit. Carrying the row on the error is
+ * what makes that possible without a second request.
+ *
+ * It extends `ApiError`, so code that only branches on `status` (a toast, a
+ * generic retry) keeps working.
+ */
+export class StaleWriteError<T> extends ApiError {
+  readonly current: T;
+
+  constructor(message: string, current: T, body?: unknown) {
+    super(message, 409, "Conflict", body);
+    this.name = "StaleWriteError";
+    this.current = current;
+  }
+}
+
+/** Whether a mutation error is the optimistic-concurrency refusal (§3). */
+export function isStaleWrite<T>(error: unknown): error is StaleWriteError<T> {
+  return error instanceof StaleWriteError;
+}
+
+/**
+ * Re-throws a 409 `stale_write` as a `StaleWriteError` carrying the parsed
+ * current row, and any other error unchanged.
+ *
+ * The four guarded ledgers route their PATCH through this, so a page's mutation
+ * error tells it "refresh" rather than "save failed", without every call site
+ * re-parsing the 409 body.
+ */
+function rethrowStaleWrite<T>(
+  error: unknown,
+  schema: ZodType,
+  fallback: T,
+  endpoint: string,
+): never {
+  if (error instanceof ApiError && error.status === 409 && isStaleWriteBody(error.body)) {
+    throw new StaleWriteError(
+      error.message,
+      parseWithFallback(error.body.current, schema, fallback, { endpoint }),
+      error.body,
+    );
+  }
+  throw error;
+}
+
+/** The 409 body the server writes: `{ error: "stale_write", current: {...} }`. */
+function isStaleWriteBody(
+  body: unknown,
+): body is { error: "stale_write"; current: unknown } {
+  return (
+    typeof body === "object" &&
+    body !== null &&
+    (body as { error?: unknown }).error === "stale_write"
+  );
 }
 
 function assertAgentConversationStartersWriteSupported(data: {
@@ -1756,6 +1860,9 @@ export class ApiClient {
     if (params?.creator_id) search.set("creator_id", params.creator_id);
     if (params?.created_by_user_id) search.set("created_by_user_id", params.created_by_user_id);
     if (params?.project_id) search.set("project_id", params.project_id);
+    // Exact match on issue.goal_id (OKR objective); also reachable through the
+    // POST twin, which forwards the same key/value pairs.
+    if (params?.goal_id) search.set("goal_id", params.goal_id);
     if (params?.assignee_filters?.length) {
       search.set("assignee_filters", params.assignee_filters.map((f) => `${f.type}:${f.id}`).join(","));
     }
@@ -4320,6 +4427,50 @@ export class ApiClient {
    * a normal answer, not an API error. Only a malformed request (bad `kind`, non-CSV
    * content type, oversized body) throws.
    */
+  // Capabilities (docs/engineering/WORKBENCH-API.md §24). The server resolves what
+  // the caller may do; the client reads it once and hides entry points. Reads are
+  // member-wide — this is not an access-check API, it is a rendering hint whose
+  // authority is the 403 the real write would return.
+  async getWorkbenchCapabilities(): Promise<WorkbenchCapabilitiesResponse> {
+    const raw = await this.fetch<unknown>("/api/workbench/capabilities");
+    return parseWithFallback(
+      raw,
+      WorkbenchCapabilitiesResponseSchema,
+      EMPTY_WORKBENCH_CAPABILITIES_RESPONSE,
+      { endpoint: "GET /api/workbench/capabilities" },
+    );
+  }
+
+  async listWorkbenchRoleTemplates(): Promise<WorkbenchRoleTemplateListResponse> {
+    const raw = await this.fetch<unknown>("/api/workbench/role-templates");
+    return parseWithFallback(
+      raw,
+      WorkbenchRoleTemplateListResponseSchema,
+      EMPTY_WORKBENCH_ROLE_TEMPLATE_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/role-templates" },
+    );
+  }
+
+  /** `PUT` replaces the whole set for one job title (owner/admin only). */
+  async putWorkbenchRoleTemplate(
+    jobTitle: string,
+    capabilities: string[],
+  ): Promise<WorkbenchRoleTemplate> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/role-templates/${encodeURIComponent(jobTitle)}`,
+      { method: "PUT", body: JSON.stringify({ capabilities }) },
+    );
+    return parseWithFallback(raw, WorkbenchRoleTemplateSchema, EMPTY_WORKBENCH_ROLE_TEMPLATE, {
+      endpoint: "PUT /api/workbench/role-templates/:jobTitle",
+    });
+  }
+
+  /** Removing a template returns its holders to the next resolution step. */
+  async deleteWorkbenchRoleTemplate(jobTitle: string): Promise<void> {
+    await this.fetch(`/api/workbench/role-templates/${encodeURIComponent(jobTitle)}`, {
+      method: "DELETE",
+    });
+  }
   async importWorkbenchCsv(params: {
     kind: ImportKind;
     csv: string;
@@ -4640,6 +4791,7 @@ export class ApiClient {
         stage: filters.stage,
         brief_id: filters.brief_id,
         creator_id: filters.creator_id,
+        assignee: filters.assignee,
       })}`,
     );
     return parseWithFallback(raw, CrmCollabListResponseSchema, EMPTY_CRM_COLLAB_LIST_RESPONSE, {
@@ -4664,20 +4816,61 @@ export class ApiClient {
     });
   }
 
+  /**
+   * The collaboration's discussion (COLLAB-MODEL §5).
+   *
+   * Idempotent by contract, not by convention: the first call mints the issue and
+   * stamps it with `origin_type=crm_collab`, every call after it answers that same
+   * issue, so a double click cannot produce two threads. The row's `thread` field
+   * (and this response) is where the UI reads the count and the newest line.
+   */
+  async openCrmCollabThread(id: string): Promise<WorkbenchThread> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/collabs/${id}/thread`, {
+      method: "POST",
+    });
+    return parseWithFallback(raw, WorkbenchThreadSchema, EMPTY_WORKBENCH_THREAD, {
+      endpoint: "POST /api/workbench/crm/collabs/:collabId/thread",
+    });
+  }
+
   /** A `stage` change also writes `confirmed_at` / `published_at` / `accepted_at`
    *  server-side; the response carries those, so callers read it back. */
   async updateCrmCollab(id: string, data: UpdateCrmCollabRequest): Promise<CrmCollab> {
     const raw = await this.fetch<unknown>(`/api/workbench/crm/collabs/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
-    });
+    }).catch((error: unknown) =>
+      rethrowStaleWrite(
+        error,
+        CrmCollabSchema,
+        EMPTY_CRM_COLLAB,
+        "PATCH /api/workbench/crm/collabs/:collabId",
+      ),
+    );
     return parseWithFallback(raw, CrmCollabSchema, EMPTY_CRM_COLLAB, {
       endpoint: "PATCH /api/workbench/crm/collabs/:collabId",
     });
   }
 
-  async deleteCrmCollab(id: string): Promise<void> {
-    await this.fetch(`/api/workbench/crm/collabs/${id}`, { method: "DELETE" });
+  /**
+   * A delete is a §3 write too: it bumps `revision`, so it can name the one it
+   * read. `expectedRevision` travels as `?expected_revision=` because a DELETE
+   * body is not portable, and an omitted one is no check at all (old clients).
+   * A mismatch throws `StaleWriteError` carrying the current row — the caller's
+   * job is to refresh, never to replay the delete.
+   */
+  async deleteCrmCollab(id: string, expectedRevision?: number): Promise<void> {
+    await this.fetch(
+      `/api/workbench/crm/collabs/${id}${workbenchSearch({ expected_revision: expectedRevision })}`,
+      { method: "DELETE" },
+    ).catch((error: unknown) =>
+      rethrowStaleWrite(
+        error,
+        CrmCollabSchema,
+        EMPTY_CRM_COLLAB,
+        "DELETE /api/workbench/crm/collabs/:collabId",
+      ),
+    );
   }
 
   async listCrmSettlements(
@@ -4687,6 +4880,7 @@ export class ApiClient {
       `/api/workbench/crm/settlements${workbenchSearch({
         collab_id: filters.collab_id,
         paid: filters.paid,
+        assignee: filters.assignee,
       })}`,
     );
     return parseWithFallback(
@@ -4716,7 +4910,14 @@ export class ApiClient {
     const raw = await this.fetch<unknown>(`/api/workbench/crm/settlements/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
-    });
+    }).catch((error: unknown) =>
+      rethrowStaleWrite(
+        error,
+        CrmSettlementSchema,
+        EMPTY_CRM_SETTLEMENT,
+        "PATCH /api/workbench/crm/settlements/:settlementId",
+      ),
+    );
     return parseWithFallback(raw, CrmSettlementSchema, EMPTY_CRM_SETTLEMENT, {
       endpoint: "PATCH /api/workbench/crm/settlements/:settlementId",
     });
@@ -4741,6 +4942,11 @@ export class ApiClient {
         kind: filters.kind,
         from: filters.from,
         to: filters.to,
+        assignee: filters.assignee,
+        // `due` is a switch, not a value: `true` keeps the 到期 tab, and the server
+        // treats a misspelt one as a 400 rather than "no filter" (§20.3).
+        due: filters.due ? 1 : undefined,
+        cursor: filters.cursor,
         limit: filters.limit,
       })}`,
     );
@@ -4774,7 +4980,14 @@ export class ApiClient {
     const raw = await this.fetch<unknown>(`/api/workbench/bd/activities/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
-    });
+    }).catch((error: unknown) =>
+      rethrowStaleWrite(
+        error,
+        BdActivitySchema,
+        EMPTY_BD_ACTIVITY,
+        "PATCH /api/workbench/bd/activities/:activityId",
+      ),
+    );
     return parseWithFallback(raw, BdActivitySchema, EMPTY_BD_ACTIVITY, {
       endpoint: "PATCH /api/workbench/bd/activities/:activityId",
     });
@@ -4789,6 +5002,10 @@ export class ApiClient {
       `/api/workbench/bd/quotes${workbenchSearch({
         creator_id: filters.creator_id,
         status: filters.status,
+        q: filters.q,
+        assignee: filters.assignee,
+        sort: filters.sort,
+        cursor: filters.cursor,
         limit: filters.limit,
       })}`,
     );
@@ -4814,6 +5031,20 @@ export class ApiClient {
     });
   }
 
+  /**
+   * The quote's discussion (COLLAB-MODEL §5). `creator_quote` has no pointer
+   * column, so the server answers this one from the origin stamp on the issue —
+   * same idempotency, same answer, from a different place.
+   */
+  async openBdQuoteThread(id: string): Promise<WorkbenchThread> {
+    const raw = await this.fetch<unknown>(`/api/workbench/bd/quotes/${id}/thread`, {
+      method: "POST",
+    });
+    return parseWithFallback(raw, WorkbenchThreadSchema, EMPTY_WORKBENCH_THREAD, {
+      endpoint: "POST /api/workbench/bd/quotes/:quoteId/thread",
+    });
+  }
+
   /** The 400 on a commission rate outside 0–1 and on `valid_until < quoted_at`
    *  arrives as a thrown error, not as a patched row — the server refuses the
    *  write instead of flagging it (§20.4). */
@@ -4821,14 +5052,57 @@ export class ApiClient {
     const raw = await this.fetch<unknown>(`/api/workbench/bd/quotes/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
-    });
+    }).catch((error: unknown) =>
+      rethrowStaleWrite(error, BdQuoteSchema, EMPTY_BD_QUOTE, "PATCH /api/workbench/bd/quotes/:quoteId"),
+    );
     return parseWithFallback(raw, BdQuoteSchema, EMPTY_BD_QUOTE, {
       endpoint: "PATCH /api/workbench/bd/quotes/:quoteId",
     });
   }
 
-  async deleteBdQuote(id: string): Promise<void> {
-    await this.fetch(`/api/workbench/bd/quotes/${id}`, { method: "DELETE" });
+  /** See `deleteCrmCollab`: the same query-string guard on the quote ledger. */
+  async deleteBdQuote(id: string, expectedRevision?: number): Promise<void> {
+    await this.fetch(
+      `/api/workbench/bd/quotes/${id}${workbenchSearch({ expected_revision: expectedRevision })}`,
+      { method: "DELETE" },
+    ).catch((error: unknown) =>
+      rethrowStaleWrite(
+        error,
+        BdQuoteSchema,
+        EMPTY_BD_QUOTE,
+        "DELETE /api/workbench/bd/quotes/:quoteId",
+      ),
+    );
+  }
+
+  // ---- the review gate (WORKBENCH-API §26) --------------------------------
+  //
+  // One queue across four ledgers, and two verdicts. Both verdicts answer 204 and
+  // bump the row's `revision`; the server writes the `activity_log` entry, so a
+  // client that skipped the queue would be missing from the three rates.
+
+  async listReviewQueue(filters: ReviewQueueFilters = {}): Promise<ReviewQueueResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/review${workbenchSearch({
+        domain: filters.domain,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(raw, ReviewQueueResponseSchema, EMPTY_REVIEW_QUEUE_RESPONSE, {
+      endpoint: "GET /api/workbench/review",
+    });
+  }
+
+  async acceptReview(domain: string, id: string): Promise<void> {
+    await this.fetch(`/api/workbench/review/${domain}/${id}/accept`, { method: "POST" });
+  }
+
+  /** The reason is required by the contract (§26.1) and capped at 500 chars. */
+  async rejectReview(domain: string, id: string, data: RejectReviewRequest): Promise<void> {
+    await this.fetch(`/api/workbench/review/${domain}/${id}/reject`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   }
 
   async listBdCampaigns(
@@ -4906,6 +5180,74 @@ export class ApiClient {
     );
     return parseWithFallback(raw, BdPerformanceSchema, EMPTY_BD_PERFORMANCE, {
       endpoint: "GET /api/workbench/bd/performance",
+    });
+  }
+
+  // 千川投放 (docs/engineering/WORKBENCH-API.md §25). Six reads and no writes:
+  // the only writer is `cmd/qianchuan-sync`, so there is no create/update method
+  // here to call. Every amount carries its `basis` — `summary` takes one of the
+  // five settlement windows per request, and there is no endpoint that adds two.
+  async getAdsSummary(filters: AdsSummaryFilters = {}): Promise<AdsSummary> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/ads/summary${workbenchSearch({
+        from: filters.from,
+        to: filters.to,
+        basis: filters.basis,
+      })}`,
+    );
+    return parseWithFallback(raw, AdsSummarySchema, EMPTY_ADS_SUMMARY, {
+      endpoint: "GET /api/workbench/ads/summary",
+    });
+  }
+
+  async listAdsAccounts(): Promise<AdsAccountListResponse> {
+    const raw = await this.fetch<unknown>(`/api/workbench/ads/accounts`);
+    return parseWithFallback(raw, AdsAccountListSchema, EMPTY_ADS_ACCOUNTS, {
+      endpoint: "GET /api/workbench/ads/accounts",
+    });
+  }
+
+  async listAdsPlans(filters: { account_id?: string; status?: string } = {}): Promise<AdsPlanListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/ads/plans${workbenchSearch({
+        account_id: filters.account_id,
+        status: filters.status,
+      })}`,
+    );
+    return parseWithFallback(raw, AdsPlanListSchema, EMPTY_ADS_PLANS, {
+      endpoint: "GET /api/workbench/ads/plans",
+    });
+  }
+
+  async listAdsMaterials(
+    filters: { account_id?: string; type?: string } = {},
+  ): Promise<AdsMaterialListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/ads/materials${workbenchSearch({
+        account_id: filters.account_id,
+        type: filters.type,
+      })}`,
+    );
+    return parseWithFallback(raw, AdsMaterialListSchema, EMPTY_ADS_MATERIALS, {
+      endpoint: "GET /api/workbench/ads/materials",
+    });
+  }
+
+  async listAdsViolations(filters: { status?: string } = {}): Promise<AdsViolationListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/ads/violations${workbenchSearch({ status: filters.status })}`,
+    );
+    return parseWithFallback(raw, AdsViolationListSchema, EMPTY_ADS_VIOLATIONS, {
+      endpoint: "GET /api/workbench/ads/violations",
+    });
+  }
+
+  async listAdsRecon(filters: { account_id?: string } = {}): Promise<AdsReconListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/ads/recon${workbenchSearch({ account_id: filters.account_id })}`,
+    );
+    return parseWithFallback(raw, AdsReconListSchema, EMPTY_ADS_RECON, {
+      endpoint: "GET /api/workbench/ads/recon",
     });
   }
 

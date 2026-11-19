@@ -75,22 +75,19 @@ SELECT
     hit_rate
 FROM ranked
 WHERE sqlc.narg('cursor_id')::uuid IS NULL
+   -- A cursor that carries a value is followed by every unsampled creator: NULLS
+   -- LAST sorts them all after the last real value, so the NULL branch below is
+   -- only reachable while the cursor itself is NULL-valued. Without this arm the
+   -- walk stops at the first NULL and the tail of the board never loads.
    OR (
-        sort_value IS NOT NULL
+        sqlc.narg('cursor_value')::numeric IS NOT NULL
         AND (
-            sort_value < sqlc.narg('cursor_value')::numeric
-            OR (
-                sort_value = sqlc.narg('cursor_value')::numeric
-                AND (
-                    fans < sqlc.narg('cursor_fans')::bigint
-                    OR (fans = sqlc.narg('cursor_fans')::bigint AND id < sqlc.narg('cursor_id')::uuid)
-                )
-            )
+            sort_value IS NULL
+            OR sort_value < sqlc.narg('cursor_value')::numeric
         )
    )
    OR (
-        sort_value IS NULL
-        AND sqlc.narg('cursor_value')::numeric IS NULL
+        sort_value IS NOT DISTINCT FROM sqlc.narg('cursor_value')::numeric
         AND (
             fans < sqlc.narg('cursor_fans')::bigint
             OR (fans = sqlc.narg('cursor_fans')::bigint AND id < sqlc.narg('cursor_id')::uuid)

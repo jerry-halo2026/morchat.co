@@ -115,9 +115,15 @@ export type WSEventType =
   | "hr_interview:changed"
   | "hr_scorecard:changed"
   | "hr_employee_profile:changed"
-  // Hotspot radar / benchmark teardown (docs/engineering/WORKBENCH-API.md §21).
+  // Hotspot radar / benchmark teardown (docs/engineering/WORKBENCH-API.md §21),
+  // plus the content pipeline's topic event (§12.6).
   | "media_hot:changed"
   | "media_bench:changed"
+  | "media_topic:changed"
+  // BD pipeline ledgers (docs/engineering/WORKBENCH-API.md §20.5).
+  | "creator_activity:changed"
+  | "creator_quote:changed"
+  | "creator_campaign:changed"
   | "environment:changed";
 
 export interface WSMessage<T = unknown> {
@@ -719,16 +725,40 @@ export interface HrEmployeeProfileChangedPayload {
  * category, a free-form metrics object) that a field-level patch would have to guess,
  * so nothing here is mergeable.
  *
- * `media_topic:changed` is not among them and never was: the four content-pipeline
- * events still only reach the server's own write path (§12.7), so a client learns
- * about a script or a shoot through its own mutation. The two events below are the
- * ones this batch wired end to end.
+ * `media_topic:changed` rides the same shape (§12.6): the topic pool is fed by both
+ * source ledgers, and adopting a hotspot is exactly the write that has to reach a
+ * second client's pool without a refetch of its own.
  */
 export interface MediaHotChangedPayload {
   id: string;
 }
 
 export interface MediaBenchChangedPayload {
+  id: string;
+}
+
+export interface MediaTopicChangedPayload {
+  id: string;
+}
+
+/**
+ * BD pipeline ledger events (docs/engineering/WORKBENCH-API.md §20.5).
+ *
+ * The three ledgers shipped without events first (§20.6 recorded the debt); they
+ * now publish on create, update and delete. Same contract as the CRM ledgers: the
+ * payload names the row, and a handler re-reads the resource. A follow-up or a quote
+ * also moves the cockpit's counters, which is why the patcher invalidates
+ * `["bd", wsId, "pipeline"]` as well.
+ */
+export interface CreatorActivityChangedPayload {
+  id: string;
+}
+
+export interface CreatorQuoteChangedPayload {
+  id: string;
+}
+
+export interface CreatorCampaignChangedPayload {
   id: string;
 }
 
@@ -850,6 +880,10 @@ export interface WSEventPayloadMap {
   "hr_employee_profile:changed": HrEmployeeProfileChangedPayload;
   "media_hot:changed": MediaHotChangedPayload;
   "media_bench:changed": MediaBenchChangedPayload;
+  "media_topic:changed": MediaTopicChangedPayload;
+  "creator_activity:changed": CreatorActivityChangedPayload;
+  "creator_quote:changed": CreatorQuoteChangedPayload;
+  "creator_campaign:changed": CreatorCampaignChangedPayload;
   "environment:changed": { issue_id: string };
 }
 

@@ -35,9 +35,11 @@
  *     and the money block already follow (docs/METRICS.md §1 rule 3).
  */
 
+import type { WorkbenchAssigneeType, WorkbenchLastActor, WorkbenchThread } from "./workbench";
+import type { OverwriteReason } from "./review";
+
 /** How the conversation happened. */
 export type BdActivityKind = "dm" | "call" | "meeting" | "email" | "note";
-
 /**
  * What came of it. `null` on a row means "not recorded yet" — a note with no
  * result — and is deliberately not folded into `no_reply`.
@@ -49,7 +51,6 @@ export type BdQuoteStatus = "draft" | "sent" | "accepted" | "rejected" | "expire
 
 /** How a batch of creators was collected. */
 export type BdCampaignKind = "search" | "comment" | "manual";
-
 /** One follow-up with one creator. */
 export interface BdActivity {
   id: string;
@@ -68,6 +69,12 @@ export interface BdActivity {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  /** Who follows this up, the concurrency counter and the newest audit event.
+   *  Optional: a server that predates migration 821 omits all four. */
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
+  revision?: number;
+  last_actor?: WorkbenchLastActor | null;
 }
 
 /** One offer to one creator. */
@@ -94,6 +101,19 @@ export interface BdQuote {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  /** Who is working the offer, the concurrency counter and the newest audit event.
+   *  Optional: a server that predates migration 821 omits all four. */
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
+  revision?: number;
+  last_actor?: WorkbenchLastActor | null;
+  /**
+   * This quote's discussion (COLLAB-MODEL §5). `creator_quote` carries no
+   * `issue_id` column, so the server finds the thread by the origin stamp it put on
+   * the issue; the field looks the same to a client either way. Absent on a server
+   * that predates B4-3, `null` when nobody opened one.
+   */
+  thread?: WorkbenchThread | null;
 }
 
 /** One collection batch. */
@@ -120,11 +140,21 @@ export interface BdActivityListResponse {
   activities: BdActivity[];
   /** This page's row count, not the workspace total. */
   total: number;
+  /**
+   * The cursor that opens the next page, or `null` when this page is the last one.
+   *
+   * Opaque: send it back verbatim as `cursor`, never parse it. It is only valid
+   * together with the same filters, and the server answers 400 for one it cannot
+   * resolve rather than pretending the ledger ended (WORKBENCH-API §20.3).
+   */
+  next_cursor: string | null;
 }
 
 export interface BdQuoteListResponse {
   quotes: BdQuote[];
   total: number;
+  /** See `BdActivityListResponse.next_cursor`: opaque, pass it back unparsed. */
+  next_cursor: string | null;
 }
 
 export interface BdCampaignListResponse {
@@ -138,14 +168,40 @@ export interface BdActivityListFilters {
   /** Inclusive `happened_at` window, RFC 3339 or `YYYY-MM-DD`. */
   from?: string;
   to?: string;
+  /** `me` or a member/agent id — the queue's "mine" filter (COLLAB-MODEL §4). */
+  assignee?: string;
+  /**
+   * `true` keeps only the follow-ups whose scheduled `next_follow_at` has passed and
+   * that are still live — the 到期 tab. A recorded `outcome` does not clear it: a call
+   * that was answered and re-scheduled is still a call somebody owes, the same rule the
+   * inbox due notice follows (WORKBENCH-API §20.3).
+   */
+  due?: boolean;
+  /** The previous page's `next_cursor`, verbatim. */
+  cursor?: string;
   limit?: number;
 }
 
 export interface BdQuoteListFilters {
   creator_id?: string;
   status?: BdQuoteStatus | string;
+  /** Server-side text match over the creator's name/handle and the quote's note. */
+  q?: string;
+  /** `me` or a member/agent id — the queue's "mine" filter (COLLAB-MODEL §4). */
+  assignee?: string;
+  /** The ledger's ordering; `updated_at` is the default (WORKBENCH-API §20.3). */
+  sort?: BdQuoteListSort;
+  /** The previous page's `next_cursor`, verbatim. */
+  cursor?: string;
   limit?: number;
 }
+
+/**
+ * The quote ledger's `?sort=` values. `updated_at` opens the page ("what moved last"),
+ * `quoted_at` keeps the offer-date order, and `fee_amount` puts the largest slot fee
+ * first with an offer that has no fee last — NULL is "pure commission", not 0.
+ */
+export type BdQuoteListSort = "updated_at" | "quoted_at" | "fee_amount";
 
 export interface BdCampaignListFilters {
   kind?: BdCampaignKind | string;
@@ -165,9 +221,19 @@ export interface CreateBdActivityRequest {
   outcome?: BdActivityOutcome | null;
   next_follow_at?: string | null;
   owner_member_id?: string;
+  /** Who follows it up. Omitted = the owner (the server's default). */
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
 }
 
-/** `PATCH /bd/activities/{id}` — `creator_id` is absent: the server 400s it. */
+/**
+ * `PATCH /bd/activities/{id}` — `creator_id` is absent: the server 400s it.
+ *
+ * Clearing (WORKBENCH-API §3.4): an omitted key keeps the stored value, `null`
+ * clears it, and `""` also clears it — the latter only for clients written before
+ * that section, new code sends `null`. `summary` is NOT NULL: `null` / `""` answer
+ * 400 rather than pretending to clear.
+ */
 export interface UpdateBdActivityRequest {
   kind?: BdActivityKind;
   happened_at?: string;
@@ -177,6 +243,19 @@ export interface UpdateBdActivityRequest {
   /** `null` clears the scheduled follow-up. */
   next_follow_at?: string | null;
   owner_member_id?: string | null;
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
+  /**
+   * The revision this reader last saw. A mismatch is `409 stale_write` with the
+   * current row; omitting it skips the check (old clients).
+   */
+  expected_revision?: number;
+  /**
+   * Why a person is replacing an agent's value (WORKBENCH-API §26.3). Missing on
+   * a row whose last business change was an agent's is a 400
+   * `overwrite_reason_required`.
+   */
+  overwrite_reason?: OverwriteReason;
 }
 
 /** `POST /bd/quotes`. A quote defaults to `status: "draft"` and currency CNY. */
@@ -193,9 +272,14 @@ export interface CreateBdQuoteRequest {
   items?: unknown[];
   note?: string | null;
   owner_member_id?: string;
+  /** Who is working it. Omitted = the owner (the server's default). */
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
 }
 
-/** `PATCH /bd/quotes/{id}` — `creator_id` is absent: the server 400s it. */
+/** `PATCH /bd/quotes/{id}` — `creator_id` is absent: the server 400s it.
+ *  `valid_until` / `note` clear on `null` (or `""`, for older clients) and keep the
+ *  stored value when omitted (WORKBENCH-API §3.4). */
 export interface UpdateBdQuoteRequest {
   brief_id?: string | null;
   status?: BdQuoteStatus;
@@ -207,6 +291,12 @@ export interface UpdateBdQuoteRequest {
   items?: unknown[];
   note?: string | null;
   owner_member_id?: string | null;
+  assignee_type?: WorkbenchAssigneeType | null;
+  assignee_id?: string | null;
+  /** See `UpdateBdActivityRequest.expected_revision`. */
+  expected_revision?: number;
+  /** See `UpdateBdActivityRequest.overwrite_reason`. */
+  overwrite_reason?: OverwriteReason;
 }
 
 /** `POST /bd/campaigns`. `name` is required and unique per workspace (409). */

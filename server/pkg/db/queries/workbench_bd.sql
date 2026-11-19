@@ -10,18 +10,36 @@
 -- "cooperation credential" table would be a second source of truth for the same
 -- fact (contract §3.3).
 --
--- The lists are `limit`-only rather than keyset-paged: their sort keys are not a
--- single monotonic timestamp (`quoted_at` is nullable, a campaign sorts by start
--- day), and the same choice already exists for the HR change stream. Both ledgers
--- are hundreds of rows per workspace, so the LIMIT is the whole conversation.
+-- The follow-up log and the quote ledger page by keyset (`cursor`, the last row of
+-- the previous page, resolved by the handler into the sort key it was ordered by);
+-- campaigns stay `limit`-only because their order is a start day plus a creation
+-- timestamp and the ledger is small. Both paged lists also take the read-side
+-- department predicate (`department_scoped` + `department_id`, WORKBENCH-API
+-- §24.4/§24.6): when the workspace switch is `department`, a list returns the rows
+-- whose *owner* is in a department and in the caller's one. A row with no owner, or
+-- an owner with no department, matches neither and therefore disappears — the
+-- predicate never widens into "every department".
 
 -- ---- follow-up log (creator_activity) --------------------------------------
 
 -- name: ListCreatorActivities :many
 -- The BD timeline. `?creator_id=` opens one creator's history, `?kind=` narrows
 -- to one channel, and `?from=` / `?to=` are an inclusive `happened_at` window
--- (contract §3.1). Ordering is `happened_at DESC` — what happened most recently,
--- not what was typed most recently — with the id as the total tiebreak.
+-- (contract §3.1). `?assignee=` (B4-2) is the cockpit's 我的 queue: the rows one
+-- person or agent is following up, which is a narrower question than "mine to
+-- write" — the assignee is resolved by the handler, never by the client.
+-- Ordering is `happened_at DESC` — what happened most recently, not what was
+-- typed most recently — with the id as the total tiebreak.
+--
+-- `?due=1` (B5) is the 只看到期的 tab: rows whose scheduled `next_follow_at` has
+-- passed and which are still live. `outcome` is deliberately NOT part of it, for
+-- the same reason `CreateDueFollowUpInboxItems` does not filter on it — a follow-up
+-- with a recorded result and a passed date is still a call somebody owes. Clearing
+-- `next_follow_at` is how a row stops being due.
+--
+-- `cursor` is keyset on `(happened_at, id)`: both are NOT NULL, so the predicate is
+-- a plain row comparison and a page can neither repeat nor skip a row while newer
+-- follow-ups are inserted above it.
 SELECT *
 FROM creator_activity
 WHERE workspace_id = sqlc.arg('workspace_id')::uuid
@@ -30,6 +48,29 @@ WHERE workspace_id = sqlc.arg('workspace_id')::uuid
   AND (sqlc.narg('kind')::text IS NULL OR kind = sqlc.narg('kind')::text)
   AND (sqlc.narg('from_at')::timestamptz IS NULL OR happened_at >= sqlc.narg('from_at')::timestamptz)
   AND (sqlc.narg('to_at')::timestamptz IS NULL OR happened_at <= sqlc.narg('to_at')::timestamptz)
+  AND (sqlc.narg('assignee_id')::uuid IS NULL OR assignee_id = sqlc.narg('assignee_id')::uuid)
+  AND (sqlc.narg('assignee_type')::text IS NULL OR assignee_type = sqlc.narg('assignee_type')::text)
+  AND (sqlc.narg('review_state')::text IS NULL OR review_state = sqlc.narg('review_state')::text)
+  AND (
+    NOT sqlc.arg('due_only')::boolean
+    OR (next_follow_at IS NOT NULL AND next_follow_at <= now())
+  )
+  AND (
+    NOT sqlc.arg('department_scoped')::boolean
+    OR (
+      sqlc.narg('department_id')::uuid IS NOT NULL
+      AND EXISTS (
+        SELECT 1 FROM member m
+        WHERE m.workspace_id = creator_activity.workspace_id
+          AND m.user_id = creator_activity.owner_member_id
+          AND m.department_id = sqlc.narg('department_id')::uuid
+      )
+    )
+  )
+  AND (
+    sqlc.narg('cursor_id')::uuid IS NULL
+    OR (happened_at, id) < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+  )
 ORDER BY happened_at DESC, id DESC
 LIMIT sqlc.arg('limit')::integer;
 
@@ -39,20 +80,27 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
   AND archived_at IS NULL;
 
 -- name: CreateCreatorActivity :one
+-- `assignee_*` (821): who follows this conversation up. An agent may hold it;
+-- `owner_member_id` stays a human seat (COLLAB-MODEL §1).
 INSERT INTO creator_activity (
     workspace_id, creator_id, kind, happened_at, summary, outcome, next_follow_at,
-    owner_member_id, created_by
+    owner_member_id, created_by, assignee_type, assignee_id, review_state
 ) VALUES (
     sqlc.arg('workspace_id')::uuid, sqlc.arg('creator_id')::uuid, sqlc.arg('kind')::text,
     sqlc.arg('happened_at')::timestamptz, sqlc.arg('summary')::text,
     sqlc.narg('outcome')::text, sqlc.narg('next_follow_at')::timestamptz,
-    sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
+    sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid,
+    sqlc.narg('assignee_type')::text, sqlc.narg('assignee_id')::uuid,
+    sqlc.arg('review_state')::text
 )
 RETURNING *;
 
 -- name: UpdateCreatorActivity :one
 -- `creator_id` is not in the SET: a follow-up that stops being about the same
 -- person is a different record, and the handler answers 400 for that field.
+--
+-- The revision contract (COLLAB-MODEL §3): bump on every write, compare only
+-- when the caller sent the revision it read.
 UPDATE creator_activity
 SET kind = sqlc.arg('kind')::text,
     happened_at = sqlc.arg('happened_at')::timestamptz,
@@ -60,31 +108,107 @@ SET kind = sqlc.arg('kind')::text,
     outcome = sqlc.narg('outcome')::text,
     next_follow_at = sqlc.narg('next_follow_at')::timestamptz,
     owner_member_id = sqlc.narg('owner_member_id')::uuid,
+    assignee_type = sqlc.narg('assignee_type')::text,
+    assignee_id = sqlc.narg('assignee_id')::uuid,
+    review_state = sqlc.arg('review_state')::text,
+    reviewed_by = sqlc.narg('reviewed_by')::uuid,
+    reviewed_at = sqlc.narg('reviewed_at')::timestamptz,
+    revision = revision + 1,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
   AND archived_at IS NULL
+  AND (sqlc.narg('expected_revision')::int IS NULL OR revision = sqlc.narg('expected_revision')::int)
 RETURNING *;
 
 -- name: ArchiveCreatorActivity :execrows
 UPDATE creator_activity
-SET archived_at = now(), updated_at = now()
+SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
-  AND archived_at IS NULL;
+  AND archived_at IS NULL
+  AND (sqlc.narg('expected_revision')::int IS NULL OR revision = sqlc.narg('expected_revision')::int);
 
 -- ---- quotes (creator_quote) ------------------------------------------------
 
 -- name: ListCreatorQuotes :many
 -- `?creator_id=` opens one creator's offers, `?status=` one segment of the quote
--- ledger. The read order is the offer's own date, falling back to when the row
--- was typed so a draft (no `quoted_at` yet) does not sort below an older sent
--- quote.
+-- ledger, `?assignee=` (B4-2) the ones a person or agent is working on, and `?q=`
+-- a text match over the creator's name/handle and the quote's own `note` — the 商务
+-- looks a quote up by the person they spoke to, not by its uuid. The creator is
+-- matched with an EXISTS rather than a join: this table is the row being returned,
+-- and a joined creator must never be able to duplicate it.
+--
+-- `?sort=` names the ordering the ledger asked for (WORKBENCH-API §20.3):
+-- `updated_at` (the default: whatever moved most recently), `quoted_at` (the
+-- offer's own date, falling back to `created_at` so a draft does not sink below an
+-- older sent quote) and `fee_amount` (largest slot fee first; an offer with no fee
+-- comes last, because "pure commission" is not "we offered 0"). The id is the total
+-- tiebreak in all three, so a cursor page can neither repeat nor skip a row.
+--
+-- The three orderings are three CASE keys instead of one projected sort value: the
+-- keys have different types (timestamptz vs numeric) and a single projection would
+-- have to coerce one of them, which is how a sort silently starts comparing text.
+-- Only the branch `sort` names is non-NULL, and a key that is NULL for every row
+-- does not affect the order.
+--
+-- `cursor` is the last row of the previous page, resolved by the handler into
+-- `(sort key, id)`: `cursor_at` for the two date orders, `cursor_fee` for the money
+-- order, `cursor_id` always. A cursor that does not resolve in this workspace is a
+-- 400 there rather than an empty page here.
 SELECT *
 FROM creator_quote
 WHERE workspace_id = sqlc.arg('workspace_id')::uuid
   AND archived_at IS NULL
   AND (sqlc.narg('creator_id')::uuid IS NULL OR creator_id = sqlc.narg('creator_id')::uuid)
   AND (sqlc.narg('status')::text IS NULL OR status = sqlc.narg('status')::text)
-ORDER BY coalesce(quoted_at, created_at) DESC, id DESC
+  AND (sqlc.narg('assignee_id')::uuid IS NULL OR assignee_id = sqlc.narg('assignee_id')::uuid)
+  AND (sqlc.narg('assignee_type')::text IS NULL OR assignee_type = sqlc.narg('assignee_type')::text)
+  AND (sqlc.narg('review_state')::text IS NULL OR review_state = sqlc.narg('review_state')::text)
+  AND (
+    sqlc.narg('query')::text IS NULL
+    OR note ILIKE '%' || sqlc.narg('query')::text || '%'
+    OR EXISTS (
+      SELECT 1 FROM creator c
+      WHERE c.id = creator_quote.creator_id
+        AND c.workspace_id = creator_quote.workspace_id
+        AND (
+          c.display_name ILIKE '%' || sqlc.narg('query')::text || '%'
+          OR c.handle ILIKE '%' || sqlc.narg('query')::text || '%'
+        )
+    )
+  )
+  AND (
+    NOT sqlc.arg('department_scoped')::boolean
+    OR (
+      sqlc.narg('department_id')::uuid IS NOT NULL
+      AND EXISTS (
+        SELECT 1 FROM member m
+        WHERE m.workspace_id = creator_quote.workspace_id
+          AND m.user_id = creator_quote.owner_member_id
+          AND m.department_id = sqlc.narg('department_id')::uuid
+      )
+    )
+  )
+  AND (
+    sqlc.narg('cursor_id')::uuid IS NULL
+    OR CASE sqlc.arg('sort')::text
+      WHEN 'fee_amount' THEN (
+        (fee_amount IS NOT DISTINCT FROM sqlc.narg('cursor_fee')::numeric
+          AND id < sqlc.narg('cursor_id')::uuid)
+        OR fee_amount < sqlc.narg('cursor_fee')::numeric
+        OR (fee_amount IS NULL AND sqlc.narg('cursor_fee')::numeric IS NOT NULL)
+      )
+      WHEN 'quoted_at' THEN (
+        (coalesce(quoted_at, created_at), id)
+          < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+      )
+      ELSE (updated_at, id) < (sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+    END
+  )
+ORDER BY
+  CASE WHEN sqlc.arg('sort')::text = 'fee_amount' THEN fee_amount END DESC NULLS LAST,
+  CASE WHEN sqlc.arg('sort')::text = 'quoted_at' THEN coalesce(quoted_at, created_at) END DESC,
+  CASE WHEN sqlc.arg('sort')::text = 'updated_at' THEN updated_at END DESC,
+  id DESC
 LIMIT sqlc.arg('limit')::integer;
 
 -- name: GetCreatorQuote :one
@@ -95,20 +219,26 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
 -- name: CreateCreatorQuote :one
 INSERT INTO creator_quote (
     workspace_id, creator_id, brief_id, status, quoted_at, valid_until, fee_amount,
-    commission_rate, currency, items, note, owner_member_id, created_by
+    commission_rate, currency, items, note, owner_member_id, created_by,
+    assignee_type, assignee_id, review_state
 ) VALUES (
     sqlc.arg('workspace_id')::uuid, sqlc.arg('creator_id')::uuid,
     sqlc.narg('brief_id')::uuid, sqlc.arg('status')::text,
     sqlc.narg('quoted_at')::timestamptz, sqlc.narg('valid_until')::date,
     sqlc.narg('fee_amount')::numeric, sqlc.narg('commission_rate')::numeric,
     sqlc.arg('currency')::text, sqlc.arg('items')::text::jsonb, sqlc.narg('note')::text,
-    sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid
+    sqlc.narg('owner_member_id')::uuid, sqlc.narg('created_by')::uuid,
+    sqlc.narg('assignee_type')::text, sqlc.narg('assignee_id')::uuid,
+    sqlc.arg('review_state')::text
 )
 RETURNING *;
 
 -- name: UpdateCreatorQuote :one
 -- `creator_id` stays out of the SET for the same reason as the follow-up log: an
 -- offer to a different creator is a different offer.
+--
+-- The revision contract (COLLAB-MODEL §3) is the same as every other ledger:
+-- bump on write, compare only against a revision the caller named.
 UPDATE creator_quote
 SET brief_id = sqlc.narg('brief_id')::uuid,
     status = sqlc.arg('status')::text,
@@ -120,28 +250,79 @@ SET brief_id = sqlc.narg('brief_id')::uuid,
     items = sqlc.arg('items')::text::jsonb,
     note = sqlc.narg('note')::text,
     owner_member_id = sqlc.narg('owner_member_id')::uuid,
+    assignee_type = sqlc.narg('assignee_type')::text,
+    assignee_id = sqlc.narg('assignee_id')::uuid,
+    review_state = sqlc.arg('review_state')::text,
+    reviewed_by = sqlc.narg('reviewed_by')::uuid,
+    reviewed_at = sqlc.narg('reviewed_at')::timestamptz,
+    revision = revision + 1,
     updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
   AND archived_at IS NULL
+  AND (sqlc.narg('expected_revision')::int IS NULL OR revision = sqlc.narg('expected_revision')::int)
 RETURNING *;
 
 -- name: ArchiveCreatorQuote :execrows
+-- A delete is a write too (COLLAB-MODEL §3): the revision moves, so an audit
+-- trail that reads the row before and after a delete cannot claim nothing
+-- happened — and the optional `expected_revision` puts the same guard on the
+-- delete that `UpdateCreatorQuote` has. The check lives in the WHERE rather than
+-- in a read-then-delete, because two connections that both read revision 4 would
+-- otherwise both see "unchanged" and both win.
 UPDATE creator_quote
-SET archived_at = now(), updated_at = now()
+SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
-  AND archived_at IS NULL;
+  AND archived_at IS NULL
+  AND (sqlc.narg('expected_revision')::int IS NULL OR revision = sqlc.narg('expected_revision')::int);
 
 -- ---- campaigns (creator_campaign) ------------------------------------------
 
 -- name: ListCreatorCampaigns :many
 -- `?kind=` narrows to one collection method. Newest batch first: the start day
 -- when it was recorded, otherwise when the row was typed.
+--
+-- Paging is keyset on `(start day, created_at, id)`: the day is the ordering key
+-- and `created_at`/`id` break ties between batches typed in one go, so the order
+-- is total and a cursor page can neither repeat nor skip a row. The cursor is the
+-- previous page's last row id; the handler re-reads its two sort keys.
+--
+-- The day is `created_at` cast at UTC rather than at the session's time zone: the
+-- handler rebuilds the same value in Go for the cursor, and a server whose
+-- `TimeZone` differs must not disagree with the row it just read.
+-- The department predicate is the same one the other ledgers take (§24.4).
 SELECT *
 FROM creator_campaign
 WHERE workspace_id = sqlc.arg('workspace_id')::uuid
   AND archived_at IS NULL
   AND (sqlc.narg('kind')::text IS NULL OR kind = sqlc.narg('kind')::text)
-ORDER BY coalesce(started_on, created_at::date) DESC, created_at DESC, id DESC
+  AND (
+    NOT sqlc.arg('department_scoped')::boolean
+    OR (
+      sqlc.narg('department_id')::uuid IS NOT NULL
+      AND EXISTS (
+        SELECT 1 FROM member m
+        WHERE m.workspace_id = creator_campaign.workspace_id
+          AND m.user_id = creator_campaign.owner_member_id
+          AND m.department_id = sqlc.narg('department_id')::uuid
+      )
+    )
+  )
+  AND (
+    sqlc.narg('cursor_id')::uuid IS NULL
+    OR (
+      (
+        coalesce(started_on, (created_at AT TIME ZONE 'UTC')::date),
+        created_at,
+        id
+      )
+        < (
+          sqlc.narg('cursor_day')::date,
+          sqlc.narg('cursor_at')::timestamptz,
+          sqlc.narg('cursor_id')::uuid
+        )
+    )
+  )
+ORDER BY coalesce(started_on, (created_at AT TIME ZONE 'UTC')::date) DESC, created_at DESC, id DESC
 LIMIT sqlc.arg('limit')::integer;
 
 -- name: GetCreatorCampaign :one
@@ -314,9 +495,6 @@ paid AS (
     WHERE s.workspace_id = sqlc.arg('workspace_id')::uuid
       AND s.archived_at IS NULL
       AND s.paid_at IS NOT NULL
-),
-paid_dominant AS (
-    SELECT currency FROM paid GROUP BY currency ORDER BY count(*) DESC, currency LIMIT 1
 )
 SELECT
     (count(*) FILTER (WHERE stage IN (
@@ -331,9 +509,11 @@ SELECT
         WHERE stage <> 'cancelled' AND currency = (SELECT currency FROM dominant)
     ))::bigint AS total_sample_count,
     coalesce((SELECT currency FROM dominant), 'CNY')::text AS currency,
+    -- One window, one currency: the same `dominant` the totals use, so the number
+    -- and the currency code in this row always describe the same money.
     coalesce((SELECT sum(amount) FROM paid
-              WHERE currency = (SELECT currency FROM paid_dominant)), 0)::float8 AS paid_amount,
-    (SELECT count(*) FROM paid WHERE currency = (SELECT currency FROM paid_dominant))::bigint
+              WHERE currency = (SELECT currency FROM dominant)), 0)::float8 AS paid_amount,
+    (SELECT count(*) FROM paid WHERE currency = (SELECT currency FROM dominant))::bigint
         AS paid_sample_count
 FROM live;
 

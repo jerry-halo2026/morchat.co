@@ -140,6 +140,18 @@ var pgBigmOperatorClass = extensionOperatorClass{
 // they are still pending: a fresh self-hosted install, which is exactly where an
 // interrupted build would otherwise leave a permanently unusable index.
 var concurrentIndexCleanups = map[string]string{
+	// Product layer (B4/C0 + H): each index has its own single-statement file.
+	"830_crm_settlement_review_idx":                        "idx_crm_settlement_pending_review",
+	"829_creator_activity_review_idx":                      "idx_creator_activity_pending_review",
+	"828_creator_quote_review_idx":                         "idx_creator_quote_pending_review",
+	"827_crm_collab_review_idx":                            "idx_crm_collab_pending_review",
+	"825_crm_settlement_assignee_idx":                      "idx_crm_settlement_workspace_assignee",
+	"824_creator_activity_assignee_idx":                    "idx_creator_activity_workspace_assignee",
+	"823_creator_quote_assignee_idx":                       "idx_creator_quote_workspace_assignee",
+	"822_crm_collab_assignee_idx":                          "idx_crm_collab_workspace_assignee",
+	"820_activity_log_subject_idx":                         "idx_activity_log_subject",
+	"852_qianchuan_daily_overall_range_idx":              "idx_qianchuan_daily_overall_range",
+	"818_workbench_role_template_unique":                "idx_workbench_role_template_workspace_title",
 	"815_media_bench_captured_idx":                              "idx_media_bench_workspace_captured",
 	"813_media_hot_captured_idx":                                "idx_media_hot_workspace_captured",
 	"809_creator_campaign_name_unique":                          "idx_creator_campaign_workspace_name_lower",

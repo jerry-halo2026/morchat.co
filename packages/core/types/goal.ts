@@ -12,9 +12,10 @@
  * recorded the figure — not something the client recomputes from `target`, and
  * `current > target` is a valid over-achievement rather than a bug.
  *
- * The task side lives on the issue: `issue.goal_id` points at a goal, and this
- * module only reads that link from the goal's side (`GoalDetail.issues`). The
- * issue response itself does not carry `goal_id` yet (see §13.7).
+ * The task side lives on the issue: `issue.goal_id` points at a goal. Read it
+ * from either direction — the goal's side (`GoalDetail.issues`) or the issue's
+ * own `goal_id` field, which every issue response now carries, so a task list
+ * can be grouped by goal without one `GET /goals/{id}` per goal.
  */
 
 export type GoalStatus = "draft" | "active" | "paused" | "done" | "cancelled";

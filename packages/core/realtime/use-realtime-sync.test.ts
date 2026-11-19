@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { setApiInstance } from "../api";
 import type { ApiClient } from "../api/client";
 import { chatKeys } from "../chat/queries";
+import { bdKeys } from "../bd/queries";
 import { workbenchKeys } from "../crm/queries";
 import { inboxKeys } from "../inbox/queries";
 import { mediaKeys } from "../media/queries";
@@ -31,8 +32,10 @@ import {
   applyChatSessionUpdatedToCache,
   applyWorkspaceUpdatedToCache,
   handleInboxNew,
+  invalidateBdLedgerQueries,
   invalidateChatMessageQueries,
   invalidateMediaDiscoveryQueries,
+  invalidateMediaTopicQueries,
   refetchPendingChatAggregate,
   resolveInboxSourceSlug,
 } from "./use-realtime-sync";
@@ -1333,5 +1336,87 @@ describe("invalidateMediaDiscoveryQueries", () => {
     expect(keys).toContainEqual(mediaKeys.resource(wsId, "bench"));
     expect(keys).toContainEqual(workbenchKeys.all(wsId));
     expect(keys).not.toContainEqual(mediaKeys.resource(wsId, "hot"));
+  });
+});
+
+// --- Topic pool patcher (WORKBENCH-API §12.6 / §4) ---------------------------
+//
+// `media_topic:changed` was server-only until this batch: the write path published
+// it (CRUD and `/adopt`), the client never subscribed, so a second screen's pool
+// waited for its own mutation. The event still carries `{ id }` only, so the answer
+// is "re-read the pool", reached through the resource prefix that holds the list
+// and every open topic detail.
+describe("invalidateMediaTopicQueries", () => {
+  const wsId = "ws-1";
+
+  it("re-reads the topic pool and the workspace aggregates", () => {
+    const qc = createQueryClient();
+    const invalidate = vi.spyOn(qc, "invalidateQueries").mockResolvedValue(undefined);
+
+    invalidateMediaTopicQueries(qc, wsId);
+
+    const keys = invalidate.mock.calls.map(([arg]) => (arg as { queryKey?: unknown })?.queryKey);
+    expect(keys).toContainEqual(mediaKeys.resource(wsId, "topics"));
+    expect(keys).toContainEqual(workbenchKeys.all(wsId));
+  });
+
+  it("leaves the other content resources alone", () => {
+    const qc = createQueryClient();
+    const invalidate = vi.spyOn(qc, "invalidateQueries").mockResolvedValue(undefined);
+
+    invalidateMediaTopicQueries(qc, wsId);
+
+    const keys = invalidate.mock.calls.map(([arg]) => (arg as { queryKey?: unknown })?.queryKey);
+    expect(keys).not.toContainEqual(mediaKeys.resource(wsId, "scripts"));
+    expect(keys).not.toContainEqual(mediaKeys.resource(wsId, "hot"));
+  });
+});
+
+// --- BD pipeline ledger patchers (WORKBENCH-API §20.5) ----------------------
+//
+// The three ledgers shipped without events first (§20.6's first debt). Each one now
+// re-reads its own resource — `["bd", wsId, resource]`, which covers the list and
+// every open detail — and, for a follow-up or a quote, the cockpit whose counters
+// they move. A campaign is a source batch the cockpit does not read, so invalidating
+// the pipeline for it would be a refetch nobody consumes.
+describe("invalidateBdLedgerQueries", () => {
+  const wsId = "ws-1";
+
+  it("re-reads the follow-up ledger and the cockpit counters", () => {
+    const qc = createQueryClient();
+    const invalidate = vi.spyOn(qc, "invalidateQueries").mockResolvedValue(undefined);
+
+    invalidateBdLedgerQueries(qc, wsId, "activities");
+
+    const keys = invalidate.mock.calls.map(([arg]) => (arg as { queryKey?: unknown })?.queryKey);
+    expect(keys).toContainEqual(bdKeys.resource(wsId, "activities"));
+    expect(keys).toContainEqual(bdKeys.pipeline(wsId));
+    expect(keys).toContainEqual(workbenchKeys.all(wsId));
+  });
+
+  it("re-reads the quote ledger and the cockpit counters", () => {
+    const qc = createQueryClient();
+    const invalidate = vi.spyOn(qc, "invalidateQueries").mockResolvedValue(undefined);
+
+    invalidateBdLedgerQueries(qc, wsId, "quotes");
+
+    const keys = invalidate.mock.calls.map(([arg]) => (arg as { queryKey?: unknown })?.queryKey);
+    expect(keys).toContainEqual(bdKeys.resource(wsId, "quotes"));
+    expect(keys).toContainEqual(bdKeys.pipeline(wsId));
+    expect(keys).toContainEqual(workbenchKeys.all(wsId));
+    expect(keys).not.toContainEqual(bdKeys.resource(wsId, "activities"));
+  });
+
+  it("re-reads the campaign ledger without a cockpit refetch", () => {
+    const qc = createQueryClient();
+    const invalidate = vi.spyOn(qc, "invalidateQueries").mockResolvedValue(undefined);
+
+    invalidateBdLedgerQueries(qc, wsId, "campaigns");
+
+    const keys = invalidate.mock.calls.map(([arg]) => (arg as { queryKey?: unknown })?.queryKey);
+    expect(keys).toContainEqual(bdKeys.resource(wsId, "campaigns"));
+    expect(keys).toContainEqual(workbenchKeys.all(wsId));
+    expect(keys).not.toContainEqual(bdKeys.pipeline(wsId));
+    expect(keys).not.toContainEqual(bdKeys.resource(wsId, "quotes"));
   });
 });

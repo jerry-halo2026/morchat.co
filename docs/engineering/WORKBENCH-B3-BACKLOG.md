@@ -25,7 +25,7 @@ related: [docs/engineering/WORKBENCH-B3-PLAN.md, docs/engineering/WORKBENCH-API.
 
 | # | 事项 | 现状 | 做完的标准 |
 | --- | --- | --- | --- |
-| 6 | 列表都是 limit-only | 脚本/选题/拍摄/热点/对标全部 `limit ≤ 200` 一窗口，第 201 条就看不到；`/bd/activities` 无 `?due=1`、`/bd/quotes` 无 `q/sort/cursor` | keyset cursor（`(created_at,id)`）+ 需要的过滤器，前端接「加载更多」 |
+| 6 | ✅ 已完成（2026-11-19）：`/bd/quotes` 与 `/bd/activities` 有 q/status/sort/cursor、`?due=1`；其余台账仍 limit-only （原：`脚本/选题/拍摄/热点/对标全部 `limit ≤ 200` 一窗口，第 201…`） |
 | 7 | 对标 adopt 记不住 | `media_topic` 只有 `hot_id`，没有 `bench_id`：刷新后「已转成选题」的标记消失，能重复 adopt | 加 `bench_id` 列（迁移 + 索引）或改成 `source_ref uuid` 统一两源 |
 | 8 | 缩表/解绑缺口 | `UpdateMediaBenchRequest.ip_id` 没有 null 形态，对标样本不能「解绑 IP」；`media_shoot` 不能把镜头清单清回 `{}` | 请求类型区分「省略」与「置空」，与 `scores` 的三态一致 |
 | 9 | 混合币种只出主币种 | 报价/成交/结算/联盟都只汇总行数最多的那种币；页面无法提示「排除了多少行」 | 接口返回 `by_currency[]`，页面按币种分行（不是相加） |
@@ -33,7 +33,7 @@ related: [docs/engineering/WORKBENCH-B3-PLAN.md, docs/engineering/WORKBENCH-API.
 | 11 | 事件缺口 | `media_topic:changed` 客户端仍未接（§12.7 老债）；`creator_activity` / `creator_quote` / `creator_campaign` 不发事件 | 两个 patcher + 三个事件，写入处广播 |
 | 12 | MCP 只读工具没扩 | `/api/mcp/workbench` 的 `domain` 枚举仍是九个：agent 读不到媒体/目标/信号/联盟 | 扩枚举 + dispatcher，补一条工具用例 |
 | 13 | `/overview` 没有新指标 | `packages/core/metrics/contracts.ts` 未加媒体/目标/联盟指标，工作台指标条看不到内容侧 | 加指标 id + source 白名单，`insufficient_data` → 有值 |
-| 14 | `issue.goal_id` 不在响应里 | 任务页只能从目标侧反向读任务，任务多时是 N 次请求 | `IssueResponse` 加字段（新字段缺省 null，不破坏旧客户端）|
+| 14 | ✅ 已完成（2026-11-19）：响应回显 + `?goal_id=` 过滤（非法 400），core 默认 null （原：`任务页只能从目标侧反向读任务，任务多时是 N 次请求…`） |
 
 ## P2：体验与一致性
 
@@ -111,3 +111,10 @@ POST /api/workbench/import        Content-Type: text/csv; charset=utf-8
 | --- | --- | --- |
 | 28 | **PATCH 清空字段的语义不统一** | `scores` 是「省略=保留、`null`=清空」（B3 §21 定的），但结算的 `paid_at` 走 `applyTimestampPatch`：JSON `null` 解码成 nil 指针 = 「没传」→ 静默保留，唯一能落成 SQL NULL 的是空串 `""`。前端因此发 `{"paid_at": ""}`。要统一成「显式 null 清空」需要 `json.RawMessage` 三态解码，涉及 4 个台账 handler + core schema + 三个页面的 model；**在统一之前，别把 `""` 当临时补丁删掉**。 |
 | 29 | **经营页趋势是 6 次并发月读** | `/finance` 一次只答一个月，趋势块按 6 个月各读一次（首屏约 8 个请求）。后端若给 `/finance/months?from=&to=` 返回每月 `signed/collected/cash_floor`，前端把 `useQueries` 换成一次读即可。 |
+
+### 2026-11-19 W3 之后新增（两条）
+
+| # | 事项 | 说明 |
+| --- | --- | --- |
+| 30 | ✅ 已完成（2026-11-19）：`forbidden_agent_money`，agent 碰金额/结算/佣金率/settled 一律 403 （原：`agent 写通道（MCP）已封死金额/结算/归属/删除；但 REST PATC…`） |
+| 31 | **深链参数没有消费方** | inbox 与「我的队列」链到 `/sales/{quotes,collabs,followups}?quote=|collab=|followup=<id>`，三个列表页还不读这个参数（落进列表但不聚焦行）。 |

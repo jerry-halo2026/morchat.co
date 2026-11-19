@@ -329,14 +329,98 @@ func (q *Queries) GetCreatorPost(ctx context.Context, arg GetCreatorPostParams) 
 	return i, err
 }
 
+const getCreatorPostMetric = `-- name: GetCreatorPostMetric :one
+SELECT id, workspace_id, post_id, captured_on, play, likes, comments, shares, clicks, converts, gmv_amount, currency, source, created_at, updated_at FROM creator_post_metric
+WHERE id = $1 AND workspace_id = $2
+  AND post_id = $3
+`
+
+type GetCreatorPostMetricParams struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	PostID      pgtype.UUID `json:"post_id"`
+}
+
+// The cursor's row read back; a snapshot of another post or workspace is a 400 in
+// the handler rather than an empty page here.
+func (q *Queries) GetCreatorPostMetric(ctx context.Context, arg GetCreatorPostMetricParams) (CreatorPostMetric, error) {
+	row := q.db.QueryRow(ctx, getCreatorPostMetric, arg.ID, arg.WorkspaceID, arg.PostID)
+	var i CreatorPostMetric
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.PostID,
+		&i.CapturedOn,
+		&i.Play,
+		&i.Likes,
+		&i.Comments,
+		&i.Shares,
+		&i.Clicks,
+		&i.Converts,
+		&i.GmvAmount,
+		&i.Currency,
+		&i.Source,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getCreatorVideo = `-- name: GetCreatorVideo :one
+SELECT id, workspace_id, creator_id, aweme_id, desc_text, topics, create_time, duration_ms, digg_count, comment_count, share_count, cover_url, video_url, stats_collected_at, source_system, source_id, created_at, updated_at, archived_at, play_count FROM creator_video
+WHERE id = $1 AND workspace_id = $2::uuid
+  AND creator_id = $3::uuid
+  AND archived_at IS NULL
+`
+
+type GetCreatorVideoParams struct {
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	CreatorID   pgtype.UUID `json:"creator_id"`
+}
+
+// The cursor's row read back: a cursor id that is not this creator's is a 400 in
+// the handler, not an empty page here.
+func (q *Queries) GetCreatorVideo(ctx context.Context, arg GetCreatorVideoParams) (CreatorVideo, error) {
+	row := q.db.QueryRow(ctx, getCreatorVideo, arg.ID, arg.WorkspaceID, arg.CreatorID)
+	var i CreatorVideo
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.CreatorID,
+		&i.AwemeID,
+		&i.DescText,
+		&i.Topics,
+		&i.CreateTime,
+		&i.DurationMs,
+		&i.DiggCount,
+		&i.CommentCount,
+		&i.ShareCount,
+		&i.CoverUrl,
+		&i.VideoUrl,
+		&i.StatsCollectedAt,
+		&i.SourceSystem,
+		&i.SourceID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ArchivedAt,
+		&i.PlayCount,
+	)
+	return i, err
+}
+
 const listCreatorPostMetrics = `-- name: ListCreatorPostMetrics :many
 SELECT id, workspace_id, post_id, captured_on, play, likes, comments, shares, clicks, converts, gmv_amount, currency, source, created_at, updated_at FROM creator_post_metric
 WHERE workspace_id = $1
   AND post_id = $2
   AND ($3::date IS NULL OR captured_on >= $3::date)
   AND ($4::date IS NULL OR captured_on <= $4::date)
+  AND (
+    $5::date IS NULL
+    OR (captured_on, id) < ($5::date, $6::uuid)
+  )
 ORDER BY captured_on DESC, id DESC
-LIMIT $5
+LIMIT $7
 `
 
 type ListCreatorPostMetricsParams struct {
@@ -344,15 +428,22 @@ type ListCreatorPostMetricsParams struct {
 	PostID       pgtype.UUID `json:"post_id"`
 	CapturedFrom pgtype.Date `json:"captured_from"`
 	CapturedTo   pgtype.Date `json:"captured_to"`
+	CursorAt     pgtype.Date `json:"cursor_at"`
+	CursorID     pgtype.UUID `json:"cursor_id"`
 	Limit        int32       `json:"limit"`
 }
 
+// Paging is keyset on (captured_on, id), the order the drawer reads: the cursor is
+// the previous page's last row id, and the handler re-reads its day from this
+// workspace's row before the predicate runs.
 func (q *Queries) ListCreatorPostMetrics(ctx context.Context, arg ListCreatorPostMetricsParams) ([]CreatorPostMetric, error) {
 	rows, err := q.db.Query(ctx, listCreatorPostMetrics,
 		arg.WorkspaceID,
 		arg.PostID,
 		arg.CapturedFrom,
 		arg.CapturedTo,
+		arg.CursorAt,
+		arg.CursorID,
 		arg.Limit,
 	)
 	if err != nil {
@@ -466,22 +557,46 @@ SELECT id, workspace_id, creator_id, aweme_id, desc_text, topics, create_time, d
 WHERE workspace_id = $1::uuid
   AND creator_id = $2::uuid
   AND archived_at IS NULL
+  AND (
+    $3::uuid IS NULL
+    OR (
+      $4::timestamptz IS NOT NULL
+      AND (create_time IS NULL OR create_time < $4::timestamptz)
+    )
+    OR (
+      create_time IS NOT DISTINCT FROM $4::timestamptz
+      AND id < $3::uuid
+    )
+  )
 ORDER BY create_time DESC NULLS LAST, id DESC
-LIMIT $3::integer
+LIMIT $5::integer
 `
 
 type ListCreatorVideosRecentParams struct {
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	CreatorID   pgtype.UUID `json:"creator_id"`
-	Limit       int32       `json:"limit"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	CreatorID   pgtype.UUID        `json:"creator_id"`
+	CursorID    pgtype.UUID        `json:"cursor_id"`
+	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
+	Limit       int32              `json:"limit"`
 }
 
 // The newest mirrored works of one creator, for the health section of the
 // creator drawer (WORKBENCH-DATA-CONTRACT §2.1). `create_time` is nullable
 // (a work whose publish date was never captured), so the ordering sinks those
 // rows rather than hiding them, and the id keeps it total.
+//
+// The cursor is a resolved (create_time, id) pair. `create_time` is nullable and
+// sorts last, so the value branch keeps every unsampled work reachable past a
+// cursor that carries a date: dropping them would truncate the walk at the first
+// NULL the cursor landed on.
 func (q *Queries) ListCreatorVideosRecent(ctx context.Context, arg ListCreatorVideosRecentParams) ([]CreatorVideo, error) {
-	rows, err := q.db.Query(ctx, listCreatorVideosRecent, arg.WorkspaceID, arg.CreatorID, arg.Limit)
+	rows, err := q.db.Query(ctx, listCreatorVideosRecent,
+		arg.WorkspaceID,
+		arg.CreatorID,
+		arg.CursorID,
+		arg.CursorAt,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -561,11 +676,17 @@ WHERE c.workspace_id = $2
   )
   AND (
     $5::uuid IS NULL
+    -- Past a cursor that carries a value, every unsampled row is still ahead:
+    -- NULLS LAST puts them all after the last real value, so dropping them here
+    -- would truncate the walk at the first NULL the cursor landed on.
+    OR (
+        $6::numeric IS NOT NULL
+        AND (sv.sort_value IS NULL OR sv.sort_value < $6::numeric)
+    )
     OR (
         sv.sort_value IS NOT DISTINCT FROM $6::numeric
         AND (c.fans, c.id) < ($7::bigint, $5::uuid)
     )
-    OR sv.sort_value < $6::numeric
   )
 ORDER BY sv.sort_value DESC NULLS LAST, c.fans DESC NULLS LAST, c.id DESC
 LIMIT $8

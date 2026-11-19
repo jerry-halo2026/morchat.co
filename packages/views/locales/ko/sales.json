@@ -1,4 +1,22 @@
 {
+  "queue": {
+    "title": "내 대기열",
+    "tab_followups": "팔로업",
+    "tab_quotes": "견적",
+    "tab_collabs": "협업",
+    "empty": "여기에 배정된 행이 없습니다.",
+    "loading": "대기열을 읽는 중…",
+    "error": "대기열을 읽지 못했습니다",
+    "retry": "다시 시도",
+    "due_on": "{{date}} 마감",
+    "expires_on": "{{date}}까지 유효",
+    "settles_on": "{{date}} 정산",
+    "no_date": "날짜 없음",
+    "start_thread": "논의 시작",
+    "thread_count": "댓글 {{count}}개",
+    "thread_archived": "논의 보관됨",
+    "open_ledger": "원장 열기"
+  },
   "collabs": {
     "new": "새 콜라보",
     "empty_title": "아직 콜라보가 없습니다",
@@ -60,6 +78,12 @@
     "revoke_confirm": "취소",
     "settlement_mark_received": "입금 완료로 표시",
     "settlement_undo_received": "입금 취소"
+  },
+  "deep_link": {
+    "missing": "이 행은 현재 결과에 없습니다. 필터나 검색을 해제한 뒤 다시 찾아보세요."
+  },
+  "stale_write": {
+    "refreshed": "다른 사람이 방금 수정했습니다. 최신 내용으로 새로 고쳤으니 확인 후 다시 저장하세요."
   },
   "campaigns": {
     "new": "새 배치",
@@ -131,6 +155,7 @@
     "reason_invalid_rate": "커미션율은 0에서 1입니다(20%는 0.2).",
     "reason_invalid_timestamp": "날짜와 시간이 아닙니다.",
     "reason_invalid_enum": "허용된 값이 아닙니다.",
-    "reason_invalid_currency": "통화는 CNY처럼 세 글자입니다."
+    "reason_invalid_currency": "통화는 CNY처럼 세 글자입니다.",
+    "reason_text_too_long": "이 열의 길이 제한을 넘었습니다."
   }
 }

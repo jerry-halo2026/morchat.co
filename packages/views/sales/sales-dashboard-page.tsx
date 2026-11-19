@@ -16,6 +16,7 @@ import { ROUTE_ICON_COMPONENTS } from "../layout/route-icon-components";
 import { ActivitySection } from "./dashboard/activity-section";
 import { FollowupSection } from "./dashboard/followup-section";
 import { KpiStrip } from "./dashboard/kpi-strip";
+import { MyWorkbenchQueue } from "./dashboard/my-queue";
 import { MoneyLine } from "./dashboard/money-line";
 import { QuickFollowupDialog, type FollowupTarget } from "./dashboard/quick-followup-dialog";
 import { TodayBar } from "./dashboard/today-bar";
@@ -160,6 +161,7 @@ function DashboardBody({ wsId }: { wsId: string }) {
             collected={pipeline.data?.orders.paid_amount}
             loading={pipeline.isPending}
           />
+          <MyWorkbenchQueue />
           <div className="grid min-w-0 gap-5 lg:grid-cols-2">
             <FollowupSection
               rows={due}

@@ -32,6 +32,10 @@ describe("workbench money block schema", () => {
   it("parses the four figures and the deliberate gap", () => {
     const parsed = WorkbenchFinanceResponseSchema.parse(full);
     expect(parsed.window.month).toBe("2026-11");
+    // A server that sends no unit is read as CNY, and one that names a unit keeps
+    // it: every figure above is in `window.currency`, never a mixture.
+    expect(parsed.window.currency).toBe("CNY");
+    expect(WorkbenchFinanceResponseSchema.parse({ ...full, window: { month: "2026-11", currency: "USD" } }).window.currency).toBe("USD");
     expect(parsed.signed).toEqual({ value: 10000, sample_count: 1, empty: "zero" });
     // A stated zero is a measurement: it must survive, not fall back to a gap.
     expect(parsed.collected.value).toBe(0);

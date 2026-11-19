@@ -139,11 +139,18 @@ import type {
   BdQuote,
   BdQuoteListResponse,
   WorkbenchCountsResponse,
+  WorkbenchThread,
   WorkbenchFinanceMonth,
   WorkbenchFinanceMonthListResponse,
   WorkbenchFinanceResponse,
   // Batch CSV import (WORKBENCH-API §23).
   ImportPreviewResponse,
+  // Capabilities (WORKBENCH-API §24).
+  WorkbenchCapabilitiesResponse,
+  WorkbenchRoleTemplate,
+  WorkbenchRoleTemplateListResponse,
+  // The review queue (WORKBENCH-API §26).
+  ReviewQueueResponse,
 } from "../types";
 import type { CloudRuntimeNode } from "../runtimes/cloud-runtime";
 import type { CreateFeedbackResponse } from "../feedback/types";
@@ -1679,6 +1686,11 @@ export const IssueSchema = z.object({
   creator_id: z.string(),
   requester_id: z.string().nullable().optional().catch(undefined),
   parent_issue_id: z.string().nullable(),
+  // The OKR objective this issue advances (`issue.goal_id`, 748), or null when
+  // unattached. .default(null) rather than .optional(): a backend that predates
+  // the field omits the key entirely, and the whole-issue parse must not fail
+  // (nor leave a hole) because of one additive pointer.
+  goal_id: z.string().nullable().default(null),
   // Additive pointer (MUL-7349); same disproportionate-failure reasoning as
   // status_name above, and older backends do not send it at all.
   duplicate_of: z
@@ -4896,6 +4908,53 @@ export const EMPTY_CRM_BRIEF_LIST_RESPONSE: CrmBriefListResponse = {
   total: 0,
 };
 
+/**
+ * The audit fold a workbench GET carries (COLLAB-MODEL §2): the newest event
+ * about the row. Degrades to null — a row whose trail predates migration 819 has
+ * none, and a missing annotation must not blank the row it annotates.
+ */
+export const WorkbenchLastActorSchema = z
+  .object({
+    type: z.string().default(""),
+    id: workbenchNullableString,
+    action: z.string().default(""),
+    at: z.string().default(""),
+  })
+  .nullable()
+  .default(null);
+
+/** `member | agent`; free text on the wire like every workbench enum. */
+export const workbenchAssigneeType = z.string().nullable().default(null);
+
+/**
+ * A ledger row's discussion (COLLAB-MODEL §5). Degrades to null like the trail
+ * above: a row on a server that predates B4-3 has no thread, and `null` also covers
+ * "nobody opened one yet" — both render as "no discussion", never as an error.
+ *
+ * `state` is free text on the wire (`linked | gone`); anything unrecognised is
+ * treated as `gone` by the renderer rather than assumed linkable, because a link to
+ * an issue this client cannot describe is worse than saying the discussion is
+ * archived.
+ */
+export const WorkbenchThreadSchema = z
+  .object({
+    issue_id: z.string().default(""),
+    number: z.number().default(0),
+    title: z.string().default(""),
+    status: z.string().default(""),
+    state: z.string().default("gone"),
+    comment_count: z.number().default(0),
+    last_comment_at: workbenchNullableString,
+    last_comment_preview: workbenchNullableString,
+  })
+  .nullable()
+  .default(null);
+
+export const EMPTY_WORKBENCH_THREAD: WorkbenchThread = {
+  issue_id: "", number: 0, title: "", status: "", state: "gone",
+  comment_count: 0, last_comment_at: null, last_comment_preview: null,
+};
+
 export const CrmCollabSchema = z.object({
   id: z.string(),
   workspace_id: z.string().default(""),
@@ -4927,6 +4986,16 @@ export const CrmCollabSchema = z.object({
   // predates them; null means "not published / not settled", not "empty string".
   publish_url: workbenchNullableString,
   settled_on: workbenchNullableString,
+  // Assignment, concurrency and the trail (COLLAB-MODEL §1/§2/§3, migration
+  // 821). Absent on a server that predates them: `revision: 1` matches the
+  // column default, and a missing `assignee_*` reads as unassigned rather than
+  // rejecting the row.
+  assignee_type: workbenchAssigneeType,
+  assignee_id: workbenchNullableString,
+  revision: z.number().default(1),
+  last_actor: WorkbenchLastActorSchema,
+  // The row's discussion (COLLAB-MODEL §5, B4-3). Null when nobody opened one.
+  thread: WorkbenchThreadSchema,
 }).loose();
 
 export const EMPTY_CRM_COLLAB: CrmCollab = {
@@ -4937,6 +5006,7 @@ export const EMPTY_CRM_COLLAB: CrmCollab = {
   scheduled_at: null, confirmed_at: null, published_at: null, accepted_at: null,
   issue_id: null, owner_member_id: null, created_by: null, created_at: "",
   updated_at: "", archived_at: null, publish_url: null, settled_on: null,
+  assignee_type: null, assignee_id: null, revision: 1, last_actor: null, thread: null,
 };
 
 export const CrmCollabListResponseSchema = z.object({
@@ -4965,12 +5035,18 @@ export const CrmSettlementSchema = z.object({
   created_at: z.string().default(""),
   updated_at: z.string().default(""),
   archived_at: workbenchNullableString,
+  // Assignment, concurrency and the trail (COLLAB-MODEL §1/§2/§3).
+  assignee_type: workbenchAssigneeType,
+  assignee_id: workbenchNullableString,
+  revision: z.number().default(1),
+  last_actor: WorkbenchLastActorSchema,
 }).loose();
 
 export const EMPTY_CRM_SETTLEMENT: CrmSettlement = {
   id: "", workspace_id: "", collab_id: "", kind: "final", amount: 0,
   currency: "CNY", due_at: null, paid_at: null, invoice_no: null, note: null,
   created_by: null, created_at: "", updated_at: "", archived_at: null,
+  assignee_type: null, assignee_id: null, revision: 1, last_actor: null,
 };
 
 export const CrmSettlementListResponseSchema = z.object({
@@ -4995,6 +5071,12 @@ export const EMPTY_CRM_SETTLEMENT_LIST_RESPONSE: CrmSettlementListResponse = {
 //   * a cockpit number carries `empty: "insufficient_data"` with `value: null`
 //     when nothing was summed, so the client can draw a gap instead of 锟?.00.
 
+// The list envelopes' `next_cursor` (WORKBENCH-API §20.3): opaque, and every unusable
+// shape means "this page is the last one". A malformed cursor must never reject the
+// page — the rows are still renderable, and losing them over a token the client could
+// not have validated is worse than stopping the walk at the page it already has.
+const workbenchNextCursor = z.string().nullable().default(null).catch(null);
+
 export const BdActivitySchema = z.object({
   id: z.string(),
   workspace_id: z.string().default(""),
@@ -5008,22 +5090,33 @@ export const BdActivitySchema = z.object({
   created_by: workbenchNullableString,
   created_at: z.string().default(""),
   updated_at: z.string().default(""),
+  // Assignment, concurrency and the trail (COLLAB-MODEL §1/§2/§3).
+  assignee_type: workbenchAssigneeType,
+  assignee_id: workbenchNullableString,
+  revision: z.number().default(1),
+  last_actor: WorkbenchLastActorSchema,
 }).loose();
 
 export const EMPTY_BD_ACTIVITY: BdActivity = {
   id: "", workspace_id: "", creator_id: "", kind: "note", happened_at: "",
   summary: "", outcome: null, next_follow_at: null, owner_member_id: null,
   created_by: null, created_at: "", updated_at: "",
+  assignee_type: null, assignee_id: null, revision: 1, last_actor: null,
 };
 
 export const BdActivityListResponseSchema = z.object({
   activities: z.array(BdActivitySchema).default([]),
   total: z.number().default(0),
+  // The keyset cursor (§20.3). Absent, null and "not a string" all read as "no next
+  // page": a page that ends is the safe degradation, since the alternative is a client
+  // asking for the same page forever.
+  next_cursor: workbenchNextCursor,
 }).loose();
 
 export const EMPTY_BD_ACTIVITY_LIST_RESPONSE: BdActivityListResponse = {
   activities: [],
   total: 0,
+  next_cursor: null,
 };
 
 export const BdQuoteSchema = z.object({
@@ -5047,6 +5140,13 @@ export const BdQuoteSchema = z.object({
   created_by: workbenchNullableString,
   created_at: z.string().default(""),
   updated_at: z.string().default(""),
+  // Assignment, concurrency and the trail (COLLAB-MODEL §1/§2/§3).
+  assignee_type: workbenchAssigneeType,
+  assignee_id: workbenchNullableString,
+  revision: z.number().default(1),
+  last_actor: WorkbenchLastActorSchema,
+  // The quote's discussion, found by its origin stamp (COLLAB-MODEL §5, B4-3).
+  thread: WorkbenchThreadSchema,
 }).loose();
 
 export const EMPTY_BD_QUOTE: BdQuote = {
@@ -5054,15 +5154,69 @@ export const EMPTY_BD_QUOTE: BdQuote = {
   quoted_at: null, valid_until: null, fee_amount: null, commission_rate: null,
   currency: "CNY", items: [], note: null, owner_member_id: null, created_by: null,
   created_at: "", updated_at: "",
+  assignee_type: null, assignee_id: null, revision: 1, last_actor: null, thread: null,
 };
 
 export const BdQuoteListResponseSchema = z.object({
   quotes: z.array(BdQuoteSchema).default([]),
   total: z.number().default(0),
+  // Same cursor rule as the follow-up list: opaque, and a missing one means "last page".
+  next_cursor: workbenchNextCursor,
 }).loose();
 
 export const EMPTY_BD_QUOTE_LIST_RESPONSE: BdQuoteListResponse = {
   quotes: [],
+  total: 0,
+  next_cursor: null,
+};
+
+// --- the review queue (`/api/workbench/review`, WORKBENCH-API §26) ----------
+//
+// Four ledgers flattened into one row shape, so the same leniency rules apply:
+// every field degrades rather than rejecting the row. Two of them carry a
+// meaning that must not be flattened into a default:
+//
+//   * `amount: null` is "this ledger has no money on this row" (a follow-up),
+//     not zero — the row renders a dash, not ¥0;
+//   * `changed_fields: []` means the server could not say what moved, which is
+//     a weaker statement than "nothing moved", and the row says so.
+
+export const ReviewQueueRowSchema = z
+  .object({
+    domain: z.string().default(""),
+    id: z.string(),
+    review_state: z.string().default("pending"),
+    actor_type: z.string().default("member"),
+    actor_id: workbenchNullableString,
+    agent_name: workbenchNullableString,
+    actor_name: workbenchNullableString,
+    summary: z.string().default(""),
+    changed_fields: z.array(z.string()).default([]),
+    amount: workbenchNullableNumber,
+    currency: z.string().default("CNY"),
+    revision: z.number().default(1),
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+  })
+  .loose();
+
+export const ReviewQueueResponseSchema = z
+  .object({
+    // The server's envelope key is `items` (WorkbenchReviewQueueResponse); the
+    // views read `rows`. Parse the wire name and hand them the name they read, so
+    // a real response is not quietly replaced by the empty fallback.
+    items: z.array(ReviewQueueRowSchema).default([]),
+    rows: z.array(ReviewQueueRowSchema).optional(),
+    total: z.number().default(0),
+  })
+  .loose()
+  .transform((value) => ({
+    rows: value.items.length > 0 ? value.items : (value.rows ?? []),
+    total: value.total,
+  }));
+
+export const EMPTY_REVIEW_QUEUE_RESPONSE: ReviewQueueResponse = {
+  rows: [],
   total: 0,
 };
 
@@ -5305,12 +5459,14 @@ const workbenchFinanceCostBlock = WorkbenchFinanceCostBlockSchema.default(
 
 export const WorkbenchFinanceResponseSchema = z
   .object({
-    // The month label is display copy, so a missing one degrades to an empty
-    // string rather than rejecting the figures the server did send.
+    // The month and unit labels are display copy, so a missing one degrades to a
+    // default rather than rejecting the figures the server did send. `currency`
+    // names the unit every amount is in; the server picks the window's dominant
+    // one, and an older server that sends no unit is read as CNY.
     window: z
-      .object({ month: z.string().default("") })
-      .default({ month: "" })
-      .catch({ month: "" }),
+      .object({ month: z.string().default(""), currency: z.string().default("CNY") })
+      .default({ month: "", currency: "CNY" })
+      .catch({ month: "", currency: "CNY" }),
     signed: workbenchFinanceBlock,
     collected: workbenchFinanceBlock,
     gross_margin: workbenchFinanceCostBlock,
@@ -5320,7 +5476,7 @@ export const WorkbenchFinanceResponseSchema = z
   .loose();
 
 export const EMPTY_WORKBENCH_FINANCE_RESPONSE: WorkbenchFinanceResponse = {
-  window: { month: "" },
+  window: { month: "", currency: "CNY" },
   signed: EMPTY_WORKBENCH_FINANCE_BLOCK,
   collected: EMPTY_WORKBENCH_FINANCE_BLOCK,
   gross_margin: EMPTY_WORKBENCH_FINANCE_COST_BLOCK,
@@ -5842,10 +5998,16 @@ export const EMPTY_AFFILIATE_SETTLEMENT_LIST_RESPONSE: AffiliateSettlementListRe
  */
 export const AffiliateSummaryResponseSchema = z
   .object({
+    // The month and unit labels are display copy, so a missing one degrades to a
+    // default rather than rejecting the figures the server did send. `currency`
+    // names the unit every money block is in; the server picks the window's
+    // dominant one, and an older server that sends no unit is read as CNY — the
+    // unit the affiliate columns default to, which is what that server was
+    // summing.
     window: z
-      .object({ month: z.string().default("") })
-      .default({ month: "" })
-      .catch({ month: "" }),
+      .object({ month: z.string().default(""), currency: z.string().default("CNY") })
+      .default({ month: "", currency: "CNY" })
+      .catch({ month: "", currency: "CNY" }),
     gmv: workbenchFinanceBlock,
     commission_est: workbenchFinanceBlock,
     commission_settled: workbenchFinanceBlock,
@@ -5860,7 +6022,7 @@ export const AffiliateSummaryResponseSchema = z
   .loose();
 
 export const EMPTY_AFFILIATE_SUMMARY_RESPONSE: AffiliateSummaryResponse = {
-  window: { month: "" },
+  window: { month: "", currency: "CNY" },
   gmv: EMPTY_WORKBENCH_FINANCE_BLOCK,
   commission_est: EMPTY_WORKBENCH_FINANCE_BLOCK,
   commission_settled: EMPTY_WORKBENCH_FINANCE_BLOCK,
@@ -7019,4 +7181,62 @@ export const EMPTY_IMPORT_PREVIEW_RESPONSE: ImportPreviewResponse = {
   committed: 0,
   rows: [],
   errors: [],
+};
+
+// --- Capabilities (docs/engineering/WORKBENCH-API.md §24) -------------------
+//
+// The server resolves what the caller may do (§24.2: role → job-title template →
+// department default → read-only fallback); the client never computes it. These
+// schemas are the boundary defense: a missing field degrades to "no capabilities",
+// which hides entry points instead of offering a button that 403s.
+//
+// `capabilities` is `z.array(z.string())`, not an enum union: a server that learns a
+// new capability must not blank the whole response for an older client, and an unknown
+// string simply never matches a known one.
+export const WorkbenchCapabilitiesResponseSchema = z
+  .object({
+    capabilities: z.array(z.string()).default([]),
+    source: z.string().default("fallback"),
+    role: z.string().default("member"),
+    visibility: z.string().default("transparent"),
+  })
+  .loose();
+
+export const EMPTY_WORKBENCH_CAPABILITIES_RESPONSE: WorkbenchCapabilitiesResponse = {
+  capabilities: [],
+  source: "fallback",
+  role: "member",
+  visibility: "transparent",
+};
+
+export const WorkbenchRoleTemplateSchema = z
+  .object({
+    id: z.string().default(""),
+    workspace_id: z.string().default(""),
+    job_title: z.string().default(""),
+    capabilities: z.array(z.string()).default([]),
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+  })
+  .loose();
+
+export const EMPTY_WORKBENCH_ROLE_TEMPLATE: WorkbenchRoleTemplate = {
+  id: "",
+  workspace_id: "",
+  job_title: "",
+  capabilities: [],
+  created_at: "",
+  updated_at: "",
+};
+
+export const WorkbenchRoleTemplateListResponseSchema = z
+  .object({
+    templates: z.array(WorkbenchRoleTemplateSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_WORKBENCH_ROLE_TEMPLATE_LIST_RESPONSE: WorkbenchRoleTemplateListResponse = {
+  templates: [],
+  total: 0,
 };

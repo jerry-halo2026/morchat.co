@@ -17,6 +17,7 @@ import { refreshSubscribedIssues, subscribedIssueKeys } from "../issues/subscrib
 import { projectKeys } from "../projects/queries";
 import { creatorKeys } from "../creator/queries";
 import { crmKeys, workbenchKeys } from "../crm/queries";
+import { bdKeys } from "../bd/queries";
 import { mediaKeys } from "../media/queries";
 import { hrKeys } from "../hr/queries";
 import { pinKeys } from "../pins/queries";
@@ -798,6 +799,43 @@ export function invalidateMediaDiscoveryQueries(
   void qc.invalidateQueries({ queryKey: workbenchKeys.all(wsId) });
 }
 
+/**
+ * Re-read the topic pool a `media_topic:changed` event names
+ * (docs/engineering/WORKBENCH-API.md §12.6/§4).
+ *
+ * Both source ledgers feed the pool, so an adopt writes a topic; the write itself
+ * now publishes too, which is what makes another client's pool move without one.
+ * `["media", wsId, "topics"]` covers the list and every open topic detail.
+ */
+export function invalidateMediaTopicQueries(qc: QueryClient, wsId: string): void {
+  void qc.invalidateQueries({ queryKey: mediaKeys.resource(wsId, "topics") });
+  void qc.invalidateQueries({ queryKey: workbenchKeys.all(wsId) });
+}
+
+/** One of the three BD ledgers a `:changed` event names (§20.5). */
+export type BdLedgerResource = "activities" | "quotes" | "campaigns";
+
+/**
+ * Re-read the BD ledger a `creator_activity:changed` / `creator_quote:changed` /
+ * `creator_campaign:changed` event names (docs/engineering/WORKBENCH-API.md §20.5).
+ *
+ * `["bd", wsId, resource]` covers the list and every open detail of that resource.
+ * A follow-up and a quote also move the cockpit's counters (`followups`, `quotes`),
+ * so the pipeline is invalidated with them; a campaign is a source batch the
+ * cockpit does not read, so it refreshes its own ledger and the aggregates only.
+ */
+export function invalidateBdLedgerQueries(
+  qc: QueryClient,
+  wsId: string,
+  resource: BdLedgerResource,
+): void {
+  void qc.invalidateQueries({ queryKey: bdKeys.resource(wsId, resource) });
+  if (resource !== "campaigns") {
+    void qc.invalidateQueries({ queryKey: bdKeys.pipeline(wsId) });
+  }
+  void qc.invalidateQueries({ queryKey: workbenchKeys.all(wsId) });
+}
+
 export interface RealtimeSyncStores {
   authStore: UseBoundStore<StoreApi<AuthState>>;
 }/**
@@ -1157,6 +1195,11 @@ export function useRealtimeSync(
       // below for the same reason: the generic prefix path knows nothing about
       // `["media", wsId, "hot" | "bench", …]`.
       "media_hot:changed", "media_bench:changed",
+      // The content pipeline's topic event and the three BD ledgers (§12.6/§20.5)
+      // are the same case one domain over: `["media", wsId, "topics", …]` and
+      // `["bd", wsId, …]` are unknown to the prefix path.
+      "media_topic:changed",
+      "creator_activity:changed", "creator_quote:changed", "creator_campaign:changed",
       // task:completed / task:failed deliberately NOT here. They reach both
       // onAny (task-prefix invalidation and bounded activity refresh) and the
       // chat-specific ws.on() handlers below through independent subscriptions.
@@ -2103,6 +2146,41 @@ export function useRealtimeSync(
       invalidateMediaDiscoveryQueries(qc, wsId, "bench");
     });
 
+    // --- Content pipeline topics (docs/engineering/WORKBENCH-API.md §12.6) ---
+    //
+    // One resource, two ways in: an operator's CRUD and an `/adopt` from either
+    // source ledger. Both write a `media_topic` row, so both publish this event and
+    // the pool refreshes without waiting for the initiator's own mutation.
+    const unsubMediaTopicChanged = ws.on("media_topic:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateMediaTopicQueries(qc, wsId);
+    });
+
+    // --- BD pipeline ledgers (docs/engineering/WORKBENCH-API.md §20.5) ---
+    //
+    // The three ledgers that shipped without events (§20.6's first debt): a
+    // follow-up, a quote and a campaign now announce themselves, so another
+    // client's ledger and the cockpit refresh instead of staying stale until the
+    // next manual reload.
+    const unsubBdActivityChanged = ws.on("creator_activity:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateBdLedgerQueries(qc, wsId, "activities");
+    });
+
+    const unsubBdQuoteChanged = ws.on("creator_quote:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateBdLedgerQueries(qc, wsId, "quotes");
+    });
+
+    const unsubBdCampaignChanged = ws.on("creator_campaign:changed", () => {
+      const wsId = getCurrentWsId();
+      if (!wsId) return;
+      invalidateBdLedgerQueries(qc, wsId, "campaigns");
+    });
+
     return () => {
       unsubAny();
       unsubIssueUpdated();
@@ -2166,6 +2244,10 @@ export function useRealtimeSync(
       unsubHrEmployeeProfileChanged();
       unsubMediaHotChanged();
       unsubMediaBenchChanged();
+      unsubMediaTopicChanged();
+      unsubBdActivityChanged();
+      unsubBdQuoteChanged();
+      unsubBdCampaignChanged();
       if (taskMessageFlushTimer) clearTimeout(taskMessageFlushTimer);
       if (aggregateRefreshTimer) clearTimeout(aggregateRefreshTimer);
       timers.forEach(clearTimeout);

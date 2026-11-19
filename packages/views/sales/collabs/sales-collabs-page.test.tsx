@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import type { CrmBrief, CrmClient, CrmCollab, CrmSettlement, Creator } from "@morechat/core/types";
+import { ApiError, StaleWriteError } from "@morechat/core/api";
 import { renderWithI18n } from "../../test/i18n";
 import { SalesCollabsPage } from "../sales-collabs-page";
 
@@ -42,7 +43,15 @@ const viewer = vi.hoisted(() => ({
   role: "admin" as "owner" | "admin" | "member" | null,
 }));
 
-vi.mock("@morechat/core/api", () => ({ api }));
+/** What `?collab=` carries in this test — set before `renderPage`. */
+const nav = vi.hoisted(() => ({ params: new URLSearchParams() }));
+
+// The real module is kept for `StaleWriteError` / `isStaleWrite`: the mutation
+// hooks in `@morechat/core/crm` judge a 409 with the same function this page does.
+vi.mock("@morechat/core/api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@morechat/core/api")>()),
+  api,
+}));
 vi.mock("@morechat/core/hooks", () => ({ useWorkspaceId: () => "ws-1" }));
 vi.mock("@morechat/core/permissions", () => ({
   useCurrentMember: () => ({ userId: "user-1", role: viewer.role, member: null, isLoading: false }),
@@ -60,6 +69,7 @@ vi.mock("../../navigation", () => ({
   useNavigation: () => ({
     pathname: "/acme/sales/collabs",
     push: () => {},
+    searchParams: nav.params,
     getShareableUrl: (href: string) => href,
   }),
   useIntentNavigate: () => () => {},
@@ -253,7 +263,8 @@ function serve(rows: readonly CrmCollab[], settlements: readonly CrmSettlement[]
   });
 }
 
-function renderPage() {
+function renderPage(params: Record<string, string> = {}) {
+  nav.params = new URLSearchParams(params);
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
@@ -592,6 +603,99 @@ describe("SalesCollabsPage · 结算到账", () => {
   });
 });
 
+describe("SalesCollabsPage · 结算到账 · 并发 (§3)", () => {
+  /** Open the one collaboration's sheet. */
+  async function openSheet() {
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+    fireEvent.click(within(bodyRows()[0]!).getByText("Lin Wei"));
+  }
+
+  it("marks received with the revision it read, and takes the server's row on a 409", async () => {
+    serve(
+      [collab({ id: "collab-1" })],
+      [settlement({ id: "s-1", kind: "prepay", amount: 3000, paid_at: null, revision: 2 })],
+    );
+    // Somebody else booked the arrival two days earlier, while this sheet was open.
+    const current = settlement({
+      id: "s-1",
+      kind: "prepay",
+      amount: 3000,
+      paid_at: new Date(2026, 10, 16, 9).toISOString(),
+      revision: 3,
+    });
+    api.updateCrmSettlement.mockImplementationOnce(async () => {
+      setSettlements([current]);
+      throw new StaleWriteError("conflict", current);
+    });
+    renderPage();
+    await openSheet();
+    await userEvent.click(await screen.findByRole("button", { name: "Mark received" }));
+
+    // The guard travelled with the write, and the write was not sent again.
+    await waitFor(() =>
+      expect(api.updateCrmSettlement).toHaveBeenCalledWith("s-1", {
+        paid_at: new Date(2026, 10, 18, 12).toISOString(),
+        expected_revision: 2,
+      }),
+    );
+    expect(api.updateCrmSettlement).toHaveBeenCalledTimes(1);
+    // 别人刚改过，已为你刷新 — and the row reads their day, not ours.
+    expect(await screen.findByText(/Someone else just changed this/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(document.querySelector('[data-received="yes"]')).toHaveTextContent(
+        "Received · 2026-11-16",
+      ),
+    );
+    expect(api.updateCrmSettlement).toHaveBeenCalledTimes(1);
+  });
+
+  it("undoes with the revision it read, and on a 409 keeps the server's arrival", async () => {
+    serve(
+      [collab({ id: "collab-1" })],
+      [
+        settlement({
+          id: "s-1",
+          kind: "prepay",
+          amount: 3000,
+          paid_at: new Date(2026, 10, 10, 9).toISOString(),
+          revision: 2,
+        }),
+      ],
+    );
+    // The other writer moved the arrival date; this sheet is undoing an older day.
+    const current = settlement({
+      id: "s-1",
+      kind: "prepay",
+      amount: 3000,
+      paid_at: new Date(2026, 10, 15, 9).toISOString(),
+      revision: 3,
+    });
+    api.updateCrmSettlement.mockImplementationOnce(async () => {
+      setSettlements([current]);
+      throw new StaleWriteError("conflict", current);
+    });
+    renderPage();
+    await openSheet();
+    await userEvent.click(await screen.findByRole("button", { name: "Undo receipt" }));
+
+    await waitFor(() =>
+      expect(api.updateCrmSettlement).toHaveBeenCalledWith("s-1", {
+        paid_at: "",
+        expected_revision: 2,
+      }),
+    );
+    expect(api.updateCrmSettlement).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText(/Someone else just changed this/)).toBeInTheDocument();
+    // The undo was dropped: the row still reads received, on the server's day.
+    await waitFor(() =>
+      expect(document.querySelector('[data-received="yes"]')).toHaveTextContent(
+        "Received · 2026-11-15",
+      ),
+    );
+    expect(document.querySelector('[data-received="no"]')).toBeNull();
+  });
+});
+
 describe("SalesCollabsPage · 撤销合作单", () => {
   it("asks once, names the settlements it takes with it, then deletes the row", async () => {
     serve([]);
@@ -600,7 +704,7 @@ describe("SalesCollabsPage · 撤销合作单", () => {
     let reads = 0;
     api.listCrmCollabs.mockImplementation(async () => {
       reads += 1;
-      const rows = reads === 1 ? [collab({ id: "collab-1" })] : [];
+      const rows = reads === 1 ? [collab({ id: "collab-1", revision: 4 })] : [];
       return { collabs: rows, total: rows.length };
     });
     renderPage();
@@ -621,7 +725,7 @@ describe("SalesCollabsPage · 撤销合作单", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Revoke" }));
 
-    await waitFor(() => expect(api.deleteCrmCollab).toHaveBeenCalledWith("collab-1"));
+    await waitFor(() => expect(api.deleteCrmCollab).toHaveBeenCalledWith("collab-1", 4));
     // The drawer closes on the server's answer, and the ledger is reread.
     await waitFor(() => expect(screen.queryByRole("heading", { name: "Lin Wei" })).toBeNull());
     expect(await screen.findByText("No collaborations yet")).toBeInTheDocument();
@@ -654,6 +758,32 @@ describe("SalesCollabsPage · 撤销合作单", () => {
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(bodyRows()).toHaveLength(1));
   });
+
+  it("names the revision it read, and on a 409 keeps the row and shows the server's copy", async () => {
+    serve([collab({ id: "collab-1", revision: 4 })]);
+    // Somebody else moved the card while this drawer was open.
+    const current = collab({ id: "collab-1", revision: 5, final_amount: 12000 });
+    api.deleteCrmCollab.mockRejectedValueOnce(new StaleWriteError("conflict", current));
+    renderPage();
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+
+    fireEvent.click(within(bodyRows()[0]!).getByText("Lin Wei"));
+    await userEvent.click(await screen.findByRole("button", { name: "Revoke collaboration" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Revoke" }));
+
+    // The guard travelled with the delete, and the delete was not sent again.
+    await waitFor(() => expect(api.deleteCrmCollab).toHaveBeenCalledTimes(1));
+    expect(api.deleteCrmCollab).toHaveBeenCalledWith("collab-1", 4);
+    // The drawer says so, holds the server's row, and the confirmation is gone —
+    // a press that was aimed at a row that no longer exists is not offered again.
+    expect(await screen.findByRole("status")).toHaveTextContent(/Someone else just changed this/);
+    expect(screen.queryByText("Revoke this collaboration?")).toBeNull();
+
+    // And the next press carries the revision the refresh brought in.
+    await userEvent.click(screen.getByRole("button", { name: "Revoke collaboration" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Revoke" }));
+    await waitFor(() => expect(api.deleteCrmCollab).toHaveBeenLastCalledWith("collab-1", 5));
+  });
 });
 
 describe("SalesCollabsPage · 无写权限", () => {
@@ -683,5 +813,126 @@ describe("SalesCollabsPage · 错误", () => {
     serve([collab({ id: "collab-1" })]);
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
     await waitFor(() => expect(bodyRows()).toHaveLength(1));
+  });
+});
+
+describe("SalesCollabsPage · 深链 ?collab=", () => {
+  it("scrolls to the linked row and marks it", async () => {
+    serve([
+      collab({ id: "collab-a", creator_id: "creator-1", stage: "inquiry" }),
+      collab({ id: "collab-b", creator_id: "creator-2", stage: "settled" }),
+    ]);
+    // jsdom has no layout; the row that is scrolled is the fact under test.
+    const scrolled: Element[] = [];
+    const scrollIntoView = vi
+      .spyOn(Element.prototype, "scrollIntoView")
+      .mockImplementation(function (this: Element) {
+        scrolled.push(this);
+      });
+
+    renderPage({ collab: "collab-b" });
+
+    await waitFor(() => expect(bodyRows()).toHaveLength(2));
+    const target = bodyRows().find((row) => row.getAttribute("data-row-id") === "collab-b")!;
+    await waitFor(() => expect(target).toHaveClass("ring-ring/50"));
+    expect(scrolled).toContain(target);
+    const other = bodyRows().find((row) => row.getAttribute("data-row-id") === "collab-a")!;
+    expect(other).not.toHaveClass("ring-ring/50");
+
+    scrollIntoView.mockRestore();
+  });
+
+  it("says the linked row is not in the current results", async () => {
+    serve([collab({ id: "collab-1" })]);
+    renderPage({ collab: "collab-elsewhere" });
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      /That row isn't in the current results/,
+    );
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+    expect(bodyRows()[0]).not.toHaveClass("ring-ring/50");
+  });
+});
+
+describe("SalesCollabsPage · 并发 (§3)", () => {
+  /** Open the drawer on the one row the test served. */
+  async function openDrawer() {
+    await waitFor(() => expect(bodyRows()).toHaveLength(1));
+    fireEvent.click(within(bodyRows()[0]!).getByText("Lin Wei"));
+    await screen.findByRole("heading", { name: "Lin Wei" });
+  }
+
+  it("sends the revision it read with the edit", async () => {
+    serve([collab({ id: "collab-1", revision: 3, quote_amount: 8000 })]);
+    renderPage();
+    await openDrawer();
+
+    fireEvent.change(screen.getByLabelText("Closed amount"), { target: { value: "9500" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(api.updateCrmCollab).toHaveBeenCalledTimes(1));
+    const [id, body] = api.updateCrmCollab.mock.calls[0]!;
+    expect(id).toBe("collab-1");
+    expect(body.expected_revision).toBe(3);
+    expect(body.final_amount).toBe(9500);
+  });
+
+  it("shows the server's row on a 409 instead of resending its own body", async () => {
+    serve([collab({ id: "collab-1", revision: 3, final_amount: null })]);
+    const current = collab({
+      id: "collab-1",
+      revision: 6,
+      stage: "settled",
+      final_amount: 1200,
+      settled_on: "2026-11-17",
+    });
+    api.updateCrmCollab.mockRejectedValueOnce(new StaleWriteError("conflict", current));
+    renderPage();
+    await openDrawer();
+
+    fireEvent.change(screen.getByLabelText("Closed amount"), { target: { value: "9500" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      /Someone else just changed this/,
+    );
+    // The drawer is the server's row now: their amount, their stage, their day.
+    expect(screen.getByLabelText("Closed amount")).toHaveValue("1200");
+    expect(screen.getByLabelText("Settled on")).toHaveValue("2026-11-17");
+    expect(api.updateCrmCollab).toHaveBeenCalledTimes(1);
+
+    // The next save is guarded by the revision the refresh brought in.
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(api.updateCrmCollab).toHaveBeenCalledTimes(2));
+    expect(api.updateCrmCollab.mock.calls[1]![1].expected_revision).toBe(6);
+  });
+
+  it("judges the stale write before the overwrite reason", async () => {
+    serve([collab({ id: "collab-1", revision: 3 })]);
+    api.updateCrmCollab.mockRejectedValueOnce(
+      new StaleWriteError("conflict", collab({ id: "collab-1", revision: 4, final_amount: 1200 })),
+    );
+    renderPage();
+    await openDrawer();
+
+    fireEvent.change(screen.getByLabelText("Closed amount"), { target: { value: "9500" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    // A 409 is a refresh, never §26.3's question.
+    await screen.findByRole("status");
+    expect(screen.queryByText("Why are you changing this?")).toBeNull();
+
+    // …and the 400 that does ask it leaves the drawer's fields alone.
+    api.updateCrmCollab.mockRejectedValueOnce(
+      new ApiError("overwrite_reason_required", 400, "Bad Request", {
+        error: "overwrite_reason_required",
+      }),
+    );
+    fireEvent.change(screen.getByLabelText("Closed amount"), { target: { value: "7000" } });
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("Why are you changing this?")).toBeInTheDocument();
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByLabelText("Closed amount")).toHaveValue("7000");
   });
 });

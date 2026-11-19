@@ -207,22 +207,19 @@ SELECT
     hit_rate
 FROM ranked
 WHERE $1::uuid IS NULL
+   -- A cursor that carries a value is followed by every unsampled creator: NULLS
+   -- LAST sorts them all after the last real value, so the NULL branch below is
+   -- only reachable while the cursor itself is NULL-valued. Without this arm the
+   -- walk stops at the first NULL and the tail of the board never loads.
    OR (
-        sort_value IS NOT NULL
+        $2::numeric IS NOT NULL
         AND (
-            sort_value < $2::numeric
-            OR (
-                sort_value = $2::numeric
-                AND (
-                    fans < $3::bigint
-                    OR (fans = $3::bigint AND id < $1::uuid)
-                )
-            )
+            sort_value IS NULL
+            OR sort_value < $2::numeric
         )
    )
    OR (
-        sort_value IS NULL
-        AND $2::numeric IS NULL
+        sort_value IS NOT DISTINCT FROM $2::numeric
         AND (
             fans < $3::bigint
             OR (fans = $3::bigint AND id < $1::uuid)

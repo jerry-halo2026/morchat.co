@@ -1,9 +1,18 @@
 package handler
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
 )
@@ -278,6 +287,518 @@ func TestWorkbenchOverviewRejectsMalformedDepartment(t *testing.T) {
 
 	req = workbenchRequest(t, "GET", "/api/workbench/counts?department_id=not-a-uuid", nil, testUserID)
 	testutil.Call(t, testHandler.GetWorkbenchCounts, req).Want(http.StatusBadRequest)
+}
+
+// ---- the concurrent overview batch -----------------------------------------
+//
+// The overview's reads were awaited one after another, which on the shared pooler
+// (a ~350 ms round trip) meant 7.7–8.5 s of waiting for sixteen aggregates that
+// have no order to obey. They are now dispatched as one limited batch. Two
+// properties are what make that a refactor rather than a rewrite, and they are
+// what these cases pin:
+//
+//   - a failure is reported as the read it came from, chosen by declaration order
+//     rather than by whichever query lost the race, so a 500 says the same thing
+//     it said before;
+//   - the batch is bounded, because the pooler's connections are shared with every
+//     other request this server is answering.
+
+// TestRunWorkbenchReadsReportsFirstFailureInDeclarationOrder holds the error shape
+// still: three reads, two failing, the *second* declared one failing slowest so a
+// scheduler-dependent report would name the third.
+func TestRunWorkbenchReadsReportsFirstFailureInDeclarationOrder(t *testing.T) {
+	slowErr := errors.New("second read failed")
+	fastErr := errors.New("third read failed")
+
+	reads := []workbenchRead{
+		{"failed to load the first metric", func(context.Context) error {
+			// Succeeds, and slowly: it must not be mistaken for the failure.
+			time.Sleep(20 * time.Millisecond)
+			return nil
+		}},
+		{"failed to load the second metric", func(context.Context) error {
+			time.Sleep(10 * time.Millisecond)
+			return slowErr
+		}},
+		{"failed to load the third metric", func(context.Context) error { return fastErr }},
+	}
+
+	err := runWorkbenchReads(context.Background(), reads)
+	if err == nil {
+		t.Fatal("the batch returned no error for two failing reads")
+	}
+	var failure *workbenchReadError
+	if !errors.As(err, &failure) {
+		t.Fatalf("error %v is not a workbenchReadError", err)
+	}
+	if failure.label != "failed to load the second metric" {
+		t.Fatalf("reported %q, want the second read (declaration order, not arrival)", failure.label)
+	}
+	// The original error survives, so the 500's log line still carries it.
+	if !errors.Is(err, slowErr) {
+		t.Fatalf("error %v does not wrap the failing read's error", err)
+	}
+}
+
+// TestRunWorkbenchReadsKeepsTheWidthItIsGiven is the limiter guard: twelve reads
+// never put more than `limit` statements in flight, and every one of them still
+// runs.
+func TestRunWorkbenchReadsKeepsTheWidthItIsGiven(t *testing.T) {
+	const (
+		limit = 3
+		total = 12
+	)
+	var (
+		mu        sync.Mutex
+		inFlight  int
+		highWater int
+		started   atomic.Int64
+	)
+
+	reads := make([]workbenchRead, total)
+	for i := range reads {
+		reads[i] = workbenchRead{fmt.Sprintf("read %d", i), func(context.Context) error {
+			started.Add(1)
+			mu.Lock()
+			inFlight++
+			if inFlight > highWater {
+				highWater = inFlight
+			}
+			mu.Unlock()
+
+			time.Sleep(2 * time.Millisecond)
+
+			mu.Lock()
+			inFlight--
+			mu.Unlock()
+			return nil
+		}}
+	}
+
+	if err := runWorkbenchReadsWithLimit(context.Background(), reads, limit); err != nil {
+		t.Fatalf("batch failed: %v", err)
+	}
+	if got := started.Load(); got != total {
+		t.Fatalf("%d reads ran, want all %d", got, total)
+	}
+	// Every read reaches the barrier below, so the observed width is the real one
+	// as long as the batch never exceeds the limit.
+	if highWater > limit {
+		t.Fatalf("%d reads were in flight at once, want at most %d", highWater, limit)
+	}
+	if highWater < 2 {
+		t.Fatalf("%d reads were ever in flight, want the batch to actually overlap", highWater)
+	}
+}
+
+// TestWorkbenchOverviewReadsPinsTheMergedStrip holds the shape the merge bought:
+// the strip is ONE statement, and the verifiability slices are the only other
+// read. A regression that quietly re-splits the strip would still pass every value
+// assertion above — it would just cost sixteen round trips again.
+//
+// It also runs the statement against the fixture workspace, so the merged SQL is
+// executed once per suite even if nothing else touches it.
+func TestWorkbenchOverviewReadsPinsTheMergedStrip(t *testing.T) {
+	scope := workbenchScope{WorkspaceID: testWorkspaceID, WorkspaceUUID: parseUUID(testWorkspaceID)}
+	var rows workbenchOverviewRows
+	reads := testHandler.workbenchOverviewReads(scope, pgtype.UUID{}, &rows)
+
+	if len(reads) != 2 {
+		t.Fatalf("overview issues %d reads, want 2 (one strip statement + one verifier read)", len(reads))
+	}
+	if reads[0].label != "failed to load the overview metrics" {
+		t.Fatalf("strip read label = %q", reads[0].label)
+	}
+	if reads[1].label != "failed to load the agent verifiability metrics" {
+		t.Fatalf("verifier read label = %q", reads[1].label)
+	}
+
+	if err := reads[0].run(context.Background()); err != nil {
+		t.Fatalf("the strip statement failed: %v", err)
+	}
+	// The fixture workspace has at least its owner, so the member count is a real
+	// number: this is the assertion that the response row actually scanned.
+	if rows.aggregates.ActiveMembers < 1 {
+		t.Fatalf("active_members = %d, want at least the fixture owner", rows.aggregates.ActiveMembers)
+	}
+}
+
+// database behind DATABASE_URL. Run it with
+//
+//	go test ./internal/handler -run '^$' -bench BenchmarkWorkbenchOverviewReads -benchtime 3x
+//
+// against the shared pooler: a round trip there is ~350 ms, so the two sub-benchmarks
+// separate the two costs that matter — the one statement the strip now is, and the
+// three sequential verifier statements it overlaps with. Whichever number is larger
+// is what the endpoint will spend.
+func BenchmarkWorkbenchOverviewReads(b *testing.B) {
+	scope := workbenchScope{WorkspaceID: testWorkspaceID, WorkspaceUUID: parseUUID(testWorkspaceID)}
+	ctx := context.Background()
+
+	b.Run("strip", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			var rows workbenchOverviewRows
+			reads := testHandler.workbenchOverviewReads(scope, pgtype.UUID{}, &rows)
+			if err := reads[0].run(ctx); err != nil {
+				b.Fatalf("strip statement failed: %v", err)
+			}
+		}
+	})
+
+	b.Run("batch", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			var rows workbenchOverviewRows
+			reads := testHandler.workbenchOverviewReads(scope, pgtype.UUID{}, &rows)
+			if err := runWorkbenchReadsWithLimit(ctx, reads, workbenchReadConcurrency); err != nil {
+				b.Fatalf("batch failed: %v", err)
+			}
+		}
+	})
+}
+
+// ---- A/B harness for the single-statement overview -------------------------
+//
+// Merging the sixteen strip aggregates into one statement is only a refactor if
+// the response body does not move, and "does not move" has to be measured on
+// bytes: two runs of the same seed, one on each build, diffed. This case seeds a
+// workspace whose every ledger has rows in both its value and its gap branch,
+// calls the endpoint, and writes the exact response body — plus the
+// department-filtered variant, which reaches the other half of every `IS NULL OR`
+// arm — into $WORKBENCH_OVERVIEW_DUMP.
+//
+//	WORKBENCH_OVERVIEW_DUMP=/tmp/ab/before \
+//	  go test ./internal/handler -run TestWorkbenchOverviewAB -count=1
+//
+// The seed is entirely relative to `now()`, so the two runs agree on every
+// aggregate the endpoint reads.
+func TestWorkbenchOverviewAB(t *testing.T) {
+	outDir := os.Getenv("WORKBENCH_OVERVIEW_DUMP")
+	if outDir == "" {
+		t.Skip("set WORKBENCH_OVERVIEW_DUMP to dump the overview body for an A/B diff")
+	}
+	if err := os.MkdirAll(outDir, 0o755); err != nil {
+		t.Fatalf("create the dump directory: %v", err)
+	}
+	departmentID := seedWorkbenchOverviewABFixture(t)
+
+	for _, variant := range []struct {
+		name  string
+		query string
+	}{
+		{"workspace", ""},
+		{"department", "?department_id=" + departmentID},
+	} {
+		req := workbenchRequest(t, "GET", "/api/workbench/overview"+variant.query, nil, testUserID)
+		w := testutil.Call(t, testHandler.GetWorkbenchOverview, req).Want(http.StatusOK)
+		path := filepath.Join(outDir, "overview-"+variant.name+".json")
+		if err := os.WriteFile(path, w.Body.Bytes(), 0o644); err != nil {
+			t.Fatalf("write %s: %v", path, err)
+		}
+		t.Logf("%s: wrote %s (%d bytes)", variant.name, path, w.Body.Len())
+	}
+}
+
+// seedWorkbenchOverviewABFixture fills every ledger the overview reads, with at
+// least one row that satisfies each aggregate's filter and at least one that does
+// not: a seed of only passing rows would diff green on a query that dropped a
+// predicate. Returns the department the second variant filters on.
+func seedWorkbenchOverviewABFixture(t *testing.T) string {
+	t.Helper()
+
+	departmentID := dbfx.Insert(t, "department", testutil.Cols{
+		"workspace_id": testWorkspaceID,
+		"name":         "Overview AB department",
+	})
+	otherDepartmentID := dbfx.Insert(t, "department", testutil.Cols{
+		"workspace_id": testWorkspaceID,
+		"name":         "Overview AB other department",
+	})
+
+	memberUserID := dbfx.User(t, "Overview AB Member", "wb-overview-ab-member@multica.ai")
+	dbfx.Member(t, testWorkspaceID, memberUserID, "member", testutil.Cols{
+		"department_id": departmentID,
+	})
+
+	// Issues: closed inside the month with and without a due date, one closed on
+	// time and one late, an open overdue row, a stalled row, and a row with no
+	// project at all (the cross-department denominator must skip it).
+	ownProjectID := dbfx.Project(t, "Overview AB project", testutil.Cols{
+		"department_id": departmentID,
+	})
+	otherProjectID := dbfx.Project(t, "Overview AB other project", testutil.Cols{
+		"department_id": otherDepartmentID,
+	})
+
+	issue := func(title string, over testutil.Cols) {
+		cols := testutil.Cols{"status": "done"}
+		for k, v := range over {
+			cols[k] = v
+		}
+		dbfx.Issue(t, title, cols)
+	}
+	issue("AB closed on time", testutil.Cols{
+		"project_id":    ownProjectID,
+		"assignee_type": "member",
+		"assignee_id":   memberUserID,
+		"created_at":    testutil.Raw("now() - interval '3 days'"),
+		"closed_at":     testutil.Raw("now() - interval '1 hour'"),
+		"due_date":      testutil.Raw("current_date + 1"),
+	})
+	issue("AB closed late", testutil.Cols{
+		"project_id":    otherProjectID,
+		"assignee_type": "member",
+		"assignee_id":   memberUserID,
+		"created_at":    testutil.Raw("now() - interval '6 days'"),
+		"closed_at":     testutil.Raw("now() - interval '1 day'"),
+		"due_date":      testutil.Raw("current_date - 3"),
+	})
+	issue("AB closed off-project", testutil.Cols{
+		"assignee_type": "member",
+		"assignee_id":   memberUserID,
+		"created_at":    testutil.Raw("now() - interval '4 days'"),
+		"closed_at":     testutil.Raw("now() - interval '2 days'"),
+	})
+	issue("AB open overdue", testutil.Cols{
+		"status":        "todo",
+		"project_id":    ownProjectID,
+		"assignee_type": "member",
+		"assignee_id":   memberUserID,
+		"due_date":      testutil.Raw("current_date - 1"),
+	})
+	issue("AB open stalled", testutil.Cols{
+		"status":     "in_progress",
+		"updated_at": testutil.Raw("now() - interval '30 days'"),
+	})
+
+	// Knowledge: one item in the department's space and one outside it.
+	dbfx.Insert(t, "knowledge_instances", testutil.Cols{"workspace_id": testWorkspaceID})
+	spaceID := dbfx.Insert(t, "knowledge_spaces", testutil.Cols{
+		"workspace_id":  testWorkspaceID,
+		"slug":          "overview-ab-space",
+		"display_name":  "Overview AB space",
+		"department_id": departmentID,
+	})
+	looseSpaceID := dbfx.Insert(t, "knowledge_spaces", testutil.Cols{
+		"workspace_id": testWorkspaceID,
+		"slug":         "overview-ab-loose-space",
+		"display_name": "Overview AB loose space",
+	})
+	for _, space := range []string{spaceID, looseSpaceID} {
+		dbfx.Insert(t, "knowledge_items", testutil.Cols{
+			"workspace_id": testWorkspaceID,
+			"title":        "Overview AB knowledge " + space,
+			"space_id":     space,
+			"created_at":   testutil.Raw("now() - interval '1 hour'"),
+		})
+	}
+
+	// Commerce: clients, briefs, one creator, and collaborations covering every
+	// branch the six CRM aggregates read — open with a row-level probability, open
+	// with the stage default, confirmed-then-advanced, settled, and one with no
+	// amount at all.
+	clientID := dbfx.Insert(t, "crm_client", testutil.Cols{
+		"workspace_id": testWorkspaceID,
+		"name":         "Overview AB client",
+	})
+	briefID := dbfx.Insert(t, "crm_brief", testutil.Cols{
+		"workspace_id": testWorkspaceID,
+		"client_id":    clientID,
+		"title":        "Overview AB brief",
+	})
+	creatorID := dbfx.Insert(t, "creator", testutil.Cols{
+		"workspace_id": testWorkspaceID,
+		"kind":         "external",
+		"display_name": "Overview AB creator",
+		"platform":     "douyin",
+		"handle":       "overview-ab-creator",
+	})
+	collab := func(over testutil.Cols) string {
+		cols := testutil.Cols{
+			"workspace_id":    testWorkspaceID,
+			"brief_id":        briefID,
+			"creator_id":      creatorID,
+			"currency":        "CNY",
+			"owner_member_id": memberUserID,
+		}
+		for k, v := range over {
+			cols[k] = v
+		}
+		return dbfx.Insert(t, "crm_collab", cols)
+	}
+	weightedCollabID := collab(testutil.Cols{
+		"stage":        "confirmed",
+		"final_amount": 12000,
+		"prob":         0.5,
+		"creator_fee":  4000,
+		"sample_cost":  500,
+		"platform_fee": 500,
+		"confirmed_at": testutil.Raw("now() - interval '1 day'"),
+	})
+	collab(testutil.Cols{
+		"stage":        "published",
+		"final_amount": 6000,
+		"creator_fee":  2000,
+		"sample_cost":  0,
+		"platform_fee": 0,
+		"confirmed_at": testutil.Raw("now() - interval '2 days'"),
+	})
+	collab(testutil.Cols{
+		"stage":        "settled",
+		"final_amount": 8000,
+		"creator_fee":  3000,
+		"sample_cost":  100,
+		"platform_fee": 100,
+		"confirmed_at": testutil.Raw("now() - interval '5 days'"),
+		"accepted_at":  testutil.Raw("now() - interval '3 days'"),
+	})
+	collab(testutil.Cols{
+		"stage":        "settled",
+		"final_amount": 4000,
+		"creator_fee":  1000,
+		"confirmed_at": testutil.Raw("now() - interval '6 days'"),
+		"accepted_at":  testutil.Raw("now() - interval '4 days'"),
+	})
+	collab(testutil.Cols{
+		"stage":        "negotiating",
+		"currency":     "USD",
+		"confirmed_at": testutil.Raw("now() - interval '7 days'"),
+	})
+	collab(testutil.Cols{
+		"stage":    "cancelled",
+		"currency": "USD",
+	})
+
+	// Money that cleared this month, and money still owed (paid_at null) so the
+	// receivable side is present too.
+	for _, settlement := range []testutil.Cols{
+		{"collab_id": weightedCollabID, "kind": "prepay", "amount": 3000, "paid_at": testutil.Raw("current_date")},
+		{"collab_id": weightedCollabID, "kind": "final", "amount": 5000, "paid_at": testutil.Raw("current_date")},
+		{"collab_id": weightedCollabID, "kind": "final", "amount": 700},
+	} {
+		cols := testutil.Cols{
+			"workspace_id": testWorkspaceID,
+			"currency":     "CNY",
+		}
+		for k, v := range settlement {
+			cols[k] = v
+		}
+		dbfx.Insert(t, "crm_settlement", cols)
+	}
+
+	// Attribution: a snapshot attached to a collaboration, and one attached to a
+	// post with no collaboration (which the ROI numerator must skip).
+	post := func(collabID any, url string) string {
+		return dbfx.Insert(t, "creator_post", testutil.Cols{
+			"workspace_id": testWorkspaceID,
+			"creator_id":   creatorID,
+			"platform":     "douyin",
+			"url":          url,
+			"published_at": testutil.Raw("now() - interval '2 days'"),
+			"collab_id":    collabID,
+		})
+	}
+	attributedPostID := post(weightedCollabID, "https://example.test/post/overview-ab-attributed")
+	loosePostID := post(nil, "https://example.test/post/overview-ab-loose")
+	for postID, gmv := range map[string]int{
+		attributedPostID: 5000,
+		loosePostID:      9000,
+	} {
+		dbfx.Insert(t, "creator_post_metric", testutil.Cols{
+			"workspace_id": testWorkspaceID,
+			"post_id":      postID,
+			"captured_on":  testutil.Raw("current_date"),
+			"gmv_amount":   gmv,
+		})
+	}
+
+	// Agents: two finished runs (one failed), one still queued, and usage rows in
+	// this month plus one from last month.
+	runtimeID := dbfx.Runtime(t, "Overview AB runtime")
+	agentID := dbfx.Agent(t, "Overview AB agent", runtimeID)
+	task := func(over testutil.Cols) string {
+		cols := testutil.Cols{"runtime_id": runtimeID}
+		for k, v := range over {
+			cols[k] = v
+		}
+		return dbfx.Task(t, agentID, cols)
+	}
+	task(testutil.Cols{"status": "failed"})
+	task(testutil.Cols{"status": "completed"})
+	task(testutil.Cols{"status": "running"})
+	usageTaskID := task(testutil.Cols{"status": "completed"})
+	for _, usage := range []testutil.Cols{
+		{"provider": "overview-ab-a", "cost_usd_ticks": 25000000000, "created_at": testutil.Raw("now() - interval '1 hour'")},
+		{"provider": "overview-ab-b", "cost_usd_ticks": 12000000000, "created_at": testutil.Raw("now() - interval '2 days'")},
+		{"provider": "overview-ab-c", "cost_usd_ticks": 99000000000, "created_at": testutil.Raw("now() - interval '40 days'")},
+	} {
+		cols := testutil.Cols{
+			"task_id": usageTaskID,
+			"model":   "overview-ab-model",
+		}
+		for k, v := range usage {
+			cols[k] = v
+		}
+		dbfx.Insert(t, "task_usage", cols)
+	}
+
+	// Hiring: a live candidate, an exited one, one hired inside the window and one
+	// hired outside it, an interview held without a scorecard, and a cancelled
+	// interview that owes nothing.
+	jobID := dbfx.Insert(t, "hr_job", testutil.Cols{
+		"workspace_id":  testWorkspaceID,
+		"title":         "Overview AB job",
+		"department_id": departmentID,
+	})
+	candidate := func(name string, over testutil.Cols) string {
+		cols := testutil.Cols{
+			"workspace_id":    testWorkspaceID,
+			"job_id":          jobID,
+			"name":            name,
+			"owner_member_id": memberUserID,
+		}
+		for k, v := range over {
+			cols[k] = v
+		}
+		return dbfx.Insert(t, "hr_candidate", cols)
+	}
+	liveCandidateID := candidate("Overview AB live candidate", testutil.Cols{"stage": "interview"})
+	candidate("Overview AB rejected candidate", testutil.Cols{"stage": "rejected"})
+	candidate("Overview AB hired candidate", testutil.Cols{
+		"stage":      "hired",
+		"created_at": testutil.Raw("now() - interval '40 days'"),
+		"hired_at":   testutil.Raw("now() - interval '10 days'"),
+	})
+	candidate("Overview AB old hire", testutil.Cols{
+		"stage":      "hired",
+		"created_at": testutil.Raw("now() - interval '400 days'"),
+		"hired_at":   testutil.Raw("now() - interval '200 days'"),
+	})
+	dbfx.Insert(t, "hr_interview", testutil.Cols{
+		"workspace_id":     testWorkspaceID,
+		"candidate_id":     liveCandidateID,
+		"interviewer_name": "Overview AB interviewer",
+		"status":           "done",
+		"scheduled_at":     testutil.Raw("now() - interval '2 days'"),
+	})
+	dbfx.Insert(t, "hr_interview", testutil.Cols{
+		"workspace_id":      testWorkspaceID,
+		"candidate_id":      liveCandidateID,
+		"interviewer_name":  "Overview AB interviewer",
+		"status":            "done",
+		"rescheduled_count": 1,
+		"scheduled_at":      testutil.Raw("now() - interval '3 days'"),
+	})
+	dbfx.Insert(t, "hr_interview", testutil.Cols{
+		"workspace_id":     testWorkspaceID,
+		"candidate_id":     liveCandidateID,
+		"interviewer_name": "Overview AB interviewer",
+		"status":           "cancelled",
+		"scheduled_at":     testutil.Raw("now() - interval '4 days'"),
+	})
+
+	return departmentID
 }
 
 // TestWorkbenchCountsTrackContentAndGoalLedgers covers the six counters §21 added

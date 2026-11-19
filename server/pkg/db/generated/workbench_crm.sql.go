@@ -51,17 +51,27 @@ func (q *Queries) ArchiveCrmClient(ctx context.Context, arg ArchiveCrmClientPara
 
 const archiveCrmCollab = `-- name: ArchiveCrmCollab :execrows
 UPDATE crm_collab
-SET archived_at = now(), updated_at = now()
+SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
+  AND ($3::int IS NULL OR revision = $3::int)
 `
 
 type ArchiveCrmCollabParams struct {
-	ID          pgtype.UUID `json:"id"`
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	ID               pgtype.UUID `json:"id"`
+	WorkspaceID      pgtype.UUID `json:"workspace_id"`
+	ExpectedRevision pgtype.Int4 `json:"expected_revision"`
 }
 
+// A delete is a write too: the revision moves so an audit trail that reads the
+// row's revision before and after a delete cannot claim nothing happened.
+//
+// The optional `expected_revision` gives the delete the same guard a PATCH has
+// (COLLAB-MODEL §3): absent = no check (old clients), present and stale = zero
+// rows, which the handler turns into a 409 `stale_write` with the current row.
+// It has to be part of this statement — a read-then-archive would let two
+// connections that both read revision 4 delete the row twice.
 func (q *Queries) ArchiveCrmCollab(ctx context.Context, arg ArchiveCrmCollabParams) (int64, error) {
-	result, err := q.db.Exec(ctx, archiveCrmCollab, arg.ID, arg.WorkspaceID)
+	result, err := q.db.Exec(ctx, archiveCrmCollab, arg.ID, arg.WorkspaceID, arg.ExpectedRevision)
 	if err != nil {
 		return 0, err
 	}
@@ -70,17 +80,19 @@ func (q *Queries) ArchiveCrmCollab(ctx context.Context, arg ArchiveCrmCollabPara
 
 const archiveCrmSettlement = `-- name: ArchiveCrmSettlement :execrows
 UPDATE crm_settlement
-SET archived_at = now(), updated_at = now()
+SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
+  AND ($3::int IS NULL OR revision = $3::int)
 `
 
 type ArchiveCrmSettlementParams struct {
-	ID          pgtype.UUID `json:"id"`
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	ID               pgtype.UUID `json:"id"`
+	WorkspaceID      pgtype.UUID `json:"workspace_id"`
+	ExpectedRevision pgtype.Int4 `json:"expected_revision"`
 }
 
 func (q *Queries) ArchiveCrmSettlement(ctx context.Context, arg ArchiveCrmSettlementParams) (int64, error) {
-	result, err := q.db.Exec(ctx, archiveCrmSettlement, arg.ID, arg.WorkspaceID)
+	result, err := q.db.Exec(ctx, archiveCrmSettlement, arg.ID, arg.WorkspaceID, arg.ExpectedRevision)
 	if err != nil {
 		return 0, err
 	}
@@ -89,7 +101,7 @@ func (q *Queries) ArchiveCrmSettlement(ctx context.Context, arg ArchiveCrmSettle
 
 const archiveCrmSettlementsByCollab = `-- name: ArchiveCrmSettlementsByCollab :many
 UPDATE crm_settlement
-SET archived_at = now(), updated_at = now()
+SET archived_at = now(), updated_at = now(), revision = revision + 1
 WHERE workspace_id = $1::uuid
   AND collab_id = $2::uuid
   AND archived_at IS NULL
@@ -282,7 +294,8 @@ INSERT INTO crm_collab (
     workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob,
     creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate,
     sample_required, script_required, scheduled_at, confirmed_at, published_at,
-    accepted_at, issue_id, owner_member_id, created_by, publish_url, settled_on
+    accepted_at, issue_id, owner_member_id, created_by, publish_url, settled_on,
+    assignee_type, assignee_id, review_state
 ) VALUES (
     $1, $2, $3, $4,
     $5::numeric, $6::numeric,
@@ -292,9 +305,11 @@ INSERT INTO crm_collab (
     $16::timestamptz, $17::timestamptz,
     $18::timestamptz, $19::timestamptz,
     $20::uuid, $21::uuid, $22::uuid,
-    $23::text, $24::date
+    $23::text, $24::date,
+    $25::text, $26::uuid,
+    $27::text
 )
-RETURNING id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at, publish_url, settled_on
+RETURNING id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at, publish_url, settled_on, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 `
 
 type CreateCrmCollabParams struct {
@@ -322,11 +337,18 @@ type CreateCrmCollabParams struct {
 	CreatedBy      pgtype.UUID        `json:"created_by"`
 	PublishUrl     pgtype.Text        `json:"publish_url"`
 	SettledOn      pgtype.Date        `json:"settled_on"`
+	AssigneeType   pgtype.Text        `json:"assignee_type"`
+	AssigneeID     pgtype.UUID        `json:"assignee_id"`
+	ReviewState    string             `json:"review_state"`
 }
 
 // `publish_url` / `settled_on` (810) are the two fulfilment facts the
 // collaboration row carries: where the work went live, and the day the money was
 // settled (WORKBENCH-API §20.2).
+//
+// `assignee_*` (821) is who is doing the work — an agent may hold it, unlike
+// `owner_member_id` (COLLAB-MODEL §1). `revision` starts at 1 from the column
+// default, so a create never names it.
 func (q *Queries) CreateCrmCollab(ctx context.Context, arg CreateCrmCollabParams) (CrmCollab, error) {
 	row := q.db.QueryRow(ctx, createCrmCollab,
 		arg.WorkspaceID,
@@ -353,6 +375,9 @@ func (q *Queries) CreateCrmCollab(ctx context.Context, arg CreateCrmCollabParams
 		arg.CreatedBy,
 		arg.PublishUrl,
 		arg.SettledOn,
+		arg.AssigneeType,
+		arg.AssigneeID,
+		arg.ReviewState,
 	)
 	var i CrmCollab
 	err := row.Scan(
@@ -384,6 +409,12 @@ func (q *Queries) CreateCrmCollab(ctx context.Context, arg CreateCrmCollabParams
 		&i.ArchivedAt,
 		&i.PublishUrl,
 		&i.SettledOn,
+		&i.AssigneeType,
+		&i.AssigneeID,
+		&i.Revision,
+		&i.ReviewState,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }
@@ -391,28 +422,35 @@ func (q *Queries) CreateCrmCollab(ctx context.Context, arg CreateCrmCollabParams
 const createCrmSettlement = `-- name: CreateCrmSettlement :one
 INSERT INTO crm_settlement (
     workspace_id, collab_id, kind, amount, currency, due_at, paid_at, invoice_no,
-    note, created_by
+    note, created_by, assignee_type, assignee_id, review_state
 ) VALUES (
     $1, $2, $3, $4::numeric,
     $5, $6::date, $7::date,
-    $8::text, $9::text, $10::uuid
+    $8::text, $9::text, $10::uuid,
+    $11::text, $12::uuid,
+    $13::text
 )
-RETURNING id, workspace_id, collab_id, kind, amount, currency, due_at, paid_at, invoice_no, note, created_by, created_at, updated_at, archived_at
+RETURNING id, workspace_id, collab_id, kind, amount, currency, due_at, paid_at, invoice_no, note, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 `
 
 type CreateCrmSettlementParams struct {
-	WorkspaceID pgtype.UUID    `json:"workspace_id"`
-	CollabID    pgtype.UUID    `json:"collab_id"`
-	Kind        string         `json:"kind"`
-	Amount      pgtype.Numeric `json:"amount"`
-	Currency    string         `json:"currency"`
-	DueAt       pgtype.Date    `json:"due_at"`
-	PaidAt      pgtype.Date    `json:"paid_at"`
-	InvoiceNo   pgtype.Text    `json:"invoice_no"`
-	Note        pgtype.Text    `json:"note"`
-	CreatedBy   pgtype.UUID    `json:"created_by"`
+	WorkspaceID  pgtype.UUID    `json:"workspace_id"`
+	CollabID     pgtype.UUID    `json:"collab_id"`
+	Kind         string         `json:"kind"`
+	Amount       pgtype.Numeric `json:"amount"`
+	Currency     string         `json:"currency"`
+	DueAt        pgtype.Date    `json:"due_at"`
+	PaidAt       pgtype.Date    `json:"paid_at"`
+	InvoiceNo    pgtype.Text    `json:"invoice_no"`
+	Note         pgtype.Text    `json:"note"`
+	CreatedBy    pgtype.UUID    `json:"created_by"`
+	AssigneeType pgtype.Text    `json:"assignee_type"`
+	AssigneeID   pgtype.UUID    `json:"assignee_id"`
+	ReviewState  string         `json:"review_state"`
 }
 
+// `assignee_*` (821): a settlement's owner is its collaboration's, so a new row
+// may be handed to somebody directly — that is who chases the money.
 func (q *Queries) CreateCrmSettlement(ctx context.Context, arg CreateCrmSettlementParams) (CrmSettlement, error) {
 	row := q.db.QueryRow(ctx, createCrmSettlement,
 		arg.WorkspaceID,
@@ -425,6 +463,9 @@ func (q *Queries) CreateCrmSettlement(ctx context.Context, arg CreateCrmSettleme
 		arg.InvoiceNo,
 		arg.Note,
 		arg.CreatedBy,
+		arg.AssigneeType,
+		arg.AssigneeID,
+		arg.ReviewState,
 	)
 	var i CrmSettlement
 	err := row.Scan(
@@ -442,6 +483,12 @@ func (q *Queries) CreateCrmSettlement(ctx context.Context, arg CreateCrmSettleme
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.AssigneeType,
+		&i.AssigneeID,
+		&i.Revision,
+		&i.ReviewState,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }
@@ -518,7 +565,7 @@ func (q *Queries) GetCrmClient(ctx context.Context, arg GetCrmClientParams) (Crm
 }
 
 const getCrmCollab = `-- name: GetCrmCollab :one
-SELECT id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at, publish_url, settled_on FROM crm_collab
+SELECT id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at, publish_url, settled_on, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at FROM crm_collab
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -559,12 +606,18 @@ func (q *Queries) GetCrmCollab(ctx context.Context, arg GetCrmCollabParams) (Crm
 		&i.ArchivedAt,
 		&i.PublishUrl,
 		&i.SettledOn,
+		&i.AssigneeType,
+		&i.AssigneeID,
+		&i.Revision,
+		&i.ReviewState,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }
 
 const getCrmSettlement = `-- name: GetCrmSettlement :one
-SELECT id, workspace_id, collab_id, kind, amount, currency, due_at, paid_at, invoice_no, note, created_by, created_at, updated_at, archived_at FROM crm_settlement
+SELECT id, workspace_id, collab_id, kind, amount, currency, due_at, paid_at, invoice_no, note, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at FROM crm_settlement
 WHERE id = $1 AND workspace_id = $2 AND archived_at IS NULL
 `
 
@@ -591,6 +644,12 @@ func (q *Queries) GetCrmSettlement(ctx context.Context, arg GetCrmSettlementPara
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.AssigneeType,
+		&i.AssigneeID,
+		&i.Revision,
+		&i.ReviewState,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }
@@ -744,37 +803,75 @@ func (q *Queries) ListCrmClients(ctx context.Context, arg ListCrmClientsParams) 
 }
 
 const listCrmCollabs = `-- name: ListCrmCollabs :many
-SELECT id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at, publish_url, settled_on
+SELECT id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at, publish_url, settled_on, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 FROM crm_collab
-WHERE workspace_id = $1
-  AND archived_at IS NULL
-  AND ($2::text IS NULL OR stage = $2::text)
-  AND ($3::uuid IS NULL OR brief_id = $3::uuid)
-  AND ($4::uuid IS NULL OR creator_id = $4::uuid)
+WHERE crm_collab.workspace_id = $1
+  AND crm_collab.archived_at IS NULL
+  AND ($2::text IS NULL OR crm_collab.stage = $2::text)
+  AND ($3::uuid IS NULL OR crm_collab.brief_id = $3::uuid)
+  AND ($4::uuid IS NULL OR crm_collab.creator_id = $4::uuid)
+  AND ($5::uuid IS NULL OR crm_collab.assignee_id = $5::uuid)
+  AND ($6::text IS NULL OR crm_collab.assignee_type = $6::text)
+  AND ($7::text IS NULL OR crm_collab.review_state = $7::text)
   AND (
-    $5::timestamptz IS NULL
-    OR (created_at, id) < ($5::timestamptz, $6::uuid)
+    NOT $8::boolean
+    OR (
+      $9::uuid IS NOT NULL
+      AND EXISTS (
+        SELECT 1 FROM member m
+        WHERE m.workspace_id = crm_collab.workspace_id
+          AND m.user_id = crm_collab.owner_member_id
+          AND m.department_id = $9::uuid
+      )
+    )
   )
-ORDER BY created_at DESC, id DESC
-LIMIT $7
+  AND (
+    $10::timestamptz IS NULL
+    OR (crm_collab.created_at, crm_collab.id)
+      < ($10::timestamptz, $11::uuid)
+  )
+ORDER BY crm_collab.created_at DESC, crm_collab.id DESC
+LIMIT $12
 `
 
 type ListCrmCollabsParams struct {
-	WorkspaceID pgtype.UUID        `json:"workspace_id"`
-	Stage       pgtype.Text        `json:"stage"`
-	BriefID     pgtype.UUID        `json:"brief_id"`
-	CreatorID   pgtype.UUID        `json:"creator_id"`
-	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
-	CursorID    pgtype.UUID        `json:"cursor_id"`
-	Limit       int32              `json:"limit"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	Stage            pgtype.Text        `json:"stage"`
+	BriefID          pgtype.UUID        `json:"brief_id"`
+	CreatorID        pgtype.UUID        `json:"creator_id"`
+	AssigneeID       pgtype.UUID        `json:"assignee_id"`
+	AssigneeType     pgtype.Text        `json:"assignee_type"`
+	ReviewState      pgtype.Text        `json:"review_state"`
+	DepartmentScoped bool               `json:"department_scoped"`
+	DepartmentID     pgtype.UUID        `json:"department_id"`
+	CursorAt         pgtype.Timestamptz `json:"cursor_at"`
+	CursorID         pgtype.UUID        `json:"cursor_id"`
+	Limit            int32              `json:"limit"`
 }
 
+// `?assignee=` (B4-2) narrows the list to the rows one person or agent is
+// working on, which is what the cockpit's 我的 queue reads. The id filter is
+// separate from the type because a bare uuid names a row without saying which
+// identity space it came from (COLLAB-MODEL §1).
+//
+// The department predicate (`department_scoped` + `department_id`, WORKBENCH-API
+// §24.4/§24.6) is the read-side half of the visibility switch: with
+// `workbench_visibility=department` a list returns the rows whose *owner* sits in
+// the caller's department. A row with no owner, or an owner with no department,
+// matches neither branch and therefore disappears — this filter never widens into
+// "every department". `department_scoped = false` (the `transparent` default)
+// leaves the query byte-for-byte the workspace-wide read it was.
 func (q *Queries) ListCrmCollabs(ctx context.Context, arg ListCrmCollabsParams) ([]CrmCollab, error) {
 	rows, err := q.db.Query(ctx, listCrmCollabs,
 		arg.WorkspaceID,
 		arg.Stage,
 		arg.BriefID,
 		arg.CreatorID,
+		arg.AssigneeID,
+		arg.AssigneeType,
+		arg.ReviewState,
+		arg.DepartmentScoped,
+		arg.DepartmentID,
 		arg.CursorAt,
 		arg.CursorID,
 		arg.Limit,
@@ -815,6 +912,12 @@ func (q *Queries) ListCrmCollabs(ctx context.Context, arg ListCrmCollabsParams) 
 			&i.ArchivedAt,
 			&i.PublishUrl,
 			&i.SettledOn,
+			&i.AssigneeType,
+			&i.AssigneeID,
+			&i.Revision,
+			&i.ReviewState,
+			&i.ReviewedBy,
+			&i.ReviewedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -827,38 +930,87 @@ func (q *Queries) ListCrmCollabs(ctx context.Context, arg ListCrmCollabsParams) 
 }
 
 const listCrmSettlements = `-- name: ListCrmSettlements :many
-SELECT id, workspace_id, collab_id, kind, amount, currency, due_at, paid_at, invoice_no, note, created_by, created_at, updated_at, archived_at
+SELECT id, workspace_id, collab_id, kind, amount, currency, due_at, paid_at, invoice_no, note, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 FROM crm_settlement
-WHERE workspace_id = $1
-  AND archived_at IS NULL
-  AND ($2::uuid IS NULL OR collab_id = $2::uuid)
+WHERE crm_settlement.workspace_id = $1
+  AND crm_settlement.archived_at IS NULL
+  AND (
+    $2::uuid IS NULL
+    OR crm_settlement.collab_id = $2::uuid
+  )
   AND (
     $3::boolean IS NULL
-    OR ($3::boolean AND paid_at IS NOT NULL)
-    OR (NOT $3::boolean AND paid_at IS NULL)
+    OR ($3::boolean AND crm_settlement.paid_at IS NOT NULL)
+    OR (NOT $3::boolean AND crm_settlement.paid_at IS NULL)
   )
   AND (
-    $4::timestamptz IS NULL
-    OR (created_at, id) < ($4::timestamptz, $5::uuid)
+    $4::uuid IS NULL
+    OR crm_settlement.assignee_id = $4::uuid
   )
-ORDER BY created_at DESC, id DESC
-LIMIT $6
+  AND (
+    $5::text IS NULL
+    OR crm_settlement.assignee_type = $5::text
+  )
+  AND (
+    $6::text IS NULL
+    OR crm_settlement.review_state = $6::text
+  )
+  AND (
+    NOT $7::boolean
+    OR (
+      $8::uuid IS NOT NULL
+      AND EXISTS (
+        SELECT 1
+        FROM crm_collab collab
+        JOIN member m
+          ON m.workspace_id = collab.workspace_id
+         AND m.user_id = collab.owner_member_id
+        WHERE collab.id = crm_settlement.collab_id
+          AND collab.workspace_id = crm_settlement.workspace_id
+          AND m.department_id = $8::uuid
+      )
+    )
+  )
+  AND (
+    $9::timestamptz IS NULL
+    OR (crm_settlement.created_at, crm_settlement.id)
+      < ($9::timestamptz, $10::uuid)
+  )
+ORDER BY crm_settlement.created_at DESC, crm_settlement.id DESC
+LIMIT $11
 `
 
 type ListCrmSettlementsParams struct {
-	WorkspaceID pgtype.UUID        `json:"workspace_id"`
-	CollabID    pgtype.UUID        `json:"collab_id"`
-	Paid        pgtype.Bool        `json:"paid"`
-	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
-	CursorID    pgtype.UUID        `json:"cursor_id"`
-	Limit       int32              `json:"limit"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	CollabID         pgtype.UUID        `json:"collab_id"`
+	Paid             pgtype.Bool        `json:"paid"`
+	AssigneeID       pgtype.UUID        `json:"assignee_id"`
+	AssigneeType     pgtype.Text        `json:"assignee_type"`
+	ReviewState      pgtype.Text        `json:"review_state"`
+	DepartmentScoped bool               `json:"department_scoped"`
+	DepartmentID     pgtype.UUID        `json:"department_id"`
+	CursorAt         pgtype.Timestamptz `json:"cursor_at"`
+	CursorID         pgtype.UUID        `json:"cursor_id"`
+	Limit            int32              `json:"limit"`
 }
 
+// `crm_settlement` has no `owner_member_id` — its owner is the collaboration's
+// (see `loadCollabForSettlementWrite`). The department predicate therefore goes
+// through `collab_id`: with the visibility switch in `department` mode a settlement
+// is visible only when the collaboration behind it is owned by a member of the
+// caller's department. A settlement whose collaboration has no owner is invisible
+// in that mode, exactly like an ownerless row in the other ledgers, and the
+// `transparent` default (`department_scoped = false`) reads as before.
 func (q *Queries) ListCrmSettlements(ctx context.Context, arg ListCrmSettlementsParams) ([]CrmSettlement, error) {
 	rows, err := q.db.Query(ctx, listCrmSettlements,
 		arg.WorkspaceID,
 		arg.CollabID,
 		arg.Paid,
+		arg.AssigneeID,
+		arg.AssigneeType,
+		arg.ReviewState,
+		arg.DepartmentScoped,
+		arg.DepartmentID,
 		arg.CursorAt,
 		arg.CursorID,
 		arg.Limit,
@@ -885,6 +1037,12 @@ func (q *Queries) ListCrmSettlements(ctx context.Context, arg ListCrmSettlements
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.ArchivedAt,
+			&i.AssigneeType,
+			&i.AssigneeID,
+			&i.Revision,
+			&i.ReviewState,
+			&i.ReviewedBy,
+			&i.ReviewedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -1070,40 +1228,62 @@ SET brief_id = $1,
     owner_member_id = $20::uuid,
     publish_url = $21::text,
     settled_on = $22::date,
+    assignee_type = $23::text,
+    assignee_id = $24::uuid,
+    review_state = $25::text,
+    reviewed_by = $26::uuid,
+    reviewed_at = $27::timestamptz,
+    revision = revision + 1,
     updated_at = now()
-WHERE id = $23 AND workspace_id = $24 AND archived_at IS NULL
-RETURNING id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at, publish_url, settled_on
+WHERE id = $28 AND workspace_id = $29 AND archived_at IS NULL
+  AND ($30::int IS NULL OR revision = $30::int)
+RETURNING id, workspace_id, brief_id, creator_id, stage, quote_amount, final_amount, prob, creator_fee, sample_cost, platform_fee, currency, settlement_mode, commission_rate, sample_required, script_required, scheduled_at, confirmed_at, published_at, accepted_at, issue_id, owner_member_id, created_by, created_at, updated_at, archived_at, publish_url, settled_on, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 `
 
 type UpdateCrmCollabParams struct {
-	BriefID        pgtype.UUID        `json:"brief_id"`
-	CreatorID      pgtype.UUID        `json:"creator_id"`
-	Stage          string             `json:"stage"`
-	QuoteAmount    pgtype.Numeric     `json:"quote_amount"`
-	FinalAmount    pgtype.Numeric     `json:"final_amount"`
-	Prob           pgtype.Numeric     `json:"prob"`
-	CreatorFee     pgtype.Numeric     `json:"creator_fee"`
-	SampleCost     pgtype.Numeric     `json:"sample_cost"`
-	PlatformFee    pgtype.Numeric     `json:"platform_fee"`
-	Currency       string             `json:"currency"`
-	SettlementMode pgtype.Text        `json:"settlement_mode"`
-	CommissionRate pgtype.Numeric     `json:"commission_rate"`
-	SampleRequired bool               `json:"sample_required"`
-	ScriptRequired bool               `json:"script_required"`
-	ScheduledAt    pgtype.Timestamptz `json:"scheduled_at"`
-	ConfirmedAt    pgtype.Timestamptz `json:"confirmed_at"`
-	PublishedAt    pgtype.Timestamptz `json:"published_at"`
-	AcceptedAt     pgtype.Timestamptz `json:"accepted_at"`
-	IssueID        pgtype.UUID        `json:"issue_id"`
-	OwnerMemberID  pgtype.UUID        `json:"owner_member_id"`
-	PublishUrl     pgtype.Text        `json:"publish_url"`
-	SettledOn      pgtype.Date        `json:"settled_on"`
-	ID             pgtype.UUID        `json:"id"`
-	WorkspaceID    pgtype.UUID        `json:"workspace_id"`
+	BriefID          pgtype.UUID        `json:"brief_id"`
+	CreatorID        pgtype.UUID        `json:"creator_id"`
+	Stage            string             `json:"stage"`
+	QuoteAmount      pgtype.Numeric     `json:"quote_amount"`
+	FinalAmount      pgtype.Numeric     `json:"final_amount"`
+	Prob             pgtype.Numeric     `json:"prob"`
+	CreatorFee       pgtype.Numeric     `json:"creator_fee"`
+	SampleCost       pgtype.Numeric     `json:"sample_cost"`
+	PlatformFee      pgtype.Numeric     `json:"platform_fee"`
+	Currency         string             `json:"currency"`
+	SettlementMode   pgtype.Text        `json:"settlement_mode"`
+	CommissionRate   pgtype.Numeric     `json:"commission_rate"`
+	SampleRequired   bool               `json:"sample_required"`
+	ScriptRequired   bool               `json:"script_required"`
+	ScheduledAt      pgtype.Timestamptz `json:"scheduled_at"`
+	ConfirmedAt      pgtype.Timestamptz `json:"confirmed_at"`
+	PublishedAt      pgtype.Timestamptz `json:"published_at"`
+	AcceptedAt       pgtype.Timestamptz `json:"accepted_at"`
+	IssueID          pgtype.UUID        `json:"issue_id"`
+	OwnerMemberID    pgtype.UUID        `json:"owner_member_id"`
+	PublishUrl       pgtype.Text        `json:"publish_url"`
+	SettledOn        pgtype.Date        `json:"settled_on"`
+	AssigneeType     pgtype.Text        `json:"assignee_type"`
+	AssigneeID       pgtype.UUID        `json:"assignee_id"`
+	ReviewState      string             `json:"review_state"`
+	ReviewedBy       pgtype.UUID        `json:"reviewed_by"`
+	ReviewedAt       pgtype.Timestamptz `json:"reviewed_at"`
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	ExpectedRevision pgtype.Int4        `json:"expected_revision"`
 }
 
 // The stage milestones are inputs, not triggers: the handler decides which
 // timestamp a stage transition fills in, so the SQL stays a plain write.
+//
+// Two things every workbench update carries (COLLAB-MODEL §3):
+//
+//   - `revision = revision + 1`, so a reader can tell the row moved;
+//   - an optional `expected_revision` in the WHERE. Absent = no check, which is
+//     the old-client behaviour; present and stale = zero rows, and the handler
+//     turns that into a 409 `stale_write` with the current row. The check lives
+//     in the statement rather than in a read-then-write so two connections
+//     racing cannot both see "revision 1" and both win.
 func (q *Queries) UpdateCrmCollab(ctx context.Context, arg UpdateCrmCollabParams) (CrmCollab, error) {
 	row := q.db.QueryRow(ctx, updateCrmCollab,
 		arg.BriefID,
@@ -1128,8 +1308,14 @@ func (q *Queries) UpdateCrmCollab(ctx context.Context, arg UpdateCrmCollabParams
 		arg.OwnerMemberID,
 		arg.PublishUrl,
 		arg.SettledOn,
+		arg.AssigneeType,
+		arg.AssigneeID,
+		arg.ReviewState,
+		arg.ReviewedBy,
+		arg.ReviewedAt,
 		arg.ID,
 		arg.WorkspaceID,
+		arg.ExpectedRevision,
 	)
 	var i CrmCollab
 	err := row.Scan(
@@ -1161,6 +1347,12 @@ func (q *Queries) UpdateCrmCollab(ctx context.Context, arg UpdateCrmCollabParams
 		&i.ArchivedAt,
 		&i.PublishUrl,
 		&i.SettledOn,
+		&i.AssigneeType,
+		&i.AssigneeID,
+		&i.Revision,
+		&i.ReviewState,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }
@@ -1175,24 +1367,39 @@ SET collab_id = $1,
     paid_at = $6::date,
     invoice_no = $7::text,
     note = $8::text,
+    assignee_type = $9::text,
+    assignee_id = $10::uuid,
+    review_state = $11::text,
+    reviewed_by = $12::uuid,
+    reviewed_at = $13::timestamptz,
+    revision = revision + 1,
     updated_at = now()
-WHERE id = $9 AND workspace_id = $10 AND archived_at IS NULL
-RETURNING id, workspace_id, collab_id, kind, amount, currency, due_at, paid_at, invoice_no, note, created_by, created_at, updated_at, archived_at
+WHERE id = $14 AND workspace_id = $15 AND archived_at IS NULL
+  AND ($16::int IS NULL OR revision = $16::int)
+RETURNING id, workspace_id, collab_id, kind, amount, currency, due_at, paid_at, invoice_no, note, created_by, created_at, updated_at, archived_at, assignee_type, assignee_id, revision, review_state, reviewed_by, reviewed_at
 `
 
 type UpdateCrmSettlementParams struct {
-	CollabID    pgtype.UUID    `json:"collab_id"`
-	Kind        string         `json:"kind"`
-	Amount      pgtype.Numeric `json:"amount"`
-	Currency    string         `json:"currency"`
-	DueAt       pgtype.Date    `json:"due_at"`
-	PaidAt      pgtype.Date    `json:"paid_at"`
-	InvoiceNo   pgtype.Text    `json:"invoice_no"`
-	Note        pgtype.Text    `json:"note"`
-	ID          pgtype.UUID    `json:"id"`
-	WorkspaceID pgtype.UUID    `json:"workspace_id"`
+	CollabID         pgtype.UUID        `json:"collab_id"`
+	Kind             string             `json:"kind"`
+	Amount           pgtype.Numeric     `json:"amount"`
+	Currency         string             `json:"currency"`
+	DueAt            pgtype.Date        `json:"due_at"`
+	PaidAt           pgtype.Date        `json:"paid_at"`
+	InvoiceNo        pgtype.Text        `json:"invoice_no"`
+	Note             pgtype.Text        `json:"note"`
+	AssigneeType     pgtype.Text        `json:"assignee_type"`
+	AssigneeID       pgtype.UUID        `json:"assignee_id"`
+	ReviewState      string             `json:"review_state"`
+	ReviewedBy       pgtype.UUID        `json:"reviewed_by"`
+	ReviewedAt       pgtype.Timestamptz `json:"reviewed_at"`
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	ExpectedRevision pgtype.Int4        `json:"expected_revision"`
 }
 
+// Same revision contract as the collaboration (COLLAB-MODEL §3): bump on write,
+// compare only when the caller named the revision it read.
 func (q *Queries) UpdateCrmSettlement(ctx context.Context, arg UpdateCrmSettlementParams) (CrmSettlement, error) {
 	row := q.db.QueryRow(ctx, updateCrmSettlement,
 		arg.CollabID,
@@ -1203,8 +1410,14 @@ func (q *Queries) UpdateCrmSettlement(ctx context.Context, arg UpdateCrmSettleme
 		arg.PaidAt,
 		arg.InvoiceNo,
 		arg.Note,
+		arg.AssigneeType,
+		arg.AssigneeID,
+		arg.ReviewState,
+		arg.ReviewedBy,
+		arg.ReviewedAt,
 		arg.ID,
 		arg.WorkspaceID,
+		arg.ExpectedRevision,
 	)
 	var i CrmSettlement
 	err := row.Scan(
@@ -1222,6 +1435,12 @@ func (q *Queries) UpdateCrmSettlement(ctx context.Context, arg UpdateCrmSettleme
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ArchivedAt,
+		&i.AssigneeType,
+		&i.AssigneeID,
+		&i.Revision,
+		&i.ReviewState,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }

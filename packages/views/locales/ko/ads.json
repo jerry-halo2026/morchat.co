@@ -1,0 +1,86 @@
+{
+  "basis": {
+    "label": "정산 윈도우",
+    "note": "다섯 윈도우는 같은 비용을 다르게 재는 방식입니다. 서로 더하지 않으며, 이 페이지에 윈도우를 가로지르는 합계는 없습니다.",
+    "settle_1h": "1시간",
+    "settle_7d": "7일",
+    "settle_14d": "14일",
+    "settle_30d": "30일",
+    "settle_90d": "90일"
+  },
+  "range": {
+    "from": "시작일",
+    "to": "종료일",
+    "note": "양 끝을 포함하는 날짜입니다. 둘 다 비우면 서버 기본 기간을 씁니다."
+  },
+  "summary": {
+    "title": "윈도우 합계",
+    "spend": "집행액",
+    "gmv": "GMV",
+    "orders": "주문",
+    "refund": "환불",
+    "settle": "정산액",
+    "previous": "이전 윈도우 대비",
+    "no_previous": "비교할 수치가 없습니다",
+    "empty": "이 윈도우에는 집행 기록이 없습니다."
+  },
+  "accounts": {
+    "title": "계정",
+    "empty": "아직 동기화된 광고 계정이 없습니다.",
+    "name": "계정",
+    "balance": "잔액",
+    "cash": "현금",
+    "grant": "유효 지원금",
+    "spend": "누적 집행",
+    "captured": "수집 시각",
+    "unit_note": "잔액은 플랫폼의 ‘펀(fen)’ 단위이며, 페이지가 여기서 한 번만 100으로 나눠 위안으로 표시합니다."
+  },
+  "plans": {
+    "title": "플랜",
+    "empty": "아직 동기화된 플랜이 없습니다.",
+    "name": "플랜",
+    "account": "계정",
+    "goal": "목표",
+    "status": "상태",
+    "budget": "예산",
+    "roi": "ROI 목표",
+    "updated": "업데이트"
+  },
+  "materials": {
+    "title": "소재",
+    "empty": "아직 동기화된 소재가 없습니다.",
+    "kind": "형태",
+    "name": "파일",
+    "duration": "길이",
+    "script": "스크립트",
+    "unlinked": "연결 안 됨",
+    "ai": "AI 생성",
+    "inefficient": "저효율"
+  },
+  "violations": {
+    "title": "위반",
+    "empty": "위반 기록이 없습니다.",
+    "time": "시간",
+    "type": "유형",
+    "score": "점수",
+    "status": "상태",
+    "reason": "사유"
+  },
+  "recon": {
+    "title": "대사",
+    "empty": "아직 대사할 데이터가 없습니다.",
+    "account": "계정",
+    "side": "측",
+    "platform": "플랫폼",
+    "ledger": "원장",
+    "spend": "집행액",
+    "gmv": "GMV",
+    "orders": "주문",
+    "diff": "차이",
+    "unavailable": "비교 불가",
+    "note": "플랫폼 측은 최근 스냅샷, 원장 측은 그날의 일보입니다. 세 가지 차이는 그대로 표시하며 비율도 합산도 하지 않습니다."
+  },
+  "block_error": "이 블록을 불러오지 못했습니다.",
+  "retry": "다시 시도",
+  "insufficient": "데이터 부족"
+}

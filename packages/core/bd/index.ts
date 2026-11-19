@@ -16,6 +16,7 @@ export {
   useDeleteBdActivity,
   useDeleteBdCampaign,
   useDeleteBdQuote,
+  useOpenBdQuoteThread,
   useUpdateBdActivity,
   useUpdateBdCampaign,
   useUpdateBdQuote,

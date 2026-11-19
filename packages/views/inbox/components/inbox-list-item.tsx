@@ -22,6 +22,11 @@ import { handleRowActivationKey } from "../../common/row-actions-menu";
 import { useT } from "../../i18n";
 import { paths, useWorkspaceSlug } from "@morechat/core/paths";
 import { resolveClickIntent, useIntentNavigate } from "../../navigation";
+import {
+  isWorkbenchNotice,
+  workbenchHref,
+  workbenchSubject,
+} from "./workbench-notice";
 
 // Hook returning a localized relative-time formatter — the i18n equivalent
 // of the previous static `timeAgo` function. Returning a function (rather
@@ -72,6 +77,17 @@ export function InboxListItem({
     slug && item.issue_id
       ? paths.workspace(slug).issueDetail(item.issue_id)
       : null;
+  // A workbench notice has no issue to reference: what it is about is a ledger row,
+  // so that row's page is the tab a modifier-click should open. Plain click still
+  // selects the row (the detail pane renders the notice's body and the same link).
+  const workbenchRowHref =
+    slug && !item.issue_id && isWorkbenchNotice(item.type)
+      ? (() => {
+          const subject = workbenchSubject(item);
+          return subject ? workbenchHref(slug, subject) : null;
+        })()
+      : null;
+  const tabHref = issueHref ?? workbenchRowHref;
   const intentNavigate = useIntentNavigate();
   const displayTitle = isAutopilotQuotaNotice(item.type)
     ? typeLabels[item.type]
@@ -107,10 +123,10 @@ export function InboxListItem({
       onClick={(e) => {
         // Plain click keeps the master-detail selection; a modifier click on
         // a row that references an issue opens that issue as its own tab.
-        if (issueHref) {
+        if (tabHref) {
           const intent = resolveClickIntent(e);
           if (intent !== "push") {
-            intentNavigate(issueHref, intent);
+            intentNavigate(tabHref, intent);
             return;
           }
         }
@@ -118,9 +134,9 @@ export function InboxListItem({
       }}
       onKeyDown={(e) => handleRowActivationKey(e, onClick)}
       onAuxClick={(e) => {
-        if (e.defaultPrevented || e.button !== 1 || !issueHref) return;
+        if (e.defaultPrevented || e.button !== 1 || !tabHref) return;
         e.preventDefault();
-        intentNavigate(issueHref, "background-tab");
+        intentNavigate(tabHref, "background-tab");
       }}
       // Right-click opens the list's shared menu (mark read/unread, archive).
       // `select-none` mirrors what Base UI's own trigger used to merge in, so
@@ -151,6 +167,14 @@ export function InboxListItem({
             >
               {displayTitle}
             </span>
+            {isWorkbenchNotice(item.type) ? (
+              <span
+                data-mc="workbench-tag"
+                className="shrink-0 rounded-xs bg-muted px-1 text-micro font-medium leading-4 text-muted-foreground"
+              >
+                {t(($) => $.workbench.group)}
+              </span>
+            ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-1">
             {/* Pointer-only affordance: revealed on hover, and on keyboard

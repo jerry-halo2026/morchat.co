@@ -425,6 +425,9 @@ func (h *Handler) ListHrOffboardings(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	status := strings.TrimSpace(r.URL.Query().Get("status"))
 	if status != "" && !hrOffboardingStatuses[status] {
 		writeError(w, http.StatusBadRequest, "status must be apply, handover, done or cancelled")
@@ -460,7 +463,11 @@ func (h *Handler) ListHrOffboardings(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrOffboardingToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"offboardings": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"offboardings": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrOffboarding) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrOffboarding — POST /api/workbench/hr/offboardings
@@ -471,6 +478,9 @@ func (h *Handler) ListHrOffboardings(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateHrOffboarding(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	var req HrOffboardingRequest
@@ -540,6 +550,9 @@ func (h *Handler) GetHrOffboarding(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	offboarding, ok := h.loadHrOffboarding(w, r, scope)
 	if !ok {
 		return
@@ -561,6 +574,9 @@ func (h *Handler) GetHrOffboarding(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateHrOffboarding(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrOffboardingForWrite(w, r, scope)
@@ -676,6 +692,9 @@ func (h *Handler) DeleteHrOffboarding(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
+		return
+	}
 	current, ok := h.loadHrOffboardingForWrite(w, r, scope)
 	if !ok {
 		return
@@ -711,6 +730,9 @@ func (h *Handler) DeleteHrOffboarding(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AdvanceHrOffboarding(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrOffboardingForTransition(w, r, scope)
@@ -787,6 +809,9 @@ func (h *Handler) CancelHrOffboarding(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
+		return
+	}
 	current, ok := h.loadHrOffboardingForTransition(w, r, scope)
 	if !ok {
 		return
@@ -848,6 +873,9 @@ func (h *Handler) AppendHrOffboardingHandoverItem(w http.ResponseWriter, r *http
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
+		return
+	}
 	current, ok := h.loadHrOffboardingForWrite(w, r, scope)
 	if !ok {
 		return
@@ -880,6 +908,9 @@ func (h *Handler) AppendHrOffboardingHandoverItem(w http.ResponseWriter, r *http
 func (h *Handler) UpdateHrOffboardingHandoverItem(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrOffboardingForWrite(w, r, scope)
@@ -918,6 +949,9 @@ func (h *Handler) UpdateHrOffboardingHandoverItem(w http.ResponseWriter, r *http
 func (h *Handler) DeleteHrOffboardingHandoverItem(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrOffboardingForWrite(w, r, scope)

@@ -100,7 +100,14 @@
     "app_action_requested": "Needs your confirmation",
     "app_action_reminder": "Confirmation expiring soon",
     "app_connect_requested": "Connect an app",
+    "workbench_followup_due": "Follow-up due",
+    "workbench_quote_expiring": "Quote expiring",
+    "workbench_settlement_overdue": "Settlement overdue",
     "app_action_result": "App action result"
+  },
+  "workbench": {
+    "group": "Workbench",
+    "open_ledger": "Open ledger row"
   },
   "labels": {
     "set_status_to": "Set status to",

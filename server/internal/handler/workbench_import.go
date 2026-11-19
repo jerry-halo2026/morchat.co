@@ -43,6 +43,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/jackc/pgx/v5/pgtype"
 
@@ -90,6 +91,10 @@ const (
 	importReasonInvalidTime     = "invalid_timestamp"
 	importReasonInvalidEnum     = "invalid_enum"
 	importReasonInvalidCurrency = "invalid_currency"
+	// importReasonTextTooLong is the per-cell answer to a TEXT cell over the cap its
+	// column carries in workbenchTextLimits. It is a row error, not a file error:
+	// the operator fixes that one cell, the rest of the preview stays valid.
+	importReasonTextTooLong = "text_too_long"
 )
 
 // ImportRow is one parsed row of the file. `Preview` is the row as it would be
@@ -184,6 +189,20 @@ var importSpecs = map[string]importKindSpec{
 			{"currency", []string{"currency", "币种", "货币"}},
 		},
 	},
+}
+
+// importCappedColumns names, per kind, the cells that land in a TEXT column
+// `workbenchTextLimits` caps.
+//
+// An import is the second door into the same ledgers: its rows are written straight
+// into the params structs, so nothing here passes through `decodeWorkbenchBody` and
+// its caps — a 500 KB note would otherwise be stored by a spreadsheet while the REST
+// create refuses it. The table is the import's side of that one cap table, so a
+// column that gains a cap there has exactly one place to be listed here.
+var importCappedColumns = map[string][]string{
+	importKindQuotes:     {"note"},
+	importKindActivities: {"summary"},
+	importKindCollabs:    {"publish_url"},
 }
 
 // importNormaliseHeader folds a header cell to its comparison form: lower case, no
@@ -337,6 +356,17 @@ func (h *Handler) ImportWorkbenchCSV(w http.ResponseWriter, r *http.Request) {
 	if !known {
 		writeError(w, http.StatusBadRequest, "kind must be quotes, activities or collabs")
 		return
+	}
+	// An import writes the same ledgers a hand-typed row does, so it needs the same
+	// capabilities: crm.write for all three kinds, crm.amount when the kind carries
+	// money (quotes and collaborations do, follow-ups do not).
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
+	if kind == importKindQuotes || kind == importKindCollabs {
+		if !h.requireWorkbenchCapability(w, r, scope, capCRMAmount) {
+			return
+		}
 	}
 	dryRun, ok := importDryRun(w, r)
 	if !ok {
@@ -728,6 +758,22 @@ func (h *Handler) importRow(scope workbenchScope, kind string, index map[string]
 		return value, true
 	}
 
+	// The caps of workbenchTextLimits, re-applied to the cells this file writes
+	// directly. The comparison is on the trimmed value, which is what the row stores
+	// (`optionalTrimmedText`), so a cell that differs from the cap only by padding
+	// before or after it is still accepted. Every kind's branch below returns before
+	// planning a row while `problems` is non-empty, so an over-long cell never
+	// reaches a params struct.
+	for _, column := range importCappedColumns[kind] {
+		limit := workbenchTextLimit(column)
+		if limit == 0 {
+			continue
+		}
+		if utf8.RuneCountInString(strings.TrimSpace(importCell(record, index, column))) > limit {
+			fail(column, importReasonTextTooLong)
+		}
+	}
+
 	switch kind {
 	case importKindQuotes:
 		fee, ok := requireCell("fee_amount")
@@ -771,7 +817,13 @@ func (h *Handler) importRow(scope workbenchScope, kind string, index map[string]
 		if briefID.Valid {
 			row.preview["brief_id"] = uuidToString(briefID)
 		}
+		// A bulk import is a reviewed act: the operator saw the dry-run
+		// preview and confirmed the batch (§23), so its rows arrive accepted
+		// rather than filling the review queue with a hundred pending rows.
+		// The review gate stays for the per-row writes an agent or a person
+		// makes one at a time.
 		row.quote = db.CreateCreatorQuoteParams{
+			ReviewState:    reviewAccepted,
 			WorkspaceID:    scope.WorkspaceUUID,
 			CreatorID:      parseUUID(creatorID),
 			BriefID:        briefID,
@@ -836,7 +888,13 @@ func (h *Handler) importRow(scope workbenchScope, kind string, index map[string]
 		if nextFollowAt.Valid {
 			row.preview["next_follow_at"] = timestampToString(nextFollowAt)
 		}
+		// A bulk import is a reviewed act: the operator saw the dry-run
+		// preview and confirmed the batch (§23), so its rows arrive accepted
+		// rather than filling the review queue with a hundred pending rows.
+		// The review gate stays for the per-row writes an agent or a person
+		// makes one at a time.
 		row.activity = db.CreateCreatorActivityParams{
+			ReviewState:   reviewAccepted,
 			WorkspaceID:   scope.WorkspaceUUID,
 			CreatorID:     parseUUID(creatorID),
 			Kind:          activityKind,
@@ -914,7 +972,13 @@ func (h *Handler) importRow(scope workbenchScope, kind string, index map[string]
 			row.preview["publish_url"] = url
 		}
 		row.preview["currency"] = currency
+		// A bulk import is a reviewed act: the operator saw the dry-run
+		// preview and confirmed the batch (§23), so its rows arrive accepted
+		// rather than filling the review queue with a hundred pending rows.
+		// The review gate stays for the per-row writes an agent or a person
+		// makes one at a time.
 		row.collab = db.CreateCrmCollabParams{
+			ReviewState:    reviewAccepted,
 			WorkspaceID:    scope.WorkspaceUUID,
 			BriefID:        briefID,
 			CreatorID:      parseUUID(creatorID),
@@ -972,25 +1036,51 @@ func (h *Handler) importCommit(w http.ResponseWriter, r *http.Request, scope wor
 
 	committed := 0
 	createdCollabIDs := make([]string, 0, len(plan.rows))
+	// An import is a write: each row it creates carries a `.created` audit entry in
+	// this same transaction, marked as an import, so `last_actor` is never empty and
+	// §26.3's overwrite attribution has something to attribute. The rows still land
+	// `accepted` — the operator reviewed the dry-run preview (§23), which is what a
+	// review would have checked — and that exception is written down in §26.1.
+	actor := h.workbenchActor(r, scope)
 	for _, row := range plan.rows {
 		if row.action != importActionCreate {
 			continue
 		}
 		switch plan.kind {
 		case importKindQuotes:
-			if _, err := qtx.CreateCreatorQuote(r.Context(), row.quote); err != nil {
+			created, err := qtx.CreateCreatorQuote(r.Context(), row.quote)
+			if err != nil {
 				workbenchInternalError(w, r, "failed to import the quote batch", err)
 				return 0, false
 			}
+			if _, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCreatorQuote, created.ID,
+				subjectCreatorQuote+".created", actor, pgtype.UUID{}, auditCreate,
+				quoteChanges(db.CreatorQuote{}, created)); err != nil {
+				workbenchInternalError(w, r, "failed to record the imported quote", err)
+				return 0, false
+			}
 		case importKindActivities:
-			if _, err := qtx.CreateCreatorActivity(r.Context(), row.activity); err != nil {
+			created, err := qtx.CreateCreatorActivity(r.Context(), row.activity)
+			if err != nil {
 				workbenchInternalError(w, r, "failed to import the follow-up batch", err)
+				return 0, false
+			}
+			if _, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCreatorActivity, created.ID,
+				subjectCreatorActivity+".created", actor, pgtype.UUID{}, auditCreate,
+				activityChanges(db.CreatorActivity{}, created)); err != nil {
+				workbenchInternalError(w, r, "failed to record the imported follow-up", err)
 				return 0, false
 			}
 		case importKindCollabs:
 			created, err := qtx.CreateCrmCollab(r.Context(), row.collab)
 			if err != nil {
 				workbenchInternalError(w, r, "failed to import the collaboration batch", err)
+				return 0, false
+			}
+			if _, err := recordWorkbenchActivity(r.Context(), qtx, scope, subjectCrmCollab, created.ID,
+				subjectCrmCollab+".created", actor, pgtype.UUID{}, auditCreate,
+				collabChanges(db.CrmCollab{}, created)); err != nil {
+				workbenchInternalError(w, r, "failed to record the imported collaboration", err)
 				return 0, false
 			}
 			createdCollabIDs = append(createdCollabIDs, uuidToString(created.ID))

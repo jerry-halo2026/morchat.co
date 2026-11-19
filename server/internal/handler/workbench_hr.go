@@ -891,6 +891,9 @@ func (h *Handler) ListHrJobs(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	status := strings.TrimSpace(r.URL.Query().Get("status"))
 	if status != "" && !hrJobStatuses[status] {
 		writeError(w, http.StatusBadRequest, "invalid status")
@@ -911,7 +914,7 @@ func (h *Handler) ListHrJobs(w http.ResponseWriter, r *http.Request) {
 		WorkspaceID:  scope.WorkspaceUUID,
 		Status:       strToText(status),
 		DepartmentID: departmentID,
-		Query:        strToText(strings.TrimSpace(r.URL.Query().Get("q"))),
+		Query:        strToText(workbenchLikePattern(r.URL.Query().Get("q"))),
 		CursorAt:     cursorAt,
 		CursorID:     cursorID,
 		Limit:        workbenchLimit(r),
@@ -924,13 +927,20 @@ func (h *Handler) ListHrJobs(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrJobToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"jobs": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"jobs": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrJob) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrJob — POST /api/workbench/hr/jobs
 func (h *Handler) CreateHrJob(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	var req HrJobRequest
@@ -1005,6 +1015,9 @@ func (h *Handler) GetHrJob(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	jobID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "jobId"), "job id")
 	if !ok {
 		return
@@ -1021,6 +1034,9 @@ func (h *Handler) GetHrJob(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateHrJob(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrJobForWrite(w, r, scope)
@@ -1108,6 +1124,9 @@ func (h *Handler) DeleteHrJob(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
+		return
+	}
 	current, ok := h.loadHrJobForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1166,6 +1185,9 @@ func (h *Handler) ListHrCandidates(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	jobID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("job_id"))), "job_id")
 	if !ok {
 		return
@@ -1198,13 +1220,20 @@ func (h *Handler) ListHrCandidates(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrCandidateToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"candidates": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"candidates": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrCandidate) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrCandidate — POST /api/workbench/hr/candidates
 func (h *Handler) CreateHrCandidate(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	var req HrCandidateRequest
@@ -1297,6 +1326,9 @@ func (h *Handler) GetHrCandidate(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	candidateID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "candidateId"), "candidate id")
 	if !ok {
 		return
@@ -1320,6 +1352,9 @@ func (h *Handler) GetHrCandidate(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateHrCandidate(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrCandidateForWrite(w, r, scope)
@@ -1446,6 +1481,9 @@ func (h *Handler) DeleteHrCandidate(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
+		return
+	}
 	current, ok := h.loadHrCandidateForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1475,6 +1513,9 @@ func (h *Handler) DeleteHrCandidate(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) HireHrCandidate(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrCandidateForWrite(w, r, scope)
@@ -1643,6 +1684,9 @@ func (h *Handler) ListHrInterviews(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	candidateID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("candidate_id"))), "candidate_id")
 	if !ok {
 		return
@@ -1684,13 +1728,20 @@ func (h *Handler) ListHrInterviews(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrInterviewToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"interviews": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"interviews": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrInterview) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrInterview — POST /api/workbench/hr/interviews
 func (h *Handler) CreateHrInterview(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	var req HrInterviewRequest
@@ -1770,6 +1821,9 @@ func (h *Handler) GetHrInterview(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	interviewID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "interviewId"), "interview id")
 	if !ok {
 		return
@@ -1793,6 +1847,9 @@ func (h *Handler) GetHrInterview(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateHrInterview(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, _, ok := h.loadHrInterviewForWrite(w, r, scope)
@@ -1903,6 +1960,9 @@ func (h *Handler) DeleteHrInterview(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
+		return
+	}
 	current, _, ok := h.loadHrInterviewForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1929,6 +1989,9 @@ func (h *Handler) DeleteHrInterview(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListHrScorecards(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
 		return
 	}
 	interviewID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("interview_id"))), "interview_id")
@@ -1962,13 +2025,20 @@ func (h *Handler) ListHrScorecards(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrScorecardToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"scorecards": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"scorecards": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrScorecard) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrScorecard — POST /api/workbench/hr/scorecards
 func (h *Handler) CreateHrScorecard(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	var req HrScorecardRequest
@@ -2043,6 +2113,9 @@ func (h *Handler) CreateHrScorecard(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateHrScorecard(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrScorecardForWrite(w, r, scope)
@@ -2127,6 +2200,9 @@ func (h *Handler) DeleteHrScorecard(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
+		return
+	}
 	current, ok := h.loadHrScorecardForWrite(w, r, scope)
 	if !ok {
 		return
@@ -2168,6 +2244,9 @@ func (h *Handler) ListHrEmployees(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	departmentID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("department_id"))), "department_id")
 	if !ok {
 		return
@@ -2199,13 +2278,20 @@ func (h *Handler) ListHrEmployees(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = hrEmployeeProfileToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"employees": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"employees": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.HrEmployeeProfile) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateHrEmployee — POST /api/workbench/hr/employees
 func (h *Handler) CreateHrEmployee(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	var req HrEmployeeProfileRequest
@@ -2285,6 +2371,9 @@ func (h *Handler) GetHrEmployee(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRRead) {
+		return
+	}
 	profileID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "employeeId"), "employee profile id")
 	if !ok {
 		return
@@ -2304,6 +2393,9 @@ func (h *Handler) GetHrEmployee(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateHrEmployee(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrEmployeeProfileForWrite(w, r, scope)
@@ -2428,6 +2520,9 @@ func (h *Handler) UpdateHrEmployee(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) DeleteHrEmployee(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capHRWrite) {
 		return
 	}
 	current, ok := h.loadHrEmployeeProfileForWrite(w, r, scope)

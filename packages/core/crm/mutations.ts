@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../api";
+import { api, isStaleWrite } from "../api";
 import { useWorkspaceId } from "../hooks";
 import { crmKeys, workbenchKeys } from "./queries";
 import type {
@@ -7,6 +7,8 @@ import type {
   CreateCrmClientRequest,
   CreateCrmCollabRequest,
   CreateCrmSettlementRequest,
+  CrmCollab,
+  CrmSettlement,
   UpdateCrmBriefRequest,
   UpdateCrmClientRequest,
   UpdateCrmCollabRequest,
@@ -102,18 +104,44 @@ export function useCreateCrmCollab() {
  */
 export function useUpdateCrmCollab() {
   const invalidate = useInvalidateCrm();
+  const qc = useQueryClient();
+  const wsId = useWorkspaceId();
   return useMutation({
     mutationFn: ({ id, ...data }: { id: string } & UpdateCrmCollabRequest) =>
       api.updateCrmCollab(id, data),
     onSuccess: () => invalidate("collabs"),
+    // 409 `stale_write` means somebody else moved the row (COLLAB-MODEL §3).
+    // The page must refresh from the server's row, never replay its own body:
+    // the row the server sent is put straight into the detail cache so an open
+    // editor re-renders with what is actually stored.
+    onError: (error, variables) => {
+      if (!isStaleWrite<CrmCollab>(error)) return;
+      qc.setQueryData(crmKeys.detail(wsId, "collabs", variables.id), error.current);
+      invalidate("collabs");
+    },
   });
 }
 
+/**
+ * Soft delete, and a §3 write: the caller names the `revision` it read (query
+ * string, because a DELETE body is not portable), and a mismatch answers 409 with
+ * the current row. The row is put into the detail cache and the ledger is reread,
+ * so a drawer that was about to delete an outdated card redraws from the server
+ * rather than pressing the same button again.
+ */
 export function useDeleteCrmCollab() {
   const invalidate = useInvalidateCrm();
+  const qc = useQueryClient();
+  const wsId = useWorkspaceId();
   return useMutation({
-    mutationFn: (id: string) => api.deleteCrmCollab(id),
+    mutationFn: ({ id, expectedRevision }: { id: string; expectedRevision?: number }) =>
+      api.deleteCrmCollab(id, expectedRevision),
     onSuccess: () => invalidate(),
+    onError: (error, variables) => {
+      if (!isStaleWrite<CrmCollab>(error)) return;
+      qc.setQueryData(crmKeys.detail(wsId, "collabs", variables.id), error.current);
+      invalidate("collabs");
+    },
   });
 }
 
@@ -128,10 +156,17 @@ export function useCreateCrmSettlement() {
 /** Marking a settlement paid is a `paid_at` write; it moves collected revenue. */
 export function useUpdateCrmSettlement() {
   const invalidate = useInvalidateCrm();
+  const qc = useQueryClient();
+  const wsId = useWorkspaceId();
   return useMutation({
     mutationFn: ({ id, ...data }: { id: string } & UpdateCrmSettlementRequest) =>
       api.updateCrmSettlement(id, data),
     onSuccess: () => invalidate("settlements"),
+    onError: (error, variables) => {
+      if (!isStaleWrite<CrmSettlement>(error)) return;
+      qc.setQueryData(crmKeys.detail(wsId, "settlements", variables.id), error.current);
+      invalidate("settlements");
+    },
   });
 }
 
@@ -140,5 +175,22 @@ export function useDeleteCrmSettlement() {
   return useMutation({
     mutationFn: (id: string) => api.deleteCrmSettlement(id),
     onSuccess: () => invalidate(),
+  });
+}
+
+/**
+ * Open (or read back) a collaboration's discussion (COLLAB-MODEL §5).
+ *
+ * A mutation rather than a query because the first call *writes*: it mints the
+ * issue and back-fills the row's `issue_id`. Every later call answers the same
+ * issue, so a double click is harmless — that is the server's idempotency, not a
+ * guard this hook adds. The list is invalidated because the row now carries a
+ * thread count it did not have before.
+ */
+export function useOpenCrmCollabThread() {
+  const invalidate = useInvalidateCrm();
+  return useMutation({
+    mutationFn: (id: string) => api.openCrmCollabThread(id),
+    onSuccess: () => invalidate("collabs"),
   });
 }

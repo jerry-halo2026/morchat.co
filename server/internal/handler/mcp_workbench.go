@@ -3,7 +3,7 @@ package handler
 // The workbench MCP endpoint: POST /api/mcp/workbench.
 //
 // The workbench data an agent needs to be useful — the metric strip, the sidebar
-// counts, the money block, the nine ledgers — is already reachable over REST
+// counts, the money block, the fifteen ledgers — is already reachable over REST
 // (docs/engineering/WORKBENCH-API.md §3). An agent's read channel, though, is a
 // tool surface, not HTTP: a run holds an MCP client and nothing else. So this
 // file speaks the four reads as MCP tools over the same JSON-RPC 2.0 transport
@@ -12,9 +12,13 @@ package handler
 //
 // Three rules shape the implementation:
 //
-//   - Read-only. Every tool answers a document and none of them writes: the
-//     dispatcher can only reach read handlers, and there is no PATCH/POST path
-//     behind any of the four names.
+//   - Read-first, with one narrow write channel. Four tools answer documents and
+//     write nothing; the three declared in workbench_agent_write.go create a
+//     quote, log a follow-up and advance a collaboration's stage — the §6
+//     whitelist, and nothing else (no delete, no owner, no amounts). Every write
+//     replays its REST handler in-process for the same reason the reads do, so
+//     the capability, ownership, revision and audit gates run exactly once, in
+//     the code that already owns them.
 //
 //   - One document, not a look-alike. A tool does not re-assemble its payload;
 //     it replays the request into the REST handler that already owns that read
@@ -81,16 +85,52 @@ const (
 // documents them. The schema's enum is generated from this list, so a domain
 // added here is immediately callable and a name that is not here cannot be
 // asked for.
+//
+// Fifteen ledgers: the nine the first surface shipped (BD accounts and HR
+// records) plus the six the workbench pages read directly — quotes, follow-ups
+// and campaigns on the sales side, and the topic pool, the hotspot radar and the
+// budget's goals on the content and GM sides. A domain is only added together
+// with its entry in workbenchMCPLedgerDomains; `TestWorkbenchMCPLedgerDomains`
+// fails if the two ever disagree, which is the failure this file exists to
+// prevent: a tool advertising a name nobody answers.
 var workbenchMCPLedgerDomainNames = []string{
 	"creators",
 	"clients",
 	"briefs",
 	"collabs",
 	"settlements",
+	"quotes",
+	"activities",
+	"campaigns",
 	"jobs",
 	"candidates",
 	"interviews",
 	"employees",
+	"goals",
+	"topics",
+	"hot",
+}
+
+// workbenchMCPLedgerTables names the table each domain pages through. It exists
+// for the coverage test, not for the dispatcher: a domain whose table no
+// migration creates is a domain that can only answer an error, and the test
+// catches that at build time instead of when an agent calls it.
+var workbenchMCPLedgerTables = map[string]string{
+	"creators":    "creator",
+	"clients":     "crm_client",
+	"briefs":      "crm_brief",
+	"collabs":     "crm_collab",
+	"settlements": "crm_settlement",
+	"quotes":      "creator_quote",
+	"activities":  "creator_activity",
+	"campaigns":   "creator_campaign",
+	"jobs":        "hr_job",
+	"candidates":  "hr_candidate",
+	"interviews":  "hr_interview",
+	"employees":   "hr_employee_profile",
+	"goals":       "goal_okr",
+	"topics":      "media_topic",
+	"hot":         "media_hot",
 }
 
 // workbenchMCPTool is one declared tool, in the shape an MCP client expects.
@@ -104,8 +144,12 @@ type workbenchMCPTool struct {
 // that answers it — one file, one `switch` keyed by these names — because a
 // declaration in one place and an implementation in another is how a tool
 // surface starts advertising a name nobody answers.
+//
+// The three writes are declared in workbench_agent_write.go and appended here, so
+// the list a model is shown is still assembled in one place: the read tools' four
+// names, then the agent write whitelist.
 func workbenchMCPTools() []workbenchMCPTool {
-	return []workbenchMCPTool{
+	readTools := []workbenchMCPTool{
 		{
 			Name: workbenchToolOverview,
 			Description: "Read the workbench metric strip: every metric id of the workspace with " +
@@ -180,6 +224,97 @@ func workbenchMCPTools() []workbenchMCPTool {
 }`),
 		},
 	}
+	// The §6 write whitelist: three tools, declared here next to the `switch` in
+	// workbenchMCPCall that answers them. The implementations — the delegation
+	// gate, the row rule, the replay into the ledger handlers — live in
+	// workbench_agent_write.go; a name added to one half without the other fails
+	// TestWorkbenchMCPToolsList.
+	//
+	// The schemas are the HTTP request bodies minus everything an agent may not
+	// write, so a field that is not declared is a field no agent can send:
+	// `additionalProperties: false` plus the decoder's DisallowUnknownFields turn
+	// an attempt into a sentence rather than a silently ignored key.
+	writeTools := []workbenchMCPTool{
+		{
+			Name: workbenchToolCreateQuote,
+			Description: "Create one offer (a quote) to one creator. THIS IS A WRITE: it inserts a " +
+				"creator_quote row owned by the member who delegated you, and the audit trail " +
+				"records you as an agent with that member in details.delegated_by. It refuses " +
+				"anything that is money or ownership: there is no fee_amount, commission_rate, " +
+				"currency, items, owner_member_id or assignee argument, and sending one answers an " +
+				"error naming the rule. There is no delete and no update tool: once a quote exists, " +
+				"changing its price or its status is a human's write. Answer is the row, with the same " +
+				"field names as POST /api/workbench/bd/quotes. `creator_id` must be a creator in this " +
+				"workspace; `status` is draft|sent|accepted|rejected|expired and defaults to draft; " +
+				"`quoted_at` is when the offer was made (RFC3339 or YYYY-MM-DD) and is left NULL when " +
+				"omitted — not today, because nobody recorded the day; `valid_until` is a calendar day, " +
+				"YYYY-MM-DD, and may not precede `quoted_at`'s day when both are given. You need " +
+				"agent.delegate and crm.write; without agent.delegate every write is refused.",
+			InputSchema: json.RawMessage(`{
+  "type": "object",
+  "properties": {
+    "creator_id":  {"type": "string", "description": "Creator uuid in this workspace (required)."},
+    "brief_id":    {"type": "string", "description": "Optional demand-brief uuid the offer answers."},
+    "status":      {"type": "string", "enum": ["draft", "sent", "accepted", "rejected", "expired"], "description": "Offer lifecycle; defaults to draft."},
+    "quoted_at":   {"type": "string", "description": "When the offer was made: RFC3339 or YYYY-MM-DD. Omit and the quote has no recorded day (NULL), not today."},
+    "valid_until": {"type": "string", "description": "Last day the offer stands, YYYY-MM-DD. May not precede quoted_at's day when both are sent."},
+    "note":        {"type": "string", "description": "Free text. A note is not a business state and leaves no audit line."}
+  },
+  "required": ["creator_id"],
+  "additionalProperties": false
+}`),
+		},
+		{
+			Name: workbenchToolLogActivity,
+			Description: "Log one follow-up against a creator: what happened, when, and what came of it. " +
+				"THIS IS A WRITE: it inserts a creator_activity row owned by the member who " +
+				"delegated you, audited as an agent with details.delegated_by. It cannot set money, " +
+				"ownership or the assignee — those arguments are refused by name. There is no update " +
+				"or delete tool: rewriting what was said is a human's write. Answer is the row, with " +
+				"the same field names as POST /api/workbench/bd/activities. `kind` is " +
+				"dm|call|meeting|email|note; `happened_at` is RFC3339 and required; `summary` is " +
+				"required; `outcome` is optional (no_reply|replied|declined|advanced) because a note " +
+				"with no result is not 'no_reply'; `next_follow_at` is RFC3339 and optional. You need " +
+				"agent.delegate and crm.write.",
+			InputSchema: json.RawMessage(`{
+  "type": "object",
+  "properties": {
+    "creator_id":     {"type": "string", "description": "Creator uuid in this workspace (required)."},
+    "kind":           {"type": "string", "enum": ["dm", "call", "meeting", "email", "note"], "description": "How the follow-up happened (required)."},
+    "happened_at":    {"type": "string", "description": "When it happened, RFC3339 (required)."},
+    "summary":        {"type": "string", "description": "What was said or done (required)."},
+    "outcome":        {"type": "string", "enum": ["no_reply", "replied", "declined", "advanced"], "description": "What came of it; omit while nothing has."},
+    "next_follow_at": {"type": "string", "description": "When to call again, RFC3339. Omit when nothing is scheduled."}
+  },
+  "required": ["creator_id", "kind", "happened_at", "summary"],
+  "additionalProperties": false
+}`),
+		},
+		{
+			Name: workbenchToolAdvanceStage,
+			Description: "Move a collaboration one or more stages forward (crm_collab.stage). THIS IS A " +
+				"WRITE: it PATCHes the row and is audited as an agent with details.delegated_by. It " +
+				"refuses a stage that would move backwards, the stage `settled` (settling records " +
+				"money) and `cancelled` (ending a deal) — both stay with the human. It cannot change " +
+				"any amount, currency, settlement field or the owner; those arguments are refused by " +
+				"name. You may only move a collaboration that is assigned to you or owned by the " +
+				"member who delegated you; you need agent.delegate and crm.write. Send " +
+				"`expected_revision` (the row's `revision` you last read) to make a concurrent " +
+				"second write a 409 instead of an overwrite. Answer is the updated row, with the " +
+				"same field names as PATCH /api/workbench/crm/collabs/{collab_id}.",
+			InputSchema: json.RawMessage(`{
+  "type": "object",
+  "properties": {
+    "collab_id":         {"type": "string", "description": "Collaboration uuid in this workspace (required)."},
+    "stage":             {"type": "string", "enum": ["inquiry", "quoted", "negotiating", "confirmed", "sampling", "script_review", "scheduled", "published", "accepted"], "description": "The stage to move to. Must be ahead of the current one; settled and cancelled are refused."},
+    "expected_revision": {"type": "integer", "minimum": 1, "description": "The revision you last read. Omit to skip the check (not recommended); a mismatch answers 409 stale_write."}
+  },
+  "required": ["collab_id", "stage"],
+  "additionalProperties": false
+}`),
+		},
+	}
+	return append(readTools, writeTools...)
 }
 
 // workbenchMCPLedgerSchema builds workbench_ledger's input schema. The domain
@@ -309,6 +444,12 @@ func (h *Handler) workbenchMCPCall(w http.ResponseWriter, r *http.Request, req m
 		document, err = h.workbenchMCPLedger(r, params.Arguments)
 	case workbenchToolFinance:
 		document, err = h.workbenchMCPFinance(r, params.Arguments)
+	case workbenchToolCreateQuote:
+		document, err = h.workbenchMCPCreateQuote(r, params.Arguments)
+	case workbenchToolLogActivity:
+		document, err = h.workbenchMCPLogActivity(r, params.Arguments)
+	case workbenchToolAdvanceStage:
+		document, err = h.workbenchMCPAdvanceCollabStage(r, params.Arguments)
 	default:
 		writeMCP(w, req.ID, nil, &mcpError{Code: mcpErrInvalidParams, Message: "unknown tool " + name})
 		return
@@ -427,10 +568,16 @@ func (h *Handler) workbenchMCPLedgerDomains() map[string]workbenchMCPLedgerDomai
 		"briefs":      {read: h.ListCrmBriefs, department: false},
 		"collabs":     {read: h.ListCrmCollabs, department: false},
 		"settlements": {read: h.ListCrmSettlements, department: false},
+		"quotes":      {read: h.ListBdQuotes, department: false},
+		"activities":  {read: h.ListBdActivities, department: false},
+		"campaigns":   {read: h.ListBdCampaigns, department: false},
 		"jobs":        {read: h.ListHrJobs, department: true},
 		"candidates":  {read: h.ListHrCandidates, department: false},
 		"interviews":  {read: h.ListHrInterviews, department: false},
 		"employees":   {read: h.ListHrEmployees, department: true},
+		"goals":       {read: h.ListGoals, department: false},
+		"topics":      {read: h.ListMediaTopics, department: false},
+		"hot":         {read: h.ListMediaHot, department: false},
 	}
 }
 

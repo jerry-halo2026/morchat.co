@@ -33,6 +33,7 @@ func TestDeleteWorkspaceKnowledgeRemovesTheWholeFamily(t *testing.T) {
 	t.Cleanup(func() {
 		_, _ = testPool.Exec(context.Background(), `DELETE FROM workspace WHERE id = $1`, workspaceID)
 	})
+	workspaceDeleteScratch(t, workspaceID)
 
 	exec := func(sql string, args ...any) {
 		t.Helper()

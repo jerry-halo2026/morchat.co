@@ -40,6 +40,7 @@
     "content_scripts": "Сценарии",
     "content_shoots": "Съёмка и монтаж",
     "content_publish": "График публикаций",
+    "content_ads": "Реклама",
     "content_data": "Разбор",
     "boss_overview": "Обзор",
     "boss_goals": "Цели",
@@ -47,7 +48,8 @@
     "boss_radar": "Радар рынка",
     "boss_customers": "Клиенты",
     "boss_biz": "Операции",
-    "boss_team": "Команда"
+    "boss_team": "Команда",
+    "boss_review": "Очередь проверки"
   },
   "hr": {
     "recruit": {

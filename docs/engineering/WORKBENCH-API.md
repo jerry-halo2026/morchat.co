@@ -2,11 +2,13 @@
 purpose: B0（达人商务）的服务端契约：表、迁移号段、REST、事件、query key、UI 归属
 owner: lead
 status: current
-updated: 2026-11-17
+updated: 2026-11-19
 related: [docs/METRICS.md, docs/engineering/ORG-MODEL.md]
 ---
 
 # 达人商务 B0 契约（并行施工的唯一接口约定）
+
+> 逐条可核对的版本在 [WORKBENCH-CONTRACT.md](./WORKBENCH-CONTRACT.md)：203 条 `/api/workbench/**` 路由的入参/出参/错误/空语义/权限矩阵与缺口清单；两者冲突时以代码为准，差异记在该文 §3。
 
 三个并行代理共用本文件。**任何与本文件不一致的实现都算错**；要改先改本文件。
 
@@ -122,11 +124,11 @@ crm_settlement(id PK, workspace_id, collab_id UUID NOT NULL,
 | GET/POST | `/crm/briefs` | 列表（`?status=&client_id=`）/ 新建 |
 | GET/PATCH/DELETE | `/crm/briefs/{briefId}` | 单条 |
 | GET/POST | `/crm/collabs` | 列表（`?stage=&brief_id=&creator_id=`）/ 新建 |
-| GET/PATCH/DELETE | `/crm/collabs/{collabId}` | 单条；PATCH 改 `stage` 时写 `confirmed_at` 等时间戳；DELETE 连带归档该合作单的结算（见 §20.1） |
+| GET/PATCH/DELETE | `/crm/collabs/{collabId}` | 单条；PATCH 改 `stage` 时写 `confirmed_at` 等时间戳；DELETE 连带归档该合作单的结算（见 §20.1），可带 `?expected_revision=`（§3.5） |
 | GET/POST | `/crm/settlements` | 列表（`?collab_id=&paid=`）/ 新建 |
 | PATCH/DELETE | `/crm/settlements/{settlementId}` | 单条 |
 
-**权限**：workspace 成员可读；写 = `owner|admin` 全写，`member` 只能改 `owner_member_id = 自己` 的行（新建时自动写入自己）。`department_id` 只做聚合过滤，**不参与鉴权**。
+**权限**：workspace 成员可读；写 = `owner|admin` 全写，`member` 只能改 `owner_member_id = 自己` 的行（新建时自动写入自己）。`department_id` 只做聚合过滤，**不参与鉴权**。发布台账（`/creator-posts` 与它的 `/metrics`）另有一层 capability：读 `media.read`、回填快照 `media.write`、增/改/删 `media.publish`，见 §12.3 与 §24.5。
 
 ### 3.1 响应包裹与序列化（前后端必须逐字一致）
 
@@ -215,21 +217,83 @@ GET /api/workbench/finance?month=2026-09[&department_id=]
 **handler 命名**（router.go 已按此注册，函数名不可改）：
 `GetWorkbenchOverview` `GetWorkbenchCounts` `ListCreators` `CreateCreator` `GetCreator` `UpdateCreator` `DeleteCreator` `ListCreatorPosts` `CreateCreatorPost` `UpdateCreatorPost` `DeleteCreatorPost` `ListCreatorPostMetrics` `UpsertCreatorPostMetric` `ListCrmClients` `CreateCrmClient` `GetCrmClient` `UpdateCrmClient` `DeleteCrmClient` `ListCrmBriefs` `CreateCrmBrief` `GetCrmBrief` `UpdateCrmBrief` `DeleteCrmBrief` `ListCrmCollabs` `CreateCrmCollab` `GetCrmCollab` `UpdateCrmCollab` `DeleteCrmCollab` `ListCrmSettlements` `CreateCrmSettlement` `UpdateCrmSettlement` `DeleteCrmSettlement`
 
+### 3.4 PATCH 的清空语义（三态）
+
+PATCH body 的一个可空字段有三种状态，`*string` / `*float64` 只能表达两种：Go 的 `json.Unmarshal` 把「没传这个 key」和「key 是 `null`」都解成 nil 指针，于是 `{"paid_at": null}` 曾经是**静默保留**（唯一能清空的写法是空串 `""`，而那不是任何一种 JSON API 的常规拼法）。现在统一为：
+
+| 请求里怎么写 | 结果 |
+| --- | --- |
+| 省略该 key | **保留**库里已有的值 |
+| `null` | **清空**该列 → SQL `NULL` |
+| `""` | **清空**该列 → SQL `NULL`（过渡兼容，见下） |
+| 有值 | 按该字段的类型解析后写入 |
+
+- **新代码一律发 `null`**。`""` 只是兼容：`packages/views/sales/collabs/model.ts` 的 `receiptPatch` 现在发的就是 `{"paid_at": ""}`，改成 `null` 之前它必须继续能清空。
+- **清空落 NULL，不落空串**。空串与 NULL 在界面上都渲染成空，但对读者是两个答案：回款/应收、`/finance` 的 `IS NULL` 过滤、跟进到期扫描都只认 NULL。
+- **实现**：这些字段在请求结构体里是 `json.RawMessage`（三态解析，见 `workbench_types.go` 的 `apply*ClearPatch`）。`§21` 的 `media_hot.rank/heat_value/url` 早就是这套写法，本批把它推广到四张核心台账。
+
+覆盖字段（每个字段都按上表三态处理，用例见 `workbench_clearing_test.go`）：
+
+| 台账 | 字段 | 列类型 |
+| --- | --- | --- |
+| `crm_collab` | `publish_url` / `settled_on` / `creator_fee` / `sample_cost` / `platform_fee` | TEXT / DATE / NUMERIC×3 |
+| `creator_quote` | `valid_until` / `note` | DATE / TEXT |
+| `creator_activity` | `outcome` / `next_follow_at` | TEXT（枚举）/ TIMESTAMPTZ |
+| `crm_settlement` | `paid_at` / `note` / `invoice_no` | DATE / TEXT / TEXT |
+
+**例外：NOT NULL 的列不能清空**。`creator_activity.summary` 是 `TEXT NOT NULL`（802 的注释写明「Never empty」），所以 `null` / `""` / 纯空白一律 **400 `summary is required`**——既不保留旧值假装成功，也不落一个空串。`crm_settlement.amount`、各表的 `kind` / `currency` 同理：它们是列的非空身份，不是可清空的备注。`creator_quote.items` 是 `NOT NULL DEFAULT '[]'` 的 JSONB，**清空就是传 `[]`**；`null` 在这里等同「没传」（不抹掉已存明细），因为它没有 NULL 这个状态可用。
+
+**和 §26 的闸门的关系**：判定「这个 PATCH 动了金额/结算字段」看的是**有没有写这个字段**，不是值非 nil。所以 `{"creator_fee": null}` 仍然需要 `crm.amount`、agent 发它仍然 403 `forbidden_agent_money`、人发它仍然进 `review_state='pending'`。否则清空金额就成了绕开金额闸门的写法。**create 上不适用**：新建一行没有「旧值」可清，`null` 只是「没给值」，因此不算动过金额——否则一个把每个键都填 `null` 的表单会让 `POST` 也要求 `crm.amount`。
+
+清空是一次业务变更：`activity_log` 的 `details.before/after` 会记下「旧值 → null」（§2），`revision` 照常 +1（§3）。
+
+### 3.5 删除的并发守卫（`?expected_revision=`）
+
+删除也是写：它把 `revision + 1`，所以它同样可以带着「我读到的那一版」发出来。守卫走 **query 参数**，不走 body —— `DELETE` 带 body 不被代理和部分客户端转发，而删除没有别的入参：
+
+```
+DELETE /api/workbench/bd/quotes/{quoteId}?expected_revision=4
+DELETE /api/workbench/crm/collabs/{collabId}?expected_revision=4
+```
+
+| 请求 | 结果 |
+| --- | --- |
+| 不带参数 | **不做检查**（旧客户端行为，逐字等于本批之前） |
+| `expected_revision=N`，与库里一致 | 正常删除，`204` |
+| `expected_revision=N`，行还在但已经不同 | `409 {"error":"stale_write","current":{…}}`，`current` 与 PATCH 的 409 **同形状**（含 `revision`） |
+| `expected_revision=0` 或非整数 | `400 expected_revision must be a positive integer` |
+| 行已被删除 | `404`：没有「当前行」可回 |
+
+- 守卫写在归档语句的 `WHERE` 里（`ArchiveCreatorQuote` / `ArchiveCrmCollab` 的 `($n::int IS NULL OR revision = $n::int)`），**不是**先读后删。两个连接同时读到 `revision 4` 时，「先读再删」两边都会认为没变，于是都往下走、都写一条 `.deleted`；写进 `WHERE` 才有唯一的赢家。
+- `archived_at IS NULL` 与守卫是同一个谓词，所以并发的两次删除**只有一次** `204`：输的那一次要么在读取阶段就 `404`（赢家已经归档），要么在守卫处打不中。两次删除不会留下两条 `.deleted` 审计行，也不会把 `revision` 推两次。
+- 打不中时读回来分辨原因：**行还在、版本变了** → `409` 带当前行（客户端刷新）；**行已经归档** → `404`（没有当前行可回）。两种情况客户端动作一致：刷新，不重放。
+- 适用范围：本批只焊这两条（报价、合作单——即 §3 与 §20.3 里带撤销/删除的台账）。跟进活动的删除、结算、客户、brief 的删除仍是 `204`，不带这个守卫。
+- 语境：`COLLAB-MODEL.md` §3 原文只管 PATCH；这里把同一条规则延伸到 DELETE，响应形状不变，前端已有的 409 分支直接复用。
+- 客户端接线：`api.deleteBdQuote(id, expectedRevision?)` / `api.deleteCrmCollab(id, expectedRevision?)`（`packages/core/api/client.ts`，用 `workbenchSearch` 拼参数，缺省不发）；409 抛 `StaleWriteError`（`current` 已按台账 schema 解析）；`useDeleteBdQuote` / `useDeleteCrmCollab` 把 `current` 写回 detail 缓存并失效台账；`sales/quotes/row-actions.tsx` 的删除与 `sales/collabs/collab-sheet.tsx` 的撤销都带上行上的 `revision`。
+
 ## 4. 事件
 
-`packages/core/types/events.ts` 的 `WSEventType` 追加，payload 进同名映射表：
+`packages/core/types/events.ts` 的 `WSEventType` 追加，payload 进同名映射表。四条台账/内容事件（`creator_activity` / `creator_quote` / `creator_campaign` / `media_topic`）在 W5 补上，服务端 create / update / delete 各发一条，payload 只有 `{ id }`：
 
-| 事件 | payload |
-| --- | --- |
-| `creator:changed` | `{ id: string }` |
-| `creator_post:changed` | `{ id: string; creator_id: string }` |
-| `crm_client:changed` | `{ id: string }` |
-| `crm_brief:changed` | `{ id: string }` |
-| `crm_collab:changed` | `{ id: string }` |
-| `crm_collab:stage_changed` | `{ id: string; from: string; to: string }` |
-| `crm_settlement:changed` | `{ id: string }` |
+| 事件 | payload | 失效范围（`use-realtime-sync.ts`） |
+| --- | --- | --- |
+| `creator:changed` | `{ id: string }` | `["creator", wsId]` + `["workbench", wsId]` |
+| `creator_post:changed` | `{ id: string; creator_id: string }` | 同上 |
+| `crm_client:changed` | `{ id: string }` | `["crm", wsId]` + `["workbench", wsId]` |
+| `crm_brief:changed` | `{ id: string }` | 同上 |
+| `crm_collab:changed` | `{ id: string }` | 同上 |
+| `crm_collab:stage_changed` | `{ id: string; from: string; to: string }` | 同上（与 `crm_collab:changed` 同时到达，React Query 合并成一次重取） |
+| `crm_settlement:changed` | `{ id: string }` | 同上 |
+| `creator_activity:changed` | `{ id: string }` | `["bd", wsId, "activities"]` + `["bd", wsId, "pipeline"]` + `["workbench", wsId]` |
+| `creator_quote:changed` | `{ id: string }` | `["bd", wsId, "quotes"]` + `["bd", wsId, "pipeline"]` + `["workbench", wsId]` |
+| `creator_campaign:changed` | `{ id: string }` | `["bd", wsId, "campaigns"]` + `["workbench", wsId]`（驾驶舱不读活动批次，不失效 `pipeline`） |
+| `media_topic:changed` | `{ id: string }` | `["media", wsId, "topics"]` + `["workbench", wsId]` |
 
-patcher 一律"invalidate 该域列表 + 失效 overview/counts"，不做字段级 patch（台账行字段多，patch 成本高于重取）。
+patcher 一律"invalidate 该域列表 + 失效 overview/counts"，不做字段级 patch（台账行字段多，patch 成本高于重取）。列表键是前缀，所以详情读（`[... , resource, { id }]`）跟着一起失效。
+
+- **actor**：工作区广播，`actor_type` / `actor_id` 取该请求的 `resolveActor` 结果（`workbench_actor`），不是席位主人——agent 写的行到别人屏幕上必须还是 agent。
+- **`media_topic`**：CRUD 与 `/adopt` 都发（此前只有 `/adopt` 一条路径发过，客户端也没登记，等于静默）。
+- **`creator_campaign` 不失效驾驶舱**：`/bd/pipeline` 的四块都不读活动批次（§20.3），失效它只是多一次没人消费的重取。
 
 ## 5. Query key
 
@@ -772,6 +836,22 @@ ALTER creator_post ADD COLUMN media_script_id UUID;
 
 `owner`/`admin` 全写；`member` 只能写自己拥有的行；新建时省略 owner 就是"我自己"，member 指定别人当 owner 直接 **403**。脚本与拍摄的 owner 由 topic 派生，请求里指定成别的值一律 **400**——让两者分叉，就会让"我能改这个脚本"和"我能改这个选题"变成两个答案。
 
+**发布闸门 `media.publish`**（`workbench_creator.go`；下表路径在 `/api/workbench` 下，不是本节基址 `/api/workbench/media`；判定在 `workbenchReadScope` 之后、解析 body 之前）：
+
+| 端点 | capability |
+| --- | --- |
+| `POST /creator-posts` | `media.publish` |
+| `PATCH /creator-posts/{postId}` | `media.publish` |
+| `DELETE /creator-posts/{postId}` | `media.publish` |
+| `GET /creator-posts`、`GET /creator-posts/{postId}/metrics` | `media.read` |
+| `POST /creator-posts/{postId}/metrics` | `media.write` |
+
+- **「发布」= `creator_posts` 的增/改/删**。媒体脚本的状态只有 draft / review / approved / archived，没有「已发布」，所以脚本不是发布；真正投出去排期的行在 `creator_posts`，数据复盘也落在这张表。
+- **撤下与发布同权**：DELETE 是软删，就是撤回一条发错的稿子。只给「能发」不给「能撤」，错稿就得找人代撤。
+- **回填不是发布**：`POST …/metrics` 是填一天的数，走 `media.write`；负责数据复盘的人不需要「把内容投出去」的权利。
+- **为什么是 `media.*` 而不是 `crm.write`**：`内容` / `运营` 两个部门的默认集有 `media.publish` 而没有 `crm.write`（§24.2）。闸门若仍挂在 `crm.write` 上，`media.publish` 对唯一持有它的两个部门依旧是装饰。达人库（`/creators`）保持 `crm.read` / `crm.write`：它是销售台账，不是发布。
+- 无权时 **403 `{"error":"forbidden_capability","capability":"media.publish"}`**（§24.3 同一形状），客户端据此隐藏「发布 / 编辑 / 撤回」而不是弹错。ownership 仍在 capability 之后判定，两者都要过。
+
 ### 12.4 脚本版本化语义
 
 - 一行 = **一个版本**，不是一份被反复覆盖的文档。`version` 在 topic 内单调递增，由 SQL 在 INSERT 里算 `MAX(version) + 1`（**含已软删的行**，所以号永不回收）；739 的唯一索引是并发兜底，撞号的那次请求得到 **409**，而不是两行 v2。
@@ -813,6 +893,8 @@ ALTER creator_post ADD COLUMN media_script_id UUID;
 
 事件（`workbench_media.go` 内定义，写成功后发出）：`media_ip:changed` / `media_topic:changed` / `media_script:changed` / `media_shoot:changed`，payload `{ "id": "<row id>" }`；账号挂载/摘除额外发既有的 `creator:changed`（改的是 `creator` 行）。
 
+`media_topic:changed` 现在两端都接上了：服务端的 CRUD 与 `/adopt` 都发，客户端在 §4 的表里登记并失效 `["media", wsId, "topics"]` + `["workbench", wsId]`。其余三个内容事件仍是服务端单向发出（客户端靠自己的 mutation 失效刷新）。
+
 ```
 ["media", wsId, resource, filters]     // resource ∈ ips|topics|scripts|shoots
 ["media", wsId, resource, { id }]      // 详情（含 ips 的 accounts）
@@ -823,7 +905,7 @@ ALTER creator_post ADD COLUMN media_script_id UUID;
 ### 12.7 已知债务与本批未做
 
 - **UI / views 未接入**：本批只到迁移、SQL、handler、core 类型/zod/client；`packages/views/**`、`apps/**` 不在写作用域。
-- **前端实时 patcher 未注册**：`packages/core/types/events.ts` 不在本批作用域，四个 `media_*:changed` 目前只有服务端发出，客户端靠 mutation 失效刷新；接实时时按 §12.6 的 payload 加 patcher 即可。
+- **前端实时 patcher**：`media_topic:changed` 已登记（§4）；`media_ip` / `media_script` / `media_shoot` 三个仍只有服务端发出，客户端靠 mutation 失效刷新——接实时时按 §12.6 的 payload 加 patcher 即可。
 - **`creator_post.media_script_id` 暂时没有写入路径**：`workbench_creator.go` 不在本批作用域、行为未改，所以 `POST/PATCH /creator-posts` 既不接收也不返回该列，新发的行恒为 NULL。接线时要：请求结构体加字段、写入前校验脚本在本工作区、响应回显。
 - **`GET /creators` 不返回 `media_ip_id`**：同一原因（B0 handler 不在写作用域），`CreatorResponse` 没有这个字段；当前要从 IP 侧读账号（`GET /media/ips/{id}` 的 `accounts[]`）。接线时给 `CreatorResponse` 加字段即可，不会破坏旧客户端（新字段缺省即 null）。
 - **`/counts`、`/overview` 不含内容侧**：侧栏计数与指标条未扩展，本批不做聚合端点；列表 `total` 因此就是本页条数。
@@ -1027,10 +1109,22 @@ ALTER issue ADD COLUMN goal_id UUID;
 
 ### 13.8 已知债务与本批未做
 
+**已还债（本批）**
+
+- **issue 响应带 `goal_id`**：`IssueResponse` 增加 `goal_id`（可空字符串，**新字段只增不改**），**详情与列表都回显**：挂过目标的行是目标 id，没挂的是 `null`，而且**键始终存在**——客户端正是靠"有键且为 null"把"这个任务没挂目标"和"这个服务端还没有该字段"分开。列表路径原本的 `SELECT` 没取这一列，已补：`ListIssues` / `ListOpenIssues`（sqlc）＋ `ListIssues` 的动态窗口、`ListIssues?open_only=true`、`/grouped`、表格行窗口（handler 手写 SQL）各自都带上了 `i.goal_id`，否则某个入口会安静地回 `null`。
+- **事件/广播同步**：`service.IssueToMap` 同样带 `goal_id`（`TestIssueToMap_KeysMatchIssueResponse` 守着两条渲染的键集一致）。不补的话 `issue:created` / `issue:updated` 的补丁会把客户端缓存里的目标指针抹成 absent。
+- **`GET /api/issues?goal_id=<uuid>`**：按目标取一页任务，所以「这个目标下有哪些任务」一次取全，不用再逐个目标读 `GET /goals/{id}` 的 `issues[]`（N 次请求）。语义是**等值过滤**：
+  - 省略 `goal_id` ＝ 不过滤（窗口仍是整个 workspace）；
+  - `open_only=true` 与默认分支**同一语义**（`ListOpenIssues` 用 `sqlc.narg('goal_id')`）；
+  - **非法 UUID 是 400**，不是空列表——空窗口与"这个目标没有任务"分不清，而前者是客户端 bug；
+  - `/grouped`、`/table` 等其它窗口不带该过滤条件，需要时走同一个端点。
+- **core 侧向后兼容**：`packages/core/types/issue.ts` 的 `Issue` 加 `goal_id`（`string | null`，键可省），`IssueSchema` 用 `z.string().nullable().default(null)`——老服务端不返回该键时解析出 `null`，而不是让整条 issue（乃至整页列表）掉进 `parseWithFallback` 的兜底桩。用例在 `packages/core/api/schemas.test.ts` 的 `Issue goal_id` 一节。
+
+**仍未做**
+
 - **UI / views 未接入**：本批只到迁移、SQL、handler、core 类型/zod/client；`packages/views/**`、`apps/**` 不在写作用域。
 - **前端实时 patcher 未注册**：`packages/core/types/events.ts` 不在本批作用域，两个事件目前只有服务端发出，客户端靠 mutation 失效刷新。
-- **任务 → 关键结果的自动汇总没有接线**：`issue.goal_id` 已经能挂、能按目标查（`GET /goals/{id}` 的 `issues[]`），但"任务完成后把进度写回某条 `current`"的应用层汇总器不在本批。写回时必须一条一条指定写哪条关键结果——那是人的判断（"这个任务算在签约金额还是签约数上"），不能由数据库猜，所以它也不会是触发器。
-- **issue 响应不返回 `goal_id`**：`issue.go` 不在本批写作用域，`IssueResponse` 没有这个字段；当前只能从目标侧读任务（`GET /goals/{id}` 的 `issues[]`）。接线时给响应加字段即可，不会破坏旧客户端。
+- **任务 → 关键结果的自动汇总没有接线**：`issue.goal_id` 已经能挂、能按目标查（`GET /goals/{id}` 的 `issues[]`，以及 §13.8「已还债」里的 `GET /api/issues?goal_id=`），但"任务完成后把进度写回某条 `current`"的应用层汇总器不在本批。写回时必须一条一条指定写哪条关键结果——那是人的判断（"这个任务算在签约金额还是签约数上"），不能由数据库猜，所以它也不会是触发器。
 - **`/counts`、`/overview` 不含目标/信号**：侧栏计数与指标条未扩展，列表 `total` 因此就是本页条数。
 - **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举未加 `goal_*` / `market_signal`。
 - **没有信号自动抓取**：`source` 的 `ai` / `import` 是给导入器留的口子，本批没有爬虫、没有定时任务。
@@ -1976,7 +2070,7 @@ word/styles.xml
 
 **`creator_quote`**（报价）——`creator_id NOT NULL`、`brief_id`（可空，指向 `crm_brief`）、`status`（`draft|sent|accepted|rejected|expired`，默认 `draft`）、`quoted_at`（**可空**）、`valid_until DATE`、`fee_amount NUMERIC(14,2)`、`commission_rate NUMERIC(6,5)`（**0–1**，`CHECK (commission_rate BETWEEN 0 AND 1)`）、`currency CHAR(3) NOT NULL DEFAULT 'CNY'`、`items JSONB NOT NULL DEFAULT '[]'`、`note`、`owner_member_id`、`created_by`、时间戳、`archived_at`。
 
-- `quoted_at` 可空：草稿还没发给任何人，报价日期和录入日期是两个事实。列表读序用 `coalesce(quoted_at, created_at) DESC`，草稿不会排到已发出的旧报价下面。
+- `quoted_at` 可空：草稿还没发给任何人，报价日期和录入日期是两个事实。`sort=quoted_at` 时读序用 `coalesce(quoted_at, created_at) DESC`，草稿不会排到已发出的旧报价下面；默认读序是 `updated_at DESC`（§20.3）。
 - `items` 是明细（坑位 / 佣金 / 赠品…），默认空数组而不是 NULL：界面对「还没有明细」和「明细为空」读法一致。
 
 **`creator_campaign`**（活动 / 采集批次）——`name TEXT NOT NULL`、`kind`（`search|comment|manual`，默认 `manual`）、`budget_amount NUMERIC(14,2)`、`currency`、`started_on DATE`、`ended_on DATE`、`source_keyword`、`creator_count INTEGER NOT NULL DEFAULT 0`、`note`、`owner_member_id`、时间戳、`archived_at`。
@@ -1987,13 +2081,13 @@ word/styles.xml
 
 ### 20.3 REST（基址 `/api/workbench/bd`）
 
-三个台账的读法是 `limit` 而不带 `cursor`：它们的排序键不是单条单调时间轴（`quoted_at` 可空、活动按开始日排），HR 异动（§16）已是同一个先例。三个台账都是百行量级。
+跟进记录与报价按**游标（keyset）**分页，活动批次仍是 `limit`——它的读序是「开始日 + 录入时刻」，且一个工作区的批次是几十行量级。三条台账都受 §24.4 的部门可见性约束（开关 `department` 时只返回本部门的行，见本节末）。
 
 #### 跟进记录
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| GET | `/activities?creator_id=&kind=&from=&to=&limit=` | 列表，读序 `happened_at DESC, id DESC`；`from`/`to` 是 `happened_at` 的闭区间（RFC 3339 或 `YYYY-MM-DD`） |
+| GET | `/activities?creator_id=&kind=&from=&to=&assignee=&due=&limit=&cursor=` | 列表，读序 `happened_at DESC, id DESC`；`from`/`to` 是 `happened_at` 的闭区间（RFC 3339 或 `YYYY-MM-DD`）；`assignee` 见 §4 的 `me|<uuid>`；`due=1` 只留到期未完成的（见下） |
 | POST | `/activities` | `creator_id`、`kind`、`happened_at`、`summary` 必填；`outcome`、`next_follow_at` 可选 |
 | GET | `/activities/{activityId}` | 单条 |
 | PATCH | `/activities/{activityId}` | 六个可写字段；`creator_id` 传非空 → 400 |
@@ -2003,21 +2097,32 @@ word/styles.xml
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| GET | `/quotes?creator_id=&status=&limit=` | 列表，读序 `coalesce(quoted_at, created_at) DESC, id DESC` |
+| GET | `/quotes?creator_id=&status=&q=&assignee=&sort=&limit=&cursor=` | 列表；`q` 按达人名/达人 handle/备注模糊；`sort` ∈ `updated_at`（默认）`quoted_at` `fee_amount` |
 | POST | `/quotes` | `creator_id` 必填；`status` 缺省 `draft`；`currency` 缺省 `CNY` |
 | GET | `/quotes/{quoteId}` | 单条 |
 | PATCH | `/quotes/{quoteId}` | `creator_id` 传非空 → 400 |
-| DELETE | `/quotes/{quoteId}` | 软删（204） |
+| DELETE | `/quotes/{quoteId}?expected_revision=` | 软删（204）；带 `expected_revision` 时版本不符 → 409 `stale_write` + `current`（§3.5） |
 
 #### 活动 / 采集批次
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| GET | `/campaigns?kind=&limit=` | 列表，读序 `coalesce(started_on, created_at::date) DESC, created_at DESC, id DESC` |
+| GET | `/campaigns?kind=&limit=` | 列表，读序 `coalesce(started_on, created_at::date) DESC, created_at DESC, id DESC`；无 `assignee`、无游标（见下） |
 | POST | `/campaigns` | `name` 必填且本工作区内唯一（大小写不敏感）；`kind` 缺省 `manual` |
 | GET | `/campaigns/{campaignId}` | 单条 |
 | PATCH | `/campaigns/{campaignId}` | 改名撞上既有名字 → 409 |
 | DELETE | `/campaigns/{campaignId}` | 软删（204）；归档后名字释放 |
+
+#### 游标与排序（`cursor` / `sort` / `next_cursor`）
+
+- **游标是不透明字符串，客户端不要解析它**。`GET` 列表的响应里多一个 `next_cursor`：本页满 `limit` 行时它是下一页的 `cursor`，不满时为 `null`（没有下一页）。客户端只做一件事——把 `next_cursor` 原样塞回 `cursor`。
+- 服务端拿到 `cursor` 后回读那一行，取它的**排序键**（`updated_at` / `coalesce(quoted_at, created_at)` / `fee_amount` 三选一，由同一次请求的 `sort` 决定）与 `id`，再用 `(sort_key, id)` 做 keyset 比较。因此：
+  - `cursor` **只在同一 `sort`（以及同一组过滤条件）下有效**；换排序继续翻页会得到 400 或错误的页边界，客户端换排序时必须从第一页重来。
+  - `cursor` 在本工作区解析不到（删了、别的租户、不是这张台账的 id）→ **400 `cursor not found`**，不是空页。空页会被读成「已经到底了」。
+- `sort` 默认 `updated_at`（谁最后被改，谁在最前）；`quoted_at` 用 `coalesce(quoted_at, created_at)` 排序，草稿不会沉到已发出的旧报价下面（这是 §20.2 记的读序）；`fee_amount` 是**大坑位费在前，没有坑位费的在最后**——NULL 是「纯佣金」，不是「报价 0」，所以它不许夹在 4,000 和 9,000 之间。三个排序都把 `id` 当最后一级 tiebreak，所以一页不会重复也不会漏行。
+- **默认排序变了**：报价台账在上一批的读序是 `coalesce(quoted_at, created_at) DESC`，现在默认为 `updated_at DESC`。要保留旧读序的客户端显式传 `sort=quoted_at`（数据一样，顺序一样）。
+- `due=1`（跟进记录）：`next_follow_at` 非空且 `<= now()`、行未归档。**`outcome` 不参与过滤**——已经记了结果、又过了约定日期的跟进仍然是一通该打的电话，这条与 `CreateDueFollowUpInboxItems`（§4 的到期提醒）刻意用同一个谓词，否则「列表说该打」与「昨天发的提醒」会各说一套。把 `next_follow_at` 清空是「这条不再到期」的唯一方式。`due` 传 `1|true` 开启，`0|false` 或省略即不过滤，其它值 → 400。
+- 响应保持向后兼容：旧字段一个没动，只多了 `next_cursor`（`activities` / `quotes` 两个列表）。
 
 #### `GET /api/workbench/bd/pipeline`
 
@@ -2084,6 +2189,8 @@ word/styles.xml
 
 **权限**：三个台账都走 `workbenchReadScope`——**任意成员可读**；写入口是 `workbenchCanWrite` + `workbenchOwnerForCreate/Update`：owner/admin 可写任意行，`member` 只能写 `owner_member_id` 是自己的行。归属读**行自己**的 `owner_member_id`，不读它指向的达人：跟进是个人笔记，把它绑到达人的归属人身上，会让别人的一次转交顺手改掉你的记录。
 
+**读的部门谓词**（§24.4/§24.6）：`workspace.settings.workbench_visibility = department` 时，三个台账的 list 与 `crm/collabs`、`crm/settlements` 的 list 都只返回「行 owner 的部门 = 调用者部门」的行；行没有 owner、或 owner 没有部门 → 不返回（不收窄成「全部部门」）。调用者自己没有部门 → 空页（不是 403）。owner/admin 不受此限，与按 id 读单条的 `cross_department` 判定保持一致。`transparent`（默认）时行为与本批之前逐字相同。`creator_campaign` 没有 `assignee` 列，所以批次列表没有 `?assignee=`，部门谓词照旧。
+
 **query key**（`packages/core/bd/queries.ts`）：
 
 ```
@@ -2094,13 +2201,14 @@ word/styles.xml
 
 全部挂在 `bdKeys.all(wsId)` 下，所以一次失效能同时刷新驾驶舱和它旁边那张台账；详情读和列表共用 resource 前缀。`packages/core/bd/index.ts` 统一导出，`package.json` 声明 `./bd`、`./bd/queries`、`./bd/mutations`。
 
-**没有事件**：本批只交付数据层，事件词表在 `packages/core/types/events.ts`，不在本批写作用域内。三个台账的变更靠写入后的 invalidate 与重新拉取体现。
+**事件**：三个台账的 create / update / delete 各发一条 `<subject>:changed`（payload `{ id }`），工作区广播，actor 取请求的 `resolveActor` 结果；词表与失效范围见 §4。客户端因此不需要靠"自己写入后再 invalidate"才能看到别人的改动。
+
+**清空语义**：`creator_activity.outcome` / `next_follow_at`、`creator_quote.valid_until` / `note` 按 §3.4 的三态规则（省略保留 / `null` 清空 / `""` 清空）；`summary` 是 NOT NULL，清空请求 → 400。
 
 ### 20.6 已知债务与本批未做
 
-- **没有 `:changed` 事件**：`creator_activity` / `creator_quote` / `creator_campaign` 的写入不发 WebSocket 事件，另一个客户端的台账不会自动刷新（见 §20.5）。
 - **混合币种只读主币种**：`quotes.total_fee` / `orders.total_amount` / `orders.paid_amount` 只汇总本工作区行数最多的那个币种，并按币种给出总量是下一批的事。今天全库只有 CNY。
-- **没有分页 cursor**：三个台账 limit-only（见 §20.3）。达人侧的 `?creator_id=` 已经把一条时间线限到几十行。
+- **活动批次没有游标**：`/campaigns` 仍是 `limit`-only（见 §20.3）。它的读序是「开始日 + 录入时刻 + id」，而一个工作区的批次是几十行；真需要翻页时照 §20.3 的同一套 `(sort_key, id)` 做法加即可，`creator_campaign` 也不缺 `id` 与时间列。
 - **`creator_order` 的四个状态没有对应物**：`crm_collab.stage` 有 11 个阶段，驾驶舱只把它们折叠成 open / delivered / settled 三档（口径见 §20.3）；`signed` 这个中间态没有独立计数。
 - **`cooperation_intent` 有一个历史中文值**：现网 1 行仍是「已签约」，不是枚举值 `signed`，所以驾驶舱的 `creators.signed` 暂时数不到它。这是数据问题，按契约 §1.1 应改成 `signed`（本批不写数据迁移）。
 - **`creator_campaign` 与 `creator` 还没有关联**：本批只落批次自身（名字 / 预算 / 窗口 / 缓存人数），`creator.source_*` 仍是达人的来源事实；「这个批次包含哪些达人」是下一批的多对多。
@@ -2258,7 +2366,7 @@ adopt 成功后发 `media_topic:changed`（新行）；**不**发 `media_hot:cha
 
 - **`hot_id` 一列两源**：`media_topic.hot_id`（730）比 `media_bench` 早，bench 采纳时也只能把行 id 写进这一列。`source` 是区分依据（`'hot'` → `media_hot`，`'bench'` → `media_bench`），所以读侧要按 `source` 决定 join 哪张表；拆成两个列或一张统一的「来源」表是下一批的事。**读侧本批不 join**：选题响应只回 `hot_id`，来源详情由页面按 `source` 另行读取。
 - **`media_topic:changed` 客户端仍未接**（§12.7 原样）：§12 的四个 `media_*` 事件只有服务端发出，本批只把 `hot` / `bench` 两个接进了事件表与 patcher。所以 adopt 在**别的客户端**不会即时出现——本批自己的台账写入会即时生效。
-- **没有分页 cursor**：两个列表都是 `limit`-only（与 §16 / §20 的先例一致）。雷达一个月几百行，超出上限靠筛选（`captured_on` / `platform`）。
+- **没有分页 cursor**：两个列表都是 `limit`-only（§16 的 HR 异动流仍是同一个先例）。雷达一个月几百行，超出上限靠筛选（`captured_on` / `platform`）。
 - **没有来源去重**：同一平台、同一天、同一个标题可以被录入两次；没有 `(workspace_id, platform, lower(title), captured_on)` 唯一索引。抓取脚本重复跑是常态，去重规则要先定「标题归一化」的口径，本批不猜。
 - **`metrics` 不校验形状**：只要是对象就存。指标键是运营自己的词表（与 `media_shoot.checklist` 同理），服务端不为它建 schema。
 - **bench 没有 `category`**：对标行的分类就是它挂在哪个 IP 下；需要赛道维度时先补列再做筛选，不在 handler 里造。
@@ -2501,7 +2609,7 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 1. `member.role = owner|admin` → 全部 capability。
 2. `workbench_role_template`(workspace_id, job_title) 命中 → 用模板集合（`hr_employee_profile.job_title`，未归档）。
 3. `member.department_id` 命中的部门默认集（本批内置一张常量表，不建表）。
-4. 兜底：`*.read` 全给，`*.write` 不给。
+4. 兜底（无模板、无部门、role=member）：**等于上线前的行为** —— `crm.read crm.write crm.amount crm.settle media.read media.write media.publish hr.read ads.read boss.read`。回收不回 `hr.write` / `review.accept` / `agent.delegate`（这三个是 §24 才有的能力，默认不给才不改变存量行为）。
 
 ### 24.3 接口
 
@@ -2517,9 +2625,44 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 `workspace.settings.workbench_visibility`：`transparent`（默认，工作区级读）| `department`（读路径按 `department_id` 过滤）。
 切换只影响读，不影响已有写权限。
 
-### 24.5 迁移
+`department` 模式下，读路径的两半现在是同一套规则（写侧见 `workbenchCrossDepartment`，读侧见 `bdDepartmentFilter` 与 §24.6）：
+
+- **按 id 读单条**：行 owner 与调用者不同部门 → `403 {"error":"cross_department"}`（既有行为）。
+- **列表读**：`crm_collabs` / `crm_settlements` / `bd/activities` / `bd/quotes` / `bd/campaigns` 只返回本部门的行。行 owner 按 `member.user_id = 行.owner_member_id` 再看 `member.department_id`；`crm_settlement` 自己没有 owner 列，按它指向的 `crm_collab.owner_member_id` 解析。
+- **没有 owner 的行**（`owner_member_id IS NULL`）和 **owner 没有部门的行** → `department` 模式下不可见。谓词只认「owner 的部门 = 我的部门」，绝不把「查不到部门」当成「所有部门」。
+- **调用者自己没有部门** → 列表返回空页（不是 403，也不是 `cross_department`）：读的范围就是空的，不是被拒绝。
+- **owner / admin 不受限**：他们按 id 本来就什么都读得到，列表若比这更窄，同一个工作区会出现「列表里没有、详情打得开」的自相矛盾。
+- 开关值解析不出来（旧行、手写错值）→ `transparent`：默认必须是开关出现之前的行为，坏值不能用来藏数据。
+
+### 24.5 实现落点与本批边界
+
+| 项 | 位置 |
+| --- | --- |
+| capability 常量、解析顺序、403、可见性开关 | `server/internal/handler/workbench_capability.go` |
+| 判定点 | 每个 `workbench_*` handler 的 `workbenchReadScope` 之后一行 `requireWorkbenchCapability`（读 `*.read`、写 `*.write`；发布类写 `media.publish`） |
+| 发布 | `creator_posts` 的增/改/删要 `media.publish`，读要 `media.read`，`POST …/metrics` 回填要 `media.write`（§12.3）；脚本与拍摄仍是 `media.write`——它们的状态里没有「已发布」 |
+| 金额 / 结算 | `crm_collabs` 的 create/patch 在字段层面判定（`quote_amount|final_amount|creator_fee|sample_cost|platform_fee|commission_rate` → `crm.amount`；`stage=settled` → `crm.settle`）；`crm_settlements` 三个写全部 `crm.settle`；`bd/quotes` 的 `fee_amount|commission_rate` → `crm.amount`；CSV 导入按 kind（quotes/collabs 还要 `crm.amount`） |
+| 403 形状 | `403 {"error":"forbidden_capability","capability":"crm.settle"}`；部门越界是 `403 {"error":"cross_department"}` |
+| 模板接口 | `GET/PUT/DELETE /api/workbench/role-templates[/{jobTitle}]`（PUT/DELETE 仅 owner/admin）、`GET /api/workbench/capabilities` |
+| 客户端 | `packages/core/permissions/workbench.ts`（`useCapabilities(wsId)` / `WORKBENCH_CAPABILITIES`）、`types/workbench.ts` 类型、`api/schemas.ts` 的 zod + `EMPTY_*`、`api/client.ts` 四个方法 |
+
+**兜底不是只读**：它等于 capability 出现前的行为（见 §24.2 第 4 步），hr.write / review.accept / agent.delegate 才默认不给。部门默认与职位模板是收窄或放宽的地方，兜底只是不倒退。
+
+解析是**每次判定重新读**（`hr_employee_profile` 与模板各一条索引查询），没有进程内缓存：权限缓存失效的代价是「刚收回的权限还能用一会儿」，比多两条查询贵得多。
+
+本批**没做**的（下一批）：
+
+- **复核队列与部门可见性**：`GET /review`（§26.2）把四张台账摊平成一条队列，它还没有接部门谓词——开关 `department` 时复核队列仍按工作区读。要收窄得给那个 UNION 的每个分支各加一次同样的 `EXISTS`，本批只做了四张核心台账的 list 与 `bd/campaigns`。
+- ~~`agent.delegate` 未执行~~ **已执行**：MCP 三个写工具（建报价/记跟进/推阶段）要求 `agent.delegate`，并且只能改「指派给自己」或「委派人的」行（`workbench_agent_write.go`）。**REST 面未执行**：agent 经 REST PATCH 只需 capability，没有 `agent.delegate` 与 assignee 限制——两个写入面强度不同，属已知不一致（记在 backlog）。
+- **`review.accept` 未接复核队列**：§7.2 的 `review_state` 不在本批。
+- **`ads.read`**：千川接口（§25）落地时直接复用同一张表。
+
+> 上一批记在这里的「列表读的部门过滤」已在当前批次关闭：`crm_collabs` / `crm_settlements` / `bd/activities` / `bd/quotes` / `bd/campaigns` 的 list 查询都带上 `department_scoped` + `department_id` 谓词（`server/pkg/db/queries/workbench_{crm,bd}.sql`），行 owner 按 `member.user_id → member.department_id` 解析，`crm_settlement` 经 `crm_collab.owner_member_id` 解析。语义见 §20.5 与 §24.4。
+### 24.6 迁移
 
 `817_workbench_role_template`（表）+ `818_workbench_role_template_unique`（唯一索引，单语句 CONCURRENTLY，登记 `concurrentIndexCleanups`）。
+
+部门可见性的读侧收窄**不需要迁移**：谓词读的是既有的 `member.department_id`（646）与各台账既有的 `owner_member_id`，没有新列、没有新索引。列表按 `workspace_id + archived_at` 过滤后再做一次 `EXISTS`（`member` 的 `(workspace_id, user_id)` 是主键/唯一约束），行数是百行量级，暂不引入 `owner_member_id` 上的部门索引。
 
 ## 25. 千川投放（数据源已在 `packages/qianchuan-sync`）
 
@@ -2555,3 +2698,123 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 ### 25.5 写入口
 
 只有 `cmd/qianchuan-sync`（读 `packages/qianchuan-sync/data/flat/*.csv`）。**不做投放写操作**（建计划、改预算）。
+
+### 25.6 读侧已归 sqlc
+
+六条只读查询都在 `server/pkg/db/queries/qianchuan.sql`，由 `make sqlc` 生成到 `server/pkg/db/generated`；handler 不再手拼 SQL。`AdsWindowTotals` 用一条 `CASE` 只挑一个结算窗口列（1h/7d 是结构化列，14d/30d/90d 在 `metrics`），`basis` 仍是下发参数而不是列名，所以「跨窗口求和」在 SQL 层依旧写不出来；Go 侧同一份五分支映射是 `adsSettleExpression`，两侧由 `TestAdsEachBasisReadsOneWindow` 比对。
+
+## 26. 可验证性（复核闸门、覆写归因、三条指标）
+
+回答「我怎么知道 agent 错没错」的那一层。规则正文见 `COLLAB-MODEL.md` §7，这里是接口与字段。
+
+### 26.1 复核状态（迁移 826）
+
+四张核心台账（`crm_collab`、`creator_quote`、`creator_activity`、`crm_settlement`）各加：
+
+| 列 | 类型 | 语义 |
+| --- | --- | --- |
+| `review_state` | TEXT NOT NULL DEFAULT `'accepted'` CHECK IN (`pending`,`accepted`,`rejected`) | 待复核 / 已通过 / 已驳回 |
+| `reviewed_by` | UUID NULL | 人的 user id |
+| `reviewed_at` | TIMESTAMPTZ NULL | 判定时刻 |
+
+索引：每表一条 `(workspace_id, updated_at DESC) WHERE review_state = 'pending'`，各自单语句 CONCURRENTLY（827–830）。
+
+**什么进 pending**：agent 写入的行，或**人类写入高价值字段**（金额、结算、佣金率、`stage→settled`）。其余直写即 `accepted`。
+**谁能判**：`review.accept` capability；驳回必须带 `reason`（≤500 字），通过可空。
+
+### 26.2 接口
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/workbench/review?domain=&limit=` | 待复核队列，按 `updated_at DESC`；`domain` ∈ `collabs|quotes|activities|settlements`，省略=全部 |
+| POST | `/api/workbench/review/{domain}/{id}/accept` | 通过，204 |
+| POST | `/api/workbench/review/{domain}/{id}/reject` | 驳回，body `{reason}`，204 |
+
+两条 POST 都写 `activity_log`（`action='<subject>.review_accepted|review_rejected'`，`details.reason`），并 bump `revision`。
+
+### 26.3 覆写归因
+
+人 PATCH 一行、而该行**最近一次业务变更的 actor 是 agent** 时，请求必须带 `overwrite_reason` ∈ `wrong_fact|wrong_judgement|stale|taste`；缺失 400。理由落 `activity_log.details.overwrite_reason`。
+这条是让「覆写率」有意义的前提：否则「人改了」分不清是 agent 错还是人口味变了。
+
+### 26.4 三条指标（`/overview`）
+
+| id | 定义 | emptyRule |
+| --- | --- | --- |
+| `agent.write.overwrite_rate` | 窗口内 agent 写的行，在 7 天内被人类改过的比例 | `insufficient_data`（无 agent 写入样本） |
+| `agent.review.reject_rate` | 复核队列里被驳回的比例 | `insufficient_data`（样本 < 5） |
+| `agent.action.rollback_rate` | 被撤销/回滚的比例（依赖 revision + before/after） | `insufficient_data` |
+
+三条都按 `(agent_id, domain)` 切片，**不做单一总分**。对照指标：`crm.contract.signed_month` 的「agent 参与组 vs 未参与组」由页面并排显示，不进契约。
+
+### 26.5 REST 面的 agent 金额闸门
+
+`actor_type='agent'` 时，四张台账的金额/结算/佣金率字段与 `stage=settled` **一律 403**（`forbidden_agent_money`），不依赖 capability —— capability 回答「这个人能不能」，这个闸门回答「机器能不能」，两条都要过。MCP 写工具（§7.2）本就不声明这些字段，两层一致。
+
+### 26.6 熔断
+
+按 `(agent_id, domain)` 滚动 30 天：`reject_rate > 0.20` 或 `overwrite_rate > 0.30` → 该 agent 在该域的写工具降级为「只能出草稿」（写入落 `review_state='pending'` 且 MCP 返回 `draft_only`），并发一条 `inbox_item` 给 owner。阈值放 workspace settings，可调。
+
+## 27. 契约实测与修复记录（2026-11-19）
+
+这一节不是新契约，是把 §1–§26 的承诺**在真实数据上验过一遍**之后的结果。矩阵见
+`WORKBENCH-CONTRACT.md`（203 条路由逐条），这里只记「验了什么、改了什么、还欠什么」。
+
+### 27.1 验证方式
+
+- **真实数据**：orange 库镜像到本机 scratch（917 达人在册 / 13916 作品 / 532 指标，
+  再归档 162 条复现生产软删口径 → 755 live），起独立 API 打真数，**不写共享库**。
+- **写路径边界值**：11 条写路径 × 7 类边界（金额极值/精度、比率、时区与不存在日期、
+  1MB 文本、UUID 变体、枚举垃圾值、revision 旧值/未来值/0），判据是**往返逐字相等**。
+- **路由面**：从 `router.go` 程序化导出 203 条（GET 77 / POST 51 / DELETE 37 / PATCH 35 /
+  PUT 3），校验 handler 存在、无重复注册、全部落在 `RequireWorkspaceMember` 组内。
+
+### 27.2 已修（都会在生产上出错）
+
+| 症状 | 后果 | 修法 |
+| --- | --- | --- |
+| `/creators`、`/creators/health` 的 keyset 在第一个 NULL 排序值处截断 | **680 个达人永远不出现**，且返回 `next_cursor:null` 让人以为到底 | 谓词补 NULL 分支，越过 NULL 段 |
+| `/finance` 跨币种求和（CNY 5000 + USD 4000 = 9000）且无币种字段 | 经营数据错，且无法解释 | dominant currency + `window.currency` |
+| `/affiliate/summary` 七个金额块同样跨币种 | GMV/佣金/技术服务费变混合数，`refund_rate` 分母错 | 同上；招商服务费按所属 product 币种过滤；计数类不按币种切 |
+| `/review` 信封 `items` vs 客户端 schema `rows` | **复核队列恒空**，B5 的比率全部「无样本」 | 客户端解析 wire 名并兼容旧 `rows` |
+| `ads.read` / `media.publish` 是死能力 | 权限界面承诺了 API 不守的边界 | `ads.read` 已接六个端点；`media.publish` 已接 `creator_posts` 的增/改/删（§12.3、§24.5） |
+| `GET /hr/changes` 检查 `crm.read`、三个写端点无 capability | **销售能读全公司人事变动、任何成员能记一条** | 改 hr.read / hr.write |
+| 金额超 `NUMERIC(14,2)`、真实佣金率 438.00、`fee_amount=-1`、`happened_at:""`、1MB 名字 | 全部 **500**（生产上是 5xx 报警） | Go 侧前置校验 → 400，文案点名上限与「0.2 表示 20%」 |
+| `commission_rate=1.00001` / `-0.5` 200 原样落库 | 页面显示 100.001% / -50% | 0–1 之外 400 |
+| `?q=%` 未转义 LIKE 元字符 | 搜索框失效（返回整本台账） | 转义（creator/hr/guides 三处仍待） |
+| 12 张千川表未登记 teardown | **删工作区留下孤儿数据**（本仓库禁 FK） | 12 条 query + 编排 + manifest + 只删自己的用例 |
+| `/overview` 19 条 SQL、`/bd/pipeline` 4 条 | pooler 上 **8.2s / 1.9s** | `/bd/pipeline` 受限并发（宽度 8）；`/overview` 更进一步把 16 个聚合合成一条 SQL：**6.7s → 1.78s**，A/B 为 SHA256 相同（不是「看起来一样」）；代价是 strip 失败只剩一条 label |
+
+### 27.3 真实数据上的验收数字（本机镜像，实时复跑）
+
+```
+creators walked=755 pages=4 last_cursor=False      # 与 /counts.creators 相等，无截断
+engagement top3=45.02988,13.23446,11.60745          # 不 clamp
+finance    currency=CNY signed=5000                 # 不再 9000
+affiliate  currency=CNY gmv=insufficient_data       # 空窗口仍是「数据不足」，不是 0
+review     items 键存在 total=0                     # 客户端能解析
+creators_with_archived_at=0                         # 软删一条不漏
+```
+
+### 27.5 第二轮：队列、游标、文本上限
+
+1. **复核队列的行补全**：一条语句（四域 UNION ALL + LATERAL 取最新业务 activity）发出
+   `actor_type/actor_id/actor_name/agent_name/summary/changed_fields/amount/currency/created_at`；
+   `changed_fields` 说不清时是 `[]` 不是 null。页面三列从空变成可读，金额用 `<数字> <币种码>`
+   （符号会丢币种），CNY 与 USD 各成列、不换算不相加。
+2. **35 个 list 端点统一游标**：不是 19 个——另有 15 个连 `cursor` 都没收（SQL 只有 LIMIT）。
+   现全部走同一份 `workbenchPage / workbenchNextCursor`（满页才给值、短页 null、坏 cursor 400、
+   空页恒带 null）；混合方向（signals、affiliate/daily）与 NULL 排序尾巴（videos、signals）
+   各有跨页用例。跳过 `hr/doc-templates` 与无 LIMIT 的内嵌子表——给它们加 cursor 等于新造语义。
+3. **文本上限与 LIKE 转义收口**：12 列各有上限（512 / 20000 / 2048 / 128 / 64，rune 计数），
+   放在 `decodeWorkbenchBody` 与两个 raw-JSON 文本补丁点，所以 crm/media/bd 与 **agent 写工具**
+   （in-process 重放，必经 decode）都受约束；import 补 `text_too_long` 行级 reason（dry-run 同样报，
+   仍守「全有或全无」）。`?q=` 的 LIKE 元字符在 creators / hr-jobs / hr-questions 上转义。
+
+### 27.6 仍未做
+
+1. ~~指针字段的显式 `null` 静默保留~~ **已修**：日期/数值/枚举指针字段全部三态化，`null` 与 `""` 都清空，NOT NULL 列两者都 400（含 `settlement.amount`、`shoot_date` 两个实际 NOT NULL 但此前按可空处理的列）。`media_script` 的 hook/body/cta（版本语义）与其余「只缺 `null`」的文本列留下一批。
+2. ~~`/overview` 的下一档~~ **已做**：16 个聚合合成一条 SQL（往返 19 → 4，pooler 上 6703ms → 1782ms，响应 SHA256 相同）。剩余瓶颈是 batch 之外的两轮 auth/scope 预检（~0.8s）与 verifier 链的 3 条串行（~0.98s，在 `workbench_review.go`）；两块都动完端点可到 ~1.2s。
+3. `hr/doc-templates` 仍不分页（整集合返回）；`TestWorkspaceTeardown*` 与 reward/change/doc 用例
+   混在同一 `-run` 子集时会删掉共享 fixture workspace，套件有顺序脆弱性。
+4. `text_too_long` 需要一个客户端文案 key（import 错误按 reason 查表时），当前只在 wire 上有。

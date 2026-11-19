@@ -40,6 +40,7 @@
     "content_scripts": "台本",
     "content_shoots": "撮影・編集",
     "content_publish": "公開スケジュール",
+    "content_ads": "広告配信",
     "content_data": "振り返り",
     "boss_overview": "概要",
     "boss_goals": "目標",
@@ -47,7 +48,8 @@
     "boss_radar": "市場レーダー",
     "boss_customers": "顧客",
     "boss_biz": "経営",
-    "boss_team": "チーム"
+    "boss_team": "チーム",
+    "boss_review": "レビュー待ち"
   },
   "hr": {
     "recruit": {

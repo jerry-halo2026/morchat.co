@@ -186,6 +186,9 @@ func (h *Handler) ListCreatorHealth(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	sort, ok := workbenchHealthSort(w, r)
 	if !ok {
 		return
@@ -221,10 +224,8 @@ func (h *Handler) ListCreatorHealth(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	payload := CreatorHealthListResponse{Creators: creators, Total: len(creators)}
-	if len(rows) > 0 && int32(len(rows)) == workbenchLimit(r) {
-		next := uuidToString(rows[len(rows)-1].ID)
-		payload.NextCursor = &next
-	}
+	// The same rule every other list uses: only a full page names a successor.
+	payload.NextCursor = workbenchNextCursor(rows, workbenchLimit(r), func(row db.ListCreatorHealthRow) pgtype.UUID { return row.ID })
 	writeJSON(w, http.StatusOK, payload)
 }
 
@@ -232,6 +233,9 @@ func (h *Handler) ListCreatorHealth(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetCreatorHealth(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
 		return
 	}
 	creatorID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "creatorId"), "creator id")

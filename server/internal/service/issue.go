@@ -903,6 +903,12 @@ func classifyOrigin(issue db.Issue, opts IssueCreateOpts) (source, taskID, autop
 		return analytics.SourceManual, originID, ""
 	case "autopilot":
 		return analytics.SourceAutopilot, "", originID
+	case "crm_collab", "creator_quote", "creator_activity", "media_topic":
+		// A workbench row's discussion thread (COLLAB-MODEL §5). The origin is
+		// the ledger row, not a task or an autopilot, so it is a plain manual
+		// issue — but a known one: leaving it in `default` would log a warning
+		// on every thread opened.
+		return analytics.SourceManual, "", ""
 	default:
 		slog.Warn("analytics: unknown issue origin type",
 			"origin_type", issue.OriginType.String,

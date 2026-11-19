@@ -15,7 +15,9 @@
 -- absent, filtered by kind and by an inclusive `decided_on` window. Ordering is
 -- the contract's read order and matches
 -- idx_hr_employee_reward_workspace_employee (776) and its kind companion (777);
--- `created_at`/`id` break ties between rows entered in one batch.
+-- `created_at`/`id` break ties between rows entered in one batch, which is also
+-- the keyset the cursor pages on: the cursor is the previous page's last row id
+-- and the handler re-reads its two sort keys.
 SELECT *
 FROM hr_employee_reward
 WHERE workspace_id = sqlc.arg('workspace_id')
@@ -24,6 +26,11 @@ WHERE workspace_id = sqlc.arg('workspace_id')
   AND (sqlc.narg('kind')::text IS NULL OR kind = sqlc.narg('kind')::text)
   AND (sqlc.narg('from_on')::date IS NULL OR decided_on >= sqlc.narg('from_on')::date)
   AND (sqlc.narg('to_on')::date IS NULL OR decided_on <= sqlc.narg('to_on')::date)
+  AND (
+    sqlc.narg('cursor_id')::uuid IS NULL
+    OR (decided_on, created_at, id)
+      < (sqlc.narg('cursor_on')::date, sqlc.narg('cursor_at')::timestamptz, sqlc.narg('cursor_id')::uuid)
+  )
 ORDER BY decided_on DESC, created_at DESC, id DESC
 LIMIT sqlc.arg('limit');
 

@@ -1,4 +1,22 @@
 {
+  "queue": {
+    "title": "Ma file",
+    "tab_followups": "Relances",
+    "tab_quotes": "Devis",
+    "tab_collabs": "Collaborations",
+    "empty": "Rien ne vous est assigné ici.",
+    "loading": "Lecture de votre file…",
+    "error": "Impossible de lire votre file",
+    "retry": "Réessayer",
+    "due_on": "Échéance {{date}}",
+    "expires_on": "Jusqu'au {{date}}",
+    "settles_on": "Règlement {{date}}",
+    "no_date": "Sans date",
+    "start_thread": "Ouvrir une discussion",
+    "thread_count": "{{count}} réponses",
+    "thread_archived": "Discussion archivée",
+    "open_ledger": "Ouvrir le registre"
+  },
   "collabs": {
     "new": "Nouvelle collaboration",
     "empty_title": "Aucune collaboration pour le moment",
@@ -60,6 +78,12 @@
     "revoke_confirm": "Annuler la collaboration",
     "settlement_mark_received": "Marquer comme encaissé",
     "settlement_undo_received": "Annuler l’encaissement"
+  },
+  "deep_link": {
+    "missing": "Cette ligne n'est pas dans les résultats actuels. Retirez un filtre ou la recherche pour la retrouver."
+  },
+  "stale_write": {
+    "refreshed": "Quelqu'un vient de modifier cette ligne : elle a été actualisée avec sa version. Vérifiez-la, puis enregistrez."
   },
   "campaigns": {
     "new": "Nouveau lot",
@@ -131,6 +155,7 @@
     "reason_invalid_rate": "La commission va de 0 à 1 (20 % s'écrit 0.2).",
     "reason_invalid_timestamp": "Ce n'est pas une date et une heure.",
     "reason_invalid_enum": "Cette valeur n'est pas autorisée.",
-    "reason_invalid_currency": "La devise fait trois lettres, comme CNY."
+    "reason_invalid_currency": "La devise fait trois lettres, comme CNY.",
+    "reason_text_too_long": "Trop long pour cette colonne."
   }
 }

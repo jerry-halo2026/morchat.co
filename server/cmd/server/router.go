@@ -2409,6 +2409,35 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 			r.Route("/api/workbench", func(r chi.Router) {
 				r.Get("/overview", h.GetWorkbenchOverview)
 				r.Get("/counts", h.GetWorkbenchCounts)
+		// The workbench's own search (creators/collabs/quotes/goals/topics),
+		// one query with per-kind branches; see WORKBENCH-API §26.
+		r.Get("/search", h.WorkbenchSearch)
+
+		// Product-layer capabilities (WORKBENCH-API §24). `/capabilities` is what
+		// the UI reads to hide entries; the templates are the admin surface.
+		r.Get("/capabilities", h.GetWorkbenchCapabilities)
+		r.Get("/role-templates", h.ListWorkbenchRoleTemplates)
+		r.Put("/role-templates/{jobTitle}", h.PutWorkbenchRoleTemplate)
+		r.Delete("/role-templates/{jobTitle}", h.DeleteWorkbenchRoleTemplate)
+
+		// Qianchuan ad delivery (WORKBENCH-API §25). Read-only: the only writer is
+		// `cmd/qianchuan-sync`, which lands the flat CSVs the collector already
+		// produces. Every money figure carries a settle window; none of them add up.
+
+		// The review queue (WORKBENCH-API §26.2): what an agent wrote, or what a
+		// person changed on a money field, waits here until someone with
+		// `review.accept` passes or rejects it.
+		r.Get("/review", h.GetWorkbenchReviewQueue)
+		r.Post("/review/{domain}/{id}/accept", h.AcceptWorkbenchReview)
+		r.Post("/review/{domain}/{id}/reject", h.RejectWorkbenchReview)
+		r.Route("/ads", func(r chi.Router) {
+			r.Get("/summary", h.AdsSummary)
+			r.Get("/accounts", h.AdsAccounts)
+			r.Get("/plans", h.AdsPlans)
+			r.Get("/materials", h.AdsMaterials)
+			r.Get("/violations", h.AdsViolations)
+			r.Get("/recon", h.AdsRecon)
+		})
 				// Batch CSV import for the BD ledgers (WORKBENCH-API §23). One
 				// endpoint, three kinds, dry_run defaulting to 1; the body is the
 				// CSV file itself, so it is parsed by the handler rather than by a
@@ -2475,6 +2504,9 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 							r.Get("/", h.GetCrmCollab)
 							r.Patch("/", h.UpdateCrmCollab)
 							r.Delete("/", h.DeleteCrmCollab)
+			// One discussion per row (COLLAB-MODEL §5): the issue is created on
+			// first call and found again by `origin_type`/`origin_id` after that.
+			r.Post("/thread", h.CreateCrmCollabThread)
 						})
 					})
 					r.Route("/settlements", func(r chi.Router) {
@@ -2515,6 +2547,7 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 							r.Get("/", h.GetBdQuote)
 							r.Patch("/", h.UpdateBdQuote)
 							r.Delete("/", h.DeleteBdQuote)
+			r.Post("/thread", h.CreateBdQuoteThread)
 						})
 					})
 					r.Route("/campaigns", func(r chi.Router) {

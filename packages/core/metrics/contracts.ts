@@ -75,7 +75,20 @@ export type MetricSource =
   | "ops_finance_month"
   | "ops_attendance"
   | "knowledge"
-  | "inbox";
+  | "inbox"
+  // The audit trail (§26): the review gate's three rates read it, and nothing
+  // else in the workbench does — a metric that could read it without saying so
+  // would make "where did this number come from" unanswerable.
+  | "activity_log"
+  // 千川投放（WORKBENCH-API §25）：十二张表都是平台数据的投影，只有一个 CLI 写入口，
+  // 所以这些 source 永远只被读——一个指标声明它们，等于声明自己不写任何东西。
+  | "qianchuan_account"
+  | "qianchuan_balance"
+  | "qianchuan_plan"
+  | "qianchuan_daily_overall"
+  | "qianchuan_material"
+  | "qianchuan_violation"
+  | "qianchuan_recon";
 
 export interface MetricThreshold {
   /** Display default. A workspace may override it in settings; the override is
@@ -139,6 +152,21 @@ export const METRIC_IDS = [
   "hr.time_to_hire.median",
   "hr.scorecard.backlog",
   "hr.interview.on_time_rate",
+  // 千川投放（§25.4）。金额指标带 `basis`：1h / 7d / 14d / 30d / 90d 是五个结算窗口，
+  // 不是五个精度；跨窗口求和没有业务含义，所以没有任何一个指标是「总花费」。
+  "qianchuan.spend.day",
+  "qianchuan.gmv.day",
+  "qianchuan.roi",
+  "qianchuan.violation.open",
+  // 可验证性（WORKBENCH-API §26.4）。三条都是「agent 写得对不对」的比例，全部按
+  // (agent_id, domain) 切片，**没有单一总分**：一个把金融字段写错的 agent 和一个
+  // 只是语气被判「口味不对」的 agent，不该被平均成一个数。
+  //
+  // 三条的 emptyRule 都是 `insufficient_data`：没有 agent 写过、或被复核的样本
+  // 少于 5，比例就没有意义，页面画缺口而不是 0%。
+  "agent.write.overwrite_rate",
+  "agent.review.reject_rate",
+  "agent.action.rollback_rate",
 ] as const;
 
 export type MetricId = (typeof METRIC_IDS)[number];
@@ -329,6 +357,100 @@ export const WORKBENCH_METRICS: Record<MetricId, MetricContract> = {
     emptyRule: "insufficient_data",
     threshold: { value: 90, unit: "percent", labelKey: "blocks.threshold.on_time" },
     direction: "up",
+  },
+  // 千川投放（WORKBENCH-API §25.4）。三条读法固定在公式里：
+  //
+  //   - 花费与成交是**元**，窗口是自然日，只读 `dim_kind='overall'` 那一层切片
+  //     （`product` / `image` / `live_video` 是同一批钱的分解，加回来就重复了）。
+  //   - ROI 的分子分母同属一次请求，`basis` 不参与除法：结算窗口只改变「结算额」，
+  //     不改变花费和 GMV。把两个 basis 的 ROI 相加没有意义，所以这里没有那样的公式。
+  //   - 违规只看**平台还没关掉的**状态：`TIMEOUT`（逾期未处理）与 `FAILAPPEAL`
+  //     （申诉未通过）都还压在账上，`PASS` 之类不算。
+  "qianchuan.spend.day": {
+    id: "qianchuan.spend.day",
+    labelKey: "blocks.metric.qianchuan_spend_day",
+    scope: "workspace",
+    unit: "money",
+    currency: "CNY",
+    window: { kind: "calendar", span: "today" },
+    formula: "sum(qianchuan_daily_overall.spend) where dim_kind = 'overall' and stat_date = today",
+    source: ["qianchuan_daily_overall"],
+    emptyRule: "insufficient_data",
+    direction: "neutral",
+  },
+  "qianchuan.gmv.day": {
+    id: "qianchuan.gmv.day",
+    labelKey: "blocks.metric.qianchuan_gmv_day",
+    scope: "workspace",
+    unit: "money",
+    currency: "CNY",
+    window: { kind: "calendar", span: "today" },
+    formula: "sum(qianchuan_daily_overall.gmv) where dim_kind = 'overall' and stat_date = today",
+    source: ["qianchuan_daily_overall"],
+    emptyRule: "insufficient_data",
+    direction: "up",
+  },
+  "qianchuan.roi": {
+    id: "qianchuan.roi",
+    labelKey: "blocks.metric.qianchuan_roi",
+    scope: "workspace",
+    unit: "ratio",
+    window: { kind: "calendar", span: "week" },
+    formula:
+      "sum(gmv) / sum(spend) over the requested window — the settlement basis belongs to the settle figure beside it, never to this division (WORKBENCH-API §25.2)",
+    source: ["qianchuan_daily_overall"],
+    emptyRule: "insufficient_data",
+    direction: "up",
+  },
+  "qianchuan.violation.open": {
+    id: "qianchuan.violation.open",
+    labelKey: "blocks.metric.qianchuan_violation_open",
+    scope: "workspace",
+    unit: "count",
+    window: { kind: "calendar", span: "month" },
+    formula: "count(qianchuan_violation where status in ('TIMEOUT', 'FAILAPPEAL'))",
+    source: ["qianchuan_violation"],
+    emptyRule: "zero",
+    direction: "down",
+  },
+  // 可验证性（§26.4）。`scope: "workspace"` 而不是 `member`：比例本身就按
+  // (agent_id, domain) 切片，页面读的是一条汇总；再按成员求一次比例会把
+  // 「谁的 agent 写坏了」平均掉。三条都 `direction: "down"`：越低越好。
+  "agent.write.overwrite_rate": {
+    id: "agent.write.overwrite_rate",
+    labelKey: "blocks.metric.agent_write_overwrite_rate",
+    scope: "workspace",
+    unit: "percent",
+    window: { kind: "sliding", days: 30 },
+    formula:
+      "count(activity_log where action='<subject>.overwritten' and actor_type='member' and details.delegated_by is not null) / count(activity_log where actor_type='agent')",
+    source: ["activity_log"],
+    emptyRule: "insufficient_data",
+    direction: "down",
+  },
+  "agent.review.reject_rate": {
+    id: "agent.review.reject_rate",
+    labelKey: "blocks.metric.agent_review_reject_rate",
+    scope: "workspace",
+    unit: "percent",
+    window: { kind: "sliding", days: 30 },
+    formula:
+      "count(activity_log where action='<subject>.review_rejected') / count(activity_log where action in ('<subject>.review_accepted','<subject>.review_rejected'))",
+    source: ["activity_log"],
+    emptyRule: "insufficient_data",
+    direction: "down",
+  },
+  "agent.action.rollback_rate": {
+    id: "agent.action.rollback_rate",
+    labelKey: "blocks.metric.agent_action_rollback_rate",
+    scope: "workspace",
+    unit: "percent",
+    window: { kind: "sliding", days: 30 },
+    formula:
+      "count(activity_log where action='<subject>.deleted' and details.undoes_agent_write=true) / count(activity_log where actor_type='agent')",
+    source: ["activity_log"],
+    emptyRule: "insufficient_data",
+    direction: "down",
   },
   "crm.pipeline.weighted_amount": {
     id: "crm.pipeline.weighted_amount",

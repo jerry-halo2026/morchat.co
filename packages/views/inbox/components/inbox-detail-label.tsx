@@ -42,6 +42,9 @@ export function useTypeLabels(): Record<InboxItemType, string> {
     app_action_reminder: t(($) => $.types.app_action_reminder),
     app_connect_requested: t(($) => $.types.app_connect_requested),
     app_action_result: t(($) => $.types.app_action_result),
+    "workbench.followup_due": t(($) => $.types.workbench_followup_due),
+    "workbench.quote_expiring": t(($) => $.types.workbench_quote_expiring),
+    "workbench.settlement_overdue": t(($) => $.types.workbench_settlement_overdue),
   };
 }
 

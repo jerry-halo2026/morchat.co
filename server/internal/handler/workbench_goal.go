@@ -534,17 +534,28 @@ func (h *Handler) ListGoals(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	cycle := strings.TrimSpace(r.URL.Query().Get("cycle"))
 	status := strings.TrimSpace(r.URL.Query().Get("status"))
 	if status != "" && mediaEnumInvalid(status, goalStatuses) {
 		writeError(w, http.StatusBadRequest, "status must be draft, active, paused, done or cancelled")
 		return
 	}
+	cursorCycle, cursorAt, cursorID, ok := h.goalCursor(w, r, scope)
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListGoals(r.Context(), db.ListGoalsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		Cycle:       strToText(cycle),
 		Status:      strToText(status),
-		Limit:       workbenchLimit(r),
+		CursorCycle: cursorCycle,
+		CursorAt:    cursorAt,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list goals", err)
@@ -568,7 +579,32 @@ func (h *Handler) ListGoals(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	// `total` is this page's row count, like every other workbench list.
-	writeJSON(w, http.StatusOK, map[string]any{"goals": goals, "total": len(goals)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"goals": goals, "total": len(goals)},
+		rows, limit, func(row db.GoalOkr) pgtype.UUID { return row.ID },
+	))
+}
+
+// goalCursor resolves `?cursor=` into the (cycle, created_at, id) triple the goal
+// board pages on. The cycle is a text ranking, so it is read back from the cursor
+// row rather than encoded in the string: an id that resolves to nothing in this
+// workspace is a 400 rather than an empty page.
+func (h *Handler) goalCursor(w http.ResponseWriter, r *http.Request, scope workbenchScope) (pgtype.Text, pgtype.Timestamptz, pgtype.UUID, bool) {
+	raw := strings.TrimSpace(r.URL.Query().Get("cursor"))
+	if raw == "" {
+		return pgtype.Text{}, pgtype.Timestamptz{}, pgtype.UUID{}, true
+	}
+	cursorID, ok := parseUUIDOrBadRequest(w, raw, "cursor")
+	if !ok {
+		return pgtype.Text{}, pgtype.Timestamptz{}, pgtype.UUID{}, false
+	}
+	row, err := h.Queries.GetGoal(r.Context(), db.GetGoalParams{ID: cursorID, WorkspaceID: scope.WorkspaceUUID})
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "cursor not found")
+		return pgtype.Text{}, pgtype.Timestamptz{}, pgtype.UUID{}, false
+	}
+	return pgtype.Text{String: row.Cycle, Valid: true}, row.CreatedAt, cursorID, true
 }
 
 // goalChildIndex holds the batched children of a goal list, keyed by goal id.
@@ -616,6 +652,9 @@ func (h *Handler) goalChildren(ctx context.Context, scope workbenchScope, goalID
 func (h *Handler) CreateGoal(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	var req GoalRequest
@@ -683,6 +722,9 @@ func (h *Handler) GetGoal(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	goalID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "goalId"), "goal id")
 	if !ok {
 		return
@@ -722,6 +764,9 @@ func (h *Handler) GetGoal(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateGoal(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	current, ok := h.loadGoalForWrite(w, r, scope)
@@ -811,6 +856,9 @@ func (h *Handler) DeleteGoal(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	current, ok := h.loadGoalForWrite(w, r, scope)
 	if !ok {
 		return
@@ -869,6 +917,9 @@ func (h *Handler) AttachGoalIssue(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	goal, ok := h.loadGoalForWrite(w, r, scope)
 	if !ok {
 		return
@@ -918,6 +969,9 @@ func (h *Handler) AttachGoalIssue(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) DetachGoalIssue(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	goal, ok := h.loadGoalForWrite(w, r, scope)
@@ -982,6 +1036,9 @@ func (h *Handler) CreateGoalKeyResult(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	goal, ok := h.loadGoalForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1035,6 +1092,9 @@ func (h *Handler) UpdateGoalKeyResult(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	current, goal, ok := h.loadGoalKeyResultForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1085,6 +1145,9 @@ func (h *Handler) DeleteGoalKeyResult(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	current, goal, ok := h.loadGoalKeyResultForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1114,6 +1177,9 @@ func (h *Handler) DeleteGoalKeyResult(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CreateGoalPackage(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	goal, ok := h.loadGoalForWrite(w, r, scope)
@@ -1169,6 +1235,9 @@ func (h *Handler) CreateGoalPackage(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateGoalPackage(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	current, goal, ok := h.loadGoalPackageForWrite(w, r, scope)
@@ -1235,6 +1304,9 @@ func (h *Handler) DeleteGoalPackage(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	current, goal, ok := h.loadGoalPackageForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1265,6 +1337,9 @@ func (h *Handler) ListMarketSignals(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	cut := strings.TrimSpace(r.URL.Query().Get("cut"))
 	if cut != "" && mediaEnumInvalid(cut, marketSignalCuts) {
 		writeError(w, http.StatusBadRequest, "cut must be hot, warm or cold")
@@ -1281,12 +1356,21 @@ func (h *Handler) ListMarketSignals(w http.ResponseWriter, r *http.Request) {
 			"category must be market, competitor, channel, product, policy or other")
 		return
 	}
+	cursorRank, cursorScore, cursorAt, cursorID, ok := h.marketSignalCursor(w, r, scope)
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListMarketSignals(r.Context(), db.ListMarketSignalsParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		Cut:         strToText(cut),
 		Status:      strToText(status),
 		Category:    strToText(category),
-		Limit:       workbenchLimit(r),
+		CursorRank:  cursorRank,
+		CursorScore: cursorScore,
+		CursorAt:    cursorAt,
+		CursorID:    cursorID,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list signals", err)
@@ -1296,13 +1380,58 @@ func (h *Handler) ListMarketSignals(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = marketSignalToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"signals": resp, "total": len(resp)})
+	// Only a full page has a successor; see `workbenchPage` for the rule.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"signals": resp, "total": len(resp)},
+		rows, limit, func(row db.MarketSignal) pgtype.UUID { return row.ID },
+	))
+}
+
+// marketSignalCutRank is the radar's first ordering key: the cut itself. The SQL
+// spells the same CASE, so the two cannot drift apart.
+func marketSignalCutRank(cut string) int32 {
+	switch cut {
+	case "hot":
+		return 0
+	case "warm":
+		return 1
+	default:
+		return 2
+	}
+}
+
+// marketSignalCursor resolves `?cursor=` into the (cut rank, score, created_at, id)
+// quadruple the radar's keyset compares against. The score is nullable and sorts
+// last; a cursor row with no score carries that NULL, which is exactly the tail the
+// predicate has to walk through instead of stopping at.
+func (h *Handler) marketSignalCursor(w http.ResponseWriter, r *http.Request, scope workbenchScope) (pgtype.Int4, pgtype.Numeric, pgtype.Timestamptz, pgtype.UUID, bool) {
+	raw := strings.TrimSpace(r.URL.Query().Get("cursor"))
+	if raw == "" {
+		return pgtype.Int4{}, pgtype.Numeric{}, pgtype.Timestamptz{}, pgtype.UUID{}, true
+	}
+	cursorID, ok := parseUUIDOrBadRequest(w, raw, "cursor")
+	if !ok {
+		return pgtype.Int4{}, pgtype.Numeric{}, pgtype.Timestamptz{}, pgtype.UUID{}, false
+	}
+	row, err := h.Queries.GetMarketSignal(r.Context(), db.GetMarketSignalParams{
+		ID:          cursorID,
+		WorkspaceID: scope.WorkspaceUUID,
+	})
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "cursor not found")
+		return pgtype.Int4{}, pgtype.Numeric{}, pgtype.Timestamptz{}, pgtype.UUID{}, false
+	}
+	rank := pgtype.Int4{Int32: marketSignalCutRank(row.Cut), Valid: true}
+	return rank, row.Score, row.CreatedAt, cursorID, true
 }
 
 // CreateMarketSignal — POST /api/workbench/signals
 func (h *Handler) CreateMarketSignal(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	var req MarketSignalRequest
@@ -1371,6 +1500,9 @@ func (h *Handler) CreateMarketSignal(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateMarketSignal(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	current, ok := h.loadMarketSignalForWrite(w, r, scope)
@@ -1452,6 +1584,9 @@ func (h *Handler) DeleteMarketSignal(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
+		return
+	}
 	current, ok := h.loadMarketSignalForWrite(w, r, scope)
 	if !ok {
 		return
@@ -1505,6 +1640,9 @@ func goalSignalStatusValue(w http.ResponseWriter, patched *string, current strin
 func (h *Handler) ConvertMarketSignal(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capBossRead) {
 		return
 	}
 	signalID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "signalId"), "signal id")

@@ -24,26 +24,29 @@ import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@more
 import { Spinner } from "@morechat/ui/components/ui/spinner";
 import { Textarea } from "@morechat/ui/components/ui/textarea";
 import { useWorkspaceId } from "@morechat/core/hooks";
+import { isStaleWrite } from "@morechat/core/api";
 import { useCreateBdQuote, useUpdateBdQuote } from "@morechat/core/bd/mutations";
 import type { BdQuote } from "@morechat/core/types";
 import { useLocale } from "../../i18n";
+import { OverwriteReasonDialog, isOverwriteReasonRequired, useOverwriteRetry } from "../../review";
 import { useQuotesCopy } from "./copy";
 import { CreatorPicker } from "./creator-picker";
 import {
   createQuoteRequest,
   dayOfTimestamp,
-  defaultValidUntil,
   formatMoney,
   isBeforeQuoteDay,
   linesSubtotal,
   localDayOf,
   newLine,
-  parseQuoteItems,
+  newQuoteFormValues,
   quoteFields,
-  rateToPercent,
+  quoteFormValues,
   type QuoteForm,
+  type QuoteFormValues,
   type QuoteLine,
 } from "./model";
+import { useLedgerCopy, expectedRevisionPatch } from "../deep-link";
 
 const CURRENCIES = ["CNY", "USD", "EUR"] as const;
 
@@ -58,7 +61,7 @@ type SaveStatus = "draft" | "sent";
  * `draft` that has not left the building, and a `sent` offer whose clock has
  * started — so nothing here asks the reader to pick a status from a menu.
  *
- * Three things it deliberately does:
+ * Four things it deliberately does:
  *
  *   - **It runs the server's date rule before the request.** `valid_until` before
  *     `quoted_at`'s day is a 400 on the server, not a warning, so the form refuses
@@ -68,6 +71,12 @@ type SaveStatus = "draft" | "sent";
  *     `model.percentToRate` — see that function for the rounding rule.
  *   - **It never sends `creator_id` on an edit.** The server answers 400 for it:
  *     a quote that changes person is a different record, so the picker is fixed.
+ *   - **It guards the write with the revision it read** (`COLLAB-MODEL` §3). The
+ *     PATCH carries `expected_revision`; a `409 stale_write` means somebody else
+ *     saved first, and the answer to that is to *show their row* — never to replay
+ *     this drawer's body over it. The rules are read in one order: 409 first, then
+ *     §26.3's 400, so a stale write can never be mistaken for "say why you
+ *     overwrote an agent" and a reason dialog can never hide a refresh.
  *
  * Everything server-decided (the id, the owner, `created_at`) is left out of the
  * request: the row that comes back is what the page then renders, because the
@@ -86,9 +95,11 @@ export function QuoteSheet({
 }) {
   const wsId = useWorkspaceId();
   const copy = useQuotesCopy();
+  const ledger = useLedgerCopy();
   const locale = useLocale();
   const create = useCreateBdQuote();
   const update = useUpdateBdQuote();
+  const overwrite = useOverwriteRetry();
 
   const editing = quote !== null;
   // One clock for the whole sheet: the default day, the draft/sent timestamp and
@@ -100,37 +111,44 @@ export function QuoteSheet({
 
   const [creatorId, setCreatorId] = useState(quote?.creator_id ?? "");
   const [pickedName, setPickedName] = useState<string | null>(creatorName);
-  const [fee, setFee] = useState(quote?.fee_amount == null ? "" : String(quote.fee_amount));
-  const [currency, setCurrency] = useState<string>(quote?.currency ?? "CNY");
-  const [percent, setPercent] = useState(
-    quote?.commission_rate == null ? "" : String(rateToPercent(quote.commission_rate)),
+  /**
+   * Every field in one object: a `409` replaces all of them with the server's row
+   * in a single write, so the drawer can never show one writer's fee next to the
+   * other's validity day.
+   */
+  const [form, setForm] = useState<QuoteFormValues>(() =>
+    quote ? quoteFormValues(quote) : newQuoteFormValues(now),
   );
-  const [validUntil, setValidUntil] = useState(quote?.valid_until ?? defaultValidUntil(now));
-  const [note, setNote] = useState(quote?.note ?? "");
-  const [lines, setLines] = useState<QuoteLine[]>(() => {
-    const stored = quote ? parseQuoteItems(quote.items) : [];
-    return stored.length > 0 ? stored.map((item) => newLine(item)) : [newLine()];
-  });
+  /**
+   * The revision this drawer last saw. It moves forward on a refresh — otherwise
+   * every later save would carry the stale number and be refused again.
+   */
+  const [revision, setRevision] = useState<number | undefined>(quote?.revision);
 
   const [creatorError, setCreatorError] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  /** Set by a 409: the form now holds somebody else's row, and says so. */
+  const [refreshed, setRefreshed] = useState(false);
   const [saving, setSaving] = useState<SaveStatus | null>(null);
 
   const busy = saving !== null;
 
-  const updateLine = (key: string, patch: Partial<QuoteLine>) => {
-    setLines((current) =>
-      current.map((line) => (line.key === key ? { ...line, ...patch } : line)),
-    );
-  };
+  const patch = (next: Partial<QuoteFormValues>) =>
+    setForm((current) => ({ ...current, ...next }));
 
-  const subtotal = linesSubtotal(lines);
+  const updateLine = (key: string, linePatch: Partial<QuoteLine>) =>
+    patch({
+      lines: form.lines.map((line) => (line.key === key ? { ...line, ...linePatch } : line)),
+    });
+
+  const subtotal = linesSubtotal(form.lines);
 
   const save = async (status: SaveStatus) => {
     setCreatorError(null);
     setDateError(null);
     setFailure(null);
+    setRefreshed(false);
 
     if (!creatorId) {
       setCreatorError(copy("form_creator_required"));
@@ -139,31 +157,59 @@ export function QuoteSheet({
 
     // The server's own rule, run here so the refusal is shown beside the field
     // instead of coming back as a 400 the reader has to decode.
-    if (isBeforeQuoteDay(validUntil, quoteDay)) {
+    if (isBeforeQuoteDay(form.validUntil, quoteDay)) {
       setDateError(copy("form_valid_until_error"));
       return;
     }
 
     setSaving(status);
-    const form: QuoteForm = {
-      creatorId,
-      fee,
-      currency,
-      percent,
-      validUntil,
-      note,
-      lines,
-    };
+    const values: QuoteForm = { creatorId, ...form };
+    const fields = quoteFields(values);
 
     try {
       if (quote) {
-        await update.mutateAsync({ id: quote.id, status, ...quoteFields(form) });
+        await update.mutateAsync({
+          id: quote.id,
+          status,
+          ...fields,
+          ...expectedRevisionPatch(revision),
+        });
       } else {
-        await create.mutateAsync(createQuoteRequest(form, status, now));
+        await create.mutateAsync(createQuoteRequest(values, status, now));
       }
       toast.success(copy(status === "sent" ? "toast_sent" : "toast_saved_draft"));
       onClose();
     } catch (error) {
+      // §3 first. Somebody else moved this row: take their version, show it, and
+      // stop — replaying this body is exactly what the guard exists to prevent.
+      if (quote && isStaleWrite<BdQuote>(error)) {
+        const current = error.current;
+        setForm(quoteFormValues(current));
+        setRevision(current.revision);
+        setRefreshed(true);
+        return;
+      }
+      // §26.3: an agent wrote this row last, so a person replacing it says why.
+      if (quote && isOverwriteReasonRequired(error)) {
+        overwrite.ask(async (reason) => {
+          try {
+            await update.mutateAsync({
+              id: quote.id,
+              status,
+              ...fields,
+              ...expectedRevisionPatch(revision),
+              overwrite_reason: reason,
+            });
+            toast.success(copy(status === "sent" ? "toast_sent" : "toast_saved_draft"));
+            onClose();
+            return true;
+          } catch {
+            setFailure(copy("form_failed"));
+            return false;
+          }
+        });
+        return;
+      }
       setFailure(error instanceof Error && error.message ? error.message : copy("form_failed"));
     } finally {
       setSaving(null);
@@ -215,17 +261,17 @@ export function QuoteSheet({
                   id="quote-fee"
                   inputMode="decimal"
                   autoComplete="off"
-                  value={fee}
+                  value={form.fee}
                   disabled={busy}
-                  onChange={(event) => setFee(event.target.value)}
+                  onChange={(event) => patch({ fee: event.target.value })}
                 />
               </Field>
               <Field>
                 <FieldLabel htmlFor="quote-currency">{copy("form_currency")}</FieldLabel>
                 <Select
                   items={CURRENCIES.map((code) => ({ value: code, label: code }))}
-                  value={currency}
-                  onValueChange={(next) => setCurrency(String(next))}
+                  value={form.currency}
+                  onValueChange={(next) => patch({ currency: String(next) })}
                   disabled={busy}
                 >
                   <SelectTrigger id="quote-currency" size="sm" className="w-full">
@@ -248,9 +294,9 @@ export function QuoteSheet({
                 id="quote-percent"
                 inputMode="decimal"
                 autoComplete="off"
-                value={percent}
+                value={form.percent}
                 disabled={busy}
-                onChange={(event) => setPercent(event.target.value)}
+                onChange={(event) => patch({ percent: event.target.value })}
               />
               <FieldDescription>{copy("form_commission_hint")}</FieldDescription>
             </Field>
@@ -260,11 +306,11 @@ export function QuoteSheet({
               <Input
                 id="quote-valid-until"
                 type="date"
-                value={validUntil}
+                value={form.validUntil}
                 disabled={busy}
                 aria-invalid={dateError ? true : undefined}
                 onChange={(event) => {
-                  setValidUntil(event.target.value);
+                  patch({ validUntil: event.target.value });
                   setDateError(null);
                 }}
               />
@@ -280,7 +326,7 @@ export function QuoteSheet({
                   variant="ghost"
                   size="sm"
                   disabled={busy}
-                  onClick={() => setLines((current) => [...current, newLine()])}
+                  onClick={() => patch({ lines: [...form.lines, newLine()] })}
                 >
                   <Plus aria-hidden="true" />
                   {copy("form_item_add")}
@@ -289,7 +335,7 @@ export function QuoteSheet({
               <p className="text-caption text-muted-foreground">{copy("form_items_hint")}</p>
 
               <ul className="flex flex-col gap-3" data-slot="quotes-lines">
-                {lines.map((line, index) => {
+                {form.lines.map((line, index) => {
                   const lineNumber = index + 1;
                   return (
                     <li
@@ -313,11 +359,13 @@ export function QuoteSheet({
                           variant="ghost"
                           size="icon-sm"
                           aria-label={copy("form_item_remove", { index: lineNumber })}
-                          disabled={busy || lines.length === 1}
+                          disabled={busy || form.lines.length === 1}
                           onClick={() =>
-                            setLines((current) =>
-                              current.filter((candidate) => candidate.key !== line.key),
-                            )
+                            patch({
+                              lines: form.lines.filter(
+                                (candidate) => candidate.key !== line.key,
+                              ),
+                            })
                           }
                         >
                           <X aria-hidden="true" />
@@ -371,7 +419,7 @@ export function QuoteSheet({
                 className="flex items-baseline justify-between gap-2 border-t border-surface-border pt-2 text-body"
               >
                 <span className="text-muted-foreground">{copy("form_subtotal")}</span>
-                <b className="tabular-nums">{formatMoney(subtotal, currency, locale)}</b>
+                <b className="tabular-nums">{formatMoney(subtotal, form.currency, locale)}</b>
               </p>
             </section>
 
@@ -379,9 +427,9 @@ export function QuoteSheet({
               <FieldLabel htmlFor="quote-note">{copy("form_note")}</FieldLabel>
               <Textarea
                 id="quote-note"
-                value={note}
+                value={form.note}
                 disabled={busy}
-                onChange={(event) => setNote(event.target.value)}
+                onChange={(event) => patch({ note: event.target.value })}
                 className="min-h-16"
               />
             </Field>
@@ -389,6 +437,15 @@ export function QuoteSheet({
         </div>
 
         <SheetFooter className="mt-0 border-t">
+          {refreshed ? (
+            <p
+              role="status"
+              data-slot="quote-stale"
+              className="text-caption text-muted-foreground"
+            >
+              {ledger.staleWrite}
+            </p>
+          ) : null}
           {failure ? (
             <p role="alert" className="text-caption text-destructive">
               {failure}
@@ -421,7 +478,12 @@ export function QuoteSheet({
             </Button>
           </div>
         </SheetFooter>
-      </SheetContent>
+      <OverwriteReasonDialog
+        open={overwrite.open}
+        pending={overwrite.pending}
+        onPick={(reason) => void overwrite.pick(reason)}
+        onCancel={overwrite.cancel}
+      />      </SheetContent>
     </Sheet>
   );
 }

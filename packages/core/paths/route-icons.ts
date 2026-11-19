@@ -43,7 +43,8 @@ export type RouteIconName =
   | "FileArchive"
   | "FileAudio"
   | "FileVideo"
-  | "FileQuestion";
+  | "FileQuestion"
+  | "Target";
 
 /** i18n label key (under the `layout.nav` namespace) for a page. */
 export type NavLabelKey =
@@ -92,6 +93,7 @@ export type NavLabelKey =
   | "content_scripts"
   | "content_shoots"
   | "content_publish"
+  | "content_ads"
   | "content_data"
   | "boss_overview"
   | "boss_goals"
@@ -99,7 +101,11 @@ export type NavLabelKey =
   | "boss_radar"
   | "boss_customers"
   | "boss_biz"
-  | "boss_team";
+  | "boss_team"
+  // The review queue (§26): the page where a person answers for what an agent
+  // wrote. Flat key like every other nav label, so the tab bar can localize it
+  // through `t(($) => $.nav[navKey])`.
+  | "boss_review";
 
 /** Stable identifier for each workspace navigation page. */
 export type WorkspacePageKey =
@@ -210,6 +216,7 @@ export type ContentPageKey =
   | "scripts"
   | "shoots"
   | "publish"
+  | "ads"
   | "data";
 
 /** The general manager's pages, `/{slug}/boss/...`. */
@@ -220,7 +227,13 @@ export type BossPageKey =
   | "radar"
   | "customers"
   | "biz"
-  | "team";
+  | "team"
+  /**
+   * 复核队列 (WORKBENCH-API §26). A boss-space page because the verdict is the
+   * owner's: `review.accept` is the capability, and the queue is where somebody
+   * answers for what the agents wrote.
+   */
+  | "review";
 
 /** A navigation page key from any registry. */
 export type NavPageKey = WorkspacePageKey | HrPageKey | SalesPageKey | ContentPageKey | BossPageKey;
@@ -308,6 +321,7 @@ export const CONTENT_PAGE_ORDER: readonly ContentPageKey[] = [
   "scripts",
   "shoots",
   "publish",
+  "ads",
   "data",
 ];
 
@@ -321,6 +335,10 @@ export const CONTENT_PAGES: Record<ContentPageKey, WorkspacePage> = {
   scripts: { segment: "content/scripts", icon: "FileText", navKey: "content_scripts" },
   shoots: { segment: "content/shoots", icon: "FileVideo", navKey: "content_shoots" },
   publish: { segment: "content/publish", icon: "FileQuestion", navKey: "content_publish" },
+  // 投放 sits between what was published and what it earned: the paid side of
+  // the same funnel. `Target` marks it as the targeting surface (`Zap` is the
+  // hot radar's, four rows up, and two neighbouring pages must not share a mark).
+  ads: { segment: "content/ads", icon: "Target", navKey: "content_ads" },
   data: { segment: "content/data", icon: "BarChart3", navKey: "content_data" },
 };
 
@@ -333,6 +351,7 @@ export const BOSS_PAGE_ORDER: readonly BossPageKey[] = [
   "customers",
   "biz",
   "team",
+  "review",
 ];
 
 /** The general manager's pages. `segment` is the path under the slug. */
@@ -346,6 +365,11 @@ export const BOSS_PAGES: Record<BossPageKey, WorkspacePage> = {
   customers: { segment: "boss/customers", icon: "Users", navKey: "boss_customers" },
   biz: { segment: "boss/biz", icon: "BarChart3", navKey: "boss_biz" },
   team: { segment: "boss/team", icon: "Monitor", navKey: "boss_team" },
+  // 复核队列: the icon set the app ships has no check-sheet glyph, so the page
+  // wears the one that means "things waiting for you" — the queue is exactly
+  // that, and reusing `Inbox` inside this space cannot be confused with the
+  // platform inbox, which lives in another column entirely.
+  review: { segment: "boss/review", icon: "Inbox", navKey: "boss_review" },
 };
 
 /**

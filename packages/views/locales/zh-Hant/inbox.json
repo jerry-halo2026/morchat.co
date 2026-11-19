@@ -98,7 +98,14 @@
     "app_action_requested": "等待你確認",
     "app_action_reminder": "確認即將過期",
     "app_connect_requested": "請連線應用",
+    "workbench_followup_due": "跟進到期",
+    "workbench_quote_expiring": "報價臨期",
+    "workbench_settlement_overdue": "結算逾期",
     "app_action_result": "應用操作結果"
+  },
+  "workbench": {
+    "group": "工作台",
+    "open_ledger": "開啟台賬行"
   },
   "labels": {
     "set_status_to": "狀態設為",

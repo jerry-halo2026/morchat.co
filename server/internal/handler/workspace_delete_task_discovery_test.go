@@ -45,6 +45,28 @@ type workspaceDeletePathFixture struct {
 	neighbourOnlyToken string
 }
 
+// workspaceDeleteScratch is the one rule every teardown case in this package
+// obeys: delete a workspace the case created, never the fixture every other case
+// reads through.
+//
+// `TestMain` builds the shared workspace once and thousands of cases assume it
+// exists, so a teardown pointed at it does not fail where the mistake was made: it
+// fails everywhere afterwards, as `workspace not found` and
+// `member_workspace_id_fkey` in tests that never mention deleting anything. The
+// guard turns that whole-suite shape into one red line at the case that did it, and
+// makes "this case is self-contained" a checked property rather than a habit.
+func workspaceDeleteScratch(t *testing.T, workspaceID string) string {
+	t.Helper()
+	if workspaceID == "" {
+		t.Fatal("a teardown case needs a workspace id of its own")
+	}
+	if workspaceID == testWorkspaceID {
+		t.Fatal("a teardown case may not delete the shared fixture workspace: " +
+			"create a scratch one and delete that instead")
+	}
+	return workspaceID
+}
+
 func newWorkspaceDeletePathFixture(t *testing.T, slugSuffix string) workspaceDeletePathFixture {
 	t.Helper()
 	ctx := context.Background()
@@ -67,8 +89,8 @@ INSERT INTO workspace (name, slug) VALUES ($1, $2) RETURNING id
 		return id
 	}
 	f := workspaceDeletePathFixture{
-		victimID:    newWorkspace("Delete Paths Victim "+slugSuffix, victimSlug),
-		neighbourID: newWorkspace("Delete Paths Neighbour "+slugSuffix, neighbourSlug),
+		victimID:    workspaceDeleteScratch(t, newWorkspace("Delete Paths Victim "+slugSuffix, victimSlug)),
+		neighbourID: workspaceDeleteScratch(t, newWorkspace("Delete Paths Neighbour "+slugSuffix, neighbourSlug)),
 	}
 
 	if _, err := testPool.Exec(ctx, `

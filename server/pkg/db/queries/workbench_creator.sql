@@ -69,11 +69,17 @@ WHERE c.workspace_id = sqlc.arg('workspace_id')
   )
   AND (
     sqlc.narg('cursor_id')::uuid IS NULL
+    -- Past a cursor that carries a value, every unsampled row is still ahead:
+    -- NULLS LAST puts them all after the last real value, so dropping them here
+    -- would truncate the walk at the first NULL the cursor landed on.
+    OR (
+        sqlc.narg('cursor_value')::numeric IS NOT NULL
+        AND (sv.sort_value IS NULL OR sv.sort_value < sqlc.narg('cursor_value')::numeric)
+    )
     OR (
         sv.sort_value IS NOT DISTINCT FROM sqlc.narg('cursor_value')::numeric
         AND (c.fans, c.id) < (sqlc.narg('cursor_fans')::bigint, sqlc.narg('cursor_id')::uuid)
     )
-    OR sv.sort_value < sqlc.narg('cursor_value')::numeric
   )
 ORDER BY sv.sort_value DESC NULLS LAST, c.fans DESC NULLS LAST, c.id DESC
 LIMIT sqlc.arg('limit');
@@ -134,12 +140,36 @@ WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archiv
 -- creator drawer (WORKBENCH-DATA-CONTRACT §2.1). `create_time` is nullable
 -- (a work whose publish date was never captured), so the ordering sinks those
 -- rows rather than hiding them, and the id keeps it total.
+--
+-- The cursor is a resolved (create_time, id) pair. `create_time` is nullable and
+-- sorts last, so the value branch keeps every unsampled work reachable past a
+-- cursor that carries a date: dropping them would truncate the walk at the first
+-- NULL the cursor landed on.
 SELECT * FROM creator_video
 WHERE workspace_id = sqlc.arg('workspace_id')::uuid
   AND creator_id = sqlc.arg('creator_id')::uuid
   AND archived_at IS NULL
+  AND (
+    sqlc.narg('cursor_id')::uuid IS NULL
+    OR (
+      sqlc.narg('cursor_at')::timestamptz IS NOT NULL
+      AND (create_time IS NULL OR create_time < sqlc.narg('cursor_at')::timestamptz)
+    )
+    OR (
+      create_time IS NOT DISTINCT FROM sqlc.narg('cursor_at')::timestamptz
+      AND id < sqlc.narg('cursor_id')::uuid
+    )
+  )
 ORDER BY create_time DESC NULLS LAST, id DESC
 LIMIT sqlc.arg('limit')::integer;
+
+-- name: GetCreatorVideo :one
+-- The cursor's row read back: a cursor id that is not this creator's is a 400 in
+-- the handler, not an empty page here.
+SELECT * FROM creator_video
+WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')::uuid
+  AND creator_id = sqlc.arg('creator_id')::uuid
+  AND archived_at IS NULL;
 
 -- name: ListCreatorPosts :many
 SELECT *
@@ -199,13 +229,27 @@ SET archived_at = now(), updated_at = now()
 WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id') AND archived_at IS NULL;
 
 -- name: ListCreatorPostMetrics :many
+-- Paging is keyset on (captured_on, id), the order the drawer reads: the cursor is
+-- the previous page's last row id, and the handler re-reads its day from this
+-- workspace's row before the predicate runs.
 SELECT * FROM creator_post_metric
 WHERE workspace_id = sqlc.arg('workspace_id')
   AND post_id = sqlc.arg('post_id')
   AND (sqlc.narg('captured_from')::date IS NULL OR captured_on >= sqlc.narg('captured_from')::date)
   AND (sqlc.narg('captured_to')::date IS NULL OR captured_on <= sqlc.narg('captured_to')::date)
+  AND (
+    sqlc.narg('cursor_at')::date IS NULL
+    OR (captured_on, id) < (sqlc.narg('cursor_at')::date, sqlc.narg('cursor_id')::uuid)
+  )
 ORDER BY captured_on DESC, id DESC
 LIMIT sqlc.arg('limit');
+
+-- name: GetCreatorPostMetric :one
+-- The cursor's row read back; a snapshot of another post or workspace is a 400 in
+-- the handler rather than an empty page here.
+SELECT * FROM creator_post_metric
+WHERE id = sqlc.arg('id') AND workspace_id = sqlc.arg('workspace_id')
+  AND post_id = sqlc.arg('post_id');
 
 -- name: UpsertCreatorPostMetric :one
 -- One snapshot per (post, day): re-importing a CSV rewrites that day instead of

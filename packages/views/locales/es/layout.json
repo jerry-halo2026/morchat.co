@@ -40,6 +40,7 @@
     "content_scripts": "Guiones",
     "content_shoots": "Rodaje y edición",
     "content_publish": "Calendario de publicación",
+    "content_ads": "Anuncios",
     "content_data": "Revisión",
     "boss_overview": "Resumen",
     "boss_goals": "Objetivos",
@@ -47,7 +48,8 @@
     "boss_radar": "Radar de mercado",
     "boss_customers": "Clientes",
     "boss_biz": "Operación",
-    "boss_team": "Equipo"
+    "boss_team": "Equipo",
+    "boss_review": "Cola de revisión"
   },
   "hr": {
     "recruit": {

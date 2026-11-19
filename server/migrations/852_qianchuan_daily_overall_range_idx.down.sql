@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_qianchuan_daily_overall_range;

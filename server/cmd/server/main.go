@@ -659,6 +659,14 @@ func main() {
 	// shutdown so any pending bumps are flushed before we exit.
 	heartbeatScheduler := handler.NewBatchedHeartbeatScheduler(queries, handler.DefaultHeartbeatBatchInterval, daemonWakeup)
 
+	// The workbench's due scan (COLLAB-MODEL §4): follow-ups that came due, quotes
+	// expiring inside a week, settlements whose day passed. Same shape as the
+	// heartbeat scheduler above — one goroutine, one interval, one drain — because
+	// it is the same job: a periodic question the database answers. It is not
+	// started here but below, next to the other workers, so the ordering with the
+	// HTTP listener is the same as every other sweep.
+	workbenchDue := handler.NewWorkbenchDueScheduler(queries, handler.DefaultWorkbenchDueInterval, slog.Default())
+
 	// Validate the LLM retry budget before the router exists: an operator who
 	// typed a value we cannot honor should see the boot stop, the same way a
 	// malformed feature-flag file does above.
@@ -769,6 +777,10 @@ func main() {
 		go h.ConnectedApps.RunSweeper(sweepCtx)
 	}
 	go heartbeatScheduler.Run(sweepCtx)
+	// Due notices for the sales ledgers. The scan is deduplicated per subject per
+	// day in SQL, so this goroutine is safe against restarts and against a second
+	// instance: a duplicate tick inserts nothing.
+	go workbenchDue.Run(sweepCtx)
 	go runAutopilotFailureMonitor(autopilotCtx, queries, bus, envFailureMonitorConfig())
 	if autopilotSvc.QuotaEnabled() {
 		go runAutopilotQuotaReconciler(autopilotCtx, autopilotSvc)

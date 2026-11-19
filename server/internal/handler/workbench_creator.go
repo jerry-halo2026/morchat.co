@@ -127,6 +127,9 @@ func (h *Handler) loadCreatorForWrite(w http.ResponseWriter, r *http.Request, sc
 		writeError(w, http.StatusForbidden, "you can only change creators you own")
 		return db.Creator{}, false
 	}
+	if !h.workbenchCrossDepartmentGate(w, r, scope, creator.OwnerMemberID) {
+		return db.Creator{}, false
+	}
 	return creator, true
 }
 
@@ -331,6 +334,9 @@ func (h *Handler) ListCreators(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	kind := strings.TrimSpace(r.URL.Query().Get("kind"))
 	if kind != "" && kind != creatorKindOwned && kind != creatorKindExternal {
 		writeError(w, http.StatusBadRequest, "kind must be owned or external")
@@ -348,7 +354,7 @@ func (h *Handler) ListCreators(w http.ResponseWriter, r *http.Request) {
 		Sort:        sort,
 		WorkspaceID: scope.WorkspaceUUID,
 		Kind:        strToText(kind),
-		Query:       strToText(strings.TrimSpace(r.URL.Query().Get("q"))),
+		Query:       strToText(workbenchLikePattern(r.URL.Query().Get("q"))),
 		CursorID:    cursorID,
 		CursorValue: cursorValue,
 		CursorFans:  cursorFans,
@@ -363,20 +369,20 @@ func (h *Handler) ListCreators(w http.ResponseWriter, r *http.Request) {
 		resp[i] = creatorListRowToResponse(row)
 	}
 	// `next_cursor` names the last id of this page, which is also what `?cursor=`
-	// accepts; only a full page can have a successor. `total` is the row count of
-	// this page — the authoritative workspace-wide numbers are `/counts`, and a
-	// per-list COUNT here would double the query count for a footer nobody reads.
-	payload := map[string]any{"creators": resp, "total": len(resp), "next_cursor": nil}
-	if len(rows) > 0 && int32(len(rows)) == workbenchLimit(r) {
-		payload["next_cursor"] = uuidToString(rows[len(rows)-1].Creator.ID)
-	}
-	writeJSON(w, http.StatusOK, payload)
+	// accepts; only a full page can have a successor. See `workbenchPage`.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"creators": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.ListCreatorsRow) pgtype.UUID { return row.Creator.ID },
+	))
 }
 
 // CreateCreator — POST /api/workbench/creators
 func (h *Handler) CreateCreator(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	var req CreatorRequest
@@ -462,6 +468,9 @@ func (h *Handler) GetCreator(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	creatorID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "creatorId"), "creator id")
 	if !ok {
 		return
@@ -508,6 +517,9 @@ func (h *Handler) ListCreatorVideos(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMRead) {
+		return
+	}
 	creatorID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "creatorId"), "creator id")
 	if !ok {
 		return
@@ -521,10 +533,27 @@ func (h *Handler) ListCreatorVideos(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "creator not found")
 		return
 	}
+	// The strip is keyset on (create_time, id), the order it reads. A work whose
+	// publish date was never captured has a NULL key and sorts last, so the
+	// predicate keeps the NULL tail reachable instead of stopping at it.
+	cursorAt, cursorID, ok := h.workbenchCursorKey(w, r, func(id pgtype.UUID) (pgtype.Timestamptz, error) {
+		row, err := h.Queries.GetCreatorVideo(r.Context(), db.GetCreatorVideoParams{
+			ID:          id,
+			WorkspaceID: scope.WorkspaceUUID,
+			CreatorID:   creatorID,
+		})
+		return row.CreateTime, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListCreatorVideosRecent(r.Context(), db.ListCreatorVideosRecentParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		CreatorID:   creatorID,
-		Limit:       workbenchLimit(r),
+		CursorID:    cursorID,
+		CursorAt:    cursorAt,
+		Limit:       limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list creator videos", err)
@@ -534,13 +563,21 @@ func (h *Handler) ListCreatorVideos(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = creatorVideoToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"videos": resp, "total": len(resp)})
+	// `next_cursor` names the last row of this page, which is also what `?cursor=`
+	// accepts; only a full page can have a successor.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"videos": resp, "total": len(resp)},
+		rows, limit, func(row db.CreatorVideo) pgtype.UUID { return row.ID },
+	))
 }
 
 // UpdateCreator — PATCH /api/workbench/creators/{creatorId}
 func (h *Handler) UpdateCreator(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
 		return
 	}
 	current, ok := h.loadCreatorForWrite(w, r, scope)
@@ -655,6 +692,9 @@ func (h *Handler) DeleteCreator(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capCRMWrite) {
+		return
+	}
 	current, ok := h.loadCreatorForWrite(w, r, scope)
 	if !ok {
 		return
@@ -677,11 +717,23 @@ func (h *Handler) DeleteCreator(w http.ResponseWriter, r *http.Request) {
 }
 
 // ---- posts -----------------------------------------------------------------
+//
+// A post is a *publish*, so the post family is gated by the media capabilities
+// (§24.1), not the ledger's crm ones: reading is `media.read`, filling in a day's
+// numbers is `media.write`, and putting a post live — create, edit, take it down —
+// is `media.publish`. Keeping the ledger vocabulary here would have made
+// `media.publish` decorative: the departments that hold it (内容 / 运营) do not
+// hold `crm.write`, so every publish would still have been refused by the wrong
+// capability. Taking a post down is the same right as putting it up; deleting one
+// is how a bad publish is withdrawn.
 
 // ListCreatorPosts — GET /api/workbench/creator-posts
 func (h *Handler) ListCreatorPosts(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
 		return
 	}
 	creatorID, ok := workbenchOptionalUUID(w, stringPtr(strings.TrimSpace(r.URL.Query().Get("creator_id"))), "creator_id")
@@ -720,13 +772,21 @@ func (h *Handler) ListCreatorPosts(w http.ResponseWriter, r *http.Request) {
 	for i, row := range rows {
 		resp[i] = creatorPostToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"posts": resp, "total": len(resp)})
+	// `next_cursor` names the last row of this page, which is also what `?cursor=`
+	// accepts; only a full page can have a successor.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"posts": resp, "total": len(resp)},
+		rows, workbenchLimit(r), func(row db.CreatorPost) pgtype.UUID { return row.ID },
+	))
 }
 
 // CreateCreatorPost — POST /api/workbench/creator-posts
 func (h *Handler) CreateCreatorPost(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaPublish) {
 		return
 	}
 	var req CreatorPostRequest
@@ -822,6 +882,9 @@ func (h *Handler) CreateCreatorPost(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateCreatorPost(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaPublish) {
 		return
 	}
 	current, _, ok := h.loadCreatorPostForWrite(w, r, scope)
@@ -952,6 +1015,11 @@ func (h *Handler) DeleteCreatorPost(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	// Withdrawing a publish needs the publish right: a member who may put a post
+	// live but not take it down can leave a wrong post standing.
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaPublish) {
+		return
+	}
 	current, _, ok := h.loadCreatorPostForWrite(w, r, scope)
 	if !ok {
 		return
@@ -981,6 +1049,9 @@ func (h *Handler) ListCreatorPostMetrics(w http.ResponseWriter, r *http.Request)
 	if !ok {
 		return
 	}
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaRead) {
+		return
+	}
 	postID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "postId"), "post id")
 	if !ok {
 		return
@@ -1000,12 +1071,29 @@ func (h *Handler) ListCreatorPostMetrics(w http.ResponseWriter, r *http.Request)
 	if !ok {
 		return
 	}
+	// Keyset on (captured_on, id): the cursor is a snapshot id, re-read here for its
+	// day so a cursor from another post or workspace is a 400 rather than an empty
+	// page.
+	cursorOn, cursorID, ok := h.workbenchCursorDay(w, r, func(id pgtype.UUID) (pgtype.Date, error) {
+		row, err := h.Queries.GetCreatorPostMetric(r.Context(), db.GetCreatorPostMetricParams{
+			ID:          id,
+			WorkspaceID: scope.WorkspaceUUID,
+			PostID:      postID,
+		})
+		return row.CapturedOn, err
+	})
+	if !ok {
+		return
+	}
+	limit := workbenchLimit(r)
 	rows, err := h.Queries.ListCreatorPostMetrics(r.Context(), db.ListCreatorPostMetricsParams{
 		WorkspaceID:  scope.WorkspaceUUID,
 		PostID:       postID,
 		CapturedFrom: capturedFrom,
 		CapturedTo:   capturedTo,
-		Limit:        workbenchLimit(r),
+		CursorAt:     cursorOn,
+		CursorID:     cursorID,
+		Limit:        limit,
 	})
 	if err != nil {
 		workbenchInternalError(w, r, "failed to list post metrics", err)
@@ -1015,13 +1103,23 @@ func (h *Handler) ListCreatorPostMetrics(w http.ResponseWriter, r *http.Request)
 	for i, row := range rows {
 		resp[i] = creatorPostMetricToResponse(row)
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"metrics": resp, "total": len(resp)})
+	// `next_cursor` names the last row of this page, which is also what `?cursor=`
+	// accepts; only a full page can have a successor.
+	writeJSON(w, http.StatusOK, workbenchPage(
+		map[string]any{"metrics": resp, "total": len(resp)},
+		rows, limit, func(row db.CreatorPostMetric) pgtype.UUID { return row.ID },
+	))
 }
 
 // UpsertCreatorPostMetric — POST /api/workbench/creator-posts/{postId}/metrics
 func (h *Handler) UpsertCreatorPostMetric(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
+		return
+	}
+	// Recording a day's numbers is not publishing: it stays on `media.write`, so
+	// the person who tracks 复盘 does not need the right to put content live.
+	if !h.requireWorkbenchCapability(w, r, scope, capMediaWrite) {
 		return
 	}
 	post, _, ok := h.loadCreatorPostForWrite(w, r, scope)

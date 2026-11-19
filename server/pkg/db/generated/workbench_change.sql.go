@@ -176,17 +176,25 @@ WHERE workspace_id = $1
   AND ($3::text IS NULL OR kind = $3::text)
   AND ($4::date IS NULL OR effective_on >= $4::date)
   AND ($5::date IS NULL OR effective_on <= $5::date)
+  AND (
+    $6::uuid IS NULL
+    OR (effective_on, created_at, id)
+      < ($7::date, $8::timestamptz, $6::uuid)
+  )
 ORDER BY effective_on DESC, created_at DESC, id DESC
-LIMIT $6
+LIMIT $9
 `
 
 type ListHrEmployeeChangesParams struct {
-	WorkspaceID pgtype.UUID `json:"workspace_id"`
-	EmployeeID  pgtype.UUID `json:"employee_id"`
-	Kind        pgtype.Text `json:"kind"`
-	FromOn      pgtype.Date `json:"from_on"`
-	ToOn        pgtype.Date `json:"to_on"`
-	Limit       int32       `json:"limit"`
+	WorkspaceID pgtype.UUID        `json:"workspace_id"`
+	EmployeeID  pgtype.UUID        `json:"employee_id"`
+	Kind        pgtype.Text        `json:"kind"`
+	FromOn      pgtype.Date        `json:"from_on"`
+	ToOn        pgtype.Date        `json:"to_on"`
+	CursorID    pgtype.UUID        `json:"cursor_id"`
+	CursorOn    pgtype.Date        `json:"cursor_on"`
+	CursorAt    pgtype.Timestamptz `json:"cursor_at"`
+	Limit       int32              `json:"limit"`
 }
 
 // Employee file change stream (docs/engineering/WORKBENCH-API.md §16). Same
@@ -207,7 +215,9 @@ type ListHrEmployeeChangesParams struct {
 // absent, filtered by kind and by an inclusive `effective_on` window. Ordering is
 // the contract's read order and matches idx_hr_employee_change_workspace_employee
 // (773) and its kind companion (774); `created_at`/`id` break ties between rows
-// recorded in one batch (a PATCH that moves two fields, or a backfilled import).
+// recorded in one batch (a PATCH that moves two fields, or a backfilled import),
+// which is also the keyset the cursor pages on: the cursor is the previous page's
+// last row id and the handler re-reads its two sort keys.
 func (q *Queries) ListHrEmployeeChanges(ctx context.Context, arg ListHrEmployeeChangesParams) ([]HrEmployeeChange, error) {
 	rows, err := q.db.Query(ctx, listHrEmployeeChanges,
 		arg.WorkspaceID,
@@ -215,6 +225,9 @@ func (q *Queries) ListHrEmployeeChanges(ctx context.Context, arg ListHrEmployeeC
 		arg.Kind,
 		arg.FromOn,
 		arg.ToOn,
+		arg.CursorID,
+		arg.CursorOn,
+		arg.CursorAt,
 		arg.Limit,
 	)
 	if err != nil {

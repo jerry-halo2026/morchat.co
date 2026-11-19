@@ -1,4 +1,22 @@
 {
+  "queue": {
+    "title": "我的隊列",
+    "tab_followups": "跟進",
+    "tab_quotes": "報價",
+    "tab_collabs": "合作單",
+    "empty": "這裡暫時沒有指派給你的行。",
+    "loading": "正在讀取你的隊列…",
+    "error": "沒能讀取你的隊列",
+    "retry": "重試",
+    "due_on": "{{date}} 到期",
+    "expires_on": "有效至 {{date}}",
+    "settles_on": "{{date}} 結算",
+    "no_date": "沒有日期",
+    "start_thread": "開個討論",
+    "thread_count": "{{count}} 條回覆",
+    "thread_archived": "討論已歸檔",
+    "open_ledger": "開啟台賬"
+  },
   "collabs": {
     "new": "新建合作單",
     "empty_title": "還沒有合作單",
@@ -60,6 +78,12 @@
     "revoke_confirm": "撤銷",
     "settlement_mark_received": "標記已到帳",
     "settlement_undo_received": "撤銷到帳"
+  },
+  "deep_link": {
+    "missing": "這條不在目前結果裡。清掉篩選或搜尋條件後再找。"
+  },
+  "stale_write": {
+    "refreshed": "別人剛改過，已為你重新整理。請核對後再儲存。"
   },
   "campaigns": {
     "new": "新建批次",
@@ -131,6 +155,7 @@
     "reason_invalid_rate": "佣金率是 0 到 1（20% 寫 0.2）。",
     "reason_invalid_timestamp": "這不是一個日期時間。",
     "reason_invalid_enum": "這個值不在允許的取值裡。",
-    "reason_invalid_currency": "幣種是三個字母，例如 CNY。"
+    "reason_invalid_currency": "幣種是三個字母，例如 CNY。",
+    "reason_text_too_long": "內容太長，超出該欄上限。"
   }
 }

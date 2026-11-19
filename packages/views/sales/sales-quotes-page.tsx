@@ -40,6 +40,7 @@ import {
 import { PAGE_GUTTER } from "../layout/page-header";
 import { ROUTE_ICON_COMPONENTS } from "../layout/route-icon-components";
 import { ImportCsvButton } from "./import/import-dialog";
+import { useLedgerCopy, useRowFocus } from "./deep-link";
 import { SORT_KEYS, STATUS_KEYS, useQuotesCopy, type QuotesCopyKey } from "./quotes/copy";
 import {
   QUOTE_STATUSES,
@@ -105,6 +106,12 @@ const STATUS_TONE: Readonly<Record<BdQuoteStatus, string>> = {
  *
  * `quoteValidity` owns that distinction; the cell only names it.
  *
+ * `?quote=<id>` is how an inbox notice or 我的队列 hands one offer over: the row
+ * is scrolled to and marked for a moment, and a link whose row is not in what
+ * this page is showing says so above the grid instead of landing on a list
+ * (`deep-link.ts`). The parameter is in the URL, so the address stays
+ * shareable.
+ *
  * What this page does not do: print the offer (no PDF), keep quote templates, run
  * an approval flow, or pick products from a catalogue — `affiliate_sku` does not
  * exist yet, so 明细 is typed by hand. All four are the original screen's, and each
@@ -156,6 +163,16 @@ function QuotesBody({ wsId }: { wsId: string }) {
     () => sortQuotes(searchQuotes(rows, names, search), sort),
     [rows, names, search, sort],
   );
+  const visibleIds = useMemo(() => visible.map((row) => row.id), [visible]);
+
+  /**
+   * `?quote=<id>` — the inbox's workbench notice and 我的队列 link at one offer.
+   * The id is matched against the rows this page is *showing* (the status filter
+   * ran on the server, the search and the sort over the page), so a row that is
+   * filtered out is reported as missing instead of silently ignored.
+   */
+  const focus = useRowFocus("quote", visibleIds, !quotes.isPending);
+  const ledger = useLedgerCopy();
 
   const statusItems = [
     { value: "all", label: copy("status_all") },
@@ -312,16 +329,35 @@ function QuotesBody({ wsId }: { wsId: string }) {
   const firstRun = !quotes.isPending && rows.length === 0 && status === "all" && search.trim() === "";
   const truncated = rows.length >= QUOTE_SCAN_LIMIT;
 
+  /**
+   * A deep link that matches nothing says so above the grid: the notice is the
+   * difference between "this row moved" and "the link is broken", and the row
+   * itself is not on screen to carry the message. It is drawn in the empty-ledger
+   * branch too — an empty ledger is one more way for the link to miss.
+   */
+  const missingNotice = focus.missing ? (
+    <p
+      role="status"
+      data-slot="quote-focus-missing"
+      className={cn(PAGE_GUTTER, "shrink-0 py-1.5 text-caption text-muted-foreground")}
+    >
+      {ledger.rowMissing}
+    </p>
+  ) : null;
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {header}
 
       {firstRun ? (
-        <CollectionPageState
-          icon={Icon}
-          title={copy("empty_title")}
-          description={copy("empty_description")}
-        />
+        <>
+          {missingNotice}
+          <CollectionPageState
+            icon={Icon}
+            title={copy("empty_title")}
+            description={copy("empty_description")}
+          />
+        </>
       ) : (
         <>
           <div
@@ -379,12 +415,19 @@ function QuotesBody({ wsId }: { wsId: string }) {
             </p>
           ) : null}
 
+          {/*
+            A deep link that matches nothing in the rows this page is showing says
+            so here, above the grid.
+          */}
+          {missingNotice}
+
           <CollectionList
             label={copy("list_label")}
             columns={columns}
             rows={visible}
             loading={quotes.isPending}
             getRowId={(row) => row.id}
+            getRowClassName={(row) => focus.classNameOf(row.id)}
             onRowOpen={canWrite ? (row) => setSheet({ quote: row }) : undefined}
             rowMenu={
               canWrite ? (row) => <QuoteRowActions quote={row} canWrite={canWrite} /> : undefined

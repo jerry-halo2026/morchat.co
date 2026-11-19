@@ -365,9 +365,15 @@ export function searchQuotes(
 
 // --- The request ------------------------------------------------------------
 
-/** Everything the form holds, before it becomes a request. */
-export interface QuoteForm {
-  creatorId: string;
+/**
+ * The sheet's fields, as typed: everything a quote carries except its creator.
+ *
+ * Kept apart from {@link QuoteForm} so the drawer can hold *one* object of fields
+ * and replace it whole when the server answers `409 stale_write` with the row it
+ * holds (`quoteFormValues`) — overwriting five separate states one by one is how
+ * a refresh ends up showing half of each writer's edit.
+ */
+export interface QuoteFormValues {
   /** The 坑位费 field, as typed. */
   fee: string;
   currency: string;
@@ -377,6 +383,36 @@ export interface QuoteForm {
   validUntil: string;
   note: string;
   lines: readonly QuoteLine[];
+}
+
+/** Everything the form holds, before it becomes a request. */
+export interface QuoteForm extends QuoteFormValues {
+  creatorId: string;
+}
+
+/** A stored row as the drawer's fields: the 409 refresh and the opening state. */
+export function quoteFormValues(quote: BdQuote): QuoteFormValues {
+  const stored = parseQuoteItems(quote.items);
+  return {
+    fee: quote.fee_amount == null ? "" : String(quote.fee_amount),
+    currency: quote.currency,
+    percent: quote.commission_rate == null ? "" : String(rateToPercent(quote.commission_rate)),
+    validUntil: quote.valid_until ?? "",
+    note: quote.note ?? "",
+    lines: stored.length > 0 ? stored.map((item) => newLine(item)) : [newLine()],
+  };
+}
+
+/** The drawer's fields for a quote that does not exist yet. */
+export function newQuoteFormValues(now: Date): QuoteFormValues {
+  return {
+    fee: "",
+    currency: "CNY",
+    percent: "",
+    validUntil: defaultValidUntil(now),
+    note: "",
+    lines: [newLine()],
+  };
 }
 
 /**
@@ -394,7 +430,7 @@ export interface QuoteFields {
   items: QuoteItem[];
 }
 
-export function quoteFields(form: QuoteForm): QuoteFields {
+export function quoteFields(form: QuoteFormValues): QuoteFields {
   const note = form.note.trim();
   return {
     fee_amount: parseAmount(form.fee),

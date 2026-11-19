@@ -1,4 +1,4 @@
-﻿export { ContentPanel } from "./panel";
+export { ContentPanel } from "./panel";
 export { ContentStudioPage } from "./content-studio-page";
 export { ContentIpsPage } from "./content-ips-page";
 export { ContentHotPage } from "./content-hot-page";
@@ -7,4 +7,5 @@ export { ContentTopicsPage } from "./content-topics-page";
 export { ContentScriptsPage } from "./content-scripts-page";
 export { ContentShootsPage } from "./content-shoots-page";
 export { ContentPublishPage } from "./content-publish-page";
+export { ContentAdsPage } from "./content-ads-page";
 export { ContentDataPage } from "./content-data-page";

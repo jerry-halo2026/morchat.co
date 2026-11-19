@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Clock, Loader2, MessageSquare, Sparkles, SquarePen, UserPlus, Zap, type IconComponent } from "@morechat/ui/icons";
+import { Clock, FileText, FolderKanban, Layers, Loader2, MessageSquare, Sparkles, SquarePen, Target, UserPlus, Users, Zap, type IconComponent } from "@morechat/ui/icons";
 import { Command as CommandPrimitive } from "cmdk";
 import { useQuery } from "@tanstack/react-query";
 import { inboxUnreadSummaryOptions, unreadWorkspaceIds } from "@morechat/core/inbox/queries";
@@ -17,6 +17,7 @@ import { WorkspaceAvatar } from "../workspace/workspace-avatar";
 import { useT } from "../i18n";
 import { HighlightText } from "./highlight-text";
 import { useIssueTargetWriter } from "./issue-target";
+import { NAV_PAGE_SPACE_ORDER } from "./pages";
 import { usePalette } from "./palette-context";
 import { CommandGroupView, CommandRow, PaletteGroup, ROW_CLASS, ROW_ICON_CLASS, RowHint } from "./rows";
 import { ActorRow, AgentPresenceText, IssueResultRow, ObjectRow, ProjectResultRow } from "./result-rows";
@@ -35,6 +36,11 @@ const TYPE_ORDER = [
   "members",
   "projects",
   "issues",
+  "creators",
+  "collabs",
+  "quotes",
+  "goals",
+  "topics",
   "autopilots",
   "chats",
   "skills",
@@ -50,6 +56,7 @@ interface RankedGroup {
 
 export function RootView({ model, rawQuery }: { model: RootModel; rawQuery: string }) {
   const { t } = useT("search");
+  const { t: tLayout } = useT("layout");
   const palette = usePalette();
   const p = useWorkspacePaths();
   const { data: unreadSummary = EMPTY_UNREAD_SUMMARY } = useQuery(inboxUnreadSummaryOptions());
@@ -85,25 +92,38 @@ export function RootView({ model, rawQuery }: { model: RootModel; rawQuery: stri
       key: "pages",
       type: "pages",
       score: model.pages[0]!.score,
+      // One group per space rather than 40 rows in a row: the platform's own
+      // pages keep the "Pages" heading, and the four department spaces are
+      // titled with the same words their columns use (`layout.spaces.*`), so a
+      // reader lands on "Sales" and sees Sales' pages under it.
       node: (
-        <PaletteGroup key="pages" heading={t(($) => $.groups.pages)}>
-          {model.pages.map(({ item: page }) => {
-            const PageIcon = routeIconForPath(p[page.key]());
+        <>
+          {NAV_PAGE_SPACE_ORDER.map((space) => {
+            const rows = model.pages.filter((entry) => entry.item.space === space);
+            if (rows.length === 0) return null;
+            const heading = space === "workspace" ? t(($) => $.groups.pages) : tLayout(($) => $.spaces[space]);
             return (
-              <CommandPrimitive.Item
-                key={page.key}
-                value={`page:${page.key}`}
-                onSelect={() => palette.navigate(p[page.key]())}
-                className={ROW_CLASS}
-              >
-                <PageIcon className={ROW_ICON_CLASS} />
-                <span className="min-w-0 flex-1 truncate">
-                  <HighlightText text={page.label} query={query} />
-                </span>
-              </CommandPrimitive.Item>
+              <PaletteGroup key={`pages:${space}`} heading={heading}>
+                {rows.map(({ item: page }) => {
+                  const PageIcon = routeIconForPath(page.href);
+                  return (
+                    <CommandPrimitive.Item
+                      key={page.key}
+                      value={`page:${page.key}`}
+                      onSelect={() => palette.navigate(page.href)}
+                      className={ROW_CLASS}
+                    >
+                      <PageIcon className={ROW_ICON_CLASS} />
+                      <span className="min-w-0 flex-1 truncate">
+                        <HighlightText text={page.label} query={query} />
+                      </span>
+                    </CommandPrimitive.Item>
+                  );
+                })}
+              </PaletteGroup>
             );
           })}
-        </PaletteGroup>
+        </>
       ),
     });
   }
@@ -340,6 +360,47 @@ export function RootView({ model, rawQuery }: { model: RootModel; rawQuery: stri
                 <span data-testid="workspace-unread-dot" className="size-2 shrink-0 rounded-full bg-brand" />
               )}
             </CommandPrimitive.Item>
+          ))}
+        </PaletteGroup>
+      ),
+    });
+  }
+
+  // The workbench's own ledgers, one group per kind. Their headings are the
+  // pages' names from the layout bundle (`nav.sales_creators` …) — the same words
+  // the left column uses — so a row is filed where the reader last saw it.
+  const workbenchGroups: {
+    key: keyof typeof model.workbench;
+    type: (typeof TYPE_ORDER)[number];
+    labelKey: "sales_creators" | "sales_collabs" | "sales_quotes" | "boss_goals" | "content_topics";
+    icon: IconComponent;
+  }[] = [
+    { key: "creators", type: "creators", labelKey: "sales_creators", icon: Users },
+    { key: "collabs", type: "collabs", labelKey: "sales_collabs", icon: FolderKanban },
+    { key: "quotes", type: "quotes", labelKey: "sales_quotes", icon: FileText },
+    { key: "goals", type: "goals", labelKey: "boss_goals", icon: Target },
+    { key: "topics", type: "topics", labelKey: "content_topics", icon: Layers },
+  ];
+  for (const group of workbenchGroups) {
+    const rows = model.workbench[group.key];
+    if (rows.length === 0) continue;
+    const GroupIcon = group.icon;
+    groups.push({
+      key: group.key,
+      type: group.type,
+      score: rows[0]!.score,
+      node: (
+        <PaletteGroup key={group.key} heading={tLayout(($) => $.nav[group.labelKey])}>
+          {rows.map(({ item: hit }) => (
+            <ObjectRow
+              key={hit.id}
+              value={`${group.key}:${hit.id}`}
+              icon={<GroupIcon className={ROW_ICON_CLASS} />}
+              title={hit.label}
+              query={query}
+              detail={hit.detail}
+              onSelect={() => palette.navigate(hit.href)}
+            />
           ))}
         </PaletteGroup>
       ),

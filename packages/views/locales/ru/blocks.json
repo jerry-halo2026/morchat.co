@@ -55,7 +55,10 @@
     "crm_payment_collected_month": "Получено за месяц",
     "crm_quote_margin_rate": "Маржа сотрудничества",
     "crm_collab_roi": "Возврат на сотрудничество",
-    "crm_creator_repeat_rate": "Повторные авторы"
+    "crm_creator_repeat_rate": "Повторные авторы",
+    "agent_write_overwrite_rate": "Доля перезаписи",
+    "agent_review_reject_rate": "Доля отклонений",
+    "agent_action_rollback_rate": "Доля откатов"
   },
   "gap": {
     "needs_hired": "Через реестр ещё никто не принят на работу: нет даты найма для расчёта.",

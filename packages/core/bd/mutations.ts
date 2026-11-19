@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../api";
+import { api, isStaleWrite } from "../api";
 import { useWorkspaceId } from "../hooks";
 import { bdKeys } from "./queries";
 import type {
+  BdActivity,
+  BdQuote,
   CreateBdActivityRequest,
   CreateBdCampaignRequest,
   CreateBdQuoteRequest,
@@ -46,10 +48,20 @@ export function useCreateBdActivity() {
 
 export function useUpdateBdActivity() {
   const invalidate = useInvalidateBd();
+  const qc = useQueryClient();
+  const wsId = useWorkspaceId();
   return useMutation({
     mutationFn: ({ id, ...data }: { id: string } & UpdateBdActivityRequest) =>
       api.updateBdActivity(id, data),
     onSuccess: () => invalidate("activities"),
+    // 409 `stale_write`: put the server's row into the cache and re-read the
+    // ledger, so the editor shows what changed instead of retrying the write
+    // (COLLAB-MODEL §3).
+    onError: (error, variables) => {
+      if (!isStaleWrite<BdActivity>(error)) return;
+      qc.setQueryData(bdKeys.detail(wsId, "activities", variables.id), error.current);
+      invalidate("activities");
+    },
   });
 }
 
@@ -77,18 +89,42 @@ export function useCreateBdQuote() {
  */
 export function useUpdateBdQuote() {
   const invalidate = useInvalidateBd();
+  const qc = useQueryClient();
+  const wsId = useWorkspaceId();
   return useMutation({
     mutationFn: ({ id, ...data }: { id: string } & UpdateBdQuoteRequest) =>
       api.updateBdQuote(id, data),
     onSuccess: () => invalidate("quotes"),
+    onError: (error, variables) => {
+      if (!isStaleWrite<BdQuote>(error)) return;
+      qc.setQueryData(bdKeys.detail(wsId, "quotes", variables.id), error.current);
+      invalidate("quotes");
+    },
   });
 }
 
+/**
+ * Soft delete: the row leaves every answer, the record that it was written does not.
+ *
+ * The delete carries the `expected_revision` its caller read, like every other §3
+ * write (it travels in the query string — a DELETE body is not portable). Omit it
+ * and the server does not check, which is what an old client does. A 409 puts the
+ * server's row into the detail cache and rereads the ledger, so the page shows
+ * what happened instead of retrying a delete that was aimed at a row that moved.
+ */
 export function useDeleteBdQuote() {
   const invalidate = useInvalidateBd();
+  const qc = useQueryClient();
+  const wsId = useWorkspaceId();
   return useMutation({
-    mutationFn: (id: string) => api.deleteBdQuote(id),
+    mutationFn: ({ id, expectedRevision }: { id: string; expectedRevision?: number }) =>
+      api.deleteBdQuote(id, expectedRevision),
     onSuccess: () => invalidate(),
+    onError: (error, variables) => {
+      if (!isStaleWrite<BdQuote>(error)) return;
+      qc.setQueryData(bdKeys.detail(wsId, "quotes", variables.id), error.current);
+      invalidate();
+    },
   });
 }
 
@@ -115,5 +151,21 @@ export function useDeleteBdCampaign() {
   return useMutation({
     mutationFn: (id: string) => api.deleteBdCampaign(id),
     onSuccess: () => invalidate(),
+  });
+}
+
+/**
+ * Open (or read back) a quote's discussion (COLLAB-MODEL §5).
+ *
+ * The quote ledger has no `issue_id` column, so the server answers this from the
+ * origin stamp it put on the issue: the second call finds the first call's thread
+ * without any pointer on the row. Idempotent for the same reason, invalidated for
+ * the same reason — the row's thread count changed.
+ */
+export function useOpenBdQuoteThread() {
+  const invalidate = useInvalidateBd();
+  return useMutation({
+    mutationFn: (id: string) => api.openBdQuoteThread(id),
+    onSuccess: () => invalidate("quotes"),
   });
 }
