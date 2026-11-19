@@ -2779,13 +2779,29 @@ review     items 键存在 total=0                     # 客户端能解析
 creators_with_archived_at=0                         # 软删一条不漏
 ```
 
-### 27.4 仍未做（按建议顺序）
+### 27.5 第二轮：队列、游标、文本上限
 
-1. `/review` 的行只发 `label/detail`；客户端类型声明了 `actor_name/summary/changed_fields/amount/currency`，
-   界面因此有空列（判定信息不全）。
-2. 19 个列表收 `cursor`，只有 4 个回 `next_cursor` —— 真实数据过 50 行翻不动。
-3. 指针字段（`*string/*float64`）的显式 `null` 仍是静默保留；要改 `json.RawMessage`，
-   会波及 agent write 通道。
-4. `media.publish` 无落点（脚本状态没有 published）；TEXT 列除名字外无长度上限。
-5. `/creators`、`/hr`、`/hr/guides` 的 `?q=` 未转义；删除以外的写仍未全部接 `expected_revision`。
-6. `/overview` 的下一档优化是把 16 个聚合合成一条 SQL（~1.2s），属 SQL 层重构。
+1. **复核队列的行补全**：一条语句（四域 UNION ALL + LATERAL 取最新业务 activity）发出
+   `actor_type/actor_id/actor_name/agent_name/summary/changed_fields/amount/currency/created_at`；
+   `changed_fields` 说不清时是 `[]` 不是 null。页面三列从空变成可读，金额用 `<数字> <币种码>`
+   （符号会丢币种），CNY 与 USD 各成列、不换算不相加。
+2. **35 个 list 端点统一游标**：不是 19 个——另有 15 个连 `cursor` 都没收（SQL 只有 LIMIT）。
+   现全部走同一份 `workbenchPage / workbenchNextCursor`（满页才给值、短页 null、坏 cursor 400、
+   空页恒带 null）；混合方向（signals、affiliate/daily）与 NULL 排序尾巴（videos、signals）
+   各有跨页用例。跳过 `hr/doc-templates` 与无 LIMIT 的内嵌子表——给它们加 cursor 等于新造语义。
+3. **文本上限与 LIKE 转义收口**：12 列各有上限（512 / 20000 / 2048 / 128 / 64，rune 计数），
+   放在 `decodeWorkbenchBody` 与两个 raw-JSON 文本补丁点，所以 crm/media/bd 与 **agent 写工具**
+   （in-process 重放，必经 decode）都受约束；import 补 `text_too_long` 行级 reason（dry-run 同样报，
+   仍守「全有或全无」）。`?q=` 的 LIKE 元字符在 creators / hr-jobs / hr-questions 上转义。
+
+### 27.6 仍未做
+
+1. **指针字段的显式 `null` 仍是静默保留**（`*string/*float64` 无法区分「没传」与「传了 null」）：
+   前端点「清空预算/清空日期」会拿到 200 但旧值还在。要改 `json.RawMessage` 三态解码，先动
+   `workbench_agent_write.go`（它按 `*string` 构造请求）再动四个台账 handler。
+2. **`media.publish` 无落点**：媒体脚本状态只有 draft/review/approved/archived，没有「已发布」。
+   需要产品定义「发布」是哪个动作（倾向 `creator_posts` 的创建/更新 = 发布排期落地），再挂闸门。
+3. **`/overview` 的下一档**：把 16 个聚合合成一条 SQL（一次往返 ≈0.4s，可到 ~1.2s），属 SQL 重构。
+4. `hr/doc-templates` 仍不分页（整集合返回）；`TestWorkspaceTeardown*` 与 reward/change/doc 用例
+   混在同一 `-run` 子集时会删掉共享 fixture workspace，套件有顺序脆弱性。
+5. `text_too_long` 需要一个客户端文案 key（import 错误按 reason 查表时），当前只在 wire 上有。
