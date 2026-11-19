@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -53,6 +54,11 @@ const (
 	// five decisions a ratio is an anecdote, so the metric answers
 	// `insufficient_data` rather than a percentage.
 	reviewRejectMinSamples = 5
+
+	// reviewDefaultCurrency is what a queue row with no stored currency reports.
+	// A follow-up has no money at all; the client shows `—` for the amount rather
+	// than a zero, so the code is only there to keep the row's shape stable.
+	reviewDefaultCurrency = "CNY"
 )
 
 // The metric ids, spelled once: the catalog in workbench_metrics.go and the
@@ -86,16 +92,38 @@ func reviewOf(state string, reviewedBy pgtype.UUID, reviewedAt pgtype.Timestampt
 // WorkbenchReviewItem is one row in the queue. `label` is the creator's name and
 // `detail` the ledger's own status word (a collab's stage, a quote's status, a
 // follow-up's kind), so the queue is readable without opening every row.
+//
+// The rest of the row is what a verdict actually needs, because a queue that says
+// only "something changed" is a queue nobody can decide from:
+//
+//	actor_*        who wrote the change being reviewed, and whether that was an
+//	               agent. `actor_name` is the human's name, `agent_name` the
+//	               agent's; both NULL when the trail cannot say.
+//	summary        one line about the row: the creator plus the fact on trial.
+//	changed_fields the business fields that write touched, in the ledger's own
+//	               vocabulary. `[]` means the server cannot say, which is weaker
+//	               than "nothing moved".
+//	amount         the ledger's money on this row, or NULL for a ledger without
+//	               any. Never summed across rows and never converted.
 type WorkbenchReviewItem struct {
-	Domain       string  `json:"domain"`
-	ID           string  `json:"id"`
-	Label        string  `json:"label"`
-	Detail       string  `json:"detail"`
-	ReviewState  string  `json:"review_state"`
-	UpdatedAt    string  `json:"updated_at"`
-	Revision     int32   `json:"revision"`
-	AssigneeType *string `json:"assignee_type"`
-	AssigneeID   *string `json:"assignee_id"`
+	Domain        string   `json:"domain"`
+	ID            string   `json:"id"`
+	Label         string   `json:"label"`
+	Detail        string   `json:"detail"`
+	ReviewState   string   `json:"review_state"`
+	ActorType     string   `json:"actor_type"`
+	ActorID       *string  `json:"actor_id"`
+	AgentName     *string  `json:"agent_name"`
+	ActorName     *string  `json:"actor_name"`
+	Summary       string   `json:"summary"`
+	ChangedFields []string `json:"changed_fields"`
+	Amount        *float64 `json:"amount"`
+	Currency      string   `json:"currency"`
+	Revision      int32    `json:"revision"`
+	CreatedAt     string   `json:"created_at"`
+	UpdatedAt     string   `json:"updated_at"`
+	AssigneeType  *string  `json:"assignee_type"`
+	AssigneeID    *string  `json:"assignee_id"`
 }
 
 // WorkbenchReviewQueueResponse is `GET /api/workbench/review`. `total` is the
@@ -162,9 +190,10 @@ func reviewDomainNames() []string {
 // GetWorkbenchReviewQueue — GET /api/workbench/review?domain=&limit=
 //
 // `domain` omitted means "every ledger", which is the screen a reviewer actually
-// wants: the four queues merged newest-first. Each domain's page is read with the
-// same limit and the merge is cut to it, so one busy ledger cannot crowd the others
-// out entirely within the page.
+// wants: the four queues merged newest-first. One statement answers it
+// (ListPendingReviewRows): the ledgers are unioned in SQL and the newest business
+// audit event per row is joined in with a LATERAL, so a page of fifty rows is one
+// round trip rather than fifty.
 func (h *Handler) GetWorkbenchReviewQueue(w http.ResponseWriter, r *http.Request) {
 	scope, ok := h.workbenchReadScope(w, r)
 	if !ok {
@@ -173,7 +202,7 @@ func (h *Handler) GetWorkbenchReviewQueue(w http.ResponseWriter, r *http.Request
 	if !h.requireWorkbenchCapability(w, r, scope, capReviewAccept) {
 		return
 	}
-	domains := workbenchReviewDomains()
+	domainFilter := pgtype.Text{}
 	if raw := strings.TrimSpace(r.URL.Query().Get("domain")); raw != "" {
 		domain, known := workbenchReviewDomain(raw)
 		if !known {
@@ -181,105 +210,99 @@ func (h *Handler) GetWorkbenchReviewQueue(w http.ResponseWriter, r *http.Request
 				"domain must be one of: "+strings.Join(reviewDomainNames(), ", "))
 			return
 		}
-		domains = []reviewDomain{domain}
+		domainFilter = pgtype.Text{String: domain.wire, Valid: true}
 	}
 	limit := workbenchLimit(r)
 
-	items := make([]WorkbenchReviewItem, 0, limit)
-	for _, domain := range domains {
-		page, err := h.pendingReviewItems(r.Context(), scope, domain, limit)
-		if err != nil {
-			workbenchInternalError(w, r, "failed to read the review queue", err)
-			return
-		}
-		items = append(items, page...)
-	}
-	sort.SliceStable(items, func(i, j int) bool {
-		if items[i].UpdatedAt != items[j].UpdatedAt {
-			return items[i].UpdatedAt > items[j].UpdatedAt
-		}
-		return items[i].ID < items[j].ID
+	rows, err := h.Queries.ListPendingReviewRows(r.Context(), db.ListPendingReviewRowsParams{
+		WorkspaceID: scope.WorkspaceUUID,
+		Domain:      domainFilter,
+		Limit:       limit,
 	})
-	if int32(len(items)) > limit {
-		items = items[:limit]
+	if err != nil {
+		workbenchInternalError(w, r, "failed to read the review queue", err)
+		return
+	}
+	items := make([]WorkbenchReviewItem, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, reviewItemOf(row))
 	}
 	writeJSON(w, http.StatusOK, WorkbenchReviewQueueResponse{Items: items, Total: len(items)})
 }
 
-// pendingReviewItems reads one domain's pending page.
-func (h *Handler) pendingReviewItems(ctx context.Context, scope workbenchScope, domain reviewDomain, limit int32) ([]WorkbenchReviewItem, error) {
-	items := make([]WorkbenchReviewItem, 0, limit)
-	switch domain.wire {
-	case reviewDomainCollabs:
-		rows, err := h.Queries.ListPendingCrmCollabs(ctx, db.ListPendingCrmCollabsParams{
-			WorkspaceID: scope.WorkspaceUUID, Limit: limit,
-		})
-		if err != nil {
-			return nil, err
-		}
-		for _, row := range rows {
-			items = append(items, reviewItemOf(domain, row.ID, row.Label, row.Detail, row.ReviewState,
-				row.UpdatedAt, row.Revision, row.AssigneeType, row.AssigneeID))
-		}
-	case reviewDomainQuotes:
-		rows, err := h.Queries.ListPendingCreatorQuotes(ctx, db.ListPendingCreatorQuotesParams{
-			WorkspaceID: scope.WorkspaceUUID, Limit: limit,
-		})
-		if err != nil {
-			return nil, err
-		}
-		for _, row := range rows {
-			items = append(items, reviewItemOf(domain, row.ID, row.Label, row.Detail, row.ReviewState,
-				row.UpdatedAt, row.Revision, row.AssigneeType, row.AssigneeID))
-		}
-	case reviewDomainActivities:
-		rows, err := h.Queries.ListPendingCreatorActivities(ctx, db.ListPendingCreatorActivitiesParams{
-			WorkspaceID: scope.WorkspaceUUID, Limit: limit,
-		})
-		if err != nil {
-			return nil, err
-		}
-		for _, row := range rows {
-			items = append(items, reviewItemOf(domain, row.ID, row.Label, row.Detail, row.ReviewState,
-				row.UpdatedAt, row.Revision, row.AssigneeType, row.AssigneeID))
-		}
-	case reviewDomainSettlements:
-		rows, err := h.Queries.ListPendingCrmSettlements(ctx, db.ListPendingCrmSettlementsParams{
-			WorkspaceID: scope.WorkspaceUUID, Limit: limit,
-		})
-		if err != nil {
-			return nil, err
-		}
-		for _, row := range rows {
-			items = append(items, reviewItemOf(domain, row.ID, row.Label, row.Detail, row.ReviewState,
-				row.UpdatedAt, row.Revision, row.AssigneeType, row.AssigneeID))
-		}
-	default:
-		return nil, fmt.Errorf("unknown review domain %q", domain.wire)
+// reviewItemOf flattens one queue row for the wire.
+//
+// The two nullable names stay nullable rather than being filled with "Agent" or
+// the id: a row whose writer the trail cannot name is a different fact from one
+// written by a member, and the client renders that difference.
+func reviewItemOf(row db.ListPendingReviewRowsRow) WorkbenchReviewItem {
+	fields := row.ChangedFields
+	if fields == nil {
+		fields = []string{}
 	}
-	return items, nil
+	currency := strings.TrimSpace(row.Currency)
+	if currency == "" {
+		currency = reviewDefaultCurrency
+	}
+	return WorkbenchReviewItem{
+		Domain:        row.Domain,
+		ID:            uuidToString(row.ID),
+		Label:         row.Label,
+		Detail:        row.Detail,
+		ReviewState:   row.ReviewState,
+		ActorType:     row.ActorType,
+		ActorID:       uuidToPtr(row.ActorID),
+		AgentName:     textToPtr(row.AgentName),
+		ActorName:     textToPtr(row.ActorName),
+		Summary:       reviewSummary(row, currency),
+		ChangedFields: fields,
+		Amount:        numericToFloatPtr(row.Amount),
+		Currency:      currency,
+		Revision:      row.Revision,
+		CreatedAt:     timestampToString(row.CreatedAt),
+		UpdatedAt:     timestampToString(row.UpdatedAt),
+		AssigneeType:  textToPtr(row.AssigneeType),
+		AssigneeID:    uuidToPtr(row.AssigneeID),
+	}
 }
 
-func reviewItemOf(
-	domain reviewDomain,
-	id pgtype.UUID,
-	label, detail, state string,
-	updatedAt pgtype.Timestamptz,
-	revision int32,
-	assigneeType pgtype.Text,
-	assigneeID pgtype.UUID,
-) WorkbenchReviewItem {
-	return WorkbenchReviewItem{
-		Domain:       domain.wire,
-		ID:           uuidToString(id),
-		Label:        label,
-		Detail:       detail,
-		ReviewState:  state,
-		UpdatedAt:    timestampToString(updatedAt),
-		Revision:     revision,
-		AssigneeType: textToPtr(assigneeType),
-		AssigneeID:   uuidToPtr(assigneeID),
+// reviewSummary is the queue's one line about a row: the creator, then the fact
+// the verdict is about. It says CRUD in the ledger's own words ("moved to
+// confirmed", "quoted"), because the reviewer is judging exactly that word.
+func reviewSummary(row db.ListPendingReviewRowsRow, currency string) string {
+	money := reviewAmountLabel(numericToFloatPtr(row.Amount), currency)
+	switch row.Domain {
+	case reviewDomainCollabs:
+		return reviewSummaryLine(fmt.Sprintf("Creator %s · moved to %s", row.Label, row.Detail), money)
+	case reviewDomainQuotes:
+		return reviewSummaryLine(fmt.Sprintf("Creator %s · quoted", row.Label), money)
+	case reviewDomainActivities:
+		return fmt.Sprintf("Creator %s · follow-up %s", row.Label, row.Detail)
+	case reviewDomainSettlements:
+		return reviewSummaryLine(
+			fmt.Sprintf("Creator %s · settlement %s", row.Label, row.Detail), money)
+	default:
+		return row.Label
 	}
+}
+
+// reviewSummaryLine appends the money when the ledger has any; a row without an
+// amount keeps a summary without a trailing separator.
+func reviewSummaryLine(base, money string) string {
+	if money == "" {
+		return base
+	}
+	return base + " · " + money
+}
+
+// reviewAmountLabel renders one amount with its own currency code. No conversion
+// and no symbol: "$" is three currencies, and the queue's job is to show what the
+// row stores.
+func reviewAmountLabel(amount *float64, currency string) string {
+	if amount == nil {
+		return ""
+	}
+	return strconv.FormatFloat(*amount, 'f', -1, 64) + " " + currency
 }
 
 // ---- decisions -------------------------------------------------------------

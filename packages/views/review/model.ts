@@ -142,13 +142,21 @@ export function writtenByAgent(row: ReviewQueueRow): boolean {
  *
  * Three states, because they are three different facts: an agent whose name the
  * server could resolve, an agent whose name it could not (the id is all we have,
- * and inventing "Agent" would hide that), and a member.
+ * and inventing "Agent" would hide that), and a member. A row whose trail names
+ * neither is `unknown` — the server sends an empty `actor_type` when it cannot
+ * say who wrote the row, and calling that person a member would be a guess.
  */
-export function authorLabel(row: ReviewQueueRow): { kind: "agent" | "member"; name: string | null } {
+export function authorLabel(row: ReviewQueueRow): {
+  kind: "agent" | "member" | "unknown";
+  name: string | null;
+} {
   if (writtenByAgent(row)) {
     return { kind: "agent", name: row.agent_name ?? row.actor_name ?? null };
   }
-  return { kind: "member", name: row.actor_name ?? null };
+  if (row.actor_type === "member") {
+    return { kind: "member", name: row.actor_name ?? null };
+  }
+  return { kind: "unknown", name: row.actor_name ?? null };
 }
 
 /** The changed fields, trimmed and de-duplicated; unknown fields stay as sent. */

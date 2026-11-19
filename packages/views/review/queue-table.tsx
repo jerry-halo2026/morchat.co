@@ -60,14 +60,15 @@ export function ReviewQueueTableRow({
 
   const author = authorLabel(row);
   const fields = changedFields(row);
+  // Amount and currency as stored: the row's own number, its own code, no
+  // conversion and no cross-row total. A ledger without money answers `null`,
+  // which is a dash — "no amount on this row", not "zero".
   const amount =
     row.amount === null
       ? copy("row_no_amount")
-      : new Intl.NumberFormat(locales, {
-          style: "currency",
-          currency: row.currency || "CNY",
-          maximumFractionDigits: 2,
-        }).format(row.amount);
+      : `${new Intl.NumberFormat(locales, { maximumFractionDigits: 2 }).format(row.amount)} ${
+          row.currency || "CNY"
+        }`;
 
   return (
     <TableRow
@@ -111,7 +112,11 @@ export function ReviewQueueTableRow({
                 : "bg-muted text-muted-foreground",
             )}
           >
-            {author.kind === "agent" ? copy("row_agent") : copy("row_member")}
+            {author.kind === "agent"
+              ? copy("row_agent")
+              : author.kind === "member"
+                ? copy("row_member")
+                : copy("row_unknown_author")}
           </span>
           <span className="truncate text-caption" title={author.name ?? row.actor_id ?? ""}>
             {author.name ?? row.actor_id ?? "—"}

@@ -32,6 +32,8 @@ const COPY = {
   /** One row. */
   row_agent: "Agent",
   row_member: "Member",
+  /** The trail does not name a writer at all (a row older than the audit trail). */
+  row_unknown_author: "Not recorded",
   row_no_fields: "No field detail",
   row_no_amount: "—",
   row_selected: "Selected",

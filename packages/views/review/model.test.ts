@@ -147,6 +147,12 @@ describe("how a row reads", () => {
       kind: "member",
       name: "Ada",
     });
+    // An empty `actor_type` is the server saying it cannot attribute the write;
+    // calling that person a member would be the page's guess, not a fact.
+    expect(authorLabel(row("4", { actor_type: "", agent_name: null, actor_name: null }))).toEqual({
+      kind: "unknown",
+      name: null,
+    });
   });
 
   it("trims the changed-field list and keeps unknown names as sent", () => {

@@ -3,10 +3,12 @@
 --
 -- Two families:
 --
---   * the queue — pending rows per ledger, newest first, each flattened to the
---     projection a reviewer needs (which ledger, what it is about, the money when
---     the ledger has any, the version counter). The four queries share one column
---     list so the handler can merge them into a single ordered page.
+--   * the queue — pending rows across the four ledgers, newest first, each
+--     flattened to the projection a reviewer needs (which ledger, what it is
+--     about, who wrote it, which business fields the write touched, the money
+--     when the ledger has any, the version counter). One statement, not four:
+--     the reviewer's screen is one page, and four reads that are then merged in
+--     Go are four round trips for one answer.
 --   * the three `(agent_id, domain)` slices. They are aggregates over
 --     `activity_log`, not over the ledgers, because that is where "a human changed
 --     what an agent wrote" is recorded — including the `overwrite_reason` that
@@ -15,92 +17,155 @@
 --     the sample count has to reach the client so a 1-of-2 cell is not read as a
 --     verdict.
 
--- name: ListPendingCrmCollabs :many
-SELECT cc.id,
-       cc.workspace_id,
-       cc.review_state,
-       cc.created_at,
-       cc.updated_at,
-       cc.revision,
-       cc.assignee_type,
-       cc.assignee_id,
-       c.display_name AS label,
-       cc.stage AS detail,
-       coalesce(cc.final_amount, cc.quote_amount)::numeric AS amount,
-       cc.currency
-FROM crm_collab cc
-JOIN creator c ON c.id = cc.creator_id
-WHERE cc.workspace_id = sqlc.arg('workspace_id')::uuid
-  AND cc.review_state = 'pending'
-  AND cc.archived_at IS NULL
-ORDER BY cc.updated_at DESC, cc.id DESC
-LIMIT sqlc.arg('limit')::integer;
-
--- name: ListPendingCreatorQuotes :many
-SELECT q.id,
-       q.workspace_id,
-       q.review_state,
-       q.created_at,
-       q.updated_at,
-       q.revision,
-       q.assignee_type,
-       q.assignee_id,
-       c.display_name AS label,
-       q.status AS detail,
-       q.fee_amount::numeric AS amount,
-       q.currency
-FROM creator_quote q
-JOIN creator c ON c.id = q.creator_id
-WHERE q.workspace_id = sqlc.arg('workspace_id')::uuid
-  AND q.review_state = 'pending'
-  AND q.archived_at IS NULL
-ORDER BY q.updated_at DESC, q.id DESC
-LIMIT sqlc.arg('limit')::integer;
-
--- name: ListPendingCreatorActivities :many
--- A follow-up carries no money, so `amount` is NULL and `currency` empty rather
--- than 0: "this ledger has no amount" is not "the amount is zero" (§26.4's
--- three-state rule applied to a column).
-SELECT a.id,
-       a.workspace_id,
-       a.review_state,
-       a.created_at,
-       a.updated_at,
-       a.revision,
-       a.assignee_type,
-       a.assignee_id,
-       c.display_name AS label,
-       a.kind AS detail,
-       NULL::numeric AS amount,
-       ''::text AS currency
-FROM creator_activity a
-JOIN creator c ON c.id = a.creator_id
-WHERE a.workspace_id = sqlc.arg('workspace_id')::uuid
-  AND a.review_state = 'pending'
-  AND a.archived_at IS NULL
-ORDER BY a.updated_at DESC, a.id DESC
-LIMIT sqlc.arg('limit')::integer;
-
--- name: ListPendingCrmSettlements :many
-SELECT s.id,
-       s.workspace_id,
-       s.review_state,
-       s.created_at,
-       s.updated_at,
-       s.revision,
-       s.assignee_type,
-       s.assignee_id,
-       c.display_name AS label,
-       s.kind AS detail,
-       s.amount::numeric AS amount,
-       s.currency
-FROM crm_settlement s
-JOIN crm_collab cc ON cc.id = s.collab_id
-JOIN creator c ON c.id = cc.creator_id
-WHERE s.workspace_id = sqlc.arg('workspace_id')::uuid
-  AND s.review_state = 'pending'
-  AND s.archived_at IS NULL
-ORDER BY s.updated_at DESC, s.id DESC
+-- name: ListPendingReviewRows :many
+-- The queue's projection: the pending rows of all four ledgers in one read
+-- (§26.1). `domain` is the wire name, `subject_type` the trail's name for the
+-- same ledger, so the caller never has to translate one into the other.
+--
+-- The last part of the statement is the part that makes the queue readable:
+-- "who wrote this, and what did they touch" is answered by the newest business
+-- `activity_log` event about the row, read with a LATERAL join. LATERAL and not a
+-- Go-side lookup: a fifty-row page would otherwise cost fifty round trips for an
+-- annotation that the index `idx_activity_log_subject`
+-- (workspace_id, subject_type, subject_id, created_at DESC) answers in one.
+-- Review decisions are excluded — `%.review_%` is a verdict on a write, not a
+-- write, and a row can be written again after one.
+--
+-- The actor resolves through the two tables a writer can live in: an agent's own
+-- name (`agent.name`; `agent_runtime` is the machine it runs on, not its name) or
+-- a member's user name — a member actor id is a `user` id (see `workbenchActor`),
+-- not a `member` row id.
+--
+-- `changed_fields` is the key set of `details.after` in the ledger's own
+-- vocabulary. `{}` means the server cannot say what moved (an event with no
+-- `after`, a row written before the trail existed), which the client renders as
+-- "not recorded" — a different statement from "nothing moved".
+--
+-- A follow-up carries no money: `amount` NULL and the default currency, because
+-- "this ledger has no amount" is not "the amount is zero" (§26.4's three-state
+-- rule applied to a column).
+WITH pending AS (
+    SELECT 'collabs'::text AS domain,
+           'crm_collab'::text AS subject_type,
+           cc.workspace_id,
+           cc.id,
+           cc.review_state,
+           cc.created_at,
+           cc.updated_at,
+           cc.revision,
+           cc.assignee_type,
+           cc.assignee_id,
+           c.display_name::text AS label,
+           cc.stage::text AS detail,
+           coalesce(cc.final_amount, cc.quote_amount)::numeric AS amount,
+           cc.currency::text AS currency
+    FROM crm_collab cc
+    JOIN creator c ON c.id = cc.creator_id
+    WHERE cc.workspace_id = sqlc.arg('workspace_id')::uuid
+      AND cc.review_state = 'pending'
+      AND cc.archived_at IS NULL
+    UNION ALL
+    SELECT 'quotes'::text,
+           'creator_quote'::text,
+           q.workspace_id,
+           q.id,
+           q.review_state,
+           q.created_at,
+           q.updated_at,
+           q.revision,
+           q.assignee_type,
+           q.assignee_id,
+           c.display_name::text,
+           q.status::text,
+           q.fee_amount::numeric,
+           q.currency::text
+    FROM creator_quote q
+    JOIN creator c ON c.id = q.creator_id
+    WHERE q.workspace_id = sqlc.arg('workspace_id')::uuid
+      AND q.review_state = 'pending'
+      AND q.archived_at IS NULL
+    UNION ALL
+    SELECT 'activities'::text,
+           'creator_activity'::text,
+           a.workspace_id,
+           a.id,
+           a.review_state,
+           a.created_at,
+           a.updated_at,
+           a.revision,
+           a.assignee_type,
+           a.assignee_id,
+           c.display_name::text,
+           a.kind::text,
+           NULL::numeric,
+           'CNY'::text
+    FROM creator_activity a
+    JOIN creator c ON c.id = a.creator_id
+    WHERE a.workspace_id = sqlc.arg('workspace_id')::uuid
+      AND a.review_state = 'pending'
+      AND a.archived_at IS NULL
+    UNION ALL
+    SELECT 'settlements'::text,
+           'crm_settlement'::text,
+           s.workspace_id,
+           s.id,
+           s.review_state,
+           s.created_at,
+           s.updated_at,
+           s.revision,
+           s.assignee_type,
+           s.assignee_id,
+           c.display_name::text,
+           s.kind::text,
+           s.amount::numeric,
+           s.currency::text
+    FROM crm_settlement s
+    JOIN crm_collab cc ON cc.id = s.collab_id
+    JOIN creator c ON c.id = cc.creator_id
+    WHERE s.workspace_id = sqlc.arg('workspace_id')::uuid
+      AND s.review_state = 'pending'
+      AND s.archived_at IS NULL
+)
+SELECT p.domain,
+       p.id,
+       p.review_state,
+       p.created_at,
+       p.updated_at,
+       p.revision,
+       p.assignee_type,
+       p.assignee_id,
+       p.label,
+       p.detail,
+       p.amount,
+       p.currency,
+       coalesce(last_activity.actor_type, '')::text AS actor_type,
+       last_activity.actor_id,
+       writer_agent.name AS agent_name,
+       writer_member.name AS actor_name,
+       coalesce(
+           (SELECT array_agg(changed.field ORDER BY changed.field)
+            FROM jsonb_object_keys(last_activity.details -> 'after') AS changed(field)),
+           '{}'::text[]
+       )::text[] AS changed_fields
+FROM pending p
+LEFT JOIN LATERAL (
+    SELECT al.actor_type, al.actor_id, al.details
+    FROM activity_log al
+    WHERE al.workspace_id = p.workspace_id
+      AND al.subject_type = p.subject_type
+      AND al.subject_id = p.id
+      AND al.action NOT LIKE '%.review_%'
+    ORDER BY al.created_at DESC, al.id DESC
+    LIMIT 1
+) last_activity ON TRUE
+LEFT JOIN agent writer_agent
+       ON last_activity.actor_type = 'agent'
+      AND writer_agent.id = last_activity.actor_id
+LEFT JOIN "user" writer_member
+       ON last_activity.actor_type = 'member'
+      AND writer_member.id = last_activity.actor_id
+WHERE (sqlc.narg('domain')::text IS NULL OR p.domain = sqlc.narg('domain')::text)
+ORDER BY p.updated_at DESC, p.id DESC
 LIMIT sqlc.arg('limit')::integer;
 
 -- name: SetCrmCollabReview :one
