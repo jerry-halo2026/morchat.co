@@ -17,6 +17,10 @@ describe("parseTabSubject", () => {
     ["/acme/agents", { kind: "page", page: "agents" }],
     ["/acme/squads", { kind: "page", page: "squads" }],
     ["/acme/usage", { kind: "page", page: "usage" }],
+    // One page, three tabs: the tab rides in the query string, so the subject
+    // stays the page itself (a tab bar label must not read "Overview" twice).
+    ["/acme/overview", { kind: "page", page: "overview" }],
+    ["/acme/overview?tab=ledger&dept=d1", { kind: "page", page: "overview" }],
     ["/acme/runtimes", { kind: "page", page: "runtimes" }],
     ["/acme/skills", { kind: "page", page: "skills" }],
     ["/acme/settings", { kind: "page", page: "settings" }],

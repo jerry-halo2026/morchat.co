@@ -1,0 +1,890 @@
+/**
+ * Turning a pasted spreadsheet into ledger rows.
+ *
+ * The workbench's people ledgers are filled from Excel in practice, so the one
+ * shape HR already has — a header row and cells — is the import format. This
+ * module is the whole of that translation and nothing else: it never fetches,
+ * never writes, and never reads the DOM, so the parsing rules can be tested
+ * against rows alone (`import.test.ts`) and the dialog stays a thin shell
+ * (`import-sheet.tsx`).
+ *
+ * Three rules are worth stating because they show on screen:
+ *
+ * - **A header is a column, not a field.** `guessColumnMap` maps aliases onto
+ *   the domain's fields; an unknown header is simply not mapped, and the user
+ *   picks the column by hand.
+ * - **A reference is a name.** A job is matched by title (exact, then
+ *   substring), a member and a department by exact name. A name that matches
+ *   nothing is a row error, never a new row: imports fill ledgers, they do not
+ *   invent staff or postings.
+ * - **One cell, one value.** A salary band pasted as `15-25K` becomes one
+ *   number (its midpoint) in one field; a cell that cannot be read as one value
+ *   is an error that asks for separate columns rather than a guess.
+ */
+
+import type { HrCandidateStage } from "@morechat/core/types";
+
+/**
+ * The ledgers an import can fill.
+ *
+ * Interviews are scheduled per candidate and scorecards belong to an interview,
+ * so neither has a paste entry. The affiliate ledgers have one between them:
+ * `affiliate_daily` is the platform's export (a day per row), while a product, a
+ * pick and a platform statement are each one decision rather than a sheet.
+ */
+export type ImportDomain = "jobs" | "candidates" | "employees" | "affiliate_daily";
+
+export interface ParsedTable {
+  headers: string[];
+  rows: string[][];
+}
+
+export interface ImportRowContext {
+  jobs: { id: string; title: string }[];
+  members: { id: string; name: string }[];
+  departments: { id: string; name: string }[];
+  /**
+   * The picks a daily report can be filed against (`§11`), each with both halves
+   * of its identity. A daily row is written per pick, so the importer resolves
+   * 商品 + 达人 (the sheet's own columns) into that pick's id.
+   */
+  picks: { id: string; productTitle: string; creatorName: string }[];
+}
+
+export interface ImportRowResult {
+  /** The row's line in the pasted text: the header is line 1, so the first
+   *  data row is line 2 — the line the user sees in Excel. */
+  line: number;
+  values: Record<string, string>;
+  errors: string[];
+}
+
+/**
+ * The fields a ledger import understands.
+ *
+ * These names are the keys of `values` in an `ImportRowResult`, the keys of a
+ * `guessColumnMap` result, and — once resolved — the prefixes of the ids the
+ * import adds (`job_id`, `member_id`, `department_id`).
+ */
+export type ImportField =
+  | "title"
+  | "department"
+  | "level"
+  | "headcount"
+  | "salary"
+  | "name"
+  | "job"
+  | "stage"
+  | "phone"
+  | "email"
+  | "expected_salary"
+  | "member"
+  | "job_title"
+  | "grade"
+  | "hire_date"
+  | "regular_date"
+  | "contract_end"
+  | "salary_min"
+  | "salary_max"
+  | "owner"
+  // Migration 705: the candidate's half of the match score. A sheet that already
+  // carries 学历 / 经验年限 / 简历 is the cheapest way to fill them in bulk, and
+  // without them three of the four dimensions stay "no signal".
+  | "edu"
+  | "years_experience"
+  | "resume_text"
+  // B2 (`§11`): a platform report row is 商品 × 达人 × 日期 plus the day's five
+  // measures. The first three resolve into one `pick_id`.
+  | "pick"
+  | "product"
+  | "creator"
+  | "stat_date"
+  | "gmv"
+  | "orders"
+  | "refund"
+  | "commission";
+
+/**
+ * The fields each ledger asks for, in mapping order.
+ *
+ * Order decides ties: a sheet with one `岗位` column maps it to `title` for
+ * jobs and to `job` for candidates, because each domain only lists the fields
+ * it stores. The order is required fields first, so a header that could be
+ * either lands on the required one.
+ */
+export const IMPORT_FIELDS: Record<ImportDomain, readonly ImportField[]> = {
+  jobs: ["title", "department", "level", "headcount", "salary", "salary_min", "salary_max", "owner"],
+  candidates: [
+    "name",
+    "job",
+    "stage",
+    "phone",
+    "email",
+    "expected_salary",
+    "edu",
+    "years_experience",
+    "resume_text",
+    "owner",
+  ],
+  employees: [
+    "member",
+    "job_title",
+    "grade",
+    "hire_date",
+    "regular_date",
+    "contract_end",
+    "department",
+  ],
+  // The explicit 选品 column first, then the two halves the daily sheet usually
+  // carries instead: either resolves the pick the day belongs to.
+  affiliate_daily: [
+    "pick",
+    "product",
+    "creator",
+    "stat_date",
+    "gmv",
+    "orders",
+    "refund",
+    "commission",
+  ],
+};
+
+/**
+ * Header aliases, English and Chinese.
+ *
+ * Both are compared after `normalizeLabel`, which drops case and separators, so
+ * `Job Title`, `job_title` and `JOB-TITLE` are one alias. The Chinese set is
+ * what an HR sheet in this workspace actually says; the English set is what a
+ * CSV export of the same sheet says.
+ */
+const FIELD_ALIASES: Record<ImportField, readonly string[]> = {
+  title: ["title", "job_title", "position", "职位", "职位名称", "岗位", "岗位名称", "招聘岗位"],
+  department: ["department", "dept", "部门", "所属部门"],
+  level: ["level", "级别", "职级"],
+  headcount: ["headcount", "hc", "人数", "编制", "招聘人数"],
+  salary: ["salary", "salary_range", "薪资", "薪水", "工资", "薪资范围"],
+  name: ["name", "candidate", "candidate_name", "姓名", "名字", "候选人", "候选人姓名"],
+  job: ["job", "job_title", "applied_for", "岗位", "岗位名称", "应聘岗位", "应聘职位"],
+  stage: ["stage", "status", "阶段", "状态", "进度"],
+  phone: ["phone", "phone_number", "mobile", "tel", "电话", "手机", "手机号", "联系电话"],
+  email: ["email", "e_mail", "mail", "邮箱", "邮件", "电子邮件"],
+  expected_salary: ["expected_salary", "expectation", "期望薪资", "期望薪酬", "期望工资"],
+  member: ["member", "member_name", "employee", "员工", "成员", "姓名", "名字", "员工姓名"],
+  job_title: ["job_title", "title", "position", "职位", "岗位", "职务"],
+  grade: ["grade", "职级", "级别", "等级"],
+  hire_date: ["hire_date", "onboard_date", "start_date", "入职日期", "入职时间", "入职日"],
+  regular_date: ["regular_date", "confirm_date", "转正日期", "转正日", "转正时间"],
+  contract_end: ["contract_end", "contract_end_date", "合同到期", "合同到期日", "合同截止"],
+  // Two columns beat one: a sheet with 薪资下限/上限 keeps the band, while a
+  // single 薪资 range column can only supply its midpoint.
+  salary_min: ["salary_min", "min_salary", "薪资下限", "下限", "最低薪资"],
+  salary_max: ["salary_max", "max_salary", "薪资上限", "上限", "最高薪资"],
+  owner: ["owner", "manager", "用人经理", "负责人", "招聘负责人", "岗位负责人"],
+  // The three the match score reads on the candidate side (705). `edu` shares
+  // `hr_job.edu`'s free-text vocabulary, `years_experience` is a number of years
+  // and `resume_text` is the body itself.
+  edu: ["edu", "education", "degree", "学历", "最高学历", "教育背景"],
+  years_experience: [
+    "years_experience",
+    "experience_years",
+    "years",
+    "year",
+    "experience",
+    "经验年限",
+    "工作年限",
+    "年限",
+    "工作经验",
+  ],
+  resume_text: ["resume_text", "resume", "cv", "简历", "简历正文", "简历内容"],
+  // --- B2 (`§11`) ---------------------------------------------------------
+  // A platform report in this workspace says 选品 / 商品 / 达人 / 日期 / GMV /
+  // 订单 / 退款 / 佣金; an English export of the same report says the field names.
+  pick: ["pick", "pick_label", "selection", "选品", "推广计划", "选品名称"],
+  product: ["product", "product_title", "product_name", "商品", "商品名称", "商品标题", "sku"],
+  creator: ["creator", "creator_name", "influencer", "达人", "达人名称", "主播"],
+  stat_date: ["stat_date", "date", "day", "日报日期", "日期", "统计日期", "成交日期"],
+  gmv: ["gmv", "gmv_amount", "revenue", "成交额", "销售额", "成交金额"],
+  orders: ["orders", "order_count", "order", "订单", "订单数", "订单量"],
+  refund: ["refund", "refund_amount", "退款", "退款金额", "退货金额"],
+  commission: ["commission", "commission_amount", "佣金", "预估佣金", "佣金金额"],
+};
+
+/** A candidate's stage as a sheet spells it. The enum is the server's
+ *  (`hr_candidate.stage`); the aliases are what people type. */
+const STAGE_ALIASES: Record<HrCandidateStage, readonly string[]> = {
+  screening: ["screening", "筛选", "初筛", "简历筛选"],
+  test: ["test", "笔试", "测试"],
+  interview: ["interview", "面试"],
+  scored: ["scored", "评分", "已评分", "打分"],
+  offer: ["offer", "offer阶段", "录用", "发offer"],
+  hired: ["hired", "入职", "已入职"],
+  rejected: ["rejected", "拒绝", "淘汰", "未通过"],
+  withdrawn: ["withdrawn", "放弃", "撤回", "已放弃"],
+};
+
+/** What a row can be wrong about. The dialog translates the code; the value
+ *  after the separator is the cell it could not use. */
+export type ImportErrorCode =
+  | "missing_title"
+  | "missing_name"
+  | "missing_job"
+  | "unknown_job"
+  | "unknown_member"
+  | "duplicate"
+  | "unknown_department"
+  | "bad_date"
+  | "bad_amount"
+  | "bad_stage"
+  | "server_error"
+  // B2 (`§11`): a daily row is keyed by a pick and a day, so both can be the
+  // thing that is missing or unreadable.
+  | "missing_pick"
+  | "unknown_pick"
+  | "missing_date";
+
+/**
+ * `errors` entries are `code` or `code|value`.
+ *
+ * A row result has to be a plain record of strings — it comes out of a pasted
+ * sheet and goes into a table — so the offending cell travels inside the error
+ * instead of a second parallel array.
+ */
+const ERROR_SEPARATOR = "|";
+
+export function formatImportError(code: ImportErrorCode, value?: string): string {
+  return value === undefined ? code : `${code}${ERROR_SEPARATOR}${value}`;
+}
+
+export function parseImportError(error: string): { code: ImportErrorCode; value: string } {
+  const at = error.indexOf(ERROR_SEPARATOR);
+  if (at === -1) return { code: error as ImportErrorCode, value: "" };
+  return {
+    code: error.slice(0, at) as ImportErrorCode,
+    value: error.slice(at + ERROR_SEPARATOR.length),
+  };
+}
+
+const DELIMITERS = ["\t", ",", ";"] as const;
+
+/**
+ * Reads pasted text as a header row and data rows.
+ *
+ * The delimiter is decided once, from the header line: a sheet cannot mix tabs
+ * and commas, and deciding per row would let one stray comma shift a column.
+ * Values are trimmed and rows are padded or cut to the header's width, so every
+ * row can be read by column index afterwards.
+ */
+export function parseTable(text: string): ParsedTable {
+  const body = text.replace(/^\uFEFF/, "");
+  if (!body.trim()) return { headers: [], rows: [] };
+
+  const cells = splitCells(body, detectDelimiter(body));
+  const filled = cells.filter((row) => row.some((cell) => cell.trim() !== ""));
+  const [head, ...rest] = filled;
+  if (!head) return { headers: [], rows: [] };
+
+  const headers = head.map((cell) => cell.trim());
+  const rows = rest.map((row) => headers.map((_, index) => (row[index] ?? "").trim()));
+  return { headers, rows };
+}
+
+/** The delimiter the header line uses most; tab wins a tie, and a header with
+ *  none of them stays one column rather than being cut at its first comma. */
+function detectDelimiter(text: string): string {
+  const [firstLine = ""] = text.split(/\r\n|\r|\n/, 1);
+  let best = "\t";
+  let bestCount = 0;
+  for (const delimiter of DELIMITERS) {
+    const count = firstLine.split(delimiter).length - 1;
+    if (count > bestCount) {
+      best = delimiter;
+      bestCount = count;
+    }
+  }
+  return best;
+}
+
+/**
+ * Cell tokenizer: quotes wrap a cell that contains the delimiter, a doubled
+ * quote inside a quoted cell is one quote, and a line break inside quotes stays
+ * part of the cell (Excel writes a multi-line cell that way). CRLF and a lone
+ * CR both end a row.
+ */
+function splitCells(text: string, delimiter: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = "";
+  let quoted = false;
+  let index = 0;
+
+  const endRow = () => {
+    row.push(cell);
+    rows.push(row);
+    row = [];
+    cell = "";
+  };
+
+  while (index < text.length) {
+    const char = text[index]!;
+    if (quoted) {
+      if (char === '"') {
+        if (text[index + 1] === '"') {
+          cell += '"';
+          index += 2;
+          continue;
+        }
+        quoted = false;
+        index += 1;
+        continue;
+      }
+      cell += char;
+      index += 1;
+      continue;
+    }
+    if (char === '"' && cell.trim() === "") {
+      cell = "";
+      quoted = true;
+      index += 1;
+      continue;
+    }
+    if (char === delimiter) {
+      row.push(cell);
+      cell = "";
+      index += 1;
+      continue;
+    }
+    if (char === "\r" || char === "\n") {
+      if (char === "\r" && text[index + 1] === "\n") index += 1;
+      endRow();
+      index += 1;
+      continue;
+    }
+    cell += char;
+    index += 1;
+  }
+  if (cell !== "" || row.length > 0) endRow();
+
+  return rows;
+}
+
+/**
+ * Reads a header row as a field → column map.
+ *
+ * Each field claims the first column that names it and has not been claimed,
+ * so a sheet with both `岗位` and `应聘岗位` maps both instead of dropping one.
+ * Unrecognised headers are left for the user — guessing at `备注` would put a
+ * note into a phone number.
+ */
+export function guessColumnMap(
+  headers: string[],
+  domain: ImportDomain,
+): Partial<Record<string, number>> {
+  const normalized = headers.map(normalizeLabel);
+  const taken = new Set<number>();
+  const map: Partial<Record<string, number>> = {};
+  for (const field of IMPORT_FIELDS[domain]) {
+    const aliases = FIELD_ALIASES[field].map(normalizeLabel);
+    const column = normalized.findIndex(
+      (header, index) => !taken.has(index) && aliases.includes(header),
+    );
+    if (column !== -1) {
+      map[field] = column;
+      taken.add(column);
+    }
+  }
+  return map;
+}
+
+/**
+ * Validates every pasted row against its ledger and the workspace.
+ *
+ * Reference fields resolve into ids (`job_id`, `member_id`, `department_id`)
+ * so the caller writes exactly what the server expects, and dates and amounts
+ * are normalised here rather than in the dialog. Duplicates are checked inside
+ * the batch only, and against rows that are otherwise valid: the server's own
+ * unique keys (`(job_id, lower(name), phone)` on candidates, `member_id` on
+ * employee files) would reject the second row anyway, and flagging a row that
+ * already shows a better error would be noise.
+ */
+export function buildImportRows(
+  parsed: ParsedTable,
+  map: Partial<Record<string, number>>,
+  domain: ImportDomain,
+  ctx: ImportRowContext,
+): ImportRowResult[] {
+  const columns: [ImportField, number][] = [];
+  for (const field of IMPORT_FIELDS[domain]) {
+    const column = map[field];
+    if (typeof column === "number") columns.push([field, column]);
+  }
+
+  const seen = new Map<string, number>();
+  return parsed.rows.map((row, index) => {
+    const line = index + 2;
+    const values: Record<string, string> = {};
+    for (const [field, column] of columns) {
+      const cell = (row[column] ?? "").trim();
+      if (cell !== "") values[field] = cell;
+    }
+
+    const errors = validateRow(domain, values, ctx);
+    if (errors.length === 0) {
+      const key = duplicateKey(domain, values);
+      if (key !== null) {
+        const firstLine = seen.get(key);
+        if (firstLine === undefined) seen.set(key, line);
+        else errors.push(formatImportError("duplicate", String(firstLine)));
+      }
+    }
+    return { line, values, errors };
+  });
+}
+
+/** Resolves references and normalises values in place; returns what is wrong. */
+function validateRow(
+  domain: ImportDomain,
+  values: Record<string, string>,
+  ctx: ImportRowContext,
+): string[] {
+  const errors: string[] = [];
+
+  switch (domain) {
+    case "jobs": {
+      if (!values.title) errors.push(formatImportError("missing_title"));
+      if (values.department) {
+        const id = exactId(values.department, ctx.departments);
+        if (id) values.department_id = id;
+        else errors.push(formatImportError("unknown_department", values.department));
+      }
+      if (values.headcount) {
+        const headcount = parseImportAmount(values.headcount);
+        if (headcount === null) errors.push(formatImportError("bad_amount", values.headcount));
+        else values.headcount = String(Math.round(headcount));
+      }
+      if (values.salary) {
+        const salary = parseImportAmount(values.salary);
+        if (salary === null) errors.push(formatImportError("bad_amount", values.salary));
+        else values.salary = String(salary);
+      }
+      for (const bound of ["salary_min", "salary_max"] as const) {
+        const cell = values[bound];
+        if (!cell) continue;
+        const amount = parseImportAmount(cell);
+        if (amount === null) errors.push(formatImportError("bad_amount", cell));
+        else values[bound] = String(amount);
+      }
+      if (values.owner) {
+        const owner = resolveMember(values.owner, ctx);
+        if (owner.error) errors.push(owner.error);
+        else if (owner.id) values.owner_member_id = owner.id;
+      }
+      break;
+    }
+    case "candidates": {
+      if (!values.name) errors.push(formatImportError("missing_name"));
+      if (!values.job) {
+        errors.push(formatImportError("missing_job"));
+      } else {
+        const id = jobId(values.job, ctx.jobs);
+        if (id) values.job_id = id;
+        else errors.push(formatImportError("unknown_job", values.job));
+      }
+      if (values.stage) {
+        const stage = parseStage(values.stage);
+        if (stage) values.stage = stage;
+        else errors.push(formatImportError("bad_stage", values.stage));
+      }
+      if (values.expected_salary) {
+        const salary = parseImportAmount(values.expected_salary);
+        if (salary === null) {
+          errors.push(formatImportError("bad_amount", values.expected_salary));
+        } else {
+          values.expected_salary = String(salary);
+        }
+      }
+      if (values.years_experience) {
+        const years = parseImportYears(values.years_experience);
+        if (years === null) {
+          // The same "not one number" error a salary cell gets: a year cell HR
+          // cannot read is a cell to fix, never a silent "no experience".
+          errors.push(formatImportError("bad_amount", values.years_experience));
+        } else {
+          values.years_experience = String(years);
+        }
+      }
+      // `edu` and `resume_text` need no normalisation: both are free text that
+      // travels to the column as pasted, and a résumé body is the one cell whose
+      // exact wording matters.
+      if (values.owner) {
+        const owner = resolveMember(values.owner, ctx);
+        if (owner.error) errors.push(owner.error);
+        else if (owner.id) values.owner_member_id = owner.id;
+      }
+      break;
+    }
+    case "employees": {
+      if (!values.member) {
+        errors.push(formatImportError("missing_name"));
+      } else {
+        const member = resolveMember(values.member, ctx);
+        if (member.error) errors.push(member.error);
+        else if (member.id) values.member_id = member.id;
+      }
+      for (const field of ["regular_date", "contract_end"] as const) {
+        const cell = values[field];
+        if (!cell) continue;
+        const day = parseImportDay(cell);
+        if (day === null) errors.push(formatImportError("bad_date", cell));
+        else values[field] = day;
+      }
+      if (values.department) {
+        const id = exactId(values.department, ctx.departments);
+        if (id) values.department_id = id;
+        else errors.push(formatImportError("unknown_department", values.department));
+      }
+      if (values.hire_date) {
+        const day = parseImportDay(values.hire_date);
+        if (day) values.hire_date = day;
+        else errors.push(formatImportError("bad_date", values.hire_date));
+      }
+      break;
+    }
+    case "affiliate_daily": {
+      if (!values.stat_date) {
+        errors.push(formatImportError("missing_date"));
+      } else {
+        const day = parseImportDay(values.stat_date);
+        if (day) values.stat_date = day;
+        else errors.push(formatImportError("bad_date", values.stat_date));
+      }
+      const pick = resolvePick(values, ctx);
+      if (pick) {
+        values.pick_id = pick;
+      } else if (values.product || values.creator || values.pick) {
+        // Named but not found: the sheet's 商品/达人 pair does not describe a
+        // pick in this workspace, so the day has nowhere to be written.
+        errors.push(
+          formatImportError(
+            "unknown_pick",
+            values.pick ?? [values.product, values.creator].filter(Boolean).join(" × "),
+          ),
+        );
+      } else {
+        errors.push(formatImportError("missing_pick"));
+      }
+      for (const field of ["gmv", "refund", "commission"] as const) {
+        const cell = values[field];
+        if (!cell) continue;
+        const parsed = parseImportNumber(cell);
+        if (parsed === null) errors.push(formatImportError("bad_amount", cell));
+        else values[field] = String(parsed);
+      }
+      if (values.orders) {
+        const parsed = parseImportNumber(values.orders);
+        if (parsed === null) errors.push(formatImportError("bad_amount", values.orders));
+        else values.orders = String(Math.round(parsed));
+      }
+      break;
+    }
+  }
+
+  return errors;
+}
+
+/** The key a second row must not repeat, or `null` for a ledger that has no
+ *  in-batch identity of its own. */
+function duplicateKey(domain: ImportDomain, values: Record<string, string>): string | null {
+  switch (domain) {
+    case "jobs":
+      return null;
+    case "candidates":
+      return `${normalizeLabel(values.name ?? "")}|${values.job_id ?? normalizeLabel(values.job ?? "")}`;
+    case "employees":
+      return values.member_id ?? normalizeLabel(values.member ?? "");
+    case "affiliate_daily":
+      // The same `(pick_id, stat_date)` the server upserts on: two rows for one
+      // day of one pick would silently overwrite each other, so the batch says
+      // so before it writes either.
+      return `${values.pick_id ?? normalizeLabel(values.pick ?? "")}|${values.stat_date ?? ""}`;
+  }
+}
+
+/**
+ * A job named by its title: an exact match first, then the posting whose title
+ * contains what was pasted. The containment pass is what lets a sheet say
+ * `剪辑` for `短视频剪辑`; the first match in the ledger's order wins, because
+ * the alternative is asking someone to disambiguate a cell they cannot see.
+ */
+function jobId(title: string, jobs: ImportRowContext["jobs"]): string | undefined {
+  const needle = normalizeLabel(title);
+  if (!needle) return undefined;
+  const exact = jobs.find((job) => normalizeLabel(job.title) === needle);
+  if (exact) return exact.id;
+  return jobs.find((job) => normalizeLabel(job.title).includes(needle))?.id;
+}
+
+/**
+ * A daily report's pick, from whichever pair of columns the sheet carries.
+ *
+ * Two shapes are understood, because the platform's export and a hand-made
+ * sheet say the same thing differently: an explicit 选品 label (the
+ * `商品 × 达人` string the ledger draws, matched whole) or the 商品 and 达人
+ * columns separately. A product alone is enough when only one pick of it exists;
+ * anything ambiguous stays unresolved rather than filing a day against the wrong
+ * creator.
+ */
+function resolvePick(
+  values: Record<string, string>,
+  ctx: ImportRowContext,
+): string | undefined {
+  if (values.product) {
+    const product = normalizeLabel(values.product);
+    const creator = normalizeLabel(values.creator ?? "");
+    const hits = ctx.picks.filter(
+      (pick) =>
+        normalizeLabel(pick.productTitle) === product &&
+        (creator === "" || normalizeLabel(pick.creatorName) === creator),
+    );
+    if (hits.length === 1) return hits[0]?.id;
+    if (hits.length > 1) return undefined;
+    // The same containment rule a job title gets: a sheet may say 剪辑 for
+    // 短视频剪辑, and a product title is long.
+    const loose = ctx.picks.filter(
+      (pick) =>
+        normalizeLabel(pick.productTitle).includes(product) &&
+        (creator === "" || normalizeLabel(pick.creatorName) === creator),
+    );
+    return loose.length === 1 ? loose[0]?.id : undefined;
+  }
+  const needle = normalizeLabel(values.pick ?? "");
+  if (!needle) return undefined;
+  return ctx.picks.find(
+    (pick) => normalizeLabel(`${pick.productTitle}×${pick.creatorName}`) === needle,
+  )?.id;
+}
+
+/** A money or count cell as one number, or `null`.
+ *
+ *  Unlike `parseImportAmount`, zero and a negative are accepted: a day with no
+ *  sales is a real row (`gmv_amount: 0`), and a refund column in a platform
+ *  export is sometimes signed. Bands are not — a daily measure is one number. */
+export function parseImportNumber(value: string): number | null {
+  const cleaned = value
+    .normalize("NFKC")
+    .replace(/[¥￥$€£,]/g, "")
+    .replace(/(?:cny|rmb|usd|元|人民币)/gi, "")
+    .replace(/\s/g, "");
+  if (!cleaned) return null;
+  if (!/^[-+]?\d+(?:\.\d+)?$/.test(cleaned)) return null;
+  const parsed = Number(cleaned);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/** Exact name → id. Members and departments are matched exactly: two people
+ *  can share a surname prefix, and filing work under the wrong one is worse
+ *  than asking for the full name. */
+function exactId(
+  name: string,
+  entries: readonly { id: string; name: string }[],
+): string | undefined {
+  const needle = normalizeLabel(name);
+  return entries.find((entry) => normalizeLabel(entry.name) === needle)?.id;
+}
+
+/**
+ * A member whose display name matches the cell exactly.
+ *
+ * Names are not unique in a workspace, so a hit that is not unique is reported
+ * instead of resolved: attaching an employee record (or a job owner) to the
+ * wrong person is worse than asking HR to disambiguate with a second column.
+ */
+function resolveMember(
+  name: string,
+  ctx: ImportRowContext,
+): { id?: string; error?: string } {
+  const needle = normalizeLabel(name);
+  const hits = ctx.members.filter((member) => normalizeLabel(member.name) === needle);
+  const only = hits[0];
+  if (!only) return { error: formatImportError("unknown_member", name) };
+  // Duplicate display names resolve to the first hit: the create request only
+  // carries an id, so a sheet cannot disambiguate. Recorded as known debt —
+  // members with a repeated name need an id/email column before this is safe.
+  return { id: only.id };
+}
+
+function parseStage(value: string): HrCandidateStage | null {  const needle = normalizeLabel(value);
+  for (const [stage, aliases] of Object.entries(STAGE_ALIASES) as [
+    HrCandidateStage,
+    readonly string[],
+  ][]) {
+    if (aliases.some((alias) => normalizeLabel(alias) === needle)) return stage;
+  }
+  return null;
+}
+
+/**
+ * A money or headcount cell as one positive amount, or `null`.
+ *
+ * Understood: `15000`, `15,000`, `15k`, `1.5万`, and a band `15-25K`, whose
+ * midpoint is the number (`hr_job.salary_min`/`salary_max` are two columns, and
+ * one pasted band cannot say which end is which — the import writes the same
+ * number to both). Anything that is not one amount — three numbers, a note, an
+ * inverted band — is `null` so the row can ask for separate columns.
+ */
+export function parseImportAmount(value: string): number | null {
+  const cleaned = value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[¥￥$€£]/g, "")
+    .replace(/(?:cny|rmb|usd|元|人民币|\/月|每月)/g, "")
+    .replace(/\s/g, "");
+  if (!cleaned) return null;
+
+  // A band is written `15-25K`: the unit is stated once, at the end, and means
+  // both ends. Read it before splitting so `15-25K` is 15k–25k and not 15–25k.
+  const trailing = /(k|千|w|万)$/.exec(cleaned);
+  const body = trailing ? cleaned.slice(0, -1) : cleaned;
+  const sharedUnit = trailing?.[1] ?? "";
+
+  const parts = body.split(/[-~–—到至]/).filter((part) => part !== "");
+  if (parts.length === 0 || parts.length > 2) return null;
+
+  const amounts = parts.map((part) =>
+    parseSingleAmount(/[k千万]$/.test(part) ? part : `${part}${sharedUnit}`),
+  );
+  if (amounts.some((amount) => amount === null)) return null;
+  const [first, second] = amounts as number[];
+  if (first === undefined) return null;
+  if (second === undefined) return first;
+  if (first > second) return null;
+  return Math.round((first + second) / 2);
+}
+
+function parseSingleAmount(part: string): number | null {
+  const match = /^(\d+(?:\.\d+)?)(k|千|w|万)?$/.exec(part.replace(/,/g, ""));
+  if (!match) return null;
+  const base = Number(match[1]);
+  const unit = match[2];
+  const factor = unit === "k" || unit === "千" ? 1000 : unit === "w" || unit === "万" ? 10000 : 1;
+  const amount = base * factor;
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
+
+/**
+ * A years-of-experience cell as one number, or `null`.
+ *
+ * Understood: `3`, `3.5`, `3年`, `3 年经验`, `3-5年` (its midpoint, the same rule
+ * a pasted salary band follows), and an open form `5年以上` (its floor, because
+ * "at least five" is five as far as the row can record). A candidate sheet says
+ * a number in words far more often than a spreadsheet column says it as a
+ * number, and the experience dimension needs a number to compare against
+ * `hr_job.years`.
+ *
+ * Anything that is not one figure — `三年` written in Chinese numerals, a note,
+ * an inverted range — is `null` so the row asks to be fixed rather than storing
+ * a guess.
+ */
+export function parseImportYears(value: string): number | null {
+  const cleaned = value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/(?:years?|yrs?)/g, "")
+    .replace(/[年月]/g, "")
+    .replace(/(?:经验|工作|以上|以内|左右|多)/g, "")
+    .replace(/[+＋]/g, "")
+    .replace(/\s/g, "");
+  if (!cleaned) return null;
+
+  const parts = cleaned.split(/[-~–—到至]/).filter((part) => part !== "");
+  if (parts.length === 0 || parts.length > 2) return null;
+  if (!parts.every((part) => /^\d+(?:\.\d+)?$/.test(part))) return null;
+
+  const amounts = parts.map(Number);
+  const [first, second] = amounts as [number, number?];
+  if (second === undefined) return first;
+  if (first > second) return null;
+  // One decimal, because the column is NUMERIC(4,1): the midpoint of 3-5 is 4,
+  // and the midpoint of 3-4 is 3.5 rather than 3.4999…
+  return Math.round(((first + second) / 2) * 10) / 10;
+}
+
+/**
+ * A calendar day as `YYYY-MM-DD`, or `null`.
+ *
+ * Accepted input is `YYYY-MM-DD`, `YYYY/M/D` and the dotted form Excel writes;
+ * the output is the one shape `hr_employee_profile.hire_date` takes. An
+ * impossible day (`2024-02-30`) is rejected here rather than by the server, and
+ * a time part is not accepted — an employment date is a day, and the ledger
+ * columns beside it are days too.
+ */
+export function parseImportDay(value: string): string | null {
+  const match = /^(\d{4})\s*[-/.]\s*(\d{1,2})\s*[-/.]\s*(\d{1,2})$/.exec(
+    value.normalize("NFKC").trim(),
+  );
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return null;
+  }
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+/**
+ * Case, width and separators folded away, so `Job Title`, `job_title` and
+ * `job-title` are one comparison instead of three.
+ *
+ * Shared with the résumé uploader (`resume-upload.tsx`), which compares a file
+ * name against candidate names: `林伟-简历.pdf` and `林伟 简历.pdf` must match
+ * the same person, and both must survive full-width punctuation from an IME.
+ */
+export function normalizeLabel(value: string): string {
+  return value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[\s\-_/\\.,:：()（）[\]【】]+/g, "");
+}
+
+/**
+ * One example sheet per ledger, for the import dialog's "use an example"
+ * button.
+ *
+ * They exist so a mock/demo workspace can be filled without an Excel file at
+ * hand. Each one is shaped like the sheets HR actually pastes: Chinese headers,
+ * one salary band written as a range (`15-25K`), and one row with an empty
+ * required cell, so the preview shows what an error row looks like before
+ * anyone pastes their own data. They are deliberately not resolvable against a
+ * specific workspace: names, departments and jobs are the examples'.
+ */
+export const IMPORT_SAMPLE: Record<ImportDomain, string> = {
+  jobs: [
+    "职位\t部门\t级别\t编制\t薪资",
+    "短视频剪辑\t内容部\tP5\t2\t15-25K",
+    "直播运营\t内容部\tP4\t1\t18-24K",
+    "\t内容部\tP3\t1\t12-18K",
+  ].join("\n"),
+  candidates: [
+    "姓名\t应聘岗位\t阶段\t电话\t邮箱\t期望薪资\t学历\t经验年限\t简历",
+    "林伟\t短视频剪辑\t初筛\t13800000001\tlin@example.com\t20000\t本科\t3.5\t三年短视频剪辑经验，熟悉 Premiere 与达芬奇调色",
+    "张三\t直播运营\t面试\t13800000002\tzhang@example.com\t18000\t大专\t3-5年\t负责直播间运营与选品，单场 GMV 80 万",
+    "李娜\t\t笔试\t13800000003\tli@example.com\t15-20K\t本科\t\t",
+  ].join("\n"),
+  employees: [
+    "成员\t职位\t职级\t入职日期\t转正日期\t合同到期\t部门",
+    "王强\t剪辑师\tP5\t2024-03-01\t2024-06-01\t2027-03-01\t内容部",
+    "陈静\t运营\tP4\t2023-07-15\t2024-01-15\t2026-07-15\t",
+    "\t摄影师\tP3\t2024-01-08\t2024-04-08\t2027-01-08\t内容部",
+  ].join("\n"),
+  // A platform export: 商品 + 达人 + 日期 + the day's measures. The last row
+  // leaves 达人 blank, so the preview shows the "no pick" error beside rows that
+  // resolve; the second row repeats the first day, which is the duplicate the
+  // batch refuses because the server's key is `(pick_id, stat_date)`.
+  affiliate_daily: [
+    "商品\t达人\t日期\tGMV\t订单\t退款\t佣金",
+    "便携榨汁杯\t林小满\t2026-03-01\t12800\t64\t320\t1536",
+    "便携榨汁杯\t林小满\t2026-03-01\t4300\t21\t0\t516",
+    "便携榨汁杯\t\t2026-03-02\t2100\t11\t0\t252",
+  ].join("\n"),
+};

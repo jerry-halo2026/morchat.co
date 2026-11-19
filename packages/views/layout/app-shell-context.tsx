@@ -8,9 +8,15 @@ import { useNavigation } from "../navigation";
 /**
  * Spaces whose navigation lives in the shell panel. Inbox, Chat and Settings
  * are list-and-detail pages that already render their own list column in the
- * same card, so the shell adds no panel for them.
+ * same card, so the shell adds no panel for them. The Workbench and Work share
+ * one panel: the workbench reads the same rows.
  */
-export const PANEL_SPACES: ReadonlySet<AppSpaceId> = new Set(["work", "team", "autopilots"]);
+export const PANEL_SPACES: ReadonlySet<AppSpaceId> = new Set([
+  "workbench",
+  "work",
+  "team",
+  "autopilots",
+]);
 
 // Opening waits for the pointer to settle so sweeping across the rail does
 // not flash every panel; closing waits long enough to cross the gap between

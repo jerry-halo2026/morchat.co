@@ -32,6 +32,13 @@ export {
 } from "./tab-presentation";
 export type { TabPresentationResult } from "./tab-presentation";
 export { DashboardGuard } from "./dashboard-guard";
+export { KanbanBoard, resolveDrop } from "./kanban-board";
+export type {
+  KanbanBoardProps,
+  KanbanColumn,
+  KanbanDropTarget,
+  KanbanTone,
+} from "./kanban-board";
 export { AppShellCard, DashboardLayout } from "./dashboard-layout";
 export { useDashboardGuard } from "./use-dashboard-guard";
 export { WorkspaceLoader } from "./workspace-loader";
@@ -39,3 +46,10 @@ export { WorkspacePresencePrefetch } from "./workspace-presence-prefetch";
 export { GlobalShortcuts } from "./global-shortcuts";
 export { NewIssueButton, SearchButton } from "./global-actions";
 export { NavigationProgress } from "./navigation-progress";
+export {
+  CalendarView,
+  type CalendarEvent,
+  type CalendarEventTone,
+  type CalendarViewProps,
+} from "./calendar-view";
+export { CollectionPager, type CollectionPagerProps } from "./collection-list/pager";

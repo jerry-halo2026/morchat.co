@@ -145,7 +145,7 @@ export function WorkspaceRouteLayout() {
 
   // The ownership check is what keeps a same-workspace tab swap from wiping
   // the workspace context (MUL-6303 / #7086). The slug check alone cannot see
-  // that swap: the "+" button opens /<slug>/issues in the ACTIVE workspace
+  // that swap: the "+" button opens /<slug>/overview in the ACTIVE workspace
   // (tab-bar.tsx), so the incoming layout carries the SAME slug, its render
   // write dedupes to a no-op inside setCurrentWorkspace, and the outgoing
   // cleanup then found getCurrentSlug() still equal to its own slug and

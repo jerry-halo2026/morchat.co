@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_affiliate_daily_workspace_stat_date;

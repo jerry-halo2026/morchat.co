@@ -9,6 +9,7 @@ export {
   type TitleEditorRef,
 } from "./title-editor";
 export { ReadonlyContent } from "./readonly-content";
+export { DocEditor, type DocEditorProps, type DocToolbarItem } from "./doc-editor";
 export { useFileDropZone } from "./use-file-drop-zone";
 export { useUploadGate, type UploadGate } from "./use-upload-gate";
 export {

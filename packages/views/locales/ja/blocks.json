@@ -1,0 +1,614 @@
+{
+  "title": "ワークベンチ",
+  "tabs": {
+    "overview": "概要",
+    "ledger": "台帳",
+    "team": "チーム"
+  },
+  "department": {
+    "label": "部署",
+    "all": "すべての部署"
+  },
+  "view": {
+    "label": "ビュー",
+    "all": "すべて",
+    "commerce": "営業",
+    "people": "人事",
+    "finance": "損益"
+  },
+  "unit": {
+    "days": "日",
+    "hours": "時間",
+    "percent": "%",
+    "ratio": "倍",
+    "currency": {
+      "CNY": "¥",
+      "USD": "$"
+    }
+  },
+  "empty": {
+    "value": "—"
+  },
+  "group_total": "· {{count}} 件",
+  "metric_value": {
+    "samples": "{{count}} 件で集計"
+  },
+  "metric": {
+    "hr_candidates_active": "進行中の候補者",
+    "hr_time_to_hire_median": "採用日数",
+    "hr_scorecard_backlog": "未評価の面接",
+    "hr_interview_on_time_rate": "面接定刻率",
+    "work_throughput_week": "今週の完了",
+    "work_cycle_time_median": "納期の中央値",
+    "work_on_time_rate": "納期遵守率",
+    "work_overdue_count": "期限超過",
+    "work_stalled_count": "停滞",
+    "work_wip_count": "進行中",
+    "work_wip_per_member": "1人あたりの進行中",
+    "work_followup_due_count": "本日フォロー予定",
+    "collab_cross_department_rate": "部署横断の比率",
+    "agent_cost_month": "エージェント費用",
+    "agent_run_failure_rate": "実行失敗率",
+    "knowledge_created_week": "今週のナレッジ追加",
+    "crm_pipeline_weighted_amount": "パイプライン加重額",
+    "crm_contract_signed_month": "今月の契約",
+    "crm_payment_collected_month": "今月の入金",
+    "crm_quote_margin_rate": "案件粗利率",
+    "crm_collab_roi": "案件あたり ROI",
+    "crm_creator_repeat_rate": "クリエイター再登用率"
+  },
+  "gap": {
+    "needs_hired": "台帳から入社した人がまだいないため、起点となる入社日がありません。",
+    "needs_creators": "クリエイターの記録がまだなく、成果を誰にも紐づけられません。",
+    "needs_clients": "クライアントの記録がまだありません。",
+    "needs_briefs": "案件依頼がまだなく、見積もりも照合もできません。",
+    "needs_collabs": "案件がまだありません。金額・段階・確度はここから来ます。",
+    "needs_settlements": "入出金の記録がまだなく、入金として数えられるものがありません。",
+    "needs_jobs": "求人がまだないため、候補者が応募できる先がありません。",
+    "needs_candidates": "候補者がまだいないため、段階も入社日も測れません。",
+    "needs_interviews": "面接がまだ予定されていないため、定刻実施を数えられません。",
+    "needs_employees": "従業員の情報がまだないため、入社日・グレード・契約終了日はここから入力します。",
+    "needs_products": "アフィリエイト商品がまだありません。選定・日次実績・精算書はここから生まれます。",
+    "needs_picks": "選定がまだありません。誰も商品を紹介していません。",
+    "needs_daily": "日次実績がまだありません。GMV も報酬も数えられません。",
+    "needs_affiliate_settlements": "精算書がまだありません。入金を確認できません。",
+    "needs_issues": "この数字の元になる Issue に必要な項目が入っていません。",
+    "fill_ledger": "台帳で入力する",
+    "fill_issues": "Issue を開く"
+  },
+  "ledger": {
+    "section": "台帳",
+    "domain": {
+      "creators": "クリエイター",
+      "clients": "クライアント",
+      "briefs": "案件依頼",
+      "collabs": "案件",
+      "settlements": "精算",
+      "products": "商品",
+      "picks": "選定",
+      "daily": "日次実績",
+      "affiliate_settlements": "精算書",
+      "jobs": "求人",
+      "candidates": "候補者",
+      "interviews": "面接",
+      "employees": "従業員"
+    },
+    "group": {
+      "commerce": "商業",
+      "affiliate": "アフィリエイト",
+      "people": "人事"
+    },
+    "column": {
+      "creator": "クリエイター",
+      "creator_ref": "クリエイター",
+      "platform": "プラットフォーム",
+      "fans": "フォロワー",
+      "score": "評価",
+      "risk": "リスク",
+      "client": "クライアント",
+      "brand": "ブランド",
+      "industry": "業種",
+      "brief": "案件依頼",
+      "budget": "予算",
+      "deliverable": "形式",
+      "schedule": "日程",
+      "collab": "案件",
+      "stage": "段階",
+      "contract_amount": "契約額",
+      "scheduled": "公開",
+      "settlement": "精算",
+      "amount": "金額",
+      "due": "支払期日",
+      "paid": "支払済",
+      "job": "求人",
+      "level": "レベル",
+      "headcount": "募集枠",
+      "status": "ステータス",
+      "salary": "給与レンジ",
+      "candidate": "候補者",
+      "job_ref": "応募先",
+      "match_score": "マッチ度",
+      "expected_salary": "希望給与",
+      "round": "回次",
+      "time": "日時",
+      "mode": "形式",
+      "interviewer": "面接官",
+      "member": "メンバー",
+      "job_title": "役職",
+      "grade": "グレード",
+      "hire_date": "入社日",
+      "regular_date": "正社員登用",
+      "contract_end": "契約終了日",
+      "product_title": "商品名",
+      "product_ref": "商品",
+      "ownership": "区分",
+      "platform_product": "プラットフォーム / 商品ID",
+      "commission_rate": "報酬率",
+      "pick_commission_rate": "個別報酬率",
+      "agency_share_rate": "分配率",
+      "service_fee": "手数料",
+      "pick": "選定",
+      "stat_date": "日付",
+      "gmv": "GMV",
+      "order_count": "注文数",
+      "refund": "返金",
+      "est_commission": "見込み報酬",
+      "settled_commission": "確定報酬",
+      "period": "期間",
+      "gross_commission": "総報酬",
+      "tech_service_fee": "技術サービス料",
+      "refund_deduction": "返金控除",
+      "net_amount": "純額",
+      "settled_to": "支払先"
+    },
+    "deliverable": {
+      "short_video": "ショート動画",
+      "post": "投稿",
+      "live": "ライブ"
+    },
+    "stage": {
+      "inquiry": "問い合わせ",
+      "quoted": "見積済",
+      "negotiating": "交渉中",
+      "confirmed": "確定",
+      "sampling": "サンプル送付",
+      "script_review": "台本確認",
+      "scheduled": "日程確定",
+      "published": "公開済",
+      "accepted": "検収済",
+      "settled": "精算済",
+      "cancelled": "中止"
+    },
+    "settlement_kind": {
+      "prepay": "前払い",
+      "final": "残金",
+      "platform_fee": "プラットフォーム手数料",
+      "tax": "税"
+    },
+    "job_status": {
+      "draft": "下書き",
+      "open": "募集中",
+      "paused": "停止中",
+      "closed": "終了"
+    },
+    "candidate_stage": {
+      "screening": "書類選考",
+      "test": "試験",
+      "interview": "面接",
+      "scored": "評価済み",
+      "offer": "オファー",
+      "hired": "入社済み",
+      "rejected": "不採用",
+      "withdrawn": "辞退"
+    },
+    "interview_status": {
+      "scheduled": "予定",
+      "done": "実施済み",
+      "cancelled": "中止",
+      "no_show": "無断欠席"
+    },
+    "interview_mode": {
+      "onsite": "対面",
+      "video": "オンライン",
+      "phone": "電話"
+    },
+    "verdict": {
+      "strong_yes": "強く推薦",
+      "yes": "推薦",
+      "no": "不推薦",
+      "strong_no": "強く不推薦"
+    },
+    "risk_flagged": "要注意",
+    "unpaid": "未払い",
+    "empty_title": "{{domain}}はまだありません",
+    "empty_description": "ここで入力した行が概要の指標を点灯させます。",
+    "error_title": "台帳を読み込めませんでした",
+    "error_description": "接続を確認してから再試行してください。",
+    "retry": "再試行"
+  },
+  "import": {
+    "entry": "取り込む",
+    "title": "行を取り込む",
+    "paste_label": "貼り付けた行",
+    "paste_hint": "Excel または CSV から貼り付けてください。1 行目は見出しです。",
+    "map_columns": "列の対応",
+    "preview": "プレビュー",
+    "summary": "貼り付け {{count}} 行 · 取り込める {{ok}} 行 · 問題 {{bad}} 行",
+    "import_button": "取り込む",
+    "close": "閉じる",
+    "done": "{{count}} 行を取り込み、{{failed}} 行が失敗",
+    "failed_rows": "修正が必要な行",
+    "unmapped": "対応なし",
+    "sample": "例を入れる",
+    "field": {
+      "owner": "採用責任者",
+      "salary_min": "給与下限",
+      "salary_max": "給与上限",
+      "regular_date": "正社員登用日",
+      "contract_end": "契約満了日",
+      "title": "職種",
+      "department": "部署",
+      "level": "レベル",
+      "headcount": "募集人数",
+      "salary": "給与",
+      "name": "氏名",
+      "job": "応募職種",
+      "stage": "段階",
+      "phone": "電話",
+      "email": "メール",
+      "expected_salary": "希望給与",
+      "edu": "学歴",
+      "years_experience": "経験年数",
+      "resume_text": "職務経歴書",
+      "member": "メンバー",
+      "job_title": "役職",
+      "grade": "等級",
+      "hire_date": "入社日",
+      "pick": "選定",
+      "product": "商品",
+      "creator": "クリエイター",
+      "stat_date": "日付",
+      "gmv": "GMV",
+      "orders": "注文",
+      "refund": "返金",
+      "commission": "報酬"
+    },
+    "errors": {
+      "missing_title": "職種がありません",
+      "missing_name": "氏名がありません",
+      "missing_job": "応募職種がありません",
+      "unknown_job": "職種「{{value}}」は存在しません",
+      "unknown_member": "「{{value}}」はこのワークスペースのメンバーではありません",
+      "duplicate": "{{value}} 行目と同じです",
+      "unknown_department": "部署「{{value}}」は存在しません",
+      "bad_date": "日付「{{value}}」を読み取れません",
+      "bad_amount": "「{{value}}」を 1 つの数として読み取れません。範囲は 2 列に分けてください",
+      "bad_stage": "段階「{{value}}」は存在しません",
+      "server_error": "サーバーがこの行を拒否しました",
+      "missing_pick": "この日を計上する選定（商品＋クリエイター）がありません",
+      "unknown_pick": "「{{value}}」の選定がありません",
+      "missing_date": "日付がありません"
+    }
+  },
+  "export": {
+    "action": "エクスポート",
+    "empty": "エクスポートする行がありません",
+    "done": "{{count}} 行をエクスポートしました"
+  },
+  "calendar": {
+    "prev": "前へ",
+    "next": "次へ",
+    "today": "今日",
+    "allday": "終日"
+  },
+  "resume": {
+    "title": "履歴書をアップロード",
+    "hint": "ファイル名に候補者名が含まれていれば自動で照合します。一致しないファイルはアップロードされません。先に候補者を取り込んでください。",
+    "pick": "ファイルを選択",
+    "upload": "アップロード",
+    "uploading": "アップロード中",
+    "matched": "一致",
+    "unmatched": "未一致",
+    "ambiguous": "選択が必要",
+    "failed": "アップロード失敗",
+    "no_candidates": "候補者がまだいません。先に候補者を取り込んでください。",
+    "summary": "全 {{count}} 件、アップロード可 {{ok}} 件、未一致 {{unmatched}} 件",
+    "done": "成功 {{count}}、失敗 {{failed}}",
+    "column": {
+      "file": "ファイル名",
+      "size": "サイズ",
+      "candidate": "候補者",
+      "status": "状態"
+    }
+  },
+  "team": {
+    "section": "チーム",
+    "unassigned": "部署なし",
+    "group_counts": "{{members}} 人 · エージェント {{agents}}",
+    "role": {
+      "owner": "オーナー",
+      "admin": "管理者",
+      "member": "メンバー"
+    },
+    "availability": {
+      "online": "オンライン",
+      "unstable": "切断直後",
+      "offline": "オフライン",
+      "archived": "アーカイブ済"
+    },
+    "workload": {
+      "working": "実行中",
+      "queued": "待機中",
+      "idle": "待機なし"
+    },
+    "load": "{{running}}/{{capacity}}",
+    "empty_title": "まだ誰もいません",
+    "empty_description": "メンバーを招待しエージェントを作成すると、ここに表示されます。"
+  },
+  "hire": {
+    "title": "採用を確定",
+    "description": "{{name}} を採用済みにし、同じ処理で従業員レコードを作成します。",
+    "member": "メンバー",
+    "member_placeholder": "メンバーを選択",
+    "no_members": "このワークスペースにはまだメンバーがいません。先にメンバーを招待してください。採用はメンバーのアカウントに従業員レコードを作成します。",
+    "hire_date": "入社日",
+    "job_title": "職種",
+    "grade": "等級",
+    "submit": "採用する",
+    "cancel": "キャンセル",
+    "save_failed": "サーバーがこの採用を受け付けませんでした。何も保存されていません。もう一度お試しください。"
+  },
+  "overview": {
+    "hr_metrics": "採用"
+  },
+  "record": {
+    "yes": "あり",
+    "no": "なし",
+    "title": {
+      "jobs": "求人の詳細",
+      "candidates": "候補者の詳細",
+      "interviews": "面接の詳細",
+      "employees": "従業員の詳細"
+    },
+    "create": {
+      "jobs": "求人を作成",
+      "candidates": "候補者を作成",
+      "interviews": "面接を作成",
+      "employees": "従業員を作成"
+    },
+    "field": {
+      "title": "職種名",
+      "department": "部署",
+      "level": "等級",
+      "headcount": "募集人数",
+      "status": "ステータス",
+      "salary_min": "給与下限",
+      "salary_max": "給与上限",
+      "currency": "通貨",
+      "requirements": "応募要件",
+      "edu": "学歴",
+      "years": "経験要件",
+      "city": "勤務地",
+      "urgent": "急募",
+      "keywords": "キーワード",
+      "jd": "職務内容",
+      "owner": "担当者",
+      "created_at": "作成日時",
+      "name": "氏名",
+      "job": "応募職種",
+      "stage": "選考段階",
+      "source": "応募経路",
+      "phone": "電話番号",
+      "email": "メール",
+      "match_score": "マッチ度",
+      "score_resume": "書類評価",
+      "score_test": "筆記評価",
+      "score_interview": "面接評価",
+      "expected_salary": "希望給与",
+      "years_experience": "経験年数",
+      "resume_text": "職務経歴書",
+      "offer_salary": "提示給与",
+      "hired_at": "入社日時",
+      "rejected_reason": "不採用理由",
+      "candidate": "候補者",
+      "round": "回次",
+      "scheduled_at": "面接日時",
+      "duration_minutes": "所要時間",
+      "interviewer": "面接官",
+      "mode": "実施形式",
+      "reschedule_count": "再調整回数",
+      "note": "メモ",
+      "member": "メンバー",
+      "job_title": "役職",
+      "grade": "グレード",
+      "hire_date": "入社日",
+      "regular_date": "試用期間終了日",
+      "contract_end": "契約終了日"
+    },
+    "action": {
+      "create": "新規",
+      "save": "保存",
+      "close": "閉じる"
+    },
+    "option": {
+      "choose": "選択してください",
+      "none": "なし"
+    },
+    "empty": "—",
+    "error": {
+      "required": "{{fields}} を入力してください",
+      "submit": "サーバーがこの行を拒否しました。保存されていません。修正して再試行してください。"
+    }
+  },
+  "affiliate": {
+    "ownership": {
+      "own_brand": "自社ブランド",
+      "client_brand": "クライアントブランド"
+    },
+    "recipient": {
+      "agency": "代理店",
+      "creator": "クリエイター"
+    },
+    "product_status": {
+      "on_shelf": "掲載中",
+      "off_shelf": "掲載停止",
+      "ended": "終了"
+    },
+    "pick_status": {
+      "active": "進行中",
+      "paused": "一時停止",
+      "ended": "終了"
+    },
+    "settlement_status": {
+      "pending": "未精算",
+      "paid": "精算済み",
+      "failed": "失敗"
+    },
+    "form": {
+      "title": {
+        "products": "商品を追加",
+        "picks": "選定を追加",
+        "daily": "日次実績を入力",
+        "affiliate_settlements": "精算書を追加"
+      },
+      "field": {
+        "title": "商品名",
+        "ownership": "区分",
+        "client": "クライアント",
+        "platform": "プラットフォーム",
+        "platform_product_id": "プラットフォーム商品ID",
+        "category": "カテゴリ",
+        "price": "販売価格",
+        "commission_rate": "報酬率（%）",
+        "activity": "キャンペーン",
+        "status": "ステータス",
+        "product": "商品",
+        "creator": "クリエイター",
+        "agency_share_rate": "分配率（%）",
+        "service_fee": "サービス料",
+        "pick": "選定",
+        "stat_date": "日付",
+        "gmv": "GMV",
+        "orders": "注文数",
+        "refund": "返金",
+        "est_commission": "見込み報酬",
+        "settled_commission": "確定報酬",
+        "period_start": "期間開始",
+        "period_end": "期間終了",
+        "gross_commission": "総報酬",
+        "tech_service_fee": "技術サービス料",
+        "refund_deduction": "返金控除",
+        "net_amount": "純額",
+        "settled_to": "支払先",
+        "external_no": "明細番号"
+      },
+      "option": {
+        "choose": "選択"
+      },
+      "action": {
+        "save": "保存",
+        "close": "閉じる"
+      },
+      "error": {
+        "required": "入力してください: {{fields}}",
+        "period": "期間の終了が開始より前です",
+        "submit": "サーバーがこの行を拒否しました。保存されていません。修正して再試行してください。"
+      }
+    }
+  },
+  "match": {
+    "action": {
+      "calculate": "マッチ度を計算",
+      "batch": "マッチ度をまとめて計算"
+    },
+    "result": "{{score}}/100",
+    "failed": "マッチ度を保存できませんでした。もう一度お試しください。",
+    "batch_done": "{{ok}} 件計算、{{failed}} 件失敗",
+    "reason": {
+      "keywords": "キーワード {{detail}}/100",
+      "education": "学歴 {{detail}}/100",
+      "experience": "経験 {{detail}}/100",
+      "salary": "希望給与 {{detail}}/100",
+      "no_job": "比較する求人がありません",
+      "no_text": "応募者に履歴書テキスト・学歴・経験の項目がないため、その重みは残りの項目に配分しました"
+    }
+  },
+  "ai": {
+    "action": {
+      "dispatch": "AI で要点を整理"
+    },
+    "dispatched": "{{agent}} に割り当てました",
+    "no_agents": "エージェント未設定",
+    "failed": "課題を作成できませんでした。もう一度お試しください。",
+    "issue_title": "応募者の整理：{{name}}",
+    "issue_body": "応募者：{{name}}\n応募先：{{job}}\n現在の段階：{{stage}}\n希望給与：{{salary}}\n求人のキーワード：{{keywords}}\n学歴要件：{{edu}}\n経験要件：{{years}}\n\nこの求人に対して応募者の要点カードを作成し、そのカードから導かれる面接質問を挙げてください。"
+  },
+  "collab": {
+    "field": {
+      "creator": "クリエイター",
+      "stage": "ステージ",
+      "amount": "契約金額",
+      "fee": "クリエイター報酬",
+      "schedule": "スケジュール",
+      "settlement": "精算方法",
+      "issue": "履行タスク"
+    },
+    "action": {
+      "create_issue": "タスクを作成",
+      "open_issue": "タスクを開く"
+    },
+    "issue_created": "タスクを作成しました",
+    "issue_failed": "タスクを作成できませんでした。もう一度お試しください。",
+    "issue_title": "履行：{{creator}} × {{client}}",
+    "issue_body": "コラボレーション：{{id}}\n金額：{{amount}}\nスケジュール：{{schedule}}\n\nこのコラボレーションを納品し、公開後に投稿を登録してください。",
+    "settlement_mode": {
+      "flat": "固定報酬",
+      "cps": "成果報酬（CPS）",
+      "cpa": "行動報酬（CPA）",
+      "barter": "物々交換"
+    }
+  },
+  "publish": {
+    "title": "投稿を登録",
+    "field": {
+      "url": "URL",
+      "title": "タイトル",
+      "published_at": "公開日時",
+      "platform": "プラットフォーム"
+    },
+    "action": {
+      "submit": "登録"
+    },
+    "done": "投稿を登録しました",
+    "conflict": "このクリエイターには同じ URL の投稿がすでに登録されています。",
+    "failed": "投稿を保存できませんでした。もう一度お試しください。"
+  },
+  "creator": {
+    "sheet": {
+      "title": "クリエイター詳細",
+      "posts": "投稿",
+      "no_posts": "まだ投稿がありません"
+    }
+  },
+  "doc_editor": {
+    "toolbar": "書式",
+    "tools": {
+      "bold": "太字",
+      "italic": "斜体",
+      "strike": "取り消し線",
+      "h2": "見出し 2",
+      "h3": "見出し 3",
+      "bullet": "箇条書き",
+      "ordered": "番号付きリスト",
+      "quote": "引用",
+      "link": "リンク",
+      "undo": "元に戻す",
+      "redo": "やり直す"
+    },
+    "limit": "上限の {{count}} 文字に達しました",
+    "link": {
+      "url": "リンク URL",
+      "apply": "リンクを適用"
+    }
+  }
+}

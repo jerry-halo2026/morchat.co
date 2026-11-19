@@ -9,6 +9,7 @@
     "agents": "Agents",
     "squads": "Squads",
     "usage": "Statistiques",
+    "overview": "Vue d'ensemble",
     "runtimes": "Runtimes",
     "skills": "Skills",
     "presets": "Préréglages",
@@ -91,10 +92,12 @@
     "show_fewer_pins": "Afficher moins"
   },
   "spaces": {
+    "workbench": "Atelier",
     "work": "Travail",
     "team": "Équipe"
   },
   "rail": {
+    "workbench": "Atelier",
     "label": "Navigation de l'application",
     "sheet_description": "Changer d'espace et d'espace de travail.",
     "inbox": "Boîte",
@@ -196,6 +199,13 @@
     "shortcuts": "Raccourcis clavier"
   },
   "collection": {
+  "pager": {
+    "more": "Charger plus",
+    "loading": "Chargement…",
+    "end": "Plus de lignes",
+    "count": "{{loaded}} sur {{total}} affichées",
+    "count_loaded": "{{loaded}} affichées"
+  },
     "filter": "Filtrer",
     "filter_count_one": "{{count}} filtre",
     "filter_count_other": "{{count}} filtres",

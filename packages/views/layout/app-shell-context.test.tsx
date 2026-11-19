@@ -69,8 +69,10 @@ describe("AppShellProvider", () => {
     expect(shell).toBeNull();
   });
 
-  it("gives panels to work, team and autopilots only", () => {
+  it("gives panels to workbench, work, team and autopilots only", () => {
     const cases: [string, string | null, boolean][] = [
+      ["/acme/overview", "workbench", true],
+      ["/acme/overview?tab=ledger", "workbench", true],
       ["/acme/my-issues", "work", true],
       ["/acme/squads/s-1", "team", true],
       ["/acme/autopilots", "autopilots", true],

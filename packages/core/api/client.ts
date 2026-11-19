@@ -1,6 +1,11 @@
 import { signInWithSupabasePassword, type SupabasePasswordConfig } from "./supabase-password";
 import type { ZodType } from "zod";
 import { AgentRuntimeSchema, EMPTY_RUNTIME } from "../runtimes/schema";
+import {
+  EMPTY_WORKBENCH_OVERVIEW,
+  WorkbenchOverviewResponseSchema,
+  type WorkbenchOverviewResponse,
+} from "../metrics/response";
 import type { IssueWakeup, IssueWakeupInput, IssueWakeupSummaryRow, PausedWakeup, SystemWakeup, WakeupRun, WorkspaceSystemWakeup } from "../types/issue-wakeup";
 import type { WorkspaceWakeupPage, WorkspaceWakeupFilters } from "../types/issue-wakeup";
 import { WorkspaceWakeupPageSchema, IssueWakeupSchema, IssueWakeupSummaryRowSchema, PausedWakeupSchema, SystemWakeupSchema, WakeupRunSchema, WorkspaceSystemWakeupSchema } from "./schemas";
@@ -161,6 +166,65 @@ import type {
   DeleteDepartmentResponse,
   UpdateMemberDepartmentRequest,
   UpdateMemberDepartmentResponse,
+  Creator,
+  CreatorListFilters,
+  CreatorListResponse,
+  CreatorPost,
+  CreatorPostListFilters,
+  CreatorPostListResponse,
+  CreatorPostMetric,
+  CreatorPostMetricListResponse,
+  CreateCreatorRequest,
+  UpdateCreatorRequest,
+  CreateCreatorPostRequest,
+  UpdateCreatorPostRequest,
+  UpsertCreatorPostMetricRequest,
+  CrmClient,
+  CrmClientListFilters,
+  CrmClientListResponse,
+  CreateCrmClientRequest,
+  UpdateCrmClientRequest,
+  CrmBrief,
+  CrmBriefListFilters,
+  CrmBriefListResponse,
+  CreateCrmBriefRequest,
+  UpdateCrmBriefRequest,
+  CrmCollab,
+  CrmCollabListFilters,
+  CrmCollabListResponse,
+  CreateCrmCollabRequest,
+  UpdateCrmCollabRequest,
+  CrmSettlement,
+  CrmSettlementListFilters,
+  CrmSettlementListResponse,
+  CreateCrmSettlementRequest,
+  UpdateCrmSettlementRequest,
+  WorkbenchCountsResponse,
+  WorkbenchFinanceResponse,
+  WorkbenchFinanceMonth,
+  WorkbenchFinanceMonthListResponse,
+  UpsertWorkbenchFinanceMonthRequest,
+  AffiliateDaily,
+  AffiliateDailyListFilters,
+  AffiliateDailyListResponse,
+  AffiliatePick,
+  AffiliatePickListFilters,
+  AffiliatePickListResponse,
+  AffiliateProduct,
+  AffiliateProductListFilters,
+  AffiliateProductListResponse,
+  AffiliateSettlement,
+  AffiliateSettlementListFilters,
+  AffiliateSettlementListResponse,
+  AffiliateSummaryFilters,
+  AffiliateSummaryResponse,
+  CreateAffiliatePickRequest,
+  CreateAffiliateProductRequest,
+  CreateAffiliateSettlementRequest,
+  UpdateAffiliatePickRequest,
+  UpdateAffiliateProductRequest,
+  UpdateAffiliateSettlementRequest,
+  UpsertAffiliateDailyRequest,
   ShareLink,
   ShareLinkInfo,
   Autopilot,
@@ -271,6 +335,37 @@ import type {
   CreateCommentSubIssueAgentRequest,
   CreateCommentSubIssueRequest,
 } from "../types";
+// HR wire types come from their own module: the `../types` barrel does not
+// re-export the B1 block, and this file must not depend on that changing.
+import type {
+  CreateHrCandidateRequest,
+  CreateHrEmployeeProfileRequest,
+  CreateHrInterviewRequest,
+  CreateHrJobRequest,
+  CreateHrScorecardRequest,
+  HireHrCandidateRequest,
+  HireHrCandidateResponse,
+  HrCandidate,
+  HrCandidateListFilters,
+  HrCandidateListResponse,
+  HrEmployeeProfile,
+  HrEmployeeProfileListFilters,
+  HrEmployeeProfileListResponse,
+  HrInterview,
+  HrInterviewListFilters,
+  HrInterviewListResponse,
+  HrJob,
+  HrJobListFilters,
+  HrJobListResponse,
+  HrScorecard,
+  HrScorecardListFilters,
+  HrScorecardListResponse,
+  UpdateHrCandidateRequest,
+  UpdateHrEmployeeProfileRequest,
+  UpdateHrInterviewRequest,
+  UpdateHrJobRequest,
+  UpdateHrScorecardRequest,
+} from "../types/workbench";
 import type { OnboardingCompletionPath } from "../onboarding/types";
 import type {
   CreateFeedbackResponse,
@@ -565,6 +660,82 @@ import {
   EMPTY_JOIN_SHARE_LINK_RESPONSE,
   WorkspaceListItemSchema,
   WorkspacePinnedSchema,
+  CreatorSchema,
+  CreatorListResponseSchema,
+  EMPTY_CREATOR,
+  EMPTY_CREATOR_LIST_RESPONSE,
+  CreatorPostSchema,
+  CreatorPostListResponseSchema,
+  EMPTY_CREATOR_POST,
+  EMPTY_CREATOR_POST_LIST_RESPONSE,
+  CreatorPostMetricSchema,
+  CreatorPostMetricListResponseSchema,
+  EMPTY_CREATOR_POST_METRIC,
+  EMPTY_CREATOR_POST_METRIC_LIST_RESPONSE,
+  CrmClientSchema,
+  CrmClientListResponseSchema,
+  EMPTY_CRM_CLIENT,
+  EMPTY_CRM_CLIENT_LIST_RESPONSE,
+  CrmBriefSchema,
+  CrmBriefListResponseSchema,
+  EMPTY_CRM_BRIEF,
+  EMPTY_CRM_BRIEF_LIST_RESPONSE,
+  CrmCollabSchema,
+  CrmCollabListResponseSchema,
+  EMPTY_CRM_COLLAB,
+  EMPTY_CRM_COLLAB_LIST_RESPONSE,
+  CrmSettlementSchema,
+  CrmSettlementListResponseSchema,
+  EMPTY_CRM_SETTLEMENT,
+  EMPTY_CRM_SETTLEMENT_LIST_RESPONSE,
+  WorkbenchCountsResponseSchema,
+  EMPTY_WORKBENCH_COUNTS_RESPONSE,
+  WorkbenchFinanceResponseSchema,
+  EMPTY_WORKBENCH_FINANCE_RESPONSE,
+  WorkbenchFinanceMonthSchema,
+  EMPTY_WORKBENCH_FINANCE_MONTH,
+  WorkbenchFinanceMonthListResponseSchema,
+  EMPTY_WORKBENCH_FINANCE_MONTH_LIST,
+  AffiliateProductSchema,
+  AffiliateProductListResponseSchema,
+  EMPTY_AFFILIATE_PRODUCT,
+  EMPTY_AFFILIATE_PRODUCT_LIST_RESPONSE,
+  AffiliatePickSchema,
+  AffiliatePickListResponseSchema,
+  EMPTY_AFFILIATE_PICK,
+  EMPTY_AFFILIATE_PICK_LIST_RESPONSE,
+  AffiliateDailySchema,
+  AffiliateDailyListResponseSchema,
+  EMPTY_AFFILIATE_DAILY,
+  EMPTY_AFFILIATE_DAILY_LIST_RESPONSE,
+  AffiliateSettlementSchema,
+  AffiliateSettlementListResponseSchema,
+  EMPTY_AFFILIATE_SETTLEMENT,
+  EMPTY_AFFILIATE_SETTLEMENT_LIST_RESPONSE,
+  AffiliateSummaryResponseSchema,
+  EMPTY_AFFILIATE_SUMMARY_RESPONSE,
+  HrJobSchema,
+  HrJobListResponseSchema,
+  EMPTY_HR_JOB,
+  EMPTY_HR_JOB_LIST_RESPONSE,
+  HrCandidateSchema,
+  HrCandidateListResponseSchema,
+  EMPTY_HR_CANDIDATE,
+  EMPTY_HR_CANDIDATE_LIST_RESPONSE,
+  HrInterviewSchema,
+  HrInterviewListResponseSchema,
+  EMPTY_HR_INTERVIEW,
+  EMPTY_HR_INTERVIEW_LIST_RESPONSE,
+  HrScorecardSchema,
+  HrScorecardListResponseSchema,
+  EMPTY_HR_SCORECARD,
+  EMPTY_HR_SCORECARD_LIST_RESPONSE,
+  HrEmployeeProfileSchema,
+  HrEmployeeProfileListResponseSchema,
+  HireHrCandidateResponseSchema,
+  EMPTY_HR_EMPLOYEE_PROFILE,
+  EMPTY_HR_EMPLOYEE_PROFILE_LIST_RESPONSE,
+  EMPTY_HIRE_HR_CANDIDATE_RESPONSE,
   type IssueView,
   type IssueViewPreference,
   type CreateIssueViewRequest,
@@ -860,6 +1031,25 @@ function workspaceHeader(
     return { "X-Workspace-Slug": "", "X-Workspace-ID": scope.workspaceId };
   }
   return scope ? { "X-Workspace-Slug": scope } : undefined;
+}
+
+/**
+ * Builds a workbench list query string.
+ *
+ * `null`, `undefined` and `""` are omitted — a filter key present but empty would
+ * otherwise narrow the result to nothing. Booleans and numbers are sent as-is:
+ * `paid=false` is a real filter ("still owed"), not an absent one.
+ */
+function workbenchSearch(
+  params: Record<string, string | number | boolean | null | undefined>,
+): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === "") continue;
+    search.set(key, String(value));
+  }
+  const encoded = search.toString();
+  return encoded ? `?${encoded}` : "";
 }
 
 function dingTalkGroupSearch(params: ListDingTalkGroupsParams): string {
@@ -3840,6 +4030,823 @@ export class ApiClient {
     return parseWithFallback(raw, DeleteDepartmentResponseSchema, EMPTY_DELETE_DEPARTMENT_RESPONSE, {
       endpoint: "DELETE /api/departments/:id",
     });
+  }
+
+  // Workbench ledgers (docs/engineering/WORKBENCH-API.md §3). The workspace comes
+  // from X-Workspace-Slug like every other workspace-scoped call; `department_id`
+  // only narrows the two aggregates and is never an access boundary. Reads are
+  // member-wide, writes are gated server-side (owners/admins, or the row owner),
+  // so the client parses every response instead of pre-judging permission.
+
+  async getWorkbenchOverview(params: { department_id?: string | null } = {}): Promise<WorkbenchOverviewResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/overview${workbenchSearch({ department_id: params.department_id })}`,
+    );
+    return parseWithFallback(raw, WorkbenchOverviewResponseSchema, EMPTY_WORKBENCH_OVERVIEW, {
+      endpoint: "GET /api/workbench/overview",
+    });
+  }
+
+  async getWorkbenchCounts(params: { department_id?: string | null } = {}): Promise<WorkbenchCountsResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/counts${workbenchSearch({ department_id: params.department_id })}`,
+    );
+    return parseWithFallback(raw, WorkbenchCountsResponseSchema, EMPTY_WORKBENCH_COUNTS_RESPONSE, {
+      endpoint: "GET /api/workbench/counts",
+    });
+  }
+
+  /**
+   * The money block for one department scope (contract §3, `GET /finance`).
+   *
+   * Same read rules as the other two aggregates: any member may read, and
+   * `department_id` narrows the aggregate instead of gating access. The whole
+   * response degrades to the all-gaps shape rather than throwing, so a malformed
+   * money payload leaves the tab with gap cards instead of a blank page.
+   */
+  async getWorkbenchFinance(params: { department_id?: string | null } = {}): Promise<WorkbenchFinanceResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/finance${workbenchSearch({ department_id: params.department_id })}`,
+    );
+    return parseWithFallback(raw, WorkbenchFinanceResponseSchema, EMPTY_WORKBENCH_FINANCE_RESPONSE, {
+      endpoint: "GET /api/workbench/finance",
+    });
+  }
+
+  /**
+   * The month entries that feed the money block's cost side (contract §3,
+   * migration 707): every entered month, newest first, or one month when
+   * `month` (the `YYYY-MM` label) is given. Reads are member-wide; a malformed
+   * body degrades to an empty history rather than throwing, so the tab keeps its
+   * figures and the dialog opens on empty fields.
+   */
+  async listWorkbenchFinanceMonths(
+    params: { month?: string | null } = {},
+  ): Promise<WorkbenchFinanceMonthListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/finance/months${workbenchSearch({ month: params.month })}`,
+    );
+    return parseWithFallback(
+      raw,
+      WorkbenchFinanceMonthListResponseSchema,
+      EMPTY_WORKBENCH_FINANCE_MONTH_LIST,
+      { endpoint: "GET /api/workbench/finance/months" },
+    );
+  }
+
+  /**
+   * Put one month's money entry (`PUT`, an upsert on workspace + month). The
+   * server replaces the month, so an omitted amount is stored as "not recorded".
+   */
+  async upsertWorkbenchFinanceMonth(
+    data: UpsertWorkbenchFinanceMonthRequest,
+  ): Promise<WorkbenchFinanceMonth> {
+    const raw = await this.fetch<unknown>("/api/workbench/finance/months", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, WorkbenchFinanceMonthSchema, EMPTY_WORKBENCH_FINANCE_MONTH, {
+      endpoint: "PUT /api/workbench/finance/months",
+    });
+  }
+
+  async listCreators(filters: CreatorListFilters = {}): Promise<CreatorListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/creators${workbenchSearch({
+        kind: filters.kind,
+        q: filters.q,
+        limit: filters.limit,
+        cursor: filters.cursor,
+        department_id: filters.department_id,
+      })}`,
+    );
+    return parseWithFallback(raw, CreatorListResponseSchema, EMPTY_CREATOR_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/creators",
+    });
+  }
+
+  async createCreator(data: CreateCreatorRequest): Promise<Creator> {
+    const raw = await this.fetch<unknown>("/api/workbench/creators", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CreatorSchema, EMPTY_CREATOR, {
+      endpoint: "POST /api/workbench/creators",
+    });
+  }
+
+  async getCreator(id: string): Promise<Creator> {
+    const raw = await this.fetch<unknown>(`/api/workbench/creators/${id}`);
+    return parseWithFallback(raw, CreatorSchema, EMPTY_CREATOR, {
+      endpoint: "GET /api/workbench/creators/:id",
+    });
+  }
+
+  async updateCreator(id: string, data: UpdateCreatorRequest): Promise<Creator> {
+    const raw = await this.fetch<unknown>(`/api/workbench/creators/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CreatorSchema, EMPTY_CREATOR, {
+      endpoint: "PATCH /api/workbench/creators/:id",
+    });
+  }
+
+  /** Soft delete: the server stamps `archived_at` and the row leaves the lists. */
+  async deleteCreator(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/creators/${id}`, { method: "DELETE" });
+  }
+
+  async listCreatorPosts(filters: CreatorPostListFilters = {}): Promise<CreatorPostListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/creator-posts${workbenchSearch({
+        creator_id: filters.creator_id,
+        from: filters.from,
+        to: filters.to,
+      })}`,
+    );
+    return parseWithFallback(raw, CreatorPostListResponseSchema, EMPTY_CREATOR_POST_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/creator-posts",
+    });
+  }
+
+  async createCreatorPost(data: CreateCreatorPostRequest): Promise<CreatorPost> {
+    const raw = await this.fetch<unknown>("/api/workbench/creator-posts", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CreatorPostSchema, EMPTY_CREATOR_POST, {
+      endpoint: "POST /api/workbench/creator-posts",
+    });
+  }
+
+  async updateCreatorPost(postId: string, data: UpdateCreatorPostRequest): Promise<CreatorPost> {
+    const raw = await this.fetch<unknown>(`/api/workbench/creator-posts/${postId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CreatorPostSchema, EMPTY_CREATOR_POST, {
+      endpoint: "PATCH /api/workbench/creator-posts/:postId",
+    });
+  }
+
+  async deleteCreatorPost(postId: string): Promise<void> {
+    await this.fetch(`/api/workbench/creator-posts/${postId}`, { method: "DELETE" });
+  }
+
+  async listCreatorPostMetrics(postId: string): Promise<CreatorPostMetricListResponse> {
+    const raw = await this.fetch<unknown>(`/api/workbench/creator-posts/${postId}/metrics`);
+    return parseWithFallback(
+      raw,
+      CreatorPostMetricListResponseSchema,
+      EMPTY_CREATOR_POST_METRIC_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/creator-posts/:postId/metrics" },
+    );
+  }
+
+  /**
+   * Upserts one day's snapshot for one post. `(post_id, captured_on)` is unique,
+   * so re-submitting the same day corrects that day instead of adding a row.
+   */
+  async upsertCreatorPostMetric(
+    postId: string,
+    data: UpsertCreatorPostMetricRequest,
+  ): Promise<CreatorPostMetric> {
+    const raw = await this.fetch<unknown>(`/api/workbench/creator-posts/${postId}/metrics`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CreatorPostMetricSchema, EMPTY_CREATOR_POST_METRIC, {
+      endpoint: "POST /api/workbench/creator-posts/:postId/metrics",
+    });
+  }
+
+  async listCrmClients(filters: CrmClientListFilters = {}): Promise<CrmClientListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/crm/clients${workbenchSearch({ q: filters.q })}`,
+    );
+    return parseWithFallback(raw, CrmClientListResponseSchema, EMPTY_CRM_CLIENT_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/crm/clients",
+    });
+  }
+
+  async createCrmClient(data: CreateCrmClientRequest): Promise<CrmClient> {
+    const raw = await this.fetch<unknown>("/api/workbench/crm/clients", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmClientSchema, EMPTY_CRM_CLIENT, {
+      endpoint: "POST /api/workbench/crm/clients",
+    });
+  }
+
+  async getCrmClient(id: string): Promise<CrmClient> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/clients/${id}`);
+    return parseWithFallback(raw, CrmClientSchema, EMPTY_CRM_CLIENT, {
+      endpoint: "GET /api/workbench/crm/clients/:clientId",
+    });
+  }
+
+  async updateCrmClient(id: string, data: UpdateCrmClientRequest): Promise<CrmClient> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/clients/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmClientSchema, EMPTY_CRM_CLIENT, {
+      endpoint: "PATCH /api/workbench/crm/clients/:clientId",
+    });
+  }
+
+  async deleteCrmClient(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/crm/clients/${id}`, { method: "DELETE" });
+  }
+
+  async listCrmBriefs(filters: CrmBriefListFilters = {}): Promise<CrmBriefListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/crm/briefs${workbenchSearch({
+        status: filters.status,
+        client_id: filters.client_id,
+      })}`,
+    );
+    return parseWithFallback(raw, CrmBriefListResponseSchema, EMPTY_CRM_BRIEF_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/crm/briefs",
+    });
+  }
+
+  async createCrmBrief(data: CreateCrmBriefRequest): Promise<CrmBrief> {
+    const raw = await this.fetch<unknown>("/api/workbench/crm/briefs", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmBriefSchema, EMPTY_CRM_BRIEF, {
+      endpoint: "POST /api/workbench/crm/briefs",
+    });
+  }
+
+  async getCrmBrief(id: string): Promise<CrmBrief> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/briefs/${id}`);
+    return parseWithFallback(raw, CrmBriefSchema, EMPTY_CRM_BRIEF, {
+      endpoint: "GET /api/workbench/crm/briefs/:briefId",
+    });
+  }
+
+  async updateCrmBrief(id: string, data: UpdateCrmBriefRequest): Promise<CrmBrief> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/briefs/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmBriefSchema, EMPTY_CRM_BRIEF, {
+      endpoint: "PATCH /api/workbench/crm/briefs/:briefId",
+    });
+  }
+
+  async deleteCrmBrief(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/crm/briefs/${id}`, { method: "DELETE" });
+  }
+
+  async listCrmCollabs(filters: CrmCollabListFilters = {}): Promise<CrmCollabListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/crm/collabs${workbenchSearch({
+        stage: filters.stage,
+        brief_id: filters.brief_id,
+        creator_id: filters.creator_id,
+      })}`,
+    );
+    return parseWithFallback(raw, CrmCollabListResponseSchema, EMPTY_CRM_COLLAB_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/crm/collabs",
+    });
+  }
+
+  async createCrmCollab(data: CreateCrmCollabRequest): Promise<CrmCollab> {
+    const raw = await this.fetch<unknown>("/api/workbench/crm/collabs", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmCollabSchema, EMPTY_CRM_COLLAB, {
+      endpoint: "POST /api/workbench/crm/collabs",
+    });
+  }
+
+  async getCrmCollab(id: string): Promise<CrmCollab> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/collabs/${id}`);
+    return parseWithFallback(raw, CrmCollabSchema, EMPTY_CRM_COLLAB, {
+      endpoint: "GET /api/workbench/crm/collabs/:collabId",
+    });
+  }
+
+  /** A `stage` change also writes `confirmed_at` / `published_at` / `accepted_at`
+   *  server-side; the response carries those, so callers read it back. */
+  async updateCrmCollab(id: string, data: UpdateCrmCollabRequest): Promise<CrmCollab> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/collabs/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmCollabSchema, EMPTY_CRM_COLLAB, {
+      endpoint: "PATCH /api/workbench/crm/collabs/:collabId",
+    });
+  }
+
+  async deleteCrmCollab(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/crm/collabs/${id}`, { method: "DELETE" });
+  }
+
+  async listCrmSettlements(
+    filters: CrmSettlementListFilters = {},
+  ): Promise<CrmSettlementListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/crm/settlements${workbenchSearch({
+        collab_id: filters.collab_id,
+        paid: filters.paid,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      CrmSettlementListResponseSchema,
+      EMPTY_CRM_SETTLEMENT_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/crm/settlements" },
+    );
+  }
+
+  async createCrmSettlement(data: CreateCrmSettlementRequest): Promise<CrmSettlement> {
+    const raw = await this.fetch<unknown>("/api/workbench/crm/settlements", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmSettlementSchema, EMPTY_CRM_SETTLEMENT, {
+      endpoint: "POST /api/workbench/crm/settlements",
+    });
+  }
+
+  // No GET for a single settlement (contract §3): the money ledger is read as a
+  // list scoped by `collab_id`, and a detail read would only duplicate it.
+  async updateCrmSettlement(
+    id: string,
+    data: UpdateCrmSettlementRequest,
+  ): Promise<CrmSettlement> {
+    const raw = await this.fetch<unknown>(`/api/workbench/crm/settlements/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, CrmSettlementSchema, EMPTY_CRM_SETTLEMENT, {
+      endpoint: "PATCH /api/workbench/crm/settlements/:settlementId",
+    });
+  }
+
+  async deleteCrmSettlement(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/crm/settlements/${id}`, { method: "DELETE" });
+  }
+
+  // Affiliate distribution (docs/engineering/WORKBENCH-API.md §11). Same base and
+  // same write scope as the ledgers above: reads are member-wide, writes are gated
+  // server-side (owner/admin, or the row's owner; a daily fact inherits its pick's
+  // owner, a settlement statement is owner/admin only). `settlements` has no
+  // delete — a statement is a platform fact — and `daily` has no create: its only
+  // write is the `(pick_id, stat_date)` upsert.
+
+  async listAffiliateProducts(
+    filters: AffiliateProductListFilters = {},
+  ): Promise<AffiliateProductListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/affiliate/products${workbenchSearch({
+        client_id: filters.client_id,
+        status: filters.status,
+        platform: filters.platform,
+        limit: filters.limit,
+        cursor: filters.cursor,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      AffiliateProductListResponseSchema,
+      EMPTY_AFFILIATE_PRODUCT_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/affiliate/products" },
+    );
+  }
+
+  async createAffiliateProduct(
+    data: CreateAffiliateProductRequest,
+  ): Promise<AffiliateProduct> {
+    const raw = await this.fetch<unknown>("/api/workbench/affiliate/products", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliateProductSchema, EMPTY_AFFILIATE_PRODUCT, {
+      endpoint: "POST /api/workbench/affiliate/products",
+    });
+  }
+
+  async getAffiliateProduct(id: string): Promise<AffiliateProduct> {
+    const raw = await this.fetch<unknown>(`/api/workbench/affiliate/products/${id}`);
+    return parseWithFallback(raw, AffiliateProductSchema, EMPTY_AFFILIATE_PRODUCT, {
+      endpoint: "GET /api/workbench/affiliate/products/:productId",
+    });
+  }
+
+  async updateAffiliateProduct(
+    id: string,
+    data: UpdateAffiliateProductRequest,
+  ): Promise<AffiliateProduct> {
+    const raw = await this.fetch<unknown>(`/api/workbench/affiliate/products/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliateProductSchema, EMPTY_AFFILIATE_PRODUCT, {
+      endpoint: "PATCH /api/workbench/affiliate/products/:productId",
+    });
+  }
+
+  async deleteAffiliateProduct(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/affiliate/products/${id}`, { method: "DELETE" });
+  }
+
+  async listAffiliatePicks(
+    filters: AffiliatePickListFilters = {},
+  ): Promise<AffiliatePickListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/affiliate/picks${workbenchSearch({
+        product_id: filters.product_id,
+        creator_id: filters.creator_id,
+        status: filters.status,
+        limit: filters.limit,
+        cursor: filters.cursor,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      AffiliatePickListResponseSchema,
+      EMPTY_AFFILIATE_PICK_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/affiliate/picks" },
+    );
+  }
+
+  async createAffiliatePick(data: CreateAffiliatePickRequest): Promise<AffiliatePick> {
+    const raw = await this.fetch<unknown>("/api/workbench/affiliate/picks", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliatePickSchema, EMPTY_AFFILIATE_PICK, {
+      endpoint: "POST /api/workbench/affiliate/picks",
+    });
+  }
+
+  async getAffiliatePick(id: string): Promise<AffiliatePick> {
+    const raw = await this.fetch<unknown>(`/api/workbench/affiliate/picks/${id}`);
+    return parseWithFallback(raw, AffiliatePickSchema, EMPTY_AFFILIATE_PICK, {
+      endpoint: "GET /api/workbench/affiliate/picks/:pickId",
+    });
+  }
+
+  async updateAffiliatePick(
+    id: string,
+    data: UpdateAffiliatePickRequest,
+  ): Promise<AffiliatePick> {
+    const raw = await this.fetch<unknown>(`/api/workbench/affiliate/picks/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliatePickSchema, EMPTY_AFFILIATE_PICK, {
+      endpoint: "PATCH /api/workbench/affiliate/picks/:pickId",
+    });
+  }
+
+  async deleteAffiliatePick(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/affiliate/picks/${id}`, { method: "DELETE" });
+  }
+
+  async listAffiliateDaily(
+    filters: AffiliateDailyListFilters = {},
+  ): Promise<AffiliateDailyListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/affiliate/daily${workbenchSearch({
+        pick_id: filters.pick_id,
+        from: filters.from,
+        to: filters.to,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      AffiliateDailyListResponseSchema,
+      EMPTY_AFFILIATE_DAILY_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/affiliate/daily" },
+    );
+  }
+
+  /** One day of one pick, upserted on `(pick_id, stat_date)`; PUT replaces the day. */
+  async upsertAffiliateDaily(data: UpsertAffiliateDailyRequest): Promise<AffiliateDaily> {
+    const raw = await this.fetch<unknown>("/api/workbench/affiliate/daily", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliateDailySchema, EMPTY_AFFILIATE_DAILY, {
+      endpoint: "PUT /api/workbench/affiliate/daily",
+    });
+  }
+
+  async listAffiliateSettlements(
+    filters: AffiliateSettlementListFilters = {},
+  ): Promise<AffiliateSettlementListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/affiliate/settlements${workbenchSearch({
+        status: filters.status,
+        from: filters.from,
+        to: filters.to,
+        limit: filters.limit,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      AffiliateSettlementListResponseSchema,
+      EMPTY_AFFILIATE_SETTLEMENT_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/affiliate/settlements" },
+    );
+  }
+
+  async createAffiliateSettlement(
+    data: CreateAffiliateSettlementRequest,
+  ): Promise<AffiliateSettlement> {
+    const raw = await this.fetch<unknown>("/api/workbench/affiliate/settlements", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliateSettlementSchema, EMPTY_AFFILIATE_SETTLEMENT, {
+      endpoint: "POST /api/workbench/affiliate/settlements",
+    });
+  }
+
+  async updateAffiliateSettlement(
+    id: string,
+    data: UpdateAffiliateSettlementRequest,
+  ): Promise<AffiliateSettlement> {
+    const raw = await this.fetch<unknown>(`/api/workbench/affiliate/settlements/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, AffiliateSettlementSchema, EMPTY_AFFILIATE_SETTLEMENT, {
+      endpoint: "PATCH /api/workbench/affiliate/settlements/:settlementId",
+    });
+  }
+
+  /**
+   * One month of the affiliate ledger (§11): GMV, estimated and settled
+   * commission, refund rate, platform tech fee, and the live plan set. Each block
+   * is the contract's three-state entry, so a month with no imported report
+   * leaves the money blocks on the gap card rather than at zero.
+   */
+  async getAffiliateSummary(
+    params: AffiliateSummaryFilters = {},
+  ): Promise<AffiliateSummaryResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/affiliate/summary${workbenchSearch({
+        month: params.month,
+        department_id: params.department_id,
+      })}`,
+    );
+    return parseWithFallback(
+      raw,
+      AffiliateSummaryResponseSchema,
+      EMPTY_AFFILIATE_SUMMARY_RESPONSE,
+      { endpoint: "GET /api/workbench/affiliate/summary" },
+    );
+  }
+
+  // HR (docs/engineering/WORKBENCH-API.md §10.3). Same base and same write scope
+  // as the ledgers above: reads are member-wide, writes are gated server-side.
+  // `scorecards` has no single-row GET — a scorecard is read through its
+  // interview — so there is no `getHrScorecard`, only the collection, the
+  // create, and the two row writes.
+
+  async listHrJobs(filters: HrJobListFilters = {}): Promise<HrJobListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/jobs${workbenchSearch({
+        status: filters.status,
+        department_id: filters.department_id,
+      })}`,
+    );
+    return parseWithFallback(raw, HrJobListResponseSchema, EMPTY_HR_JOB_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/jobs",
+    });
+  }
+
+  async createHrJob(data: CreateHrJobRequest): Promise<HrJob> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/jobs", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrJobSchema, EMPTY_HR_JOB, {
+      endpoint: "POST /api/workbench/hr/jobs",
+    });
+  }
+
+  async getHrJob(id: string): Promise<HrJob> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/jobs/${id}`);
+    return parseWithFallback(raw, HrJobSchema, EMPTY_HR_JOB, {
+      endpoint: "GET /api/workbench/hr/jobs/:jobId",
+    });
+  }
+
+  async updateHrJob(id: string, data: UpdateHrJobRequest): Promise<HrJob> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/jobs/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrJobSchema, EMPTY_HR_JOB, {
+      endpoint: "PATCH /api/workbench/hr/jobs/:jobId",
+    });
+  }
+
+  async deleteHrJob(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/jobs/${id}`, { method: "DELETE" });
+  }
+
+  async listHrCandidates(filters: HrCandidateListFilters = {}): Promise<HrCandidateListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/candidates${workbenchSearch({
+        job_id: filters.job_id,
+        stage: filters.stage,
+      })}`,
+    );
+    return parseWithFallback(raw, HrCandidateListResponseSchema, EMPTY_HR_CANDIDATE_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/candidates",
+    });
+  }
+
+  async createHrCandidate(data: CreateHrCandidateRequest): Promise<HrCandidate> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/candidates", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrCandidateSchema, EMPTY_HR_CANDIDATE, {
+      endpoint: "POST /api/workbench/hr/candidates",
+    });
+  }
+
+  async getHrCandidate(id: string): Promise<HrCandidate> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/candidates/${id}`);
+    return parseWithFallback(raw, HrCandidateSchema, EMPTY_HR_CANDIDATE, {
+      endpoint: "GET /api/workbench/hr/candidates/:candidateId",
+    });
+  }
+
+  async updateHrCandidate(id: string, data: UpdateHrCandidateRequest): Promise<HrCandidate> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/candidates/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrCandidateSchema, EMPTY_HR_CANDIDATE, {
+      endpoint: "PATCH /api/workbench/hr/candidates/:candidateId",
+    });
+  }
+
+  async deleteHrCandidate(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/candidates/${id}`, { method: "DELETE" });
+  }
+
+  /**
+   * The hire transition: `stage = hired`, `hired_at` stamped, and the employee
+   * profile created or updated in the same transaction (§10.3). The response is
+   * the candidate row the route names; the profile it wrote is re-read through
+   * `GET /hr/employees` (see `HireHrCandidateRequest`).
+   */
+  async hireHrCandidate(candidateId: string, data: HireHrCandidateRequest): Promise<HireHrCandidateResponse> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/candidates/${candidateId}/hire`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    const parsed = await parseWithFallback(
+      raw,
+      HireHrCandidateResponseSchema,
+      EMPTY_HIRE_HR_CANDIDATE_RESPONSE,
+      { endpoint: "POST /api/workbench/hr/candidates/:candidateId/hire" },
+    );
+    return {
+      candidate: parsed.candidate ?? EMPTY_HR_CANDIDATE,
+      employee_profile: parsed.employee_profile ?? EMPTY_HR_EMPLOYEE_PROFILE,
+    };
+  }
+
+  async listHrInterviews(filters: HrInterviewListFilters = {}): Promise<HrInterviewListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/interviews${workbenchSearch({
+        candidate_id: filters.candidate_id,
+        status: filters.status,
+      })}`,
+    );
+    return parseWithFallback(raw, HrInterviewListResponseSchema, EMPTY_HR_INTERVIEW_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/interviews",
+    });
+  }
+
+  async createHrInterview(data: CreateHrInterviewRequest): Promise<HrInterview> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/interviews", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrInterviewSchema, EMPTY_HR_INTERVIEW, {
+      endpoint: "POST /api/workbench/hr/interviews",
+    });
+  }
+
+  async getHrInterview(id: string): Promise<HrInterview> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/interviews/${id}`);
+    return parseWithFallback(raw, HrInterviewSchema, EMPTY_HR_INTERVIEW, {
+      endpoint: "GET /api/workbench/hr/interviews/:interviewId",
+    });
+  }
+
+  async updateHrInterview(id: string, data: UpdateHrInterviewRequest): Promise<HrInterview> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/interviews/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrInterviewSchema, EMPTY_HR_INTERVIEW, {
+      endpoint: "PATCH /api/workbench/hr/interviews/:interviewId",
+    });
+  }
+
+  async deleteHrInterview(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/interviews/${id}`, { method: "DELETE" });
+  }
+
+  async listHrScorecards(filters: HrScorecardListFilters = {}): Promise<HrScorecardListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/scorecards${workbenchSearch({ interview_id: filters.interview_id })}`,
+    );
+    return parseWithFallback(raw, HrScorecardListResponseSchema, EMPTY_HR_SCORECARD_LIST_RESPONSE, {
+      endpoint: "GET /api/workbench/hr/scorecards",
+    });
+  }
+
+  async createHrScorecard(data: CreateHrScorecardRequest): Promise<HrScorecard> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/scorecards", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrScorecardSchema, EMPTY_HR_SCORECARD, {
+      endpoint: "POST /api/workbench/hr/scorecards",
+    });
+  }
+
+  async updateHrScorecard(id: string, data: UpdateHrScorecardRequest): Promise<HrScorecard> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/scorecards/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrScorecardSchema, EMPTY_HR_SCORECARD, {
+      endpoint: "PATCH /api/workbench/hr/scorecards/:scorecardId",
+    });
+  }
+
+  async deleteHrScorecard(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/scorecards/${id}`, { method: "DELETE" });
+  }
+
+  async listHrEmployees(
+    filters: HrEmployeeProfileListFilters = {},
+  ): Promise<HrEmployeeProfileListResponse> {
+    const raw = await this.fetch<unknown>(
+      `/api/workbench/hr/employees${workbenchSearch({ department_id: filters.department_id })}`,
+    );
+    return parseWithFallback(
+      raw,
+      HrEmployeeProfileListResponseSchema,
+      EMPTY_HR_EMPLOYEE_PROFILE_LIST_RESPONSE,
+      { endpoint: "GET /api/workbench/hr/employees" },
+    );
+  }
+
+  async createHrEmployee(data: CreateHrEmployeeProfileRequest): Promise<HrEmployeeProfile> {
+    const raw = await this.fetch<unknown>("/api/workbench/hr/employees", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrEmployeeProfileSchema, EMPTY_HR_EMPLOYEE_PROFILE, {
+      endpoint: "POST /api/workbench/hr/employees",
+    });
+  }
+
+  async getHrEmployee(id: string): Promise<HrEmployeeProfile> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/employees/${id}`);
+    return parseWithFallback(raw, HrEmployeeProfileSchema, EMPTY_HR_EMPLOYEE_PROFILE, {
+      endpoint: "GET /api/workbench/hr/employees/:employeeId",
+    });
+  }
+
+  async updateHrEmployee(
+    id: string,
+    data: UpdateHrEmployeeProfileRequest,
+  ): Promise<HrEmployeeProfile> {
+    const raw = await this.fetch<unknown>(`/api/workbench/hr/employees/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return parseWithFallback(raw, HrEmployeeProfileSchema, EMPTY_HR_EMPLOYEE_PROFILE, {
+      endpoint: "PATCH /api/workbench/hr/employees/:employeeId",
+    });
+  }
+
+  async deleteHrEmployee(id: string): Promise<void> {
+    await this.fetch(`/api/workbench/hr/employees/${id}`, { method: "DELETE" });
   }
 
   async createShareLink(workspaceId: string, data: { role?: string; expires_in?: number; max_uses?: number }): Promise<ShareLink> {

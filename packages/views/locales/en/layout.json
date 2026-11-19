@@ -9,6 +9,7 @@
     "agents": "Agents",
     "squads": "Squads",
     "usage": "Analytics",
+    "overview": "Overview",
     "runtimes": "Runtimes",
     "skills": "Skills",
     "presets": "Presets",
@@ -91,12 +92,14 @@
     "show_fewer_pins": "Show fewer"
   },
   "spaces": {
+    "workbench": "Workbench",
     "work": "Work",
     "team": "Team"
   },
   "rail": {
     "label": "App navigation",
     "sheet_description": "Switch spaces and workspaces.",
+    "workbench": "Workbench",
     "inbox": "Inbox",
     "work": "Work",
     "team": "Team",
@@ -196,6 +199,13 @@
     "shortcuts": "Keyboard shortcuts"
   },
   "collection": {
+  "pager": {
+    "more": "Load more",
+    "loading": "Loading…",
+    "end": "No more rows",
+    "count": "Showing {{loaded}} of {{total}}",
+    "count_loaded": "Showing {{loaded}}"
+  },
     "filter": "Filter",
     "filter_count_one": "{{count}} filter",
     "filter_count_other": "{{count}} filters",

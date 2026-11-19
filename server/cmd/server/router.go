@@ -27,9 +27,9 @@ import (
 	"github.com/jerry-halo2026/morchat.co/server/internal/connectedapps"
 	"github.com/jerry-halo2026/morchat.co/server/internal/daemonws"
 	"github.com/jerry-halo2026/morchat.co/server/internal/entitlement"
-	"github.com/jerry-halo2026/morchat.co/server/internal/gateway"
 	"github.com/jerry-halo2026/morchat.co/server/internal/events"
 	"github.com/jerry-halo2026/morchat.co/server/internal/featureflags"
+	"github.com/jerry-halo2026/morchat.co/server/internal/gateway"
 	"github.com/jerry-halo2026/morchat.co/server/internal/gitca"
 	"github.com/jerry-halo2026/morchat.co/server/internal/handler"
 	"github.com/jerry-halo2026/morchat.co/server/internal/integrations/channel"
@@ -1659,6 +1659,10 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 		r.Use(middleware.Auth(queries, patCache, cloudPATVerifier, cfSigner))
 		r.Use(middleware.RequireWorkspaceMember(queries))
 		r.Post("/api/mcp/knowledge", h.KnowledgeMCP)
+		// The workbench's read surface as tools (docs/engineering/WORKBENCH-API.md
+		// §7): the same four reads agents need — metric strip, counts, ledgers,
+		// money block — read-only, behind the same token and membership chain.
+		r.Post("/api/mcp/workbench", h.WorkbenchMCP)
 	})
 
 	// Daemon API routes (require daemon token or valid user token)
@@ -2395,6 +2399,170 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 				r.Route("/{id}", func(r chi.Router) {
 					r.Patch("/", h.UpdateDepartment)
 					r.Delete("/", h.DeleteDepartment)
+				})
+			})
+
+			// Workbench ledgers (docs/engineering/WORKBENCH-API.md). Creator
+			// commerce is the first domain. Reads are member-wide; write scope is
+			// gated inside the handlers. `department_id` only filters aggregates —
+			// it is not an access boundary (docs/engineering/ORG-MODEL.md).
+			r.Route("/api/workbench", func(r chi.Router) {
+				r.Get("/overview", h.GetWorkbenchOverview)
+				r.Get("/counts", h.GetWorkbenchCounts)
+				r.Get("/finance", h.GetWorkbenchFinance)
+				// The month entry that feeds the margin's cost side and the cash
+				// floor (707). Reads are member-wide; PUT is gated to
+				// owner/admin inside the handler like the other workbench writes.
+				r.Get("/finance/months", h.ListWorkbenchFinanceMonths)
+				r.Put("/finance/months", h.UpsertWorkbenchFinanceMonth)
+
+				r.Route("/creators", func(r chi.Router) {
+					r.Get("/", h.ListCreators)
+					r.Post("/", h.CreateCreator)
+					r.Route("/{creatorId}", func(r chi.Router) {
+						r.Get("/", h.GetCreator)
+						r.Patch("/", h.UpdateCreator)
+						r.Delete("/", h.DeleteCreator)
+					})
+				})
+
+				r.Route("/creator-posts", func(r chi.Router) {
+					r.Get("/", h.ListCreatorPosts)
+					r.Post("/", h.CreateCreatorPost)
+					r.Route("/{postId}", func(r chi.Router) {
+						r.Patch("/", h.UpdateCreatorPost)
+						r.Delete("/", h.DeleteCreatorPost)
+						r.Get("/metrics", h.ListCreatorPostMetrics)
+						r.Post("/metrics", h.UpsertCreatorPostMetric)
+					})
+				})
+
+				r.Route("/crm", func(r chi.Router) {
+					r.Route("/clients", func(r chi.Router) {
+						r.Get("/", h.ListCrmClients)
+						r.Post("/", h.CreateCrmClient)
+						r.Route("/{clientId}", func(r chi.Router) {
+							r.Get("/", h.GetCrmClient)
+							r.Patch("/", h.UpdateCrmClient)
+							r.Delete("/", h.DeleteCrmClient)
+						})
+					})
+					r.Route("/briefs", func(r chi.Router) {
+						r.Get("/", h.ListCrmBriefs)
+						r.Post("/", h.CreateCrmBrief)
+						r.Route("/{briefId}", func(r chi.Router) {
+							r.Get("/", h.GetCrmBrief)
+							r.Patch("/", h.UpdateCrmBrief)
+							r.Delete("/", h.DeleteCrmBrief)
+						})
+					})
+					r.Route("/collabs", func(r chi.Router) {
+						r.Get("/", h.ListCrmCollabs)
+						r.Post("/", h.CreateCrmCollab)
+						r.Route("/{collabId}", func(r chi.Router) {
+							r.Get("/", h.GetCrmCollab)
+							r.Patch("/", h.UpdateCrmCollab)
+							r.Delete("/", h.DeleteCrmCollab)
+						})
+					})
+					r.Route("/settlements", func(r chi.Router) {
+						r.Get("/", h.ListCrmSettlements)
+						r.Post("/", h.CreateCrmSettlement)
+						r.Route("/{settlementId}", func(r chi.Router) {
+							r.Patch("/", h.UpdateCrmSettlement)
+							r.Delete("/", h.DeleteCrmSettlement)
+						})
+					})
+				})
+
+				// 精选联盟 affiliate distribution (docs/engineering/WORKBENCH-API.md §11).
+				// Products and picks are soft-deleted ledgers with the B0 write
+				// gate; daily facts are an upsert on (pick, day) and inherit the
+				// pick's owner; a settlement statement is a platform fact with no
+				// delete route, written by owner/admin only.
+				r.Route("/affiliate", func(r chi.Router) {
+					r.Get("/summary", h.GetAffiliateSummary)
+					r.Route("/products", func(r chi.Router) {
+						r.Get("/", h.ListAffiliateProducts)
+						r.Post("/", h.CreateAffiliateProduct)
+						r.Route("/{productId}", func(r chi.Router) {
+							r.Get("/", h.GetAffiliateProduct)
+							r.Patch("/", h.UpdateAffiliateProduct)
+							r.Delete("/", h.DeleteAffiliateProduct)
+						})
+					})
+					r.Route("/picks", func(r chi.Router) {
+						r.Get("/", h.ListAffiliatePicks)
+						r.Post("/", h.CreateAffiliatePick)
+						r.Route("/{pickId}", func(r chi.Router) {
+							r.Get("/", h.GetAffiliatePick)
+							r.Patch("/", h.UpdateAffiliatePick)
+							r.Delete("/", h.DeleteAffiliatePick)
+						})
+					})
+					r.Route("/daily", func(r chi.Router) {
+						r.Get("/", h.ListAffiliateDaily)
+						r.Put("/", h.UpsertAffiliateDaily)
+					})
+					r.Route("/settlements", func(r chi.Router) {
+						r.Get("/", h.ListAffiliateSettlements)
+						r.Post("/", h.CreateAffiliateSettlement)
+						r.Route("/{settlementId}", func(r chi.Router) {
+							r.Patch("/", h.UpdateAffiliateSettlement)
+						})
+					})
+				})
+
+				// HR (docs/engineering/WORKBENCH-API.md §10.3). Same read/write
+				// split as the commerce ledgers; `scorecards` has no standalone
+				// GET because a scorecard is read with its interview, and `hire`
+				// is the one route that writes two tables in one transaction.
+				r.Route("/hr", func(r chi.Router) {
+					r.Route("/jobs", func(r chi.Router) {
+						r.Get("/", h.ListHrJobs)
+						r.Post("/", h.CreateHrJob)
+						r.Route("/{jobId}", func(r chi.Router) {
+							r.Get("/", h.GetHrJob)
+							r.Patch("/", h.UpdateHrJob)
+							r.Delete("/", h.DeleteHrJob)
+						})
+					})
+					r.Route("/candidates", func(r chi.Router) {
+						r.Get("/", h.ListHrCandidates)
+						r.Post("/", h.CreateHrCandidate)
+						r.Route("/{candidateId}", func(r chi.Router) {
+							r.Get("/", h.GetHrCandidate)
+							r.Patch("/", h.UpdateHrCandidate)
+							r.Delete("/", h.DeleteHrCandidate)
+							r.Post("/hire", h.HireHrCandidate)
+						})
+					})
+					r.Route("/interviews", func(r chi.Router) {
+						r.Get("/", h.ListHrInterviews)
+						r.Post("/", h.CreateHrInterview)
+						r.Route("/{interviewId}", func(r chi.Router) {
+							r.Get("/", h.GetHrInterview)
+							r.Patch("/", h.UpdateHrInterview)
+							r.Delete("/", h.DeleteHrInterview)
+						})
+					})
+					r.Route("/scorecards", func(r chi.Router) {
+						r.Get("/", h.ListHrScorecards)
+						r.Post("/", h.CreateHrScorecard)
+						r.Route("/{scorecardId}", func(r chi.Router) {
+							r.Patch("/", h.UpdateHrScorecard)
+							r.Delete("/", h.DeleteHrScorecard)
+						})
+					})
+					r.Route("/employees", func(r chi.Router) {
+						r.Get("/", h.ListHrEmployees)
+						r.Post("/", h.CreateHrEmployee)
+						r.Route("/{employeeId}", func(r chi.Router) {
+							r.Get("/", h.GetHrEmployee)
+							r.Patch("/", h.UpdateHrEmployee)
+							r.Delete("/", h.DeleteHrEmployee)
+						})
+					})
 				})
 			})
 

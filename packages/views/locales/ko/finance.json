@@ -1,0 +1,46 @@
+{
+  "tab": "수익",
+  "card": {
+    "signed": "이번 달 계약",
+    "collected": "이번 달 입금",
+    "margin": "매출총이익률",
+    "receivable": "미수금 연령",
+    "cash": "현금 하한"
+  },
+  "hint": {
+    "signed": "이번 달 · 갱신 포함",
+    "collected": "이번 달 실제 입금",
+    "receivable": "미입금 정산서 평균"
+  },
+  "basis": {
+    "entered": "입력한 원가",
+    "settled_collabs": "정산된 협업 비용",
+    "none": "원가 미입력"
+  },
+  "empty": {
+    "no_cost": "이번 달 정산된 협업이 없어 이익률을 계산할 원가가 없습니다.",
+    "no_cost_entry": "이번 달 원가가 입력되지 않아 이익률을 계산할 원가가 없습니다.",
+    "no_revenue": "이번 달 입금이 없어 이익률에 분모가 없습니다.",
+    "cash_open": "이번 달 기초 현금이 입력되지 않아 현금 하한을 계산할 수 없습니다."
+  },
+  "cost": {
+    "open": "{{month}} 원가 입력",
+    "title": "{{month}} 원가 입력",
+    "field": {
+      "cash_open": "기초 현금",
+      "fixed_cost": "고정비",
+      "variable_cost": "변동비",
+      "note": "메모"
+    },
+    "action": {
+      "save": "저장",
+      "cancel": "취소"
+    },
+    "error": {
+      "required": "금액을 하나 이상 입력하세요.",
+      "submit": "이번 달 원가를 저장하지 못했습니다."
+    },
+    "saved": "이번 달 원가를 저장했습니다."
+  },
+  "error": "수익 지표를 불러오지 못했습니다. 연결을 확인한 뒤 다시 시도하세요."
+}

@@ -108,9 +108,53 @@ import type {
   User,
   WebhookDelivery,
   WorkspaceMcpServer,
+  Creator,
+  CreatorListResponse,
+  CreatorPost,
+  CreatorPostListResponse,
+  CreatorPostMetric,
+  CreatorPostMetricListResponse,
+  CrmClient,
+  CrmClientListResponse,
+  CrmBrief,
+  CrmBriefListResponse,
+  CrmCollab,
+  CrmCollabListResponse,
+  CrmSettlement,
+  CrmSettlementListResponse,
+  WorkbenchCountsResponse,
+  WorkbenchFinanceMonth,
+  WorkbenchFinanceMonthListResponse,
+  WorkbenchFinanceResponse,
 } from "../types";
 import type { CloudRuntimeNode } from "../runtimes/cloud-runtime";
 import type { CreateFeedbackResponse } from "../feedback/types";
+// The HR block is imported from its own module rather than the `../types`
+// barrel so this file does not depend on the barrel re-exporting it.
+import type {
+  HrCandidate,
+  HrCandidateListResponse,
+  HrEmployeeProfile,
+  HrEmployeeProfileListResponse,
+  HrInterview,
+  HrInterviewListResponse,
+  HrJob,
+  HrJobListResponse,
+  HrScorecard,
+  HrScorecardListResponse,
+} from "../types/workbench";
+// The affiliate block (§11) comes from the same module, for the same reason.
+import type {
+  AffiliateDaily,
+  AffiliateDailyListResponse,
+  AffiliatePick,
+  AffiliatePickListResponse,
+  AffiliateProduct,
+  AffiliateProductListResponse,
+  AffiliateSettlement,
+  AffiliateSettlementListResponse,
+  AffiliateSummaryResponse,
+} from "../types/workbench";
 
 export const PluginConfigFieldSchema = z.object({
   key: z.string(),
@@ -1640,6 +1684,10 @@ export const ProjectSchema = z.object({
   done_count: z.number().default(0),
   resource_count: z.number().default(0),
   workflow_id: z.string().nullable().default(null),
+  // Org unit the project belongs to (docs/engineering/ORG-MODEL.md). The server
+  // has sent it since departments shipped; defaulted so a backend that predates
+  // them parses to "unfiled" instead of failing the object.
+  department_id: z.string().nullable().default(null),
 }).loose();
 
 export const EMPTY_PROJECT: Project = {
@@ -1647,6 +1695,7 @@ export const EMPTY_PROJECT: Project = {
   status: "planned", priority: "none", lead_type: null, lead_id: null,
   creator_type: null, creator_id: null, start_date: null, due_date: null,
   created_at: "", updated_at: "", issue_count: 0, done_count: 0, resource_count: 0,
+  department_id: null,
 };
 
 export const ListProjectsResponseSchema = z.object({
@@ -4371,3 +4420,960 @@ export const WorkspaceListItemSchema = z.object({
 export const WorkspacePinnedSchema = z.object({
   pinned_at: z.iso.datetime({ offset: true }).nullable().catch(null),
 });
+
+// --- Workbench ledgers (docs/engineering/WORKBENCH-API.md §2/§3) -----------
+//
+// Seven ledger records. Two rules shape every schema below:
+//
+// 1. Enums stay `z.string()` (or a plain string with a default) so a server that
+//    adds a collab stage, a post source or a settlement kind still parses. The
+//    wire type in `types/workbench.ts` is the union the UI default-cases against;
+//    an unknown value must degrade one row's presentation, never the ledger.
+// 2. Nullable columns are `.nullable().default(null)` and counters default to 0,
+//    so a row written before a column existed parses instead of failing the page.
+//
+// Money arrives as a JSON number (the server converts NUMERIC(14,2)); `currency`
+// travels beside it, and the amount fields never default to 0 — null means
+// "not quoted yet", which the UI renders differently from a quoted zero.
+
+const workbenchNullableString = z.string().nullable().default(null);
+const workbenchNullableNumber = z.number().nullable().default(null);
+
+export const CreatorSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  kind: z.string().default("external"),
+  display_name: z.string().default(""),
+  platform: z.string().default(""),
+  handle: z.string().default(""),
+  url: workbenchNullableString,
+  fans: z.number().default(0),
+  fans_d7: z.number().default(0),
+  avg_play: z.number().default(0),
+  engagement_rate: workbenchNullableNumber,
+  category: workbenchNullableString,
+  audience_note: workbenchNullableString,
+  region: workbenchNullableString,
+  price_note: workbenchNullableString,
+  score: workbenchNullableNumber,
+  risk_flag: z.boolean().default(false),
+  blacklist_reason: workbenchNullableString,
+  owner_member_id: workbenchNullableString,
+  media_ip_project_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CREATOR: Creator = {
+  id: "", workspace_id: "", kind: "external", display_name: "", platform: "",
+  handle: "", url: null, fans: 0, fans_d7: 0, avg_play: 0, engagement_rate: null,
+  category: null, audience_note: null, region: null, price_note: null, score: null,
+  risk_flag: false, blacklist_reason: null, owner_member_id: null,
+  media_ip_project_id: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
+};
+
+export const CreatorListResponseSchema = z.object({
+  creators: z.array(CreatorSchema).default([]),
+  total: z.number().default(0),
+  // Cursor paging: absent/null means this is the last page.
+  next_cursor: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CREATOR_LIST_RESPONSE: CreatorListResponse = {
+  creators: [],
+  total: 0,
+  next_cursor: null,
+};
+
+export const CreatorPostSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  creator_id: z.string().default(""),
+  collab_id: workbenchNullableString,
+  content_issue_id: workbenchNullableString,
+  // 713: the affiliate pointers a product placement carries (§11). Null for a
+  // post that ran no 小黄车 and for rows imported before the columns existed.
+  product_id: workbenchNullableString,
+  pick_id: workbenchNullableString,
+  platform: z.string().default(""),
+  title: workbenchNullableString,
+  url: z.string().default(""),
+  published_at: z.string().default(""),
+  source: z.string().default("manual"),
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CREATOR_POST: CreatorPost = {
+  id: "", workspace_id: "", creator_id: "", collab_id: null,
+  content_issue_id: null, product_id: null, pick_id: null, platform: "", title: null,
+  url: "", published_at: "", source: "manual", created_by: null, created_at: "",
+  updated_at: "", archived_at: null,
+};
+
+export const CreatorPostListResponseSchema = z.object({
+  posts: z.array(CreatorPostSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_CREATOR_POST_LIST_RESPONSE: CreatorPostListResponse = {
+  posts: [],
+  total: 0,
+};
+
+// Every measure is nullable: a platform that reports only likes must not look
+// like it reported zero plays (docs/METRICS.md rule 3).
+export const CreatorPostMetricSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  post_id: z.string().default(""),
+  captured_on: z.string().default(""),
+  play: workbenchNullableNumber,
+  likes: workbenchNullableNumber,
+  comments: workbenchNullableNumber,
+  shares: workbenchNullableNumber,
+  clicks: workbenchNullableNumber,
+  converts: workbenchNullableNumber,
+  gmv_amount: workbenchNullableNumber,
+  currency: z.string().default("CNY"),
+  source: z.string().default("manual"),
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+}).loose();
+
+export const EMPTY_CREATOR_POST_METRIC: CreatorPostMetric = {
+  id: "", workspace_id: "", post_id: "", captured_on: "", play: null, likes: null,
+  comments: null, shares: null, clicks: null, converts: null, gmv_amount: null,
+  currency: "CNY", source: "manual", created_at: "", updated_at: "",
+};
+
+export const CreatorPostMetricListResponseSchema = z.object({
+  metrics: z.array(CreatorPostMetricSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_CREATOR_POST_METRIC_LIST_RESPONSE: CreatorPostMetricListResponse = {
+  metrics: [],
+  total: 0,
+};
+
+export const CrmClientSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  name: z.string().default(""),
+  brand: workbenchNullableString,
+  industry: workbenchNullableString,
+  contact_name: workbenchNullableString,
+  contact_channel: workbenchNullableString,
+  contract_entity: workbenchNullableString,
+  payment_terms: workbenchNullableString,
+  credit_note: workbenchNullableString,
+  owner_member_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CRM_CLIENT: CrmClient = {
+  id: "", workspace_id: "", name: "", brand: null, industry: null,
+  contact_name: null, contact_channel: null, contract_entity: null,
+  payment_terms: null, credit_note: null, owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const CrmClientListResponseSchema = z.object({
+  clients: z.array(CrmClientSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_CRM_CLIENT_LIST_RESPONSE: CrmClientListResponse = {
+  clients: [],
+  total: 0,
+};
+
+export const CrmBriefSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  client_id: z.string().default(""),
+  title: z.string().default(""),
+  category: workbenchNullableString,
+  budget_min_amount: workbenchNullableNumber,
+  budget_max_amount: workbenchNullableNumber,
+  target_audience: workbenchNullableString,
+  deliverable_type: workbenchNullableString,
+  // TEXT[] NOT NULL DEFAULT '{}': a brief with no platform filter is an empty
+  // list, never null.
+  platforms: z.array(z.string()).default([]),
+  schedule_from: workbenchNullableString,
+  schedule_to: workbenchNullableString,
+  kpi_play: workbenchNullableNumber,
+  kpi_gmv_amount: workbenchNullableNumber,
+  status: z.string().default("draft"),
+  owner_member_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CRM_BRIEF: CrmBrief = {
+  id: "", workspace_id: "", client_id: "", title: "", category: null,
+  budget_min_amount: null, budget_max_amount: null, target_audience: null,
+  deliverable_type: null, platforms: [], schedule_from: null, schedule_to: null,
+  kpi_play: null, kpi_gmv_amount: null, status: "draft", owner_member_id: null,
+  created_by: null, created_at: "", updated_at: "", archived_at: null,
+};
+
+export const CrmBriefListResponseSchema = z.object({
+  briefs: z.array(CrmBriefSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_CRM_BRIEF_LIST_RESPONSE: CrmBriefListResponse = {
+  briefs: [],
+  total: 0,
+};
+
+export const CrmCollabSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  brief_id: z.string().default(""),
+  creator_id: z.string().default(""),
+  stage: z.string().default("inquiry"),
+  quote_amount: workbenchNullableNumber,
+  final_amount: workbenchNullableNumber,
+  prob: workbenchNullableNumber,
+  creator_fee: workbenchNullableNumber,
+  sample_cost: workbenchNullableNumber,
+  platform_fee: workbenchNullableNumber,
+  currency: z.string().default("CNY"),
+  settlement_mode: workbenchNullableString,
+  commission_rate: workbenchNullableNumber,
+  sample_required: z.boolean().default(false),
+  script_required: z.boolean().default(false),
+  scheduled_at: workbenchNullableString,
+  confirmed_at: workbenchNullableString,
+  published_at: workbenchNullableString,
+  accepted_at: workbenchNullableString,
+  issue_id: workbenchNullableString,
+  owner_member_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CRM_COLLAB: CrmCollab = {
+  id: "", workspace_id: "", brief_id: "", creator_id: "", stage: "inquiry",
+  quote_amount: null, final_amount: null, prob: null, creator_fee: null,
+  sample_cost: null, platform_fee: null, currency: "CNY", settlement_mode: null,
+  commission_rate: null, sample_required: false, script_required: false,
+  scheduled_at: null, confirmed_at: null, published_at: null, accepted_at: null,
+  issue_id: null, owner_member_id: null, created_by: null, created_at: "",
+  updated_at: "", archived_at: null,
+};
+
+export const CrmCollabListResponseSchema = z.object({
+  collabs: z.array(CrmCollabSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_CRM_COLLAB_LIST_RESPONSE: CrmCollabListResponse = {
+  collabs: [],
+  total: 0,
+};
+
+export const CrmSettlementSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  collab_id: z.string().default(""),
+  kind: z.string().default("final"),
+  // The one non-nullable amount: a settlement row exists to move money.
+  amount: z.number().default(0),
+  currency: z.string().default("CNY"),
+  due_at: workbenchNullableString,
+  paid_at: workbenchNullableString,
+  invoice_no: workbenchNullableString,
+  note: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_CRM_SETTLEMENT: CrmSettlement = {
+  id: "", workspace_id: "", collab_id: "", kind: "final", amount: 0,
+  currency: "CNY", due_at: null, paid_at: null, invoice_no: null, note: null,
+  created_by: null, created_at: "", updated_at: "", archived_at: null,
+};
+
+export const CrmSettlementListResponseSchema = z.object({
+  settlements: z.array(CrmSettlementSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_CRM_SETTLEMENT_LIST_RESPONSE: CrmSettlementListResponse = {
+  settlements: [],
+  total: 0,
+};
+
+export const WorkbenchCountsResponseSchema = z.object({
+  creators: z.number().default(0),
+  clients: z.number().default(0),
+  briefs: z.number().default(0),
+  collabs_open: z.number().default(0),
+  settlements_pending: z.number().default(0),
+  // Absent on a pre-B1 server; the panel draws no number rather than 0.
+  jobs: z.number().optional(),
+  candidates: z.number().optional(),
+  interviews: z.number().optional(),
+  employees: z.number().optional(),
+}).loose();
+
+export const EMPTY_WORKBENCH_COUNTS_RESPONSE: WorkbenchCountsResponse = {
+  creators: 0,
+  clients: 0,
+  briefs: 0,
+  collabs_open: 0,
+  settlements_pending: 0,
+};
+
+// --- Workbench money block (`GET /api/workbench/finance`) -------------------
+//
+// Five entries in the metric strip's own three-state shape. Two rules, both
+// borrowed from `../metrics/response`:
+//
+// 1. A missing figure degrades to "nothing measured" (`value: null` +
+//    `insufficient_data`), never to a zero: rendering 0 for a figure the server
+//    could not state is the confusion docs/METRICS.md rule 3 exists to prevent.
+// 2. A drifted block (a number arriving as a string, an unknown `empty`) degrades
+//    by itself instead of failing the whole response. One broken figure must cost
+//    a tile, not the money tab.
+//
+// `value` stays `number | null`; money is never a string on the wire
+// (§3.1), so a string here is drift and belongs in the degradation path.
+
+const workbenchFinanceEmptyState = z
+  .enum(["zero", "insufficient_data"])
+  .catch("insufficient_data");
+
+/**
+ * Which cost set a figure used (the server's `basis`). An unknown value is drift
+ * and degrades to `none` — the "no cost side" reading — because naming a cost set
+ * the client does not understand would make the card claim a number it cannot
+ * explain.
+ */
+const workbenchFinanceCostBasis = z
+  .enum(["entered", "settled_collabs", "none"])
+  .catch("none");
+
+export const WorkbenchFinanceBlockSchema = z
+  .object({
+    value: z.number().nullable().default(null),
+    sample_count: z.number().default(0),
+    empty: workbenchFinanceEmptyState,
+  })
+  .loose();
+
+/** A figure that carries the cost set behind it (gross margin, cash floor). */
+export const WorkbenchFinanceCostBlockSchema = WorkbenchFinanceBlockSchema.extend({
+  basis: workbenchFinanceCostBasis,
+});
+
+const EMPTY_WORKBENCH_FINANCE_BLOCK: z.output<typeof WorkbenchFinanceBlockSchema> = {
+  value: null,
+  sample_count: 0,
+  empty: "insufficient_data",
+};
+
+const EMPTY_WORKBENCH_FINANCE_COST_BLOCK: z.output<typeof WorkbenchFinanceCostBlockSchema> = {
+  ...EMPTY_WORKBENCH_FINANCE_BLOCK,
+  basis: "none",
+};
+
+/**
+ * One block, with both guards applied: absent → the gap block (`.default`), and
+ * malformed → the gap block (`.catch`). The order matters — a missing key never
+ * reaches the inner schema, so the default has to sit on the outside.
+ */
+const workbenchFinanceBlock = WorkbenchFinanceBlockSchema.default(
+  EMPTY_WORKBENCH_FINANCE_BLOCK,
+).catch(EMPTY_WORKBENCH_FINANCE_BLOCK);
+
+const workbenchFinanceCostBlock = WorkbenchFinanceCostBlockSchema.default(
+  EMPTY_WORKBENCH_FINANCE_COST_BLOCK,
+).catch(EMPTY_WORKBENCH_FINANCE_COST_BLOCK);
+
+export const WorkbenchFinanceResponseSchema = z
+  .object({
+    // The month label is display copy, so a missing one degrades to an empty
+    // string rather than rejecting the figures the server did send.
+    window: z
+      .object({ month: z.string().default("") })
+      .default({ month: "" })
+      .catch({ month: "" }),
+    signed: workbenchFinanceBlock,
+    collected: workbenchFinanceBlock,
+    gross_margin: workbenchFinanceCostBlock,
+    receivable_days: workbenchFinanceBlock,
+    cash_floor: workbenchFinanceCostBlock,
+  })
+  .loose();
+
+export const EMPTY_WORKBENCH_FINANCE_RESPONSE: WorkbenchFinanceResponse = {
+  window: { month: "" },
+  signed: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  collected: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  gross_margin: EMPTY_WORKBENCH_FINANCE_COST_BLOCK,
+  receivable_days: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  cash_floor: EMPTY_WORKBENCH_FINANCE_COST_BLOCK,
+};
+
+// --- Month entry (`/api/workbench/finance/months`, migration 707) -----------
+//
+// The inputs the money block cannot derive: opening cash and the month's own cost
+// bill. Same leniency rules as the ledgers above — every field degrades instead of
+// rejecting the row, and a null amount stays null, because "not recorded" is what
+// keeps the figures on the gap card.
+
+const workbenchFinanceMonthNumber = z.number().nullable().default(null);
+
+export const WorkbenchFinanceMonthSchema = z
+  .object({
+    id: z.string().default(""),
+    workspace_id: z.string().default(""),
+    // `YYYY-MM-DD` (C7). The server validates the key on the write path; here it
+    // is display copy, so a missing one degrades to an empty string.
+    month: z.string().default(""),
+    cash_open: workbenchFinanceMonthNumber,
+    fixed_cost: workbenchFinanceMonthNumber,
+    variable_cost: workbenchFinanceMonthNumber,
+    note: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+  })
+  .loose();
+
+// The empty row, typed as the schema's own output so `.catch` below can take it
+// (a `.loose()` object carries an index signature the interface does not).
+const EMPTY_WORKBENCH_FINANCE_MONTH_ROW: z.output<typeof WorkbenchFinanceMonthSchema> =
+  WorkbenchFinanceMonthSchema.parse({});
+
+export const EMPTY_WORKBENCH_FINANCE_MONTH: WorkbenchFinanceMonth =
+  EMPTY_WORKBENCH_FINANCE_MONTH_ROW;
+
+export const WorkbenchFinanceMonthListResponseSchema = z
+  .object({
+    months: z
+      .array(WorkbenchFinanceMonthSchema.catch(EMPTY_WORKBENCH_FINANCE_MONTH_ROW))
+      .default([])
+      .catch([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_WORKBENCH_FINANCE_MONTH_LIST: WorkbenchFinanceMonthListResponse = {
+  months: [],
+  total: 0,
+};
+
+// --- HR (docs/engineering/WORKBENCH-API.md §10) ----------------------------
+//
+// Same leniency rules as the ledgers above, plus three that are specific to this
+// block:
+//
+// 1. Every enum is a plain `z.string()` with the column's default. `stage`,
+//    `status`, `verdict` and `mode` are the four values §10.2 constrains today;
+//    a server that adds a stage (say `background_check`) must still parse, or a
+//    candidate would vanish from the board instead of landing in its "other"
+//    column.
+// 2. `mode` and `verdict` are nullable columns. A missing channel or an
+//    unrecorded verdict is `null`, not a fabricated default — the UI renders
+//    "not chosen" differently from "phone".
+// 3. `ability` and `disc` are JSONB open maps. A row whose JSONB drifted into a
+//    string must still parse as an empty matrix: these two fields are never
+//    aggregated, so losing them costs a panel, not the row.
+// 4. `status` and `currency` carry a DEFAULT but no NOT NULL, so a NULL there is
+//    a presentation default, not a broken row (see `hrDefaultedText`).
+// 5. `dimensions` (703) and `keywords` (704) are JSONB containers like
+//    `ability`/`disc`: an open key set, never aggregated as a scalar here, so a
+//    drifted value degrades to `{}` / `[]` and the row survives.
+
+const hrNullableNumber = workbenchNullableNumber;
+
+/** JSONB score maps: an open key set, and a drifted value degrades to `{}`. */
+const hrScoreMap = z.record(z.string(), z.number()).default({}).catch({});
+
+/**
+ * A JSONB string array (requisition keywords, migration 704). Always an array:
+ * the client maps over it, so a drifted value degrades to an empty list instead
+ * of blanking the row.
+ */
+const hrKeywordArray = z.array(z.string()).default([]).catch([]);
+
+/**
+ * A column that has a DEFAULT but no NOT NULL (§10.2 writes `status TEXT CHECK
+ * (...)`, `currency CHAR(3) DEFAULT 'CNY'`): an API-written row always has a
+ * value, an imported one can be NULL. `catch` keeps such a row instead of
+ * failing the page over a presentation default.
+ */
+const hrDefaultedText = (fallback: string) => z.string().catch(fallback).default(fallback);
+const hrCurrency = hrDefaultedText("CNY");
+
+export const HrJobSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  title: z.string().default(""),
+  department_id: workbenchNullableString,
+  level: workbenchNullableString,
+  headcount: z.number().default(1),
+  status: hrDefaultedText("draft"),
+  salary_min: hrNullableNumber,
+  salary_max: hrNullableNumber,
+  currency: hrCurrency,
+  requirements: workbenchNullableString,
+  // Migration 704: the match-score inputs, the AI input and the urgent flag.
+  edu: workbenchNullableString,
+  years: workbenchNullableString,
+  city: workbenchNullableString,
+  jd: workbenchNullableString,
+  urgent: z.boolean().default(false).catch(false),
+  keywords: hrKeywordArray,
+  owner_member_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_HR_JOB: HrJob = {
+  id: "", workspace_id: "", title: "", department_id: null, level: null,
+  headcount: 1, status: "draft", salary_min: null, salary_max: null,
+  currency: "CNY", requirements: null, edu: null, years: null, city: null,
+  jd: null, urgent: false, keywords: [], owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const HrJobListResponseSchema = z.object({
+  jobs: z.array(HrJobSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_HR_JOB_LIST_RESPONSE: HrJobListResponse = {
+  jobs: [],
+  total: 0,
+};
+
+export const HrCandidateSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  job_id: z.string().default(""),
+  name: z.string().default(""),
+  stage: z.string().default("screening"),
+  source: workbenchNullableString,
+  phone: workbenchNullableString,
+  email: workbenchNullableString,
+  resume_attachment_id: workbenchNullableString,
+  match_score: hrNullableNumber,
+  score_resume: hrNullableNumber,
+  score_test: hrNullableNumber,
+  score_interview: hrNullableNumber,
+  expected_salary: hrNullableNumber,
+  offer_salary: hrNullableNumber,
+  currency: hrCurrency,
+  owner_member_id: workbenchNullableString,
+  // Migration 705: the candidate's half of the match score. Null means "not
+  // recorded", which the score treats as no signal rather than as a zero.
+  edu: workbenchNullableString,
+  years_experience: hrNullableNumber,
+  resume_text: workbenchNullableString,
+  // Server-stamped by the hire transition; null until the candidate is hired.
+  hired_at: workbenchNullableString,
+  rejected_reason: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_HR_CANDIDATE: HrCandidate = {
+  id: "", workspace_id: "", job_id: "", name: "", stage: "screening", source: null,
+  phone: null, email: null, resume_attachment_id: null, match_score: null,
+  score_resume: null, score_test: null, score_interview: null,
+  expected_salary: null, offer_salary: null, currency: "CNY",
+  owner_member_id: null, edu: null, years_experience: null, resume_text: null,
+  hired_at: null, rejected_reason: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const HrCandidateListResponseSchema = z.object({
+  candidates: z.array(HrCandidateSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_HR_CANDIDATE_LIST_RESPONSE: HrCandidateListResponse = {
+  candidates: [],
+  total: 0,
+};
+
+export const HrInterviewSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  candidate_id: z.string().default(""),
+  round: z.number().default(1),
+  scheduled_at: z.string().default(""),
+  duration_minutes: z.number().default(45),
+  interviewer_member_id: workbenchNullableString,
+  // Migration 702: the interviewer is usually an outside person, so the name is
+  // recorded text. A row from before the column, or a body without one, is "".
+  interviewer_name: z.string().default(""),
+  // Nullable column: nobody has picked a channel yet.
+  mode: workbenchNullableString,
+  status: z.string().default("scheduled"),
+  rescheduled_count: z.number().default(0),
+  note: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_HR_INTERVIEW: HrInterview = {
+  id: "", workspace_id: "", candidate_id: "", round: 1, scheduled_at: "",
+  duration_minutes: 45, interviewer_member_id: null, interviewer_name: "",
+  mode: null, status: "scheduled", rescheduled_count: 0, note: null,
+  created_by: null, created_at: "", updated_at: "", archived_at: null,
+};
+
+export const HrInterviewListResponseSchema = z.object({
+  interviews: z.array(HrInterviewSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_HR_INTERVIEW_LIST_RESPONSE: HrInterviewListResponse = {
+  interviews: [],
+  total: 0,
+};
+
+export const HrScorecardSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  interview_id: z.string().default(""),
+  reviewer_member_id: workbenchNullableString,
+  score_skill: hrNullableNumber,
+  score_experience: hrNullableNumber,
+  score_culture: hrNullableNumber,
+  score_potential: hrNullableNumber,
+  weighted_score: hrNullableNumber,
+  // Migration 703: the current shape, dimension name → 0–5. The four score_*
+  // numbers above are read-only legacy; a card that predates the map still
+  // parses, an unscored one is `{}`.
+  dimensions: hrScoreMap,
+  // Nullable column: a saved draft scorecard has no verdict yet.
+  verdict: workbenchNullableString,
+  comment: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_HR_SCORECARD: HrScorecard = {
+  id: "", workspace_id: "", interview_id: "", reviewer_member_id: null,
+  score_skill: null, score_experience: null, score_culture: null,
+  score_potential: null, weighted_score: null, dimensions: {}, verdict: null,
+  comment: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
+};
+
+export const HrScorecardListResponseSchema = z.object({
+  scorecards: z.array(HrScorecardSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_HR_SCORECARD_LIST_RESPONSE: HrScorecardListResponse = {
+  scorecards: [],
+  total: 0,
+};
+
+export const HrEmployeeProfileSchema = z.object({
+  id: z.string(),
+  workspace_id: z.string().default(""),
+  member_id: z.string().default(""),
+  department_id: workbenchNullableString,
+  job_title: workbenchNullableString,
+  grade: workbenchNullableString,
+  hire_date: workbenchNullableString,
+  regular_date: workbenchNullableString,
+  contract_end: workbenchNullableString,
+  // JSONB NOT NULL DEFAULT '{}': an unassessed profile is an empty matrix.
+  ability: hrScoreMap,
+  disc: hrScoreMap,
+  owner_member_id: workbenchNullableString,
+  created_by: workbenchNullableString,
+  created_at: z.string().default(""),
+  updated_at: z.string().default(""),
+  archived_at: workbenchNullableString,
+}).loose();
+
+export const EMPTY_HR_EMPLOYEE_PROFILE: HrEmployeeProfile = {
+  id: "", workspace_id: "", member_id: "", department_id: null, job_title: null,
+  grade: null, hire_date: null, regular_date: null, contract_end: null,
+  ability: {}, disc: {}, owner_member_id: null, created_by: null,
+  created_at: "", updated_at: "", archived_at: null,
+};
+
+export const HrEmployeeProfileListResponseSchema = z.object({
+  employees: z.array(HrEmployeeProfileSchema).default([]),
+  total: z.number().default(0),
+}).loose();
+
+export const EMPTY_HR_EMPLOYEE_PROFILE_LIST_RESPONSE: HrEmployeeProfileListResponse = {
+  employees: [],
+  total: 0,
+};
+
+// Hiring answers with both halves of its transaction: the candidate that moved
+// to `hired`, and the profile it created or updated. Defaults rather than a
+// rejection, so a server returning only one half still yields a usable pair.
+// Both halves are optional at the parse boundary: a server that returns only one
+// of them (or reshapes the body) must not fail the whole response. The client
+// substitutes the empty row for whichever half is missing.
+export const HireHrCandidateResponseSchema = z
+  .object({
+    candidate: HrCandidateSchema.nullish(),
+    employee_profile: HrEmployeeProfileSchema.nullish(),
+  })
+  .loose();
+
+export const EMPTY_HIRE_HR_CANDIDATE_RESPONSE = {
+  candidate: null,
+  employee_profile: null,
+};
+
+// --- Affiliate distribution (docs/engineering/WORKBENCH-API.md §11) --------
+//
+// 精选联盟 分销. The same two leniency rules as the ledgers above (enums stay
+// `z.string()`, nullable columns default to null) plus one of its own: the money
+// columns of `affiliate_daily` and `affiliate_settlement` are NOT NULL on the
+// server, so a missing one is drift and degrades to 0 rather than blanking the
+// row — an unreported day is a row of zeros, not a row of nulls.
+//
+// `commission_rate` and the summary's `refund_rate` travel at the 0–1 scale
+// (docs/METRICS.md §3 C3) and are never rescaled here: the display layer
+// multiplies by 100, and a schema that did it would apply the scale twice.
+//
+// The three labels 725–727 add (`ownership`, `settled_to`, and the pick's
+// `agency_share_rate`) are the two-value enums the ledger's income split rests
+// on. They follow the lenient-enum rule above: a value we do not know degrades to
+// the default the server would have applied — `client_brand`, `agency` — because
+// those are also the readings every row created before the migrations had, so an
+// old client renders an old row exactly as it did.
+
+export const AffiliateProductSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    ownership: z.string().default("client_brand"),
+    client_id: workbenchNullableString,
+    platform: z.string().default(""),
+    platform_product_id: z.string().default(""),
+    title: z.string().default(""),
+    category: workbenchNullableString,
+    price: workbenchNullableNumber,
+    currency: z.string().default("CNY"),
+    commission_rate: workbenchNullableNumber,
+    activity: workbenchNullableString,
+    status: z.string().default("on_shelf"),
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_PRODUCT: AffiliateProduct = {
+  id: "", workspace_id: "", ownership: "client_brand", client_id: null, platform: "",
+  platform_product_id: "", title: "", category: null, price: null, currency: "CNY",
+  commission_rate: null, activity: null, status: "on_shelf", owner_member_id: null,
+  created_by: null, created_at: "", updated_at: "", archived_at: null,
+};
+
+export const AffiliateProductListResponseSchema = z
+  .object({
+    products: z.array(AffiliateProductSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_PRODUCT_LIST_RESPONSE: AffiliateProductListResponse = {
+  products: [],
+  total: 0,
+};
+
+export const AffiliatePickSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    product_id: z.string().default(""),
+    creator_id: z.string().default(""),
+    commission_rate: workbenchNullableNumber,
+    agency_share_rate: workbenchNullableNumber,
+    service_fee_amount: workbenchNullableNumber,
+    bound_at: z.string().default(""),
+    status: z.string().default("active"),
+    note: workbenchNullableString,
+    owner_member_id: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+    archived_at: workbenchNullableString,
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_PICK: AffiliatePick = {
+  id: "", workspace_id: "", product_id: "", creator_id: "", commission_rate: null,
+  agency_share_rate: null, service_fee_amount: null, bound_at: "", status: "active",
+  note: null, owner_member_id: null, created_by: null, created_at: "", updated_at: "",
+  archived_at: null,
+};
+
+export const AffiliatePickListResponseSchema = z
+  .object({
+    picks: z.array(AffiliatePickSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_PICK_LIST_RESPONSE: AffiliatePickListResponse = {
+  picks: [],
+  total: 0,
+};
+
+export const AffiliateDailySchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    pick_id: z.string().default(""),
+    stat_date: z.string().default(""),
+    gmv_amount: z.number().default(0),
+    order_count: z.number().default(0),
+    refund_amount: z.number().default(0),
+    est_commission: z.number().default(0),
+    settled_commission: z.number().default(0),
+    currency: z.string().default("CNY"),
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_DAILY: AffiliateDaily = {
+  id: "", workspace_id: "", pick_id: "", stat_date: "", gmv_amount: 0,
+  order_count: 0, refund_amount: 0, est_commission: 0, settled_commission: 0,
+  currency: "CNY", created_at: "", updated_at: "",
+};
+
+export const AffiliateDailyListResponseSchema = z
+  .object({
+    daily: z.array(AffiliateDailySchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_DAILY_LIST_RESPONSE: AffiliateDailyListResponse = {
+  daily: [],
+  total: 0,
+};
+
+export const AffiliateSettlementSchema = z
+  .object({
+    id: z.string(),
+    workspace_id: z.string().default(""),
+    period_start: z.string().default(""),
+    period_end: z.string().default(""),
+    gross_commission: z.number().default(0),
+    tech_service_fee: z.number().default(0),
+    refund_deduction: z.number().default(0),
+    net_amount: z.number().default(0),
+    currency: z.string().default("CNY"),
+    status: z.string().default("pending"),
+    settled_to: z.string().default("agency"),
+    paid_at: workbenchNullableString,
+    external_no: workbenchNullableString,
+    note: workbenchNullableString,
+    created_by: workbenchNullableString,
+    created_at: z.string().default(""),
+    updated_at: z.string().default(""),
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_SETTLEMENT: AffiliateSettlement = {
+  id: "", workspace_id: "", period_start: "", period_end: "", gross_commission: 0,
+  tech_service_fee: 0, refund_deduction: 0, net_amount: 0, currency: "CNY",
+  status: "pending", settled_to: "agency", paid_at: null, external_no: null, note: null,
+  created_by: null, created_at: "", updated_at: "",
+};
+
+export const AffiliateSettlementListResponseSchema = z
+  .object({
+    settlements: z.array(AffiliateSettlementSchema).default([]),
+    total: z.number().default(0),
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_SETTLEMENT_LIST_RESPONSE: AffiliateSettlementListResponse = {
+  settlements: [],
+  total: 0,
+};
+
+/**
+ * `GET /api/workbench/affiliate/summary`: one month, ten three-state blocks.
+ *
+ * Same guards as the money block above — absent degrades to the gap block,
+ * malformed degrades to the gap block — because a rejected summary would cost
+ * the whole strip while a single drifted figure should cost one tile.
+ *
+ * `commission_agency`, `commission_creator` and `agency_share_income` are the
+ * income split (725–727). A server that predates them simply omits the keys, and
+ * each degrades to the same gap block as the money it would have carried.
+ */
+export const AffiliateSummaryResponseSchema = z
+  .object({
+    window: z
+      .object({ month: z.string().default("") })
+      .default({ month: "" })
+      .catch({ month: "" }),
+    gmv: workbenchFinanceBlock,
+    commission_est: workbenchFinanceBlock,
+    commission_settled: workbenchFinanceBlock,
+    commission_agency: workbenchFinanceBlock,
+    commission_creator: workbenchFinanceBlock,
+    agency_share_income: workbenchFinanceBlock,
+    refund_rate: workbenchFinanceBlock,
+    tech_fee: workbenchFinanceBlock,
+    pick_count: workbenchFinanceBlock,
+    active_creator_count: workbenchFinanceBlock,
+  })
+  .loose();
+
+export const EMPTY_AFFILIATE_SUMMARY_RESPONSE: AffiliateSummaryResponse = {
+  window: { month: "" },
+  gmv: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  commission_est: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  commission_settled: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  commission_agency: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  commission_creator: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  agency_share_income: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  refund_rate: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  tech_fee: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  pick_count: EMPTY_WORKBENCH_FINANCE_BLOCK,
+  active_creator_count: EMPTY_WORKBENCH_FINANCE_BLOCK,
+};

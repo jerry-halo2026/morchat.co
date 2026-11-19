@@ -1,0 +1,46 @@
+{
+  "tab": "經營",
+  "card": {
+    "signed": "本月簽約",
+    "collected": "本月回款",
+    "margin": "毛利率",
+    "receivable": "應收帳齡",
+    "cash": "現金底線"
+  },
+  "hint": {
+    "signed": "本月 · 含續約",
+    "collected": "本月實收",
+    "receivable": "未回款結算單平均"
+  },
+  "basis": {
+    "entered": "錄入成本",
+    "settled_collabs": "已結算合作單費用",
+    "none": "缺成本錄入"
+  },
+  "empty": {
+    "no_cost": "本月沒有已結算的合作單，毛利缺成本側。",
+    "no_cost_entry": "本月沒有錄入成本，毛利缺成本側。",
+    "no_revenue": "本月沒有回款，毛利率沒有分母。",
+    "cash_open": "本月沒有錄入現金期初，現金底線算不出來。"
+  },
+  "cost": {
+    "open": "{{month}} 錄入成本",
+    "title": "錄入 {{month}} 成本",
+    "field": {
+      "cash_open": "現金期初",
+      "fixed_cost": "固定成本",
+      "variable_cost": "可變成本",
+      "note": "備註"
+    },
+    "action": {
+      "save": "儲存",
+      "cancel": "取消"
+    },
+    "error": {
+      "required": "至少填一項金額。",
+      "submit": "本月成本儲存失敗。"
+    },
+    "saved": "已儲存本月成本。"
+  },
+  "error": "經營數據加載失敗，檢查網絡後重試。"
+}

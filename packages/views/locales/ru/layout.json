@@ -9,6 +9,7 @@
     "agents": "Агенты",
     "squads": "Команды",
     "usage": "Аналитика",
+    "overview": "Обзор",
     "runtimes": "Среды выполнения",
     "skills": "Навыки",
     "presets": "Пресеты",
@@ -67,10 +68,12 @@
     "show_fewer_pins": "Показать меньше"
   },
   "spaces": {
+    "workbench": "Воркбенч",
     "work": "Работа",
     "team": "Команда"
   },
   "rail": {
+    "workbench": "Воркбенч",
     "label": "Навигация по приложению",
     "sheet_description": "Переключайтесь между разделами и рабочими пространствами.",
     "inbox": "Входящие",
@@ -182,6 +185,13 @@
     "shortcuts": "Сочетания клавиш"
   },
   "collection": {
+  "pager": {
+    "more": "Загрузить ещё",
+    "loading": "Загрузка…",
+    "end": "Больше нет",
+    "count": "Показано {{loaded}} из {{total}}",
+    "count_loaded": "Показано {{loaded}}"
+  },
     "filter": "Фильтр",
     "filter_count_one": "{{count}} фильтр",
     "filter_count_other": "{{count}} фильтра",

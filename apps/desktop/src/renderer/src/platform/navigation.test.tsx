@@ -54,7 +54,7 @@ beforeEach(() => {
   overlay.overlay = null;
   auth.logout.mockReset();
   useTabStore.getState().reset();
-  useTabStore.getState().switchWorkspace("acme"); // default tab /acme/issues
+  useTabStore.getState().switchWorkspace("acme", "/acme/issues"); // starts on the issues list
   Object.defineProperty(window, "desktopAPI", {
     configurable: true,
     value: {
@@ -160,9 +160,11 @@ describe("push", () => {
   });
 
   // The workspace switchers (sidebar dropdown, Mod+K palette) push the
-  // target's Issues root, which is where web lands. On desktop that resumes
-  // the workspace where the user left it instead. NoAccessPage recovers with
-  // replace() to the same kind of path, so both methods are covered.
+  // target's landing page, which is the workbench where web lands. On desktop
+  // that resumes the workspace where the user left it instead. NoAccessPage
+  // recovers with replace() to the same kind of path, so both methods are
+  // covered. `/issues` stays the same entry point for callers that still
+  // spell the page web used to land on.
   it.each(["push", "replace"] as const)(
     "%s to another workspace's Issues root restores its last active tab",
     (method) => {
@@ -182,12 +184,36 @@ describe("push", () => {
     },
   );
 
-  it("lands on Issues when switching to a workspace with no tabs yet", () => {
+  it.each(["push", "replace"] as const)(
+    "%s to another workspace's workbench restores its last active tab",
+    (method) => {
+      const store = useTabStore.getState();
+      store.switchWorkspace("butter", "/butter/projects");
+      store.switchWorkspace("acme");
+      const getAdapter = renderProvider();
+
+      getAdapter()[method]("/butter/overview");
+
+      expect(getActiveTab(useTabStore.getState())?.url).toBe(
+        "/butter/projects",
+      );
+    },
+  );
+
+  it("lands on the workbench when switching to a workspace with no tabs yet", () => {
+    const getAdapter = renderProvider();
+
+    getAdapter().push("/butter/overview");
+
+    expect(getActiveTab(useTabStore.getState())?.url).toBe("/butter/overview");
+  });
+
+  it("treats the old Issues landing as the same entry point", () => {
     const getAdapter = renderProvider();
 
     getAdapter().push("/butter/issues");
 
-    expect(getActiveTab(useTabStore.getState())?.url).toBe("/butter/issues");
+    expect(getActiveTab(useTabStore.getState())?.url).toBe("/butter/overview");
   });
 
   it("still opens a deeper cross-workspace path under Issues", () => {
@@ -386,8 +412,10 @@ describe("existing reserved workspace navigation", () => {
         else adapter().push("/dingtalk/issues");
       });
       expect(useTabStore.getState().activeWorkspaceSlug).toBe("dingtalk");
+      // A bare landing path resumes the workspace, so a group with no tabs
+      // yet seeds its default page — the workbench.
       expect(getActiveTab(useTabStore.getState())?.url).toBe(
-        action === "push" ? "/dingtalk/issues" : "/dingtalk/issues/ISS-1",
+        action === "push" ? "/dingtalk/overview" : "/dingtalk/issues/ISS-1",
       );
     },
   );

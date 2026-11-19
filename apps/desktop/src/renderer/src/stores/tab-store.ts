@@ -7,7 +7,7 @@ import {
   type WindowTabStorage,
 } from "./tab-store-storage";
 import { createSafeId } from "@morechat/core/utils";
-import { workspaceSlugForPath } from "@morechat/core/paths";
+import { paths, workspaceSlugForPath } from "@morechat/core/paths";
 
 // Tab sessions hold serializable URLs, identity, virtual history, and view
 // mementos. The coordinator projects the active session onto the single router;
@@ -370,10 +370,11 @@ function inboxSelectionKeyForUrl(url: string): string | null {
  *     was constructed without the workspace prefix. The router would
  *     interpret `issues` as a workspace slug → NoAccessPage.
  *
- * Normalizes: a bare `/{slug}` (no route segment) becomes `/{slug}/issues` —
- * the workspace's default surface. This replaces the old in-router
- * `<Navigate to="issues">` index redirect (MUL-4741 invariant 1: the router
- * never self-navigates; URLs are normalized before they become sessions).
+ * Normalizes: a bare `/{slug}` (no route segment) becomes `/{slug}/overview` —
+ * the workbench, the workspace's default surface. This replaces the old
+ * in-router `<Navigate to="issues">` index redirect (MUL-4741 invariant 1:
+ * the router never self-navigates; URLs are normalized before they become
+ * sessions).
  *
  * Returns null for rejects (caller decides how to recover — usually by
  * dropping the tab or substituting a default).
@@ -396,7 +397,7 @@ export function sanitizeTabPath(path: string, savedGroupSlug?: string): string |
     return null;
   }
   if (segments.length === 1) {
-    return `/${firstSegment}/issues${suffix}`;
+    return `${paths.workspace(firstSegment).overview()}${suffix}`;
   }
   return path;
 }
@@ -426,14 +427,16 @@ function pinnedBoundary(tabs: TabSession[]): number {
   return i;
 }
 
-/** Default entry point for a workspace — its issues list. */
+/** Seed title of a workspace's default tab — the workbench's page name. */
+const WORKBENCH_TAB_TITLE = "Overview";
+
+/** Default entry point for a workspace — its workbench. */
 function defaultPathFor(slug: string): string {
-  return `/${slug}/issues`;
+  return paths.workspace(slug).overview();
 }
 
 function defaultTabFor(slug: string): TabSession {
-  const path = defaultPathFor(slug);
-  return makeSession(path, "Issues");
+  return makeSession(defaultPathFor(slug), WORKBENCH_TAB_TITLE);
 }
 
 const BROWSING_HISTORY_MAX_ENTRIES = 100;
@@ -735,13 +738,19 @@ export const useTabStore = create<TabStore>()(
         const existing = byWorkspace[slug];
 
         // Decide the desired active path for this workspace.
-        const desiredPath = openPath ?? (existing ? null : defaultPathFor(slug));
+        const defaultPath = defaultPathFor(slug);
+        const desiredPath = openPath ?? (existing ? null : defaultPath);
 
         if (!existing) {
           // First time entering this workspace — create the group.
           const cleanDesired = desiredPath ? sanitizeTabPath(desiredPath) : null;
-          const seedPath = cleanDesired ?? defaultPathFor(slug);
-          const tab = makeSession(seedPath, "Issues");
+          const seedPath = cleanDesired ?? defaultPath;
+          // The workbench is the landing surface, so it can seed its page
+          // name; any other path names itself from the URL once resolved.
+          const tab = makeSession(
+            seedPath,
+            seedPath === defaultPath ? WORKBENCH_TAB_TITLE : "",
+          );
           const nextGroup = withBrowsingVisit(
             reconcileGroup(null, [tab], tab.id),
             slug,
@@ -781,7 +790,7 @@ export const useTabStore = create<TabStore>()(
               });
               return;
             }
-            const tab = makeSession(clean, "Issues");
+            const tab = makeSession(clean, "");
             const nextGroup = withBrowsingVisit(
               reconcileGroup(
                 existing,

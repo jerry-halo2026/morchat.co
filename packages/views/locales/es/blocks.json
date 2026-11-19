@@ -1,0 +1,614 @@
+{
+  "title": "Banco de trabajo",
+  "tabs": {
+    "overview": "Resumen",
+    "ledger": "Registro",
+    "team": "Equipo"
+  },
+  "department": {
+    "label": "Departamento",
+    "all": "Todos los departamentos"
+  },
+  "view": {
+    "label": "Vista",
+    "all": "Todo",
+    "commerce": "Ventas",
+    "people": "Personas",
+    "finance": "P&L"
+  },
+  "unit": {
+    "days": "d",
+    "hours": "h",
+    "percent": "%",
+    "ratio": "×",
+    "currency": {
+      "CNY": "¥",
+      "USD": "$"
+    }
+  },
+  "empty": {
+    "value": "—"
+  },
+  "group_total": "· {{count}} elementos",
+  "metric_value": {
+    "samples": "sobre {{count}} filas"
+  },
+  "metric": {
+    "hr_candidates_active": "Candidatos activos",
+    "hr_time_to_hire_median": "Tiempo de contratación",
+    "hr_scorecard_backlog": "Entrevistas sin evaluar",
+    "hr_interview_on_time_rate": "Entrevistas puntuales",
+    "work_throughput_week": "Cerrado esta semana",
+    "work_cycle_time_median": "Tiempo de ciclo medio",
+    "work_on_time_rate": "Cumplimiento de plazo",
+    "work_overdue_count": "Atrasado",
+    "work_stalled_count": "Estancado",
+    "work_wip_count": "En curso",
+    "work_wip_per_member": "En curso por persona",
+    "work_followup_due_count": "Seguimiento de hoy",
+    "collab_cross_department_rate": "Trabajo entre departamentos",
+    "agent_cost_month": "Coste de agentes",
+    "agent_run_failure_rate": "Tasa de fallos",
+    "knowledge_created_week": "Añadido esta semana",
+    "crm_pipeline_weighted_amount": "Pipeline ponderado",
+    "crm_contract_signed_month": "Firmado este mes",
+    "crm_payment_collected_month": "Cobrado este mes",
+    "crm_quote_margin_rate": "Margen por colaboración",
+    "crm_collab_roi": "Retorno por colaboración",
+    "crm_creator_repeat_rate": "Creadores recurrentes"
+  },
+  "gap": {
+    "needs_hired": "Nadie ha sido contratado desde el registro todavía: falta la fecha de alta para medir.",
+    "needs_creators": "Aún no hay creadores, así que no se puede atribuir nada a nadie.",
+    "needs_clients": "Aún no hay clientes registrados.",
+    "needs_briefs": "Aún no hay briefs, así que no hay contra qué cotizar ni emparejar.",
+    "needs_collabs": "Aún no hay colaboraciones: importes, fases y probabilidades salen de aquí.",
+    "needs_settlements": "Aún no hay liquidaciones, así que nada cuenta como cobrado.",
+    "needs_jobs": "Aún no hay vacantes, así que los candidatos no tienen a qué postularse.",
+    "needs_candidates": "Aún no hay candidatos, así que no se puede medir ni la fase ni la fecha de contratación.",
+    "needs_interviews": "Aún no hay entrevistas programadas, así que no hay puntualidad que contar.",
+    "needs_employees": "Aún no hay fichas de empleado: las fechas de alta, las categorías y el fin de contrato salen de aquí.",
+    "needs_products": "Aún no hay productos de afiliación: las selecciones, las ventas diarias y las liquidaciones dependen de ellos.",
+    "needs_picks": "Aún no hay selecciones, así que nadie está promocionando nada.",
+    "needs_daily": "Aún no hay ventas diarias, así que no hay GMV ni comisiones que contar.",
+    "needs_affiliate_settlements": "Aún no hay liquidaciones, así que no se ha confirmado ningún cobro.",
+    "needs_issues": "A los issues detrás de esta cifra les falta un campo necesario.",
+    "fill_ledger": "Rellenarlo en el registro",
+    "fill_issues": "Abrir issues"
+  },
+  "ledger": {
+    "section": "Registros",
+    "domain": {
+      "creators": "Creadores",
+      "clients": "Clientes",
+      "briefs": "Briefs",
+      "collabs": "Colaboraciones",
+      "settlements": "Liquidaciones",
+      "products": "Productos",
+      "picks": "Selecciones",
+      "daily": "Ventas diarias",
+      "affiliate_settlements": "Liquidaciones",
+      "jobs": "Vacantes",
+      "candidates": "Candidatos",
+      "interviews": "Entrevistas",
+      "employees": "Empleados"
+    },
+    "group": {
+      "commerce": "Comercio",
+      "affiliate": "Afiliados",
+      "people": "Personas"
+    },
+    "column": {
+      "creator": "Creador",
+      "creator_ref": "Creador",
+      "platform": "Plataforma",
+      "fans": "Seguidores",
+      "score": "Valoración",
+      "risk": "Riesgo",
+      "client": "Cliente",
+      "brand": "Marca",
+      "industry": "Sector",
+      "brief": "Brief",
+      "budget": "Presupuesto",
+      "deliverable": "Formato",
+      "schedule": "Calendario",
+      "collab": "Colaboración",
+      "stage": "Fase",
+      "contract_amount": "Contrato",
+      "scheduled": "Publicación",
+      "settlement": "Liquidación",
+      "amount": "Importe",
+      "due": "Vence",
+      "paid": "Pagado",
+      "job": "Vacante",
+      "level": "Nivel",
+      "headcount": "Plazas",
+      "status": "Estado",
+      "salary": "Banda salarial",
+      "candidate": "Candidato",
+      "job_ref": "Vacante solicitada",
+      "match_score": "Encaje",
+      "expected_salary": "Salario esperado",
+      "round": "Ronda",
+      "time": "Fecha",
+      "mode": "Modalidad",
+      "interviewer": "Entrevistador",
+      "member": "Miembro",
+      "job_title": "Cargo",
+      "grade": "Categoría",
+      "hire_date": "Alta",
+      "regular_date": "Confirmación",
+      "contract_end": "Fin de contrato",
+      "product_title": "Producto",
+      "product_ref": "Producto",
+      "ownership": "Titularidad",
+      "platform_product": "Plataforma / id de producto",
+      "commission_rate": "Comisión",
+      "pick_commission_rate": "Comisión de la selección",
+      "agency_share_rate": "Reparto de agencia",
+      "service_fee": "Tarifa de servicio",
+      "pick": "Selección",
+      "stat_date": "Fecha",
+      "gmv": "GMV",
+      "order_count": "Pedidos",
+      "refund": "Reembolso",
+      "est_commission": "Comisión estimada",
+      "settled_commission": "Comisión liquidada",
+      "period": "Periodo",
+      "gross_commission": "Comisión bruta",
+      "tech_service_fee": "Tarifa técnica",
+      "refund_deduction": "Deducción por reembolso",
+      "net_amount": "Importe neto",
+      "settled_to": "Se liquida a"
+    },
+    "deliverable": {
+      "short_video": "Vídeo corto",
+      "post": "Publicación",
+      "live": "Directo"
+    },
+    "stage": {
+      "inquiry": "Consulta",
+      "quoted": "Cotizado",
+      "negotiating": "Negociando",
+      "confirmed": "Confirmado",
+      "sampling": "Muestra",
+      "script_review": "Revisión de guion",
+      "scheduled": "Programado",
+      "published": "Publicado",
+      "accepted": "Aceptado",
+      "settled": "Liquidado",
+      "cancelled": "Cancelado"
+    },
+    "settlement_kind": {
+      "prepay": "Anticipo",
+      "final": "Pago final",
+      "platform_fee": "Comisión de plataforma",
+      "tax": "Impuesto"
+    },
+    "job_status": {
+      "draft": "Borrador",
+      "open": "Abierta",
+      "paused": "En pausa",
+      "closed": "Cerrada"
+    },
+    "candidate_stage": {
+      "screening": "Cribado",
+      "test": "Prueba",
+      "interview": "Entrevista",
+      "scored": "Evaluado",
+      "offer": "Oferta",
+      "hired": "Contratado",
+      "rejected": "Descartado",
+      "withdrawn": "Retirado"
+    },
+    "interview_status": {
+      "scheduled": "Programada",
+      "done": "Realizada",
+      "cancelled": "Cancelada",
+      "no_show": "No presentado"
+    },
+    "interview_mode": {
+      "onsite": "Presencial",
+      "video": "Vídeo",
+      "phone": "Teléfono"
+    },
+    "verdict": {
+      "strong_yes": "Sí rotundo",
+      "yes": "Sí",
+      "no": "No",
+      "strong_no": "No rotundo"
+    },
+    "risk_flagged": "Marcado",
+    "unpaid": "Sin pagar",
+    "empty_title": "Todavía sin {{domain}}",
+    "empty_description": "Las filas que introduzcas aquí alimentan las métricas del resumen.",
+    "error_title": "No se pudo cargar el registro",
+    "error_description": "Comprueba la conexión e inténtalo de nuevo.",
+    "retry": "Reintentar"
+  },
+  "import": {
+    "entry": "Importar",
+    "title": "Importar filas",
+    "paste_label": "Filas pegadas",
+    "paste_hint": "Pega desde Excel o un archivo CSV; la primera fila nombra las columnas.",
+    "map_columns": "Columnas",
+    "preview": "Vista previa",
+    "summary": "Pegadas {{count}} · importables {{ok}} · con problemas {{bad}}",
+    "import_button": "Importar",
+    "close": "Cerrar",
+    "done": "Importadas {{count}}, fallidas {{failed}}",
+    "failed_rows": "Filas por corregir",
+    "unmapped": "Sin asignar",
+    "sample": "Usar un ejemplo",
+    "field": {
+      "owner": "Responsable de contratación",
+      "salary_min": "Salario mínimo",
+      "salary_max": "Salario máximo",
+      "regular_date": "Fecha de confirmación",
+      "contract_end": "Fin de contrato",
+      "title": "Puesto",
+      "department": "Departamento",
+      "level": "Nivel",
+      "headcount": "Vacantes",
+      "salary": "Salario",
+      "name": "Nombre",
+      "job": "Puesto solicitado",
+      "stage": "Etapa",
+      "phone": "Teléfono",
+      "email": "Correo",
+      "expected_salary": "Salario esperado",
+      "edu": "Formación",
+      "years_experience": "Años de experiencia",
+      "resume_text": "Texto del CV",
+      "member": "Miembro",
+      "job_title": "Cargo",
+      "grade": "Grado",
+      "hire_date": "Fecha de alta",
+      "pick": "Selección",
+      "product": "Producto",
+      "creator": "Creador",
+      "stat_date": "Fecha",
+      "gmv": "GMV",
+      "orders": "Pedidos",
+      "refund": "Reembolso",
+      "commission": "Comisión"
+    },
+    "errors": {
+      "missing_title": "Falta el puesto",
+      "missing_name": "Falta el nombre",
+      "missing_job": "Falta el puesto solicitado",
+      "unknown_job": "No hay ningún puesto «{{value}}»",
+      "unknown_member": "«{{value}}» no es miembro de este espacio",
+      "duplicate": "Igual que la fila {{value}}",
+      "unknown_department": "No hay ningún departamento «{{value}}»",
+      "bad_date": "No se entiende la fecha «{{value}}»",
+      "bad_amount": "«{{value}}» no es un solo número; separa el rango en dos columnas",
+      "bad_stage": "No hay ninguna etapa «{{value}}»",
+      "server_error": "El servidor rechazó esta fila",
+      "missing_pick": "No hay producto y creador a los que imputar este día",
+      "unknown_pick": "No hay selección para «{{value}}»",
+      "missing_date": "Sin fecha"
+    }
+  },
+  "export": {
+    "action": "Exportar",
+    "empty": "No hay filas para exportar",
+    "done": "{{count}} filas exportadas"
+  },
+  "calendar": {
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "today": "Hoy",
+    "allday": "Todo el día"
+  },
+  "resume": {
+    "title": "Subir currículums",
+    "hint": "El nombre del archivo se compara con el de cada candidato. Un archivo que no coincide con nadie no se sube: importa primero al candidato.",
+    "pick": "Elegir archivos",
+    "upload": "Subir",
+    "uploading": "Subiendo",
+    "matched": "Coincide",
+    "unmatched": "Sin coincidencia",
+    "ambiguous": "Elige uno",
+    "failed": "Error al subir",
+    "no_candidates": "Aún no hay candidatos: importa candidatos primero.",
+    "summary": "{{count}} archivos · {{ok}} listos · {{unmatched}} sin coincidencia",
+    "done": "Subidos {{count}}, {{failed}} con error",
+    "column": {
+      "file": "Archivo",
+      "size": "Tamaño",
+      "candidate": "Candidato",
+      "status": "Estado"
+    }
+  },
+  "team": {
+    "section": "Equipo",
+    "unassigned": "Sin departamento",
+    "group_counts": "{{members}} personas · {{agents}} agentes",
+    "role": {
+      "owner": "Propietario",
+      "admin": "Administrador",
+      "member": "Miembro"
+    },
+    "availability": {
+      "online": "En línea",
+      "unstable": "Recién perdido",
+      "offline": "Sin conexión",
+      "archived": "Archivado"
+    },
+    "workload": {
+      "working": "Trabajando",
+      "queued": "En espera",
+      "idle": "Inactivo"
+    },
+    "load": "{{running}}/{{capacity}}",
+    "empty_title": "Aquí todavía no hay nadie",
+    "empty_description": "Invita a miembros y crea agentes; su trabajo aparecerá aquí."
+  },
+  "hire": {
+    "title": "Contratar candidato",
+    "description": "Marca a {{name}} como contratado y crea la ficha del empleado en el mismo paso.",
+    "member": "Miembro",
+    "member_placeholder": "Elige un miembro",
+    "no_members": "Todavía no hay miembros en este espacio de trabajo. Invita a un miembro primero: la contratación crea la ficha del empleado en su cuenta.",
+    "hire_date": "Fecha de alta",
+    "job_title": "Puesto",
+    "grade": "Categoría",
+    "submit": "Contratar",
+    "cancel": "Cancelar",
+    "save_failed": "El servidor rechazó esta contratación. No se guardó nada; inténtalo de nuevo."
+  },
+  "overview": {
+    "hr_metrics": "Contratación"
+  },
+  "record": {
+    "yes": "Sí",
+    "no": "No",
+    "title": {
+      "jobs": "Detalles del puesto",
+      "candidates": "Detalles del candidato",
+      "interviews": "Detalles de la entrevista",
+      "employees": "Detalles del empleado"
+    },
+    "create": {
+      "jobs": "Nuevo puesto",
+      "candidates": "Nuevo candidato",
+      "interviews": "Nueva entrevista",
+      "employees": "Nuevo empleado"
+    },
+    "field": {
+      "title": "Puesto",
+      "department": "Departamento",
+      "level": "Nivel",
+      "headcount": "Vacantes",
+      "status": "Estado",
+      "salary_min": "Salario desde",
+      "salary_max": "Salario hasta",
+      "currency": "Moneda",
+      "requirements": "Requisitos",
+      "edu": "Formación",
+      "years": "Experiencia",
+      "city": "Ubicación",
+      "urgent": "Urgente",
+      "keywords": "Palabras clave",
+      "jd": "Descripción del puesto",
+      "owner": "Responsable",
+      "created_at": "Creado",
+      "name": "Nombre",
+      "job": "Puesto solicitado",
+      "stage": "Etapa",
+      "source": "Origen",
+      "phone": "Teléfono",
+      "email": "Correo",
+      "match_score": "Coincidencia",
+      "score_resume": "Puntuación del CV",
+      "score_test": "Puntuación de la prueba",
+      "score_interview": "Puntuación de la entrevista",
+      "expected_salary": "Salario esperado",
+      "years_experience": "Años de experiencia",
+      "resume_text": "Texto del CV",
+      "offer_salary": "Salario ofrecido",
+      "hired_at": "Contratado",
+      "rejected_reason": "Motivo del descarte",
+      "candidate": "Candidato",
+      "round": "Ronda",
+      "scheduled_at": "Programada",
+      "duration_minutes": "Duración",
+      "interviewer": "Entrevistador",
+      "mode": "Modalidad",
+      "reschedule_count": "Reprogramaciones",
+      "note": "Nota",
+      "member": "Miembro",
+      "job_title": "Cargo",
+      "grade": "Grado",
+      "hire_date": "Fecha de alta",
+      "regular_date": "Fecha de confirmación",
+      "contract_end": "Fin del contrato"
+    },
+    "action": {
+      "create": "Nuevo",
+      "save": "Guardar",
+      "close": "Cerrar"
+    },
+    "option": {
+      "choose": "Elegir",
+      "none": "Ninguno"
+    },
+    "empty": "—",
+    "error": {
+      "required": "Rellena: {{fields}}",
+      "submit": "El servidor rechazó esta fila. No se guardó nada; corrígela y vuelve a intentarlo."
+    }
+  },
+  "affiliate": {
+    "ownership": {
+      "own_brand": "Marca propia",
+      "client_brand": "Marca del cliente"
+    },
+    "recipient": {
+      "agency": "Agencia",
+      "creator": "Creador"
+    },
+    "product_status": {
+      "on_shelf": "En catálogo",
+      "off_shelf": "Retirado",
+      "ended": "Finalizado"
+    },
+    "pick_status": {
+      "active": "Activa",
+      "paused": "En pausa",
+      "ended": "Finalizada"
+    },
+    "settlement_status": {
+      "pending": "Pendiente",
+      "paid": "Pagada",
+      "failed": "Fallida"
+    },
+    "form": {
+      "title": {
+        "products": "Nuevo producto de afiliación",
+        "picks": "Nueva selección",
+        "daily": "Registrar un día",
+        "affiliate_settlements": "Nueva liquidación"
+      },
+      "field": {
+        "title": "Nombre del producto",
+        "ownership": "Titularidad",
+        "client": "Cliente",
+        "platform": "Plataforma",
+        "platform_product_id": "Id de producto en la plataforma",
+        "category": "Categoría",
+        "price": "Precio",
+        "commission_rate": "Comisión (%)",
+        "activity": "Campaña",
+        "status": "Estado",
+        "product": "Producto",
+        "creator": "Creador",
+        "agency_share_rate": "Reparto de agencia (%)",
+        "service_fee": "Tarifa de servicio",
+        "pick": "Selección",
+        "stat_date": "Fecha",
+        "gmv": "GMV",
+        "orders": "Pedidos",
+        "refund": "Reembolso",
+        "est_commission": "Comisión estimada",
+        "settled_commission": "Comisión liquidada",
+        "period_start": "Inicio del periodo",
+        "period_end": "Fin del periodo",
+        "gross_commission": "Comisión bruta",
+        "tech_service_fee": "Tarifa técnica",
+        "refund_deduction": "Deducción por reembolso",
+        "net_amount": "Importe neto",
+        "settled_to": "Se liquida a",
+        "external_no": "N.º de liquidación"
+      },
+      "option": {
+        "choose": "Elegir"
+      },
+      "action": {
+        "save": "Guardar",
+        "close": "Cerrar"
+      },
+      "error": {
+        "required": "Completa: {{fields}}",
+        "period": "El periodo termina antes de empezar",
+        "submit": "El servidor rechazó esta fila. No se guardó nada: corrígela y vuelve a intentarlo."
+      }
+    }
+  },
+  "match": {
+    "action": {
+      "calculate": "Calcular afinidad",
+      "batch": "Calcular afinidades"
+    },
+    "result": "{{score}}/100",
+    "failed": "No se guardó la afinidad. Inténtalo de nuevo.",
+    "batch_done": "{{ok}} calculadas · {{failed}} con error",
+    "reason": {
+      "keywords": "Palabras clave {{detail}}/100",
+      "education": "Formación {{detail}}/100",
+      "experience": "Experiencia {{detail}}/100",
+      "salary": "Salario previsto {{detail}}/100",
+      "no_job": "No hay ninguna vacante con la que comparar",
+      "no_text": "La ficha del candidato no trae texto de currículum, formación ni experiencia, así que ese peso se repartió entre el resto"
+    }
+  },
+  "ai": {
+    "action": {
+      "dispatch": "Encargar a un agente"
+    },
+    "dispatched": "Asignado a {{agent}}",
+    "no_agents": "Sin agente",
+    "failed": "No se creó la incidencia. Inténtalo de nuevo.",
+    "issue_title": "Preparar candidatura: {{name}}",
+    "issue_body": "Candidato: {{name}}\nVacante: {{job}}\nEtapa: {{stage}}\nSalario previsto: {{salary}}\nPalabras clave de la vacante: {{keywords}}\nFormación requerida: {{edu}}\nExperiencia requerida: {{years}}\n\nRedacta una ficha de puntos clave de esta persona para la vacante y, después, las preguntas de entrevista que se derivan de la ficha."
+  },
+  "collab": {
+    "field": {
+      "creator": "Creador",
+      "stage": "Etapa",
+      "amount": "Importe del contrato",
+      "fee": "Honorarios del creador",
+      "schedule": "Calendario",
+      "settlement": "Liquidación",
+      "issue": "Tarea de entrega"
+    },
+    "action": {
+      "create_issue": "Crear tarea",
+      "open_issue": "Abrir tarea"
+    },
+    "issue_created": "Tarea creada",
+    "issue_failed": "No se pudo crear la tarea. Inténtalo de nuevo.",
+    "issue_title": "Entrega: {{creator}} × {{client}}",
+    "issue_body": "Colaboración: {{id}}\nImporte: {{amount}}\nCalendario: {{schedule}}\n\nEntrega esta colaboración y registra la publicación cuando salga.",
+    "settlement_mode": {
+      "flat": "Tarifa fija",
+      "cps": "CPS",
+      "cpa": "CPA",
+      "barter": "Canje"
+    }
+  },
+  "publish": {
+    "title": "Registrar publicación",
+    "field": {
+      "url": "URL",
+      "title": "Título",
+      "published_at": "Publicado el",
+      "platform": "Plataforma"
+    },
+    "action": {
+      "submit": "Registrar"
+    },
+    "done": "Publicación registrada",
+    "conflict": "Este creador ya tiene una publicación con esta URL.",
+    "failed": "No se pudo guardar la publicación. Inténtalo de nuevo."
+  },
+  "creator": {
+    "sheet": {
+      "title": "Detalles del creador",
+      "posts": "Publicaciones",
+      "no_posts": "Aún no hay publicaciones"
+    }
+  },
+  "doc_editor": {
+    "toolbar": "Formato",
+    "tools": {
+      "bold": "Negrita",
+      "italic": "Cursiva",
+      "strike": "Tachado",
+      "h2": "Título 2",
+      "h3": "Título 3",
+      "bullet": "Lista con viñetas",
+      "ordered": "Lista numerada",
+      "quote": "Cita",
+      "link": "Enlace",
+      "undo": "Deshacer",
+      "redo": "Rehacer"
+    },
+    "limit": "Límite alcanzado: {{count}} caracteres",
+    "link": {
+      "url": "URL del enlace",
+      "apply": "Aplicar enlace"
+    }
+  }
+}

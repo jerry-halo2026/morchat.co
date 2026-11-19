@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_affiliate_settlement_workspace_period;

@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS idx_creator_post_metric_workspace_captured;

@@ -466,10 +466,11 @@ function NewTabButton() {
   const handleClick = () => {
     // New tab opens in the currently active workspace — tabs are scoped
     // per workspace, so there is no cross-workspace ambiguity to resolve.
+    // It lands on the workbench, the same page entering the workspace does.
     const activeSlug = useTabStore.getState().activeWorkspaceSlug;
     if (!activeSlug) return;
-    const path = paths.workspace(activeSlug).issues();
-    const tabId = addTab(path, "Issues");
+    const path = paths.workspace(activeSlug).overview();
+    const tabId = addTab(path, "");
     if (tabId) setActiveTab(tabId);
   };
 

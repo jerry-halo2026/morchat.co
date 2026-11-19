@@ -63,7 +63,7 @@ export function KeptRowsRelease() {
   return null;
 }
 
-export function WorkPanel() {
+export function WorkPanel({ space = "work" }: { space?: "work" | "workbench" } = {}) {
   const { t } = useT("layout");
   const p = useWorkspacePaths();
   const { pathname } = useNavigation();
@@ -162,7 +162,7 @@ export function WorkPanel() {
 
   return (
     <>
-      <PanelHeader title={t(($) => $.spaces.work)} />
+      <PanelHeader title={t(($) => $.spaces[space])} />
       {/* Outside PanelBody: clicks inside the menu's portal still bubble
           through the React tree, and must not reach rememberClickedIssue. */}
       <IssueContextMenuProvider variant="sidebar">

@@ -1,0 +1,46 @@
+{
+  "tab": "Finanzas",
+  "card": {
+    "signed": "Firmado este mes",
+    "collected": "Cobrado este mes",
+    "margin": "Margen bruto",
+    "receivable": "Antigüedad de cobro",
+    "cash": "Colchón de caja"
+  },
+  "hint": {
+    "signed": "Este mes · renovaciones incluidas",
+    "collected": "Este mes, dinero cobrado",
+    "receivable": "Media de las liquidaciones sin pagar"
+  },
+  "basis": {
+    "entered": "Coste introducido",
+    "settled_collabs": "Costes de colaboraciones liquidadas",
+    "none": "Falta el coste"
+  },
+  "empty": {
+    "no_cost": "No se liquidó ninguna colaboración este mes, así que el margen no tiene lado de coste.",
+    "no_cost_entry": "No se introdujo ningún coste este mes, así que el margen no tiene lado de coste.",
+    "no_revenue": "No entró dinero este mes, así que el margen no tiene denominador.",
+    "cash_open": "No se introdujo la caja inicial del mes, así que el colchón no se puede calcular."
+  },
+  "cost": {
+    "open": "{{month}} · introducir coste",
+    "title": "Introducir el coste de {{month}}",
+    "field": {
+      "cash_open": "Caja inicial",
+      "fixed_cost": "Coste fijo",
+      "variable_cost": "Coste variable",
+      "note": "Nota"
+    },
+    "action": {
+      "save": "Guardar",
+      "cancel": "Cancelar"
+    },
+    "error": {
+      "required": "Introduce al menos un importe.",
+      "submit": "No se pudo guardar el coste de este mes."
+    },
+    "saved": "Se guardó el coste de este mes."
+  },
+  "error": "No se pudieron cargar las cifras financieras. Comprueba la conexión y vuelve a intentarlo."
+}

@@ -64,6 +64,15 @@ describe("SpacePanel", () => {
     expect(panel()).toBeNull();
   });
 
+  // The workbench is its own space but reads the same rows, so it keeps the
+  // Work panel instead of losing the column its page was designed beside.
+  it("gives the workbench space the Work panel", () => {
+    navigation.pathname = "/acme/overview";
+    renderPanel();
+    expect(panel()).toHaveAttribute("data-state", "expanded");
+    expect(screen.getByTestId("work-panel")).toBeInTheDocument();
+  });
+
   it("collapses from a click on its edge and keeps its content out of reach", () => {
     renderPanel();
     fireEvent.click(screen.getByRole("button", { name: "Toggle left sidebar" }));

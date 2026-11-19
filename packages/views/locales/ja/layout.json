@@ -9,6 +9,7 @@
     "agents": "エージェント",
     "squads": "スクワッド",
     "usage": "分析",
+    "overview": "概要",
     "runtimes": "ランタイム",
     "skills": "スキル",
     "presets": "プリセット",
@@ -90,10 +91,12 @@
     "show_fewer_pins": "表示を減らす"
   },
   "spaces": {
+    "workbench": "ワークベンチ",
     "work": "作業",
     "team": "チーム"
   },
   "rail": {
+    "workbench": "ワークベンチ",
     "label": "アプリナビゲーション",
     "sheet_description": "スペースとワークスペースを切り替えます。",
     "inbox": "受信箱",
@@ -190,6 +193,13 @@
     "shortcuts": "キーボードショートカット"
   },
   "collection": {
+  "pager": {
+    "more": "さらに読み込む",
+    "loading": "読み込み中…",
+    "end": "これ以上ありません",
+    "count": "{{loaded}} / {{total}} 件を表示",
+    "count_loaded": "{{loaded}} 件を表示"
+  },
     "filter": "フィルター",
     "filter_count_other": "{{count}} 件のフィルター",
     "reset": "リセット",

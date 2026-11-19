@@ -1,0 +1,614 @@
+{
+  "title": "Établi",
+  "tabs": {
+    "overview": "Vue d'ensemble",
+    "ledger": "Registre",
+    "team": "Équipe"
+  },
+  "department": {
+    "label": "Service",
+    "all": "Tous les services"
+  },
+  "view": {
+    "label": "Vue",
+    "all": "Tout",
+    "commerce": "Ventes",
+    "people": "Personnes",
+    "finance": "P&L"
+  },
+  "unit": {
+    "days": "j",
+    "hours": "h",
+    "percent": "%",
+    "ratio": "×",
+    "currency": {
+      "CNY": "¥",
+      "USD": "$"
+    }
+  },
+  "empty": {
+    "value": "—"
+  },
+  "group_total": "· {{count}} éléments",
+  "metric_value": {
+    "samples": "sur {{count}} lignes"
+  },
+  "metric": {
+    "hr_candidates_active": "Candidats actifs",
+    "hr_time_to_hire_median": "Délai de recrutement",
+    "hr_scorecard_backlog": "Entretiens non évalués",
+    "hr_interview_on_time_rate": "Entretiens à l'heure",
+    "work_throughput_week": "Terminé cette semaine",
+    "work_cycle_time_median": "Délai médian",
+    "work_on_time_rate": "Taux de respect des délais",
+    "work_overdue_count": "En retard",
+    "work_stalled_count": "À l'arrêt",
+    "work_wip_count": "En cours",
+    "work_wip_per_member": "En cours par personne",
+    "work_followup_due_count": "Relance du jour",
+    "collab_cross_department_rate": "Travail inter-services",
+    "agent_cost_month": "Coût des agents",
+    "agent_run_failure_rate": "Taux d'échec",
+    "knowledge_created_week": "Ajouté cette semaine",
+    "crm_pipeline_weighted_amount": "Pipeline pondéré",
+    "crm_contract_signed_month": "Signé ce mois",
+    "crm_payment_collected_month": "Encaissé ce mois",
+    "crm_quote_margin_rate": "Marge par collaboration",
+    "crm_collab_roi": "Retour par collaboration",
+    "crm_creator_repeat_rate": "Créateurs récurrents"
+  },
+  "gap": {
+    "needs_hired": "Personne n'a encore été recruté via le registre : pas de date d'embauche à mesurer.",
+    "needs_creators": "Aucun créateur enregistré : impossible d'attribuer un résultat à quelqu'un.",
+    "needs_clients": "Aucun client enregistré pour l'instant.",
+    "needs_briefs": "Aucun brief : rien à chiffrer ni à mettre en correspondance.",
+    "needs_collabs": "Aucune collaboration : montants, étapes et probabilités viennent d'ici.",
+    "needs_settlements": "Aucun règlement enregistré, donc rien ne compte comme encaissé.",
+    "needs_jobs": "Aucun poste ouvert : les candidats n'ont rien à quoi postuler.",
+    "needs_candidates": "Aucun candidat pour l'instant : ni l'étape ni la date d'embauche ne peuvent être mesurées.",
+    "needs_interviews": "Aucun entretien planifié : la ponctualité n'a rien à compter.",
+    "needs_employees": "Aucune fiche salarié : dates d'embauche, classes et fins de contrat viennent d'ici.",
+    "needs_products": "Pas encore de produits d’affiliation : les sélections, les ventes quotidiennes et les relevés en dépendent.",
+    "needs_picks": "Pas encore de sélection : personne ne fait la promotion de rien.",
+    "needs_daily": "Pas encore de ventes quotidiennes : ni GMV ni commission à compter.",
+    "needs_affiliate_settlements": "Pas encore de relevé : aucun encaissement confirmé.",
+    "needs_issues": "Les issues derrière ce chiffre ont un champ manquant.",
+    "fill_ledger": "Le saisir dans le registre",
+    "fill_issues": "Ouvrir les issues"
+  },
+  "ledger": {
+    "section": "Registres",
+    "domain": {
+      "creators": "Créateurs",
+      "clients": "Clients",
+      "briefs": "Briefs",
+      "collabs": "Collaborations",
+      "settlements": "Règlements",
+      "products": "Produits",
+      "picks": "Sélections",
+      "daily": "Ventes quotidiennes",
+      "affiliate_settlements": "Relevés",
+      "jobs": "Postes",
+      "candidates": "Candidats",
+      "interviews": "Entretiens",
+      "employees": "Salariés"
+    },
+    "group": {
+      "commerce": "Commerce",
+      "affiliate": "Affiliation",
+      "people": "Personnel"
+    },
+    "column": {
+      "creator": "Créateur",
+      "creator_ref": "Créateur",
+      "platform": "Plateforme",
+      "fans": "Abonnés",
+      "score": "Note",
+      "risk": "Risque",
+      "client": "Client",
+      "brand": "Marque",
+      "industry": "Secteur",
+      "brief": "Brief",
+      "budget": "Budget",
+      "deliverable": "Format",
+      "schedule": "Calendrier",
+      "collab": "Collaboration",
+      "stage": "Étape",
+      "contract_amount": "Contrat",
+      "scheduled": "Publication",
+      "settlement": "Règlement",
+      "amount": "Montant",
+      "due": "Échéance",
+      "paid": "Payé",
+      "job": "Poste",
+      "level": "Niveau",
+      "headcount": "Postes à pourvoir",
+      "status": "Statut",
+      "salary": "Fourchette",
+      "candidate": "Candidat",
+      "job_ref": "Poste visé",
+      "match_score": "Adéquation",
+      "expected_salary": "Salaire souhaité",
+      "round": "Tour",
+      "time": "Date",
+      "mode": "Format",
+      "interviewer": "Intervieweur",
+      "member": "Membre",
+      "job_title": "Intitulé",
+      "grade": "Classe",
+      "hire_date": "Embauche",
+      "regular_date": "Titularisation",
+      "contract_end": "Fin de contrat",
+      "product_title": "Produit",
+      "product_ref": "Produit",
+      "ownership": "Périmètre",
+      "platform_product": "Plateforme / id produit",
+      "commission_rate": "Taux de commission",
+      "pick_commission_rate": "Taux de la sélection",
+      "agency_share_rate": "Part agence",
+      "service_fee": "Frais de service",
+      "pick": "Sélection",
+      "stat_date": "Date",
+      "gmv": "GMV",
+      "order_count": "Commandes",
+      "refund": "Remboursement",
+      "est_commission": "Commission estimée",
+      "settled_commission": "Commission réglée",
+      "period": "Période",
+      "gross_commission": "Commission brute",
+      "tech_service_fee": "Frais techniques",
+      "refund_deduction": "Déduction de remboursement",
+      "net_amount": "Montant net",
+      "settled_to": "Versé à"
+    },
+    "deliverable": {
+      "short_video": "Vidéo courte",
+      "post": "Publication",
+      "live": "Direct"
+    },
+    "stage": {
+      "inquiry": "Demande",
+      "quoted": "Devisé",
+      "negotiating": "Négociation",
+      "confirmed": "Confirmé",
+      "sampling": "Échantillon",
+      "script_review": "Relecture du script",
+      "scheduled": "Programmé",
+      "published": "Publié",
+      "accepted": "Validé",
+      "settled": "Réglé",
+      "cancelled": "Annulé"
+    },
+    "settlement_kind": {
+      "prepay": "Acompte",
+      "final": "Solde",
+      "platform_fee": "Frais de plateforme",
+      "tax": "Taxe"
+    },
+    "job_status": {
+      "draft": "Brouillon",
+      "open": "Ouvert",
+      "paused": "En pause",
+      "closed": "Clôturé"
+    },
+    "candidate_stage": {
+      "screening": "Présélection",
+      "test": "Test",
+      "interview": "Entretien",
+      "scored": "Évalué",
+      "offer": "Offre",
+      "hired": "Embauché",
+      "rejected": "Écarté",
+      "withdrawn": "Désisté"
+    },
+    "interview_status": {
+      "scheduled": "Planifié",
+      "done": "Terminé",
+      "cancelled": "Annulé",
+      "no_show": "Absent"
+    },
+    "interview_mode": {
+      "onsite": "Sur site",
+      "video": "Vidéo",
+      "phone": "Téléphone"
+    },
+    "verdict": {
+      "strong_yes": "Oui franc",
+      "yes": "Oui",
+      "no": "Non",
+      "strong_no": "Non franc"
+    },
+    "risk_flagged": "Signalé",
+    "unpaid": "Non payé",
+    "empty_title": "Pas encore de {{domain}}",
+    "empty_description": "Les lignes saisies ici alimentent les indicateurs de la vue d'ensemble.",
+    "error_title": "Impossible de charger le registre",
+    "error_description": "Vérifiez la connexion puis réessayez.",
+    "retry": "Réessayer"
+  },
+  "import": {
+    "entry": "Importer",
+    "title": "Importer des lignes",
+    "paste_label": "Lignes collées",
+    "paste_hint": "Collez depuis Excel ou un fichier CSV ; la première ligne nomme les colonnes.",
+    "map_columns": "Colonnes",
+    "preview": "Aperçu",
+    "summary": "Collées {{count}} · importables {{ok}} · à corriger {{bad}}",
+    "import_button": "Importer",
+    "close": "Fermer",
+    "done": "Importées {{count}}, en échec {{failed}}",
+    "failed_rows": "Lignes à corriger",
+    "unmapped": "Non associée",
+    "sample": "Utiliser un exemple",
+    "field": {
+      "owner": "Responsable du recrutement",
+      "salary_min": "Salaire min.",
+      "salary_max": "Salaire max.",
+      "regular_date": "Date de titularisation",
+      "contract_end": "Fin de contrat",
+      "title": "Intitulé du poste",
+      "department": "Service",
+      "level": "Niveau",
+      "headcount": "Effectif",
+      "salary": "Salaire",
+      "name": "Nom",
+      "job": "Poste visé",
+      "stage": "Étape",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "expected_salary": "Salaire souhaité",
+      "edu": "Niveau d’études",
+      "years_experience": "Années d’expérience",
+      "resume_text": "Texte du CV",
+      "member": "Membre",
+      "job_title": "Fonction",
+      "grade": "Grade",
+      "hire_date": "Date d’embauche",
+      "pick": "Sélection",
+      "product": "Produit",
+      "creator": "Créateur",
+      "stat_date": "Date",
+      "gmv": "GMV",
+      "orders": "Commandes",
+      "refund": "Remboursement",
+      "commission": "Commission"
+    },
+    "errors": {
+      "missing_title": "Intitulé du poste manquant",
+      "missing_name": "Nom manquant",
+      "missing_job": "Poste visé manquant",
+      "unknown_job": "Aucun poste « {{value}} »",
+      "unknown_member": "« {{value}} » n’est pas membre de cet espace",
+      "duplicate": "Identique à la ligne {{value}}",
+      "unknown_department": "Aucun service « {{value}} »",
+      "bad_date": "Date « {{value}} » illisible",
+      "bad_amount": "« {{value}} » n’est pas un seul nombre ; séparez la plage en deux colonnes",
+      "bad_stage": "Aucune étape « {{value}} »",
+      "server_error": "Le serveur a refusé cette ligne",
+      "missing_pick": "Aucun produit et créateur auxquels imputer cette journée",
+      "unknown_pick": "Aucune sélection pour « {{value}} »",
+      "missing_date": "Pas de date"
+    }
+  },
+  "export": {
+    "action": "Exporter",
+    "empty": "Aucune ligne à exporter",
+    "done": "{{count}} lignes exportées"
+  },
+  "calendar": {
+    "prev": "Précédent",
+    "next": "Suivant",
+    "today": "Aujourd'hui",
+    "allday": "Journée"
+  },
+  "resume": {
+    "title": "Importer des CV",
+    "hint": "Le nom du fichier est comparé à celui des candidats. Un fichier sans correspondance n’est pas envoyé : importez d’abord le candidat.",
+    "pick": "Choisir des fichiers",
+    "upload": "Envoyer",
+    "uploading": "Envoi en cours",
+    "matched": "Correspond",
+    "unmatched": "Sans correspondance",
+    "ambiguous": "À choisir",
+    "failed": "Échec de l’envoi",
+    "no_candidates": "Aucun candidat pour l’instant : importez d’abord des candidats.",
+    "summary": "{{count}} fichiers · {{ok}} prêts · {{unmatched}} sans correspondance",
+    "done": "{{count}} envoyés, {{failed}} en échec",
+    "column": {
+      "file": "Fichier",
+      "size": "Taille",
+      "candidate": "Candidat",
+      "status": "État"
+    }
+  },
+  "team": {
+    "section": "Équipe",
+    "unassigned": "Sans service",
+    "group_counts": "{{members}} personnes · {{agents}} agents",
+    "role": {
+      "owner": "Propriétaire",
+      "admin": "Administrateur",
+      "member": "Membre"
+    },
+    "availability": {
+      "online": "En ligne",
+      "unstable": "Perdu récemment",
+      "offline": "Hors ligne",
+      "archived": "Archivé"
+    },
+    "workload": {
+      "working": "Au travail",
+      "queued": "En attente",
+      "idle": "Inactif"
+    },
+    "load": "{{running}}/{{capacity}}",
+    "empty_title": "Personne ici pour l'instant",
+    "empty_description": "Invitez des membres et créez des agents : leur travail apparaîtra ici."
+  },
+  "hire": {
+    "title": "Embaucher le candidat",
+    "description": "Marque {{name}} comme recruté et crée la fiche salarié dans la même étape.",
+    "member": "Membre",
+    "member_placeholder": "Choisir un membre",
+    "no_members": "Aucun membre dans cet espace de travail pour l'instant. Invitez d'abord un membre : l'embauche crée la fiche salarié sur son compte.",
+    "hire_date": "Date d'embauche",
+    "job_title": "Poste",
+    "grade": "Classe",
+    "submit": "Embaucher",
+    "cancel": "Annuler",
+    "save_failed": "Le serveur a refusé cette embauche. Rien n'a été enregistré : réessayez."
+  },
+  "overview": {
+    "hr_metrics": "Recrutement"
+  },
+  "record": {
+    "yes": "Oui",
+    "no": "Non",
+    "title": {
+      "jobs": "Détails du poste",
+      "candidates": "Détails du candidat",
+      "interviews": "Détails de l’entretien",
+      "employees": "Détails du salarié"
+    },
+    "create": {
+      "jobs": "Nouveau poste",
+      "candidates": "Nouveau candidat",
+      "interviews": "Nouvel entretien",
+      "employees": "Nouveau salarié"
+    },
+    "field": {
+      "title": "Intitulé",
+      "department": "Service",
+      "level": "Niveau",
+      "headcount": "Effectif",
+      "status": "Statut",
+      "salary_min": "Salaire min",
+      "salary_max": "Salaire max",
+      "currency": "Devise",
+      "requirements": "Exigences",
+      "edu": "Niveau d’études",
+      "years": "Expérience",
+      "city": "Lieu",
+      "urgent": "Urgent",
+      "keywords": "Mots-clés",
+      "jd": "Description du poste",
+      "owner": "Responsable",
+      "created_at": "Créé le",
+      "name": "Nom",
+      "job": "Poste visé",
+      "stage": "Étape",
+      "source": "Source",
+      "phone": "Téléphone",
+      "email": "E-mail",
+      "match_score": "Correspondance",
+      "score_resume": "Score CV",
+      "score_test": "Score test",
+      "score_interview": "Score entretien",
+      "expected_salary": "Salaire souhaité",
+      "years_experience": "Années d’expérience",
+      "resume_text": "Texte du CV",
+      "offer_salary": "Salaire proposé",
+      "hired_at": "Embauché le",
+      "rejected_reason": "Motif du refus",
+      "candidate": "Candidat",
+      "round": "Tour",
+      "scheduled_at": "Planifié le",
+      "duration_minutes": "Durée",
+      "interviewer": "Recruteur",
+      "mode": "Modalité",
+      "reschedule_count": "Reprogrammations",
+      "note": "Note",
+      "member": "Membre",
+      "job_title": "Poste",
+      "grade": "Grade",
+      "hire_date": "Date d’embauche",
+      "regular_date": "Date de titularisation",
+      "contract_end": "Fin de contrat"
+    },
+    "action": {
+      "create": "Nouveau",
+      "save": "Enregistrer",
+      "close": "Fermer"
+    },
+    "option": {
+      "choose": "Choisir",
+      "none": "Aucun"
+    },
+    "empty": "—",
+    "error": {
+      "required": "À renseigner : {{fields}}",
+      "submit": "Le serveur a refusé cette ligne. Rien n’a été enregistré — corrigez-la et réessayez."
+    }
+  },
+  "affiliate": {
+    "ownership": {
+      "own_brand": "Marque propre",
+      "client_brand": "Marque client"
+    },
+    "recipient": {
+      "agency": "Agence",
+      "creator": "Créateur"
+    },
+    "product_status": {
+      "on_shelf": "En ligne",
+      "off_shelf": "Retiré",
+      "ended": "Terminé"
+    },
+    "pick_status": {
+      "active": "Active",
+      "paused": "En pause",
+      "ended": "Terminée"
+    },
+    "settlement_status": {
+      "pending": "En attente",
+      "paid": "Payé",
+      "failed": "Échoué"
+    },
+    "form": {
+      "title": {
+        "products": "Nouveau produit d’affiliation",
+        "picks": "Nouvelle sélection",
+        "daily": "Saisir une journée",
+        "affiliate_settlements": "Nouveau relevé"
+      },
+      "field": {
+        "title": "Nom du produit",
+        "ownership": "Périmètre",
+        "client": "Client",
+        "platform": "Plateforme",
+        "platform_product_id": "Id produit sur la plateforme",
+        "category": "Catégorie",
+        "price": "Prix",
+        "commission_rate": "Taux de commission (%)",
+        "activity": "Campagne",
+        "status": "Statut",
+        "product": "Produit",
+        "creator": "Créateur",
+        "agency_share_rate": "Part agence (%)",
+        "service_fee": "Frais de service",
+        "pick": "Sélection",
+        "stat_date": "Date",
+        "gmv": "GMV",
+        "orders": "Commandes",
+        "refund": "Remboursement",
+        "est_commission": "Commission estimée",
+        "settled_commission": "Commission réglée",
+        "period_start": "Début de la période",
+        "period_end": "Fin de la période",
+        "gross_commission": "Commission brute",
+        "tech_service_fee": "Frais techniques",
+        "refund_deduction": "Déduction de remboursement",
+        "net_amount": "Montant net",
+        "settled_to": "Versé à",
+        "external_no": "N° de relevé"
+      },
+      "option": {
+        "choose": "Choisir"
+      },
+      "action": {
+        "save": "Enregistrer",
+        "close": "Fermer"
+      },
+      "error": {
+        "required": "Renseignez : {{fields}}",
+        "period": "La période se termine avant de commencer",
+        "submit": "Le serveur a refusé cette ligne. Rien n’a été enregistré : corrigez-la et réessayez."
+      }
+    }
+  },
+  "match": {
+    "action": {
+      "calculate": "Calculer la correspondance",
+      "batch": "Calculer les correspondances"
+    },
+    "result": "{{score}}/100",
+    "failed": "La correspondance n’a pas été enregistrée. Réessayez.",
+    "batch_done": "{{ok}} calculées · {{failed}} en échec",
+    "reason": {
+      "keywords": "Mots-clés {{detail}}/100",
+      "education": "Formation {{detail}}/100",
+      "experience": "Expérience {{detail}}/100",
+      "salary": "Salaire attendu {{detail}}/100",
+      "no_job": "Aucun poste auquel comparer",
+      "no_text": "Le candidat n’a ni texte de CV, ni formation, ni expérience : ce poids a été réparti sur le reste"
+    }
+  },
+  "ai": {
+    "action": {
+      "dispatch": "Confier à un agent"
+    },
+    "dispatched": "Assigné à {{agent}}",
+    "no_agents": "Aucun agent",
+    "failed": "Le ticket n’a pas été créé. Réessayez.",
+    "issue_title": "Préparer la candidature : {{name}}",
+    "issue_body": "Candidat : {{name}}\nPoste : {{job}}\nÉtape : {{stage}}\nSalaire attendu : {{salary}}\nMots-clés du poste : {{keywords}}\nFormation requise : {{edu}}\nExpérience requise : {{years}}\n\nRédigez une fiche de points clés pour ce candidat au regard du poste, puis les questions d’entretien qu’elle suggère."
+  },
+  "collab": {
+    "field": {
+      "creator": "Créateur",
+      "stage": "Étape",
+      "amount": "Montant du contrat",
+      "fee": "Rémunération du créateur",
+      "schedule": "Calendrier",
+      "settlement": "Règlement",
+      "issue": "Tâche de livraison"
+    },
+    "action": {
+      "create_issue": "Créer la tâche",
+      "open_issue": "Ouvrir la tâche"
+    },
+    "issue_created": "Tâche créée",
+    "issue_failed": "La tâche n’a pas été créée. Réessayez.",
+    "issue_title": "Livraison : {{creator}} × {{client}}",
+    "issue_body": "Collaboration : {{id}}\nMontant : {{amount}}\nCalendrier : {{schedule}}\n\nLivrez cette collaboration et enregistrez la publication une fois en ligne.",
+    "settlement_mode": {
+      "flat": "Forfait",
+      "cps": "CPS",
+      "cpa": "CPA",
+      "barter": "Troc"
+    }
+  },
+  "publish": {
+    "title": "Enregistrer une publication",
+    "field": {
+      "url": "URL",
+      "title": "Titre",
+      "published_at": "Publié le",
+      "platform": "Plateforme"
+    },
+    "action": {
+      "submit": "Enregistrer"
+    },
+    "done": "Publication enregistrée",
+    "conflict": "Ce créateur a déjà une publication avec cette URL.",
+    "failed": "La publication n’a pas été enregistrée. Réessayez."
+  },
+  "creator": {
+    "sheet": {
+      "title": "Détails du créateur",
+      "posts": "Publications",
+      "no_posts": "Aucune publication pour l’instant"
+    }
+  },
+  "doc_editor": {
+    "toolbar": "Mise en forme",
+    "tools": {
+      "bold": "Gras",
+      "italic": "Italique",
+      "strike": "Barré",
+      "h2": "Titre 2",
+      "h3": "Titre 3",
+      "bullet": "Liste à puces",
+      "ordered": "Liste numérotée",
+      "quote": "Citation",
+      "link": "Lien",
+      "undo": "Annuler",
+      "redo": "Rétablir"
+    },
+    "limit": "Limite atteinte — {{count}} caractères",
+    "link": {
+      "url": "URL du lien",
+      "apply": "Appliquer le lien"
+    }
+  }
+}

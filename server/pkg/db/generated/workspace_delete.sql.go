@@ -670,6 +670,72 @@ func (q *Queries) DeleteWorkspaceSquadsAndSkills(ctx context.Context, workspaceI
 	return err
 }
 
+const deleteWorkspaceWorkbenchLedger = `-- name: DeleteWorkspaceWorkbenchLedger :exec
+WITH
+deleted_settlements AS (
+    DELETE FROM crm_settlement WHERE crm_settlement.workspace_id = $1
+),
+deleted_collabs AS (
+    DELETE FROM crm_collab WHERE crm_collab.workspace_id = $1
+),
+deleted_briefs AS (
+    DELETE FROM crm_brief WHERE crm_brief.workspace_id = $1
+),
+deleted_clients AS (
+    DELETE FROM crm_client WHERE crm_client.workspace_id = $1
+),
+deleted_metrics AS (
+    DELETE FROM creator_post_metric WHERE creator_post_metric.workspace_id = $1
+),
+deleted_posts AS (
+    DELETE FROM creator_post WHERE creator_post.workspace_id = $1
+),
+deleted_creators AS (
+    DELETE FROM creator WHERE creator.workspace_id = $1
+),
+deleted_affiliate_daily AS (
+    DELETE FROM affiliate_daily WHERE affiliate_daily.workspace_id = $1
+),
+deleted_affiliate_settlements AS (
+    DELETE FROM affiliate_settlement WHERE affiliate_settlement.workspace_id = $1
+),
+deleted_affiliate_picks AS (
+    DELETE FROM affiliate_pick WHERE affiliate_pick.workspace_id = $1
+),
+deleted_affiliate_products AS (
+    DELETE FROM affiliate_product WHERE affiliate_product.workspace_id = $1
+),
+deleted_hr_scorecards AS (
+    DELETE FROM hr_scorecard WHERE hr_scorecard.workspace_id = $1
+),
+deleted_hr_interviews AS (
+    DELETE FROM hr_interview WHERE hr_interview.workspace_id = $1
+),
+deleted_hr_candidates AS (
+    DELETE FROM hr_candidate WHERE hr_candidate.workspace_id = $1
+),
+deleted_hr_jobs AS (
+    DELETE FROM hr_job WHERE hr_job.workspace_id = $1
+),
+deleted_finance_month AS (
+    DELETE FROM ops_finance_month WHERE ops_finance_month.workspace_id = $1
+)
+DELETE FROM hr_employee_profile WHERE hr_employee_profile.workspace_id = $1
+`
+
+// Creator commerce, CRM, HR and affiliate ledgers
+// (docs/engineering/WORKBENCH-API.md). No foreign key sits behind them
+// (repository rule), so teardown removes every row explicitly, in dependency
+// order: a settlement names a collaboration, a post belongs to a creator, a
+// scorecard names an interview, an interview names a candidate, a candidate names
+// a job, a daily fact and a pick name a product, and a pick names a creator.
+// Affiliate distribution (WORKBENCH-API §11): a day fact names a pick, a pick
+// names a product and a creator, a settlement statement stands alone.
+func (q *Queries) DeleteWorkspaceWorkbenchLedger(ctx context.Context, workspaceID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteWorkspaceWorkbenchLedger, workspaceID)
+	return err
+}
+
 const detachTaskBatchReferences = `-- name: DetachTaskBatchReferences :exec
 WITH detached_runs AS (
     UPDATE autopilot_run

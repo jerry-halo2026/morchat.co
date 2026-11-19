@@ -10,7 +10,9 @@ const RAIL_SPACE_IDS = new Set<string>(RAIL_SPACES);
 /**
  * The rail's spaces in the user's order. Unknown and repeated ids are
  * dropped; a space missing from the saved order (one added since it was
- * saved) is placed right after the space it follows by default.
+ * saved) is placed right after the space it follows by default — a new
+ * leading space (a home page added in front of Inbox) therefore leads even
+ * for an order saved before it existed, instead of being dropped.
  */
 export function resolveRailOrder(saved: readonly unknown[] | null): RailSpaceId[] {
   if (!saved) return [...RAIL_SPACES];

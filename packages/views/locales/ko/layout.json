@@ -9,6 +9,7 @@
     "agents": "에이전트",
     "squads": "스쿼드",
     "usage": "분석",
+    "overview": "개요",
     "runtimes": "런타임",
     "skills": "스킬",
     "presets": "프리셋",
@@ -90,10 +91,12 @@
     "show_fewer_pins": "접기"
   },
   "spaces": {
+    "workbench": "워크벤치",
     "work": "작업",
     "team": "팀"
   },
   "rail": {
+    "workbench": "워크벤치",
     "label": "앱 탐색",
     "sheet_description": "스페이스와 워크스페이스를 전환합니다.",
     "inbox": "인박스",
@@ -190,6 +193,13 @@
     "shortcuts": "키보드 단축키"
   },
   "collection": {
+  "pager": {
+    "more": "더 불러오기",
+    "loading": "불러오는 중…",
+    "end": "더 이상 없습니다",
+    "count": "{{loaded}} / {{total}} 표시",
+    "count_loaded": "{{loaded}}개 표시"
+  },
     "filter": "필터",
     "filter_count_other": "필터 {{count}}개",
     "reset": "초기화",

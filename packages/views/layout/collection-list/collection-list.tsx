@@ -103,6 +103,11 @@ export interface CollectionListProps<T> {
   hasMore?: boolean;
   loadingMore?: boolean;
   onLoadMore?: () => void;
+  /** Rendered as the list's last row, spanning every column. A caller that
+   *  pages by cursor puts its own pager here (`CollectionPager`), which keeps
+   *  the count and the "load more" control with the list instead of inventing
+   *  a second slot API for the same position. */
+  footer?: ReactNode;
   /** Renders inside the page's own scroller instead of owning one. */
   embedded?: boolean;
   /** J/K and arrows reach the list while nothing else has focus. */
@@ -177,6 +182,7 @@ export function CollectionList<T>({
   hasMore = false,
   loadingMore = false,
   onLoadMore,
+  footer,
   embedded = false,
   pageShortcuts = !embedded,
   className,
@@ -608,6 +614,7 @@ export function CollectionList<T>({
           </Button>
         </div>
       ) : null}
+      {footer ? <div className="col-span-full">{footer}</div> : null}
     </div>
   );
 

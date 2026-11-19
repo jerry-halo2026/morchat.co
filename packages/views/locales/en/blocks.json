@@ -1,0 +1,614 @@
+{
+  "title": "Workbench",
+  "tabs": {
+    "overview": "Overview",
+    "ledger": "Ledger",
+    "team": "Team"
+  },
+  "department": {
+    "label": "Department",
+    "all": "All departments"
+  },
+  "view": {
+    "label": "View",
+    "all": "All",
+    "commerce": "Sales",
+    "people": "People",
+    "finance": "P&L"
+  },
+  "unit": {
+    "days": "d",
+    "hours": "h",
+    "percent": "%",
+    "ratio": "×",
+    "currency": {
+      "CNY": "¥",
+      "USD": "$"
+    }
+  },
+  "empty": {
+    "value": "—"
+  },
+  "group_total": "· {{count}} items",
+  "metric_value": {
+    "samples": "of {{count}} rows"
+  },
+  "metric": {
+    "hr_candidates_active": "Active candidates",
+    "hr_time_to_hire_median": "Time to hire",
+    "hr_scorecard_backlog": "Unscored interviews",
+    "hr_interview_on_time_rate": "On-time interviews",
+    "work_throughput_week": "Closed this week",
+    "work_cycle_time_median": "Median cycle time",
+    "work_on_time_rate": "On-time rate",
+    "work_overdue_count": "Overdue",
+    "work_stalled_count": "Stalled",
+    "work_wip_count": "In progress",
+    "work_wip_per_member": "In progress per person",
+    "work_followup_due_count": "Follow-up due today",
+    "collab_cross_department_rate": "Cross-department work",
+    "agent_cost_month": "Agent cost",
+    "agent_run_failure_rate": "Run failure rate",
+    "knowledge_created_week": "Added this week",
+    "crm_pipeline_weighted_amount": "Weighted pipeline",
+    "crm_contract_signed_month": "Signed this month",
+    "crm_payment_collected_month": "Collected this month",
+    "crm_quote_margin_rate": "Collaboration margin",
+    "crm_collab_roi": "Return per collaboration",
+    "crm_creator_repeat_rate": "Repeat creators"
+  },
+  "gap": {
+    "needs_hired": "Nobody has been hired through the ledger yet, so there is no hire date to measure against.",
+    "needs_creators": "No creator records yet, so nothing can be attributed to anyone.",
+    "needs_clients": "No client records yet.",
+    "needs_briefs": "No briefs yet, so there is nothing to match or quote against.",
+    "needs_collabs": "No collaborations yet — amounts, stages and probabilities all come from here.",
+    "needs_settlements": "No settlement records yet, so nothing counts as collected.",
+    "needs_jobs": "No job openings yet, so candidates have nothing to apply for.",
+    "needs_candidates": "No candidates yet, so no stage or hire date can be measured.",
+    "needs_interviews": "No interviews scheduled yet, so punctuality has nothing to count.",
+    "needs_employees": "No employee profiles yet — hire dates, grades and contract ends all live here.",
+    "needs_products": "No affiliate products yet — picks, daily reports and statements all hang off them.",
+    "needs_picks": "No picks yet, so no creator is promoting anything.",
+    "needs_daily": "No daily reports yet, so there is no GMV or commission to count.",
+    "needs_affiliate_settlements": "No platform statements yet, so nothing is confirmed as received.",
+    "needs_issues": "The issues behind this number are missing a field it needs.",
+    "fill_ledger": "Fill it in the ledger",
+    "fill_issues": "Open issues"
+  },
+  "ledger": {
+    "section": "Ledgers",
+    "domain": {
+      "creators": "Creators",
+      "clients": "Clients",
+      "briefs": "Briefs",
+      "collabs": "Collaborations",
+      "settlements": "Settlements",
+      "products": "Products",
+      "picks": "Picks",
+      "daily": "Daily sales",
+      "affiliate_settlements": "Statements",
+      "jobs": "Jobs",
+      "candidates": "Candidates",
+      "interviews": "Interviews",
+      "employees": "Employees"
+    },
+    "group": {
+      "commerce": "Commerce",
+      "affiliate": "Affiliate",
+      "people": "People"
+    },
+    "column": {
+      "creator": "Creator",
+      "creator_ref": "Creator",
+      "platform": "Platform",
+      "fans": "Followers",
+      "score": "Score",
+      "risk": "Risk",
+      "client": "Client",
+      "brand": "Brand",
+      "industry": "Industry",
+      "brief": "Brief",
+      "budget": "Budget",
+      "deliverable": "Format",
+      "schedule": "Schedule",
+      "collab": "Collaboration",
+      "stage": "Stage",
+      "contract_amount": "Contract",
+      "scheduled": "Publishing",
+      "settlement": "Settlement",
+      "amount": "Amount",
+      "due": "Due",
+      "paid": "Paid",
+      "job": "Job",
+      "level": "Level",
+      "headcount": "Headcount",
+      "status": "Status",
+      "salary": "Salary range",
+      "candidate": "Candidate",
+      "job_ref": "Applied for",
+      "match_score": "Match",
+      "expected_salary": "Expected salary",
+      "round": "Round",
+      "time": "Time",
+      "mode": "Mode",
+      "interviewer": "Interviewer",
+      "member": "Member",
+      "job_title": "Job title",
+      "grade": "Grade",
+      "hire_date": "Hired",
+      "regular_date": "Regularized",
+      "contract_end": "Contract ends",
+      "product_title": "Product",
+      "product_ref": "Product",
+      "ownership": "Ownership",
+      "platform_product": "Platform / product id",
+      "commission_rate": "Commission rate",
+      "pick_commission_rate": "Pick rate",
+      "agency_share_rate": "Agency share",
+      "service_fee": "Service fee",
+      "pick": "Pick",
+      "stat_date": "Date",
+      "gmv": "GMV",
+      "order_count": "Orders",
+      "refund": "Refund",
+      "est_commission": "Estimated commission",
+      "settled_commission": "Settled commission",
+      "period": "Period",
+      "gross_commission": "Gross commission",
+      "tech_service_fee": "Tech service fee",
+      "refund_deduction": "Refund deduction",
+      "net_amount": "Net amount",
+      "settled_to": "Settled to"
+    },
+    "deliverable": {
+      "short_video": "Short video",
+      "post": "Post",
+      "live": "Live"
+    },
+    "stage": {
+      "inquiry": "Inquiry",
+      "quoted": "Quoted",
+      "negotiating": "Negotiating",
+      "confirmed": "Confirmed",
+      "sampling": "Sampling",
+      "script_review": "Script review",
+      "scheduled": "Scheduled",
+      "published": "Published",
+      "accepted": "Accepted",
+      "settled": "Settled",
+      "cancelled": "Cancelled"
+    },
+    "settlement_kind": {
+      "prepay": "Prepayment",
+      "final": "Final payment",
+      "platform_fee": "Platform fee",
+      "tax": "Tax"
+    },
+    "job_status": {
+      "draft": "Draft",
+      "open": "Open",
+      "paused": "Paused",
+      "closed": "Closed"
+    },
+    "candidate_stage": {
+      "screening": "Screening",
+      "test": "Test",
+      "interview": "Interview",
+      "scored": "Scored",
+      "offer": "Offer",
+      "hired": "Hired",
+      "rejected": "Rejected",
+      "withdrawn": "Withdrawn"
+    },
+    "interview_status": {
+      "scheduled": "Scheduled",
+      "done": "Done",
+      "cancelled": "Cancelled",
+      "no_show": "No-show"
+    },
+    "interview_mode": {
+      "onsite": "Onsite",
+      "video": "Video",
+      "phone": "Phone"
+    },
+    "verdict": {
+      "strong_yes": "Strong yes",
+      "yes": "Yes",
+      "no": "No",
+      "strong_no": "Strong no"
+    },
+    "risk_flagged": "Flagged",
+    "unpaid": "Unpaid",
+    "empty_title": "No {{domain}} yet",
+    "empty_description": "Rows entered here feed the metrics on the overview.",
+    "error_title": "Couldn't load this ledger",
+    "error_description": "Check the connection, then try again.",
+    "retry": "Retry"
+  },
+  "import": {
+    "entry": "Import",
+    "title": "Import rows",
+    "paste_label": "Pasted rows",
+    "paste_hint": "Paste from Excel or a CSV file; the first row names the columns.",
+    "map_columns": "Columns",
+    "preview": "Preview",
+    "summary": "Pasted {{count}} · importable {{ok}} · with problems {{bad}}",
+    "import_button": "Import",
+    "close": "Close",
+    "done": "Imported {{count}}, {{failed}} failed",
+    "failed_rows": "Rows still to fix",
+    "unmapped": "Not mapped",
+    "sample": "Use an example",
+    "field": {
+      "owner": "Owner / hiring manager",
+      "salary_min": "Salary from",
+      "salary_max": "Salary to",
+      "regular_date": "Regularized on",
+      "contract_end": "Contract ends",
+      "title": "Job title",
+      "department": "Department",
+      "level": "Level",
+      "headcount": "Headcount",
+      "salary": "Salary",
+      "name": "Name",
+      "job": "Applied for",
+      "stage": "Stage",
+      "phone": "Phone",
+      "email": "Email",
+      "expected_salary": "Expected salary",
+      "edu": "Education",
+      "years_experience": "Years of experience",
+      "resume_text": "Résumé text",
+      "member": "Member",
+      "job_title": "Position",
+      "grade": "Grade",
+      "hire_date": "Hire date",
+      "pick": "Pick",
+      "product": "Product",
+      "creator": "Creator",
+      "stat_date": "Date",
+      "gmv": "GMV",
+      "orders": "Orders",
+      "refund": "Refund",
+      "commission": "Commission"
+    },
+    "errors": {
+      "missing_title": "No job title",
+      "missing_name": "No name",
+      "missing_job": "No job",
+      "unknown_job": "No job called “{{value}}”",
+      "unknown_member": "“{{value}}” is not a member here",
+      "duplicate": "Same as row {{value}}",
+      "unknown_department": "No department called “{{value}}”",
+      "bad_date": "Can’t read the date “{{value}}”",
+      "bad_amount": "Can’t read “{{value}}” as one number; split a range into two columns",
+      "bad_stage": "No stage called “{{value}}”",
+      "server_error": "The server rejected this row",
+      "missing_pick": "No product and creator to file this day against",
+      "unknown_pick": "No pick for “{{value}}”",
+      "missing_date": "No date"
+    }
+  },
+  "export": {
+    "action": "Export",
+    "empty": "Nothing to export",
+    "done": "Exported {{count}} rows"
+  },
+  "calendar": {
+    "prev": "Previous",
+    "next": "Next",
+    "today": "Today",
+    "allday": "All day"
+  },
+  "resume": {
+    "title": "Upload résumés",
+    "hint": "A candidate's name in the file name is matched automatically. A file that matches nobody is not uploaded — import the candidate first.",
+    "pick": "Choose files",
+    "upload": "Upload",
+    "uploading": "Uploading",
+    "matched": "Matched",
+    "unmatched": "No match",
+    "ambiguous": "Choose one",
+    "failed": "Upload failed",
+    "no_candidates": "No candidates yet — import candidates first.",
+    "summary": "{{count}} files · {{ok}} ready · {{unmatched}} unmatched",
+    "done": "Uploaded {{count}}, {{failed}} failed",
+    "column": {
+      "file": "File",
+      "size": "Size",
+      "candidate": "Candidate",
+      "status": "Status"
+    }
+  },
+  "team": {
+    "section": "Team",
+    "unassigned": "No department",
+    "group_counts": "{{members}} people · {{agents}} agents",
+    "role": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member"
+    },
+    "availability": {
+      "online": "Online",
+      "unstable": "Recently lost",
+      "offline": "Offline",
+      "archived": "Archived"
+    },
+    "workload": {
+      "working": "Working",
+      "queued": "Waiting",
+      "idle": "Idle"
+    },
+    "load": "{{running}}/{{capacity}}",
+    "empty_title": "No one here yet",
+    "empty_description": "Invite members and create agents, then their work shows up here."
+  },
+  "hire": {
+    "title": "Hire candidate",
+    "description": "Marks {{name}} as hired and files the employee record in the same step.",
+    "member": "Member",
+    "member_placeholder": "Choose a member",
+    "no_members": "Nobody has joined this workspace yet. Invite a member first — a hire files the employee record against their account.",
+    "hire_date": "Hire date",
+    "job_title": "Position",
+    "grade": "Grade",
+    "submit": "Hire",
+    "cancel": "Cancel",
+    "save_failed": "The server refused this hire. Nothing was saved — try again."
+  },
+  "overview": {
+    "hr_metrics": "Hiring"
+  },
+  "record": {
+    "yes": "Yes",
+    "no": "No",
+    "title": {
+      "jobs": "Job details",
+      "candidates": "Candidate details",
+      "interviews": "Interview details",
+      "employees": "Employee details"
+    },
+    "create": {
+      "jobs": "New job",
+      "candidates": "New candidate",
+      "interviews": "New interview",
+      "employees": "New employee"
+    },
+    "field": {
+      "title": "Job title",
+      "department": "Department",
+      "level": "Level",
+      "headcount": "Headcount",
+      "status": "Status",
+      "salary_min": "Salary from",
+      "salary_max": "Salary to",
+      "currency": "Currency",
+      "requirements": "Requirements",
+      "edu": "Education",
+      "years": "Experience",
+      "city": "Work location",
+      "urgent": "Urgent hire",
+      "keywords": "Keywords",
+      "jd": "Job description",
+      "owner": "Owner",
+      "created_at": "Created",
+      "name": "Name",
+      "job": "Applied for",
+      "stage": "Stage",
+      "source": "Source",
+      "phone": "Phone",
+      "email": "Email",
+      "match_score": "Match",
+      "score_resume": "Résumé score",
+      "score_test": "Test score",
+      "score_interview": "Interview score",
+      "expected_salary": "Expected salary",
+      "years_experience": "Years of experience",
+      "resume_text": "Résumé text",
+      "offer_salary": "Offer salary",
+      "hired_at": "Hired",
+      "rejected_reason": "Reason rejected",
+      "candidate": "Candidate",
+      "round": "Round",
+      "scheduled_at": "Scheduled for",
+      "duration_minutes": "Duration",
+      "interviewer": "Interviewer",
+      "mode": "Mode",
+      "reschedule_count": "Rescheduled",
+      "note": "Note",
+      "member": "Member",
+      "job_title": "Position",
+      "grade": "Grade",
+      "hire_date": "Hire date",
+      "regular_date": "Regularized",
+      "contract_end": "Contract ends"
+    },
+    "action": {
+      "create": "New",
+      "save": "Save",
+      "close": "Close"
+    },
+    "option": {
+      "choose": "Choose",
+      "none": "None"
+    },
+    "empty": "—",
+    "error": {
+      "required": "Fill in: {{fields}}",
+      "submit": "The server rejected this row. Nothing was saved — fix it and try again."
+    }
+  },
+  "affiliate": {
+    "ownership": {
+      "own_brand": "Own brand",
+      "client_brand": "Client brand"
+    },
+    "recipient": {
+      "agency": "Agency",
+      "creator": "Creator"
+    },
+    "product_status": {
+      "on_shelf": "On shelf",
+      "off_shelf": "Off shelf",
+      "ended": "Ended"
+    },
+    "pick_status": {
+      "active": "Active",
+      "paused": "Paused",
+      "ended": "Ended"
+    },
+    "settlement_status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "failed": "Failed"
+    },
+    "form": {
+      "title": {
+        "products": "New affiliate product",
+        "picks": "New pick",
+        "daily": "Log a day",
+        "affiliate_settlements": "New platform statement"
+      },
+      "field": {
+        "title": "Product title",
+        "ownership": "Ownership",
+        "client": "Client",
+        "platform": "Platform",
+        "platform_product_id": "Platform product id",
+        "category": "Category",
+        "price": "Price",
+        "commission_rate": "Commission rate (%)",
+        "activity": "Campaign",
+        "status": "Status",
+        "product": "Product",
+        "creator": "Creator",
+        "agency_share_rate": "Agency share (%)",
+        "service_fee": "Service fee",
+        "pick": "Pick",
+        "stat_date": "Date",
+        "gmv": "GMV",
+        "orders": "Orders",
+        "refund": "Refund",
+        "est_commission": "Estimated commission",
+        "settled_commission": "Settled commission",
+        "period_start": "Period start",
+        "period_end": "Period end",
+        "gross_commission": "Gross commission",
+        "tech_service_fee": "Tech service fee",
+        "refund_deduction": "Refund deduction",
+        "net_amount": "Net amount",
+        "settled_to": "Settled to",
+        "external_no": "Statement no."
+      },
+      "option": {
+        "choose": "Choose"
+      },
+      "action": {
+        "save": "Save",
+        "close": "Close"
+      },
+      "error": {
+        "required": "Fill in: {{fields}}",
+        "period": "The period ends before it starts",
+        "submit": "The server rejected this row. Nothing was saved — fix it and try again."
+      }
+    }
+  },
+  "match": {
+    "action": {
+      "calculate": "Score match",
+      "batch": "Score matches"
+    },
+    "result": "{{score}}/100",
+    "failed": "The score wasn’t saved. Try again.",
+    "batch_done": "Scored {{ok}} · {{failed}} failed",
+    "reason": {
+      "keywords": "Keywords {{detail}}/100",
+      "education": "Education {{detail}}/100",
+      "experience": "Experience {{detail}}/100",
+      "salary": "Salary fit {{detail}}/100",
+      "no_job": "No job to match against",
+      "no_text": "The candidate row has no résumé text, education or experience, so that weight went to the rest"
+    }
+  },
+  "ai": {
+    "action": {
+      "dispatch": "Brief with an agent"
+    },
+    "dispatched": "Assigned to {{agent}}",
+    "no_agents": "No agent yet",
+    "failed": "The issue wasn’t created. Try again.",
+    "issue_title": "Brief candidate: {{name}}",
+    "issue_body": "Candidate: {{name}}\nRole: {{job}}\nStage: {{stage}}\nExpected salary: {{salary}}\nJob keywords: {{keywords}}\nEducation required: {{edu}}\nExperience required: {{years}}\n\nWrite a brief card for this candidate against the role, then the interview questions the card implies."
+  },
+  "collab": {
+    "field": {
+      "creator": "Creator",
+      "stage": "Stage",
+      "amount": "Contract amount",
+      "fee": "Creator fee",
+      "schedule": "Schedule",
+      "settlement": "Settlement",
+      "issue": "Fulfilment task"
+    },
+    "action": {
+      "create_issue": "Create task",
+      "open_issue": "Open task"
+    },
+    "issue_created": "Task created",
+    "issue_failed": "The task wasn’t created. Try again.",
+    "issue_title": "Fulfilment: {{creator}} × {{client}}",
+    "issue_body": "Collaboration: {{id}}\nAmount: {{amount}}\nSchedule: {{schedule}}\n\nDeliver this collaboration, then log the post once it goes live.",
+    "settlement_mode": {
+      "flat": "Flat fee",
+      "cps": "CPS",
+      "cpa": "CPA",
+      "barter": "Barter"
+    }
+  },
+  "publish": {
+    "title": "Log a post",
+    "field": {
+      "url": "URL",
+      "title": "Title",
+      "published_at": "Published at",
+      "platform": "Platform"
+    },
+    "action": {
+      "submit": "Log post"
+    },
+    "done": "Post logged",
+    "conflict": "This creator already has a post with this URL.",
+    "failed": "The post wasn’t saved — try again."
+  },
+  "creator": {
+    "sheet": {
+      "title": "Creator details",
+      "posts": "Posts",
+      "no_posts": "No posts logged yet"
+    }
+  },
+  "doc_editor": {
+    "toolbar": "Formatting",
+    "tools": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "strike": "Strikethrough",
+      "h2": "Heading 2",
+      "h3": "Heading 3",
+      "bullet": "Bulleted list",
+      "ordered": "Numbered list",
+      "quote": "Quote",
+      "link": "Link",
+      "undo": "Undo",
+      "redo": "Redo"
+    },
+    "limit": "Limit reached — {{count}} characters",
+    "link": {
+      "url": "Link URL",
+      "apply": "Apply link"
+    }
+  }
+}

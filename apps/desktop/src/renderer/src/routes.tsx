@@ -22,6 +22,7 @@ import { AttachmentPreviewRoute } from "./pages/attachment-preview-page";
 import { IssuesPage } from "@morechat/views/issues/components";
 import { ProjectsPage } from "@morechat/views/projects/components";
 import { DashboardPage } from "@morechat/views/dashboard";
+import { OverviewPage } from "@morechat/views/workbench";
 import { AutopilotsPage } from "@morechat/views/autopilots/components";
 import { MyIssuesPage } from "@morechat/views/my-issues";
 import { SkillsPage } from "@morechat/views/skills";
@@ -309,6 +310,14 @@ export const appRoutes: RouteObject[] = [
             path: "usage",
             element: <DashboardPage />,
             handle: { title: "Usage" },
+          },
+          // The workbench: metrics, ledgers and the team behind them, one
+          // department at a time. Its tabs ride in the query string, so the
+          // tab bar keeps one entry per department view.
+          {
+            path: "overview",
+            element: <OverviewPage />,
+            handle: { title: "Overview" },
           },
           {
             path: "settings",

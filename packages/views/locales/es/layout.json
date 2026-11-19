@@ -9,6 +9,7 @@
     "agents": "Agentes",
     "squads": "Squads",
     "usage": "Analítica",
+    "overview": "Resumen",
     "runtimes": "Runtimes",
     "skills": "Skills",
     "presets": "Presets",
@@ -91,10 +92,12 @@
     "close": "Cerrar"
   },
   "spaces": {
+    "workbench": "Mesa de trabajo",
     "work": "Trabajo",
     "team": "Equipo"
   },
   "rail": {
+    "workbench": "Mesa de trabajo",
     "label": "Navegación de la app",
     "sheet_description": "Cambia de sección y de espacio de trabajo.",
     "inbox": "Bandeja",
@@ -196,6 +199,13 @@
     "shortcuts": "Atajos de teclado"
   },
   "collection": {
+  "pager": {
+    "more": "Cargar más",
+    "loading": "Cargando…",
+    "end": "No hay más filas",
+    "count": "Mostrando {{loaded}} de {{total}}",
+    "count_loaded": "Mostrando {{loaded}}"
+  },
     "filter": "Filtrar",
     "filter_count_one": "{{count}} filtro",
     "filter_count_other": "{{count}} filtros",

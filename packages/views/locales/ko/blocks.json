@@ -1,0 +1,614 @@
+{
+  "title": "워크벤치",
+  "tabs": {
+    "overview": "개요",
+    "ledger": "대장",
+    "team": "팀"
+  },
+  "department": {
+    "label": "부서",
+    "all": "모든 부서"
+  },
+  "view": {
+    "label": "보기",
+    "all": "전체",
+    "commerce": "영업",
+    "people": "인사",
+    "finance": "손익"
+  },
+  "unit": {
+    "days": "일",
+    "hours": "시간",
+    "percent": "%",
+    "ratio": "배",
+    "currency": {
+      "CNY": "¥",
+      "USD": "$"
+    }
+  },
+  "empty": {
+    "value": "—"
+  },
+  "group_total": "· {{count}}개",
+  "metric_value": {
+    "samples": "{{count}}건 기준"
+  },
+  "metric": {
+    "hr_candidates_active": "진행 중인 후보자",
+    "hr_time_to_hire_median": "채용 소요일",
+    "hr_scorecard_backlog": "미평가 면접",
+    "hr_interview_on_time_rate": "면접 정시율",
+    "work_throughput_week": "이번 주 완료",
+    "work_cycle_time_median": "납기 소요 중앙값",
+    "work_on_time_rate": "정시 완료율",
+    "work_overdue_count": "기한 초과",
+    "work_stalled_count": "정체",
+    "work_wip_count": "진행 중",
+    "work_wip_per_member": "1인당 진행 중",
+    "work_followup_due_count": "오늘 팔로업",
+    "collab_cross_department_rate": "부서 간 협업 비율",
+    "agent_cost_month": "에이전트 비용",
+    "agent_run_failure_rate": "실행 실패율",
+    "knowledge_created_week": "이번 주 지식 추가",
+    "crm_pipeline_weighted_amount": "파이프라인 가중액",
+    "crm_contract_signed_month": "이번 달 계약",
+    "crm_payment_collected_month": "이번 달 입금",
+    "crm_quote_margin_rate": "협업 마진율",
+    "crm_collab_roi": "협업당 ROI",
+    "crm_creator_repeat_rate": "크리에이터 재섭외율"
+  },
+  "gap": {
+    "needs_hired": "아직 장부를 통해 입사한 사람이 없어 기준이 될 입사일이 없습니다.",
+    "needs_creators": "크리에이터 기록이 없어 성과를 누구에게도 귀속할 수 없습니다.",
+    "needs_clients": "클라이언트 기록이 아직 없습니다.",
+    "needs_briefs": "브리프가 없어 견적과 매칭을 할 수 없습니다.",
+    "needs_collabs": "협업이 없습니다. 금액·단계·확률이 모두 여기서 나옵니다.",
+    "needs_settlements": "정산 기록이 없어 입금으로 잡히는 금액이 없습니다.",
+    "needs_jobs": "등록된 채용 공고가 없어 지원자가 지원할 곳이 없습니다.",
+    "needs_candidates": "지원자가 아직 없어 단계와 입사일을 잴 수 없습니다.",
+    "needs_interviews": "예정된 면접이 아직 없어 정시 진행을 셀 수 없습니다.",
+    "needs_employees": "직원 프로필이 아직 없습니다. 입사일, 등급, 계약 만료일은 여기에서 입력합니다.",
+    "needs_products": "어필리에이트 상품이 아직 없습니다. 픽, 일별 매출, 정산서가 모두 여기서 시작됩니다.",
+    "needs_picks": "픽이 아직 없습니다. 아무도 상품을 소개하지 않았습니다.",
+    "needs_daily": "일별 매출이 아직 없습니다. GMV와 수수료를 셀 수 없습니다.",
+    "needs_affiliate_settlements": "정산서가 아직 없습니다. 입금을 확인할 수 없습니다.",
+    "needs_issues": "이 숫자를 만드는 Issue에 필요한 필드가 비어 있습니다.",
+    "fill_ledger": "대장에서 입력",
+    "fill_issues": "Issue 열기"
+  },
+  "ledger": {
+    "section": "대장",
+    "domain": {
+      "creators": "크리에이터",
+      "clients": "클라이언트",
+      "briefs": "브리프",
+      "collabs": "협업",
+      "settlements": "정산",
+      "products": "상품",
+      "picks": "픽",
+      "daily": "일별 매출",
+      "affiliate_settlements": "정산서",
+      "jobs": "채용 공고",
+      "candidates": "지원자",
+      "interviews": "면접",
+      "employees": "직원"
+    },
+    "group": {
+      "commerce": "비즈니스",
+      "affiliate": "어필리에이트",
+      "people": "인사"
+    },
+    "column": {
+      "creator": "크리에이터",
+      "creator_ref": "크리에이터",
+      "platform": "플랫폼",
+      "fans": "팔로워",
+      "score": "등급",
+      "risk": "위험",
+      "client": "클라이언트",
+      "brand": "브랜드",
+      "industry": "업종",
+      "brief": "브리프",
+      "budget": "예산",
+      "deliverable": "형식",
+      "schedule": "일정",
+      "collab": "협업",
+      "stage": "단계",
+      "contract_amount": "계약액",
+      "scheduled": "게시",
+      "settlement": "정산",
+      "amount": "금액",
+      "due": "기한",
+      "paid": "지급",
+      "job": "공고",
+      "level": "레벨",
+      "headcount": "정원",
+      "status": "상태",
+      "salary": "급여 범위",
+      "candidate": "지원자",
+      "job_ref": "지원 직무",
+      "match_score": "적합도",
+      "expected_salary": "희망 급여",
+      "round": "차수",
+      "time": "일시",
+      "mode": "방식",
+      "interviewer": "면접관",
+      "member": "구성원",
+      "job_title": "직무",
+      "grade": "등급",
+      "hire_date": "입사일",
+      "regular_date": "정규직 전환",
+      "contract_end": "계약 만료",
+      "product_title": "상품명",
+      "product_ref": "상품",
+      "ownership": "구분",
+      "platform_product": "플랫폼 / 상품 ID",
+      "commission_rate": "수수료율",
+      "pick_commission_rate": "지정 수수료율",
+      "agency_share_rate": "분배율",
+      "service_fee": "서비스 수수료",
+      "pick": "픽",
+      "stat_date": "날짜",
+      "gmv": "GMV",
+      "order_count": "주문 수",
+      "refund": "환불",
+      "est_commission": "예상 수수료",
+      "settled_commission": "정산 수수료",
+      "period": "기간",
+      "gross_commission": "총 수수료",
+      "tech_service_fee": "기술 서비스 수수료",
+      "refund_deduction": "환불 차감",
+      "net_amount": "순액",
+      "settled_to": "정산 대상"
+    },
+    "deliverable": {
+      "short_video": "숏폼 영상",
+      "post": "게시물",
+      "live": "라이브"
+    },
+    "stage": {
+      "inquiry": "문의",
+      "quoted": "견적 완료",
+      "negotiating": "협상 중",
+      "confirmed": "확정",
+      "sampling": "샘플 발송",
+      "script_review": "스크립트 검수",
+      "scheduled": "일정 확정",
+      "published": "게시 완료",
+      "accepted": "검수 완료",
+      "settled": "정산 완료",
+      "cancelled": "취소"
+    },
+    "settlement_kind": {
+      "prepay": "선금",
+      "final": "잔금",
+      "platform_fee": "플랫폼 수수료",
+      "tax": "세금"
+    },
+    "job_status": {
+      "draft": "초안",
+      "open": "모집 중",
+      "paused": "일시 중지",
+      "closed": "종료"
+    },
+    "candidate_stage": {
+      "screening": "서류 심사",
+      "test": "시험",
+      "interview": "면접",
+      "scored": "평가 완료",
+      "offer": "처우 협의",
+      "hired": "입사",
+      "rejected": "불합격",
+      "withdrawn": "지원 철회"
+    },
+    "interview_status": {
+      "scheduled": "예정",
+      "done": "완료",
+      "cancelled": "취소",
+      "no_show": "불참"
+    },
+    "interview_mode": {
+      "onsite": "대면",
+      "video": "화상",
+      "phone": "전화"
+    },
+    "verdict": {
+      "strong_yes": "적극 추천",
+      "yes": "추천",
+      "no": "비추천",
+      "strong_no": "적극 비추천"
+    },
+    "risk_flagged": "위험 표시",
+    "unpaid": "미지급",
+    "empty_title": "{{domain}}이 아직 없습니다",
+    "empty_description": "여기서 입력한 행이 개요의 지표를 켭니다.",
+    "error_title": "대장을 불러오지 못했습니다",
+    "error_description": "연결을 확인한 뒤 다시 시도하세요.",
+    "retry": "다시 시도"
+  },
+  "import": {
+    "entry": "가져오기",
+    "title": "행 가져오기",
+    "paste_label": "붙여넣은 행",
+    "paste_hint": "Excel 또는 CSV에서 붙여넣으세요. 첫 행은 머리글입니다.",
+    "map_columns": "열 매핑",
+    "preview": "미리보기",
+    "summary": "붙여넣음 {{count}}개 · 가져올 수 있음 {{ok}}개 · 문제 {{bad}}개",
+    "import_button": "가져오기",
+    "close": "닫기",
+    "done": "{{count}}개 가져옴, {{failed}}개 실패",
+    "failed_rows": "고칠 행",
+    "unmapped": "매핑 안 함",
+    "sample": "예시 채우기",
+    "field": {
+      "owner": "채용 담당자",
+      "salary_min": "급여 하한",
+      "salary_max": "급여 상한",
+      "regular_date": "정규직 전환일",
+      "contract_end": "계약 만료일",
+      "title": "직무",
+      "department": "부서",
+      "level": "레벨",
+      "headcount": "채용 인원",
+      "salary": "급여",
+      "name": "이름",
+      "job": "지원 직무",
+      "stage": "단계",
+      "phone": "전화",
+      "email": "이메일",
+      "expected_salary": "희망 급여",
+      "edu": "학력",
+      "years_experience": "경력 연수",
+      "resume_text": "이력서 본문",
+      "member": "멤버",
+      "job_title": "직책",
+      "grade": "직급",
+      "hire_date": "입사일",
+      "pick": "픽",
+      "product": "상품",
+      "creator": "크리에이터",
+      "stat_date": "날짜",
+      "gmv": "GMV",
+      "orders": "주문",
+      "refund": "환불",
+      "commission": "수수료"
+    },
+    "errors": {
+      "missing_title": "직무가 없습니다",
+      "missing_name": "이름이 없습니다",
+      "missing_job": "지원 직무가 없습니다",
+      "unknown_job": "직무 “{{value}}”이(가) 없습니다",
+      "unknown_member": "“{{value}}”은(는) 이 워크스페이스 멤버가 아닙니다",
+      "duplicate": "{{value}}번째 행과 같습니다",
+      "unknown_department": "부서 “{{value}}”이(가) 없습니다",
+      "bad_date": "날짜 “{{value}}”을(를) 읽을 수 없습니다",
+      "bad_amount": "“{{value}}”을(를) 하나의 숫자로 읽을 수 없습니다. 범위는 두 열로 나눠 주세요",
+      "bad_stage": "단계 “{{value}}”이(가) 없습니다",
+      "server_error": "서버가 이 행을 거부했습니다",
+      "missing_pick": "이 날짜를 귀속할 픽(상품 + 크리에이터)이 없습니다",
+      "unknown_pick": "「{{value}}」 픽이 없습니다",
+      "missing_date": "날짜가 없습니다"
+    }
+  },
+  "export": {
+    "action": "내보내기",
+    "empty": "내보낼 행이 없습니다",
+    "done": "{{count}}개 행을 내보냈습니다"
+  },
+  "calendar": {
+    "prev": "이전",
+    "next": "다음",
+    "today": "오늘",
+    "allday": "종일"
+  },
+  "resume": {
+    "title": "이력서 업로드",
+    "hint": "파일 이름에 후보자 이름이 들어 있으면 자동으로 연결합니다. 아무와도 맞지 않는 파일은 업로드되지 않으니 후보자를 먼저 가져오세요.",
+    "pick": "파일 선택",
+    "upload": "업로드",
+    "uploading": "업로드 중",
+    "matched": "연결됨",
+    "unmatched": "일치 없음",
+    "ambiguous": "선택 필요",
+    "failed": "업로드 실패",
+    "no_candidates": "아직 후보자가 없습니다. 후보자를 먼저 가져오세요.",
+    "summary": "{{count}}개 중 업로드 가능 {{ok}}개, 일치 없음 {{unmatched}}개",
+    "done": "성공 {{count}}, 실패 {{failed}}",
+    "column": {
+      "file": "파일 이름",
+      "size": "크기",
+      "candidate": "후보자",
+      "status": "상태"
+    }
+  },
+  "team": {
+    "section": "팀",
+    "unassigned": "부서 없음",
+    "group_counts": "{{members}}명 · 에이전트 {{agents}}개",
+    "role": {
+      "owner": "소유자",
+      "admin": "관리자",
+      "member": "멤버"
+    },
+    "availability": {
+      "online": "온라인",
+      "unstable": "방금 끊김",
+      "offline": "오프라인",
+      "archived": "보관됨"
+    },
+    "workload": {
+      "working": "작업 중",
+      "queued": "대기 중",
+      "idle": "유휴"
+    },
+    "load": "{{running}}/{{capacity}}",
+    "empty_title": "아직 아무도 없습니다",
+    "empty_description": "멤버를 초대하고 에이전트를 만들면 여기에 표시됩니다."
+  },
+  "hire": {
+    "title": "채용 확정",
+    "description": "{{name}} 님을 채용 완료로 표시하고 같은 처리에서 직원 기록을 만듭니다.",
+    "member": "멤버",
+    "member_placeholder": "멤버 선택",
+    "no_members": "이 워크스페이스에는 아직 멤버가 없습니다. 먼저 멤버를 초대하세요. 채용은 멤버 계정에 직원 기록을 만듭니다.",
+    "hire_date": "입사일",
+    "job_title": "직무",
+    "grade": "직급",
+    "submit": "채용하기",
+    "cancel": "취소",
+    "save_failed": "서버가 이번 채용을 처리하지 않았습니다. 저장된 내용은 없습니다. 다시 시도하세요."
+  },
+  "overview": {
+    "hr_metrics": "채용"
+  },
+  "record": {
+    "yes": "예",
+    "no": "아니오",
+    "title": {
+      "jobs": "채용 공고 상세",
+      "candidates": "지원자 상세",
+      "interviews": "면접 상세",
+      "employees": "구성원 상세"
+    },
+    "create": {
+      "jobs": "채용 공고 만들기",
+      "candidates": "지원자 만들기",
+      "interviews": "면접 만들기",
+      "employees": "구성원 만들기"
+    },
+    "field": {
+      "title": "직무명",
+      "department": "부서",
+      "level": "직급",
+      "headcount": "채용 인원",
+      "status": "상태",
+      "salary_min": "급여 하한",
+      "salary_max": "급여 상한",
+      "currency": "통화",
+      "requirements": "자격 요건",
+      "edu": "학력",
+      "years": "경력 요건",
+      "city": "근무지",
+      "urgent": "긴급 채용",
+      "keywords": "키워드",
+      "jd": "직무 기술서",
+      "owner": "담당자",
+      "created_at": "생성 일시",
+      "name": "이름",
+      "job": "지원 직무",
+      "stage": "전형 단계",
+      "source": "유입 경로",
+      "phone": "전화",
+      "email": "이메일",
+      "match_score": "매칭 점수",
+      "score_resume": "서류 점수",
+      "score_test": "시험 점수",
+      "score_interview": "면접 점수",
+      "expected_salary": "희망 연봉",
+      "years_experience": "경력 연수",
+      "resume_text": "이력서 본문",
+      "offer_salary": "제시 연봉",
+      "hired_at": "입사 일시",
+      "rejected_reason": "불합격 사유",
+      "candidate": "지원자",
+      "round": "차수",
+      "scheduled_at": "면접 일시",
+      "duration_minutes": "소요 시간",
+      "interviewer": "면접관",
+      "mode": "진행 방식",
+      "reschedule_count": "일정 변경 횟수",
+      "note": "메모",
+      "member": "구성원",
+      "job_title": "직책",
+      "grade": "등급",
+      "hire_date": "입사일",
+      "regular_date": "정규직 전환일",
+      "contract_end": "계약 종료일"
+    },
+    "action": {
+      "create": "새로 만들기",
+      "save": "저장",
+      "close": "닫기"
+    },
+    "option": {
+      "choose": "선택하세요",
+      "none": "없음"
+    },
+    "empty": "—",
+    "error": {
+      "required": "{{fields}}을(를) 입력하세요",
+      "submit": "서버가 이 항목을 거부했습니다. 저장되지 않았습니다. 수정 후 다시 시도하세요."
+    }
+  },
+  "affiliate": {
+    "ownership": {
+      "own_brand": "자체 브랜드",
+      "client_brand": "고객 브랜드"
+    },
+    "recipient": {
+      "agency": "에이전시",
+      "creator": "크리에이터"
+    },
+    "product_status": {
+      "on_shelf": "판매 중",
+      "off_shelf": "판매 중지",
+      "ended": "종료"
+    },
+    "pick_status": {
+      "active": "진행 중",
+      "paused": "일시중지",
+      "ended": "종료"
+    },
+    "settlement_status": {
+      "pending": "대기",
+      "paid": "지급 완료",
+      "failed": "실패"
+    },
+    "form": {
+      "title": {
+        "products": "상품 추가",
+        "picks": "픽 추가",
+        "daily": "일별 매출 입력",
+        "affiliate_settlements": "정산서 추가"
+      },
+      "field": {
+        "title": "상품명",
+        "ownership": "구분",
+        "client": "고객",
+        "platform": "플랫폼",
+        "platform_product_id": "플랫폼 상품 ID",
+        "category": "카테고리",
+        "price": "판매가",
+        "commission_rate": "수수료율(%)",
+        "activity": "캠페인",
+        "status": "상태",
+        "product": "상품",
+        "creator": "크리에이터",
+        "agency_share_rate": "분배율(%)",
+        "service_fee": "서비스 수수료",
+        "pick": "픽",
+        "stat_date": "날짜",
+        "gmv": "GMV",
+        "orders": "주문 수",
+        "refund": "환불",
+        "est_commission": "예상 수수료",
+        "settled_commission": "정산 수수료",
+        "period_start": "기간 시작",
+        "period_end": "기간 종료",
+        "gross_commission": "총 수수료",
+        "tech_service_fee": "기술 서비스 수수료",
+        "refund_deduction": "환불 차감",
+        "net_amount": "순액",
+        "settled_to": "정산 대상",
+        "external_no": "명세서 번호"
+      },
+      "option": {
+        "choose": "선택"
+      },
+      "action": {
+        "save": "저장",
+        "close": "닫기"
+      },
+      "error": {
+        "required": "입력하세요: {{fields}}",
+        "period": "기간 종료가 시작보다 빠릅니다",
+        "submit": "서버가 이 행을 거부했습니다. 저장되지 않았습니다. 수정 후 다시 시도하세요."
+      }
+    }
+  },
+  "match": {
+    "action": {
+      "calculate": "매치 점수 계산",
+      "batch": "매치 점수 일괄 계산"
+    },
+    "result": "{{score}}/100",
+    "failed": "매치 점수를 저장하지 못했습니다. 다시 시도해 주세요.",
+    "batch_done": "{{ok}}건 계산, {{failed}}건 실패",
+    "reason": {
+      "keywords": "키워드 {{detail}}/100",
+      "education": "학력 {{detail}}/100",
+      "experience": "경력 {{detail}}/100",
+      "salary": "희망 연봉 {{detail}}/100",
+      "no_job": "비교할 공고가 없습니다",
+      "no_text": "지원자에게 이력서 텍스트·학력·경력 항목이 없어 해당 가중치를 나머지 항목에 나눴습니다"
+    }
+  },
+  "ai": {
+    "action": {
+      "dispatch": "AI로 정리 배정"
+    },
+    "dispatched": "{{agent}}에게 배정했습니다",
+    "no_agents": "에이전트 없음",
+    "failed": "이슈를 만들지 못했습니다. 다시 시도해 주세요.",
+    "issue_title": "지원자 정리: {{name}}",
+    "issue_body": "지원자: {{name}}\n지원 공고: {{job}}\n현재 단계: {{stage}}\n희망 연봉: {{salary}}\n공고 키워드: {{keywords}}\n학력 요건: {{edu}}\n경력 요건: {{years}}\n\n이 공고에 맞춰 지원자의 요점 카드를 작성하고, 그 카드에서 나오는 면접 질문을 제시하세요."
+  },
+  "collab": {
+    "field": {
+      "creator": "크리에이터",
+      "stage": "단계",
+      "amount": "계약 금액",
+      "fee": "크리에이터 비용",
+      "schedule": "일정",
+      "settlement": "정산 방식",
+      "issue": "수행 작업"
+    },
+    "action": {
+      "create_issue": "작업 만들기",
+      "open_issue": "작업 열기"
+    },
+    "issue_created": "작업을 만들었습니다",
+    "issue_failed": "작업을 만들지 못했습니다. 다시 시도해 주세요.",
+    "issue_title": "수행: {{creator}} × {{client}}",
+    "issue_body": "협업: {{id}}\n금액: {{amount}}\n일정: {{schedule}}\n\n이 협업을 납품하고 게시 후 게시물을 등록하세요.",
+    "settlement_mode": {
+      "flat": "고정 금액",
+      "cps": "성과 정산(CPS)",
+      "cpa": "액션 정산(CPA)",
+      "barter": "물물 교환"
+    }
+  },
+  "publish": {
+    "title": "게시물 등록",
+    "field": {
+      "url": "URL",
+      "title": "제목",
+      "published_at": "게시 시각",
+      "platform": "플랫폼"
+    },
+    "action": {
+      "submit": "등록"
+    },
+    "done": "게시물을 등록했습니다",
+    "conflict": "이 크리에이터에게 같은 URL의 게시물이 이미 있습니다.",
+    "failed": "게시물을 저장하지 못했습니다. 다시 시도해 주세요."
+  },
+  "creator": {
+    "sheet": {
+      "title": "크리에이터 정보",
+      "posts": "게시물",
+      "no_posts": "아직 게시물이 없습니다"
+    }
+  },
+  "doc_editor": {
+    "toolbar": "서식",
+    "tools": {
+      "bold": "굵게",
+      "italic": "기울임꼴",
+      "strike": "취소선",
+      "h2": "제목 2",
+      "h3": "제목 3",
+      "bullet": "글머리 기호 목록",
+      "ordered": "번호 목록",
+      "quote": "인용",
+      "link": "링크",
+      "undo": "실행 취소",
+      "redo": "다시 실행"
+    },
+    "limit": "{{count}}자 한도에 도달했습니다",
+    "link": {
+      "url": "링크 URL",
+      "apply": "링크 적용"
+    }
+  }
+}

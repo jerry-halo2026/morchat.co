@@ -13,6 +13,9 @@ import { TeamPanel } from "./panels/team-panel";
 import { KeptRowsRelease, WorkPanel } from "./panels/work-panel";
 
 const PANELS: Partial<Record<AppSpaceId, () => React.ReactNode>> = {
+  // The workbench keeps the same left column Work shows: its own rows beside
+  // the ledgers it summarises. Only the rail treats it as a separate space.
+  workbench: () => <WorkPanel space="workbench" />,
   work: WorkPanel,
   team: TeamPanel,
   autopilots: AutopilotsPanel,

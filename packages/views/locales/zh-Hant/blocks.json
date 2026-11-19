@@ -1,0 +1,614 @@
+{
+  "title": "工作台",
+  "tabs": {
+    "overview": "總覽",
+    "ledger": "台帳",
+    "team": "團隊"
+  },
+  "department": {
+    "label": "部門",
+    "all": "全部部門"
+  },
+  "view": {
+    "label": "檢視",
+    "all": "全部",
+    "commerce": "商務",
+    "people": "人事",
+    "finance": "經營"
+  },
+  "unit": {
+    "days": "天",
+    "hours": "小時",
+    "percent": "%",
+    "ratio": "倍",
+    "currency": {
+      "CNY": "¥",
+      "USD": "$"
+    }
+  },
+  "empty": {
+    "value": "—"
+  },
+  "group_total": "· {{count}} 項",
+  "metric_value": {
+    "samples": "統計 {{count}} 筆"
+  },
+  "metric": {
+    "hr_candidates_active": "在辦候選人",
+    "hr_time_to_hire_median": "招募週期",
+    "hr_scorecard_backlog": "待評分面試",
+    "hr_interview_on_time_rate": "面試準時率",
+    "work_throughput_week": "本週完成",
+    "work_cycle_time_median": "交付週期中位數",
+    "work_on_time_rate": "準時率",
+    "work_overdue_count": "逾期",
+    "work_stalled_count": "停滯",
+    "work_wip_count": "進行中",
+    "work_wip_per_member": "人均進行中",
+    "work_followup_due_count": "今日待跟進",
+    "collab_cross_department_rate": "跨部門協作比",
+    "agent_cost_month": "智能體成本",
+    "agent_run_failure_rate": "執行失敗率",
+    "knowledge_created_week": "本週知識新增",
+    "crm_pipeline_weighted_amount": "管道加權金額",
+    "crm_contract_signed_month": "本月簽約",
+    "crm_payment_collected_month": "本月回款",
+    "crm_quote_margin_rate": "合作毛利率",
+    "crm_collab_roi": "單筆合作 ROI",
+    "crm_creator_repeat_rate": "達人複投率"
+  },
+  "gap": {
+    "needs_hired": "還沒有人從台帳完成入職，缺入職時間作為計算起點。",
+    "needs_creators": "還沒有達人紀錄，成果無法歸因到人。",
+    "needs_clients": "還沒有客戶紀錄。",
+    "needs_briefs": "還沒有需求單，無法報價與媒合。",
+    "needs_collabs": "還沒有合作單——金額、階段與機率都來自這裡。",
+    "needs_settlements": "還沒有結算流水，所以沒有可計的實付。",
+    "needs_jobs": "還沒有職位，候選人無處投遞。",
+    "needs_candidates": "還沒有候選人，階段與到職時間都無從統計。",
+    "needs_interviews": "還沒有安排面試，準時率沒有可統計的對象。",
+    "needs_employees": "還沒有員工檔案——到職、職級與合約到期都從這裡來。",
+    "needs_products": "還沒有聯盟商品——選品、日成交和結算單都從它來。",
+    "needs_picks": "還沒有選品，沒有達人在推商品。",
+    "needs_daily": "還沒有日成交，GMV 和佣金無從統計。",
+    "needs_affiliate_settlements": "還沒有平台結算單，收入無法確認到帳。",
+    "needs_issues": "支撐這個數字的 Issue 還缺一個欄位。",
+    "fill_ledger": "去台帳補登",
+    "fill_issues": "開啟 Issue"
+  },
+  "ledger": {
+    "section": "台帳",
+    "domain": {
+      "creators": "達人庫",
+      "clients": "客戶",
+      "briefs": "需求單",
+      "collabs": "合作單",
+      "settlements": "結算",
+      "products": "商品",
+      "picks": "選品",
+      "daily": "日成交",
+      "affiliate_settlements": "結算單",
+      "jobs": "職位",
+      "candidates": "候選人",
+      "interviews": "面試",
+      "employees": "員工檔案"
+    },
+    "group": {
+      "commerce": "商務",
+      "affiliate": "精選聯盟",
+      "people": "人事"
+    },
+    "column": {
+      "creator": "達人",
+      "creator_ref": "達人",
+      "platform": "平台",
+      "fans": "粉絲",
+      "score": "評級",
+      "risk": "風險",
+      "client": "客戶",
+      "brand": "品牌",
+      "industry": "行業",
+      "brief": "需求單",
+      "budget": "預算",
+      "deliverable": "形式",
+      "schedule": "排程",
+      "collab": "合作單",
+      "stage": "階段",
+      "contract_amount": "合約額",
+      "scheduled": "發布",
+      "settlement": "結算",
+      "amount": "金額",
+      "due": "到期",
+      "paid": "實付",
+      "job": "職位",
+      "level": "級別",
+      "headcount": "編制",
+      "status": "狀態",
+      "salary": "薪資區間",
+      "candidate": "候選人",
+      "job_ref": "應聘職位",
+      "match_score": "匹配度",
+      "expected_salary": "期望薪資",
+      "round": "輪次",
+      "time": "時間",
+      "mode": "形式",
+      "interviewer": "面試官",
+      "member": "成員",
+      "job_title": "職位",
+      "grade": "職級",
+      "hire_date": "到職",
+      "regular_date": "轉正",
+      "contract_end": "合約到期",
+      "product_title": "商品標題",
+      "product_ref": "商品",
+      "ownership": "歸屬",
+      "platform_product": "平台 / 商品 id",
+      "commission_rate": "佣金率",
+      "pick_commission_rate": "定向佣金率",
+      "agency_share_rate": "分成率",
+      "service_fee": "服務費",
+      "pick": "選品",
+      "stat_date": "日期",
+      "gmv": "GMV",
+      "order_count": "訂單數",
+      "refund": "退款",
+      "est_commission": "預估佣金",
+      "settled_commission": "已結佣金",
+      "period": "週期",
+      "gross_commission": "毛佣金",
+      "tech_service_fee": "技術服務費",
+      "refund_deduction": "退款沖減",
+      "net_amount": "淨額",
+      "settled_to": "結算對象"
+    },
+    "deliverable": {
+      "short_video": "短影音",
+      "post": "圖文",
+      "live": "直播"
+    },
+    "stage": {
+      "inquiry": "詢單",
+      "quoted": "已報價",
+      "negotiating": "議價中",
+      "confirmed": "已確認",
+      "sampling": "寄樣",
+      "script_review": "腳本審核",
+      "scheduled": "已排程",
+      "published": "已發布",
+      "accepted": "已驗收",
+      "settled": "已結算",
+      "cancelled": "已取消"
+    },
+    "settlement_kind": {
+      "prepay": "預付款",
+      "final": "尾款",
+      "platform_fee": "平台費",
+      "tax": "稅費"
+    },
+    "job_status": {
+      "draft": "草稿",
+      "open": "開放",
+      "paused": "暫停",
+      "closed": "關閉"
+    },
+    "candidate_stage": {
+      "screening": "篩選",
+      "test": "筆試",
+      "interview": "面試",
+      "scored": "已評分",
+      "offer": "發放錄用",
+      "hired": "已到職",
+      "rejected": "未通過",
+      "withdrawn": "已放棄"
+    },
+    "interview_status": {
+      "scheduled": "已安排",
+      "done": "已完成",
+      "cancelled": "已取消",
+      "no_show": "未到場"
+    },
+    "interview_mode": {
+      "onsite": "現場",
+      "video": "視訊",
+      "phone": "電話"
+    },
+    "verdict": {
+      "strong_yes": "強烈推薦",
+      "yes": "推薦",
+      "no": "不推薦",
+      "strong_no": "強烈不推薦"
+    },
+    "risk_flagged": "有風險",
+    "unpaid": "未付",
+    "empty_title": "還沒有{{domain}}",
+    "empty_description": "在這裡登錄的資料會點亮總覽裡的指標。",
+    "error_title": "台帳載入失敗",
+    "error_description": "檢查連線後重試。",
+    "retry": "重試"
+  },
+  "import": {
+    "entry": "匯入",
+    "title": "匯入列",
+    "paste_label": "貼上的內容",
+    "paste_hint": "從 Excel 或 CSV 貼上，第一列是表頭。",
+    "map_columns": "欄位對應",
+    "preview": "預覽",
+    "summary": "共 {{count}} 列，可匯入 {{ok}} 列，{{bad}} 列有問題",
+    "import_button": "匯入",
+    "close": "關閉",
+    "done": "成功 {{count}} 列，失敗 {{failed}} 列",
+    "failed_rows": "待修正的列",
+    "unmapped": "不匯入",
+    "sample": "填入範例",
+    "field": {
+      "owner": "用人經理",
+      "salary_min": "薪資下限",
+      "salary_max": "薪資上限",
+      "regular_date": "轉正日期",
+      "contract_end": "合同到期",
+      "title": "職位",
+      "department": "部門",
+      "level": "級別",
+      "headcount": "編制",
+      "salary": "薪資",
+      "name": "姓名",
+      "job": "應徵職位",
+      "stage": "階段",
+      "phone": "電話",
+      "email": "信箱",
+      "expected_salary": "期望薪資",
+      "edu": "學歷",
+      "years_experience": "經驗年數",
+      "resume_text": "履歷正文",
+      "member": "成員",
+      "job_title": "職位",
+      "grade": "職級",
+      "hire_date": "到職日期",
+      "pick": "選品",
+      "product": "商品",
+      "creator": "達人",
+      "stat_date": "日期",
+      "gmv": "成交額",
+      "orders": "訂單",
+      "refund": "退款",
+      "commission": "佣金"
+    },
+    "errors": {
+      "missing_title": "缺少職位",
+      "missing_name": "缺少姓名",
+      "missing_job": "缺少應徵職位",
+      "unknown_job": "職位「{{value}}」不存在",
+      "unknown_member": "「{{value}}」不是本工作區成員",
+      "duplicate": "與第 {{value}} 列重複",
+      "unknown_department": "部門「{{value}}」不存在",
+      "bad_date": "日期「{{value}}」無法辨識",
+      "bad_amount": "「{{value}}」不是一個數，區間請拆成兩欄",
+      "bad_stage": "階段「{{value}}」不存在",
+      "server_error": "伺服器拒絕了這一列",
+      "missing_pick": "沒有可歸屬的選品（商品 + 達人）",
+      "unknown_pick": "沒有「{{value}}」這個選品",
+      "missing_date": "沒有日期"
+    }
+  },
+  "export": {
+    "action": "匯出",
+    "empty": "沒有可匯出的列",
+    "done": "已匯出 {{count}} 列"
+  },
+  "calendar": {
+    "prev": "上一個",
+    "next": "下一個",
+    "today": "今天",
+    "allday": "全天"
+  },
+  "resume": {
+    "title": "上傳履歷",
+    "hint": "檔名含候選人姓名即自動比對；比對不到的檔案不會上傳，請先匯入候選人。",
+    "pick": "選擇檔案",
+    "upload": "上傳",
+    "uploading": "上傳中",
+    "matched": "已比對",
+    "unmatched": "未比對",
+    "ambiguous": "需選擇",
+    "failed": "上傳失敗",
+    "no_candidates": "還沒有候選人，請先匯入候選人。",
+    "summary": "共 {{count}} 個，可上傳 {{ok}} 個，{{unmatched}} 個未比對",
+    "done": "成功 {{count}}，失敗 {{failed}}",
+    "column": {
+      "file": "檔名",
+      "size": "大小",
+      "candidate": "候選人",
+      "status": "狀態"
+    }
+  },
+  "team": {
+    "section": "團隊",
+    "unassigned": "未分配部門",
+    "group_counts": "{{members}} 人 · {{agents}} 個智能體",
+    "role": {
+      "owner": "擁有者",
+      "admin": "管理員",
+      "member": "成員"
+    },
+    "availability": {
+      "online": "在線",
+      "unstable": "剛斷線",
+      "offline": "離線",
+      "archived": "已封存"
+    },
+    "workload": {
+      "working": "工作中",
+      "queued": "排隊中",
+      "idle": "閒置"
+    },
+    "load": "{{running}}/{{capacity}}",
+    "empty_title": "這裡還沒有人",
+    "empty_description": "邀請成員、建立智能體後，他們的工作會出現在這裡。"
+  },
+  "hire": {
+    "title": "辦理入職",
+    "description": "把 {{name}} 標為已入職，並在同一步建立員工檔案。",
+    "member": "成員",
+    "member_placeholder": "選擇成員",
+    "no_members": "這個工作區還沒有成員。先邀請成員——入職會把員工檔案建在其帳號下。",
+    "hire_date": "入職日期",
+    "job_title": "職位",
+    "grade": "職級",
+    "submit": "入職",
+    "cancel": "取消",
+    "save_failed": "伺服器沒有受理這次入職，什麼都沒寫入——請重試。"
+  },
+  "overview": {
+    "hr_metrics": "招聘"
+  },
+  "record": {
+    "yes": "是",
+    "no": "否",
+    "title": {
+      "jobs": "職位詳情",
+      "candidates": "應徵者詳情",
+      "interviews": "面試詳情",
+      "employees": "員工詳情"
+    },
+    "create": {
+      "jobs": "新增職位",
+      "candidates": "新增應徵者",
+      "interviews": "新增面試",
+      "employees": "新增員工"
+    },
+    "field": {
+      "title": "職位名稱",
+      "department": "部門",
+      "level": "職級",
+      "headcount": "編制",
+      "status": "狀態",
+      "salary_min": "薪資下限",
+      "salary_max": "薪資上限",
+      "currency": "幣別",
+      "requirements": "職位要求",
+      "edu": "學歷",
+      "years": "經驗要求",
+      "city": "工作地點",
+      "urgent": "急招",
+      "keywords": "技能關鍵詞",
+      "jd": "職位描述",
+      "owner": "負責人",
+      "created_at": "建立時間",
+      "name": "姓名",
+      "job": "應徵職位",
+      "stage": "階段",
+      "source": "來源",
+      "phone": "電話",
+      "email": "電子郵件",
+      "match_score": "匹配度",
+      "score_resume": "履歷評分",
+      "score_test": "筆試評分",
+      "score_interview": "面試評分",
+      "expected_salary": "期望薪資",
+      "years_experience": "經驗年數",
+      "resume_text": "履歷正文",
+      "offer_salary": "錄用薪資",
+      "hired_at": "到職時間",
+      "rejected_reason": "淘汰原因",
+      "candidate": "應徵者",
+      "round": "輪次",
+      "scheduled_at": "面試時間",
+      "duration_minutes": "時長",
+      "interviewer": "面試官",
+      "mode": "形式",
+      "reschedule_count": "改期次數",
+      "note": "備註",
+      "member": "成員",
+      "job_title": "職稱",
+      "grade": "等級",
+      "hire_date": "到職日期",
+      "regular_date": "轉正日期",
+      "contract_end": "合約到期"
+    },
+    "action": {
+      "create": "新增",
+      "save": "儲存",
+      "close": "關閉"
+    },
+    "option": {
+      "choose": "請選擇",
+      "none": "無"
+    },
+    "empty": "—",
+    "error": {
+      "required": "請填寫：{{fields}}",
+      "submit": "伺服器拒絕了這筆記錄，未儲存，請修改後重試。"
+    }
+  },
+  "affiliate": {
+    "ownership": {
+      "own_brand": "自營",
+      "client_brand": "代賣"
+    },
+    "recipient": {
+      "agency": "機構",
+      "creator": "達人"
+    },
+    "product_status": {
+      "on_shelf": "上架",
+      "off_shelf": "下架",
+      "ended": "已結束"
+    },
+    "pick_status": {
+      "active": "進行中",
+      "paused": "已暫停",
+      "ended": "已結束"
+    },
+    "settlement_status": {
+      "pending": "待結算",
+      "paid": "已結算",
+      "failed": "結算失敗"
+    },
+    "form": {
+      "title": {
+        "products": "新增商品",
+        "picks": "新增選品",
+        "daily": "登錄日成交",
+        "affiliate_settlements": "新增結算單"
+      },
+      "field": {
+        "title": "商品標題",
+        "ownership": "歸屬",
+        "client": "客戶",
+        "platform": "平台",
+        "platform_product_id": "平台商品 id",
+        "category": "類目",
+        "price": "標價",
+        "commission_rate": "佣金率（%）",
+        "activity": "活動",
+        "status": "狀態",
+        "product": "商品",
+        "creator": "達人",
+        "agency_share_rate": "分成率（%）",
+        "service_fee": "服務費",
+        "pick": "選品",
+        "stat_date": "日期",
+        "gmv": "GMV",
+        "orders": "訂單數",
+        "refund": "退款",
+        "est_commission": "預估佣金",
+        "settled_commission": "已結佣金",
+        "period_start": "週期開始",
+        "period_end": "週期結束",
+        "gross_commission": "毛佣金",
+        "tech_service_fee": "技術服務費",
+        "refund_deduction": "退款沖減",
+        "net_amount": "淨額",
+        "settled_to": "結算對象",
+        "external_no": "平台單號"
+      },
+      "option": {
+        "choose": "請選擇"
+      },
+      "action": {
+        "save": "儲存",
+        "close": "關閉"
+      },
+      "error": {
+        "required": "請填寫：{{fields}}",
+        "period": "週期結束早於開始",
+        "submit": "伺服器拒絕了這一行，沒有寫入；請修改後重試。"
+      }
+    }
+  },
+  "match": {
+    "action": {
+      "calculate": "算匹配度",
+      "batch": "算匹配度"
+    },
+    "result": "{{score}}/100",
+    "failed": "匹配度沒能儲存，再試一次。",
+    "batch_done": "已算 {{ok}} 筆，失敗 {{failed}} 筆",
+    "reason": {
+      "keywords": "關鍵詞 {{detail}}/100",
+      "education": "學歷 {{detail}}/100",
+      "experience": "經驗 {{detail}}/100",
+      "salary": "薪資預期 {{detail}}/100",
+      "no_job": "沒有可對比的職缺",
+      "no_text": "候選人沒有履歷文本、學歷或經驗欄位，這些權重已分攤到其餘維度"
+    }
+  },
+  "ai": {
+    "action": {
+      "dispatch": "AI 梳理派單"
+    },
+    "dispatched": "已派給 {{agent}}",
+    "no_agents": "未設定智能體",
+    "failed": "issue 沒能建立，再試一次。",
+    "issue_title": "梳理候選人：{{name}}",
+    "issue_body": "候選人：{{name}}\n應聘職缺：{{job}}\n目前階段：{{stage}}\n期望薪資：{{salary}}\n職缺關鍵詞：{{keywords}}\n學歷要求：{{edu}}\n經驗要求：{{years}}\n\n請針對該職缺輸出這位候選人的要點卡，並給出要點卡引出的面試問題。"
+  },
+  "collab": {
+    "field": {
+      "creator": "達人",
+      "stage": "階段",
+      "amount": "合約金額",
+      "fee": "達人服務費",
+      "schedule": "排期",
+      "settlement": "結算方式",
+      "issue": "履約任務"
+    },
+    "action": {
+      "create_issue": "建立履約任務",
+      "open_issue": "開啟任務"
+    },
+    "issue_created": "履約任務已建立",
+    "issue_failed": "履約任務沒有建立成功，請重試。",
+    "issue_title": "履約：{{creator}} × {{client}}",
+    "issue_body": "合作單：{{id}}\n金額：{{amount}}\n排期：{{schedule}}\n\n依這份合作單完成交付，發布後登記發布記錄。",
+    "settlement_mode": {
+      "flat": "一口價",
+      "cps": "依成交分成（CPS）",
+      "cpa": "依行動計費（CPA）",
+      "barter": "置換"
+    }
+  },
+  "publish": {
+    "title": "登記發布記錄",
+    "field": {
+      "url": "連結",
+      "title": "標題",
+      "published_at": "發布時間",
+      "platform": "平台"
+    },
+    "action": {
+      "submit": "登記"
+    },
+    "done": "發布記錄已登記",
+    "conflict": "這位達人已有相同連結的發布記錄。",
+    "failed": "發布記錄沒有存上，請重試。"
+  },
+  "creator": {
+    "sheet": {
+      "title": "達人詳情",
+      "posts": "發布記錄",
+      "no_posts": "還沒有發布記錄"
+    }
+  },
+  "doc_editor": {
+    "toolbar": "格式",
+    "tools": {
+      "bold": "加粗",
+      "italic": "斜體",
+      "strike": "刪除線",
+      "h2": "二級標題",
+      "h3": "三級標題",
+      "bullet": "無序列表",
+      "ordered": "有序列表",
+      "quote": "引用",
+      "link": "連結",
+      "undo": "復原",
+      "redo": "重做"
+    },
+    "limit": "已達上限 {{count}} 字",
+    "link": {
+      "url": "連結位址",
+      "apply": "套用連結"
+    }
+  }
+}

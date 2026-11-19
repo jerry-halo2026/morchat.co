@@ -4,6 +4,7 @@ import { AlertTriangle, Compass, RotateCw, Send, X } from "@morechat/ui/icons";
 import { Button } from "@morechat/ui/components/ui/button";
 import type { DesktopRouteErrorFeedbackContext } from "@morechat/core/feedback";
 import { useModalStore } from "@morechat/core/modals";
+import { paths } from "@morechat/core/paths";
 import { useTabStore } from "@/stores/tab-store";
 
 export function createRouteErrorFeedbackContext({
@@ -37,7 +38,10 @@ export function createRouteErrorFeedbackContext({
  */
 function useRecoveryRoute(): string | null {
   const activeWorkspaceSlug = useTabStore((state) => state.activeWorkspaceSlug);
-  return activeWorkspaceSlug ? `/${activeWorkspaceSlug}/issues` : null;
+  // The workspace's own home page — the workbench — not its issues list.
+  return activeWorkspaceSlug
+    ? paths.workspace(activeWorkspaceSlug).overview()
+    : null;
 }
 
 export function DesktopRouteErrorPage() {
@@ -89,7 +93,7 @@ function DesktopNotFoundPage() {
                 .navigateActiveSession(recoveryRoute, { replace: true })
             }
           >
-            Go to issues
+            Go to overview
           </Button>
         ) : null}
         <Button
@@ -152,7 +156,7 @@ function DesktopUnexpectedErrorPage({ error }: { error: unknown }) {
                 .navigateActiveSession(recoveryRoute, { replace: true })
             }
           >
-            Go to issues
+            Go to overview
           </Button>
         ) : null}
         <Button
