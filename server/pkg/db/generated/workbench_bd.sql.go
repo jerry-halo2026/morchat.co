@@ -1253,7 +1253,11 @@ WHERE workspace_id = $1::uuid
   AND (
     $5::uuid IS NULL
     OR (
-      (coalesce(started_on, created_at::date), created_at, id)
+      (
+        coalesce(started_on, (created_at AT TIME ZONE 'UTC')::date),
+        created_at,
+        id
+      )
         < (
           $6::date,
           $7::timestamptz,
@@ -1261,7 +1265,7 @@ WHERE workspace_id = $1::uuid
         )
     )
   )
-ORDER BY coalesce(started_on, created_at::date) DESC, created_at DESC, id DESC
+ORDER BY coalesce(started_on, (created_at AT TIME ZONE 'UTC')::date) DESC, created_at DESC, id DESC
 LIMIT $8::integer
 `
 
@@ -1284,6 +1288,10 @@ type ListCreatorCampaignsParams struct {
 // and `created_at`/`id` break ties between batches typed in one go, so the order
 // is total and a cursor page can neither repeat nor skip a row. The cursor is the
 // previous page's last row id; the handler re-reads its two sort keys.
+//
+// The day is `created_at` cast at UTC rather than at the session's time zone: the
+// handler rebuilds the same value in Go for the cursor, and a server whose
+// `TimeZone` differs must not disagree with the row it just read.
 // The department predicate is the same one the other ledgers take (§24.4).
 func (q *Queries) ListCreatorCampaigns(ctx context.Context, arg ListCreatorCampaignsParams) ([]CreatorCampaign, error) {
 	rows, err := q.db.Query(ctx, listCreatorCampaigns,
