@@ -99,15 +99,18 @@ func emptyMediaScores() mediaScores {
 // ---- requests --------------------------------------------------------------
 
 // MediaIPRequest is both the create and the PATCH body.
+//
+// `name` is NOT NULL, so it decodes raw (§3.4): `null` and `""` answer a 400 that
+// names the field instead of keeping the stored persona's name.
 type MediaIPRequest struct {
-	Name          *string `json:"name"`
-	Persona       *string `json:"persona"`
-	Track         *string `json:"track"`
-	Audience      *string `json:"audience"`
-	Color         *string `json:"color"`
-	WeekGoal      *int32  `json:"week_goal"`
-	Status        *string `json:"status"`
-	OwnerMemberID *string `json:"owner_member_id"`
+	Name          json.RawMessage `json:"name"`
+	Persona       *string         `json:"persona"`
+	Track         *string         `json:"track"`
+	Audience      *string         `json:"audience"`
+	Color         *string         `json:"color"`
+	WeekGoal      *int32          `json:"week_goal"`
+	Status        *string         `json:"status"`
+	OwnerMemberID *string         `json:"owner_member_id"`
 }
 
 // MediaAccountRequest attaches a platform account to an IP. The account itself is
@@ -118,10 +121,11 @@ type MediaAccountRequest struct {
 
 // MediaTopicRequest is both the create and the PATCH body. `Scores` is raw so the
 // handler can tell "not sent" (keep the stored card) from "sent" (merge the five
-// dimensions) 鈥?a `map` cannot express that difference.
+// dimensions) 鈥?a `map` cannot express that difference. `Title` is NOT NULL and raw
+// for the other half of §3.4: `null` and `""` are a 400, not a silent keep.
 type MediaTopicRequest struct {
 	IPID          *string         `json:"ip_id"`
-	Title         *string         `json:"title"`
+	Title         json.RawMessage `json:"title"`
 	Source        *string         `json:"source"`
 	Scores        json.RawMessage `json:"scores"`
 	Status        *string         `json:"status"`
@@ -131,27 +135,29 @@ type MediaTopicRequest struct {
 }
 
 // MediaScriptRequest is both the create and the PATCH body. `Tags` is a pointer so
-// an empty array means "clear the tags" rather than "not sent".
+// an empty array means "clear the tags" rather than "not sent". `PublishAt` is a
+// nullable instant a PATCH can clear, so it carries raw JSON (§3.4).
 type MediaScriptRequest struct {
-	TopicID       *string   `json:"topic_id"`
-	IPID          *string   `json:"ip_id"`
-	Hook          *string   `json:"hook"`
-	Body          *string   `json:"body"`
-	CTA           *string   `json:"cta"`
-	CoverNote     *string   `json:"cover_note"`
-	Tags          *[]string `json:"tags"`
-	Status        *string   `json:"status"`
-	PublishAt     *string   `json:"publish_at"`
-	OwnerMemberID *string   `json:"owner_member_id"`
+	TopicID       *string         `json:"topic_id"`
+	IPID          *string         `json:"ip_id"`
+	Hook          *string         `json:"hook"`
+	Body          *string         `json:"body"`
+	CTA           *string         `json:"cta"`
+	CoverNote     *string         `json:"cover_note"`
+	Tags          *[]string       `json:"tags"`
+	Status        *string         `json:"status"`
+	PublishAt     json.RawMessage `json:"publish_at"`
+	OwnerMemberID *string         `json:"owner_member_id"`
 }
 
 // MediaShootRequest is both the create and the PATCH body. `Shots` is raw because
 // the column holds a `shotlist.v1` artifact (see mediaShotsValue); `Checklist` is
 // merged over the stored tick state, so a PATCH that ticks one box cannot clear
-// the rest.
+// the rest. `ShootDate` is NOT NULL: raw JSON lets `null` / `""` answer a 400 that
+// names the field instead of keeping a day the caller believes it removed.
 type MediaShootRequest struct {
 	ScriptID      *string         `json:"script_id"`
-	ShootDate     *string         `json:"shoot_date"`
+	ShootDate     json.RawMessage `json:"shoot_date"`
 	Location      *string         `json:"location"`
 	Shots         json.RawMessage `json:"shots"`
 	Checklist     map[string]bool `json:"checklist"`
@@ -966,7 +972,10 @@ func (h *Handler) CreateMediaIP(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
-	name := strings.TrimSpace(valueOrEmpty(req.Name))
+	name, ok := applyRequiredTextPatch(req.Name, w, "name", "")
+	if !ok {
+		return
+	}
 	if name == "" {
 		writeError(w, http.StatusBadRequest, "name is required")
 		return
@@ -1073,13 +1082,9 @@ func (h *Handler) UpdateMediaIP(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
-	name := current.Name
-	if req.Name != nil {
-		name = strings.TrimSpace(*req.Name)
-		if name == "" {
-			writeError(w, http.StatusBadRequest, "name is required")
-			return
-		}
+	name, ok := applyRequiredTextPatch(req.Name, w, "name", current.Name)
+	if !ok {
+		return
 	}
 	if !workbenchNameValue(w, name, "name") {
 		return
@@ -1333,7 +1338,10 @@ func (h *Handler) CreateMediaTopic(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	title := strings.TrimSpace(valueOrEmpty(req.Title))
+	title, ok := applyRequiredTextPatch(req.Title, w, "title", "")
+	if !ok {
+		return
+	}
 	if title == "" {
 		writeError(w, http.StatusBadRequest, "title is required")
 		return
@@ -1440,13 +1448,9 @@ func (h *Handler) UpdateMediaTopic(w http.ResponseWriter, r *http.Request) {
 		}
 		ipID = ip.ID
 	}
-	title := current.Title
-	if req.Title != nil {
-		title = strings.TrimSpace(*req.Title)
-		if title == "" {
-			writeError(w, http.StatusBadRequest, "title is required")
-			return
-		}
+	title, ok := applyRequiredTextPatch(req.Title, w, "title", current.Title)
+	if !ok {
+		return
 	}
 	source := current.Source
 	if req.Source != nil {
@@ -1651,7 +1655,7 @@ func (h *Handler) CreateMediaScript(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	publishAt, ok := workbenchTimestampValue(w, req.PublishAt, "publish_at")
+	publishAt, ok := applyTimestampClearPatch(req.PublishAt, w, "publish_at", pgtype.Timestamptz{})
 	if !ok {
 		return
 	}
@@ -1749,12 +1753,9 @@ func (h *Handler) UpdateMediaScript(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	publishAt := current.PublishAt
-	if req.PublishAt != nil {
-		publishAt, ok = workbenchTimestampValue(w, req.PublishAt, "publish_at")
-		if !ok {
-			return
-		}
+	publishAt, ok := applyTimestampClearPatch(req.PublishAt, w, "publish_at", current.PublishAt)
+	if !ok {
+		return
 	}
 	ipID := current.IpID
 	if req.IPID != nil {
@@ -1964,7 +1965,7 @@ func (h *Handler) CreateMediaShoot(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusForbidden, "you can only schedule shoots for topics you own")
 		return
 	}
-	shootDate, ok := workbenchDateValue(w, req.ShootDate, "shoot_date")
+	shootDate, ok := applyRequiredDatePatch(req.ShootDate, w, "shoot_date", pgtype.Date{})
 	if !ok {
 		return
 	}
@@ -2082,16 +2083,9 @@ func (h *Handler) UpdateMediaShoot(w http.ResponseWriter, r *http.Request) {
 		}
 		scriptID = requested
 	}
-	shootDate := current.ShootDate
-	if req.ShootDate != nil {
-		shootDate, ok = workbenchDateValue(w, req.ShootDate, "shoot_date")
-		if !ok {
-			return
-		}
-		if !shootDate.Valid {
-			writeError(w, http.StatusBadRequest, "shoot_date is required")
-			return
-		}
+	shootDate, ok := applyRequiredDatePatch(req.ShootDate, w, "shoot_date", current.ShootDate)
+	if !ok {
+		return
 	}
 	status := current.Status
 	if req.Status != nil {

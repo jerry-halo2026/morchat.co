@@ -675,28 +675,6 @@ func applyDatePatch(patched *string, w http.ResponseWriter, fieldName string, cu
 	return workbenchDateValue(w, patched, fieldName)
 }
 
-func applyTimestampPatch(patched *string, w http.ResponseWriter, fieldName string, current pgtype.Timestamptz) (pgtype.Timestamptz, bool) {
-	if patched == nil {
-		return current, true
-	}
-	return workbenchTimestampValue(w, patched, fieldName)
-}
-
-// applyRequiredTimestampPatch is the NOT NULL counterpart of applyTimestampPatch.
-// A NOT NULL TIMESTAMPTZ has no "cleared" state, so an empty value is a 400 that
-// names the field instead of an UPDATE that fails on the constraint and surfaces
-// as a 500 (`creator_activity.happened_at`, migration 802).
-func applyRequiredTimestampPatch(patched *string, w http.ResponseWriter, fieldName string, current pgtype.Timestamptz) (pgtype.Timestamptz, bool) {
-	if patched == nil {
-		return current, true
-	}
-	if strings.TrimSpace(*patched) == "" {
-		writeError(w, http.StatusBadRequest, fieldName+" is required")
-		return pgtype.Timestamptz{}, false
-	}
-	return workbenchTimestampValue(w, patched, fieldName)
-}
-
 // ---- clearing nullable columns (§3.4) --------------------------------------
 //
 // A nullable column has three request states, and `*string` / `*float64` can only
@@ -890,6 +868,87 @@ func applyRequiredTextPatch(raw json.RawMessage, w http.ResponseWriter, fieldNam
 		return current, false
 	}
 	return parsed, true
+}
+
+// applyRequiredTimestampPatch is the NOT NULL counterpart of
+// applyTimestampClearPatch: a NOT NULL TIMESTAMPTZ has no "cleared" state, so
+// `null` and `""` are a 400 that names the field instead of an UPDATE that fails
+// on the constraint and surfaces as a 500 (`creator_activity.happened_at`,
+// migration 802). Absent still keeps the stored instant.
+func applyRequiredTimestampPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Timestamptz) (pgtype.Timestamptz, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a timestamp")
+		return current, false
+	}
+	if strings.TrimSpace(value) == "" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	return workbenchTimestampValue(w, &value, fieldName)
+}
+
+// applyRequiredDatePatch is applyRequiredTimestampPatch for a NOT NULL DATE
+// column (`media_shoot.shoot_date`): nothing can be cleared, so `null` and `""`
+// answer 400 rather than keeping a day the caller believes it removed.
+func applyRequiredDatePatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Date) (pgtype.Date, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	var value string
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		writeError(w, http.StatusBadRequest, fieldName+" must be a date string")
+		return current, false
+	}
+	if strings.TrimSpace(value) == "" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	return workbenchDateValue(w, &value, fieldName)
+}
+
+// applyRequiredNumericPatch is applyRequiredTimestampPatch for a NOT NULL
+// NUMERIC column (`crm_settlement.amount`). An absent amount keeps the stored
+// one, which is how a create answers 400 from its own "amount is required" check
+// on the zero value; `null` and `""` are refused here, because a caller that
+// sends them believes it emptied the field and a NOT NULL column cannot.
+func applyRequiredNumericPatch(raw json.RawMessage, w http.ResponseWriter, fieldName string, current pgtype.Numeric) (pgtype.Numeric, bool) {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return current, true
+	}
+	if string(trimmed) == "null" {
+		writeError(w, http.StatusBadRequest, fieldName+" is required")
+		return current, false
+	}
+	var value float64
+	if err := json.Unmarshal(trimmed, &value); err != nil {
+		var text string
+		if textErr := json.Unmarshal(trimmed, &text); textErr == nil && strings.TrimSpace(text) == "" {
+			writeError(w, http.StatusBadRequest, fieldName+" is required")
+			return current, false
+		}
+		writeError(w, http.StatusBadRequest, fieldName+" must be a number")
+		return current, false
+	}
+	if !workbenchAmountFits(&value) {
+		writeError(w, http.StatusBadRequest, fieldName+" "+workbenchAmountMessage)
+		return current, false
+	}
+	return floatToNumeric(&value), true
 }
 
 // ---- responses -------------------------------------------------------------

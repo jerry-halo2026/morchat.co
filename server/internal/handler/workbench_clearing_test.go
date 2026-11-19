@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/jerry-halo2026/morchat.co/server/internal/testutil"
@@ -23,6 +24,13 @@ import (
 // what is stored. An empty string and NULL render the same on screen but answer
 // differently to every reader — `paid_at IS NULL` drives the receivable list and the
 // aggregates, `''` would look paid-but-blank to some of them and unpaid to others.
+//
+// The cases below come in two blocks. The first covers the columns that were fixed
+// with `json.RawMessage` first (the fees, the links, the notes); the second covers
+// the remaining pointer fields — `scheduled_at` and the stage milestones,
+// `quoted_at`, `due_at`, `amount`, `happened_at`, the budget and window fields,
+// `publish_at` and `shoot_date` — plus the NOT NULL columns those bodies carry,
+// where the right answer is a 400 that names the field.
 
 // columnIsNull reports whether one nullable column of one row holds SQL NULL. The
 // table and column names come from the test itself (never from a request), so plain
@@ -309,6 +317,424 @@ func TestBdQuoteItemsNullIsNotAClear(t *testing.T) {
 	keptItems := testutil.Decode[BdQuoteResponse](t, testHandler.UpdateBdQuote, req, http.StatusOK)
 	if string(keptItems.Items) == "[]" {
 		t.Fatalf("items after {\"items\": null} = %s, want the stored breakdown", keptItems.Items)
+	}
+}
+
+// TestCrmCollabInstantClearing covers the four TIMESTAMPTZ columns the
+// collaboration body carries. `scheduled_at` and the three stage milestones were
+// still `*string` after the first §3.4 batch, so `{"scheduled_at": null}` kept the
+// stored instant and answered 200 — the bug this case pins.
+func TestCrmCollabInstantClearing(t *testing.T) {
+	client := createWorkbenchClient(t, testUserID, "Collab instant client")
+	brief := createWorkbenchBrief(t, client.ID, "Collab instant brief")
+	creator := createWorkbenchCreator(t, testUserID, "Collab instant creator")
+	// `accepted` stamps all three milestones on create (collabStageMilestones).
+	collab := createWorkbenchCollab(t, brief.ID, creator.ID, map[string]any{
+		"stage":        "accepted",
+		"scheduled_at": "2026-11-20T09:00:00Z",
+	})
+	instants := map[string]any{
+		"scheduled_at": "2026-11-20T09:00:00Z",
+		"confirmed_at": "2026-11-19T09:00:00Z",
+		"published_at": "2026-11-21T09:00:00Z",
+		"accepted_at":  "2026-11-22T09:00:00Z",
+	}
+	columns := []string{"scheduled_at", "confirmed_at", "published_at", "accepted_at"}
+
+	// ① Omitted keeps every instant: a PATCH about something else clears nothing.
+	kept := collabPatch(t, collab.ID, map[string]any{"prob": 0.5})
+	if kept.ScheduledAt == nil || kept.ConfirmedAt == nil || kept.PublishedAt == nil || kept.AcceptedAt == nil {
+		t.Fatalf("instants after an unrelated PATCH = %+v, want all four stored", kept)
+	}
+	for _, column := range columns {
+		if columnIsNull(t, "crm_collab", column, collab.ID) {
+			t.Fatalf("%s became NULL although the PATCH never mentioned it", column)
+		}
+	}
+
+	// ② null clears.
+	cleared := collabPatch(t, collab.ID, map[string]any{
+		"scheduled_at": nil, "confirmed_at": nil, "published_at": nil, "accepted_at": nil,
+	})
+	if cleared.ScheduledAt != nil || cleared.ConfirmedAt != nil ||
+		cleared.PublishedAt != nil || cleared.AcceptedAt != nil {
+		t.Fatalf("cleared collab = %+v, want every instant null", cleared)
+	}
+	for _, column := range columns {
+		if !columnIsNull(t, "crm_collab", column, collab.ID) {
+			t.Fatalf("%s is not NULL after {\"field\": null}", column)
+		}
+	}
+
+	// ③ "" clears as well (the pre-§3.4 spelling).
+	collabPatch(t, collab.ID, instants)
+	fromBlank := collabPatch(t, collab.ID, map[string]any{
+		"scheduled_at": "", "confirmed_at": "", "published_at": "", "accepted_at": "",
+	})
+	if fromBlank.ScheduledAt != nil || fromBlank.ConfirmedAt != nil ||
+		fromBlank.PublishedAt != nil || fromBlank.AcceptedAt != nil {
+		t.Fatalf("collab after \"\" clears = %+v, want nulls", fromBlank)
+	}
+	for _, column := range columns {
+		if !columnIsNull(t, "crm_collab", column, collab.ID) {
+			t.Fatalf("%s is not NULL after {\"field\": \"\"}", column)
+		}
+	}
+}
+
+// TestCrmBriefBudgetAndScheduleClearing covers the two budget bounds and the
+// schedule window (§3.4), plus the NOT NULL `title` beside them: a brief with no
+// title is a row nobody can identify, so `null` and `""` answer 400 that names the
+// field.
+func TestCrmBriefBudgetAndScheduleClearing(t *testing.T) {
+	client := createWorkbenchClient(t, testUserID, "Brief clearing client")
+	brief := createWorkbenchBrief(t, client.ID, "Brief clearing brief")
+
+	patch := func(body map[string]any) CrmBriefResponse {
+		t.Helper()
+		req := withURLParam(workbenchRequest(t, "PATCH", "/api/workbench/crm/briefs/"+brief.ID, body, testUserID),
+			"briefId", brief.ID)
+		return testutil.Decode[CrmBriefResponse](t, testHandler.UpdateCrmBrief, req, http.StatusOK)
+	}
+	values := map[string]any{
+		"budget_min_amount": 1000,
+		"budget_max_amount": 5000,
+		"schedule_from":     "2026-12-01",
+		"schedule_to":       "2026-12-31",
+	}
+	patch(values)
+
+	// ① Omitted keeps.
+	kept := patch(map[string]any{"status": "open"})
+	if kept.BudgetMinAmount == nil || *kept.BudgetMinAmount != 1000 ||
+		kept.BudgetMaxAmount == nil || *kept.BudgetMaxAmount != 5000 {
+		t.Fatalf("budgets after a status-only PATCH = %+v, want 1000 / 5000", kept)
+	}
+	if kept.ScheduleFrom == nil || *kept.ScheduleFrom != "2026-12-01" ||
+		kept.ScheduleTo == nil || *kept.ScheduleTo != "2026-12-31" {
+		t.Fatalf("schedule after a status-only PATCH = %+v, want the stored window", kept)
+	}
+
+	// ② null clears.
+	cleared := patch(map[string]any{
+		"budget_min_amount": nil, "budget_max_amount": nil,
+		"schedule_from": nil, "schedule_to": nil,
+	})
+	if cleared.BudgetMinAmount != nil || cleared.BudgetMaxAmount != nil ||
+		cleared.ScheduleFrom != nil || cleared.ScheduleTo != nil {
+		t.Fatalf("cleared brief = %+v, want every field null", cleared)
+	}
+	for _, column := range []string{"budget_min_amount", "budget_max_amount", "schedule_from", "schedule_to"} {
+		if !columnIsNull(t, "crm_brief", column, brief.ID) {
+			t.Fatalf("%s is not NULL after {\"field\": null}", column)
+		}
+	}
+
+	// ③ "" clears too.
+	patch(values)
+	fromBlank := patch(map[string]any{
+		"budget_min_amount": "", "budget_max_amount": "",
+		"schedule_from": "", "schedule_to": "",
+	})
+	if fromBlank.BudgetMinAmount != nil || fromBlank.BudgetMaxAmount != nil ||
+		fromBlank.ScheduleFrom != nil || fromBlank.ScheduleTo != nil {
+		t.Fatalf("brief after \"\" clears = %+v, want nulls", fromBlank)
+	}
+
+	// ④ title is NOT NULL: both spellings are a 400 that names the field, and the
+	// stored title survives.
+	for _, body := range []map[string]any{{"title": nil}, {"title": ""}} {
+		req := withURLParam(workbenchRequest(t, "PATCH", "/api/workbench/crm/briefs/"+brief.ID, body, testUserID),
+			"briefId", brief.ID)
+		var out map[string]any
+		testutil.Call(t, testHandler.UpdateCrmBrief, req).Want(http.StatusBadRequest).JSON(&out)
+		if message, _ := out["error"].(string); !strings.Contains(message, "title") {
+			t.Fatalf("400 body = %v, want it to name title", out)
+		}
+	}
+	if dbfx.Count(t, `SELECT count(*) FROM crm_brief WHERE id = $1 AND title = $2`, brief.ID, "Brief clearing brief") != 1 {
+		t.Fatalf("a refused clear changed the stored title")
+	}
+}
+
+// TestCrmSettlementAmountAndDueClearing covers `due_at` (§3.4) and the NOT NULL
+// `amount` beside it: a settlement with no amount is not a row, so `null` and `""`
+// answer 400 and the stored number survives.
+func TestCrmSettlementAmountAndDueClearing(t *testing.T) {
+	client := createWorkbenchClient(t, testUserID, "Settlement amount client")
+	brief := createWorkbenchBrief(t, client.ID, "Settlement amount brief")
+	creator := createWorkbenchCreator(t, testUserID, "Settlement amount creator")
+	collab := createWorkbenchCollab(t, brief.ID, creator.ID, map[string]any{"stage": "accepted"})
+
+	req := workbenchRequest(t, "POST", "/api/workbench/crm/settlements", map[string]any{
+		"collab_id": collab.ID,
+		"kind":      "final",
+		"amount":    7000,
+		"due_at":    "2026-12-01",
+	}, testUserID)
+	settlement := testutil.Decode[CrmSettlementResponse](t, testHandler.CreateCrmSettlement, req, http.StatusCreated)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM crm_settlement WHERE id = $1`, settlement.ID) })
+
+	patch := func(body map[string]any) CrmSettlementResponse {
+		t.Helper()
+		req := withURLParam(workbenchRequest(t, "PATCH", "/api/workbench/crm/settlements/"+settlement.ID, body, testUserID),
+			"settlementId", settlement.ID)
+		return testutil.Decode[CrmSettlementResponse](t, testHandler.UpdateCrmSettlement, req, http.StatusOK)
+	}
+
+	// ① Omitted keeps.
+	kept := patch(map[string]any{"note": "只改备注"})
+	if kept.DueAt == nil || *kept.DueAt != "2026-12-01" || kept.Amount != 7000 {
+		t.Fatalf("settlement after a note-only PATCH = %+v, want the stored due_at and amount", kept)
+	}
+
+	// ② due_at: null clears.
+	cleared := patch(map[string]any{"due_at": nil})
+	if cleared.DueAt != nil {
+		t.Fatalf("due_at after {\"due_at\": null} = %v, want null", cleared.DueAt)
+	}
+	if !columnIsNull(t, "crm_settlement", "due_at", settlement.ID) {
+		t.Fatalf("due_at is not NULL after {\"due_at\": null}")
+	}
+
+	// ③ due_at: "" clears.
+	patch(map[string]any{"due_at": "2026-12-02"})
+	if fromBlank := patch(map[string]any{"due_at": ""}); fromBlank.DueAt != nil {
+		t.Fatalf("due_at after \"\" = %v, want null", fromBlank.DueAt)
+	}
+
+	// ④ amount is NOT NULL: 400, and the stored amount does not move.
+	for _, body := range []map[string]any{{"amount": nil}, {"amount": ""}} {
+		req := withURLParam(workbenchRequest(t, "PATCH", "/api/workbench/crm/settlements/"+settlement.ID, body, testUserID),
+			"settlementId", settlement.ID)
+		var out map[string]any
+		testutil.Call(t, testHandler.UpdateCrmSettlement, req).Want(http.StatusBadRequest).JSON(&out)
+		if message, _ := out["error"].(string); !strings.Contains(message, "amount") {
+			t.Fatalf("400 body = %v, want it to name amount", out)
+		}
+	}
+	if dbfx.Count(t, `SELECT count(*) FROM crm_settlement WHERE id = $1 AND amount = 7000`, settlement.ID) != 1 {
+		t.Fatalf("a refused clear changed the stored amount")
+	}
+}
+
+// TestBdQuoteQuotedAtClearing covers `quoted_at`, the second date a quote carries
+// beside `valid_until`: a draft quote has not been spoken yet, so the field has to
+// be clearable, and "cleared" has to land on NULL because `valid_until` is checked
+// against it on the next write.
+func TestBdQuoteQuotedAtClearing(t *testing.T) {
+	creator := createWorkbenchCreator(t, testUserID, "Quote instant creator")
+	quote := bdCreateQuote(t, "", testUserID, creator.ID, map[string]any{
+		"quoted_at": "2026-11-10T09:00:00Z",
+	})
+
+	patch := func(body map[string]any) BdQuoteResponse {
+		t.Helper()
+		req := withURLParam(workbenchRequest(t, "PATCH", "/api/workbench/bd/quotes/"+quote.ID, body, testUserID),
+			"quoteId", quote.ID)
+		return testutil.Decode[BdQuoteResponse](t, testHandler.UpdateBdQuote, req, http.StatusOK)
+	}
+
+	// ① Omitted keeps.
+	kept := patch(map[string]any{"status": "accepted"})
+	if kept.QuotedAt == nil {
+		t.Fatalf("quoted_at after a status-only PATCH = nil, want the stored instant")
+	}
+
+	// ② null clears.
+	cleared := patch(map[string]any{"quoted_at": nil})
+	if cleared.QuotedAt != nil {
+		t.Fatalf("quoted_at after {\"quoted_at\": null} = %v, want null", cleared.QuotedAt)
+	}
+	if !columnIsNull(t, "creator_quote", "quoted_at", quote.ID) {
+		t.Fatalf("quoted_at is not NULL after {\"quoted_at\": null}")
+	}
+
+	// ③ "" clears too.
+	patch(map[string]any{"quoted_at": "2026-11-11T09:00:00Z"})
+	if fromBlank := patch(map[string]any{"quoted_at": ""}); fromBlank.QuotedAt != nil {
+		t.Fatalf("quoted_at after \"\" = %v, want null", fromBlank.QuotedAt)
+	}
+	if !columnIsNull(t, "creator_quote", "quoted_at", quote.ID) {
+		t.Fatalf("quoted_at is not NULL after {\"quoted_at\": \"\"}")
+	}
+}
+
+// TestBdActivityHappenedAtRejectsClear covers the NOT NULL instant of a follow-up
+// (`creator_activity.happened_at`): both spellings are a 400 that names the field,
+// because a follow-up that did not happen cannot be stored.
+func TestBdActivityHappenedAtRejectsClear(t *testing.T) {
+	creator := createWorkbenchCreator(t, testUserID, "Follow-up instant creator")
+	activity := bdCreateActivity(t, "", testUserID, creator.ID, nil)
+
+	for _, body := range []map[string]any{{"happened_at": nil}, {"happened_at": ""}} {
+		req := withURLParam(workbenchRequest(t, "PATCH", "/api/workbench/bd/activities/"+activity.ID, body, testUserID),
+			"activityId", activity.ID)
+		var out map[string]any
+		testutil.Call(t, testHandler.UpdateBdActivity, req).Want(http.StatusBadRequest).JSON(&out)
+		if message, _ := out["error"].(string); !strings.Contains(message, "happened_at") {
+			t.Fatalf("400 body = %v, want it to name happened_at", out)
+		}
+	}
+	if dbfx.Count(t, `SELECT count(*) FROM creator_activity WHERE id = $1 AND happened_at IS NOT NULL`, activity.ID) != 1 {
+		t.Fatalf("a refused clear changed the stored happened_at")
+	}
+}
+
+// TestBdCampaignFieldClearing covers the batch's budget and window (§3.4) and its
+// NOT NULL `name` (`creator_campaign.name` backs unique index 809).
+func TestBdCampaignFieldClearing(t *testing.T) {
+	campaign := bdCreateCampaign(t, "", testUserID, map[string]any{"name": "Clearing batch"})
+
+	patch := func(body map[string]any) BdCampaignResponse {
+		t.Helper()
+		req := withURLParam(workbenchRequest(t, "PATCH", "/api/workbench/bd/campaigns/"+campaign.ID, body, testUserID),
+			"campaignId", campaign.ID)
+		return testutil.Decode[BdCampaignResponse](t, testHandler.UpdateBdCampaign, req, http.StatusOK)
+	}
+	values := map[string]any{
+		"budget_amount": 3000,
+		"started_on":    "2026-12-01",
+		"ended_on":      "2026-12-15",
+	}
+	patch(values)
+
+	// ① Omitted keeps.
+	kept := patch(map[string]any{"kind": "comment"})
+	if kept.BudgetAmount == nil || *kept.BudgetAmount != 3000 ||
+		kept.StartedOn == nil || *kept.StartedOn != "2026-12-01" ||
+		kept.EndedOn == nil || *kept.EndedOn != "2026-12-15" {
+		t.Fatalf("batch after a kind-only PATCH = %+v, want the stored budget and window", kept)
+	}
+
+	// ② null clears.
+	cleared := patch(map[string]any{"budget_amount": nil, "started_on": nil, "ended_on": nil})
+	if cleared.BudgetAmount != nil || cleared.StartedOn != nil || cleared.EndedOn != nil {
+		t.Fatalf("cleared batch = %+v, want nulls", cleared)
+	}
+	for _, column := range []string{"budget_amount", "started_on", "ended_on"} {
+		if !columnIsNull(t, "creator_campaign", column, campaign.ID) {
+			t.Fatalf("%s is not NULL after {\"field\": null}", column)
+		}
+	}
+
+	// ③ "" clears.
+	patch(values)
+	fromBlank := patch(map[string]any{"budget_amount": "", "started_on": "", "ended_on": ""})
+	if fromBlank.BudgetAmount != nil || fromBlank.StartedOn != nil || fromBlank.EndedOn != nil {
+		t.Fatalf("batch after \"\" clears = %+v, want nulls", fromBlank)
+	}
+
+	// ④ name is NOT NULL.
+	for _, body := range []map[string]any{{"name": nil}, {"name": ""}} {
+		req := withURLParam(workbenchRequest(t, "PATCH", "/api/workbench/bd/campaigns/"+campaign.ID, body, testUserID),
+			"campaignId", campaign.ID)
+		var out map[string]any
+		testutil.Call(t, testHandler.UpdateBdCampaign, req).Want(http.StatusBadRequest).JSON(&out)
+		if message, _ := out["error"].(string); !strings.Contains(message, "name") {
+			t.Fatalf("400 body = %v, want it to name name", out)
+		}
+	}
+	if dbfx.Count(t, `SELECT count(*) FROM creator_campaign WHERE id = $1 AND name = $2`, campaign.ID, "Clearing batch") != 1 {
+		t.Fatalf("a refused clear changed the stored name")
+	}
+}
+
+// TestMediaPublishAtClearing covers `media_script.publish_at` (§3.4): a script that
+// came back to the writing board has no publish instant, and the clears have to
+// land on NULL so the calendar queries stop counting it.
+func TestMediaPublishAtClearing(t *testing.T) {
+	ip := mediaIPFixture(t, testUserID, "Clearing publish IP")
+	topic := mediaTopicFixture(t, testUserID, ip.ID, "Clearing publish topic")
+	script := mediaScriptFixture(t, testUserID, topic.ID, "发布用文案")
+
+	patch := func(body map[string]any) MediaScriptResponse {
+		t.Helper()
+		req := mediaURLParams(workbenchRequest(t, "PATCH", "/api/workbench/media/scripts/"+script.ID, body, testUserID),
+			map[string]string{"scriptId": script.ID})
+		return testutil.Decode[MediaScriptResponse](t, testHandler.UpdateMediaScript, req, http.StatusOK)
+	}
+
+	seeded := patch(map[string]any{"publish_at": "2026-12-01T10:00:00Z"})
+	if seeded.PublishAt == nil {
+		t.Fatalf("publish_at was not stored")
+	}
+
+	// ① Omitted keeps.
+	kept := patch(map[string]any{"status": "approved"})
+	if kept.PublishAt == nil {
+		t.Fatalf("publish_at after a status-only PATCH = nil, want the stored instant")
+	}
+
+	// ② null clears.
+	cleared := patch(map[string]any{"publish_at": nil})
+	if cleared.PublishAt != nil {
+		t.Fatalf("publish_at after {\"publish_at\": null} = %v, want null", cleared.PublishAt)
+	}
+	if !columnIsNull(t, "media_script", "publish_at", script.ID) {
+		t.Fatalf("publish_at is not NULL after {\"publish_at\": null}")
+	}
+
+	// ③ "" clears.
+	patch(map[string]any{"publish_at": "2026-12-02T10:00:00Z"})
+	if fromBlank := patch(map[string]any{"publish_at": ""}); fromBlank.PublishAt != nil {
+		t.Fatalf("publish_at after \"\" = %v, want null", fromBlank.PublishAt)
+	}
+}
+
+// TestMediaShootDateRejectsClear covers `media_shoot.shoot_date`, which is NOT
+// NULL: a shoot with no day is not schedulable, so both spellings answer 400 that
+// names the field and the stored day survives.
+func TestMediaShootDateRejectsClear(t *testing.T) {
+	ip := mediaIPFixture(t, testUserID, "Clearing shoot IP")
+	topic := mediaTopicFixture(t, testUserID, ip.ID, "Clearing shoot topic")
+	script := mediaScriptFixture(t, testUserID, topic.ID, "拍摄用文案")
+	shoot := mediaShootFixture(t, testUserID, script.ID, "2026-12-05")
+
+	for _, body := range []map[string]any{{"shoot_date": nil}, {"shoot_date": ""}} {
+		req := mediaURLParams(workbenchRequest(t, "PATCH", "/api/workbench/media/shoots/"+shoot.ID, body, testUserID),
+			map[string]string{"shootId": shoot.ID})
+		var out map[string]any
+		testutil.Call(t, testHandler.UpdateMediaShoot, req).Want(http.StatusBadRequest).JSON(&out)
+		if message, _ := out["error"].(string); !strings.Contains(message, "shoot_date") {
+			t.Fatalf("400 body = %v, want it to name shoot_date", out)
+		}
+	}
+	if dbfx.Count(t, `SELECT count(*) FROM media_shoot WHERE id = $1 AND shoot_date = $2`, shoot.ID, "2026-12-05") != 1 {
+		t.Fatalf("a refused clear changed the stored shoot_date")
+	}
+}
+
+// TestMediaNamesRejectClearing covers the two NOT NULL media names (`media_ip.name`
+// and `media_topic.title`): both spellings are a 400 that names the field, and the
+// stored text survives.
+func TestMediaNamesRejectClearing(t *testing.T) {
+	ip := mediaIPFixture(t, testUserID, "Clearing name IP")
+	topic := mediaTopicFixture(t, testUserID, ip.ID, "Clearing name topic")
+
+	for _, body := range []map[string]any{{"name": nil}, {"name": ""}} {
+		req := mediaURLParams(workbenchRequest(t, "PATCH", "/api/workbench/media/ips/"+ip.ID, body, testUserID),
+			map[string]string{"ipId": ip.ID})
+		var out map[string]any
+		testutil.Call(t, testHandler.UpdateMediaIP, req).Want(http.StatusBadRequest).JSON(&out)
+		if message, _ := out["error"].(string); !strings.Contains(message, "name") {
+			t.Fatalf("ip 400 body = %v, want it to name name", out)
+		}
+	}
+	for _, body := range []map[string]any{{"title": nil}, {"title": ""}} {
+		req := mediaURLParams(workbenchRequest(t, "PATCH", "/api/workbench/media/topics/"+topic.ID, body, testUserID),
+			map[string]string{"topicId": topic.ID})
+		var out map[string]any
+		testutil.Call(t, testHandler.UpdateMediaTopic, req).Want(http.StatusBadRequest).JSON(&out)
+		if message, _ := out["error"].(string); !strings.Contains(message, "title") {
+			t.Fatalf("topic 400 body = %v, want it to name title", out)
+		}
+	}
+	if dbfx.Count(t, `SELECT count(*) FROM media_ip WHERE id = $1 AND name = $2`, ip.ID, "Clearing name IP") != 1 {
+		t.Fatalf("a refused clear changed the stored IP name")
+	}
+	if dbfx.Count(t, `SELECT count(*) FROM media_topic WHERE id = $1 AND title = $2`, topic.ID, "Clearing name topic") != 1 {
+		t.Fatalf("a refused clear changed the stored topic title")
 	}
 }
 

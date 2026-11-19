@@ -552,7 +552,7 @@ func TestWorkbenchEdgeClients(t *testing.T) {
 	}
 
 	t.Run("text: name", func(t *testing.T) {
-		edgeTextMatrix(t, "name", edgeRejectsEmptyKeepsNull(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "name", edgeRejectsBoth(), http.StatusOK, func(t *testing.T, value any) (edgeResult, *string) {
 			return patchField(t, "name", value)
 		})
 	})
@@ -561,17 +561,21 @@ func TestWorkbenchEdgeClients(t *testing.T) {
 			return patchField(t, "brand", value)
 		})
 	})
-	t.Run("null on the NOT NULL name keeps the stored value instead of a 400", func(t *testing.T) {
+	t.Run("null on a NOT NULL name is a 400, not a silent keep", func(t *testing.T) {
 		// §3.4 asks a NOT NULL column to answer 400 for both `null` and `""`. The
-		// `""` half is implemented everywhere; the `null` half only where the field
-		// is decoded as raw JSON (creator_activity.summary is the reference). This
-		// cell records the gap.
+		// field is decoded raw (applyRequiredTextPatch), which is what makes the two
+		// requests distinguishable — a `*string` would read `null` as "not sent".
 		edgeWrite(t, testHandler.UpdateCrmClient, "PATCH",
 			"/api/workbench/crm/clients/id", map[string]any{"name": "keep-marker"}, "clientId", client.ID)
-		res, got := patchField(t, "name", nil)
-		edgeWantStatus(t, res, http.StatusOK, "name = null")
-		edgeWantEqualText(t, got, "keep-marker", "name")
-		t.Logf("gap: {\"name\": null} is a silent keep; §3.4 wants 400 (a *string cannot tell null from absent)")
+		res, _ := patchField(t, "name", nil)
+		edgeWantStatus(t, res, http.StatusBadRequest, "name = null")
+		if res.body == "" || !strings.Contains(res.body, "name") {
+			t.Fatalf("400 body = %q, want it to name the field", res.body)
+		}
+		// The refusal must not have touched the row.
+		if dbfx.Count(t, `SELECT count(*) FROM crm_client WHERE id = $1 AND name = $2`, client.ID, "keep-marker") != 1 {
+			t.Fatalf("the refused clear changed the stored name")
+		}
 	})
 
 	t.Run("uuid: the row id in the path", func(t *testing.T) {
@@ -649,11 +653,11 @@ func TestWorkbenchEdgeBriefs(t *testing.T) {
 	}
 
 	t.Run("money: budget_min_amount", func(t *testing.T) {
-		edgeMoneyMatrix(t, "budget_min_amount", edgeClearsEmptyKeepsNull(), 0, money("budget_min_amount",
+		edgeMoneyMatrix(t, "budget_min_amount", edgeClearsRaw(), 0, money("budget_min_amount",
 			func(row CrmBriefResponse) *float64 { return row.BudgetMinAmount }))
 	})
 	t.Run("money: budget_max_amount", func(t *testing.T) {
-		edgeMoneyMatrix(t, "budget_max_amount", edgeClearsEmptyKeepsNull(), 0, money("budget_max_amount",
+		edgeMoneyMatrix(t, "budget_max_amount", edgeClearsRaw(), 0, money("budget_max_amount",
 			func(row CrmBriefResponse) *float64 { return row.BudgetMaxAmount }))
 	})
 	t.Run("money: kpi_gmv_amount", func(t *testing.T) {
@@ -704,20 +708,20 @@ func TestWorkbenchEdgeBriefs(t *testing.T) {
 	})
 
 	t.Run("date: schedule_from", func(t *testing.T) {
-		edgeDateMatrix(t, "schedule_from", edgeClearsEmptyKeepsNull(), func(t *testing.T, value any) (edgeResult, *string) {
+		edgeDateMatrix(t, "schedule_from", edgeClearsRaw(), func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"schedule_from": value})
 			return res, row.ScheduleFrom
 		})
 	})
 	t.Run("date: schedule_to", func(t *testing.T) {
-		edgeDateMatrix(t, "schedule_to", edgeClearsEmptyKeepsNull(), func(t *testing.T, value any) (edgeResult, *string) {
+		edgeDateMatrix(t, "schedule_to", edgeClearsRaw(), func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"schedule_to": value})
 			return res, row.ScheduleTo
 		})
 	})
 
 	t.Run("text: title", func(t *testing.T) {
-		edgeTextMatrix(t, "title", edgeRejectsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "title", edgeRejectsBoth(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"title": value})
 			return res, &row.Title
 		})
@@ -861,7 +865,7 @@ func TestWorkbenchEdgeCollabs(t *testing.T) {
 	})
 
 	t.Run("timestamp: scheduled_at", func(t *testing.T) {
-		edgeTimestampMatrix(t, "scheduled_at", edgeClearsEmptyKeepsNull(), func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTimestampMatrix(t, "scheduled_at", edgeClearsRaw(), func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"scheduled_at": value})
 			return res, row.ScheduledAt
 		})
@@ -1001,7 +1005,7 @@ func TestWorkbenchEdgeSettlements(t *testing.T) {
 	}
 
 	t.Run("money: amount", func(t *testing.T) {
-		edgeMoneyMatrix(t, "amount", edgeClearsEmptyKeepsNull(), 0, func(t *testing.T, value any) (edgeResult, *float64) {
+		edgeMoneyMatrix(t, "amount", edgeRejectsBoth(), 0, func(t *testing.T, value any) (edgeResult, *float64) {
 			res, row := patch(t, map[string]any{"amount": value})
 			return res, &row.Amount
 		})
@@ -1030,7 +1034,7 @@ func TestWorkbenchEdgeSettlements(t *testing.T) {
 	})
 
 	t.Run("date: due_at", func(t *testing.T) {
-		edgeDateMatrix(t, "due_at", edgeClearsEmptyKeepsNull(), func(t *testing.T, value any) (edgeResult, *string) {
+		edgeDateMatrix(t, "due_at", edgeClearsRaw(), func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"due_at": value})
 			return res, row.DueAt
 		})
@@ -1138,7 +1142,7 @@ func TestWorkbenchEdgeQuotes(t *testing.T) {
 	})
 
 	t.Run("timestamp: quoted_at", func(t *testing.T) {
-		edgeTimestampMatrix(t, "quoted_at", edgeClearsEmptyKeepsNull(), func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTimestampMatrix(t, "quoted_at", edgeClearsRaw(), func(t *testing.T, value any) (edgeResult, *string) {
 			// A new quoted_at behind the stored valid_until is a 400 of its own, so
 			// drop the window first.
 			patch(t, map[string]any{"valid_until": nil})
@@ -1269,7 +1273,7 @@ func TestWorkbenchEdgeActivities(t *testing.T) {
 	}
 
 	t.Run("timestamp: happened_at is NOT NULL", func(t *testing.T) {
-		edgeTimestampMatrix(t, "happened_at", edgeRejectsEmptyKeepsNull(), func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTimestampMatrix(t, "happened_at", edgeRejectsBoth(), func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"happened_at": value})
 			return res, &row.HappenedAt
 		})
@@ -1340,20 +1344,20 @@ func TestWorkbenchEdgeCampaigns(t *testing.T) {
 	}
 
 	t.Run("money: budget_amount", func(t *testing.T) {
-		edgeMoneyMatrix(t, "budget_amount", edgeClearsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *float64) {
+		edgeMoneyMatrix(t, "budget_amount", edgeClearsRaw(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *float64) {
 			res, row := patch(t, map[string]any{"budget_amount": value})
 			return res, row.BudgetAmount
 		})
 	})
 	t.Run("date: started_on", func(t *testing.T) {
-		edgeDateMatrix(t, "started_on", edgeClearsEmptyKeepsNull(), func(t *testing.T, value any) (edgeResult, *string) {
+		edgeDateMatrix(t, "started_on", edgeClearsRaw(), func(t *testing.T, value any) (edgeResult, *string) {
 			patch(t, map[string]any{"ended_on": nil})
 			res, row := patch(t, map[string]any{"started_on": value})
 			return res, row.StartedOn
 		})
 	})
 	t.Run("date: ended_on", func(t *testing.T) {
-		edgeDateMatrix(t, "ended_on", edgeClearsEmptyKeepsNull(), func(t *testing.T, value any) (edgeResult, *string) {
+		edgeDateMatrix(t, "ended_on", edgeClearsRaw(), func(t *testing.T, value any) (edgeResult, *string) {
 			patch(t, map[string]any{"started_on": nil})
 			res, row := patch(t, map[string]any{"ended_on": value})
 			return res, row.EndedOn
@@ -1367,7 +1371,7 @@ func TestWorkbenchEdgeCampaigns(t *testing.T) {
 	t.Run("text: name", func(t *testing.T) {
 		// The unique index (809) is `lower(name)`: a 1 MB name overflows the btree
 		// entry and used to answer 500 from inside the index.
-		edgeTextMatrix(t, "name", edgeRejectsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "name", edgeRejectsBoth(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"name": value})
 			return res, &row.Name
 		})
@@ -1464,7 +1468,7 @@ func TestWorkbenchEdgeTopics(t *testing.T) {
 	})
 
 	t.Run("text: title", func(t *testing.T) {
-		edgeTextMatrix(t, "title", edgeRejectsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "title", edgeRejectsBoth(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"title": value})
 			return res, &row.Title
 		})
@@ -1527,7 +1531,7 @@ func TestWorkbenchEdgeScripts(t *testing.T) {
 	}
 
 	t.Run("timestamp: publish_at", func(t *testing.T) {
-		edgeTimestampMatrix(t, "publish_at", edgeClearsEmptyKeepsNull(), func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTimestampMatrix(t, "publish_at", edgeClearsRaw(), func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"publish_at": value})
 			return res, row.PublishAt
 		})
@@ -1596,7 +1600,7 @@ func TestWorkbenchEdgeShoots(t *testing.T) {
 	}
 
 	t.Run("date: shoot_date is NOT NULL", func(t *testing.T) {
-		edgeDateMatrix(t, "shoot_date", edgeRejectsEmptyKeepsNull(), func(t *testing.T, value any) (edgeResult, *string) {
+		edgeDateMatrix(t, "shoot_date", edgeRejectsBoth(), func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"shoot_date": value})
 			return res, &row.ShootDate
 		})
@@ -1657,7 +1661,7 @@ func TestWorkbenchEdgeIPs(t *testing.T) {
 	t.Run("text: name", func(t *testing.T) {
 		// Unique index 734: a 1 MB name is a 500 from inside the btree without the
 		// handler's length check.
-		edgeTextMatrix(t, "name", edgeRejectsEmptyKeepsNull(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
+		edgeTextMatrix(t, "name", edgeRejectsBoth(), http.StatusBadRequest, func(t *testing.T, value any) (edgeResult, *string) {
 			res, row := patch(t, map[string]any{"name": value})
 			return res, &row.Name
 		})

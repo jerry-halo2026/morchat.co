@@ -51,44 +51,53 @@ var (
 )
 
 // CrmClientRequest is the create/PATCH body for a client (甲方).
+//
+// `name` is NOT NULL, so it decodes raw (§3.4): `null` and `""` answer a 400 that
+// names the field instead of keeping the stored name while the caller believes it
+// cleared the box.
 type CrmClientRequest struct {
-	Name           *string `json:"name"`
-	Brand          *string `json:"brand"`
-	Industry       *string `json:"industry"`
-	ContactName    *string `json:"contact_name"`
-	ContactChannel *string `json:"contact_channel"`
-	ContractEntity *string `json:"contract_entity"`
-	PaymentTerms   *string `json:"payment_terms"`
-	CreditNote     *string `json:"credit_note"`
-	OwnerMemberID  *string `json:"owner_member_id"`
+	Name           json.RawMessage `json:"name,omitempty"`
+	Brand          *string         `json:"brand"`
+	Industry       *string         `json:"industry"`
+	ContactName    *string         `json:"contact_name"`
+	ContactChannel *string         `json:"contact_channel"`
+	ContractEntity *string         `json:"contract_entity"`
+	PaymentTerms   *string         `json:"payment_terms"`
+	CreditNote     *string         `json:"credit_note"`
+	OwnerMemberID  *string         `json:"owner_member_id"`
 }
 
 // CrmBriefRequest is the create/PATCH body for a brief (需求单).
+//
+// The two budget bounds and the schedule window are nullable (§3.4) and decode raw
+// so `null` clears them; `title` is NOT NULL and decodes raw so `null` / `""`
+// answer 400 that names the field.
 type CrmBriefRequest struct {
-	ClientID        *string   `json:"client_id"`
-	Title           *string   `json:"title"`
-	Category        *string   `json:"category"`
-	BudgetMinAmount *float64  `json:"budget_min_amount"`
-	BudgetMaxAmount *float64  `json:"budget_max_amount"`
-	TargetAudience  *string   `json:"target_audience"`
-	DeliverableType *string   `json:"deliverable_type"`
-	Platforms       *[]string `json:"platforms"`
-	ScheduleFrom    *string   `json:"schedule_from"`
-	ScheduleTo      *string   `json:"schedule_to"`
-	KPIPlay         *int64    `json:"kpi_play"`
-	KPIGMVAmount    *float64  `json:"kpi_gmv_amount"`
-	Status          *string   `json:"status"`
-	OwnerMemberID   *string   `json:"owner_member_id"`
+	ClientID        *string         `json:"client_id"`
+	Title           json.RawMessage `json:"title,omitempty"`
+	Category        *string         `json:"category"`
+	BudgetMinAmount json.RawMessage `json:"budget_min_amount,omitempty"`
+	BudgetMaxAmount json.RawMessage `json:"budget_max_amount,omitempty"`
+	TargetAudience  *string         `json:"target_audience"`
+	DeliverableType *string         `json:"deliverable_type"`
+	Platforms       *[]string       `json:"platforms"`
+	ScheduleFrom    json.RawMessage `json:"schedule_from,omitempty"`
+	ScheduleTo      json.RawMessage `json:"schedule_to,omitempty"`
+	KPIPlay         *int64          `json:"kpi_play"`
+	KPIGMVAmount    *float64        `json:"kpi_gmv_amount"`
+	Status          *string         `json:"status"`
+	OwnerMemberID   *string         `json:"owner_member_id"`
 }
 
 // CrmCollabRequest is the create/PATCH body for a collaboration (合作单).
 //
-// Seven of its nullable columns follow WORKBENCH-API §3.4's clearing rule (omitted
-// keeps, `null` clears, `""` clears for older clients), so they are decoded raw:
-// a `*string` / `*float64` cannot tell "not sent" from "sent as null". The two
-// amounts are in that set because the sales drawer sends `null` for an emptied
-// field (`collabFields`); leaving them as pointers would make those two the only
-// two fields where emptying the box silently kept the old number.
+// Every nullable column a PATCH can clear follows WORKBENCH-API §3.4's clearing
+// rule (omitted keeps, `null` clears, `""` clears for older clients), so they are
+// decoded raw: a `*string` / `*float64` cannot tell "not sent" from "sent as null".
+// The amounts are in that set because the sales drawer sends `null` for an emptied
+// field (`collabFields`); leaving them as pointers would make those the only fields
+// where emptying the box silently kept the old number. The four stage milestone
+// instants are there for the same reason — `null` on them used to be a no-op.
 //
 // `omitempty` is load-bearing on those fields, not cosmetic: the agent write channel
 // marshals this struct back into a body (`workbenchAgentWriteReplay`), and a nil
@@ -109,10 +118,10 @@ type CrmCollabRequest struct {
 	CommissionRate *float64        `json:"commission_rate"`
 	SampleRequired *bool           `json:"sample_required"`
 	ScriptRequired *bool           `json:"script_required"`
-	ScheduledAt    *string         `json:"scheduled_at"`
-	ConfirmedAt    *string         `json:"confirmed_at"`
-	PublishedAt    *string         `json:"published_at"`
-	AcceptedAt     *string         `json:"accepted_at"`
+	ScheduledAt    json.RawMessage `json:"scheduled_at,omitempty"`
+	ConfirmedAt    json.RawMessage `json:"confirmed_at,omitempty"`
+	PublishedAt    json.RawMessage `json:"published_at,omitempty"`
+	AcceptedAt     json.RawMessage `json:"accepted_at,omitempty"`
 	IssueID        *string         `json:"issue_id"`
 	OwnerMemberID  *string         `json:"owner_member_id"`
 	// Fulfilment (WORKBENCH-API §20.2, migration 810): where the collaboration
@@ -132,14 +141,16 @@ type CrmCollabRequest struct {
 }
 
 // CrmSettlementRequest is the create/PATCH body for one settlement row
-// (结算流水). `paid_at`, `invoice_no` and `note` are clearable (§3.4) and are
-// decoded raw for the same reason as the collaboration's nullable columns.
+// (结算流水). `paid_at`, `due_at`, `invoice_no` and `note` are clearable (§3.4) and
+// are decoded raw for the same reason as the collaboration's nullable columns.
+// `amount` is NOT NULL, so it is raw as well but for the opposite half of the rule:
+// `null` and `""` answer 400 naming the field instead of keeping the old amount.
 type CrmSettlementRequest struct {
 	CollabID  *string         `json:"collab_id"`
 	Kind      *string         `json:"kind"`
-	Amount    *float64        `json:"amount"`
+	Amount    json.RawMessage `json:"amount,omitempty"`
 	Currency  *string         `json:"currency"`
-	DueAt     *string         `json:"due_at"`
+	DueAt     json.RawMessage `json:"due_at,omitempty"`
 	PaidAt    json.RawMessage `json:"paid_at,omitempty"`
 	InvoiceNo json.RawMessage `json:"invoice_no,omitempty"`
 	Note      json.RawMessage `json:"note,omitempty"`
@@ -203,7 +214,7 @@ func collabHighValue(req CrmCollabRequest, patch bool) (bool, []string) {
 // counts: only a PATCH can clear.
 func settlementHighValue(req CrmSettlementRequest, patch bool) (bool, []string) {
 	fields := make([]string, 0, 5)
-	if req.Amount != nil {
+	if patchTouches(req.Amount, patch) {
 		fields = append(fields, "amount")
 	}
 	if req.Currency != nil {
@@ -212,7 +223,7 @@ func settlementHighValue(req CrmSettlementRequest, patch bool) (bool, []string) 
 	if req.Kind != nil {
 		fields = append(fields, "kind")
 	}
-	if req.DueAt != nil {
+	if patchTouches(req.DueAt, patch) {
 		fields = append(fields, "due_at")
 	}
 	if patchTouches(req.PaidAt, patch) {
@@ -351,7 +362,10 @@ func (h *Handler) CreateCrmClient(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
-	name := strings.TrimSpace(valueOrEmpty(req.Name))
+	name, ok := applyRequiredTextPatch(req.Name, w, "name", "")
+	if !ok {
+		return
+	}
 	if name == "" {
 		writeError(w, http.StatusBadRequest, "name is required")
 		return
@@ -437,13 +451,9 @@ func (h *Handler) UpdateCrmClient(w http.ResponseWriter, r *http.Request) {
 	if !decodeWorkbenchBody(w, r, &req) {
 		return
 	}
-	name := current.Name
-	if req.Name != nil {
-		name = strings.TrimSpace(*req.Name)
-		if name == "" {
-			writeError(w, http.StatusBadRequest, "name is required")
-			return
-		}
+	name, ok := applyRequiredTextPatch(req.Name, w, "name", current.Name)
+	if !ok {
+		return
 	}
 	requestedOwner, ok := workbenchOptionalUUID(w, req.OwnerMemberID, "owner_member_id")
 	if !ok {
@@ -590,7 +600,10 @@ func (h *Handler) CreateCrmBrief(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	title := strings.TrimSpace(valueOrEmpty(req.Title))
+	title, ok := applyRequiredTextPatch(req.Title, w, "title", "")
+	if !ok {
+		return
+	}
 	if title == "" {
 		writeError(w, http.StatusBadRequest, "title is required")
 		return
@@ -607,11 +620,11 @@ func (h *Handler) CreateCrmBrief(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid deliverable_type")
 		return
 	}
-	scheduleFrom, ok := workbenchDateValue(w, req.ScheduleFrom, "schedule_from")
+	scheduleFrom, ok := applyDateClearPatch(req.ScheduleFrom, w, "schedule_from", pgtype.Date{})
 	if !ok {
 		return
 	}
-	scheduleTo, ok := workbenchDateValue(w, req.ScheduleTo, "schedule_to")
+	scheduleTo, ok := applyDateClearPatch(req.ScheduleTo, w, "schedule_to", pgtype.Date{})
 	if !ok {
 		return
 	}
@@ -623,11 +636,11 @@ func (h *Handler) CreateCrmBrief(w http.ResponseWriter, r *http.Request) {
 	if req.Platforms != nil && *req.Platforms != nil {
 		platforms = *req.Platforms
 	}
-	budgetMin, ok := workbenchMoneyValue(w, req.BudgetMinAmount, "budget_min_amount")
+	budgetMin, ok := applyNumericClearPatch(req.BudgetMinAmount, w, "budget_min_amount", pgtype.Numeric{})
 	if !ok {
 		return
 	}
-	budgetMax, ok := workbenchMoneyValue(w, req.BudgetMaxAmount, "budget_max_amount")
+	budgetMax, ok := applyNumericClearPatch(req.BudgetMaxAmount, w, "budget_max_amount", pgtype.Numeric{})
 	if !ok {
 		return
 	}
@@ -727,13 +740,9 @@ func (h *Handler) UpdateCrmBrief(w http.ResponseWriter, r *http.Request) {
 		}
 		clientID = parsed
 	}
-	title := current.Title
-	if req.Title != nil {
-		title = strings.TrimSpace(*req.Title)
-		if title == "" {
-			writeError(w, http.StatusBadRequest, "title is required")
-			return
-		}
+	title, ok := applyRequiredTextPatch(req.Title, w, "title", current.Title)
+	if !ok {
+		return
 	}
 	status := current.Status
 	if req.Status != nil {
@@ -752,11 +761,11 @@ func (h *Handler) UpdateCrmBrief(w http.ResponseWriter, r *http.Request) {
 		}
 		deliverable = optionalTrimmedText(req.DeliverableType)
 	}
-	scheduleFrom, ok := applyDatePatch(req.ScheduleFrom, w, "schedule_from", current.ScheduleFrom)
+	scheduleFrom, ok := applyDateClearPatch(req.ScheduleFrom, w, "schedule_from", current.ScheduleFrom)
 	if !ok {
 		return
 	}
-	scheduleTo, ok := applyDatePatch(req.ScheduleTo, w, "schedule_to", current.ScheduleTo)
+	scheduleTo, ok := applyDateClearPatch(req.ScheduleTo, w, "schedule_to", current.ScheduleTo)
 	if !ok {
 		return
 	}
@@ -772,11 +781,11 @@ func (h *Handler) UpdateCrmBrief(w http.ResponseWriter, r *http.Request) {
 	if req.Platforms != nil && *req.Platforms != nil {
 		platforms = *req.Platforms
 	}
-	budgetMin, ok := workbenchMoneyPatch(w, req.BudgetMinAmount, "budget_min_amount", current.BudgetMinAmount)
+	budgetMin, ok := applyNumericClearPatch(req.BudgetMinAmount, w, "budget_min_amount", current.BudgetMinAmount)
 	if !ok {
 		return
 	}
-	budgetMax, ok := workbenchMoneyPatch(w, req.BudgetMaxAmount, "budget_max_amount", current.BudgetMaxAmount)
+	budgetMax, ok := applyNumericClearPatch(req.BudgetMaxAmount, w, "budget_max_amount", current.BudgetMaxAmount)
 	if !ok {
 		return
 	}
@@ -987,7 +996,7 @@ func (h *Handler) CreateCrmCollab(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid settlement_mode")
 		return
 	}
-	scheduledAt, ok := workbenchTimestampValue(w, req.ScheduledAt, "scheduled_at")
+	scheduledAt, ok := applyTimestampClearPatch(req.ScheduledAt, w, "scheduled_at", pgtype.Timestamptz{})
 	if !ok {
 		return
 	}
@@ -1268,7 +1277,7 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	scheduledAt, ok := applyTimestampPatch(req.ScheduledAt, w, "scheduled_at", current.ScheduledAt)
+	scheduledAt, ok := applyTimestampClearPatch(req.ScheduledAt, w, "scheduled_at", current.ScheduledAt)
 	if !ok {
 		return
 	}
@@ -1276,15 +1285,15 @@ func (h *Handler) UpdateCrmCollab(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	confirmed, ok := applyTimestampPatch(req.ConfirmedAt, w, "confirmed_at", current.ConfirmedAt)
+	confirmed, ok := applyTimestampClearPatch(req.ConfirmedAt, w, "confirmed_at", current.ConfirmedAt)
 	if !ok {
 		return
 	}
-	published, ok := applyTimestampPatch(req.PublishedAt, w, "published_at", current.PublishedAt)
+	published, ok := applyTimestampClearPatch(req.PublishedAt, w, "published_at", current.PublishedAt)
 	if !ok {
 		return
 	}
-	accepted, ok := applyTimestampPatch(req.AcceptedAt, w, "accepted_at", current.AcceptedAt)
+	accepted, ok := applyTimestampClearPatch(req.AcceptedAt, w, "accepted_at", current.AcceptedAt)
 	if !ok {
 		return
 	}
@@ -1740,19 +1749,19 @@ func (h *Handler) CreateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid kind")
 		return
 	}
-	if req.Amount == nil {
-		writeError(w, http.StatusBadRequest, "amount is required")
+	amount, ok := applyRequiredNumericPatch(req.Amount, w, "amount", pgtype.Numeric{})
+	if !ok {
 		return
 	}
-	if !workbenchAmountFits(req.Amount) {
-		writeError(w, http.StatusBadRequest, "amount "+workbenchAmountMessage)
+	if !amount.Valid {
+		writeError(w, http.StatusBadRequest, "amount is required")
 		return
 	}
 	currency, ok := workbenchCurrency(w, req.Currency)
 	if !ok {
 		return
 	}
-	dueAt, ok := workbenchDateValue(w, req.DueAt, "due_at")
+	dueAt, ok := applyDateClearPatch(req.DueAt, w, "due_at", pgtype.Date{})
 	if !ok {
 		return
 	}
@@ -1790,7 +1799,7 @@ func (h *Handler) CreateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 		WorkspaceID:  scope.WorkspaceUUID,
 		CollabID:     collabID,
 		Kind:         kind,
-		Amount:       floatToNumeric(req.Amount),
+		Amount:       amount,
 		Currency:     currency,
 		DueAt:        dueAt,
 		PaidAt:       paidAt,
@@ -1905,7 +1914,7 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 		}
 		currency = parsed
 	}
-	dueAt, ok := applyDatePatch(req.DueAt, w, "due_at", current.DueAt)
+	dueAt, ok := applyDateClearPatch(req.DueAt, w, "due_at", current.DueAt)
 	if !ok {
 		return
 	}
@@ -1913,7 +1922,7 @@ func (h *Handler) UpdateCrmSettlement(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	amount, ok := workbenchMoneyPatch(w, req.Amount, "amount", current.Amount)
+	amount, ok := applyRequiredNumericPatch(req.Amount, w, "amount", current.Amount)
 	if !ok {
 		return
 	}

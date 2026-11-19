@@ -167,14 +167,17 @@ func writeWorkbenchEmptyPage(w http.ResponseWriter, resource string) {
 //
 // `outcome` and `next_follow_at` are nullable columns a PATCH can clear, so they
 // are decoded raw (WORKBENCH-API §3.4): omitted keeps, `null` clears, `""`
-// clears for older clients. `summary` is NOT NULL, so there `null` / `""` answer
-// 400 rather than pretending to clear. The `omitempty` tags matter for the agent
-// write channel: it marshals this struct back into a body, and a nil raw field
-// would otherwise become an explicit `null` the tool never asked for.
+// clears for older clients. `summary` and `happened_at` are NOT NULL, so there
+// `null` / `""` answer 400 rather than pretending to clear. The `omitempty` tags
+// matter for the agent write channel: it marshals this struct back into a body, and
+// a nil raw field would otherwise become an explicit `null` the tool never asked
+// for.
 type BdActivityRequest struct {
-	CreatorID     *string         `json:"creator_id"`
-	Kind          *string         `json:"kind"`
-	HappenedAt    *string         `json:"happened_at"`
+	CreatorID *string `json:"creator_id"`
+	Kind      *string `json:"kind"`
+	// `happened_at` is NOT NULL, so it carries the raw JSON too: `null` and `""`
+	// are a 400 that names the field (§3.4) instead of a silent keep.
+	HappenedAt    json.RawMessage `json:"happened_at,omitempty"`
 	Summary       json.RawMessage `json:"summary,omitempty"`
 	Outcome       json.RawMessage `json:"outcome,omitempty"`
 	NextFollowAt  json.RawMessage `json:"next_follow_at,omitempty"`
@@ -193,14 +196,14 @@ type BdActivityRequest struct {
 //
 // `commission_rate` is a ratio: 20% is 0.2 (contract 搂0 rule 1). `items` is the
 // line-item breakdown as a JSON array; absent keeps the stored array on a PATCH
-// and means "no breakdown yet" on a create. `valid_until` and `note` are
-// clearable columns, so they carry the raw JSON (§3.4); `omitempty` keeps an unset
-// field absent when the agent write channel re-marshals this body.
+// and means "no breakdown yet" on a create. `valid_until`, `quoted_at` and `note`
+// are clearable columns, so they carry the raw JSON (§3.4); `omitempty` keeps an
+// unset field absent when the agent write channel re-marshals this body.
 type BdQuoteRequest struct {
 	CreatorID      *string         `json:"creator_id"`
 	BriefID        *string         `json:"brief_id"`
 	Status         *string         `json:"status"`
-	QuotedAt       *string         `json:"quoted_at"`
+	QuotedAt       json.RawMessage `json:"quoted_at,omitempty"`
 	ValidUntil     json.RawMessage `json:"valid_until,omitempty"`
 	FeeAmount      *float64        `json:"fee_amount"`
 	CommissionRate *float64        `json:"commission_rate"`
@@ -219,17 +222,21 @@ type BdQuoteRequest struct {
 }
 
 // BdCampaignRequest is the create/PATCH body for a collection batch.
+//
+// `budget_amount`, `started_on` and `ended_on` are nullable (§3.4) and decode raw
+// so `null` clears them; `name` is NOT NULL and decodes raw so `null` / `""` answer
+// 400 that names the field instead of quietly keeping the old name.
 type BdCampaignRequest struct {
-	Name          *string  `json:"name"`
-	Kind          *string  `json:"kind"`
-	BudgetAmount  *float64 `json:"budget_amount"`
-	Currency      *string  `json:"currency"`
-	StartedOn     *string  `json:"started_on"`
-	EndedOn       *string  `json:"ended_on"`
-	SourceKeyword *string  `json:"source_keyword"`
-	CreatorCount  *int32   `json:"creator_count"`
-	Note          *string  `json:"note"`
-	OwnerMemberID *string  `json:"owner_member_id"`
+	Name          json.RawMessage `json:"name,omitempty"`
+	Kind          *string         `json:"kind"`
+	BudgetAmount  json.RawMessage `json:"budget_amount,omitempty"`
+	Currency      *string         `json:"currency"`
+	StartedOn     json.RawMessage `json:"started_on,omitempty"`
+	EndedOn       json.RawMessage `json:"ended_on,omitempty"`
+	SourceKeyword *string         `json:"source_keyword"`
+	CreatorCount  *int32          `json:"creator_count"`
+	Note          *string         `json:"note"`
+	OwnerMemberID *string         `json:"owner_member_id"`
 }
 
 // ---- responses -------------------------------------------------------------
@@ -1248,12 +1255,12 @@ func (h *Handler) CreateBdActivity(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	if req.HappenedAt == nil || strings.TrimSpace(*req.HappenedAt) == "" {
-		writeError(w, http.StatusBadRequest, "happened_at is required")
+	happenedAt, ok := applyRequiredTimestampPatch(req.HappenedAt, w, "happened_at", pgtype.Timestamptz{})
+	if !ok {
 		return
 	}
-	happenedAt, ok := workbenchTimestampValue(w, req.HappenedAt, "happened_at")
-	if !ok {
+	if !happenedAt.Valid {
+		writeError(w, http.StatusBadRequest, "happened_at is required")
 		return
 	}
 	summary, ok := applyRequiredTextPatch(req.Summary, w, "summary", "")
@@ -1765,7 +1772,7 @@ func (h *Handler) CreateBdQuote(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	quotedAt, ok := workbenchTimestampValue(w, req.QuotedAt, "quoted_at")
+	quotedAt, ok := applyTimestampClearPatch(req.QuotedAt, w, "quoted_at", pgtype.Timestamptz{})
 	if !ok {
 		return
 	}
@@ -1967,7 +1974,7 @@ func (h *Handler) UpdateBdQuote(w http.ResponseWriter, r *http.Request) {
 		}
 		currency = parsed
 	}
-	quotedAt, ok := applyTimestampPatch(req.QuotedAt, w, "quoted_at", current.QuotedAt)
+	quotedAt, ok := applyTimestampClearPatch(req.QuotedAt, w, "quoted_at", current.QuotedAt)
 	if !ok {
 		return
 	}
@@ -2310,7 +2317,10 @@ func (h *Handler) CreateBdCampaign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	actor := h.workbenchActor(r, scope)
-	name := strings.TrimSpace(valueOrEmpty(req.Name))
+	name, ok := applyRequiredTextPatch(req.Name, w, "name", "")
+	if !ok {
+		return
+	}
 	if name == "" {
 		writeError(w, http.StatusBadRequest, "name is required")
 		return
@@ -2324,22 +2334,23 @@ func (h *Handler) CreateBdCampaign(w http.ResponseWriter, r *http.Request) {
 	} else if parsed != "" {
 		kind = parsed
 	}
-	if !workbenchNonNegativeAmount(w, req.BudgetAmount, "budget_amount") {
+	budgetAmount, ok := applyNumericClearPatch(req.BudgetAmount, w, "budget_amount", pgtype.Numeric{})
+	if !ok {
 		return
 	}
-	budgetAmount, ok := workbenchMoneyValue(w, req.BudgetAmount, "budget_amount")
-	if !ok {
+	if budgetAmount.Valid && numericToFloat(budgetAmount) < 0 {
+		writeError(w, http.StatusBadRequest, "budget_amount must not be negative")
 		return
 	}
 	currency, ok := workbenchCurrency(w, req.Currency)
 	if !ok {
 		return
 	}
-	startedOn, ok := workbenchDateValue(w, req.StartedOn, "started_on")
+	startedOn, ok := applyDateClearPatch(req.StartedOn, w, "started_on", pgtype.Date{})
 	if !ok {
 		return
 	}
-	endedOn, ok := workbenchDateValue(w, req.EndedOn, "ended_on")
+	endedOn, ok := applyDateClearPatch(req.EndedOn, w, "ended_on", pgtype.Date{})
 	if !ok {
 		return
 	}
@@ -2453,13 +2464,9 @@ func (h *Handler) UpdateBdCampaign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	actor := h.workbenchActor(r, scope)
-	name := current.Name
-	if req.Name != nil {
-		name = strings.TrimSpace(*req.Name)
-		if name == "" {
-			writeError(w, http.StatusBadRequest, "name is required")
-			return
-		}
+	name, ok := applyRequiredTextPatch(req.Name, w, "name", current.Name)
+	if !ok {
+		return
 	}
 	if !workbenchNameValue(w, name, "name") {
 		return
@@ -2470,11 +2477,12 @@ func (h *Handler) UpdateBdCampaign(w http.ResponseWriter, r *http.Request) {
 	} else if parsed != "" {
 		kind = parsed
 	}
-	if !workbenchNonNegativeAmount(w, req.BudgetAmount, "budget_amount") {
+	budgetAmount, ok := applyNumericClearPatch(req.BudgetAmount, w, "budget_amount", current.BudgetAmount)
+	if !ok {
 		return
 	}
-	budgetAmount, ok := workbenchMoneyPatch(w, req.BudgetAmount, "budget_amount", current.BudgetAmount)
-	if !ok {
+	if budgetAmount.Valid && numericToFloat(budgetAmount) < 0 {
+		writeError(w, http.StatusBadRequest, "budget_amount must not be negative")
 		return
 	}
 	currency := strings.TrimSpace(current.Currency)
@@ -2485,11 +2493,11 @@ func (h *Handler) UpdateBdCampaign(w http.ResponseWriter, r *http.Request) {
 		}
 		currency = parsed
 	}
-	startedOn, ok := applyDatePatch(req.StartedOn, w, "started_on", current.StartedOn)
+	startedOn, ok := applyDateClearPatch(req.StartedOn, w, "started_on", current.StartedOn)
 	if !ok {
 		return
 	}
-	endedOn, ok := applyDatePatch(req.EndedOn, w, "ended_on", current.EndedOn)
+	endedOn, ok := applyDateClearPatch(req.EndedOn, w, "ended_on", current.EndedOn)
 	if !ok {
 		return
 	}

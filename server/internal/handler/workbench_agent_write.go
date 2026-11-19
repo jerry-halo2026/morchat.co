@@ -298,12 +298,16 @@ func (h *Handler) workbenchMCPCreateQuote(r *http.Request, raw json.RawMessage) 
 	}
 
 	// The body is the ledger's own create request, built from the whitelisted
-	// fields only: anything this struct does not carry cannot reach the row.
+	// fields only: anything this struct does not carry cannot reach the row. The
+	// two clearable columns (`valid_until`, `note`) and `quoted_at` are raw JSON on
+	// the ledger's struct, so the tool's own values become raw too — an absent
+	// argument stays absent (`null` would mean "clear", §3.4) and a value keeps its
+	// "there is a value" meaning.
 	body := BdQuoteRequest{
 		CreatorID:  optionalString(args.CreatorID),
 		BriefID:    optionalString(args.BriefID),
 		Status:     optionalString(args.Status),
-		QuotedAt:   optionalString(args.QuotedAt),
+		QuotedAt:   rawOptionalString(args.QuotedAt),
 		ValidUntil: rawOptionalString(args.ValidUntil),
 		Note:       rawOptionalString(args.Note),
 	}
@@ -333,7 +337,7 @@ func (h *Handler) workbenchMCPLogActivity(r *http.Request, raw json.RawMessage) 
 	body := BdActivityRequest{
 		CreatorID:    optionalString(args.CreatorID),
 		Kind:         optionalString(args.Kind),
-		HappenedAt:   optionalString(args.HappenedAt),
+		HappenedAt:   rawOptionalString(args.HappenedAt),
 		Summary:      rawOptionalString(args.Summary),
 		Outcome:      rawOptionalString(args.Outcome),
 		NextFollowAt: rawOptionalString(args.NextFollowAt),
