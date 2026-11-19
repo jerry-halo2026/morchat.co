@@ -32,6 +32,7 @@ package handler
 // so a second client's list and the cockpit both refresh (WORKBENCH-API §4).
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -493,24 +494,40 @@ func (h *Handler) GetBdPipeline(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := r.Context()
 
-	creators, err := h.Queries.BdPipelineCreators(ctx, scope.WorkspaceUUID)
-	if err != nil {
-		workbenchInternalError(w, r, "failed to count creators", err)
-		return
-	}
-	quotes, err := h.Queries.BdPipelineQuotes(ctx, scope.WorkspaceUUID)
-	if err != nil {
-		workbenchInternalError(w, r, "failed to aggregate quotes", err)
-		return
-	}
-	orders, err := h.Queries.BdPipelineOrders(ctx, scope.WorkspaceUUID)
-	if err != nil {
-		workbenchInternalError(w, r, "failed to aggregate collaborations", err)
-		return
-	}
-	followups, err := h.Queries.BdPipelineFollowups(ctx, scope.WorkspaceUUID)
-	if err != nil {
-		workbenchInternalError(w, r, "failed to aggregate follow-ups", err)
+	// The four blocks aggregate four different grains, so they stay four
+	// statements — but none of them reads another's answer, and on the shared
+	// pooler every round trip is ~350 ms of pure waiting. They are dispatched
+	// together, and the failure is reported in this same declaration order so a
+	// 500 still names the query it named before.
+	var (
+		creators  db.BdPipelineCreatorsRow
+		quotes    db.BdPipelineQuotesRow
+		orders    db.BdPipelineOrdersRow
+		followups db.BdPipelineFollowupsRow
+	)
+	if err := runWorkbenchReads(ctx, []workbenchRead{
+		{"failed to count creators", func(ctx context.Context) error {
+			row, err := h.Queries.BdPipelineCreators(ctx, scope.WorkspaceUUID)
+			creators = row
+			return err
+		}},
+		{"failed to aggregate quotes", func(ctx context.Context) error {
+			row, err := h.Queries.BdPipelineQuotes(ctx, scope.WorkspaceUUID)
+			quotes = row
+			return err
+		}},
+		{"failed to aggregate collaborations", func(ctx context.Context) error {
+			row, err := h.Queries.BdPipelineOrders(ctx, scope.WorkspaceUUID)
+			orders = row
+			return err
+		}},
+		{"failed to aggregate follow-ups", func(ctx context.Context) error {
+			row, err := h.Queries.BdPipelineFollowups(ctx, scope.WorkspaceUUID)
+			followups = row
+			return err
+		}},
+	}); err != nil {
+		workbenchReadFailure(w, r, err, "failed to load the bd pipeline")
 		return
 	}
 
