@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
+	"github.com/jerry-halo2026/morchat.co/server/internal/knowledge"
 	"github.com/jerry-halo2026/morchat.co/server/internal/logger"
 	"github.com/jerry-halo2026/morchat.co/server/internal/util"
 	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
@@ -26,7 +27,8 @@ import (
 //   - create/rename/delete: workspace owner/admin
 //
 // Deletion has no foreign key behind it (repository rule), so it detaches its
-// projects and members inside the delete transaction and reports the counts.
+// projects, members and knowledge spaces inside the delete transaction and
+// reports the project and member counts.
 
 type DepartmentResponse struct {
 	ID          string  `json:"id"`
@@ -295,6 +297,15 @@ func (h *Handler) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "failed to detach department members")
 		return
 	}
+	// The knowledge domain owns knowledge_spaces SQL and sqlc has no query for
+	// it, so this cleanup goes through the knowledge store over this same
+	// transaction instead of a statement pasted into the handler. Its count is
+	// logged only: the response shape is a client contract and stays as is.
+	detachedSpaces, err := knowledge.NewStore(tx).ClearDepartmentSpaces(r.Context(), workspaceID, uuidToString(id))
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to detach department knowledge spaces")
+		return
+	}
 	deleted, err := qtx.DeleteDepartment(r.Context(), db.DeleteDepartmentParams{ID: id, WorkspaceID: wsUUID})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to delete department")
@@ -313,7 +324,8 @@ func (h *Handler) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 		"department_id", uuidToString(id),
 		"workspace_id", workspaceID,
 		"detached_projects", detachedProjects,
-		"detached_members", detachedMembers)...)
+		"detached_members", detachedMembers,
+		"detached_knowledge_spaces", detachedSpaces)...)
 
 	writeJSON(w, http.StatusOK, DeleteDepartmentResponse{
 		DetachedProjects: detachedProjects,

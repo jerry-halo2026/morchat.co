@@ -113,6 +113,37 @@ func TestDepartmentDeleteDetachesProjects(t *testing.T) {
 	}
 }
 
+// A knowledge space filed under a department is unfiled, not deleted, when that
+// department goes away: department_id is attribution with no foreign key behind
+// it, so the delete transaction has to clear it or the space keeps naming a row
+// that no longer exists.
+func TestDepartmentDeleteDetachesKnowledgeSpaces(t *testing.T) {
+	departmentID := dbfx.Insert(t, "department", testutil.Cols{
+		"workspace_id": testWorkspaceID,
+		"name":         uniqueDepartmentName("wiki"),
+	})
+	spaceID := knowledgeCreateSpace(t, "Department-owned space "+uuid.NewString()[:8], "", "")
+	dbfx.Exec(t, `UPDATE knowledge_spaces SET department_id = $2 WHERE id = $1`, spaceID, departmentID)
+	if stored := knowledgeStoredSpaceDepartment(t, spaceID); stored == nil || *stored != departmentID {
+		t.Fatalf("knowledge_spaces.department_id = %v before delete, want %q", stored, departmentID)
+	}
+
+	deleted := testutil.Decode[DeleteDepartmentResponse](t, testHandler.DeleteDepartment,
+		withURLParam(newRequest("DELETE", "/api/departments/"+departmentID, nil), "id", departmentID),
+		http.StatusOK)
+	if deleted.DetachedProjects != 0 || deleted.DetachedMembers != 0 {
+		t.Fatalf("DeleteDepartment: detached projects=%d members=%d, want 0/0",
+			deleted.DetachedProjects, deleted.DetachedMembers)
+	}
+
+	if remaining := knowledgeStoredSpaceDepartment(t, spaceID); remaining != nil {
+		t.Fatalf("knowledge_spaces.department_id = %v after delete, want NULL", *remaining)
+	}
+	if n := dbfx.Count(t, `SELECT count(*) FROM knowledge_spaces WHERE id = $1`, spaceID); n != 1 {
+		t.Fatalf("knowledge space rows after delete = %d, want 1", n)
+	}
+}
+
 // A department belongs to exactly one workspace: another workspace's row is
 // invisible to reads and untouchable by writes.
 func TestDepartmentCrossWorkspaceIsolation(t *testing.T) {
