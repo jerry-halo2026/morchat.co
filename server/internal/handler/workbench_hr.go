@@ -138,6 +138,9 @@ type HrCandidateRequest struct {
 // workspace member the profile belongs to and is required; the rest seeds the
 // profile the transaction creates or updates.
 type HrHireRequest struct {
+	// MemberID is the member's **user** id, not the `member` row id: the hire
+	// transaction resolves it with GetMemberByUserAndWorkspace, which is keyed by
+	// (user_id, workspace_id). A row id does not resolve and answers 400.
 	MemberID      *string          `json:"member_id"`
 	DepartmentID  *string          `json:"department_id"`
 	JobTitle      *string          `json:"job_title"`
@@ -188,8 +191,11 @@ type HrScorecardRequest struct {
 }
 
 // HrEmployeeProfileRequest is the create/PATCH body for an employee profile.
-// `member_id` identifies the row and cannot be changed afterwards.
+// `member_id` cannot be changed afterwards.
 type HrEmployeeProfileRequest struct {
+	// MemberID is the member's **user** id, the same id the hire body takes and
+	// the one `hr_employee_profile.member_id` stores — not the `member` row id.
+	// Create resolves it with GetMemberByUserAndWorkspace, so a row id answers 400.
 	MemberID      *string          `json:"member_id"`
 	DepartmentID  *string          `json:"department_id"`
 	JobTitle      *string          `json:"job_title"`
@@ -1535,7 +1541,7 @@ func (h *Handler) HireHrCandidate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, err := h.getWorkspaceMember(r.Context(), uuidToString(memberID), scope.WorkspaceID); err != nil {
-		writeError(w, http.StatusBadRequest, "member_id is not a member of this workspace")
+		writeError(w, http.StatusBadRequest, "member_id must be the user id of a workspace member")
 		return
 	}
 	departmentID, ok := h.requireHrDepartment(w, r, scope, req.DepartmentID)
@@ -2307,7 +2313,7 @@ func (h *Handler) CreateHrEmployee(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, err := h.getWorkspaceMember(r.Context(), uuidToString(memberID), scope.WorkspaceID); err != nil {
-		writeError(w, http.StatusBadRequest, "member_id is not a member of this workspace")
+		writeError(w, http.StatusBadRequest, "member_id must be the user id of a workspace member")
 		return
 	}
 	departmentID, ok := h.requireHrDepartment(w, r, scope, req.DepartmentID)

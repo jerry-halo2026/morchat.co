@@ -2387,6 +2387,10 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 				r.Route("/{id}", func(r chi.Router) {
 					r.Get("/", h.GetProject)
 					r.Put("/", h.UpdateProject)
+					// PATCH is the verb the docs and most clients use for a partial
+					// update; it runs the same handler, which is already three-state
+					// for every optional field.
+					r.Patch("/", h.UpdateProject)
 					r.Delete("/", h.DeleteProject)
 					r.Post("/workflow", h.SetProjectWorkflow)
 					r.Get("/members", h.ListProjectMembers)

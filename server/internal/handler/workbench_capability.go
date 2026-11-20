@@ -7,12 +7,14 @@ package handler
 // means: owner/admin still write everything. What the product layer needs on top is
 // a vocabulary that can say "a 鍟嗗姟 may quote but may not settle" without inventing
 // platform roles, so capabilities are **string constants** resolved per request from
-// four sources, in this order (搂24.2):
+// five sources, in this order (搂24.2):
 //
 //	1. role owner|admin  鈫?every capability
 //	2. workbench_role_template for the member's job title (hr_employee_profile)
 //	3. the department default table below (job function, by department name)
-//	4. fallback: every `*.read`, no `*.write`
+//	3b. department present but its name matches no built-in fragment: every `*.read`,
+//	    nothing else (`source: "department_unknown"`)
+//	4. fallback: the pre-capability set, for a member with NO department at all
 //
 // Two things this file deliberately does NOT do:
 //
@@ -72,6 +74,20 @@ var workbenchCapabilityCatalog = []string{
 	capHRRead, capHRWrite, capBossRead, capAdsRead,
 	capReviewAccept, capAgentDelegate,
 }
+
+// workbenchCapabilitySource* are the `source` wire values (搂24.2). The pre-existing
+// vocabulary is kept as it was and extended with one name, `department_unknown`: the
+// member HAS a department but its name matched no built-in fragment. `source` exists to
+// make "why can't I edit this" answerable, so folding that case into `department` would
+// make the answer wrong. The client union `WorkbenchCapabilitySource`
+// (packages/core/types/workbench.ts) carries the same literals.
+const (
+	capabilitySourceRole              = "role"
+	capabilitySourceTemplate          = "template"
+	capabilitySourceDepartment        = "department"
+	capabilitySourceDepartmentUnknown = "department_unknown"
+	capabilitySourceFallback          = "fallback"
+)
 
 // workbenchDepartmentDefaults is 搂24.2 step 3: a job function's default capability
 // set, keyed by a normalised fragment of the department's own name.
@@ -157,12 +173,47 @@ func (s capabilitySet) list() []string {
 // worse". `hr.write`, `review.accept` and `agent.delegate` are absent on purpose: they
 // are capabilities that did not exist before, so withholding them changes nothing,
 // while granting them by default would hand out new rights no owner ever approved.
+//
+// It is reachable only through `!member.department_id` (see resolveWorkbenchCapabilities).
+// A member who HAS a department whose name matches no built-in fragment gets
+// unknownDepartmentCapabilities instead: handing them this set would make an
+// unrecognised department outrank a recognised one (5 narrow capabilities for 商务, 10
+// broad ones for a renamed department), which turns "rename or delete the department"
+// into the cheapest way to gain rights.
 func fallbackCapabilities() capabilitySet {
 	return newCapabilitySet(
 		capCRMRead, capCRMWrite, capCRMAmount, capCRMSettle,
 		capMediaRead, capMediaWrite, capMediaPublish,
 		capHRRead, capAdsRead, capBossRead,
 	)
+}
+
+// unknownDepartmentCapabilities is what a member with a department the default table
+// cannot classify gets (a renamed department, one created before the table knew its
+// job function, or a dangling department_id). An unrecognised name tells the server
+// nothing about the job function, so the honest answer is the read-only floor of the
+// catalogue rather than the legacy write set: `crm.read media.read boss.read hr.read
+// ads.read` and nothing else.
+//
+// No write, settle, publish, `review.accept` or `agent.delegate`: those are decisions an
+// owner has to hand out explicitly, and a department name that matched nothing is not an
+// owner's decision. The department's people keep every read entry point, and a role
+// template (or a workspace with a better department name) grants more.
+func unknownDepartmentCapabilities() capabilitySet {
+	return newCapabilitySet(capCRMRead, capMediaRead, capBossRead, capHRRead, capAdsRead)
+}
+
+// departmentDefaultCapabilities is step 3 for one department name: the first (longest)
+// fragment the lowered name contains wins. `ok=false` means no fragment matched, which
+// the caller must not read as "no department".
+func departmentDefaultCapabilities(name string) (capabilitySet, bool) {
+	lowered := strings.ToLower(name)
+	for _, entry := range workbenchDepartmentDefaults {
+		if strings.Contains(lowered, entry.fragment) {
+			return newCapabilitySet(entry.capabilities...), true
+		}
+	}
+	return nil, false
 }
 
 // filterKnownCapabilities drops strings this server does not know, and de-duplicates.
@@ -190,50 +241,99 @@ func filterKnownCapabilities(values []string) []string {
 
 // ---- resolution ------------------------------------------------------------
 
-// workbenchCapabilities resolves 搂scope's capabilities. The order is the contract:
-// role 鈫?job-title template 鈫?department default 鈫?read-only fallback.
+// workbenchCapabilityFacts is everything 搂24.2 needs once the database has answered.
+// It exists so the resolution order can be tested as a pure function: the queries live in
+// collectWorkbenchCapabilityFacts, the decision lives in resolveWorkbenchCapabilities.
+type workbenchCapabilityFacts struct {
+	// Role is `member.role`, the platform primitive. owner/admin short-circuit the rest.
+	Role string
+	// HasTemplate reports whether the job title resolved a role template.
+	HasTemplate bool
+	// TemplateCapabilities is that template's set. A template saved with no capabilities
+	// still wins over the department default, which is why HasTemplate is separate.
+	TemplateCapabilities []string
+	// HasDepartment reports whether `member.department_id` is set, even when the row
+	// could not be read. A set-but-unreadable department is unknown, never "no
+	// department": a failed lookup must not widen rights.
+	HasDepartment bool
+	// DepartmentName is the name of the row `department_id` points at, or nil when it
+	// could not be read. Only meaningful together with HasDepartment.
+	DepartmentName *string
+}
+
+// resolveWorkbenchCapabilities is 搂24.2 as a pure function, so the order and every
+// terminal set are pinned by tests without a database: role 鈫?template 鈫?department
+// default 鈫?read-only floor. The returned string is the `source` wire value.
 //
-// The job title comes from the member's live `hr_employee_profile`; a member with no
-// profile has no title, so step 2 is skipped for them (an HR profile is not a
-// prerequisite for using the workbench).
-func (h *Handler) workbenchCapabilities(ctx context.Context, scope workbenchScope) capabilitySet {
-	if scope.Member.Role == "owner" || scope.Member.Role == "admin" {
-		return newCapabilitySet(workbenchCapabilityCatalog...)
+// The one decision worth reading twice is the read-only floor versus the legacy
+// fallback: only a member with NO department gets fallbackCapabilities. A member whose
+// department exists but whose name matched nothing gets unknownDepartmentCapabilities,
+// because "the department's name is unfamiliar" is not evidence of permission.
+func resolveWorkbenchCapabilities(facts workbenchCapabilityFacts) (capabilitySet, string) {
+	if facts.Role == "owner" || facts.Role == "admin" {
+		return newCapabilitySet(workbenchCapabilityCatalog...), capabilitySourceRole
+	}
+	if facts.HasTemplate {
+		return newCapabilitySet(facts.TemplateCapabilities...), capabilitySourceTemplate
+	}
+	if facts.HasDepartment {
+		if facts.DepartmentName != nil {
+			if defaults, ok := departmentDefaultCapabilities(*facts.DepartmentName); ok {
+				return defaults, capabilitySourceDepartment
+			}
+		}
+		return unknownDepartmentCapabilities(), capabilitySourceDepartmentUnknown
+	}
+	return fallbackCapabilities(), capabilitySourceFallback
+}
+
+// collectWorkbenchCapabilityFacts reads the two rows steps 2 and 3 need: the member's
+// live HR profile (for the job title) and the department row. Every failure mode leaves
+// the corresponding fact unset, and the resolver decides what that means 鈥?the queries
+// never pick a capability set themselves.
+func (h *Handler) collectWorkbenchCapabilityFacts(ctx context.Context, scope workbenchScope) workbenchCapabilityFacts {
+	facts := workbenchCapabilityFacts{
+		Role:          scope.Member.Role,
+		HasDepartment: scope.Member.DepartmentID.Valid,
 	}
 
-	// Step 2: the job title's template.
+	// Step 2 input: the job title's template. A member with no HR profile has no title,
+	// so an HR profile is not a prerequisite for using the workbench.
 	if profile, err := h.Queries.GetHrEmployeeProfileByMember(ctx, db.GetHrEmployeeProfileByMemberParams{
 		WorkspaceID: scope.WorkspaceUUID,
 		MemberID:    scope.Member.UserID,
-	}); err == nil && profile.ArchivedAt.Valid == false && profile.JobTitle.Valid {
+	}); err == nil && !profile.ArchivedAt.Valid && profile.JobTitle.Valid {
 		title := strings.TrimSpace(profile.JobTitle.String)
-		if title != "" && h.Queries != nil {
+		if title != "" {
 			if template, err := h.Queries.GetWorkbenchRoleTemplateByJobTitle(ctx, db.GetWorkbenchRoleTemplateByJobTitleParams{
 				WorkspaceID: scope.WorkspaceUUID,
 				JobTitle:    title,
 			}); err == nil {
-				return newCapabilitySet(template.Capabilities...)
+				facts.HasTemplate = true
+				facts.TemplateCapabilities = template.Capabilities
 			}
 		}
 	}
 
-	// Step 3: the department's default set.
+	// Step 3 input: the department's name.
 	if scope.Member.DepartmentID.Valid {
 		if department, err := h.Queries.GetDepartment(ctx, db.GetDepartmentParams{
 			ID:          scope.Member.DepartmentID,
 			WorkspaceID: scope.WorkspaceUUID,
 		}); err == nil {
-			name := strings.ToLower(department.Name)
-			for _, entry := range workbenchDepartmentDefaults {
-				if strings.Contains(name, entry.fragment) {
-					return newCapabilitySet(entry.capabilities...)
-				}
-			}
+			name := department.Name
+			facts.DepartmentName = &name
 		}
 	}
 
-	// Step 4: read everything, write nothing.
-	return fallbackCapabilities()
+	return facts
+}
+
+// workbenchCapabilities resolves 搂scope's capabilities. The order is the contract:
+// role 鈫?job-title template 鈫?department default 鈫?read-only fallback.
+func (h *Handler) workbenchCapabilities(ctx context.Context, scope workbenchScope) capabilitySet {
+	capabilities, _ := h.workbenchCapabilitiesWithSource(ctx, scope)
+	return capabilities
 }
 
 // requireWorkbenchCapability gates one handler on one capability and writes the 403
@@ -385,9 +485,11 @@ func roleTemplateToResponse(row db.WorkbenchRoleTemplate) WorkbenchRoleTemplateR
 // may do, so the client can hide entries instead of showing a 403.
 type WorkbenchCapabilitiesResponse struct {
 	Capabilities []string `json:"capabilities"`
-	// Source names which resolution step answered: `role`, `template`, `department`
-	// or `fallback`. It is diagnostic, and it is what makes "why can't I edit this"
-	// answerable from the browser.
+	// Source names which resolution step answered: `role`, `template`, `department`,
+	// `department_unknown` or `fallback`. It is diagnostic, and it is what makes "why
+	// can't I edit this" answerable from the browser. `department_unknown` is the one
+	// value this server added to the original four; the client parses `source` as a
+	// plain string, so an older client reads it as "not a step I know".
 	Source string `json:"source"`
 	Role   string `json:"role"`
 	// Visibility is the workspace's read scope (搂24.4), so a page can say
@@ -411,40 +513,14 @@ func (h *Handler) GetWorkbenchCapabilities(w http.ResponseWriter, r *http.Reques
 }
 
 // workbenchCapabilitiesWithSource is `workbenchCapabilities` plus the step name, for
-// the diagnostic surface. It repeats the resolution rather than making the fast path
-// return a tuple nobody else needs.
+// the diagnostic surface. Both entry points run the same resolver so the diagnostic
+// response and the enforcement path cannot drift apart.
 func (h *Handler) workbenchCapabilitiesWithSource(ctx context.Context, scope workbenchScope) (capabilitySet, string) {
+	// Step 1 needs no queries at all.
 	if scope.Member.Role == "owner" || scope.Member.Role == "admin" {
-		return newCapabilitySet(workbenchCapabilityCatalog...), "role"
+		return resolveWorkbenchCapabilities(workbenchCapabilityFacts{Role: scope.Member.Role})
 	}
-	if profile, err := h.Queries.GetHrEmployeeProfileByMember(ctx, db.GetHrEmployeeProfileByMemberParams{
-		WorkspaceID: scope.WorkspaceUUID,
-		MemberID:    scope.Member.UserID,
-	}); err == nil && !profile.ArchivedAt.Valid && profile.JobTitle.Valid {
-		title := strings.TrimSpace(profile.JobTitle.String)
-		if title != "" {
-			if template, err := h.Queries.GetWorkbenchRoleTemplateByJobTitle(ctx, db.GetWorkbenchRoleTemplateByJobTitleParams{
-				WorkspaceID: scope.WorkspaceUUID,
-				JobTitle:    title,
-			}); err == nil {
-				return newCapabilitySet(template.Capabilities...), "template"
-			}
-		}
-	}
-	if scope.Member.DepartmentID.Valid {
-		if department, err := h.Queries.GetDepartment(ctx, db.GetDepartmentParams{
-			ID:          scope.Member.DepartmentID,
-			WorkspaceID: scope.WorkspaceUUID,
-		}); err == nil {
-			name := strings.ToLower(department.Name)
-			for _, entry := range workbenchDepartmentDefaults {
-				if strings.Contains(name, entry.fragment) {
-					return newCapabilitySet(entry.capabilities...), "department"
-				}
-			}
-		}
-	}
-	return fallbackCapabilities(), "fallback"
+	return resolveWorkbenchCapabilities(h.collectWorkbenchCapabilityFacts(ctx, scope))
 }
 
 // ListWorkbenchRoleTemplates 鈥?GET /api/workbench/role-templates

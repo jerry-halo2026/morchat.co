@@ -64,6 +64,13 @@ export interface CreateProjectRequest {
   due_date?: string;
   /** Workflow to use from the start; omitted uses the Default workflow. */
   workflow_id?: string | null;
+  /**
+   * Files the project under an org unit when it is created. Attribution only
+   * (docs/engineering/ORG-MODEL.md §3): it changes no visibility, and omitted
+   * leaves the project unfiled. An explicit value outweighs the
+   * department_default_scope switch.
+   */
+  department_id?: string | null;
   // Resources to attach in the same transaction as the project. Server returns
   // 4xx (and rolls back) if any one is invalid or duplicate.
   resources?: CreateProjectResourceRequest[];
@@ -82,6 +89,8 @@ export interface UpdateProjectRequest {
   // Omit the key to leave the date untouched; send null (or "") to clear it.
   start_date?: string | null;
   due_date?: string | null;
+  // Omit to leave the filing alone; send null (or "") to clear it. Attribution only.
+  department_id?: string | null;
 }
 
 export interface ListProjectsResponse {

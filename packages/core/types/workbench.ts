@@ -1999,11 +1999,20 @@ export type WorkbenchCapability =
 
 /**
  * Which resolution step answered, for diagnostics: `role` (owner/admin), `template`
- * (the member's job title), `department` (the built-in default for their department)
- * or `fallback` (reads only). It is what makes "why can't I edit this?" answerable
- * without reading the server logs.
+ * (the member's job title), `department` (the built-in default for their department),
+ * `department_unknown` (they are in a department whose name matches no built-in default,
+ * so they get reads only) or `fallback` (no department at all). It is what makes "why
+ * can't I edit this?" answerable without reading the server logs.
+ *
+ * The server may add a source value before this client knows it; the response schema
+ * parses `source` as a plain string for exactly that reason.
  */
-export type WorkbenchCapabilitySource = "role" | "template" | "department" | "fallback";
+export type WorkbenchCapabilitySource =
+  | "role"
+  | "template"
+  | "department"
+  | "department_unknown"
+  | "fallback";
 
 /** `workspace.settings.workbench_visibility` (§24.4). */
 export type WorkbenchVisibility = "transparent" | "department";

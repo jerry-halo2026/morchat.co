@@ -55,6 +55,11 @@ UPDATE project SET
     lead_id = CASE WHEN sqlc.arg('lead_id_set')::boolean THEN sqlc.narg('lead_id') ELSE lead_id END,
     start_date = CASE WHEN sqlc.arg('start_date_set')::boolean THEN sqlc.narg('start_date') ELSE start_date END,
     due_date = CASE WHEN sqlc.arg('due_date_set')::boolean THEN sqlc.narg('due_date') ELSE due_date END,
+    -- department_id is the org scope (docs/engineering/ORG-MODEL.md §3), filed
+    -- after creation here: omitted leaves the filing alone, null clears it,
+    -- a value re-files the project. There is no foreign key behind the column,
+    -- so the handler proves the department exists in this workspace first.
+    department_id = CASE WHEN sqlc.arg('department_id_set')::boolean THEN sqlc.narg('department_id') ELSE department_id END,
     updated_at = now()
 WHERE id = $1
 RETURNING *;

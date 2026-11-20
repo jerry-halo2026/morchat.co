@@ -339,28 +339,35 @@ UPDATE project SET
     lead_id = CASE WHEN $11::boolean THEN $12 ELSE lead_id END,
     start_date = CASE WHEN $13::boolean THEN $14 ELSE start_date END,
     due_date = CASE WHEN $15::boolean THEN $16 ELSE due_date END,
+    -- department_id is the org scope (docs/engineering/ORG-MODEL.md §3), filed
+    -- after creation here: omitted leaves the filing alone, null clears it,
+    -- a value re-files the project. There is no foreign key behind the column,
+    -- so the handler proves the department exists in this workspace first.
+    department_id = CASE WHEN $17::boolean THEN $18 ELSE department_id END,
     updated_at = now()
 WHERE id = $1
 RETURNING id, workspace_id, title, description, icon, status, lead_type, lead_id, created_at, updated_at, priority, start_date, due_date, workflow_id, creator_type, creator_id, visibility, department_id, system_key
 `
 
 type UpdateProjectParams struct {
-	ID             pgtype.UUID `json:"id"`
-	Title          pgtype.Text `json:"title"`
-	DescriptionSet bool        `json:"description_set"`
-	Description    pgtype.Text `json:"description"`
-	IconSet        bool        `json:"icon_set"`
-	Icon           pgtype.Text `json:"icon"`
-	Status         pgtype.Text `json:"status"`
-	Priority       pgtype.Text `json:"priority"`
-	LeadTypeSet    bool        `json:"lead_type_set"`
-	LeadType       pgtype.Text `json:"lead_type"`
-	LeadIDSet      bool        `json:"lead_id_set"`
-	LeadID         pgtype.UUID `json:"lead_id"`
-	StartDateSet   bool        `json:"start_date_set"`
-	StartDate      pgtype.Date `json:"start_date"`
-	DueDateSet     bool        `json:"due_date_set"`
-	DueDate        pgtype.Date `json:"due_date"`
+	ID              pgtype.UUID `json:"id"`
+	Title           pgtype.Text `json:"title"`
+	DescriptionSet  bool        `json:"description_set"`
+	Description     pgtype.Text `json:"description"`
+	IconSet         bool        `json:"icon_set"`
+	Icon            pgtype.Text `json:"icon"`
+	Status          pgtype.Text `json:"status"`
+	Priority        pgtype.Text `json:"priority"`
+	LeadTypeSet     bool        `json:"lead_type_set"`
+	LeadType        pgtype.Text `json:"lead_type"`
+	LeadIDSet       bool        `json:"lead_id_set"`
+	LeadID          pgtype.UUID `json:"lead_id"`
+	StartDateSet    bool        `json:"start_date_set"`
+	StartDate       pgtype.Date `json:"start_date"`
+	DueDateSet      bool        `json:"due_date_set"`
+	DueDate         pgtype.Date `json:"due_date"`
+	DepartmentIDSet bool        `json:"department_id_set"`
+	DepartmentID    pgtype.UUID `json:"department_id"`
 }
 
 func (q *Queries) UpdateProject(ctx context.Context, arg UpdateProjectParams) (Project, error) {
@@ -381,6 +388,8 @@ func (q *Queries) UpdateProject(ctx context.Context, arg UpdateProjectParams) (P
 		arg.StartDate,
 		arg.DueDateSet,
 		arg.DueDate,
+		arg.DepartmentIDSet,
+		arg.DepartmentID,
 	)
 	var i Project
 	err := row.Scan(

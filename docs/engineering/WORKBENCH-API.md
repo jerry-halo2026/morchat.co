@@ -484,6 +484,7 @@ hr_employee_profile(id PK, workspace_id, member_id UUID NOT NULL, department_id 
 - 岗位：接受并返回 `edu` / `years` / `city` / `jd` / `urgent` / `keywords`；`keywords` 为字符串数组（去空白、丢空串），创建缺省 `[]`，PATCH 传 `[]` 即清空，省略则保留。
 - 候选人：接受并返回 `edu` / `years_experience` / `resume_text`（705）。`years_experience` 越界（0–60 之外）→ **400**；`resume_text` 超过 20000 字符 → **400**；两者省略即保留，显式传 `""` 置 NULL（不是空串）。列表与详情响应同字段。
 - `POST /candidates/{candidateId}/hire`：请求体 `CreateHrEmployeeProfileRequest`（`member_id` 必填）；同一事务内置 `stage=hired`、写 `hired_at`、创建或更新 `hr_employee_profile`；**响应 `{ candidate, employee_profile }`**（字段名与表名一致，客户端类型见 `HireHrCandidateResponse`），客户端要同时失效 candidates 与 employees 两个域。
+  - `member_id` 是成员的 **user id**，不是 `member` 行 id：服务端按 `(user_id, workspace_id)` 解析，传 `member.id` → **400**「`member_id must be the user id of a workspace member`」。响应里的 `employee_profile.member_id` 回显的也是这个 user id（`hr_employee_profile.member_id` 存的本就是 user id，§18.4），行 id 是 `employee_profile.id`。
 
 ### 10.4 事件
 
@@ -906,7 +907,7 @@ ALTER creator_post ADD COLUMN media_script_id UUID;
 
 - **UI / views 未接入**：本批只到迁移、SQL、handler、core 类型/zod/client；`packages/views/**`、`apps/**` 不在写作用域。
 - **前端实时 patcher**：`media_topic:changed` 已登记（§4）；`media_ip` / `media_script` / `media_shoot` 三个仍只有服务端发出，客户端靠 mutation 失效刷新——接实时时按 §12.6 的 payload 加 patcher 即可。
-- **`creator_post.media_script_id` 暂时没有写入路径**：`workbench_creator.go` 不在本批作用域、行为未改，所以 `POST/PATCH /creator-posts` 既不接收也不返回该列，新发的行恒为 NULL。接线时要：请求结构体加字段、写入前校验脚本在本工作区、响应回显。
+- **`creator_post.media_script_id` 已接线**（本条曾是"没有写入路径"的债务记录，已过期）：`POST/PATCH /creator-posts` 接收并回显该列，写入前经 `workbenchMediaScriptRef` 校验脚本属于本工作区。实测 §12 链路第 9 hop：发布行带 `media_script_id` 回指脚本，`GET /creator-posts?creator_id=` 读回同一值。
 - **`GET /creators` 不返回 `media_ip_id`**：同一原因（B0 handler 不在写作用域），`CreatorResponse` 没有这个字段；当前要从 IP 侧读账号（`GET /media/ips/{id}` 的 `accounts[]`）。接线时给 `CreatorResponse` 加字段即可，不会破坏旧客户端（新字段缺省即 null）。
 - **`/counts`、`/overview` 不含内容侧**：侧栏计数与指标条未扩展，本批不做聚合端点；列表 `total` 因此就是本页条数。
 - **MCP 只读工具未扩**：`/api/mcp/workbench` 的 `domain` 枚举未加 `media_*`。
@@ -2609,7 +2610,8 @@ umi,3000,0.2,2026-12-31,CNY,首轮报价
 1. `member.role = owner|admin` → 全部 capability。
 2. `workbench_role_template`(workspace_id, job_title) 命中 → 用模板集合（`hr_employee_profile.job_title`，未归档）。
 3. `member.department_id` 命中的部门默认集（本批内置一张常量表，不建表）。
-4. 兜底（无模板、无部门、role=member）：**等于上线前的行为** —— `crm.read crm.write crm.amount crm.settle media.read media.write media.publish hr.read ads.read boss.read`。回收不回 `hr.write` / `review.accept` / `agent.delegate`（这三个是 §24 才有的能力，默认不给才不改变存量行为）。
+3b. **有部门但名字未命中**（含部门行读不到/悬空 id）→ 只读地板 `crm.read media.read boss.read hr.read ads.read`，`source:"department_unknown"`，不含任何写/settle/publish/复核能力。**不能让这种情况落回第 4 步**：兜底集比多数部门默认宽，改名或删部门会因此变成提权。
+4. 兜底（**无部门**、无模板、role=member）：**等于上线前的行为** —— `crm.read crm.write crm.amount crm.settle media.read media.write media.publish hr.read ads.read boss.read`。回收不回 `hr.write` / `review.accept` / `agent.delegate`（这三个是 §24 才有的能力，默认不给才不改变存量行为）。
 
 ### 24.3 接口
 

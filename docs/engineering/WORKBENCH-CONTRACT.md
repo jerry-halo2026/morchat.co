@@ -399,9 +399,10 @@
 1. `member.role ∈ {owner, admin}` → 全部 13 个（`source:"role"`）。
 2. 该成员的 `hr_employee_profile.job_title`（未归档）命中 `workbench_role_template` → 模板集合（`source:"template"`）。
 3. `member.department_id` 的部门名按**子串**命中内置表（`source:"department"`）：`销售`/`商务`/`bd` → crm.read+crm.write+crm.amount+media.read+boss.read；`客户` → crm.read+crm.write+media.read；`内容` → media.read+media.write+media.publish+crm.read；`运营` → media.*+crm.read+boss.read；`投放`/`广告` → ads.read+media.read+boss.read；`人事`/`hr` → hr.read+hr.write；`财务` → crm.read+boss.read+crm.settle；`设计` → media.read+media.write（L83–99，最长片段优先）。
-4. 兜底（`source:"fallback"`）：`crm.read crm.write crm.amount crm.settle media.read media.write media.publish hr.read ads.read boss.read`（L159–165）。**不是只读**：它等于 capability 出现之前的行为；`hr.write` / `review.accept` / `agent.delegate` 默认不给。
+3b. **有部门但部门名未命中**（含部门行读不到/悬空 id）→ 只读地板（`source:"department_unknown"`）：`crm.read media.read boss.read hr.read ads.read`，不含任何写/settle/publish/复核能力。理由：未识别的部门名不是权限证据；若这里落回下面的兜底集合，"改个部门名"就成了最便宜的提权路径（商务 5 项 < 兜底 10 项）。要更多权限走职位模板。
+4. 兜底（`source:"fallback"`）：`crm.read crm.write crm.amount crm.settle media.read media.write media.publish hr.read ads.read boss.read`（L159–165）。**不是只读**：它等于 capability 出现之前的行为；`hr.write` / `review.accept` / `agent.delegate` 默认不给。**只有"完全没有部门"的成员才落到这里**。
 
-**三者的关系**：`role` 是平台角色（最高优先，且不可被模板收窄）；职位模板按**人**覆盖；部门默认按**部门名**兜底；三者都命不中才落到兜底集合。解析每次请求重算（无进程内缓存）。
+**三者的关系**：`role` 是平台角色（最高优先，且不可被模板收窄）；职位模板按**人**覆盖；部门默认按**部门名**兜底；有部门但名字不认识走 3b 的只读地板；只有无部门才落到兜底集合。解析每次请求重算（无进程内缓存）。
 
 ### 2.9 第二层：归属、部门与 agent
 

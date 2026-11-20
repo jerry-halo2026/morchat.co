@@ -332,6 +332,42 @@ func TestHrHireWritesEmployeeProfile(t *testing.T) {
 	testutil.Call(t, testHandler.HireHrCandidate, req).Want(http.StatusBadRequest)
 }
 
+// TestHrHireMemberIDIsUserID pins what the hire body's `member_id` means: the
+// member's user id. The membership lookup is keyed by (user_id, workspace_id), so
+// a `member` row id answers 400 with a message that names the id it expects
+// instead of the generic "not a member" rejection.
+func TestHrHireMemberIDIsUserID(t *testing.T) {
+	employeeUserID := workbenchTestMember(t)
+	var memberRowID string
+	dbfx.QueryRow(t, `SELECT id::text FROM member WHERE workspace_id = $1 AND user_id = $2`,
+		testWorkspaceID, employeeUserID).Scan(&memberRowID)
+
+	job := createHrJobFixture(t, testUserID, "Hire id job")
+	candidate := createHrCandidateFixture(t, job.ID, "Hire Id Candidate", "+8613800000016")
+
+	// The member row id is the id an employee profile reports as `id`; it is not
+	// what `member_id` accepts.
+	req := workbenchRequest(t, "POST", "/api/workbench/hr/candidates/"+candidate.ID+"/hire", map[string]any{
+		"member_id": memberRowID,
+	}, testUserID)
+	req = withURLParam(req, "candidateId", candidate.ID)
+	body := testutil.Call(t, testHandler.HireHrCandidate, req).Want(http.StatusBadRequest).Map()
+	if body["error"] != "member_id must be the user id of a workspace member" {
+		t.Fatalf("error = %v, want the user-id message", body["error"])
+	}
+
+	// The user id hires, and the profile echoes that same user id back.
+	req = workbenchRequest(t, "POST", "/api/workbench/hr/candidates/"+candidate.ID+"/hire", map[string]any{
+		"member_id": employeeUserID,
+	}, testUserID)
+	req = withURLParam(req, "candidateId", candidate.ID)
+	hired := testutil.Decode[HrHireResponse](t, testHandler.HireHrCandidate, req, http.StatusOK)
+	t.Cleanup(func() { dbfx.Exec(t, `DELETE FROM hr_employee_profile WHERE id = $1`, hired.EmployeeProfile.ID) })
+	if hired.EmployeeProfile.MemberID != employeeUserID {
+		t.Fatalf("profile member_id = %s, want the user id %s", hired.EmployeeProfile.MemberID, employeeUserID)
+	}
+}
+
 // TestHrScorecardGateAndDuplicate covers the scorecard ledger: one card per
 // reviewer per interview, the candidate-owner write gate, and the event.
 func TestHrScorecardGateAndDuplicate(t *testing.T) {

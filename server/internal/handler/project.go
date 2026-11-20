@@ -145,6 +145,12 @@ type CreateProjectRequest struct {
 	// uses the workspace Default workflow. A new project has no issues, so no
 	// status mapping is involved. (MUL-7420)
 	WorkflowID *string `json:"workflow_id,omitempty"`
+	// DepartmentID files the project under an org unit at creation
+	// (docs/engineering/ORG-MODEL.md §3). Attribution only — it never widens or
+	// narrows who can read the project. Omitted leaves the project unfiled, and
+	// an explicit value outweighs the department_default_scope switch, which is
+	// the guess; this is the operator's answer.
+	DepartmentID *string `json:"department_id,omitempty"`
 }
 
 // CreateProjectResourceRequestPayload mirrors CreateProjectResourceRequest but
@@ -171,6 +177,14 @@ type UpdateProjectRequest struct {
 	// MemberIDs is only read together with a switch to "private".
 	Visibility *string  `json:"visibility"`
 	MemberIDs  []string `json:"member_ids,omitempty"`
+	// DepartmentID re-files the project under another org unit
+	// (docs/engineering/ORG-MODEL.md §3), so a filing that was wrong at
+	// creation — or a project that changed owner — can be corrected.
+	// PATCH semantics: an absent key leaves the filing untouched, null or ""
+	// clears it, and a value must name a department in this workspace.
+	// Attribution only: it never widens or narrows who can read the project,
+	// and it grants no member the department's access.
+	DepartmentID *string `json:"department_id"`
 }
 
 func (h *Handler) ListProjects(w http.ResponseWriter, r *http.Request) {
@@ -504,6 +518,22 @@ func (h *Handler) CreateProject(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// An explicit department is the operator's answer and wins over the switch's
+	// guess above. The id has to name a department in this workspace: there is no
+	// foreign key behind the column, so a dangling id would leave "which
+	// department owns this project" pointing at a row that does not exist.
+	if req.DepartmentID != nil && strings.TrimSpace(*req.DepartmentID) != "" {
+		id, ok := parseUUIDOrBadRequest(w, strings.TrimSpace(*req.DepartmentID), "department_id")
+		if !ok {
+			return
+		}
+		if _, err := h.Queries.GetDepartment(r.Context(), db.GetDepartmentParams{ID: id, WorkspaceID: wsUUID}); err != nil {
+			writeError(w, http.StatusBadRequest, "department not found in this workspace")
+			return
+		}
+		departmentID = id
+	}
+
 	createParams := db.CreateProjectParams{
 		CreatorType:  pgtype.Text{String: actorType, Valid: true},
 		CreatorID:    creatorID,
@@ -678,6 +708,7 @@ func (h *Handler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 	_, params.LeadIDSet = rawFields["lead_id"]
 	_, params.StartDateSet = rawFields["start_date"]
 	_, params.DueDateSet = rawFields["due_date"]
+	_, params.DepartmentIDSet = rawFields["department_id"]
 	if req.Title != nil {
 		params.Title = pgtype.Text{String: *req.Title, Valid: true}
 	}
@@ -750,6 +781,28 @@ func (h *Handler) UpdateProject(w http.ResponseWriter, r *http.Request) {
 		} else {
 			params.DueDate = pgtype.Date{Valid: false} // explicit null = clear date
 		}
+	}
+	// Re-filing under a department follows the same present-key contract, but
+	// it is validated exactly like CreateProject: an explicit department is the
+	// operator's answer, so it wins over whatever the project had, and there is
+	// no foreign key behind the column — a dangling id would leave "which
+	// department owns this project" pointing at a row that does not exist.
+	if _, ok := rawFields["department_id"]; ok {
+		var departmentID pgtype.UUID
+		if req.DepartmentID != nil {
+			if trimmed := strings.TrimSpace(*req.DepartmentID); trimmed != "" {
+				id, ok := parseUUIDOrBadRequest(w, trimmed, "department_id")
+				if !ok {
+					return
+				}
+				if _, err := h.Queries.GetDepartment(r.Context(), db.GetDepartmentParams{ID: id, WorkspaceID: wsUUID}); err != nil {
+					writeError(w, http.StatusBadRequest, "department not found in this workspace")
+					return
+				}
+				departmentID = id
+			}
+		}
+		params.DepartmentID = departmentID // null or "" = clear the filing
 	}
 	newLeadType, newLeadID := prevProject.LeadType, prevProject.LeadID
 	if params.LeadTypeSet {
