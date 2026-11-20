@@ -41,6 +41,7 @@ import (
 	"github.com/jerry-halo2026/morchat.co/server/internal/seatcapacity"
 	"github.com/jerry-halo2026/morchat.co/server/internal/service"
 	"github.com/jerry-halo2026/morchat.co/server/internal/storage"
+	"github.com/jerry-halo2026/morchat.co/server/internal/supabaseauth"
 	"github.com/jerry-halo2026/morchat.co/server/internal/util"
 	"github.com/jerry-halo2026/morchat.co/server/internal/util/secretbox"
 	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
@@ -255,7 +256,11 @@ type Handler struct {
 	HeartbeatScheduler HeartbeatScheduler
 	Storage            storage.Storage
 	CFSigner           *auth.CloudFrontSigner
-	Analytics          analytics.Client
+	// SupabaseProvisioner creates the invitee's provider account when this
+	// deployment signs people in with Supabase (invitation-time provisioning).
+	// Nil means invitations are link-only, which is the self-hosted default.
+	SupabaseProvisioner supabaseauth.Provisioner
+	Analytics           analytics.Client
 	// DaemonPendingWork pushes "heartbeat now" hints for queued
 	// heartbeat-carried requests (MUL-5444). Optional: when nil,
 	// requestDaemonPendingWork falls back to the local DaemonHub, which is the

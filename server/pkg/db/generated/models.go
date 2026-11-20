@@ -3480,17 +3480,21 @@ type WorkspaceComposioConnection struct {
 }
 
 type WorkspaceInvitation struct {
-	ID            pgtype.UUID        `json:"id"`
-	WorkspaceID   pgtype.UUID        `json:"workspace_id"`
-	InviterID     pgtype.UUID        `json:"inviter_id"`
-	InviteeEmail  string             `json:"invitee_email"`
-	InviteeUserID pgtype.UUID        `json:"invitee_user_id"`
-	Role          string             `json:"role"`
-	Status        string             `json:"status"`
-	CreatedAt     pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
-	ExpiresAt     pgtype.Timestamptz `json:"expires_at"`
-	DepartmentID  pgtype.UUID        `json:"department_id"`
+	ID               pgtype.UUID        `json:"id"`
+	WorkspaceID      pgtype.UUID        `json:"workspace_id"`
+	InviterID        pgtype.UUID        `json:"inviter_id"`
+	InviteeEmail     string             `json:"invitee_email"`
+	InviteeUserID    pgtype.UUID        `json:"invitee_user_id"`
+	Role             string             `json:"role"`
+	Status           string             `json:"status"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	ExpiresAt        pgtype.Timestamptz `json:"expires_at"`
+	DepartmentID     pgtype.UUID        `json:"department_id"`
+	ProvisionState   string             `json:"provision_state"`
+	ProvisionError   pgtype.Text        `json:"provision_error"`
+	ProvisionedAt    pgtype.Timestamptz `json:"provisioned_at"`
+	ProvisionSubject pgtype.Text        `json:"provision_subject"`
 }
 
 type WorkspaceMcpServer struct {

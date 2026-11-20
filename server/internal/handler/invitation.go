@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -16,6 +17,7 @@ import (
 	"github.com/jerry-halo2026/morchat.co/server/internal/logger"
 	obsmetrics "github.com/jerry-halo2026/morchat.co/server/internal/metrics"
 	"github.com/jerry-halo2026/morchat.co/server/internal/seatcapacity"
+	"github.com/jerry-halo2026/morchat.co/server/internal/supabaseauth"
 	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 	"github.com/jerry-halo2026/morchat.co/server/pkg/protocol"
 )
@@ -39,21 +41,31 @@ type InvitationResponse struct {
 	InviterName   string `json:"inviter_name,omitempty"`
 	InviterEmail  string `json:"inviter_email,omitempty"`
 	WorkspaceName string `json:"workspace_name,omitempty"`
+	// ProvisionState reports what creating the invitee's Supabase account did:
+	// disabled (no service key), created, already_exists, failed. Additive and
+	// defaulted, so older clients ignore it.
+	ProvisionState string  `json:"provision_state,omitempty"`
+	ProvisionError *string `json:"provision_error,omitempty"`
+	// InitialPassword is returned exactly once, in the response to the request
+	// that created the provider account: the admin hands it to the invitee out
+	// of band. It is never stored and never appears in list responses.
+	InitialPassword *string `json:"initial_password,omitempty"`
 }
 
 func invitationToResponse(inv db.WorkspaceInvitation) InvitationResponse {
 	return InvitationResponse{
-		ID:            uuidToString(inv.ID),
-		WorkspaceID:   uuidToString(inv.WorkspaceID),
-		InviterID:     uuidToString(inv.InviterID),
-		InviteeEmail:  inv.InviteeEmail,
-		InviteeUserID: uuidToPtr(inv.InviteeUserID),
-		Role:          inv.Role,
-		Status:        inv.Status,
-		CreatedAt:     timestampToString(inv.CreatedAt),
-		UpdatedAt:     timestampToString(inv.UpdatedAt),
-		ExpiresAt:     timestampToString(inv.ExpiresAt),
-		DepartmentID:  uuidToPtr(inv.DepartmentID),
+		ID:             uuidToString(inv.ID),
+		WorkspaceID:    uuidToString(inv.WorkspaceID),
+		InviterID:      uuidToString(inv.InviterID),
+		InviteeEmail:   inv.InviteeEmail,
+		InviteeUserID:  uuidToPtr(inv.InviteeUserID),
+		Role:           inv.Role,
+		Status:         inv.Status,
+		CreatedAt:      timestampToString(inv.CreatedAt),
+		UpdatedAt:      timestampToString(inv.UpdatedAt),
+		ExpiresAt:      timestampToString(inv.ExpiresAt),
+		DepartmentID:   uuidToPtr(inv.DepartmentID),
+		ProvisionState: inv.ProvisionState,
 	}
 }
 
@@ -87,6 +99,15 @@ func (h *Handler) CreateInvitation(w http.ResponseWriter, r *http.Request) {
 	if role == "owner" {
 		writeError(w, http.StatusBadRequest, "cannot invite as owner")
 		return
+	}
+	// An explicit initial password has to clear the same floor the provider
+	// enforces; anything shorter would provision nothing and read as a provider
+	// failure instead of a bad request.
+	if req.Password != nil {
+		if trimmed := strings.TrimSpace(*req.Password); trimmed != "" && len(trimmed) < 8 {
+			writeErrorCode(w, http.StatusBadRequest, "weak_password", "password must be at least 8 characters")
+			return
+		}
 	}
 
 	// Optional department: an absent or empty value keeps the pre-department
@@ -267,8 +288,139 @@ func (h *Handler) CreateInvitation(w http.ResponseWriter, r *http.Request) {
 		}()
 	}
 
+	// With Supabase password sign-in configured, an invitation also creates the
+	// provider account with a password, so the invitee can sign in immediately
+	// with email + password and no mail is sent. A provider failure never fails
+	// the invitation: the link still works, and the state lets an owner retry
+	// (POST .../invitations/{id}/provision).
+	if provisioned, state, initialPassword, detail := h.provisionInvitation(r.Context(), inv, req.Password); provisioned {
+		resp.ProvisionState = state
+		resp.ProvisionError = detail
+		resp.InitialPassword = initialPassword
+	}
+
 	writeJSON(w, http.StatusCreated, resp)
 }
+
+// ProvisionInvitation retries the provider account creation for a pending
+// invitation. POST /api/workspaces/{id}/invitations/{invitationId}/provision
+func (h *Handler) ProvisionInvitation(w http.ResponseWriter, r *http.Request) {
+	workspaceID := workspaceIDFromURL(r, "id")
+	requester, ok := h.requireWorkspaceRole(w, r, workspaceID, "workspace not found", "owner", "admin")
+	if !ok {
+		return
+	}
+	if h.SupabaseProvisioner == nil {
+		writeError(w, http.StatusConflict, "supabase account provisioning is not configured")
+		return
+	}
+	invitationID, ok := parseUUIDOrBadRequest(w, chi.URLParam(r, "invitationId"), "invitation id")
+	if !ok {
+		return
+	}
+	inv, err := h.Queries.GetInvitation(r.Context(), invitationID)
+	if err != nil || inv.WorkspaceID != requester.WorkspaceID {
+		writeError(w, http.StatusNotFound, "invitation not found")
+		return
+	}
+	if inv.Status != "pending" {
+		writeError(w, http.StatusConflict, "invitation is not pending")
+		return
+	}
+
+	_, state, initialPassword, detail := h.provisionInvitation(r.Context(), inv, nil)
+	resp := invitationToResponse(inv)
+	resp.ProvisionState = state
+	resp.ProvisionError = detail
+	resp.InitialPassword = initialPassword
+	writeJSON(w, http.StatusOK, resp)
+}
+
+// provisionInvitation asks the provider to create the invitee's account with a
+// password and records what happened on the invitation row. `provisioned=false`
+// means this deployment has no service key, so the columns keep their 'disabled'
+// default and no password is minted.
+//
+// `requested` is the admin's chosen password; empty means "generate one". The
+// returned password is the only copy that ever exists: it is not stored, so a
+// retry mints a new one.
+//
+// The write is a plain statement rather than a generated query: these three
+// columns are bookkeeping no read path joins on, and adding them to sqlc would
+// churn every generated invitation row for no benefit.
+func (h *Handler) provisionInvitation(ctx context.Context, inv db.WorkspaceInvitation, requested *string) (provisioned bool, state string, initialPassword *string, detail *string) {
+	if h.SupabaseProvisioner == nil {
+		return false, "", nil, nil
+	}
+
+	password := ""
+	if requested != nil {
+		password = strings.TrimSpace(*requested)
+	}
+	if password == "" {
+		generated, err := supabaseauth.GeneratePassword()
+		if err != nil {
+			// No password, no account: record it like any other provider failure.
+			h.recordProvisioning(ctx, inv, "failed", err.Error(), "")
+			return true, "failed", nil, ptrString(err.Error())
+		}
+		password = generated
+	}
+
+	// A retry on an invitation whose account this server already created is a
+	// password reset: the first password was shown once and never stored, so
+	// resetting is the only way back in.
+	if subject := strings.TrimSpace(inv.ProvisionSubject.String); inv.ProvisionSubject.Valid && subject != "" {
+		if err := h.SupabaseProvisioner.ResetPassword(ctx, subject, password); err != nil {
+			h.recordProvisioning(ctx, inv, "failed", err.Error(), subject)
+			return true, "failed", nil, ptrString(err.Error())
+		}
+		h.recordProvisioning(ctx, inv, "password_reset", "", subject)
+		return true, "password_reset", &password, nil
+	}
+
+	res, err := h.SupabaseProvisioner.CreateAccount(ctx, inv.InviteeEmail, password)
+	switch {
+	case err != nil:
+		h.recordProvisioning(ctx, inv, "failed", err.Error(), "")
+		return true, "failed", nil, ptrString(err.Error())
+	case res.AlreadyExists:
+		// The address has an account we did not create (or cannot address), so
+		// there is no password to hand over: the invitee uses their own.
+		h.recordProvisioning(ctx, inv, "already_exists", "", "")
+		return true, "already_exists", nil, nil
+	default:
+		h.recordProvisioning(ctx, inv, "created", "", res.Subject)
+		return true, "created", &password, nil
+	}
+}
+
+// recordProvisioning writes the outcome and logs it. A log line without the
+// password, always.
+func (h *Handler) recordProvisioning(ctx context.Context, inv db.WorkspaceInvitation, state, errText, subject string) {
+	if _, execErr := h.DB.Exec(ctx,
+		`UPDATE workspace_invitation
+		    SET provision_state = $2,
+		        provision_error = NULLIF($3, ''),
+		        provision_subject = NULLIF($4, ''),
+		        provisioned_at = now()
+		  WHERE id = $1`,
+		inv.ID, state, errText, subject); execErr != nil {
+		slog.Warn("invitation provisioning: record state failed",
+			"invitation_id", uuidToString(inv.ID), "state", state, "error", execErr)
+		return
+	}
+
+	attrs := []any{"invitation_id", uuidToString(inv.ID), "email", inv.InviteeEmail, "state", state}
+	if errText != "" {
+		attrs = append(attrs, "error", errText)
+		slog.Warn("invitation provisioning failed", attrs...)
+		return
+	}
+	slog.Info("invitation provisioning recorded", attrs...)
+}
+
+func ptrString(value string) *string { return &value }
 
 // ListWorkspaceInvitations — pending invitations for a workspace (admin view).
 // GET /api/workspaces/{id}/invitations

@@ -46,6 +46,7 @@ import (
 	"github.com/jerry-halo2026/morchat.co/server/internal/seatcapacity"
 	"github.com/jerry-halo2026/morchat.co/server/internal/service"
 	"github.com/jerry-halo2026/morchat.co/server/internal/storage"
+	"github.com/jerry-halo2026/morchat.co/server/internal/supabaseauth"
 	"github.com/jerry-halo2026/morchat.co/server/internal/util"
 	"github.com/jerry-halo2026/morchat.co/server/internal/util/secretbox"
 	composiosdk "github.com/jerry-halo2026/morchat.co/server/pkg/composio"
@@ -463,6 +464,10 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 	h.InvitationRateLimiters = handler.NewMemoryInvitationRateLimiters(invitationRateLimits)
 	h.Metrics = opts.BusinessMetrics
 	h.FeatureFlags = opts.FeatureFlags
+	// Invitation-time account provisioning needs the provider's service key,
+	// which only a Supabase-password deployment has. Nil keeps invitations
+	// link-only, the self-hosted default.
+	h.SupabaseProvisioner = supabaseauth.AdminFromEnv()
 	h.TaskService.FeatureFlags = opts.FeatureFlags
 	h.TaskService.Metrics = opts.BusinessMetrics
 	h.IssueService.Metrics = opts.BusinessMetrics
@@ -1940,6 +1945,9 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 						r.Delete("/", h.DeleteMember)
 					})
 					r.Delete("/invitations/{invitationId}", h.RevokeInvitation)
+					// Retry creating the invitee's Supabase account after a
+					// provider failure (invitation-time provisioning).
+					r.Post("/invitations/{invitationId}/provision", h.ProvisionInvitation)
 					// Curating the shared MCP library is an admin action.
 					// Creating an entry binds it to no agent; an agent owner
 					// adds it to their own agent through the agent routes.

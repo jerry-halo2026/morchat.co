@@ -4316,6 +4316,17 @@ export class ApiClient {
     });
   }
 
+  /**
+   * Retries creating the invitee's Supabase account. A successful retry mints a
+   * new password and returns it once (`initial_password`); the old one is gone
+   * because the server never stored it.
+   */
+  async provisionInvitation(workspaceId: string, invitationId: string): Promise<Invitation> {
+    return this.fetch(`/api/workspaces/${workspaceId}/invitations/${invitationId}/provision`, {
+      method: "POST",
+    });
+  }
+
   async listMyInvitations(): Promise<Invitation[]> {
     return this.fetch("/api/invitations");
   }

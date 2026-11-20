@@ -184,8 +184,23 @@ describe("MembersTab", () => {
     renderWithI18n(<MembersTab />);
 
     expect(screen.getAllByText("Platform").length).toBeGreaterThan(0);
-    // Grace has no department: the column stays blank rather than guessing one.
-    expect(screen.queryByText("No department")).toBeNull();
+    // Grace has no department: the column names the absence instead of going
+    // blank, which is what the other rosters (boss/team) already do.
+    expect(screen.getByText("Not assigned")).toBeInTheDocument();
+  });
+
+  it("offers department management even before any department exists", async () => {
+    // The cold start this fixes: the invitation form hides its department field
+    // until a department exists, so with zero departments there was no way in.
+    data.departments = [];
+    const user = userEvent.setup();
+    renderWithI18n(<MembersTab />);
+
+    const open = screen.getByRole("button", { name: "New department" });
+    await user.click(open);
+
+    expect(await screen.findByText("Manage departments")).toBeInTheDocument();
+    expect(screen.getByLabelText("Name")).toBeInTheDocument();
   });
 
   it("filters the member list by department", async () => {

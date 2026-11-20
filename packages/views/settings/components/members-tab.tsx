@@ -11,6 +11,7 @@ import {
   Mail,
   MoreHorizontal,
   Plus,
+  RefreshCw,
   Search,
   Shield,
   Trash2,
@@ -91,6 +92,7 @@ import {
   workspaceKeys,
 } from "@morechat/core/workspace/queries";
 import { DepartmentSelect } from "../../departments/department-select";
+import { DepartmentManager } from "../../departments/department-manager";
 import {
   ALL_DEPARTMENTS,
   NO_DEPARTMENT,
@@ -222,6 +224,8 @@ function MemberRow({
   const isLastOwner = member.role === "owner" && ownerCount <= 1;
   // Filing a member under a department is an owner/admin action like the rest of
   // this menu; the list keeps "nobody manages their own membership" for self.
+  // A single-owner workspace therefore files that owner through the API or a
+  // second admin — attribution is not a right, so this stays as it was.
   const canChangeDepartment = canManage && !isSelf;
   const showMenu = canEditRole || canRemove || canChangeDepartment;
   const departmentId = memberDepartmentId(member);
@@ -242,7 +246,7 @@ function MemberRow({
         <div className="truncate text-caption text-muted-foreground">{member.email}</div>
       </div>
       <span className="hidden w-32 shrink-0 truncate text-caption text-muted-foreground lg:block">
-        {departmentLabel}
+        {departmentLabel ?? t(($) => $.members.department_unassigned)}
       </span>
       <span className="hidden w-32 shrink-0 text-caption tabular-nums text-muted-foreground md:block">
         {t(($) => $.members.joined, {
@@ -367,11 +371,13 @@ function InvitationRow({
   invitation,
   canManage,
   onRevoke,
+  onRegeneratePassword,
   busy,
 }: {
   invitation: Invitation;
   canManage: boolean;
   onRevoke: () => void;
+  onRegeneratePassword: () => void;
   busy: boolean;
 }) {
   const { t } = useT("settings");
@@ -395,6 +401,19 @@ function InvitationRow({
       </div>
       <span className="w-24 shrink-0 text-body">{rc.label}</span>
       <span className="flex size-7 shrink-0 items-center justify-center">
+        {canManage && (
+          <IconButton
+            variant="ghost"
+            size="icon-sm"
+            disabled={busy}
+            onClick={onRegeneratePassword}
+            label={t(($) => $.members.regenerate_password, {
+              email: invitation.invitee_email,
+            })}
+          >
+            <RefreshCw className="size-4 text-muted-foreground" />
+          </IconButton>
+        )}
         {canManage && (
           <IconButton
             variant="ghost"
@@ -487,6 +506,19 @@ export function MembersTab() {
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [shareLinkOpen, setShareLinkOpen] = useState(false);
+  // Set when the invitation also created the invitee's account: the password is
+  // in this response only, so it is shown once before the dialog is dismissed.
+  const [createdAccount, setCreatedAccount] = useState<{
+    email: string;
+    password: string;
+    mode: "created" | "reset";
+  } | null>(null);
+  // Naming, renaming and removing departments happens here rather than on a
+  // page of its own: a department is attribution, and the member list is where
+  // it is attached. Without this dialog a fresh workspace cannot create the
+  // first department at all (the invitation form hides the field until one
+  // exists), which made the whole model reachable only through the API.
+  const [departmentManagerOpen, setDepartmentManagerOpen] = useState(false);
   const requestedView = resolveSettingsLocation(
     navigation?.searchParams ?? new URLSearchParams(),
   ).section;
@@ -582,10 +614,10 @@ export function MembersTab() {
 
   const sendInvitation = useCallback(
     async (email: string, role: MemberRole, departmentId: string | null) => {
-      if (!workspace) return;
+      if (!workspace) return undefined;
       // An unset department is sent as an absent field: the invitee joins no
       // department, which is also what a backend that predates the field does.
-      await api.createMember(workspace.id, {
+      const invitation = await api.createMember(workspace.id, {
         email,
         role,
         ...(departmentId ? { department_id: departmentId } : {}),
@@ -596,7 +628,12 @@ export function MembersTab() {
       await qc.invalidateQueries({
         queryKey: workspaceKeys.invitations(wsId),
       });
-      toast.success(t(($) => $.members.toast_invitation_sent));
+      // With provisioning the account already exists, so "invitation sent" would
+      // contradict the dialog that reports it. The caller shows that dialog.
+      if (!invitation?.initial_password) {
+        toast.success(t(($) => $.members.toast_invitation_sent));
+      }
+      return invitation;
     },
     [qc, t, workspace, wsId],
   );
@@ -609,8 +646,18 @@ export function MembersTab() {
       inviteDepartment === NO_DEPARTMENT ? null : inviteDepartment;
     setInviteLoading(true);
     try {
-      await sendInvitation(email, role, departmentId);
+      const invitation = await sendInvitation(email, role, departmentId);
       setInviteOpen(false);
+      // With Supabase provisioning the invitation also created the account;
+      // its password exists only in this response, so show it while we still
+      // can.
+      if (invitation?.initial_password) {
+        setCreatedAccount({
+          email,
+          password: invitation.initial_password,
+          mode: "created",
+        });
+      }
     } catch (e) {
       const code = errorCode(e);
       const capacityFailure = seatInvitationCapacityFailure(code);
@@ -876,6 +923,37 @@ export function MembersTab() {
     });
   };
 
+  // The initial password is shown once and never stored, so "I lost it" has one
+  // answer: mint a new one. The provider replaces the old password, and the new
+  // one goes into the same one-time dialog.
+  const handleRegeneratePassword = async (invitation: Invitation) => {
+    if (!workspace) return;
+    setInvitationActionId(invitation.id);
+    try {
+      const updated = await api.provisionInvitation(workspace.id, invitation.id);
+      if (updated.initial_password) {
+        setCreatedAccount({
+          email: invitation.invitee_email,
+          password: updated.initial_password,
+          mode: "reset",
+        });
+      } else {
+        // already_exists: the person has their own password and we must not
+        // pretend to know it.
+        toast.success(t(($) => $.members.password_regenerated_existing));
+      }
+      void qc.invalidateQueries({ queryKey: workspaceKeys.invitations(wsId) });
+    } catch (e) {
+      toast.error(
+        e instanceof Error && e.message
+          ? e.message
+          : t(($) => $.members.toast_password_regenerate_failed),
+      );
+    } finally {
+      setInvitationActionId(null);
+    }
+  };
+
   const handleRoleChange = async (memberId: string, role: MemberRole) => {
     if (!workspace) return;
     setMemberActionId(memberId);
@@ -1055,6 +1133,19 @@ export function MembersTab() {
             ) : null}
             {activeView === "members" ? (
               <>
+                {canManageWorkspace ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDepartmentManagerOpen(true)}
+                    className="shrink-0"
+                  >
+                    <Building2 />
+                    {departments.length > 0
+                      ? t(($) => $.members.departments_manage)
+                      : t(($) => $.members.department_new)}
+                  </Button>
+                ) : null}
                 {departments.length > 0 ? (
                   <div className="w-full sm:w-40">
                     <DepartmentSelect
@@ -1140,6 +1231,7 @@ export function MembersTab() {
                     invitation={inv}
                     canManage={canManageWorkspace}
                     onRevoke={() => handleRevokeInvitation(inv)}
+                    onRegeneratePassword={() => void handleRegeneratePassword(inv)}
                     busy={invitationActionId === inv.id}
                   />
                 </div>
@@ -1240,7 +1332,25 @@ export function MembersTab() {
                   disabled={inviteLoading}
                 />
               </div>
-            ) : null}
+            ) : (
+              <div className="space-y-1.5 rounded-md border border-dashed border-border px-3 py-2">
+                <p className="text-caption text-muted-foreground">
+                  {t(($) => $.members.department_none_yet)}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setInviteOpen(false);
+                    setDepartmentManagerOpen(true);
+                  }}
+                >
+                  <Plus />
+                  {t(($) => $.members.department_new)}
+                </Button>
+              </div>
+            )}
             <DialogFooter>
               <Button
                 type="button"
@@ -1259,6 +1369,72 @@ export function MembersTab() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={createdAccount !== null}
+        onOpenChange={(open) => {
+          if (!open) setCreatedAccount(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {createdAccount?.mode === "reset"
+                ? t(($) => $.members.account_reset_title)
+                : t(($) => $.members.account_created_title)}
+            </DialogTitle>
+            <DialogDescription>
+              {createdAccount?.mode === "reset"
+                ? t(($) => $.members.account_reset_description)
+                : t(($) => $.members.account_created_description)}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="created-account-email">
+                {t(($) => $.members.account_created_email)}
+              </Label>
+              <Input id="created-account-email" value={createdAccount?.email ?? ""} readOnly />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="created-account-password">
+                {t(($) => $.members.account_created_password)}
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="created-account-password"
+                  value={createdAccount?.password ?? ""}
+                  readOnly
+                  className="font-mono"
+                />
+                <IconButton
+                  variant="ghost"
+                  size="icon-sm"
+                  label={t(($) => $.members.account_created_copy)}
+                  onClick={() => {
+                    if (!createdAccount) return;
+                    const text = `${createdAccount.email}\n${createdAccount.password}`;
+                    void navigator.clipboard?.writeText(text).then(
+                      () => toast.success(t(($) => $.members.account_created_copied)),
+                      () => toast.error(t(($) => $.members.account_created_copy_failed)),
+                    );
+                  }}
+                >
+                  <Copy className="size-4 text-muted-foreground" />
+                </IconButton>
+              </div>
+            </div>
+            <p className="text-caption text-muted-foreground">
+              {t(($) => $.members.account_created_hint)}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={() => setCreatedAccount(null)}>
+              {t(($) => $.members.confirm_action)}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -1472,6 +1648,15 @@ export function MembersTab() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {canManageWorkspace ? (
+        <DepartmentManager
+          wsId={wsId}
+          open={departmentManagerOpen}
+          onOpenChange={setDepartmentManagerOpen}
+          departments={departments}
+        />
+      ) : null}
     </SettingsTab>
   );
 }

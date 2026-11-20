@@ -128,6 +128,18 @@ export interface Invitation {
   workspace_name?: string;
   /** Department the invitee joins on accept; absent on pre-department backends. */
   department_id?: string | null;
+  /**
+   * What creating the invitee's Supabase account did (disabled | created |
+   * already_exists | failed). Absent on backends without provisioning.
+   */
+  provision_state?: string;
+  provision_error?: string;
+  /**
+   * The initial password, present only in the response to the request that
+   * created the provider account. It is returned once and never stored, so the
+   * admin has to hand it over before closing the dialog.
+   */
+  initial_password?: string;
 }
 
 export interface ShareLink {

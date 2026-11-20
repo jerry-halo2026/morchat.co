@@ -620,6 +620,10 @@ type CreateMemberRequest struct {
 	// joins with no department. When present it must name a department in this
 	// workspace, and accepting the invitation files the new member under it.
 	DepartmentID string `json:"department_id"`
+	// Password is the initial password for the invitee's Supabase account.
+	// Optional: absent or empty means the server generates one and returns it
+	// once in this response. Ignored when the deployment has no service key.
+	Password *string `json:"password"`
 }
 
 func (h *Handler) memberWithUserResponse(member db.Member, user db.User) MemberWithUserResponse {

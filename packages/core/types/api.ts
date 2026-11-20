@@ -685,6 +685,12 @@ export interface CreateMemberRequest {
   role?: MemberRole;
   /** Optional department the invitee joins; omitted keeps "no department". */
   department_id?: string | null;
+  /**
+   * Initial password for the invitee's Supabase account. Omitted means the
+   * server generates one and returns it once as `initial_password`. Ignored by
+   * deployments without a service key.
+   */
+  password?: string;
 }
 
 export interface UpdateMemberRequest {
