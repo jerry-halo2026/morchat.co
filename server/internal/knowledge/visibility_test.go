@@ -362,15 +362,21 @@ func seedShadowOrg(t *testing.T) (spaceID, memberID, adminID string) {
 			SpaceID:     spaceID,
 			Title:       "project scoped note",
 			Kind:        KindNote,
-			ACLMode:     ACLModeProject,
-			ProjectID:   &projectID,
-			OwnerID:     &adminID,
+			// Active on purpose: the project-ACL shadow reports what a flip would
+			// hide from a viewer who can already read the item. An unapproved
+			// draft is hidden from that viewer by the review gate alone, so a
+			// draft fixture would measure the wrong rule.
+			Status:    StatusActive,
+			ACLMode:   ACLModeProject,
+			ProjectID: &projectID,
+			OwnerID:   &adminID,
 		},
 		{
 			WorkspaceID: testWorkspaceID,
 			SpaceID:     spaceID,
 			Title:       "workspace note",
 			Kind:        KindNote,
+			Status:      StatusActive,
 			ACLMode:     ACLModeWorkspace,
 			OwnerID:     &adminID,
 		},

@@ -170,19 +170,71 @@ func (h *Handler) StartKnowledgeImport(w http.ResponseWriter, r *http.Request) {
 		MIME        string                   `json:"mime"`
 		Content     string                   `json:"content"`
 		ACLMode     string                   `json:"acl_mode"`
+		Status      string                   `json:"status"`
 		ChunkConfig knowledgeChunkConfigBody `json:"chunk_config"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeErrorCode(w, http.StatusBadRequest, "knowledge_invalid_request", "invalid JSON body")
 		return
 	}
-	// An import is the bulk door into the same table. A human upload is indexed
-	// immediately; a machine credential (a run's task token, a cloud node) can
-	// only land drafts, because the review gate must not be reachable around the
-	// side (W1-A). The agent-side equivalent of this route is knowledge.propose.
-	status := ""
-	if isMachineCredentialActor(r) {
-		status = knowledge.StatusDraft
+	// An import creates one row per document, so the only statuses it can start
+	// in are draft and active: archived and deprecated are transitions of a row
+	// that already exists.
+	requested := strings.ToLower(strings.TrimSpace(body.Status))
+	if requested != "" && requested != knowledge.StatusDraft && requested != knowledge.StatusActive {
+		writeErrorCode(w, http.StatusBadRequest, "knowledge_invalid_request",
+			fmt.Sprintf("status must be %q or %q on import", knowledge.StatusDraft, knowledge.StatusActive))
+		return
+	}
+	// An import is the bulk door into the same table, so the draft → active gate
+	// (W1-A, knowledge_review.go) applies here too. A machine credential (a run's
+	// task token, a cloud node) always lands drafts, because the agent-side
+	// equivalent of this route is knowledge.propose. A person may publish
+	// directly only where they could have approved the item — the space owner,
+	// its department lead, or a workspace owner/admin.
+	approver := false
+	if spaceID := strings.TrimSpace(body.SpaceID); spaceID != "" {
+		if !isMachineCredentialActor(r) {
+			member, err := h.getWorkspaceMember(r.Context(), viewerID, workspaceID)
+			if err != nil {
+				writeErrorCode(w, http.StatusForbidden, "knowledge_review_forbidden",
+					"this caller is not a member of the workspace")
+				return
+			}
+			if actorType, _ := h.resolveActor(r, viewerID, workspaceID); actorType != "agent" {
+				if approver, err = h.canApproveKnowledgeHere(
+					r.Context(), workspaceID, viewerID, member, spaceID); err != nil {
+					writeKnowledgeError(w, "import", err)
+					return
+				}
+			} else if requested == knowledge.StatusActive {
+				writeErrorCode(w, http.StatusForbidden, "knowledge_review_forbidden",
+					"an agent may propose knowledge but not approve it; a person has to review the item")
+				return
+			}
+		}
+		// An explicit status is honoured or refused, never downgraded: a caller
+		// who asked for active and got a draft would read the 202 as published,
+		// which hides the missing permission from the client that sent it.
+		if requested == knowledge.StatusActive && !approver {
+			writeErrorCode(w, http.StatusForbidden, "knowledge_review_forbidden",
+				"only the space owner, its department lead, or a workspace owner/admin may import knowledge as active")
+			return
+		}
+	}
+	// An approver keeps today's behaviour when the body omits status: publishing
+	// is exactly what the right allows. That publish is recorded as the review —
+	// reviewed_by / reviewed_at / stale_after, the same stamp ApproveKnowledgeItem
+	// writes — so an item the approver was entitled to publish is not reported by
+	// the audit as never reviewed. No issue carried the decision, so
+	// review_issue_id stays NULL: migration 651 leaves all four review columns
+	// nullable for exactly this case, and the audit classes on reviewed_at, not on
+	// the issue. Everyone else lands a draft that needs an approval.
+	status := knowledge.StatusDraft
+	reviewedBy := ""
+	if approver && requested != knowledge.StatusDraft {
+		status = knowledge.StatusActive
+		reviewedBy = viewerID
 	}
 	task, err := h.knowledgeService().StartImport(r.Context(), knowledge.ImportRequest{
 		WorkspaceID: workspaceID,
@@ -196,6 +248,7 @@ func (h *Handler) StartKnowledgeImport(w http.ResponseWriter, r *http.Request) {
 		ACLMode:     body.ACLMode,
 		OwnerID:     viewerID,
 		Status:      status,
+		ReviewedBy:  reviewedBy,
 	})
 	if err != nil {
 		writeKnowledgeError(w, "import", err)

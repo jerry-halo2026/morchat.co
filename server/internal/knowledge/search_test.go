@@ -90,6 +90,58 @@ func TestFuseRRFEmptyInput(t *testing.T) {
 	}
 }
 
+// TestVisFilterPinsTheDraftDimension is the DB-free guard for the index-layer
+// predicate. A draft must reach its owner and the people who may approve it in its
+// space, and nobody else; `active` must keep the plain ACL reading. The predicate
+// is one SQL string, so the three actor cases are pinned as the branches it has to
+// name, together with the negation the `notin` half of the split uses.
+func TestVisFilterPinsTheDraftDimension(t *testing.T) {
+	cond := visFilter(true)
+
+	// Non-approver: `active` is the only status indexable without naming the viewer.
+	if !strings.Contains(cond, "status = 'active'") {
+		t.Errorf("index predicate does not gate on status: %s", cond)
+	}
+	// Owner: a draft stays searchable for the person it belongs to.
+	if !strings.Contains(cond, "coalesce(owner_id::text = $2, false)") {
+		t.Errorf("index predicate does not name the draft's owner: %s", cond)
+	}
+	// Approver: the space owner, the lead of the space's department, and any
+	// workspace owner/admin — the reviewers the review gate admits.
+	for _, branch := range []string{
+		"sp.owner_id::text = $2",
+		"d.lead_user_id::text = $2",
+		"m.role IN ('owner', 'admin')",
+	} {
+		if !strings.Contains(cond, branch) {
+			t.Errorf("index predicate does not name approver branch %q: %s", branch, cond)
+		}
+	}
+	// The gate adds a dimension; it does not replace the ACL reading underneath.
+	if !strings.Contains(cond, "acl_mode = ANY('{workspace,project}'::text[])") {
+		t.Errorf("index predicate lost the ACL half: %s", cond)
+	}
+
+	// The visible and the invisible id lists have to be the same predicate and its
+	// exact negation, or the two halves of the split name different sets.
+	if got, want := visFilter(false), "NOT "+cond; got != want {
+		t.Fatalf("visFilter(false) = %q, want %q", got, want)
+	}
+	// Parameterised, not interpolated: the workspace and the viewer are the only
+	// bound arguments, so no caller can put text into the predicate.
+	if strings.Contains(cond, "$3") {
+		t.Errorf("index predicate binds more than workspace and viewer: %s", cond)
+	}
+
+	// One implementation, three call sites: the count and both branches of the
+	// id-list split go through visFilter instead of spelling the predicate out.
+	body := readFile(t, "search.go")
+	if calls := strings.Count(body, "visFilter("); calls < 4 {
+		t.Fatalf("search.go calls visFilter %d times, want the definition plus the "+
+			"count and both id-list branches", calls)
+	}
+}
+
 // fakeEmbedder is a deterministic bag-of-words vectoriser: enough to exercise the
 // SQL over pgvector without shipping a model.
 type fakeEmbedder struct{ dim int }
@@ -386,22 +438,99 @@ func TestRetrievalIndexLayerFollowsVisibility(t *testing.T) {
 	}
 }
 
-// importPrivateItem writes one private item with a chunk, bypassing the pipeline
-// only for the owner (the pipeline always sets one).
-func importPrivateItem(t *testing.T, spaceID, title, content string, owner *string) string {
-	t.Helper()
+// TestRetrievalHidesDraftsFromNonApprovers is the regression for the draft leak:
+// an unapproved item was indexable exactly like an approved one, so any member
+// could find — and then read — someone else's draft through search. The
+// index-layer predicate now gates a draft on its owner and on the people who may
+// approve it in its space.
+//
+// DB-backed on purpose: the rule is SQL. It is not run in this environment, where
+// every package shares one database.
+func TestRetrievalHidesDraftsFromNonApprovers(t *testing.T) {
+	requireDB(t)
+	cleanupItems(t)
+	cleanupImportTasks(t)
+	spaceID := testSpace(t, testWorkspaceID)
 	ctx := context.Background()
 	service := testService()
-	item, err := service.Store().CreateItem(ctx, NewItem{
+
+	author := dbfx.User(t, "Draft Author", "knowledge-draft-author@multica.ai")
+	dbfx.Member(t, testWorkspaceID, author, "member")
+	spaceOwner := dbfx.User(t, "Draft Space Owner", "knowledge-draft-space-owner@multica.ai")
+	dbfx.Member(t, testWorkspaceID, spaceOwner, "member")
+	// The space owner is one of the three people who may approve here.
+	dbfx.Exec(t, `UPDATE knowledge_spaces SET owner_id = $3
+		WHERE workspace_id = $1 AND id = $2`, testWorkspaceID, spaceID, spaceOwner)
+
+	// One approved item, so the index layer has rows the member may see, and one
+	// draft of the author's that says the same word.
+	approved, _ := importForTest(t, service, spaceID, "Approved zeppelin notes", importDoc())
+	draft := createItemWithChunk(t, service, spaceID, NewItem{
+		Title:   "Draft zeppelin notes",
+		Status:  StatusDraft,
+		ACLMode: ACLModeWorkspace,
+		OwnerID: &author,
+	}, "The zeppelin notes are still waiting for review.\n")
+
+	member, err := service.Retrieve(ctx, RetrieveInput{
 		WorkspaceID: testWorkspaceID,
-		SpaceID:     spaceID,
-		Title:       title,
-		Status:      StatusActive,
-		ACLMode:     ACLModePrivate,
-		OwnerID:     owner,
+		ViewerID:    testUserID,
+		Query:       "zeppelin",
+		TopK:        10,
 	})
 	if err != nil {
-		t.Fatalf("CreateItem %q: %v", title, err)
+		t.Fatalf("Retrieve as member: %v", err)
+	}
+	if member.Debug.VisibleItems != 1 || member.Debug.TotalItems != 2 {
+		t.Fatalf("visibility counts = %d/%d, want 1/2 (the draft is not the member's)",
+			member.Debug.VisibleItems, member.Debug.TotalItems)
+	}
+	if len(member.Hits) == 0 {
+		t.Fatalf("the approved item is not retrievable: debug=%+v", member.Debug)
+	}
+	for _, hit := range member.Hits {
+		if hit.ItemID == draft {
+			t.Fatalf("another user's draft leaked into the member's results")
+		}
+		if hit.ItemID != approved {
+			t.Fatalf("unexpected hit from item %s", hit.ItemID)
+		}
+	}
+
+	// The owner and the space owner still see it: the gate narrows the index, it
+	// does not hide drafts from the people the review needs.
+	for name, viewer := range map[string]string{"author": author, "space owner": spaceOwner} {
+		got, err := service.Retrieve(ctx, RetrieveInput{
+			WorkspaceID: testWorkspaceID,
+			ViewerID:    viewer,
+			Query:       "zeppelin",
+			TopK:        10,
+		})
+		if err != nil {
+			t.Fatalf("Retrieve as %s: %v", name, err)
+		}
+		found := false
+		for _, hit := range got.Hits {
+			if hit.ItemID == draft {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("%s cannot find the draft they have to review: debug=%+v", name, got.Debug)
+		}
+	}
+}
+
+// createItemWithChunk writes one item plus one chunk of it, for the fixtures the
+// import pipeline cannot produce (a draft, an item with no owner).
+func createItemWithChunk(t *testing.T, service *Service, spaceID string, in NewItem, content string) string {
+	t.Helper()
+	ctx := context.Background()
+	in.WorkspaceID = testWorkspaceID
+	in.SpaceID = spaceID
+	item, err := service.Store().CreateItem(ctx, in)
+	if err != nil {
+		t.Fatalf("CreateItem %q: %v", in.Title, err)
 	}
 	doc, err := service.Store().CreateDocument(ctx, NewDocument{
 		WorkspaceID: testWorkspaceID,
@@ -410,7 +539,7 @@ func importPrivateItem(t *testing.T, spaceID, title, content string, owner *stri
 		Mime:        "text/markdown",
 	})
 	if err != nil {
-		t.Fatalf("CreateDocument %q: %v", title, err)
+		t.Fatalf("CreateDocument %q: %v", in.Title, err)
 	}
 	if _, err := service.Store().CreateChunk(ctx, NewChunk{
 		WorkspaceID: testWorkspaceID,
@@ -419,9 +548,21 @@ func importPrivateItem(t *testing.T, spaceID, title, content string, owner *stri
 		Content:     content,
 		Tokens:      EstimateTokens(content),
 	}); err != nil {
-		t.Fatalf("CreateChunk %q: %v", title, err)
+		t.Fatalf("CreateChunk %q: %v", in.Title, err)
 	}
 	return item.ID
+}
+
+// importPrivateItem writes one private item with a chunk, bypassing the pipeline
+// only for the owner (the pipeline always sets one).
+func importPrivateItem(t *testing.T, spaceID, title, content string, owner *string) string {
+	t.Helper()
+	return createItemWithChunk(t, testService(), spaceID, NewItem{
+		Title:   title,
+		Status:  StatusActive,
+		ACLMode: ACLModePrivate,
+		OwnerID: owner,
+	}, content)
 }
 
 // assertOnlyItems fails unless every hit belongs to one of the given items.

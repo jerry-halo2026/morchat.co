@@ -170,8 +170,14 @@ func TestKnowledgeReviewApprovalMatrix(t *testing.T) {
 		if status != http.StatusForbidden {
 			t.Fatalf("status = %d, body = %v", status, body)
 		}
-		if code, _ := body["code"].(string); code != "knowledge_review_forbidden" {
-			t.Fatalf("code = %q, want knowledge_review_forbidden", code)
+		// An unapproved draft is readable by its owner, its space's owner, its
+		// department's lead and a workspace owner/admin, and by nobody else, so
+		// this caller cannot even open the row: the read that loads the item
+		// refuses before the review question is asked, with the same
+		// knowledge_forbidden any hidden item answers. Asking the review question
+		// first would tell a stranger that the id names a knowledge item.
+		if code, _ := body["code"].(string); code != "knowledge_forbidden" {
+			t.Fatalf("code = %q, want knowledge_forbidden", code)
 		}
 	})
 
@@ -471,4 +477,228 @@ func knowledgeAuditClassHas(body map[string]any, class, itemID string) bool {
 		}
 	}
 	return false
+}
+
+// knowledgeReviewAudit reads GET /api/knowledge/review-audit once, so a test can
+// assert which class (if any) its own rows landed in.
+func knowledgeReviewAudit(t *testing.T) map[string]any {
+	t.Helper()
+	status, body := knowledgeDo(t, testHandler.AuditKnowledgeReview,
+		testutil.JSONRequest(http.MethodGet, "/api/knowledge/review-audit", nil), "", "")
+	if status != http.StatusOK {
+		t.Fatalf("audit: status = %d, body = %v", status, body)
+	}
+	return body
+}
+
+// knowledgeReviewRecord reads the stamp an approval leaves on a stored row.
+func knowledgeReviewRecord(t *testing.T, itemID string) (reviewedBy string, reviewedAt *time.Time) {
+	t.Helper()
+	dbfx.QueryRow(t, `SELECT coalesce(reviewed_by::text, ''), reviewed_at
+		FROM knowledge_items WHERE id = $1`, itemID).Scan(&reviewedBy, &reviewedAt)
+	return reviewedBy, reviewedAt
+}
+
+// knowledgeAssertSelfReviewed pins what an approver's import records: the
+// decision is on the row (so the item counts as reviewed), no issue carried it,
+// and the audit therefore stops reporting the item as never reviewed.
+func knowledgeAssertSelfReviewed(t *testing.T, itemID, approver string) {
+	t.Helper()
+	var reviewIssueID string
+	var staleAfter *time.Time
+	reviewedBy, reviewedAt := knowledgeReviewRecord(t, itemID)
+	dbfx.QueryRow(t, `SELECT coalesce(review_issue_id::text, ''), stale_after
+		FROM knowledge_items WHERE id = $1`, itemID).Scan(&reviewIssueID, &staleAfter)
+	if reviewedBy != approver {
+		t.Fatalf("reviewed_by = %q, want the importing approver %q", reviewedBy, approver)
+	}
+	if reviewedAt == nil {
+		t.Fatalf("self-published import carries no reviewed_at")
+	}
+	if staleAfter == nil {
+		t.Fatalf("self-published import carries no stale_after")
+	}
+	// The import named no review issue, and the schema allows that: the columns
+	// are independently nullable, so this is a complete self-review, not a half
+	// stamped row.
+	if reviewIssueID != "" {
+		t.Fatalf("self-published import recorded review_issue_id = %q", reviewIssueID)
+	}
+	if knowledgeAuditClassHas(knowledgeReviewAudit(t), "unreviewed_active", itemID) {
+		t.Fatalf("self-published import %s is still listed as unreviewed active", itemID)
+	}
+}
+
+// knowledgeImport drives POST /api/knowledge/import. extra overrides body fields,
+// so a caller can ask for a status or leave it out; headers are the auth facts a
+// machine credential carries.
+func knowledgeImport(t *testing.T, spaceID, title, userID string, extra map[string]any, headers ...string) (int, map[string]any) {
+	t.Helper()
+	payload := map[string]any{
+		"space_id":   spaceID,
+		"title":      title,
+		"source_ref": "knowledge/imports/test/gate.md",
+		"content":    "# " + title + "\n\nbody text about airships\n",
+	}
+	for key, value := range extra {
+		payload[key] = value
+	}
+	if userID == "" {
+		userID = testUserID
+	}
+	req := testutil.JSONRequest(http.MethodPost, "/api/knowledge/import", payload)
+	req = testutil.WithHeaders(req, append([]string{
+		"X-User-ID", userID,
+		"X-Workspace-ID", testWorkspaceID,
+	}, headers...)...)
+	rec := httptest.NewRecorder()
+	middleware.RequireWorkspaceMember(testHandler.Queries)(http.HandlerFunc(testHandler.StartKnowledgeImport)).ServeHTTP(rec, req)
+
+	var body map[string]any
+	if rec.Body.Len() > 0 {
+		if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+			t.Fatalf("decode body %q: %v", rec.Body.String(), err)
+		}
+	}
+	return rec.Code, body
+}
+
+// knowledgeImportedItem waits for an import task to become terminal and returns
+// the item it created together with that row's status. The pipeline runs in its
+// own goroutine, so the task row — what a polling client reads — is the only
+// observation both sides agree on.
+func knowledgeImportedItem(t *testing.T, taskID string) (itemID, status string) {
+	t.Helper()
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		var taskStatus, taskError string
+		var created *string
+		dbfx.QueryRow(t, `SELECT status, coalesce(error, ''), item_id::text FROM knowledge_import_tasks WHERE id = $1`,
+			taskID).Scan(&taskStatus, &taskError, &created)
+		if taskStatus == "failed" {
+			t.Fatalf("import task %s failed: %s", taskID, taskError)
+		}
+		if taskStatus == "done" {
+			if created == nil {
+				t.Fatalf("import task %s finished %q without an item", taskID, taskStatus)
+			}
+			dbfx.QueryRow(t, `SELECT status FROM knowledge_items WHERE id = $1`, *created).Scan(&status)
+			return *created, status
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("import task %s never finished (status %q)", taskID, taskStatus)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+// TestKnowledgeImportGoesThroughTheGate pins the bulk door to the same review
+// gate as approval: an import may only land active for a caller who could have
+// approved the item, and asking for active without that right is refused rather
+// than quietly turned into a draft.
+func TestKnowledgeImportGoesThroughTheGate(t *testing.T) {
+	if testPool == nil {
+		t.Skip("handler tests require a reachable DATABASE_URL")
+	}
+
+	spaceOwner := dbfx.User(t, "Import gate space owner", "import-gate-space-owner@multica.ai")
+	dbfx.Member(t, testWorkspaceID, spaceOwner, "member")
+	plainMember := dbfx.User(t, "Import gate plain", "import-gate-plain@multica.ai")
+	dbfx.Member(t, testWorkspaceID, plainMember, "member")
+	// The space belongs to someone else, so plainMember is not an approver here
+	// while spaceOwner is (by ownership, not by workspace role). The suite's own
+	// user is a workspace owner and would pass every case on the role alone.
+	spaceID := knowledgeCreateSpace(t, "Import gate space", spaceOwner, "")
+
+	t.Run("non-approver lands a draft", func(t *testing.T) {
+		status, body := knowledgeImport(t, spaceID, "Import gate draft", plainMember, nil)
+		if status != http.StatusAccepted {
+			t.Fatalf("status = %d, body = %v", status, body)
+		}
+		itemID, itemStatus := knowledgeImportedItem(t, knowledgeString(t, body, "id"))
+		if itemStatus != "draft" {
+			t.Fatalf("imported status = %q, want draft", itemStatus)
+		}
+		var reviewIssueID string
+		dbfx.QueryRow(t, `SELECT coalesce(review_issue_id::text, '') FROM knowledge_items WHERE id = $1`,
+			itemID).Scan(&reviewIssueID)
+		if reviewIssueID != "" {
+			t.Fatalf("unreviewed import recorded review_issue_id = %q", reviewIssueID)
+		}
+		// A draft is exactly the row the audit must keep asking about.
+		if reviewedBy, reviewedAt := knowledgeReviewRecord(t, itemID); reviewedBy != "" || reviewedAt != nil {
+			t.Fatalf("draft import recorded a review: reviewed_by=%q reviewed_at=%v", reviewedBy, reviewedAt)
+		}
+	})
+
+	t.Run("approver imports active explicitly", func(t *testing.T) {
+		status, body := knowledgeImport(t, spaceID, "Import gate active", spaceOwner,
+			map[string]any{"status": "active"})
+		if status != http.StatusAccepted {
+			t.Fatalf("status = %d, body = %v", status, body)
+		}
+		itemID, itemStatus := knowledgeImportedItem(t, knowledgeString(t, body, "id"))
+		if itemStatus != "active" {
+			t.Fatalf("imported status = %q, want active", itemStatus)
+		}
+		knowledgeAssertSelfReviewed(t, itemID, spaceOwner)
+	})
+
+	t.Run("approver omitting status keeps publishing", func(t *testing.T) {
+		status, body := knowledgeImport(t, spaceID, "Import gate default", spaceOwner, nil)
+		if status != http.StatusAccepted {
+			t.Fatalf("status = %d, body = %v", status, body)
+		}
+		itemID, itemStatus := knowledgeImportedItem(t, knowledgeString(t, body, "id"))
+		if itemStatus != "active" {
+			t.Fatalf("imported status = %q, want active", itemStatus)
+		}
+		knowledgeAssertSelfReviewed(t, itemID, spaceOwner)
+	})
+
+	t.Run("non-approver asking for active is refused", func(t *testing.T) {
+		title := "Import gate refused"
+		status, body := knowledgeImport(t, spaceID, title, plainMember,
+			map[string]any{"status": "active"})
+		if status != http.StatusForbidden {
+			t.Fatalf("status = %d, body = %v", status, body)
+		}
+		if code, _ := body["code"].(string); code != "knowledge_review_forbidden" {
+			t.Fatalf("code = %q, want knowledge_review_forbidden", code)
+		}
+		// Refused before the task exists: no draft, no active row.
+		var items, tasks int
+		dbfx.QueryRow(t, `SELECT count(*) FROM knowledge_items WHERE workspace_id = $1 AND title = $2`,
+			testWorkspaceID, title).Scan(&items)
+		if items != 0 {
+			t.Fatalf("refused import created %d knowledge rows", items)
+		}
+		dbfx.QueryRow(t, `SELECT count(*) FROM knowledge_import_tasks WHERE workspace_id = $1 AND title = $2`,
+			testWorkspaceID, title).Scan(&tasks)
+		if tasks != 0 {
+			t.Fatalf("refused import created %d import tasks", tasks)
+		}
+	})
+
+	t.Run("agent lands a draft", func(t *testing.T) {
+		status, body := knowledgeImport(t, spaceID, "Import gate agent draft", "", nil,
+			"X-Actor-Source", "task_token")
+		if status != http.StatusAccepted {
+			t.Fatalf("status = %d, body = %v", status, body)
+		}
+		if _, itemStatus := knowledgeImportedItem(t, knowledgeString(t, body, "id")); itemStatus != "draft" {
+			t.Fatalf("imported status = %q, want draft", itemStatus)
+		}
+	})
+
+	t.Run("agent asking for active is refused", func(t *testing.T) {
+		status, body := knowledgeImport(t, spaceID, "Import gate agent active", "",
+			map[string]any{"status": "active"}, "X-Actor-Source", "task_token")
+		if status != http.StatusForbidden {
+			t.Fatalf("status = %d, body = %v", status, body)
+		}
+		if code, _ := body["code"].(string); code != "knowledge_review_forbidden" {
+			t.Fatalf("code = %q, want knowledge_review_forbidden", code)
+		}
+	})
 }

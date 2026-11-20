@@ -110,7 +110,39 @@ type ViewableItem struct {
 	// fail-closed; that is why the enforcement paths must fill it from the
 	// project row before they start enforcing (see the reserved predicates).
 	ProjectVisibility string
-	Status            string
+	// SpaceOwnerID is knowledge_spaces.owner_id of the item's space, "" when the
+	// space names no owner or the caller does not know it.
+	//
+	// It is not a column of knowledge_items: the draft rule needs it, and the
+	// by-id reads fill it from the space row (see draftFactsFor). A caller that
+	// leaves it empty gets the fail-closed reading — an unapproved draft with no
+	// space owner is readable by its own owner and by a workspace manager, and by
+	// nobody else.
+	SpaceOwnerID string
+	// DepartmentLeadID is department.lead_user_id of the department the item's
+	// space is filed under, "" when the space has no department or the caller
+	// does not know it. Filled and read exactly like SpaceOwnerID.
+	DepartmentLeadID string
+	Status           string
+}
+
+// draftReadableBy reports whether the viewer belongs to the set that may read an
+// unapproved draft: its owner, the owner of the space it is filed in, the lead of
+// that space's department, and any workspace owner/admin.
+//
+// It is the row-level half of the intake gate in docs/engineering/CONTRACTS.md
+// ("知识入库闸门", who may approve): the people the review waits on must be able
+// to read what they are deciding on, and they are exactly the people the approval
+// path admits. search.go's draftApproverCond spells the same four in SQL, so a
+// draft the retrieval index will show is a draft its reader can open by id.
+func draftReadableBy(item ViewableItem, viewer Viewer) bool {
+	if viewer.UserID == "" {
+		return false
+	}
+	return (item.OwnerID != "" && item.OwnerID == viewer.UserID) ||
+		(item.SpaceOwnerID != "" && item.SpaceOwnerID == viewer.UserID) ||
+		(item.DepartmentLeadID != "" && item.DepartmentLeadID == viewer.UserID) ||
+		viewer.IsManager()
 }
 
 // ItemVisibleTo is the single "may this viewer see this item" rule.
@@ -119,6 +151,11 @@ type ViewableItem struct {
 //     boundary, so crossing it is not "not found", it is forbidden;
 //   - a deprecated item is readable directly but not retrievable, so it is
 //     refused here as well — retrieval must not surface it by another route;
+//   - an unapproved draft is a proposal, not knowledge yet, so it is readable
+//     only by its owner, its space's owner, the lead of its space's department,
+//     and a workspace owner/admin (draftReadableBy). Those are the people the
+//     review gate admits, which is what keeps the approve path able to read the
+//     row it is about to activate. `active` has no such narrowing;
 //   - `workspace` items are visible to every member;
 //   - `project` items are visible to every member while ProjectACL is off (the
 //     pre-switch behaviour), and once it is on they follow their project: a
@@ -128,11 +165,20 @@ type ViewableItem struct {
 //   - with AdminVisibility on, a workspace owner/admin sees all of it. The
 //     bypass is applied after the lifecycle check on purpose: it widens the ACL
 //     decision, it does not make a deprecated item retrievable again.
+//
+// The draft rule is an upper bound, not a grant: an acl_mode branch still applies
+// afterwards, so a `private` draft stays its owner's alone even for the space
+// owner. That is the same conjunction the retrieval index applies
+// (visCondIndexable = draft approver AND acl), so "findable" and "readable by id"
+// cannot name different people.
 func ItemVisibleTo(item ViewableItem, viewer Viewer, flags VisibilityFlags) bool {
 	if item.WorkspaceID != viewer.WorkspaceID {
 		return false
 	}
 	if item.Status == StatusDeprecated {
+		return false
+	}
+	if item.Status == StatusDraft && !draftReadableBy(item, viewer) {
 		return false
 	}
 	if flags.AdminVisibility && viewer.IsManager() {
@@ -155,11 +201,132 @@ func ItemVisibleTo(item ViewableItem, viewer Viewer, flags VisibilityFlags) bool
 	return false
 }
 
-// canViewItem is today's rule, kept as the name the retrieval paths call. It is
-// ItemVisibleTo with the switches off, so the enforced rule and the current one
-// cannot disagree about workspace, status, or private items.
+// canViewItem is the row-only reading of the rule: ItemVisibleTo with the
+// switches off and a viewer that has no membership row, so no role and no
+// department. It answers the ACL halves unchanged and reads an unapproved draft
+// fail-closed (owner only), because the approver facts live on the space row and
+// this function reads no database.
+//
+// The by-id paths therefore do not call it: they call itemVisibleToViewer, which
+// fills those facts first. canViewItem survives as the pure boundary the
+// retrieval recheck used to be, and every caller that has only a row and two ids
+// gets the conservative answer.
 func canViewItem(item ViewableItem, workspaceID, viewerID string) bool {
 	return ItemVisibleTo(item, Viewer{WorkspaceID: workspaceID, UserID: viewerID}, VisibilityFlags{})
+}
+
+// ---------------------------------------------------------------------------
+// Draft readers: the space-side facts the rule cannot read itself
+// ---------------------------------------------------------------------------
+
+// draftReaderFacts are the two people a space names for the intake gate: its
+// owner and the lead of the department it is filed under.
+type draftReaderFacts struct {
+	SpaceOwnerID     string
+	DepartmentLeadID string
+}
+
+// spaceDraftReaderFacts reads the draft-approver facts of a batch of spaces in
+// one query. A space that is unknown, has no owner, or has no department leaves
+// the corresponding field empty, which draftReadableBy reads fail-closed.
+func (s *Service) spaceDraftReaderFacts(ctx context.Context, workspaceID string, spaceIDs []string) (map[string]draftReaderFacts, error) {
+	out := make(map[string]draftReaderFacts, len(spaceIDs))
+	if len(spaceIDs) == 0 {
+		return out, nil
+	}
+	rows, err := s.db.Query(ctx, `
+		SELECT sp.id::text,
+		       coalesce(sp.owner_id::text, ''),
+		       coalesce(d.lead_user_id::text, '')
+		FROM knowledge_spaces sp
+		LEFT JOIN department d
+		       ON d.workspace_id = sp.workspace_id AND d.id = sp.department_id
+		WHERE sp.workspace_id = $1 AND sp.id::text = ANY($2::text[])`, workspaceID, spaceIDs)
+	if err != nil {
+		return nil, fmt.Errorf("read knowledge space draft readers: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var spaceID string
+		var facts draftReaderFacts
+		if err := rows.Scan(&spaceID, &facts.SpaceOwnerID, &facts.DepartmentLeadID); err != nil {
+			return nil, fmt.Errorf("scan knowledge space draft readers: %w", err)
+		}
+		out[spaceID] = facts
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("read knowledge space draft readers: %w", err)
+	}
+	return out, nil
+}
+
+// itemsVisibleToViewer is the by-id gate for a batch of rows: ItemVisibleTo over
+// the viewer's real identity, with the draft facts filled in first.
+//
+// It is the one function every by-id read goes through — GetItemForViewer and the
+// retrieval recheck in search.go, ReadItem in keys.go — so "GET by id", the
+// agent's knowledge.get and the post-retrieval recheck cannot disagree about who
+// may read a draft.
+//
+// A batch with no draft in it answers exactly the ACL rule it answered before the
+// draft rule existed, and pays no extra read: the role and the space facts are
+// only fetched when a draft is actually being judged.
+func (s *Service) itemsVisibleToViewer(ctx context.Context, workspaceID, viewerID string, items []ViewableItem) ([]bool, error) {
+	visible := make([]bool, len(items))
+	if len(items) == 0 {
+		return visible, nil
+	}
+	viewer := Viewer{WorkspaceID: workspaceID, UserID: viewerID}
+	if draftSpaces := draftSpaceIDs(items); len(draftSpaces) > 0 {
+		// The role is what makes a workspace owner/admin a draft reader, so the
+		// viewer is read with its real membership rather than the empty-role
+		// viewer canViewItem uses.
+		var err error
+		if viewer, err = s.spaceViewer(ctx, workspaceID, viewerID); err != nil {
+			return nil, err
+		}
+		facts, err := s.spaceDraftReaderFacts(ctx, workspaceID, draftSpaces)
+		if err != nil {
+			return nil, err
+		}
+		for i := range items {
+			if itemFacts, ok := facts[items[i].SpaceID]; ok {
+				items[i].SpaceOwnerID = itemFacts.SpaceOwnerID
+				items[i].DepartmentLeadID = itemFacts.DepartmentLeadID
+			}
+		}
+	}
+	for i := range items {
+		visible[i] = ItemVisibleTo(items[i], viewer, VisibilityFlags{})
+	}
+	return visible, nil
+}
+
+// draftSpaceIDs is the distinct set of spaces a batch of drafts is filed in:
+// only those rows carry a space-side fact to read.
+func draftSpaceIDs(items []ViewableItem) []string {
+	spaceIDs := make([]string, 0, len(items))
+	seen := make(map[string]struct{}, len(items))
+	for _, item := range items {
+		if item.Status != StatusDraft || item.SpaceID == "" {
+			continue
+		}
+		if _, ok := seen[item.SpaceID]; ok {
+			continue
+		}
+		seen[item.SpaceID] = struct{}{}
+		spaceIDs = append(spaceIDs, item.SpaceID)
+	}
+	return spaceIDs
+}
+
+// itemVisibleToViewer is itemsVisibleToViewer for the by-id read of one row.
+func (s *Service) itemVisibleToViewer(ctx context.Context, workspaceID, viewerID string, item ViewableItem) (bool, error) {
+	visible, err := s.itemsVisibleToViewer(ctx, workspaceID, viewerID, []ViewableItem{item})
+	if err != nil {
+		return false, err
+	}
+	return visible[0], nil
 }
 
 // ---------------------------------------------------------------------------
@@ -223,10 +390,10 @@ type ProjectACLShadow struct {
 	ViewerProjects int
 	IndexableItems int
 	// HiddenCount is exact; HiddenItems is the bounded excerpt.
-	HiddenCount    int
-	HiddenItems    []ShadowItem
+	HiddenCount     int
+	HiddenItems     []ShadowItem
 	AffectedMembers int
-	AffectedUsers  []string
+	AffectedUsers   []string
 	// NoProjectItems counts acl_mode=project items with no project_id. They stay
 	// visible under the new rule (there is no member set to intersect), which is
 	// a decision the flip can still revisit — so they are counted, not hidden.
@@ -312,9 +479,12 @@ func (s *Service) ProjectACLShadow(ctx context.Context, workspaceID, viewerID, s
 	rows, err := s.db.Query(ctx, fmt.Sprintf(`
 		SELECT i.id::text, i.workspace_id::text, i.space_id::text, i.title, i.kind,
 		       i.acl_mode, coalesce(i.owner_id::text, ''), coalesce(i.project_id::text, ''),
-		       coalesce(p.visibility, ''), i.status
+		       coalesce(p.visibility, ''), coalesce(sp.owner_id::text, ''),
+		       coalesce(d.lead_user_id::text, ''), i.status
 		FROM knowledge_items i
 		LEFT JOIN project p ON p.workspace_id = i.workspace_id AND p.id = i.project_id
+		LEFT JOIN knowledge_spaces sp ON sp.workspace_id = i.workspace_id AND sp.id = i.space_id
+		LEFT JOIN department d ON d.workspace_id = sp.workspace_id AND d.id = sp.department_id
 		WHERE %s
 		ORDER BY i.updated_at DESC, i.id DESC
 		LIMIT $%d`, where, len(args)), args...)
@@ -336,7 +506,8 @@ func (s *Service) ProjectACLShadow(ctx context.Context, workspaceID, viewerID, s
 		var item ViewableItem
 		if err := rows.Scan(&item.ID, &item.WorkspaceID, &item.SpaceID, &item.Title,
 			&item.Kind, &item.ACLMode, &item.OwnerID, &item.ProjectID,
-			&item.ProjectVisibility, &item.Status); err != nil {
+			&item.ProjectVisibility, &item.SpaceOwnerID, &item.DepartmentLeadID,
+			&item.Status); err != nil {
 			return shadow, fmt.Errorf("scan item for acl shadow: %w", err)
 		}
 		read++
@@ -538,13 +709,14 @@ func (s *Service) observeProjectACL(ctx context.Context, op, workspaceID, viewer
 // ItemVisibleTo says, so "the project is everyone's, the knowledge is not" cannot
 // happen.
 //
-// The SQL is only half of the flip. canViewItem in this file is the result-layer
-// recheck and still answers with the switches off, so enforcement also means:
+// The SQL is only half of the flip. itemsVisibleToViewer in this file is the
+// result-layer recheck and still answers with the switches off, so enforcement
+// also means:
 //
-//  1. passing the service's VisibilityFlags into canViewItem at its three call
-//     sites — recheckItems and GetItemForViewer in search.go, ReadItem in
-//     keys.go. Without that, knowledge.get would keep serving an item the index
-//     layer has started hiding;
+//  1. passing the service's VisibilityFlags into itemsVisibleToViewer, whose
+//     three call sites are recheckItems and GetItemForViewer in search.go and
+//     ReadItem in keys.go. Without that, knowledge.get would keep serving an
+//     item the index layer has started hiding;
 //  2. filling ViewableItem.ProjectVisibility there from the project row (a
 //     `LEFT JOIN project p ON p.workspace_id = i.workspace_id AND p.id = i.project_id`
 //     is enough; the shadow already reads it that way). Leaving it empty is

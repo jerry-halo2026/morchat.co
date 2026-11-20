@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/jerry-halo2026/morchat.co/server/internal/middleware"
@@ -191,6 +192,235 @@ func TestKnowledgeCRUDLifecycle(t *testing.T) {
 	}
 	if archived, _ := body["archived"].(bool); !archived {
 		t.Fatalf("get archived item: archived = false: %v", body)
+	}
+}
+
+// knowledgeSpaceDepartment inserts a department in the given workspace (empty
+// means the suite's) and returns its id, so the space tests file under a row that
+// really exists.
+func knowledgeSpaceDepartment(t *testing.T, workspaceID, prefix string) string {
+	t.Helper()
+	if workspaceID == "" {
+		workspaceID = testWorkspaceID
+	}
+	return dbfx.Insert(t, "department", testutil.Cols{
+		"workspace_id": workspaceID,
+		"name":         uniqueDepartmentName(prefix),
+	})
+}
+
+// knowledgeUpdateSpace drives PATCH /api/knowledge/spaces/{spaceId}.
+func knowledgeUpdateSpace(t *testing.T, spaceID string, payload map[string]any) (int, map[string]any) {
+	t.Helper()
+	return knowledgeDo(t, testHandler.UpdateKnowledgeSpace,
+		testutil.JSONRequest(http.MethodPatch, "/api/knowledge/spaces/"+spaceID, payload),
+		"", "", "spaceId", spaceID)
+}
+
+// knowledgeListedSpaceDepartment reads department_id out of the space listing,
+// which is where a client reads it. The pointer keeps JSON null (unfiled)
+// distinguishable from a missing key, which it fails on.
+func knowledgeListedSpaceDepartment(t *testing.T, spaceID string) *string {
+	t.Helper()
+	status, body := knowledgeDo(t, testHandler.ListKnowledgeSpaces,
+		testutil.JSONRequest(http.MethodGet, "/api/knowledge/spaces", nil), "", "")
+	if status != http.StatusOK {
+		t.Fatalf("list spaces: status = %d, body = %v", status, body)
+	}
+	spaces, _ := body["spaces"].([]any)
+	for _, entry := range spaces {
+		space, _ := entry.(map[string]any)
+		if id, _ := space["id"].(string); id != spaceID {
+			continue
+		}
+		raw, present := space["department_id"]
+		if !present {
+			t.Fatalf("space listing omits department_id: %v", space)
+		}
+		if raw == nil {
+			return nil
+		}
+		value, ok := raw.(string)
+		if !ok {
+			t.Fatalf("listed department_id = %T, want a string or null", raw)
+		}
+		return &value
+	}
+	t.Fatalf("space %s is missing from its workspace listing", spaceID)
+	return nil
+}
+
+// knowledgeStoredSpaceDepartment reads the column itself: "the refused write
+// changed nothing" is an assertion on the row, not on a projection.
+func knowledgeStoredSpaceDepartment(t *testing.T, spaceID string) *string {
+	t.Helper()
+	var department *string
+	dbfx.QueryRow(t, `SELECT department_id::text FROM knowledge_spaces WHERE id = $1`, spaceID).Scan(&department)
+	return department
+}
+
+// TestKnowledgeSpaceDepartmentAttribution is the write path for
+// knowledge_spaces.department_id (docs/engineering/ORG-MODEL.md §3): create files
+// the space under a department and answers it, the listing carries the same
+// value, an update moves the filing, an absent key leaves it, and null clears it.
+func TestKnowledgeSpaceDepartmentAttribution(t *testing.T) {
+	if testPool == nil {
+		t.Skip("handler tests require a reachable DATABASE_URL")
+	}
+	first := knowledgeSpaceDepartment(t, "", "knowledge-first")
+	second := knowledgeSpaceDepartment(t, "", "knowledge-second")
+
+	status, body := knowledgeDo(t, testHandler.CreateKnowledgeSpace,
+		testutil.JSONRequest(http.MethodPost, "/api/knowledge/spaces", map[string]any{
+			"name":          "Department filed space",
+			"description":   "filed under a department on create",
+			"department_id": first,
+		}), "", "")
+	if status != http.StatusCreated {
+		t.Fatalf("create space with a department: status = %d, body = %v", status, body)
+	}
+	spaceID := knowledgeString(t, body, "id")
+	if got, _ := body["department_id"].(string); got != first {
+		t.Fatalf("create response department_id = %v, want %q", body["department_id"], first)
+	}
+	if listed := knowledgeListedSpaceDepartment(t, spaceID); listed == nil || *listed != first {
+		t.Fatalf("listing department_id = %v, want %q", listed, first)
+	}
+
+	// Moving the filing to another department of the same workspace.
+	status, body = knowledgeUpdateSpace(t, spaceID, map[string]any{"department_id": second})
+	if status != http.StatusOK {
+		t.Fatalf("move department: status = %d, body = %v", status, body)
+	}
+	if got, _ := body["department_id"].(string); got != second {
+		t.Fatalf("updated department_id = %v, want %q", body["department_id"], second)
+	}
+	if stored := knowledgeStoredSpaceDepartment(t, spaceID); stored == nil || *stored != second {
+		t.Fatalf("stored department_id = %v, want %q", stored, second)
+	}
+
+	// An absent key means "unchanged": renaming must not unfiled the space.
+	status, body = knowledgeUpdateSpace(t, spaceID, map[string]any{"name": "Department filed space (renamed)"})
+	if status != http.StatusOK {
+		t.Fatalf("rename space: status = %d, body = %v", status, body)
+	}
+	if got, _ := body["department_id"].(string); got != second {
+		t.Fatalf("department_id after a name-only patch = %v, want %q", body["department_id"], second)
+	}
+
+	// An explicit null clears the filing; "" is the same request in another
+	// spelling. Each case refills first, so both are proved to clear a filed row.
+	for _, tc := range []struct {
+		name    string
+		payload map[string]any
+	}{
+		{"null clears", map[string]any{"department_id": nil}},
+		{"empty string clears", map[string]any{"department_id": ""}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if status, body := knowledgeUpdateSpace(t, spaceID, map[string]any{"department_id": first}); status != http.StatusOK {
+				t.Fatalf("refill department: status = %d, body = %v", status, body)
+			}
+			status, body := knowledgeUpdateSpace(t, spaceID, tc.payload)
+			if status != http.StatusOK {
+				t.Fatalf("clear department: status = %d, body = %v", status, body)
+			}
+			if raw, present := body["department_id"]; !present || raw != nil {
+				t.Fatalf("cleared department_id = %v (present = %v), want null", raw, present)
+			}
+			if stored := knowledgeStoredSpaceDepartment(t, spaceID); stored != nil {
+				t.Fatalf("stored department_id = %q after a clear, want NULL", *stored)
+			}
+		})
+	}
+}
+
+// TestKnowledgeSpaceCreatedWithoutDepartment pins the default: a create that
+// names no department is unfiled — not rejected, and not attributed by accident.
+func TestKnowledgeSpaceCreatedWithoutDepartment(t *testing.T) {
+	if testPool == nil {
+		t.Skip("handler tests require a reachable DATABASE_URL")
+	}
+	status, body := knowledgeDo(t, testHandler.CreateKnowledgeSpace,
+		testutil.JSONRequest(http.MethodPost, "/api/knowledge/spaces", map[string]any{
+			"name": "Unfiled space",
+		}), "", "")
+	if status != http.StatusCreated {
+		t.Fatalf("create space: status = %d, body = %v", status, body)
+	}
+	spaceID := knowledgeString(t, body, "id")
+	if raw, present := body["department_id"]; !present || raw != nil {
+		t.Fatalf("create response department_id = %v (present = %v), want null", raw, present)
+	}
+	if listed := knowledgeListedSpaceDepartment(t, spaceID); listed != nil {
+		t.Fatalf("listing department_id = %q, want null", *listed)
+	}
+	if stored := knowledgeStoredSpaceDepartment(t, spaceID); stored != nil {
+		t.Fatalf("stored department_id = %q, want NULL", *stored)
+	}
+}
+
+// TestKnowledgeSpaceDepartmentRejected refuses a department this workspace does
+// not own — another workspace's row, an unknown id, a malformed one — and proves
+// the stored row was left alone.
+func TestKnowledgeSpaceDepartmentRejected(t *testing.T) {
+	if testPool == nil {
+		t.Skip("handler tests require a reachable DATABASE_URL")
+	}
+	own := knowledgeSpaceDepartment(t, "", "knowledge-own")
+	foreignWorkspaceID := dbfx.Insert(t, "workspace", testutil.Cols{
+		"name":         "Knowledge foreign workspace",
+		"slug":         uniqueDepartmentName("knowledge-foreign"),
+		"description":  "Foreign workspace",
+		"issue_prefix": "KFW",
+	})
+	foreign := knowledgeSpaceDepartment(t, foreignWorkspaceID, "knowledge-foreign")
+
+	spaceID := knowledgeCreateSpace(t, "Rejection target", "", "")
+	if status, body := knowledgeUpdateSpace(t, spaceID, map[string]any{"department_id": own}); status != http.StatusOK {
+		t.Fatalf("file under the workspace's own department: status = %d, body = %v", status, body)
+	}
+
+	for _, tc := range []struct {
+		name       string
+		department string
+		want       string
+	}{
+		{"foreign workspace", foreign, "department not found in this workspace"},
+		{"unknown id", "00000000-0000-4000-8000-000000000000", "department not found in this workspace"},
+		{"malformed", "not-a-department", "invalid department_id"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			status, body := knowledgeUpdateSpace(t, spaceID, map[string]any{"department_id": tc.department})
+			if status != http.StatusBadRequest {
+				t.Fatalf("update with a %s department: status = %d, body = %v", tc.name, status, body)
+			}
+			if message, _ := body["error"].(string); !strings.Contains(message, tc.want) {
+				t.Fatalf("error = %q, want it to contain %q", message, tc.want)
+			}
+			if stored := knowledgeStoredSpaceDepartment(t, spaceID); stored == nil || *stored != own {
+				t.Fatalf("the refused update left department_id = %v, want %q", stored, own)
+			}
+		})
+	}
+
+	// The same refusal applies to a create, and it inserts nothing.
+	status, body := knowledgeDo(t, testHandler.CreateKnowledgeSpace,
+		testutil.JSONRequest(http.MethodPost, "/api/knowledge/spaces", map[string]any{
+			"name":          "Rejected department create",
+			"department_id": foreign,
+		}), "", "")
+	if status != http.StatusBadRequest {
+		t.Fatalf("create with a foreign department: status = %d, body = %v", status, body)
+	}
+	if message, _ := body["error"].(string); !strings.Contains(message, "department not found in this workspace") {
+		t.Fatalf("error = %q, want the workspace-scoped refusal", message)
+	}
+	var created int
+	dbfx.QueryRow(t, `SELECT count(*) FROM knowledge_spaces WHERE workspace_id = $1 AND display_name = $2`,
+		testWorkspaceID, "Rejected department create").Scan(&created)
+	if created != 0 {
+		t.Fatalf("a refused create inserted %d space rows", created)
 	}
 }
 

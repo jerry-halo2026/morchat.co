@@ -155,6 +155,9 @@ ACL 属于红线，理由见 ORG-MODEL §6。
 
 - **谁能批**：该空间 `owner_id`、空间所属部门的 `lead_user_id`、工作区 owner/admin。
   agent（task token / cloud PAT）一律 `403 knowledge_review_forbidden`。
+- **批之前谁能读**：未批准的 draft 只对条目 `owner_id`、空间 `owner_id`、空间所属部门
+  `lead_user_id`、工作区 owner/admin 可见；检索与按 id 读取是同一组人（approve 路径要读
+  自己要批的那条 draft，靠的就是这条）。别人拿到 id 也读不到，回答与「隐藏条目」同形。
 - **批之前必须成立**：条目有 `owner_id`、`source_ref` 非空、`review_issue_id` 指向
   同工作区且处于 **done 分类**（含自定义状态）的 issue；否则
   `400 knowledge_review_required` / `knowledge_review_issue_invalid`。

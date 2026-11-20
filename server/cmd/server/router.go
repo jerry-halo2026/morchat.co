@@ -1813,11 +1813,12 @@ func NewRouterWithOptions(pool *pgxpool.Pool, hub *realtime.Hub, bus *events.Bus
 			// P1 CRUD and reads: spaces and items are the objects users and the
 			// API address; pages are the wiki tree they are distilled from.
 			// Workspace-scoped and ACL-filtered by the handlers below (reads via
-			// the knowledge package's canViewItem, writes via the caller's
+			// the knowledge package's item rule, writes via the caller's
 			// workspace role).
 			r.Get("/spaces", h.ListKnowledgeSpaces)
 			r.Post("/spaces", h.CreateKnowledgeSpace)
 			r.Get("/spaces/{spaceId}", h.GetKnowledgeSpace)
+			r.Patch("/spaces/{spaceId}", h.UpdateKnowledgeSpace)
 			r.Get("/pages", h.ListKnowledgePages)
 			r.Post("/pages", h.CreateKnowledgePage)
 			r.Get("/pages/{pageId}", h.GetKnowledgePage)

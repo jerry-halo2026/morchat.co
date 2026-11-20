@@ -71,6 +71,11 @@ type NewItem struct {
 	ACLMode     string
 	ProjectID   *string
 	OwnerID     *string
+	// ReviewedBy stamps the row as reviewed by this member as it is created. It
+	// is only set where the creator's own right is the review — an approver
+	// publishing through the import gate — so review_issue_id stays NULL: no
+	// issue carried that decision. Nil is the ordinary case, an unreviewed row.
+	ReviewedBy *string
 }
 
 // withDefaults fills the registry defaults and validates the closed sets.
@@ -122,14 +127,21 @@ func (s *Store) CreateItem(ctx context.Context, in NewItem) (Item, error) {
 	if err := s.assertSpaceInWorkspace(ctx, in.WorkspaceID, in.SpaceID); err != nil {
 		return Item{}, err
 	}
+	// The review record is written in the same statement as the row, so there is
+	// no instant in which an item is active without its approver on it (the same
+	// property ApproveItem keeps). A NULL reviewer writes NULL timestamps.
 	row := s.db.QueryRow(ctx, `
 		INSERT INTO knowledge_items
 			(workspace_id, space_id, page_id, project_id, title, kind, source_type,
-			 source_ref, status, owner_id, acl_mode)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+			 source_ref, status, owner_id, acl_mode, reviewed_by, reviewed_at, stale_after)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+		        CASE WHEN $12::uuid IS NULL THEN NULL ELSE now() END,
+		        CASE WHEN $12::uuid IS NULL THEN NULL
+		             ELSE now() + make_interval(days => $13) END)
 		RETURNING `+itemColumns,
 		in.WorkspaceID, in.SpaceID, in.PageID, in.ProjectID, in.Title, in.Kind,
-		in.SourceType, in.SourceRef, in.Status, in.OwnerID, in.ACLMode)
+		in.SourceType, in.SourceRef, in.Status, in.OwnerID, in.ACLMode,
+		in.ReviewedBy, ReviewStaleDays)
 	item, err := scanItem(row)
 	if err != nil {
 		return Item{}, fmt.Errorf("create knowledge item: %w", err)

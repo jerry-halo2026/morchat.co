@@ -15,6 +15,10 @@ package handler
 //	neither may a plain member: proposals go through knowledge.propose, and a
 //	person approves them here.
 //
+// canApproveKnowledgeHere is that rule on its own, without the parts that need a
+// row. The import route asks it before the item exists: an import may only land
+// active for a caller who could have approved the item anyway.
+//
 // What an approval requires is data, not etiquette: the item must name an owner,
 // a source, and a review issue of this workspace that has reached a done-category
 // status. The three failure codes below are separate because a client has to tell
@@ -66,6 +70,26 @@ type knowledgeReviewGate struct {
 	ReviewIssueID string
 }
 
+// canApproveKnowledgeHere answers the gate's permission question: may this
+// caller approve knowledge in this space? It is the space's owner, the lead of
+// the space's department, or a workspace owner/admin — the same three the approve
+// route admits.
+//
+// It is split from requireKnowledgeReview because an import needs the answer
+// before the item exists: the rest of the gate (owner, source, review issue) is
+// about a row, this part is about a caller. The delegated-credential refusal stays
+// with the callers: the approve route has its own message for it, and the import
+// route treats "cannot approve" as one answer whatever produced it.
+func (h *Handler) canApproveKnowledgeHere(ctx context.Context, workspaceID, viewerID string, member db.Member, spaceID string) (bool, error) {
+	reviewers, err := h.knowledgeService().Store().SpaceReviewers(ctx, workspaceID, spaceID)
+	if err != nil {
+		return false, err
+	}
+	return roleAllowed(member.Role, knowledgeReviewRoles...) ||
+		(reviewers.OwnerID != "" && reviewers.OwnerID == viewerID) ||
+		(reviewers.LeadUserID != "" && reviewers.LeadUserID == viewerID), nil
+}
+
 // requireKnowledgeReview runs the gate, writes the failure itself, and returns
 // the resolved review issue id.
 func (h *Handler) requireKnowledgeReview(w http.ResponseWriter, r *http.Request, gate knowledgeReviewGate) (string, bool) {
@@ -83,14 +107,11 @@ func (h *Handler) requireKnowledgeReview(w http.ResponseWriter, r *http.Request,
 
 	// 2. Who may approve here: workspace owner/admin, the space owner, or the
 	//    lead of the space's department.
-	reviewers, err := h.knowledgeService().Store().SpaceReviewers(ctx, gate.WorkspaceID, gate.Item.SpaceID)
+	allowed, err := h.canApproveKnowledgeHere(ctx, gate.WorkspaceID, gate.ViewerID, gate.Member, gate.Item.SpaceID)
 	if err != nil {
 		writeKnowledgeCRUDError(w, "review", err)
 		return "", false
 	}
-	allowed := roleAllowed(gate.Member.Role, knowledgeReviewRoles...) ||
-		(reviewers.OwnerID != "" && reviewers.OwnerID == gate.ViewerID) ||
-		(reviewers.LeadUserID != "" && reviewers.LeadUserID == gate.ViewerID)
 	if !allowed {
 		writeErrorCode(w, http.StatusForbidden, "knowledge_review_forbidden",
 			"only the space owner, its department lead, or a workspace owner/admin may approve knowledge")

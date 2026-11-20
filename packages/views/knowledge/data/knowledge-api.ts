@@ -450,10 +450,14 @@ export const knowledgeApi = {
    * A workspace with no space cannot create a page — `POST /pages` needs a
    * `space_id` — so this is the first step out of an otherwise inert screen. The
    * server answers the created row directly (201), not an envelope.
+   *
+   * `department_id` files the space under a department of this workspace; an
+   * absent or null value leaves it unfiled. Attribution only — nothing filters
+   * a read by it.
    */
   createSpace: async (
     wsId: string,
-    input: { name: string; description?: string },
+    input: { name: string; description?: string; department_id?: string | null },
   ): Promise<KnowledgeSpace> => {
     const raw = await request<unknown>("/spaces", {
       method: "POST",

@@ -27,11 +27,11 @@ import (
 //     the viewer may see, using whichever of the visible/invisible item id lists
 //     is shorter (or no filter at all when every item is visible, or an empty
 //     result when none is). A private item therefore cannot influence a rank.
-//   - Result layer: every surviving chunk's item is re-read and checked by
-//     canViewItem. If a chunk names an item the viewer may not see, the request
-//     answers 403 instead of silently returning a shorter list: a partially
-//     filtered answer is indistinguishable from a wrong one, so it must not be
-//     produced at all.
+//   - Result layer: every surviving chunk's item is re-read and checked by the
+//     same by-id rule (itemsVisibleToViewer, over ItemVisibleTo). If a chunk
+//     names an item the viewer may not see, the request answers 403 instead of
+//     silently returning a shorter list: a partially filtered answer is
+//     indistinguishable from a wrong one, so it must not be produced at all.
 //
 // The vector channel degrades instead of failing: no embedder configured, no
 // pgvector, or no stored embeddings all mean "keyword only", and the response
@@ -198,21 +198,75 @@ type visibilityLayer struct {
 	Total   int
 }
 
-// visCond is the item visibility predicate, parameterised on workspace ($1) and
-// viewer ($2). coalesce keeps a NULL owner_id (a private item with no owner) on
-// the invisible side instead of dropping it out of both counts.
+// visCond is the item ACL predicate, parameterised on workspace ($1) and viewer
+// ($2). coalesce keeps a NULL owner_id (a private item with no owner) on the
+// invisible side instead of dropping it out of both counts.
 const visCond = `(acl_mode = ANY('{workspace,project}'::text[]) OR coalesce(owner_id::text = $2, false))`
+
+// draftApproverCond is "this viewer may approve an item in its space": the space
+// owner, the lead of the space's department, and any workspace owner/admin. These
+// are exactly the reviewers the review gate admits (handler.requireKnowledgeReview
+// over knowledge.SpaceReviewers), so the retrieval predicate and the approval
+// decision cannot name different people. It is a pair of subqueries rather than a
+// join, and it names the item columns as `knowledge_items.<col>` because the
+// queries in this file do not alias that table.
+const draftApproverCond = `(
+  EXISTS (
+    SELECT 1 FROM knowledge_spaces sp
+    LEFT JOIN department d
+           ON d.workspace_id = sp.workspace_id AND d.id = sp.department_id
+    WHERE sp.workspace_id = knowledge_items.workspace_id
+      AND sp.id = knowledge_items.space_id
+      AND (coalesce(sp.owner_id::text = $2, false)
+           OR coalesce(d.lead_user_id::text = $2, false))
+  )
+  OR EXISTS (
+    SELECT 1 FROM member m
+    WHERE m.workspace_id = knowledge_items.workspace_id
+      AND m.user_id::text = $2
+      AND m.role IN ('owner', 'admin')
+  )
+)`
+
+// visCondIndexable is the predicate the retrieval index layer applies: visCond
+// plus the lifecycle dimension.
+//
+// A draft is a proposal, not knowledge yet (docs/engineering/CONTRACTS.md, "the
+// knowledge intake gate"), so before a person approves it, it must reach no search
+// result but its owner's — and the people who can approve it in its space, who need
+// to read what they are deciding on. `active` keeps the plain ACL reading, so
+// approving an item changes nothing about who may find it.
+//
+// The whole thing is parenthesised because visFilter negates it for the `notin`
+// branch: `NOT (status-side AND acl-side)` is the only reading under which both
+// halves of the split agree on what "visible" means.
+const visCondIndexable = `((status = 'active'
+  OR coalesce(owner_id::text = $2, false)
+  OR ` + draftApproverCond + `)
+  AND ` + visCond + `)`
+
+// visFilter renders the index-layer predicate when `visible` is true and its exact
+// negation when it is false. The count and the id list both come through here, so
+// the two halves of the split cannot disagree about what the viewer may see.
+func visFilter(visible bool) string {
+	if visible {
+		return visCondIndexable
+	}
+	return `NOT ` + visCondIndexable
+}
 
 // visibility computes which index-layer filter applies for (workspace, viewer).
 //
 // The counts are of *indexable* items (draft/active; a deprecated item is
-// excluded from retrieval by the registry's own rule). The id list carries the
-// smaller half of the split, because that is the one the SQL can name cheaply:
-// filter to the visible few, or exclude the invisible few.
+// excluded from retrieval by the registry's own rule), and `visible` counts the
+// ones this viewer may see — which for a draft means its owner or an approver of
+// its space. The id list carries the smaller half of the split, because that is
+// the one the SQL can name cheaply: filter to the visible few, or exclude the
+// invisible few.
 func (s *Service) visibility(ctx context.Context, workspaceID, viewerID string) (visibilityLayer, error) {
 	var visible, total int
 	err := s.db.QueryRow(ctx, `
-		SELECT count(*) FILTER (WHERE `+visCond+`), count(*)
+		SELECT count(*) FILTER (WHERE `+visFilter(true)+`), count(*)
 		FROM knowledge_items
 		WHERE workspace_id = $1 AND status IN ('draft', 'active')
 		  AND coalesce(metadata->>'archived', 'false') <> 'true'`,
@@ -230,11 +284,12 @@ func (s *Service) visibility(ctx context.Context, workspaceID, viewerID string) 
 		return layer, nil
 	}
 
-	// Pick the shorter side.
-	filter := visCond
+	// Pick the shorter side. Both spellings come from visFilter, so the count
+	// above and the id list below are the same predicate and its negation.
+	filter := visFilter(true)
 	kind := IndexLayerIn
 	if total-visible < visible {
-		filter = `NOT ` + visCond
+		filter = visFilter(false)
 		kind = IndexLayerNotIn
 	}
 	ids, err := s.itemIDs(ctx, workspaceID, viewerID, filter)
@@ -612,7 +667,7 @@ func (s *Service) vectorChannel(ctx context.Context, in RetrieveInput, layer vis
 	return out, nil
 }
 
-// recheckItems reads every named item and applies canViewItem.
+// recheckItems reads every named item and applies the by-id visibility rule.
 //
 // An item that is missing from the answer (deleted between the index read and
 // this one, or living in another workspace) is *not* silently skipped: the
@@ -633,26 +688,34 @@ func (s *Service) recheckItems(ctx context.Context, workspaceID, viewerID string
 		return nil, fmt.Errorf("recheck knowledge items: %w", err)
 	}
 	defer rows.Close()
+	items := make([]ViewableItem, 0, len(itemIDs))
 	for rows.Next() {
 		var item ViewableItem
 		if err := rows.Scan(&item.ID, &item.WorkspaceID, &item.SpaceID, &item.Title,
 			&item.Kind, &item.ACLMode, &item.OwnerID, &item.ProjectID, &item.Status); err != nil {
 			return nil, fmt.Errorf("scan knowledge item: %w", err)
 		}
-		if canViewItem(item, workspaceID, viewerID) {
-			out[item.ID] = item
-		}
+		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("recheck knowledge items: %w", err)
 	}
+	visible, err := s.itemsVisibleToViewer(ctx, workspaceID, viewerID, items)
+	if err != nil {
+		return nil, err
+	}
+	for i, item := range items {
+		if visible[i] {
+			out[item.ID] = item
+		}
+	}
 	return out, nil
 }
 
-// CanViewItem is the single visibility rule for a knowledge item, shared by the
-// result-layer recheck, knowledge.get, and the preview path. The rule itself is
-// ItemVisibleTo in visibility.go; this is the switches-off reading of it, which
-// is what every path uses until knowledge_project_acl is enforced.
+// CanViewItem is the row-only reading of the visibility rule: the ACL halves in
+// full, and an unapproved draft fail-closed to its owner, because the approver
+// facts of a draft live on its space row and this function reads no database.
+// The by-id paths call the service's item gate instead; see canViewItem.
 func CanViewItem(item ViewableItem, workspaceID, viewerID string) bool {
 	return canViewItem(item, workspaceID, viewerID)
 }
@@ -870,7 +933,9 @@ func roundScore(score float64) float64 {
 }
 
 // GetItemForViewer reads one item and applies the same visibility rule retrieval
-// uses, so knowledge.get cannot become a way around the index layer.
+// uses, so knowledge.get cannot become a way around the index layer. Both an
+// invisible row and a missing one answer ErrKnowledgeForbidden: a retrieval caller
+// must not learn whether an id it may not read exists.
 func (s *Service) GetItemForViewer(ctx context.Context, workspaceID, viewerID, itemID string) (Item, error) {
 	item, err := s.store.GetItem(ctx, workspaceID, itemID)
 	if err != nil {
@@ -894,7 +959,11 @@ func (s *Service) GetItemForViewer(ctx context.Context, workspaceID, viewerID, i
 	if item.ProjectID != nil {
 		view.ProjectID = *item.ProjectID
 	}
-	if !canViewItem(view, workspaceID, viewerID) {
+	visible, err := s.itemVisibleToViewer(ctx, workspaceID, viewerID, view)
+	if err != nil {
+		return Item{}, err
+	}
+	if !visible {
 		return Item{}, fmt.Errorf("%w: item %s", ErrKnowledgeForbidden, itemID)
 	}
 	return item, nil

@@ -6,7 +6,8 @@ package handler
 // The routes live under the same /api/knowledge group as the import pipeline, so
 // they inherit middleware.RequireWorkspaceMember: the workspace always comes
 // from X-Workspace-ID / the slug, never from a body, and the viewer is X-User-ID.
-// Reads go through the knowledge package's canViewItem; writes additionally
+// Reads go through the knowledge package's by-id item rule (ItemVisibleTo, via
+// ReadItem/GetItemDetail); writes additionally
 // assert the caller's workspace role here, because a member of the workspace is
 // not automatically an editor of its knowledge base.
 //
@@ -30,6 +31,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/jerry-halo2026/morchat.co/server/internal/knowledge"
+	db "github.com/jerry-halo2026/morchat.co/server/pkg/db/generated"
 )
 
 // knowledgeWriteRoles are the workspace roles allowed to change knowledge rows.
@@ -133,27 +135,113 @@ func (h *Handler) ListKnowledgeSpaces(w http.ResponseWriter, r *http.Request) {
 }
 
 // CreateKnowledgeSpace answers POST /api/knowledge/spaces with 201.
+//
+// department_id is optional attribution (docs/engineering/ORG-MODEL.md §3): an
+// omitted or empty value creates an unfiled space, and a non-empty one has to
+// name a department of this workspace.
 func (h *Handler) CreateKnowledgeSpace(w http.ResponseWriter, r *http.Request) {
 	workspaceID, viewerID, ok := h.knowledgeWriteScope(w, r)
 	if !ok {
 		return
 	}
 	var body struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
+		Name         string  `json:"name"`
+		Description  string  `json:"description"`
+		DepartmentID *string `json:"department_id"`
 	}
 	if err := decodeKnowledgeBody(r, &body, false); err != nil {
 		writeErrorCode(w, http.StatusBadRequest, "invalid_request", "invalid JSON body")
 		return
 	}
+	departmentID, ok := h.knowledgeDepartmentID(w, r, workspaceID, body.DepartmentID)
+	if !ok {
+		return
+	}
 	ownerID := viewerID
 	space, err := h.knowledgeService().Store().CreateSpace(
-		r.Context(), workspaceID, body.Name, body.Description, &ownerID)
+		r.Context(), workspaceID, body.Name, body.Description, &ownerID, departmentID)
 	if err != nil {
 		writeKnowledgeCRUDError(w, "create space", err)
 		return
 	}
 	writeJSON(w, http.StatusCreated, space)
+}
+
+// UpdateKnowledgeSpace answers PATCH /api/knowledge/spaces/{spaceId} with the
+// space as stored.
+//
+// PATCH semantics: an absent key leaves the stored value alone, and a present
+// department_id is either a department of this workspace or a clear (null, or
+// ""). The department is attribution, never an access rule, so this route cannot
+// hide a space from anyone.
+func (h *Handler) UpdateKnowledgeSpace(w http.ResponseWriter, r *http.Request) {
+	workspaceID, _, ok := h.knowledgeWriteScope(w, r)
+	if !ok {
+		return
+	}
+	var body struct {
+		Name         *string `json:"name"`
+		Description  *string `json:"description"`
+		DepartmentID *string `json:"department_id"`
+	}
+	rawFields, err := decodeJSONBodyWithRawFields(r.Body, &body)
+	if err != nil {
+		writeErrorCode(w, http.StatusBadRequest, "invalid_request", "invalid JSON body")
+		return
+	}
+	in := knowledge.UpdateSpaceInput{
+		WorkspaceID: workspaceID,
+		SpaceID:     chi.URLParam(r, "spaceId"),
+		Name:        body.Name,
+		Description: body.Description,
+	}
+	// A present key is a decision even when it is null or "": the pointer to a
+	// pointer below is what carries "unchanged" through to the store.
+	if _, present := rawFields["department_id"]; present {
+		departmentID, ok := h.knowledgeDepartmentID(w, r, workspaceID, body.DepartmentID)
+		if !ok {
+			return
+		}
+		in.DepartmentID = &departmentID
+	}
+	space, err := h.knowledgeService().Store().UpdateSpace(r.Context(), in)
+	if err != nil {
+		writeKnowledgeCRUDError(w, "update space", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, space)
+}
+
+// knowledgeDepartmentID validates the optional department_id of a space write
+// and returns the id to store. Omitted or empty answers nil (unfiled), the same
+// as the project handlers. A non-empty value has to be a uuid naming a
+// department of this workspace: the column carries no foreign key, so a foreign
+// id would be stored as a dangling reference and read back as a department label
+// that does not exist.
+func (h *Handler) knowledgeDepartmentID(w http.ResponseWriter, r *http.Request, workspaceID string, raw *string) (*string, bool) {
+	if raw == nil {
+		return nil, true
+	}
+	trimmed := strings.TrimSpace(*raw)
+	if trimmed == "" {
+		return nil, true
+	}
+	id, ok := parseUUIDOrBadRequest(w, trimmed, "department_id")
+	if !ok {
+		return nil, false
+	}
+	wsUUID, ok := parseUUIDOrBadRequest(w, workspaceID, "workspace id")
+	if !ok {
+		return nil, false
+	}
+	if _, err := h.Queries.GetDepartment(r.Context(), db.GetDepartmentParams{ID: id, WorkspaceID: wsUUID}); err != nil {
+		writeErrorCode(w, http.StatusBadRequest, "invalid_request", "department not found in this workspace")
+		return nil, false
+	}
+	// The store compares the id as text, so hand it the canonical spelling of
+	// whatever form the caller used.
+	canonical := uuidToString(id)
+	return &canonical, true
 }
 
 // GetKnowledgeSpace answers GET /api/knowledge/spaces/{spaceId}. A space outside

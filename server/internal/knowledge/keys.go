@@ -2,9 +2,10 @@ package knowledge
 
 // The P1 read/write surface: spaces, item listing and updates, item chunks,
 // links, and the wiki pages. Everything here builds on store.go's querier and
-// reuses the two permission primitives that already exist — visCond/canViewItem
-// for reads (search.go) and the workspace scope the HTTP layer asserts for
-// writes — so no route can grow a second, weaker copy of the ACL.
+// reuses the permission primitives that already exist — visCond for the listing,
+// itemsVisibleToViewer (the by-id rule of ItemVisibleTo) for the single-item
+// reads — and the workspace scope the HTTP layer asserts for writes — so no route
+// can grow a second, weaker copy of the ACL.
 //
 // Two conventions are worth stating once:
 //
@@ -151,7 +152,13 @@ func scanSpace(row pgx.Row) (Space, error) {
 // CreateSpace inserts one space and returns it as stored. A second space with
 // the same name gets a numeric slug suffix rather than failing: the name is user
 // data, the slug is bookkeeping.
-func (s *Store) CreateSpace(ctx context.Context, workspaceID, name, description string, ownerID *string) (Space, error) {
+//
+// departmentID files the space under a department of this workspace
+// (docs/engineering/ORG-MODEL.md §3). It is attribution, not an access rule: nil
+// means "not filed under a department". The caller has already resolved the
+// department inside this workspace, because there is no foreign key behind the
+// column and a foreign id would be stored as a dangling reference.
+func (s *Store) CreateSpace(ctx context.Context, workspaceID, name, description string, ownerID, departmentID *string) (Space, error) {
 	workspaceID = strings.TrimSpace(workspaceID)
 	name = strings.TrimSpace(name)
 	if !isUUIDString(workspaceID) {
@@ -159,6 +166,16 @@ func (s *Store) CreateSpace(ctx context.Context, workspaceID, name, description 
 	}
 	if name == "" {
 		return Space{}, fmt.Errorf("%w: name is required", ErrInvalidField)
+	}
+	department, err := normalizedDepartmentID(departmentID)
+	if err != nil {
+		return Space{}, err
+	}
+	// An untyped argument, so an unfiled space binds SQL NULL through the
+	// ::uuid cast instead of a Go pointer to nothing.
+	var departmentArg any
+	if department != nil {
+		departmentArg = *department
 	}
 	if _, err := s.db.Exec(ctx, `
 		INSERT INTO knowledge_instances (workspace_id, wiki_id)
@@ -169,7 +186,6 @@ func (s *Store) CreateSpace(ctx context.Context, workspaceID, name, description 
 
 	base := slugify(name)
 	var spaceID string
-	var err error
 	for attempt := 0; attempt < 32; attempt++ {
 		slug := base
 		if attempt > 0 {
@@ -177,11 +193,11 @@ func (s *Store) CreateSpace(ctx context.Context, workspaceID, name, description 
 		}
 		err = s.db.QueryRow(ctx, `
 			INSERT INTO knowledge_spaces
-				(workspace_id, wiki_id, slug, display_name, owner_id, settings)
-			VALUES ($1, $2, $3, $4, $5, jsonb_build_object('description', $6::text))
+				(workspace_id, wiki_id, slug, display_name, owner_id, department_id, settings)
+			VALUES ($1, $2, $3, $4, $5, $6::uuid, jsonb_build_object('description', $7::text))
 			ON CONFLICT (workspace_id, wiki_id, slug) DO NOTHING
 			RETURNING id::text`,
-			workspaceID, DefaultWikiID, slug, name, ownerID, description).Scan(&spaceID)
+			workspaceID, DefaultWikiID, slug, name, ownerID, departmentArg, description).Scan(&spaceID)
 		if err == nil {
 			break
 		}
@@ -238,6 +254,117 @@ func (s *Store) GetSpace(ctx context.Context, workspaceID, spaceID string) (Spac
 		return Space{}, fmt.Errorf("get knowledge space: %w", err)
 	}
 	return sp, nil
+}
+
+// UpdateSpaceInput is a partial space update: nil means "leave as stored".
+// DepartmentID is a pointer to a pointer for the same reason UpdateItemInput's
+// ProjectID is — an omitted department_id and an explicitly cleared one are two
+// different requests. "" or null through the inner pointer clears the filing.
+type UpdateSpaceInput struct {
+	WorkspaceID  string
+	SpaceID      string
+	Name         *string
+	Description  *string
+	DepartmentID **string
+}
+
+// UpdateSpace applies a partial update and returns the space as stored.
+func (s *Store) UpdateSpace(ctx context.Context, in UpdateSpaceInput) (Space, error) {
+	workspaceID := strings.TrimSpace(in.WorkspaceID)
+	spaceID := strings.TrimSpace(in.SpaceID)
+	if !isUUIDString(spaceID) {
+		return Space{}, ErrSpaceNotFound
+	}
+	args := []any{workspaceID, spaceID}
+	sets := []string{}
+	add := func(clause string, value any) {
+		args = append(args, value)
+		sets = append(sets, fmt.Sprintf(clause, len(args)))
+	}
+	if in.Name != nil {
+		name := strings.TrimSpace(*in.Name)
+		if name == "" {
+			return Space{}, fmt.Errorf("%w: name cannot be empty", ErrInvalidField)
+		}
+		add("display_name = $%d", name)
+	}
+	if in.Description != nil {
+		// The description is one key of the free-form settings object, so the
+		// update writes that key and leaves every other setting alone.
+		add("settings = jsonb_set(settings, '{description}', to_jsonb($%d::text), true)",
+			strings.TrimSpace(*in.Description))
+	}
+	if in.DepartmentID != nil {
+		department, err := normalizedDepartmentID(*in.DepartmentID)
+		if err != nil {
+			return Space{}, err
+		}
+		if department == nil {
+			sets = append(sets, "department_id = NULL")
+		} else {
+			add("department_id = $%d::uuid", *department)
+		}
+	}
+	if len(sets) == 0 {
+		return Space{}, fmt.Errorf("%w: no fields to update", ErrInvalidField)
+	}
+	sets = append(sets, "updated_at = now()")
+
+	var updatedID string
+	err := s.db.QueryRow(ctx, fmt.Sprintf(`
+		UPDATE knowledge_spaces
+		SET %s
+		WHERE workspace_id = $1 AND id::text = $2
+		RETURNING id::text`, strings.Join(sets, ", ")), args...).Scan(&updatedID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Space{}, ErrSpaceNotFound
+	}
+	if err != nil {
+		return Space{}, fmt.Errorf("update knowledge space: %w", err)
+	}
+	return s.GetSpace(ctx, workspaceID, updatedID)
+}
+
+// ClearDepartmentSpaces unfiles every space of departmentID inside workspaceID
+// and reports how many rows it changed.
+//
+// Department deletion calls it inside the delete transaction: department_id is
+// attribution with no foreign key behind it (docs/engineering/ORG-MODEL.md §3),
+// so nothing in the schema would clear the reference, and the space would keep
+// naming a department row that no longer exists — a blank department name where
+// the client reads it.
+func (s *Store) ClearDepartmentSpaces(ctx context.Context, workspaceID, departmentID string) (int64, error) {
+	workspaceID = strings.TrimSpace(workspaceID)
+	departmentID = strings.TrimSpace(departmentID)
+	if !isUUIDString(workspaceID) || !isUUIDString(departmentID) {
+		return 0, fmt.Errorf("%w: workspace_id=%q department_id=%q must be uuids", ErrInvalidField, workspaceID, departmentID)
+	}
+	tag, err := s.db.Exec(ctx, `
+		UPDATE knowledge_spaces
+		SET department_id = NULL, updated_at = now()
+		WHERE workspace_id = $1 AND department_id = $2::uuid`, workspaceID, departmentID)
+	if err != nil {
+		return 0, fmt.Errorf("clear knowledge space department: %w", err)
+	}
+	return tag.RowsAffected(), nil
+}
+
+// normalizedDepartmentID turns an optional department id into what an insert or
+// an update writes: nil (or blank) is "not filed under a department", and any
+// other value has to be a uuid so a malformed one answers invalid_request
+// instead of reaching the driver as a uuid syntax error.
+func normalizedDepartmentID(raw *string) (*string, error) {
+	if raw == nil {
+		return nil, nil
+	}
+	trimmed := strings.TrimSpace(*raw)
+	if trimmed == "" {
+		return nil, nil
+	}
+	if !isUUIDString(trimmed) {
+		return nil, fmt.Errorf("%w: department_id=%q is not a uuid", ErrInvalidField, trimmed)
+	}
+	return &trimmed, nil
 }
 
 // ---------------------------------------------------------------------------
@@ -511,6 +638,11 @@ func (s *Store) GetItemByID(ctx context.Context, workspaceID, itemID string) (It
 // ErrKnowledgeForbidden (403). GetItemForViewer collapses both into 403 because
 // a retrieval caller must not learn whether an invisible id exists; a CRUD read
 // addressed by id has no such ambiguity to protect.
+//
+// An unapproved draft is one of the rows the rule can refuse here: it is readable
+// by its owner, its space's owner, its department's lead, and a workspace
+// owner/admin — the same four the approve route admits, which is what lets an
+// approver open the draft it is about to activate.
 func (s *Service) ReadItem(ctx context.Context, workspaceID, viewerID, itemID string) (Item, error) {
 	item, err := s.store.GetItemByID(ctx, workspaceID, itemID)
 	if err != nil {
@@ -531,7 +663,11 @@ func (s *Service) ReadItem(ctx context.Context, workspaceID, viewerID, itemID st
 	if item.ProjectID != nil {
 		view.ProjectID = *item.ProjectID
 	}
-	if !canViewItem(view, workspaceID, viewerID) {
+	visible, err := s.itemVisibleToViewer(ctx, workspaceID, viewerID, view)
+	if err != nil {
+		return Item{}, err
+	}
+	if !visible {
 		return Item{}, fmt.Errorf("%w: item %s", ErrKnowledgeForbidden, itemID)
 	}
 	return item, nil

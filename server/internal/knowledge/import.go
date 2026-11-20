@@ -341,10 +341,17 @@ type ImportRequest struct {
 	Chunk   ChunkConfig
 	ACLMode string
 	OwnerID string
-	// Status is the lifecycle the created item starts in. Empty means active:
-	// a human upload is indexed immediately. An agent write passes draft, so
-	// what a run leaves behind waits for a reviewer (W1-A, knowledge.propose).
+	// Status is the lifecycle the created item starts in. Empty means active,
+	// which is the whole-document pipeline's own default; the HTTP import route
+	// never relies on it, because who may publish directly is decided there by
+	// the review gate (W1-A, handler/knowledge.go). An agent write passes draft,
+	// so what a run leaves behind waits for a reviewer (knowledge.propose).
 	Status string
+	// ReviewedBy names the person whose approval right is what lets this import
+	// land active — the approver who ran it. It is recorded on the created row so
+	// the audit does not report a freely published item as never reviewed. Empty
+	// means the row is unreviewed, which is every draft and every agent import.
+	ReviewedBy string
 }
 
 // StartImport records a task and 鈥?unless the Service is synchronous 鈥?starts the
@@ -375,6 +382,11 @@ func (s *Service) StartImport(ctx context.Context, in ImportRequest) (ImportTask
 			ErrInvalidField, in.Status, Status.Values)
 	}
 	in.Status = status
+	// An approval is a property of an active row: stamping a draft would hide it
+	// from the unreviewed audit while it still needs a reviewer.
+	if status != StatusActive {
+		in.ReviewedBy = ""
+	}
 	aclMode := in.ACLMode
 	if aclMode == "" {
 		aclMode = ACLMode.Default
@@ -527,6 +539,7 @@ func (s *Service) runImport(ctx context.Context, task ImportTask, in ImportReque
 		Status:      in.Status,
 		ACLMode:     in.ACLMode,
 		OwnerID:     optionalString(in.OwnerID),
+		ReviewedBy:  optionalString(in.ReviewedBy),
 	})
 	if err != nil {
 		fail("storing item", err)

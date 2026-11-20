@@ -26,9 +26,9 @@ import (
 //     knowledge.Service.Tools(), so the schema a model is shown and the code that
 //     answers it cannot drift apart.
 //   - It does not decide visibility. tools/call goes through
-//     knowledge.Service.InvokeTool, which runs the package's canViewItem gate for
-//     the token's own user. The MCP surface is a second protocol, never a second
-//     door.
+//     knowledge.Service.InvokeTool, which runs the package's by-id item rule
+//     (ItemVisibleTo, including the unapproved-draft gate) for the token's own
+//     user. The MCP surface is a second protocol, never a second door.
 //
 // Errors are JSON-RPC codes rather than HTTP statuses, because that is what a
 // client can act on: HTTP stays 200 for every decoded request (the repo's apps
