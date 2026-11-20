@@ -6,7 +6,10 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -139,6 +142,31 @@ func (h *Handler) memberCanWireAgent(ctx context.Context, member db.Member, agen
 	}
 	uid := uuidToString(member.UserID)
 	return h.canInvokeAgent(ctx, agent, "member", uid, uid, workspaceID)
+}
+
+// squadMemberRoleMaxRunes bounds the squad member role description, the value
+// POST /members and PATCH /members/role persist. The column is a free-text
+// label ("Owns frontend implementation"), not an enum: no squad read path
+// compares it and the squad leader is resolved from squad.leader_id, not from a
+// role spelling. The bound keeps it a short label because the whole roster is
+// rendered into the leader briefing as one line per member (squad_briefing.go
+// formatRosterRow).
+const squadMemberRoleMaxRunes = 120
+
+// normalizeSquadMemberRole trims and validates a squad member role description.
+// An empty role is valid and means "no role description": members join without
+// one and the editor can clear a role again. A line break or other control
+// character would forge an extra roster row inside the single-line leader
+// briefing, so the value must stay one line. Writes the 400 response on
+// rejection and reports ok=false.
+func normalizeSquadMemberRole(w http.ResponseWriter, role string) (string, bool) {
+	trimmed := strings.TrimSpace(role)
+	if strings.ContainsFunc(trimmed, unicode.IsControl) || utf8.RuneCountInString(trimmed) > squadMemberRoleMaxRunes {
+		writeError(w, http.StatusBadRequest,
+			"role must be a single line of at most "+strconv.Itoa(squadMemberRoleMaxRunes)+" characters")
+		return "", false
+	}
+	return trimmed, true
 }
 
 // loadSquadInWorkspace loads a squad scoped to the current workspace.
@@ -815,6 +843,10 @@ func (h *Handler) AddSquadMember(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "member_type must be 'agent' or 'member'")
 		return
 	}
+	role, ok := normalizeSquadMemberRole(w, req.Role)
+	if !ok {
+		return
+	}
 	if req.MemberID == "" {
 		writeError(w, http.StatusBadRequest, "member_id is required")
 		return
@@ -854,7 +886,7 @@ func (h *Handler) AddSquadMember(w http.ResponseWriter, r *http.Request) {
 		SquadID:    squad.ID,
 		MemberType: req.MemberType,
 		MemberID:   memberUUID,
-		Role:       req.Role,
+		Role:       role,
 	})
 	if err != nil {
 		if isUniqueViolation(err) {
@@ -952,6 +984,10 @@ func (h *Handler) UpdateSquadMemberRole(w http.ResponseWriter, r *http.Request) 
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
+	role, ok := normalizeSquadMemberRole(w, req.Role)
+	if !ok {
+		return
+	}
 
 	memberUUID, ok := parseUUIDOrBadRequest(w, req.MemberID, "member_id")
 	if !ok {
@@ -962,7 +998,7 @@ func (h *Handler) UpdateSquadMemberRole(w http.ResponseWriter, r *http.Request) 
 		SquadID:    squad.ID,
 		MemberType: req.MemberType,
 		MemberID:   memberUUID,
-		Role:       req.Role,
+		Role:       role,
 	})
 	if err != nil {
 		writeError(w, http.StatusNotFound, "squad member not found")

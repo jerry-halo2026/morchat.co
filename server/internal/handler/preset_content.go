@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -28,6 +30,11 @@ const (
 // nothing else: relative paths, known document suffixes, no traversal.
 var presetContentPathRE = regexp.MustCompile(`^[A-Za-z0-9._\-/]+\.(md|mdx|json|ya?ml|txt)$`)
 
+// errPresetContentNotFound marks an upstream 404: the content repository does
+// not have this document. It stays distinct from a transport, 5xx or body
+// failure so the caller can tell a wrong path from an upstream outage.
+var errPresetContentNotFound = errors.New("preset content not found")
+
 type presetContentEntry struct {
 	body      []byte
 	fetchedAt time.Time
@@ -47,6 +54,10 @@ var presetContent = &presetContentCache{entries: map[string]presetContentEntry{}
 // The response mirrors the catalog proxy: five-minute fresh cache, a short
 // max-age when the upstream is down and a cached copy exists, 502 when neither
 // is available (the client then falls back to its own direct read).
+//
+// An upstream 404 is not an outage: the document is simply absent, so the
+// response is 404 naming the requested path. Every other upstream failure
+// keeps the 502.
 func (h *Handler) GetPresetContent(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimSpace(r.URL.Query().Get("path"))
 	if path == "" || strings.Contains(path, "..") || strings.HasPrefix(path, "/") ||
@@ -57,6 +68,12 @@ func (h *Handler) GetPresetContent(w http.ResponseWriter, r *http.Request) {
 
 	body, stale, err := loadPresetContent(r, path)
 	if err != nil {
+		// A missing document is the caller's mistake, not an outage: say which
+		// path was missing so a test or an operator can fix the request.
+		if errors.Is(err, errPresetContentNotFound) {
+			writeError(w, http.StatusNotFound, "preset content not found: "+path)
+			return
+		}
 		writeError(w, http.StatusBadGateway, "preset content is unavailable")
 		return
 	}
@@ -120,6 +137,9 @@ func fetchPresetContent(r *http.Request, path string) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("%w: %s", errPresetContentNotFound, path)
+	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, io.ErrUnexpectedEOF
 	}
