@@ -18,8 +18,17 @@
 
 2. **`local-pdf-compat.spec.ts` 需要完整的 chromium 构建**
    该 spec 用 `test.use({ channel: "chromium" })`，而本机只有 `chromium_headless_shell-1208`。
-   `pnpm exec playwright install chromium` 在本机网络下极慢（15 分钟 4.7MB），
-   下一轮先把这一步跑完，再谈这 3 条是否是产品问题。
+   已尝试两条路都失败：
+   - `pnpm exec playwright install chromium`：下载中途 `Download failure`（15 分钟只到 4.7MB），半成品被清掉；
+   - 加 `PLAYWRIGHT_DOWNLOAD_HOST=https://cdn.npmmirror.com/binaries/playwright` 重试：仍然失败，
+     但缓存里出现了 **chromium-1255**（比 1.58.2 期望的 1208 新，Playwright 不会用）。
+
+   **已用系统 Edge 做过一次性对照**（临时把 spec 的 channel 改成 `msedge`，跑完 `git checkout --` 还原，未提交）：
+   3 条里 **2 条通过**，剩下 `cross-origin local PDF keeps its reading position past capability TTL`
+   卡在等 `pdf-viewer` 自定义元素——那是 Chrome 内建 PDF 阅读器的实现，Edge 不同。
+   结论：这 3 条的红是"缺浏览器构建 + 浏览器实现差异"，不是产品缺陷。
+   下一步要么打通网络装 1208，要么把 spec 的元素等待改成不依赖 Chrome 内建阅读器。
+
 
 3. **`navigation.spec.ts` 的 `networkidle` 与 Next dev 不兼容**
    dev 模式下 Turbopack 的 worker chunk 请求不结束，`waitForLoadState("networkidle")`
